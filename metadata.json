@@ -1,0 +1,6 @@
+{
+  "name": "LogTime by OxyFlow",
+  "description": "Multi-mode work tracker and Rust project generator with a fluid GUI, an integrated CLI emulator, and exportable Rust engine files.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

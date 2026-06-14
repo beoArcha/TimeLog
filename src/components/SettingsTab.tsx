@@ -1,0 +1,127 @@
+import React from 'react';
+import { Settings, Sun, Moon, Eye, Laptop, Languages, RefreshCw, AlertTriangle, Shield, CheckCircle, CalendarDays } from 'lucide-react';
+import { useOxyFlow } from '../hooks/useOxyFlow';
+import EngineConfig from './EngineConfig';
+import HolidaysAndLeaves from './HolidaysAndLeaves';
+import { defaultTranslations, LocaleType } from '../utils/translations';
+import { translate } from '../utils/i18n';
+import { toast } from 'sonner';
+import CollapsibleCard from './CollapsibleCard';
+
+export default function SettingsTab() {
+  const { theme, setTheme, customTranslations, setCustomTranslations, resolvedTheme, localePref, setLocalePref, locale, setLocale, setProjects, setTasks, setLogs, setHolidays } = useOxyFlow();
+
+  const handleResetData = () => {
+    const response = window.prompt(translate(locale, 'dynamic.warningResetApp', customTranslations));
+    if (response === 'reset') {
+      setProjects([]);
+      setTasks([]);
+      setLogs([]);
+      localStorage.removeItem('oxytime_state_db_6');
+      toast.success(translate(locale, 'settings.resetSuccess', customTranslations));
+    } else if (response !== null) {
+      toast.error(translate(locale, 'settings.resetCancel', customTranslations));
+    }
+  };
+
+  const themes = [
+    { id: 'light', icon: Sun, label: translate(locale, 'themes.light', customTranslations), desc: translate(locale, 'themes.lightDesc', customTranslations) },
+    { id: 'dark', icon: Moon, label: translate(locale, 'themes.dark', customTranslations), desc: translate(locale, 'themes.darkDesc', customTranslations) },
+    { id: 'high-contrast', icon: Eye, label: translate(locale, 'themes.highContrast', customTranslations), desc: translate(locale, 'themes.highContrastDesc', customTranslations) },
+    { id: 'system', icon: Laptop, label: translate(locale, 'themes.system', customTranslations), desc: translate(locale, 'themes.systemDesc', customTranslations) }
+  ];
+
+  return (
+    <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
+      <div className={`border-b pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${resolvedTheme === 'light' ? 'border-[#DFD7CB]' : 'border-white/5'}`}>
+        <div>
+          <h2 className={`text-lg font-bold flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
+            <Settings className="w-5 h-5 text-amber-500 animate-spin-slow" />
+            <span>{translate(locale, 'settings.title', customTranslations)}</span>
+          </h2>
+          <p className={`text-xs ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>{translate(locale, 'settings.description', customTranslations)}</p>
+        </div>
+        
+        {/* Language Switcher inline at the top */}
+        <div className={`flex flex-wrap items-center p-1 rounded-xl w-fit ${resolvedTheme === 'light' ? 'bg-[#FCFAF7] border border-[#DFD7CB] shadow-sm' : 'bg-black/30 border border-white/10'}`}>
+          <Languages className={`w-3.5 h-3.5 mx-2 ${resolvedTheme === 'light' ? 'text-blue-500' : 'text-blue-400'}`} />
+          {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as LocaleType[]).map(l => (
+            <button
+              key={l}
+              onClick={() => setLocalePref(l)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
+                localePref === l 
+                  ? 'bg-blue-500 text-white shadow-sm' 
+                  : resolvedTheme === 'light' ? 'text-[#7A6A61] hover:bg-[#DFD7CB]' : 'text-[#9B8C83] hover:bg-[#FCFAF8]/10 hover:text-white'
+              }`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        <EngineConfig />
+        
+        <div className="mt-2">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400"/> {translate(locale, 'settings.holidaysTitle', customTranslations)}</h3>
+          <HolidaysAndLeaves />
+        </div>
+
+
+
+        <CollapsibleCard
+          title={translate(locale, 'settings.theme', customTranslations)}
+          icon={Sun}
+          iconColor="text-yellow-500"
+          defaultExpanded={true}
+        >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+            {themes.map(t => {
+              const isActive = theme === t.id;
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTheme(t.id as any)}
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all cursor-pointer text-center ${
+                    isActive 
+                      ? 'bg-orange-500 border-orange-600 text-white shadow-md scale-105 z-10' 
+                      : resolvedTheme === 'light'
+                      ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#7A6A61] hover:bg-[#F4EFEA]'
+                      : 'bg-black/20 border-white/10 text-[#9B8C83] hover:bg-[#FCFAF8]/5'
+                  }`}
+                >
+                  <Icon className={`w-6 h-6 mb-2 ${isActive ? 'text-white' : ''}`} />
+                  <span className="text-xs font-bold">{t.label}</span>
+                  <span className="text-[10px] opacity-80 mt-1">{t.desc}</span>
+                </button>
+              );
+            })}
+          </div>
+        </CollapsibleCard>
+
+        <CollapsibleCard
+          title={translate(locale, 'settings.destructiveZone', customTranslations)}
+          icon={AlertTriangle}
+          iconColor="text-rose-500"
+          titleColor="text-rose-500"
+          defaultExpanded={false}
+          wrapperClassName="p-6 rounded-3xl border border-rose-500/30 bg-rose-500/5 flex flex-col gap-4"
+        >
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
+            <p className={`text-xs max-w-sm ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>{translate(locale, 'settings.hardResetDesc', customTranslations)}</p>
+            <button 
+              onClick={handleResetData}
+              className="bg-rose-500 hover:bg-rose-600 px-6 py-3 rounded-2xl text-white text-xs font-bold uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer whitespace-nowrap"
+            >
+              <RefreshCw className="w-4 h-4" /> {translate(locale, 'settings.hardResetBtn', customTranslations)}
+            </button>
+          </div>
+        </CollapsibleCard>
+
+      </div>
+    </div>
+  );
+}
