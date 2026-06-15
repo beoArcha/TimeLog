@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { rustCodebase, RustFile } from '../data/mockRustCode';
 import { FileCode, FolderClosed, ClipboardCheck, Clipboard, Download, HelpCircle, Terminal, Cpu } from 'lucide-react';
+import { translate } from '../utils/i18n';
+import { LocaleType } from '../utils/translations';
 
-export default function RustSourceExplorer({ theme }: { theme?: string }) {
+export default function RustSourceExplorer({ theme, locale = 'en', customTranslations = {} }: { theme?: string, locale?: LocaleType, customTranslations?: Record<string, string> }) {
   const [selectedFile, setSelectedFile] = useState<RustFile>(rustCodebase[2]); // db.rs by default
   const [copied, setCopied] = useState(false);
 
@@ -48,19 +50,19 @@ export default function RustSourceExplorer({ theme }: { theme?: string }) {
             theme === 'light' ? 'text-slate-900 border-slate-200' : 'text-white border-white/10'
           }`}>
             <Cpu className="w-5 h-5 text-orange-500" />
-            Workspace RustCargo
+            {translate(locale, 'rustExplorer.workspaceRustCargo', customTranslations)}
           </h3>
           <p className={`text-xs mb-6 leading-relaxed ${
             theme === 'light' ? 'text-slate-600' : 'text-slate-300'
           }`}>
-            Poniższe pliki stanowią kompletną i w pełni funkcjonalną implementację aplikacji w języku Rust dla systemów Windows & Linux.
+            {translate(locale, 'rustExplorer.description', customTranslations)}
           </p>
 
           {/* Rust Cargo Structure List */}
           <div id="cargo-tree-structure" className="flex flex-col gap-4 font-mono text-xs">
             {/* Project Configs */}
             <div>
-              <p className="text-orange-500 text-[10px] font-sans font-bold uppercase tracking-wider mb-2">Konfiguracja Cargo</p>
+              <p className="text-orange-500 text-[10px] font-sans font-bold uppercase tracking-wider mb-2">{translate(locale, 'rustExplorer.cargoConfig', customTranslations)}</p>
               <div className="flex flex-col gap-1 pl-2">
                 {configs.map(f => (
                   <button
@@ -183,23 +185,23 @@ export default function RustSourceExplorer({ theme }: { theme?: string }) {
             theme === 'light' ? 'text-slate-900' : 'text-white'
           }`}>
             <HelpCircle className="w-4 h-4 text-orange-500" />
-            Jak skompilować z Tauri?
+            {translate(locale, 'rustExplorer.howToCompile', customTranslations)}
           </h4>
           <ol className={`text-xs flex flex-col gap-3 list-decimal pl-4 ${
             theme === 'light' ? 'text-slate-700' : 'text-slate-300'
           }`}>
             <li>
-              Zainstaluj <strong className={theme === 'light' ? 'text-slate-900' : 'text-white'}>Rust toolchain</strong> (rustup.rs) oraz <strong className={theme === 'light' ? 'text-slate-900' : 'text-white'}>Node.js</strong>.
+              {translate(locale, 'rustExplorer.installInstruction1', customTranslations)} <strong className={theme === 'light' ? 'text-slate-900' : 'text-white'}>Rust toolchain</strong> {translate(locale, 'rustExplorer.installInstruction2', customTranslations)} <strong className={theme === 'light' ? 'text-slate-900' : 'text-white'}>Node.js</strong>.
             </li>
             <li>
-              Pobierz pliki źródłowe frontendu (React) i stwórz podfolder <code className="text-orange-500 font-mono font-bold">src-tauri</code> z powyższych plików.
+              {translate(locale, 'rustExplorer.installInstruction3', customTranslations)} <code className="text-orange-500 font-mono font-bold">src-tauri</code> {translate(locale, 'rustExplorer.installInstruction4', customTranslations)}
             </li>
             <li>
-              Zainstaluj zależności i uruchom deweloperski hot-reload (Tauri spina React + Rust):
+              {translate(locale, 'rustExplorer.installInstruction5', customTranslations)}
               <pre className="bg-black/90 p-2.5 rounded-lg text-[10px] text-orange-400 font-mono mt-1 border border-white/10 select-all shadow-inner leading-relaxed">npm install&#10;npx tauri dev</pre>
             </li>
             <li>
-              Zbuduj ultra-lekki, samodzielny instalator produkcyjny (.msi / .deb / .app):
+              {translate(locale, 'rustExplorer.installInstruction6', customTranslations)}
               <pre className="bg-black/90 p-2.5 rounded-lg text-[10px] text-orange-400 font-mono mt-1 border border-white/10 select-all shadow-inner leading-relaxed">npx tauri build</pre>
             </li>
           </ol>
@@ -241,11 +243,11 @@ export default function RustSourceExplorer({ theme }: { theme?: string }) {
               >
                 {copied ? (
                   <>
-                    <ClipboardCheck className="w-3.5 h-3.5 text-emerald-500" /> Ukończono
+                    <ClipboardCheck className="w-3.5 h-3.5 text-emerald-500" /> {translate(locale, 'rustExplorer.copied', customTranslations)}
                   </>
                 ) : (
                   <>
-                    <Clipboard className="w-3.5 h-3.5" /> Skopiuj
+                    <Clipboard className="w-3.5 h-3.5" /> {translate(locale, 'rustExplorer.copy', customTranslations)}
                   </>
                 )}
               </button>
@@ -256,7 +258,7 @@ export default function RustSourceExplorer({ theme }: { theme?: string }) {
                 onClick={() => downloadFile(selectedFile)}
                 className="bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 border border-white/5 text-white px-4 py-1.5 rounded-xl text-xs font-sans font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
               >
-                <Download className="w-3.5 h-3.5" /> Pobierz plik
+                <Download className="w-3.5 h-3.5" /> {translate(locale, 'rustExplorer.downloadFile', customTranslations)}
               </button>
             </div>
           </div>
@@ -302,21 +304,22 @@ export default function RustSourceExplorer({ theme }: { theme?: string }) {
               <Terminal className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h4 className={`font-semibold text-sm ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>Projekt OxyFlow jest cross-platformowy</h4>
-              <p className={`text-xs ${theme === 'light' ? 'text-slate-600' : 'text-slate-300'}`}>Mózgiem jest plik sqlite, do którego microORM z poziomu Rusta odwołuje się w mgnieniu oka.</p>
+              <h4 className={`font-semibold text-sm ${theme === 'light' ? 'text-slate-900' : 'text-white'}`}>{translate(locale, 'rustExplorer.projectIsCrossPlatform', customTranslations)}</h4>
+              <p className={`text-xs ${theme === 'light' ? 'text-slate-600' : 'text-slate-300'}`}>{translate(locale, 'rustExplorer.brainIsSqlite', customTranslations)}</p>
             </div>
           </div>
           <button
             id="download-all-zip-btn"
             onClick={() => {
               // Trigger downloadable readme configuration file as fallback downloader
-              const readmeContent = `OxyFlow Rust Workspace Generator
+              const td = (k: string) => translate(locale, k, customTranslations);
+              const readmeContent = `${td('rustExplorer.readmeGeneratorTitle')}
 ====================================
 
-Twoja wygenerowana struktura plików:
+${td('rustExplorer.readmeGeneratedStructure')}
 ${rustCodebase.map(f => `- ${f.path}`).join('\n')}
 
-Wskazówka: Skopiuj zawartość pliku z kodu głównego GUI, aby skompilować go dla Windows lub Linux.
+${td('rustExplorer.readmeHint')}
 `;
               const blob = new Blob([readmeContent], { type: 'text/plain;charset=utf-8' });
               const url = URL.createObjectURL(blob);
@@ -332,7 +335,7 @@ Wskazówka: Skopiuj zawartość pliku z kodu głównego GUI, aby skompilować go
                 : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
             }`}
           >
-            <Download className="w-4 h-4" /> Pobierz cargo-readme.txt
+            <Download className="w-4 h-4" /> {translate(locale, 'rustExplorer.downloadCargoReadme', customTranslations)}
           </button>
         </div>
 

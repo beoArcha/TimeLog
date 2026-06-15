@@ -33,9 +33,9 @@ export default function BackupTab() {
         if (data.logs) setLogs(data.logs);
         if (data.holidays) setHolidays(data.holidays);
         if (data.patches) setPatches(data.patches);
-        alert('Backup Restore Successful!');
+        alert(translate(locale, 'backupTab.restoreSuccess', customTranslations));
       } catch (err) {
-        alert('Invalid backup file');
+        alert(translate(locale, 'backupTab.invalidBackup', customTranslations));
       }
     };
     reader.readAsText(file);
@@ -81,7 +81,7 @@ export default function BackupTab() {
             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2"
           >
             <UploadCloud className="w-4 h-4" />
-            Backup JSON / Format JSON
+            {translate(locale, 'backupTab.backupJson', customTranslations)}
           </button>
           
           <button
@@ -90,7 +90,7 @@ export default function BackupTab() {
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2"
           >
             <DownloadCloud className="w-4 h-4" />
-            Restore (Import JSON)
+            {translate(locale, 'backupTab.restoreImportJson', customTranslations)}
           </button>
           <input 
             type="file" 

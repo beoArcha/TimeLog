@@ -441,8 +441,8 @@ export default function DbExplorer() {
                               {p.editHistory.map((h, hIdx) => (
                                 <div key={hIdx} className="text-[11px] text-slate-400 mt-1">
                                   <span className="text-slate-500">[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
-                                  Zmiana z nazwy: <strong className="text-white">"{h.prevName}"</strong> (kolor: {h.prevColor}) &rarr;{' '}
-                                  Powód: <em className="text-teal-350">"{h.reason}"</em>
+                                  {translate(locale, 'dbExplorer.changeFromName', customTranslations)} <strong className="text-white">"{h.prevName}"</strong> ({translate(locale, 'dbExplorer.color', customTranslations)} {h.prevColor}) &rarr;{' '}
+                                  {translate(locale, 'dbExplorer.reason', customTranslations)} <em className="text-teal-350">"{h.reason}"</em>
                                 </div>
                               ))}
                             </div>
@@ -476,7 +476,7 @@ export default function DbExplorer() {
                   <th className="py-3 px-4">name</th>
                   <th className="py-3 px-4">completed</th>
                   <th className="py-3 px-4">{translate(locale, 'dynamic.originalValue', customTranslations)}</th>
-                  <th className="py-3 px-4 rounded-r-xl text-right">akcje</th>
+                  <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'dbExplorer.actions', customTranslations)}</th>
                 </tr>
               </thead>
               <tbody className="dark:text-white">
@@ -574,8 +574,8 @@ export default function DbExplorer() {
                               {t.editHistory.map((h, hIdx) => (
                                 <div key={hIdx} className="text-[11px] text-slate-400 mt-1">
                                   <span className="text-slate-500">[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
-                                  Oryginał/Poprzednia nazwa: <strong className="text-white">"{h.prevName}"</strong> (ukończone: {h.prevCompleted ? 'TAK' : 'NIE'}) &rarr;{' '}
-                                  Powód korekty: <em className="text-teal-350">"{h.reason}"</em>
+                                  {translate(locale, 'dbExplorer.originalPrevName', customTranslations)} <strong className="text-white">"{h.prevName}"</strong> ({translate(locale, 'dbExplorer.completed', customTranslations)} {h.prevCompleted ? translate(locale, 'dbExplorer.yes', customTranslations) : translate(locale, 'dbExplorer.no', customTranslations)}) &rarr;{' '}
+                                  {translate(locale, 'dbExplorer.reasonForCorrection', customTranslations)} <em className="text-teal-350">"{h.reason}"</em>
                                 </div>
                               ))}
                             </div>
@@ -621,7 +621,7 @@ export default function DbExplorer() {
               <p className="text-xs font-bold text-orange-400 uppercase tracking-wide">SQL Command: INSERT INTO time_logs</p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
                 <div>
-                  <label className="block text-slate-400 mb-1">Przypisz do zadania:</label>
+                  <label className="block text-slate-400 mb-1">{translate(locale, 'dbExplorer.assignToTask', customTranslations)}</label>
                   <select 
                     value={newLogForm.taskId} 
                     onChange={e => setNewLogForm(prev => ({ ...prev, taskId: e.target.value }))}
@@ -635,7 +635,7 @@ export default function DbExplorer() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Rozpoczęcie (startTime):</label>
+                  <label className="block text-slate-400 mb-1">{translate(locale, 'dbExplorer.startTime', customTranslations)}</label>
                   <input 
                     type="text" 
                     value={newLogForm.startTime} 
@@ -645,7 +645,7 @@ export default function DbExplorer() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Zakończenie (endTime lub puste):</label>
+                  <label className="block text-slate-400 mb-1">{translate(locale, 'dbExplorer.endTime', customTranslations)}</label>
                   <input 
                     type="text" 
                     value={newLogForm.endTime} 
@@ -655,7 +655,7 @@ export default function DbExplorer() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Notatka (note):</label>
+                  <label className="block text-slate-400 mb-1">{translate(locale, 'dbExplorer.note', customTranslations)}</label>
                   <input 
                     type="text" 
                     value={newLogForm.note} 
@@ -682,11 +682,11 @@ export default function DbExplorer() {
                 <tr className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
                   <th className="py-3 px-4 rounded-l-xl">id</th>
                   <th className="py-3 px-4">task_id</th>
-                  <th className="py-3 px-4">start_stamp (start)</th>
-                  <th className="py-3 px-4">end_stamp (koniec)</th>
+                  <th className="py-3 px-4">{translate(locale, 'dbExplorer.startStamp', customTranslations)}</th>
+                  <th className="py-3 px-4">{translate(locale, 'dbExplorer.endStamp', customTranslations)}</th>
                   <th className="py-3 px-4">note</th>
-                  <th className="py-3 px-4">original stamps (oryginał)</th>
-                  <th className="py-3 px-4 rounded-r-xl text-right">akcje</th>
+                  <th className="py-3 px-4">{translate(locale, 'dbExplorer.originalStamps', customTranslations)}</th>
+                  <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'dbExplorer.actions', customTranslations)}</th>
                 </tr>
               </thead>
               <tbody className="dark:text-white">
@@ -721,7 +721,7 @@ export default function DbExplorer() {
                               placeholder="Koniec czasu lub puste"
                             />
                           ) : (
-                            <span className="text-indigo-400 font-semibold">{l.endTime || 'CZYNNE LICZENIE (TRACKING ACTIVE)'}</span>
+                            <span className="text-indigo-400 font-semibold">{l.endTime || translate(locale, 'dbExplorer.trackingActive', customTranslations)}</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 truncate max-w-xs">
@@ -742,7 +742,7 @@ export default function DbExplorer() {
                               Oryg start: {l.originalStartTime ? new Date(l.originalStartTime).toLocaleTimeString() : 'N/A'}
                             </span>
                           ) : (
-                            <span className="text-slate-500 text-[10px]">Bez zmian</span>
+                            <span className="text-slate-500 text-[10px]">{translate(locale, 'dbExplorer.noChanges', customTranslations)}</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -795,9 +795,9 @@ export default function DbExplorer() {
                               {l.editHistory.map((h, hIdx) => (
                                 <div key={hIdx} className="text-[11px] text-slate-400 mt-1 leading-relaxed">
                                   <span className="text-slate-500">[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
-                                  Oryginał start: <strong className="text-white">"{h.prevStartTime}"</strong> rozbity do końca: "{h.prevEndTime || 'BIEŻĄCY'}". <br />
-                                  Notatka przed korektą: "{h.prevNote || 'brak'}" &rarr;{' '}
-                                  Powód modyfikacji: <em className="text-emerald-400 font-semibold">"{h.reason}"</em>
+                                  {translate(locale, 'dbExplorer.originalStart', customTranslations)} <strong className="text-white">"{h.prevStartTime}"</strong> {translate(locale, 'dbExplorer.splitToEnd', customTranslations)} "{h.prevEndTime || translate(locale, 'dbExplorer.current', customTranslations)}". <br />
+                                  {translate(locale, 'dbExplorer.noteBeforeCorrection', customTranslations)} "{h.prevNote || 'brak'}" &rarr;{' '}
+                                  {translate(locale, 'dbExplorer.reasonForModification', customTranslations)} <em className="text-emerald-400 font-semibold">"{h.reason}"</em>
                                 </div>
                               ))}
                             </div>
@@ -847,7 +847,7 @@ export default function DbExplorer() {
                   <th className="py-3 px-4">type</th>
                   <th className="py-3 px-4">name</th>
                   <th className="py-3 px-4">{translate(locale, 'dynamic.originalValue', customTranslations)}</th>
-                  <th className="py-3 px-4 rounded-r-xl text-right">akcje</th>
+                  <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'dbExplorer.actions', customTranslations)}</th>
                 </tr>
               </thead>
               <tbody className="dark:text-white">
@@ -878,8 +878,8 @@ export default function DbExplorer() {
                               onChange={e => setHolidayForm(prev => ({ ...prev, type: e.target.value as any }))}
                               className="bg-black border border-white/20 px-2 py-1 rounded"
                             >
-                              <option value="holiday">holiday (święto)</option>
-                              <option value="leave">leave (urlop)</option>
+                              <option value="holiday">{translate(locale, 'dbExplorer.holiday', customTranslations)}</option>
+                              <option value="leave">{translate(locale, 'dbExplorer.leave', customTranslations)}</option>
                             </select>
                           ) : (
                             <span className="text-indigo-400">{h.type}</span>
@@ -903,7 +903,7 @@ export default function DbExplorer() {
                               Oryg: {h.originalName || h.name} ({h.originalDate})
                             </span>
                           ) : (
-                            <span className="text-slate-500 text-[10px]">Bez zmian</span>
+                            <span className="text-slate-500 text-[10px]">{translate(locale, 'dbExplorer.noChanges', customTranslations)}</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -956,8 +956,8 @@ export default function DbExplorer() {
                               {h.editHistory.map((x, idx) => (
                                 <div key={idx} className="text-[11px] text-slate-400 mt-1">
                                   <span className="text-slate-500">[{new Date(x.editedAt).toLocaleString()}]</span>{' '}
-                                  Modyfikacja z: <strong className="text-white">"{x.prevName}"</strong> ({x.prevDate}, typ: {x.prevType}) &rarr;{' '}
-                                  Powód modyfikacji: <em className="text-teal-350">"{x.reason}"</em>
+                                  {translate(locale, 'dbExplorer.modificationFrom', customTranslations)} <strong className="text-white">"{x.prevName}"</strong> ({x.prevDate}, {translate(locale, 'dbExplorer.type', customTranslations)} {x.prevType}) &rarr;{' '}
+                                  {translate(locale, 'dbExplorer.reasonForModification', customTranslations)} <em className="text-teal-350">"{x.reason}"</em>
                                 </div>
                               ))}
                             </div>

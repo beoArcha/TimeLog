@@ -60,20 +60,20 @@ export default function TrayWidget({ onRestore, onStopAll, showToast }: TrayWidg
           }`}>
             OxyFlow Engine
             <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wider uppercase">
-              SILNIK DZIAŁA W TLE
+              {translate(locale, 'trayWidget.engineRunningBackground', customTranslations)}
             </span>
           </h1>
           <p className={`text-sm mt-2 max-w-md font-sans ${
             resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-300'
           }`}>
-            Aplikacja została zminimalizowana do systemowego zasobnika (tray). Zamknięcie głównego okna nie wstrzymało procesów liczenia czasu.
+            {translate(locale, 'trayWidget.trayDescription', customTranslations)}
           </p>
           <div className={`text-xs px-4 py-2 rounded-xl font-mono inline-block mt-4 border ${
             resolvedTheme === 'light'
               ? 'bg-slate-100 border-slate-200 text-slate-700'
               : 'bg-white/5 border-white/10 text-slate-300'
           }`}>
-            Daemon Engine PID: <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> (SQLite SQLite3 thread)
+            {translate(locale, 'trayWidget.daemonEnginePid', customTranslations)} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {translate(locale, 'trayWidget.sqliteThread', customTranslations)}
           </div>
         </div>
 
@@ -88,7 +88,7 @@ export default function TrayWidget({ onRestore, onStopAll, showToast }: TrayWidg
           <p className={`text-[10px] font-mono uppercase tracking-widest mb-3 border-b pb-1.5 ${
             resolvedTheme === 'light' ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/5'
           }`}>
-            Aktywne wątki pomiarowe ({activeRunningLogs.length})
+            {translate(locale, 'trayWidget.activeMeasuringThreads', customTranslations)} ({activeRunningLogs.length})
           </p>
           {activeRunningLogs.length === 0 ? (
             <p className={`text-xs italic text-center py-2 ${resolvedTheme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -134,7 +134,7 @@ export default function TrayWidget({ onRestore, onStopAll, showToast }: TrayWidg
             className="flex-1 bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold py-3.5 rounded-2xl text-sm transition-all shadow-lg shadow-orange-500/10 cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
           >
             <AppWindow className="w-4.5 h-4.5" />
-            Maksymalizuj i Przywróć GUI
+            {translate(locale, 'trayWidget.maximizeAndRestore', customTranslations)}
           </button>
           <button
             id="tray-kill-all-btn"
@@ -148,7 +148,7 @@ export default function TrayWidget({ onRestore, onStopAll, showToast }: TrayWidg
                 : 'bg-white/5 hover:bg-rose-550/15 text-rose-400 border-white/10 hover:border-rose-500/20 cursor-pointer'
             }`}
           >
-            Wstrzymaj wszystkie procesy
+            {translate(locale, 'trayWidget.pauseAllProcesses', customTranslations)}
           </button>
         </div>
       </div>

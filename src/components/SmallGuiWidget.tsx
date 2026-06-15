@@ -109,7 +109,7 @@ export default function SmallGuiWidget({
             <div className="w-6 h-6 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-450 border border-orange-505/30">
               <Clock className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
             </div>
-            <span className="font-sans font-bold text-xs tracking-tight">OxyFlow (Mały GUI)</span>
+            <span className="font-sans font-bold text-xs tracking-tight">{translate(locale, 'smallGuiWidget.title', customTranslations)}</span>
           </div>
 
           <div className="flex items-center gap-1">
@@ -119,22 +119,22 @@ export default function SmallGuiWidget({
                 checked={alwaysOnTop}
                 onChange={(e) => {
                   setAlwaysOnTop(e.target.checked);
-                  showToast(e.target.checked ? "Zawsze na wierzchu: WŁĄCZONE" : "Zawsze na wierzchu: WYŁĄCZONE");
+                  showToast(e.target.checked ? translate(locale, 'smallGuiWidget.onTopOn', customTranslations) : translate(locale, 'smallGuiWidget.onTopOff', customTranslations));
                 }}
                 className="w-3 h-3 rounded select-none accent-orange-500 cursor-pointer"
               />
-              <span>On Top</span>
+              <span>{translate(locale, 'smallGuiWidget.onTop', customTranslations)}</span>
             </label>
 
             <button
               onClick={() => {
                 setGuiVariant('large');
-                showToast("GUI przełączone do trybu Dużego (6 zakładek).");
+                showToast(translate(locale, 'smallGuiWidget.switchToLarge', customTranslations));
               }}
               className={`p-1 rounded-md transition-all cursor-pointer ${
                 resolvedTheme === 'light' ? 'hover:bg-slate-100 text-slate-700' : 'hover:bg-white/10 text-slate-300'
               }`}
-              title="Powiększ GUI (Maximize GUI)"
+              title={translate(locale, 'smallGuiWidget.maximizeGui', customTranslations)}
             >
               <Maximize2 className="w-3.5 h-3.5 text-orange-400" />
             </button>
@@ -144,7 +144,7 @@ export default function SmallGuiWidget({
               className={`p-1 rounded-md transition-all cursor-pointer ${
                 resolvedTheme === 'light' ? 'hover:bg-slate-100 text-rose-650' : 'hover:bg-white/10 text-rose-450'
               }`}
-              title="Zamknij / Zminimalizuj do Tray (Minimize to Tray)"
+              title={translate(locale, 'smallGuiWidget.minimizeMinimize', customTranslations)}
             >
               <X className="w-3.5 h-3.5 font-bold" />
             </button>
@@ -156,7 +156,7 @@ export default function SmallGuiWidget({
             <div className="flex items-center gap-2 truncate">
               <span className={`w-3 h-3 rounded-full bg-${activeProj.color || 'rose'}-500 shrink-0 shadow-sm`} />
               <div className="text-left">
-                <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none">Profil aplikacji</p>
+                <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none">{translate(locale, 'smallGuiWidget.appProfile', customTranslations)}</p>
                 <h4 className={`text-xs font-bold font-sans mt-0.5 truncate max-w-[220px] ${
                   resolvedTheme === 'light' ? 'text-slate-800' : 'text-slate-200'
                 }`} title={activeProj.name}>
@@ -176,7 +176,7 @@ export default function SmallGuiWidget({
                 : 'bg-white/5 hover:bg-white/10 text-slate-300'
             }`}
           >
-            <span>{isSmallExpanded ? 'Ukryj Zadania' : 'Pokaż Zadania'}</span>
+            <span>{isSmallExpanded ? translate(locale, 'smallGuiWidget.hideTasks', customTranslations) : translate(locale, 'smallGuiWidget.showTasks', customTranslations)}</span>
             <div className="w-4 h-4 rounded-full bg-orange-500/10 flex items-center justify-center">
               <ChevronDown className={`w-3 h-3 transition-transform duration-300 text-orange-400 ${
                 isSmallExpanded ? 'rotate-180' : ''
@@ -226,10 +226,10 @@ export default function SmallGuiWidget({
                               onClick={() => {
                                 if (isRootActive) {
                                   handleStopTimer();
-                                  showToast(`Zatrzymano pomiar: ${task.name}`);
+                                  showToast(`${translate(locale, 'smallGuiWidget.stoppedMeasurement', customTranslations)}${task.name}`);
                                 } else {
                                   handleStartTimer(task.id);
-                                  showToast(`Uruchomiono pomiar: ${task.name}`);
+                                  showToast(`${translate(locale, 'smallGuiWidget.startedMeasurement', customTranslations)}${task.name}`);
                                 }
                               }}
                               className={`p-1.5 rounded-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer ${
@@ -237,7 +237,7 @@ export default function SmallGuiWidget({
                                   ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
                                   : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30'
                               }`}
-                              title={isRootActive ? 'Zatrzymaj pomiar' : 'Uruchom pomiar'}
+                              title={isRootActive ? translate(locale, 'smallGuiWidget.stopMeasurement', customTranslations) : translate(locale, 'smallGuiWidget.startMeasurement', customTranslations)}
                             >
                               {isRootActive ? <Square className="w-3.5 h-3.5 fill-rose-500" /> : <Play className="w-3.5 h-3.5 fill-emerald-500" />}
                             </button>
@@ -260,10 +260,10 @@ export default function SmallGuiWidget({
                                       onClick={() => {
                                         if (isSubActive) {
                                           handleStopTimer();
-                                          showToast(`Zatrzymano pomiar podzadania: ${sub.name}`);
+                                          showToast(`${translate(locale, 'smallGuiWidget.stoppedSubtask', customTranslations)}${sub.name}`);
                                         } else {
                                           handleStartTimer(sub.id);
-                                          showToast(`Uruchomiono pomiar podzadania: ${sub.name}`);
+                                          showToast(`${translate(locale, 'smallGuiWidget.startedSubtask', customTranslations)}${sub.name}`);
                                         }
                                       }}
                                       className={`p-1 rounded-md transition-all cursor-pointer ${
