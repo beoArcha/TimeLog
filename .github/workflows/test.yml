@@ -110,11 +110,16 @@ jobs:
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
       
-    - name: Install cargo-tarpaulin
-      uses: taiki-e/install-action@cargo-tarpaulin
-      
     - name: Generate Rust Project
       run: bash scripts/generate_rust_project.sh
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: "src-tauri"
+        
+    - name: Install cargo-tarpaulin
+      uses: taiki-e/install-action@cargo-tarpaulin
       
     - name: Install Linux dependencies for Tauri
       run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev

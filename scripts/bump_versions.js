@@ -45,18 +45,13 @@ changedFiles.forEach(file => {
   }
 });
 
-let updated = false;
+if (anyEngine) { v.subversions.engine++; }
+if (anyComponent) { v.subversions.components++; }
+if (anyTranslations) { v.subversions.translations++; }
+if (anyFront) { v.subversions.front++; }
 
-if (anyEngine) { v.subversions.engine++; updated = true; }
-if (anyComponent) { v.subversions.components++; updated = true; }
-if (anyTranslations) { v.subversions.translations++; updated = true; }
-if (anyFront) { v.subversions.front++; updated = true; }
-
-if (changedFiles.length > 0 && !updated) {
-  v.release++;
-} else if (updated) {
-  v.release++;
-}
+// Always increment release for every commit that triggers the workflow
+v.release++;
 
 fs.writeFileSync(versionsFile, JSON.stringify(v, null, 2) + '\n');
 

@@ -119,3 +119,23 @@ npx vitest run
   - **`formatSeconds` Math:** Checks formatting bounds across variable limits (`00:00:00` up to `99:59:59`).
   - **`getTaskDurationSeconds` Integrity:** Validates **recursive parent-child time consolidation**, dynamic live calculation tracking, and accumulated tracking logic.
   - **Translation Engine:** Asserts custom fallback mechanisms directly from core functions.
+
+---
+
+## 🛠️ Continuous Integration, Delivery & Versioning
+
+oXyTime maintains enterprise-grade reliability and automated version management via advanced **GitHub Actions workflows**.
+
+### Automated Test Pipelines & Coverage
+Every pull request and push to the `main` branch triggers parallel test matrices:
+- **Unit & E2E Testing**: Runs the complete frontend Vitest suite, exporting JUnit XML and `v8` coverage reports stored dynamically as test artifacts.
+- **Rust Backend Coverage**: On-the-fly integration of the Tauri mock native environment with **cargo-tarpaulin** analyzing native engine code coverage metrics.
+
+### Automated Version Release (`bump_versions.js`)
+Pushes to `main` evaluate git diffs natively and apply intelligent **component-level subversion tracking**:
+- Inspects code mutations to categorize bumps specifically for **Engine**, **Components**, **Translations**, or **Front**.
+- Records precise states to `src/versions.json` making live build identifiers available in the UI settings pane.
+- Automatically commits version deltas keeping local `package.json` synchronised identically to the remote state.
+
+### Dependency Caching
+To optimize CI speeds, the test environment injects `Swatinem/rust-cache@v2` protecting target builds alongside standard NPM caching mechanisms, significantly lowering automated verification lead times.
