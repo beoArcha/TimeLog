@@ -59,12 +59,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&tray_menu)
                 .on_menu_event(|app, event| {
-                    if event.id == "toggle_vis" {
+                    if event.id().as_ref() == "toggle_vis" {
                         if let Some(window) = app.get_webview_window("main") {
                             window.show().unwrap();
                             window.set_focus().unwrap();
                         }
-                    } else if event.id == "quit_app" {
+                    } else if event.id().as_ref() == "quit_app" {
                         app.exit(0);
                     }
                 })

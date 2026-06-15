@@ -1,45 +1,50 @@
 //! SQlite schema database definitions for Tauri v2 platform
 use rusqlite::{Connection, Result, params};
 
+pub fn init_db() -> Result<Connection> {
+    let conn = Connection::open("oxytime.db")?;
+
+    // Enable WAL mode & SQLite optimizations
+    conn.execute("PRAGMA journal_mode = WAL;", [])?;
+    conn.execute("PRAGMA foreign_keys = ON;", [])?;
+
+    // Create projects, tasks, and concurrent timer logs structure
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS projects (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL UNIQUE,
+            color TEXT NOT NULL,
+            created_at TEXT NOT NULL
+         );
+         CREATE TABLE IF NOT EXISTS tasks (
+            id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            parent_task_id TEXT,
+            name TEXT NOT NULL,
+            completed INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
+            FOREIGN KEY(parent_task_id) REFERENCES tasks(id) ON DELETE CASCADE
+         );
+         CREATE TABLE IF NOT EXISTS time_logs (
+            id TEXT PRIMARY KEY,
+            task_id TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT,
+            FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
+         );"
+    )?;
+
+    Ok(conn)
+}
+
 pub struct DataManager {
     conn: Connection,
 }
 
 impl DataManager {
     pub fn new() -> Result<Self> {
-        let conn = Connection::open("oxytime.db")?;
-
-        // Enable WAL mode & SQLite optimizations
-        conn.execute("PRAGMA journal_mode = WAL;", [])?;
-        conn.execute("PRAGMA foreign_keys = ON;", [])?;
-
-        // Create projects, tasks, and concurrent timer logs structure
-        conn.execute_batch(
-            "CREATE TABLE IF NOT EXISTS projects (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL UNIQUE,
-                color TEXT NOT NULL,
-                created_at TEXT NOT NULL
-             );
-             CREATE TABLE IF NOT EXISTS tasks (
-                id TEXT PRIMARY KEY,
-                project_id TEXT NOT NULL,
-                parent_task_id TEXT,
-                name TEXT NOT NULL,
-                completed INTEGER DEFAULT 0,
-                created_at TEXT NOT NULL,
-                FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
-                FOREIGN KEY(parent_task_id) REFERENCES tasks(id) ON DELETE CASCADE
-             );
-             CREATE TABLE IF NOT EXISTS time_logs (
-                id TEXT PRIMARY KEY,
-                task_id TEXT NOT NULL,
-                start_time TEXT NOT NULL,
-                end_time TEXT,
-                FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
-             );"
-        )?;
-
+        let conn = init_db()?;
         Ok(Self { conn })
     }
 

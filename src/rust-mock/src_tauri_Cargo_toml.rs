@@ -18,3 +18,6 @@ chrono = { version = "0.4.38", features = ["serde"] }
 # System stats & CLI
 comfy-table = "7.1"
 clap = { version = "4.5", features = ["derive"] }
+
+[build-dependencies]
+tauri-build = { version = "2.0.0", features = [] }
