@@ -7,6 +7,8 @@ import { defaultTranslations, LocaleType } from '../utils/translations';
 import { translate } from '../utils/i18n';
 import { toast } from 'sonner';
 import CollapsibleCard from './CollapsibleCard';
+import { Info } from 'lucide-react';
+import versionsData from '../versions.json';
 
 export default function SettingsTab() {
   const { theme, setTheme, customTranslations, setCustomTranslations, resolvedTheme, localePref, setLocalePref, locale, setLocale, setProjects, setTasks, setLogs, setHolidays } = useOxyFlow();
@@ -118,6 +120,41 @@ export default function SettingsTab() {
             >
               <RefreshCw className="w-4 h-4" /> {translate(locale, 'settings.hardResetBtn', customTranslations)}
             </button>
+          </div>
+        </CollapsibleCard>
+
+        {/* Application Version Details */}
+        <CollapsibleCard
+          title="OxyFlow Versions"
+          icon={Info}
+          iconColor="text-blue-500"
+          titleColor="text-blue-500"
+          defaultExpanded={false}
+          wrapperClassName={`p-6 rounded-3xl border ${resolvedTheme === 'light' ? 'border-[#DFD7CB] bg-white' : 'border-white/5 bg-white/5'} flex flex-col gap-4`}
+        >
+          <div className="flex flex-col gap-3 mt-2 text-sm">
+            <div className={`flex justify-between items-center pb-2 border-b ${resolvedTheme === 'light' ? 'border-[#DFD7CB]' : 'border-white/5'}`}>
+              <span className="font-medium">App Release</span>
+              <span className="font-bold font-mono text-blue-500">v{versionsData.major}.{versionsData.minor}.{versionsData.release}</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs mt-2">
+              <div className={`p-3 rounded-xl border ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-black/20 border-white/5'}`}>
+                <div className="opacity-70 mb-1">Engine</div>
+                <div className="font-bold font-mono">{versionsData.major}.{versionsData.minor}.{versionsData.subversions.engine}</div>
+              </div>
+              <div className={`p-3 rounded-xl border ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-black/20 border-white/5'}`}>
+                <div className="opacity-70 mb-1">Front</div>
+                <div className="font-bold font-mono">{versionsData.major}.{versionsData.minor}.{versionsData.subversions.front}</div>
+              </div>
+              <div className={`p-3 rounded-xl border ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-black/20 border-white/5'}`}>
+                <div className="opacity-70 mb-1">Components</div>
+                <div className="font-bold font-mono">{versionsData.major}.{versionsData.minor}.{versionsData.subversions.components}</div>
+              </div>
+              <div className={`p-3 rounded-xl border ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-black/20 border-white/5'}`}>
+                <div className="opacity-70 mb-1">Translations</div>
+                <div className="font-bold font-mono">{versionsData.major}.{versionsData.minor}.{versionsData.subversions.translations}</div>
+              </div>
+            </div>
           </div>
         </CollapsibleCard>
 

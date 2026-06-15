@@ -2,15 +2,16 @@ name: Tests
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
-  test:
+  test-unit:
+    name: Frontend Unit Tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,40 +27,122 @@ jobs:
         node-version: '22'
         cache: 'npm'
         
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-      
     - name: Install dependencies
       run: npm ci || npm install
       
     - name: Run linting
       run: npm run lint
       
-    - name: Run JS/TS tests with coverage and Junit reporter
-      run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=test-results.xml
+    - name: Run Unit Tests with Coverage
+      run: npx vitest run tests --exclude tests/end-to-end.test.tsx --coverage --coverage.reportsDirectory=coverage/unit --reporter=default --reporter=junit --outputFile.junit=unit-results.xml
       
-    - name: Upload coverage report
+    - name: Upload Unit Coverage
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report
-        path: coverage/
+        name: coverage-unit
+        path: coverage/unit/
         
-    - name: Report Coverage summary
-      if: always()
-      uses: davelosert/vitest-coverage-report-action@v2
-      
-    - name: Publish Test Report
+    - name: Publish Unit Test Report
       if: always()
       uses: mikepenz/action-junit-report@v4
       with:
-        report_paths: 'test-results.xml'
+        report_paths: 'unit-results.xml'
+
+  test-e2e:
+    name: Frontend E2E Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
         
-    - name: Run Rust tests
+    - name: Install dependencies
+      run: npm ci || npm install
+      
+    - name: Run E2E Tests with Coverage
+      run: npx vitest run tests/end-to-end.test.tsx --coverage --coverage.reportsDirectory=coverage/e2e --reporter=default --reporter=junit --outputFile.junit=e2e-results.xml
+      
+    - name: Upload E2E Coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-e2e
+        path: coverage/e2e/
+        
+    - name: Publish E2E Test Report
+      if: always()
+      uses: mikepenz/action-junit-report@v4
+      with:
+        report_paths: 'e2e-results.xml'
+
+  test-rust:
+    name: Rust Backend Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Install cargo-tarpaulin
+      uses: taiki-e/install-action@cargo-tarpaulin
+      
+    - name: Generate Rust Project
+      run: bash scripts/generate_rust_project.sh
+      
+    - name: Run Rust Tests with Coverage
       run: |
-        if [ -f "Cargo.toml" ]; then
-          cargo test
-        elif [ -f "src-tauri/Cargo.toml" ]; then
-          cargo test --manifest-path src-tauri/Cargo.toml
-        else
-          echo "No Rust project found, skipping Rust tests."
-        fi
+        cd src-tauri
+        cargo tarpaulin --out Xml --output-dir ../coverage/rust
+        
+    - name: Upload Rust Coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-rust
+        path: coverage/rust/
+
+  release:
+    name: Auto Release & Version Bump
+    needs: [test-unit, test-e2e, test-rust]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+        
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        
+    - name: Bump versions
+      run: node scripts/bump_versions.js
+      
+    - name: Commit version bump
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -am "chore(release): bump version [skip ci]" || echo "No changes to commit"
+        git push
+
