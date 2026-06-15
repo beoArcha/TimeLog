@@ -7,7 +7,7 @@ description = "Lightweight work-timer built with Tauri v2 speed, SQLite, and a b
 
 [dependencies]
 # Tauri integration (extremely lightweight webview frame + Rust backend commands)
-tauri = { version = "2.0.0", features = ["tray-icon", "menu"] }
+tauri = { version = "2.0.0", features = ["tray-icon"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 

@@ -3,11 +3,19 @@ name: Tests
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'src/versions.json'
+      - 'package.json'
+      - 'package-lock.json'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - 'src/versions.json'
+      - 'package.json'
+      - 'package-lock.json'
 
 env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   test-unit:
@@ -108,6 +116,9 @@ jobs:
     - name: Generate Rust Project
       run: bash scripts/generate_rust_project.sh
       
+    - name: Install Linux dependencies for Tauri
+      run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+      
     - name: Run Rust Tests with Coverage
       run: |
         cd src-tauri
@@ -118,31 +129,4 @@ jobs:
       with:
         name: coverage-rust
         path: coverage/rust/
-
-  release:
-    name: Auto Release & Version Bump
-    needs: [test-unit, test-e2e, test-rust]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-        
-    - name: Use Node.js 22
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        
-    - name: Bump versions
-      run: node scripts/bump_versions.js
-      
-    - name: Commit version bump
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git commit -am "chore(release): bump version [skip ci]" || echo "No changes to commit"
-        git push
 
