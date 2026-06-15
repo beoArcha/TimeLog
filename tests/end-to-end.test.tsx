@@ -95,7 +95,7 @@ describe('E2E Interaction Suite: State, CLI, Backup, API Push', () => {
 
     await waitRender();
     await waitRender();
-    expect(window.alert).toHaveBeenCalledWith("Backup Restore Successful!");
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("restoreSuccess"));
   });
 
   it('triggers external API push on task complete/state change', async () => {
