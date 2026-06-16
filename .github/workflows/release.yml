@@ -90,7 +90,7 @@ jobs:
       - name: build frontend assets
         run: npm run build
 
-      - uses: tauri-apps/tauri-action@v2
+      - uses: tauri-apps/tauri-action@v0
         id: tauri_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -102,9 +102,18 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
+      - name: Parse artifact paths
+        id: artifact_paths
+        shell: bash
+        run: |
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "paths<<$EOF" >> $GITHUB_OUTPUT
+          echo '${{ steps.tauri_build.outputs.artifactPaths }}' | jq -r '.[]' >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-artifacts-${{ matrix.platform }}
-          path: "${{ join(fromJSON(steps.tauri_build.outputs.artifactPaths), '\n') }}"
+          path: ${{ steps.artifact_paths.outputs.paths }}
           if-no-files-found: error
