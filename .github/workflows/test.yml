@@ -109,9 +109,6 @@ jobs:
         
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
-      
-    - name: Generate Rust Project
-      run: bash scripts/generate_rust_project.sh
 
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2

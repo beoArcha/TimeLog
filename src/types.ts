@@ -31,6 +31,7 @@ export interface Task {
   }>;
 }
 
+
 export interface TimeLog {
   id: string;
   taskId: string;

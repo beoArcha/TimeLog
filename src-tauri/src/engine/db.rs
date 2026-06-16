@@ -82,15 +82,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_data_manager_creation() {
+    fn test_data_manager_creation() -> Result<()> {
         let manager = DataManager::new_in_memory();
+        match &manager {
+            Ok(_) => println!("OK"),
+            Err(e) => println!("DB error: {:?}", e),
+        }
         assert!(manager.is_ok(), "Data manager should initialize sqlite connection");
+        Ok(())
     }
 
     #[test]
-    fn test_data_manager_insert_project() {
-        let manager = DataManager::new_in_memory().unwrap();
+    fn test_data_manager_insert_project() -> Result<()> {
+        let manager = DataManager::new_in_memory();
+        println!("manager = {:?}", manager);
+        let manager = manager.unwrap();
+        
         let res = manager.insert_project("1", "TestProj", "red", "2026-06-15T12:00:00Z");
+        println!("insert = {:?}", res);
         assert!(res.is_ok());
+        Ok(())
     }
 }
