@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="#2563eb" />
+  
+  <!-- Outer Ring (Clock/Flow) -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#e0f2fe" stroke-width="32" stroke-linecap="round" stroke-dasharray="800" stroke-dashoffset="100" />
+  
+  <!-- Flow lines / Water drops inside -->
+  <path d="M 256 160 C 290 220 320 260 320 320 C 320 370 280 390 256 390 C 232 390 192 370 192 320 C 192 260 222 220 256 160 Z" fill="#60a5fa" />
+  <path d="M 256 220 C 270 250 285 280 285 320 C 285 340 270 355 256 355 C 242 355 227 340 227 320 C 227 280 242 250 256 220 Z" fill="#eff6ff" />
+</svg>
