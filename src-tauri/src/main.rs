@@ -85,3 +85,33 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Mutex;
+    use crate::engine::db::init_db_in_memory;
+
+    #[test]
+    fn test_app_state_and_commands() -> Result<(), String> {
+        // Here we test the direct functional logic behind commands locally, bypassing Tauri state wrapper
+        let conn = init_db_in_memory().map_err(|e| e.to_string())?;
+        
+        let now = chrono::Utc::now().to_rfc3339();
+        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p_main', 'Main Proj', 'green', ?)", [&now]).map_err(|e| e.to_string())?;
+        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t_main', 'p_main', 'Main Task', ?)", [&now]).map_err(|e| e.to_string())?;
+
+        // Test inner logic normally dispatched by command
+        crate::engine::counting::start_project_timer(&conn, "t_main").map_err(|e| e.to_string())?;
+        
+        let active = crate::engine::counting::query_active_logs(&conn).map_err(|e| e.to_string())?;
+        assert_eq!(active.len(), 1);
+
+        crate::engine::counting::stop_project_timer(&conn, Some("p_main")).map_err(|e| e.to_string())?;
+
+        let active_after = crate::engine::counting::query_active_logs(&conn).map_err(|e| e.to_string())?;
+        assert_eq!(active_after.len(), 0);
+        
+        Ok(())
+    }
+}

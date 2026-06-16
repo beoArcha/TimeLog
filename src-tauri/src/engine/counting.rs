@@ -57,3 +57,43 @@ pub fn query_active_logs(conn: &Connection) -> Result<Vec<String>> {
     }
     Ok(ids)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::engine::db::init_db_in_memory;
+
+    #[test]
+    fn test_counting_lifecycle() -> Result<()> {
+        let conn = init_db_in_memory()?;
+        let now = chrono::Utc::now().to_rfc3339();
+        
+        // Setup initial project and tasks
+        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)", [&now])?;
+        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)", [&now])?;
+        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p1', 'Task2', ?)", [&now])?;
+
+        // 1. Initial State
+        let active = query_active_logs(&conn)?;
+        assert_eq!(active.len(), 0);
+
+        // 2. Start Task 1
+        start_project_timer(&conn, "t1")?;
+        let active = query_active_logs(&conn)?;
+        assert_eq!(active.len(), 1);
+        assert_eq!(active[0], "t1");
+
+        // 3. Start Task 2 (same project, so Task 1 should stop)
+        start_project_timer(&conn, "t2")?;
+        let active2 = query_active_logs(&conn)?;
+        assert_eq!(active2.len(), 1);
+        assert_eq!(active2[0], "t2");
+
+        // 4. Stop specific project timer
+        stop_project_timer(&conn, Some("p1"))?;
+        let active3 = query_active_logs(&conn)?;
+        assert_eq!(active3.len(), 0);
+
+        Ok(())
+    }
+}
