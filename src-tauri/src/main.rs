@@ -4,7 +4,7 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{AppHandle, Manager, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
+use tauri::{Manager, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
 use std::sync::Mutex;
 use std::error::Error;
 

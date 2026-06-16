@@ -6,6 +6,7 @@ pub fn init_db() -> Result<Connection> {
     init_db_conn(conn)
 }
 
+#[allow(dead_code)]
 pub fn init_db_in_memory() -> Result<Connection> {
     let conn = Connection::open_in_memory()?;
     init_db_conn(conn)
@@ -47,10 +48,12 @@ fn init_db_conn(conn: Connection) -> Result<Connection> {
     Ok(conn)
 }
 
+#[allow(dead_code)]
 pub struct DataManager {
     conn: Connection,
 }
 
+#[allow(dead_code)]
 impl DataManager {
     pub fn new() -> Result<Self> {
         let conn = init_db()?;
