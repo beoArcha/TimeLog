@@ -2,8 +2,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import App from '../src/App';
-import { LocaleProvider } from '../src/providers/LocaleProvider';
+import App from '@/src/App';
+import { LocaleProvider } from '@/src/providers/LocaleProvider';
 
 // We need to mock alert and prompt
 window.alert = vi.fn();

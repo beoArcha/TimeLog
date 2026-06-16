@@ -2,9 +2,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
-import GuiInterface from '../src/components/GuiInterface';
-import { LocaleProvider } from '../src/providers/LocaleProvider';
-import { Settings as AppSettings, Project, Task, TimeLog, HolidayLeave, PatchLog } from '../src/types';
+import GuiInterface from '@/src/components/GuiInterface';
+import { LocaleProvider } from '@/src/providers/LocaleProvider';
+import { Settings as AppSettings, Project, Task, TimeLog, HolidayLeave, PatchLog } from '@/src/types';
 
 describe('Interface isolation tests', () => {
   afterEach(() => {

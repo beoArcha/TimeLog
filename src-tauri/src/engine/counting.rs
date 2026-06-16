@@ -1,0 +1,59 @@
+//! High-frequency time tracking aggregation routines
+use rusqlite::{Connection, Result, params};
+use chrono::Utc;
+
+/// Automatically wraps running timer logs and targets cross-project parallel tracking
+pub fn start_project_timer(conn: &Connection, task_id: &str) -> Result<()> {
+    // 1. Get project ID bound to task
+    let mut stmt = conn.prepare("SELECT project_id FROM tasks WHERE id = ? LIMIT 1")?;
+    let proj_id: String = stmt.query_row(params![task_id], |row| row.get(0))?;
+
+    // 2. Stop executing timers inside this project (exclusive within project, yet parallel across other projects)
+    conn.execute(
+        "UPDATE time_logs 
+         SET end_time = ? 
+         WHERE end_time IS NULL 
+         AND task_id IN (SELECT id FROM tasks WHERE project_id = ?)",
+        params![Utc::now().to_rfc3339(), proj_id]
+    )?;
+
+    // 3. Start registering new task timer
+    let log_id = format!("log_{}", Utc::now().timestamp_millis());
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, NULL)",
+        params![log_id, task_id, Utc::now().to_rfc3339()]
+    )?;
+
+    Ok(())
+}
+
+/// Ends pending time logs for a given project identifier (or stop all if None)
+pub fn stop_project_timer(conn: &Connection, project_id: Option<&str>) -> Result<()> {
+    let now = Utc::now().to_rfc3339();
+    match project_id {
+        Some(p_id) => {
+            conn.execute(
+                "UPDATE time_logs 
+                 SET end_time = ? 
+                 WHERE end_time IS NULL 
+                 AND task_id IN (SELECT id FROM tasks WHERE project_id = ?)",
+                params![now, p_id]
+            )?;
+        }
+        None => {
+            conn.execute("UPDATE time_logs SET end_time = ? WHERE end_time IS NULL", params![now])?;
+        }
+    }
+    Ok(())
+}
+
+/// Gathers list of currently actively tracking logs
+pub fn query_active_logs(conn: &Connection) -> Result<Vec<String>> {
+    let mut stmt = conn.prepare("SELECT task_id FROM time_logs WHERE end_time IS NULL")?;
+    let rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
+    let mut ids = Vec::new();
+    for id_res in rows {
+        ids.push(id_res?);
+    }
+    Ok(ids)
+}

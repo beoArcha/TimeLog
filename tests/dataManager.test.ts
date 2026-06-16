@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DataManager } from '../src/utils/dataManager';
+import { DataManager } from '@/src/utils/dataManager';
 
 describe('DataManager Logic Tests', () => {
   it('should generate next id sequentially for numeric ids', () => {

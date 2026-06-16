@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import SmallGuiWidget from '../src/components/SmallGuiWidget';
-import TrayWidget from '../src/components/TrayWidget';
-import * as useOxyFlowHook from '../src/hooks/useOxyFlow';
+import SmallGuiWidget from '@/src/components/SmallGuiWidget';
+import TrayWidget from '@/src/components/TrayWidget';
+import * as useOxyFlowHook from '@/src/hooks/useOxyFlow';
 
-vi.mock('../src/hooks/useOxyFlow');
+vi.mock('@/src/hooks/useOxyFlow');
 
 describe('Widgets Tests', () => {
   const mockProjects = [
@@ -36,8 +36,7 @@ describe('Widgets Tests', () => {
       nowIso: new Date().toISOString(),
       enginePID: 1234,
     };
-    // @ts-ignore
-    useOxyFlowHook.useOxyFlow.mockReturnValue(mockUseOxyFlow);
+    vi.mocked(useOxyFlowHook.useOxyFlow).mockReturnValue(mockUseOxyFlow);
   });
 
   describe('SmallGuiWidget', () => {
@@ -119,7 +118,7 @@ describe('Widgets Tests', () => {
     });
 
     it('renders empty states', () => {
-        useOxyFlowHook.useOxyFlow.mockReturnValue({
+        vi.mocked(useOxyFlowHook.useOxyFlow).mockReturnValue({
             ...mockUseOxyFlow,
             projects: [],
             tasks: []
@@ -170,7 +169,7 @@ describe('Widgets Tests', () => {
     });
 
     it('renders inactive states', () => {
-        useOxyFlowHook.useOxyFlow.mockReturnValue({
+        vi.mocked(useOxyFlowHook.useOxyFlow).mockReturnValue({
             ...mockUseOxyFlow,
             projects: mockProjects,
             tasks: mockTasks,
