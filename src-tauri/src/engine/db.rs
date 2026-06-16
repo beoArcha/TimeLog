@@ -95,7 +95,7 @@ mod tests {
     #[test]
     fn test_data_manager_insert_project() -> Result<()> {
         let manager = DataManager::new_in_memory();
-        println!("manager = {:?}", manager);
+        println!("manager is_ok = {:?}", manager.is_ok());
         let manager = manager.unwrap();
         
         let res = manager.insert_project("1", "TestProj", "red", "2026-06-15T12:00:00Z");
