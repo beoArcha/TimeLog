@@ -90,7 +90,7 @@ jobs:
       - name: build frontend assets
         run: npm run build
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v2
         id: tauri_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -106,23 +106,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tauri-artifacts-${{ matrix.platform }}
-          path: |
-            src-tauri/target/release/bundle/**/*.dmg
-            src-tauri/target/release/bundle/**/*.app
-            src-tauri/target/release/bundle/**/*.deb
-            src-tauri/target/release/bundle/**/*.AppImage
-            src-tauri/target/release/bundle/**/*.appimage
-            src-tauri/target/release/bundle/**/*.msi
-            src-tauri/target/release/bundle/**/*.exe
-            src-tauri/target/release/bundle/**/*.zip
-            src-tauri/target/release/bundle/**/*.tar.gz
-            src-tauri/target/*/release/bundle/**/*.dmg
-            src-tauri/target/*/release/bundle/**/*.app
-            src-tauri/target/*/release/bundle/**/*.deb
-            src-tauri/target/*/release/bundle/**/*.AppImage
-            src-tauri/target/*/release/bundle/**/*.appimage
-            src-tauri/target/*/release/bundle/**/*.msi
-            src-tauri/target/*/release/bundle/**/*.exe
-            src-tauri/target/*/release/bundle/**/*.zip
-            src-tauri/target/*/release/bundle/**/*.tar.gz
-          if-no-files-found: warn
+          path: "${{ join(fromJSON(steps.tauri_build.outputs.artifactPaths), '\n') }}"
+          if-no-files-found: error
