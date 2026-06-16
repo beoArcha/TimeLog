@@ -12,9 +12,11 @@ pub fn init_db_in_memory() -> Result<Connection> {
 }
 
 fn init_db_conn(conn: Connection) -> Result<Connection> {
-    // Enable WAL mode & SQLite optimizations
-    conn.pragma_update(None, "journal_mode", "WAL")?;
-    conn.pragma_update(None, "foreign_keys", "ON")?;
+    // Enable WAL mode & SQLite optimizations. 
+    // We ignore results because PRAGMA journal_mode returns a row with the new mode 
+    // which triggers ExecuteReturnedResults error, and in-memory test DBs ignore WAL anyway.
+    let _ = conn.query_row("PRAGMA journal_mode = WAL", [], |row| row.get::<_, String>(0));
+    let _ = conn.execute("PRAGMA foreign_keys = ON", []);
 
     // Create projects, tasks, and concurrent timer logs structure
     conn.execute_batch(
