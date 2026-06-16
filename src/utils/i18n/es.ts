@@ -304,8 +304,16 @@ export const es = {
     "shortcutSystemCli": "CLI a nivel de sistema"
   },
   "credits": {
+    "title": "Créditos, OSS & Creadores",
     "description": "Licencia, términos e información del desarrollador.",
-    "zoukBody": "Creado para funcionar como un asistente de tiempo sin interrupciones."
+    "zoukTitle": "La Filosofía del Flow",
+    "zoukBody": "Creado para funcionar como un asistente de tiempo sin interrupciones.",
+    "licenseTitle": "Licencia de Código Abierto (MIT)",
+    "licenseBody": "Copyright (c) 2026 OxyFlow Team\\n\\nPermission is hereby granted...",
+    "ossThanks": "Tecnologías de Código Abierto",
+    "ossThanksDesc": "Construido con React, Tauri, Vite y Rust. Impulsado por SQLite y TailwindCSS.",
+    "teamTitle": "Equipo Principal (Ja Vibe Team)",
+    "teamDesc": "Lo hice solo. Me agradezco el encanto, el estilo y la clase. Pero seamos sinceros, mon ami \u2013 la IA hizo el trabajo pesado, y ahora hasta está escribiendo este agradecimiento. Puro vibe coding. ¡C'est la vie!"
   },
   "app": {
     "guiClosedTitle": "Interfaz Cerrada",

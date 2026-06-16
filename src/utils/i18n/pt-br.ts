@@ -304,8 +304,16 @@ export const ptBr = {
     "shortcutSystemCli": "CLI de Sistema"
   },
   "credits": {
+    "title": "Créditos, OSS & Criadores",
     "description": "Licença, termos de serviço e biografia.",
-    "zoukBody": "Sistema construído para mesclar perfeitamente CLI em background e um estado visual responsivo."
+    "zoukTitle": "A Filosofia do Flow",
+    "zoukBody": "Sistema construído para mesclar perfeitamente CLI em background e um estado visual responsivo.",
+    "licenseTitle": "Licença de Código Aberto (MIT)",
+    "licenseBody": "Copyright (c) 2026 OxyFlow Team\\n\\nPermission is hereby granted...",
+    "ossThanks": "Tecnologias de Código Aberto",
+    "ossThanksDesc": "Construído com React, Tauri, Vite e Rust. Alimentado por SQLite e TailwindCSS.",
+    "teamTitle": "Equipe Principal (Ja Vibe Team)",
+    "teamDesc": "Fiz isso sozinho. Agradeço a mim mesmo pelo charme, pelo estilo e pela classe. Mas convenhamos, mon ami \u2013 a IA fez o trabalho pesado e agora está até escrevendo esta nota de agradecimento. Puro vibe coding. C'est la vie!"
   },
   "app": {
     "guiClosedTitle": "Interface Fechada",

@@ -3,10 +3,20 @@ use rusqlite::{Connection, Result, params};
 
 pub fn init_db() -> Result<Connection> {
     let conn = Connection::open("oxytime.db")?;
+    init_db_conn(conn)
+}
 
+pub fn init_db_in_memory() -> Result<Connection> {
+    let conn = Connection::open_in_memory()?;
+    init_db_conn(conn)
+}
+
+fn init_db_conn(conn: Connection) -> Result<Connection> {
     // Enable WAL mode & SQLite optimizations
-    conn.execute("PRAGMA journal_mode = WAL;", [])?;
-    conn.execute("PRAGMA foreign_keys = ON;", [])?;
+    conn.execute_batch(
+        "PRAGMA journal_mode = WAL;
+         PRAGMA foreign_keys = ON;"
+    )?;
 
     // Create projects, tasks, and concurrent timer logs structure
     conn.execute_batch(
@@ -48,6 +58,11 @@ impl DataManager {
         Ok(Self { conn })
     }
 
+    pub fn new_in_memory() -> Result<Self> {
+        let conn = init_db_in_memory()?;
+        Ok(Self { conn })
+    }
+
     pub fn insert_project(&self, id: &str, name: &str, color: &str, created_at: &str) -> Result<usize> {
         self.conn.execute(
             "INSERT INTO projects (id, name, color, created_at) VALUES (?1, ?2, ?3, ?4)",
@@ -69,13 +84,13 @@ mod tests {
 
     #[test]
     fn test_data_manager_creation() {
-        let manager = DataManager::new();
+        let manager = DataManager::new_in_memory();
         assert!(manager.is_ok(), "Data manager should initialize sqlite connection");
     }
 
     #[test]
     fn test_data_manager_insert_project() {
-        let manager = DataManager::new().unwrap();
+        let manager = DataManager::new_in_memory().unwrap();
         let res = manager.insert_project("1", "TestProj", "red", "2026-06-15T12:00:00Z");
         assert!(res.is_ok());
     }

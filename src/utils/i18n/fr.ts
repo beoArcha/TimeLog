@@ -304,8 +304,16 @@ export const fr = {
     "shortcutSystemCli": "CLI Système"
   },
   "credits": {
+    "title": "Crédits, OSS & Créateurs",
     "description": "Licence, termes et biographie du développeur.",
-    "zoukBody": "Système créé pour être un assistant en arrière-plan sans perturber le flux."
+    "zoukTitle": "La Philosophie du Flow",
+    "zoukBody": "Système créé pour être un assistant en arrière-plan sans perturber le flux.",
+    "licenseTitle": "Licence Informatique (MIT)",
+    "licenseBody": "Copyright (c) 2026 OxyFlow Team\\n\\nPermission is hereby granted...",
+    "ossThanks": "Technologies Open Source",
+    "ossThanksDesc": "Construit avec React, Tauri, Vite et Rust. Alimenté par SQLite et TailwindCSS.",
+    "teamTitle": "Équipe Principale (Ja Vibe Team)",
+    "teamDesc": "Je l'ai fait seul. Je me remercie pour le charme, le style et le panache. Mais soyons honnêtes, mon ami - c'est l'IA qui a fait le gros du travail, et maintenant elle écrit même ce mot de remerciement. Pur vibe coding. C'est la vie !"
   },
   "app": {
     "guiClosedTitle": "Interface Fermée",

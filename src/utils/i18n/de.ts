@@ -285,8 +285,16 @@ export const de = {
     "shortcutSystemCli": "System-Ebene CLI"
   },
   "credits": {
+    "title": "Credits, OSS & Creators",
     "description": "Lizenz, Nutzungsbedingungen und Biografie des Hauptentwicklers.",
-    "zoukBody": "Ich habe dieses System entwickelt, um als Zeitassistent zu fungieren, der anmutig eine versteckte CLI-Engine mit visuellen Zuständen für jemanden verschmilzt, der puren Fokus braucht. Gebaut für jemanden Wichtigen, inspiriert durch meine Leidenschaft für Tanz (Brasilianischer Zouk) und das Programmieren."
+    "zoukTitle": "Die Philosophie des Flows",
+    "zoukBody": "Ich habe dieses System entwickelt, um als Zeitassistent zu fungieren, der anmutig eine versteckte CLI-Engine mit visuellen Zuständen für jemanden verschmilzt, der puren Fokus braucht. Gebaut für jemanden Wichtigen, inspiriert durch meine Leidenschaft für Tanz (Brasilianischer Zouk) und das Programmieren.",
+    "licenseTitle": "Open-Source-Lizenz (MIT)",
+    "licenseBody": "Copyright (c) 2026 OxyFlow Team\\n\\nPermission is hereby granted...",
+    "ossThanks": "Open Source Technologien",
+    "ossThanksDesc": "Erstellt mit React, Tauri, Vite und Rust. Angetrieben von SQLite und TailwindCSS.",
+    "teamTitle": "Hauptteam (Ja Vibe Team)",
+    "teamDesc": "Ich habe das allein gemacht. Ich danke mir selbst für den Charme, den Stil und das gewisse Etwas. Aber seien wir ehrlich, mon ami \u2013 die KI hat die meiste Arbeit erledigt und schreibt jetzt sogar diese Danksagung. Pures Vibe-Coding. C'est la vie!"
   },
   "app": {
     "guiClosedTitle": "OxyFlow GUI Geschlossen",

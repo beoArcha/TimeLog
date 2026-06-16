@@ -97,7 +97,7 @@ export default function CreditsTab() {
         {/* License Block */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className={`p-5 rounded-3xl border transition-all duration-300 flex flex-col h-full ${cardBg} lg:col-span-2`}
+          className={`p-5 rounded-3xl border transition-all duration-300 flex flex-col h-full ${cardBg}`}
         >
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
