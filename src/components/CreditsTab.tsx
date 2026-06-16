@@ -82,7 +82,7 @@ export default function CreditsTab() {
               {translate(locale, 'credits.teamTitle', customTranslations) || 'Core Team & Contributors'}
             </h3>
           </div>
-          <p className={`text-[11px] leading-relaxed font-medium mb-4 ${mutedColor}`}>
+          <p className={`text-[11px] leading-relaxed font-medium mb-4 whitespace-pre-wrap ${mutedColor}`}>
             {translate(locale, 'credits.teamDesc', customTranslations)}
           </p>
           

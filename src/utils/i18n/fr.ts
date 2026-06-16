@@ -312,8 +312,8 @@ export const fr = {
     "licenseBody": "Copyright (c) 2026 OxyFlow Team\\n\\nPermission is hereby granted...",
     "ossThanks": "Technologies Open Source",
     "ossThanksDesc": "Construit avec React, Tauri, Vite et Rust. Alimenté par SQLite et TailwindCSS.",
-    "teamTitle": "Équipe Principale (Ja Vibe Team)",
-    "teamDesc": "Je l'ai fait seul. Je me remercie pour le charme, le style et le panache. Mais soyons honnêtes, mon ami - c'est l'IA qui a fait le gros du travail, et maintenant elle écrit même ce mot de remerciement. Pur vibe coding. C'est la vie !"
+    "teamTitle": "Équipe Principale (Moi, l'IA et la Caféine)",
+    "teamDesc": "Ce projet a commencé par passion, un peu de curiosité et une simple question : et si je le faisais, tout simplement ?\\n\\nC'est mon premier projet dans l'esprit du vibe coding. Un peu d'apprentissage, un peu d'expérience, un peu d'amusement.\\n\\nJ'apporte les idées, l'IA fait le gros du travail, et nous faisons tous les deux semblant d'avoir eu un plan depuis le début.\\n\\nSi quelque chose de vraiment utile en ressort en cours de route, tant mieux.\\n\\nC'est la vie."
   },
   "app": {
     "guiClosedTitle": "Interface Fermée",

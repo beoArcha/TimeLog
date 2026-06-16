@@ -293,8 +293,8 @@ export const de = {
     "licenseBody": "Copyright (c) 2026 OxyFlow Team\\n\\nPermission is hereby granted...",
     "ossThanks": "Open Source Technologien",
     "ossThanksDesc": "Erstellt mit React, Tauri, Vite und Rust. Angetrieben von SQLite und TailwindCSS.",
-    "teamTitle": "Hauptteam (Ja Vibe Team)",
-    "teamDesc": "Ich habe das allein gemacht. Ich danke mir selbst für den Charme, den Stil und das gewisse Etwas. Aber seien wir ehrlich, mon ami \u2013 die KI hat die meiste Arbeit erledigt und schreibt jetzt sogar diese Danksagung. Pures Vibe-Coding. C'est la vie!"
+    "teamTitle": "Hauptteam (Ich, KI & Koffein)",
+    "teamDesc": "Dieses Projekt begann mit Leidenschaft, ein wenig Neugier und einer einfachen Frage: Was wäre, wenn ich es einfach tue?\\n\\nEs ist mein erstes Projekt im Geiste des Vibe-Codings. Ein bisschen Lernen, ein bisschen Experimentieren, ein bisschen Spaß.\\n\\nIch bringe die Ideen mit, die KI erledigt die schwere Arbeit, und wir tun beide so, als hätten wir von Anfang an einen Plan gehabt.\\n\\nWenn unterwegs etwas wirklich Nützliches herauskommt, umso besser.\\n\\nC'est la vie."
   },
   "app": {
     "guiClosedTitle": "OxyFlow GUI Geschlossen",
