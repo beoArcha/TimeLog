@@ -208,6 +208,8 @@ export const de = {
     "selectProject": "Projekt auswählen",
     "noProjects": "Keine Projekte.",
     "noTasksInProfile": "Keine Aufgaben in diesem Profil.",
+    "cliWelcomeHelp": "Geben Sie \"help\" oder \"oxyhelp\" ein, um die Liste der verfügbaren Befehle zu öffnen.",
+    "cliWelcomeSqliteConnected": "SQLite-Verbindung erfolgreich hergestellt.",
     "warningResetApp": "WARNUNG: Sind Sie sicher, dass Sie ALLE Protokolle, Aufgaben und Projekte löschen wollen? Feiertage werden nicht gelöscht. Diese Aktion kann nicht rückgängig gemacht werden! Geben Sie 'reset' ein, um zu bestätigen:",
     "noActiveTimersThisMoment": "Momentan keine aktiven Timer.",
         "cliHelpTitle": "================ Verfügbare OxyFlowCLI Befehle ================",

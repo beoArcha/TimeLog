@@ -3,6 +3,9 @@ export const en = {
     cancel: 'Cancel',
     save: 'Save',
     edit: 'Edit',
+    editName: 'Edit name',
+    startTimer: 'Start',
+    stopTimer: 'Stop',
     delete: 'Delete',
     add: 'Add',
     close: 'Close',
@@ -197,6 +200,8 @@ export const en = {
     "selectProject": "Select project",
     "noProjects": "No projects.",
     "noTasksInProfile": "No tasks in this profile.",
+    "cliWelcomeHelp": "Type \"help\" or \"oxyhelp\" to open the list of available commands.",
+    "cliWelcomeSqliteConnected": "SQLite connection established successfully.",
     "warningResetApp": "WARNING: Are you sure you want to delete ALL logs, tasks, and projects? Holidays are not deleted. This operation cannot be undone! Type 'reset' to confirm:",
     "noActiveTimersThisMoment": "No active timers at this moment.",
         "cliHelpTitle": "================ Available OxyFlowCLI Commands ================",
@@ -406,5 +411,11 @@ export const en = {
     "activeMeasuringThreads": "Active tracking threads",
     "maximizeAndRestore": "Maximize and Restore GUI",
     "pauseAllProcesses": "Suspend all processes"
+  },
+  "backupTab": {
+    "backupJson": "Export Backup JSON",
+    "restoreImportJson": "Restore / Import Backup JSON",
+    "restoreSuccess": "Backup imported successfully!",
+    "invalidBackup": "Invalid backup file."
   }
 };

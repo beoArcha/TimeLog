@@ -227,6 +227,8 @@ export const ptBr = {
     "selectProject": "Selecionar projeto",
     "noProjects": "Sem projetos.",
     "noTasksInProfile": "Sem tarefas neste perfil.",
+    "cliWelcomeHelp": "Digite \"help\" ou \"oxyhelp\" para abrir a lista de comandos disponíveis.",
+    "cliWelcomeSqliteConnected": "Conexão com SQLite estabelecida com sucesso.",
     "warningResetApp": "AVISO: Deseja excluir TODOS os logs, tarefas e projetos? Digite 'reset' para confirmar:",
     "noActiveTimersThisMoment": "Não há cronômetros ativos no momento.",
         "cliHelpTitle": "================ Comandos OxyFlowCLI Disponíveis ================",

@@ -13,20 +13,22 @@ pub fn init_db_in_memory() -> Result<Connection> {
 }
 
 fn init_db_conn(conn: Connection) -> Result<Connection> {
-    // Enable WAL mode & SQLite optimizations. 
-    // We handle PRAGMA journal_mode carefully or ignore its result completely
-    let _ = conn.execute("PRAGMA foreign_keys = ON", []);
-    let _ = conn.query_row("PRAGMA journal_mode = WAL", [], |row| row.get::<_, String>(0));
+    // Enable WAL mode & SQLite optimizations via pragma_update
+    let _ = conn.pragma_update(None, "journal_mode", "WAL");
+    let _ = conn.pragma_update(None, "foreign_keys", "ON");
 
     // Create projects, tasks, and concurrent timer logs structure
-    conn.execute_batch(
+    conn.execute(
         "CREATE TABLE IF NOT EXISTS projects (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
             color TEXT NOT NULL,
             created_at TEXT NOT NULL
-         );
-         CREATE TABLE IF NOT EXISTS tasks (
+         )",
+        [],
+    )?;
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS tasks (
             id TEXT PRIMARY KEY,
             project_id TEXT NOT NULL,
             parent_task_id TEXT,
@@ -35,14 +37,18 @@ fn init_db_conn(conn: Connection) -> Result<Connection> {
             created_at TEXT NOT NULL,
             FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
             FOREIGN KEY(parent_task_id) REFERENCES tasks(id) ON DELETE CASCADE
-         );
-         CREATE TABLE IF NOT EXISTS time_logs (
+         )",
+        [],
+    )?;
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS time_logs (
             id TEXT PRIMARY KEY,
             task_id TEXT NOT NULL,
             start_time TEXT NOT NULL,
             end_time TEXT,
             FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
-         );"
+         )",
+        [],
     )?;
 
     Ok(conn)

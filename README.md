@@ -37,9 +37,8 @@ To ensure reliable, deterministic time logs, the core tracking logic conforms to
 
 1. **Multi-Project Concurrency:** Users can track time across multiple independent projects simultaneously. Each project acts as its own execution sandbox.
 2. **Single-Project Exclusivity:** To prevent analytical collisions, **only one task** can be actively tracked inside a single project at any given time. Starting tracking on "Subtask B" automatically pauses and records the final elapsed timestamp for "Subtask A" if they belong to the same project.
-3. **Hierarchical Cascading Calculations:** Tasks support a nested parent-child structure. The duration of any parent task is calculated recursively:
+3. **Hierarchical Cascading Tracking & Calculations:** Tasks support a nested parent-child structure. Tracking a subtask automatically engages the mother task tracker ensuring parent tasks accurately reflect active sub-processes. The total duration of any parent task is calculated recursively:
    $$\text{Parent Duration} = \text{Direct Logs on Parent} + \sum (\text{Logs on Subtask}_i)$$
-   Active running timers on subtasks cascade up immediately, updating the parent card's state dynamically in real-time.
 4. **Resilient Local Persistence:** All project schemas, task dictionaries, time logs, and system preferences are serialized to `localStorage` using a micro-ORM simulator to preserve developer data across sessions.
 5. **Universal Internationalization (i18n):** Includes built-in multi-locale translation engines with an always-available custom dictionary mapper so developers can customize UI labels in real-time.
 
@@ -51,7 +50,8 @@ The application is modularized into specialized interfaces targeting different d
 
 ```
 src/
-├── components/                  # UI interactive elements and forms
+├── components/                  # UI elements
+│   ├── gui/                     # Modular GUI views (BaseGui, SmallGui, MediumGui, LargeGui)
 ├── utils/                       # Translators, date math, formats
 ├── providers/                   # LocaleProvider and contexts
 └── hooks/                       # useOxyFlow engine definitions
@@ -59,12 +59,10 @@ tests/
 ├── architecture.test.ts         # Structural sanity checks 
 ├── cli.test.ts                  # Command line mocking inputs and outputs
 ├── end-to-end.test.tsx          # Full system integration checks
-├── interface.test.tsx           # Isolated React rendering checks
 └── utils.test.ts                # Deep mathematical time tracking logic
-```
 
-### 🎛️ GuiInterface
-An elegant visual control panel providing full CRUD operations for projects, hierarchical task structures, subtask insertions, and responsive tracking controls. Active tasks display pulsating pingers and digital counter readouts.
+### 🎛️ Modular GUI Engine (Small/Medium/Large)
+An elegant visual control panel split into specific variants (`SmallGui`, `MediumGui`, `LargeGui`) and routed via `GuiRouter`. It relies on a shared `BaseGui` and `useGuiLogic` hook for a clean separation of concerns. Provides full CRUD operations for projects, hierarchical task structures, subtask insertions, and responsive tracking controls. Active tasks display pulsating pingers and digital counter readouts.
 
 ### 📟 CliInterface
 For terminal lovers, a keyboard-driven console emulator that interprets strings. Features auto-scroll, command history, and custom syntax outputs:

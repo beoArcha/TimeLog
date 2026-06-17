@@ -57,8 +57,8 @@ export default function CliInterface({
   const [input, setInput] = useState('');
   const [terminalHistory, setTerminalHistory] = useState<TerminalLine[]>([
     { text: 'OxyFlow CLI Engine [Version 0.1.0]', type: 'info' },
-    { text: 'Wpisz "help" lub "oxyhelp", aby otworzyć listę dostępnych instrukcji.', type: 'info' },
-    { text: 'Połączenie z SQLite nawiązane pomyślnie.', type: 'success' },
+    { text: "Type 'help' to see available commands.", type: 'info' },
+    { text: "Connected to local SQLite database in memory.", type: 'success' },
     { text: '', type: 'output' },
   ]);
 

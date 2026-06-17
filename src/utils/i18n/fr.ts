@@ -227,6 +227,8 @@ export const fr = {
     "selectProject": "Sélectionner un projet",
     "noProjects": "Aucun projet.",
     "noTasksInProfile": "Aucune tâche dans ce profil.",
+    "cliWelcomeHelp": "Tapez \"help\" ou \"oxyhelp\" pour ouvrir la liste des commandes disponibles.",
+    "cliWelcomeSqliteConnected": "Connexion à SQLite établie avec succès.",
     "warningResetApp": "ATTENTION : Voulez-vous supprimer TOUS les journaux, tâches et projets ? Tapez 'reset' pour confirmer :",
     "noActiveTimersThisMoment": "Aucun minuteur actif pour le moment.",
         "cliHelpTitle": "================ Commandes OxyFlowCLI Disponibles ================",

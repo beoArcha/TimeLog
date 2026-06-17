@@ -3,7 +3,8 @@ import { useOxyFlow, OxyContext } from './hooks/useOxyFlow';
 import { useLocale } from './providers/LocaleProvider';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { Project, Task, TimeLog, HolidayLeave, PatchLog, Settings as AppSettings } from './types';
-import GuiInterface from './components/GuiInterface';
+import GuiRouter from './components/gui/GuiRouter';
+import { GuiCommonProps } from './components/gui/GuiCommonProps';
 import CliInterface from './components/CliInterface';
 import RustSourceExplorer from './components/RustSourceExplorer';
 import DbExplorer from './components/DbExplorer';
@@ -12,7 +13,7 @@ import CreditsTab from './components/CreditsTab';
 import SettingsTab from './components/SettingsTab';
 import BackupTab from './components/BackupTab';
 import TrayWidget from './components/TrayWidget';
-import SmallGuiWidget from './components/SmallGuiWidget';
+
 import TesterAndHelperWizard from './components/TesterAndHelperWizard';
 import { DataManager } from './utils/dataManager';
 import { translate } from './utils/i18n';
@@ -138,6 +139,8 @@ export default function App() {
 
   // Full GUI closure (zamiast minimalizacji)
   const [isGuiClosed, setIsGuiClosed] = useState<boolean>(false);
+  
+  const [isMediumHeaderOpen, setIsMediumHeaderOpen] = useState<boolean>(false);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   useEffect(() => {
@@ -301,6 +304,41 @@ export default function App() {
     setTasks(prev => [...prev, newTask]);
   };
 
+  const handleRenameProject = (projectId: string, newName: string) => {
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        return { ...p, name: newName };
+      }
+      return p;
+    }));
+  };
+
+  const handleRenameTask = (taskId: string, newName: string) => {
+    setTasks(prev => prev.map(t => {
+      if (t.id === taskId) {
+        return { ...t, name: newName };
+      }
+      return t;
+    }));
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    // Delete the task, its subtasks, and all associated logs
+    setTasks(prev => {
+      const tasksToDelete = new Set([taskId]);
+      prev.forEach(t => {
+        if (t.parentTaskId === taskId) {
+          tasksToDelete.add(t.id);
+        }
+      });
+      return prev.filter(t => !tasksToDelete.has(t.id));
+    });
+    setLogs(prev => prev.filter(l => l.taskId !== taskId && !tasks.find(t => t.parentTaskId === taskId && t.id === l.taskId)));
+    if (activeLog && (activeLog.taskId === taskId || tasks.find(t => t.parentTaskId === taskId && t.id === activeLog.taskId))) {
+      setActiveLog(null);
+    }
+  };
+
   const handleToggleTaskComplete = (taskId: string) => {
     setTasks(prev =>
       prev.map(t => {
@@ -353,8 +391,33 @@ export default function App() {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
+    // Is it currently running? -> Toggle (STOP it)
+    const isCurrentlyRunning = logs.some(l => l.taskId === taskId && l.endTime === null);
+    if (isCurrentlyRunning) {
+      setLogs(currLogs => 
+        currLogs.map(l => {
+          if (l.taskId === taskId && l.endTime === null) {
+            const payloadStop = { event: 'TERMINATE', log: { ...l, endTime: new Date().toISOString() } };
+            pushToApi(payloadStop, `Terminating ${l.id}`);
+            return { ...l, endTime: new Date().toISOString() };
+          }
+          return l;
+        })
+      );
+      if (activeLog?.taskId === taskId) {
+        setActiveLog(null);
+      }
+      return;
+    }
+
+    const motherTaskId = task.parentTaskId;
+
     const updatedLogs = logs.map(l => {
       if (l.endTime === null) {
+        // Stop all other tasks EXCEPT the mother task if we are starting a subtask
+        if (motherTaskId && l.taskId === motherTaskId) {
+          return l;
+        }
         const payload = { event: 'TERMINATE', log: { ...l, endTime: new Date().toISOString() } };
         pushToApi(payload, `Terminating ${l.id}`);
         return { ...l, endTime: new Date().toISOString() };
@@ -369,11 +432,33 @@ export default function App() {
       startTime: new Date().toISOString(),
       endTime: null,
     };
-
     const payloadStart = { event: 'START', log: newLog };
     pushToApi(payloadStart, `Starting ${newLog.id}`);
 
-    setLogs([...updatedLogs, newLog]);
+    let logsToSet = [...updatedLogs, newLog];
+
+    // If starting a subtask, ensure mother task is ALSO running
+    let motherLog = null;
+    if (motherTaskId) {
+       const isMotherRunning = logsToSet.some(l => l.taskId === motherTaskId && l.endTime === null);
+       if (!isMotherRunning) {
+          const motherTask = tasks.find(t => t.id === motherTaskId);
+          if (motherTask) {
+             motherLog = {
+               id: DataManager.getNextId(logsToSet, 'log_m_'),
+               taskId: motherTaskId,
+               projectId: motherTask.projectId,
+               startTime: new Date().toISOString(),
+               endTime: null,
+             };
+             const payloadStartM = { event: 'START', log: motherLog };
+             pushToApi(payloadStartM, `Starting Mother Task ${motherLog.id}`);
+             logsToSet = [...logsToSet, motherLog];
+          }
+       }
+    }
+
+    setLogs(logsToSet);
     setActiveLog(newLog);
   };
 
@@ -443,6 +528,35 @@ export default function App() {
       </div>
     );
   }
+
+  
+  const guiCommonProps: GuiCommonProps = {
+    projects,
+    tasks,
+    logs,
+    activeLog,
+    holidays,
+    patches,
+    sysSettings,
+    onAddProject: handleAddProject,
+    onAddTask: handleAddTask,
+    onRenameProject: handleRenameProject,
+    onRenameTask: handleRenameTask,
+    onToggleTaskComplete: handleToggleTaskComplete,
+    onDeleteTask: handleDeleteTask,
+    onStartTimer: handleStartTimer,
+    onStopTimer: handleStopTimer,
+    onToggleProjectArchive: handleToggleProjectArchive,
+    setHolidays,
+    nowIso,
+    locale,
+    customTranslations,
+    theme: resolvedTheme,
+    selectedTaskId,
+    setSelectedTaskId,
+    activeLargeTab,
+    activeView: activeLargeTab === 'reports' ? 'reports' : 'tasks',
+  };
 
   return (
     <OxyContext.Provider value={{
@@ -529,16 +643,7 @@ export default function App() {
             showToast={showToast}
           />
         ) : guiVariant === 'small' ? (
-          <SmallGuiWidget
-            alwaysOnTop={alwaysOnTop}
-            setAlwaysOnTop={setAlwaysOnTop}
-            isSmallExpanded={isSmallExpanded}
-            setIsSmallExpanded={setIsSmallExpanded}
-            showToast={showToast}
-            handleMinimizeToTray={handleMinimizeToTray}
-            setGuiVariant={setGuiVariant}
-            currentProjectId={currentProjectId}
-          />
+          <GuiRouter variant="small" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
         ) : (
           /* Normal OS Window Desktop UI Mode (Supports Medium & Large variants) */
           <motion.div
@@ -608,139 +713,140 @@ export default function App() {
               </div>
 
               {/* Windowed App Shell Navigation Menu */}
-              <header className={`border-b transition-all duration-300 ${
-                resolvedTheme === 'light'
-                  ? 'bg-[#F4EFEA]/50 border-[#DFD7CB]'
-                  : resolvedTheme === 'high-contrast'
-                  ? 'bg-black border-white border-b-2'
-                  : 'bg-[#FCFAF8]/5 border-white/5'
-              }`}>
-                <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
-                  
-                  {/* Logo block */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white shrink-0">
-                      <Layers className="w-5.5 h-5.5 text-white" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 text-left">
-                        <h1 className={`font-sans font-bold text-lg ${
-                          resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
-                        }`}>LogTime by OxyFlow</h1>
-                        <span className="text-[9px] bg-orange-500/20 border border-orange-500/30 text-orange-400 px-2 py-0.5 rounded-full font-bold font-mono">v0.2</span>
-                      </div>
-                      <p className={`text-[10px] text-left ${
-                        resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
-                      }`}>{translate(locale, 'app.subtitle', customTranslations)}</p>
-                    </div>
-                  </div>
-
-                  {/* GUI Size Selector & Theme selectors */}
-                  <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              {guiVariant !== 'medium' && (
+                <header className={`border-b transition-all duration-300 ${
+                  resolvedTheme === 'light'
+                    ? 'bg-[#F4EFEA]/50 border-[#DFD7CB]'
+                    : resolvedTheme === 'high-contrast'
+                    ? 'bg-black border-white border-b-2'
+                    : 'bg-[#FCFAF8]/5 border-white/5'
+                }`}>
+                  <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
                     
-                    {/* GUI Size variants selector */}
-                    <div className={`flex p-1 rounded-xl border transition-all duration-300 ${
-                      resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
-                    }`}>
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#9B8C83] self-center px-2 hidden md:inline-block">GUI:</span>
-                      {(['small', 'medium', 'large'] as const).map(sz => {
-                        const isActive = guiVariant === sz;
-                        return (
-                          <button
-                            key={sz}
-                            onClick={() => {
-                              setGuiVariant(sz);
-                              showToast(`${translate(locale, 'app.sizeChanged', customTranslations)} ${sz.toUpperCase()}`);
-                            }}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                              isActive
-                                ? resolvedTheme === 'light'
-                                  ? 'bg-[#FCFAF8] text-[#2C2421] border border-[#DFD7CB] shadow-sm font-bold'
-                                  : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
-                                : resolvedTheme === 'light'
-                                ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
-                                : 'text-[#9B8C83] hover:text-white'
-                            }`}
-                          >
-                            {sz === 'small' ? translate(locale, 'app.sizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app.sizeMedium', customTranslations) : translate(locale, 'app.sizeLarge', customTranslations)}
-                          </button>
-                        );
-                      })}
+                    {/* Logo block */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white shrink-0">
+                        <Layers className="w-5.5 h-5.5 text-white" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5 text-left">
+                          <h1 className={`font-sans font-bold text-lg ${
+                            resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
+                          }`}>LogTime by OxyFlow</h1>
+                          <span className="text-[9px] bg-orange-500/20 border border-orange-500/30 text-orange-400 px-2 py-0.5 rounded-full font-bold font-mono">v0.2</span>
+                        </div>
+                        <p className={`text-[10px] text-left ${
+                          resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
+                        }`}>{translate(locale, 'app.subtitle', customTranslations)}</p>
+                      </div>
                     </div>
 
-                    {/* Theme Swappers */}
-                    <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto transition-all duration-300 ${
-                      resolvedTheme === 'light'
-                        ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
-                        : resolvedTheme === 'high-contrast'
-                        ? 'bg-black border-white border-2'
-                        : 'bg-slate-950/40 border-white/10'
-                    }`}>
-                      {(['dark', 'light', 'high-contrast', 'system'] as const).map(th => {
-                        const isActive = theme === th;
-                        return (
-                          <button
-                            key={th}
-                            onClick={() => setTheme(th)}
-                            className={`flex-1 sm:flex-initial px-2.5 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                              isActive
-                                ? resolvedTheme === 'light'
-                                  ? 'bg-[#FCFAF8] text-[#2C2421] shadow-sm border border-[#DFD7CB]'
-                                  : resolvedTheme === 'high-contrast'
-                                  ? 'bg-[#FCFAF8] text-black font-extrabold'
-                                  : 'bg-[#FCFAF8]/15 text-white border border-white/10'
-                                : resolvedTheme === 'light'
-                                ? 'text-[#8A7A71] hover:text-[#2C2421]'
-                                : 'text-[#9B8C83] hover:text-white'
-                            }`}
-                            title={`Styl: ${th}`}
-                          >
-                            {th === 'dark' && <Moon className="w-3.5 h-3.5 text-indigo-400" />}
-                            {th === 'light' && <Sun className="w-3.5 h-3.5 text-orange-400 font-bold" />}
-                            {th === 'high-contrast' && <Eye className="w-3.5 h-3.5 text-rose-400" />}
-                            {th === 'system' && <Laptop className="w-3.5 h-3.5 text-teal-400" />}
-                            <span className="hidden xl:inline ml-0.5">
-                              {th === 'dark' ? translate(locale, 'app.themeDark', customTranslations) : th === 'light' ? translate(locale, 'app.themeLight', customTranslations) : th === 'high-contrast' ? translate(locale, 'app.themeHighContrast', customTranslations) : translate(locale, 'app.themeSystem', customTranslations)}
-                            </span>
-                          </button>
-                        );
-                      })}
+                    {/* GUI Size Selector & Theme selectors */}
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                      
+                      {/* GUI Size variants selector */}
+                      <div className={`flex p-1 rounded-xl border transition-all duration-300 ${
+                        resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
+                      }`}>
+                        {(['small', 'medium', 'large'] as const).map(sz => {
+                          const isActive = guiVariant === sz;
+                          return (
+                            <button
+                              key={sz}
+                              onClick={() => {
+                                setGuiVariant(sz);
+                                showToast(`${translate(locale, 'app.sizeChanged', customTranslations)} ${sz.toUpperCase()}`);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                                isActive
+                                  ? resolvedTheme === 'light'
+                                    ? 'bg-[#FCFAF8] text-[#2C2421] border border-[#DFD7CB] shadow-sm font-bold'
+                                    : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
+                                  : resolvedTheme === 'light'
+                                  ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
+                                  : 'text-[#9B8C83] hover:text-white'
+                              }`}
+                            >
+                              {sz === 'small' ? translate(locale, 'app.sizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app.sizeMedium', customTranslations) : translate(locale, 'app.sizeLarge', customTranslations)}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Theme Swappers */}
+                      <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto transition-all duration-300 ${
+                        resolvedTheme === 'light'
+                          ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
+                          : resolvedTheme === 'high-contrast'
+                          ? 'bg-black border-white border-2'
+                          : 'bg-slate-950/40 border-white/10'
+                      }`}>
+                        {(['dark', 'light', 'high-contrast', 'system'] as const).map(th => {
+                          const isActive = theme === th;
+                          return (
+                            <button
+                              key={th}
+                              onClick={() => setTheme(th)}
+                              className={`flex-1 sm:flex-initial px-2.5 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                isActive
+                                  ? resolvedTheme === 'light'
+                                    ? 'bg-[#FCFAF8] text-[#2C2421] shadow-sm border border-[#DFD7CB]'
+                                    : resolvedTheme === 'high-contrast'
+                                    ? 'bg-[#FCFAF8] text-black font-extrabold'
+                                    : 'bg-[#FCFAF8]/15 text-white border border-white/10'
+                                  : resolvedTheme === 'light'
+                                  ? 'text-[#8A7A71] hover:text-[#2C2421]'
+                                  : 'text-[#9B8C83] hover:text-white'
+                              }`}
+                              title={`Styl: ${th}`}
+                            >
+                              {th === 'dark' && <Moon className="w-3.5 h-3.5 text-indigo-400" />}
+                              {th === 'light' && <Sun className="w-3.5 h-3.5 text-orange-400 font-bold" />}
+                              {th === 'high-contrast' && <Eye className="w-3.5 h-3.5 text-rose-400" />}
+                              {th === 'system' && <Laptop className="w-3.5 h-3.5 text-teal-400" />}
+                              <span className="hidden xl:inline ml-0.5">
+                                {th === 'dark' ? translate(locale, 'app.themeDark', customTranslations) : th === 'light' ? translate(locale, 'app.themeLight', customTranslations) : th === 'high-contrast' ? translate(locale, 'app.themeHighContrast', customTranslations) : translate(locale, 'app.themeSystem', customTranslations)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Language Switcher */}
+                      <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto transition-all duration-300 ${
+                        resolvedTheme === 'light'
+                          ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
+                          : resolvedTheme === 'high-contrast'
+                          ? 'bg-black border-white border-2'
+                          : 'bg-slate-950/40 border-white/10'
+                      }`}>
+                        <Languages className="w-3.5 h-3.5 text-blue-400 ml-2 mr-1" />
+                        {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as LocaleType[]).map(lang => {
+                          const isActive = localePref === lang;
+                          return (
+                            <button
+                              key={lang}
+                              onClick={() => setLocalePref(lang)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
+                                isActive
+                                  ? resolvedTheme === 'light'
+                                    ? 'bg-[#FCFAF8] text-blue-600 shadow-sm border border-[#DFD7CB]'
+                                    : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                  : resolvedTheme === 'light'
+                                  ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
+                                  : 'text-[#9B8C83] hover:text-white hover:bg-[#FCFAF8]/10'
+                              }`}
+                            >
+                              {lang}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Language Switcher */}
-                    <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto transition-all duration-300 ${
-                      resolvedTheme === 'light'
-                        ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
-                        : resolvedTheme === 'high-contrast'
-                        ? 'bg-black border-white border-2'
-                        : 'bg-slate-950/40 border-white/10'
-                    }`}>
-                      <Languages className="w-3.5 h-3.5 text-blue-400 ml-2 mr-1" />
-                      {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as LocaleType[]).map(lang => {
-                        const isActive = localePref === lang;
-                        return (
-                          <button
-                            key={lang}
-                            onClick={() => setLocalePref(lang)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
-                              isActive
-                                ? resolvedTheme === 'light'
-                                  ? 'bg-[#FCFAF8] text-blue-600 shadow-sm border border-[#DFD7CB]'
-                                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                : resolvedTheme === 'light'
-                                ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
-                                : 'text-[#9B8C83] hover:text-white hover:bg-[#FCFAF8]/10'
-                            }`}
-                          >
-                            {lang}
-                          </button>
-                        );
-                      })}
-                    </div>
                   </div>
-
-                </div>
-              </header>
+                </header>
+              )}
 
               {/* Render dynamic subheadings and specific 6-Tab bar IF DUŻY GUI */}
               {guiVariant === 'large' && (
@@ -834,39 +940,140 @@ export default function App() {
                     <div className={`flex flex-col gap-6 max-w-[440px] mx-auto p-4 rounded-[2rem] border shadow-2xl pb-10 transition-colors ${
                       resolvedTheme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB] shadow-orange-900/5' : 'bg-black/20 border-white/10'
                     }`}>
-                      <div className={`text-center border-b pb-4 ${resolvedTheme === 'light' ? 'border-[#DFD7CB]' : 'border-white/5'}`}>
-                        <h2 className={`text-base font-bold flex items-center justify-center gap-2 ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
-                          <Clock className="w-4 h-4 text-orange-400" />
-                          <span>Pulpit OxyFlow (Mobile/Kompakt)</span>
-                        </h2>
-                        <p className={`text-[10px] mt-1 ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>
-                          Skondensowany tryb śledzenia czasu, symulujący układ pionowy aplikacji.
-                        </p>
+                      <div className={`flex flex-col gap-4 pb-4 border-b ${resolvedTheme === 'light' ? 'border-[#DFD7CB]' : 'border-white/5'}`}>
+                        {/* 1. Logo block - Now clickable to toggle settings */}
+                        <button 
+                          onClick={() => setIsMediumHeaderOpen(!isMediumHeaderOpen)}
+                          className={`w-full flex items-center justify-between gap-3 p-2 rounded-xl transition-colors cursor-pointer ${
+                            resolvedTheme === 'light' ? 'hover:bg-[#EAE4DB]' : 'hover:bg-white/5'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white shrink-0">
+                              <Layers className="w-5.5 h-5.5 text-white" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5 text-left">
+                                <h1 className={`font-sans font-bold text-[17px] leading-tight ${
+                                  resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
+                                }`}>LogTime by OxyFlow</h1>
+                                <span className="text-[9px] bg-orange-500/20 border border-orange-500/30 text-orange-400 px-2 py-0.5 rounded-full font-bold font-mono">v0.2</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`p-1.5 rounded-lg ${resolvedTheme === 'light' ? 'bg-[#DFD7CB]/50 text-[#7A6A61]' : 'bg-white/5 text-white/50'}`}>
+                            {isMediumHeaderOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </div>
+                        </button>
+
+                        {/* Collapsible Settings */}
+                        {isMediumHeaderOpen && (
+                          <div className="flex flex-col gap-3 px-1 animate-in slide-in-from-top-2 fade-in duration-200">
+                            {/* 2. GUI Size variants selector */}
+                            <div className={`flex p-1 rounded-xl border transition-all duration-300 w-full ${
+                              resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
+                            }`}>
+                              {(['small', 'medium', 'large'] as const).map(sz => {
+                                const isActive = guiVariant === sz;
+                                return (
+                                  <button
+                                    key={sz}
+                                    onClick={() => {
+                                      setGuiVariant(sz);
+                                      showToast(`${translate(locale, 'app.sizeChanged', customTranslations)} ${sz.toUpperCase()}`);
+                                    }}
+                                    className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-semibold tracking-wide transition-all cursor-pointer ${
+                                      isActive
+                                        ? resolvedTheme === 'light'
+                                          ? 'bg-[#FCFAF8] text-[#2C2421] border border-[#DFD7CB] shadow-sm font-bold'
+                                          : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
+                                        : resolvedTheme === 'light'
+                                        ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
+                                        : 'text-[#9B8C83] hover:text-white'
+                                    }`}
+                                  >
+                                    {sz === 'small' ? translate(locale, 'app.sizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app.sizeMedium', customTranslations) : translate(locale, 'app.sizeLarge', customTranslations)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* 3. Theme Swappers */}
+                            <div className={`flex items-center p-1 rounded-xl border w-full transition-all duration-300 ${
+                              resolvedTheme === 'light'
+                                ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
+                                : resolvedTheme === 'high-contrast'
+                                ? 'bg-black border-white border-2'
+                                : 'bg-slate-950/40 border-white/10'
+                            }`}>
+                              {(['dark', 'light', 'high-contrast', 'system'] as const).map(th => {
+                                const isActive = theme === th;
+                                return (
+                                  <button
+                                    key={th}
+                                    onClick={() => setTheme(th)}
+                                    className={`flex-1 px-1.5 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                      isActive
+                                        ? resolvedTheme === 'light'
+                                          ? 'bg-[#FCFAF8] text-[#2C2421] shadow-sm border border-[#DFD7CB]'
+                                          : resolvedTheme === 'high-contrast'
+                                          ? 'bg-[#FCFAF8] text-black font-extrabold'
+                                          : 'bg-[#FCFAF8]/15 text-white border border-white/10'
+                                        : resolvedTheme === 'light'
+                                        ? 'text-[#8A7A71] hover:text-[#2C2421]'
+                                        : 'text-[#9B8C83] hover:text-white'
+                                    }`}
+                                    title={`Styl: ${th}`}
+                                  >
+                                    {th === 'dark' && <Moon className="w-3.5 h-3.5 text-indigo-400" />}
+                                    {th === 'light' && <Sun className="w-3.5 h-3.5 text-orange-400 font-bold" />}
+                                    {th === 'high-contrast' && <Eye className="w-3.5 h-3.5 text-rose-400" />}
+                                    {th === 'system' && <Laptop className="w-3.5 h-3.5 text-teal-400" />}
+                                    <span className="hidden sm:inline-block ml-0.5">
+                                      {th === 'dark' ? 'Dark' : th === 'light' ? 'Light' : th === 'high-contrast' ? 'High' : 'Sys'}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* 4. Language Switcher */}
+                            <div className={`flex items-center p-1 rounded-xl border w-full transition-all duration-300 ${
+                              resolvedTheme === 'light'
+                                ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
+                                : resolvedTheme === 'high-contrast'
+                                ? 'bg-black border-white border-2'
+                                : 'bg-slate-950/40 border-white/10'
+                            }`}>
+                              <Languages className="w-3 h-3 text-blue-400 ml-1.5 mr-1 shrink-0" />
+                              <div className="flex flex-1 justify-between gap-1 overflow-x-auto scroller-hide">
+                                {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as LocaleType[]).map(lang => {
+                                  const isActive = localePref === lang;
+                                  return (
+                                    <button
+                                      key={lang}
+                                      onClick={() => setLocalePref(lang)}
+                                      className={`flex-1 px-1 py-1.5 rounded-lg text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                                        isActive
+                                          ? resolvedTheme === 'light'
+                                            ? 'bg-[#FCFAF8] text-blue-600 shadow-sm border border-[#DFD7CB]'
+                                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                          : resolvedTheme === 'light'
+                                          ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
+                                          : 'text-[#9B8C83] hover:text-white hover:bg-[#FCFAF8]/10'
+                                      }`}
+                                    >
+                                      {lang === 'system' ? 'SYS' : lang}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
-                      <GuiInterface
-                        projects={projects}
-                        tasks={tasks}
-                        logs={logs}
-                        activeLog={activeLog}
-                        onAddProject={handleAddProject}
-                        onAddTask={handleAddTask}
-                        onToggleTaskComplete={handleToggleTaskComplete}
-                        onStartTimer={handleStartTimer}
-                        onStopTimer={handleStopTimer}
-                        onToggleProjectArchive={handleToggleProjectArchive}
-                        nowIso={nowIso}
-                        locale={locale}
-                        customTranslations={customTranslations}
-                        theme={resolvedTheme}
-                        holidays={holidays}
-                        setHolidays={setHolidays}
-                        patches={patches}
-                        sysSettings={sysSettings}
-                        selectedTaskId={selectedTaskId}
-                        setSelectedTaskId={setSelectedTaskId}
-                        isCondensed={true}
-                      />
+                      <GuiRouter variant="medium" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                     </div>
                   )}
 
@@ -877,28 +1084,7 @@ export default function App() {
                       {/* TAB 1: główne zarządzanie czasem */}
                       {activeLargeTab === 'main' && (
                         <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <GuiInterface
-                            projects={projects}
-                            tasks={tasks}
-                            logs={logs}
-                            activeLog={activeLog}
-                            onAddProject={handleAddProject}
-                            onAddTask={handleAddTask}
-                            onToggleTaskComplete={handleToggleTaskComplete}
-                            onStartTimer={handleStartTimer}
-                            onStopTimer={handleStopTimer}
-                            onToggleProjectArchive={handleToggleProjectArchive}
-                            nowIso={nowIso}
-                            locale={locale}
-                            customTranslations={customTranslations}
-                            theme={resolvedTheme}
-                            holidays={holidays}
-                            setHolidays={setHolidays}
-                        patches={patches}
-                        sysSettings={sysSettings}
-                            selectedTaskId={selectedTaskId}
-                            setSelectedTaskId={setSelectedTaskId}
-                          />
+                          <GuiRouter variant="large" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                         </motion.div>
                       )}
 
@@ -932,29 +1118,7 @@ export default function App() {
 
                                             {activeLargeTab === 'reports' && (
                         <motion.div key="large-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <GuiInterface
-                            projects={projects}
-                            tasks={tasks}
-                            logs={logs}
-                            activeLog={activeLog}
-                            onAddProject={handleAddProject}
-                            onAddTask={handleAddTask}
-                            onToggleTaskComplete={handleToggleTaskComplete}
-                            onStartTimer={handleStartTimer}
-                            onStopTimer={handleStopTimer}
-                            onToggleProjectArchive={handleToggleProjectArchive}
-                            nowIso={nowIso}
-                            locale={locale}
-                            customTranslations={customTranslations}
-                            theme={resolvedTheme}
-                            holidays={holidays}
-                            setHolidays={setHolidays}
-                            patches={patches}
-                            sysSettings={sysSettings}
-                            selectedTaskId={selectedTaskId}
-                            setSelectedTaskId={setSelectedTaskId}
-                            activeView="reports"
-                          />
+                          <GuiRouter variant="large" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                         </motion.div>
                       )}
 

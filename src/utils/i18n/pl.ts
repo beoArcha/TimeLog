@@ -3,6 +3,9 @@ export const pl = {
     cancel: 'Anuluj',
     save: 'Zapisz',
     edit: 'Edytuj',
+    editName: 'Zmień nazwę',
+    startTimer: 'Rozpocznij',
+    stopTimer: 'Zatrzymaj',
     delete: 'Usuń',
     add: 'Dodaj',
     close: 'Zamknij',
@@ -197,6 +200,8 @@ export const pl = {
     "selectProject": "Wybierz projekt",
     "noProjects": "Brak projektów.",
     "noTasksInProfile": "Brak zadań w tym profilu.",
+    "cliWelcomeHelp": "Wpisz \"help\" lub \"oxyhelp\", aby otworzyć listę dostępnych instrukcji.",
+    "cliWelcomeSqliteConnected": "Połączenie z SQLite nawiązane pomyślnie.",
     "warningResetApp": "UWAGA: Czy na pewno chcesz usunąć WSZYSTKIE logi, zadania i projekty? Świąt nie usunięto. Tej operacji nie można cofnąć! Wpisz 'reset' aby potwierdzić:",
     "noActiveTimersThisMoment": "Brak aktywnych timerów w tym momencie.",
         "cliHelpTitle": "================ Dostępne Polecenia OxyFlowCLI ================",
@@ -405,5 +410,11 @@ export const pl = {
     "activeMeasuringThreads": "Aktywne wątki pomiarowe",
     "maximizeAndRestore": "Maksymalizuj i Przywróć GUI",
     "pauseAllProcesses": "Wstrzymaj wszystkie procesy"
+  },
+  "backupTab": {
+    "backupJson": "Utwórz kopię JSON",
+    "restoreImportJson": "Przywróć i Importuj JSON",
+    "restoreSuccess": "Pomyślnie zaimportowano kopię zapasową!",
+    "invalidBackup": "Nieprawidłowy plik kopii zapasowej."
   }
 };

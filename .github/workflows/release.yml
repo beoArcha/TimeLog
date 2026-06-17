@@ -102,6 +102,15 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
+      - name: Upload Windows Standalone Executable
+        if: matrix.platform == 'windows-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          cp src-tauri/target/release/OxyFlow.exe src-tauri/target/release/OxyFlow-Standalone-x64.exe
+          gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" src-tauri/target/release/OxyFlow-Standalone-x64.exe --clobber
+
       - name: Parse artifact paths
         id: artifact_paths
         shell: bash
@@ -109,6 +118,9 @@ jobs:
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "paths<<$EOF" >> $GITHUB_OUTPUT
           echo '${{ steps.tauri_build.outputs.artifactPaths }}' | jq -r '.[]' >> $GITHUB_OUTPUT
+          if [ "${{ matrix.platform }}" == "windows-latest" ]; then
+            echo "src-tauri/target/release/OxyFlow-Standalone-x64.exe" >> $GITHUB_OUTPUT
+          fi
           echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Upload artifacts

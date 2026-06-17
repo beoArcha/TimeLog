@@ -1,80 +1,45 @@
 import React from 'react';
 import { Clock, Maximize2, X, ChevronDown, Play, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useOxyFlow } from '../hooks/useOxyFlow';
-import { translate } from '../utils/i18n';
-import { DataManager } from '../utils/dataManager';
 
-interface SmallGuiWidgetProps {
-  alwaysOnTop: boolean;
-  setAlwaysOnTop: (val: boolean) => void;
-  isSmallExpanded: boolean;
-  setIsSmallExpanded: (val: boolean) => void;
-  showToast: (msg: string) => void;
-  handleMinimizeToTray: () => void;
-  setGuiVariant: (variant: 'small' | 'medium' | 'large') => void;
-  currentProjectId: string;
-}
+import { translate } from '../../utils/i18n';
+import { DataManager } from '../../utils/dataManager';
 
-export default function SmallGuiWidget({
-  alwaysOnTop,
-  setAlwaysOnTop,
-  isSmallExpanded,
-  setIsSmallExpanded,
-  showToast,
-  handleMinimizeToTray,
-  setGuiVariant,
-  currentProjectId,
-}: SmallGuiWidgetProps) {
+import type { GuiRouterProps } from './GuiRouter';
+import { GuiState } from './useGuiLogic';
+
+type SmallGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
+
+export default function SmallGui({ state, ...rest }: SmallGuiProps) {
+  const {
+    alwaysOnTop,
+    setAlwaysOnTop,
+    isSmallExpanded,
+    setIsSmallExpanded,
+    showToast,
+    handleMinimizeToTray,
+    setGuiVariant,
+    currentProjectId
+  } = rest;
+
   
   const {
     projects,
     tasks,
     logs,
     activeLog,
-    setLogs,
-    setActiveLog,
-    resolvedTheme,
-    logToApi,
-    apiUrl,
-    apiToken,
+    theme,
     locale,
     customTranslations
-  } = useOxyFlow();
+  } = state;
+  const resolvedTheme = theme;
 
   const handleStartTimer = (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    const updatedLogs = logs.map(l => {
-      if (l.endTime === null) {
-        return { ...l, endTime: new Date().toISOString() };
-      }
-      return l;
-    });
-
-    const newLog = {
-      id: DataManager.getNextId(logs, 'log_'),
-      taskId,
-      projectId: task.projectId,
-      startTime: new Date().toISOString(),
-      endTime: null,
-    };
-
-    setLogs([...updatedLogs, newLog]);
-    setActiveLog(newLog);
+    state.onStartTimer(taskId);
   };
 
   const handleStopTimer = () => {
-    setLogs(currLogs =>
-      currLogs.map(l => {
-        if (l.endTime === null) {
-          return { ...l, endTime: new Date().toISOString() };
-        }
-        return l;
-      })
-    );
-    setActiveLog(null);
+    state.onStopTimer();
   };
 
   const activeProj = projects.find(p => p.id === currentProjectId) || projects[0];
