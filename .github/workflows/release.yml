@@ -115,6 +115,9 @@ jobs:
         id: artifact_paths
         shell: bash
         run: |
+          echo "Raw artifactPaths output:"
+          echo '${{ steps.tauri_build.outputs.artifactPaths }}'
+          
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "paths<<$EOF" >> $GITHUB_OUTPUT
           echo '${{ steps.tauri_build.outputs.artifactPaths }}' | jq -r '.[]' >> $GITHUB_OUTPUT
@@ -122,6 +125,9 @@ jobs:
             echo "src-tauri/target/release/OxyFlow-Standalone-x64.exe" >> $GITHUB_OUTPUT
           fi
           echo "$EOF" >> $GITHUB_OUTPUT
+          
+          echo "Final paths:"
+          cat $GITHUB_OUTPUT
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
