@@ -113,7 +113,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          cp ${{ env.TARGET_DIR }}/oxyflow.exe ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe || cp ${{ env.TARGET_DIR }}/OxyFlow.exe ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe || true
+          cp ${{ env.TARGET_DIR }}/oxy-flow.exe ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe || cp ${{ env.TARGET_DIR }}/OxyFlow.exe ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe || true
           gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe --clobber || true
 
       - name: Parse artifact paths
