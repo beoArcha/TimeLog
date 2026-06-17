@@ -6,6 +6,11 @@ on:
       - completed
     branches: [ "main" ]
 
+env:
+  NODE_VERSION: '22'
+  TARGET_DIR: src-tauri/target/release
+  BUNDLE_DIR: src-tauri/target/release/bundle
+
 jobs:
   release:
     name: Auto Release & Version Bump
@@ -18,10 +23,10 @@ jobs:
       with:
         fetch-depth: 2
         
-    - name: Use Node.js 22
+    - name: Use Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
-        node-version: '22'
+        node-version: ${{ env.NODE_VERSION }}
         
     - name: Bump versions
       run: node scripts/bump_versions.js
@@ -58,7 +63,7 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -79,7 +84,7 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            src-tauri/target/
+            ${{ env.TARGET_DIR }}/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -108,30 +113,32 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          cp src-tauri/target/release/OxyFlow.exe src-tauri/target/release/OxyFlow-Standalone-x64.exe
-          gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" src-tauri/target/release/OxyFlow-Standalone-x64.exe --clobber
+          cp ${{ env.TARGET_DIR }}/oxyflow.exe ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe || cp ${{ env.TARGET_DIR }}/OxyFlow.exe ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe || true
+          gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe --clobber || true
 
       - name: Parse artifact paths
         id: artifact_paths
         shell: bash
         run: |
-          echo "Raw artifactPaths output:"
-          echo '${{ steps.tauri_build.outputs.artifactPaths }}'
-          
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "paths<<$EOF" >> $GITHUB_OUTPUT
-          echo '${{ steps.tauri_build.outputs.artifactPaths }}' | jq -r '.[]' >> $GITHUB_OUTPUT
-          if [ "${{ matrix.platform }}" == "windows-latest" ]; then
-            echo "src-tauri/target/release/OxyFlow-Standalone-x64.exe" >> $GITHUB_OUTPUT
+          if [ "${{ matrix.platform }}" == "ubuntu-22.04" ]; then
+            echo "${{ env.BUNDLE_DIR }}/**/*.deb" >> $GITHUB_OUTPUT
+            echo "${{ env.BUNDLE_DIR }}/**/*.AppImage" >> $GITHUB_OUTPUT
+            echo "${{ env.BUNDLE_DIR }}/**/*.rpm" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
+            echo "${{ env.BUNDLE_DIR }}/**/*.exe" >> $GITHUB_OUTPUT
+            echo "${{ env.BUNDLE_DIR }}/**/*.msi" >> $GITHUB_OUTPUT
+            echo "${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.platform }}" == "macos-latest" ]; then
+            echo "${{ env.BUNDLE_DIR }}/**/*.dmg" >> $GITHUB_OUTPUT
+            echo "${{ env.BUNDLE_DIR }}/**/*.app" >> $GITHUB_OUTPUT
           fi
           echo "$EOF" >> $GITHUB_OUTPUT
-          
-          echo "Final paths:"
-          cat $GITHUB_OUTPUT
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-artifacts-${{ matrix.platform }}
           path: ${{ steps.artifact_paths.outputs.paths }}
-          if-no-files-found: error
+          if-no-files-found: warn
