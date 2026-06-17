@@ -13,7 +13,6 @@ import CreditsTab from './components/CreditsTab';
 import SettingsTab from './components/SettingsTab';
 import BackupTab from './components/BackupTab';
 import TrayWidget from './components/TrayWidget';
-
 import TesterAndHelperWizard from './components/TesterAndHelperWizard';
 import { DataManager } from './utils/dataManager';
 import { translate } from './utils/i18n';
@@ -24,12 +23,10 @@ import { motion, AnimatePresence } from 'motion/react';
 const LOCAL_STORAGE_KEY = 'oxytime_state_db_6';
 
 export default function App() {
-  // Tabs: 'gui' | 'cli' | 'rust'
   const [activeTab, setActiveTab] = useState<'gui' | 'cli' | 'rust'>('gui');
 
   const { localePref, setLocalePref, locale, setLocale, customTranslations, setCustomTranslations } = useLocale();
 
-  // Theme support: 'dark' | 'light' | 'high-contrast' | 'system'
   const [theme, setTheme] = useState<'dark' | 'light' | 'high-contrast' | 'system'>(() => {
     const saved = localStorage.getItem('oxytime_theme');
     return (saved as any) || 'system';
@@ -52,7 +49,6 @@ export default function App() {
     }
   }, [theme]);
 
-  // Shared application state (SQLite mockup representations)
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [logs, setLogs] = useState<TimeLog[]>([]);
@@ -74,10 +70,8 @@ export default function App() {
   });
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // Credits & Licensing overlay modal state
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
 
-  // GUI Variant layout modes: 'small' (compact with down triangle) | 'medium' (condensed) | 'large' (6 tabs)
   const [guiVariant, setGuiVariant] = useState<'small' | 'medium' | 'large'>(() => {
     return (localStorage.getItem('oxytime_gui_variant') as any) || 'large';
   });
@@ -112,7 +106,6 @@ export default function App() {
     }
   }, [currentProjectId]);
 
-  // Dictionary matrix translation editor states and copy helper
   const [editingTranslationKey, setEditingTranslationKey] = useState<string | null>(null);
   const [editingTranslationValue, setEditingTranslationValue] = useState<string>('');
 
@@ -121,15 +114,12 @@ export default function App() {
     showToast(translate(locale, 'dynamic.copiedToClipboard', customTranslations));
   };
 
-  // System Tray Minimization state
   const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const [trayNotification, setTrayNotification] = useState<string | null>(null);
 
-  // Engine discovery simulation (gui pierwsze co robi to odszukanie działającego procesu silnika)
   const [engineState, setEngineState] = useState<'searching' | 'connected'>('searching');
   const [enginePID, setEnginePID] = useState<number>(0);
 
-  // Engine Configuration States
   const [minimizeToTray, setMinimizeToTray] = useState<boolean>(() => localStorage.getItem('oxytime_min_to_tray') !== 'false');
   const [logToApi, setLogToApi] = useState<boolean>(() => localStorage.getItem('oxytime_log_to_api') === 'true');
   const [apiToken, setApiToken] = useState<string>(() => localStorage.getItem('oxytime_api_token') || '');
@@ -137,7 +127,6 @@ export default function App() {
   const [apiMethod, setApiMethod] = useState<'POST' | 'PUT'>(() => (localStorage.getItem('oxytime_api_method') as 'POST' | 'PUT') || 'POST');
   const [apiHeaders, setApiHeaders] = useState<string>(() => localStorage.getItem('oxytime_api_headers') || '');
 
-  // Full GUI closure (zamiast minimalizacji)
   const [isGuiClosed, setIsGuiClosed] = useState<boolean>(false);
   
   const [isMediumHeaderOpen, setIsMediumHeaderOpen] = useState<boolean>(false);
@@ -152,10 +141,8 @@ export default function App() {
     localStorage.setItem('oxytime_api_headers', apiHeaders);
   }, [minimizeToTray, logToApi, apiToken, apiUrl, apiMethod, apiHeaders]);
 
-  // Live countdown clock state for reactive metrics
   const [nowIso, setNowIso] = useState<string>(new Date().toISOString());
 
-  // Set up live interval countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setNowIso(new Date().toISOString());
@@ -163,7 +150,6 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Initialize state from LocalStorage or seed default models
   useEffect(() => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
@@ -197,7 +183,6 @@ export default function App() {
       }
     }
 
-    // Seed default starting projects & nested tasks for instant gratification!
     const initProjects: Project[] = [
       { id: '1', name: 'OxyFlow Backend Engine', color: 'violet', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString() },
       { id: '2', name: 'Zouk Flow UI System', color: 'rose', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString() },
@@ -245,7 +230,6 @@ export default function App() {
     setEnginePID(Math.floor(2500 + Math.random() * 5000));
   }, []);
 
-  // Save changes automatically to browser localStorage
   useEffect(() => {
     if (isInitialized) {
       const stateObj = { projects, tasks, logs, activeLog, holidays, patches };
@@ -253,17 +237,14 @@ export default function App() {
     }
   }, [projects, tasks, logs, activeLog, holidays, patches, isInitialized]);
 
-  // Find background engine process on mount (gui pierwsze co robi to odszukanie działającego procesu)
   useEffect(() => {
     if (projects.length > 0 && engineState === 'searching') {
       const timer = setTimeout(() => {
         setEngineState('connected');
         setEnginePID(Math.floor(2000 + Math.random() * 7000));
         
-        // Find if there are already running processes/timers in sqlite (unclosed logs)
         const runningLogs = logs.filter(l => l.endTime === null);
         if (runningLogs.length > 0) {
-          // Sync activeLog fallback state to the newest unclosed log
           setActiveLog(runningLogs[runningLogs.length - 1]);
         }
       }, 1100);
@@ -323,7 +304,6 @@ export default function App() {
   };
 
   const handleDeleteTask = (taskId: string) => {
-    // Delete the task, its subtasks, and all associated logs
     setTasks(prev => {
       const tasksToDelete = new Set([taskId]);
       prev.forEach(t => {
@@ -344,7 +324,6 @@ export default function App() {
       prev.map(t => {
         if (t.id === taskId) {
           const updatedState = !t.completed;
-          // If the completed task has an active running timer, stop it
           if (updatedState) {
             setLogs(currLogs =>
               currLogs.map(l => {
@@ -391,7 +370,6 @@ export default function App() {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // Is it currently running? -> Toggle (STOP it)
     const isCurrentlyRunning = logs.some(l => l.taskId === taskId && l.endTime === null);
     if (isCurrentlyRunning) {
       setLogs(currLogs => 
@@ -414,7 +392,6 @@ export default function App() {
 
     const updatedLogs = logs.map(l => {
       if (l.endTime === null) {
-        // Stop all other tasks EXCEPT the mother task if we are starting a subtask
         if (motherTaskId && l.taskId === motherTaskId) {
           return l;
         }
@@ -437,7 +414,6 @@ export default function App() {
 
     let logsToSet = [...updatedLogs, newLog];
 
-    // If starting a subtask, ensure mother task is ALSO running
     let motherLog = null;
     if (motherTaskId) {
        const isMotherRunning = logsToSet.some(l => l.taskId === motherTaskId && l.endTime === null);
@@ -495,7 +471,6 @@ export default function App() {
       showToast(translate(locale, 'dynamic.oxyFlowMinimizedToTrayEngineKe', customTranslations));
     } else {
       setIsGuiClosed(true);
-      // "Gui closed but engine keeps running"
       showToast(translate(locale, 'dynamic.gUIClosedOxyFlowEngineLogsUISh', customTranslations));
     }
   };
@@ -529,7 +504,6 @@ export default function App() {
     );
   }
 
-  
   const guiCommonProps: GuiCommonProps = {
     projects,
     tasks,
@@ -574,7 +548,6 @@ export default function App() {
         : 'bg-[#0b0f19] text-slate-200 selection:bg-orange-500/30 selection:text-white'
     }`}>
       
-      {/* Bio-organic glowing gradient backgrounds for high productivity focus */}
       {resolvedTheme !== 'high-contrast' && (
         <>
           <div className={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[140px] pointer-events-none animate-pulse duration-[8000ms] ${
@@ -589,7 +562,6 @@ export default function App() {
         </>
       )}
 
-      {/* Real-time System Notification / Tray Alert Toast */}
       <AnimatePresence>
         {trayNotification && (
           <motion.div
@@ -628,7 +600,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Main OS Window Frame Container */}
       <AnimatePresence mode="wait">
         {isMinimized ? (
           <TrayWidget
@@ -645,7 +616,6 @@ export default function App() {
         ) : guiVariant === 'small' ? (
           <GuiRouter variant="small" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
         ) : (
-          /* Normal OS Window Desktop UI Mode (Supports Medium & Large variants) */
           <motion.div
             key="windowed-state"
             initial={{ opacity: 0, scale: 0.98 }}
@@ -661,7 +631,6 @@ export default function App() {
                 : 'bg-slate-900/50 backdrop-blur-2xl border-white/10'
             }`}>
               
-              {/* Window Controls Header Menu */}
               <div className={`px-6 py-3 flex items-center justify-between border-b transition-all duration-300 ${
                 resolvedTheme === 'light'
                   ? 'bg-[#EDE7DE] border-[#DFD7CB] text-[#2C2421]'
@@ -686,7 +655,7 @@ export default function App() {
                       －
                     </button>
                     <button 
-                      className="w-3.5 h-3.5 rounded-full bg-emerald-500 hover:bg-emerald-600 transition-colors flex items-center justify-center cursor-default text-[0px] hover:text-[8px] font-bold text-emerald-950" 
+                      className="w-3.5 h-3.5 rounded-full bg-emerald-505 hover:bg-emerald-606 transition-colors flex items-center justify-center cursor-default text-[0px] hover:text-[8px] font-bold text-emerald-950" 
                       title={translate(locale, 'app.fullScreen', customTranslations)}
                     >
                       ⤢
@@ -700,7 +669,6 @@ export default function App() {
                   </span>
                 </div>
                 
-                {/* Search / Daemon discovery state info box */}
                 <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold ${
                   engineState === 'searching' 
                     ? 'bg-amber-500/20 text-amber-600 dark:text-amber-350 animate-pulse border border-amber-500/20' 
@@ -712,7 +680,6 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Windowed App Shell Navigation Menu */}
               {guiVariant !== 'medium' && (
                 <header className={`border-b transition-all duration-300 ${
                   resolvedTheme === 'light'
@@ -723,7 +690,6 @@ export default function App() {
                 }`}>
                   <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
                     
-                    {/* Logo block */}
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white shrink-0">
                         <Layers className="w-5.5 h-5.5 text-white" />
@@ -741,10 +707,8 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* GUI Size Selector & Theme selectors */}
                     <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                       
-                      {/* GUI Size variants selector */}
                       <div className={`flex p-1 rounded-xl border transition-all duration-300 ${
                         resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
                       }`}>
@@ -773,7 +737,6 @@ export default function App() {
                         })}
                       </div>
 
-                      {/* Theme Swappers */}
                       <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto transition-all duration-300 ${
                         resolvedTheme === 'light'
                           ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
@@ -812,7 +775,6 @@ export default function App() {
                         })}
                       </div>
 
-                      {/* Language Switcher */}
                       <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto transition-all duration-300 ${
                         resolvedTheme === 'light'
                           ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
@@ -848,7 +810,6 @@ export default function App() {
                 </header>
               )}
 
-              {/* Render dynamic subheadings and specific 6-Tab bar IF DUŻY GUI */}
               {guiVariant === 'large' && (
                 <div className={`border-b transition-all duration-300 ${
                   resolvedTheme === 'light' ? 'bg-[#EAE4DB]/50 border-[#DFD7CB]' : 'bg-black/35 border-white/5'
@@ -856,15 +817,15 @@ export default function App() {
                   <div className="max-w-7xl mx-auto px-6 overflow-x-auto">
                     <div className="flex gap-1.5 py-2.5 whitespace-nowrap min-w-max">
                       {[
-  { id: 'main', icon: Clock, iconColor: 'text-orange-400', label: translate(locale, 'tabs.main', customTranslations) },
-  { id: 'reports', icon: BarChart, iconColor: 'text-teal-400', label: translate(locale, 'tabs.reports', customTranslations) },
-  { id: 'db', icon: Database, iconColor: 'text-indigo-400', label: translate(locale, 'tabs.db', customTranslations) },
-  { id: 'options', icon: Settings, iconColor: 'text-yellow-400', label: translate(locale, 'tabs.options', customTranslations) },
-  { id: 'backup', icon: UploadCloud, iconColor: 'text-emerald-400', label: translate(locale, 'tabs.backup', customTranslations) },
-  { id: 'cli', icon: Terminal, iconColor: 'text-[#9B8C83]', label: translate(locale, 'tabs.cli', customTranslations) },
-  { id: 'manual', icon: BookOpen, iconColor: 'text-rose-400', label: translate(locale, 'tabs.manual', customTranslations) },
-  { id: 'credits', icon: Sparkles, iconColor: 'text-sky-400', label: translate(locale, 'tabs.credits', customTranslations) }
-].map(tb => {
+                        { id: 'main', icon: Clock, iconColor: 'text-orange-400', label: translate(locale, 'tabs.main', customTranslations) },
+                        { id: 'reports', icon: BarChart, iconColor: 'text-teal-400', label: translate(locale, 'tabs.reports', customTranslations) },
+                        { id: 'db', icon: Database, iconColor: 'text-indigo-400', label: translate(locale, 'tabs.db', customTranslations) },
+                        { id: 'options', icon: Settings, iconColor: 'text-yellow-400', label: translate(locale, 'tabs.options', customTranslations) },
+                        { id: 'backup', icon: UploadCloud, iconColor: 'text-emerald-400', label: translate(locale, 'tabs.backup', customTranslations) },
+                        { id: 'cli', icon: Terminal, iconColor: 'text-[#9B8C83]', label: translate(locale, 'tabs.cli', customTranslations) },
+                        { id: 'manual', icon: BookOpen, iconColor: 'text-rose-400', label: translate(locale, 'tabs.manual', customTranslations) },
+                        { id: 'credits', icon: Sparkles, iconColor: 'text-sky-400', label: translate(locale, 'tabs.credits', customTranslations) }
+                      ].map(tb => {
                         const isActive = activeLargeTab === tb.id;
                         return (
                           <button
@@ -891,10 +852,8 @@ export default function App() {
                 </div>
               )}
 
-              {/* Main App Workspace Content inside OS Window */}
               <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 z-10 flex flex-col gap-6">
 
-                {/* Simulated Engine Finder Status alert if scanning, otherwise silent/slim status bar */}
                 {engineState === 'searching' ? (
                   <motion.div 
                     id="engine-searching-alert"
@@ -932,16 +891,13 @@ export default function App() {
                   </motion.div>
                 )}
 
-                {/* Displaying Rendered Component based on active variant & large tab */}
                 <div id="tab-viewport" className="min-h-[480px]">
                   
-                  {/* TRYB ŚREDNI (Medium Condensed GUI) - Renders simplified task flow without sidebars */}
                   {guiVariant === 'medium' && (
                     <div className={`flex flex-col gap-6 max-w-[440px] mx-auto p-4 rounded-[2rem] border shadow-2xl pb-10 transition-colors ${
                       resolvedTheme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB] shadow-orange-900/5' : 'bg-black/20 border-white/10'
                     }`}>
                       <div className={`flex flex-col gap-4 pb-4 border-b ${resolvedTheme === 'light' ? 'border-[#DFD7CB]' : 'border-white/5'}`}>
-                        {/* 1. Logo block - Now clickable to toggle settings */}
                         <button 
                           onClick={() => setIsMediumHeaderOpen(!isMediumHeaderOpen)}
                           className={`w-full flex items-center justify-between gap-3 p-2 rounded-xl transition-colors cursor-pointer ${
@@ -966,10 +922,8 @@ export default function App() {
                           </div>
                         </button>
 
-                        {/* Collapsible Settings */}
                         {isMediumHeaderOpen && (
                           <div className="flex flex-col gap-3 px-1 animate-in slide-in-from-top-2 fade-in duration-200">
-                            {/* 2. GUI Size variants selector */}
                             <div className={`flex p-1 rounded-xl border transition-all duration-300 w-full ${
                               resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
                             }`}>
@@ -998,7 +952,6 @@ export default function App() {
                               })}
                             </div>
 
-                            {/* 3. Theme Swappers */}
                             <div className={`flex items-center p-1 rounded-xl border w-full transition-all duration-300 ${
                               resolvedTheme === 'light'
                                 ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
@@ -1037,7 +990,6 @@ export default function App() {
                               })}
                             </div>
 
-                            {/* 4. Language Switcher */}
                             <div className={`flex items-center p-1 rounded-xl border w-full transition-all duration-300 ${
                               resolvedTheme === 'light'
                                 ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
@@ -1077,18 +1029,15 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* TRYB DUŻY (Large Segmented GUI) - Renders the 6 specific tabs */}
                   {guiVariant === 'large' && (
                     <AnimatePresence mode="wait">
                       
-                      {/* TAB 1: główne zarządzanie czasem */}
                       {activeLargeTab === 'main' && (
                         <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                           <GuiRouter variant="large" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                         </motion.div>
                       )}
 
-                      {/* TAB 2: cli console handler */}
                       {activeLargeTab === 'cli' && (
                         <motion.div key="large-tab-cli" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                           <CliInterface
@@ -1108,21 +1057,20 @@ export default function App() {
                             theme={resolvedTheme}
                             holidays={holidays}
                             setHolidays={setHolidays}
-                        patches={patches}
-                        sysSettings={sysSettings}
+                            patches={patches}
+                            sysSettings={sysSettings}
                             selectedTaskId={selectedTaskId}
                             setSelectedTaskId={setSelectedTaskId}
                           />
                         </motion.div>
                       )}
 
-                                            {activeLargeTab === 'reports' && (
+                      {activeLargeTab === 'reports' && (
                         <motion.div key="large-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                           <GuiRouter variant="large" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                         </motion.div>
                       )}
 
-                      {/* TAB 3: podejrzenie bazy SQLite schema state microORM */}
                       {activeLargeTab === 'db' && (
                         <motion.div key="large-tab-db" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                           <DbExplorer />
@@ -1135,35 +1083,31 @@ export default function App() {
                         </motion.div>
                       )}
 
-                      {/* TAB 4: opcje theme switcher, language dictionary keys editor, SQL hard reset */}
                       {activeLargeTab === 'options' && (
                         <motion.div key="large-tab-options" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                           <SettingsTab />
                         </motion.div>
                       )}
 
-                                            {/* TAB 5: instrukcja */}
                       {activeLargeTab === 'manual' && (
                         <motion.div key="large-tab-manual" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                           <ManualTab />
                         </motion.div>
                       )}
 
-                      {/* TAB 6: podziękowania */}
                       {activeLargeTab === 'credits' && (
                         <motion.div key="large-tab-credits" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                           <CreditsTab />
                         </motion.div>
                       )}
 
-                      </AnimatePresence>
+                    </AnimatePresence>
                   )}
 
                 </div>
 
               </main>
 
-              {/* OS Window Footer controls */}
               <footer className="mt-auto bg-black/50 border-t border-white/10 py-5 px-6 text-center text-[10px] text-[#8A7A71] flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                   <p>OxyFlowOS Environment — SQLite MicroORM</p>
@@ -1193,7 +1137,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Modern interactive MIT License and Credits modal */}
       <AnimatePresence>
         {showCreditsModal && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -1222,7 +1165,6 @@ export default function App() {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Title Header */}
               <div className="border-b pb-4 border-white/10">
                 <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
                   Credits • Acknowledgements • MIT License
@@ -1235,7 +1177,6 @@ export default function App() {
                 </h3>
               </div>
 
-              {/* Section 1: OxyFlow creator bio */}
               <div className="flex flex-col gap-3">
                 <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
                   🕺 {translate(locale, 'dynamic.aBOUTCREATORVIBECODINGVIBE', customTranslations)}
@@ -1270,7 +1211,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Section 2: Component Creators Credits thanking them */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
@@ -1286,7 +1226,6 @@ export default function App() {
                   </ul>
                 </div>
 
-                {/* Section 3: The MIT license itself */}
                 <div className="flex flex-col gap-2">
                   <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
                     📄 {translate(locale, 'dynamic.mITLICENSE', customTranslations)}
@@ -1321,7 +1260,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Footer dismiss button */}
               <div className="flex justify-end gap-2 border-t pt-4 border-white/10 mt-2">
                 <button
                   id="close-credits-overlay-btn"
@@ -1337,7 +1275,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Floating System Taskbar tray restoring dot on margins if minimized to let user easily restore */}
       {isMinimized && (
         <div className="fixed bottom-6 right-6 z-[100] animate-bounce">
           <button

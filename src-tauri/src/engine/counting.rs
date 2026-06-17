@@ -136,4 +136,39 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_start_timer_nonexistent_task_fails() -> Result<()> {
+        let conn = init_db_in_memory()?;
+        let res = start_project_timer(&conn, "999");
+        assert!(res.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_stop_timer_no_active_logs() -> Result<()> {
+        let conn = init_db_in_memory()?;
+        let res = stop_project_timer(&conn, None);
+        assert!(res.is_ok());
+        Ok(())
+    }
+
+    #[test]
+    fn test_stop_timer_invalid_project() -> Result<()> {
+        let conn = init_db_in_memory()?;
+        let now = chrono::Utc::now().to_rfc3339();
+        
+        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)", [&now])?;
+        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)", [&now])?;
+        
+        start_project_timer(&conn, "t1")?;
+        
+        let res = stop_project_timer(&conn, Some("nonexistent_project"));
+        assert!(res.is_ok());
+        
+        let active = query_active_logs(&conn)?;
+        assert_eq!(active.len(), 1);
+        assert_eq!(active[0], "t1");
+        Ok(())
+    }
 }

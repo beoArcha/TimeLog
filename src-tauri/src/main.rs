@@ -7,8 +7,11 @@
 use tauri::{Manager, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
 use std::sync::Mutex;
 use std::error::Error;
+use std::path::PathBuf;
+use clap::Parser;
 
 mod engine;
+mod cli;
 
 struct AppState {
     db_conn: Mutex<rusqlite::Connection>,
@@ -36,25 +39,49 @@ fn get_active_logs(state: tauri::State<'_, AppState>) -> Result<Vec<String>, Str
         .map_err(|e| e.to_string())
 }
 
+fn get_cli_db_path() -> PathBuf {
+    let base_dir = std::env::var("APPDATA")
+        .map(PathBuf::from)
+        .or_else(|_| std::env::var("HOME").map(|h| PathBuf::from(h).join(".config")))
+        .unwrap_or_else(|_| PathBuf::from("."));
+    
+    let app_dir = base_dir.join("OxyFlow");
+    let _ = std::fs::create_dir_all(&app_dir);
+    app_dir.join("oxytime.db")
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
-    let db = engine::db::init_db()?;
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() > 1 {
+        let db_path = get_cli_db_path();
+        let db = engine::db::init_db(&db_path)?;
+        if let Ok(cli_args) = cli::CliArgs::try_parse() {
+            cli::handle_cli(cli_args, &db)?;
+            return Ok(());
+        }
+    }
 
     tauri::Builder::default()
-        .manage(AppState {
-            db_conn: Mutex::new(db),
-        })
         .invoke_handler(tauri::generate_handler![
             start_timer,
             stop_timer,
             get_active_logs
         ])
         .setup(|app| {
-            // 1. Build beautiful tray menus to restore or fully exit
+            let app_data_dir = app.path().app_data_dir()?;
+            std::fs::create_dir_all(&app_data_dir)?;
+            let db_path = app_data_dir.join("oxytime.db");
+
+            let db = engine::db::init_db(&db_path)?;
+            app.manage(AppState {
+                db_conn: Mutex::new(db),
+            });
+
             let toggle_item = MenuItem::with_id(app, "toggle_vis", "Pokaż OxyFlow", true, None::<&str>)?;
             let quit_item = MenuItem::with_id(app, "quit_app", "Wyjdź całkowicie", true, None::<&str>)?;
             let tray_menu = Menu::with_items(app, &[&toggle_item, &quit_item])?;
 
-            // 2. Register native System Tray with custom callback handler
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&tray_menu)
@@ -74,8 +101,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         })
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                // IMPORTANT: INSTEAD OF TERMINATING, NATIVELY HIDE INTERFACE!
-                // Closing does NOT terminate counting because the Rust Engine process stays alive in the Tray loop!
                 window.hide().unwrap();
                 api.prevent_close();
             }

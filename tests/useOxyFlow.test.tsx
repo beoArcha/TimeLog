@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useOxyFlow, OxyContext, OxyFlowState } from '../src/hooks/useOxyFlow';
 import React from 'react';
 
-// Mock matchMedia for useOxyFlow
 beforeEach(() => {
   window.matchMedia = vi.fn().mockImplementation(query => ({
     matches: false,
@@ -72,4 +71,3 @@ describe('useOxyFlow hook tests', () => {
     expect(result.current.theme).toEqual('dark');
   });
 });
-

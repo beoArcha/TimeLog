@@ -131,7 +131,6 @@ describe('CliInterface Full Component Tests', () => {
     const { container, input, form } = setup();
     fireEvent.change(input, { target: { value: 'clear' } });
     fireEvent.submit(form);
-    // After clear, the history length should be empty (or minimal)
     expect(container.textContent).not.toContain('OxyFlow CLI Engine [Version');
   });
 

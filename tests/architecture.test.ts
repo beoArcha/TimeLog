@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 describe('Architecture & Structure Tests', () => {
   it('should have a components directory', () => {
@@ -25,7 +29,6 @@ describe('Architecture & Structure Tests', () => {
 
   it('should not contain large monolithic components that break SOLID', () => {
     const appFile = fs.readFileSync(path.resolve(__dirname, '../src/App.tsx'), 'utf8');
-    // Ensure App.tsx delegates rendering to GuiRouter rather than doing it all
     expect(appFile).toContain('<GuiRouter');
   });
 });

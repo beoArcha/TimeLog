@@ -5,7 +5,6 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import App from '@/src/App';
 import { LocaleProvider } from '@/src/providers/LocaleProvider';
 
-// We need to mock alert and prompt
 window.alert = vi.fn();
 window.prompt = vi.fn();
 global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ ok: true }) } as any));
@@ -154,17 +153,12 @@ describe('E2E Interaction Suite: State, CLI, Backup, API Push', () => {
   it('tests archiving a project removes it from active flow but keeps data', async () => {
     const { container } = render(<LocaleProvider><App /></LocaleProvider>);
     
-    // Switch to GUI
     const guiBtn = await getEl(container, '[data-testid="tab-main"]');
     if(guiBtn) fireEvent.click(guiBtn);
 
-    // Find the first project and archive button (we might need to mock or trigger the event)
     const projectItem = await getEl(container, '#project-item-1');
     expect(projectItem).toBeDefined();
 
-    // Trigger Archive project
-    // Actually we can add project, then archive from UI. But in GUI there's a hover button taking toggleProjectArchive.
-    // It has `Archiwizuj` / `Archivize`
     const archiveBtn = Array.from(container.querySelectorAll('button')).find(b => b.textContent?.includes('Archiwizuj') || b.textContent?.includes('Archive'));
     if (archiveBtn) {
       fireEvent.click(archiveBtn);

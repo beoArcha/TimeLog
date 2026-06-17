@@ -12,15 +12,11 @@ describe('Unit Tests: OxyFlow Utils & Time Math', () => {
 
   describe('formatSeconds', () => {
     it('should format seconds cleanly as HH:MM:SS', () => {
-      // 0 seconds
       expect(formatSeconds(0)).toBe('00:00:00');
-      // Less than 1 minute
       expect(formatSeconds(45)).toBe('00:00:45');
-      // Less than 1 hour
       expect(formatSeconds(60)).toBe('00:01:00');
       expect(formatSeconds(75)).toBe('00:01:15');
       expect(formatSeconds(59 * 60 + 59)).toBe('00:59:59');
-      // Hours
       expect(formatSeconds(3600)).toBe('01:00:00');
       expect(formatSeconds(3665)).toBe('01:01:05');
       expect(formatSeconds(10 * 3600 + 45 * 60 + 12)).toBe('10:45:12');
@@ -56,40 +52,35 @@ describe('Unit Tests: OxyFlow Utils & Time Math', () => {
       { id: 'sub-2', projectId: 'p1', parentTaskId: 'task-1', name: 'Subtask B', createdAt: '2026-06-12T00:02:00Z', completed: false }
     ];
 
-    const refNow = '2026-06-12T12:00:00Z'; // 12 hours from start
+    const refNow = '2026-06-12T12:00:00Z';
 
     it('should sum up finished log chunks correctly', () => {
       const logs: TimeLog[] = [
-        { id: 'log-1', taskId: 'sub-1', projectId: 'p1', startTime: '2026-06-12T08:00:00Z', endTime: '2026-06-12T08:15:00Z' }, // 15 mins (900 s)
-        { id: 'log-2', taskId: 'sub-1', projectId: 'p1', startTime: '2026-06-12T09:00:00Z', endTime: '2026-06-12T09:30:00Z' }  // 30 mins (1800 s)
+        { id: 'log-1', taskId: 'sub-1', projectId: 'p1', startTime: '2026-06-12T08:00:00Z', endTime: '2026-06-12T08:15:00Z' },
+        { id: 'log-2', taskId: 'sub-1', projectId: 'p1', startTime: '2026-06-12T09:00:00Z', endTime: '2026-06-12T09:30:00Z' }
       ];
 
       const duration = getTaskDurationSeconds('sub-1', mockTasks, logs, refNow);
-      expect(duration).toBe(2700); // 900 + 1800
+      expect(duration).toBe(2700);
     });
 
     it('should calculate live timer offset up to actual ISO reference if endTime is null', () => {
       const logs: TimeLog[] = [
-        // Live active tracking log
-        { id: 'log-active', taskId: 'sub-2', projectId: 'p1', startTime: '2026-06-12T11:00:00Z', endTime: null } // Started 1hr before refNow
+        { id: 'log-active', taskId: 'sub-2', projectId: 'p1', startTime: '2026-06-12T11:00:00Z', endTime: null }
       ];
 
       const duration = getTaskDurationSeconds('sub-2', mockTasks, logs, refNow);
-      expect(duration).toBe(3600); // 1 hour (3600 s)
+      expect(duration).toBe(3600);
     });
 
     it('should recursively cascade child task durations upward to parent task', () => {
       const logs: TimeLog[] = [
-        // Parent task has direct log of 5 minutes (300 s)
         { id: 'log-parent', taskId: 'task-1', projectId: 'p1', startTime: '2026-06-12T10:00:00Z', endTime: '2026-06-12T10:05:00Z' },
-        // Subtask A has log of 15 minutes (900 s)
         { id: 'log-sub-a', taskId: 'sub-1', projectId: 'p1', startTime: '2026-06-12T08:00:00Z', endTime: '2026-06-12T08:15:00Z' },
-        // Subtask B is currently active (started 30 minutes before refNow, 1800 s)
         { id: 'log-sub-b-active', taskId: 'sub-2', projectId: 'p1', startTime: '2026-06-12T11:30:00Z', endTime: null }
       ];
 
       const parentTotal = getTaskDurationSeconds('task-1', mockTasks, logs, refNow);
-      // Expected = 300 (parent direct) + 900 (Sub A) + 1800 (Sub B active) = 3000 seconds
       expect(parentTotal).toBe(3000);
     });
   });
@@ -105,16 +96,12 @@ describe('Unit Tests: OxyFlow Utils & Time Math', () => {
 
     it('should accumulate durations for all root-level tasks in the project', () => {
       const logs: TimeLog[] = [
-        // Log on Task 1 (10 minutes)
         { id: 'l1', taskId: 'task-1', projectId: 'p1', startTime: '2026-06-12T08:00:00Z', endTime: '2026-06-12T08:10:00Z' },
-        // Log on Task 2 (15 minutes)
         { id: 'l2', taskId: 'task-2', projectId: 'p1', startTime: '2026-06-12T09:00:00Z', endTime: '2026-06-12T09:15:00Z' },
-        // Log on Subtask of 1 (30 minutes)
         { id: 'l3', taskId: 'sub-of-1', projectId: 'p1', startTime: '2026-06-12T10:00:00Z', endTime: '2026-06-12T10:30:00Z' }
       ];
 
       const projectTotal = getProjectDurationSeconds('p1', mockTasks, logs, refNow);
-      // Expected = 600 (Task 1) + 900 (Task 2) + 1800 (Sub of 1) = 3300 seconds
       expect(projectTotal).toBe(3300);
     });
 
@@ -163,17 +150,16 @@ describe('Unit Tests: OxyFlow Utils & Time Math', () => {
         { id: 'subchild-1', projectId: 'p1', parentTaskId: 'child-1', name: 'Subtask level 2', createdAt: '2026-06-12T00:02:00Z', completed: false }
       ];
       const logs: TimeLog[] = [
-        { id: 'log-direct-parent', taskId: 'parent-1', projectId: 'p1', startTime: '2026-06-12T08:00:00Z', endTime: '2026-06-12T08:10:00Z' }, // 600s
-        { id: 'log-child-1', taskId: 'child-1', projectId: 'p1', startTime: '2026-06-12T09:00:00Z', endTime: '2026-06-12T09:15:00Z' }, // 900s
-        { id: 'log-sub-level-2', taskId: 'subchild-1', projectId: 'p1', startTime: '2026-06-12T10:00:00Z', endTime: '2026-06-12T10:05:00Z' } // 300s
+        { id: 'log-direct-parent', taskId: 'parent-1', projectId: 'p1', startTime: '2026-06-12T08:00:00Z', endTime: '2026-06-12T08:10:00Z' },
+        { id: 'log-child-1', taskId: 'child-1', projectId: 'p1', startTime: '2026-06-12T09:00:00Z', endTime: '2026-06-12T09:15:00Z' },
+        { id: 'log-sub-level-2', taskId: 'subchild-1', projectId: 'p1', startTime: '2026-06-12T10:00:00Z', endTime: '2026-06-12T10:05:00Z' }
       ];
-      // Total recursively should be 600 + 900 + 300 = 1800s
       const duration = getTaskDurationSeconds('parent-1', mockTasks, logs, '2026-06-12T12:00:00Z');
       expect(duration).toBe(1800);
     });
 
     it('formatFriendlyDuration should handle extremely large durations flawlessly', () => {
-      const largeSeconds = 450 * 3600 + 15 * 60; // 450 hours 15 mins
+      const largeSeconds = 450 * 3600 + 15 * 60;
       expect(formatFriendlyDuration(largeSeconds)).toBe('450h 15m');
     });
   });

@@ -81,4 +81,15 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_cli_nonexistent_task_fails() -> Result<(), String> {
+        let conn = init_db_in_memory().map_err(|e| e.to_string())?;
+        let args = CliArgs {
+            command: CliCommands::Start { task_id: "nonexistent".to_string() }
+        };
+        let res = handle_cli(args, &conn);
+        assert!(res.is_err());
+        Ok(())
+    }
 }

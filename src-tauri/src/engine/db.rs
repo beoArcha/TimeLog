@@ -1,8 +1,8 @@
 //! SQlite schema database definitions for Tauri v2 platform
 use rusqlite::{Connection, Result, params};
 
-pub fn init_db() -> Result<Connection> {
-    let conn = Connection::open("oxytime.db")?;
+pub fn init_db(db_path: &std::path::Path) -> Result<Connection> {
+    let conn = Connection::open(db_path)?;
     init_db_conn(conn)
 }
 
@@ -61,8 +61,8 @@ pub struct DataManager {
 
 #[allow(dead_code)]
 impl DataManager {
-    pub fn new() -> Result<Self> {
-        let conn = init_db()?;
+    pub fn new(db_path: &std::path::Path) -> Result<Self> {
+        let conn = init_db(db_path)?;
         Ok(Self { conn })
     }
 
@@ -110,6 +110,52 @@ mod tests {
         let res = manager.insert_project("1", "TestProj", "red", "2026-06-15T12:00:00Z");
         println!("insert = {:?}", res);
         assert!(res.is_ok());
+        Ok(())
+    }
+
+    #[test]
+    fn test_duplicate_project_name_fails() -> Result<()> {
+        let manager = DataManager::new_in_memory()?;
+        let now = "2026-06-15T12:00:00Z";
+        
+        assert!(manager.insert_project("1", "DuplicateProj", "red", now).is_ok());
+        assert!(manager.insert_project("2", "DuplicateProj", "blue", now).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_foreign_key_constraints() -> Result<()> {
+        let manager = DataManager::new_in_memory()?;
+        let now = "2026-06-15T12:00:00Z";
+        
+        assert!(manager.insert_task("t1", "999", "Invalid Task", false, now).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_cascade_delete() -> Result<()> {
+        let manager = DataManager::new_in_memory()?;
+        let now = "2026-06-15T12:00:00Z";
+        
+        manager.insert_project("p1", "Proj1", "red", now)?;
+        manager.insert_task("t1", "p1", "Task1", false, now)?;
+        
+        manager.conn.execute(
+            "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES ('l1', 't1', ?, NULL)",
+            params![now]
+        )?;
+
+        let task_count: i64 = manager.conn.query_row("SELECT COUNT(*) FROM tasks", [], |r| r.get(0))?;
+        let log_count: i64 = manager.conn.query_row("SELECT COUNT(*) FROM time_logs", [], |r| r.get(0))?;
+        assert_eq!(task_count, 1);
+        assert_eq!(log_count, 1);
+
+        manager.conn.execute("DELETE FROM projects WHERE id = 'p1'", [])?;
+
+        let task_count_after: i64 = manager.conn.query_row("SELECT COUNT(*) FROM tasks", [], |r| r.get(0))?;
+        let log_count_after: i64 = manager.conn.query_row("SELECT COUNT(*) FROM time_logs", [], |r| r.get(0))?;
+        assert_eq!(task_count_after, 0);
+        assert_eq!(log_count_after, 0);
         Ok(())
     }
 }
