@@ -18,6 +18,7 @@ export default function EngineConfig() {
       icon={Cpu} 
       iconColor="text-emerald-500"
       defaultExpanded={false}
+      headerTestId="collapsible-trigger-Konfiguracja Silnika"
     >
       <div className="flex flex-col gap-4">
         <p className={`text-xs leading-relaxed ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>{translate(locale, 'engine.configDesc', customTranslations)}</p>

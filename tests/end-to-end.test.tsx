@@ -52,7 +52,7 @@ describe('E2E Interaction Suite: State, CLI, Backup, API Push', () => {
 
   it('renders the application correctly', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
-    expect(await screen.findAllByText(/OxyFlow/i)).toBeDefined();
+    expect(await screen.findAllByText(/LogTime by OxyFlow/i)).toBeDefined();
   });
 
   it('tests CLI emulation commands (addproject, tasks, etc)', async () => {
@@ -165,5 +165,53 @@ describe('E2E Interaction Suite: State, CLI, Backup, API Push', () => {
       await waitRender();
       expect(projectItem.className).toMatch(/opacity-50/);
     }
+  });
+
+  it('tests GUI layout switching variants manually', async () => {
+    const { container } = render(<LocaleProvider><App /></LocaleProvider>);
+    
+    // Large view default has main tab
+    expect(await getEl(container, '[data-testid="tab-main"]')).toBeDefined();
+    
+    // Click 'Średnie' (Medium)
+    const mediumBtn = Array.from(container.querySelectorAll('button')).find(b => b.textContent?.includes('Średnie'));
+    expect(mediumBtn).toBeDefined();
+    fireEvent.click(mediumBtn!);
+    await waitRender();
+    
+    // Medium mode doesn't render main tab buttons
+    expect(container.querySelector('[data-testid="tab-main"]')).toBeNull();
+
+    // Click 'Małe' (Small)
+    const smallBtn = Array.from(container.querySelectorAll('button')).find(b => b.textContent?.includes('Małe'));
+    expect(smallBtn).toBeDefined();
+    fireEvent.click(smallBtn!);
+
+    // Small mode renders SmallGui with Top check (wait for animation transition)
+    expect(await screen.findByText('Top')).toBeDefined();
+  });
+
+  it('toggles minimizeToTray checkbox inside the SettingsTab', async () => {
+    const { container } = render(<LocaleProvider><App /></LocaleProvider>);
+    
+    // Go to options tab
+    const optionsTabBtn = await getEl(container, '[data-testid="tab-options"]');
+    fireEvent.click(optionsTabBtn);
+    
+    // Expand config settings
+    const configHeader = await getEl(container, '[data-testid="collapsible-trigger-Konfiguracja Silnika"]');
+    fireEvent.click(configHeader);
+    await waitRender();
+
+    // Get minimize to tray checkbox
+    const checkbox = await getEl(container, 'input[type="checkbox"][class*="accent-orange-500"]') as HTMLInputElement;
+    expect(checkbox).toBeDefined();
+    const initialState = checkbox.checked;
+
+    // Toggle minimizeToTray
+    fireEvent.click(checkbox);
+    await waitRender();
+    expect(checkbox.checked).toBe(!initialState);
+    expect(localStorage.getItem('oxytime_min_to_tray')).toEqual(String(!initialState));
   });
 });

@@ -1,10 +1,10 @@
-//! OxyFlow Tauri v2 Application Daemon & Interface Entry.
+//! LogTime by OxyFlow Tauri v2 Application Daemon & Interface Entry.
 //! This handles background timer state and custom window close interception
 //! keeping the system alive in the tray when the main webview is invisible.
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{Manager, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
+use tauri::{Manager, Emitter, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
 use std::sync::Mutex;
 use std::error::Error;
 use std::path::PathBuf;
@@ -15,6 +15,7 @@ mod cli;
 
 struct AppState {
     db_conn: Mutex<rusqlite::Connection>,
+    was_maximized: std::sync::atomic::AtomicBool,
 }
 
 #[tauri::command]
@@ -39,13 +40,54 @@ fn get_active_logs(state: tauri::State<'_, AppState>) -> Result<Vec<String>, Str
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn resize_window(width: f64, height: f64, window: tauri::Window) -> Result<(), String> {
+    window.set_size(tauri::Size::Logical(tauri::LogicalSize::new(width, height)))
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn set_always_on_top(always_on_top: bool, window: tauri::Window) -> Result<(), String> {
+    window.set_always_on_top(always_on_top)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn minimize_window(window: tauri::Window) -> Result<(), String> {
+    window.minimize()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn close_window(window: tauri::Window) -> Result<(), String> {
+    window.close()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn hide_window(window: tauri::Window) -> Result<(), String> {
+    window.hide()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn set_window_resizable(resizable: bool, window: tauri::Window) -> Result<(), String> {
+    window.set_resizable(resizable)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn exit_app(app_handle: tauri::AppHandle) {
+    app_handle.exit(0);
+}
+
 fn get_cli_db_path() -> PathBuf {
     let base_dir = std::env::var("APPDATA")
         .map(PathBuf::from)
         .or_else(|_| std::env::var("HOME").map(|h| PathBuf::from(h).join(".config")))
         .unwrap_or_else(|_| PathBuf::from("."));
     
-    let app_dir = base_dir.join("OxyFlow");
+    let app_dir = base_dir.join("LogTime by OxyFlow");
     let _ = std::fs::create_dir_all(&app_dir);
     app_dir.join("oxytime.db")
 }
@@ -61,12 +103,18 @@ fn main() -> Result<(), Box<dyn Error>> {
             return Ok(());
         }
     }
-
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             start_timer,
             stop_timer,
-            get_active_logs
+            get_active_logs,
+            resize_window,
+            set_always_on_top,
+            minimize_window,
+            close_window,
+            hide_window,
+            set_window_resizable,
+            exit_app
         ])
         .setup(|app| {
             let app_data_dir = app.path().app_data_dir()?;
@@ -76,9 +124,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             let db = engine::db::init_db(&db_path)?;
             app.manage(AppState {
                 db_conn: Mutex::new(db),
+                was_maximized: std::sync::atomic::AtomicBool::new(false),
             });
 
-            let toggle_item = MenuItem::with_id(app, "toggle_vis", "Pokaż OxyFlow", true, None::<&str>)?;
+            let toggle_item = MenuItem::with_id(app, "toggle_vis", "Pokaż LogTime by OxyFlow", true, None::<&str>)?;
             let quit_item = MenuItem::with_id(app, "quit_app", "Wyjdź całkowicie", true, None::<&str>)?;
             let tray_menu = Menu::with_items(app, &[&toggle_item, &quit_item])?;
 
@@ -100,9 +149,35 @@ fn main() -> Result<(), Box<dyn Error>> {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                window.hide().unwrap();
-                api.prevent_close();
+            let state = window.state::<AppState>();
+            match event {
+                tauri::WindowEvent::CloseRequested { api, .. } => {
+                    api.prevent_close();
+                    let _ = window.emit("native-close-requested", ());
+                }
+                tauri::WindowEvent::Resized(_) => {
+                    let is_max = window.is_maximized().unwrap_or(false);
+                    let was_max = state.was_maximized.load(std::sync::atomic::Ordering::Relaxed);
+                    
+                    if is_max && !was_max {
+                        state.was_maximized.store(true, std::sync::atomic::Ordering::Relaxed);
+                        let _ = window.emit("native-window-maximized", ());
+                    } else if !is_max && was_max {
+                        state.was_maximized.store(false, std::sync::atomic::Ordering::Relaxed);
+                        let _ = window.emit("native-window-restored", ());
+                    } else if let Ok(true) = window.is_minimized() {
+                        let _ = window.unminimize();
+                        let _ = window.emit("native-window-minimized", ());
+                    } else if !is_max {
+                        if let Ok(size) = window.inner_size() {
+                            let scale_factor = window.scale_factor().unwrap_or(1.0);
+                            let logical_width = size.width as f64 / scale_factor;
+                            let logical_height = size.height as f64 / scale_factor;
+                            let _ = window.emit("native-window-resized", (logical_width, logical_height));
+                        }
+                    }
+                }
+                _ => {}
             }
         })
         .run(tauri::generate_context!())

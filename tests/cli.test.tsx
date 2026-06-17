@@ -58,7 +58,7 @@ describe('CliInterface Full Component Tests', () => {
 
   it('renders correctly and shows initial logs', () => {
     const { container } = setup();
-    expect(container.textContent).toContain('OxyFlow CLI Engine');
+    expect(container.textContent).toContain('LogTime by OxyFlow CLI Engine');
   });
 
   it('handles "status" command', () => {
@@ -131,7 +131,7 @@ describe('CliInterface Full Component Tests', () => {
     const { container, input, form } = setup();
     fireEvent.change(input, { target: { value: 'clear' } });
     fireEvent.submit(form);
-    expect(container.textContent).not.toContain('OxyFlow CLI Engine [Version');
+    expect(container.textContent).not.toContain('LogTime by OxyFlow CLI Engine [Version');
   });
 
   it('handles "logs" command', () => {

@@ -55,10 +55,26 @@ v.release++;
 
 fs.writeFileSync(versionsFile, JSON.stringify(v, null, 2) + '\n');
 
+const newVersionStr = `${v.major}.${v.minor}.${v.release}`;
+
 if (fs.existsSync(packageJsonFile)) {
   let pkg = JSON.parse(fs.readFileSync(packageJsonFile, 'utf8'));
-  pkg.version = `${v.major}.${v.minor}.${v.release}`;
+  pkg.version = newVersionStr;
   fs.writeFileSync(packageJsonFile, JSON.stringify(pkg, null, 2) + '\n');
+}
+
+const tauriConfFile = path.resolve('src-tauri/tauri.conf.json');
+if (fs.existsSync(tauriConfFile)) {
+  let tauriConf = JSON.parse(fs.readFileSync(tauriConfFile, 'utf8'));
+  tauriConf.version = newVersionStr;
+  fs.writeFileSync(tauriConfFile, JSON.stringify(tauriConf, null, 2) + '\n');
+}
+
+const cargoTomlFile = path.resolve('src-tauri/Cargo.toml');
+if (fs.existsSync(cargoTomlFile)) {
+  let cargoToml = fs.readFileSync(cargoTomlFile, 'utf8');
+  cargoToml = cargoToml.replace(/^version = ".*"/m, `version = "${newVersionStr}"`);
+  fs.writeFileSync(cargoTomlFile, cargoToml);
 }
 
 console.log(`Updated versions: Main ${v.major}.${v.minor}.${v.release}`);

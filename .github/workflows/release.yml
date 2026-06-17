@@ -107,8 +107,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          cp ${{ env.TARGET_DIR }}/oxy-flow.exe ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe || cp ${{ env.TARGET_DIR }}/OxyFlow.exe ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe || true
-          gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" ${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe --clobber || true
+          EXE_PATH=$(find src-tauri/target -maxdepth 4 -name "oxy-flow.exe" -o -name "LogTime by OxyFlow.exe" | head -n 1)
+          if [ -f "$EXE_PATH" ]; then
+            cp "$EXE_PATH" src-tauri/target/LogTime-Standalone-x64.exe
+            gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" src-tauri/target/LogTime-Standalone-x64.exe --clobber || true
+          else
+            echo "Could not find compiled Windows executable"
+            exit 1
+          fi
 
       - name: Parse artifact paths
         id: artifact_paths
@@ -117,16 +123,23 @@ jobs:
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "paths<<$EOF" >> $GITHUB_OUTPUT
           if [ "${{ matrix.platform }}" == "ubuntu-22.04" ]; then
-            echo "${{ env.BUNDLE_DIR }}/**/*.deb" >> $GITHUB_OUTPUT
-            echo "${{ env.BUNDLE_DIR }}/**/*.AppImage" >> $GITHUB_OUTPUT
-            echo "${{ env.BUNDLE_DIR }}/**/*.rpm" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/release/bundle/**/*.deb" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/release/bundle/**/*.AppImage" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/release/bundle/**/*.rpm" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/*/release/bundle/**/*.deb" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/*/release/bundle/**/*.AppImage" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/*/release/bundle/**/*.rpm" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
-            echo "${{ env.BUNDLE_DIR }}/**/*.exe" >> $GITHUB_OUTPUT
-            echo "${{ env.BUNDLE_DIR }}/**/*.msi" >> $GITHUB_OUTPUT
-            echo "${{ env.TARGET_DIR }}/OxyFlow-Standalone-x64.exe" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/release/bundle/**/*.exe" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/release/bundle/**/*.msi" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/*/release/bundle/**/*.exe" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/*/release/bundle/**/*.msi" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/LogTime-Standalone-x64.exe" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.platform }}" == "macos-latest" ]; then
-            echo "${{ env.BUNDLE_DIR }}/**/*.dmg" >> $GITHUB_OUTPUT
-            echo "${{ env.BUNDLE_DIR }}/**/*.app" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/release/bundle/**/*.dmg" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/release/bundle/**/*.app" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/*/release/bundle/**/*.dmg" >> $GITHUB_OUTPUT
+            echo "src-tauri/target/*/release/bundle/**/*.app" >> $GITHUB_OUTPUT
           fi
           echo "$EOF" >> $GITHUB_OUTPUT
 

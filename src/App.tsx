@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { useOxyFlow, OxyContext } from './hooks/useOxyFlow';
 import { useLocale } from './providers/LocaleProvider';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
@@ -21,6 +22,42 @@ import { Sparkles, Terminal, AppWindow, Cpu, Clock, RefreshCw, Layers, Minimize2
 import { motion, AnimatePresence } from 'motion/react';
 
 const LOCAL_STORAGE_KEY = 'oxytime_state_db_6';
+
+const isTauri = () => {
+  return typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__ !== undefined;
+};
+
+const handleWindowResize = async (variant: 'small' | 'medium' | 'large') => {
+  if (!isTauri()) return;
+  try {
+    let w = 800, h = 600;
+    if (variant === 'small') {
+      w = 256;
+      h = 256;
+    } else if (variant === 'medium') {
+      w = 400;
+      h = 600;
+    }
+    if (variant === 'small') {
+      await invoke('set_window_resizable', { resizable: false });
+      await invoke('resize_window', { width: w, height: h });
+    } else {
+      await invoke('set_window_resizable', { resizable: true });
+      await invoke('resize_window', { width: w, height: h });
+    }
+  } catch (err) {
+    console.error('Tauri resize error:', err);
+  }
+};
+
+const handleWindowAlwaysOnTop = async (onTop: boolean) => {
+  if (!isTauri()) return;
+  try {
+    await invoke('set_always_on_top', { alwaysOnTop: onTop });
+  } catch (err) {
+    console.error('Tauri always on top error:', err);
+  }
+};
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'gui' | 'cli' | 'rust'>('gui');
@@ -101,6 +138,15 @@ export default function App() {
   }, [alwaysOnTop]);
 
   useEffect(() => {
+    handleWindowResize(guiVariant);
+    if (guiVariant !== 'small') {
+      handleWindowAlwaysOnTop(false);
+    } else {
+      handleWindowAlwaysOnTop(alwaysOnTop);
+    }
+  }, [guiVariant, alwaysOnTop]);
+
+  useEffect(() => {
     if (currentProjectId) {
       localStorage.setItem('oxytime_current_proj_id', currentProjectId);
     }
@@ -141,6 +187,79 @@ export default function App() {
     localStorage.setItem('oxytime_api_headers', apiHeaders);
   }, [minimizeToTray, logToApi, apiToken, apiUrl, apiMethod, apiHeaders]);
 
+  useEffect(() => {
+    let unlistenMaximized: (() => void) | undefined;
+    let unlistenRestored: (() => void) | undefined;
+    let unlistenMinimized: (() => void) | undefined;
+    let unlistenCloseRequested: (() => void) | undefined;
+    let unlistenResized: (() => void) | undefined;
+
+    const setupListeners = async () => {
+      if (!isTauri()) return;
+      try {
+        const { listen } = await import('@tauri-apps/api/event');
+
+        unlistenMaximized = await listen('native-window-maximized', () => {
+          setGuiVariant('large');
+          showToast("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
+        });
+
+        unlistenRestored = await listen('native-window-restored', () => {
+          setGuiVariant('medium');
+          showToast("Rozmiar zmieniony na ŚREDNI (Przywrócenie)");
+        });
+
+        unlistenMinimized = await listen('native-window-minimized', () => {
+          setGuiVariant('small');
+          showToast("Rozmiar zmieniony na MAŁY (Minimalizacja)");
+        });
+
+        unlistenCloseRequested = await listen('native-close-requested', async () => {
+          if (minimizeToTray) {
+            if (guiVariant !== 'small') {
+              setGuiVariant('small');
+              setAlwaysOnTop(false);
+              showToast("Zminimalizowano do widgetu (Zamknij do tray)");
+            } else {
+              await invoke('hide_window');
+            }
+          } else {
+            await invoke('exit_app');
+          }
+        });
+
+        unlistenResized = await listen<[number, number]>('native-window-resized', (event) => {
+          let w = 800;
+          if (Array.isArray(event.payload)) {
+            w = event.payload[0];
+          } else if (event.payload && typeof event.payload === 'object') {
+            w = (event.payload as any).width || 800;
+          }
+          
+          if (w < 300) {
+            setGuiVariant('small');
+          } else if (w >= 300 && w < 600) {
+            setGuiVariant('medium');
+          } else {
+            setGuiVariant('large');
+          }
+        });
+      } catch (err) {
+        console.error('Tauri listener setup error:', err);
+      }
+    };
+
+    setupListeners();
+
+    return () => {
+      if (unlistenMaximized) unlistenMaximized();
+      if (unlistenRestored) unlistenRestored();
+      if (unlistenMinimized) unlistenMinimized();
+      if (unlistenCloseRequested) unlistenCloseRequested();
+      if (unlistenResized) unlistenResized();
+    };
+  }, [guiVariant, minimizeToTray]);
+
   const [nowIso, setNowIso] = useState<string>(new Date().toISOString());
 
   useEffect(() => {
@@ -179,12 +298,12 @@ export default function App() {
         setEnginePID(Math.floor(2500 + Math.random() * 5000));
         return;
       } catch (err) {
-        console.warn('Failed parsing local OxyFlow store', err);
+        console.warn('Failed parsing local LogTime by OxyFlow store', err);
       }
     }
 
     const initProjects: Project[] = [
-      { id: '1', name: 'OxyFlow Backend Engine', color: 'violet', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString() },
+      { id: '1', name: 'LogTime by OxyFlow Backend Engine', color: 'violet', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString() },
       { id: '2', name: 'Zouk Flow UI System', color: 'rose', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString() },
       { id: '3', name: 'CLI Daemon Integration', color: 'teal', createdAt: new Date().toISOString() },
     ];
@@ -475,6 +594,30 @@ export default function App() {
     }
   };
 
+  const handleCloseWindow = async () => {
+    if (isTauri()) {
+      try {
+        await invoke('close_window');
+      } catch (err) {
+        console.error('Tauri close error:', err);
+      }
+    } else {
+      setIsGuiClosed(true);
+    }
+  };
+
+  const handleMinimizeWindow = async () => {
+    if (isTauri()) {
+      try {
+        await invoke('minimize_window');
+      } catch (err) {
+        console.error('Tauri minimize error:', err);
+      }
+    } else {
+      setIsMinimized(true);
+    }
+  };
+
   const handleToggleTimer = () => {
     if (activeLog) {
       handleStopTimer();
@@ -631,184 +774,65 @@ export default function App() {
                 : 'bg-slate-900/50 backdrop-blur-2xl border-white/10'
             }`}>
               
-              <div className={`px-6 py-3 flex items-center justify-between border-b transition-all duration-300 ${
-                resolvedTheme === 'light'
-                  ? 'bg-[#EDE7DE] border-[#DFD7CB] text-[#2C2421]'
-                  : resolvedTheme === 'high-contrast'
-                  ? 'bg-black border-white border-b-2 text-white'
-                  : 'bg-black/40 border-white/10 text-slate-300'
-              }`}>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5 mr-2">
-                    <button 
-                      onClick={handleMinimizeToTray} 
-                      className="w-3.5 h-3.5 rounded-full bg-rose-500 hover:bg-rose-600 transition-colors flex items-center justify-center cursor-pointer text-[0px] hover:text-[8px] font-bold text-rose-950" 
-                      title={translate(locale, 'app.closeToTray', customTranslations)}
-                    >
-                      ✕
-                    </button>
-                    <button 
-                      onClick={handleMinimizeToTray} 
-                      className="w-3.5 h-3.5 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors flex items-center justify-center cursor-pointer text-[0px] hover:text-[8px] font-bold text-yellow-950" 
-                      title={translate(locale, 'app.minimizeToTray', customTranslations)}
-                    >
-                      －
-                    </button>
-                    <button 
-                      className="w-3.5 h-3.5 rounded-full bg-emerald-505 hover:bg-emerald-606 transition-colors flex items-center justify-center cursor-default text-[0px] hover:text-[8px] font-bold text-emerald-950" 
-                      title={translate(locale, 'app.fullScreen', customTranslations)}
-                    >
-                      ⤢
-                    </button>
-                  </div>
-                  <span className={`text-xs font-mono font-medium flex items-center gap-1.5 ${
+              <div 
+                className={`px-4 py-2 flex items-center justify-between border-b transition-all duration-300 select-none ${
+                  resolvedTheme === 'light'
+                    ? 'bg-[#EDE7DE] border-[#DFD7CB] text-[#2C2421]'
+                    : resolvedTheme === 'high-contrast'
+                    ? 'bg-black border-white border-b-2 text-white'
+                    : 'bg-black/40 border-white/10 text-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className={`text-[10px] font-mono font-bold tracking-wider flex items-center gap-1.5 ${
                     resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'
                   }`}>
-                    <Shield className="w-3.5 h-3.5 text-orange-500" />
-                    oxytime.db [SQLite Daemon Thread] <span className={resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#8A7A71] font-normal'}>PID: {enginePID || translate(locale, 'app.searchingPid', customTranslations)}</span>
+                    <Shield className="w-3.5 h-3.5 text-orange-500 animate-pulse" />
+                    LOGTIME BY OXYFLOW
+                  </span>
+                  
+                  {/* Size Switcher */}
+                  <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
+                    resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
+                  }`}>
+                    {(['small', 'medium', 'large'] as const).map(sz => {
+                      const isActive = guiVariant === sz;
+                      return (
+                        <button
+                          key={sz}
+                          onClick={() => {
+                            setGuiVariant(sz);
+                            showToast(`${translate(locale, 'app.sizeChanged', customTranslations)} ${sz.toUpperCase()}`);
+                          }}
+                          className={`px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                            isActive
+                              ? resolvedTheme === 'light'
+                                ? 'bg-[#FCFAF8] text-[#2C2421] border border-[#DFD7CB] shadow-sm font-bold'
+                                : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
+                              : resolvedTheme === 'light'
+                              ? 'text-[#8A7A71] hover:text-[#2C2421]'
+                              : 'text-[#9B8C83] hover:text-white'
+                          }`}
+                        >
+                          {sz === 'small' ? 'Małe' : sz === 'medium' ? 'Średnie' : 'Duże'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold hidden sm:inline ${
+                    engineState === 'searching' 
+                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-350 animate-pulse border border-amber-500/20' 
+                      : resolvedTheme === 'light'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15'
+                  }`}>
+                    {engineState === 'searching' ? 'CONNECTING' : 'DAEMON RUNNING'}
                   </span>
                 </div>
-                
-                <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold ${
-                  engineState === 'searching' 
-                    ? 'bg-amber-500/20 text-amber-600 dark:text-amber-350 animate-pulse border border-amber-500/20' 
-                    : resolvedTheme === 'light'
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15'
-                }`}>
-                  {engineState === 'searching' ? translate(locale, 'app.searchingEngine', customTranslations) : translate(locale, 'app.activeEngine', customTranslations)}
-                </span>
               </div>
-
-              {guiVariant !== 'medium' && (
-                <header className={`border-b transition-all duration-300 ${
-                  resolvedTheme === 'light'
-                    ? 'bg-[#F4EFEA]/50 border-[#DFD7CB]'
-                    : resolvedTheme === 'high-contrast'
-                    ? 'bg-black border-white border-b-2'
-                    : 'bg-[#FCFAF8]/5 border-white/5'
-                }`}>
-                  <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white shrink-0">
-                        <Layers className="w-5.5 h-5.5 text-white" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5 text-left">
-                          <h1 className={`font-sans font-bold text-lg ${
-                            resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
-                          }`}>LogTime by OxyFlow</h1>
-                          <span className="text-[9px] bg-orange-500/20 border border-orange-500/30 text-orange-400 px-2 py-0.5 rounded-full font-bold font-mono">v0.2</span>
-                        </div>
-                        <p className={`text-[10px] text-left ${
-                          resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
-                        }`}>{translate(locale, 'app.subtitle', customTranslations)}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                      
-                      <div className={`flex p-1 rounded-xl border transition-all duration-300 ${
-                        resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
-                      }`}>
-                        {(['small', 'medium', 'large'] as const).map(sz => {
-                          const isActive = guiVariant === sz;
-                          return (
-                            <button
-                              key={sz}
-                              onClick={() => {
-                                setGuiVariant(sz);
-                                showToast(`${translate(locale, 'app.sizeChanged', customTranslations)} ${sz.toUpperCase()}`);
-                              }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                                isActive
-                                  ? resolvedTheme === 'light'
-                                    ? 'bg-[#FCFAF8] text-[#2C2421] border border-[#DFD7CB] shadow-sm font-bold'
-                                    : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
-                                  : resolvedTheme === 'light'
-                                  ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
-                                  : 'text-[#9B8C83] hover:text-white'
-                              }`}
-                            >
-                              {sz === 'small' ? translate(locale, 'app.sizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app.sizeMedium', customTranslations) : translate(locale, 'app.sizeLarge', customTranslations)}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto transition-all duration-300 ${
-                        resolvedTheme === 'light'
-                          ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
-                          : resolvedTheme === 'high-contrast'
-                          ? 'bg-black border-white border-2'
-                          : 'bg-slate-950/40 border-white/10'
-                      }`}>
-                        {(['dark', 'light', 'high-contrast', 'system'] as const).map(th => {
-                          const isActive = theme === th;
-                          return (
-                            <button
-                              key={th}
-                              onClick={() => setTheme(th)}
-                              className={`flex-1 sm:flex-initial px-2.5 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                                isActive
-                                  ? resolvedTheme === 'light'
-                                    ? 'bg-[#FCFAF8] text-[#2C2421] shadow-sm border border-[#DFD7CB]'
-                                    : resolvedTheme === 'high-contrast'
-                                    ? 'bg-[#FCFAF8] text-black font-extrabold'
-                                    : 'bg-[#FCFAF8]/15 text-white border border-white/10'
-                                  : resolvedTheme === 'light'
-                                  ? 'text-[#8A7A71] hover:text-[#2C2421]'
-                                  : 'text-[#9B8C83] hover:text-white'
-                              }`}
-                              title={`Styl: ${th}`}
-                            >
-                              {th === 'dark' && <Moon className="w-3.5 h-3.5 text-indigo-400" />}
-                              {th === 'light' && <Sun className="w-3.5 h-3.5 text-orange-400 font-bold" />}
-                              {th === 'high-contrast' && <Eye className="w-3.5 h-3.5 text-rose-400" />}
-                              {th === 'system' && <Laptop className="w-3.5 h-3.5 text-teal-400" />}
-                              <span className="hidden xl:inline ml-0.5">
-                                {th === 'dark' ? translate(locale, 'app.themeDark', customTranslations) : th === 'light' ? translate(locale, 'app.themeLight', customTranslations) : th === 'high-contrast' ? translate(locale, 'app.themeHighContrast', customTranslations) : translate(locale, 'app.themeSystem', customTranslations)}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto transition-all duration-300 ${
-                        resolvedTheme === 'light'
-                          ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
-                          : resolvedTheme === 'high-contrast'
-                          ? 'bg-black border-white border-2'
-                          : 'bg-slate-950/40 border-white/10'
-                      }`}>
-                        <Languages className="w-3.5 h-3.5 text-blue-400 ml-2 mr-1" />
-                        {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as LocaleType[]).map(lang => {
-                          const isActive = localePref === lang;
-                          return (
-                            <button
-                              key={lang}
-                              onClick={() => setLocalePref(lang)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
-                                isActive
-                                  ? resolvedTheme === 'light'
-                                    ? 'bg-[#FCFAF8] text-blue-600 shadow-sm border border-[#DFD7CB]'
-                                    : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                  : resolvedTheme === 'light'
-                                  ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
-                                  : 'text-[#9B8C83] hover:text-white hover:bg-[#FCFAF8]/10'
-                              }`}
-                            >
-                              {lang}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                  </div>
-                </header>
-              )}
 
               {guiVariant === 'large' && (
                 <div className={`border-b transition-all duration-300 ${
@@ -894,139 +918,7 @@ export default function App() {
                 <div id="tab-viewport" className="min-h-[480px]">
                   
                   {guiVariant === 'medium' && (
-                    <div className={`flex flex-col gap-6 max-w-[440px] mx-auto p-4 rounded-[2rem] border shadow-2xl pb-10 transition-colors ${
-                      resolvedTheme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB] shadow-orange-900/5' : 'bg-black/20 border-white/10'
-                    }`}>
-                      <div className={`flex flex-col gap-4 pb-4 border-b ${resolvedTheme === 'light' ? 'border-[#DFD7CB]' : 'border-white/5'}`}>
-                        <button 
-                          onClick={() => setIsMediumHeaderOpen(!isMediumHeaderOpen)}
-                          className={`w-full flex items-center justify-between gap-3 p-2 rounded-xl transition-colors cursor-pointer ${
-                            resolvedTheme === 'light' ? 'hover:bg-[#EAE4DB]' : 'hover:bg-white/5'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white shrink-0">
-                              <Layers className="w-5.5 h-5.5 text-white" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5 text-left">
-                                <h1 className={`font-sans font-bold text-[17px] leading-tight ${
-                                  resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
-                                }`}>LogTime by OxyFlow</h1>
-                                <span className="text-[9px] bg-orange-500/20 border border-orange-500/30 text-orange-400 px-2 py-0.5 rounded-full font-bold font-mono">v0.2</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className={`p-1.5 rounded-lg ${resolvedTheme === 'light' ? 'bg-[#DFD7CB]/50 text-[#7A6A61]' : 'bg-white/5 text-white/50'}`}>
-                            {isMediumHeaderOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                          </div>
-                        </button>
-
-                        {isMediumHeaderOpen && (
-                          <div className="flex flex-col gap-3 px-1 animate-in slide-in-from-top-2 fade-in duration-200">
-                            <div className={`flex p-1 rounded-xl border transition-all duration-300 w-full ${
-                              resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
-                            }`}>
-                              {(['small', 'medium', 'large'] as const).map(sz => {
-                                const isActive = guiVariant === sz;
-                                return (
-                                  <button
-                                    key={sz}
-                                    onClick={() => {
-                                      setGuiVariant(sz);
-                                      showToast(`${translate(locale, 'app.sizeChanged', customTranslations)} ${sz.toUpperCase()}`);
-                                    }}
-                                    className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-semibold tracking-wide transition-all cursor-pointer ${
-                                      isActive
-                                        ? resolvedTheme === 'light'
-                                          ? 'bg-[#FCFAF8] text-[#2C2421] border border-[#DFD7CB] shadow-sm font-bold'
-                                          : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
-                                        : resolvedTheme === 'light'
-                                        ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
-                                        : 'text-[#9B8C83] hover:text-white'
-                                    }`}
-                                  >
-                                    {sz === 'small' ? translate(locale, 'app.sizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app.sizeMedium', customTranslations) : translate(locale, 'app.sizeLarge', customTranslations)}
-                                  </button>
-                                );
-                              })}
-                            </div>
-
-                            <div className={`flex items-center p-1 rounded-xl border w-full transition-all duration-300 ${
-                              resolvedTheme === 'light'
-                                ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
-                                : resolvedTheme === 'high-contrast'
-                                ? 'bg-black border-white border-2'
-                                : 'bg-slate-950/40 border-white/10'
-                            }`}>
-                              {(['dark', 'light', 'high-contrast', 'system'] as const).map(th => {
-                                const isActive = theme === th;
-                                return (
-                                  <button
-                                    key={th}
-                                    onClick={() => setTheme(th)}
-                                    className={`flex-1 px-1.5 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                                      isActive
-                                        ? resolvedTheme === 'light'
-                                          ? 'bg-[#FCFAF8] text-[#2C2421] shadow-sm border border-[#DFD7CB]'
-                                          : resolvedTheme === 'high-contrast'
-                                          ? 'bg-[#FCFAF8] text-black font-extrabold'
-                                          : 'bg-[#FCFAF8]/15 text-white border border-white/10'
-                                        : resolvedTheme === 'light'
-                                        ? 'text-[#8A7A71] hover:text-[#2C2421]'
-                                        : 'text-[#9B8C83] hover:text-white'
-                                    }`}
-                                    title={`Styl: ${th}`}
-                                  >
-                                    {th === 'dark' && <Moon className="w-3.5 h-3.5 text-indigo-400" />}
-                                    {th === 'light' && <Sun className="w-3.5 h-3.5 text-orange-400 font-bold" />}
-                                    {th === 'high-contrast' && <Eye className="w-3.5 h-3.5 text-rose-400" />}
-                                    {th === 'system' && <Laptop className="w-3.5 h-3.5 text-teal-400" />}
-                                    <span className="hidden sm:inline-block ml-0.5">
-                                      {th === 'dark' ? 'Dark' : th === 'light' ? 'Light' : th === 'high-contrast' ? 'High' : 'Sys'}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-
-                            <div className={`flex items-center p-1 rounded-xl border w-full transition-all duration-300 ${
-                              resolvedTheme === 'light'
-                                ? 'bg-[#EAE4DB] border-[#DFD7CB] shadow-inner'
-                                : resolvedTheme === 'high-contrast'
-                                ? 'bg-black border-white border-2'
-                                : 'bg-slate-950/40 border-white/10'
-                            }`}>
-                              <Languages className="w-3 h-3 text-blue-400 ml-1.5 mr-1 shrink-0" />
-                              <div className="flex flex-1 justify-between gap-1 overflow-x-auto scroller-hide">
-                                {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as LocaleType[]).map(lang => {
-                                  const isActive = localePref === lang;
-                                  return (
-                                    <button
-                                      key={lang}
-                                      onClick={() => setLocalePref(lang)}
-                                      className={`flex-1 px-1 py-1.5 rounded-lg text-[9px] font-bold uppercase transition-all cursor-pointer ${
-                                        isActive
-                                          ? resolvedTheme === 'light'
-                                            ? 'bg-[#FCFAF8] text-blue-600 shadow-sm border border-[#DFD7CB]'
-                                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                          : resolvedTheme === 'light'
-                                          ? 'text-[#8A7A71] hover:text-[#2C2421] hover:bg-[#FCFAF8]/50'
-                                          : 'text-[#9B8C83] hover:text-white hover:bg-[#FCFAF8]/10'
-                                      }`}
-                                    >
-                                      {lang === 'system' ? 'SYS' : lang}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <GuiRouter variant="medium" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
-                    </div>
+                    <GuiRouter variant="medium" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                   )}
 
                   {guiVariant === 'large' && (
@@ -1189,11 +1081,11 @@ export default function App() {
                   <p className="font-sans text-sm leading-relaxed mb-3">
                     {locale === 'pl' ? (
                       <>
-                        Aplikacja stworzona przez <strong className="text-orange-400">vibe coding</strong> przez <strong className="text-teal-400">OxyFlow</strong>.
+                        Aplikacja stworzona przez <strong className="text-orange-400">vibe coding</strong> przez <strong className="text-teal-400">LogTime by OxyFlow</strong>.
                       </>
                     ) : (
                       <>
-                        This application was engineered through <strong className="text-orange-400">vibe coding</strong> by <strong className="text-teal-400 font-extrabold">OxyFlow</strong>.
+                        This application was engineered through <strong className="text-orange-400">vibe coding</strong> by <strong className="text-teal-400 font-extrabold">LogTime by OxyFlow</strong>.
                       </>
                     )}
                   </p>
@@ -1234,7 +1126,7 @@ export default function App() {
                     resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42] shadow-inner' : 'bg-black/40 border-white/5 text-[#9B8C83]'
                   }`}>
                     <p className="font-bold mb-1">MIT License</p>
-                    <p className="mb-2">Copyright (c) 2026 OxyFlow</p>
+                    <p className="mb-2">Copyright (c) 2026 LogTime by OxyFlow</p>
                     <p className="mb-2">
                       Permission is hereby granted, free of charge, to any person obtaining a copy
                       of this software and associated documentation files (the "Software"), to deal
@@ -1281,10 +1173,10 @@ export default function App() {
             id="tray-dot-restore-button"
             onClick={() => {
               setIsMinimized(false);
-              showToast("Interfejs OxyFlow przywrócony.");
+              showToast("Interfejs LogTime by OxyFlow przywrócony.");
             }}
             className="w-14 h-14 bg-gradient-to-tr from-orange-400 to-rose-500 rounded-full flex items-center justify-center text-white shadow-2xl border border-white/20 cursor-pointer transform hover:scale-110 active:scale-95 transition-all"
-            title="Przywróć Interfejs OxyFlow"
+            title="Przywróć Interfejs LogTime by OxyFlow"
           >
             <AppWindow className="w-6 h-6 text-white" />
           </button>

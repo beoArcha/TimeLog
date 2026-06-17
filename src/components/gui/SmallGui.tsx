@@ -1,4 +1,5 @@
 import React from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { Clock, Maximize2, X, ChevronDown, Play, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -51,13 +52,9 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.25 }}
-      className={`mx-auto p-2 ${
-        alwaysOnTop 
-          ? 'fixed bottom-4 right-4 md:bottom-12 md:right-12 z-[200] max-w-sm w-full shadow-2xl' 
-          : 'max-w-md w-full my-auto py-12'
-      }`}
+      className="w-full h-full flex flex-col p-1"
     >
-      <div className={`rounded-3xl border shadow-2xl p-5 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 ${
+      <div className={`rounded-2xl border shadow-2xl p-3 flex flex-col gap-2.5 relative overflow-hidden transition-all duration-300 w-full h-full ${
         resolvedTheme === 'light'
           ? 'bg-white border-slate-200 text-slate-800'
           : resolvedTheme === 'high-contrast'
@@ -69,16 +66,18 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500"></div>
         )}
 
-        <div className="flex items-center justify-between border-b pb-2.5 border-white/10">
+        <div 
+          className="flex items-center justify-between border-b pb-2 border-white/10 select-none"
+        >
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-6 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-450 border border-orange-505/30">
-              <Clock className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
+            <div className="w-5 h-5 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-450 border border-orange-505/30">
+              <Clock className="w-3 h-3 text-orange-400 animate-pulse" />
             </div>
-            <span className="font-sans font-bold text-xs tracking-tight">{translate(locale, 'smallGuiWidget.title', customTranslations)}</span>
+            <span className="font-sans font-bold text-[10px] tracking-tight">LogTime by OxyFlow</span>
           </div>
 
           <div className="flex items-center gap-1">
-            <label className="flex items-center gap-1 font-mono text-[9px] mr-2 text-slate-400 hover:text-orange-400 cursor-pointer select-none">
+            <label className="flex items-center gap-0.5 font-mono text-[8px] mr-1 text-slate-400 hover:text-orange-400 cursor-pointer select-none">
               <input 
                 type="checkbox"
                 checked={alwaysOnTop}
@@ -88,31 +87,8 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
                 }}
                 className="w-3 h-3 rounded select-none accent-orange-500 cursor-pointer"
               />
-              <span>{translate(locale, 'smallGuiWidget.onTop', customTranslations)}</span>
+              <span>Top</span>
             </label>
-
-            <button
-              onClick={() => {
-                setGuiVariant('large');
-                showToast(translate(locale, 'smallGuiWidget.switchToLarge', customTranslations));
-              }}
-              className={`p-1 rounded-md transition-all cursor-pointer ${
-                resolvedTheme === 'light' ? 'hover:bg-slate-100 text-slate-700' : 'hover:bg-white/10 text-slate-300'
-              }`}
-              title={translate(locale, 'smallGuiWidget.maximizeGui', customTranslations)}
-            >
-              <Maximize2 className="w-3.5 h-3.5 text-orange-400" />
-            </button>
-
-            <button
-              onClick={handleMinimizeToTray}
-              className={`p-1 rounded-md transition-all cursor-pointer ${
-                resolvedTheme === 'light' ? 'hover:bg-slate-100 text-rose-650' : 'hover:bg-white/10 text-rose-450'
-              }`}
-              title={translate(locale, 'smallGuiWidget.minimizeMinimize', customTranslations)}
-            >
-              <X className="w-3.5 h-3.5 font-bold" />
-            </button>
           </div>
         </div>
 

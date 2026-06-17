@@ -56,7 +56,7 @@ export default function CliInterface({
 }: CliInterfaceProps) {
   const [input, setInput] = useState('');
   const [terminalHistory, setTerminalHistory] = useState<TerminalLine[]>([
-    { text: 'OxyFlow CLI Engine [Version 0.1.0]', type: 'info' },
+    { text: 'LogTime by OxyFlow CLI Engine [Version 0.1.0]', type: 'info' },
     { text: "Type 'help' to see available commands.", type: 'info' },
     { text: "Connected to local SQLite database in memory.", type: 'success' },
     { text: '', type: 'output' },
@@ -88,7 +88,7 @@ export default function CliInterface({
     if (!trimmed) return;
 
     // Append raw input line
-    setTerminalHistory(prev => [...prev, { text: `user@oxyflow:~$ ${trimmed}`, type: 'input' }]);
+    setTerminalHistory(prev => [...prev, { text: `user@logtime-by-oxyflow:~$ ${trimmed}`, type: 'input' }]);
 
     // Parse commands and arguments
     // Simple quotes regex parser, e.g. addproject "New Project Name"
@@ -678,7 +678,7 @@ export default function CliInterface({
             theme === 'light' ? 'text-slate-600' : 'text-slate-300'
           }`}>
             <Terminal className="w-3.5 h-3.5 text-orange-500" />
-            OxyFlow Engine CLI Shell (127.0.0.1)
+            LogTime by OxyFlow Engine CLI Shell (127.0.0.1)
           </span>
         </div>
         <div className="flex items-center gap-2">
