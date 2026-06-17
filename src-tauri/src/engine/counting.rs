@@ -18,7 +18,8 @@ pub fn start_project_timer(conn: &Connection, task_id: &str) -> Result<()> {
     )?;
 
     // 3. Start registering new task timer
-    let log_id = format!("log_{}", Utc::now().timestamp_millis());
+    static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let log_id = format!("log_{}_{}", Utc::now().timestamp_millis(), LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
     conn.execute(
         "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, NULL)",
         params![log_id, task_id, Utc::now().to_rfc3339()]

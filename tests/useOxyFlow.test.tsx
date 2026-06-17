@@ -30,7 +30,7 @@ const mockState: OxyFlowState = {
   setHolidays: vi.fn(),
   patches: [],
   setPatches: vi.fn(),
-  sysSettings: { logToApi: false, enableShortcuts: true, alwaysOnTop: false },
+  sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false },
   setSysSettings: vi.fn(),
   activeLog: null,
   setActiveLog: vi.fn(),
