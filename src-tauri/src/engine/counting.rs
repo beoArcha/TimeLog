@@ -96,4 +96,43 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_cross_project_concurrency() -> Result<()> {
+        let conn = init_db_in_memory()?;
+        let now = chrono::Utc::now().to_rfc3339();
+        
+        // Setup two projects
+        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)", [&now])?;
+        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)", [&now])?;
+        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1_b', 'p1', 'Task1B', ?)", [&now])?;
+        
+        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p2', 'Proj2', 'blue', ?)", [&now])?;
+        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p2', 'Task2', ?)", [&now])?;
+
+        // Start t1 in p1
+        start_project_timer(&conn, "t1")?;
+        
+        // Start t2 in p2
+        start_project_timer(&conn, "t2")?;
+        
+        let active = query_active_logs(&conn)?;
+        assert_eq!(active.len(), 2, "Both projects should run concurrently");
+        assert!(active.contains(&"t1".to_string()));
+        assert!(active.contains(&"t2".to_string()));
+
+        // Start t1_b in p1 (should stop t1 but leave t2 running)
+        start_project_timer(&conn, "t1_b")?;
+        let active2 = query_active_logs(&conn)?;
+        assert_eq!(active2.len(), 2);
+        assert!(active2.contains(&"t1_b".to_string()));
+        assert!(active2.contains(&"t2".to_string()));
+
+        // Stop all
+        stop_project_timer(&conn, None)?;
+        let active3 = query_active_logs(&conn)?;
+        assert_eq!(active3.len(), 0);
+
+        Ok(())
+    }
 }

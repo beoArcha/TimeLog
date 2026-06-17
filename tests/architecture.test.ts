@@ -25,7 +25,7 @@ describe('Architecture & Structure Tests', () => {
 
   it('should not contain large monolithic components that break SOLID', () => {
     const appFile = fs.readFileSync(path.resolve(__dirname, '../src/App.tsx'), 'utf8');
-    // Ensure App.tsx delegates rendering to GuiInterface rather than doing it all
-    expect(appFile).toContain('<GuiInterface');
+    // Ensure App.tsx delegates rendering to GuiRouter rather than doing it all
+    expect(appFile).toContain('<GuiRouter');
   });
 });
