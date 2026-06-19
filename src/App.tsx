@@ -33,8 +33,8 @@ const handleWindowResize = async (variant: 'small' | 'medium' | 'large') => {
   try {
     let w = 800, h = 600;
     if (variant === 'small') {
-      w = 256;
-      h = 256;
+      w = 320;
+      h = 480;
     } else if (variant === 'medium') {
       w = 400;
       h = 600;
@@ -127,6 +127,11 @@ export default function App() {
     return localStorage.getItem('oxytime_always_on_top') === 'true';
   });
 
+  const [lastNonSmallVariant, setLastNonSmallVariant] = useState<'medium' | 'large'>(() => {
+    const saved = localStorage.getItem('oxytime_last_non_small_variant');
+    return (saved as 'medium' | 'large') || 'medium';
+  });
+
   const [activeLargeTab, setActiveLargeTab] = useState<'main' | 'cli' | 'db' | 'options' | 'manual' | 'credits'>('main');
 
   const [isSmallExpanded, setIsSmallExpanded] = useState<boolean>(true);
@@ -141,6 +146,10 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('oxytime_gui_variant', guiVariant);
+    if (guiVariant !== 'small') {
+      setLastNonSmallVariant(guiVariant);
+      localStorage.setItem('oxytime_last_non_small_variant', guiVariant);
+    }
   }, [guiVariant]);
 
   useEffect(() => {
@@ -148,12 +157,16 @@ export default function App() {
   }, [alwaysOnTop]);
 
   useEffect(() => {
-    handleWindowResize(guiVariant);
-    if (guiVariant !== 'small') {
-      handleWindowAlwaysOnTop(false);
-    } else {
-      handleWindowAlwaysOnTop(alwaysOnTop);
-    }
+    const applyWindowConfig = async () => {
+      await handleWindowResize(guiVariant);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      if (guiVariant !== 'small') {
+        await handleWindowAlwaysOnTop(false);
+      } else {
+        await handleWindowAlwaysOnTop(alwaysOnTop);
+      }
+    };
+    applyWindowConfig();
   }, [guiVariant, alwaysOnTop]);
 
   useEffect(() => {
@@ -246,9 +259,9 @@ export default function App() {
             w = (event.payload as any).width || 800;
           }
           
-          if (w < 300) {
+          if (w < 350) {
             setGuiVariant('small');
-          } else if (w >= 300 && w < 600) {
+          } else if (w >= 350 && w < 600) {
             setGuiVariant('medium');
           } else {
             setGuiVariant('large');
@@ -768,7 +781,7 @@ export default function App() {
             showToast={showToast}
           />
         ) : guiVariant === 'small' ? (
-          <GuiRouter variant="small" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
+          <GuiRouter variant="small" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} lastNonSmallVariant={lastNonSmallVariant} />
         ) : (
           <motion.div
             key="windowed-state"

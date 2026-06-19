@@ -21,7 +21,8 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
     showToast,
     handleMinimizeToTray,
     setGuiVariant,
-    currentProjectId
+    currentProjectId,
+    lastNonSmallVariant
   } = rest;
 
   
@@ -77,8 +78,8 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
             <span className="font-sans font-bold text-[10px] tracking-tight">LogTime by OxyFlow v{versionsData.major}.{versionsData.minor}.{versionsData.release}</span>
           </div>
 
-          <div className="flex items-center gap-1">
-            <label className="flex items-center gap-0.5 font-mono text-[8px] mr-1 text-slate-400 hover:text-orange-400 cursor-pointer select-none">
+          <div className="flex items-center gap-1.5">
+            <label className="flex items-center gap-0.5 font-mono text-[10px] mr-1 text-slate-400 hover:text-orange-400 cursor-pointer select-none">
               <input 
                 type="checkbox"
                 checked={alwaysOnTop}
@@ -90,6 +91,17 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
               />
               <span>Top</span>
             </label>
+            <button
+              onClick={() => {
+                const target = lastNonSmallVariant || 'medium';
+                setGuiVariant(target);
+                showToast(locale === 'pl' ? `Rozmiar zmieniony na ${target === 'medium' ? 'ŚREDNI' : 'DUŻY'}` : `Size changed to ${target.toUpperCase()}`);
+              }}
+              className="p-1 rounded hover:bg-white/10 hover:text-orange-400 text-slate-400 cursor-pointer transition-colors flex items-center justify-center"
+              title={locale === 'pl' ? "Przywróć większy rozmiar" : "Restore larger size"}
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
@@ -134,7 +146,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col gap-2 max-h-[280px] overflow-y-auto pr-1 text-left"
+              className="flex flex-col gap-2 flex-1 overflow-y-auto pr-1 text-left"
             >
               {(() => {
                 if (!activeProj) return <p className="text-xs italic text-slate-400 text-center py-4">{translate(locale, 'dynamic.noProjects', customTranslations)}</p>;

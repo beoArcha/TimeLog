@@ -93,9 +93,9 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     fireEvent.click(smallBtn);
 
     await waitFor(() => {
-      // Small mode: resizable = false, width = 256, height = 256
+      // Small mode: resizable = false, width = 320, height = 480
       expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: false });
-      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 256, height: 256 });
+      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 320, height: 480 });
     });
   });
 
@@ -189,7 +189,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     // Should set guiVariant to small and set alwaysOnTop to false
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: false });
-      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 256, height: 256 });
+      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 320, height: 480 });
       expect(mockInvoke).toHaveBeenCalledWith('set_always_on_top', { alwaysOnTop: false });
     });
   });

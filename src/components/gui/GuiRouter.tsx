@@ -18,6 +18,7 @@ export interface GuiRouterProps {
   handleMinimizeToTray: () => void;
   setGuiVariant: (variant: 'small' | 'medium' | 'large') => void;
   currentProjectId: string;
+  lastNonSmallVariant?: 'medium' | 'large';
 }
 
 export default function GuiRouter(props: GuiRouterProps) {
