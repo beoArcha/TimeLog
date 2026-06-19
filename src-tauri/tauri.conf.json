@@ -1,7 +1,7 @@
 {
   "productName": "OxyFlow",
   "version": "0.2.0",
-  "identifier": "com.oxytime.app",
+  "identifier": "com.oxytime.oxyflow",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3000"
