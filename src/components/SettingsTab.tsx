@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, Sun, Moon, Eye, Laptop, Languages, RefreshCw, AlertTriangle, Shield, CheckCircle, CalendarDays } from 'lucide-react';
+import { Settings, Sun, Moon, Eye, Laptop, Languages, RefreshCw, AlertTriangle, Shield, CheckCircle, CalendarDays, Type } from 'lucide-react';
 import { useOxyFlow } from '../hooks/useOxyFlow';
 import EngineConfig from './EngineConfig';
 import HolidaysAndLeaves from './HolidaysAndLeaves';
@@ -11,7 +11,7 @@ import { Info } from 'lucide-react';
 import versionsData from '../versions.json';
 
 export default function SettingsTab() {
-  const { theme, setTheme, customTranslations, setCustomTranslations, resolvedTheme, localePref, setLocalePref, locale, setLocale, setProjects, setTasks, setLogs, setHolidays } = useOxyFlow();
+  const { theme, setTheme, uiScale, setUiScale, customTranslations, setCustomTranslations, resolvedTheme, localePref, setLocalePref, locale, setLocale, setProjects, setTasks, setLogs, setHolidays } = useOxyFlow();
 
   const handleResetData = () => {
     const response = window.prompt(translate(locale, 'dynamic.warningResetApp', customTranslations));
@@ -43,24 +43,6 @@ export default function SettingsTab() {
           </h2>
           <p className={`text-xs ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>{translate(locale, 'settings.description', customTranslations)}</p>
         </div>
-        
-        {/* Language Switcher inline at the top */}
-        <div className={`flex flex-wrap items-center p-1 rounded-xl w-fit ${resolvedTheme === 'light' ? 'bg-[#FCFAF7] border border-[#DFD7CB] shadow-sm' : 'bg-black/30 border border-white/10'}`}>
-          <Languages className={`w-3.5 h-3.5 mx-2 ${resolvedTheme === 'light' ? 'text-blue-500' : 'text-blue-400'}`} />
-          {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as LocaleType[]).map(l => (
-            <button
-              key={l}
-              onClick={() => setLocalePref(l)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
-                localePref === l 
-                  ? 'bg-blue-500 text-white shadow-sm' 
-                  : resolvedTheme === 'light' ? 'text-[#7A6A61] hover:bg-[#DFD7CB]' : 'text-[#9B8C83] hover:bg-[#FCFAF8]/10 hover:text-white'
-              }`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="flex flex-col gap-6">
@@ -70,39 +52,6 @@ export default function SettingsTab() {
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400"/> {translate(locale, 'settings.holidaysTitle', customTranslations)}</h3>
           <HolidaysAndLeaves />
         </div>
-
-
-
-        <CollapsibleCard
-          title={translate(locale, 'settings.theme', customTranslations)}
-          icon={Sun}
-          iconColor="text-yellow-500"
-          defaultExpanded={true}
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
-            {themes.map(t => {
-              const isActive = theme === t.id;
-              const Icon = t.icon;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setTheme(t.id as any)}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all cursor-pointer text-center ${
-                    isActive 
-                      ? 'bg-orange-500 border-orange-600 text-white shadow-md scale-105 z-10' 
-                      : resolvedTheme === 'light'
-                      ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#7A6A61] hover:bg-[#F4EFEA]'
-                      : 'bg-black/20 border-white/10 text-[#9B8C83] hover:bg-[#FCFAF8]/5'
-                  }`}
-                >
-                  <Icon className={`w-6 h-6 mb-2 ${isActive ? 'text-white' : ''}`} />
-                  <span className="text-xs font-bold">{t.label}</span>
-                  <span className="text-[10px] opacity-80 mt-1">{t.desc}</span>
-                </button>
-              );
-            })}
-          </div>
-        </CollapsibleCard>
 
         <CollapsibleCard
           title={translate(locale, 'settings.destructiveZone', customTranslations)}
@@ -140,19 +89,19 @@ export default function SettingsTab() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs mt-2">
               <div className={`p-3 rounded-xl border ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-black/20 border-white/5'}`}>
                 <div className="opacity-70 mb-1">Engine</div>
-                <div className="font-bold font-mono">{versionsData.major}.{versionsData.minor}.{versionsData.subversions.engine}</div>
+                <div className="font-bold font-mono">v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.engine}</div>
               </div>
               <div className={`p-3 rounded-xl border ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-black/20 border-white/5'}`}>
                 <div className="opacity-70 mb-1">Front</div>
-                <div className="font-bold font-mono">{versionsData.major}.{versionsData.minor}.{versionsData.subversions.front}</div>
+                <div className="font-bold font-mono">v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.front}</div>
               </div>
               <div className={`p-3 rounded-xl border ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-black/20 border-white/5'}`}>
                 <div className="opacity-70 mb-1">Components</div>
-                <div className="font-bold font-mono">{versionsData.major}.{versionsData.minor}.{versionsData.subversions.components}</div>
+                <div className="font-bold font-mono">v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.components}</div>
               </div>
               <div className={`p-3 rounded-xl border ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-black/20 border-white/5'}`}>
                 <div className="opacity-70 mb-1">Translations</div>
-                <div className="font-bold font-mono">{versionsData.major}.{versionsData.minor}.{versionsData.subversions.translations}</div>
+                <div className="font-bold font-mono">v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.translations}</div>
               </div>
             </div>
           </div>

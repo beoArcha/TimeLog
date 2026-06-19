@@ -26,6 +26,7 @@ export interface GuiCommonProps {
   locale: LocaleType;
   customTranslations?: Partial<TranslationDictionary>;
   theme?: string;
+  uiScale?: 'FHD' | 'QHD' | 'UHD';
 
   selectedTaskId: string | null;
   setSelectedTaskId: (id: string | null) => void;

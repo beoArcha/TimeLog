@@ -132,7 +132,7 @@ export const de = {
     "apiAddress": "API-Adresse",
     "bearerAuthTitle": "API-Token (Bearer Auth)",
     "quickShortcuts": "Schnelle anklickbare Verknüpfungen:",
-    "countingEngine": "Zähl-Motor v0.1",
+    "countingEngine": "Counting Engine",
     "createdForRhythm": "Für den Rhythmus gemacht",
     "heroDescription": "Fügen Sie Aufgaben hinzu, erweitern Sie Unteraufgaben mit microORM SQLite ohne unnötiges Klicken. Verwalten Sie Ihre Zeit einfach und stilvoll.",
     "projects": "Projekte",

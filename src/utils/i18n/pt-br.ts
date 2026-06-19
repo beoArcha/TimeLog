@@ -214,7 +214,7 @@ export const ptBr = {
     "forImmediateDevIterationsAndSo": "Para desenvolvimento.",
     "mITLICENSE": "LICENÇA MIT",
     "greatClose": "Fechar",
-    "countingEngine": "Counting Engine v0.1",
+    "countingEngine": "Counting Engine",
     "createdForRhythm": "Criado para o ritmo",
     "heroDescription": "Adicione tarefas, expanda subtarefas com microORM SQLite sem cliques desnecessários. Gerencie seu tempo de forma simples e com estilo.",
     "noPatches": "Sem patches",

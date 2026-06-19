@@ -41,6 +41,8 @@ const mockState: OxyFlowState = {
   setTheme: vi.fn(),
   resolvedTheme: 'dark',
   setResolvedTheme: vi.fn(),
+  uiScale: 'QHD',
+  setUiScale: vi.fn(),
   engineState: 'connected',
   enginePID: 1234,
   minimizeToTray: false,

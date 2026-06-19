@@ -187,7 +187,7 @@ export const pl = {
    "forImmediateDevIterationsAndSo": "Za błyskawiczny dev-server i niezawodny state engine.",
    "mITLICENSE": "LICENCJA MIT",
    "greatClose": "Rozumiem",
-   "countingEngine": "Counting Engine v0.1",
+   "countingEngine": "Counting Engine",
    "createdForRhythm": "Stworzone dla rytmu",
    "heroDescription": "Dodawaj zadania, rozwijaj podzadania z mikroORM SQLite bez zbędnego klikania. Zarządzaj czasem prosto i stylowo.",
     "noPatches": "Brak poprawek",

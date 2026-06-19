@@ -187,7 +187,7 @@ export const en = {
    "forImmediateDevIterationsAndSo": "For immediate dev iterations and solid reactive state.",
    "mITLICENSE": "MIT LICENSE",
    "greatClose": "Great, close",
-   "countingEngine": "Counting Engine v0.1",
+   "countingEngine": "Counting Engine",
    "createdForRhythm": "Created for rhythm",
    "heroDescription": "Add tasks, expand subtasks with microORM SQLite without unnecessary clicking. Manage your time simply and stylishly.",
     "noPatches": "No patches",

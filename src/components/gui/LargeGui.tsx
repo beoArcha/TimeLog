@@ -10,10 +10,20 @@ import DbInspector from './parts/DbInspector';
 type LargeGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
 export default function LargeGui({ state }: LargeGuiProps) {
-  const { theme, activeView } = state;
+  const { theme, activeView, uiScale = 'QHD' } = state;
+
+  const minSizes = {
+    'FHD': { minWidth: '1280px', minHeight: '720px' },
+    'QHD': { minWidth: '1920px', minHeight: '1080px' },
+    'UHD': { minWidth: '2560px', minHeight: '1440px' }
+  };
 
   return (
-    <div id="gui-container" className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'}`}>
+    <div 
+      id="gui-container" 
+      className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'} flex-1`}
+      style={minSizes[uiScale as keyof typeof minSizes] || minSizes['QHD']}
+    >
       {/* 1. Projects Sidebar - Left 4 Cols */}
       <Sidebar state={state} />
 

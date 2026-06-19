@@ -214,7 +214,7 @@ export const fr = {
     "forImmediateDevIterationsAndSo": "Pour le développement.",
     "mITLICENSE": "LICENCE MIT",
     "greatClose": "Fermer",
-    "countingEngine": "Counting Engine v0.1",
+    "countingEngine": "Counting Engine",
     "createdForRhythm": "Créé pour le rythme",
     "heroDescription": "Ajoutez des tâches, développez des sous-tâches avec microORM SQLite sans clics inutiles. Gérez votre temps simplement et avec style.",
     "noPatches": "Aucun patch",

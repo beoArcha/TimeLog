@@ -34,6 +34,9 @@ export interface OxyFlowState {
   resolvedTheme: 'dark' | 'light' | 'high-contrast';
   setResolvedTheme: React.Dispatch<React.SetStateAction<'dark' | 'light' | 'high-contrast'>>;
   
+  uiScale: 'FHD' | 'QHD' | 'UHD';
+  setUiScale: React.Dispatch<React.SetStateAction<'FHD' | 'QHD' | 'UHD'>>;
+  
   engineState: 'searching' | 'connected';
   enginePID: number;
   

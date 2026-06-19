@@ -4,7 +4,8 @@ import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
 import { translate } from '../../../utils/i18n';
 import { getTranslation } from '../../../utils/translations';
 import { getProjectDurationSeconds, formatSeconds } from '../../../utils';
-import { getThemeStyles, PROJECT_COLORS } from './guiStyles';
+import { getThemeStyles, PROJECT_COLORS, getScaleStyles } from './guiStyles';
+import versionsData from '../../../versions.json';
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
@@ -16,6 +17,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
   } = state;
 
   const th = getThemeStyles(theme);
+  const sc = getScaleStyles(state.uiScale || 'QHD');
 
   const handleAddProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +27,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
   };
 
   return (
-    <div id="projects-sidebar" className="lg:col-span-4 flex flex-col gap-6">
-      <div className={`backdrop-blur-md rounded-3xl p-6 border shadow-2xl transition-all duration-300 ${theme === 'light'
+    <div id="projects-sidebar" className={`lg:col-span-4 flex flex-col ${sc.gapMain}`}>
+      <div className={`backdrop-blur-md ${sc.roundedMain} ${sc.paddingMain} border shadow-2xl transition-all duration-300 ${theme === 'light'
           ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-[#DFD7CB]'
           : theme === 'high-contrast'
             ? 'bg-black border-2 border-white text-white'
@@ -34,32 +36,32 @@ export default function Sidebar({ state }: { state: GuiState }) {
         }`}>
         <div className={`flex items-center justify-between mb-4 border-b pb-3 ${theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10'
           }`}>
-          <h3 className={`font-sans font-semibold text-lg flex items-center gap-2 ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
+          <h3 className={`font-sans font-semibold ${sc.textTitle} flex items-center gap-2 ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
             }`}>
-            <Folder className="w-5 h-5 text-orange-400" />
+            <Folder className={`${sc.iconMedium} text-orange-400`} />
             {translate(locale, 'dynamic.projects', customTranslations)} ({projects.length})
           </h3>
-          <span className="text-[10px] bg-orange-500/20 border border-orange-500/30 text-orange-600 px-2 py-1 rounded-full font-mono font-bold uppercase tracking-wider">
+          <span className={`${sc.textMain} bg-orange-500/20 border border-orange-500/30 text-orange-600 px-2 py-1 rounded-full font-mono font-bold uppercase tracking-wider`}>
             MicroORM Tables
           </span>
         </div>
 
         {/* Quick Create Project */}
-        <form onSubmit={handleAddProjectSubmit} className={`mb-6 p-3 rounded-2xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+        <form onSubmit={handleAddProjectSubmit} className={`mb-6 ${sc.paddingSection} ${sc.roundedSection} border transition-all ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
           }`}>
-          <div className="flex flex-col gap-2">
+          <div className={`flex flex-col ${sc.gapSection}`}>
             <input
               id="new-project-input"
               type="text"
               placeholder={getTranslation(locale, 'enterProjectName', customTranslations)}
               value={newProjectName}
               onChange={e => setNewProjectName(e.target.value)}
-              className={`w-full border px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all ${theme === 'light'
+              className={`w-full border px-3 ${sc.inputPy} ${sc.roundedSection} ${sc.textMain} focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all ${theme === 'light'
                   ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421] placeholder-[#9B8C83]'
                   : 'bg-[#FCFAF8]/5 border-white/10 text-white placeholder-[#9B8C83]'
                 }`}
             />
-            <div className="flex items-center justify-between gap-1 mt-1">
+            <div className={`flex items-center justify-between ${sc.gapSection} mt-1`}>
               <div className="flex gap-1.5">
                 {PROJECT_COLORS.map(col => (
                   <button
@@ -67,7 +69,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                     key={col.name}
                     type="button"
                     onClick={() => setNewProjectColor(col.name)}
-                    className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${newProjectColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-80'
+                    className={`${sc.iconLarge} rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${newProjectColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-80'
                       }`}
                   >
                     {newProjectColor === col.name && (
@@ -79,16 +81,16 @@ export default function Sidebar({ state }: { state: GuiState }) {
               <button
                 id="add-project-btn"
                 type="submit"
-                className="bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md"
+                className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white ${sc.roundedSection} px-3.5 py-1.5 ${sc.textMain} font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md`}
               >
-                <Plus className="w-3.5 h-3.5" /> {getTranslation(locale, 'save', customTranslations)}
+                <Plus className={sc.iconSmall} /> {getTranslation(locale, 'save', customTranslations)}
               </button>
             </div>
           </div>
         </form>
 
         {/* Project List */}
-        <div id="projects-list-container" className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+        <div id="projects-list-container" className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto pr-1">
           {projects.length === 0 ? (
             <div className="text-center py-8 text-[#9B8C83] text-xs font-sans">
               {translate(locale, 'dynamic.nenhumProjetoAindaAdicioneUmAc', customTranslations)}
@@ -104,7 +106,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   id={`project-item-${p.id}`}
                   key={p.id}
                   onClick={() => setSelectedProjectId(p.id)}
-                  className={`text-left w-full p-3.5 rounded-2xl flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${isSelected
+                  className={`text-left w-full ${sc.paddingSection} ${sc.roundedSection} flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${isSelected
                       ? theme === 'light'
                         ? 'bg-orange-50 border-l-4 border-l-orange-500 border border-[#DFD7CB]/80 shadow-sm'
                         : theme === 'high-contrast'
@@ -116,7 +118,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                     } ${p.archived ? 'opacity-50 grayscale' : ''}`}
                 >
                   <div className="flex items-center gap-2.5 z-10 animate-fade-in">
-                    <span className={`w-3 h-3 rounded-full ${projColor.bg} shadow-md shadow-black/20`} />
+                    <span className={`${sc.iconSmall} rounded-full ${projColor.bg} shadow-md shadow-black/20`} />
                     <div>
                       {editingId === p.id ? (
                         <input
@@ -141,14 +143,14 @@ export default function Sidebar({ state }: { state: GuiState }) {
                               setEditingId(null);
                             }
                           }}
-                          className={`font-semibold text-sm rounded px-1 outline-none ${theme === 'light' ? 'bg-white text-[#2C2421] border-[#DFD7CB]' : 'bg-black text-white border-white/20'
+                          className={`font-semibold ${sc.textMain} rounded px-1 outline-none ${theme === 'light' ? 'bg-white text-[#2C2421] border-[#DFD7CB]' : 'bg-black text-white border-white/20'
                             } border`}
                         />
                       ) : (
-                        <p className={`font-semibold text-sm ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
-                          }`}>{p.archived && <span className="text-[10px] bg-red-500 text-white px-1 py-0.5 rounded mr-1 leading-none uppercase">{translate(locale, 'dynamic.archiveNoun', customTranslations)}</span>}{p.name}</p>
+                        <p className={`font-semibold ${sc.textMain} ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
+                          }`}>{p.archived && <span className={`${sc.textMain} bg-red-500 text-white px-1 py-0.5 rounded mr-1 leading-none uppercase`}>{translate(locale, 'dynamic.archiveNoun', customTranslations)}</span>}{p.name}</p>
                       )}
-                      <p className={`text-[10px] font-sans tracking-wide flex items-center gap-2 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
+                      <p className={`${sc.textMain} opacity-80 font-sans tracking-wide flex items-center gap-2 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
                         }`}>
                         {translate(locale, 'dynamic.createdAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
 
@@ -184,13 +186,13 @@ export default function Sidebar({ state }: { state: GuiState }) {
                     </div>
                   </div>
 
-                  <div className={`flex items-center gap-1.5 z-10 font-mono text-xs font-bold px-2.5 py-1 rounded-full border transition-all ${theme === 'light'
+                  <div className={`flex items-center gap-1.5 z-10 font-mono ${sc.textMain} font-bold px-2.5 py-1 rounded-full border transition-all ${theme === 'light'
                       ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#5A4A42]'
                       : theme === 'high-contrast'
                         ? 'bg-black border-white text-white'
                         : 'bg-[#FCFAF8]/5 border-white/10 text-[#9B8C83]'
                     }`}>
-                    <Clock className="w-3.5 h-3.5 text-orange-450" />
+                    <Clock className={`${sc.iconMedium} text-orange-450`} />
                     {formatSeconds(totalSeconds)}
                   </div>
                 </div>
@@ -201,7 +203,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
       </div>
 
       {/* Dynamic Wave Banner representing Zouk wave heartbeat */}
-      <div className={`border rounded-3xl p-6 relative overflow-hidden shadow-2xl transition-all duration-300 ${theme === 'light'
+      <div className={`border ${sc.roundedMain} ${sc.paddingMain} relative overflow-hidden shadow-2xl transition-all duration-300 ${theme === 'light'
           ? 'bg-gradient-to-tr from-orange-500/5 to-rose-500/5 border-[#DFD7CB]'
           : theme === 'high-contrast'
             ? 'bg-black border-2 border-white text-white'
@@ -217,7 +219,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-orange-400 animate-pulse" />
             <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-medium tracking-wide border ${theme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42]' : 'bg-[#FCFAF8]/10 border-white/10'
-              }`}>{translate(locale, 'dynamic.countingEngine', customTranslations)}</span>
+              }`}>{translate(locale, 'dynamic.countingEngine', customTranslations)} v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.engine}</span>
           </div>
           <h4 className={`font-sans font-bold text-lg mt-1 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-100'}`}>{translate(locale, 'dynamic.createdForRhythm', customTranslations)}</h4>
           <p className={`text-xs leading-relaxed ${theme === 'light' ? 'text-[#7A6A61]' : 'text-slate-300'}`}>

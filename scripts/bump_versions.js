@@ -77,5 +77,5 @@ if (fs.existsSync(cargoTomlFile)) {
   fs.writeFileSync(cargoTomlFile, cargoToml);
 }
 
-console.log(`Updated versions: Main ${v.major}.${v.minor}.${v.release}`);
+console.log(`Updated versions: Main ${newVersionStr}`);
 console.log(`Subversions - Engine: ${v.subversions.engine}, Components: ${v.subversions.components}, Translations: ${v.subversions.translations}, Front: ${v.subversions.front}`);

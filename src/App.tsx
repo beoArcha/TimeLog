@@ -19,6 +19,7 @@ import { DataManager } from './utils/dataManager';
 import { translate } from './utils/i18n';
 import { LocaleType, TranslationDictionary, defaultTranslations, getTranslation } from './utils/translations';
 import { Sparkles, Terminal, AppWindow, Cpu, Clock, RefreshCw, Layers, Minimize2, Maximize2, X, ChevronUp, ChevronDown, Bell, CheckCircle2, CheckCircle, Shield, AlertTriangle, Sun, Moon, Eye, Laptop, Database, Settings, HelpCircle, Info, Copy, Check, Languages, FileText, BookOpen, Trash2, Heart, Play, Square, User, BarChart, BarChart3, UploadCloud } from 'lucide-react';
+import versionsData from './versions.json';
 import { motion, AnimatePresence } from 'motion/react';
 
 const LOCAL_STORAGE_KEY = 'oxytime_state_db_6';
@@ -68,6 +69,15 @@ export default function App() {
     const saved = localStorage.getItem('oxytime_theme');
     return (saved as any) || 'system';
   });
+
+  const [uiScale, setUiScale] = useState<'FHD' | 'QHD' | 'UHD'>(() => {
+    const saved = localStorage.getItem('oxytime_ui_scale');
+    return (saved as any) || 'QHD';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('oxytime_ui_scale', uiScale);
+  }, [uiScale]);
 
   const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light' | 'high-contrast'>('dark');
 
@@ -669,6 +679,7 @@ export default function App() {
     locale,
     customTranslations,
     theme: resolvedTheme,
+    uiScale,
     selectedTaskId,
     setSelectedTaskId,
     activeLargeTab,
@@ -679,11 +690,11 @@ export default function App() {
     <OxyContext.Provider value={{
       projects, setProjects, tasks, setTasks, logs, setLogs, holidays, setHolidays,
       patches, setPatches, sysSettings, setSysSettings,
-      activeLog, setActiveLog, localePref, setLocalePref, locale, setLocale, theme, setTheme, resolvedTheme, setResolvedTheme, customTranslations, setCustomTranslations,
+      activeLog, setActiveLog, localePref, setLocalePref, locale, setLocale, theme, setTheme, resolvedTheme, setResolvedTheme, uiScale, setUiScale, customTranslations, setCustomTranslations,
       engineState, enginePID, minimizeToTray, setMinimizeToTray, logToApi, setLogToApi,
       apiToken, setApiToken, apiUrl, setApiUrl, apiMethod, setApiMethod, apiHeaders, setApiHeaders, nowIso, isGuiClosed, setIsGuiClosed
     }}>
-    <div id="app-root-container" className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-hidden p-3 sm:p-6 ${
+    <div id="app-root-container" className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-auto p-3 sm:p-6 ${
       resolvedTheme === 'light' 
         ? 'bg-[#F4EFEA] text-[#2C2421] selection:bg-orange-500/20 selection:text-orange-950' 
         : resolvedTheme === 'high-contrast' 
@@ -788,7 +799,7 @@ export default function App() {
                     resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'
                   }`}>
                     <Shield className="w-3.5 h-3.5 text-orange-500 animate-pulse" />
-                    LOGTIME BY OXYFLOW
+                    LOGTIME BY OXYFLOW v{versionsData.major}.{versionsData.minor}.{versionsData.release}
                   </span>
                   
                   {/* Size Switcher */}
@@ -815,6 +826,92 @@ export default function App() {
                           }`}
                         >
                           {sz === 'small' ? 'Małe' : sz === 'medium' ? 'Średnie' : 'Duże'}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* UI Scale Switcher (A A A) */}
+                  <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
+                    resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
+                  }`}>
+                    {(['FHD', 'QHD', 'UHD'] as const).map(scale => {
+                      const isActive = uiScale === scale;
+                      const textSize = scale === 'FHD' ? 'text-[9px]' : scale === 'QHD' ? 'text-[11px]' : 'text-[13px]';
+                      return (
+                        <button
+                          key={scale}
+                          onClick={() => setUiScale(scale)}
+                          className={`px-2.5 py-0.5 rounded-md uppercase transition-all cursor-pointer flex flex-col items-center justify-center min-w-[32px] ${
+                            isActive
+                              ? resolvedTheme === 'light'
+                                ? 'bg-[#FCFAF8] text-indigo-600 border border-[#DFD7CB] shadow-sm font-bold'
+                                : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold'
+                              : resolvedTheme === 'light'
+                              ? 'text-[#8A7A71] hover:text-[#2C2421]'
+                              : 'text-[#9B8C83] hover:text-white'
+                          }`}
+                        >
+                          <span className={`font-serif leading-none font-bold ${textSize}`}>A</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Theme Switcher */}
+                  <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
+                    resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
+                  }`}>
+                    {[
+                      { id: 'dark', icon: Moon, label: 'CIEMNY' },
+                      { id: 'light', icon: Sun, label: 'JASNY' },
+                      { id: 'high-contrast', icon: Eye, label: 'MOCNY' },
+                      { id: 'system', icon: Laptop, label: 'SYS' }
+                    ].map(th => {
+                      const isActive = theme === th.id;
+                      return (
+                        <button
+                          key={th.id}
+                          onClick={() => setTheme(th.id as any)}
+                          className={`px-2.5 py-0.5 flex items-center gap-1.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                            isActive
+                              ? resolvedTheme === 'light'
+                                ? 'bg-[#FCFAF8] text-orange-600 border border-[#DFD7CB] shadow-sm font-bold'
+                                : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
+                              : resolvedTheme === 'light'
+                              ? 'text-[#8A7A71] hover:text-[#2C2421]'
+                              : 'text-[#9B8C83] hover:text-white'
+                          }`}
+                        >
+                          <th.icon className="w-3 h-3" />
+                          <span className="hidden xl:inline">{th.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Language Switcher */}
+                  <div className={`flex items-center p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
+                    resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
+                  }`}>
+                    <Languages className={`w-3.5 h-3.5 mx-2 ${resolvedTheme === 'light' ? 'text-blue-500' : 'text-blue-400'}`} />
+                    {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as const).map(l => {
+                      const isActive = localePref === l;
+                      return (
+                        <button
+                          key={l}
+                          onClick={() => setLocalePref(l)}
+                          className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                            isActive
+                              ? resolvedTheme === 'light'
+                                ? 'bg-blue-500 text-white border border-blue-600 shadow-sm font-bold'
+                                : 'bg-blue-500 text-white border border-blue-600 font-bold'
+                              : resolvedTheme === 'light'
+                              ? 'text-[#8A7A71] hover:text-[#2C2421]'
+                              : 'text-[#9B8C83] hover:text-white'
+                          }`}
+                        >
+                          {l}
                         </button>
                       );
                     })}

@@ -17,3 +17,58 @@ export const PROJECT_COLORS = [
   { name: 'indigo', bg: 'bg-indigo-500', hex: '#6366f1', text: 'text-indigo-500' },
   { name: 'emerald', bg: 'bg-emerald-500', hex: '#10b981', text: 'text-emerald-500' },
 ];
+
+export const getScaleStyles = (scale: 'FHD' | 'QHD' | 'UHD') => {
+  switch (scale) {
+    case 'FHD':
+      return {
+        paddingMain: 'p-4',
+        paddingSection: 'p-3',
+        gapMain: 'gap-3',
+        gapSection: 'gap-2',
+        roundedMain: 'rounded-2xl',
+        roundedSection: 'rounded-xl',
+        textMain: 'text-xs',
+        textTitle: 'text-sm',
+        textGiant: 'text-xl',
+        iconSmall: 'w-3 h-3',
+        iconMedium: 'w-4 h-4',
+        iconLarge: 'w-6 h-6',
+        inputPy: 'py-2',
+      };
+    case 'QHD':
+      return {
+        paddingMain: 'p-6',
+        paddingSection: 'p-4',
+        gapMain: 'gap-5',
+        gapSection: 'gap-3',
+        roundedMain: 'rounded-3xl',
+        roundedSection: 'rounded-2xl',
+        textMain: 'text-sm',
+        textTitle: 'text-base',
+        textGiant: 'text-3xl',
+        iconSmall: 'w-4 h-4',
+        iconMedium: 'w-5 h-5',
+        iconLarge: 'w-8 h-8',
+        inputPy: 'py-3',
+      };
+    case 'UHD':
+      return {
+        paddingMain: 'p-8',
+        paddingSection: 'p-6',
+        gapMain: 'gap-8',
+        gapSection: 'gap-5',
+        roundedMain: 'rounded-[2.5rem]',
+        roundedSection: 'rounded-3xl',
+        textMain: 'text-base',
+        textTitle: 'text-xl',
+        textGiant: 'text-5xl',
+        iconSmall: 'w-5 h-5',
+        iconMedium: 'w-7 h-7',
+        iconLarge: 'w-10 h-10',
+        inputPy: 'py-4',
+      };
+    default:
+      return getScaleStyles('QHD');
+  }
+};

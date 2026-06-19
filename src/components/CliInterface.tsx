@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Project, Task, TimeLog, HolidayLeave } from '../types';
 import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '../utils';
 import { Terminal, Send, Play, CornerDownRight, ShieldCheck } from 'lucide-react';
+import versionsData from '../versions.json';
 import { translate } from '../utils/i18n';
 import { DataManager } from '../utils/dataManager';
 
@@ -56,7 +57,7 @@ export default function CliInterface({
 }: CliInterfaceProps) {
   const [input, setInput] = useState('');
   const [terminalHistory, setTerminalHistory] = useState<TerminalLine[]>([
-    { text: 'LogTime by OxyFlow CLI Engine [Version 0.1.0]', type: 'info' },
+    { text: `LogTime by OxyFlow CLI Engine [Version ${versionsData.major}.${versionsData.minor}.${versionsData.release}]`, type: 'info' },
     { text: "Type 'help' to see available commands.", type: 'info' },
     { text: "Connected to local SQLite database in memory.", type: 'success' },
     { text: '', type: 'output' },
@@ -678,7 +679,7 @@ export default function CliInterface({
             theme === 'light' ? 'text-slate-600' : 'text-slate-300'
           }`}>
             <Terminal className="w-3.5 h-3.5 text-orange-500" />
-            LogTime by OxyFlow Engine CLI Shell (127.0.0.1)
+            LogTime by OxyFlow Engine CLI Shell (127.0.0.1) v{versionsData.major}.{versionsData.minor}.{versionsData.release}
           </span>
         </div>
         <div className="flex items-center gap-2">
