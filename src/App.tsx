@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useOxyFlow, OxyContext } from './hooks/useOxyFlow';
 import { useLocale } from './providers/LocaleProvider';
@@ -215,81 +215,7 @@ export default function App() {
     localStorage.setItem('oxytime_api_headers', apiHeaders);
   }, [minimizeToTray, logToApi, apiToken, apiUrl, apiMethod, apiHeaders]);
 
-  useEffect(() => {
-    let unlistenMaximized: (() => void) | undefined;
-    let unlistenRestored: (() => void) | undefined;
-    let unlistenCloseRequested: (() => void) | undefined;
-    let unlistenTrayVariant: (() => void) | undefined;
-    let unlistenTrayOnTop: (() => void) | undefined;
-    let unlistenTrayStopAll: (() => void) | undefined;
 
-    const setupListeners = async () => {
-      if (!isTauri()) return;
-      try {
-        const { listen } = await import('@tauri-apps/api/event');
-
-        unlistenMaximized = await listen('native-window-maximized', () => {
-          setGuiVariant('large');
-          showToast("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
-        });
-
-        unlistenRestored = await listen('native-window-restored', () => {
-          setGuiVariant('large');
-        });
-
-        unlistenCloseRequested = await listen('native-close-requested', async () => {
-          if (minimizeToTray) {
-            await invoke('hide_window');
-          } else {
-            await invoke('exit_app');
-          }
-        });
-
-        // --- Tray menu event listeners ---
-        unlistenTrayVariant = await listen<string>('tray-set-gui-variant', async (event) => {
-          const variant = event.payload as 'small' | 'medium' | 'large';
-          setGuiVariant(variant);
-          await handleWindowResize(variant);
-          const flag = variant === 'small' ? alwaysOnTopSmall : alwaysOnTopMain;
-          await handleWindowAlwaysOnTop(flag);
-          showToast(`GUI: ${variant === 'small' ? 'Mały' : variant === 'medium' ? 'Średni' : 'Duży'}`);
-        });
-
-        unlistenTrayOnTop = await listen('tray-toggle-on-top', async () => {
-          if (guiVariant === 'small') {
-            const newVal = !alwaysOnTopSmall;
-            setAlwaysOnTopSmall(newVal);
-            await handleWindowAlwaysOnTop(newVal);
-            showToast(newVal ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
-          } else {
-            const newVal = !alwaysOnTopMain;
-            setAlwaysOnTopMain(newVal);
-            await handleWindowAlwaysOnTop(newVal);
-            showToast(newVal ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
-          }
-        });
-
-        unlistenTrayStopAll = await listen('tray-stop-all-timers', () => {
-          handleStopTimer();
-          showToast(translate(locale, 'app.stoppedThreads', customTranslations));
-        });
-
-      } catch (err) {
-        console.error('Tauri listener setup error:', err);
-      }
-    };
-
-    setupListeners();
-
-    return () => {
-      if (unlistenMaximized) unlistenMaximized();
-      if (unlistenRestored) unlistenRestored();
-      if (unlistenCloseRequested) unlistenCloseRequested();
-      if (unlistenTrayVariant) unlistenTrayVariant();
-      if (unlistenTrayOnTop) unlistenTrayOnTop();
-      if (unlistenTrayStopAll) unlistenTrayStopAll();
-    };
-  }, [guiVariant, minimizeToTray, alwaysOnTopSmall, alwaysOnTopMain]);
 
   const [nowIso, setNowIso] = useState<string>(new Date().toISOString());
 
@@ -618,9 +544,13 @@ export default function App() {
   const handleMinimizeToTray = async () => {
     if (isTauri()) {
       try {
-        await invoke('hide_window');
+        if (minimizeToTray) {
+          await invoke('hide_window');
+        } else {
+          await invoke('exit_app');
+        }
       } catch (err) {
-        console.error('Tauri hide error:', err);
+        console.error('Tauri close/hide error:', err);
       }
     } else {
       if (minimizeToTray) {
@@ -666,6 +596,100 @@ export default function App() {
       showToast(translate(locale, 'app.noTaskSelected', customTranslations) || 'Zaznacz zadanie aby rozpocząć/zatrzymać timer');
     }
   };
+
+  const guiVariantRef = useRef(guiVariant);
+  const minimizeToTrayRef = useRef(minimizeToTray);
+  const alwaysOnTopSmallRef = useRef(alwaysOnTopSmall);
+  const alwaysOnTopMainRef = useRef(alwaysOnTopMain);
+  const localeRef = useRef(locale);
+  const customTranslationsRef = useRef(customTranslations);
+  const handleStopTimerRef = useRef(handleStopTimer);
+  const showToastRef = useRef(showToast);
+
+  useEffect(() => {
+    guiVariantRef.current = guiVariant;
+    minimizeToTrayRef.current = minimizeToTray;
+    alwaysOnTopSmallRef.current = alwaysOnTopSmall;
+    alwaysOnTopMainRef.current = alwaysOnTopMain;
+    localeRef.current = locale;
+    customTranslationsRef.current = customTranslations;
+    handleStopTimerRef.current = handleStopTimer;
+    showToastRef.current = showToast;
+  }, [guiVariant, minimizeToTray, alwaysOnTopSmall, alwaysOnTopMain, locale, customTranslations, handleStopTimer, showToast]);
+
+  useEffect(() => {
+    let active = true;
+    let unlisteners: (() => void)[] = [];
+
+    const setupListeners = async () => {
+      if (!isTauri()) return;
+      try {
+        const { listen } = await import('@tauri-apps/api/event');
+
+        const uMax = await listen('native-window-maximized', () => {
+          setGuiVariant('large');
+          showToastRef.current("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
+        });
+        if (!active) { uMax(); } else { unlisteners.push(uMax); }
+
+        const uRest = await listen('native-window-restored', () => {
+          setGuiVariant('large');
+        });
+        if (!active) { uRest(); } else { unlisteners.push(uRest); }
+
+        const uClose = await listen('native-close-requested', async () => {
+          if (minimizeToTrayRef.current) {
+            await invoke('hide_window');
+          } else {
+            await invoke('exit_app');
+          }
+        });
+        if (!active) { uClose(); } else { unlisteners.push(uClose); }
+
+        // --- Tray menu event listeners ---
+        const uVariant = await listen<string>('tray-set-gui-variant', async (event) => {
+          const variant = event.payload as 'small' | 'medium' | 'large';
+          setGuiVariant(variant);
+          await handleWindowResize(variant);
+          const flag = variant === 'small' ? alwaysOnTopSmallRef.current : alwaysOnTopMainRef.current;
+          await handleWindowAlwaysOnTop(flag);
+          showToastRef.current(`GUI: ${variant === 'small' ? 'Mały' : variant === 'medium' ? 'Średni' : 'Duży'}`);
+        });
+        if (!active) { uVariant(); } else { unlisteners.push(uVariant); }
+
+        const uOnTop = await listen('tray-toggle-on-top', async () => {
+          if (guiVariantRef.current === 'small') {
+            const newVal = !alwaysOnTopSmallRef.current;
+            setAlwaysOnTopSmall(newVal);
+            await handleWindowAlwaysOnTop(newVal);
+            showToastRef.current(newVal ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
+          } else {
+            const newVal = !alwaysOnTopMainRef.current;
+            setAlwaysOnTopMain(newVal);
+            await handleWindowAlwaysOnTop(newVal);
+            showToastRef.current(newVal ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
+          }
+        });
+        if (!active) { uOnTop(); } else { unlisteners.push(uOnTop); }
+
+        const uStop = await listen('tray-stop-all-timers', () => {
+          handleStopTimerRef.current();
+          showToastRef.current(translate(localeRef.current, 'app.stoppedThreads', customTranslationsRef.current));
+        });
+        if (!active) { uStop(); } else { unlisteners.push(uStop); }
+
+      } catch (err) {
+        console.error('Tauri listener setup error:', err);
+      }
+    };
+
+    setupListeners();
+
+    return () => {
+      active = false;
+      unlisteners.forEach(fn => fn());
+    };
+  }, []);
 
   useGlobalShortcuts({
     onToggleTimer: handleToggleTimer,

@@ -176,20 +176,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 let variant = id.strip_prefix("gui_").unwrap_or("large");
                                 let _ = window.show();
                                 let _ = window.set_focus();
-                                let _ = window.emit("tray-set-gui-variant", variant);
+                                let _ = app.emit("tray-set-gui-variant", variant);
                             }
                         }
                         "toggle_on_top" => {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.show();
                                 let _ = window.set_focus();
-                                let _ = window.emit("tray-toggle-on-top", ());
+                                let _ = app.emit("tray-toggle-on-top", ());
                             }
                         }
                         "stop_all" => {
-                            if let Some(window) = app.get_webview_window("main") {
-                                let _ = window.emit("tray-stop-all-timers", ());
-                            }
+                            let _ = app.emit("tray-stop-all-timers", ());
                         }
                         "quit_app" => {
                             app.exit(0);
@@ -214,7 +212,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             match event {
                 tauri::WindowEvent::CloseRequested { api, .. } => {
                     api.prevent_close();
-                    let _ = window.emit("native-close-requested", ());
+                    let _ = window.app_handle().emit("native-close-requested", ());
                 }
                 tauri::WindowEvent::Resized(_) => {
                     let is_max = window.is_maximized().unwrap_or(false);
@@ -222,19 +220,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     
                     if is_max && !was_max {
                         state.was_maximized.store(true, std::sync::atomic::Ordering::Relaxed);
-                        let _ = window.emit("native-window-maximized", ());
+                        let _ = window.app_handle().emit("native-window-maximized", ());
                     } else if !is_max && was_max {
                         state.was_maximized.store(false, std::sync::atomic::Ordering::Relaxed);
-                        let _ = window.emit("native-window-restored", ());
+                        let _ = window.app_handle().emit("native-window-restored", ());
                     } else if let Ok(true) = window.is_minimized() {
                         let _ = window.unminimize();
-                        let _ = window.emit("native-window-minimized", ());
+                        let _ = window.app_handle().emit("native-window-minimized", ());
                     } else if !is_max {
                         if let Ok(size) = window.inner_size() {
                             let scale_factor = window.scale_factor().unwrap_or(1.0);
                             let logical_width = size.width as f64 / scale_factor;
                             let logical_height = size.height as f64 / scale_factor;
-                            let _ = window.emit("native-window-resized", (logical_width, logical_height));
+                            let _ = window.app_handle().emit("native-window-resized", (logical_width, logical_height));
                         }
                     }
                 }

@@ -174,4 +174,102 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     // Just trigger it — should not throw
     triggerTauriEvent('tray-stop-all-timers');
   });
+
+  it('handles tray-toggle-on-top event, toggling alwaysOnTop settings and calling Tauri set_always_on_top', async () => {
+    render(<LocaleProvider><App /></LocaleProvider>);
+
+    await waitForTauriListener('tray-toggle-on-top');
+
+    // Default GUI is large (guiVariant !== 'small'), so it should toggle alwaysOnTopMain.
+    // Default alwaysOnTopMain is false.
+    mockInvoke.mockClear();
+    triggerTauriEvent('tray-toggle-on-top');
+
+    await waitFor(() => {
+      // It should turn to true and invoke Tauri set_always_on_top with true
+      expect(mockInvoke).toHaveBeenCalledWith('set_always_on_top', { alwaysOnTop: true });
+    });
+  });
+
+  it('updates window alwaysOnTop config when toggling the setting in small view', async () => {
+    // Start with guiVariant = small and alwaysOnTopSmall = false
+    localStorage.setItem('oxytime_gui_variant', 'small');
+    localStorage.setItem('oxytime_always_on_top_small', 'false');
+
+    render(<LocaleProvider><App /></LocaleProvider>);
+
+    // Wait for the initial resize/always_on_top on mount
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('set_always_on_top', { alwaysOnTop: false });
+    });
+
+    mockInvoke.mockClear();
+
+    // Toggle the "Top" checkbox in SmallGui
+    const checkbox = await screen.findByRole('checkbox', { name: /top/i });
+    fireEvent.click(checkbox);
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('set_always_on_top', { alwaysOnTop: true });
+    });
+  });
+
+  it('handles SmallGui close button click to hide the window when minimizeToTray is true', async () => {
+    localStorage.setItem('oxytime_gui_variant', 'small');
+    localStorage.setItem('oxytime_min_to_tray', 'true');
+
+    render(<LocaleProvider><App /></LocaleProvider>);
+
+    mockInvoke.mockClear();
+
+    // The close button is the one with the X icon in SmallGui. Let's find it by title.
+    // In test env, locale defaults to 'en' so the title is 'Close / Hide to Tray'.
+    const closeBtn = await screen.findByTitle('Close / Hide to Tray');
+    fireEvent.click(closeBtn);
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('hide_window');
+    });
+  });
+
+  it('handles SmallGui close button click to exit the app when minimizeToTray is false', async () => {
+    localStorage.setItem('oxytime_gui_variant', 'small');
+    localStorage.setItem('oxytime_min_to_tray', 'false');
+
+    render(<LocaleProvider><App /></LocaleProvider>);
+
+    mockInvoke.mockClear();
+
+    const closeBtn = await screen.findByTitle('Close / Hide to Tray');
+    fireEvent.click(closeBtn);
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('exit_app');
+    });
+  });
+
+  it('handles SmallGui restore button click to restore GUI variant and unlock resizing', async () => {
+    localStorage.setItem('oxytime_gui_variant', 'small');
+    localStorage.setItem('oxytime_last_non_small_variant', 'large');
+
+    render(<LocaleProvider><App /></LocaleProvider>);
+
+    // Wait for mount config
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: false });
+    });
+
+    mockInvoke.mockClear();
+
+    // Find the restore button ("Restore larger size")
+    const restoreBtn = await screen.findByTitle('Restore larger size');
+    fireEvent.click(restoreBtn);
+
+    await waitFor(() => {
+      // It should restore to 'large', triggering resize to 800x600 and unlocking resizing
+      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: true });
+      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 800, height: 600 });
+    });
+  });
 });
+
