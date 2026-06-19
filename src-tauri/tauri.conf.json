@@ -1,6 +1,6 @@
 {
   "productName": "OxyFlow",
-  "version": "0.2.0",
+  "version": "1.0.3",
   "identifier": "com.oxytime.oxyflow",
   "build": {
     "frontendDist": "../dist",
