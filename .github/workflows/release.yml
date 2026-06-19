@@ -8,8 +8,6 @@ on:
 
 env:
   NODE_VERSION: '22'
-  TARGET_DIR: src-tauri/target/release
-  BUNDLE_DIR: src-tauri/target/release/bundle
   CARGO_PROFILE_DEV_DEBUG: 0
 
 jobs:
@@ -51,7 +49,7 @@ jobs:
           - platform: 'windows-latest'
             args: ''
           - platform: 'macos-latest'
-            args: ''
+            args: '--target universal-apple-darwin'
           - platform: 'ubuntu-22.04'
             args: ''
 
@@ -72,7 +70,7 @@ jobs:
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: install webkit2gtk (ubuntu only)
+      - name: install webkit2gtk and other deps (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
@@ -86,15 +84,14 @@ jobs:
       - name: install frontend dependencies
         run: npm ci || npm install
 
-      - name: build frontend assets
-        run: npm run build
-
+      # NOTE: Do NOT run "npm run build" here — tauri-action handles the full build pipeline
       - uses: tauri-apps/tauri-action@v0
         id: tauri_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          tauriScript: npx tauri
+          tagName: app-v__VERSION__
           releaseName: 'App v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: true
@@ -107,45 +104,48 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          EXE_PATH=$(find src-tauri/target -maxdepth 4 -name "oxy-flow.exe" -o -name "LogTime by OxyFlow.exe" | head -n 1)
+          EXE_PATH=$(find src-tauri/target -maxdepth 4 -name "OxyFlow.exe" -o -name "oxy-flow.exe" | head -n 1)
           if [ -f "$EXE_PATH" ]; then
-            cp "$EXE_PATH" src-tauri/target/LogTime-Standalone-x64.exe
-            gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" src-tauri/target/LogTime-Standalone-x64.exe --clobber || true
+            cp "$EXE_PATH" src-tauri/target/OxyFlow-Standalone-x64.exe
+            gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" src-tauri/target/OxyFlow-Standalone-x64.exe --clobber || true
           else
-            echo "Could not find compiled Windows executable"
-            exit 1
+            echo "Warning: Could not find compiled Windows executable for standalone upload"
           fi
 
-      - name: Parse artifact paths
-        id: artifact_paths
+      - name: List built artifacts (debug)
+        if: always()
         shell: bash
         run: |
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "paths<<$EOF" >> $GITHUB_OUTPUT
+          echo "=== Listing all bundle artifacts ==="
+          find src-tauri/target -path "*/bundle/*" -type f 2>/dev/null || echo "No bundle directory found"
+
+      - name: Collect artifact paths
+        id: collect
+        shell: bash
+        run: |
+          ARTIFACT_DIR="artifacts-upload"
+          mkdir -p "$ARTIFACT_DIR"
+          
+          # Find all relevant bundle files and copy them to a flat directory
           if [ "${{ matrix.platform }}" == "ubuntu-22.04" ]; then
-            echo "src-tauri/target/release/bundle/**/*.deb" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/release/bundle/**/*.AppImage" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/release/bundle/**/*.rpm" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/*/release/bundle/**/*.deb" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/*/release/bundle/**/*.AppImage" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/*/release/bundle/**/*.rpm" >> $GITHUB_OUTPUT
+            find src-tauri/target -path "*/bundle/deb/*.deb" -exec cp {} "$ARTIFACT_DIR/" \;
+            find src-tauri/target -path "*/bundle/rpm/*.rpm" -exec cp {} "$ARTIFACT_DIR/" \;
+            find src-tauri/target -path "*/bundle/appimage/*.AppImage" -exec cp {} "$ARTIFACT_DIR/" \;
+            find src-tauri/target -path "*/bundle/appimage/*.AppImage.tar.gz" -exec cp {} "$ARTIFACT_DIR/" \;
           elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
-            echo "src-tauri/target/release/bundle/**/*.exe" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/release/bundle/**/*.msi" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/*/release/bundle/**/*.exe" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/*/release/bundle/**/*.msi" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/LogTime-Standalone-x64.exe" >> $GITHUB_OUTPUT
+            find src-tauri/target -path "*/bundle/msi/*.msi" -exec cp {} "$ARTIFACT_DIR/" \;
+            find src-tauri/target -path "*/bundle/nsis/*.exe" -exec cp {} "$ARTIFACT_DIR/" \;
           elif [ "${{ matrix.platform }}" == "macos-latest" ]; then
-            echo "src-tauri/target/release/bundle/**/*.dmg" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/release/bundle/**/*.app" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/*/release/bundle/**/*.dmg" >> $GITHUB_OUTPUT
-            echo "src-tauri/target/*/release/bundle/**/*.app" >> $GITHUB_OUTPUT
+            find src-tauri/target -path "*/bundle/dmg/*.dmg" -exec cp {} "$ARTIFACT_DIR/" \;
+            find src-tauri/target -path "*/bundle/macos/*.app" -exec cp -r {} "$ARTIFACT_DIR/" \;
           fi
-          echo "$EOF" >> $GITHUB_OUTPUT
+          
+          echo "=== Collected artifacts ==="
+          ls -la "$ARTIFACT_DIR/" || echo "No artifacts collected"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-artifacts-${{ matrix.platform }}
-          path: ${{ steps.artifact_paths.outputs.paths }}
+          path: artifacts-upload/
           if-no-files-found: warn
