@@ -17,7 +17,9 @@ import {
   Languages 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Project, Task, TimeLog } from '../types';
+import { Project } from '../bindings/Project';
+import { Task } from '../bindings/Task';
+import { TimeLog } from '../bindings/TimeLog';
 import { translate } from '../utils/i18n';
 import { LocaleType, TranslationDictionary, defaultTranslations, getTranslation } from '../utils/translations';
 import { getTaskDurationSeconds, getProjectDurationSeconds, formatSeconds, formatFriendlyDuration } from '../utils';

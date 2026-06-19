@@ -5,6 +5,8 @@ import { useLocale } from './providers/LocaleProvider';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { Project, Task, TimeLog, HolidayLeave, PatchLog, Settings as AppSettings } from './types';
 import GuiRouter from './components/gui/GuiRouter';
+import { GuiVariant } from './bindings/GuiVariant';
+import { AlwaysOnTopConfig } from './bindings/AlwaysOnTopConfig';
 import { GuiCommonProps } from './components/gui/GuiCommonProps';
 import CliInterface from './components/CliInterface';
 import RustSourceExplorer from './components/RustSourceExplorer';
@@ -28,7 +30,7 @@ const isTauri = () => {
   return typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__ !== undefined;
 };
 
-const handleWindowResize = async (variant: 'small' | 'medium' | 'large') => {
+const handleWindowResize = async (variant: GuiVariant) => {
   if (!isTauri()) return;
   try {
     let w = 800, h = 600;
@@ -119,8 +121,8 @@ export default function App() {
 
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
 
-  const [guiVariant, setGuiVariant] = useState<'small' | 'medium' | 'large'>(() => {
-    return (localStorage.getItem('oxytime_gui_variant') as any) || 'large';
+  const [guiVariant, setGuiVariant] = useState<GuiVariant>(() => {
+    return (localStorage.getItem('oxytime_gui_variant') as GuiVariant) || 'large';
   });
 
   const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(() => {
@@ -131,10 +133,17 @@ export default function App() {
     return localStorage.getItem('oxytime_always_on_top_main') === 'true';
   });
 
-  const [lastNonSmallVariant, setLastNonSmallVariant] = useState<'medium' | 'large'>(() => {
+  const [lastNonSmallVariant, setLastNonSmallVariant] = useState<Exclude<GuiVariant, 'small'>>(() => {
     const saved = localStorage.getItem('oxytime_last_non_small_variant');
-    return (saved as 'medium' | 'large') || 'large';
+    return (saved as Exclude<GuiVariant, 'small'>) || 'large';
   });
+
+  const getAlwaysOnTopConfig = (): AlwaysOnTopConfig => {
+    return {
+      small: alwaysOnTopSmall,
+      main: alwaysOnTopMain,
+    };
+  };
 
   const [activeLargeTab, setActiveLargeTab] = useState<'main' | 'cli' | 'db' | 'options' | 'manual' | 'credits'>('main');
 
@@ -647,8 +656,8 @@ export default function App() {
         if (!active) { uClose(); } else { unlisteners.push(uClose); }
 
         // --- Tray menu event listeners ---
-        const uVariant = await listen<string>('tray-set-gui-variant', async (event) => {
-          const variant = event.payload as 'small' | 'medium' | 'large';
+        const uVariant = await listen<GuiVariant>('tray-set-gui-variant', async (event) => {
+          const variant = event.payload;
           setGuiVariant(variant);
           await handleWindowResize(variant);
           const flag = variant === 'small' ? alwaysOnTopSmallRef.current : alwaysOnTopMainRef.current;

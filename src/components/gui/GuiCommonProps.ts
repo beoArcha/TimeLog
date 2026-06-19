@@ -1,5 +1,10 @@
 import React from 'react';
-import { Project, Task, TimeLog, HolidayLeave, PatchLog, Settings } from '../../types';
+import { Project } from '../../bindings/Project';
+import { Task } from '../../bindings/Task';
+import { TimeLog } from '../../bindings/TimeLog';
+import { HolidayLeave } from '../../bindings/HolidayLeave';
+import { PatchLog } from '../../bindings/PatchLog';
+import { Settings } from '../../bindings/Settings';
 import { LocaleType, TranslationDictionary } from '../../utils/translations';
 
 export interface GuiCommonProps {

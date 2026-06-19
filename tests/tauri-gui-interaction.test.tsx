@@ -271,5 +271,17 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
       expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 800, height: 600 });
     });
   });
+
+  it('respects the generated GuiVariant and AlwaysOnTopConfig types', () => {
+    const variants: import('../src/bindings/GuiVariant').GuiVariant[] = ['small', 'medium', 'large'];
+    expect(variants).toHaveLength(3);
+
+    const config: import('../src/bindings/AlwaysOnTopConfig').AlwaysOnTopConfig = {
+      small: true,
+      main: false,
+    };
+    expect(config.small).toBe(true);
+    expect(config.main).toBe(false);
+  });
 });
 

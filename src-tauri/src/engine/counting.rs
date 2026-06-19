@@ -1,29 +1,18 @@
 //! High-frequency time tracking aggregation routines
 use rusqlite::{Connection, Result, params};
 use chrono::Utc;
+use crate::engine::constants;
 
 /// Automatically wraps running timer logs and targets cross-project parallel tracking
 pub fn start_project_timer(conn: &Connection, task_id: &str) -> Result<()> {
-    // 1. Get project ID bound to task
-    let mut stmt = conn.prepare("SELECT project_id FROM tasks WHERE id = ? LIMIT 1")?;
+    let mut stmt = conn.prepare(constants::SELECT_PROJECT_ID_BY_TASK_ID)?;
     let proj_id: String = stmt.query_row(params![task_id], |row| row.get(0))?;
 
-    // 2. Stop executing timers inside this project (exclusive within project, yet parallel across other projects)
-    conn.execute(
-        "UPDATE time_logs 
-         SET end_time = ? 
-         WHERE end_time IS NULL 
-         AND task_id IN (SELECT id FROM tasks WHERE project_id = ?)",
-        params![Utc::now().to_rfc3339(), proj_id]
-    )?;
+    conn.execute(constants::CLOSE_ACTIVE_LOGS_BY_PROJECT, params![Utc::now().to_rfc3339(), proj_id])?;
 
-    // 3. Start registering new task timer
     static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     let log_id = format!("log_{}_{}", Utc::now().timestamp_millis(), LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
-    conn.execute(
-        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, NULL)",
-        params![log_id, task_id, Utc::now().to_rfc3339()]
-    )?;
+    conn.execute(constants::INSERT_TIME_LOG, params![log_id, task_id, Utc::now().to_rfc3339()])?;
 
     Ok(())
 }
@@ -33,16 +22,10 @@ pub fn stop_project_timer(conn: &Connection, project_id: Option<&str>) -> Result
     let now = Utc::now().to_rfc3339();
     match project_id {
         Some(p_id) => {
-            conn.execute(
-                "UPDATE time_logs 
-                 SET end_time = ? 
-                 WHERE end_time IS NULL 
-                 AND task_id IN (SELECT id FROM tasks WHERE project_id = ?)",
-                params![now, p_id]
-            )?;
+            conn.execute(constants::CLOSE_ACTIVE_LOGS_BY_PROJECT, params![now, p_id])?;
         }
         None => {
-            conn.execute("UPDATE time_logs SET end_time = ? WHERE end_time IS NULL", params![now])?;
+            conn.execute(constants::CLOSE_ALL_ACTIVE_LOGS, params![now])?;
         }
     }
     Ok(())
@@ -50,7 +33,7 @@ pub fn stop_project_timer(conn: &Connection, project_id: Option<&str>) -> Result
 
 /// Gathers list of currently actively tracking logs
 pub fn query_active_logs(conn: &Connection) -> Result<Vec<String>> {
-    let mut stmt = conn.prepare("SELECT task_id FROM time_logs WHERE end_time IS NULL")?;
+    let mut stmt = conn.prepare(constants::SELECT_ACTIVE_TASK_IDS)?;
     let rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
     let mut ids = Vec::new();
     for id_res in rows {

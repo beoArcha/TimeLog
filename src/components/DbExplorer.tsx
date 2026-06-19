@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { Database, Trash2, Edit3, Check, X, RefreshCw, Plus, Clock, HelpCircle, History, Info, ChevronDown, ChevronRight } from 'lucide-react';
 import CollapsibleCard from './CollapsibleCard';
 import { useOxyFlow } from '../hooks/useOxyFlow';
-import { Project, Task, TimeLog, HolidayLeave } from '../types';
+import { Project } from '../bindings/Project';
+import { Task } from '../bindings/Task';
+import { TimeLog } from '../bindings/TimeLog';
+import { HolidayLeave } from '../bindings/HolidayLeave';
 import { translate } from '../utils/i18n';
 import { DataManager } from '../utils/dataManager';
 

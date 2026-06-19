@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Project, Task, TimeLog, HolidayLeave } from '../types';
+import { Project } from '../bindings/Project';
+import { Task } from '../bindings/Task';
+import { TimeLog } from '../bindings/TimeLog';
+import { HolidayLeave } from '../bindings/HolidayLeave';
+import { PatchLog } from '../bindings/PatchLog';
+import { Settings } from '../bindings/Settings';
 import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '../utils';
 import { Terminal, Send, Play, CornerDownRight, ShieldCheck } from 'lucide-react';
 import versionsData from '../versions.json';
@@ -25,8 +30,8 @@ interface CliInterfaceProps {
   theme?: string;
   holidays: HolidayLeave[];
   setHolidays: React.Dispatch<React.SetStateAction<HolidayLeave[]>>;
-  patches?: import('../types').PatchLog[];
-  sysSettings?: import('../types').Settings;
+  patches?: PatchLog[];
+  sysSettings?: Settings;
   selectedTaskId: string | null;
   setSelectedTaskId: (id: string | null) => void;
 }
