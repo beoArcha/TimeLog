@@ -9,6 +9,7 @@ import type { Settings } from './bindings/Settings';
 import type { HolidayLeave } from './bindings/HolidayLeave';
 import type { HolidayLeaveEditHistory } from './bindings/HolidayLeaveEditHistory';
 import type { HolidayType } from './bindings/HolidayType';
+import type { FrontendEvent } from './bindings/FrontendEvent';
 
 export type {
   Project,
@@ -22,6 +23,7 @@ export type {
   HolidayLeave,
   HolidayLeaveEditHistory,
   HolidayType,
+  FrontendEvent,
 };
 
 export interface DatabaseState {

@@ -60,6 +60,12 @@ export interface OxyFlowState {
   nowIso: string;
   isGuiClosed: boolean;
   setIsGuiClosed: React.Dispatch<React.SetStateAction<boolean>>;
+  
+  showToast?: (msg: string) => void;
+  handleMinimizeToTray?: () => Promise<void>;
+  handleResetLocalStorage?: () => void;
+  showCreditsModal?: boolean;
+  setShowCreditsModal?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const OxyContext = createContext<OxyFlowState | undefined>(undefined);

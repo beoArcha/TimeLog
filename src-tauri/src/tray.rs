@@ -42,33 +42,7 @@ impl TrayMenuId {
     }
 }
 
-/// Tauri Events emitted to the frontend
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FrontendEvent {
-    TraySetGuiVariant,
-    TrayToggleOnTop,
-    TrayStopAllTimers,
-    NativeCloseRequested,
-    NativeWindowMaximized,
-    NativeWindowRestored,
-    NativeWindowMinimized,
-    NativeWindowResized,
-}
-
-impl FrontendEvent {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            FrontendEvent::TraySetGuiVariant => "tray-set-gui-variant",
-            FrontendEvent::TrayToggleOnTop => "tray-toggle-on-top",
-            FrontendEvent::TrayStopAllTimers => "tray-stop-all-timers",
-            FrontendEvent::NativeCloseRequested => "native-close-requested",
-            FrontendEvent::NativeWindowMaximized => "native-window-maximized",
-            FrontendEvent::NativeWindowRestored => "native-window-restored",
-            FrontendEvent::NativeWindowMinimized => "native-window-minimized",
-            FrontendEvent::NativeWindowResized => "native-window-resized",
-        }
-    }
-}
+pub use crate::types::FrontendEvent;
 
 /// Detect the system's locale language code
 fn get_system_locale() -> String {
