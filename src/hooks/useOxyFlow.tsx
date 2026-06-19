@@ -42,6 +42,10 @@ export interface OxyFlowState {
   
   minimizeToTray: boolean;
   setMinimizeToTray: React.Dispatch<React.SetStateAction<boolean>>;
+  alwaysOnTopSmall: boolean;
+  setAlwaysOnTopSmall: React.Dispatch<React.SetStateAction<boolean>>;
+  alwaysOnTopMain: boolean;
+  setAlwaysOnTopMain: React.Dispatch<React.SetStateAction<boolean>>;
   logToApi: boolean;
   setLogToApi: React.Dispatch<React.SetStateAction<boolean>>;
   apiToken: string;

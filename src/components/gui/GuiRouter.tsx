@@ -10,8 +10,6 @@ export interface GuiRouterProps {
   commonProps: GuiCommonProps;
   
   // Specific toggles
-  alwaysOnTop: boolean;
-  setAlwaysOnTop: (val: boolean) => void;
   isSmallExpanded: boolean;
   setIsSmallExpanded: (val: boolean) => void;
   showToast: (msg: string) => void;

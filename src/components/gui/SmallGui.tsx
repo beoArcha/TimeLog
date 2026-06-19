@@ -9,13 +9,12 @@ import versionsData from '../../versions.json';
 
 import type { GuiRouterProps } from './GuiRouter';
 import { GuiState } from './useGuiLogic';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
 
 type SmallGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
 export default function SmallGui({ state, ...rest }: SmallGuiProps) {
   const {
-    alwaysOnTop,
-    setAlwaysOnTop,
     isSmallExpanded,
     setIsSmallExpanded,
     showToast,
@@ -36,6 +35,8 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
     customTranslations
   } = state;
   const resolvedTheme = theme;
+  
+  const { alwaysOnTopSmall, setAlwaysOnTopSmall } = useOxyFlow();
 
   const handleStartTimer = (taskId: string) => {
     state.onStartTimer(taskId);
@@ -82,9 +83,9 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
             <label className="flex items-center gap-0.5 font-mono text-[10px] mr-1 text-slate-400 hover:text-orange-400 cursor-pointer select-none">
               <input 
                 type="checkbox"
-                checked={alwaysOnTop}
+                checked={alwaysOnTopSmall}
                 onChange={(e) => {
-                  setAlwaysOnTop(e.target.checked);
+                  setAlwaysOnTopSmall(e.target.checked);
                   showToast(e.target.checked ? translate(locale, 'smallGuiWidget.onTopOn', customTranslations) : translate(locale, 'smallGuiWidget.onTopOff', customTranslations));
                 }}
                 className="w-3 h-3 rounded select-none accent-orange-500 cursor-pointer"
@@ -93,7 +94,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
             </label>
             <button
               onClick={() => {
-                const target = lastNonSmallVariant || 'medium';
+                const target = lastNonSmallVariant || 'large';
                 setGuiVariant(target);
                 showToast(locale === 'pl' ? `Rozmiar zmieniony na ${target === 'medium' ? 'ŚREDNI' : 'DUŻY'}` : `Size changed to ${target.toUpperCase()}`);
               }}
@@ -101,6 +102,13 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
               title={locale === 'pl' ? "Przywróć większy rozmiar" : "Restore larger size"}
             >
               <Maximize2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => handleMinimizeToTray()}
+              className="p-1 rounded hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 cursor-pointer transition-colors flex items-center justify-center"
+              title={locale === 'pl' ? "Zamknij / Ukryj do Tray" : "Close / Hide to Tray"}
+            >
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

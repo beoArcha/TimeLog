@@ -4,7 +4,7 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{Manager, Emitter, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
+use tauri::{Manager, Emitter, menu::{Menu, MenuItem, PredefinedMenuItem}, tray::{TrayIconBuilder, TrayIconEvent, MouseButton, MouseButtonState}};
 use std::sync::Mutex;
 use std::error::Error;
 use std::path::PathBuf;
@@ -71,6 +71,13 @@ fn hide_window(window: tauri::Window) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn show_window(window: tauri::Window) -> Result<(), String> {
+    window.show().map_err(|e| e.to_string())?;
+    window.set_focus().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 fn set_window_resizable(resizable: bool, window: tauri::Window) -> Result<(), String> {
     window.set_resizable(resizable)
         .map_err(|e| e.to_string())
@@ -113,6 +120,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             minimize_window,
             close_window,
             hide_window,
+            show_window,
             set_window_resizable,
             exit_app
         ])
@@ -127,21 +135,74 @@ fn main() -> Result<(), Box<dyn Error>> {
                 was_maximized: std::sync::atomic::AtomicBool::new(false),
             });
 
-            let toggle_item = MenuItem::with_id(app, "toggle_vis", "Pokaż LogTime by OxyFlow", true, None::<&str>)?;
+            // --- Tray Menu Items ---
+            let toggle_item = MenuItem::with_id(app, "toggle_vis", "Pokaż / Ukryj okno", true, None::<&str>)?;
+            let sep1 = PredefinedMenuItem::separator(app)?;
+            let gui_small = MenuItem::with_id(app, "gui_small", "GUI: Mały", true, None::<&str>)?;
+            let gui_medium = MenuItem::with_id(app, "gui_medium", "GUI: Średni", true, None::<&str>)?;
+            let gui_large = MenuItem::with_id(app, "gui_large", "GUI: Duży", true, None::<&str>)?;
+            let sep2 = PredefinedMenuItem::separator(app)?;
+            let toggle_on_top = MenuItem::with_id(app, "toggle_on_top", "Zawsze na wierzchu", true, None::<&str>)?;
+            let stop_all = MenuItem::with_id(app, "stop_all", "Zatrzymaj wszystkie timery", true, None::<&str>)?;
+            let sep3 = PredefinedMenuItem::separator(app)?;
             let quit_item = MenuItem::with_id(app, "quit_app", "Wyjdź całkowicie", true, None::<&str>)?;
-            let tray_menu = Menu::with_items(app, &[&toggle_item, &quit_item])?;
+            
+            let tray_menu = Menu::with_items(app, &[
+                &toggle_item, &sep1,
+                &gui_small, &gui_medium, &gui_large, &sep2,
+                &toggle_on_top, &stop_all, &sep3,
+                &quit_item
+            ])?;
 
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
+                .tooltip("LogTime by OxyFlow")
                 .menu(&tray_menu)
                 .on_menu_event(|app, event| {
-                    if event.id().as_ref() == "toggle_vis" {
-                        if let Some(window) = app.get_webview_window("main") {
-                            window.show().unwrap();
-                            window.set_focus().unwrap();
+                    let id = event.id().as_ref();
+                    match id {
+                        "toggle_vis" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                if window.is_visible().unwrap_or(false) {
+                                    let _ = window.hide();
+                                } else {
+                                    let _ = window.show();
+                                    let _ = window.set_focus();
+                                }
+                            }
                         }
-                    } else if event.id().as_ref() == "quit_app" {
-                        app.exit(0);
+                        "gui_small" | "gui_medium" | "gui_large" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let variant = id.strip_prefix("gui_").unwrap_or("large");
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                                let _ = window.emit("tray-set-gui-variant", variant);
+                            }
+                        }
+                        "toggle_on_top" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                                let _ = window.emit("tray-toggle-on-top", ());
+                            }
+                        }
+                        "stop_all" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.emit("tray-stop-all-timers", ());
+                            }
+                        }
+                        "quit_app" => {
+                            app.exit(0);
+                        }
+                        _ => {}
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+                        if let Some(window) = tray.app_handle().get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
                     }
                 })
                 .build(app)?;

@@ -114,51 +114,13 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('updates layout variant state when receiving native window maximize/minimize/restore events', async () => {
+  it('updates layout variant state when receiving native window maximize event', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
 
-    // Wait for the listeners to register before triggering
-    await waitForTauriListener('native-window-minimized');
     await waitForTauriListener('native-window-maximized');
-    await waitForTauriListener('native-window-restored');
-
-    // Initially in Large. Trigger native minimize to switch to Small layout.
-    triggerTauriEvent('native-window-minimized');
-    
-    // Verify Small layout is active (it renders top toggle, but no large tabs)
-    await screen.findByText('Top');
-    expect(screen.queryByTestId('tab-cli')).toBeNull();
 
     // Trigger native maximize to switch to Large layout.
     triggerTauriEvent('native-window-maximized');
-    await screen.findByTestId('tab-cli');
-
-    // Trigger native restore to switch to Medium layout.
-    triggerTauriEvent('native-window-restored');
-    // In Medium mode, it renders BaseGui inside a condensed view, which doesn't have standard tabs
-    await waitFor(() => {
-      expect(screen.queryByTestId('tab-cli')).toBeNull();
-    });
-  });
-
-  it('updates layout variant dynamically based on native window resizing thresholds', async () => {
-    render(<LocaleProvider><App /></LocaleProvider>);
-
-    await waitForTauriListener('native-window-resized');
-
-    // Logical width 280 -> Small layout
-    triggerTauriEvent('native-window-resized', [280, 280]);
-    await screen.findByText('Top');
-
-    // Logical width 450 -> Medium layout
-    triggerTauriEvent('native-window-resized', [450, 600]);
-    await waitFor(() => {
-      expect(screen.queryByText('Top')).toBeNull();
-      expect(screen.queryByTestId('tab-cli')).toBeNull();
-    });
-
-    // Logical width 700 -> Large layout
-    triggerTauriEvent('native-window-resized', [700, 600]);
     await screen.findByTestId('tab-cli');
   });
 
@@ -176,37 +138,40 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('handles native-close-requested by downsizing to Small if minimizeToTray is true and window is in Large/Medium mode', async () => {
+  it('calls hide_window when close requested and minimizeToTray is true', async () => {
     localStorage.setItem('oxytime_min_to_tray', 'true');
     render(<LocaleProvider><App /></LocaleProvider>);
 
     await waitForTauriListener('native-close-requested');
 
-    // App is in Large mode initially. Close window native request.
-    mockInvoke.mockClear();
-    triggerTauriEvent('native-close-requested');
-
-    // Should set guiVariant to small and set alwaysOnTop to false
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: false });
-      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 320, height: 480 });
-      expect(mockInvoke).toHaveBeenCalledWith('set_always_on_top', { alwaysOnTop: false });
-    });
-  });
-
-  it('handles native-close-requested by calling hide_window if minimizeToTray is true and window is already in Small mode', async () => {
-    localStorage.setItem('oxytime_min_to_tray', 'true');
-    localStorage.setItem('oxytime_gui_variant', 'small');
-    render(<LocaleProvider><App /></LocaleProvider>);
-
-    await waitForTauriListener('native-close-requested');
-
-    // App starts in Small mode. Trigger close.
     mockInvoke.mockClear();
     triggerTauriEvent('native-close-requested');
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('hide_window');
     });
+  });
+
+  it('handles tray-set-gui-variant event to switch GUI mode', async () => {
+    render(<LocaleProvider><App /></LocaleProvider>);
+
+    await waitForTauriListener('tray-set-gui-variant');
+
+    mockInvoke.mockClear();
+    triggerTauriEvent('tray-set-gui-variant', 'small');
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: false });
+      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 320, height: 480 });
+    });
+  });
+
+  it('handles tray-stop-all-timers event', async () => {
+    render(<LocaleProvider><App /></LocaleProvider>);
+
+    await waitForTauriListener('tray-stop-all-timers');
+
+    // Just trigger it — should not throw
+    triggerTauriEvent('tray-stop-all-timers');
   });
 });

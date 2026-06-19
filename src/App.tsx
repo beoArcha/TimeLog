@@ -123,13 +123,17 @@ export default function App() {
     return (localStorage.getItem('oxytime_gui_variant') as any) || 'large';
   });
 
-  const [alwaysOnTop, setAlwaysOnTop] = useState<boolean>(() => {
-    return localStorage.getItem('oxytime_always_on_top') === 'true';
+  const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(() => {
+    return localStorage.getItem('oxytime_always_on_top_small') === 'true';
+  });
+
+  const [alwaysOnTopMain, setAlwaysOnTopMain] = useState<boolean>(() => {
+    return localStorage.getItem('oxytime_always_on_top_main') === 'true';
   });
 
   const [lastNonSmallVariant, setLastNonSmallVariant] = useState<'medium' | 'large'>(() => {
     const saved = localStorage.getItem('oxytime_last_non_small_variant');
-    return (saved as 'medium' | 'large') || 'medium';
+    return (saved as 'medium' | 'large') || 'large';
   });
 
   const [activeLargeTab, setActiveLargeTab] = useState<'main' | 'cli' | 'db' | 'options' | 'manual' | 'credits'>('main');
@@ -153,21 +157,22 @@ export default function App() {
   }, [guiVariant]);
 
   useEffect(() => {
-    localStorage.setItem('oxytime_always_on_top', String(alwaysOnTop));
-  }, [alwaysOnTop]);
+    localStorage.setItem('oxytime_always_on_top_small', String(alwaysOnTopSmall));
+    localStorage.setItem('oxytime_always_on_top_main', String(alwaysOnTopMain));
+  }, [alwaysOnTopSmall, alwaysOnTopMain]);
 
   useEffect(() => {
     const applyWindowConfig = async () => {
       await handleWindowResize(guiVariant);
       await new Promise(resolve => setTimeout(resolve, 50));
       if (guiVariant !== 'small') {
-        await handleWindowAlwaysOnTop(false);
+        await handleWindowAlwaysOnTop(alwaysOnTopMain);
       } else {
-        await handleWindowAlwaysOnTop(alwaysOnTop);
+        await handleWindowAlwaysOnTop(alwaysOnTopSmall);
       }
     };
     applyWindowConfig();
-  }, [guiVariant, alwaysOnTop]);
+  }, [guiVariant, alwaysOnTopSmall, alwaysOnTopMain]);
 
   useEffect(() => {
     if (currentProjectId) {
@@ -213,9 +218,10 @@ export default function App() {
   useEffect(() => {
     let unlistenMaximized: (() => void) | undefined;
     let unlistenRestored: (() => void) | undefined;
-    let unlistenMinimized: (() => void) | undefined;
     let unlistenCloseRequested: (() => void) | undefined;
-    let unlistenResized: (() => void) | undefined;
+    let unlistenTrayVariant: (() => void) | undefined;
+    let unlistenTrayOnTop: (() => void) | undefined;
+    let unlistenTrayStopAll: (() => void) | undefined;
 
     const setupListeners = async () => {
       if (!isTauri()) return;
@@ -228,45 +234,46 @@ export default function App() {
         });
 
         unlistenRestored = await listen('native-window-restored', () => {
-          setGuiVariant('medium');
-          showToast("Rozmiar zmieniony na ŚREDNI (Przywrócenie)");
-        });
-
-        unlistenMinimized = await listen('native-window-minimized', () => {
-          setGuiVariant('small');
-          showToast("Rozmiar zmieniony na MAŁY (Minimalizacja)");
+          setGuiVariant('large');
         });
 
         unlistenCloseRequested = await listen('native-close-requested', async () => {
           if (minimizeToTray) {
-            if (guiVariant !== 'small') {
-              setGuiVariant('small');
-              setAlwaysOnTop(false);
-              showToast("Zminimalizowano do widgetu (Zamknij do tray)");
-            } else {
-              await invoke('hide_window');
-            }
+            await invoke('hide_window');
           } else {
             await invoke('exit_app');
           }
         });
 
-        unlistenResized = await listen<[number, number]>('native-window-resized', (event) => {
-          let w = 800;
-          if (Array.isArray(event.payload)) {
-            w = event.payload[0];
-          } else if (event.payload && typeof event.payload === 'object') {
-            w = (event.payload as any).width || 800;
-          }
-          
-          if (w < 350) {
-            setGuiVariant('small');
-          } else if (w >= 350 && w < 600) {
-            setGuiVariant('medium');
+        // --- Tray menu event listeners ---
+        unlistenTrayVariant = await listen<string>('tray-set-gui-variant', async (event) => {
+          const variant = event.payload as 'small' | 'medium' | 'large';
+          setGuiVariant(variant);
+          await handleWindowResize(variant);
+          const flag = variant === 'small' ? alwaysOnTopSmall : alwaysOnTopMain;
+          await handleWindowAlwaysOnTop(flag);
+          showToast(`GUI: ${variant === 'small' ? 'Mały' : variant === 'medium' ? 'Średni' : 'Duży'}`);
+        });
+
+        unlistenTrayOnTop = await listen('tray-toggle-on-top', async () => {
+          if (guiVariant === 'small') {
+            const newVal = !alwaysOnTopSmall;
+            setAlwaysOnTopSmall(newVal);
+            await handleWindowAlwaysOnTop(newVal);
+            showToast(newVal ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
           } else {
-            setGuiVariant('large');
+            const newVal = !alwaysOnTopMain;
+            setAlwaysOnTopMain(newVal);
+            await handleWindowAlwaysOnTop(newVal);
+            showToast(newVal ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
           }
         });
+
+        unlistenTrayStopAll = await listen('tray-stop-all-timers', () => {
+          handleStopTimer();
+          showToast(translate(locale, 'app.stoppedThreads', customTranslations));
+        });
+
       } catch (err) {
         console.error('Tauri listener setup error:', err);
       }
@@ -277,11 +284,12 @@ export default function App() {
     return () => {
       if (unlistenMaximized) unlistenMaximized();
       if (unlistenRestored) unlistenRestored();
-      if (unlistenMinimized) unlistenMinimized();
       if (unlistenCloseRequested) unlistenCloseRequested();
-      if (unlistenResized) unlistenResized();
+      if (unlistenTrayVariant) unlistenTrayVariant();
+      if (unlistenTrayOnTop) unlistenTrayOnTop();
+      if (unlistenTrayStopAll) unlistenTrayStopAll();
     };
-  }, [guiVariant, minimizeToTray]);
+  }, [guiVariant, minimizeToTray, alwaysOnTopSmall, alwaysOnTopMain]);
 
   const [nowIso, setNowIso] = useState<string>(new Date().toISOString());
 
@@ -607,13 +615,21 @@ export default function App() {
     setTimeout(() => setTrayNotification(null), 5000);
   };
 
-  const handleMinimizeToTray = () => {
-    if (minimizeToTray) {
-      setIsMinimized(true);
-      showToast(translate(locale, 'dynamic.oxyFlowMinimizedToTrayEngineKe', customTranslations));
+  const handleMinimizeToTray = async () => {
+    if (isTauri()) {
+      try {
+        await invoke('hide_window');
+      } catch (err) {
+        console.error('Tauri hide error:', err);
+      }
     } else {
-      setIsGuiClosed(true);
-      showToast(translate(locale, 'dynamic.gUIClosedOxyFlowEngineLogsUISh', customTranslations));
+      if (minimizeToTray) {
+        setIsMinimized(true);
+        showToast(translate(locale, 'dynamic.oxyFlowMinimizedToTrayEngineKe', customTranslations));
+      } else {
+        setIsGuiClosed(true);
+        showToast(translate(locale, 'dynamic.gUIClosedOxyFlowEngineLogsUISh', customTranslations));
+      }
     }
   };
 
@@ -704,7 +720,7 @@ export default function App() {
       projects, setProjects, tasks, setTasks, logs, setLogs, holidays, setHolidays,
       patches, setPatches, sysSettings, setSysSettings,
       activeLog, setActiveLog, localePref, setLocalePref, locale, setLocale, theme, setTheme, resolvedTheme, setResolvedTheme, uiScale, setUiScale, customTranslations, setCustomTranslations,
-      engineState, enginePID, minimizeToTray, setMinimizeToTray, logToApi, setLogToApi,
+      engineState, enginePID, minimizeToTray, setMinimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, logToApi, setLogToApi,
       apiToken, setApiToken, apiUrl, setApiUrl, apiMethod, setApiMethod, apiHeaders, setApiHeaders, nowIso, isGuiClosed, setIsGuiClosed
     }}>
     <div id="app-root-container" className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-auto p-3 sm:p-6 ${
@@ -781,7 +797,7 @@ export default function App() {
             showToast={showToast}
           />
         ) : guiVariant === 'small' ? (
-          <GuiRouter variant="small" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} lastNonSmallVariant={lastNonSmallVariant} />
+          <GuiRouter variant="small" commonProps={guiCommonProps} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} lastNonSmallVariant={lastNonSmallVariant} />
         ) : (
           <motion.div
             key="windowed-state"
@@ -1028,7 +1044,7 @@ export default function App() {
                 <div id="tab-viewport" className="min-h-[480px]">
                   
                   {guiVariant === 'medium' && (
-                    <GuiRouter variant="medium" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
+                    <GuiRouter variant="medium" commonProps={guiCommonProps} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                   )}
 
                   {guiVariant === 'large' && (
@@ -1036,7 +1052,7 @@ export default function App() {
                       
                       {activeLargeTab === 'main' && (
                         <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <GuiRouter variant="large" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
+                          <GuiRouter variant="large" commonProps={guiCommonProps} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                         </motion.div>
                       )}
 
@@ -1069,7 +1085,7 @@ export default function App() {
 
                       {activeLargeTab === 'reports' && (
                         <motion.div key="large-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <GuiRouter variant="large" commonProps={guiCommonProps} alwaysOnTop={alwaysOnTop} setAlwaysOnTop={setAlwaysOnTop} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
+                          <GuiRouter variant="large" commonProps={guiCommonProps} isSmallExpanded={isSmallExpanded} setIsSmallExpanded={setIsSmallExpanded} showToast={showToast} handleMinimizeToTray={handleMinimizeToTray} setGuiVariant={setGuiVariant} currentProjectId={currentProjectId} />
                         </motion.div>
                       )}
 

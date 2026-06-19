@@ -5,7 +5,7 @@ import CollapsibleCard from './CollapsibleCard';
 import { translate } from '../utils/i18n';
 
 export default function EngineConfig() {
-  const { minimizeToTray, setMinimizeToTray, resolvedTheme, sysSettings, setSysSettings, locale, customTranslations } = useOxyFlow();
+  const { minimizeToTray, setMinimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, resolvedTheme, sysSettings, setSysSettings, locale, customTranslations } = useOxyFlow();
   const [isExpanded, setIsExpanded] = useState(true);
 
   const updateSetting = (key: keyof typeof sysSettings, value: boolean) => {
@@ -69,6 +69,30 @@ export default function EngineConfig() {
             />
             <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
               {translate(locale, 'engine.minimizeToTrayDefault', customTranslations)}
+            </span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer w-fit">
+            <input 
+              type="checkbox" 
+              checked={alwaysOnTopSmall}
+              onChange={(e) => setAlwaysOnTopSmall(e.target.checked)}
+              className="w-4 h-4 accent-orange-500"
+            />
+            <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
+              {translate(locale, 'engine.alwaysOnTopSmall', customTranslations) || 'Zawsze na wierzchu (Mały widok)'}
+            </span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer w-fit">
+            <input 
+              type="checkbox" 
+              checked={alwaysOnTopMain}
+              onChange={(e) => setAlwaysOnTopMain(e.target.checked)}
+              className="w-4 h-4 accent-orange-500"
+            />
+            <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
+              {translate(locale, 'engine.alwaysOnTopMain', customTranslations) || 'Zawsze na wierzchu (Średni i Duży widok)'}
             </span>
           </label>
         </div>
