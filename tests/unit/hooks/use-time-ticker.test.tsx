@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useTimeTicker } from '../../../src/hooks/useTimeTicker';
+import { TEST_CONSTANTS } from '../../shared/test-constants';
 
 describe('Unit Tests: useTimeTicker Hook', () => {
   beforeEach(() => {
@@ -17,10 +18,10 @@ describe('Unit Tests: useTimeTicker Hook', () => {
 
     // Fast-forward 1 second
     act(() => {
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(TEST_CONSTANTS.ONE_SECOND);
     });
 
     expect(result.current.nowIso).not.toEqual(initialTime);
-    expect(new Date(result.current.nowIso).getTime() - new Date(initialTime).getTime()).toBeGreaterThanOrEqual(1000);
+    expect(new Date(result.current.nowIso).getTime() - new Date(initialTime).getTime()).toBeGreaterThanOrEqual(TEST_CONSTANTS.ONE_SECOND);
   });
 });

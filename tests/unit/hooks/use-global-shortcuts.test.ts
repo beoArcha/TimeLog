@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useGlobalShortcuts } from '../../../src/hooks/useGlobalShortcuts';
+import { TEST_CONSTANTS } from '../../shared/test-constants';
 
 describe('Unit Tests: useGlobalShortcuts Hook', () => {
   const onToggleTimer = vi.fn();
@@ -12,7 +13,7 @@ describe('Unit Tests: useGlobalShortcuts Hook', () => {
   it('should_call_onToggleTimer_when_Space_is_pressed_outside_inputs', () => {
     renderHook(() => useGlobalShortcuts({ onToggleTimer }));
 
-    const event = new KeyboardEvent('keydown', { code: 'Space' });
+    const event = new KeyboardEvent(TEST_CONSTANTS.EVENT_KEYDOWN, { code: TEST_CONSTANTS.KEY_SPACE });
     Object.defineProperty(event, 'target', { value: document.createElement('div') });
     window.dispatchEvent(event);
 
@@ -22,8 +23,8 @@ describe('Unit Tests: useGlobalShortcuts Hook', () => {
   it('should_not_call_onToggleTimer_when_Space_is_pressed_inside_input', () => {
     renderHook(() => useGlobalShortcuts({ onToggleTimer }));
 
-    const event = new KeyboardEvent('keydown', { code: 'Space' });
-    Object.defineProperty(event, 'target', { value: document.createElement('input') });
+    const event = new KeyboardEvent(TEST_CONSTANTS.EVENT_KEYDOWN, { code: TEST_CONSTANTS.KEY_SPACE });
+    Object.defineProperty(event, 'target', { value: document.createElement(TEST_CONSTANTS.TAG_INPUT) });
     window.dispatchEvent(event);
 
     expect(onToggleTimer).not.toHaveBeenCalled();
@@ -32,8 +33,8 @@ describe('Unit Tests: useGlobalShortcuts Hook', () => {
   it('should_call_onToggleTimer_when_Ctrl_Space_is_pressed_inside_input', () => {
     renderHook(() => useGlobalShortcuts({ onToggleTimer }));
 
-    const event = new KeyboardEvent('keydown', { code: 'Space', ctrlKey: true });
-    Object.defineProperty(event, 'target', { value: document.createElement('input') });
+    const event = new KeyboardEvent(TEST_CONSTANTS.EVENT_KEYDOWN, { code: TEST_CONSTANTS.KEY_SPACE, ctrlKey: true });
+    Object.defineProperty(event, 'target', { value: document.createElement(TEST_CONSTANTS.TAG_INPUT) });
     window.dispatchEvent(event);
 
     expect(onToggleTimer).toHaveBeenCalled();

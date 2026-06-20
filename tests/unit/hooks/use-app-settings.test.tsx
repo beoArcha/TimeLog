@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useAppSettings } from '../../../src/hooks/useAppSettings';
 import { setupLocalStorageMock, setupMatchMediaMock } from './test-helpers';
+import { STORAGE_KEYS } from '../../../src/common/constants';
 
 describe('Unit Tests: useAppSettings Hook', () => {
   beforeEach(() => {
@@ -10,8 +11,8 @@ describe('Unit Tests: useAppSettings Hook', () => {
   });
 
   it('should_load_saved_settings_when_initialized', () => {
-    localStorage.setItem('oxytime_theme', 'light');
-    localStorage.setItem('oxytime_gui_variant', 'medium');
+    localStorage.setItem(STORAGE_KEYS.THEME, 'light');
+    localStorage.setItem(STORAGE_KEYS.GUI_VARIANT, 'medium');
     
     const { result } = renderHook(() => useAppSettings());
     
@@ -26,7 +27,7 @@ describe('Unit Tests: useAppSettings Hook', () => {
       result.current.setTextAndIconSize('large');
     });
     
-    expect(localStorage.getItem('oxytime_text_icon_size')).toBe('large');
+    expect(localStorage.getItem(STORAGE_KEYS.TEXT_ICON_SIZE)).toBe('large');
   });
 
   it('should_resolve_theme_correctly_when_system_theme_is_queried', () => {

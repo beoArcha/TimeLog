@@ -2,6 +2,8 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useExternalApiSync } from '../../../src/hooks/useExternalApiSync';
 import { setupLocalStorageMock } from './test-helpers';
+import { STORAGE_KEYS } from '../../../src/common/constants';
+import { TEST_CONSTANTS } from '../../shared/test-constants';
 
 describe('Unit Tests: useExternalApiSync Hook', () => {
   beforeEach(() => {
@@ -15,13 +17,13 @@ describe('Unit Tests: useExternalApiSync Hook', () => {
   });
 
   it('should_load_saved_configs_when_initialized', () => {
-    localStorage.setItem('oxytime_log_to_api', 'true');
-    localStorage.setItem('oxytime_api_token', 'my-token');
+    localStorage.setItem(STORAGE_KEYS.LOG_TO_API, 'true');
+    localStorage.setItem(STORAGE_KEYS.API_TOKEN, TEST_CONSTANTS.API_TOKEN);
     
     const { result } = renderHook(() => useExternalApiSync());
     
     expect(result.current.logToApi).toBe(true);
-    expect(result.current.apiToken).toBe('my-token');
+    expect(result.current.apiToken).toBe(TEST_CONSTANTS.API_TOKEN);
   });
 
   it('should_call_fetch_when_pushToApi_is_called_and_logging_is_enabled', () => {
@@ -29,18 +31,18 @@ describe('Unit Tests: useExternalApiSync Hook', () => {
     
     act(() => {
       result.current.setLogToApi(true);
-      result.current.setApiUrl('https://myapi.com/logs');
-      result.current.setApiToken('tok');
+      result.current.setApiUrl(TEST_CONSTANTS.API_URL);
+      result.current.setApiToken(TEST_CONSTANTS.API_TOKEN_SHORT);
     });
-
+ 
     act(() => {
       result.current.pushToApi({ id: 1 }, 'Log message');
     });
-
-    expect(global.fetch).toHaveBeenCalledWith('https://myapi.com/logs', expect.objectContaining({
+ 
+    expect(global.fetch).toHaveBeenCalledWith(TEST_CONSTANTS.API_URL, expect.objectContaining({
       method: 'POST',
       headers: expect.objectContaining({
-        Authorization: 'Bearer tok',
+        Authorization: `Bearer ${TEST_CONSTANTS.API_TOKEN_SHORT}`,
       }),
     }));
   });

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Project, Task, TimeLog, HolidayLeave, PatchLog } from '../types';
 import { DataManager } from '../utils/dataManager';
+import { STORAGE_KEYS } from '../common/constants';
 
-const LOCAL_STORAGE_KEY = 'oxytime_state_db_6';
+const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
 
 export const useTimeLogData = (pushToApi: (payload: any, logMsg: string) => void) => {
   const [projects, setProjects] = useState<Project[]>([]);

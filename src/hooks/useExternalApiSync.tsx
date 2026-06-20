@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
+import { STORAGE_KEYS } from '../common/constants';
 
 export const useExternalApiSync = () => {
-  const [logToApi, setLogToApi] = useState<boolean>(() => localStorage.getItem('oxytime_log_to_api') === 'true');
-  const [apiToken, setApiToken] = useState<string>(() => localStorage.getItem('oxytime_api_token') || '');
-  const [apiUrl, setApiUrl] = useState<string>(() => localStorage.getItem('oxytime_api_url') || '');
-  const [apiMethod, setApiMethod] = useState<'POST' | 'PUT'>(() => (localStorage.getItem('oxytime_api_method') as 'POST' | 'PUT') || 'POST');
-  const [apiHeaders, setApiHeaders] = useState<string>(() => localStorage.getItem('oxytime_api_headers') || '');
+  const [logToApi, setLogToApi] = useState<boolean>(() => localStorage.getItem(STORAGE_KEYS.LOG_TO_API) === 'true');
+  const [apiToken, setApiToken] = useState<string>(() => localStorage.getItem(STORAGE_KEYS.API_TOKEN) || '');
+  const [apiUrl, setApiUrl] = useState<string>(() => localStorage.getItem(STORAGE_KEYS.API_URL) || '');
+  const [apiMethod, setApiMethod] = useState<'POST' | 'PUT'>(() => (localStorage.getItem(STORAGE_KEYS.API_METHOD) as 'POST' | 'PUT') || 'POST');
+  const [apiHeaders, setApiHeaders] = useState<string>(() => localStorage.getItem(STORAGE_KEYS.API_HEADERS) || '');
 
   useEffect(() => {
-    localStorage.setItem('oxytime_log_to_api', String(logToApi));
-    localStorage.setItem('oxytime_api_token', apiToken);
-    localStorage.setItem('oxytime_api_url', apiUrl);
-    localStorage.setItem('oxytime_api_method', apiMethod);
-    localStorage.setItem('oxytime_api_headers', apiHeaders);
+    localStorage.setItem(STORAGE_KEYS.LOG_TO_API, String(logToApi));
+    localStorage.setItem(STORAGE_KEYS.API_TOKEN, apiToken);
+    localStorage.setItem(STORAGE_KEYS.API_URL, apiUrl);
+    localStorage.setItem(STORAGE_KEYS.API_METHOD, apiMethod);
+    localStorage.setItem(STORAGE_KEYS.API_HEADERS, apiHeaders);
   }, [logToApi, apiToken, apiUrl, apiMethod, apiHeaders]);
 
   const pushToApi = (payload: any, logMsg: string) => {

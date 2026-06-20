@@ -3,8 +3,10 @@ import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vites
 import { useTimeLogData } from '../../../src/hooks/useTimeLogData';
 import { setupLocalStorageMock } from './test-helpers';
 import { Project, Task, TimeLog } from '../../../src/types';
+import { STORAGE_KEYS } from '../../../src/common/constants';
+import { TEST_CONSTANTS } from '../../shared/test-constants';
 
-const LOCAL_STORAGE_KEY = 'oxytime_state_db_6';
+const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
 
 describe('Unit Tests: useTimeLogData Hook', () => {
   const pushToApi = vi.fn();
@@ -52,13 +54,13 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
     
     act(() => {
-      result.current.handleToggleProjectArchive('1');
+      result.current.handleToggleProjectArchive(TEST_CONSTANTS.PROJECT_ID_1);
     });
 
     expect(result.current.projects[0].archived).toBe(true);
 
     act(() => {
-      result.current.handleToggleProjectArchive('1');
+      result.current.handleToggleProjectArchive(TEST_CONSTANTS.PROJECT_ID_1);
     });
 
     expect(result.current.projects[0].archived).toBe(false);
@@ -68,7 +70,7 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleAddTask('1', 'New Task', null);
+      result.current.handleAddTask(TEST_CONSTANTS.PROJECT_ID_1, 'New Task', null);
     });
 
     expect(result.current.tasks).toHaveLength(8);
@@ -79,7 +81,7 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleRenameProject('1', 'Renamed Backend');
+      result.current.handleRenameProject(TEST_CONSTANTS.PROJECT_ID_1, 'Renamed Backend');
     });
 
     expect(result.current.projects[0].name).toBe('Renamed Backend');
@@ -89,7 +91,7 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleRenameTask('101', 'Renamed Task');
+      result.current.handleRenameTask(TEST_CONSTANTS.TASK_ID_101, 'Renamed Task');
     });
 
     expect(result.current.tasks[0].name).toBe('Renamed Task');
@@ -100,11 +102,11 @@ describe('Unit Tests: useTimeLogData Hook', () => {
 
     // '102' is parent of '1021'
     act(() => {
-      result.current.handleDeleteTask('102');
+      result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
     });
 
-    const hasParent = result.current.tasks.some(t => t.id === '102');
-    const hasChild = result.current.tasks.some(t => t.id === '1021');
+    const hasParent = result.current.tasks.some(t => t.id === TEST_CONSTANTS.TASK_ID_102);
+    const hasChild = result.current.tasks.some(t => t.id === TEST_CONSTANTS.TASK_ID_1021);
     expect(hasParent).toBe(false);
     expect(hasChild).toBe(false);
   });
@@ -114,26 +116,26 @@ describe('Unit Tests: useTimeLogData Hook', () => {
 
     // Complete task '102' which isn't complete
     act(() => {
-      result.current.handleToggleTaskComplete('102');
+      result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
-    expect(result.current.tasks.find(t => t.id === '102')?.completed).toBe(true);
+    expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)?.completed).toBe(true);
 
     // Toggle back to incomplete
     act(() => {
-      result.current.handleToggleTaskComplete('102');
+      result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
-    expect(result.current.tasks.find(t => t.id === '102')?.completed).toBe(false);
+    expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)?.completed).toBe(false);
   });
 
   it('should_trigger_api_callback_when_starting_timer', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleStartTimer('101');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
 
     expect(pushToApi).toHaveBeenCalled();
-    expect(result.current.activeLog?.taskId).toBe('101');
+    expect(result.current.activeLog?.taskId).toBe(TEST_CONSTANTS.TASK_ID_101);
   });
 
   it('should_stop_running_timer_when_handleStartTimer_is_called_on_an_already_running_task', () => {
@@ -141,14 +143,14 @@ describe('Unit Tests: useTimeLogData Hook', () => {
 
     // Start timer on 101
     act(() => {
-      result.current.handleStartTimer('101');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
     expect(result.current.activeLog).not.toBeNull();
     pushToApi.mockClear();
 
     // Start timer on 101 again (should stop it)
     act(() => {
-      result.current.handleStartTimer('101');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
 
     expect(result.current.activeLog).toBeNull();
@@ -163,11 +165,11 @@ describe('Unit Tests: useTimeLogData Hook', () => {
 
     act(() => {
       // '1021' is a subtask of '102'
-      result.current.handleStartTimer('1021');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
     });
 
-    const motherLog = result.current.logs.find(l => l.taskId === '102');
-    const childLog = result.current.logs.find(l => l.taskId === '1021');
+    const motherLog = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_102);
+    const childLog = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_1021);
 
     expect(motherLog).toBeDefined();
     expect(childLog).toBeDefined();
@@ -179,7 +181,7 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleStartTimer('101');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
     expect(result.current.activeLog).not.toBeNull();
 
@@ -272,17 +274,17 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleStartTimer('102');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
     });
-    expect(result.current.activeLog?.taskId).toBe('102');
+    expect(result.current.activeLog?.taskId).toBe(TEST_CONSTANTS.TASK_ID_102);
     pushToApi.mockClear();
 
     act(() => {
-      result.current.handleToggleTaskComplete('102');
+      result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
 
     expect(result.current.activeLog).toBeNull();
-    const log102 = result.current.logs.find(l => l.taskId === '102');
+    const log102 = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_102);
     expect(log102?.endTime).not.toBeNull();
   });
 
@@ -290,15 +292,15 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleStartTimer('101');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
     pushToApi.mockClear();
 
     act(() => {
-      result.current.handleStartTimer('102');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
     });
 
-    const log101 = result.current.logs.find(l => l.taskId === '101');
+    const log101 = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_101);
     expect(log101?.endTime).not.toBeNull();
     expect(pushToApi).toHaveBeenCalledWith(
       expect.objectContaining({ event: 'TERMINATE' }),
@@ -310,18 +312,18 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleStartTimer('102');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
     });
     pushToApi.mockClear();
 
     act(() => {
-      result.current.handleStartTimer('1021');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
     });
 
-    const motherLog = result.current.logs.find(l => l.taskId === '102');
+    const motherLog = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_102);
     expect(motherLog?.endTime).toBeNull();
 
-    const childLog = result.current.logs.find(l => l.taskId === '1021');
+    const childLog = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_1021);
     expect(childLog?.endTime).toBeNull();
   });
 
@@ -329,18 +331,18 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      result.current.handleStartTimer('101');
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
-    expect(result.current.activeLog?.projectId).toBe('1');
+    expect(result.current.activeLog?.projectId).toBe(TEST_CONSTANTS.PROJECT_ID_1);
     pushToApi.mockClear();
 
     act(() => {
-      result.current.handleStopTimer('2');
+      result.current.handleStopTimer(TEST_CONSTANTS.PROJECT_ID_2);
     });
     expect(result.current.activeLog).not.toBeNull();
 
     act(() => {
-      result.current.handleStopTimer('1');
+      result.current.handleStopTimer(TEST_CONSTANTS.PROJECT_ID_1);
     });
     expect(result.current.activeLog).toBeNull();
   });

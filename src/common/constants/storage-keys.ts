@@ -1,0 +1,17 @@
+export const STORAGE_KEYS = {
+  THEME: 'oxytime_theme',
+  TEXT_ICON_SIZE: 'oxytime_text_icon_size',
+  SYS_SETTINGS: 'oxytime_sys_settings',
+  GUI_VARIANT: 'oxytime_gui_variant',
+  LAST_NON_SMALL_VARIANT: 'oxytime_last_non_small_variant',
+  ALWAYS_ON_TOP_SMALL: 'oxytime_always_on_top_small',
+  ALWAYS_ON_TOP_MAIN: 'oxytime_always_on_top_main',
+  CURRENT_PROJ_ID: 'oxytime_current_proj_id',
+  MIN_TO_TRAY: 'oxytime_min_to_tray',
+  LOG_TO_API: 'oxytime_log_to_api',
+  API_TOKEN: 'oxytime_api_token',
+  API_URL: 'oxytime_api_url',
+  API_METHOD: 'oxytime_api_method',
+  API_HEADERS: 'oxytime_api_headers',
+  STATE_DB: 'oxytime_state_db_6',
+} as const;
