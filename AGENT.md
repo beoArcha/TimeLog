@@ -1,229 +1,151 @@
 # AGENT.md
 
-## AI Agent Instructions
+## AI Agent Operational Guidelines
 
-This document defines the engineering rules for all AI agents contributing to this repository.
+This repository is developed using AI-assisted engineering.
 
-The AI agent is an implementation assistant, not an autonomous engineer.
-
-Humans remain responsible for architecture, product decisions and code quality.
+AI agents act as implementation assistants. Humans remain responsible for architecture, product decisions and final validation.
 
 ---
 
-## General Rules
+## 1. General Principles
 
-### Responsibilities
+### Scope
 
-AI may:
+AI agents may:
 
 - implement features
-- refactor code
+- refactor existing code
 - write tests
 - improve documentation
 - identify issues
 - propose improvements
 
-AI must not:
+AI agents must not:
 
-- redesign architecture without explicit request
-- introduce new dependencies without justification
-- perform large rewrites without approval
+- redesign architecture without explicit approval
+- introduce unnecessary dependencies
+- rewrite large portions of the codebase without request
 - remove existing functionality
-- overengineer solutions
+- make assumptions about product requirements
+
+When uncertain, ask for clarification.
 
 ---
 
-### Coding Principles
+## 2. Engineering Priorities
 
-Always prioritize:
+Prioritize in this order:
 
-1. Simplicity
-2. Readability
-3. Maintainability
-4. Explicitness
-5. Predictability
+1. Correctness
+2. Simplicity
+3. Readability
+4. Maintainability
+5. Performance
 
 Avoid:
 
-- unnecessary abstractions
+- overengineering
 - premature optimization
-- magic values
+- unnecessary abstractions
 - hidden side effects
 - duplicated code
 
 ---
 
-### File Size Guidelines
+## 3. Frontend (React)
 
-Evaluate splitting files when they exceed:
-
-- Components: ~300 lines
-- Hooks: ~300 lines
-- Services/Engines: ~400 lines
-
-Avoid creating "god objects".
-
----
-
-## Frontend (React)
-
-### Responsibilities
-
-Frontend is responsible for:
+Frontend responsibilities:
 
 - UI rendering
 - user interactions
 - state orchestration
 
-Frontend is NOT responsible for:
+Frontend should not contain:
 
-- persistence
+- persistence logic
 - heavy computations
-- business logic
+- business-critical rules
+
+Guidelines:
+
+- Keep components focused.
+- Prefer composition.
+- Avoid deep prop drilling.
+- Keep state domain-oriented.
+- Use explicit TypeScript types.
+
+Avoid `any`.
 
 ---
 
-### Component Rules
+## 4. Tauri / Rust
 
-Components should:
+Rust is the application core.
 
-- have a single responsibility
-- remain small and composable
-- avoid excessive prop drilling
-
-Prefer composition over inheritance.
-
----
-
-### State Management
-
-Avoid central "super stores".
-
-Separate state by domain.
-
-Examples:
-
-- TimeLog
-- Projects
-- Tasks
-- Settings
-- UI state
-
-Keep state predictable.
-
----
-
-### TypeScript Rules
-
-Avoid:
-
-```ts
-any
-```
-
-Prefer:
-
-```ts
-unknown
-```
-
-Use explicit interfaces and types.
-
-Enable strict typing whenever possible.
-
----
-
-## Tauri / Rust
-
-### Responsibilities
-
-Rust owns:
+Rust responsibilities:
 
 - business logic
 - persistence
-- performance-critical operations
+- performance-sensitive operations
 
-React communicates through:
+Frontend communicates only through Tauri APIs.
 
-```text
-invoke()
-```
+Target architecture:
 
-Long-term architecture:
-
-```text
 React
- ↓
+
+↓
+
 Tauri
- ↓
+
+↓
+
 Rust
- ↓
+
+↓
+
 SQLite
-```
 
-Do not bypass this architecture.
+Do not bypass architectural boundaries.
 
----
+Rust guidelines:
 
-### Rust Guidelines
-
-Prefer:
-
-- explicit error handling
-- Result types
-- small modules
-- strong typing
-
-Avoid:
-
-- unwrap() in production code
-- panic! for business scenarios
-- hidden global state
+- Prefer `Result`
+- Handle errors explicitly
+- Avoid `unwrap()` in production code
+- Avoid hidden global state
 
 ---
 
-## Testing
+## 5. Testing
 
 Tests validate behavior, not implementation.
 
 Priorities:
 
-1. Unit tests
-2. Integration tests
-
-Avoid brittle tests.
-
----
-
-### Unit Tests
+- unit tests
+- integration tests
 
 Test:
 
-- pure functions
 - business rules
 - edge cases
-
-Do not test implementation details.
-
----
-
-### Integration Tests
-
-Test:
-
 - interactions between modules
-- application flows
-- persistence behavior
 
-Avoid excessive mocking.
+Avoid:
+
+- brittle tests
+- excessive mocking
+- implementation-specific assertions
 
 ---
 
-## DevOps
+## 6. DevOps
 
-Keep CI simple and deterministic.
+CI must remain deterministic.
 
-CI should:
+Pipelines should:
 
 - install dependencies
 - run linting
@@ -233,22 +155,19 @@ CI should:
 
 Fail fast.
 
----
-
-### Dependencies
-
-Before adding a dependency, verify:
+Before adding dependencies, verify:
 
 - Is it necessary?
-- Can existing code solve this?
-- Is it actively maintained?
+- Is it maintained?
 - Does it increase complexity?
 
 Prefer fewer dependencies.
 
 ---
 
-## Documentation
+## 7. Documentation
+
+Documentation is part of engineering.
 
 Update documentation whenever changes affect:
 
@@ -257,23 +176,23 @@ Update documentation whenever changes affect:
 - public interfaces
 - engineering decisions
 
-Avoid duplicating code in documentation.
+Avoid duplicating code inside documentation.
 
 ---
 
-## Refactoring Rules
+## 8. Refactoring
 
 Refactor incrementally.
 
-Do not rewrite entire modules unless explicitly requested.
-
 Preserve existing behavior.
 
-Large refactors should be split into small, reviewable changes.
+Large changes must be split into small, reviewable steps.
+
+Avoid full rewrites unless explicitly requested.
 
 ---
 
-## AI Decision Rule
+## 9. Decision Rule
 
 When multiple solutions exist, choose the one that is:
 
@@ -283,6 +202,4 @@ When multiple solutions exist, choose the one that is:
 - easier to maintain
 - easier to extend
 
-Never optimize for cleverness.
-
-When uncertain, ask for clarification instead of making assumptions.
+Do not optimize for cleverness.
