@@ -41,6 +41,8 @@ export const es = {
     "autoPauseOnSleep": "Pausar automáticamente con la suspensión",
     "minimizeToTrayDefault": "Minimizar a la bandeja al cerrar",
     "includePatchesInReports": "Incluir parches de tiempo en resúmenes",
+    "alwaysOnTopSmall": "Siempre encima (Vista pequeña)",
+    "alwaysOnTopMain": "Siempre encima (Vista mediana y grande)",
     "searching": "Buscando instancia activa del motor LogTime by OxyFlow...",
     "connecting": "Conectando a la base de datos sqlite3 y analizando...",
     "connected": "Conectado al Daemon LogTime by OxyFlow",

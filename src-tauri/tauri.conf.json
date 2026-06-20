@@ -3,6 +3,8 @@
   "version": "1.0.11",
   "identifier": "com.oxytime.oxyflow",
   "build": {
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3000"
   },

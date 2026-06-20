@@ -44,6 +44,8 @@ export const pl = {
     autoPauseOnSleep: "Automatycznie wstrzymaj liczniki podczas uśpienia",
     minimizeToTrayDefault: "Minimalizuj do zasobnika po zamknięciu okna",
     includePatchesInReports: "Uwzględniaj łatki czasowe w podsumowaniach",
+    alwaysOnTopSmall: "Zawsze na wierzchu (Mały widok)",
+    alwaysOnTopMain: "Zawsze na wierzchu (Średni i Duży widok)",
     searching: 'Szukanie aktywnej instancji silnika LogTime by OxyFlow...',
     connecting: 'Łączenie z bazą sqlite3 i analizowanie rozpoczętych wierszy logs...',
     connected: 'Połączono z daemonem LogTime by OxyFlow',

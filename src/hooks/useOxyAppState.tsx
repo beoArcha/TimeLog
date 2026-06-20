@@ -201,6 +201,12 @@ export const useOxyAppState = () => {
     localStorage.setItem('oxytime_api_url', apiUrl);
     localStorage.setItem('oxytime_api_method', apiMethod);
     localStorage.setItem('oxytime_api_headers', apiHeaders);
+
+    if (isTauri()) {
+      invoke('set_minimize_to_tray', { minimize: minimizeToTray }).catch(err => {
+        console.error('Failed to sync minimizeToTray with Rust:', err);
+      });
+    }
   }, [minimizeToTray, logToApi, apiToken, apiUrl, apiMethod, apiHeaders]);
 
   const [nowIso, setNowIso] = useState<string>(new Date().toISOString());
@@ -628,14 +634,7 @@ export const useOxyAppState = () => {
         });
         if (!active) { uRest(); } else { unlisteners.push(uRest); }
 
-        const uClose = await listen('native-close-requested' satisfies FrontendEvent, async () => {
-          if (minimizeToTrayRef.current) {
-            await invoke('hide_window');
-          } else {
-            await invoke('exit_app');
-          }
-        });
-        if (!active) { uClose(); } else { unlisteners.push(uClose); }
+
 
         // --- Tray menu event listeners ---
         const uVariant = await listen<GuiVariant>('tray-set-gui-variant' satisfies FrontendEvent, async (event) => {

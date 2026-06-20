@@ -1,23 +1,30 @@
-//! High-frequency time tracking aggregation routines
-use rusqlite::{Connection, Result, params};
-use chrono::Utc;
 use crate::engine::constants;
+use chrono::Utc;
+use rusqlite::{params, Connection, Result};
 
-/// Automatically wraps running timer logs and targets cross-project parallel tracking
 pub fn start_project_timer(conn: &Connection, task_id: &str) -> Result<()> {
     let mut stmt = conn.prepare(constants::SELECT_PROJECT_ID_BY_TASK_ID)?;
     let proj_id: String = stmt.query_row(params![task_id], |row| row.get(0))?;
 
-    conn.execute(constants::CLOSE_ACTIVE_LOGS_BY_PROJECT, params![Utc::now().to_rfc3339(), proj_id])?;
+    conn.execute(
+        constants::CLOSE_ACTIVE_LOGS_BY_PROJECT,
+        params![Utc::now().to_rfc3339(), proj_id],
+    )?;
 
     static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
-    let log_id = format!("log_{}_{}", Utc::now().timestamp_millis(), LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
-    conn.execute(constants::INSERT_TIME_LOG, params![log_id, task_id, Utc::now().to_rfc3339()])?;
+    let log_id = format!(
+        "log_{}_{}",
+        Utc::now().timestamp_millis(),
+        LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+    );
+    conn.execute(
+        constants::INSERT_TIME_LOG,
+        params![log_id, task_id, Utc::now().to_rfc3339()],
+    )?;
 
     Ok(())
 }
 
-/// Ends pending time logs for a given project identifier (or stop all if None)
 pub fn stop_project_timer(conn: &Connection, project_id: Option<&str>) -> Result<()> {
     let now = Utc::now().to_rfc3339();
     match project_id {
@@ -31,7 +38,6 @@ pub fn stop_project_timer(conn: &Connection, project_id: Option<&str>) -> Result
     Ok(())
 }
 
-/// Gathers list of currently actively tracking logs
 pub fn query_active_logs(conn: &Connection) -> Result<Vec<String>> {
     let mut stmt = conn.prepare(constants::SELECT_ACTIVE_TASK_IDS)?;
     let rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
@@ -51,29 +57,33 @@ mod tests {
     fn test_counting_lifecycle() -> Result<()> {
         let conn = init_db_in_memory()?;
         let now = chrono::Utc::now().to_rfc3339();
-        
-        // Setup initial project and tasks
-        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)", [&now])?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)", [&now])?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p1', 'Task2', ?)", [&now])?;
 
-        // 1. Initial State
+        conn.execute(
+            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)",
+            [&now],
+        )?;
+        conn.execute(
+            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)",
+            [&now],
+        )?;
+        conn.execute(
+            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p1', 'Task2', ?)",
+            [&now],
+        )?;
+
         let active = query_active_logs(&conn)?;
         assert_eq!(active.len(), 0);
 
-        // 2. Start Task 1
         start_project_timer(&conn, "t1")?;
         let active = query_active_logs(&conn)?;
         assert_eq!(active.len(), 1);
         assert_eq!(active[0], "t1");
 
-        // 3. Start Task 2 (same project, so Task 1 should stop)
         start_project_timer(&conn, "t2")?;
         let active2 = query_active_logs(&conn)?;
         assert_eq!(active2.len(), 1);
         assert_eq!(active2[0], "t2");
 
-        // 4. Stop specific project timer
         stop_project_timer(&conn, Some("p1"))?;
         let active3 = query_active_logs(&conn)?;
         assert_eq!(active3.len(), 0);
@@ -85,27 +95,33 @@ mod tests {
     fn test_cross_project_concurrency() -> Result<()> {
         let conn = init_db_in_memory()?;
         let now = chrono::Utc::now().to_rfc3339();
-        
-        // Setup two projects
-        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)", [&now])?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)", [&now])?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1_b', 'p1', 'Task1B', ?)", [&now])?;
-        
-        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p2', 'Proj2', 'blue', ?)", [&now])?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p2', 'Task2', ?)", [&now])?;
 
-        // Start t1 in p1
+        conn.execute(
+            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)",
+            [&now],
+        )?;
+        conn.execute(
+            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)",
+            [&now],
+        )?;
+        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1_b', 'p1', 'Task1B', ?)", [&now])?;
+        conn.execute(
+            "INSERT INTO projects (id, name, color, created_at) VALUES ('p2', 'Proj2', 'blue', ?)",
+            [&now],
+        )?;
+        conn.execute(
+            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p2', 'Task2', ?)",
+            [&now],
+        )?;
+
         start_project_timer(&conn, "t1")?;
-        
-        // Start t2 in p2
         start_project_timer(&conn, "t2")?;
-        
+
         let active = query_active_logs(&conn)?;
         assert_eq!(active.len(), 2, "Both projects should run concurrently");
         assert!(active.contains(&"t1".to_string()));
         assert!(active.contains(&"t2".to_string()));
 
-        // Start t1_b in p1 (should stop t1 but leave t2 running)
         start_project_timer(&conn, "t1_b")?;
         let active2 = query_active_logs(&conn)?;
         assert_eq!(active2.len(), 2);
@@ -140,15 +156,21 @@ mod tests {
     fn test_stop_timer_invalid_project() -> Result<()> {
         let conn = init_db_in_memory()?;
         let now = chrono::Utc::now().to_rfc3339();
-        
-        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)", [&now])?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)", [&now])?;
-        
+
+        conn.execute(
+            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)",
+            [&now],
+        )?;
+        conn.execute(
+            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)",
+            [&now],
+        )?;
+
         start_project_timer(&conn, "t1")?;
-        
+
         let res = stop_project_timer(&conn, Some("nonexistent_project"));
         assert!(res.is_ok());
-        
+
         let active = query_active_logs(&conn)?;
         assert_eq!(active.len(), 1);
         assert_eq!(active[0], "t1");

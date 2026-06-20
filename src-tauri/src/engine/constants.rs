@@ -1,10 +1,7 @@
-//! SQL Query Constants and SQLite database configuration definitions.
-
-// Database configuration pragmas
 pub const PRAGMA_JOURNAL_MODE_WAL: &str = "WAL";
+
 pub const PRAGMA_FOREIGN_KEYS_ON: &str = "ON";
 
-// Table schema creation queries
 pub const CREATE_PROJECTS_TABLE: &str = "
     CREATE TABLE IF NOT EXISTS projects (
         id TEXT PRIMARY KEY,
@@ -37,7 +34,6 @@ pub const CREATE_TIME_LOGS_TABLE: &str = "
     )
 ";
 
-// DataManager Insert operations
 pub const INSERT_PROJECT: &str = "
     INSERT INTO projects (id, name, color, created_at)
     VALUES (?1, ?2, ?3, ?4)
@@ -48,7 +44,6 @@ pub const INSERT_TASK: &str = "
     VALUES (?1, ?2, ?3, ?4, ?5)
 ";
 
-// Counting operations
 pub const SELECT_PROJECT_ID_BY_TASK_ID: &str = "
     SELECT project_id FROM tasks WHERE id = ? LIMIT 1
 ";

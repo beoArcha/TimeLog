@@ -41,6 +41,8 @@ export const fr = {
     "autoPauseOnSleep": "Mettre en pause avec la mise en veille",
     "minimizeToTrayDefault": "Minimiser dans la barre en fermant",
     "includePatchesInReports": "Inclure les correctifs dans les résumés",
+    "alwaysOnTopSmall": "Toujours au premier plan (Petite vue)",
+    "alwaysOnTopMain": "Toujours au premier plan (Moyenne & Grande vue)",
     "searching": "Recherche de l'instance du moteur...",
     "connecting": "Connexion à sqlite3 et analyse...",
     "connected": "Connecté au Démon LogTime by OxyFlow",

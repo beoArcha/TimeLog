@@ -37,6 +37,8 @@ export const de = {
     "autoPauseOnSleep": "Aktive Timer bei Ruhezustand automatisch anhalten",
     "minimizeToTrayDefault": "Beim Schließen des Fensters in die Taskleiste minimieren",
     "includePatchesInReports": "Zeit-Patches in Zusammenfassungen einbeziehen",
+    "alwaysOnTopSmall": "Immer im Vordergrund (Kleine Ansicht)",
+    "alwaysOnTopMain": "Immer im Vordergrund (Mittlere & Große Ansicht)",
     "searching": "Suche nach aktiver LogTime by OxyFlow-Motorinstanz...",
     "connecting": "Verbindung zur sqlite3-Datenbank und Analyse der aktiven Protokollzeilen...",
     "connected": "Mit LogTime by OxyFlow-Dämon verbunden",

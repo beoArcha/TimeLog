@@ -44,6 +44,8 @@ export const en = {
     autoPauseOnSleep: "Auto pause running timers on sleep",
     minimizeToTrayDefault: "Minimize to tray on window close",
     includePatchesInReports: "Include time patches in summaries",
+    alwaysOnTopSmall: "Always on top (Small view)",
+    alwaysOnTopMain: "Always on top (Medium & Large view)",
     searching: 'Searching for active LogTime by OxyFlow engine instance...',
     connecting: 'Connecting to sqlite3 database and analyzing active log rows...',
     connected: 'Connected to LogTime by OxyFlow Daemon',

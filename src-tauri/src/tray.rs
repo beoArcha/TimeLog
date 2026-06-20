@@ -1,9 +1,10 @@
-//! System Tray Menu definition, translations, and event dispatch logic.
-
-use tauri::{App, AppHandle, Manager, Emitter, menu::{Menu, MenuItem, PredefinedMenuItem}, menu::MenuEvent};
 use crate::types::GuiVariant;
+use tauri::{
+    menu::MenuEvent,
+    menu::{Menu, MenuItem, PredefinedMenuItem},
+    App, AppHandle, Emitter, Manager,
+};
 
-/// System Tray Menu Item Identifiers
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TrayMenuId {
     ToggleVisibility,
@@ -44,7 +45,6 @@ impl TrayMenuId {
 
 pub use crate::types::FrontendEvent;
 
-/// Detect the system's locale language code
 fn get_system_locale() -> String {
     sys_locale::get_locale()
         .unwrap_or_else(|| "en".to_string())
@@ -54,7 +54,6 @@ fn get_system_locale() -> String {
         .to_lowercase()
 }
 
-/// Retrieve translation for a given locale and key
 fn get_translation(locale: &str, key: &str) -> &'static str {
     match locale {
         "pl" => match key {
@@ -116,36 +115,85 @@ fn get_translation(locale: &str, key: &str) -> &'static str {
             "stop_all" => "Stop All Timers",
             "quit" => "Quit Completely",
             _ => "",
-        }
+        },
     }
 }
 
-/// Construct the tray menu, localizing items based on system language settings
 pub fn build_tray_menu<R: tauri::Runtime>(app: &App<R>) -> tauri::Result<Menu<R>> {
     let locale = get_system_locale();
 
-    let toggle_item = MenuItem::with_id(app, TrayMenuId::ToggleVisibility.as_str(), get_translation(&locale, "show_hide"), true, None::<&str>)?;
+    let toggle_item = MenuItem::with_id(
+        app,
+        TrayMenuId::ToggleVisibility.as_str(),
+        get_translation(&locale, "show_hide"),
+        true,
+        None::<&str>,
+    )?;
     let sep1 = PredefinedMenuItem::separator(app)?;
-    let gui_small = MenuItem::with_id(app, TrayMenuId::GuiSmall.as_str(), get_translation(&locale, "gui_small"), true, None::<&str>)?;
-    let gui_medium = MenuItem::with_id(app, TrayMenuId::GuiMedium.as_str(), get_translation(&locale, "gui_medium"), true, None::<&str>)?;
-    let gui_large = MenuItem::with_id(app, TrayMenuId::GuiLarge.as_str(), get_translation(&locale, "gui_large"), true, None::<&str>)?;
+    let gui_small = MenuItem::with_id(
+        app,
+        TrayMenuId::GuiSmall.as_str(),
+        get_translation(&locale, "gui_small"),
+        true,
+        None::<&str>,
+    )?;
+    let gui_medium = MenuItem::with_id(
+        app,
+        TrayMenuId::GuiMedium.as_str(),
+        get_translation(&locale, "gui_medium"),
+        true,
+        None::<&str>,
+    )?;
+    let gui_large = MenuItem::with_id(
+        app,
+        TrayMenuId::GuiLarge.as_str(),
+        get_translation(&locale, "gui_large"),
+        true,
+        None::<&str>,
+    )?;
     let sep2 = PredefinedMenuItem::separator(app)?;
-    let toggle_on_top = MenuItem::with_id(app, TrayMenuId::ToggleOnTop.as_str(), get_translation(&locale, "always_on_top"), true, None::<&str>)?;
-    let stop_all = MenuItem::with_id(app, TrayMenuId::StopAllTimers.as_str(), get_translation(&locale, "stop_all"), true, None::<&str>)?;
+    let toggle_on_top = MenuItem::with_id(
+        app,
+        TrayMenuId::ToggleOnTop.as_str(),
+        get_translation(&locale, "always_on_top"),
+        true,
+        None::<&str>,
+    )?;
+    let stop_all = MenuItem::with_id(
+        app,
+        TrayMenuId::StopAllTimers.as_str(),
+        get_translation(&locale, "stop_all"),
+        true,
+        None::<&str>,
+    )?;
     let sep3 = PredefinedMenuItem::separator(app)?;
-    let quit_item = MenuItem::with_id(app, TrayMenuId::QuitApp.as_str(), get_translation(&locale, "quit"), true, None::<&str>)?;
-    
-    let tray_menu = Menu::with_items(app, &[
-        &toggle_item, &sep1,
-        &gui_small, &gui_medium, &gui_large, &sep2,
-        &toggle_on_top, &stop_all, &sep3,
-        &quit_item
-    ])?;
+    let quit_item = MenuItem::with_id(
+        app,
+        TrayMenuId::QuitApp.as_str(),
+        get_translation(&locale, "quit"),
+        true,
+        None::<&str>,
+    )?;
+
+    let tray_menu = Menu::with_items(
+        app,
+        &[
+            &toggle_item,
+            &sep1,
+            &gui_small,
+            &gui_medium,
+            &gui_large,
+            &sep2,
+            &toggle_on_top,
+            &stop_all,
+            &sep3,
+            &quit_item,
+        ],
+    )?;
 
     Ok(tray_menu)
 }
 
-/// Handle a tray menu click event by parsing it into a type-safe TrayMenuId enum
 pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent) {
     let id = event.id().as_ref();
     if let Some(menu_id) = TrayMenuId::from_str(id) {
@@ -171,7 +219,10 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
                     let _ = window.set_focus();
-                    let _ = app.emit(FrontendEvent::TraySetGuiVariant.as_str(), GuiVariant::Medium);
+                    let _ = app.emit(
+                        FrontendEvent::TraySetGuiVariant.as_str(),
+                        GuiVariant::Medium,
+                    );
                 }
             }
             TrayMenuId::GuiLarge => {

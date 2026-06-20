@@ -1,6 +1,5 @@
-//! CLI sub-dispatcher using Tauri State connection variables
-use clap::{Parser, Subcommand};
 use crate::engine::counting;
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "oxytime-cli")]
@@ -11,11 +10,8 @@ pub struct CliArgs {
 
 #[derive(Subcommand)]
 pub enum CliCommands {
-    /// Start tracking a task ID
     Start { task_id: String },
-    /// Stop tracking on all running projects
     Stop,
-    /// List active worker daemons
     Status,
 }
 
@@ -49,30 +45,28 @@ mod tests {
     fn test_handle_cli_start_and_status() -> Result<(), String> {
         let conn = init_db_in_memory().map_err(|e| e.to_string())?;
         let now = chrono::Utc::now().to_rfc3339();
-        
+
         conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'CliProj', 'blue', ?)", [&now]).map_err(|e| e.to_string())?;
         conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'CliTask', ?)", [&now]).map_err(|e| e.to_string())?;
 
-        // 1. Start command
         let start_args = CliArgs {
-            command: CliCommands::Start { task_id: "t1".to_string() }
+            command: CliCommands::Start {
+                task_id: "t1".to_string(),
+            },
         };
         handle_cli(start_args, &conn)?;
 
-        // Check if logs reflect active task
         let active = counting::query_active_logs(&conn).map_err(|e| e.to_string())?;
         assert_eq!(active.len(), 1);
         assert_eq!(active[0], "t1");
 
-        // 2. Status command (outputs to stdout, but we ensure it doesn't panic)
         let status_args = CliArgs {
-            command: CliCommands::Status
+            command: CliCommands::Status,
         };
         handle_cli(status_args, &conn)?;
 
-        // 3. Stop command
         let stop_args = CliArgs {
-            command: CliCommands::Stop
+            command: CliCommands::Stop,
         };
         handle_cli(stop_args, &conn)?;
 
@@ -86,7 +80,9 @@ mod tests {
     fn test_cli_nonexistent_task_fails() -> Result<(), String> {
         let conn = init_db_in_memory().map_err(|e| e.to_string())?;
         let args = CliArgs {
-            command: CliCommands::Start { task_id: "nonexistent".to_string() }
+            command: CliCommands::Start {
+                task_id: "nonexistent".to_string(),
+            },
         };
         let res = handle_cli(args, &conn);
         assert!(res.is_err());

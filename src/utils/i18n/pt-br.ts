@@ -41,6 +41,8 @@ export const ptBr = {
     "autoPauseOnSleep": "Pausar rastreadores na suspensão",
     "minimizeToTrayDefault": "Minimizar para a bandeja ao fechar",
     "includePatchesInReports": "Incluir correções de tempo nos relatórios",
+    "alwaysOnTopSmall": "Sempre no topo (Visão pequena)",
+    "alwaysOnTopMain": "Sempre no topo (Visão média e grande)",
     "searching": "Procurando instância ativa do motor...",
     "connecting": "Conectando ao banco sqlite3 e analisando...",
     "connected": "Conectado ao Daemon LogTime by OxyFlow",
