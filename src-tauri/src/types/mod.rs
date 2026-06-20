@@ -1,4 +1,5 @@
-#![allow(dead_code)] // Structs and enums in this module are used for exporting TypeScript bindings to the frontend via ts-rs.
+#![allow(dead_code)]
+// Structs and enums in this module are used for exporting TypeScript bindings to the frontend via ts-rs.
 #![allow(unused_imports)]
 
 pub mod frontend_event;
