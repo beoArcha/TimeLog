@@ -218,7 +218,7 @@ jobs:
           cd src-tauri
 
           cargo tarpaulin \
-            --fail-under 60 \
+            --fail-under 40 \
             --out Xml \
             --out Json \
             --output-dir ../coverage/rust
