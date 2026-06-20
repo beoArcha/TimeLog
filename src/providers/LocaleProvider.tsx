@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { LocaleType, TranslationDictionary } from '../utils/translations';
+import { STORAGE_KEYS } from '../common/constants';
 
 interface LocaleContextProps {
   localePref: LocaleType;
@@ -14,7 +15,7 @@ const LocaleContext = createContext<LocaleContextProps | undefined>(undefined);
 
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [localePref, setLocalePref] = useState<LocaleType>(() => {
-    const saved = localStorage.getItem('oxytime_locale_pref');
+    const saved = localStorage.getItem(STORAGE_KEYS.LOCALE_PREF);
     if (saved) return saved as LocaleType;
     return 'system';
   });
@@ -22,7 +23,7 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [locale, setLocale] = useState<LocaleType>('en');
 
   const [customTranslations, setCustomTranslations] = useState<Partial<TranslationDictionary>>(() => {
-    const saved = localStorage.getItem('oxytime_custom_translations');
+    const saved = localStorage.getItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS);
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -34,7 +35,7 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   useEffect(() => {
-    localStorage.setItem('oxytime_locale_pref', localePref);
+    localStorage.setItem(STORAGE_KEYS.LOCALE_PREF, localePref);
     if (localePref === 'system') {
       const browserLang = navigator.language.toLowerCase();
       if (browserLang.startsWith('pl')) setLocale('pl');
@@ -49,11 +50,11 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [localePref]);
 
   useEffect(() => {
-    localStorage.setItem('oxytime_locale', locale);
+    localStorage.setItem(STORAGE_KEYS.LOCALE, locale);
   }, [locale]);
 
   useEffect(() => {
-    localStorage.setItem('oxytime_custom_translations', JSON.stringify(customTranslations));
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS, JSON.stringify(customTranslations));
   }, [customTranslations]);
 
   return (

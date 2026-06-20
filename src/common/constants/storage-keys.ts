@@ -14,4 +14,7 @@ export const STORAGE_KEYS = {
   API_METHOD: 'oxytime_api_method',
   API_HEADERS: 'oxytime_api_headers',
   STATE_DB: 'oxytime_state_db_6',
+  LOCALE_PREF: 'oxytime_locale_pref',
+  LOCALE: 'oxytime_locale',
+  CUSTOM_TRANSLATIONS: 'oxytime_custom_translations',
 } as const;

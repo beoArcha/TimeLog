@@ -392,7 +392,9 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     });
 
     renderHook(() => useTauriWindow(defaultProps));
-    await waitForListeners();
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 60));
+    });
 
     expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining('Tauri always on top error:'),
