@@ -1,4 +1,4 @@
-import { Project, Task, TimeLog } from './types';
+import { Task, TimeLog } from './types';
 
 export function getTaskDurationSeconds(
   taskId: string,

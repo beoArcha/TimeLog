@@ -1,9 +1,8 @@
 import React from 'react';
-import { Settings, Sun, Moon, Eye, Laptop, Languages, RefreshCw, AlertTriangle, Shield, CheckCircle, CalendarDays, Type } from 'lucide-react';
+import { Settings, RefreshCw, AlertTriangle, CalendarDays } from 'lucide-react';
 import { useOxyFlow } from '../../hooks/useOxyFlow';
 import EngineConfig from '../shared/EngineConfig';
 import HolidaysAndLeaves from '../shared/HolidaysAndLeaves';
-import { defaultTranslations, LocaleType } from '../../utils/translations';
 import { translate } from '../../utils/i18n';
 import { toast } from 'sonner';
 import CollapsibleCard from '../shared/CollapsibleCard';
@@ -11,7 +10,7 @@ import { Info } from 'lucide-react';
 import versionsData from '../../versions.json';
 
 export default function SettingsTab() {
-  const { theme, setTheme, textAndIconSize, setTextAndIconSize, customTranslations, setCustomTranslations, resolvedTheme, localePref, setLocalePref, locale, setLocale, setProjects, setTasks, setLogs, setHolidays } = useOxyFlow();
+  const { customTranslations, resolvedTheme, locale, setProjects, setTasks, setLogs } = useOxyFlow();
 
   const handleResetData = () => {
     const response = window.prompt(translate(locale, 'dynamic.warningResetApp', customTranslations));
@@ -25,13 +24,6 @@ export default function SettingsTab() {
       toast.error(translate(locale, 'settings.resetCancel', customTranslations));
     }
   };
-
-  const themes = [
-    { id: 'light', icon: Sun, label: translate(locale, 'themes.light', customTranslations), desc: translate(locale, 'themes.lightDesc', customTranslations) },
-    { id: 'dark', icon: Moon, label: translate(locale, 'themes.dark', customTranslations), desc: translate(locale, 'themes.darkDesc', customTranslations) },
-    { id: 'high-contrast', icon: Eye, label: translate(locale, 'themes.highContrast', customTranslations), desc: translate(locale, 'themes.highContrastDesc', customTranslations) },
-    { id: 'system', icon: Laptop, label: translate(locale, 'themes.system', customTranslations), desc: translate(locale, 'themes.systemDesc', customTranslations) }
-  ];
 
   return (
     <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
@@ -47,9 +39,9 @@ export default function SettingsTab() {
 
       <div className="flex flex-col gap-6">
         <EngineConfig />
-        
+
         <div className="mt-2">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400"/> {translate(locale, 'settings.holidaysTitle', customTranslations)}</h3>
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400" /> {translate(locale, 'settings.holidaysTitle', customTranslations)}</h3>
           <HolidaysAndLeaves />
         </div>
 
@@ -63,7 +55,7 @@ export default function SettingsTab() {
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
             <p className={`text-xs max-w-sm ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>{translate(locale, 'settings.hardResetDesc', customTranslations)}</p>
-            <button 
+            <button
               onClick={handleResetData}
               className="bg-rose-500 hover:bg-rose-600 px-6 py-3 rounded-2xl text-white text-xs font-bold uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >

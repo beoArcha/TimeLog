@@ -3,7 +3,6 @@ import { GuiState } from '../useGuiLogic';
 import { Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '../../../utils/i18n';
-import { getThemeStyles } from './guiStyles';
 
 export default function DbInspector({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -13,12 +12,11 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
 
   return (
     <div className={`mt-2 flex flex-col rounded-3xl border transition-all duration-300 overflow-hidden ${theme === 'light'
-        ? 'bg-[#FCFAF8] shadow-[#DFD7CB]/30 border-[#DFD7CB]'
-        : theme === 'high-contrast'
-          ? 'bg-black border-2 border-white text-white'
-          : 'bg-[#FCFAF8]/5 border-white/10 text-slate-100 backdrop-blur-xl'
+      ? 'bg-[#FCFAF8] shadow-[#DFD7CB]/30 border-[#DFD7CB]'
+      : theme === 'high-contrast'
+        ? 'bg-black border-2 border-white text-white'
+        : 'bg-[#FCFAF8]/5 border-white/10 text-slate-100 backdrop-blur-xl'
       }`}>
-      {/* Header & Toggle Button */}
       <div
         className="flex items-center justify-between p-4 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         onClick={() => setShowDbInspector(!showDbInspector)}
@@ -45,8 +43,8 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
               setShowDbInspector(!showDbInspector);
             }}
             className={`flex items-center gap-2 border font-mono text-xs px-4 py-2 rounded-2xl transition-all cursor-pointer ${theme === 'light'
-                ? 'bg-[#F4EFEA] hover:bg-[#EAE4DB] text-[#5A4A42] border-[#DFD7CB]'
-                : 'bg-[#FCFAF8]/10 hover:bg-[#FCFAF8]/20 text-slate-200 hover:text-white border-white/10'
+              ? 'bg-[#F4EFEA] hover:bg-[#EAE4DB] text-[#5A4A42] border-[#DFD7CB]'
+              : 'bg-[#FCFAF8]/10 hover:bg-[#FCFAF8]/20 text-slate-200 hover:text-white border-white/10'
               }`}
           >
             {showDbInspector ? translate(locale, 'dynamic.hideSqlitePreview', customTranslations) : translate(locale, 'dynamic.exploreSqliteStructure', customTranslations)}
@@ -54,7 +52,6 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
         </div>
       </div>
 
-      {/* Expandable Content */}
       <AnimatePresence>
         {showDbInspector && (
           <motion.div
@@ -68,7 +65,6 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
             <div className={`p-4 pt-4 md:p-6 md:pt-4 border-t font-mono text-xs gap-4 flex flex-col ${theme === 'light' ? 'border-[#DFD7CB]/50' : 'border-white/10'
               }`}>
               <div className={`flex flex-col gap-4 pb-2 ${!isCondensed ? 'md:grid md:grid-cols-2' : ''}`}>
-                {/* Projects Table */}
                 <div className={`flex-1 p-3 rounded-xl border flex flex-col ${theme === 'light' ? 'bg-[#F4EFEA]/50 border-[#DFD7CB]' : 'bg-black/20 border-white/10'
                   }`}>
                   <p className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE projects</p>
@@ -95,7 +91,6 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                   </div>
                 </div>
 
-                {/* Tasks Table */}
                 <div className={`flex-1 p-3 rounded-xl border flex flex-col ${theme === 'light' ? 'bg-[#F4EFEA]/50 border-[#DFD7CB]' : 'bg-black/20 border-white/10'
                   }`}>
                   <p className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE tasks</p>
@@ -131,7 +126,6 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                   </div>
                 </div>
 
-                {/* Logs Table (Time Logs) */}
                 <div className={`flex-1 w-full p-3 rounded-xl border flex flex-col ${!isCondensed ? 'md:col-span-2' : ''} ${theme === 'light' ? 'bg-[#F4EFEA]/50 border-[#DFD7CB]' : 'bg-black/20 border-white/10'
                   }`}>
                   <p className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE time_logs</p>

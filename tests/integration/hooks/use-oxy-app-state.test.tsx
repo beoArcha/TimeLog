@@ -1,6 +1,4 @@
 import {
-  mockInvoke,
-  tauriEventRegistry,
   setupLocalStorageMock,
   setupMatchMediaMock,
 } from '../../shared/test-helpers';
@@ -20,7 +18,7 @@ describe('Integration Tests: useOxyAppState Hook Integration', () => {
     vi.clearAllMocks();
     setupLocalStorageMock();
     setupMatchMediaMock(false);
-    
+
     Object.defineProperty(navigator, 'clipboard', {
       value: {
         writeText: vi.fn(),

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { GuiCommonProps } from './GuiCommonProps';
 
 export function useGuiLogic(props: GuiCommonProps) {
-  const { projects, tasks, logs, textAndIconSize = 'medium' } = props;
+  const { projects, tasks } = props;
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(projects[0]?.id || null);
   const [newHolidayDate, setNewHolidayDate] = useState('2026-06-15');
@@ -11,7 +11,7 @@ export function useGuiLogic(props: GuiCommonProps) {
 
   const [reportPeriod, setReportPeriod] = useState<'today' | 'week' | 'month' | 'all'>('all');
   const [reportSort, setReportSort] = useState<'date' | 'duration'>('duration');
-  
+
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectColor, setNewProjectColor] = useState('violet');
   const [newTaskName, setNewTaskName] = useState('');
@@ -25,7 +25,7 @@ export function useGuiLogic(props: GuiCommonProps) {
   const [showDbInspector, setShowDbInspector] = useState(false);
 
   const selectedProject = projects.find(p => p.id === selectedProjectId) || projects[0];
-  
+
   const projectTasks = useMemo(() => {
     if (!selectedProject) return [];
     return tasks.filter(t => t.projectId === selectedProject.id);

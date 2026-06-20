@@ -325,7 +325,6 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
         filteredLogs = filteredLogs.filter(log => log.endTime);
       }
 
-      const _transDate = (translate(locale, 'dynamic.sortDate', customTranslations) || 'date').toLowerCase();
       const transDuration = (translate(locale, 'dynamic.sortDuration', customTranslations) || 'duration').toLowerCase();
       const transProject = (translate(locale, 'dynamic.sortProject', customTranslations) || 'project').toLowerCase();
       const transStatus = (translate(locale, 'dynamic.sortStatus', customTranslations) || 'status').toLowerCase();

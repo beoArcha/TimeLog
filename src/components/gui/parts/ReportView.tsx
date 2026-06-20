@@ -3,7 +3,6 @@ import { GuiState } from '../useGuiLogic';
 import { BarChart3 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { translate } from '../../../utils/i18n';
-import { getTranslation } from '../../../utils/translations';
 import { formatSeconds } from '../../../utils';
 import { getThemeStyles } from './guiStyles';
 
@@ -120,10 +119,10 @@ export default function ReportView({ state }: { state: GuiState }) {
 
   return (
     <div id="reports-panel" className={`backdrop-blur-md rounded-[2.5rem] p-8 border shadow-2xl flex flex-col gap-6 transition-all duration-300 ${theme === 'light'
-        ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-[#DFD7CB]'
-        : theme === 'high-contrast'
-          ? 'bg-black border-2 border-white'
-          : 'bg-[#FCFAF8]/5 border-white/10'
+      ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-[#DFD7CB]'
+      : theme === 'high-contrast'
+        ? 'bg-black border-2 border-white'
+        : 'bg-[#FCFAF8]/5 border-white/10'
       }`}>
       <div>
         <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
@@ -176,8 +175,8 @@ export default function ReportView({ state }: { state: GuiState }) {
               key={p}
               onClick={() => setReportPeriod(p)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all cursor-pointer ${reportPeriod === p
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-[#FCFAF8]/5 hover:bg-[#FCFAF8]/10 text-[#9B8C83]'
+                ? 'bg-orange-500 text-white'
+                : 'bg-[#FCFAF8]/5 hover:bg-[#FCFAF8]/10 text-[#9B8C83]'
                 }`}
             >
               {p === 'today' ? (translate(locale, 'dynamic.today', customTranslations)) :

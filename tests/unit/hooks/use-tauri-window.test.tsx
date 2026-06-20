@@ -7,7 +7,6 @@ import { TEST_CONSTANTS } from '../../shared/test-constants';
 import {
   mockInvoke,
   mockListen,
-  tauriEventRegistry,
   triggerTauriEvent,
   setupLocalStorageMock,
   setupMatchMediaMock,

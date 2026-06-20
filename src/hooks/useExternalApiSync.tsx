@@ -21,7 +21,7 @@ export const useExternalApiSync = () => {
       let headersObj = {};
       try {
         if (apiHeaders) headersObj = JSON.parse(apiHeaders);
-      } catch (e) {
+      } catch (_) {
         console.error('Failed parse headers json');
       }
       fetch(apiUrl, {

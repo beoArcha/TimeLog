@@ -44,15 +44,17 @@ export default [
             ],
 
             "@typescript-eslint/no-unused-vars": [
-                "warn",
+                "error",
                 {
                     argsIgnorePattern: "^_",
+                    varsIgnorePattern: "^_",
+                    caughtErrorsIgnorePattern: "^_",
+                    destructuredArrayIgnorePattern: "^_",
                 },
             ],
 
             "@typescript-eslint/no-explicit-any": "warn",
             "no-else-return": "warn",
-            "prefer-const": "warn",
             "no-empty": "warn",
         },
     },

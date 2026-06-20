@@ -8,7 +8,7 @@ import {
 } from '../../shared/test-helpers';
 
 import React from 'react';
-import { render, screen, fireEvent, cleanup, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import App from '../../../src/App';
 import { LocaleProvider } from '../../../src/providers/LocaleProvider';
 
