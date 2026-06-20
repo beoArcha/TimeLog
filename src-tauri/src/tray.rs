@@ -107,15 +107,7 @@ pub use crate::types::{FrontendEvent, Locale};
 fn get_system_locale() -> Locale {
     let sys_lang = sys_locale::get_locale()
         .unwrap_or_else(|| "en".to_string());
-    let code = sys_lang.split('-').next().unwrap_or("en").to_lowercase();
-    match code.as_str() {
-        "pl" => Locale::Pl,
-        "de" => Locale::De,
-        "es" => Locale::Es,
-        "fr" => Locale::Fr,
-        "pt" => Locale::PtBr,
-        _ => Locale::En,
-    }
+    Locale::from_sys_lang(&sys_lang)
 }
 
 fn create_menu_item<R: tauri::Runtime>(
