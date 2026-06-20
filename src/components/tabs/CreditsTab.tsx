@@ -1,8 +1,8 @@
 import React from 'react';
 import { Heart, Code2, Users, FileSignature, Coffee, ShieldCheck, HeartHandshake } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useOxyFlow } from '../hooks/useOxyFlow';
-import { translate } from '../utils/i18n';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
+import { translate } from '../../utils/i18n';
 
 export default function CreditsTab() {
   const { resolvedTheme, locale, customTranslations } = useOxyFlow();

@@ -8,13 +8,13 @@ import { motion, AnimatePresence } from 'motion/react';
 
 // Components
 import GuiRouter from './components/gui/GuiRouter';
-import CliInterface from './components/CliInterface';
-import DbExplorer from './components/DbExplorer';
-import ManualTab from './components/ManualTab';
-import CreditsTab from './components/CreditsTab';
-import SettingsTab from './components/SettingsTab';
-import BackupTab from './components/BackupTab';
-import TrayWidget from './components/TrayWidget';
+import CliInterface from './components/features/cli/CliInterface';
+import DbExplorer from './components/features/db-explorer/DbExplorer';
+import ManualTab from './components/tabs/ManualTab';
+import CreditsTab from './components/tabs/CreditsTab';
+import SettingsTab from './components/tabs/SettingsTab';
+import BackupTab from './components/tabs/BackupTab';
+import TrayWidget from './components/shared/TrayWidget';
 
 // Layout Components
 import GuiClosedAlert from './components/layout/GuiClosedAlert';

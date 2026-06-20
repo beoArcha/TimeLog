@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { UploadCloud, DownloadCloud, CheckCircle, Database } from 'lucide-react';
-import { useOxyFlow } from '../hooks/useOxyFlow';
-import { translate } from '../utils/i18n';
-import CollapsibleCard from './CollapsibleCard';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
+import { translate } from '../../utils/i18n';
+import CollapsibleCard from '../shared/CollapsibleCard';
 
 export default function BackupTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);

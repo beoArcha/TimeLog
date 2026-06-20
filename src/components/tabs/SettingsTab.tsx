@@ -1,14 +1,14 @@
 import React from 'react';
 import { Settings, Sun, Moon, Eye, Laptop, Languages, RefreshCw, AlertTriangle, Shield, CheckCircle, CalendarDays, Type } from 'lucide-react';
-import { useOxyFlow } from '../hooks/useOxyFlow';
-import EngineConfig from './EngineConfig';
-import HolidaysAndLeaves from './HolidaysAndLeaves';
-import { defaultTranslations, LocaleType } from '../utils/translations';
-import { translate } from '../utils/i18n';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
+import EngineConfig from '../shared/EngineConfig';
+import HolidaysAndLeaves from '../shared/HolidaysAndLeaves';
+import { defaultTranslations, LocaleType } from '../../utils/translations';
+import { translate } from '../../utils/i18n';
 import { toast } from 'sonner';
-import CollapsibleCard from './CollapsibleCard';
+import CollapsibleCard from '../shared/CollapsibleCard';
 import { Info } from 'lucide-react';
-import versionsData from '../versions.json';
+import versionsData from '../../versions.json';
 
 export default function SettingsTab() {
   const { theme, setTheme, textAndIconSize, setTextAndIconSize, customTranslations, setCustomTranslations, resolvedTheme, localePref, setLocalePref, locale, setLocale, setProjects, setTasks, setLogs, setHolidays } = useOxyFlow();

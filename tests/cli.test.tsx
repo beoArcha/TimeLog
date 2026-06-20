@@ -1,8 +1,9 @@
 import { render, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import CliInterface from '../src/components/CliInterface';
+import CliInterface from '../src/components/features/cli/CliInterface';
 import { Project, Task, TimeLog } from '../src/types';
 import { LocaleProvider } from '../src/providers/LocaleProvider';
+import { OxyContext } from '../src/hooks/useOxyFlow';
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();
@@ -27,12 +28,12 @@ describe('CliInterface Full Component Tests', () => {
     tasks: mockTasks,
     logs: mockLogs,
     activeLog: null as TimeLog | null,
-    onAddProject: vi.fn(),
-    onAddTask: vi.fn(),
-    onToggleTaskComplete: vi.fn(),
-    onStartTimer: vi.fn(),
-    onStopTimer: vi.fn(),
-    onToggleProjectArchive: vi.fn(),
+    handleAddProject: vi.fn(),
+    handleAddTask: vi.fn(),
+    handleToggleTaskComplete: vi.fn(),
+    handleStartTimer: vi.fn(),
+    handleStopTimer: vi.fn(),
+    handleToggleProjectArchive: vi.fn(),
     nowIso: '2026-06-12T03:00:00Z',
     locale: 'en' as const,
     holidays: [],
@@ -41,11 +42,15 @@ describe('CliInterface Full Component Tests', () => {
     setSelectedTaskId: vi.fn(),
   };
 
+
+
   const setup = (props = {}) => {
     const combinedProps = { ...defaultProps, ...props };
     const utils = render(
       <LocaleProvider>
-         <CliInterface {...combinedProps} />
+         <OxyContext.Provider value={combinedProps as any}>
+            <CliInterface />
+         </OxyContext.Provider>
       </LocaleProvider>
     );
     const input = utils.container.querySelector('input') as HTMLInputElement;
@@ -95,21 +100,21 @@ describe('CliInterface Full Component Tests', () => {
     const { input, form, combinedProps } = setup();
     fireEvent.change(input, { target: { value: 'addproject "New Project"' } });
     fireEvent.submit(form);
-    expect(combinedProps.onAddProject).toHaveBeenCalledWith('New Project', expect.any(String));
+    expect(combinedProps.handleAddProject).toHaveBeenCalledWith('New Project', expect.any(String));
   });
 
   it('handles "addtask" command', () => {
     const { input, form, combinedProps } = setup();
     fireEvent.change(input, { target: { value: 'addtask 1 "New Task 2"' } });
     fireEvent.submit(form);
-    expect(combinedProps.onAddTask).toHaveBeenCalledWith('1', 'New Task 2', null);
+    expect(combinedProps.handleAddTask).toHaveBeenCalledWith('1', 'New Task 2', null);
   });
 
   it('handles "start" command', () => {
     const { input, form, combinedProps } = setup();
     fireEvent.change(input, { target: { value: 'start 1' } });
     fireEvent.submit(form);
-    expect(combinedProps.onStartTimer).toHaveBeenCalledWith('1');
+    expect(combinedProps.handleStartTimer).toHaveBeenCalledWith('1');
   });
 
   it('handles "stop" command', () => {
@@ -117,14 +122,14 @@ describe('CliInterface Full Component Tests', () => {
     const { input, form, combinedProps } = setup({ activeLog });
     fireEvent.change(input, { target: { value: 'stop' } });
     fireEvent.submit(form);
-    expect(combinedProps.onStopTimer).toHaveBeenCalled();
+    expect(combinedProps.handleStopTimer).toHaveBeenCalled();
   });
 
   it('handles "complete" command', () => {
     const { input, form, combinedProps } = setup();
     fireEvent.change(input, { target: { value: 'complete 1' } });
     fireEvent.submit(form);
-    expect(combinedProps.onToggleTaskComplete).toHaveBeenCalledWith('1');
+    expect(combinedProps.handleToggleTaskComplete).toHaveBeenCalledWith('1');
   });
 
   it('handles "clear" command to reset history', () => {

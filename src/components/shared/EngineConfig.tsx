@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Cpu, Settings, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react';
-import { useOxyFlow } from '../hooks/useOxyFlow';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
 import CollapsibleCard from './CollapsibleCard';
-import { translate } from '../utils/i18n';
+import { translate } from '../../utils/i18n';
 
 export default function EngineConfig() {
   const { minimizeToTray, setMinimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, resolvedTheme, sysSettings, setSysSettings, locale, customTranslations } = useOxyFlow();

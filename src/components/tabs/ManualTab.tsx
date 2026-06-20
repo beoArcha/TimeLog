@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Cpu, Terminal, BookOpen } from 'lucide-react';
-import { useOxyFlow } from '../hooks/useOxyFlow';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
 import { toast } from 'sonner';
-import CollapsibleCard from './CollapsibleCard';
-import { translate } from '../utils/i18n';
+import CollapsibleCard from '../shared/CollapsibleCard';
+import { translate } from '../../utils/i18n';
 
 export default function ManualTab() {
   const { resolvedTheme, locale, customTranslations } = useOxyFlow();

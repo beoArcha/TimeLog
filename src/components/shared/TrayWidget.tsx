@@ -1,8 +1,8 @@
 import React from 'react';
 import { AppWindow, Layers, Cpu } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useOxyFlow } from '../hooks/useOxyFlow';
-import { translate } from '../utils/i18n';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
+import { translate } from '../../utils/i18n';
 
 interface TrayWidgetProps {
   onRestore: () => void;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, LucideIcon } from 'lucide-react';
-import { useOxyFlow } from '../hooks/useOxyFlow';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
 
 interface CollapsibleCardProps {
   title?: React.ReactNode;

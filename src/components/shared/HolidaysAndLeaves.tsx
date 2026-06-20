@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Calendar, Plus, Trash2, Database } from 'lucide-react';
-import { translate } from '../utils/i18n';
-import { DataManager } from '../utils/dataManager';
-import { useOxyFlow } from '../hooks/useOxyFlow';
+import { translate } from '../../utils/i18n';
+import { DataManager } from '../../utils/dataManager';
+import { useOxyFlow } from '../../hooks/useOxyFlow';
 import CollapsibleCard from './CollapsibleCard';
 
 export default function HolidaysAndLeaves() {
