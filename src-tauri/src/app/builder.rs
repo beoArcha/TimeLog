@@ -10,7 +10,7 @@ use tauri::{
     Emitter, Manager,
 };
 
-pub fn run_tauri() {
+pub fn create_builder() -> tauri::Builder<tauri::Wry> {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             commands::timer::start_timer,
@@ -117,6 +117,21 @@ pub fn run_tauri() {
                 _ => {}
             }
         })
+}
+
+pub fn run_tauri() {
+    create_builder()
         .run(tauri::generate_context!())
         .expect(APP_ERROR);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_builder_initialization() {
+        let _builder = create_builder();
+    }
+}
+

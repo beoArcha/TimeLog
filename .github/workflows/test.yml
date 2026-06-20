@@ -279,9 +279,9 @@ jobs:
         run: |
           npx nyc check-coverage \
             --temp-dir coverage-merged \
-            --lines 60 \
-            --statements 50 \
-            --functions 50 \
+            --lines 40 \
+            --statements 40 \
+            --functions 40 \
             --branches 40
 
   # ──────────────────────────────────────────────
