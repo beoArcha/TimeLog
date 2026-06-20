@@ -1,5 +1,6 @@
 use crate::engine::counting;
 use clap::{Parser, Subcommand};
+use std::fmt;
 
 #[derive(Parser)]
 #[command(name = "oxytime-cli")]
@@ -15,25 +16,49 @@ pub enum CliCommands {
     Status,
 }
 
-pub fn handle_cli(args: CliArgs, conn: &rusqlite::Connection) -> Result<(), String> {
-    match args.command {
-        CliCommands::Start { task_id } => {
-            counting::start_project_timer(conn, &task_id).map_err(|e| e.to_string())?;
-            println!("▶️ Started tracking task: {}", task_id);
-        }
-        CliCommands::Stop => {
-            counting::stop_project_timer(conn, None).map_err(|e| e.to_string())?;
-            println!("⏹️ Stopped all active projects timer tracking threads.");
-        }
-        CliCommands::Status => {
-            let active = counting::query_active_logs(conn).map_err(|e| e.to_string())?;
-            println!("⚡ Count of Concurrent Tracking Threads: {}", active.len());
-            for id in active {
-                println!("• Task active in SQLite: {}", id);
+pub enum CliOutput {
+    Started(String),
+    Stopped,
+    Status(Vec<String>),
+}
+
+impl fmt::Display for CliOutput {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CliOutput::Started(task_id) => write!(f, "▶️ Started tracking task: {}", task_id),
+            CliOutput::Stopped => {
+                write!(f, "⏹️ Stopped all active projects timer tracking threads.")
+            }
+            CliOutput::Status(active) => {
+                writeln!(
+                    f,
+                    "⚡ Count of Concurrent Tracking Threads: {}",
+                    active.len()
+                )?;
+                for id in active {
+                    writeln!(f, "• Task active in SQLite: {}", id)?;
+                }
+                Ok(())
             }
         }
     }
-    Ok(())
+}
+
+pub fn handle_cli(args: CliArgs, conn: &rusqlite::Connection) -> Result<CliOutput, String> {
+    match args.command {
+        CliCommands::Start { task_id } => {
+            counting::start_project_timer(conn, &task_id).map_err(|e| e.to_string())?;
+            Ok(CliOutput::Started(task_id))
+        }
+        CliCommands::Stop => {
+            counting::stop_project_timer(conn, None).map_err(|e| e.to_string())?;
+            Ok(CliOutput::Stopped)
+        }
+        CliCommands::Status => {
+            let active = counting::query_active_logs(conn).map_err(|e| e.to_string())?;
+            Ok(CliOutput::Status(active))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -41,51 +66,145 @@ mod tests {
     use super::*;
     use crate::engine::db::init_db_in_memory;
 
-    #[test]
-    fn test_handle_cli_start_and_status() -> Result<(), String> {
-        let conn = init_db_in_memory().map_err(|e| e.to_string())?;
+    fn setup() -> rusqlite::Connection {
+        let conn = init_db_in_memory().expect("in-memory DB init failed");
         let now = chrono::Utc::now().to_rfc3339();
-
-        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'CliProj', 'blue', ?)", [&now]).map_err(|e| e.to_string())?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'CliTask', ?)", [&now]).map_err(|e| e.to_string())?;
-
-        let start_args = CliArgs {
-            command: CliCommands::Start {
-                task_id: "t1".to_string(),
-            },
-        };
-        handle_cli(start_args, &conn)?;
-
-        let active = counting::query_active_logs(&conn).map_err(|e| e.to_string())?;
-        assert_eq!(active.len(), 1);
-        assert_eq!(active[0], "t1");
-
-        let status_args = CliArgs {
-            command: CliCommands::Status,
-        };
-        handle_cli(status_args, &conn)?;
-
-        let stop_args = CliArgs {
-            command: CliCommands::Stop,
-        };
-        handle_cli(stop_args, &conn)?;
-
-        let active_after_stop = counting::query_active_logs(&conn).map_err(|e| e.to_string())?;
-        assert_eq!(active_after_stop.len(), 0);
-
-        Ok(())
+        conn.execute(
+            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'CliProj', 'blue', ?)",
+            [&now],
+        )
+        .expect("insert project failed");
+        conn.execute(
+            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'CliTask', ?)",
+            [&now],
+        )
+        .expect("insert task failed");
+        conn
     }
 
     #[test]
-    fn test_cli_nonexistent_task_fails() -> Result<(), String> {
-        let conn = init_db_in_memory().map_err(|e| e.to_string())?;
-        let args = CliArgs {
-            command: CliCommands::Start {
-                task_id: "nonexistent".to_string(),
+    fn test_cli_start_returns_started_output() {
+        let conn = setup();
+        let result = handle_cli(
+            CliArgs {
+                command: CliCommands::Start {
+                    task_id: "t1".to_string(),
+                },
             },
-        };
-        let res = handle_cli(args, &conn);
-        assert!(res.is_err());
-        Ok(())
+            &conn,
+        );
+        assert!(result.is_ok(), "start should succeed");
+        let output = result.unwrap();
+        assert!(
+            matches!(output, CliOutput::Started(ref id) if id == "t1"),
+            "should return Started with task id"
+        );
+    }
+
+    #[test]
+    fn test_cli_start_output_displays_correctly() {
+        let output = CliOutput::Started("t1".to_string());
+        let text = format!("{}", output);
+        assert!(text.contains("t1"));
+        assert!(text.contains("▶️"));
+    }
+
+    #[test]
+    fn test_cli_status_returns_active_tasks() {
+        let conn = setup();
+        counting::start_project_timer(&conn, "t1").expect("start failed");
+
+        let result = handle_cli(
+            CliArgs {
+                command: CliCommands::Status,
+            },
+            &conn,
+        );
+        assert!(result.is_ok());
+        match result.unwrap() {
+            CliOutput::Status(active) => {
+                assert_eq!(active.len(), 1);
+                assert_eq!(active[0], "t1");
+            }
+            other => panic!("Expected Status, got {}", other),
+        }
+    }
+
+    #[test]
+    fn test_cli_status_empty_when_no_timer_running() {
+        let conn = setup();
+        let result = handle_cli(
+            CliArgs {
+                command: CliCommands::Status,
+            },
+            &conn,
+        );
+        assert!(result.is_ok());
+        match result.unwrap() {
+            CliOutput::Status(active) => assert_eq!(active.len(), 0),
+            other => panic!("Expected Status, got {}", other),
+        }
+    }
+
+    #[test]
+    fn test_cli_stop_returns_stopped_output() {
+        let conn = setup();
+        counting::start_project_timer(&conn, "t1").expect("start failed");
+
+        let result = handle_cli(
+            CliArgs {
+                command: CliCommands::Stop,
+            },
+            &conn,
+        );
+        assert!(result.is_ok());
+        assert!(matches!(result.unwrap(), CliOutput::Stopped));
+
+        let active = counting::query_active_logs(&conn).expect("query failed");
+        assert_eq!(active.len(), 0);
+    }
+
+    #[test]
+    fn test_cli_stop_when_nothing_running_is_ok() {
+        let conn = setup();
+        let result = handle_cli(
+            CliArgs {
+                command: CliCommands::Stop,
+            },
+            &conn,
+        );
+        assert!(
+            result.is_ok(),
+            "Stop with no running timer should not error"
+        );
+    }
+
+    #[test]
+    fn test_cli_nonexistent_task_fails() {
+        let conn = setup();
+        let result = handle_cli(
+            CliArgs {
+                command: CliCommands::Start {
+                    task_id: "nonexistent".to_string(),
+                },
+            },
+            &conn,
+        );
+        assert!(result.is_err(), "Starting nonexistent task should fail");
+    }
+
+    #[test]
+    fn test_cli_output_stopped_displays_correctly() {
+        let text = format!("{}", CliOutput::Stopped);
+        assert!(text.contains("⏹️"));
+    }
+
+    #[test]
+    fn test_cli_output_status_displays_correctly() {
+        let output = CliOutput::Status(vec!["t1".to_string(), "t2".to_string()]);
+        let text = format!("{}", output);
+        assert!(text.contains("2"));
+        assert!(text.contains("t1"));
+        assert!(text.contains("t2"));
     }
 }

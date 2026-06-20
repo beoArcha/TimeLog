@@ -1,38 +1,6 @@
-use crate::engine::counting;
 use crate::errors::AppError;
 use crate::types::{GuiSize, TextAndIconSize};
-use crate::AppState;
-use tauri::{AppHandle, LogicalSize, Size, State, Window};
-
-#[tauri::command]
-pub fn start_timer(task_id: String, state: State<'_, AppState>) -> Result<(), AppError> {
-    let conn = state
-        .db_conn
-        .lock()
-        .map_err(|e| AppError::Generic(e.to_string()))?;
-    counting::start_project_timer(&conn, &task_id)?;
-    Ok(())
-}
-
-#[tauri::command]
-pub fn stop_timer(project_id: Option<String>, state: State<'_, AppState>) -> Result<(), AppError> {
-    let conn = state
-        .db_conn
-        .lock()
-        .map_err(|e| AppError::Generic(e.to_string()))?;
-    counting::stop_project_timer(&conn, project_id.as_deref())?;
-    Ok(())
-}
-
-#[tauri::command]
-pub fn get_active_logs(state: State<'_, AppState>) -> Result<Vec<String>, AppError> {
-    let conn = state
-        .db_conn
-        .lock()
-        .map_err(|e| AppError::Generic(e.to_string()))?;
-    let active = counting::query_active_logs(&conn)?;
-    Ok(active)
-}
+use tauri::{LogicalSize, Size, Window};
 
 #[tauri::command]
 pub fn resize_window(width: f64, height: f64, window: Window) -> Result<(), AppError> {
@@ -99,16 +67,4 @@ pub fn show_window(window: Window) -> Result<(), AppError> {
 pub fn set_window_resizable(resizable: bool, window: Window) -> Result<(), AppError> {
     window.set_resizable(resizable)?;
     Ok(())
-}
-
-#[tauri::command]
-pub fn exit_app(app_handle: AppHandle) {
-    app_handle.exit(0);
-}
-
-#[tauri::command]
-pub fn set_minimize_to_tray(minimize: bool, state: State<'_, AppState>) {
-    state
-        .minimize_to_tray
-        .store(minimize, std::sync::atomic::Ordering::Relaxed);
 }

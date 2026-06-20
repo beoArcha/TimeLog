@@ -13,6 +13,7 @@ mod cli;
 mod commands;
 mod engine;
 mod errors;
+mod services;
 mod tray;
 mod types;
 
@@ -49,25 +50,26 @@ fn main() -> Result<(), Box<dyn Error>> {
         let db_path = get_cli_db_path();
         let db = engine::db::init_db(&db_path)?;
         if let Ok(cli_args) = cli::CliArgs::try_parse() {
-            cli::handle_cli(cli_args, &db)?;
+            let output = cli::handle_cli(cli_args, &db)?;
+            println!("{}", output);
             return Ok(());
         }
     }
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            commands::start_timer,
-            commands::stop_timer,
-            commands::get_active_logs,
-            commands::set_gui_size,
-            commands::resize_window,
-            commands::set_always_on_top,
-            commands::minimize_window,
-            commands::close_window,
-            commands::hide_window,
-            commands::show_window,
-            commands::set_window_resizable,
-            commands::exit_app,
-            commands::set_minimize_to_tray
+            commands::timer::start_timer,
+            commands::timer::stop_timer,
+            commands::timer::get_active_logs,
+            commands::window::set_gui_size,
+            commands::window::resize_window,
+            commands::window::set_always_on_top,
+            commands::window::minimize_window,
+            commands::window::close_window,
+            commands::window::hide_window,
+            commands::window::show_window,
+            commands::window::set_window_resizable,
+            commands::app::exit_app,
+            commands::app::set_minimize_to_tray
         ])
         .setup(|app| {
             let app_data_dir = app.path().app_data_dir()?;
@@ -167,29 +169,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::engine::db::init_db_in_memory;
 
     #[test]
-    fn test_app_state_and_commands() -> Result<(), String> {
-        let conn = init_db_in_memory().map_err(|e| e.to_string())?;
-
-        let now = chrono::Utc::now().to_rfc3339();
-        conn.execute("INSERT INTO projects (id, name, color, created_at) VALUES ('p_main', 'Main Proj', 'green', ?)", [&now]).map_err(|e| e.to_string())?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t_main', 'p_main', 'Main Task', ?)", [&now]).map_err(|e| e.to_string())?;
-
-        crate::engine::counting::start_project_timer(&conn, "t_main").map_err(|e| e.to_string())?;
-
-        let active =
-            crate::engine::counting::query_active_logs(&conn).map_err(|e| e.to_string())?;
-        assert_eq!(active.len(), 1);
-
-        crate::engine::counting::stop_project_timer(&conn, Some("p_main"))
-            .map_err(|e| e.to_string())?;
-
-        let active_after =
-            crate::engine::counting::query_active_logs(&conn).map_err(|e| e.to_string())?;
-        assert_eq!(active_after.len(), 0);
-
-        Ok(())
+    fn test_db_initializes_in_memory() {
+        let result = crate::engine::db::init_db_in_memory();
+        assert!(
+            result.is_ok(),
+            "In-memory DB should initialize without error"
+        );
     }
 }

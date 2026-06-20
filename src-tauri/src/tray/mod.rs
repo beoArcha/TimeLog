@@ -1,9 +1,14 @@
+pub mod localization;
+
 use crate::types::GuiSize;
+use localization::{get_text, TrayItem};
 use tauri::{
     menu::MenuEvent,
     menu::{Menu, MenuItem, PredefinedMenuItem},
     App, AppHandle, Emitter, Manager,
 };
+
+pub use crate::types::{FrontendEvent, Locale};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TrayMenuId {
@@ -42,67 +47,22 @@ impl TrayMenuId {
         }
     }
 
-    pub fn get_text(self, locale: Locale) -> &'static str {
-        match locale {
-            Locale::Pl => match self {
-                TrayMenuId::ToggleVisibility => "Pokaż / Ukryj okno",
-                TrayMenuId::GuiSmall => "GUI: Mały",
-                TrayMenuId::GuiMedium => "GUI: Średni",
-                TrayMenuId::GuiLarge => "GUI: Duży",
-                TrayMenuId::ToggleOnTop => "Zawsze na wierzchu",
-                TrayMenuId::StopAllTimers => "Zatrzymaj wszystkie timery",
-                TrayMenuId::QuitApp => "Wyjdź całkowicie",
-            },
-            Locale::De => match self {
-                TrayMenuId::ToggleVisibility => "Fenster anzeigen / ausblenden",
-                TrayMenuId::GuiSmall => "GUI: Klein",
-                TrayMenuId::GuiMedium => "GUI: Mittel",
-                TrayMenuId::GuiLarge => "GUI: Groß",
-                TrayMenuId::ToggleOnTop => "Immer im Vordergrund",
-                TrayMenuId::StopAllTimers => "Alle Timer stoppen",
-                TrayMenuId::QuitApp => "Vollständig beenden",
-            },
-            Locale::Fr => match self {
-                TrayMenuId::ToggleVisibility => "Afficher / Masquer la fenêtre",
-                TrayMenuId::GuiSmall => "GUI: Petit",
-                TrayMenuId::GuiMedium => "GUI: Moyen",
-                TrayMenuId::GuiLarge => "GUI: Grand",
-                TrayMenuId::ToggleOnTop => "Toujours au premier plan",
-                TrayMenuId::StopAllTimers => "Arrêter tous les minuteurs",
-                TrayMenuId::QuitApp => "Quitter complètement",
-            },
-            Locale::Es => match self {
-                TrayMenuId::ToggleVisibility => "Mostrar / Ocultar ventana",
-                TrayMenuId::GuiSmall => "GUI: Pequeño",
-                TrayMenuId::GuiMedium => "GUI: Mediano",
-                TrayMenuId::GuiLarge => "GUI: Grande",
-                TrayMenuId::ToggleOnTop => "Siempre en primer plano",
-                TrayMenuId::StopAllTimers => "Detener todos los temporizadores",
-                TrayMenuId::QuitApp => "Salir completamente",
-            },
-            Locale::PtBr => match self {
-                TrayMenuId::ToggleVisibility => "Mostrar / Ocultar janela",
-                TrayMenuId::GuiSmall => "GUI: Pequeno",
-                TrayMenuId::GuiMedium => "GUI: Médio",
-                TrayMenuId::GuiLarge => "GUI: Grande",
-                TrayMenuId::ToggleOnTop => "Sempre no topo",
-                TrayMenuId::StopAllTimers => "Parar todos os cronômetros",
-                TrayMenuId::QuitApp => "Sair completamente",
-            },
-            _ => match self {
-                TrayMenuId::ToggleVisibility => "Show / Hide Window",
-                TrayMenuId::GuiSmall => "GUI: Small",
-                TrayMenuId::GuiMedium => "GUI: Medium",
-                TrayMenuId::GuiLarge => "GUI: Large",
-                TrayMenuId::ToggleOnTop => "Always on Top",
-                TrayMenuId::StopAllTimers => "Stop All Timers",
-                TrayMenuId::QuitApp => "Quit Completely",
-            },
+    fn as_tray_item(self) -> TrayItem {
+        match self {
+            TrayMenuId::ToggleVisibility => TrayItem::ToggleVisibility,
+            TrayMenuId::GuiSmall => TrayItem::GuiSmall,
+            TrayMenuId::GuiMedium => TrayItem::GuiMedium,
+            TrayMenuId::GuiLarge => TrayItem::GuiLarge,
+            TrayMenuId::ToggleOnTop => TrayItem::ToggleOnTop,
+            TrayMenuId::StopAllTimers => TrayItem::StopAllTimers,
+            TrayMenuId::QuitApp => TrayItem::QuitApp,
         }
     }
-}
 
-pub use crate::types::{FrontendEvent, Locale};
+    pub fn get_text(self, locale: Locale) -> &'static str {
+        get_text(self.as_tray_item(), locale)
+    }
+}
 
 fn get_system_locale() -> Locale {
     let sys_lang = sys_locale::get_locale().unwrap_or_else(|| "en".to_string());
@@ -198,5 +158,44 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                 app.exit(0);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str_round_trip() {
+        let ids = [
+            TrayMenuId::ToggleVisibility,
+            TrayMenuId::GuiSmall,
+            TrayMenuId::GuiMedium,
+            TrayMenuId::GuiLarge,
+            TrayMenuId::ToggleOnTop,
+            TrayMenuId::StopAllTimers,
+            TrayMenuId::QuitApp,
+        ];
+        for id in ids {
+            let s = id.as_str();
+            assert_eq!(
+                TrayMenuId::from_str(s),
+                Some(id),
+                "from_str({s}) should round-trip"
+            );
+        }
+    }
+
+    #[test]
+    fn test_from_str_unknown_returns_none() {
+        assert_eq!(TrayMenuId::from_str("unknown_id"), None);
+        assert_eq!(TrayMenuId::from_str(""), None);
+    }
+
+    #[test]
+    fn test_get_text_delegates_to_localization() {
+        // Spot-check a few — full coverage is in localization tests
+        assert_eq!(TrayMenuId::QuitApp.get_text(Locale::En), "Quit Completely");
+        assert_eq!(TrayMenuId::QuitApp.get_text(Locale::Pl), "Wyjdź całkowicie");
     }
 }
