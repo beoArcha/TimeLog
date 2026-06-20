@@ -1,6 +1,6 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useOxyFlow, OxyContext, OxyFlowState } from '../src/hooks/useOxyFlow';
+import { useOxyFlow, OxyContext, OxyFlowState } from '../../../src/hooks/useOxyFlow';
 import React from 'react';
 
 beforeEach(() => {
@@ -72,8 +72,8 @@ const ContextWrapper = ({ children }: { children: React.ReactNode }) => (
   <OxyContext.Provider value={mockState}>{children}</OxyContext.Provider>
 );
 
-describe('useOxyFlow hook tests', () => {
-  it('returns context value', () => {
+describe('Unit Tests: useOxyFlow Hook', () => {
+  it('should_return_context_value_when_useOxyFlow_is_rendered_within_provider', () => {
     const { result } = renderHook(() => useOxyFlow(), { wrapper: ContextWrapper });
     expect(result.current.apiToken).toEqual('123');
     expect(result.current.theme).toEqual('dark');

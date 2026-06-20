@@ -53,6 +53,38 @@ export default defineConfig(() => {
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'json-summary', 'html'],
+        thresholds: {
+          global: {
+            lines: 70,
+            functions: 75,
+            branches: 65,
+            statements: 75,
+          },
+          'src/utils/**': {
+            lines: 85,
+            functions: 85,
+            branches: 85,
+            statements: 85,
+          },
+          'src/hooks/**': {
+            lines: 80,
+            functions: 80,
+            branches: 80,
+            statements: 80,
+          },
+          'src/components/ui/**': {
+            lines: 65,
+            functions: 65,
+            branches: 65,
+            statements: 65,
+          },
+          'src/components/features/**': {
+            lines: 50,
+            functions: 50,
+            branches: 50,
+            statements: 50,
+          },
+        },
       },
     },
   };

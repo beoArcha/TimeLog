@@ -23,11 +23,105 @@ env:
 
 jobs:
   # ──────────────────────────────────────────────
-  # 1. Tests (must pass)
+  # 1. Quality Checks (lint & typecheck)
+  # ──────────────────────────────────────────────
+  lint:
+    name: Code Style & Lint Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci || npm install
+
+    - name: Install Rust stable
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: "src-tauri"
+
+    - name: Install Linux dependencies for Tauri
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+    # Generate full lint report (never fails the job)
+    - name: Generate Lint Report
+      continue-on-error: true
+      run: |
+        REPORT="lint-report.md"
+        echo "# Lint & Style Report" > "$REPORT"
+        echo "_Generated at $(date -u)_" >> "$REPORT"
+        echo "" >> "$REPORT"
+
+        # --- Frontend TypeScript Check ---
+        echo "## Frontend – TypeScript Typecheck" >> "$REPORT"
+        echo '```' >> "$REPORT"
+        npm run lint 2>&1 | tee -a "$REPORT" || true
+        echo '```' >> "$REPORT"
+        echo "" >> "$REPORT"
+
+        # --- Rust Formatting ---
+        echo "## Rust – cargo fmt" >> "$REPORT"
+        echo '```' >> "$REPORT"
+        cargo fmt --manifest-path src-tauri/Cargo.toml -- --check 2>&1 | tee -a "$REPORT" || true
+        echo '```' >> "$REPORT"
+        echo "" >> "$REPORT"
+
+        # --- Rust Clippy ---
+        echo "## Rust – cargo clippy" >> "$REPORT"
+        echo '```' >> "$REPORT"
+        cargo clippy --manifest-path src-tauri/Cargo.toml 2>&1 | tee -a "$REPORT" || true
+        echo '```' >> "$REPORT"
+
+    - name: Upload Lint Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: lint-report
+        path: lint-report.md
+
+  typecheck:
+    name: Frontend Typecheck
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci || npm install
+
+    - name: Run TypeScript Typecheck
+      run: npm run lint
+
+  # ──────────────────────────────────────────────
+  # 2. Testing Stage
   # ──────────────────────────────────────────────
   test-unit:
     name: Frontend Unit Tests
     runs-on: ubuntu-latest
+    needs: [typecheck]
     permissions:
       contents: read
       pull-requests: write
@@ -46,13 +140,15 @@ jobs:
       run: npm ci || npm install
 
     - name: Run Unit Tests with Coverage
-      run: npx vitest run tests --exclude tests/end-to-end.test.tsx --coverage --coverage.reportsDirectory=coverage/unit --reporter=default --reporter=junit --outputFile.junit=unit-results.xml
+      run: |
+        npx vitest run tests/unit --coverage --coverage.reporter=json --coverage.reportsDirectory=coverage/unit --reporter=default --reporter=junit --outputFile.junit=unit-results.xml
+        mv coverage/unit/coverage-final.json coverage/unit/coverage-unit.json || true
 
     - name: Upload Unit Coverage
       uses: actions/upload-artifact@v4
       with:
         name: coverage-unit
-        path: coverage/unit/
+        path: coverage/unit/coverage-unit.json
 
     - name: Publish Unit Test Report
       if: always()
@@ -60,9 +156,48 @@ jobs:
       with:
         report_paths: 'unit-results.xml'
 
+  test-integration:
+    name: Frontend Integration Tests
+    runs-on: ubuntu-latest
+    needs: [typecheck]
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci || npm install
+
+    - name: Run Integration Tests with Coverage
+      run: |
+        npx vitest run tests/integration --coverage --coverage.reporter=json --coverage.reportsDirectory=coverage/integration --reporter=default --reporter=junit --outputFile.junit=integration-results.xml
+        mv coverage/integration/coverage-final.json coverage/integration/coverage-integration.json || true
+
+    - name: Upload Integration Coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-integration
+        path: coverage/integration/coverage-integration.json
+
+    - name: Publish Integration Test Report
+      if: always()
+      uses: mikepenz/action-junit-report@v4
+      with:
+        report_paths: 'integration-results.xml'
+
   test-e2e:
     name: Frontend E2E Tests
     runs-on: ubuntu-latest
+    needs: [typecheck]
     permissions:
       contents: read
       pull-requests: write
@@ -81,13 +216,15 @@ jobs:
       run: npm ci || npm install
 
     - name: Run E2E Tests with Coverage
-      run: npx vitest run tests/end-to-end.test.tsx --coverage --coverage.reportsDirectory=coverage/e2e --reporter=default --reporter=junit --outputFile.junit=e2e-results.xml
+      run: |
+        npx vitest run tests/e2e/vitest --coverage --coverage.reporter=json --coverage.reportsDirectory=coverage/e2e --reporter=default --reporter=junit --outputFile.junit=e2e-results.xml
+        mv coverage/e2e/coverage-final.json coverage/e2e/coverage-e2e.json || true
 
     - name: Upload E2E Coverage
       uses: actions/upload-artifact@v4
       with:
         name: coverage-e2e
-        path: coverage/e2e/
+        path: coverage/e2e/coverage-e2e.json
 
     - name: Publish E2E Test Report
       if: always()
@@ -98,6 +235,7 @@ jobs:
   test-rust:
     name: Rust Backend Tests
     runs-on: ubuntu-latest
+    needs: [lint]
     permissions:
       contents: read
       pull-requests: write
@@ -142,19 +280,12 @@ jobs:
         path: coverage/rust/
 
   # ──────────────────────────────────────────────
-  # 2. Code Style & Lint Check (runs AFTER all tests pass)
-  #    Always completes fully – never blocks the pipeline.
-  #    Generates a lint-report artifact attached to the test run.
+  # 3. Coverage Merging & Threshold Validation
   # ──────────────────────────────────────────────
-  style-check:
-    name: Code Style & Lint Check
+  coverage-check:
+    name: Coverage Threshold Check
     runs-on: ubuntu-latest
-    needs: [test-unit, test-e2e, test-rust]
-    # Run only when ALL test jobs succeeded
-    if: success()
-    permissions:
-      contents: read
-
+    needs: [test-unit, test-integration, test-e2e]
     steps:
     - uses: actions/checkout@v4
 
@@ -167,53 +298,49 @@ jobs:
     - name: Install dependencies
       run: npm ci || npm install
 
-    - name: Install Rust stable
-      uses: dtolnay/rust-toolchain@stable
+    - name: Download Unit Coverage
+      uses: actions/download-artifact@v4
       with:
-        components: clippy, rustfmt
+        name: coverage-unit
+        path: coverage-reports/
 
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v2
+    - name: Download Integration Coverage
+      uses: actions/download-artifact@v4
       with:
-        workspaces: "src-tauri"
+        name: coverage-integration
+        path: coverage-reports/
 
-    - name: Install Linux dependencies for Tauri
+    - name: Download E2E Coverage
+      uses: actions/download-artifact@v4
+      with:
+        name: coverage-e2e
+        path: coverage-reports/
+
+    - name: Merge and Check Coverage
       run: |
-        sudo apt-get update
-        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-    # ── Generate full lint report (never fails the job) ──
-    - name: Generate Lint Report
+        npx nyc merge coverage-reports coverage-merged/coverage-final.json
+        npx nyc report --temp-dir coverage-merged --reporter text --reporter json-summary
+        npx nyc check-coverage --temp-dir coverage-merged --lines 70 --statements 75 --functions 75 --branches 65
       continue-on-error: true
-      run: |
-        REPORT="lint-report.md"
-        echo "# Lint & Style Report" > "$REPORT"
-        echo "_Generated at $(date -u)_" >> "$REPORT"
-        echo "" >> "$REPORT"
 
-        # --- Frontend ESLint ---
-        echo "## Frontend – ESLint" >> "$REPORT"
-        echo '```' >> "$REPORT"
-        npm run lint 2>&1 | tee -a "$REPORT" || true
-        echo '```' >> "$REPORT"
-        echo "" >> "$REPORT"
+  # ──────────────────────────────────────────────
+  # 4. Build Stage
+  # ──────────────────────────────────────────────
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-integration, test-e2e, test-rust]
+    steps:
+    - uses: actions/checkout@v4
 
-        # --- Rust Formatting ---
-        echo "## Rust – cargo fmt" >> "$REPORT"
-        echo '```' >> "$REPORT"
-        cargo fmt --manifest-path src-tauri/Cargo.toml -- --check 2>&1 | tee -a "$REPORT" || true
-        echo '```' >> "$REPORT"
-        echo "" >> "$REPORT"
-
-        # --- Rust Clippy ---
-        echo "## Rust – cargo clippy" >> "$REPORT"
-        echo '```' >> "$REPORT"
-        cargo clippy --manifest-path src-tauri/Cargo.toml 2>&1 | tee -a "$REPORT" || true
-        echo '```' >> "$REPORT"
-
-    - name: Upload Lint Report
-      if: always()
-      uses: actions/upload-artifact@v4
+    - name: Use Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
       with:
-        name: lint-report
-        path: lint-report.md
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci || npm install
+
+    - name: Build Production Bundle
+      run: npm run build

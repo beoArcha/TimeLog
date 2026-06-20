@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { DataManager } from '@/src/utils/dataManager';
+import { DataManager } from '../../../src/utils/dataManager';
 
-describe('DataManager Logic Tests', () => {
-  it('should generate next id sequentially for numeric ids', () => {
+describe('Unit Tests: DataManager Logic', () => {
+  it('should_generate_next_id_sequentially_for_numeric_ids_when_items_are_provided', () => {
     const items = [
       { id: '1' },
       { id: '2' },
@@ -12,7 +12,7 @@ describe('DataManager Logic Tests', () => {
     expect(nextId).toBe('4');
   });
 
-  it('should generate next id sequentially for prefixed ids (holidays)', () => {
+  it('should_generate_next_id_sequentially_for_prefixed_ids_when_prefixed_items_are_provided', () => {
     const items = [
       { id: 'hol_1' },
       { id: 'hol_2' },
@@ -22,12 +22,12 @@ describe('DataManager Logic Tests', () => {
     expect(nextId).toBe('hol_6');
   });
 
-  it('should fallback to 1 if no items', () => {
+  it('should_fallback_to_one_when_no_items_are_present', () => {
     const nextId = DataManager.getNextId([], 'log_');
     expect(nextId).toBe('log_1');
   });
 
-  it('should handle large gaps appropriately', () => {
+  it('should_handle_large_gaps_appropriately_when_calculating_next_id', () => {
     const items = [
       { id: '10' },
       { id: '99' }

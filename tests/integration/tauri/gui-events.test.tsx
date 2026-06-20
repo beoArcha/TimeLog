@@ -2,8 +2,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, cleanup, act, waitFor } from '@testing-library/react';
-import App from '@/src/App';
-import { LocaleProvider } from '@/src/providers/LocaleProvider';
+import App from '../../../src/App';
+import { LocaleProvider } from '../../../src/providers/LocaleProvider';
 
 // Mock tauri core invoke
 const mockInvoke = vi.fn();
@@ -46,7 +46,7 @@ const waitForTauriListener = async (eventName: string) => {
   });
 };
 
-describe('Tauri GUI to Backend Interaction Tests', () => {
+describe('Integration Tests: Tauri GUI Events', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
@@ -74,7 +74,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     cleanup();
   });
 
-  it('triggers resize and resizability commands on mount based on initial layout', async () => {
+  it('should_trigger_resize_and_resizability_commands_on_mount_based_on_initial_layout', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
     
     // Large layout is default on fresh start.
@@ -83,8 +83,8 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('triggers resize and locks resizability when switching to Small mode', async () => {
-    const { container } = render(<LocaleProvider><App /></LocaleProvider>);
+  it('should_trigger_resize_and_lock_resizability_when_switching_to_small_mode', async () => {
+    render(<LocaleProvider><App /></LocaleProvider>);
 
     // Switch to Small mode using frontend switcher
     const smallBtn = await screen.findByText('Małe');
@@ -97,7 +97,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('triggers resize and enables resizability when switching to Medium mode', async () => {
+  it('should_trigger_resize_and_enable_resizability_when_switching_to_medium_mode', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
 
     // Switch to Medium mode
@@ -111,7 +111,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('updates layout variant state when receiving native window maximize event', async () => {
+  it('should_update_layout_variant_state_when_receiving_native_window_maximize_event', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
 
     await waitForTauriListener('native-window-maximized');
@@ -121,8 +121,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     await screen.findByTestId('tab-cli');
   });
 
-
-  it('handles tray-set-gui-variant event to switch GUI mode', async () => {
+  it('should_handle_tray_set_gui_variant_event_to_switch_gui_mode', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
 
     await waitForTauriListener('tray-set-gui-variant');
@@ -135,7 +134,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('handles tray-stop-all-timers event', async () => {
+  it('should_handle_tray_stop_all_timers_event_without_errors', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
 
     await waitForTauriListener('tray-stop-all-timers');
@@ -144,7 +143,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     triggerTauriEvent('tray-stop-all-timers');
   });
 
-  it('handles tray-toggle-on-top event, toggling alwaysOnTop settings and calling Tauri set_always_on_top', async () => {
+  it('should_handle_tray_toggle_on_top_event_toggling_always_on_top_settings_and_calling_tauri_set_always_on_top', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
 
     await waitForTauriListener('tray-toggle-on-top');
@@ -160,7 +159,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('updates window alwaysOnTop config when toggling the setting in small view', async () => {
+  it('should_update_window_always_on_top_config_when_toggling_setting_in_small_view', async () => {
     // Start with guiSize = small and alwaysOnTopSmall = false
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_always_on_top_small', 'false');
@@ -183,7 +182,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('handles SmallGui close button click to hide the window when minimizeToTray is true', async () => {
+  it('should_handle_small_gui_close_button_click_to_hide_window_when_minimize_to_tray_is_enabled', async () => {
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_min_to_tray', 'true');
 
@@ -201,7 +200,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('handles SmallGui close button click to exit the app when minimizeToTray is false', async () => {
+  it('should_handle_small_gui_close_button_click_to_exit_app_when_minimize_to_tray_is_disabled', async () => {
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_min_to_tray', 'false');
 
@@ -217,7 +216,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('handles SmallGui restore button click to restore GUI variant and unlock resizing', async () => {
+  it('should_handle_small_gui_restore_button_click_to_restore_gui_variant_and_unlock_resizing', async () => {
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_last_non_small_variant', 'large');
 
@@ -240,11 +239,11 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     });
   });
 
-  it('respects the generated GuiSize and AlwaysOnTopConfig types', () => {
-    const variants: import('../src/bindings/GuiSize').GuiSize[] = ['small', 'medium', 'large'];
+  it('should_respect_generated_gui_size_and_always_on_top_config_types', () => {
+    const variants: import('../../../src/bindings/GuiSize').GuiSize[] = ['small', 'medium', 'large'];
     expect(variants).toHaveLength(3);
 
-    const config: import('../src/bindings/AlwaysOnTopConfig').AlwaysOnTopConfig = {
+    const config: import('../../../src/bindings/AlwaysOnTopConfig').AlwaysOnTopConfig = {
       small: true,
       main: false,
     };
@@ -252,4 +251,3 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     expect(config.main).toBe(false);
   });
 });
-
