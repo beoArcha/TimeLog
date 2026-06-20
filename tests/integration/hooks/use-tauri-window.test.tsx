@@ -49,7 +49,6 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     renderHook(() => useTauriWindow(defaultProps));
     await waitForListeners();
 
-    // Verify native-window-maximized is registered and trigger it
     expect(tauriEventRegistry['native-window-maximized']).toBeDefined();
     triggerTauriEvent('native-window-maximized');
 
@@ -61,7 +60,6 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     const setAlwaysOnTopMainSpy = vi.fn();
     const setAlwaysOnTopSmallSpy = vi.fn();
 
-    // Renders with Large size first (Main)
     renderHook(() => useTauriWindow({
       ...defaultProps,
       guiSize: 'large',
@@ -74,7 +72,6 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     expect(setAlwaysOnTopMainSpy).toHaveBeenCalled();
     expect(setAlwaysOnTopSmallSpy).not.toHaveBeenCalled();
 
-    // Reset mocks and test with Small size
     vi.clearAllMocks();
     renderHook(() => useTauriWindow({
       ...defaultProps,
@@ -90,7 +87,6 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
   });
 
   it('should execute close commands depending on minimizeToTray preference when close requested', async () => {
-    // Case 1: minimizeToTray is false -> exit app
     renderHook(() => useTauriWindow({
       ...defaultProps,
       minimizeToTray: false,
@@ -100,7 +96,6 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     triggerTauriEvent('native-close-requested');
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.EXIT_APP);
 
-    // Case 2: minimizeToTray is true -> hide window
     vi.clearAllMocks();
     renderHook(() => useTauriWindow({
       ...defaultProps,
