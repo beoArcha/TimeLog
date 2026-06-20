@@ -5,96 +5,67 @@ import { STORAGE_KEYS } from '../common/constants';
 
 const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
 
-export const useTimeLogData = (pushToApi: (payload: any, logMsg: string) => void) => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [logs, setLogs] = useState<TimeLog[]>([]);
-  const [activeLog, setActiveLog] = useState<TimeLog | null>(null);
-  const [holidays, setHolidays] = useState<HolidayLeave[]>([]);
-  const [patches, setPatches] = useState<PatchLog[]>([]);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+type ApiPayload = { event: string; log: TimeLog | (TimeLog & { endTime: string }) };
 
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
-  const [engineState, setEngineState] = useState<'searching' | 'connected'>('searching');
-  const [enginePID, setEnginePID] = useState<number>(0);
+const DEFAULT_HOLIDAYS: HolidayLeave[] = [
+  { id: 'h1', date: '2026-01-01', type: 'holiday', name: 'Nowy Rok (New Year)' },
+  { id: 'h2', date: '2026-05-01', type: 'holiday', name: 'Święto Pracy (Labour Day)' },
+  { id: 'h3', date: '2026-05-03', type: 'holiday', name: 'Święto Konstytucji 3 Maja' },
+  { id: 'h4', date: '2026-06-04', type: 'holiday', name: 'Boże Ciało (Corpus Christi)' },
+  { id: 'h5', date: '2026-11-11', type: 'holiday', name: 'Święto Niepodległości (Independence Day)' },
+  { id: 'h6', date: '2026-12-25', type: 'holiday', name: 'Boże Narodzenie (Christmas)' },
+  { id: 'l1', date: '2026-06-15', type: 'leave', name: 'Urlop wypoczynkowy (Zouk Dance Camp)' },
+  { id: 'l2', date: '2026-06-16', type: 'leave', name: 'Urlop wypoczynkowy (Kizomba Festival)' },
+  { id: 'l3', date: '2026-06-17', type: 'leave', name: 'Urlop wypoczynkowy (Bachata & Salsa NY)' },
+];
 
-  useEffect(() => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setProjects(parsed.projects || []);
-        setTasks(parsed.tasks || []);
-        setLogs(parsed.logs || []);
-        setActiveLog(parsed.activeLog || null);
-        setHolidays(parsed.holidays || [
-          { id: 'h1', date: '2026-01-01', type: 'holiday', name: 'Nowy Rok (New Year)' },
-          { id: 'h2', date: '2026-05-01', type: 'holiday', name: 'Święto Pracy (Labour Day)' },
-          { id: 'h3', date: '2026-05-03', type: 'holiday', name: 'Święto Konstytucji 3 Maja' },
-          { id: 'h4', date: '2026-06-04', type: 'holiday', name: 'Boże Ciało (Corpus Christi)' },
-          { id: 'h5', date: '2026-11-11', type: 'holiday', name: 'Święto Niepodległości (Independence Day)' },
-          { id: 'h6', date: '2026-12-25', type: 'holiday', name: 'Boże Narodzenie (Christmas)' },
-          { id: 'l1', date: '2026-06-15', type: 'leave', name: 'Urlop wypoczynkowy (Zouk Dance Camp)' },
-          { id: 'l2', date: '2026-06-16', type: 'leave', name: 'Urlop wypoczynkowy (Kizomba Festival)' },
-          { id: 'l3', date: '2026-06-17', type: 'leave', name: 'Urlop wypoczynkowy (Bachata & Salsa NY)' }
-        ]);
-        setPatches(parsed.patches || []);
-        if (parsed.tasks && parsed.tasks.length > 0) {
-          setSelectedTaskId(parsed.tasks[0].id);
-        }
-        setIsInitialized(true);
-        setEngineState('connected');
-        setEnginePID(Math.floor(2500 + Math.random() * 5000));
-        return;
-      } catch (err) {
-        console.warn('Failed parsing local LogTime by OxyFlow store', err);
-      }
+const INIT_PROJECTS: Project[] = [
+  { id: '1', name: 'LogTime by OxyFlow Backend Engine', color: 'violet', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString() },
+  { id: '2', name: 'Zouk Flow UI System', color: 'rose', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString() },
+  { id: '3', name: 'CLI Daemon Integration', color: 'teal', createdAt: new Date().toISOString() },
+];
+
+const INIT_TASKS: Task[] = [
+  { id: '101', projectId: '1', parentTaskId: null, name: 'Setup sqlite schema state machine', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), completed: true },
+  { id: '102', projectId: '1', parentTaskId: null, name: 'Develop recursive calculations for project logging', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), completed: false },
+  { id: '1021', projectId: '1', parentTaskId: '102', name: 'Unit test nested hierarchical timings', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(), completed: false },
+  { id: '1022', projectId: '1', parentTaskId: '102', name: 'Optimize microORM connection pooling', createdAt: new Date().toISOString(), completed: true },
+  { id: '201', projectId: '2', parentTaskId: null, name: 'Create glowing time display component', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(), completed: false },
+  { id: '202', projectId: '2', parentTaskId: null, name: 'Integrate dynamic wave animations', createdAt: new Date().toISOString(), completed: true },
+  { id: '301', projectId: '3', parentTaskId: null, name: 'Map help guidelines onto interactive commands', createdAt: new Date().toISOString(), completed: false },
+];
+
+const INIT_LOGS: TimeLog[] = [
+  { id: 'l1', taskId: '101', projectId: '1', startTime: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), endTime: new Date(Date.now() - 3 * 24 * 3600 * 1000 + 4800000).toISOString() },
+  { id: 'l2', taskId: '1022', projectId: '1', startTime: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(), endTime: new Date(Date.now() - 1 * 24 * 3600 * 1000 + 2900000).toISOString() },
+  { id: 'l3', taskId: '202', projectId: '2', startTime: new Date().toISOString(), endTime: new Date(Date.now() + 1800000).toISOString() },
+];
+
+function loadSavedState() {
+  const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (stored) {
+    try { return JSON.parse(stored); } catch (err) {
+      console.warn('Failed parsing local LogTime by OxyFlow store', err);
     }
+  }
+  return null;
+}
 
-    const initProjects: Project[] = [
-      { id: '1', name: 'LogTime by OxyFlow Backend Engine', color: 'violet', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString() },
-      { id: '2', name: 'Zouk Flow UI System', color: 'rose', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString() },
-      { id: '3', name: 'CLI Daemon Integration', color: 'teal', createdAt: new Date().toISOString() },
-    ];
+export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) => void) => {
+  const [projects, setProjects] = useState<Project[]>(() => loadSavedState()?.projects ?? INIT_PROJECTS);
+  const [tasks, setTasks] = useState<Task[]>(() => loadSavedState()?.tasks ?? INIT_TASKS);
+  const [logs, setLogs] = useState<TimeLog[]>(() => loadSavedState()?.logs ?? INIT_LOGS);
+  const [activeLog, setActiveLog] = useState<TimeLog | null>(() => loadSavedState()?.activeLog ?? null);
+  const [holidays, setHolidays] = useState<HolidayLeave[]>(() => loadSavedState()?.holidays ?? DEFAULT_HOLIDAYS);
+  const [patches, setPatches] = useState<PatchLog[]>(() => loadSavedState()?.patches ?? []);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(
+    () => loadSavedState()?.tasks?.[0]?.id ?? (INIT_TASKS[1]?.id ?? null)
+  );
 
-    const initTasks: Task[] = [
-      { id: '101', projectId: '1', parentTaskId: null, name: 'Setup sqlite schema state machine', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), completed: true },
-      { id: '102', projectId: '1', parentTaskId: null, name: 'Develop recursive calculations for project logging', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), completed: false },
-      { id: '1021', projectId: '1', parentTaskId: '102', name: 'Unit test nested hierarchical timings', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(), completed: false },
-      { id: '1022', projectId: '1', parentTaskId: '102', name: 'Optimize microORM connection pooling', createdAt: new Date().toISOString(), completed: true },
-      { id: '201', projectId: '2', parentTaskId: null, name: 'Create glowing time display component', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(), completed: false },
-      { id: '202', projectId: '2', parentTaskId: null, name: 'Integrate dynamic wave animations', createdAt: new Date().toISOString(), completed: true },
-      { id: '301', projectId: '3', parentTaskId: null, name: 'Map help guidelines onto interactive commands', createdAt: new Date().toISOString(), completed: false },
-    ];
+  const [isInitialized, setIsInitialized] = useState<boolean>(true);
+  const [engineState, setEngineState] = useState<'searching' | 'connected'>('connected');
+  const [enginePID, setEnginePID] = useState<number>(() => Math.floor(2500 + Math.random() * 5000));
 
-    const initLogs: TimeLog[] = [
-      { id: 'l1', taskId: '101', projectId: '1', startTime: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), endTime: new Date(Date.now() - 3 * 24 * 3600 * 1000 + 4800000).toISOString() },
-      { id: 'l2', taskId: '1022', projectId: '1', startTime: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(), endTime: new Date(Date.now() - 1 * 24 * 3600 * 1000 + 2900000).toISOString() },
-      { id: 'l3', taskId: '202', projectId: '2', startTime: new Date().toISOString(), endTime: new Date(Date.now() + 1800000).toISOString() },
-    ];
-
-    const initHolidays: HolidayLeave[] = [
-      { id: 'h1', date: '2026-01-01', type: 'holiday', name: 'Nowy Rok (New Year)' },
-      { id: 'h2', date: '2026-05-01', type: 'holiday', name: 'Święto Pracy (Labour Day)' },
-      { id: 'h3', date: '2026-05-03', type: 'holiday', name: 'Święto Konstytucji 3 Maja' },
-      { id: 'h4', date: '2026-06-04', type: 'holiday', name: 'Boże Ciało (Corpus Christi)' },
-      { id: 'h5', date: '2026-11-11', type: 'holiday', name: 'Święto Niepodległości (Independence Day)' },
-      { id: 'h6', date: '2026-12-25', type: 'holiday', name: 'Boże Narodzenie (Christmas)' },
-      { id: 'l1', date: '2026-06-15', type: 'leave', name: 'Urlop wypoczynkowy (Zouk Dance Camp)' },
-      { id: 'l2', date: '2026-06-16', type: 'leave', name: 'Urlop wypoczynkowy (Kizomba Festival)' },
-      { id: 'l3', date: '2026-06-17', type: 'leave', name: 'Urlop wypoczynkowy (Bachata & Salsa NY)' }
-    ];
-
-    setProjects(initProjects);
-    setTasks(initTasks);
-    setLogs(initLogs);
-    setHolidays(initHolidays);
-    setPatches([]);
-    setSelectedTaskId(initTasks[1].id);
-    setIsInitialized(true);
-    setEngineState('connected');
-    setEnginePID(Math.floor(2500 + Math.random() * 5000));
-  }, []);
 
   useEffect(() => {
     if (isInitialized) {
@@ -215,7 +186,7 @@ export const useTimeLogData = (pushToApi: (payload: any, logMsg: string) => void
 
     const isCurrentlyRunning = logs.some(l => l.taskId === taskId && l.endTime === null);
     if (isCurrentlyRunning) {
-      setLogs(currLogs => 
+      setLogs(currLogs =>
         currLogs.map(l => {
           if (l.taskId === taskId && l.endTime === null) {
             const payloadStop = { event: 'TERMINATE', log: { ...l, endTime: new Date().toISOString() } };
@@ -257,24 +228,24 @@ export const useTimeLogData = (pushToApi: (payload: any, logMsg: string) => void
 
     let logsToSet = [...updatedLogs, newLog];
 
-    let motherLog = null;
+    let motherLog: TimeLog | undefined;
     if (motherTaskId) {
-       const isMotherRunning = logsToSet.some(l => l.taskId === motherTaskId && l.endTime === null);
-       if (!isMotherRunning) {
-          const motherTask = tasks.find(t => t.id === motherTaskId);
-          if (motherTask) {
-             motherLog = {
-               id: DataManager.getNextId(logsToSet, 'log_m_'),
-               taskId: motherTaskId,
-               projectId: motherTask.projectId,
-               startTime: new Date().toISOString(),
-               endTime: null,
-             };
-             const payloadStartM = { event: 'START', log: motherLog };
-             pushToApi(payloadStartM, `Starting Mother Task ${motherLog.id}`);
-             logsToSet = [...logsToSet, motherLog];
-          }
-       }
+      const isMotherRunning = logsToSet.some(l => l.taskId === motherTaskId && l.endTime === null);
+      if (!isMotherRunning) {
+        const motherTask = tasks.find(t => t.id === motherTaskId);
+        if (motherTask) {
+          motherLog = {
+            id: DataManager.getNextId(logsToSet, 'log_m_'),
+            taskId: motherTaskId,
+            projectId: motherTask.projectId,
+            startTime: new Date().toISOString(),
+            endTime: null,
+          };
+          const payloadStartM = { event: 'START', log: motherLog };
+          pushToApi(payloadStartM, `Starting Mother Task ${motherLog.id}`);
+          logsToSet = [...logsToSet, motherLog];
+        }
+      }
     }
 
     setLogs(logsToSet);
@@ -292,7 +263,7 @@ export const useTimeLogData = (pushToApi: (payload: any, logMsg: string) => void
         return l;
       })
     );
-    
+
     if (activeLog && (!specificProjectId || activeLog.projectId === specificProjectId)) {
       setActiveLog(null);
     }

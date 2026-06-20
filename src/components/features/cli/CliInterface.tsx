@@ -23,18 +23,21 @@ export default function CliInterface() {
     outputEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [terminalHistory]);
 
-  useEffect(() => {
+  const [prevLocale, setPrevLocale] = useState(locale);
+
+  if (prevLocale !== locale) {
+    setPrevLocale(locale);
     const msg = locale === 'pl' ? `Zmieniono język terminala na: Polski (PL)` :
-                locale === 'en' ? `Terminal locale switched to: English (EN)` :
-                locale === 'de' ? `Schnittstellensprache geändert zu: Deutsch (DE)` :
-                locale === 'es' ? `Idioma de terminal cambiado a: Español (ES)` :
-                locale === 'pt-br' ? `Idioma do terminal alterado para: Português (PT-BR)` :
-                `Terminal locale changed to: Custom translation dictionary!`;
+      locale === 'en' ? `Terminal locale switched to: English (EN)` :
+        locale === 'de' ? `Schnittstellensprache geändert zu: Deutsch (DE)` :
+          locale === 'es' ? `Idioma de terminal cambiado a: Español (ES)` :
+            locale === 'pt-br' ? `Idioma do terminal alterado para: Português (PT-BR)` :
+              `Terminal locale changed to: Custom translation dictionary!`;
     setTerminalHistory(prev => [
       ...prev,
       { text: `[SYSTEM_EVENT] ${msg}`, type: 'success' }
     ]);
-  }, [locale]);
+  }
 
   const executeCommand = (cmdText: string) => {
     const outputs = executeCliCommand(cmdText, context);
@@ -53,13 +56,12 @@ export default function CliInterface() {
   };
 
   return (
-    <div id="cli-interface" className={`flex flex-col gap-4 backdrop-blur-md rounded-3xl p-6 border shadow-2xl relative transition-all duration-300 ${
-      resolvedTheme === 'light'
+    <div id="cli-interface" className={`flex flex-col gap-4 backdrop-blur-md rounded-3xl p-6 border shadow-2xl relative transition-all duration-300 ${resolvedTheme === 'light'
         ? 'bg-white border-slate-200 text-slate-800 shadow-slate-100'
         : resolvedTheme === 'high-contrast'
-        ? 'bg-black border-2 border-white text-white'
-        : 'bg-white/5 border-white/10 text-white'
-    }`}>
+          ? 'bg-black border-2 border-white text-white'
+          : 'bg-white/5 border-white/10 text-white'
+      }`}>
       <div className={`flex items-center justify-between border-b pb-3 ${resolvedTheme === 'light' ? 'border-slate-200' : 'border-white/10'}`}>
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -83,15 +85,14 @@ export default function CliInterface() {
         </div>
       </div>
 
-      <div 
-        id="terminal-history" 
-        className={`rounded-2xl p-4 min-h-[380px] max-h-[480px] overflow-y-auto font-mono text-xs leading-relaxed flex flex-col gap-1.5 focus:outline-none border ${
-          resolvedTheme === 'light'
+      <div
+        id="terminal-history"
+        className={`rounded-2xl p-4 min-h-[380px] max-h-[480px] overflow-y-auto font-mono text-xs leading-relaxed flex flex-col gap-1.5 focus:outline-none border ${resolvedTheme === 'light'
             ? 'bg-slate-900 border-slate-300 text-slate-200 shadow-inner'
             : resolvedTheme === 'high-contrast'
-            ? 'bg-black border-2 border-white text-white'
-            : 'bg-black/20 border-white/15 text-slate-300'
-        }`}
+              ? 'bg-black border-2 border-white text-white'
+              : 'bg-black/20 border-white/15 text-slate-300'
+          }`}
       >
         {terminalHistory.map((line, index) => {
           let colorClass = 'text-slate-300';
@@ -109,22 +110,20 @@ export default function CliInterface() {
         <div ref={outputEndRef} />
       </div>
 
-      <form onSubmit={handleFormSubmit} className={`flex gap-2 p-1.5 rounded-2xl border transition-all ${
-        resolvedTheme === 'light'
+      <form onSubmit={handleFormSubmit} className={`flex gap-2 p-1.5 rounded-2xl border transition-all ${resolvedTheme === 'light'
           ? 'bg-slate-50 border-slate-200'
           : resolvedTheme === 'high-contrast'
-          ? 'bg-black border-white'
-          : 'bg-black/25 border-white/10'
-      }`}>
+            ? 'bg-black border-white'
+            : 'bg-black/25 border-white/10'
+        }`}>
         <span className="text-orange-500 font-mono text-sm self-center pl-2 font-bold select-none">
           oxyflow&gt;
         </span>
         <input
           id="cli-input-field"
           type="text"
-          className={`flex-1 bg-transparent font-mono text-xs border-none outline-none focus:ring-0 py-2 ${
-            resolvedTheme === 'light' ? 'text-slate-800 placeholder-slate-400' : 'text-slate-100 placeholder-slate-500'
-          }`}
+          className={`flex-1 bg-transparent font-mono text-xs border-none outline-none focus:ring-0 py-2 ${resolvedTheme === 'light' ? 'text-slate-800 placeholder-slate-400' : 'text-slate-100 placeholder-slate-500'
+            }`}
           placeholder={locale === 'pl' ? 'Wpisz komendę, np. help, projects, start 1, stop...' : 'Enter command, e.g. help, projects, start 1, stop...'}
           value={input}
           onChange={e => setInput(e.target.value)}
@@ -139,59 +138,54 @@ export default function CliInterface() {
         </button>
       </form>
 
-      <div className={`border rounded-2xl p-3 flex flex-wrap items-center gap-2 text-[10px] font-mono transition-all ${
-        resolvedTheme === 'light'
+      <div className={`border rounded-2xl p-3 flex flex-wrap items-center gap-2 text-[10px] font-mono transition-all ${resolvedTheme === 'light'
           ? 'bg-slate-50 border-slate-200 text-slate-600'
           : resolvedTheme === 'high-contrast'
-          ? 'bg-black border-white text-white'
-          : 'bg-white/5 border-white/10 text-slate-400'
-      }`}>
+            ? 'bg-black border-white text-white'
+            : 'bg-white/5 border-white/10 text-slate-400'
+        }`}>
         <span className={`font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'dynamic.quickShortcuts', customTranslations)}</span>
-        <button 
+        <button
           id="cmd-project-list-btn"
-          type="button" 
-          onClick={() => executeCommand('projects')} 
-          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${
-            resolvedTheme === 'light'
+          type="button"
+          onClick={() => executeCommand('projects')}
+          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
               ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
               : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
-          }`}
+            }`}
         >
           projects
         </button>
-        <button 
+        <button
           id="cmd-status-btn"
-          type="button" 
-          onClick={() => executeCommand('status')} 
-          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${
-            resolvedTheme === 'light'
+          type="button"
+          onClick={() => executeCommand('status')}
+          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
               ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
               : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
-          }`}
+            }`}
         >
           status
         </button>
-        <button 
+        <button
           id="cmd-logs-btn"
-          type="button" 
-          onClick={() => executeCommand('logs')} 
-          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${
-            resolvedTheme === 'light'
+          type="button"
+          onClick={() => executeCommand('logs')}
+          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
               ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
               : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
-          }`}
+            }`}
         >
           logs
         </button>
-        <button 
+        <button
           id="cmd-stop-btn"
-          type="button" 
-          onClick={() => executeCommand('stop')} 
-          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${
-            resolvedTheme === 'light'
+          type="button"
+          onClick={() => executeCommand('stop')}
+          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
               ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-150'
               : 'bg-white/5 hover:bg-rose-500/20 text-rose-300 border-white/10'
-          }`}
+            }`}
         >
           stop
         </button>

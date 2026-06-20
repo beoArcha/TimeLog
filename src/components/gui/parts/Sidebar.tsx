@@ -4,7 +4,7 @@ import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
 import { translate } from '../../../utils/i18n';
 import { getTranslation } from '../../../utils/translations';
 import { getProjectDurationSeconds, formatSeconds } from '../../../utils';
-import { getThemeStyles, PROJECT_COLORS, getScaleStyles } from './guiStyles';
+import { PROJECT_COLORS, getScaleStyles } from './guiStyles';
 import versionsData from '../../../versions.json';
 
 export default function Sidebar({ state }: { state: GuiState }) {
@@ -16,7 +16,6 @@ export default function Sidebar({ state }: { state: GuiState }) {
     onRenameProject, onToggleProjectArchive
   } = state;
 
-  const th = getThemeStyles(theme);
   const sc = getScaleStyles(state.textAndIconSize || 'medium');
 
   const handleAddProjectSubmit = (e: React.FormEvent) => {
@@ -29,10 +28,10 @@ export default function Sidebar({ state }: { state: GuiState }) {
   return (
     <div id="projects-sidebar" className={`lg:col-span-4 flex flex-col ${sc.gapMain}`}>
       <div className={`backdrop-blur-md ${sc.roundedMain} ${sc.paddingMain} border shadow-2xl transition-all duration-300 ${theme === 'light'
-          ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-[#DFD7CB]'
-          : theme === 'high-contrast'
-            ? 'bg-black border-2 border-white text-white'
-            : 'bg-[#FCFAF8]/5 border-white/10'
+        ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-[#DFD7CB]'
+        : theme === 'high-contrast'
+          ? 'bg-black border-2 border-white text-white'
+          : 'bg-[#FCFAF8]/5 border-white/10'
         }`}>
         <div className={`flex items-center justify-between mb-4 border-b pb-3 ${theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10'
           }`}>
@@ -46,7 +45,6 @@ export default function Sidebar({ state }: { state: GuiState }) {
           </span>
         </div>
 
-        {/* Quick Create Project */}
         <form onSubmit={handleAddProjectSubmit} className={`mb-6 ${sc.paddingSection} ${sc.roundedSection} border transition-all ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
           }`}>
           <div className={`flex flex-col ${sc.gapSection}`}>
@@ -57,8 +55,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
               value={newProjectName}
               onChange={e => setNewProjectName(e.target.value)}
               className={`w-full border px-3 ${sc.inputPy} ${sc.roundedSection} ${sc.textMain} focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all ${theme === 'light'
-                  ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421] placeholder-[#9B8C83]'
-                  : 'bg-[#FCFAF8]/5 border-white/10 text-white placeholder-[#9B8C83]'
+                ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421] placeholder-[#9B8C83]'
+                : 'bg-[#FCFAF8]/5 border-white/10 text-white placeholder-[#9B8C83]'
                 }`}
             />
             <div className={`flex items-center justify-between ${sc.gapSection} mt-1`}>
@@ -107,14 +105,14 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   key={p.id}
                   onClick={() => setSelectedProjectId(p.id)}
                   className={`text-left w-full ${sc.paddingSection} ${sc.roundedSection} flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${isSelected
-                      ? theme === 'light'
-                        ? 'bg-orange-50 border-l-4 border-l-orange-500 border border-[#DFD7CB]/80 shadow-sm'
-                        : theme === 'high-contrast'
-                          ? 'bg-black border-l-4 border-l-yellow-400 border-2 border-white'
-                          : 'bg-[#FCFAF8]/10 border-l-4 border-l-orange-400 border border-white/15'
-                      : theme === 'light'
-                        ? 'bg-transparent border border-transparent hover:bg-[#EAE4DB] text-[#2C2421]'
-                        : 'bg-transparent border border-transparent hover:bg-[#FCFAF8]/5'
+                    ? theme === 'light'
+                      ? 'bg-orange-50 border-l-4 border-l-orange-500 border border-[#DFD7CB]/80 shadow-sm'
+                      : theme === 'high-contrast'
+                        ? 'bg-black border-l-4 border-l-yellow-400 border-2 border-white'
+                        : 'bg-[#FCFAF8]/10 border-l-4 border-l-orange-400 border border-white/15'
+                    : theme === 'light'
+                      ? 'bg-transparent border border-transparent hover:bg-[#EAE4DB] text-[#2C2421]'
+                      : 'bg-transparent border border-transparent hover:bg-[#FCFAF8]/5'
                     } ${p.archived ? 'opacity-50 grayscale' : ''}`}
                 >
                   <div className="flex items-center gap-2.5 z-10 animate-fade-in">
@@ -154,7 +152,6 @@ export default function Sidebar({ state }: { state: GuiState }) {
                         }`}>
                         {translate(locale, 'dynamic.createdAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
 
-                        {/* Edit Action button (appears on hover) */}
                         {editingId !== p.id && (
                           <button
                             type="button"
@@ -170,12 +167,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
                           </button>
                         )}
 
-                        {/* Archive Action button (appears on hover) */}
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onToggleProjectArchive && onToggleProjectArchive(p.id);
+                            if (onToggleProjectArchive) onToggleProjectArchive(p.id);
                           }}
                           className={`opacity-0 group-hover:opacity-100 transition duration-200 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider ${theme === 'light' ? 'bg-[#DFD7CB] text-[#5A4A42] hover:bg-red-500 hover:text-white' : 'bg-[#FCFAF8]/10 text-slate-300 hover:bg-red-500 hover:text-white'
                             }`}
@@ -187,10 +183,10 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   </div>
 
                   <div className={`flex items-center gap-1.5 z-10 font-mono ${sc.textMain} font-bold px-2.5 py-1 rounded-full border transition-all ${theme === 'light'
-                      ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#5A4A42]'
-                      : theme === 'high-contrast'
-                        ? 'bg-black border-white text-white'
-                        : 'bg-[#FCFAF8]/5 border-white/10 text-[#9B8C83]'
+                    ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#5A4A42]'
+                    : theme === 'high-contrast'
+                      ? 'bg-black border-white text-white'
+                      : 'bg-[#FCFAF8]/5 border-white/10 text-[#9B8C83]'
                     }`}>
                     <Clock className={`${sc.iconMedium} text-orange-450`} />
                     {formatSeconds(totalSeconds)}
@@ -202,14 +198,12 @@ export default function Sidebar({ state }: { state: GuiState }) {
         </div>
       </div>
 
-      {/* Dynamic Wave Banner representing Zouk wave heartbeat */}
       <div className={`border ${sc.roundedMain} ${sc.paddingMain} relative overflow-hidden shadow-2xl transition-all duration-300 ${theme === 'light'
-          ? 'bg-gradient-to-tr from-orange-500/5 to-rose-500/5 border-[#DFD7CB]'
-          : theme === 'high-contrast'
-            ? 'bg-black border-2 border-white text-white'
-            : 'bg-gradient-to-tr from-orange-500/10 to-rose-500/10 border-white/10 text-white'
+        ? 'bg-gradient-to-tr from-orange-500/5 to-rose-500/5 border-[#DFD7CB]'
+        : theme === 'high-contrast'
+          ? 'bg-black border-2 border-white text-white'
+          : 'bg-gradient-to-tr from-orange-500/10 to-rose-500/10 border-white/10 text-white'
         }`}>
-        {/* Wave visual background decoration */}
         <div className="absolute inset-0 opacity-5 pointer-events-none">
           <svg viewBox="0 0 100 100" className="w-full h-full preserve-3d">
             <path d="M0,50 Q25,30 50,50 T100,50 L100,100 L0,100 Z" fill="white" />

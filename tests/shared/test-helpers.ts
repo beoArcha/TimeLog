@@ -38,9 +38,11 @@ export const setupMatchMediaMock = (matches = false) => {
 
 import { act } from '@testing-library/react';
 
-export const tauriEventRegistry: Record<string, Function> = {};
+type TauriEventCallback = (event: { payload: unknown }) => void;
 
-export const triggerTauriEvent = (eventName: string, payload?: any) => {
+export const tauriEventRegistry: Record<string, TauriEventCallback> = {};
+
+export const triggerTauriEvent = (eventName: string, payload?: unknown) => {
   if (tauriEventRegistry[eventName]) {
     act(() => {
       tauriEventRegistry[eventName]({ payload });
@@ -51,13 +53,13 @@ export const triggerTauriEvent = (eventName: string, payload?: any) => {
 export const mockInvoke = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@tauri-apps/api/core', () => ({
-  invoke: (cmd: string, args?: any) => {
+  invoke: (cmd: string, args?: unknown) => {
     if (args !== undefined) return mockInvoke(cmd, args);
     return mockInvoke(cmd);
   },
 }));
 
-export const mockListen = vi.fn().mockImplementation((eventName: string, callback: Function) => {
+export const mockListen = vi.fn().mockImplementation((eventName: string, callback: TauriEventCallback) => {
   tauriEventRegistry[eventName] = callback;
   return Promise.resolve(() => {
     delete tauriEventRegistry[eventName];
@@ -65,5 +67,5 @@ export const mockListen = vi.fn().mockImplementation((eventName: string, callbac
 });
 
 vi.mock('@tauri-apps/api/event', () => ({
-  listen: (eventName: string, callback: Function) => mockListen(eventName, callback),
+  listen: (eventName: string, callback: TauriEventCallback) => mockListen(eventName, callback),
 }));

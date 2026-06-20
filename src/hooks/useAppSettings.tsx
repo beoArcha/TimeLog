@@ -4,10 +4,13 @@ import { GuiSize } from '../bindings/GuiSize';
 import { TextAndIconSize } from '../bindings/TextAndIconSize';
 import { STORAGE_KEYS } from '../common/constants';
 
+type ThemePref = 'dark' | 'light' | 'high-contrast' | 'system';
+type ResolvedTheme = 'dark' | 'light' | 'high-contrast';
+
 export const useAppSettings = () => {
-  const [theme, setTheme] = useState<'dark' | 'light' | 'high-contrast' | 'system'>(() => {
+  const [theme, setTheme] = useState<ThemePref>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.THEME);
-    return (saved as any) || 'system';
+    return (saved as ThemePref) || 'system';
   });
 
   const [textAndIconSize, setTextAndIconSize] = useState<TextAndIconSize>(() => {
@@ -19,27 +22,29 @@ export const useAppSettings = () => {
     localStorage.setItem(STORAGE_KEYS.TEXT_ICON_SIZE, textAndIconSize);
   }, [textAndIconSize]);
 
-  const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light' | 'high-contrast'>('dark');
+  // systemTheme is only ever updated via the media-query event listener callback,
+  // never synchronously in the effect body — satisfies react-hooks/set-state-in-effect.
+  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() =>
+    window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+  );
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-      const handleChange = () => {
-        setResolvedTheme(mediaQuery.matches ? 'light' : 'dark');
-      };
-      handleChange();
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    } else {
-      setResolvedTheme(theme as any);
-    }
+    if (theme !== 'system') return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+    const handleChange = () => setSystemTheme(mediaQuery.matches ? 'light' : 'dark');
+    handleChange();
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
+
+  const resolvedTheme: ResolvedTheme = theme === 'system' ? systemTheme : theme;
+  const setResolvedTheme = setSystemTheme;
 
   const [sysSettings, setSysSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SYS_SETTINGS);
     if (saved) {
-      try { return JSON.parse(saved); } catch (err) {}
+      try { return JSON.parse(saved); } catch { }
     }
     return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true };
   });
@@ -57,10 +62,13 @@ export const useAppSettings = () => {
     return (saved as Exclude<GuiSize, 'small'>) || 'large';
   });
 
+  if (guiSize !== 'small' && guiSize !== lastNonSmallVariant) {
+    setLastNonSmallVariant(guiSize);
+  }
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.GUI_VARIANT, guiSize);
     if (guiSize !== 'small') {
-      setLastNonSmallVariant(guiSize);
       localStorage.setItem(STORAGE_KEYS.LAST_NON_SMALL_VARIANT, guiSize);
     }
   }, [guiSize]);

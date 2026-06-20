@@ -32,6 +32,14 @@ export interface CliEngineContext {
   setSelectedTaskId: (id: string | null) => void;
 }
 
+interface CliEngineContextInternal extends CliEngineContext {
+  handleAddProject: CliEngineContext['onAddProject'];
+  handleAddTask: CliEngineContext['onAddTask'];
+  handleToggleTaskComplete: CliEngineContext['onToggleTaskComplete'];
+  handleStartTimer: CliEngineContext['onStartTimer'];
+  handleStopTimer: CliEngineContext['onStopTimer'];
+}
+
 export const executeCliCommand = (cmdText: string, context: CliEngineContext): TerminalLine[] => {
   const {
     projects, tasks, logs, activeLog,
@@ -42,7 +50,7 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
     handleStopTimer: onStopTimer,
     nowIso, locale, customTranslations, holidays, setHolidays,
     selectedTaskId, setSelectedTaskId
-  } = context as any;
+  } = context as unknown as CliEngineContextInternal;
 
   const trimmed = cmdText.trim();
   if (!trimmed) return [];
@@ -59,10 +67,10 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
   const commandName = matches[0].toLowerCase();
   const args = matches.slice(1);
   const outputs: TerminalLine[] = [];
-  
+
   outputs.push({ text: `user@logtime-by-oxyflow:~$ ${trimmed}`, type: 'input' });
 
-  const isPl = false; // CLI terminal is strictly English
+  const isPl = false;
 
   switch (commandName) {
     case 'help':
@@ -131,9 +139,9 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
           const statusSymbol = root.completed ? '[X]' : '[ ]';
           const duration = formatSeconds(getTaskDurationSeconds(root.id, tasks, logs, nowIso));
           const isSetLabel = root.id === selectedTaskId ? ' (Selected)' : '';
-          outputs.push({ 
-            text: `${statusSymbol} ID: ${root.id.padEnd(4)} - ${root.name} (${duration})${isSetLabel}`, 
-            type: root.completed ? 'info' : 'output' 
+          outputs.push({
+            text: `${statusSymbol} ID: ${root.id.padEnd(4)} - ${root.name} (${duration})${isSetLabel}`,
+            type: root.completed ? 'info' : 'output'
           });
 
           const subs = projTasks.filter(t => t.parentTaskId === root.id);
@@ -141,9 +149,9 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
             const subStatus = sub.completed ? '[X]' : '[ ]';
             const subDuration = formatSeconds(getTaskDurationSeconds(sub.id, tasks, logs, nowIso));
             const isSubSetLabel = sub.id === selectedTaskId ? ' (Selected)' : '';
-            outputs.push({ 
-              text: `      ↳ ${subStatus} ID: ${sub.id.padEnd(4)} - ${sub.name} (${subDuration})${isSubSetLabel}`, 
-              type: 'info' 
+            outputs.push({
+              text: `      ↳ ${subStatus} ID: ${sub.id.padEnd(4)} - ${sub.name} (${subDuration})${isSubSetLabel}`,
+              type: 'info'
             });
           });
         });
@@ -201,33 +209,33 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
       if (!tId) {
         const currentTaskId = selectedTaskId || (tasks && tasks.length > 0 ? tasks[0].id : null);
         if (!currentTaskId) {
-          outputs.push({ 
-            text: isPl 
-              ? 'Błąd: Brak obecnie wybranego zadania. Wybierz zadanie w GUI lub podaj ID, np. start 102.' 
-              : 'Error: No task is currently selected. Select one in GUI or specify ID, e.g. start 102.', 
-            type: 'error' 
+          outputs.push({
+            text: isPl
+              ? 'Błąd: Brak obecnie wybranego zadania. Wybierz zadanie w GUI lub podaj ID, np. start 102.'
+              : 'Error: No task is currently selected. Select one in GUI or specify ID, e.g. start 102.',
+            type: 'error'
           });
         } else {
           const taskObj = tasks.find(t => t.id === currentTaskId);
           if (!taskObj) {
-            outputs.push({ 
-              text: `${translate(locale, 'dynamic.cliErrTaskNotExist', customTranslations)} ${currentTaskId}`, 
-              type: 'error' 
+            outputs.push({
+              text: `${translate(locale, 'dynamic.cliErrTaskNotExist', customTranslations)} ${currentTaskId}`,
+              type: 'error'
             });
           } else if (taskObj.completed) {
-            outputs.push({ 
-              text: isPl 
-                ? `Błąd: Zadanie "${taskObj.name}" jest już oznaczone jako ukończone.` 
-                : `Error: Task "${taskObj.name}" is already completed.`, 
-              type: 'error' 
+            outputs.push({
+              text: isPl
+                ? `Błąd: Zadanie "${taskObj.name}" jest już oznaczone jako ukończone.`
+                : `Error: Task "${taskObj.name}" is already completed.`,
+              type: 'error'
             });
           } else {
             onStartTimer(currentTaskId);
-            outputs.push({ 
-              text: isPl 
+            outputs.push({
+              text: isPl
                 ? `▶️ Timer rozpoczęty dla obecnie ustawionego zadania: "${taskObj.name}" [ID: ${currentTaskId}]`
-                : `▶️ Timer started for currently set task: "${taskObj.name}" [ID: ${currentTaskId}]`, 
-              type: 'success' 
+                : `▶️ Timer started for currently set task: "${taskObj.name}" [ID: ${currentTaskId}]`,
+              type: 'success'
             });
           }
         }
@@ -250,12 +258,12 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
       const arg = args[0] ? args[0].toLowerCase() : '';
       if (arg === 'all') {
         const activeRunningCount = logs.filter(l => l.endTime === null).length;
-        onStopTimer(); 
-        outputs.push({ 
-          text: isPl 
-            ? `⏹️ Zatrzymano wszystkie (${activeRunningCount}) aktywne pomiary czasu we wszystkich projektach.` 
-            : `⏹️ Stopped all (${activeRunningCount}) active tracking sessions across all projects.`, 
-          type: 'success' 
+        onStopTimer();
+        outputs.push({
+          text: isPl
+            ? `⏹️ Zatrzymano wszystkie (${activeRunningCount}) aktywne pomiary czasu we wszystkich projektach.`
+            : `⏹️ Stopped all (${activeRunningCount}) active tracking sessions across all projects.`,
+          type: 'success'
         });
       } else {
         if (!activeLog) {
@@ -310,14 +318,14 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
 
       const transRunning = (translate(locale, 'dynamic.filterRunning', customTranslations) || 'running').toLowerCase();
       const transCaptured = (translate(locale, 'dynamic.filterCaptured', customTranslations) || 'captured').toLowerCase();
-      
+
       if (filterArg === 'running' || filterArg === transRunning) {
         filteredLogs = filteredLogs.filter(log => !log.endTime);
       } else if (filterArg === 'captured' || filterArg === transCaptured || filterArg === 'gotowy') {
         filteredLogs = filteredLogs.filter(log => log.endTime);
       }
 
-      const transDate = (translate(locale, 'dynamic.sortDate', customTranslations) || 'date').toLowerCase();
+      const _transDate = (translate(locale, 'dynamic.sortDate', customTranslations) || 'date').toLowerCase();
       const transDuration = (translate(locale, 'dynamic.sortDuration', customTranslations) || 'duration').toLowerCase();
       const transProject = (translate(locale, 'dynamic.sortProject', customTranslations) || 'project').toLowerCase();
       const transStatus = (translate(locale, 'dynamic.sortStatus', customTranslations) || 'status').toLowerCase();
@@ -336,7 +344,7 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
       } else if (sortArg === 'status' || sortArg === transStatus) {
         filteredLogs.sort((a, b) => (a.endTime ? 1 : 0) - (b.endTime ? 1 : 0));
       } else {
-        filteredLogs.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()); 
+        filteredLogs.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
       }
 
       if (filteredLogs.length === 0) {
@@ -358,7 +366,7 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
           const start = new Date(log.startTime).getTime();
           const end = log.endTime ? new Date(log.endTime).getTime() : new Date(nowIso).getTime();
           const elapsed = Math.max(0, Math.floor((end - start) / 1000));
-          
+
           const idCol = log.id.slice(-4).padEnd(4);
           const prjCol = log.projectId.padEnd(6).substring(0, 6);
           const dateCol = startStr.padEnd(10).substring(0, 10);
@@ -379,11 +387,11 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
         const date = args[2];
         const name = args[3];
         if (!type || !date || !name || (type !== 'holiday' && type !== 'leave')) {
-          outputs.push({ 
-            text: isPl 
-              ? 'Błąd: Użycie: holidays add <holiday|leave> <YYYY-MM-DD> "<nazwa_swieta_lub_urlopu>".' 
-              : 'Error: Usage: holidays add <holiday|leave> <YYYY-MM-DD> "<name>".', 
-            type: 'error' 
+          outputs.push({
+            text: isPl
+              ? 'Błąd: Użycie: holidays add <holiday|leave> <YYYY-MM-DD> "<nazwa_swieta_lub_urlopu>".'
+              : 'Error: Usage: holidays add <holiday|leave> <YYYY-MM-DD> "<name>".',
+            type: 'error'
           });
         } else {
           const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -397,11 +405,11 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
               name,
             };
             setHolidays(prev => [...prev, newHoliday]);
-            outputs.push({ 
-              text: isPl 
-                ? `Sukces: Zapisano ${type === 'holiday' ? 'święto' : 'urlop'} "${name}" [${date}] w bazie SQLite.` 
-                : `Success: Saved ${type === 'holiday' ? 'holiday' : 'leave'} "${name}" [${date}] in SQLite table.`, 
-              type: 'success' 
+            outputs.push({
+              text: isPl
+                ? `Sukces: Zapisano ${type === 'holiday' ? 'święto' : 'urlop'} "${name}" [${date}] w bazie SQLite.`
+                : `Success: Saved ${type === 'holiday' ? 'holiday' : 'leave'} "${name}" [${date}] in SQLite table.`,
+              type: 'success'
             });
           }
         }
@@ -428,21 +436,21 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
 
     case 'report': {
       const period = args[0] ? args[0].toLowerCase() : 'all';
-      const sortBy = args[1] ? args[1].toLowerCase() : 'duration'; 
+      const sortBy = args[1] ? args[1].toLowerCase() : 'duration';
 
       let startMs = 0;
       const now = new Date(nowIso);
 
       if (period === 'today') {
         const d = new Date(now);
-        d.setHours(0,0,0,0);
+        d.setHours(0, 0, 0, 0);
         startMs = d.getTime();
       } else if (period === 'week') {
         const d = new Date(now);
         const day = d.getDay();
         const diff = d.getDate() - day + (day === 0 ? -6 : 1);
         const monday = new Date(d.setDate(diff));
-        monday.setHours(0,0,0,0);
+        monday.setHours(0, 0, 0, 0);
         startMs = monday.getTime();
       } else if (period === 'month') {
         const d = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -463,12 +471,12 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
 
       outputs.push({ text: `================ ${translate(locale, 'dynamic.cliReportTimeHeader', customTranslations)}: ${period.toUpperCase()} (Sort: ${sortBy}) ================`, type: 'info' });
       outputs.push({ text: translate(locale, 'dynamic.cliReportSysList', customTranslations), type: 'info' });
-      
-      let sortedLogs = [...filteredLogs];
+
+      const sortedLogs = [...filteredLogs];
       if (sortBy === 'date') {
-        sortedLogs.sort((a,b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+        sortedLogs.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
       } else {
-        sortedLogs.sort((a,b) => {
+        sortedLogs.sort((a, b) => {
           const durA = (a.endTime ? new Date(a.endTime).getTime() : new Date(nowIso).getTime()) - new Date(a.startTime).getTime();
           const durB = (b.endTime ? new Date(b.endTime).getTime() : new Date(nowIso).getTime()) - new Date(b.startTime).getTime();
           return durB - durA;
@@ -482,9 +490,9 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
         const end = log.endTime ? new Date(log.endTime).getTime() : new Date(nowIso).getTime();
         const elapsed = Math.max(0, Math.floor((end - start) / 1000));
         const dateStr = new Date(log.startTime).toLocaleDateString() + ' ' + new Date(log.startTime).toLocaleTimeString();
-        outputs.push({ 
-          text: `[${dateStr}] [Proj: ${p?.name || 'N/A'}] Task ID: ${log.taskId} ("${t?.name || 'N/A'}") -> Czas: ${formatSeconds(elapsed)}`, 
-          type: 'output' 
+        outputs.push({
+          text: `[${dateStr}] [Proj: ${p?.name || 'N/A'}] Task ID: ${log.taskId} ("${t?.name || 'N/A'}") -> Czas: ${formatSeconds(elapsed)}`,
+          type: 'output'
         });
       });
 
@@ -504,18 +512,18 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
       });
 
       if (sortBy === 'duration') {
-        projectDurations.sort((a,b) => b.seconds - a.seconds);
+        projectDurations.sort((a, b) => b.seconds - a.seconds);
       } else {
-        projectDurations.sort((a,b) => a.name.localeCompare(b.name));
+        projectDurations.sort((a, b) => a.name.localeCompare(b.name));
       }
 
       const maxSec = Math.max(...projectDurations.map(x => x.seconds), 1);
       projectDurations.forEach(pd => {
         const squaresCount = Math.round((pd.seconds / maxSec) * 20);
         const bar = '█'.repeat(squaresCount) + '░'.repeat(20 - squaresCount);
-        outputs.push({ 
-          text: `${pd.name.padEnd(28)} [${bar}] ${formatSeconds(pd.seconds)}`, 
-          type: 'success' 
+        outputs.push({
+          text: `${pd.name.padEnd(28)} [${bar}] ${formatSeconds(pd.seconds)}`,
+          type: 'success'
         });
       });
 
@@ -533,19 +541,19 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
         break;
       }
 
-      let dur = 0;
-      let pName = targetId;
+      let dur: number;
+      let pName: string;
 
       const filterLogsByPeriod = (L: TimeLog[]) => L.filter(log => {
-        let testDate = new Date(log.startTime);
-        let nDate = new Date(nowIso);
+        const testDate = new Date(log.startTime);
+        const nDate = new Date(nowIso);
         if (period === 'today') {
           return testDate.toDateString() === nDate.toDateString();
         } else if (period === 'week') {
           const diff = nDate.getTime() - testDate.getTime();
           return diff < 7 * 24 * 3600 * 1000;
         } else if (period === 'month') {
-           return testDate.getMonth() === nDate.getMonth() && testDate.getFullYear() === nDate.getFullYear();
+          return testDate.getMonth() === nDate.getMonth() && testDate.getFullYear() === nDate.getFullYear();
         }
         return true;
       });

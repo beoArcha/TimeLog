@@ -9,7 +9,7 @@ import { FrontendEvent } from '../types';
 import { TAURI_COMMANDS } from '../common/constants';
 
 const isTauri = () => {
-  return typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__ !== undefined;
+  return typeof window !== 'undefined' && (window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined;
 };
 
 const handleSetGuiSize = async (size: GuiSize, textIconSize: TextAndIconSize) => {
@@ -43,7 +43,7 @@ interface TauriWindowProps {
   setLastNonSmallVariant: React.Dispatch<React.SetStateAction<Exclude<GuiSize, 'small'>>>;
   handleStopTimer: (specificProjectId?: string) => void;
   locale: Locale;
-  customTranslations: any;
+  customTranslations: Record<string, unknown>;
 }
 
 export const useTauriWindow = ({
@@ -52,7 +52,7 @@ export const useTauriWindow = ({
   minimizeToTray,
   alwaysOnTopSmall, setAlwaysOnTopSmall,
   alwaysOnTopMain, setAlwaysOnTopMain,
-  lastNonSmallVariant, setLastNonSmallVariant,
+  lastNonSmallVariant: _lastNonSmallVariant, setLastNonSmallVariant,
   handleStopTimer,
   locale, customTranslations
 }: TauriWindowProps) => {
@@ -120,7 +120,7 @@ export const useTauriWindow = ({
     if (!isTauri()) return;
 
     let active = true;
-    const unlisteners: Function[] = [];
+    const unlisteners: Array<() => void> = [];
 
     const setupListeners = async () => {
       try {

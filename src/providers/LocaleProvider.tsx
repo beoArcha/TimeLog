@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { LocaleType, TranslationDictionary } from '../utils/translations';
 import { STORAGE_KEYS } from '../common/constants';
 
@@ -13,6 +13,16 @@ interface LocaleContextProps {
 
 const LocaleContext = createContext<LocaleContextProps | undefined>(undefined);
 
+function resolveSystemLocale(): LocaleType {
+  const browserLang = navigator.language.toLowerCase();
+  if (browserLang.startsWith('pl')) return 'pl';
+  if (browserLang.startsWith('de')) return 'de';
+  if (browserLang.startsWith('es')) return 'es';
+  if (browserLang.startsWith('pt')) return 'pt-br';
+  if (browserLang.startsWith('fr')) return 'fr';
+  return 'en';
+}
+
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [localePref, setLocalePref] = useState<LocaleType>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.LOCALE_PREF);
@@ -20,7 +30,20 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return 'system';
   });
 
-  const [locale, setLocale] = useState<LocaleType>('en');
+  const [localeOverride, setLocaleOverride] = useState<[LocaleType, LocaleType] | null>(null);
+
+  const locale = useMemo<LocaleType>(() => {
+    if (localeOverride !== null && localeOverride[0] === localePref) return localeOverride[1];
+    return localePref === 'system' ? resolveSystemLocale() : localePref;
+  }, [localePref, localeOverride]);
+
+  const setLocale: React.Dispatch<React.SetStateAction<LocaleType>> = (value) => {
+    setLocaleOverride((prev) => {
+      const current = prev !== null && prev[0] === localePref ? prev[1] : (localePref === 'system' ? resolveSystemLocale() : localePref);
+      const next = typeof value === 'function' ? (value as (p: LocaleType) => LocaleType)(current) : value;
+      return [localePref, next];
+    });
+  };
 
   const [customTranslations, setCustomTranslations] = useState<Partial<TranslationDictionary>>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS);
@@ -36,17 +59,6 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.LOCALE_PREF, localePref);
-    if (localePref === 'system') {
-      const browserLang = navigator.language.toLowerCase();
-      if (browserLang.startsWith('pl')) setLocale('pl');
-      else if (browserLang.startsWith('de')) setLocale('de');
-      else if (browserLang.startsWith('es')) setLocale('es');
-      else if (browserLang.startsWith('pt')) setLocale('pt-br');
-      else if (browserLang.startsWith('fr')) setLocale('fr');
-      else setLocale('en');
-    } else {
-      setLocale(localePref);
-    }
   }, [localePref]);
 
   useEffect(() => {
