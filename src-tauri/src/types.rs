@@ -187,6 +187,22 @@ pub struct HolidayLeave {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../src/bindings/Locale.ts")]
+pub enum Locale {
+    Pl,
+    En,
+    De,
+    Es,
+    #[serde(rename = "pt-br")]
+    #[ts(rename = "pt-br")]
+    PtBr,
+    Fr,
+    Custom,
+    System,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export_to = "../../src/bindings/FrontendEvent.ts")]
 pub enum FrontendEvent {
@@ -235,5 +251,6 @@ mod tests {
         HolidayLeaveEditHistory::export().unwrap();
         HolidayLeave::export().unwrap();
         FrontendEvent::export().unwrap();
+        Locale::export().unwrap();
     }
 }

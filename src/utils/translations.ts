@@ -1,4 +1,6 @@
-export type LocaleType = 'pl' | 'en' | 'de' | 'es' | 'pt-br' | 'fr' | 'custom' | 'system';
+import { Locale } from '../bindings/Locale';
+
+export type LocaleType = Locale;
 
 export interface TranslationDictionary {
   guiInterface: string;

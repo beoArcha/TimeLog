@@ -41,139 +41,104 @@ impl TrayMenuId {
             _ => None,
         }
     }
-}
 
-pub use crate::types::FrontendEvent;
-
-fn get_system_locale() -> String {
-    sys_locale::get_locale()
-        .unwrap_or_else(|| "en".to_string())
-        .split('-')
-        .next()
-        .unwrap_or("en")
-        .to_lowercase()
-}
-
-fn get_translation(locale: &str, key: &str) -> &'static str {
-    match locale {
-        "pl" => match key {
-            "show_hide" => "Pokaż / Ukryj okno",
-            "gui_small" => "GUI: Mały",
-            "gui_medium" => "GUI: Średni",
-            "gui_large" => "GUI: Duży",
-            "always_on_top" => "Zawsze na wierzchu",
-            "stop_all" => "Zatrzymaj wszystkie timery",
-            "quit" => "Wyjdź całkowicie",
-            _ => "",
-        },
-        "de" => match key {
-            "show_hide" => "Fenster anzeigen / ausblenden",
-            "gui_small" => "GUI: Klein",
-            "gui_medium" => "GUI: Mittel",
-            "gui_large" => "GUI: Groß",
-            "always_on_top" => "Immer im Vordergrund",
-            "stop_all" => "Alle Timer stoppen",
-            "quit" => "Vollständig beenden",
-            _ => "",
-        },
-        "fr" => match key {
-            "show_hide" => "Afficher / Masquer la fenêtre",
-            "gui_small" => "GUI: Petit",
-            "gui_medium" => "GUI: Moyen",
-            "gui_large" => "GUI: Grand",
-            "always_on_top" => "Toujours au premier plan",
-            "stop_all" => "Arrêter tous les minuteurs",
-            "quit" => "Quitter complètement",
-            _ => "",
-        },
-        "es" => match key {
-            "show_hide" => "Mostrar / Ocultar ventana",
-            "gui_small" => "GUI: Pequeño",
-            "gui_medium" => "GUI: Mediano",
-            "gui_large" => "GUI: Grande",
-            "always_on_top" => "Siempre en primer plano",
-            "stop_all" => "Detener todos los temporizadores",
-            "quit" => "Salir completamente",
-            _ => "",
-        },
-        "pt" => match key {
-            "show_hide" => "Mostrar / Ocultar janela",
-            "gui_small" => "GUI: Pequeno",
-            "gui_medium" => "GUI: Médio",
-            "gui_large" => "GUI: Grande",
-            "always_on_top" => "Sempre no topo",
-            "stop_all" => "Parar todos os cronômetros",
-            "quit" => "Sair completamente",
-            _ => "",
-        },
-        _ => match key {
-            "show_hide" => "Show / Hide Window",
-            "gui_small" => "GUI: Small",
-            "gui_medium" => "GUI: Medium",
-            "gui_large" => "GUI: Large",
-            "always_on_top" => "Always on Top",
-            "stop_all" => "Stop All Timers",
-            "quit" => "Quit Completely",
-            _ => "",
-        },
+    pub fn get_text(self, locale: Locale) -> &'static str {
+        match locale {
+            Locale::Pl => match self {
+                TrayMenuId::ToggleVisibility => "Pokaż / Ukryj okno",
+                TrayMenuId::GuiSmall => "GUI: Mały",
+                TrayMenuId::GuiMedium => "GUI: Średni",
+                TrayMenuId::GuiLarge => "GUI: Duży",
+                TrayMenuId::ToggleOnTop => "Zawsze na wierzchu",
+                TrayMenuId::StopAllTimers => "Zatrzymaj wszystkie timery",
+                TrayMenuId::QuitApp => "Wyjdź całkowicie",
+            },
+            Locale::De => match self {
+                TrayMenuId::ToggleVisibility => "Fenster anzeigen / ausblenden",
+                TrayMenuId::GuiSmall => "GUI: Klein",
+                TrayMenuId::GuiMedium => "GUI: Mittel",
+                TrayMenuId::GuiLarge => "GUI: Groß",
+                TrayMenuId::ToggleOnTop => "Immer im Vordergrund",
+                TrayMenuId::StopAllTimers => "Alle Timer stoppen",
+                TrayMenuId::QuitApp => "Vollständig beenden",
+            },
+            Locale::Fr => match self {
+                TrayMenuId::ToggleVisibility => "Afficher / Masquer la fenêtre",
+                TrayMenuId::GuiSmall => "GUI: Petit",
+                TrayMenuId::GuiMedium => "GUI: Moyen",
+                TrayMenuId::GuiLarge => "GUI: Grand",
+                TrayMenuId::ToggleOnTop => "Toujours au premier plan",
+                TrayMenuId::StopAllTimers => "Arrêter tous les minuteurs",
+                TrayMenuId::QuitApp => "Quitter complètement",
+            },
+            Locale::Es => match self {
+                TrayMenuId::ToggleVisibility => "Mostrar / Ocultar ventana",
+                TrayMenuId::GuiSmall => "GUI: Pequeño",
+                TrayMenuId::GuiMedium => "GUI: Mediano",
+                TrayMenuId::GuiLarge => "GUI: Grande",
+                TrayMenuId::ToggleOnTop => "Siempre en primer plano",
+                TrayMenuId::StopAllTimers => "Detener todos los temporizadores",
+                TrayMenuId::QuitApp => "Salir completamente",
+            },
+            Locale::PtBr => match self {
+                TrayMenuId::ToggleVisibility => "Mostrar / Ocultar janela",
+                TrayMenuId::GuiSmall => "GUI: Pequeno",
+                TrayMenuId::GuiMedium => "GUI: Médio",
+                TrayMenuId::GuiLarge => "GUI: Grande",
+                TrayMenuId::ToggleOnTop => "Sempre no topo",
+                TrayMenuId::StopAllTimers => "Parar todos os cronômetros",
+                TrayMenuId::QuitApp => "Sair completamente",
+            },
+            _ => match self {
+                TrayMenuId::ToggleVisibility => "Show / Hide Window",
+                TrayMenuId::GuiSmall => "GUI: Small",
+                TrayMenuId::GuiMedium => "GUI: Medium",
+                TrayMenuId::GuiLarge => "GUI: Large",
+                TrayMenuId::ToggleOnTop => "Always on Top",
+                TrayMenuId::StopAllTimers => "Stop All Timers",
+                TrayMenuId::QuitApp => "Quit Completely",
+            },
+        }
     }
+}
+
+pub use crate::types::{FrontendEvent, Locale};
+
+fn get_system_locale() -> Locale {
+    let sys_lang = sys_locale::get_locale()
+        .unwrap_or_else(|| "en".to_string());
+    let code = sys_lang.split('-').next().unwrap_or("en").to_lowercase();
+    match code.as_str() {
+        "pl" => Locale::Pl,
+        "de" => Locale::De,
+        "es" => Locale::Es,
+        "fr" => Locale::Fr,
+        "pt" => Locale::PtBr,
+        _ => Locale::En,
+    }
+}
+
+fn create_menu_item<R: tauri::Runtime>(
+    app: &App<R>,
+    id: TrayMenuId,
+    locale: Locale,
+) -> tauri::Result<MenuItem<R>> {
+    MenuItem::with_id(app, id.as_str(), id.get_text(locale), true, None::<&str>)
 }
 
 pub fn build_tray_menu<R: tauri::Runtime>(app: &App<R>) -> tauri::Result<Menu<R>> {
     let locale = get_system_locale();
 
-    let toggle_item = MenuItem::with_id(
-        app,
-        TrayMenuId::ToggleVisibility.as_str(),
-        get_translation(&locale, "show_hide"),
-        true,
-        None::<&str>,
-    )?;
+    let toggle_item = create_menu_item(app, TrayMenuId::ToggleVisibility, locale)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
-    let gui_small = MenuItem::with_id(
-        app,
-        TrayMenuId::GuiSmall.as_str(),
-        get_translation(&locale, "gui_small"),
-        true,
-        None::<&str>,
-    )?;
-    let gui_medium = MenuItem::with_id(
-        app,
-        TrayMenuId::GuiMedium.as_str(),
-        get_translation(&locale, "gui_medium"),
-        true,
-        None::<&str>,
-    )?;
-    let gui_large = MenuItem::with_id(
-        app,
-        TrayMenuId::GuiLarge.as_str(),
-        get_translation(&locale, "gui_large"),
-        true,
-        None::<&str>,
-    )?;
+    let gui_small = create_menu_item(app, TrayMenuId::GuiSmall, locale)?;
+    let gui_medium = create_menu_item(app, TrayMenuId::GuiMedium, locale)?;
+    let gui_large = create_menu_item(app, TrayMenuId::GuiLarge, locale)?;
     let sep2 = PredefinedMenuItem::separator(app)?;
-    let toggle_on_top = MenuItem::with_id(
-        app,
-        TrayMenuId::ToggleOnTop.as_str(),
-        get_translation(&locale, "always_on_top"),
-        true,
-        None::<&str>,
-    )?;
-    let stop_all = MenuItem::with_id(
-        app,
-        TrayMenuId::StopAllTimers.as_str(),
-        get_translation(&locale, "stop_all"),
-        true,
-        None::<&str>,
-    )?;
+    let toggle_on_top = create_menu_item(app, TrayMenuId::ToggleOnTop, locale)?;
+    let stop_all = create_menu_item(app, TrayMenuId::StopAllTimers, locale)?;
     let sep3 = PredefinedMenuItem::separator(app)?;
-    let quit_item = MenuItem::with_id(
-        app,
-        TrayMenuId::QuitApp.as_str(),
-        get_translation(&locale, "quit"),
-        true,
-        None::<&str>,
-    )?;
+    let quit_item = create_menu_item(app, TrayMenuId::QuitApp, locale)?;
 
     let tray_menu = Menu::with_items(
         app,
@@ -194,6 +159,21 @@ pub fn build_tray_menu<R: tauri::Runtime>(app: &App<R>) -> tauri::Result<Menu<R>
     Ok(tray_menu)
 }
 
+fn emit_to_main<R: tauri::Runtime, S: serde::Serialize + Clone>(
+    app: &AppHandle<R>,
+    event: FrontendEvent,
+    payload: S,
+    show_and_focus: bool,
+) {
+    if let Some(window) = app.get_webview_window("main") {
+        if show_and_focus {
+            let _ = window.show();
+            let _ = window.set_focus();
+        }
+        let _ = window.emit(event.as_str(), payload);
+    }
+}
+
 pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent) {
     let id = event.id().as_ref();
     if let Some(menu_id) = TrayMenuId::from_str(id) {
@@ -209,38 +189,34 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                 }
             }
             TrayMenuId::GuiSmall => {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                    let _ = app.emit(FrontendEvent::TraySetGuiVariant.as_str(), GuiVariant::Small);
-                }
+                emit_to_main(
+                    app,
+                    FrontendEvent::TraySetGuiVariant,
+                    GuiVariant::Small,
+                    true,
+                );
             }
             TrayMenuId::GuiMedium => {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                    let _ = app.emit(
-                        FrontendEvent::TraySetGuiVariant.as_str(),
-                        GuiVariant::Medium,
-                    );
-                }
+                emit_to_main(
+                    app,
+                    FrontendEvent::TraySetGuiVariant,
+                    GuiVariant::Medium,
+                    true,
+                );
             }
             TrayMenuId::GuiLarge => {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                    let _ = app.emit(FrontendEvent::TraySetGuiVariant.as_str(), GuiVariant::Large);
-                }
+                emit_to_main(
+                    app,
+                    FrontendEvent::TraySetGuiVariant,
+                    GuiVariant::Large,
+                    true,
+                );
             }
             TrayMenuId::ToggleOnTop => {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                    let _ = app.emit(FrontendEvent::TrayToggleOnTop.as_str(), ());
-                }
+                emit_to_main(app, FrontendEvent::TrayToggleOnTop, (), true);
             }
             TrayMenuId::StopAllTimers => {
-                let _ = app.emit(FrontendEvent::TrayStopAllTimers.as_str(), ());
+                emit_to_main(app, FrontendEvent::TrayStopAllTimers, (), false);
             }
             TrayMenuId::QuitApp => {
                 app.exit(0);
