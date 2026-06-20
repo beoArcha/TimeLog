@@ -50,8 +50,20 @@ if (anyComponent) { v.subversions.components++; }
 if (anyTranslations) { v.subversions.translations++; }
 if (anyFront) { v.subversions.front++; }
 
-// Always increment release for every commit that triggers the workflow
-v.release++;
+const args = process.argv.slice(2);
+const toOddMinor = args.includes('--to-odd-minor');
+const toEvenMinor = args.includes('--to-even-minor');
+
+if (toOddMinor) {
+  v.minor = v.minor % 2 === 0 ? v.minor + 1 : v.minor + 2;
+  v.release = 0;
+} else if (toEvenMinor) {
+  v.minor = v.minor % 2 !== 0 ? v.minor + 1 : v.minor + 2;
+  v.release = 0;
+} else {
+  // Always increment release (patch) for every commit that triggers the workflow
+  v.release++;
+}
 
 fs.writeFileSync(versionsFile, JSON.stringify(v, null, 2) + '\n');
 

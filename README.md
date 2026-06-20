@@ -48,7 +48,8 @@ To ensure reliable, deterministic time logs, the core tracking logic conforms to
 
 The application is modularized into specialized interfaces targeting different developer preferences:
 
-```
+```text
+
 src/
 ├── components/                  # UI elements
 │   ├── gui/                     # Modular GUI views (BaseGui, SmallGui, MediumGui, LargeGui)
@@ -104,12 +105,15 @@ To run the automated suite easily, execute:
 ```bash
 npm run test
 ```
+
 Or with vitest directly:
+
 ```bash
 npx vitest run
 ```
 
 ### Verified Scopes & Assertions
+
 - **Architecture (`architecture.test.ts`)**: Ensures critical directories, types, and logic structures exist where expected before production builds.
 - **Interface & UI Isolation (`interface.test.tsx`)**: Renders components in isolation with mocked providers to detect structural React regressions.
 - **System Integration (`end-to-end.test.tsx`)**: Emulates complex user behaviors, including CLI submissions, full application rendering, system export backups, and API data pushes.
@@ -122,18 +126,41 @@ npx vitest run
 
 ## 🛠️ Continuous Integration, Delivery & Versioning
 
-oXyTime maintains enterprise-grade reliability and automated version management via advanced **GitHub Actions workflows**.
+oXyTime maintains enterprise-grade reliability and automated version management via advanced **GitHub Actions workflows**, using a dual-branch strategy (`main` for development, `release` for stable builds).
 
 ### Automated Test Pipelines & Coverage
-Every pull request and push to the `main` branch triggers parallel test matrices:
+
+Every pull request and push to both the `main` and `release` branches triggers parallel test matrices:
+
 - **Unit & E2E Testing**: Runs the complete frontend Vitest suite, exporting JUnit XML and `v8` coverage reports stored dynamically as test artifacts.
 - **Rust Backend Coverage**: On-the-fly integration of the Tauri mock native environment with **cargo-tarpaulin** analyzing native engine code coverage metrics.
 
-### Automated Version Release (`bump_versions.js`)
-Pushes to `main` evaluate git diffs natively and apply intelligent **component-level subversion tracking**:
-- Inspects code mutations to categorize bumps specifically for **Engine**, **Components**, **Translations**, or **Front**.
-- Records precise states to `src/versions.json` making live build identifiers available in the UI settings pane.
-- Automatically commits version deltas keeping local `package.json` synchronised identically to the remote state.
+### Release Branch Strategy & Versioning (`promote-to-release.yml`)
 
-### Dependency Caching
-To optimize CI speeds, the test environment injects `Swatinem/rust-cache@v2` protecting target builds alongside standard NPM caching mechanisms, significantly lowering automated verification lead times.
+Releases are strictly controlled through an **Even/Odd Minor Versioning Schema**:
+
+- The `main` branch always stays on an **even** minor version (e.g., `1.2.x`), acting as the active development branch.
+- The `release` branch always stays on an **odd** minor version (e.g., `1.3.x`), representing stable production builds.
+
+When ready to release, developers trigger the **Promote to Release** manual workflow from `main`. This automatically:
+
+1. Runs final style & lint checks.
+2. Merges `main` into the `release` branch.
+3. Automatically bumps the `release` branch to the next odd minor version using `bump_versions.js`.
+4. Automatically bumps the `main` branch to the next even minor version.
+
+### Auto Release & Tauri Builds (`release.yml`)
+
+Once the promotion is complete, the `release` branch runs its test suite. If successful, the **Auto Release** workflow is triggered:
+
+- **Tauri Action** securely compiles native binaries across a matrix (`windows`, `macos`, `ubuntu`).
+- Generates and uploads the final GUI bundles (e.g., `.exe`, `.dmg`, `.deb`).
+- Automatically creates a GitHub Release and attaches a Git Tag (e.g., `v1.3.0`).
+
+### Automated Hotfix Backports (`fix-down.yml`)
+
+To ensure `main` receives critical patches applied directly to production:
+
+- Merging a hotfix into the `release` branch automatically triggers the **Backport Fixes (Fix Down)** workflow.
+- It cherry-picks the hotfix commit and opens a Backport Pull Request against `main`.
+- Critically, it **excludes all version files** (`package.json`, `tauri.conf.json`, `versions.json`) during the cherry-pick, ensuring the `main` branch preserves its even minor version without conflicts.

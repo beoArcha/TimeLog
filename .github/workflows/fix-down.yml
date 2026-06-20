@@ -1,0 +1,68 @@
+name: Backport Fixes (Fix Down)
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - release
+
+jobs:
+  backport:
+    if: github.event.pull_request.merged == true && !contains(github.event.pull_request.title, 'chore(release)')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Create Backport Branch
+        id: create_branch
+        run: |
+          BRANCH_NAME="backport-${{ github.event.pull_request.number }}-${{ github.run_id }}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          # Ensure we have the latest main
+          git checkout main
+          git pull origin main
+          
+          git checkout -b "$BRANCH_NAME"
+
+      - name: Cherry Pick Merge Commit
+        run: |
+          # We use -m 1 because it's a merge commit
+          MERGE_SHA="${{ github.event.pull_request.merge_commit_sha }}"
+          git cherry-pick -m 1 "$MERGE_SHA" || true
+
+      - name: Restore Version Files from Main
+        run: |
+          # We don't want to backport version bumps from release to main
+          git checkout origin/main -- package.json package-lock.json src/versions.json src-tauri/tauri.conf.json src-tauri/Cargo.toml || echo "Some version files missing, ignoring"
+          
+          # If there are changes staged (due to checkout), amend the commit
+          if ! git diff --cached --quiet; then
+            git commit --amend --no-edit
+          fi
+
+      - name: Push Backport Branch
+        run: git push origin "${{ steps.create_branch.outputs.branch_name }}"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_TITLE="chore: backport hotfix #${{ github.event.pull_request.number }} to main"
+          PR_BODY="This is an automated backport of PR #${{ github.event.pull_request.number }}. Version files have been automatically excluded to preserve main's even minor version."
+          
+          gh pr create \
+            --title "$PR_TITLE" \
+            --body "$PR_BODY" \
+            --head "${{ steps.create_branch.outputs.branch_name }}" \
+            --base main

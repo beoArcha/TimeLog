@@ -4,42 +4,16 @@ on:
     workflows: ["Tests"]
     types:
       - completed
-    branches: [ "main" ]
+    branches: [ "release" ]
 
 env:
   NODE_VERSION: '22'
   CARGO_PROFILE_DEV_DEBUG: 0
 
 jobs:
-  release:
-    name: Auto Release & Version Bump
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    permissions:
-      contents: write
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-        
-    - name: Use Node.js ${{ env.NODE_VERSION }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        
-    - name: Bump versions
-      run: node scripts/bump_versions.js
-      
-    - name: Commit version bump
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git commit -am "chore(release): bump version [skip ci]" || echo "No changes to commit"
-        git push
-
   build-tauri:
     name: Build Tauri Artifacts
-    needs: release
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: write
     strategy:
