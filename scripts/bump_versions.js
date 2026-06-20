@@ -61,7 +61,6 @@ if (toOddMinor) {
   v.minor = v.minor % 2 !== 0 ? v.minor + 1 : v.minor + 2;
   v.release = 0;
 } else {
-  // Always increment release (patch) for every commit that triggers the workflow
   v.release++;
 }
 

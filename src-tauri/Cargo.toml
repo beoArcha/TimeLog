@@ -1,6 +1,6 @@
 [package]
 name = "oxy-flow"
-version = "1.0.11"
+version = "1.0.12"
 edition = "2021"
 description = "Lightweight work-timer built with Tauri v2 speed, SQLite, and a background system tray daemon."
 
@@ -17,9 +17,9 @@ rusqlite = { version = "0.31.0", features = ["bundled", "chrono"] }
 clap = { version = "4.5", features = ["derive"] }
 # System stats & CLI
 comfy-table = "7.1"
+sys-locale = "0.3"
 thiserror = "2.0"
 ts-rs = { version = "10.0", features = ["chrono-impl"] }
-sys-locale = "0.3"
 
 [build-dependencies]
 tauri-build = { version = "2.0.0", features = [] }
