@@ -2,14 +2,14 @@ import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LocaleProvider, useLocale } from '../../../src/providers/LocaleProvider';
-import { setupLocalStorageMock } from '../hooks/test-helpers';
+import { setupLocalStorageMock } from '../../shared/test-helpers';
 import { STORAGE_KEYS } from '../../../src/common/constants';
 
 describe('Unit Tests: LocaleProvider & useLocale', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupLocalStorageMock();
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => { });
   });
 
   afterEach(() => {
@@ -17,8 +17,7 @@ describe('Unit Tests: LocaleProvider & useLocale', () => {
   });
 
   it('should_throw_error_when_useLocale_is_used_outside_provider', () => {
-    // Suppress console.error output for expected error throw
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
     expect(() => renderHook(() => useLocale())).toThrow('useLocale must be used within LocaleProvider');
     consoleSpy.mockRestore();
   });
@@ -58,7 +57,7 @@ describe('Unit Tests: LocaleProvider & useLocale', () => {
       { language: 'es-ES', expected: 'es' },
       { language: 'pt-BR', expected: 'pt-br' },
       { language: 'fr-FR', expected: 'fr' },
-      { language: 'ja-JP', expected: 'en' }, // default fallback
+      { language: 'ja-JP', expected: 'en' },
     ];
 
     for (const tc of testCases) {

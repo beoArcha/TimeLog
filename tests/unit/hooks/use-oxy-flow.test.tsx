@@ -3,17 +3,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useOxyFlow, OxyContext, OxyFlowState } from '../../../src/hooks/useOxyFlow';
 import React from 'react';
 
+import { setupMatchMediaMock } from '../../shared/test-helpers';
+
 beforeEach(() => {
-  window.matchMedia = vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(), 
-    removeListener: vi.fn(), 
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }));
+  setupMatchMediaMock(false);
 });
 
 const mockState: OxyFlowState = {

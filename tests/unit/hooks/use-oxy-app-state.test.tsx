@@ -2,7 +2,6 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useOxyAppState } from '../../../src/hooks/useOxyAppState';
 
-// Mock dependency hooks
 const mockUseAppSettings = vi.fn(() => ({
   guiSize: 'large',
   textAndIconSize: 'medium',
@@ -70,7 +69,7 @@ describe('Unit Tests: useOxyAppState Hook', () => {
     });
 
     const { result } = renderHook(() => useOxyAppState());
-    
+
     act(() => {
       result.current.handleToggleTimer();
     });
@@ -88,7 +87,7 @@ describe('Unit Tests: useOxyAppState Hook', () => {
     });
 
     const { result } = renderHook(() => useOxyAppState());
-    
+
     act(() => {
       result.current.handleToggleTimer();
     });

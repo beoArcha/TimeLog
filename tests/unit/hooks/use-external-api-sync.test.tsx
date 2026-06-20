@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useExternalApiSync } from '../../../src/hooks/useExternalApiSync';
-import { setupLocalStorageMock } from './test-helpers';
+import { setupLocalStorageMock } from '../../shared/test-helpers';
 import { STORAGE_KEYS } from '../../../src/common/constants';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
 

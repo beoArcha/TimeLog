@@ -16,7 +16,6 @@ describe('Unit Tests: useTimeTicker Hook', () => {
     const { result } = renderHook(() => useTimeTicker());
     const initialTime = result.current.nowIso;
 
-    // Fast-forward 1 second
     act(() => {
       vi.advanceTimersByTime(TEST_CONSTANTS.ONE_SECOND);
     });

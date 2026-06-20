@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { useTimeLogData } from '../../../src/hooks/useTimeLogData';
-import { setupLocalStorageMock } from './test-helpers';
+import { setupLocalStorageMock } from '../../shared/test-helpers';
 import { Project, Task, TimeLog } from '../../../src/types';
 import { STORAGE_KEYS } from '../../../src/common/constants';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
@@ -13,7 +13,6 @@ describe('Unit Tests: useTimeLogData Hook', () => {
   const originalLocation = window.location;
 
   beforeAll(() => {
-    // Mock window.location.reload
     delete (window as any).location;
     window.location = {
       ...originalLocation,
@@ -28,11 +27,9 @@ describe('Unit Tests: useTimeLogData Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupLocalStorageMock();
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => { });
+    vi.spyOn(console, 'error').mockImplementation(() => { });
   });
-
-  // ── Happy Paths ──
 
   it('should_initialize_with_default_projects_when_storage_is_empty', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
@@ -41,7 +38,7 @@ describe('Unit Tests: useTimeLogData Hook', () => {
 
   it('should_add_new_project_when_handleAddProject_is_called', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
-    
+
     act(() => {
       result.current.handleAddProject('Test Project', 'rose');
     });
@@ -52,7 +49,7 @@ describe('Unit Tests: useTimeLogData Hook', () => {
 
   it('should_toggle_project_archived_state_when_handleToggleProjectArchive_is_called', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
-    
+
     act(() => {
       result.current.handleToggleProjectArchive(TEST_CONSTANTS.PROJECT_ID_1);
     });
@@ -100,7 +97,6 @@ describe('Unit Tests: useTimeLogData Hook', () => {
   it('should_delete_task_and_all_subtasks_and_logs_when_handleDeleteTask_is_called', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
-    // '102' is parent of '1021'
     act(() => {
       result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
     });
@@ -114,13 +110,11 @@ describe('Unit Tests: useTimeLogData Hook', () => {
   it('should_toggle_task_complete_and_stop_running_timer_when_handleToggleTaskComplete_is_called', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
-    // Complete task '102' which isn't complete
     act(() => {
       result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
     expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)?.completed).toBe(true);
 
-    // Toggle back to incomplete
     act(() => {
       result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
@@ -141,14 +135,12 @@ describe('Unit Tests: useTimeLogData Hook', () => {
   it('should_stop_running_timer_when_handleStartTimer_is_called_on_an_already_running_task', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
-    // Start timer on 101
     act(() => {
       result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
     expect(result.current.activeLog).not.toBeNull();
     pushToApi.mockClear();
 
-    // Start timer on 101 again (should stop it)
     act(() => {
       result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
@@ -164,7 +156,6 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     act(() => {
-      // '1021' is a subtask of '102'
       result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
     });
 
@@ -204,15 +195,13 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     expect(window.location.reload).toHaveBeenCalled();
   });
 
-  // ── Sad Paths ──
-
   it('should_fall_back_to_defaults_when_storage_contains_invalid_json', () => {
     localStorage.setItem(LOCAL_STORAGE_KEY, '{invalid-json');
-    
+
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
     expect(console.warn).toHaveBeenCalled();
-    expect(result.current.projects).toHaveLength(3); // Loads defaults
+    expect(result.current.projects).toHaveLength(3);
   });
 
   it('should_do_nothing_when_handleRenameProject_is_called_with_non_existent_id', () => {

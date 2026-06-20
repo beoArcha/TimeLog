@@ -4,39 +4,16 @@ import { renderHook, act } from '@testing-library/react';
 import { TAURI_COMMANDS } from '../../../src/common/constants';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
 
-// Mock tauri core invoke at the file level and declare it BEFORE importing the hook
-export const mockInvoke = vi.fn().mockResolvedValue(undefined);
-vi.mock('@tauri-apps/api/core', () => ({
-  invoke: (cmd: string, args?: any) => {
-    if (args !== undefined) return mockInvoke(cmd, args);
-    return mockInvoke(cmd);
-  },
-}));
+import {
+  mockInvoke,
+  mockListen,
+  tauriEventRegistry,
+  triggerTauriEvent,
+  setupLocalStorageMock,
+  setupMatchMediaMock,
+} from '../../shared/test-helpers';
 
-// Mock tauri event listen
-export const tauriEventRegistry: Record<string, Function> = {};
-export const mockListen = vi.fn().mockImplementation((eventName: string, callback: Function) => {
-  tauriEventRegistry[eventName] = callback;
-  return Promise.resolve(() => {
-    delete tauriEventRegistry[eventName];
-  });
-});
-vi.mock('@tauri-apps/api/event', () => ({
-  listen: (eventName: string, callback: Function) => mockListen(eventName, callback),
-}));
-
-// Helper to trigger events
-const triggerTauriEvent = (eventName: string, payload?: any) => {
-  if (tauriEventRegistry[eventName]) {
-    act(() => {
-      tauriEventRegistry[eventName]({ payload });
-    });
-  }
-};
-
-// Import hook AFTER mocks are declared
 import { useTauriWindow } from '../../../src/hooks/useTauriWindow';
-import { setupLocalStorageMock, setupMatchMediaMock } from './test-helpers';
 
 describe('Unit Tests: useTauriWindow Hook', () => {
   const defaultProps = {
@@ -59,7 +36,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     vi.clearAllMocks();
     setupLocalStorageMock();
     setupMatchMediaMock(false);
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => { });
     // Simulate being inside Tauri
     (window as any).__TAURI_INTERNALS__ = {};
   });
@@ -69,14 +46,11 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     vi.restoreAllMocks();
   });
 
-  // Helper to wait for the hook's async tauri listener registrations
   const waitForListeners = async () => {
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 5));
     });
   };
-
-  // ── Happy Paths (Tauri Mode) ──
 
   it('should_invoke_set_gui_size_on_mount', () => {
     renderHook(() => useTauriWindow(defaultProps));
@@ -90,7 +64,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     act(() => {
       triggerTauriEvent('native-window-maximized');
     });
- 
+
     expect(defaultProps.setGuiSize).toHaveBeenCalledWith('large');
     expect(result.current.trayNotification).toBe(TEST_CONSTANTS.TOAST_LARGE);
   });
@@ -113,7 +87,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     act(() => {
       triggerTauriEvent('tray-set-gui-variant', 'medium');
     });
- 
+
     expect(defaultProps.setGuiSize).toHaveBeenCalledWith('medium');
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.SET_GUI_SIZE, { size: 'medium', textAndIconSize: 'medium' });
   });
@@ -171,7 +145,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     act(() => {
       triggerTauriEvent('native-close-requested');
     });
- 
+
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.EXIT_APP);
   });
 
@@ -185,7 +159,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     act(() => {
       triggerTauriEvent('native-close-requested');
     });
- 
+
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.HIDE_WINDOW);
   });
 
@@ -198,31 +172,29 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     await act(async () => {
       await result.current.handleMinimizeToTray();
     });
- 
+
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.HIDE_WINDOW);
   });
- 
+
   it('should_invoke_close_window_when_handleCloseWindow_is_called', async () => {
     const { result } = renderHook(() => useTauriWindow(defaultProps));
- 
+
     await act(async () => {
       await result.current.handleCloseWindow();
     });
- 
+
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.CLOSE_WINDOW);
   });
- 
+
   it('should_invoke_minimize_window_when_handleMinimizeWindow_is_called', async () => {
     const { result } = renderHook(() => useTauriWindow(defaultProps));
- 
+
     await act(async () => {
       await result.current.handleMinimizeWindow();
     });
- 
+
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.MINIMIZE_WINDOW);
   });
-
-  // ── Happy Paths (Non-Tauri Mode) ──
 
   it('should_set_isMinimized_when_handleMinimizeToTray_is_called_outside_tauri_with_minimizeToTray_true', async () => {
     delete (window as any).__TAURI_INTERNALS__;
@@ -274,10 +246,8 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     expect(result.current.isMinimized).toBe(true);
   });
 
-  // ── Sad Paths ──
 
   it('should_log_error_when_tauri_invoke_fails', async () => {
-    // Only fail hide_window, succeed mount calls
     mockInvoke.mockImplementation((cmd) => {
       if (cmd === TAURI_COMMANDS.HIDE_WINDOW) {
         return Promise.reject(new Error('Tauri API failure'));
@@ -301,9 +271,8 @@ describe('Unit Tests: useTauriWindow Hook', () => {
   });
 
   it('should_log_error_when_tauri_listener_setup_fails', async () => {
-    // Force listen to throw an error
     mockListen.mockRejectedValueOnce(new Error('Mock listen error'));
-    
+
     renderHook(() => useTauriWindow(defaultProps));
     await waitForListeners();
 
@@ -322,7 +291,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     await act(async () => {
       await result.current.handleMinimizeToTray();
     });
- 
+
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.EXIT_APP);
   });
 

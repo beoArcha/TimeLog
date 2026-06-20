@@ -20,38 +20,50 @@ export const setupLocalStorageMock = () => {
 
 // MatchMedia Mock
 export const setupMatchMediaMock = (matches = false) => {
-  window.matchMedia = vi.fn().mockImplementation(query => ({
-    matches,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }));
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    configurable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
 };
 
-// Tauri Events registry
+import { act } from '@testing-library/react';
+
 export const tauriEventRegistry: Record<string, Function> = {};
 
 export const triggerTauriEvent = (eventName: string, payload?: any) => {
   if (tauriEventRegistry[eventName]) {
-    tauriEventRegistry[eventName]({ payload });
+    act(() => {
+      tauriEventRegistry[eventName]({ payload });
+    });
   }
 };
 
 export const mockInvoke = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@tauri-apps/api/core', () => ({
-  invoke: (cmd: string, args?: any) => mockInvoke(cmd, args),
+  invoke: (cmd: string, args?: any) => {
+    if (args !== undefined) return mockInvoke(cmd, args);
+    return mockInvoke(cmd);
+  },
 }));
 
+export const mockListen = vi.fn().mockImplementation((eventName: string, callback: Function) => {
+  tauriEventRegistry[eventName] = callback;
+  return Promise.resolve(() => {
+    delete tauriEventRegistry[eventName];
+  });
+});
+
 vi.mock('@tauri-apps/api/event', () => ({
-  listen: (eventName: string, callback: Function) => {
-    tauriEventRegistry[eventName] = callback;
-    return Promise.resolve(() => {
-      delete tauriEventRegistry[eventName];
-    });
-  },
+  listen: (eventName: string, callback: Function) => mockListen(eventName, callback),
 }));
