@@ -1,11 +1,27 @@
-import { renderHook } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { useTimeLogData } from '../../../src/hooks/useTimeLogData';
 import { setupLocalStorageMock } from '../../shared/test-helpers';
 import { STORAGE_KEYS } from '../../../src/common/constants';
+import { TEST_CONSTANTS } from '../../shared/test-constants';
+
+const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
 
 describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
   const pushToApi = vi.fn();
+  const originalLocation = window.location;
+
+  beforeAll(() => {
+    delete (window as any).location;
+    window.location = {
+      ...originalLocation,
+      reload: vi.fn(),
+    } as any;
+  });
+
+  afterAll(() => {
+    (window as any).location = originalLocation;
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,7 +64,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
 
   it('Given corrupted storage, When application starts, Then fallback state is created', () => {
     localStorage.setItem(STORAGE_KEYS.STATE_DB, '{corrupted-json-data...');
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
     const { result } = renderHook(() => useTimeLogData(pushToApi));
 
@@ -76,5 +92,319 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(result.current.activeLog).not.toBeNull();
     expect(result.current.activeLog?.id).toBe('log_active');
     expect(result.current.activeLog?.endTime).toBeNull();
+  });
+
+  it('Given default state, When handleAddProject is called, Then project state updates and persists to storage', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const initialCount = result.current.projects.length;
+
+    act(() => {
+      result.current.handleAddProject('Brand New Project', 'rose');
+    });
+
+    expect(result.current.projects).toHaveLength(initialCount + 1);
+    const addedProj = result.current.projects.find(p => p.name === 'Brand New Project');
+    expect(addedProj).toBeDefined();
+    expect(addedProj?.color).toBe('rose');
+
+    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.projects).toHaveLength(initialCount + 1);
+    expect(saved.projects.some((p: any) => p.name === 'Brand New Project')).toBe(true);
+  });
+
+  it('Given active project, When handleToggleProjectArchive is called, Then project archived flag updates and persists to storage', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const projectId = TEST_CONSTANTS.PROJECT_ID_1;
+    const initialArchived = result.current.projects.find(p => p.id === projectId)?.archived ?? false;
+
+    act(() => {
+      result.current.handleToggleProjectArchive(projectId);
+    });
+
+    expect(result.current.projects.find(p => p.id === projectId)?.archived).toBe(!initialArchived);
+
+    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.projects.find((p: any) => p.id === projectId)?.archived).toBe(!initialArchived);
+  });
+
+  it('Given active project, When handleAddTask is called, Then task updates and persists to storage', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const initialCount = result.current.tasks.length;
+
+    act(() => {
+      result.current.handleAddTask(TEST_CONSTANTS.PROJECT_ID_1, 'Integration Subtask', TEST_CONSTANTS.TASK_ID_101);
+    });
+
+    expect(result.current.tasks).toHaveLength(initialCount + 1);
+    const addedTask = result.current.tasks.find(t => t.name === 'Integration Subtask');
+    expect(addedTask).toBeDefined();
+    expect(addedTask?.parentTaskId).toBe(TEST_CONSTANTS.TASK_ID_101);
+
+    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.tasks).toHaveLength(initialCount + 1);
+    expect(saved.tasks.some((t: any) => t.name === 'Integration Subtask')).toBe(true);
+  });
+
+  it('Given active project and task, When handleRenameProject and handleRenameTask are called, Then state and storage update', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleRenameProject(TEST_CONSTANTS.PROJECT_ID_1, 'Super Backend');
+      result.current.handleRenameTask(TEST_CONSTANTS.TASK_ID_101, 'Super Schema Setup');
+    });
+
+    expect(result.current.projects.find(p => p.id === TEST_CONSTANTS.PROJECT_ID_1)?.name).toBe('Super Backend');
+    expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_101)?.name).toBe('Super Schema Setup');
+
+    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.projects.find((p: any) => p.id === TEST_CONSTANTS.PROJECT_ID_1)?.name).toBe('Super Backend');
+    expect(saved.tasks.find((t: any) => t.id === TEST_CONSTANTS.TASK_ID_101)?.name).toBe('Super Schema Setup');
+  });
+
+  it('Given task with nested task and logs, When handleDeleteTask is called, Then task, nested tasks, and associated logs are deleted and persist', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
+    });
+
+    expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)).toBeUndefined();
+    expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_1021)).toBeUndefined();
+
+    expect(result.current.logs.some(l => l.taskId === TEST_CONSTANTS.TASK_ID_102 || l.taskId === TEST_CONSTANTS.TASK_ID_1021)).toBe(false);
+
+    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.tasks.find((t: any) => t.id === TEST_CONSTANTS.TASK_ID_102)).toBeUndefined();
+    expect(saved.logs.some((l: any) => l.taskId === TEST_CONSTANTS.TASK_ID_102)).toBe(false);
+  });
+
+  it('Given active timer on a task, When handleToggleTaskComplete is called, Then completed flag changes and active log on that task terminates', () => {
+    const activeTimeLog = { id: 'log_active', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
+    const existingState = {
+      projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
+      tasks: [{ id: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, parentTaskId: null, name: 'Task 2', createdAt: '2026-06-20', completed: false }],
+      logs: [activeTimeLog],
+      activeLog: activeTimeLog,
+      holidays: [],
+      patches: []
+    };
+    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
+    });
+
+    expect(result.current.tasks[0].completed).toBe(true);
+    expect(result.current.activeLog).toBeNull();
+    expect(result.current.logs[0].endTime).not.toBeNull();
+
+    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.tasks[0].completed).toBe(true);
+    expect(saved.activeLog).toBeNull();
+    expect(saved.logs[0].endTime).not.toBeNull();
+  });
+
+  it('Given default state, When handleStartTimer is called, Then new active log is created and pushToApi is triggered', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
+    });
+
+    expect(result.current.activeLog).not.toBeNull();
+    expect(result.current.activeLog?.taskId).toBe(TEST_CONSTANTS.TASK_ID_102);
+    expect(result.current.activeLog?.endTime).toBeNull();
+
+    expect(pushToApi).toHaveBeenCalledTimes(1);
+    expect(pushToApi.mock.calls[0][0]).toMatchObject({
+      event: 'START',
+      log: {
+        taskId: TEST_CONSTANTS.TASK_ID_102,
+        endTime: null,
+      }
+    });
+
+    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.activeLog).not.toBeNull();
+    expect(saved.activeLog.taskId).toBe(TEST_CONSTANTS.TASK_ID_102);
+  });
+
+  it('Given child task and mother task not running, When handleStartTimer is called on child, Then mother task is automatically started', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
+    });
+
+    expect(result.current.activeLog?.taskId).toBe(TEST_CONSTANTS.TASK_ID_1021);
+    const runningLogs = result.current.logs.filter(l => l.endTime === null);
+    expect(runningLogs).toHaveLength(2);
+    expect(runningLogs.some(l => l.taskId === TEST_CONSTANTS.TASK_ID_102)).toBe(true);
+    expect(runningLogs.some(l => l.taskId === TEST_CONSTANTS.TASK_ID_1021)).toBe(true);
+
+    expect(pushToApi).toHaveBeenCalledTimes(2);
+  });
+
+  it('Given child task and mother task already running, When handleStartTimer is called on child, Then mother task is NOT started again', () => {
+    const activeMotherLog = { id: 'log_mother', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
+    const existingState = {
+      projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
+      tasks: [
+        { id: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, parentTaskId: null, name: 'Task 2', createdAt: '2026-06-20', completed: false },
+        { id: TEST_CONSTANTS.TASK_ID_1021, projectId: TEST_CONSTANTS.PROJECT_ID_1, parentTaskId: TEST_CONSTANTS.TASK_ID_102, name: 'Task 2.1', createdAt: '2026-06-20', completed: false }
+      ],
+      logs: [activeMotherLog],
+      activeLog: activeMotherLog,
+      holidays: [],
+      patches: []
+    };
+    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    expect(result.current.logs.filter(l => l.endTime === null)).toHaveLength(1);
+
+    act(() => {
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
+    });
+
+    const runningLogs = result.current.logs.filter(l => l.endTime === null);
+    expect(runningLogs).toHaveLength(2);
+    expect(pushToApi).toHaveBeenCalledTimes(1);
+  });
+
+  it('Given running task timer, When handleStartTimer is called, Then it terminates the timer', () => {
+    const activeTimeLog = { id: 'log_active', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
+    const existingState = {
+      projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
+      tasks: [{ id: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, parentTaskId: null, name: 'Task 2', createdAt: '2026-06-20', completed: false }],
+      logs: [activeTimeLog],
+      activeLog: activeTimeLog,
+      holidays: [],
+      patches: []
+    };
+    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
+    });
+
+    expect(result.current.activeLog).toBeNull();
+    expect(result.current.logs[0].endTime).not.toBeNull();
+    expect(pushToApi).toHaveBeenCalledTimes(1);
+    expect(pushToApi.mock.calls[0][0].event).toBe('TERMINATE');
+  });
+
+  it('Given running task timer, When handleStopTimer is called, Then active log is closed and pushToApi is triggered', () => {
+    const activeTimeLog = { id: 'log_active', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
+    const existingState = {
+      projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
+      tasks: [{ id: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, parentTaskId: null, name: 'Task 2', createdAt: '2026-06-20', completed: false }],
+      logs: [activeTimeLog],
+      activeLog: activeTimeLog,
+      holidays: [],
+      patches: []
+    };
+    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleStopTimer();
+    });
+
+    expect(result.current.activeLog).toBeNull();
+    expect(result.current.logs[0].endTime).not.toBeNull();
+    expect(pushToApi).toHaveBeenCalledTimes(1);
+    expect(pushToApi.mock.calls[0][0].event).toBe('TERMINATE');
+  });
+
+  it('Given running timers in different projects, When handleStopTimer is called with specific projectId, Then only matching project timers stop', () => {
+    const log1 = { id: 'log_1', taskId: '101', projectId: '1', startTime: '2026-06-20T12:00:00Z', endTime: null };
+    const log2 = { id: 'log_2', taskId: '201', projectId: '2', startTime: '2026-06-20T12:05:00Z', endTime: null };
+    const existingState = {
+      projects: [
+        { id: '1', name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' },
+        { id: '2', name: 'Proj 2', color: 'rose', createdAt: '2026-06-20' }
+      ],
+      tasks: [
+        { id: '101', projectId: '1', parentTaskId: null, name: 'Task 1', createdAt: '2026-06-20', completed: false },
+        { id: '201', projectId: '2', parentTaskId: null, name: 'Task 2', createdAt: '2026-06-20', completed: false }
+      ],
+      logs: [log1, log2],
+      activeLog: log2,
+      holidays: [],
+      patches: []
+    };
+    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleStopTimer('1');
+    });
+
+    expect(result.current.logs.find(l => l.id === 'log_1')?.endTime).not.toBeNull();
+    expect(result.current.logs.find(l => l.id === 'log_2')?.endTime).toBeNull();
+    expect(result.current.activeLog).not.toBeNull();
+  });
+
+  it('Given default state, When handleStartTimer is called with non-existent taskId, Then nothing changes', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleStartTimer('invalid-task-id-999');
+    });
+
+    expect(result.current.activeLog).toBeNull();
+    expect(pushToApi).not.toHaveBeenCalled();
+  });
+
+  it('Given running task timer, When handleDeleteTask is called on that task, Then activeLog becomes null', () => {
+    const activeTimeLog = { id: 'log_active', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
+    const existingState = {
+      projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
+      tasks: [{ id: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, parentTaskId: null, name: 'Task 2', createdAt: '2026-06-20', completed: false }],
+      logs: [activeTimeLog],
+      activeLog: activeTimeLog,
+      holidays: [],
+      patches: []
+    };
+    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
+    });
+
+    expect(result.current.activeLog).toBeNull();
+    expect(result.current.logs).toHaveLength(0);
+  });
+
+  it('Given no running timers, When handleStopTimer is called, Then nothing changes and API is not triggered', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+
+    act(() => {
+      result.current.handleStopTimer();
+    });
+
+    expect(result.current.activeLog).toBeNull();
+    expect(pushToApi).not.toHaveBeenCalled();
+  });
+
+  it('Given state in localStorage, When handleResetLocalStorage is called, Then localStorage is cleared and window reloads', () => {
+    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    localStorage.setItem(LOCAL_STORAGE_KEY, 'some-state');
+
+    act(() => {
+      result.current.handleResetLocalStorage();
+    });
+
+    expect(localStorage.getItem(LOCAL_STORAGE_KEY)).toBeNull();
+    expect(window.location.reload).toHaveBeenCalled();
   });
 });
