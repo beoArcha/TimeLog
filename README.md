@@ -49,18 +49,17 @@ To ensure reliable, deterministic time logs, the core tracking logic conforms to
 The application is modularized into specialized interfaces targeting different developer preferences:
 
 ```text
-
 src/
-├── components/                  # UI elements
-│   ├── gui/                     # Modular GUI views (BaseGui, SmallGui, MediumGui, LargeGui)
-├── utils/                       # Translators, date math, formats
+├── components/                  # UI elements (Modular GUI, CLI, RustSourceExplorer)
+├── utils/                       # Translators, date math, formats, backup systems
 ├── providers/                   # LocaleProvider and contexts
-└── hooks/                       # useOxyFlow engine definitions
+└── hooks/                       # useOxyFlow engine definitions and state hooks
 tests/
-├── architecture.test.ts         # Structural sanity checks 
-├── cli.test.ts                  # Command line mocking inputs and outputs
-├── end-to-end.test.tsx          # Full system integration checks
-└── utils.test.ts                # Deep mathematical time tracking logic
+├── shared/                      # Global constants and centralized mock helper functions
+├── unit/                        # Isolated tests for custom hooks, data manager, and pure functions
+├── integration/                 # Combined feature tests (GUI events, Database Explorer, CLI interaction)
+└── e2e/                         # End-to-end automation verification (currently ignored)
+```
 
 ### 🎛️ Modular GUI Engine (Small/Medium/Large)
 An elegant visual control panel split into specific variants (`SmallGui`, `MediumGui`, `LargeGui`) and routed via `GuiRouter`. It relies on a shared `BaseGui` and `useGuiLogic` hook for a clean separation of concerns. Provides full CRUD operations for projects, hierarchical task structures, subtask insertions, and responsive tracking controls. Active tasks display pulsating pingers and digital counter readouts.
@@ -114,13 +113,15 @@ npx vitest run
 
 ### Verified Scopes & Assertions
 
-- **Architecture (`architecture.test.ts`)**: Ensures critical directories, types, and logic structures exist where expected before production builds.
-- **Interface & UI Isolation (`interface.test.tsx`)**: Renders components in isolation with mocked providers to detect structural React regressions.
-- **System Integration (`end-to-end.test.tsx`)**: Emulates complex user behaviors, including CLI submissions, full application rendering, system export backups, and API data pushes.
-- **Math & Utilities (`utils.test.ts`)**:
-  - **`formatSeconds` Math:** Checks formatting bounds across variable limits (`00:00:00` up to `99:59:59`).
-  - **`getTaskDurationSeconds` Integrity:** Validates **recursive parent-child time consolidation**, dynamic live calculation tracking, and accumulated tracking logic.
-  - **Translation Engine:** Asserts custom fallback mechanisms directly from core functions.
+- **Shared Helpers & Constants (`tests/shared/`)**: Centralizes shared mocks (such as `localStorage` mocks, `matchMedia` configuration, and Tauri core/event invocation spies) to ensure zero duplication across different suites.
+- **Unit Tests (`tests/unit/`)**:
+  - **Hooks & Contexts:** Exercises custom hooks (`useAppSettings`, `useExternalApiSync`, `useTauriWindow`, `useTimeLogData`, `useTimeTicker`, `useGlobalShortcuts`, etc.) in complete isolation.
+  - **Math & Utilities:** Validates raw data operations (`data-manager.test.ts`), formatting boundaries (`formatSeconds` from `00:00:00` up to `99:59:59`), recursive parent-child log consolidation (`getTaskDurationSeconds`), backup algorithms, and dynamic localizations.
+- **Integration Tests (`tests/integration/`)**:
+  - **Tauri GUI Events:** Emulates system-level Tauri lifecycle signals, resizing limits, and minimize/close/restore event triggers.
+  - **Database Explorer:** Audits database manipulation commands for projects, tasks, holidays, logs, patches, and file export helpers.
+  - **CLI Terminal Shell:** Tests CLI parser logic, terminal prints, autoscrolls, command executions, and terminal history buffers.
+  - **Providers:** Ensures correct provider initialization and state synchronization (e.g. `LocaleProvider`).
 
 ---
 
