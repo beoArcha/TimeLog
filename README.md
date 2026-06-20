@@ -1,6 +1,6 @@
 # oXyTime Suite / oXyTimeLog
 
-oXyTime is a highly integrated, high-performance parallel time-tracking utility and development dashboard designed specifically for software engineers, freelancers, and power-users. Built around a sleek cybernetic aesthetic, it bridges fluid GUI design, an interactive terminal command-line emulator (CLI), and a mock Rust/Tauri native compilation workflow.
+oXyTime is a highly integrated, high-performance parallel time-tracking utility and development dashboard designed specifically for software engineers, freelancers, and power-users. Built around a sleek cybernetic aesthetic, it bridges fluid GUI design, an interactive terminal command-line emulator (CLI).
 
 ---
 
@@ -62,10 +62,13 @@ tests/
 ```
 
 ### 🎛️ Modular GUI Engine (Small/Medium/Large)
+
 An elegant visual control panel split into specific variants (`SmallGui`, `MediumGui`, `LargeGui`) and routed via `GuiRouter`. It relies on a shared `BaseGui` and `useGuiLogic` hook for a clean separation of concerns. Provides full CRUD operations for projects, hierarchical task structures, subtask insertions, and responsive tracking controls. Active tasks display pulsating pingers and digital counter readouts.
 
 ### 📟 CliInterface
+
 For terminal lovers, a keyboard-driven console emulator that interprets strings. Features auto-scroll, command history, and custom syntax outputs:
+
 - `help` – Displays available terminal utility systems.
 - `projects` – Enumerates projects and active timers.
 - `start <taskId>` – Commences parallel time measurement daemon processes.
@@ -73,10 +76,13 @@ For terminal lovers, a keyboard-driven console emulator that interprets strings.
 - `clear` – Cleans terminal shell buffers.
 
 ### 🦀 RustSourceExplorer
+
 Demonstrates how oXyTime integrates natively with the desktop tray using **Rust & Tauri v2**. It offers a read-only repository view of traits (`schema.rs`, `main.rs`, `tray.rs`) so teams can audit the Rust system-level integration.
 
 ### 🧙 TesterAndHelperWizard
+
 Acts as the central QA diagnostic and localization control node. It contains:
+
 - **Build Guideline Picker:** Interactive platform build recipes (Windows, macOS, Linux) explaining how to configure system compilers and package native binaries.
 - **Dynamic Localization Manager:** Allows live overrides of system strings and on-the-fly dictionary injection.
 - **QA Test Suite Runner:** An interactive mock unit test platform displaying parallel tracking audits, exclusivity guarantees, and mathematical precision checks directly in the UI.
@@ -100,7 +106,9 @@ oXyTime comes out-of-the-box supporting multiple languages, tailored for distrib
 To ensure mathematical precision, business integrity, and robust structure, our automated test suite has been heavily refactored. The tests are fully isolated in the `tests/` directory ensuring clean separation of concerns.
 
 ### Running Tests
+
 To run the automated suite easily, execute:
+
 ```bash
 npm run test
 ```
