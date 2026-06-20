@@ -16,7 +16,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
   const activeTask = activeLog ? tasks.find(t => t.id === activeLog.taskId) : null;
   const activeProject = activeTask ? projects.find(p => p.id === activeTask.projectId) : null;
 
-  const sc = getScaleStyles(state.uiScale || 'QHD');
+  const sc = getScaleStyles(state.textAndIconSize || 'medium');
 
   return (
     <AnimatePresence mode="wait">

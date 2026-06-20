@@ -5,8 +5,17 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
-#[ts(export_to = "../../src/bindings/GuiVariant.ts")]
-pub enum GuiVariant {
+#[ts(export_to = "../../src/bindings/GuiSize.ts")]
+pub enum GuiSize {
+    Small,
+    Medium,
+    Large,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export_to = "../../src/bindings/TextAndIconSize.ts")]
+pub enum TextAndIconSize {
     Small,
     Medium,
     Large,
@@ -263,7 +272,8 @@ mod tests {
 
     #[test]
     fn export_bindings() {
-        GuiVariant::export().unwrap();
+        GuiSize::export().unwrap();
+        TextAndIconSize::export().unwrap();
         AlwaysOnTopConfig::export().unwrap();
         ProjectEditHistory::export().unwrap();
         Project::export().unwrap();

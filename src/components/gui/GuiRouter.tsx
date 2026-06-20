@@ -5,10 +5,10 @@ import LargeGui from './LargeGui';
 import { GuiCommonProps } from './GuiCommonProps';
 import { useGuiLogic } from './useGuiLogic';
 
-import { GuiVariant } from '../../bindings/GuiVariant';
+import { GuiSize } from '../../bindings/GuiSize';
 
 export interface GuiRouterProps {
-  variant: GuiVariant;
+  variant: GuiSize;
   commonProps: GuiCommonProps;
   
   // Specific toggles
@@ -16,9 +16,9 @@ export interface GuiRouterProps {
   setIsSmallExpanded: (val: boolean) => void;
   showToast: (msg: string) => void;
   handleMinimizeToTray: () => void;
-  setGuiVariant: (variant: GuiVariant) => void;
+  setGuiSize: (variant: GuiSize) => void;
   currentProjectId: string;
-  lastNonSmallVariant?: Exclude<GuiVariant, 'small'>;
+  lastNonSmallVariant?: Exclude<GuiSize, 'small'>;
 }
 
 export default function GuiRouter(props: GuiRouterProps) {

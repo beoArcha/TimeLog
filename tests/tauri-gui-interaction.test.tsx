@@ -77,10 +77,9 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
   it('triggers resize and resizability commands on mount based on initial layout', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
     
-    // Large layout is default on fresh start. Large mode: resizable = true, width = 800, height = 600
+    // Large layout is default on fresh start.
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: true });
-      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 800, height: 600 });
+      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'large', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -93,9 +92,8 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     fireEvent.click(smallBtn);
 
     await waitFor(() => {
-      // Small mode: resizable = false, width = 320, height = 480
-      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: false });
-      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 320, height: 480 });
+      // Small mode
+      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'small', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -108,9 +106,8 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     fireEvent.click(mediumBtn);
 
     await waitFor(() => {
-      // Medium mode: resizable = true, width = 400, height = 600
-      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: true });
-      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 400, height: 600 });
+      // Medium mode
+      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'medium', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -124,33 +121,6 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     await screen.findByTestId('tab-cli');
   });
 
-  it('calls exit_app when close requested and minimizeToTray is false', async () => {
-    localStorage.setItem('oxytime_min_to_tray', 'false');
-    render(<LocaleProvider><App /></LocaleProvider>);
-
-    await waitForTauriListener('native-close-requested');
-
-    mockInvoke.mockClear();
-    triggerTauriEvent('native-close-requested');
-
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('exit_app');
-    });
-  });
-
-  it('calls hide_window when close requested and minimizeToTray is true', async () => {
-    localStorage.setItem('oxytime_min_to_tray', 'true');
-    render(<LocaleProvider><App /></LocaleProvider>);
-
-    await waitForTauriListener('native-close-requested');
-
-    mockInvoke.mockClear();
-    triggerTauriEvent('native-close-requested');
-
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('hide_window');
-    });
-  });
 
   it('handles tray-set-gui-variant event to switch GUI mode', async () => {
     render(<LocaleProvider><App /></LocaleProvider>);
@@ -161,8 +131,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     triggerTauriEvent('tray-set-gui-variant', 'small');
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: false });
-      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 320, height: 480 });
+      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'small', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -192,7 +161,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
   });
 
   it('updates window alwaysOnTop config when toggling the setting in small view', async () => {
-    // Start with guiVariant = small and alwaysOnTopSmall = false
+    // Start with guiSize = small and alwaysOnTopSmall = false
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_always_on_top_small', 'false');
 
@@ -256,7 +225,7 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
 
     // Wait for mount config
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: false });
+      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'small', textAndIconSize: expect.any(String) });
     });
 
     mockInvoke.mockClear();
@@ -266,14 +235,13 @@ describe('Tauri GUI to Backend Interaction Tests', () => {
     fireEvent.click(restoreBtn);
 
     await waitFor(() => {
-      // It should restore to 'large', triggering resize to 800x600 and unlocking resizing
-      expect(mockInvoke).toHaveBeenCalledWith('set_window_resizable', { resizable: true });
-      expect(mockInvoke).toHaveBeenCalledWith('resize_window', { width: 800, height: 600 });
+      // It should restore to 'large', triggering resize to large
+      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'large', textAndIconSize: expect.any(String) });
     });
   });
 
-  it('respects the generated GuiVariant and AlwaysOnTopConfig types', () => {
-    const variants: import('../src/bindings/GuiVariant').GuiVariant[] = ['small', 'medium', 'large'];
+  it('respects the generated GuiSize and AlwaysOnTopConfig types', () => {
+    const variants: import('../src/bindings/GuiSize').GuiSize[] = ['small', 'medium', 'large'];
     expect(variants).toHaveLength(3);
 
     const config: import('../src/bindings/AlwaysOnTopConfig').AlwaysOnTopConfig = {

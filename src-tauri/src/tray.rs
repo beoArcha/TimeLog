@@ -1,4 +1,4 @@
-use crate::types::GuiVariant;
+use crate::types::GuiSize;
 use tauri::{
     menu::MenuEvent,
     menu::{Menu, MenuItem, PredefinedMenuItem},
@@ -184,7 +184,7 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                 emit_to_main(
                     app,
                     FrontendEvent::TraySetGuiVariant,
-                    GuiVariant::Small,
+                    GuiSize::Small,
                     true,
                 );
             }
@@ -192,7 +192,7 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                 emit_to_main(
                     app,
                     FrontendEvent::TraySetGuiVariant,
-                    GuiVariant::Medium,
+                    GuiSize::Medium,
                     true,
                 );
             }
@@ -200,7 +200,7 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                 emit_to_main(
                     app,
                     FrontendEvent::TraySetGuiVariant,
-                    GuiVariant::Large,
+                    GuiSize::Large,
                     true,
                 );
             }

@@ -2,6 +2,7 @@ use tauri::{State, Window, AppHandle, Size, LogicalSize};
 use crate::AppState;
 use crate::errors::AppError;
 use crate::engine::counting;
+use crate::types::{GuiSize, TextAndIconSize};
 
 #[tauri::command]
 pub fn start_timer(task_id: String, state: State<'_, AppState>) -> Result<(), AppError> {
@@ -26,6 +27,26 @@ pub fn get_active_logs(state: State<'_, AppState>) -> Result<Vec<String>, AppErr
 
 #[tauri::command]
 pub fn resize_window(width: f64, height: f64, window: Window) -> Result<(), AppError> {
+    window.set_size(Size::Logical(LogicalSize::new(width, height)))?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_gui_size(size: GuiSize, text_and_icon_size: TextAndIconSize, window: Window) -> Result<(), AppError> {
+    let (width, height, resizable) = match size {
+        GuiSize::Small => (320.0, 480.0, false),
+        GuiSize::Medium => match text_and_icon_size {
+            TextAndIconSize::Small => (380.0, 580.0, true),
+            TextAndIconSize::Medium => (400.0, 600.0, true),
+            TextAndIconSize::Large => (450.0, 650.0, true),
+        },
+        GuiSize::Large => match text_and_icon_size {
+            TextAndIconSize::Small => (750.0, 550.0, true),
+            TextAndIconSize::Medium => (800.0, 600.0, true),
+            TextAndIconSize::Large => (900.0, 700.0, true),
+        },
+    };
+    window.set_resizable(resizable)?;
     window.set_size(Size::Logical(LogicalSize::new(width, height)))?;
     Ok(())
 }

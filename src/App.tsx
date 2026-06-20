@@ -32,7 +32,7 @@ export default function App() {
     isGuiClosed,
     isMinimized,
     setIsMinimized,
-    guiVariant,
+    guiSize,
     resolvedTheme,
     locale,
     customTranslations,
@@ -44,7 +44,7 @@ export default function App() {
     lastNonSmallVariant,
     showToast,
     handleMinimizeToTray,
-    setGuiVariant,
+    setGuiSize,
     handleToggleTimer,
     handleStopTimer,
     handleResetLocalStorage,
@@ -104,7 +104,7 @@ export default function App() {
     locale,
     customTranslations,
     theme: resolvedTheme,
-    uiScale: state.uiScale,
+    textAndIconSize: state.textAndIconSize,
     selectedTaskId,
     setSelectedTaskId,
     activeLargeTab,
@@ -152,7 +152,7 @@ export default function App() {
               }}
               showToast={showToast}
             />
-          ) : guiVariant === 'small' ? (
+          ) : guiSize === 'small' ? (
             <GuiRouter 
               variant="small" 
               commonProps={guiCommonProps} 
@@ -160,7 +160,7 @@ export default function App() {
               setIsSmallExpanded={setIsSmallExpanded} 
               showToast={showToast} 
               handleMinimizeToTray={handleMinimizeToTray} 
-              setGuiVariant={setGuiVariant} 
+              setGuiSize={setGuiSize} 
               currentProjectId={currentProjectId} 
               lastNonSmallVariant={lastNonSmallVariant} 
             />
@@ -182,7 +182,7 @@ export default function App() {
                 
                 <Header />
 
-                {guiVariant === 'large' && (
+                {guiSize === 'large' && (
                   <div className={`border-b transition-all duration-300 ${
                     resolvedTheme === 'light' ? 'bg-[#EAE4DB]/50 border-[#DFD7CB]' : 'bg-black/35 border-white/5'
                   }`}>
@@ -229,7 +229,7 @@ export default function App() {
                   <DaemonStatusBar />
 
                   <div id="tab-viewport" className="min-h-[480px]">
-                    {guiVariant === 'medium' && (
+                    {guiSize === 'medium' && (
                       <GuiRouter 
                         variant="medium" 
                         commonProps={guiCommonProps} 
@@ -237,12 +237,12 @@ export default function App() {
                         setIsSmallExpanded={setIsSmallExpanded} 
                         showToast={showToast} 
                         handleMinimizeToTray={handleMinimizeToTray} 
-                        setGuiVariant={setGuiVariant} 
+                        setGuiSize={setGuiSize} 
                         currentProjectId={currentProjectId} 
                       />
                     )}
 
-                    {guiVariant === 'large' && (
+                    {guiSize === 'large' && (
                       <AnimatePresence mode="wait">
                         {activeLargeTab === 'main' && (
                           <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -253,7 +253,7 @@ export default function App() {
                               setIsSmallExpanded={setIsSmallExpanded} 
                               showToast={showToast} 
                               handleMinimizeToTray={handleMinimizeToTray} 
-                              setGuiVariant={setGuiVariant} 
+                              setGuiSize={setGuiSize} 
                               currentProjectId={currentProjectId} 
                             />
                           </motion.div>
@@ -295,7 +295,7 @@ export default function App() {
                               setIsSmallExpanded={setIsSmallExpanded} 
                               showToast={showToast} 
                               handleMinimizeToTray={handleMinimizeToTray} 
-                              setGuiVariant={setGuiVariant} 
+                              setGuiSize={setGuiSize} 
                               currentProjectId={currentProjectId} 
                             />
                           </motion.div>

@@ -19,7 +19,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
     setIsSmallExpanded,
     showToast,
     handleMinimizeToTray,
-    setGuiVariant,
+    setGuiSize,
     currentProjectId,
     lastNonSmallVariant
   } = rest;
@@ -95,7 +95,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
             <button
               onClick={() => {
                 const target = lastNonSmallVariant || 'large';
-                setGuiVariant(target);
+                setGuiSize(target);
                 showToast(locale === 'pl' ? `Rozmiar zmieniony na ${target === 'medium' ? 'ŚREDNI' : 'DUŻY'}` : `Size changed to ${target.toUpperCase()}`);
               }}
               className="p-1 rounded hover:bg-white/10 hover:text-orange-400 text-slate-400 cursor-pointer transition-colors flex items-center justify-center"

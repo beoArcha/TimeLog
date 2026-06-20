@@ -215,9 +215,9 @@ describe('E2E Interaction Suite: State, CLI, Backup, API Push', () => {
     expect(localStorage.getItem('oxytime_min_to_tray')).toEqual(String(!initialState));
   });
 
-  it('verifies local storage and state variables use valid GuiVariant types', async () => {
+  it('verifies local storage and state variables use valid GuiSize types', async () => {
     localStorage.setItem('oxytime_gui_variant', 'small');
-    const storedVariant = localStorage.getItem('oxytime_gui_variant') as import('../src/bindings/GuiVariant').GuiVariant;
+    const storedVariant = localStorage.getItem('oxytime_gui_variant') as import('../src/bindings/GuiSize').GuiSize;
     expect(storedVariant).toBe('small');
   });
 });

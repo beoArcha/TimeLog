@@ -58,6 +58,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             commands::start_timer,
             commands::stop_timer,
             commands::get_active_logs,
+            commands::set_gui_size,
             commands::resize_window,
             commands::set_always_on_top,
             commands::minimize_window,

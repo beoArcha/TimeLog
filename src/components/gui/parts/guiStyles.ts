@@ -18,9 +18,24 @@ export const PROJECT_COLORS = [
   { name: 'emerald', bg: 'bg-emerald-500', hex: '#10b981', text: 'text-emerald-500' },
 ];
 
-export const getScaleStyles = (scale: 'FHD' | 'QHD' | 'UHD') => {
+export const GUI_MIN_SIZES = {
+  medium: {
+    'small': { minWidth: '480px', minHeight: '720px' },
+    'medium': { minWidth: '640px', minHeight: '1080px' },
+    'large': { minWidth: '864px', minHeight: '1440px' }
+  },
+  large: {
+    'small': { minWidth: '1280px', minHeight: '720px' },
+    'medium': { minWidth: '1920px', minHeight: '1080px' },
+    'large': { minWidth: '2560px', minHeight: '1440px' }
+  }
+};
+
+import { TextAndIconSize } from '../../../bindings/TextAndIconSize';
+
+export const getScaleStyles = (scale: TextAndIconSize) => {
   switch (scale) {
-    case 'FHD':
+    case 'small':
       return {
         paddingMain: 'p-4',
         paddingSection: 'p-3',
@@ -36,7 +51,7 @@ export const getScaleStyles = (scale: 'FHD' | 'QHD' | 'UHD') => {
         iconLarge: 'w-6 h-6',
         inputPy: 'py-2',
       };
-    case 'QHD':
+    case 'medium':
       return {
         paddingMain: 'p-6',
         paddingSection: 'p-4',
@@ -52,7 +67,7 @@ export const getScaleStyles = (scale: 'FHD' | 'QHD' | 'UHD') => {
         iconLarge: 'w-8 h-8',
         inputPy: 'py-3',
       };
-    case 'UHD':
+    case 'large':
       return {
         paddingMain: 'p-8',
         paddingSection: 'p-6',
@@ -69,6 +84,6 @@ export const getScaleStyles = (scale: 'FHD' | 'QHD' | 'UHD') => {
         inputPy: 'py-4',
       };
     default:
-      return getScaleStyles('QHD');
+      return getScaleStyles('medium');
   }
 };

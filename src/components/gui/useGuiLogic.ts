@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { GuiCommonProps } from './GuiCommonProps';
 
 export function useGuiLogic(props: GuiCommonProps) {
-  const { projects, tasks, logs, uiScale = 'QHD' } = props;
+  const { projects, tasks, logs, textAndIconSize = 'medium' } = props;
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(projects[0]?.id || null);
   const [newHolidayDate, setNewHolidayDate] = useState('2026-06-15');

@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useLocale } from '../providers/LocaleProvider';
 import { Project, Task, TimeLog, HolidayLeave, PatchLog, Settings as AppSettings, FrontendEvent } from '../types';
-import { GuiVariant } from '../bindings/GuiVariant';
+import { GuiSize } from '../bindings/GuiSize';
+import { TextAndIconSize } from '../bindings/TextAndIconSize';
 import { AlwaysOnTopConfig } from '../bindings/AlwaysOnTopConfig';
 import { DataManager } from '../utils/dataManager';
 import { translate } from '../utils/i18n';
@@ -14,24 +15,10 @@ const isTauri = () => {
   return typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__ !== undefined;
 };
 
-const handleWindowResize = async (variant: GuiVariant) => {
+const handleSetGuiSize = async (size: GuiSize, textIconSize: TextAndIconSize) => {
   if (!isTauri()) return;
   try {
-    let w = 800, h = 600;
-    if (variant === 'small') {
-      w = 320;
-      h = 480;
-    } else if (variant === 'medium') {
-      w = 400;
-      h = 600;
-    }
-    if (variant === 'small') {
-      await invoke('set_window_resizable', { resizable: false });
-      await invoke('resize_window', { width: w, height: h });
-    } else {
-      await invoke('set_window_resizable', { resizable: true });
-      await invoke('resize_window', { width: w, height: h });
-    }
+    await invoke('set_gui_size', { size, textAndIconSize: textIconSize });
   } catch (err) {
     console.error('Tauri resize error:', err);
   }
@@ -56,14 +43,14 @@ export const useOxyAppState = () => {
     return (saved as any) || 'system';
   });
 
-  const [uiScale, setUiScale] = useState<'FHD' | 'QHD' | 'UHD'>(() => {
-    const saved = localStorage.getItem('oxytime_ui_scale');
-    return (saved as any) || 'QHD';
+  const [textAndIconSize, setTextAndIconSize] = useState<TextAndIconSize>(() => {
+    const saved = localStorage.getItem('oxytime_text_icon_size');
+    return (saved as TextAndIconSize) || 'medium';
   });
 
   useEffect(() => {
-    localStorage.setItem('oxytime_ui_scale', uiScale);
-  }, [uiScale]);
+    localStorage.setItem('oxytime_text_icon_size', textAndIconSize);
+  }, [textAndIconSize]);
 
   const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light' | 'high-contrast'>('dark');
 
@@ -105,8 +92,8 @@ export const useOxyAppState = () => {
 
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
 
-  const [guiVariant, setGuiVariant] = useState<GuiVariant>(() => {
-    return (localStorage.getItem('oxytime_gui_variant') as GuiVariant) || 'large';
+  const [guiSize, setGuiSize] = useState<GuiSize>(() => {
+    return (localStorage.getItem('oxytime_gui_variant') as GuiSize) || 'large';
   });
 
   const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(() => {
@@ -117,9 +104,9 @@ export const useOxyAppState = () => {
     return localStorage.getItem('oxytime_always_on_top_main') === 'true';
   });
 
-  const [lastNonSmallVariant, setLastNonSmallVariant] = useState<Exclude<GuiVariant, 'small'>>(() => {
+  const [lastNonSmallVariant, setLastNonSmallVariant] = useState<Exclude<GuiSize, 'small'>>(() => {
     const saved = localStorage.getItem('oxytime_last_non_small_variant');
-    return (saved as Exclude<GuiVariant, 'small'>) || 'large';
+    return (saved as Exclude<GuiSize, 'small'>) || 'large';
   });
 
   const getAlwaysOnTopConfig = (): AlwaysOnTopConfig => {
@@ -142,12 +129,12 @@ export const useOxyAppState = () => {
   }, [sysSettings]);
 
   useEffect(() => {
-    localStorage.setItem('oxytime_gui_variant', guiVariant);
-    if (guiVariant !== 'small') {
-      setLastNonSmallVariant(guiVariant);
-      localStorage.setItem('oxytime_last_non_small_variant', guiVariant);
+    localStorage.setItem('oxytime_gui_variant', guiSize);
+    if (guiSize !== 'small') {
+      setLastNonSmallVariant(guiSize);
+      localStorage.setItem('oxytime_last_non_small_variant', guiSize);
     }
-  }, [guiVariant]);
+  }, [guiSize]);
 
   useEffect(() => {
     localStorage.setItem('oxytime_always_on_top_small', String(alwaysOnTopSmall));
@@ -156,16 +143,16 @@ export const useOxyAppState = () => {
 
   useEffect(() => {
     const applyWindowConfig = async () => {
-      await handleWindowResize(guiVariant);
+      await handleSetGuiSize(guiSize, textAndIconSize);
       await new Promise(resolve => setTimeout(resolve, 50));
-      if (guiVariant !== 'small') {
+      if (guiSize !== 'small') {
         await handleWindowAlwaysOnTop(alwaysOnTopMain);
       } else {
         await handleWindowAlwaysOnTop(alwaysOnTopSmall);
       }
     };
     applyWindowConfig();
-  }, [guiVariant, alwaysOnTopSmall, alwaysOnTopMain]);
+  }, [guiSize, textAndIconSize, alwaysOnTopSmall, alwaysOnTopMain]);
 
   useEffect(() => {
     if (currentProjectId) {
@@ -594,7 +581,7 @@ export const useOxyAppState = () => {
     showToast(translate(locale, 'dynamic.copiedToClipboard', customTranslations));
   };
 
-  const guiVariantRef = useRef(guiVariant);
+  const guiSizeRef = useRef(guiSize);
   const minimizeToTrayRef = useRef(minimizeToTray);
   const alwaysOnTopSmallRef = useRef(alwaysOnTopSmall);
   const alwaysOnTopMainRef = useRef(alwaysOnTopMain);
@@ -604,7 +591,7 @@ export const useOxyAppState = () => {
   const showToastRef = useRef(showToast);
 
   useEffect(() => {
-    guiVariantRef.current = guiVariant;
+    guiSizeRef.current = guiSize;
     minimizeToTrayRef.current = minimizeToTray;
     alwaysOnTopSmallRef.current = alwaysOnTopSmall;
     alwaysOnTopMainRef.current = alwaysOnTopMain;
@@ -612,7 +599,7 @@ export const useOxyAppState = () => {
     customTranslationsRef.current = customTranslations;
     handleStopTimerRef.current = handleStopTimer;
     showToastRef.current = showToast;
-  }, [guiVariant, minimizeToTray, alwaysOnTopSmall, alwaysOnTopMain, locale, customTranslations, handleStopTimer, showToast]);
+  }, [guiSize, textAndIconSize, minimizeToTray, alwaysOnTopSmall, alwaysOnTopMain, locale, customTranslations, handleStopTimer, showToast]);
 
   useEffect(() => {
     let active = true;
@@ -624,23 +611,23 @@ export const useOxyAppState = () => {
         const { listen } = await import('@tauri-apps/api/event');
 
         const uMax = await listen('native-window-maximized' satisfies FrontendEvent, () => {
-          setGuiVariant('large');
+          setGuiSize('large');
           showToastRef.current("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
         });
         if (!active) { uMax(); } else { unlisteners.push(uMax); }
 
         const uRest = await listen('native-window-restored' satisfies FrontendEvent, () => {
-          setGuiVariant('large');
+          setGuiSize('large');
         });
         if (!active) { uRest(); } else { unlisteners.push(uRest); }
 
 
 
         // --- Tray menu event listeners ---
-        const uVariant = await listen<GuiVariant>('tray-set-gui-variant' satisfies FrontendEvent, async (event) => {
+        const uVariant = await listen<GuiSize>('tray-set-gui-variant' satisfies FrontendEvent, async (event) => {
           const variant = event.payload;
-          setGuiVariant(variant);
-          await handleWindowResize(variant);
+          setGuiSize(variant);
+          await handleSetGuiSize(variant, textAndIconSize);
           const flag = variant === 'small' ? alwaysOnTopSmallRef.current : alwaysOnTopMainRef.current;
           await handleWindowAlwaysOnTop(flag);
           showToastRef.current(`GUI: ${variant === 'small' ? 'Mały' : variant === 'medium' ? 'Średni' : 'Duży'}`);
@@ -648,7 +635,7 @@ export const useOxyAppState = () => {
         if (!active) { uVariant(); } else { unlisteners.push(uVariant); }
 
         const uOnTop = await listen('tray-toggle-on-top' satisfies FrontendEvent, async () => {
-          if (guiVariantRef.current === 'small') {
+          if (guiSizeRef.current === 'small') {
             const newVal = !alwaysOnTopSmallRef.current;
             setAlwaysOnTopSmall(newVal);
             await handleWindowAlwaysOnTop(newVal);
@@ -694,7 +681,7 @@ export const useOxyAppState = () => {
     locale, setLocale,
     theme, setTheme,
     resolvedTheme, setResolvedTheme,
-    uiScale, setUiScale,
+    textAndIconSize, setTextAndIconSize,
     customTranslations, setCustomTranslations,
     engineState, setEngineState,
     enginePID, setEnginePID,
@@ -708,7 +695,7 @@ export const useOxyAppState = () => {
     apiUrl, setApiUrl,
     nowIso, setNowIso,
     isGuiClosed, setIsGuiClosed,
-    guiVariant, setGuiVariant,
+    guiSize, setGuiSize,
 
     // Local / UI States
     activeTab, setActiveTab,

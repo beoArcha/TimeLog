@@ -6,23 +6,18 @@ import ActiveTimerBanner from './parts/ActiveTimerBanner';
 import TaskListView from './parts/TaskListView';
 import ReportView from './parts/ReportView';
 import DbInspector from './parts/DbInspector';
+import { GUI_MIN_SIZES } from './parts/guiStyles';
 
 type LargeGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
 export default function LargeGui({ state }: LargeGuiProps) {
-  const { theme, activeView, uiScale = 'QHD' } = state;
-
-  const minSizes = {
-    'FHD': { minWidth: '1280px', minHeight: '720px' },
-    'QHD': { minWidth: '1920px', minHeight: '1080px' },
-    'UHD': { minWidth: '2560px', minHeight: '1440px' }
-  };
+  const { theme, activeView, textAndIconSize = 'medium' } = state;
 
   return (
     <div 
       id="gui-container" 
       className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'} flex-1`}
-      style={minSizes[uiScale as keyof typeof minSizes] || minSizes['QHD']}
+      style={GUI_MIN_SIZES.large[textAndIconSize as keyof typeof GUI_MIN_SIZES.large] || GUI_MIN_SIZES.large['medium']}
     >
       {/* 1. Projects Sidebar - Left 4 Cols */}
       <Sidebar state={state} />

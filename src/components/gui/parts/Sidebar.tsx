@@ -17,7 +17,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
   } = state;
 
   const th = getThemeStyles(theme);
-  const sc = getScaleStyles(state.uiScale || 'QHD');
+  const sc = getScaleStyles(state.textAndIconSize || 'medium');
 
   const handleAddProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault();

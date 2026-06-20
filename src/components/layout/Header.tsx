@@ -3,14 +3,14 @@ import { Shield, Moon, Sun, Eye, Laptop, Languages } from 'lucide-react';
 import { useOxyFlow } from '../../hooks/useOxyFlow';
 import { translate } from '../../utils/i18n';
 import versionsData from '../../versions.json';
-import { GuiVariant } from '../../bindings/GuiVariant';
+import { GuiSize } from '../../bindings/GuiSize';
 
 export default function Header() {
   const {
-    guiVariant,
-    setGuiVariant,
-    uiScale,
-    setUiScale,
+    guiSize,
+    setGuiSize,
+    textAndIconSize,
+    setTextAndIconSize,
     theme,
     setTheme,
     resolvedTheme,
@@ -45,12 +45,12 @@ export default function Header() {
           resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
         }`}>
           {(['small', 'medium', 'large'] as const).map(sz => {
-            const isActive = guiVariant === sz;
+            const isActive = guiSize === sz;
             return (
               <button
                 key={sz}
                 onClick={() => {
-                  setGuiVariant(sz);
+                  setGuiSize(sz);
                   if (showToast) {
                     showToast(`${translate(locale, 'app.sizeChanged', customTranslations)} ${sz.toUpperCase()}`);
                   }
@@ -75,13 +75,13 @@ export default function Header() {
         <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
           resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
         }`}>
-          {(['FHD', 'QHD', 'UHD'] as const).map(scale => {
-            const isActive = uiScale === scale;
-            const textSize = scale === 'FHD' ? 'text-[9px]' : scale === 'QHD' ? 'text-[11px]' : 'text-[13px]';
+          {(['small', 'medium', 'large'] as const).map(scale => {
+            const isActive = textAndIconSize === scale;
+            const textSize = scale === 'small' ? 'text-[9px]' : scale === 'medium' ? 'text-[11px]' : 'text-[13px]';
             return (
               <button
                 key={scale}
-                onClick={() => setUiScale(scale)}
+                onClick={() => setTextAndIconSize(scale)}
                 className={`px-2.5 py-0.5 rounded-md uppercase transition-all cursor-pointer flex flex-col items-center justify-center min-w-[32px] ${
                   isActive
                     ? resolvedTheme === 'light'

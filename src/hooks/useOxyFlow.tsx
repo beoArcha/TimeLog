@@ -1,6 +1,8 @@
 import React, { createContext, useContext } from 'react';
 import { Project, Task, TimeLog, HolidayLeave, PatchLog, Settings } from '../types';
 import { LocaleType } from '../utils/translations';
+import { GuiSize } from '../bindings/GuiSize';
+import { TextAndIconSize } from '../bindings/TextAndIconSize';
 
 import { TranslationDictionary } from '../utils/translations';
 
@@ -34,8 +36,10 @@ export interface OxyFlowState {
   resolvedTheme: 'dark' | 'light' | 'high-contrast';
   setResolvedTheme: React.Dispatch<React.SetStateAction<'dark' | 'light' | 'high-contrast'>>;
   
-  uiScale: 'FHD' | 'QHD' | 'UHD';
-  setUiScale: React.Dispatch<React.SetStateAction<'FHD' | 'QHD' | 'UHD'>>;
+  textAndIconSize: TextAndIconSize;
+  setTextAndIconSize: React.Dispatch<React.SetStateAction<TextAndIconSize>>;
+  guiSize: GuiSize;
+  setGuiSize: React.Dispatch<React.SetStateAction<GuiSize>>;
   
   engineState: 'searching' | 'connected';
   enginePID: number;

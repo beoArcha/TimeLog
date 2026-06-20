@@ -6,6 +6,7 @@ import { HolidayLeave } from '../../bindings/HolidayLeave';
 import { PatchLog } from '../../bindings/PatchLog';
 import { Settings } from '../../bindings/Settings';
 import { LocaleType, TranslationDictionary } from '../../utils/translations';
+import { TextAndIconSize } from '../../bindings/TextAndIconSize';
 
 export interface GuiCommonProps {
   projects: Project[];
@@ -31,7 +32,7 @@ export interface GuiCommonProps {
   locale: LocaleType;
   customTranslations?: Partial<TranslationDictionary>;
   theme?: string;
-  uiScale?: 'FHD' | 'QHD' | 'UHD';
+  textAndIconSize?: TextAndIconSize;
 
   selectedTaskId: string | null;
   setSelectedTaskId: (id: string | null) => void;

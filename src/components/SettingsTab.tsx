@@ -11,7 +11,7 @@ import { Info } from 'lucide-react';
 import versionsData from '../versions.json';
 
 export default function SettingsTab() {
-  const { theme, setTheme, uiScale, setUiScale, customTranslations, setCustomTranslations, resolvedTheme, localePref, setLocalePref, locale, setLocale, setProjects, setTasks, setLogs, setHolidays } = useOxyFlow();
+  const { theme, setTheme, textAndIconSize, setTextAndIconSize, customTranslations, setCustomTranslations, resolvedTheme, localePref, setLocalePref, locale, setLocale, setProjects, setTasks, setLogs, setHolidays } = useOxyFlow();
 
   const handleResetData = () => {
     const response = window.prompt(translate(locale, 'dynamic.warningResetApp', customTranslations));
