@@ -1,14 +1,14 @@
-use thiserror::Error;
 use serde::Serialize;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum AppError {
     #[error("Database error: {0}")]
     Database(#[from] rusqlite::Error),
-    
+
     #[error("Tauri error: {0}")]
     Tauri(#[from] tauri::Error),
-    
+
     #[error("Application error: {0}")]
     Generic(String),
 }

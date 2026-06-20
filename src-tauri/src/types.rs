@@ -1,7 +1,7 @@
 #![allow(dead_code)] // Structs and enums in this module are used for exporting TypeScript bindings to the frontend via ts-rs.
 
+use serde::{Deserialize, Serialize};
 use ts_rs::TS;
-use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
@@ -235,7 +235,6 @@ impl Locale {
         }
     }
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "kebab-case")]

@@ -105,8 +105,7 @@ impl TrayMenuId {
 pub use crate::types::{FrontendEvent, Locale};
 
 fn get_system_locale() -> Locale {
-    let sys_lang = sys_locale::get_locale()
-        .unwrap_or_else(|| "en".to_string());
+    let sys_lang = sys_locale::get_locale().unwrap_or_else(|| "en".to_string());
     Locale::from_sys_lang(&sys_lang)
 }
 
@@ -181,28 +180,13 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                 }
             }
             TrayMenuId::GuiSmall => {
-                emit_to_main(
-                    app,
-                    FrontendEvent::TraySetGuiVariant,
-                    GuiSize::Small,
-                    true,
-                );
+                emit_to_main(app, FrontendEvent::TraySetGuiVariant, GuiSize::Small, true);
             }
             TrayMenuId::GuiMedium => {
-                emit_to_main(
-                    app,
-                    FrontendEvent::TraySetGuiVariant,
-                    GuiSize::Medium,
-                    true,
-                );
+                emit_to_main(app, FrontendEvent::TraySetGuiVariant, GuiSize::Medium, true);
             }
             TrayMenuId::GuiLarge => {
-                emit_to_main(
-                    app,
-                    FrontendEvent::TraySetGuiVariant,
-                    GuiSize::Large,
-                    true,
-                );
+                emit_to_main(app, FrontendEvent::TraySetGuiVariant, GuiSize::Large, true);
             }
             TrayMenuId::ToggleOnTop => {
                 emit_to_main(app, FrontendEvent::TrayToggleOnTop, (), true);

@@ -1,26 +1,35 @@
-use tauri::{State, Window, AppHandle, Size, LogicalSize};
-use crate::AppState;
-use crate::errors::AppError;
 use crate::engine::counting;
+use crate::errors::AppError;
 use crate::types::{GuiSize, TextAndIconSize};
+use crate::AppState;
+use tauri::{AppHandle, LogicalSize, Size, State, Window};
 
 #[tauri::command]
 pub fn start_timer(task_id: String, state: State<'_, AppState>) -> Result<(), AppError> {
-    let conn = state.db_conn.lock().map_err(|e| AppError::Generic(e.to_string()))?;
+    let conn = state
+        .db_conn
+        .lock()
+        .map_err(|e| AppError::Generic(e.to_string()))?;
     counting::start_project_timer(&conn, &task_id)?;
     Ok(())
 }
 
 #[tauri::command]
 pub fn stop_timer(project_id: Option<String>, state: State<'_, AppState>) -> Result<(), AppError> {
-    let conn = state.db_conn.lock().map_err(|e| AppError::Generic(e.to_string()))?;
+    let conn = state
+        .db_conn
+        .lock()
+        .map_err(|e| AppError::Generic(e.to_string()))?;
     counting::stop_project_timer(&conn, project_id.as_deref())?;
     Ok(())
 }
 
 #[tauri::command]
 pub fn get_active_logs(state: State<'_, AppState>) -> Result<Vec<String>, AppError> {
-    let conn = state.db_conn.lock().map_err(|e| AppError::Generic(e.to_string()))?;
+    let conn = state
+        .db_conn
+        .lock()
+        .map_err(|e| AppError::Generic(e.to_string()))?;
     let active = counting::query_active_logs(&conn)?;
     Ok(active)
 }
@@ -32,7 +41,11 @@ pub fn resize_window(width: f64, height: f64, window: Window) -> Result<(), AppE
 }
 
 #[tauri::command]
-pub fn set_gui_size(size: GuiSize, text_and_icon_size: TextAndIconSize, window: Window) -> Result<(), AppError> {
+pub fn set_gui_size(
+    size: GuiSize,
+    text_and_icon_size: TextAndIconSize,
+    window: Window,
+) -> Result<(), AppError> {
     let (width, height, resizable) = match size {
         GuiSize::Small => (320.0, 480.0, false),
         GuiSize::Medium => match text_and_icon_size {
@@ -95,5 +108,7 @@ pub fn exit_app(app_handle: AppHandle) {
 
 #[tauri::command]
 pub fn set_minimize_to_tray(minimize: bool, state: State<'_, AppState>) {
-    state.minimize_to_tray.store(minimize, std::sync::atomic::Ordering::Relaxed);
+    state
+        .minimize_to_tray
+        .store(minimize, std::sync::atomic::Ordering::Relaxed);
 }
