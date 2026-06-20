@@ -64,22 +64,13 @@ pub fn handle_cli(args: CliArgs, conn: &rusqlite::Connection) -> Result<CliOutpu
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::engine::db::init_db_in_memory;
+    use crate::engine::test_helpers::TestDb;
 
     fn setup() -> rusqlite::Connection {
-        let conn = init_db_in_memory().expect("in-memory DB init failed");
-        let now = chrono::Utc::now().to_rfc3339();
-        conn.execute(
-            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'CliProj', 'blue', ?)",
-            [&now],
-        )
-        .expect("insert project failed");
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'CliTask', ?)",
-            [&now],
-        )
-        .expect("insert task failed");
-        conn
+        TestDb::new()
+            .with_project("p1", "CliProj", "blue")
+            .with_task("t1", "p1", "CliTask")
+            .conn
     }
 
     #[test]

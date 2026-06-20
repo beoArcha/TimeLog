@@ -73,6 +73,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_db_initializes_in_memory() {
+        let result = init_db_in_memory();
+        assert!(
+            result.is_ok(),
+            "In-memory DB should initialize without error"
+        );
+    }
+
+    #[test]
     fn test_data_manager_creation() -> Result<()> {
         let manager = DataManager::new_in_memory();
         match &manager {

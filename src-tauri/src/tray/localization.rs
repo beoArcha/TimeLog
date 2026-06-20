@@ -1,6 +1,5 @@
 use crate::types::Locale;
 
-/// Maps a tray menu entry identifier and locale to its localized display string.
 pub fn get_text(item: TrayItem, locale: Locale) -> &'static str {
     match locale {
         Locale::Pl => pl(item),
@@ -12,7 +11,6 @@ pub fn get_text(item: TrayItem, locale: Locale) -> &'static str {
     }
 }
 
-/// All translatable tray menu items, mirroring `TrayMenuId` but decoupled from Tauri types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TrayItem {
     ToggleVisibility,

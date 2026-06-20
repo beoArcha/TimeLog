@@ -1,5 +1,5 @@
+use crate::common::AppError;
 use crate::engine::counting;
-use crate::errors::AppError;
 use rusqlite::Connection;
 
 pub fn start(conn: &Connection, task_id: &str) -> Result<(), AppError> {
@@ -20,27 +20,14 @@ pub fn get_active(conn: &Connection) -> Result<Vec<String>, AppError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::engine::db::init_db_in_memory;
+    use crate::engine::test_helpers::TestDb;
 
     fn setup() -> Connection {
-        let conn = init_db_in_memory().expect("in-memory DB init failed");
-        let now = chrono::Utc::now().to_rfc3339();
-        conn.execute(
-            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)",
-            [&now],
-        )
-        .unwrap();
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)",
-            [&now],
-        )
-        .unwrap();
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p1', 'Task2', ?)",
-            [&now],
-        )
-        .unwrap();
-        conn
+        TestDb::new()
+            .with_project("p1", "Proj1", "red")
+            .with_task("t1", "p1", "Task1")
+            .with_task("t2", "p1", "Task2")
+            .conn
     }
 
     #[test]
@@ -77,18 +64,10 @@ mod tests {
 
     #[test]
     fn test_stop_all_timers() {
-        let conn = setup();
-        let now = chrono::Utc::now().to_rfc3339();
-        conn.execute(
-            "INSERT INTO projects (id, name, color, created_at) VALUES ('p2', 'Proj2', 'blue', ?)",
-            [&now],
-        )
-        .unwrap();
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t3', 'p2', 'Task3', ?)",
-            [&now],
-        )
-        .unwrap();
+        let conn = TestDb { conn: setup() }
+            .with_project("p2", "Proj2", "blue")
+            .with_task("t3", "p2", "Task3")
+            .conn;
 
         start(&conn, "t1").expect("start t1 failed");
         start(&conn, "t3").expect("start t3 failed");

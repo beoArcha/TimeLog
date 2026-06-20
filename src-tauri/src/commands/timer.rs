@@ -1,4 +1,4 @@
-use crate::errors::AppError;
+use crate::common::AppError;
 use crate::services::timer_service;
 use crate::AppState;
 use tauri::State;

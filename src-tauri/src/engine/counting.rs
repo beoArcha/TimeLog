@@ -51,25 +51,15 @@ pub fn query_active_logs(conn: &Connection) -> Result<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::engine::db::init_db_in_memory;
+    use crate::engine::test_helpers::TestDb;
 
     #[test]
     fn test_counting_lifecycle() -> Result<()> {
-        let conn = init_db_in_memory()?;
-        let now = chrono::Utc::now().to_rfc3339();
-
-        conn.execute(
-            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)",
-            [&now],
-        )?;
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)",
-            [&now],
-        )?;
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p1', 'Task2', ?)",
-            [&now],
-        )?;
+        let conn = TestDb::new()
+            .with_project("p1", "Proj1", "red")
+            .with_task("t1", "p1", "Task1")
+            .with_task("t2", "p1", "Task2")
+            .conn;
 
         let active = query_active_logs(&conn)?;
         assert_eq!(active.len(), 0);
@@ -93,26 +83,13 @@ mod tests {
 
     #[test]
     fn test_cross_project_concurrency() -> Result<()> {
-        let conn = init_db_in_memory()?;
-        let now = chrono::Utc::now().to_rfc3339();
-
-        conn.execute(
-            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)",
-            [&now],
-        )?;
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)",
-            [&now],
-        )?;
-        conn.execute("INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1_b', 'p1', 'Task1B', ?)", [&now])?;
-        conn.execute(
-            "INSERT INTO projects (id, name, color, created_at) VALUES ('p2', 'Proj2', 'blue', ?)",
-            [&now],
-        )?;
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t2', 'p2', 'Task2', ?)",
-            [&now],
-        )?;
+        let conn = TestDb::new()
+            .with_project("p1", "Proj1", "red")
+            .with_task("t1", "p1", "Task1")
+            .with_task("t1_b", "p1", "Task1B")
+            .with_project("p2", "Proj2", "blue")
+            .with_task("t2", "p2", "Task2")
+            .conn;
 
         start_project_timer(&conn, "t1")?;
         start_project_timer(&conn, "t2")?;
@@ -138,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_start_timer_nonexistent_task_fails() -> Result<()> {
-        let conn = init_db_in_memory()?;
+        let conn = TestDb::new().conn;
         let res = start_project_timer(&conn, "999");
         assert!(res.is_err());
         Ok(())
@@ -146,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_stop_timer_no_active_logs() -> Result<()> {
-        let conn = init_db_in_memory()?;
+        let conn = TestDb::new().conn;
         let res = stop_project_timer(&conn, None);
         assert!(res.is_ok());
         Ok(())
@@ -154,17 +131,10 @@ mod tests {
 
     #[test]
     fn test_stop_timer_invalid_project() -> Result<()> {
-        let conn = init_db_in_memory()?;
-        let now = chrono::Utc::now().to_rfc3339();
-
-        conn.execute(
-            "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'Proj1', 'red', ?)",
-            [&now],
-        )?;
-        conn.execute(
-            "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'Task1', ?)",
-            [&now],
-        )?;
+        let conn = TestDb::new()
+            .with_project("p1", "Proj1", "red")
+            .with_task("t1", "p1", "Task1")
+            .conn;
 
         start_project_timer(&conn, "t1")?;
 

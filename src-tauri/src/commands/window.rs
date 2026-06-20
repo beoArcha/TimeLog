@@ -1,4 +1,4 @@
-use crate::errors::AppError;
+use crate::common::AppError;
 use crate::types::{GuiSize, TextAndIconSize};
 use tauri::{LogicalSize, Size, Window};
 
