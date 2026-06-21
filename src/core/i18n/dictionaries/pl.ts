@@ -52,7 +52,8 @@ export const pl = {
     synced: 'Silnik zsynchronizował',
     threads: 'równoległych wątków pomiaru (projekty działają równolegle).',
     minimizeToTray: 'Zminimalizuj do paska zadań',
-    sqlReset: 'Skasuj bazę danych (SQL Reset)'
+    sqlReset: 'Skasuj bazę danych (SQL Reset)',
+    ready: 'Silnik: Gotowy'
   },
   gui: {
     newProject: 'Nowy Projekt',

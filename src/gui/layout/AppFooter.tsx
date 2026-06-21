@@ -1,6 +1,7 @@
 import React from 'react';
 import { translate, LocaleType, TranslationDictionary } from '@core/i18n/i18n';
 import { DynamicKey } from '@core/i18n/keys/DynamicKey';
+import { EngineKey } from '@core/i18n/keys/EngineKey';
 
 interface AppFooterProps {
   locale: LocaleType;
@@ -29,13 +30,13 @@ export default function AppFooter({
         </button>
       </div>
       <div className="flex gap-4">
-        <span>Silnik: <strong className="text-[#9B8C83] font-semibold">Ready</strong></span>
+        <span>{translate(locale, EngineKey.EngineReady, customTranslations)}</span>
         <button
           id="db-clean-force-btn"
           onClick={handleResetLocalStorage}
           className="text-orange-455 hover:text-orange-300 font-bold transition-all cursor-pointer"
         >
-          Wyczyść Baze (SQL Reset)
+          {translate(locale, EngineKey.SqlReset, customTranslations)}
         </button>
       </div>
     </footer>

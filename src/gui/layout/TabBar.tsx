@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, BarChart, Database, Settings, UploadCloud, Terminal, BookOpen, Sparkles } from 'lucide-react';
 import { translate, LocaleType, TranslationDictionary } from '@core/i18n/i18n';
+import { TabKey } from '@core/i18n/keys/TabKey';
 
 import { Theme } from '@common/types/ThemeTypes';
 
@@ -20,14 +21,14 @@ export default function TabBar({
   setActiveLargeTab,
 }: TabBarProps) {
   const tabs = [
-    { id: 'main', icon: Clock, iconColor: 'text-orange-400', label: translate(locale, 'tabs.main', customTranslations) },
-    { id: 'reports', icon: BarChart, iconColor: 'text-teal-400', label: translate(locale, 'tabs.reports', customTranslations) },
-    { id: 'db', icon: Database, iconColor: 'text-indigo-400', label: translate(locale, 'tabs.db', customTranslations) },
-    { id: 'options', icon: Settings, iconColor: 'text-yellow-400', label: translate(locale, 'tabs.options', customTranslations) },
-    { id: 'backup', icon: UploadCloud, iconColor: 'text-emerald-400', label: translate(locale, 'tabs.backup', customTranslations) },
-    { id: 'cli', icon: Terminal, iconColor: 'text-[#9B8C83]', label: translate(locale, 'tabs.cli', customTranslations) },
-    { id: 'manual', icon: BookOpen, iconColor: 'text-rose-400', label: translate(locale, 'tabs.manual', customTranslations) },
-    { id: 'credits', icon: Sparkles, iconColor: 'text-sky-400', label: translate(locale, 'tabs.credits', customTranslations) }
+    { id: 'main', icon: Clock, iconColor: 'text-orange-400', label: translate(locale, TabKey.Main, customTranslations) },
+    { id: 'reports', icon: BarChart, iconColor: 'text-teal-400', label: translate(locale, TabKey.Reports, customTranslations) },
+    { id: 'db', icon: Database, iconColor: 'text-indigo-400', label: translate(locale, TabKey.Db, customTranslations) },
+    { id: 'options', icon: Settings, iconColor: 'text-yellow-400', label: translate(locale, TabKey.Options, customTranslations) },
+    { id: 'backup', icon: UploadCloud, iconColor: 'text-emerald-400', label: translate(locale, TabKey.Backup, customTranslations) },
+    { id: 'cli', icon: Terminal, iconColor: 'text-[#9B8C83]', label: translate(locale, TabKey.Cli, customTranslations) },
+    { id: 'manual', icon: BookOpen, iconColor: 'text-rose-400', label: translate(locale, TabKey.Manual, customTranslations) },
+    { id: 'credits', icon: Sparkles, iconColor: 'text-sky-400', label: translate(locale, TabKey.Credits, customTranslations) }
   ];
 
   return (

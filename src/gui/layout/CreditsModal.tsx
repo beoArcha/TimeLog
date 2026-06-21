@@ -139,7 +139,7 @@ export default function CreditsModal() {
               onClick={() => setShowCreditsModal(false)}
               className="bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold text-xs rounded-xl px-5 py-2.5 hover:opacity-95 transition-opacity cursor-pointer shadow-md"
             >
-              {translate(locale, 'dynamic.greatClose', customTranslations)}
+              {translate(locale, DynamicKey.GreatClose, customTranslations)}
             </button>
           </div>
 

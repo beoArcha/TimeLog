@@ -14,4 +14,5 @@ export enum EngineKey {
   Threads = 'engine.threads',
   MinimizeToTray = 'engine.minimizeToTray',
   SqlReset = 'engine.sqlReset',
+  EngineReady = 'engine.ready',
 }

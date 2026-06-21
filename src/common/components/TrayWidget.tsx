@@ -3,6 +3,8 @@ import { AppWindow, Layers } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOxyFlow } from '@core/providers/OxyContext';
 import { translate } from '@core/i18n/i18n';
+import { TrayKey } from '@core/i18n/keys/TrayKey';
+import { DynamicKey } from '@core/i18n/keys/DynamicKey';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -34,10 +36,10 @@ export default function TrayWidget({ onRestore, onStopAll }: TrayWidgetProps) {
       className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full my-auto py-16 px-4"
     >
       <div className={`rounded-[2.5rem] p-8 shadow-3xl w-full text-center flex flex-col items-center gap-6 relative overflow-hidden group border transition-all duration-300 ${resolvedTheme === 'light'
-          ? 'bg-white border-slate-200'
-          : resolvedTheme === 'high-contrast'
-            ? 'bg-black border-2 border-white'
-            : 'bg-slate-900/60 backdrop-blur-2xl border-white/10'
+        ? 'bg-white border-slate-200'
+        : resolvedTheme === 'high-contrast'
+          ? 'bg-black border-2 border-white'
+          : 'bg-slate-900/60 backdrop-blur-2xl border-white/10'
         }`}>
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500"></div>
 
@@ -57,35 +59,34 @@ export default function TrayWidget({ onRestore, onStopAll }: TrayWidgetProps) {
             }`}>
             OxyFlow Engine
             <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wider uppercase">
-              {translate(locale, 'trayWidget.engineRunningBackground', customTranslations)}
+              {translate(locale, TrayKey.EngineRunningBackground, customTranslations)}
             </span>
           </h1>
           <p className={`text-sm mt-2 max-w-md font-sans ${resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-300'
             }`}>
-            {translate(locale, 'trayWidget.trayDescription', customTranslations)}
+            {translate(locale, TrayKey.TrayDescription, customTranslations)}
           </p>
           <div className={`text-xs px-4 py-2 rounded-xl font-mono inline-block mt-4 border ${resolvedTheme === 'light'
-              ? 'bg-slate-100 border-slate-200 text-slate-700'
-              : 'bg-white/5 border-white/10 text-slate-300'
+            ? 'bg-slate-100 border-slate-200 text-slate-700'
+            : 'bg-white/5 border-white/10 text-slate-300'
             }`}>
-            {translate(locale, 'trayWidget.daemonEnginePid', customTranslations)} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {translate(locale, 'trayWidget.sqliteThread', customTranslations)}
+            {translate(locale, TrayKey.DaemonEnginePid, customTranslations)} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {translate(locale, TrayKey.SqliteThread, customTranslations)}
           </div>
         </div>
 
-        {/* Dynamic Running Parallel Projects List */}
         <div className={`w-full rounded-2xl p-4 text-left border max-h-[180px] overflow-y-auto ${resolvedTheme === 'light'
-            ? 'bg-slate-50 border-slate-200'
-            : resolvedTheme === 'high-contrast'
-              ? 'bg-black border-white border-2'
-              : 'bg-black/30 border-white/5'
+          ? 'bg-slate-50 border-slate-200'
+          : resolvedTheme === 'high-contrast'
+            ? 'bg-black border-white border-2'
+            : 'bg-black/30 border-white/5'
           }`}>
           <p className={`text-[10px] font-mono uppercase tracking-widest mb-3 border-b pb-1.5 ${resolvedTheme === 'light' ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/5'
             }`}>
-            {translate(locale, 'trayWidget.activeMeasuringThreads', customTranslations)} ({activeRunningLogs.length})
+            {translate(locale, TrayKey.ActiveMeasuringThreads, customTranslations)} ({activeRunningLogs.length})
           </p>
           {activeRunningLogs.length === 0 ? (
             <p className={`text-xs italic text-center py-2 ${resolvedTheme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-              {translate(locale, 'dynamic.noActiveTimersThisMoment', customTranslations)}
+              {translate(locale, DynamicKey.NoActiveTimersThisMoment, customTranslations)}
             </p>
           ) : (
             <div className="flex flex-col gap-2">
@@ -102,8 +103,8 @@ export default function TrayWidget({ onRestore, onStopAll }: TrayWidgetProps) {
 
                 return (
                   <div key={l.id} className={`flex items-center justify-between text-xs p-2.5 rounded-xl border ${resolvedTheme === 'light'
-                      ? 'bg-white border-slate-200 text-slate-800'
-                      : 'bg-white/5 border-white/10 text-slate-200'
+                    ? 'bg-white border-slate-200 text-slate-800'
+                    : 'bg-white/5 border-white/10 text-slate-200'
                     }`}>
                     <div className="flex items-center gap-2">
                       <span className={`w-2.5 h-2.5 rounded-full bg-${proj?.color || 'rose'}-500 shadow-md`} />
@@ -126,20 +127,20 @@ export default function TrayWidget({ onRestore, onStopAll }: TrayWidgetProps) {
             className="flex-1 bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold py-3.5 rounded-2xl text-sm transition-all shadow-lg shadow-orange-500/10 cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
           >
             <AppWindow className="w-4.5 h-4.5" />
-            {translate(locale, 'trayWidget.maximizeAndRestore', customTranslations)}
+            {translate(locale, TrayKey.MaximizeAndRestore, customTranslations)}
           </button>
           <button
             id="tray-kill-all-btn"
             onClick={onStopAll}
             disabled={activeRunningLogs.length === 0}
             className={`py-3.5 px-6 rounded-2xl text-sm font-semibold border transition-all ${activeRunningLogs.length === 0
-                ? 'bg-transparent text-slate-400 border-slate-200/20 cursor-not-allowed opacity-40'
-                : resolvedTheme === 'light'
-                  ? 'bg-slate-100 hover:bg-rose-50 text-rose-650 border-slate-200 cursor-pointer'
-                  : 'bg-white/5 hover:bg-rose-550/15 text-rose-400 border-white/10 hover:border-rose-500/20 cursor-pointer'
+              ? 'bg-transparent text-slate-400 border-slate-200/20 cursor-not-allowed opacity-40'
+              : resolvedTheme === 'light'
+                ? 'bg-slate-100 hover:bg-rose-50 text-rose-650 border-slate-200 cursor-pointer'
+                : 'bg-white/5 hover:bg-rose-550/15 text-rose-400 border-white/10 hover:border-rose-500/20 cursor-pointer'
               }`}
           >
-            {translate(locale, 'trayWidget.pauseAllProcesses', customTranslations)}
+            {translate(locale, TrayKey.PauseAllProcesses, customTranslations)}
           </button>
         </div>
       </div>

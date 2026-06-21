@@ -44,7 +44,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   it('should_trigger_resize_and_lock_resizability_when_switching_to_small_mode', async () => {
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
-    const smallBtn = await screen.findByText('Małe');
+    const smallBtn = await screen.findByText(/małe|small/i);
     mockInvoke.mockClear();
     fireEvent.click(smallBtn);
 
@@ -55,7 +55,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
 
   it('should_trigger_resize_and_enable_resizability_when_switching_to_medium_mode', async () => {
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
-    const mediumBtn = await screen.findByText('Średnie');
+    const mediumBtn = await screen.findByText(/średnie|medium/i);
     mockInvoke.mockClear();
     fireEvent.click(mediumBtn);
 

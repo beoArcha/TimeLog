@@ -2,6 +2,7 @@ import { Cpu } from 'lucide-react';
 import { useOxyFlow } from '@core/providers/OxyContext';
 import CollapsibleCard from './CollapsibleCard';
 import { translate } from '@core/i18n/i18n';
+import { EngineKey } from '@core/i18n/keys/EngineKey';
 
 export default function EngineConfig() {
   const { minimizeToTray, setMinimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, resolvedTheme, sysSettings, setSysSettings, locale, customTranslations } = useOxyFlow();
@@ -12,14 +13,14 @@ export default function EngineConfig() {
 
   return (
     <CollapsibleCard
-      title={translate(locale, 'engine.configTitle', customTranslations)}
+      title={translate(locale, EngineKey.ConfigTitle, customTranslations)}
       icon={Cpu}
       iconColor="text-emerald-500"
       defaultExpanded={false}
       headerTestId="collapsible-trigger-Konfiguracja Silnika"
     >
       <div className="flex flex-col gap-4">
-        <p className={`text-xs leading-relaxed ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>{translate(locale, 'engine.configDesc', customTranslations)}</p>
+        <p className={`text-xs leading-relaxed ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>{translate(locale, EngineKey.ConfigDesc, customTranslations)}</p>
 
         <div className="flex flex-col gap-4">
           <label className="flex items-center gap-2 cursor-pointer w-fit">
@@ -30,7 +31,7 @@ export default function EngineConfig() {
               className="w-4 h-4 accent-emerald-500"
             />
             <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
-              {translate(locale, 'engine.autoStart', customTranslations)}
+              {translate(locale, EngineKey.AutoStart, customTranslations)}
             </span>
           </label>
 
@@ -42,7 +43,7 @@ export default function EngineConfig() {
               className="w-4 h-4 accent-emerald-500"
             />
             <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
-              {translate(locale, 'engine.autoPauseOnSleep', customTranslations)}
+              {translate(locale, EngineKey.AutoPauseOnSleep, customTranslations)}
             </span>
           </label>
 
@@ -54,7 +55,7 @@ export default function EngineConfig() {
               className="w-4 h-4 accent-emerald-500"
             />
             <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
-              {translate(locale, 'engine.includePatchesInReports', customTranslations)}
+              {translate(locale, EngineKey.IncludePatchesInReports, customTranslations)}
             </span>
           </label>
 
@@ -66,7 +67,7 @@ export default function EngineConfig() {
               className="w-4 h-4 accent-orange-500"
             />
             <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
-              {translate(locale, 'engine.minimizeToTrayDefault', customTranslations)}
+              {translate(locale, EngineKey.MinimizeToTrayDefault, customTranslations)}
             </span>
           </label>
 
@@ -78,7 +79,7 @@ export default function EngineConfig() {
               className="w-4 h-4 accent-orange-500"
             />
             <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
-              {translate(locale, 'engine.alwaysOnTopSmall', customTranslations) || 'Zawsze na wierzchu (Mały widok)'}
+              {translate(locale, EngineKey.AlwaysOnTopSmall, customTranslations) || 'Zawsze na wierzchu (Mały widok)'}
             </span>
           </label>
 
@@ -90,7 +91,7 @@ export default function EngineConfig() {
               className="w-4 h-4 accent-orange-500"
             />
             <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>
-              {translate(locale, 'engine.alwaysOnTopMain', customTranslations) || 'Zawsze na wierzchu (Średni i Duży widok)'}
+              {translate(locale, EngineKey.AlwaysOnTopMain, customTranslations) || 'Zawsze na wierzchu (Średni i Duży widok)'}
             </span>
           </label>
         </div>

@@ -52,7 +52,8 @@ export const en = {
     synced: 'Engine synchronized',
     threads: 'parallel tracking threads (projects run concurrently).',
     minimizeToTray: 'Minimize to tray',
-    sqlReset: 'Reset Database (SQL Reset)'
+    sqlReset: 'Reset Database (SQL Reset)',
+    ready: 'Engine: Ready'
   },
   gui: {
     newProject: 'New Project',
