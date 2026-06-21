@@ -1,6 +1,6 @@
 import React from 'react';
 import { GuiState } from './useGuiLogic';
-import type { GuiRouterProps } from './GuiRouter';
+import type { GuiRouterProps } from './GuiCommonProps';
 import ActiveTimerBanner from './parts/ActiveTimerBanner';
 import TaskListView from '@features/tasks/TaskListView';
 import ReportView from './parts/ReportView';

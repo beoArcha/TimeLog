@@ -3,7 +3,7 @@ import { Clock, Maximize2, X, ChevronDown, Play, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@core/i18n/i18n';
 import versionsData from '../versions.json';
-import type { GuiRouterProps } from './GuiRouter';
+import type { GuiRouterProps } from './GuiCommonProps';
 import { GuiState } from './useGuiLogic';
 import { useOxyFlow } from '@core/providers/OxyContext';
 
@@ -53,10 +53,10 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
       className="w-full h-full flex flex-col p-1"
     >
       <div className={`rounded-2xl border shadow-2xl p-3 flex flex-col gap-2.5 relative overflow-hidden transition-all duration-300 w-full h-full ${resolvedTheme === 'light'
-          ? 'bg-white border-slate-200 text-slate-800'
-          : resolvedTheme === 'high-contrast'
-            ? 'bg-black border-2 border-white text-white'
-            : 'bg-slate-950/95 backdrop-blur-xl border-white/10 text-white'
+        ? 'bg-white border-slate-200 text-slate-800'
+        : resolvedTheme === 'high-contrast'
+          ? 'bg-black border-2 border-white text-white'
+          : 'bg-slate-950/95 backdrop-blur-xl border-white/10 text-white'
         }`}>
 
         {resolvedTheme !== 'high-contrast' && (
@@ -126,8 +126,8 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
           <button
             onClick={() => setIsSmallExpanded(!isSmallExpanded)}
             className={`w-full py-1 rounded-xl transition-all font-mono text-[9px] uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer ${resolvedTheme === 'light'
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                : 'bg-white/5 hover:bg-white/10 text-slate-300'
+              ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+              : 'bg-white/5 hover:bg-white/10 text-slate-300'
               }`}
           >
             <span>{isSmallExpanded ? translate(locale, 'smallGuiWidget.hideTasks', customTranslations) : translate(locale, 'smallGuiWidget.showTasks', customTranslations)}</span>
@@ -164,8 +164,8 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
 
                       return (
                         <div key={task.id} className={`p-2 rounded-xl transition-colors border ${resolvedTheme === 'light'
-                            ? 'bg-slate-50 border-slate-200'
-                            : 'bg-white/5 border-white/5'
+                          ? 'bg-slate-50 border-slate-200'
+                          : 'bg-white/5 border-white/5'
                           }`}>
                           <div className="flex items-center justify-between gap-2">
                             <span className={`text-xs font-semibold truncate flex-1 ${task.completed ? 'line-through text-slate-500' : ''
@@ -184,8 +184,8 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
                                 }
                               }}
                               className={`p-1.5 rounded-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer ${isRootActive
-                                  ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
-                                  : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30'
+                                ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
+                                : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30'
                                 }`}
                               title={isRootActive ? translate(locale, 'smallGuiWidget.stopMeasurement', customTranslations) : translate(locale, 'smallGuiWidget.startMeasurement', customTranslations)}
                             >
@@ -216,8 +216,8 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
                                         }
                                       }}
                                       className={`p-1 rounded-md transition-all cursor-pointer ${isSubActive
-                                          ? 'bg-rose-500/25 text-rose-550'
-                                          : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                                        ? 'bg-rose-500/25 text-rose-550'
+                                        : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
                                         }`}
                                     >
                                       {isSubActive ? <Square className="w-2.5 h-2.5 fill-rose-500" /> : <Play className="w-2.5 h-2.5 fill-emerald-500" />}

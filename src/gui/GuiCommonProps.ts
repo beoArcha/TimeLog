@@ -40,3 +40,16 @@ export interface GuiCommonProps {
   activeLargeTab?: string;
   activeView?: string;
 }
+
+export interface GuiRouterProps {
+  variant: import('@bindings/GuiSize').GuiSize;
+  commonProps: GuiCommonProps;
+  
+  isSmallExpanded: boolean;
+  setIsSmallExpanded: (val: boolean) => void;
+  showToast: (msg: string) => void;
+  handleMinimizeToTray: () => void;
+  setGuiSize: (variant: import('@bindings/GuiSize').GuiSize) => void;
+  currentProjectId: string;
+  lastNonSmallVariant?: Exclude<import('@bindings/GuiSize').GuiSize, 'small'>;
+}

@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { RefreshCw, Minimize2 } from 'lucide-react';
 import { useOxyFlow } from '@core/providers/OxyContext';
-import { getTranslation } from '@core/i18n/translations';
 import { EngineKey } from '@core/i18n/keys/EngineKey';
 import { translate } from '@core/i18n/i18n';
 
