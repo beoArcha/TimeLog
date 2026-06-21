@@ -3,33 +3,92 @@ name: Release
 on:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: 24
   CARGO_PROFILE_DEV_DEBUG: 0
 
 jobs:
   # ──────────────────────────────────────────────
-  # 1. Run tests on the release branch (no lint)
+  # Unit tests
   # ──────────────────────────────────────────────
-  test-release:
-    name: Tests on Release Branch
+  test-unit:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: release
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
+
+      - name: Run Unit Tests
+        run: |
+          npx vitest run tests/unit \
+            --coverage \
+            --coverage.reporter=json \
+            --coverage.reportsDirectory=coverage/unit
+
+          mv coverage/unit/coverage-final.json coverage/unit/coverage-unit.json
+
+      - name: Upload Unit Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: coverage/unit/coverage-unit.json
+
+  # ──────────────────────────────────────────────
+  # Integration tests
+  # ──────────────────────────────────────────────
+
+  test-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Integration Tests
+        run: |
+          npx vitest run tests/integration \
+            --coverage \
+            --coverage.reporter=json \
+            --coverage.reportsDirectory=coverage/integration
+
+          mv coverage/integration/coverage-final.json coverage/integration/coverage-integration.json
+
+      - name: Upload Integration Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-integration
+          path: coverage/integration/coverage-integration.json
+
+  # ──────────────────────────────────────────────
+  # Rust tests + coverage
+  # ──────────────────────────────────────────────
+
+  test-rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -37,44 +96,54 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "src-tauri"
+          workspaces: "src-tauri -> target"
 
-      - name: Install Linux dependencies for Tauri
+      - name: Install cargo-tarpaulin
+        uses: taiki-e/install-action@cargo-tarpaulin
+
+      - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf lld
-
-      - name: Run Frontend Tests
-        run: npx vitest run tests --exclude tests/end-to-end.test.tsx
-
-      - name: Run E2E Tests
-        run: npx vitest run tests/end-to-end.test.tsx
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            lld
 
       - name: Run Rust Tests
         env:
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
+
         run: |
           cd src-tauri
           cargo test
 
+      - name: Upload Rust Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-rust
+          path: coverage/rust
+
   # ──────────────────────────────────────────────
-  # 2. Build for Windows, macOS, Linux
+  # Build for Windows, macOS, Linux
   # ──────────────────────────────────────────────
   build-tauri:
     name: Build Tauri Artifacts
-    needs: test-release
+    needs: [test-unit, test-integration, test-rust]
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: 'windows-latest'
-            args: ''
-          - platform: 'macos-latest'
-            args: '--target universal-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            args: ''
+          - platform: "windows-latest"
+            args: ""
+          - platform: "macos-latest"
+            args: "--target universal-apple-darwin"
+          - platform: "ubuntu-22.04"
+            args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -86,7 +155,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -107,7 +176,6 @@ jobs:
       - name: install frontend dependencies
         run: npm ci || npm install
 
-      # NOTE: Do NOT run "npm run build" here — tauri-action handles the full build pipeline
       - uses: tauri-apps/tauri-action@v0
         id: tauri_build
         env:
@@ -115,8 +183,8 @@ jobs:
         with:
           tauriScript: npx tauri
           tagName: app-v__VERSION__
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
+          releaseName: "App v__VERSION__"
+          releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
