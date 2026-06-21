@@ -39,8 +39,8 @@ jobs:
           # Checkout release branch, or create it if it doesn't exist
           git checkout release || git checkout -b release
 
-          # Merge main into release
-          git merge origin/main --no-edit
+          # Merge main into release resolving conflicts in favor of main (theirs)
+          git merge origin/main --no-edit -X theirs
 
           # Bump release version to odd minor
           node scripts/bump_versions.js --to-odd-minor
