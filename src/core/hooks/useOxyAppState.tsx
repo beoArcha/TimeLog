@@ -7,7 +7,7 @@ import { useAppSettings } from './useAppSettings';
 import { useTimeTicker } from './useTimeTicker';
 import { useExternalApiSync } from './useExternalApiSync';
 import { useTimeLogData } from '@features/timelogs/useTimeLogData';
-import { useTauriWindow } from '@core/tauri/useTauriWindow';
+import { useTauriWindow } from '@/src/core/hooks/useTauriWindow';
 
 export const useOxyAppState = () => {
   const [activeTab, setActiveTab] = useState<'gui' | 'cli' | 'rust'>('gui');
@@ -65,17 +65,17 @@ export const useOxyAppState = () => {
     ...apiSync,
     ...timeLogData,
     ...tauriWindow,
-    
+
     localePref, setLocalePref,
     locale, setLocale,
     customTranslations, setCustomTranslations,
-    
+
     activeTab, setActiveTab,
     alwaysOnTopConfig: getAlwaysOnTopConfig(),
     isMediumHeaderOpen, setIsMediumHeaderOpen,
     editingTranslationKey, setEditingTranslationKey,
     editingTranslationValue, setEditingTranslationValue,
-    
+
     handleToggleTimer,
     handleCopyText,
   };
