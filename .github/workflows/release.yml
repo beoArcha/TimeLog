@@ -1,6 +1,5 @@
 name: Release
 
-# Manually triggered from the GitHub Actions UI
 on:
   workflow_dispatch:
 

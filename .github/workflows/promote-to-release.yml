@@ -1,6 +1,5 @@
 name: Promote to Release
 
-# Triggered automatically when the "Tests" workflow completes on main
 on:
   workflow_run:
     workflows: ["Tests"]
@@ -9,13 +8,12 @@ on:
     branches: ["main"]
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: "22"
 
 jobs:
   promote:
     name: Promote Main → Release
     runs-on: ubuntu-latest
-    # Only run when the Tests workflow succeeded
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: write
@@ -62,7 +60,6 @@ jobs:
           git commit -am "chore(version): bump main to next even minor [skip ci]" || echo "No changes to commit on main"
           git push origin main
 
-      # ── Notify: manual release ready ──
       - name: 📦 Release Ready – manual trigger required
         run: |
           echo ""
