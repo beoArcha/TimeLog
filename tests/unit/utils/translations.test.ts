@@ -44,5 +44,17 @@ describe('Unit Tests: Translations', () => {
       const val = translate('pl', 'common.nonexistent.deep.key');
       expect(val).toBe('common.nonexistent.deep.key');
     });
+
+    it('should_interpolate_mustache_placeholders_with_vars', () => {
+      const customDict = { common: { welcome: 'Witaj {{name}}! Masz {{count}} wiadomości.' } };
+      const val = translate('custom', 'common.welcome', customDict, { name: 'Jan', count: 3 });
+      expect(val).toBe('Witaj Jan! Masz 3 wiadomości.');
+    });
+
+    it('should_keep_placeholder_if_variable_not_provided', () => {
+      const customDict = { common: { welcome: 'Witaj {{name}}!' } };
+      const val = translate('custom', 'common.welcome', customDict, {});
+      expect(val).toBe('Witaj {{name}}!');
+    });
   });
 });

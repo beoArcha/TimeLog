@@ -18,6 +18,7 @@ import { BackupKey } from './keys/BackupKey';
 import { CommonKey } from './keys/CommonKey';
 import { CreditsKey } from './keys/CreditsKey';
 import { DbExplorerKey } from './keys/DbExplorerKey';
+import { DynamicKey } from './keys/DynamicKey';
 import { EngineKey } from './keys/EngineKey';
 import { GuiKey } from './keys/GuiKey';
 import { HelpKey } from './keys/HelpKey';
@@ -36,6 +37,7 @@ export type TranslationKey =
   | CommonKey
   | CreditsKey
   | DbExplorerKey
+  | DynamicKey
   | EngineKey
   | GuiKey
   | HelpKey
@@ -55,22 +57,33 @@ const isDev =
   (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') ||
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV);
 
+function interpolate(text: string, vars?: Record<string, string | number>): string {
+  if (!vars) return text;
+  return text.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (match, key) => {
+    const trimmedKey = key.trim();
+    return trimmedKey in vars ? String(vars[trimmedKey]) : match;
+  });
+}
+
 export function translate(
   locale: LocaleType,
   keyPath: string,
   customDict?: unknown,
+  vars?: Record<string, string | number>,
 ): string;
 
 export function translate(
   locale: LocaleType,
-  keyPath: EnumKey,
+  keyPath: TranslationKey,
   customDict?: unknown,
+  vars?: Record<string, string | number>,
 ): string;
 
 export function translate(
   locale: LocaleType,
   keyPath: string | TranslationKey,
   customDict?: unknown,
+  vars?: Record<string, string | number>,
 ): string {
   const keys = keyPath.split('.');
   let current: any = dictionaries[locale] || dictionaries.en;
@@ -78,7 +91,7 @@ export function translate(
   if (locale === 'custom' && customDict) {
     let tempCustom = customDict;
     for (const k of keys) tempCustom = tempCustom?.[k];
-    if (typeof tempCustom === 'string') return tempCustom;
+    if (typeof tempCustom === 'string') return interpolate(tempCustom, vars);
   }
 
   for (const k of keys) {
@@ -87,7 +100,7 @@ export function translate(
   }
 
   if (typeof current === 'string') {
-    return current;
+    return interpolate(current, vars);
   }
 
   current = dictionaries.en;
@@ -97,12 +110,12 @@ export function translate(
   }
 
   if (typeof current === 'string') {
-    return current;
+    return interpolate(current, vars);
   }
 
   if (isDev) {
     console.warn(`[i18n] Missing translation: ${keyPath}`);
   }
 
-  return keyPath;
+  return interpolate(keyPath, vars);
 }
