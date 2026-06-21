@@ -6,7 +6,7 @@ import { AlwaysOnTopConfig } from '@bindings/AlwaysOnTopConfig';
 import { useAppSettings } from './useAppSettings';
 import { useTimeTicker } from './useTimeTicker';
 import { useExternalApiSync } from './useExternalApiSync';
-import { useTimeLogData } from '@features/timelogs/useTimeLogData';
+import { useTimeLogData } from './useTimeLogData';
 import { useTauriWindow } from '@/src/core/hooks/useTauriWindow';
 
 export const useOxyAppState = () => {

@@ -110,7 +110,6 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
     const state = setupMockState({ showSubtaskFormForId: 'task_1' });
     render(<TaskListView state={state} isCondensed={false} />);
 
-    // Trigger form submit
     const submitBtn = screen.getByRole('button', { name: /Save/i });
     fireEvent.click(submitBtn);
 

@@ -4,7 +4,7 @@ import {
 } from '../../shared/test-helpers';
 
 import React from 'react';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useOxyAppState } from '@core/hooks/useOxyAppState';
 import { LocaleProvider } from '@core/providers/LocaleProvider';
@@ -28,8 +28,10 @@ describe('Integration Tests: useOxyAppState Hook Integration', () => {
     });
   });
 
-  it('should initialize and share state across all integrated sub-hooks', () => {
+  it('should initialize and share state across all integrated sub-hooks', async () => {
     const { result } = renderHook(() => useOxyAppState(), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
 
     expect(result.current.theme).toBe('system');
     expect(result.current.resolvedTheme).toBe('dark');
@@ -38,31 +40,35 @@ describe('Integration Tests: useOxyAppState Hook Integration', () => {
     expect(result.current.locale).toBe('en');
   });
 
-  it('should correctly handle toggle timer and update active log state', () => {
+  it('should correctly handle toggle timer and update active log state', async () => {
     const { result } = renderHook(() => useOxyAppState(), { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
 
     expect(result.current.activeLog).toBeNull();
     expect(result.current.selectedTaskId).toBe('102');
 
-    act(() => {
-      result.current.handleToggleTimer();
+    await act(async () => {
+      await result.current.handleToggleTimer();
     });
 
     expect(result.current.activeLog).not.toBeNull();
     expect(result.current.activeLog?.taskId).toBe('102');
 
-    act(() => {
-      result.current.handleToggleTimer();
+    await act(async () => {
+      await result.current.handleToggleTimer();
     });
 
     expect(result.current.activeLog).toBeNull();
   });
 
-  it('should copy text to clipboard and trigger localized toast notification', () => {
+  it('should copy text to clipboard and trigger localized toast notification', async () => {
     const { result } = renderHook(() => useOxyAppState(), { wrapper: Wrapper });
 
-    act(() => {
-      result.current.handleCopyText('Vibe Code Test');
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
+    await act(async () => {
+      await result.current.handleCopyText('Vibe Code Test');
     });
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Vibe Code Test');

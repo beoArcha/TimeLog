@@ -42,7 +42,7 @@ const mockUseLocale = vi.fn(() => ({
 vi.mock('@core/hooks/useAppSettings', () => ({ useAppSettings: () => mockUseAppSettings() }));
 vi.mock('@core/hooks/useTimeTicker', () => ({ useTimeTicker: () => mockUseTimeTicker() }));
 vi.mock('@core/hooks/useExternalApiSync', () => ({ useExternalApiSync: () => mockUseExternalApiSync() }));
-vi.mock('@features/timelogs/useTimeLogData', () => ({ useTimeLogData: () => mockUseTimeLogData() }));
+vi.mock('@core/hooks/useTimeLogData', () => ({ useTimeLogData: () => mockUseTimeLogData() }));
 vi.mock('@core/tauri/useTauriWindow', () => ({ useTauriWindow: () => mockUseTauriWindow() }));
 vi.mock('@core/providers/LocaleProvider', () => ({ useLocale: () => mockUseLocale() }));
 

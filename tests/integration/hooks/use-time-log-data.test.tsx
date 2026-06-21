@@ -1,6 +1,6 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { useTimeLogData } from '@features/timelogs/useTimeLogData';
+import { useTimeLogData } from '../../../src/core/hooks/useTimeLogData';
 import { setupLocalStorageMock } from '../../shared/test-helpers';
 import { STORAGE_KEYS } from '../../../src/common/constants';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
@@ -28,10 +28,16 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     setupLocalStorageMock();
   });
 
-  it('Given empty storage, When application starts, Then default state is created', () => {
+  const renderTimeLog = async () => {
+    const rendered = renderHook(() => useTimeLogData(pushToApi));
+    await waitFor(() => expect(rendered.result.current.isInitialized).toBe(true));
+    return rendered;
+  };
+
+  it('Given empty storage, When application starts, Then default state is created', async () => {
     localStorage.removeItem(STORAGE_KEYS.STATE_DB);
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
     expect(result.current.projects).toHaveLength(3);
     expect(result.current.tasks).toHaveLength(7);
@@ -43,7 +49,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(JSON.parse(saved!).projects).toHaveLength(3);
   });
 
-  it('Given existing projects, When application starts, Then state is restored', () => {
+  it('Given existing projects, When application starts, Then state is restored', async () => {
     const existingState = {
       projects: [{ id: 'p_custom', name: 'My Custom Project', color: 'teal', createdAt: '2026-06-20', archived: false }],
       tasks: [{ id: 't_custom', projectId: 'p_custom', parentTaskId: null, name: 'My Custom Task', createdAt: '2026-06-20', completed: false }],
@@ -54,7 +60,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     };
     localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
     expect(result.current.projects).toHaveLength(1);
     expect(result.current.projects[0].name).toBe('My Custom Project');
@@ -62,11 +68,11 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(result.current.isInitialized).toBe(true);
   });
 
-  it('Given corrupted storage, When application starts, Then fallback state is created', () => {
+  it('Given corrupted storage, When application starts, Then fallback state is created', async () => {
     localStorage.setItem(STORAGE_KEYS.STATE_DB, '{corrupted-json-data...');
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
     expect(result.current.projects).toHaveLength(3);
     expect(result.current.isInitialized).toBe(true);
@@ -75,7 +81,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     warnSpy.mockRestore();
   });
 
-  it('Given active timer, When application reloads, Then timer is restored', () => {
+  it('Given active timer, When application reloads, Then timer is restored', async () => {
     const activeTimeLog = { id: 'log_active', taskId: '102', projectId: '1', startTime: '2026-06-20T12:00:00Z', endTime: null };
     const existingState = {
       projects: [{ id: '1', name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
@@ -87,19 +93,19 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     };
     localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
     expect(result.current.activeLog).not.toBeNull();
     expect(result.current.activeLog?.id).toBe('log_active');
     expect(result.current.activeLog?.endTime).toBeNull();
   });
 
-  it('Given default state, When handleAddProject is called, Then project state updates and persists to storage', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given default state, When handleAddProject is called, Then project state updates and persists to storage', async () => {
+    const { result } = await renderTimeLog();
     const initialCount = result.current.projects.length;
 
-    act(() => {
-      result.current.handleAddProject('Brand New Project', 'rose');
+    await act(async () => {
+      await result.current.handleAddProject('Brand New Project', 'rose');
     });
 
     expect(result.current.projects).toHaveLength(initialCount + 1);
@@ -112,13 +118,13 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(saved.projects.some((p: any) => p.name === 'Brand New Project')).toBe(true);
   });
 
-  it('Given active project, When handleToggleProjectArchive is called, Then project archived flag updates and persists to storage', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given active project, When handleToggleProjectArchive is called, Then project archived flag updates and persists to storage', async () => {
+    const { result } = await renderTimeLog();
     const projectId = TEST_CONSTANTS.PROJECT_ID_1;
     const initialArchived = result.current.projects.find(p => p.id === projectId)?.archived ?? false;
 
-    act(() => {
-      result.current.handleToggleProjectArchive(projectId);
+    await act(async () => {
+      await result.current.handleToggleProjectArchive(projectId);
     });
 
     expect(result.current.projects.find(p => p.id === projectId)?.archived).toBe(!initialArchived);
@@ -127,12 +133,12 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(saved.projects.find((p: any) => p.id === projectId)?.archived).toBe(!initialArchived);
   });
 
-  it('Given active project, When handleAddTask is called, Then task updates and persists to storage', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given active project, When handleAddTask is called, Then task updates and persists to storage', async () => {
+    const { result } = await renderTimeLog();
     const initialCount = result.current.tasks.length;
 
-    act(() => {
-      result.current.handleAddTask(TEST_CONSTANTS.PROJECT_ID_1, 'Integration Subtask', TEST_CONSTANTS.TASK_ID_101);
+    await act(async () => {
+      await result.current.handleAddTask(TEST_CONSTANTS.PROJECT_ID_1, 'Integration Subtask', TEST_CONSTANTS.TASK_ID_101);
     });
 
     expect(result.current.tasks).toHaveLength(initialCount + 1);
@@ -145,12 +151,12 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(saved.tasks.some((t: any) => t.name === 'Integration Subtask')).toBe(true);
   });
 
-  it('Given active project and task, When handleRenameProject and handleRenameTask are called, Then state and storage update', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given active project and task, When handleRenameProject and handleRenameTask are called, Then state and storage update', async () => {
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleRenameProject(TEST_CONSTANTS.PROJECT_ID_1, 'Super Backend');
-      result.current.handleRenameTask(TEST_CONSTANTS.TASK_ID_101, 'Super Schema Setup');
+    await act(async () => {
+      await result.current.handleRenameProject(TEST_CONSTANTS.PROJECT_ID_1, 'Super Backend');
+      await result.current.handleRenameTask(TEST_CONSTANTS.TASK_ID_101, 'Super Schema Setup');
     });
 
     expect(result.current.projects.find(p => p.id === TEST_CONSTANTS.PROJECT_ID_1)?.name).toBe('Super Backend');
@@ -161,11 +167,11 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(saved.tasks.find((t: any) => t.id === TEST_CONSTANTS.TASK_ID_101)?.name).toBe('Super Schema Setup');
   });
 
-  it('Given task with nested task and logs, When handleDeleteTask is called, Then task, nested tasks, and associated logs are deleted and persist', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given task with nested task and logs, When handleDeleteTask is called, Then task, nested tasks, and associated logs are deleted and persist', async () => {
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
+    await act(async () => {
+      await result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
     });
 
     expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)).toBeUndefined();
@@ -178,7 +184,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(saved.logs.some((l: any) => l.taskId === TEST_CONSTANTS.TASK_ID_102)).toBe(false);
   });
 
-  it('Given active timer on a task, When handleToggleTaskComplete is called, Then completed flag changes and active log on that task terminates', () => {
+  it('Given active timer on a task, When handleToggleTaskComplete is called, Then completed flag changes and active log on that task terminates', async () => {
     const activeTimeLog = { id: 'log_active', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
     const existingState = {
       projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
@@ -190,10 +196,10 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     };
     localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
+    await act(async () => {
+      await result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
 
     expect(result.current.tasks[0].completed).toBe(true);
@@ -206,11 +212,11 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(saved.logs[0].endTime).not.toBeNull();
   });
 
-  it('Given default state, When handleStartTimer is called, Then new active log is created and pushToApi is triggered', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given default state, When handleStartTimer is called, Then new active log is created and pushToApi is triggered', async () => {
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
+    await act(async () => {
+      await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
     });
 
     expect(result.current.activeLog).not.toBeNull();
@@ -231,11 +237,11 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(saved.activeLog.taskId).toBe(TEST_CONSTANTS.TASK_ID_102);
   });
 
-  it('Given child task and mother task not running, When handleStartTimer is called on child, Then mother task is automatically started', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given child task and mother task not running, When handleStartTimer is called on child, Then mother task is automatically started', async () => {
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
+    await act(async () => {
+      await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
     });
 
     expect(result.current.activeLog?.taskId).toBe(TEST_CONSTANTS.TASK_ID_1021);
@@ -247,7 +253,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(pushToApi).toHaveBeenCalledTimes(2);
   });
 
-  it('Given child task and mother task already running, When handleStartTimer is called on child, Then mother task is NOT started again', () => {
+  it('Given child task and mother task already running, When handleStartTimer is called on child, Then mother task is NOT started again', async () => {
     const activeMotherLog = { id: 'log_mother', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
     const existingState = {
       projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
@@ -262,11 +268,11 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     };
     localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
     expect(result.current.logs.filter(l => l.endTime === null)).toHaveLength(1);
 
-    act(() => {
-      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
+    await act(async () => {
+      await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
     });
 
     const runningLogs = result.current.logs.filter(l => l.endTime === null);
@@ -274,7 +280,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(pushToApi).toHaveBeenCalledTimes(1);
   });
 
-  it('Given running task timer, When handleStartTimer is called, Then it terminates the timer', () => {
+  it('Given running task timer, When handleStartTimer is called, Then it terminates the timer', async () => {
     const activeTimeLog = { id: 'log_active', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
     const existingState = {
       projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
@@ -286,10 +292,10 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     };
     localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
+    await act(async () => {
+      await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
     });
 
     expect(result.current.activeLog).toBeNull();
@@ -298,7 +304,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(pushToApi.mock.calls[0][0].event).toBe('TERMINATE');
   });
 
-  it('Given running task timer, When handleStopTimer is called, Then active log is closed and pushToApi is triggered', () => {
+  it('Given running task timer, When handleStopTimer is called, Then active log is closed and pushToApi is triggered', async () => {
     const activeTimeLog = { id: 'log_active', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
     const existingState = {
       projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
@@ -310,10 +316,10 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     };
     localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleStopTimer();
+    await act(async () => {
+      await result.current.handleStopTimer();
     });
 
     expect(result.current.activeLog).toBeNull();
@@ -322,7 +328,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(pushToApi.mock.calls[0][0].event).toBe('TERMINATE');
   });
 
-  it('Given running timers in different projects, When handleStopTimer is called with specific projectId, Then only matching project timers stop', () => {
+  it('Given running timers in different projects, When handleStopTimer is called with specific projectId, Then only matching project timers stop', async () => {
     const log1 = { id: 'log_1', taskId: '101', projectId: '1', startTime: '2026-06-20T12:00:00Z', endTime: null };
     const log2 = { id: 'log_2', taskId: '201', projectId: '2', startTime: '2026-06-20T12:05:00Z', endTime: null };
     const existingState = {
@@ -341,10 +347,10 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     };
     localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleStopTimer('1');
+    await act(async () => {
+      await result.current.handleStopTimer('1');
     });
 
     expect(result.current.logs.find(l => l.id === 'log_1')?.endTime).not.toBeNull();
@@ -352,18 +358,18 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(result.current.activeLog).not.toBeNull();
   });
 
-  it('Given default state, When handleStartTimer is called with non-existent taskId, Then nothing changes', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given default state, When handleStartTimer is called with non-existent taskId, Then nothing changes', async () => {
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleStartTimer('invalid-task-id-999');
+    await act(async () => {
+      await result.current.handleStartTimer('invalid-task-id-999');
     });
 
     expect(result.current.activeLog).toBeNull();
     expect(pushToApi).not.toHaveBeenCalled();
   });
 
-  it('Given running task timer, When handleDeleteTask is called on that task, Then activeLog becomes null', () => {
+  it('Given running task timer, When handleDeleteTask is called on that task, Then activeLog becomes null', async () => {
     const activeTimeLog = { id: 'log_active', taskId: TEST_CONSTANTS.TASK_ID_102, projectId: TEST_CONSTANTS.PROJECT_ID_1, startTime: '2026-06-20T12:00:00Z', endTime: null };
     const existingState = {
       projects: [{ id: TEST_CONSTANTS.PROJECT_ID_1, name: 'Proj 1', color: 'violet', createdAt: '2026-06-20' }],
@@ -375,33 +381,33 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     };
     localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
 
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
+    await act(async () => {
+      await result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
     });
 
     expect(result.current.activeLog).toBeNull();
     expect(result.current.logs).toHaveLength(0);
   });
 
-  it('Given no running timers, When handleStopTimer is called, Then nothing changes and API is not triggered', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given no running timers, When handleStopTimer is called, Then nothing changes and API is not triggered', async () => {
+    const { result } = await renderTimeLog();
 
-    act(() => {
-      result.current.handleStopTimer();
+    await act(async () => {
+      await result.current.handleStopTimer();
     });
 
     expect(result.current.activeLog).toBeNull();
     expect(pushToApi).not.toHaveBeenCalled();
   });
 
-  it('Given state in localStorage, When handleResetLocalStorage is called, Then localStorage is cleared and window reloads', () => {
-    const { result } = renderHook(() => useTimeLogData(pushToApi));
+  it('Given state in localStorage, When handleResetLocalStorage is called, Then localStorage is cleared and window reloads', async () => {
+    const { result } = await renderTimeLog();
     localStorage.setItem(LOCAL_STORAGE_KEY, 'some-state');
 
-    act(() => {
-      result.current.handleResetLocalStorage();
+    await act(async () => {
+      await result.current.handleResetLocalStorage();
     });
 
     expect(localStorage.getItem(LOCAL_STORAGE_KEY)).toBeNull();

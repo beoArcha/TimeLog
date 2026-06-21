@@ -1,5 +1,5 @@
-import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, act, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useGlobalShortcuts } from '@core/hooks/useGlobalShortcuts';
 import { useOxyAppState } from '@core/hooks/useOxyAppState';
 import { LocaleProvider } from '@core/providers/LocaleProvider';
@@ -17,86 +17,97 @@ describe('Integration Tests: useGlobalShortcuts Integration', () => {
     setupMatchMediaMock(false);
   });
 
-  it('Given stopped timer, When Space key is pressed outside inputs, Then it starts the timer via app state integration', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('Given stopped timer, When Space key is pressed outside inputs, Then it starts the timer via app state integration', async () => {
     const { result } = renderHook(() => {
       const state = useOxyAppState();
       useGlobalShortcuts({ onToggleTimer: state.handleToggleTimer });
       return state;
     }, { wrapper: Wrapper });
 
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
     expect(result.current.activeLog).toBeNull();
 
     const event = new KeyboardEvent('keydown', { code: 'Space', bubbles: true });
     Object.defineProperty(event, 'target', { value: document.createElement('div') });
 
-    act(() => {
+    await act(async () => {
       window.dispatchEvent(event);
     });
 
-    expect(result.current.activeLog).not.toBeNull();
+    await waitFor(() => expect(result.current.activeLog).not.toBeNull());
     expect(result.current.activeLog?.endTime).toBeNull();
   });
 
-  it('Given running timer, When Space key is pressed outside inputs, Then it stops the timer via app state integration', () => {
+  it('Given running timer, When Space key is pressed outside inputs, Then it stops the timer via app state integration', async () => {
     const { result } = renderHook(() => {
       const state = useOxyAppState();
       useGlobalShortcuts({ onToggleTimer: state.handleToggleTimer });
       return state;
     }, { wrapper: Wrapper });
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
 
     const event1 = new KeyboardEvent('keydown', { code: 'Space', bubbles: true });
     Object.defineProperty(event1, 'target', { value: document.createElement('div') });
 
-    act(() => {
+    await act(async () => {
       window.dispatchEvent(event1);
     });
-    expect(result.current.activeLog).not.toBeNull();
+
+    await waitFor(() => expect(result.current.activeLog).not.toBeNull());
 
     const event2 = new KeyboardEvent('keydown', { code: 'Space', bubbles: true });
     Object.defineProperty(event2, 'target', { value: document.createElement('div') });
 
-    act(() => {
+    await act(async () => {
       window.dispatchEvent(event2);
     });
 
-    expect(result.current.activeLog).toBeNull();
+    await waitFor(() => expect(result.current.activeLog).toBeNull());
   });
 
-  it('Given stopped timer, When Space key is pressed inside input, Then timer does not start', () => {
+  it('Given stopped timer, When Space key is pressed inside input, Then timer does not start', async () => {
     const { result } = renderHook(() => {
       const state = useOxyAppState();
       useGlobalShortcuts({ onToggleTimer: state.handleToggleTimer });
       return state;
     }, { wrapper: Wrapper });
 
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
     expect(result.current.activeLog).toBeNull();
 
     const event = new KeyboardEvent('keydown', { code: 'Space', bubbles: true });
     Object.defineProperty(event, 'target', { value: document.createElement('input') });
 
-    act(() => {
+    await act(async () => {
       window.dispatchEvent(event);
     });
 
+    await new Promise(resolve => setTimeout(resolve, 50));
     expect(result.current.activeLog).toBeNull();
   });
 
-  it('Given stopped timer, When Ctrl+Space keys are pressed inside input, Then it starts the timer', () => {
+  it('Given stopped timer, When Ctrl+Space keys are pressed inside input, Then it starts the timer', async () => {
     const { result } = renderHook(() => {
       const state = useOxyAppState();
       useGlobalShortcuts({ onToggleTimer: state.handleToggleTimer });
       return state;
     }, { wrapper: Wrapper });
 
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
     expect(result.current.activeLog).toBeNull();
 
     const event = new KeyboardEvent('keydown', { code: 'Space', ctrlKey: true, bubbles: true });
     Object.defineProperty(event, 'target', { value: document.createElement('input') });
 
-    act(() => {
+    await act(async () => {
       window.dispatchEvent(event);
     });
 
-    expect(result.current.activeLog).not.toBeNull();
+    await waitFor(() => expect(result.current.activeLog).not.toBeNull());
   });
 });
