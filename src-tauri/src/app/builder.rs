@@ -124,13 +124,3 @@ pub fn run_tauri() {
         .run(tauri::generate_context!())
         .expect(APP_ERROR);
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_create_builder_initialization() {
-        let _builder = create_builder();
-    }
-}

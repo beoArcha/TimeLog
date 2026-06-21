@@ -1,18 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
+use oxy_flow::{app, cli, engine};
 use std::error::Error;
-
-mod app;
-mod cli;
-mod commands;
-mod common;
-mod engine;
-mod services;
-mod tray;
-mod types;
-
-pub use app::AppState;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();

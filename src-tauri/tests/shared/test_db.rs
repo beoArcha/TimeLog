@@ -1,4 +1,4 @@
-use crate::engine::db::init_db_in_memory;
+use oxy_flow::engine::db::init_db_in_memory;
 use rusqlite::Connection;
 
 pub struct TestDb {
@@ -35,8 +35,7 @@ impl TestDb {
 
     #[allow(dead_code)]
     pub fn with_running_timer(self, task_id: &str) -> Self {
-        crate::engine::counting::start_project_timer(&self.conn, task_id)
-            .expect("start timer failed");
+        oxy_flow::services::timer_service::start(&self.conn, task_id).expect("start timer failed");
         self
     }
 }
