@@ -3,7 +3,8 @@ import { Task } from '@bindings/Task';
 import { Plus, CheckSquare, Square as EmptySquare, Trash2, Pencil, Play, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@core/i18n/i18n';
-import { getTranslation } from '@core/i18n/translations';
+import { GuiKey } from '@core/i18n/keys/GuiKey';
+import { CommonKey } from '@core/i18n/keys/CommonKey';
 import { getTaskDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
 
 interface TaskItemProps {
@@ -116,14 +117,14 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
                   <span className="inline-flex items-center gap-1.5 text-[10px] bg-amber-550/15 border border-amber-500/35 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
                     <span className="truncate max-w-[120px]" title={runningSubtask.name}>
-                      {getTranslation(locale, 'subtaskLabel', customTranslations)}: {runningSubtask.name}
+                      {translate(locale, GuiKey.SubtaskLabel, customTranslations)}: {runningSubtask.name}
                     </span>
                   </span>
                 )}
                 {isCurrentRunning && (
                   <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/15 border border-emerald-500/35 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
-                    {getTranslation(locale, 'inProgressLabel', customTranslations)}
+                    {translate(locale, GuiKey.InProgressLabel, customTranslations)}
                   </span>
                 )}
               </span>
@@ -172,7 +173,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
                 ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42]'
                 : 'bg-[#FCFAF8]/5 border-white/10 text-slate-200'
             }`}>
-            {getTranslation(locale, 'counterLabel', customTranslations)}: {formatSeconds(rootDuration)}
+            {translate(locale, GuiKey.CounterLabel, customTranslations)}: {formatSeconds(rootDuration)}
           </span>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -209,9 +210,9 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
                   ? 'bg-[#EAE4DB] hover:bg-[#DFD7CB] text-[#5A4A42] border-[#DFD7CB]'
                   : 'bg-[#FCFAF8]/5 hover:bg-[#FCFAF8]/15 text-slate-200 hover:text-white border-white/10'
                 }`}
-              title={getTranslation(locale, 'addSubtask', customTranslations)}
+              title={translate(locale, GuiKey.AddSubtask, customTranslations)}
             >
-              <Plus className="w-3.5 h-3.5 text-orange-500" /> <span className={isCondensed ? 'hidden xs:inline' : ''}>{getTranslation(locale, 'subtaskLabel', customTranslations)}</span>
+              <Plus className="w-3.5 h-3.5 text-orange-500" /> <span className={isCondensed ? 'hidden xs:inline' : ''}>{translate(locale, GuiKey.SubtaskLabel, customTranslations)}</span>
             </button>
           </div>
         </div>
@@ -246,7 +247,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
               type="submit"
               className="bg-gradient-to-tr from-orange-400 to-rose-500 text-white text-xs font-semibold rounded-xl px-3 py-1.5 hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
             >
-              {getTranslation(locale, 'save', customTranslations)}
+              {translate(locale, CommonKey.Save, customTranslations)}
             </button>
           </motion.form>
         )}

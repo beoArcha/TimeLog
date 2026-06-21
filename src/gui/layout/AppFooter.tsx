@@ -1,6 +1,5 @@
 import React from 'react';
-import { translate } from '@core/i18n/i18n';
-import { LocaleType, TranslationDictionary } from '@core/i18n/translations';
+import { translate, LocaleType, TranslationDictionary } from '@core/i18n/i18n';
 import { DynamicKey } from '@core/i18n/keys/DynamicKey';
 
 interface AppFooterProps {

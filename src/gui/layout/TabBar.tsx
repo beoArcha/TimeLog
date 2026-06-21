@@ -1,7 +1,6 @@
 import React from 'react';
 import { Clock, BarChart, Database, Settings, UploadCloud, Terminal, BookOpen, Sparkles } from 'lucide-react';
-import { translate } from '@core/i18n/i18n';
-import { LocaleType, TranslationDictionary } from '@core/i18n/translations';
+import { translate, LocaleType, TranslationDictionary } from '@core/i18n/i18n';
 
 import { Theme } from '@common/types/ThemeTypes';
 

@@ -3,8 +3,6 @@ import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { useOxyFlow, OxyContext, OxyFlowState } from '@core/providers/OxyContext';
 
-import { Theme, ThemePreference } from '@common/types/ThemeTypes';
-
 const mockState: OxyFlowState = {
   customTranslations: {},
   setCustomTranslations: vi.fn(),
@@ -80,10 +78,10 @@ describe('Integration Tests: useOxyFlow Context Integration', () => {
   });
 
   it('should throw clear error when rendered outside of OxyContext.Provider', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+
     expect(() => renderHook(() => useOxyFlow())).toThrow('useOxyFlow must be used within OxyContext.Provider');
-    
+
     consoleSpy.mockRestore();
   });
 });

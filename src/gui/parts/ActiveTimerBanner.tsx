@@ -3,7 +3,7 @@ import { GuiState } from '../useGuiLogic';
 import { Clock, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@core/i18n/i18n';
-import { getTranslation } from '@core/i18n/translations';
+import { GuiKey } from '@core/i18n/keys/GuiKey';
 import { getTaskDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
 import { getScaleStyles } from './guiStyles';
 
@@ -50,7 +50,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[10px] bg-orange-500/20 border border-orange-500/30 text-orange-500 font-bold px-2 py-0.5 rounded-full font-mono uppercase whitespace-nowrap">
-                  {getTranslation(locale, 'activeTracker', customTranslations)}
+                  {translate(locale, GuiKey.ActiveTracker, customTranslations)}
                 </span>
                 {activeProject && (
                   <span className={`text-xs font-semibold drop-shadow-sm flex items-center gap-1.5 min-w-0 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-200'

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Folder, TrendingUp } from 'lucide-react';
 import { translate } from '@core/i18n/i18n';
-import { getTranslation } from '@core/i18n/translations';
+import { GuiKey } from '@core/i18n/keys/GuiKey';
 import { getProjectDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
 import { getThemeStyles, getScaleStyles } from '../../gui/parts/guiStyles';
 import TaskItem from './components/TaskItem';
@@ -49,7 +49,7 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
           }`}>
           <div className={`flex-1 min-w-0 ${isCondensed ? 'w-full' : ''}`}>
             <span className={`${sc.textMain} tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25 ${isCondensed ? 'inline-block mb-2 whitespace-nowrap' : ''}`}>
-              {getTranslation(locale, 'selectProject', customTranslations)}
+              {translate(locale, GuiKey.SelectProject, customTranslations)}
             </span>
             <h2 className={`font-sans font-bold mt-1.5 flex items-center ${sc.gapMain} ${sc.textGiant} ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
               }`}>
@@ -94,7 +94,7 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
           <input
             id="new-task-input"
             type="text"
-            placeholder={getTranslation(locale, 'enterMainTaskName', customTranslations)}
+            placeholder={translate(locale, GuiKey.EnterMainTaskName, customTranslations)}
             value={newTaskName}
             onChange={e => setNewTaskName(e.target.value)}
             className={`flex-1 px-4 ${sc.inputPy} border ${sc.roundedMain} ${sc.textMain} focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all ${theme === 'light'
@@ -107,7 +107,7 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
             type="submit"
             className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold ${sc.roundedMain} px-5 sm:px-6 py-3 sm:py-3.5 ${sc.textMain} flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shrink-0`}
           >
-            <Plus className={sc.iconMedium} /> <span className={isCondensed ? 'hidden xs:inline' : ''}>{getTranslation(locale, 'addTask', customTranslations)}</span>
+            <Plus className={sc.iconMedium} /> <span className={isCondensed ? 'hidden xs:inline' : ''}>{translate(locale, GuiKey.AddTask, customTranslations)}</span>
           </button>
         </form>
       </div>
@@ -120,7 +120,7 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
               : 'border-white/10 text-[#9B8C83]'
             }`}>
             <Folder className="w-8 h-8 mx-auto text-[#9B8C83] mb-2" />
-            <p className="text-sm font-semibold">{getTranslation(locale, 'noTasksInProject', customTranslations)}</p>
+            <p className="text-sm font-semibold">{translate(locale, GuiKey.NoTasksInProject, customTranslations)}</p>
             <p className="text-xs text-[#8A7A71] mt-1">
               {translate(locale, 'dynamic.createAMainProjectTaskAboveThe', customTranslations)}
             </p>

@@ -6,7 +6,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { Settings } from '@bindings/Settings';
-import { LocaleType, TranslationDictionary } from '@core/i18n/translations';
+import { LocaleType, TranslationDictionary } from '@core/i18n/i18n';
 import { GuiSize } from '@bindings/GuiSize';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 

@@ -2,7 +2,8 @@ import React from 'react';
 import { GuiState } from '../useGuiLogic';
 import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
 import { translate } from '@core/i18n/i18n';
-import { getTranslation } from '@core/i18n/translations';
+import { GuiKey } from '@core/i18n/keys/GuiKey';
+import { CommonKey } from '@core/i18n/keys/CommonKey';
 import { getProjectDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
 import { PROJECT_COLORS, getScaleStyles } from './guiStyles';
 import versionsData from '../../versions.json';
@@ -51,7 +52,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
             <input
               id="new-project-input"
               type="text"
-              placeholder={getTranslation(locale, 'enterProjectName', customTranslations)}
+              placeholder={translate(locale, GuiKey.EnterProjectName, customTranslations)}
               value={newProjectName}
               onChange={e => setNewProjectName(e.target.value)}
               className={`w-full border px-3 ${sc.inputPy} ${sc.roundedSection} ${sc.textMain} focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all ${theme === 'light'
@@ -81,7 +82,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 type="submit"
                 className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white ${sc.roundedSection} px-3.5 py-1.5 ${sc.textMain} font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md`}
               >
-                <Plus className={sc.iconSmall} /> {getTranslation(locale, 'save', customTranslations)}
+                <Plus className={sc.iconSmall} /> {translate(locale, CommonKey.Save, customTranslations)}
               </button>
             </div>
           </div>

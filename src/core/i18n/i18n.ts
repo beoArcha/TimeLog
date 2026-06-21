@@ -1,4 +1,11 @@
-import { LocaleType } from './translations';
+import { Locale } from '@bindings/Locale';
+
+export type LocaleType = Locale;
+
+export interface TranslationDictionary {
+  [key: string]: string | TranslationDictionary;
+}
+
 import { en } from './dictionaries/en';
 import { pl } from './dictionaries/pl';
 import { de } from './dictionaries/de';
