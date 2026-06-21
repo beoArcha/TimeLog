@@ -32,6 +32,16 @@ describe('Unit Tests: Translations', () => {
     expect(fallback).toBeUndefined();
   });
 
+  it('should_return_undefined_when_locale_does_not_exist', () => {
+    const val = getTranslation('xx' as any, 'guiInterface');
+    expect(val).toBeUndefined();
+  });
+
+  it('should_return_undefined_when_key_does_not_exist_in_any_locale', () => {
+    const val = getTranslation('en', 'nonexistent_key' as any);
+    expect(val).toBeUndefined();
+  });
+
   describe('translate function', () => {
     it('should_return_correct_translation_for_nested_key', () => {
       const val = translate('pl', 'common.cancel');
