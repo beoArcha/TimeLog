@@ -24,17 +24,17 @@ describe('Unit Tests: Translations', () => {
     const customDict = {
       activeTracker: 'Mój Aktywny Czas'
     };
-    
+
     const translation = getTranslation(locale, 'activeTracker', customDict);
     expect(translation).toBe('Mój Aktywny Czas');
-    
+
     const fallback = getTranslation('fr' as any, 'missing_key' as any);
     expect(fallback).toBeUndefined();
   });
 
-  it('should_return_undefined_when_locale_does_not_exist', () => {
+  it('should_return_english_when_locale_does_not_exist', () => {
     const val = getTranslation('xx' as any, 'guiInterface');
-    expect(val).toBeUndefined();
+    expect(val).toBe('GUI Interface');
   });
 
   it('should_return_undefined_when_key_does_not_exist_in_any_locale', () => {

@@ -44,8 +44,8 @@ export type TranslationKey =
 export type EnumKey = Exclude<TranslationKey, string>;
 export const dictionaries = { en, pl, de, es, 'pt-br': ptBr, fr };
 
-const isDev = 
-  (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') || 
+const isDev =
+  (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') ||
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV);
 
 export function translate(
@@ -53,11 +53,13 @@ export function translate(
   keyPath: string,
   customDict?: unknown,
 ): string;
+
 export function translate(
   locale: LocaleType,
   keyPath: EnumKey,
   customDict?: unknown,
 ): string;
+
 export function translate(
   locale: LocaleType,
   keyPath: string | TranslationKey,
