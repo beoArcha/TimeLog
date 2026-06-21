@@ -9,7 +9,7 @@ import { LocaleProvider } from '@core/providers/LocaleProvider';
 describe('Integration Tests: DbExplorer Holidays Table', () => {
   beforeEach(() => {
     vi.spyOn(window, 'confirm').mockImplementation(() => true);
-    vi.spyOn(window, 'alert').mockImplementation(() => {});
+    vi.spyOn(window, 'alert').mockImplementation(() => { });
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
     window.URL.revokeObjectURL = vi.fn();
@@ -99,7 +99,6 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
 
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
-    // Click edit
     const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
     fireEvent.click(editBtn);
 
@@ -116,11 +115,8 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     const { setHolidays } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
-    // Click edit
     const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
     fireEvent.click(editBtn);
-
-    // Click cancel
     const cancelBtn = holidaysTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
     fireEvent.click(cancelBtn);
 
@@ -135,5 +131,79 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     fireEvent.click(deleteBtn);
 
     expect(setHolidays).toHaveBeenCalled();
+  });
+
+  it('Given a holiday list, When editing is started and no changes are made and saved, Then it should close editing without updating holidays', () => {
+    const { setHolidays } = setup();
+    const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
+
+    const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    fireEvent.click(editBtn);
+
+    const saveBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    fireEvent.click(saveBtn);
+
+    expect(setHolidays).toHaveBeenCalled();
+    const updateFn = setHolidays.mock.calls[0][0];
+    const initialHolidays = [
+      { id: 'leave_1', date: '2026-12-25', type: 'holiday', name: 'Christmas' }
+    ];
+    const updatedHolidays = updateFn(initialHolidays);
+    expect(updatedHolidays[0]).toBe(initialHolidays[0]);
+  });
+
+  it('Given a holiday list, When type is changed and custom reason is entered and saved, Then it should trigger setHolidays with update and new history entry', () => {
+    const { setHolidays } = setup();
+    const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
+
+    const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    fireEvent.click(editBtn);
+
+    const select = holidaysTableWrapper?.querySelector('select') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'leave' } });
+    const reasonInput = holidaysTableWrapper?.querySelector('input[placeholder="Powód zmiany"]') as HTMLInputElement;
+    fireEvent.change(reasonInput, { target: { value: 'Custom reason text' } });
+
+    const saveBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    fireEvent.click(saveBtn);
+
+    expect(setHolidays).toHaveBeenCalled();
+  });
+
+  it('Given a holiday with history, When clicking history button, Then it should toggle the history details view', () => {
+    const customValue = {
+      holidays: [
+        {
+          id: 'leave_1',
+          date: '2026-12-25',
+          type: 'holiday',
+          name: 'Christmas',
+          originalName: 'Xmas',
+          originalDate: '2026-12-25',
+          originalType: 'holiday',
+          editHistory: [
+            {
+              editedAt: '2026-06-20T12:00:00Z',
+              prevName: 'Xmas',
+              prevDate: '2026-12-25',
+              prevType: 'holiday',
+              reason: 'Initial Correction'
+            }
+          ]
+        },
+      ]
+    };
+    setup(customValue);
+
+    const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
+    const historyBtn = holidaysTableWrapper?.querySelector('tbody tr button') as HTMLElement;
+    expect(screen.queryByText(/Audit historii/i)).toBeNull();
+
+    fireEvent.click(historyBtn);
+    expect(screen.getByText(/Audit historii/i)).not.toBeNull();
+    expect(screen.getByText(/"Initial Correction"/i)).not.toBeNull();
+
+    fireEvent.click(historyBtn);
+    expect(screen.queryByText(/Audit historii/i)).toBeNull();
   });
 });

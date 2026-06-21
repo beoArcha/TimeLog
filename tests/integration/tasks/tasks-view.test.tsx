@@ -137,4 +137,60 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
     expect(state.onDeleteTask).toHaveBeenCalledWith('subtask_1');
   });
+
+  it('Given editing task, When Enter is pressed in rename input, Then it should trigger rename', () => {
+    const state = setupMockState({ editingId: 'task_1', editName: 'Task One Custom' });
+    render(<TaskListView state={state} isCondensed={false} />);
+
+    const input = screen.getByDisplayValue('Task One Custom');
+    fireEvent.change(input, { target: { value: 'Task One Renamed' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Custom');
+    expect(state.setEditingId).toHaveBeenCalledWith(null);
+  });
+
+  it('Given editing task, When Escape is pressed in rename input, Then it should cancel edit', () => {
+    const state = setupMockState({ editingId: 'task_1', editName: 'Task One Custom' });
+    render(<TaskListView state={state} isCondensed={false} />);
+
+    const input = screen.getByDisplayValue('Task One Custom');
+    fireEvent.keyDown(input, { key: 'Escape', code: 'Escape' });
+
+    expect(state.setEditingId).toHaveBeenCalledWith(null);
+  });
+
+  it('Given running subtask timer, When stop button clicked, Then it should stop subtask timer', () => {
+    const state = setupMockState({
+      logs: [
+        { id: 'l2', taskId: 'subtask_1', projectId: 'proj_1', startTime: '2026-06-15T12:00:00Z', endTime: null }
+      ]
+    });
+    render(<TaskListView state={state} isCondensed={false} />);
+
+    const stopBtn = document.getElementById('stop-subtask-btn-subtask_1') as HTMLElement;
+    fireEvent.click(stopBtn);
+
+    expect(state.onStartTimer).toHaveBeenCalledWith('subtask_1');
+  });
+
+  it('Given stopped subtask timer, When start button clicked, Then it should start subtask timer', () => {
+    const state = setupMockState({ logs: [] });
+    render(<TaskListView state={state} isCondensed={false} />);
+
+    const startBtn = document.getElementById('start-subtask-btn-subtask_1') as HTMLElement;
+    fireEvent.click(startBtn);
+
+    expect(state.onStartTimer).toHaveBeenCalledWith('subtask_1');
+  });
+
+  it('Given subtask, When rename input blurs or Enter key is pressed, Then it should rename subtask', () => {
+    const state = setupMockState({ editingId: 'subtask_1', editName: 'Subtask One Custom' });
+    render(<TaskListView state={state} isCondensed={false} />);
+
+    const input = screen.getByDisplayValue('Subtask One Custom');
+    fireEvent.blur(input);
+    expect(state.onRenameTask).toHaveBeenCalledWith('subtask_1', 'Subtask One Custom');
+    expect(state.setEditingId).toHaveBeenCalledWith(null);
+  });
 });

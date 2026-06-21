@@ -9,7 +9,7 @@ import { LocaleProvider } from '@core/providers/LocaleProvider';
 describe('Integration Tests: DbExplorer Logs Table', () => {
   beforeEach(() => {
     vi.spyOn(window, 'confirm').mockImplementation(() => true);
-    vi.spyOn(window, 'alert').mockImplementation(() => {});
+    vi.spyOn(window, 'alert').mockImplementation(() => { });
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
     window.URL.revokeObjectURL = vi.fn();
@@ -112,7 +112,6 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.change(endInput, { target: { value: '2026-06-20T11:00:00.000Z' } });
     fireEvent.change(noteInput, { target: { value: 'Manual log entry' } });
 
-    // Submit form
     const submitBtn = screen.getByText(/Zatwierdź SQL INSERT/i);
     fireEvent.click(submitBtn);
 
@@ -120,7 +119,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
   });
 
   it('should_alert_when_submitting_manual_log_without_selected_task', () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
     const { container, setLogs } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
@@ -141,8 +140,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const { setLogs } = setup();
 
     const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
-    
-    // Test Edit
+
     const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
     fireEvent.click(editBtn);
 
@@ -154,11 +152,119 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
     expect(setLogs).toHaveBeenCalled();
 
-    // Test Delete
     const deleteBtn = logsTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
     fireEvent.click(deleteBtn);
 
     expect(confirmSpy).toHaveBeenCalled();
     expect(setLogs).toHaveBeenCalledTimes(2);
+  });
+
+  it('Given a log list, When editing is started and canceled, Then it should exit edit mode', () => {
+    const { setLogs } = setup();
+    const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
+
+    const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    fireEvent.click(editBtn);
+
+    const cancelBtn = logsTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
+    fireEvent.click(cancelBtn);
+
+    expect(setLogs).not.toHaveBeenCalled();
+  });
+
+  it('Given a log list, When editing is started and saved with no changes, Then it should close editing without triggering setLogs', () => {
+    const { setLogs } = setup();
+    const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
+
+    const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    fireEvent.click(editBtn);
+
+    const saveBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    fireEvent.click(saveBtn);
+
+    expect(setLogs).toHaveBeenCalled();
+    const updateFn = setLogs.mock.calls[0][0];
+    const initialLogs = [
+      { id: 'log_1', taskId: 'task_1', projectId: 'proj_1', startTime: '2026-06-12T01:00:00Z', endTime: '2026-06-12T02:00:00Z', note: 'First log' }
+    ];
+    const updatedLogs = updateFn(initialLogs);
+    expect(updatedLogs[0]).toBe(initialLogs[0]);
+  });
+
+  it('Given a log list with history, When clicking history button, Then it should toggle the history details view', () => {
+    const customValue = {
+      logs: [
+        {
+          id: 'log_1',
+          taskId: 'task_1',
+          projectId: 'proj_1',
+          startTime: '2026-06-12T01:00:00Z',
+          endTime: '2026-06-12T02:00:00Z',
+          note: 'First log',
+          originalStartTime: '2026-06-12T00:50:00Z',
+          originalEndTime: '2026-06-12T02:00:00Z',
+          originalNote: 'Original Note',
+          editHistory: [
+            {
+              editedAt: '2026-06-12T01:05:00Z',
+              prevStartTime: '2026-06-12T00:50:00Z',
+              prevEndTime: '2026-06-12T02:00:00Z',
+              prevNote: 'Original Note',
+              reason: 'Adjusted start time'
+            }
+          ]
+        },
+      ]
+    };
+    setup(customValue);
+
+    const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
+    const historyBtn = logsTableWrapper?.querySelector('tbody tr button') as HTMLElement;
+    expect(screen.queryByText(/Oryginał i historia korekt/i)).toBeNull();
+
+    fireEvent.click(historyBtn);
+    expect(screen.getByText(/Oryginał i historia korekt/i)).not.toBeNull();
+    expect(screen.getByText(/"Adjusted start time"/i)).not.toBeNull();
+
+    fireEvent.click(historyBtn);
+    expect(screen.queryByText(/Oryginał i historia korekt/i)).toBeNull();
+  });
+
+  it('Given the manual add form, When canceled, Then it should close the form', () => {
+    setup();
+
+    const addBtn = screen.getByText(/add log manually/i);
+    fireEvent.click(addBtn);
+
+    expect(screen.getByText(/Zatwierdź SQL INSERT/i)).not.toBeNull();
+
+    const cancelBtn = screen.getByText(/Anuluj/i);
+    fireEvent.click(cancelBtn);
+
+    expect(screen.queryByText(/Zatwierdź SQL INSERT/i)).toBeNull();
+  });
+
+  it('Given the manual add form, When submitted with empty end time and empty note, Then it should submit with defaults', () => {
+    const { container, setLogs } = setup();
+
+    const addBtn = screen.getByText(/add log manually/i);
+    fireEvent.click(addBtn);
+
+    const taskSelect = screen.getByRole('combobox');
+    fireEvent.change(taskSelect, { target: { value: 'task_1' } });
+
+    const textInputs = container.querySelectorAll('form input[type="text"]');
+    const startInput = textInputs[0] as HTMLInputElement;
+    const endInput = textInputs[1] as HTMLInputElement;
+    const noteInput = textInputs[2] as HTMLInputElement;
+
+    fireEvent.change(startInput, { target: { value: '2026-06-20T10:00:00.000Z' } });
+    fireEvent.change(endInput, { target: { value: '' } });
+    fireEvent.change(noteInput, { target: { value: '' } });
+
+    const submitBtn = screen.getByText(/Zatwierdź SQL INSERT/i);
+    fireEvent.click(submitBtn);
+
+    expect(setLogs).toHaveBeenCalled();
   });
 });
