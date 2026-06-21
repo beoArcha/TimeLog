@@ -73,3 +73,15 @@ fn test_get_active_logs_with_running_timer() {
     let active = timer_service::get_active(&conn).expect("get_active failed");
     assert!(active.contains(&"t1".to_string()), "t1 should be active");
 }
+
+#[test]
+fn test_timer_repository_direct() {
+    use oxy_flow::repositories::timer_repository;
+    let conn = setup();
+
+    let proj_id = timer_repository::get_project_id_by_task_id(&conn, "t1").unwrap();
+    assert_eq!(proj_id, "p1");
+
+    let result = timer_repository::get_project_id_by_task_id(&conn, "nonexistent");
+    assert!(result.is_err());
+}

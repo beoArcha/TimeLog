@@ -18,6 +18,7 @@ export default defineConfig(() => {
         '@core': path.resolve(__dirname, './src/core'),
         '@common': path.resolve(__dirname, './src/common'),
         '@bindings': path.resolve(__dirname, './src/bindings'),
+        '@gui': path.resolve(__dirname, './src/gui'),
       },
     },
     build: {

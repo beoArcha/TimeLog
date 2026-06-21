@@ -18,3 +18,14 @@ pub fn get_cli_db_path() -> PathBuf {
     let _ = std::fs::create_dir_all(&app_dir);
     app_dir.join(DEFAULT_DB_NAME)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_cli_db_path() {
+        let path = get_cli_db_path();
+        assert!(path.to_string_lossy().contains(DEFAULT_DB_NAME));
+    }
+}
