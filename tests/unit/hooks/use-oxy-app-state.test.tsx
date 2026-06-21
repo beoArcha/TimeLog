@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useOxyAppState } from '../../../src/hooks/useOxyAppState';
+import { useOxyAppState } from '@core/hooks/useOxyAppState';
 
 const mockUseAppSettings = vi.fn(() => ({
   guiSize: 'large',
@@ -39,12 +39,12 @@ const mockUseLocale = vi.fn(() => ({
   setCustomTranslations: vi.fn(),
 }));
 
-vi.mock('../../../src/hooks/useAppSettings', () => ({ useAppSettings: () => mockUseAppSettings() }));
-vi.mock('../../../src/hooks/useTimeTicker', () => ({ useTimeTicker: () => mockUseTimeTicker() }));
-vi.mock('../../../src/hooks/useExternalApiSync', () => ({ useExternalApiSync: () => mockUseExternalApiSync() }));
-vi.mock('../../../src/hooks/useTimeLogData', () => ({ useTimeLogData: () => mockUseTimeLogData() }));
-vi.mock('../../../src/hooks/useTauriWindow', () => ({ useTauriWindow: () => mockUseTauriWindow() }));
-vi.mock('../../../src/providers/LocaleProvider', () => ({ useLocale: () => mockUseLocale() }));
+vi.mock('@core/hooks/useAppSettings', () => ({ useAppSettings: () => mockUseAppSettings() }));
+vi.mock('@core/hooks/useTimeTicker', () => ({ useTimeTicker: () => mockUseTimeTicker() }));
+vi.mock('@core/hooks/useExternalApiSync', () => ({ useExternalApiSync: () => mockUseExternalApiSync() }));
+vi.mock('@features/timelogs/useTimeLogData', () => ({ useTimeLogData: () => mockUseTimeLogData() }));
+vi.mock('@core/tauri/useTauriWindow', () => ({ useTauriWindow: () => mockUseTauriWindow() }));
+vi.mock('@core/providers/LocaleProvider', () => ({ useLocale: () => mockUseLocale() }));
 
 // navigator.clipboard mock
 Object.defineProperty(navigator, 'clipboard', {

@@ -7,7 +7,7 @@ import {
   setupLocalStorageMock,
   setupMatchMediaMock,
 } from '../../shared/test-helpers';
-import { useTauriWindow } from '../../../src/hooks/useTauriWindow';
+import { useTauriWindow } from '@core/tauri/useTauriWindow';
 import { TAURI_COMMANDS } from '../../../src/common/constants';
 
 describe('Integration Tests: useTauriWindow Events Integration', () => {

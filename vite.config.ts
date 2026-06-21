@@ -14,6 +14,10 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        '@features': path.resolve(__dirname, './src/features'),
+        '@core': path.resolve(__dirname, './src/core'),
+        '@common': path.resolve(__dirname, './src/common'),
+        '@bindings': path.resolve(__dirname, './src/bindings'),
       },
     },
     build: {
@@ -66,25 +70,19 @@ export default defineConfig(() => {
             branches: 50,
             statements: 60,
           },
-          'src/utils/**': {
+          './src/features/**': {
             lines: 70,
             functions: 70,
             branches: 70,
             statements: 70,
           },
-          'src/hooks/**': {
-            lines: 60,
-            functions: 60,
-            branches: 60,
-            statements: 60,
-          },
-          'src/components/ui/**': {
+          './src/core/**': {
             lines: 40,
             functions: 40,
             branches: 40,
             statements: 40,
           },
-          'src/components/features/**': {
+          './src/common/**': {
             lines: 40,
             functions: 50,
             branches: 40,

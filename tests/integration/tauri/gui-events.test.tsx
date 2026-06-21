@@ -10,7 +10,8 @@ import {
 import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import App from '../../../src/App';
-import { LocaleProvider } from '../../../src/providers/LocaleProvider';
+import { LocaleProvider } from '@core/providers/LocaleProvider';
+import { OxyProvider } from '@core/providers/OxyContext';
 
 const waitForTauriListener = async (eventName: string) => {
   await waitFor(() => {
@@ -33,7 +34,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_trigger_resize_and_resizability_commands_on_mount_based_on_initial_layout', async () => {
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'large', textAndIconSize: expect.any(String) });
@@ -41,7 +42,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_trigger_resize_and_lock_resizability_when_switching_to_small_mode', async () => {
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     const smallBtn = await screen.findByText('Małe');
     mockInvoke.mockClear();
@@ -53,7 +54,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_trigger_resize_and_enable_resizability_when_switching_to_medium_mode', async () => {
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
     const mediumBtn = await screen.findByText('Średnie');
     mockInvoke.mockClear();
     fireEvent.click(mediumBtn);
@@ -64,7 +65,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_update_layout_variant_state_when_receiving_native_window_maximize_event', async () => {
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitForTauriListener('native-window-maximized');
 
@@ -73,7 +74,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_handle_tray_set_gui_variant_event_to_switch_gui_mode', async () => {
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitForTauriListener('tray-set-gui-variant');
 
@@ -86,7 +87,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_handle_tray_stop_all_timers_event_without_errors', async () => {
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitForTauriListener('tray-stop-all-timers');
 
@@ -94,7 +95,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_handle_tray_toggle_on_top_event_toggling_always_on_top_settings_and_calling_tauri_set_always_on_top', async () => {
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitForTauriListener('tray-toggle-on-top');
 
@@ -110,7 +111,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_always_on_top_small', 'false');
 
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('set_always_on_top', { alwaysOnTop: false });
@@ -130,7 +131,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_min_to_tray', 'true');
 
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     mockInvoke.mockClear();
 
@@ -146,7 +147,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_min_to_tray', 'false');
 
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     mockInvoke.mockClear();
 
@@ -162,7 +163,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     localStorage.setItem('oxytime_gui_variant', 'small');
     localStorage.setItem('oxytime_last_non_small_variant', 'large');
 
-    render(<LocaleProvider><App /></LocaleProvider>);
+    render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'small', textAndIconSize: expect.any(String) });

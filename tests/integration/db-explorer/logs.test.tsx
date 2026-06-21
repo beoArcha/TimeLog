@@ -2,9 +2,9 @@
 import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import DbExplorer from '../../../src/components/features/db-explorer/DbExplorer';
-import { OxyContext } from '../../../src/hooks/useOxyFlow';
-import { LocaleProvider } from '../../../src/providers/LocaleProvider';
+import DbExplorer from '@features/db-explorer/DbExplorer';
+import { OxyContext } from '@core/providers/OxyContext';
+import { LocaleProvider } from '@core/providers/LocaleProvider';
 
 describe('Integration Tests: DbExplorer Logs Table', () => {
   beforeEach(() => {

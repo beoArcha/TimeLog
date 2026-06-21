@@ -1,8 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useGlobalShortcuts } from '../../../src/hooks/useGlobalShortcuts';
-import { useOxyAppState } from '../../../src/hooks/useOxyAppState';
-import { LocaleProvider } from '../../../src/providers/LocaleProvider';
+import { useGlobalShortcuts } from '@core/hooks/useGlobalShortcuts';
+import { useOxyAppState } from '@core/hooks/useOxyAppState';
+import { LocaleProvider } from '@core/providers/LocaleProvider';
 import { setupLocalStorageMock, setupMatchMediaMock } from '../../shared/test-helpers';
 import React from 'react';
 

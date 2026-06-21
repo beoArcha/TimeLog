@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { translate, dictionaries } from '../../../src/utils/i18n';
-import { DataManager } from '../../../src/utils/dataManager';
+import { translate, dictionaries } from '@core/i18n/i18n';
+import { LocalStorageDataManager as DataManager } from '@core/data/dataManager';
 
 describe('Integration Tests: Utils (i18n and DataManager)', () => {
   describe('i18n Integration', () => {

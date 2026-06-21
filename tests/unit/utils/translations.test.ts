@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { getTranslation, defaultTranslations } from '../../../src/utils/translations';
-import { translate, dictionaries } from '../../../src/utils/i18n';
+import { getTranslation, defaultTranslations } from '@core/i18n/translations';
+import { translate, dictionaries } from '@core/i18n/i18n';
 
 describe('Unit Tests: Translations', () => {
   it('should_return_correct_translation_value_from_Polish_locale_when_guiInterface_is_requested', () => {

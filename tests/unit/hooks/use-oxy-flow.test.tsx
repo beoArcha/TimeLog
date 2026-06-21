@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useOxyFlow, OxyContext, OxyFlowState } from '../../../src/hooks/useOxyFlow';
+import { useOxyFlow, OxyContext, OxyFlowState } from '@core/providers/OxyContext';
 import React from 'react';
 
 import { setupMatchMediaMock } from '../../shared/test-helpers';
@@ -59,6 +59,17 @@ const mockState: OxyFlowState = {
   nowIso: '2026',
   isGuiClosed: false,
   setIsGuiClosed: vi.fn(),
+  selectedTaskId: null,
+  setSelectedTaskId: vi.fn(),
+  handleAddProject: vi.fn(),
+  handleToggleProjectArchive: vi.fn(),
+  handleAddTask: vi.fn(),
+  handleRenameProject: vi.fn(),
+  handleRenameTask: vi.fn(),
+  handleDeleteTask: vi.fn(),
+  handleToggleTaskComplete: vi.fn(),
+  handleStartTimer: vi.fn(),
+  handleStopTimer: vi.fn(),
 };
 
 const ContextWrapper = ({ children }: { children: React.ReactNode }) => (

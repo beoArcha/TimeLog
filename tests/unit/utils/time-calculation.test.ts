@@ -4,8 +4,9 @@ import {
   formatFriendlyDuration, 
   getTaskDurationSeconds, 
   getProjectDurationSeconds 
-} from '../../../src/utils';
-import { Task, TimeLog } from '../../../src/types';
+} from '@features/timelogs/timelogUtils';
+import { Task } from '@bindings/Task';
+import { TimeLog } from '@bindings/TimeLog';
 
 describe('Unit Tests: Time Calculations', () => {
   describe('formatSeconds', () => {

@@ -18,6 +18,18 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@features/*": [
+        "./src/features/*"
+      ],
+      "@core/*": [
+        "./src/core/*"
+      ],
+      "@common/*": [
+        "./src/common/*"
+      ],
+      "@bindings/*": [
+        "./src/bindings/*"
       ]
     },
     "allowImportingTsExtensions": true,

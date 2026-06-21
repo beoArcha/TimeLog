@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useAppSettings } from '../../../src/hooks/useAppSettings';
+import { useAppSettings } from '@core/hooks/useAppSettings';
 import { setupLocalStorageMock, setupMatchMediaMock } from '../../shared/test-helpers';
 import { STORAGE_KEYS } from '../../../src/common/constants';
 

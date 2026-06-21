@@ -1,9 +1,11 @@
 import { render, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import CliInterface from '../../../src/components/features/cli/CliInterface';
-import { Project, Task, TimeLog } from '../../../src/types';
-import { LocaleProvider } from '../../../src/providers/LocaleProvider';
-import { OxyContext } from '../../../src/hooks/useOxyFlow';
+import CliInterface from '@features/cli/CliInterface';
+import { Project } from '@bindings/Project';
+import { Task } from '@bindings/Task';
+import { TimeLog } from '@bindings/TimeLog';
+import { LocaleProvider } from '@core/providers/LocaleProvider';
+import { OxyContext } from '@core/providers/OxyContext';
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();

@@ -12,7 +12,7 @@ import {
   setupMatchMediaMock,
 } from '../../shared/test-helpers';
 
-import { useTauriWindow } from '../../../src/hooks/useTauriWindow';
+import { useTauriWindow } from '@core/tauri/useTauriWindow';
 
 describe('Unit Tests: useTauriWindow Hook', () => {
   const defaultProps = {
@@ -428,6 +428,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     await waitForListeners();
 
     unmount();
+    await waitForListeners();
 
     expect(unlistenSpy).toHaveBeenCalled();
   });
