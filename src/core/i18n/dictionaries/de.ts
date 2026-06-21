@@ -99,7 +99,8 @@ export const de = {
     "apiMethodDesc": "Wählen Sie, ob POST oder PUT verwendet werden soll.",
     "apiHeaders": "Benutzerdefinierte Header",
     "apiHeadersTitle": "Erweiterte Header",
-    "apiHeadersDesc": "Fügen Sie benutzerdefinierte JSON-Nutzdaten für API-Anfrageheader hinzu."
+    "apiHeadersDesc": "Fügen Sie benutzerdefinierte JSON-Nutzdaten für API-Anfrageheader hinzu.",
+    "clearDatabaseConfirm": "Sind Sie sicher, dass Sie die lokale SQLite-Datenbank vollständig löschen möchten? Alle Sitzungen werden gelöscht."
   },
   "tests": {
     "testsTitle": "QA Unit Tests Panel (Rust-Motor-Verifizierung)",

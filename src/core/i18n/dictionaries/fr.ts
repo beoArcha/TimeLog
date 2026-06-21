@@ -105,7 +105,8 @@ export const fr = {
     "apiMethodDesc": "Choisissez POST ou PUT.",
     "apiHeaders": "En-têtes",
     "apiHeadersTitle": "Têtes personnalisées",
-    "apiHeadersDesc": "Ajoutez du JSON pour l'en-tête API"
+    "apiHeadersDesc": "Ajoutez du JSON pour l'en-tête API",
+    "clearDatabaseConfirm": "Êtes-vous sûr de vouloir vider complètement la base de données locale SQLite ? Toutes les sessions seront purgées."
   },
   "tests": {
     "testsTitle": "Panneau de Tests Unitaires",

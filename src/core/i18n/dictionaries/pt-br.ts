@@ -105,7 +105,8 @@ export const ptBr = {
     "apiMethodDesc": "Marque para PUT, desmarque para POST.",
     "apiHeaders": "Cabeçalhos",
     "apiHeadersTitle": "Cabeçalhos personalizados",
-    "apiHeadersDesc": "JSON Headers"
+    "apiHeadersDesc": "JSON Headers",
+    "clearDatabaseConfirm": "Tem certeza de que deseja limpar completamente o banco de dados SQLite local? Todas as sessões serão apagadas."
   },
   "tests": {
     "testsTitle": "Painel de Testes Unitários",

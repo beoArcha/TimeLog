@@ -25,6 +25,7 @@ impl TrayMenuId {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "toggle_vis" => Some(TrayMenuId::ToggleVisibility),

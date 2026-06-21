@@ -105,7 +105,8 @@ export const es = {
     "apiMethodDesc": "Elija POST o PUT.",
     "apiHeaders": "Cabeceras personalizadas",
     "apiHeadersTitle": "Cabeceras",
-    "apiHeadersDesc": "Añadir JSON de cabeceras personalizadas"
+    "apiHeadersDesc": "Añadir JSON de cabeceras personalizadas",
+    "clearDatabaseConfirm": "¿Está seguro de que desea borrar por completo la base de datos local SQLite? Se eliminarán todas las sesiones."
   },
   "tests": {
     "testsTitle": "Panel de Pruebas Unitarias (Verificación del motor Rust)",

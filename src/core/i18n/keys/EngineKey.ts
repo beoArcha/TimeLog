@@ -1,0 +1,17 @@
+export enum EngineKey {
+  ConfigTitle = 'engine.configTitle',
+  ConfigDesc = 'engine.configDesc',
+  AutoStart = 'engine.autoStart',
+  AutoPauseOnSleep = 'engine.autoPauseOnSleep',
+  MinimizeToTrayDefault = 'engine.minimizeToTrayDefault',
+  IncludePatchesInReports = 'engine.includePatchesInReports',
+  AlwaysOnTopSmall = 'engine.alwaysOnTopSmall',
+  AlwaysOnTopMain = 'engine.alwaysOnTopMain',
+  Searching = 'engine.searching',
+  Connecting = 'engine.connecting',
+  Connected = 'engine.connected',
+  Synced = 'engine.synced',
+  Threads = 'engine.threads',
+  MinimizeToTray = 'engine.minimizeToTray',
+  SqlReset = 'engine.sqlReset',
+}
