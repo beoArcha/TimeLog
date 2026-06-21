@@ -1,43 +1,85 @@
 import { GuiState } from './GuiState';
-import { useOxyFlow } from '@core/providers/OxyContext';
+import { useOxyFlow, OxyFlowState } from '@core/providers/OxyContext';
+import { GuiSize } from '@bindings/GuiSize';
+import { TextAndIconSize } from '@bindings/TextAndIconSize';
 
 export type GuiIntent =
-  | { type: 'MINIMIZE_TO_TRAY' }
-  | { type: 'CLOSE_WINDOW' }
-  | { type: 'MINIMIZE_WINDOW' }
-  | { type: 'SET_GUI_SIZE'; payload: GuiState['guiSize'] }
-  | { type: 'SET_TEXT_AND_ICON_SIZE'; payload: GuiState['textAndIconSize'] };
+  | { type: 'set_gui_size'; payload: { size: GuiSize; textAndIconSize: TextAndIconSize } }
+  | { type: 'set_always_on_top'; payload: { alwaysOnTop: boolean } }
+  | { type: 'set_minimize_to_tray'; payload: { minimize: boolean } }
+  | { type: 'hide_window' }
+  | { type: 'exit_app' }
+  | { type: 'close_window' }
+  | { type: 'minimize_window' }
+  | { type: 'show_window' }
+  | { type: 'resize_window'; payload: { width: number; height: number } }
+  | { type: 'set_window_resizable'; payload: { resizable: boolean } }
+  | { type: 'start_timer'; payload: { taskId: string } }
+  | { type: 'stop_timer'; payload: { projectId: string | null } };
 
 export const GuiBridge = {
-  sendIntent: async (intent: GuiIntent, oxyFlowState?: any): Promise<void> => {
+  sendIntent: async (intent: GuiIntent, oxyFlowState?: OxyFlowState): Promise<void> => {
     console.log('[GuiBridge] Sending intent:', intent);
     if (!oxyFlowState) return;
 
-    // Delegate to the current react-based context handler/fallback
     switch (intent.type) {
-      case 'MINIMIZE_TO_TRAY':
+      case 'set_gui_size':
+        if (oxyFlowState.setGuiSize) {
+          oxyFlowState.setGuiSize(intent.payload.size);
+        }
+        if (oxyFlowState.setTextAndIconSize) {
+          oxyFlowState.setTextAndIconSize(intent.payload.textAndIconSize);
+        }
+        break;
+      case 'set_always_on_top':
+        if (oxyFlowState.guiSize === 'small') {
+          if (oxyFlowState.setAlwaysOnTopSmall) {
+            oxyFlowState.setAlwaysOnTopSmall(intent.payload.alwaysOnTop);
+          }
+        } else {
+          if (oxyFlowState.setAlwaysOnTopMain) {
+            oxyFlowState.setAlwaysOnTopMain(intent.payload.alwaysOnTop);
+          }
+        }
+        break;
+      case 'set_minimize_to_tray':
+        if (oxyFlowState.setMinimizeToTray) {
+          oxyFlowState.setMinimizeToTray(intent.payload.minimize);
+        }
+        break;
+      case 'hide_window':
         if (oxyFlowState.handleMinimizeToTray) {
           await oxyFlowState.handleMinimizeToTray();
         }
         break;
-      case 'CLOSE_WINDOW':
+      case 'exit_app':
         if (oxyFlowState.setIsGuiClosed) {
           oxyFlowState.setIsGuiClosed(true);
         }
         break;
-      case 'MINIMIZE_WINDOW':
+      case 'close_window':
+        if (oxyFlowState.setIsGuiClosed) {
+          oxyFlowState.setIsGuiClosed(true);
+        }
+        break;
+      case 'minimize_window':
         if (oxyFlowState.setIsMinimized) {
           oxyFlowState.setIsMinimized(true);
         }
         break;
-      case 'SET_GUI_SIZE':
-        if (oxyFlowState.setGuiSize) {
-          oxyFlowState.setGuiSize(intent.payload);
+      case 'show_window':
+        if (oxyFlowState.setIsMinimized) {
+          oxyFlowState.setIsMinimized(false);
         }
         break;
-      case 'SET_TEXT_AND_ICON_SIZE':
-        if (oxyFlowState.setTextAndIconSize) {
-          oxyFlowState.setTextAndIconSize(intent.payload);
+      case 'start_timer':
+        if (oxyFlowState.handleStartTimer) {
+          oxyFlowState.handleStartTimer(intent.payload.taskId);
+        }
+        break;
+      case 'stop_timer':
+        if (oxyFlowState.handleStopTimer) {
+          oxyFlowState.handleStopTimer(intent.payload.projectId ?? undefined);
         }
         break;
       default:

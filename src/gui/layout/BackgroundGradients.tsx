@@ -1,6 +1,8 @@
 import React from 'react';
 
-export default function BackgroundGradients({ theme }: { theme: 'dark' | 'light' | 'high-contrast' }) {
+import { Theme } from '@common/types/ThemeTypes';
+
+export default function BackgroundGradients({ theme }: { theme: Theme }) {
   if (theme === 'high-contrast') return null;
 
   return (

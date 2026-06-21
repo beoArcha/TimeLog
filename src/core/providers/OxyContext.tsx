@@ -35,10 +35,10 @@ export interface OxyFlowState {
   locale: LocaleType;
   setLocale: React.Dispatch<React.SetStateAction<LocaleType>>;
   
-  theme: 'dark' | 'light' | 'high-contrast' | 'system';
-  setTheme: React.Dispatch<React.SetStateAction<'dark' | 'light' | 'high-contrast' | 'system'>>;
-  resolvedTheme: 'dark' | 'light' | 'high-contrast';
-  setResolvedTheme: React.Dispatch<React.SetStateAction<'dark' | 'light' | 'high-contrast'>>;
+  theme: import('@common/types/ThemeTypes').ThemePreference;
+  setTheme: React.Dispatch<React.SetStateAction<import('@common/types/ThemeTypes').ThemePreference>>;
+  resolvedTheme: import('@common/types/ThemeTypes').Theme;
+  setResolvedTheme: React.Dispatch<React.SetStateAction<import('@common/types/ThemeTypes').Theme>>;
   
   textAndIconSize: TextAndIconSize;
   setTextAndIconSize: React.Dispatch<React.SetStateAction<TextAndIconSize>>;
@@ -68,6 +68,8 @@ export interface OxyFlowState {
   nowIso: string;
   isGuiClosed: boolean;
   setIsGuiClosed: React.Dispatch<React.SetStateAction<boolean>>;
+  isMinimized?: boolean;
+  setIsMinimized?: React.Dispatch<React.SetStateAction<boolean>>;
   
   showToast?: (msg: string) => void;
   handleMinimizeToTray?: () => Promise<void>;

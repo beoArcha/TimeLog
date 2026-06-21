@@ -3,14 +3,12 @@ import { Settings as AppSettings } from '@bindings/Settings';
 import { GuiSize } from '@bindings/GuiSize';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { STORAGE_KEYS } from '@common/constants';
-
-type ThemePref = 'dark' | 'light' | 'high-contrast' | 'system';
-type ResolvedTheme = 'dark' | 'light' | 'high-contrast';
+import { Theme, ThemePreference } from '@common/types/ThemeTypes';
 
 export const useAppSettings = () => {
-  const [theme, setTheme] = useState<ThemePref>(() => {
+  const [theme, setTheme] = useState<ThemePreference>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.THEME);
-    return (saved as ThemePref) || 'system';
+    return (saved as ThemePreference) || 'system';
   });
 
   const [textAndIconSize, setTextAndIconSize] = useState<TextAndIconSize>(() => {
@@ -22,7 +20,7 @@ export const useAppSettings = () => {
     localStorage.setItem(STORAGE_KEYS.TEXT_ICON_SIZE, textAndIconSize);
   }, [textAndIconSize]);
 
-  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() =>
+  const [systemTheme, setSystemTheme] = useState<Theme>(() =>
     window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
   );
 
@@ -36,7 +34,7 @@ export const useAppSettings = () => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
 
-  const resolvedTheme: ResolvedTheme = theme === 'system' ? systemTheme : theme;
+  const resolvedTheme: Theme = theme === 'system' ? systemTheme : (theme as unknown as Theme);
   const setResolvedTheme = setSystemTheme;
 
   const [sysSettings, setSysSettings] = useState<AppSettings>(() => {

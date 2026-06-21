@@ -3,6 +3,8 @@ import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { useOxyFlow, OxyContext, OxyFlowState } from '@core/providers/OxyContext';
 
+import { Theme, ThemePreference } from '@common/types/ThemeTypes';
+
 const mockState: OxyFlowState = {
   customTranslations: {},
   setCustomTranslations: vi.fn(),

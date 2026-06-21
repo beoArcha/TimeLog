@@ -9,6 +9,8 @@ beforeEach(() => {
   setupMatchMediaMock(false);
 });
 
+import { Theme, ThemePreference } from '@common/types/ThemeTypes';
+
 const mockState: OxyFlowState = {
   customTranslations: {},
   setCustomTranslations: vi.fn(),

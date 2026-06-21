@@ -3,10 +3,12 @@ import { Clock, BarChart, Database, Settings, UploadCloud, Terminal, BookOpen, S
 import { translate } from '@core/i18n/i18n';
 import { LocaleType, TranslationDictionary } from '@core/i18n/translations';
 
+import { Theme } from '@common/types/ThemeTypes';
+
 interface TabBarProps {
   locale: LocaleType;
   customTranslations: Partial<TranslationDictionary>;
-  resolvedTheme: 'dark' | 'light' | 'high-contrast';
+  resolvedTheme: Theme;
   activeLargeTab: string;
   setActiveLargeTab: (tab: any) => void;
 }
