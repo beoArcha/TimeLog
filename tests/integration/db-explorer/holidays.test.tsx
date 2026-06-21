@@ -111,4 +111,29 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
 
     expect(setHolidays).toHaveBeenCalled();
   });
+
+  it('should_cancel_editing_when_anuluj_is_clicked', () => {
+    const { setHolidays } = setup();
+    const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
+
+    // Click edit
+    const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    fireEvent.click(editBtn);
+
+    // Click cancel
+    const cancelBtn = holidaysTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
+    fireEvent.click(cancelBtn);
+
+    expect(setHolidays).not.toHaveBeenCalled();
+  });
+
+  it('should_delete_holiday_when_wycofaj_is_clicked', () => {
+    const { setHolidays } = setup();
+    const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
+
+    const deleteBtn = holidaysTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
+    fireEvent.click(deleteBtn);
+
+    expect(setHolidays).toHaveBeenCalled();
+  });
 });

@@ -36,7 +36,6 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     setupLocalStorageMock();
     setupMatchMediaMock(false);
     vi.spyOn(console, 'error').mockImplementation(() => { });
-    // Simulate being inside Tauri
     (window as any).__TAURI_INTERNALS__ = {};
   });
 
