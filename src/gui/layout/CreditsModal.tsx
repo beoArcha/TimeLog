@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Sparkles } from 'lucide-react';
 import { useOxyFlow } from '@core/providers/OxyContext';
 import { translate } from '@core/i18n/i18n';
+import { DynamicKey } from '@core/i18n/keys/DynamicKey';
 
 export default function CreditsModal() {
   const {
@@ -24,20 +25,18 @@ export default function CreditsModal() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.3 }}
-          className={`w-full max-w-2xl rounded-[2.5rem] border shadow-2xl p-8 flex flex-col gap-6 relative max-h-[90vh] overflow-y-auto ${
-            resolvedTheme === 'light'
+          className={`w-full max-w-2xl rounded-[2.5rem] border shadow-2xl p-8 flex flex-col gap-6 relative max-h-[90vh] overflow-y-auto ${resolvedTheme === 'light'
               ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
               : resolvedTheme === 'high-contrast'
-              ? 'bg-black border-2 border-white text-white'
-              : 'bg-slate-950 border-white/10 text-white'
-          }`}
+                ? 'bg-black border-2 border-white text-white'
+                : 'bg-slate-950 border-white/10 text-white'
+            }`}
         >
           <button
             id="close-credits-modal-btn"
             onClick={() => setShowCreditsModal(false)}
-            className={`absolute top-6 right-6 p-2 rounded-2xl transition-colors cursor-pointer ${
-              resolvedTheme === 'light' ? 'hover:bg-[#EAE4DB] text-[#5A4A42]' : 'hover:bg-[#FCFAF8]/10 text-[#9B8C83]'
-            }`}
+            className={`absolute top-6 right-6 p-2 rounded-2xl transition-colors cursor-pointer ${resolvedTheme === 'light' ? 'hover:bg-[#EAE4DB] text-[#5A4A42]' : 'hover:bg-[#FCFAF8]/10 text-[#9B8C83]'
+              }`}
             title="Zamknij"
           >
             <X className="w-5 h-5" />
@@ -47,23 +46,21 @@ export default function CreditsModal() {
             <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
               Credits • Acknowledgements • MIT License
             </span>
-            <h3 className={`font-sans font-bold text-2xl mt-2 flex items-center gap-2 ${
-              resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
-            }`}>
+            <h3 className={`font-sans font-bold text-2xl mt-2 flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
+              }`}>
               <Sparkles className="w-6 h-6 text-orange-400 animate-pulse" />
-              {translate(locale, 'dynamic.aboutFlowCreditsMIT', customTranslations)}
+              {translate(locale, DynamicKey.AboutFlowCreditsMit, customTranslations)}
             </h3>
           </div>
 
           <div className="flex flex-col gap-3">
             <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
-              🕺 {translate(locale, 'dynamic.aBOUTCREATORVIBECODINGVIBE', customTranslations)}
+              🕺 {translate(locale, DynamicKey.AboutCreatorVibeCodingVibe, customTranslations)}
             </h4>
-            <div className={`p-5 rounded-3xl border transition-all ${
-              resolvedTheme === 'light'
+            <div className={`p-5 rounded-3xl border transition-all ${resolvedTheme === 'light'
                 ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#2C2421]'
                 : 'bg-[#FCFAF8]/5 border-white/10 text-slate-200'
-            }`}>
+              }`}>
               <p className="font-sans text-sm leading-relaxed mb-3">
                 {locale === 'pl' ? (
                   <>
@@ -92,25 +89,23 @@ export default function CreditsModal() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
-                💖 {translate(locale, 'dynamic.cOMPONENTCREATORSACKNOWLEDGEME', customTranslations)}
+                💖 {translate(locale, DynamicKey.ComponentCreatorsAcknowledgement, customTranslations)}
               </h4>
-              <ul className={`p-4 rounded-3xl border list-disc pl-5 text-xs flex flex-col gap-1.5 leading-relaxed ${
-                resolvedTheme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]' : 'bg-[#FCFAF8]/5 border-white/5 text-slate-300'
-              }`}>
-                <li><strong className="text-orange-400">Lucide React</strong>: {translate(locale, 'dynamic.forGorgeousConsistentVectorIco', customTranslations)}</li>
-                <li><strong className="text-orange-400">Motion / Framer Motion</strong>: {translate(locale, 'dynamic.forCinematicReactiveStateTrans', customTranslations)}</li>
-                <li><strong className="text-orange-400">Tailwind CSS v4</strong>: {translate(locale, 'dynamic.forRapidElegantResponsiveUtili', customTranslations)}</li>
-                <li><strong className="text-orange-400">Vite & React 18</strong>: {translate(locale, 'dynamic.forImmediateDevIterationsAndSo', customTranslations)}</li>
+              <ul className={`p-4 rounded-3xl border list-disc pl-5 text-xs flex flex-col gap-1.5 leading-relaxed ${resolvedTheme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]' : 'bg-[#FCFAF8]/5 border-white/5 text-slate-300'
+                }`}>
+                <li><strong className="text-orange-400">Lucide React</strong>: {translate(locale, DynamicKey.ForGorgeousConsistentVectorIco, customTranslations)}</li>
+                <li><strong className="text-orange-400">Motion / Framer Motion</strong>: {translate(locale, DynamicKey.ForCinematicReactiveStateTrans, customTranslations)}</li>
+                <li><strong className="text-orange-400">Tailwind CSS v4</strong>: {translate(locale, DynamicKey.ForRapidElegantResponsiveUtili, customTranslations)}</li>
+                <li><strong className="text-orange-400">Vite & React 18</strong>: {translate(locale, DynamicKey.ForImmediateDevIterationsAndSo, customTranslations)}</li>
               </ul>
             </div>
 
             <div className="flex flex-col gap-2">
               <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
-                📄 {translate(locale, 'dynamic.mITLICENSE', customTranslations)}
+                📄 {translate(locale, DynamicKey.MitLicense, customTranslations)}
               </h4>
-              <div className={`p-4 rounded-3xl border text-[9px] font-mono leading-relaxed h-[120px] overflow-y-auto ${
-                resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42] shadow-inner' : 'bg-black/40 border-white/5 text-[#9B8C83]'
-              }`}>
+              <div className={`p-4 rounded-3xl border text-[9px] font-mono leading-relaxed h-[120px] overflow-y-auto ${resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42] shadow-inner' : 'bg-black/40 border-white/5 text-[#9B8C83]'
+                }`}>
                 <p className="font-bold mb-1">MIT License</p>
                 <p className="mb-2">Copyright (c) 2026 LogTime by OxyFlow</p>
                 <p className="mb-2">

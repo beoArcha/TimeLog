@@ -1,6 +1,7 @@
 import React from 'react';
 import { translate } from '@core/i18n/i18n';
 import { LocaleType, TranslationDictionary } from '@core/i18n/translations';
+import { DynamicKey } from '@core/i18n/keys/DynamicKey';
 
 interface AppFooterProps {
   locale: LocaleType;
@@ -25,12 +26,12 @@ export default function AppFooter({
           onClick={() => setShowCreditsModal(true)}
           className="text-teal-400 hover:text-teal-300 font-bold underline transition-colors cursor-pointer"
         >
-          {translate(locale, 'dynamic.mITLicenseCreditsOxyFlow', customTranslations)}
+          {translate(locale, DynamicKey.MitLicenseCreditsOxyFlow, customTranslations)}
         </button>
       </div>
       <div className="flex gap-4">
         <span>Silnik: <strong className="text-[#9B8C83] font-semibold">Ready</strong></span>
-        <button 
+        <button
           id="db-clean-force-btn"
           onClick={handleResetLocalStorage}
           className="text-orange-455 hover:text-orange-300 font-bold transition-all cursor-pointer"
