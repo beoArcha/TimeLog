@@ -76,12 +76,12 @@ fn test_get_active_logs_with_running_timer() {
 
 #[test]
 fn test_timer_repository_direct() {
-    use oxy_flow::repositories::timer_repository;
+    use oxy_flow::repositories::business::BusinessRepository;
     let conn = setup();
 
-    let proj_id = timer_repository::get_project_id_by_task_id(&conn, "t1").unwrap();
+    let proj_id = BusinessRepository::get_project_id_by_task_id(&conn, "t1").unwrap();
     assert_eq!(proj_id, "p1");
 
-    let result = timer_repository::get_project_id_by_task_id(&conn, "nonexistent");
+    let result = BusinessRepository::get_project_id_by_task_id(&conn, "nonexistent");
     assert!(result.is_err());
 }

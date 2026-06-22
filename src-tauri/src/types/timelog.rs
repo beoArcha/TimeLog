@@ -31,6 +31,8 @@ pub struct Task {
     pub original_completed: Option<bool>,
     #[ts(optional)]
     pub edit_history: Option<Vec<TaskEditHistory>>,
+    #[ts(optional)]
+    pub archived: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]

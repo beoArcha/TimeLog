@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
-use oxy_flow::{app, cli, engine};
+use oxy_flow::{app, cli};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -9,7 +9,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if args.len() > 1 {
         let db_path = app::get_cli_db_path();
-        let db = engine::db::init_db(&db_path)?;
+        let db = oxy_flow::repositories::shared::establish_connection(&db_path)?;
+        oxy_flow::repositories::shared::initialize_database(&db)?;
         if let Ok(cli_args) = cli::CliArgs::try_parse() {
             let output = cli::handle_cli(cli_args, &db)?;
             println!("{}", output);

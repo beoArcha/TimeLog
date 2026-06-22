@@ -3,8 +3,10 @@ pub mod cli;
 pub mod commands;
 pub mod common;
 pub mod engine;
+pub mod persistence;
 pub mod repositories;
 pub mod services;
+pub mod sinks;
 pub mod tray;
 pub mod types;
 

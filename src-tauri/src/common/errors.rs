@@ -22,6 +22,22 @@ impl Serialize for AppError {
     }
 }
 
+impl From<crate::repositories::shared::errors::RepositoryError> for AppError {
+    fn from(err: crate::repositories::shared::errors::RepositoryError) -> Self {
+        match err {
+            crate::repositories::shared::errors::RepositoryError::Database(e) => {
+                AppError::Database(e)
+            }
+            crate::repositories::shared::errors::RepositoryError::Serialization(e) => {
+                AppError::Generic(e.to_string())
+            }
+            crate::repositories::shared::errors::RepositoryError::Validation(e) => {
+                AppError::Generic(e)
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
