@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "build:tauri": "npx @tauri-apps/cli build",
+    "build:dev:tauri": "npx @tauri-apps/cli build --debug"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@tauri-apps/cli": "^2.0.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
