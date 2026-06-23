@@ -10,7 +10,6 @@ fn test_business_repository_crud() {
 
     let repo = BusinessRepository::new(&db_path).unwrap();
 
-    // Test Create Project
     let project = Project {
         id: "p1".to_string(),
         name: "Project 1".to_string(),
@@ -27,14 +26,12 @@ fn test_business_repository_crud() {
     assert_eq!(p_saved.name, "Project 1");
     assert_eq!(p_saved.archived, Some(false));
 
-    // Test Patch Project
     let mut p_patched = p_saved.clone();
     p_patched.name = "Project 1 Patched".to_string();
     repo.patch_project(&p_patched).unwrap();
     let p_saved2 = repo.get_project("p1").unwrap().unwrap();
     assert_eq!(p_saved2.name, "Project 1 Patched");
 
-    // Test Create Task
     let task = Task {
         id: "t1".to_string(),
         project_id: "p1".to_string(),
@@ -52,12 +49,10 @@ fn test_business_repository_crud() {
     let t_saved = repo.get_task("t1").unwrap().unwrap();
     assert_eq!(t_saved.name, "Task 1");
 
-    // Test Get Tasks for Project
     let tasks = repo.get_tasks_for_project("p1").unwrap();
     assert_eq!(tasks.len(), 1);
     assert_eq!(tasks[0].id, "t1");
 
-    // Test Create Subtask
     let subtask = Task {
         id: "st1".to_string(),
         project_id: "p1".to_string(),
@@ -75,12 +70,10 @@ fn test_business_repository_crud() {
     let st_saved = repo.get_task("st1").unwrap().unwrap();
     assert_eq!(st_saved.parent_task_id, Some("t1".to_string()));
 
-    // Test Get Subtasks for Task
     let subtasks = repo.get_subtasks_for_task("t1").unwrap();
     assert_eq!(subtasks.len(), 1);
     assert_eq!(subtasks[0].id, "st1");
 
-    // Test Archive Project
     repo.archive_project("p1").unwrap();
     let p_archived = repo.get_project("p1").unwrap().unwrap();
     assert_eq!(p_archived.archived, Some(true));
