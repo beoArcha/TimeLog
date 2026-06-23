@@ -2,6 +2,7 @@ use crate::cli::shared::output::CliOutput;
 use crate::persistence::PersistenceLayer;
 use clap::Subcommand;
 
+#[allow(clippy::module_inception)]
 pub mod settings;
 
 #[derive(Subcommand)]

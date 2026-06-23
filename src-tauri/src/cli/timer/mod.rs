@@ -1,8 +1,9 @@
+#[allow(clippy::module_inception)]
+mod timer;
+
 use crate::cli::shared::output::CliOutput;
 use crate::engine::Engine;
 use clap::Subcommand;
-
-pub mod timer;
 
 #[derive(Subcommand)]
 pub enum TimerCommand {
