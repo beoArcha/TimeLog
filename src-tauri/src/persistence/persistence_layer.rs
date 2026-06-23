@@ -182,4 +182,41 @@ impl PersistenceLayer {
             .insert_time_logs_for_task(task_id.to_string(), logs.clone());
         Ok(logs)
     }
+
+    pub fn get_project_id_by_task_id(&self, task_id: &str) -> PersistenceResult<String> {
+        Ok(self.business_repo.get_project_id_by_task_id(task_id)?)
+    }
+
+    pub fn close_active_logs_by_project(
+        &self,
+        end_time: &str,
+        project_id: &str,
+    ) -> PersistenceResult<()> {
+        self.business_repo
+            .close_active_logs_by_project(end_time, project_id)?;
+        self.cache.clear();
+        Ok(())
+    }
+
+    pub fn close_all_active_logs(&self, end_time: &str) -> PersistenceResult<()> {
+        self.business_repo.close_all_active_logs(end_time)?;
+        self.cache.clear();
+        Ok(())
+    }
+
+    pub fn insert_time_log(
+        &self,
+        log_id: &str,
+        task_id: &str,
+        start_time: &str,
+    ) -> PersistenceResult<()> {
+        self.business_repo
+            .insert_time_log(log_id, task_id, start_time)?;
+        self.cache.clear();
+        Ok(())
+    }
+
+    pub fn query_active_logs(&self) -> PersistenceResult<Vec<String>> {
+        Ok(self.business_repo.query_active_logs()?)
+    }
 }

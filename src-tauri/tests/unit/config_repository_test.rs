@@ -55,8 +55,8 @@ fn test_config_repository_retains_valid_keys() {
     let config = repo
         .get_config()
         .expect("get_config should self-heal missing key");
-    assert_eq!(config.auto_start, true);
-    assert_eq!(config.auto_pause_on_sleep, false);
+    assert!(config.auto_start);
+    assert!(!config.auto_pause_on_sleep);
     assert_eq!(
         config.include_patches_in_reports,
         Settings::default().include_patches_in_reports
@@ -91,8 +91,8 @@ fn test_config_repository_self_healing_corrupted_keys() {
     let config = repo
         .get_config()
         .expect("get_config should self-heal corrupted key");
-    assert_eq!(config.auto_start, false);
-    assert_eq!(config.auto_pause_on_sleep, false);
+    assert!(!config.auto_start);
+    assert!(!config.auto_pause_on_sleep);
 
     let _ = std::fs::remove_file(&db_path);
 }

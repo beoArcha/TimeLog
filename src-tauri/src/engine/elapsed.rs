@@ -2,6 +2,8 @@ use crate::persistence::{PersistenceError, PersistenceLayer};
 use chrono::{DateTime, Utc};
 use std::time::Duration;
 
+static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
 #[derive(thiserror::Error, Debug)]
 pub enum EngineError {
     #[error("Persistence error: {0}")]
@@ -83,5 +85,40 @@ impl<'a> Engine<'a> {
         }
 
         Ok(total_duration)
+    }
+
+    pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
+        let proj_id = self.persistence.get_project_id_by_task_id(task_id)?;
+
+        let now = Utc::now().to_rfc3339();
+        self.persistence
+            .close_active_logs_by_project(&now, &proj_id)?;
+
+        let log_id = format!(
+            "log_{}_{}",
+            Utc::now().timestamp_millis(),
+            LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+        );
+
+        self.persistence.insert_time_log(&log_id, task_id, &now)?;
+        Ok(())
+    }
+
+    pub fn stop_timer(&self, project_id: Option<&str>) -> Result<(), EngineError> {
+        let now = Utc::now().to_rfc3339();
+        match project_id {
+            Some(p_id) => {
+                self.persistence.close_active_logs_by_project(&now, p_id)?;
+            }
+            None => {
+                self.persistence.close_all_active_logs(&now)?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn get_active_logs(&self) -> Result<Vec<String>, EngineError> {
+        let ids = self.persistence.query_active_logs()?;
+        Ok(ids)
     }
 }

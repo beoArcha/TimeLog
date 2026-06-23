@@ -9,10 +9,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if args.len() > 1 {
         let db_path = app::get_cli_db_path();
-        let db = oxy_flow::repositories::shared::establish_connection(&db_path)?;
-        oxy_flow::repositories::shared::initialize_database(&db)?;
+        let csv_directory = db_path
+            .parent()
+            .ok_or("Invalid DB path parent")?
+            .join("csv");
+        let persistence_config = oxy_flow::persistence::PersistenceConfig {
+            db_path,
+            csv_directory,
+        };
+        let persistence = oxy_flow::persistence::PersistenceLayer::new(&persistence_config)?;
+        let engine = oxy_flow::engine::Engine::new(&persistence);
         if let Ok(cli_args) = cli::CliArgs::try_parse() {
-            let output = cli::handle_cli(cli_args, &db)?;
+            let output = cli::handle_cli(cli_args, &engine)?;
             println!("{}", output);
             return Ok(());
         }

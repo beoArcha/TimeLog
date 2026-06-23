@@ -3,7 +3,7 @@ use crate::commands;
 use crate::common::constants::*;
 use crate::tray;
 use crate::types::FrontendEvent;
-use std::sync::Mutex;
+
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Emitter, Manager,
@@ -30,11 +30,19 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             let app_data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&app_data_dir)?;
             let db_path = app_data_dir.join(DEFAULT_DB_NAME);
+            let csv_directory = app_data_dir.join("csv");
+            std::fs::create_dir_all(&csv_directory)?;
 
-            let db = crate::repositories::shared::establish_connection(&db_path)?;
-            crate::repositories::shared::initialize_database(&db)?;
+            let persistence_config = crate::persistence::PersistenceConfig {
+                db_path,
+                csv_directory,
+            };
+            let persistence = std::sync::Arc::new(crate::persistence::PersistenceLayer::new(
+                &persistence_config,
+            )?);
+
             app.manage(AppState {
-                db_conn: Mutex::new(db),
+                persistence,
                 was_maximized: std::sync::atomic::AtomicBool::new(false),
                 minimize_to_tray: std::sync::atomic::AtomicBool::new(true),
             });

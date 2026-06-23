@@ -1,4 +1,4 @@
-use crate::services::timer_service;
+use crate::engine::Engine;
 use clap::{Parser, Subcommand};
 use std::fmt;
 
@@ -44,18 +44,18 @@ impl fmt::Display for CliOutput {
     }
 }
 
-pub fn handle_cli(args: CliArgs, conn: &rusqlite::Connection) -> Result<CliOutput, String> {
+pub fn handle_cli(args: CliArgs, engine: &Engine) -> Result<CliOutput, String> {
     match args.command {
         CliCommands::Start { task_id } => {
-            timer_service::start(conn, &task_id).map_err(|e| e.to_string())?;
+            engine.start_timer(&task_id).map_err(|e| e.to_string())?;
             Ok(CliOutput::Started(task_id))
         }
         CliCommands::Stop => {
-            timer_service::stop(conn, None).map_err(|e| e.to_string())?;
+            engine.stop_timer(None).map_err(|e| e.to_string())?;
             Ok(CliOutput::Stopped)
         }
         CliCommands::Status => {
-            let active = timer_service::get_active(conn).map_err(|e| e.to_string())?;
+            let active = engine.get_active_logs().map_err(|e| e.to_string())?;
             Ok(CliOutput::Status(active))
         }
     }

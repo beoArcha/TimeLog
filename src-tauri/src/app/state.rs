@@ -1,9 +1,10 @@
 use crate::common::constants::*;
+use crate::persistence::PersistenceLayer;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::Arc;
 
 pub struct AppState {
-    pub db_conn: Mutex<rusqlite::Connection>,
+    pub persistence: Arc<PersistenceLayer>,
     pub was_maximized: std::sync::atomic::AtomicBool,
     pub minimize_to_tray: std::sync::atomic::AtomicBool,
 }

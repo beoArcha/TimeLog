@@ -2,48 +2,6 @@ use oxy_flow::repositories::shared::initialize_database;
 use rusqlite::Connection;
 use std::path::PathBuf;
 
-pub struct TestDb {
-    pub conn: Connection,
-}
-
-impl TestDb {
-    pub fn new() -> Self {
-        let conn = Connection::open_in_memory().expect("in-memory DB open failed");
-        let _ = conn.pragma_update(None, "journal_mode", "WAL");
-        let _ = conn.pragma_update(None, "foreign_keys", "ON");
-        initialize_database(&conn).expect("initialize_database failed");
-        Self { conn }
-    }
-
-    pub fn with_project(self, id: &str, name: &str, color: &str) -> Self {
-        let now = chrono::Utc::now().to_rfc3339();
-        self.conn
-            .execute(
-                "INSERT INTO projects (id, name, color, created_at) VALUES (?, ?, ?, ?)",
-                [id, name, color, &now],
-            )
-            .expect("insert project failed");
-        self
-    }
-
-    pub fn with_task(self, id: &str, project_id: &str, name: &str) -> Self {
-        let now = chrono::Utc::now().to_rfc3339();
-        self.conn
-            .execute(
-                "INSERT INTO tasks (id, project_id, name, created_at) VALUES (?, ?, ?, ?)",
-                [id, project_id, name, &now],
-            )
-            .expect("insert task failed");
-        self
-    }
-
-    #[allow(dead_code)]
-    pub fn with_running_timer(self, task_id: &str) -> Self {
-        oxy_flow::services::timer_service::start(&self.conn, task_id).expect("start timer failed");
-        self
-    }
-}
-
 pub struct TempCsvDir {
     pub path: PathBuf,
 }

@@ -13,7 +13,7 @@
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "build:tauri": "npx @tauri-apps/cli build",
-    "build:dev:tauri": "npx @tauri-apps/cli build --debug"
+    "build:tauri:debug": "npx @tauri-apps/cli build --debug"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

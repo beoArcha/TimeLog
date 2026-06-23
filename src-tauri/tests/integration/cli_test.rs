@@ -1,25 +1,46 @@
-use crate::shared::test_db::TestDb;
+use crate::shared::test_db::setup_persistence_test;
 use oxy_flow::cli::{handle_cli, CliArgs, CliCommands, CliOutput};
-use oxy_flow::services::timer_service;
+use oxy_flow::engine::Engine;
+use oxy_flow::persistence::PersistenceLayer;
 use rusqlite::Connection;
 
-fn setup() -> Connection {
-    TestDb::new()
-        .with_project("p1", "CliProj", "blue")
-        .with_task("t1", "p1", "CliTask")
-        .conn
+fn setup(
+    db_name: &str,
+) -> (
+    PersistenceLayer,
+    Connection,
+    crate::shared::test_db::TempCsvDir,
+) {
+    let (conn, config, temp_dir) = setup_persistence_test(db_name);
+    let persistence = PersistenceLayer::new(&config).expect("failed to create persistence layer");
+
+    // Seed initial data
+    let now = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'CliProj', 'blue', ?)",
+        [&now],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'CliTask', ?)",
+        [&now],
+    )
+    .unwrap();
+
+    (persistence, conn, temp_dir)
 }
 
 #[test]
 fn test_cli_start_returns_started_output() {
-    let conn = setup();
+    let (persistence, _conn, _temp) = setup("test_cli_start_returns_started_output");
+    let engine = Engine::new(&persistence);
     let result = handle_cli(
         CliArgs {
             command: CliCommands::Start {
                 task_id: "t1".to_string(),
             },
         },
-        &conn,
+        &engine,
     );
     assert!(result.is_ok(), "start should succeed");
     let output = result.unwrap();
@@ -39,14 +60,15 @@ fn test_cli_start_output_displays_correctly() {
 
 #[test]
 fn test_cli_status_returns_active_tasks() {
-    let conn = setup();
-    timer_service::start(&conn, "t1").expect("start failed");
+    let (persistence, _conn, _temp) = setup("test_cli_status_returns_active_tasks");
+    let engine = Engine::new(&persistence);
+    engine.start_timer("t1").expect("start failed");
 
     let result = handle_cli(
         CliArgs {
             command: CliCommands::Status,
         },
-        &conn,
+        &engine,
     );
     assert!(result.is_ok());
     match result.unwrap() {
@@ -60,12 +82,13 @@ fn test_cli_status_returns_active_tasks() {
 
 #[test]
 fn test_cli_status_empty_when_no_timer_running() {
-    let conn = setup();
+    let (persistence, _conn, _temp) = setup("test_cli_status_empty_when_no_timer_running");
+    let engine = Engine::new(&persistence);
     let result = handle_cli(
         CliArgs {
             command: CliCommands::Status,
         },
-        &conn,
+        &engine,
     );
     assert!(result.is_ok());
     match result.unwrap() {
@@ -76,30 +99,32 @@ fn test_cli_status_empty_when_no_timer_running() {
 
 #[test]
 fn test_cli_stop_returns_stopped_output() {
-    let conn = setup();
-    timer_service::start(&conn, "t1").expect("start failed");
+    let (persistence, _conn, _temp) = setup("test_cli_stop_returns_stopped_output");
+    let engine = Engine::new(&persistence);
+    engine.start_timer("t1").expect("start failed");
 
     let result = handle_cli(
         CliArgs {
             command: CliCommands::Stop,
         },
-        &conn,
+        &engine,
     );
     assert!(result.is_ok());
     assert!(matches!(result.unwrap(), CliOutput::Stopped));
 
-    let active = timer_service::get_active(&conn).expect("query failed");
+    let active = engine.get_active_logs().expect("query failed");
     assert_eq!(active.len(), 0);
 }
 
 #[test]
 fn test_cli_stop_when_nothing_running_is_ok() {
-    let conn = setup();
+    let (persistence, _conn, _temp) = setup("test_cli_stop_when_nothing_running_is_ok");
+    let engine = Engine::new(&persistence);
     let result = handle_cli(
         CliArgs {
             command: CliCommands::Stop,
         },
-        &conn,
+        &engine,
     );
     assert!(
         result.is_ok(),
@@ -109,14 +134,15 @@ fn test_cli_stop_when_nothing_running_is_ok() {
 
 #[test]
 fn test_cli_nonexistent_task_fails() {
-    let conn = setup();
+    let (persistence, _conn, _temp) = setup("test_cli_nonexistent_task_fails");
+    let engine = Engine::new(&persistence);
     let result = handle_cli(
         CliArgs {
             command: CliCommands::Start {
                 task_id: "nonexistent".to_string(),
             },
         },
-        &conn,
+        &engine,
     );
     assert!(result.is_err(), "Starting nonexistent task should fail");
 }

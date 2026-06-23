@@ -38,6 +38,17 @@ impl From<crate::repositories::shared::errors::RepositoryError> for AppError {
     }
 }
 
+impl From<crate::engine::EngineError> for AppError {
+    fn from(err: crate::engine::EngineError) -> Self {
+        match err {
+            crate::engine::EngineError::Persistence(
+                crate::persistence::PersistenceError::Database(e),
+            ) => AppError::Database(e),
+            _ => AppError::Generic(err.to_string()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
