@@ -1,6 +1,6 @@
-use clap::Subcommand;
 use crate::cli::shared::output::CliOutput;
 use crate::engine::Engine;
+use clap::Subcommand;
 
 pub mod timer;
 

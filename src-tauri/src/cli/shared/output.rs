@@ -1,4 +1,6 @@
-use crate::cli::shared::constants::{OUT_STARTED, OUT_STATUS_ACTIVE, OUT_STATUS_COUNT, OUT_STOPPED, OUT_SUCCESS};
+use crate::cli::shared::constants::{
+    OUT_STARTED, OUT_STATUS_ACTIVE, OUT_STATUS_COUNT, OUT_STOPPED, OUT_SUCCESS,
+};
 use std::fmt;
 
 pub enum CliOutput {
@@ -15,7 +17,11 @@ impl fmt::Display for CliOutput {
             CliOutput::Started(task_id) => write!(f, "{}", OUT_STARTED.replace("{}", task_id)),
             CliOutput::Stopped => write!(f, "{}", OUT_STOPPED),
             CliOutput::Status(active) => {
-                writeln!(f, "{}", OUT_STATUS_COUNT.replace("{}", &active.len().to_string()))?;
+                writeln!(
+                    f,
+                    "{}",
+                    OUT_STATUS_COUNT.replace("{}", &active.len().to_string())
+                )?;
                 for id in active {
                     writeln!(f, "{}", OUT_STATUS_ACTIVE.replace("{}", id))?;
                 }
@@ -26,5 +32,3 @@ impl fmt::Display for CliOutput {
         }
     }
 }
-
-

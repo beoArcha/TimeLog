@@ -1,4 +1,6 @@
-use crate::cli::shared::constants::{DEFAULT_COLOR, MSG_LIST_NOT_IMPLEMENTED, MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED};
+use crate::cli::shared::constants::{
+    DEFAULT_COLOR, MSG_LIST_NOT_IMPLEMENTED, MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED,
+};
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
 use crate::persistence::PersistenceLayer;
@@ -33,7 +35,9 @@ pub fn handle(cmd: ProjectCommand, persistence: &PersistenceLayer) -> Result<Cli
                 original_color: color,
                 edit_history: Some(vec![]),
             };
-            persistence.create_project(project).map_err(|e| e.to_string())?;
+            persistence
+                .create_project(project)
+                .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))
         }
         ProjectCommand::List => Ok(CliOutput::Success(MSG_LIST_NOT_IMPLEMENTED.to_string())),

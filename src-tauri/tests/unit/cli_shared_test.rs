@@ -1,9 +1,9 @@
-use uuid::Uuid;
 use chrono::DateTime;
-use oxy_flow::cli::shared::validation::validate_id;
-use oxy_flow::cli::shared::utils::{generate_id, current_timestamp};
-use oxy_flow::cli::shared::output::CliOutput;
 use oxy_flow::cli::shared::constants::MSG_ID_EMPTY;
+use oxy_flow::cli::shared::output::CliOutput;
+use oxy_flow::cli::shared::utils::{current_timestamp, generate_id};
+use oxy_flow::cli::shared::validation::validate_id;
+use uuid::Uuid;
 
 #[test]
 fn test_validate_id_valid() {
@@ -21,13 +21,19 @@ fn test_validate_id_empty() {
 #[test]
 fn test_generate_id() {
     let id = generate_id();
-    assert!(Uuid::parse_str(&id).is_ok(), "Generated ID should be a valid UUID");
+    assert!(
+        Uuid::parse_str(&id).is_ok(),
+        "Generated ID should be a valid UUID"
+    );
 }
 
 #[test]
 fn test_current_timestamp() {
     let ts = current_timestamp();
-    assert!(DateTime::parse_from_rfc3339(&ts).is_ok(), "Generated timestamp should be a valid RFC3339 string");
+    assert!(
+        DateTime::parse_from_rfc3339(&ts).is_ok(),
+        "Generated timestamp should be a valid RFC3339 string"
+    );
 }
 
 #[test]

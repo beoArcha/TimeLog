@@ -1,6 +1,6 @@
-use clap::Subcommand;
 use crate::cli::shared::output::CliOutput;
 use crate::persistence::PersistenceLayer;
+use clap::Subcommand;
 
 pub mod project;
 pub mod subtask;

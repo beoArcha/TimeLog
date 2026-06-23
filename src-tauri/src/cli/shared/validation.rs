@@ -7,5 +7,3 @@ pub fn validate_id(id: &str) -> Result<String, String> {
         Ok(id.trim().to_string())
     }
 }
-
-

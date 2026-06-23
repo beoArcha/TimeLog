@@ -19,4 +19,5 @@ fn export_bindings() {
     HolidayLeave::export().unwrap();
     FrontendEvent::export().unwrap();
     Locale::export().unwrap();
+    SinkType::export().unwrap();
 }
