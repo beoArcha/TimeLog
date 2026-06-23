@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let persistence = oxy_flow::persistence::PersistenceLayer::new(&persistence_config)?;
         let engine = oxy_flow::engine::Engine::new(&persistence);
         if let Ok(cli_args) = cli::CliArgs::try_parse() {
-            let output = cli::handle_cli(cli_args, &engine)?;
+            let output = cli::handle_cli(cli_args, &persistence, &engine)?;
             println!("{}", output);
             return Ok(());
         }
