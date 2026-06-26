@@ -20,4 +20,5 @@ fn export_bindings() {
     FrontendEvent::export().unwrap();
     Locale::export().unwrap();
     SinkType::export().unwrap();
+    WindowDimensions::export().unwrap();
 }

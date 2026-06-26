@@ -13,7 +13,7 @@ pub mod sinks;
 pub mod timelog;
 
 pub use frontend_event::FrontendEvent;
-pub use gui::{AlwaysOnTopConfig, GuiSize, TextAndIconSize};
+pub use gui::{AlwaysOnTopConfig, GuiSize, TextAndIconSize, WindowDimensions};
 pub use holiday::{HolidayLeave, HolidayLeaveEditHistory, HolidayType};
 pub use locale::Locale;
 pub use persistence_event::PersistenceEvent;
