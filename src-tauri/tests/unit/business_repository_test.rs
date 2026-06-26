@@ -80,3 +80,58 @@ fn test_business_repository_crud() {
 
     let _ = std::fs::remove_file(&db_path);
 }
+
+#[test]
+fn test_business_repository_get_all_and_clear() {
+    let db_path = std::env::temp_dir().join("test_business_repo_get_all.db");
+    if db_path.exists() {
+        let _ = std::fs::remove_file(&db_path);
+    }
+
+    let repo = BusinessRepository::new(&db_path).unwrap();
+
+    let project = Project {
+        id: "p_all".to_string(),
+        name: "Project All".to_string(),
+        color: "blue".to_string(),
+        created_at: "2026-06-22T20:00:00Z".to_string(),
+        archived: Some(false),
+        original_name: None,
+        original_color: None,
+        edit_history: None,
+    };
+    repo.create_project(&project).unwrap();
+
+    let task = Task {
+        id: "t_all".to_string(),
+        project_id: "p_all".to_string(),
+        parent_task_id: None,
+        name: "Task All".to_string(),
+        completed: false,
+        created_at: "2026-06-22T20:00:00Z".to_string(),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+    };
+    repo.create_task(&task).unwrap();
+    repo.insert_time_log("tl_all", "t_all", "2026-06-22T20:00:00Z")
+        .unwrap();
+
+    let all_projects = repo.get_all_projects().unwrap();
+    assert_eq!(all_projects.len(), 1);
+
+    let all_tasks = repo.get_all_tasks().unwrap();
+    assert_eq!(all_tasks.len(), 1);
+
+    let all_logs = repo.get_all_time_logs().unwrap();
+    assert_eq!(all_logs.len(), 1);
+
+    repo.clear_all_data().unwrap();
+
+    assert_eq!(repo.get_all_projects().unwrap().len(), 0);
+    assert_eq!(repo.get_all_tasks().unwrap().len(), 0);
+    assert_eq!(repo.get_all_time_logs().unwrap().len(), 0);
+
+    let _ = std::fs::remove_file(&db_path);
+}

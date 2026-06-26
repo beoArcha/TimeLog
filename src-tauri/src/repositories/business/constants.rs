@@ -99,3 +99,25 @@ pub const INSERT_TIME_LOG: &str = "
 pub const SELECT_ACTIVE_TASK_IDS: &str = "
     SELECT task_id FROM time_logs WHERE end_time IS NULL
 ";
+
+pub const SELECT_ALL_PROJECTS: &str = "
+    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history 
+    FROM projects
+";
+
+pub const DELETE_ALL_PROJECTS: &str = "DELETE FROM projects";
+
+pub const SELECT_ALL_TASKS: &str = "
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived 
+    FROM tasks
+";
+
+pub const DELETE_ALL_TASKS: &str = "DELETE FROM tasks";
+
+pub const SELECT_ALL_TIME_LOGS: &str = "
+    SELECT tl.id, tl.task_id, t.project_id, tl.start_time, tl.end_time 
+    FROM time_logs tl
+    JOIN tasks t ON tl.task_id = t.id
+";
+
+pub const DELETE_ALL_TIME_LOGS: &str = "DELETE FROM time_logs";

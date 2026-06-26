@@ -65,34 +65,38 @@ export const useTauriWindow = ({
     setTimeout(() => setTrayNotification(null), 5000);
   };
 
-  const guiSizeRef = useRef(guiSize);
-  const textAndIconSizeRef = useRef(textAndIconSize);
-  const minimizeToTrayRef = useRef(minimizeToTray);
-  const alwaysOnTopSmallRef = useRef(alwaysOnTopSmall);
-  const alwaysOnTopMainRef = useRef(alwaysOnTopMain);
-  const localeRef = useRef(locale);
-  const customTranslationsRef = useRef(customTranslations);
-  const handleStopTimerRef = useRef(handleStopTimer);
-  const showToastRef = useRef(showToast);
-  const setGuiSizeRef = useRef(setGuiSize);
-  const setLastNonSmallVariantRef = useRef(setLastNonSmallVariant);
-  const setAlwaysOnTopSmallRef = useRef(setAlwaysOnTopSmall);
-  const setAlwaysOnTopMainRef = useRef(setAlwaysOnTopMain);
+  const stateRef = useRef({
+    guiSize,
+    textAndIconSize,
+    minimizeToTray,
+    alwaysOnTopSmall,
+    alwaysOnTopMain,
+    locale,
+    customTranslations,
+    handleStopTimer,
+    showToast,
+    setGuiSize,
+    setLastNonSmallVariant,
+    setAlwaysOnTopSmall,
+    setAlwaysOnTopMain,
+  });
 
   useEffect(() => {
-    guiSizeRef.current = guiSize;
-    textAndIconSizeRef.current = textAndIconSize;
-    minimizeToTrayRef.current = minimizeToTray;
-    alwaysOnTopSmallRef.current = alwaysOnTopSmall;
-    alwaysOnTopMainRef.current = alwaysOnTopMain;
-    localeRef.current = locale;
-    customTranslationsRef.current = customTranslations;
-    handleStopTimerRef.current = handleStopTimer;
-    showToastRef.current = showToast;
-    setGuiSizeRef.current = setGuiSize;
-    setLastNonSmallVariantRef.current = setLastNonSmallVariant;
-    setAlwaysOnTopSmallRef.current = setAlwaysOnTopSmall;
-    setAlwaysOnTopMainRef.current = setAlwaysOnTopMain;
+    stateRef.current = {
+      guiSize,
+      textAndIconSize,
+      minimizeToTray,
+      alwaysOnTopSmall,
+      alwaysOnTopMain,
+      locale,
+      customTranslations,
+      handleStopTimer,
+      showToast,
+      setGuiSize,
+      setLastNonSmallVariant,
+      setAlwaysOnTopSmall,
+      setAlwaysOnTopMain,
+    };
   });
 
   useEffect(() => {
@@ -126,15 +130,15 @@ export const useTauriWindow = ({
       try {
         const uMax = await listen('native-window-maximized' satisfies FrontendEvent, () => {
           if (!active) return;
-          setGuiSizeRef.current('large');
-          setLastNonSmallVariantRef.current('large');
-          showToastRef.current("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
+          stateRef.current.setGuiSize('large');
+          stateRef.current.setLastNonSmallVariant('large');
+          stateRef.current.showToast("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
         });
         unlisteners.push(uMax);
 
         const uRest = await listen('native-window-restored' satisfies FrontendEvent, () => {
           if (!active) return;
-          setGuiSizeRef.current('large');
+          stateRef.current.setGuiSize('large');
         });
         unlisteners.push(uRest);
 
@@ -142,36 +146,36 @@ export const useTauriWindow = ({
           if (!active) return;
           const payload = event.payload as GuiSize;
           if (['small', 'medium', 'large'].includes(payload)) {
-            setGuiSizeRef.current(payload);
-            await handleSetGuiSize(payload, textAndIconSizeRef.current);
-            const flag = payload === 'small' ? alwaysOnTopSmallRef.current : alwaysOnTopMainRef.current;
+            stateRef.current.setGuiSize(payload);
+            await handleSetGuiSize(payload, stateRef.current.textAndIconSize);
+            const flag = payload === 'small' ? stateRef.current.alwaysOnTopSmall : stateRef.current.alwaysOnTopMain;
             await handleWindowAlwaysOnTop(flag);
-            showToastRef.current(`GUI: ${payload === 'small' ? 'Mały' : payload === 'medium' ? 'Średni' : 'Duży'}`);
+            stateRef.current.showToast(`GUI: ${payload === 'small' ? 'Mały' : payload === 'medium' ? 'Średni' : 'Duży'}`);
           }
         });
         unlisteners.push(uVariant);
 
         const uStopAll = await listen('tray-stop-all-timers' satisfies FrontendEvent, () => {
           if (!active) return;
-          handleStopTimerRef.current();
-          showToastRef.current(translate(localeRef.current, 'app.stoppedThreads', customTranslationsRef.current));
+          stateRef.current.handleStopTimer();
+          stateRef.current.showToast(translate(stateRef.current.locale, 'app.stoppedThreads', stateRef.current.customTranslations));
         });
         unlisteners.push(uStopAll);
 
         const uToggleTop = await listen('tray-toggle-on-top' satisfies FrontendEvent, async () => {
           if (!active) return;
-          if (guiSizeRef.current === 'small') {
-            setAlwaysOnTopSmallRef.current(prev => {
+          if (stateRef.current.guiSize === 'small') {
+            stateRef.current.setAlwaysOnTopSmall(prev => {
               const next = !prev;
               handleWindowAlwaysOnTop(next);
-              showToastRef.current(next ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
+              stateRef.current.showToast(next ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
               return next;
             });
           } else {
-            setAlwaysOnTopMainRef.current(prev => {
+            stateRef.current.setAlwaysOnTopMain(prev => {
               const next = !prev;
               handleWindowAlwaysOnTop(next);
-              showToastRef.current(next ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
+              stateRef.current.showToast(next ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
               return next;
             });
           }
@@ -180,7 +184,7 @@ export const useTauriWindow = ({
 
         const uClose = await listen('native-close-requested' satisfies FrontendEvent, async () => {
           if (!active) return;
-          if (minimizeToTrayRef.current) {
+          if (stateRef.current.minimizeToTray) {
             try {
               await invoke(TAURI_COMMANDS.HIDE_WINDOW);
             } catch (err) {

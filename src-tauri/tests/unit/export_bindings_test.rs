@@ -1,4 +1,4 @@
-use crate::types::*;
+use oxy_flow::types::*;
 use ts_rs::TS;
 
 #[test]

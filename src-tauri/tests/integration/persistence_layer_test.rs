@@ -77,3 +77,46 @@ fn test_persistence_layer_csv_sink_failure_handling() {
     let p_opt = persistence.get_project("p-err").unwrap();
     assert!(p_opt.is_some(), "Project must still be saved to SQLite");
 }
+
+#[test]
+fn test_persistence_layer_get_all_and_clear() {
+    let (_conn, config, _temp_dir) = setup_persistence_test("persistence_get_all");
+    let persistence = PersistenceLayer::new(&config).unwrap();
+
+    let project = Project {
+        id: "p-all-1".to_string(),
+        name: "AllProject".to_string(),
+        color: "green".to_string(),
+        created_at: "2026-06-22T20:00:00Z".to_string(),
+        archived: Some(false),
+        original_name: None,
+        original_color: None,
+        edit_history: None,
+    };
+    persistence.create_project(project).unwrap();
+
+    let task = Task {
+        id: "t-all-1".to_string(),
+        project_id: "p-all-1".to_string(),
+        parent_task_id: None,
+        name: "AllTask".to_string(),
+        completed: false,
+        created_at: "2026-06-22T20:00:00Z".to_string(),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+    };
+    persistence.create_task(task).unwrap();
+
+    let projects = persistence.get_all_projects().unwrap();
+    assert_eq!(projects.len(), 1);
+
+    let tasks = persistence.get_all_tasks().unwrap();
+    assert_eq!(tasks.len(), 1);
+
+    persistence.clear_all_data().unwrap();
+
+    assert_eq!(persistence.get_all_projects().unwrap().len(), 0);
+    assert_eq!(persistence.get_all_tasks().unwrap().len(), 0);
+}

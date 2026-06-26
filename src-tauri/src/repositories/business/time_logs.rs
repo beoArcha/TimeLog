@@ -5,23 +5,25 @@ use crate::types::TimeLog;
 use rusqlite::params;
 
 impl BusinessRepository {
+    fn map_time_log_row(row: &rusqlite::Row) -> rusqlite::Result<TimeLog> {
+        Ok(TimeLog {
+            id: row.get(0)?,
+            task_id: row.get(1)?,
+            project_id: row.get(2)?,
+            start_time: row.get(3)?,
+            end_time: row.get(4)?,
+            note: None,
+            original_start_time: None,
+            original_end_time: None,
+            original_note: None,
+            edit_history: None,
+        })
+    }
+
     pub fn get_time_logs_for_task(&self, task_id: &str) -> Result<Vec<TimeLog>> {
         let conn = self.connect()?;
         let mut stmt = conn.prepare(constants::SELECT_TIME_LOGS_BY_TASK)?;
-        let rows = stmt.query_map(params![task_id], |row| {
-            Ok(TimeLog {
-                id: row.get(0)?,
-                task_id: row.get(1)?,
-                project_id: row.get(2)?,
-                start_time: row.get(3)?,
-                end_time: row.get(4)?,
-                note: None,
-                original_start_time: None,
-                original_end_time: None,
-                original_note: None,
-                edit_history: None,
-            })
-        })?;
+        let rows = stmt.query_map(params![task_id], Self::map_time_log_row)?;
         let mut logs = Vec::new();
         for r in rows {
             logs.push(r?);
@@ -65,5 +67,16 @@ impl BusinessRepository {
             ids.push(id_res?);
         }
         Ok(ids)
+    }
+
+    pub fn get_all_time_logs(&self) -> Result<Vec<TimeLog>> {
+        let conn = self.connect()?;
+        let mut stmt = conn.prepare(constants::SELECT_ALL_TIME_LOGS)?;
+        let rows = stmt.query_map([], Self::map_time_log_row)?;
+        let mut logs = Vec::new();
+        for r in rows {
+            logs.push(r?);
+        }
+        Ok(logs)
     }
 }

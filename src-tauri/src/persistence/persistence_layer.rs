@@ -219,4 +219,22 @@ impl PersistenceLayer {
     pub fn query_active_logs(&self) -> PersistenceResult<Vec<String>> {
         Ok(self.business_repo.query_active_logs()?)
     }
+
+    pub fn get_all_projects(&self) -> PersistenceResult<Vec<Project>> {
+        Ok(self.business_repo.get_all_projects()?)
+    }
+
+    pub fn get_all_tasks(&self) -> PersistenceResult<Vec<Task>> {
+        Ok(self.business_repo.get_all_tasks()?)
+    }
+
+    pub fn get_all_time_logs(&self) -> PersistenceResult<Vec<TimeLog>> {
+        Ok(self.business_repo.get_all_time_logs()?)
+    }
+
+    pub fn clear_all_data(&self) -> PersistenceResult<()> {
+        self.business_repo.clear_all_data()?;
+        self.cache.clear();
+        Ok(())
+    }
 }

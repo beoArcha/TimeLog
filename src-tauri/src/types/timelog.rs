@@ -73,6 +73,16 @@ pub struct TimeLog {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[ts(export_to = "../../src/bindings/TimerRepositoryState.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct TimerRepositoryState {
+    pub projects: Vec<super::Project>,
+    pub tasks: Vec<Task>,
+    pub logs: Vec<TimeLog>,
+    pub active_log: Option<TimeLog>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export_to = "../../src/bindings/PatchLog.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct PatchLog {

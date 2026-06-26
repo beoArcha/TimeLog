@@ -20,10 +20,10 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const [tasks, setTasksState] = useState<Task[]>(INIT_TASKS);
   const [logs, setLogsState] = useState<TimeLog[]>(INIT_LOGS);
   const [activeLog, setActiveLogState] = useState<TimeLog | null>(null);
-  
+
   const [holidays, setHolidays] = useState<HolidayLeave[]>(() => dm.loadState()?.holidays ?? DEFAULT_HOLIDAYS);
   const [patches, setPatches] = useState<PatchLog[]>(() => dm.loadState()?.patches ?? []);
-  
+
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
@@ -35,7 +35,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const isSeedingRequired = useRef(false);
   const isResetting = useRef(false);
 
-  // Load state from repository on mount
   useEffect(() => {
     const loadState = async () => {
       try {
@@ -65,7 +64,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     loadState();
   }, []);
 
-  // Save holidays and patches to localStorage when they change
   useEffect(() => {
     if (isInitialized && !isResetting.current) {
       dm.saveState({
@@ -78,20 +76,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       });
     }
   }, [holidays, patches, isInitialized, projects, tasks, logs, activeLog]);
-
-  useEffect(() => {
-    if (projects.length > 0 && engineState === 'searching') {
-      const timer = setTimeout(() => {
-        setEngineState('connected');
-        setEnginePID(Math.floor(2000 + Math.random() * 7000));
-        const runningLogs = logs.filter(l => l.endTime === null || l.endTime === undefined);
-        if (runningLogs.length > 0) {
-          setActiveLogState(runningLogs[runningLogs.length - 1]);
-        }
-      }, 1100);
-      return () => clearTimeout(timer);
-    }
-  }, [projects, logs, engineState]);
 
   const ensureSeeded = async () => {
     if (isSeedingRequired.current) {
@@ -213,11 +197,10 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setRepositoryError(null);
       await ensureSeeded();
       const { state: nextState, events } = await repository.startTimer(taskId);
-      
+
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
 
-      // Push events on success
       events.forEach(evt => {
         pushToApi(evt, evt.event === 'START' ? `Starting ${evt.log.id}` : `Terminating ${evt.log.id}`);
       });
@@ -238,7 +221,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
 
-      // Push events on success
       events.forEach(evt => {
         pushToApi(evt, `Terminating ${evt.log.id}`);
       });
@@ -264,7 +246,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
-  // Wrapped direct state setters for backward compatibility, propagating changes to repository
   const setProjects = async (action: React.SetStateAction<Project[]>) => {
     try {
       setRepositoryError(null);

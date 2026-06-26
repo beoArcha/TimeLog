@@ -121,4 +121,116 @@ impl<'a> Engine<'a> {
         let ids = self.persistence.query_active_logs()?;
         Ok(ids)
     }
+
+    pub fn get_state(&self) -> Result<crate::types::TimerRepositoryState, EngineError> {
+        let projects = self.persistence.get_all_projects()?;
+        let tasks = self.persistence.get_all_tasks()?;
+        let logs = self.persistence.get_all_time_logs()?;
+
+        let active_task_ids = self.persistence.query_active_logs()?;
+        let active_log = if !active_task_ids.is_empty() {
+            logs.iter()
+                .find(|l| l.end_time.is_none() && active_task_ids.contains(&l.task_id))
+                .cloned()
+        } else {
+            None
+        };
+
+        Ok(crate::types::TimerRepositoryState {
+            projects,
+            tasks,
+            logs,
+            active_log,
+        })
+    }
+
+    pub fn add_project(&self, name: String, color: String) -> Result<(), EngineError> {
+        let project = crate::types::Project {
+            id: format!("proj_{}", chrono::Utc::now().timestamp_millis()),
+            name,
+            color,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            archived: Some(false),
+            original_name: None,
+            original_color: None,
+            edit_history: None,
+        };
+        self.persistence.create_project(project)?;
+        Ok(())
+    }
+
+    pub fn toggle_project_archive(&self, project_id: String) -> Result<(), EngineError> {
+        if let Some(mut project) = self.persistence.get_project(&project_id)? {
+            let archived = project.archived.unwrap_or(false);
+            project.archived = Some(!archived);
+            self.persistence.patch_project(project)?;
+        }
+        Ok(())
+    }
+
+    pub fn add_task(
+        &self,
+        project_id: String,
+        name: String,
+        parent_task_id: Option<String>,
+    ) -> Result<(), EngineError> {
+        let task = crate::types::Task {
+            id: format!("task_{}", chrono::Utc::now().timestamp_millis()),
+            project_id,
+            parent_task_id,
+            name,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            completed: false,
+            original_name: None,
+            original_completed: None,
+            edit_history: None,
+            archived: Some(false),
+        };
+        if task.parent_task_id.is_some() {
+            self.persistence.create_subtask(task)?;
+        } else {
+            self.persistence.create_task(task)?;
+        }
+        Ok(())
+    }
+
+    pub fn rename_project(&self, project_id: String, name: String) -> Result<(), EngineError> {
+        if let Some(mut project) = self.persistence.get_project(&project_id)? {
+            project.name = name;
+            self.persistence.patch_project(project)?;
+        }
+        Ok(())
+    }
+
+    pub fn rename_task(&self, task_id: String, name: String) -> Result<(), EngineError> {
+        if let Some(mut task) = self.persistence.get_task(&task_id)? {
+            task.name = name;
+            self.persistence.patch_task(task)?;
+        }
+        Ok(())
+    }
+
+    pub fn delete_task(&self, task_id: String) -> Result<(), EngineError> {
+        if let Some(task) = self.persistence.get_task(&task_id)? {
+            if task.parent_task_id.is_some() {
+                self.persistence.archive_subtask(task_id, task.project_id)?;
+            } else {
+                self.persistence.archive_task(task_id, task.project_id)?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn toggle_task_complete(&self, task_id: String) -> Result<(), EngineError> {
+        if let Some(mut task) = self.persistence.get_task(&task_id)? {
+            task.completed = !task.completed;
+            self.persistence.patch_task(task)?;
+        }
+        Ok(())
+    }
+
+    pub fn reset_database(&self) -> Result<(), EngineError> {
+        self.persistence.clear_all_data()?;
+        Ok(())
+    }
 }
