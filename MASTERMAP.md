@@ -199,54 +199,10 @@ Always maintain:
 
 Engineering workflow:
 
-Architecture
-
-↓
-
-Implementation
-
-↓
-
-Tests
-
-↓
-
-Refactoring
-
-↓
-
-Optimization
-
-↓
-
-Release
+Architecture -> Implementation -> Tests -> Refactoring -> Optimization -> Release
 
 ---
 
 ## Long-Term Evolution
 
-Foundation ✅
-
-↓
-
-Complete Backend
-
-↓
-
-Clean Frontend
-
-↓
-
-Usable MVP
-
-↓
-
-Reliable Data
-
-↓
-
-Native Experience
-
-↓
-
-Flow Platform
+Foundation ✅ -> Complete Backend -> Clean Frontend -> Usable MVP -> Reliable Data -> Native Experience -> Flow Platform
