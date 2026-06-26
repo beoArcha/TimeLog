@@ -43,7 +43,7 @@ jobs:
           git merge origin/main --no-edit -X theirs
 
           # Bump release version to odd minor
-          node scripts/bump_versions.js --to-odd-minor
+          node scripts/bump_versions.js --release
 
           # Commit the version bump on release
           git commit -am "chore(release): bump version to odd minor [skip ci]" || echo "No changes to commit on release"
@@ -55,7 +55,7 @@ jobs:
           git pull origin main
 
           # Bump main version to even minor
-          node scripts/bump_versions.js --to-even-minor
+          node scripts/bump_versions.js --main
 
           git commit -am "chore(version): bump main to next even minor [skip ci]" || echo "No changes to commit on main"
           git push origin main
