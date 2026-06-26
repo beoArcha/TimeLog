@@ -63,7 +63,8 @@ export default defineConfig(() => {
           '.vscode/**',
           'src/bindings/**',
           'src-tauri/**',
-          'src/App.tsx'
+          'src/App.tsx',
+          'src/components/ui/**'
         ],
         thresholds: {
           global: {
@@ -89,6 +90,18 @@ export default defineConfig(() => {
             functions: 50,
             branches: 40,
             statements: 50,
+          },
+          './src/layout/**': {
+            lines: 50,
+            functions: 40,
+            branches: 40,
+            statements: 50,
+          },
+          './src/components/**': {
+            lines: 60,
+            functions: 45,
+            branches: 40,
+            statements: 65,
           },
         },
       },
