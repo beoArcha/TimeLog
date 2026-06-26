@@ -14,15 +14,15 @@ import BackupTab from '../tabs/BackupTab';
 import TrayWidget from '@components/common/TrayWidget';
 
 // Layout Components
-import GuiClosedAlert from '../layout/GuiClosedAlert';
-import SystemNotification from '../layout/SystemNotification';
-import Header from '../layout/Header';
-import DaemonStatusBar from '../layout/DaemonStatusBar';
-import CreditsModal from '../layout/CreditsModal';
-import BackgroundGradients from '../layout/BackgroundGradients';
-import TabBar from '../layout/TabBar';
-import AppFooter from '../layout/AppFooter';
-import RestoreButton from '../layout/RestoreButton';
+import GuiClosedAlert from '../components/GuiClosedAlert';
+import SystemNotification from '@components/common/SystemNotification';
+import Header from '../components/Header';
+import DaemonStatusBar from '../components/DaemonStatusBar';
+import CreditsModal from '../components/CreditsModal';
+import BackgroundGradients from '@components/common/BackgroundGradients';
+import TabBar from '../components/TabBar';
+import AppFooter from '../components/AppFooter';
+import RestoreButton from '@components/common/RestoreButton';
 
 // Builders
 import SmallGuiBuilder from '../builders/SmallGuiBuilder';
