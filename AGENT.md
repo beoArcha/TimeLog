@@ -4,202 +4,261 @@
 
 This repository is developed using AI-assisted engineering.
 
-AI agents act as implementation assistants. Humans remain responsible for architecture, product decisions and final validation.
+AI agents are implementation assistants.
+
+Humans own architecture, product direction and final technical decisions.
 
 ---
 
-## 1. General Principles
+## Mission
 
-### Scope
+The objective is not to generate the most code.
 
-AI agents may:
+The objective is to make the codebase better with every change.
 
-- implement features
-- refactor existing code
-- write tests
-- improve documentation
-- identify issues
-- propose improvements
+Every contribution should improve at least one of:
 
-AI agents must not:
-
-- redesign architecture without explicit approval
-- introduce unnecessary dependencies
-- rewrite large portions of the codebase without request
-- remove existing functionality
-- make assumptions about product requirements
-
-When uncertain, ask for clarification.
+* correctness
+* maintainability
+* readability
+* consistency
+* documentation
 
 ---
 
-## 2. Engineering Priorities
+## Working Process
 
-Prioritize in this order:
+For every task:
+
+1. Understand the existing implementation.
+2. Follow the current architecture.
+3. Make the smallest reasonable change.
+4. Validate the result.
+5. Update documentation when necessary.
+
+Avoid unnecessary rewrites.
+
+---
+
+## Before Writing Code
+
+Always:
+
+* inspect related files
+* understand existing patterns
+* reuse existing abstractions
+* identify the correct architectural layer
+
+Never introduce parallel implementations of existing functionality.
+
+---
+
+## Engineering Priorities
+
+Always prioritize:
 
 1. Correctness
-2. Simplicity
-3. Readability
-4. Maintainability
+2. Maintainability
+3. Consistency
+4. Simplicity
 5. Performance
 
-Avoid:
-
-- overengineering
-- premature optimization
-- unnecessary abstractions
-- hidden side effects
-- duplicated code
+Never sacrifice architecture for short-term speed.
 
 ---
 
-## 3. Frontend (React)
+## Architectural Rules
 
-Frontend responsibilities:
+Respect existing architectural boundaries.
 
-- UI rendering
-- user interactions
-- state orchestration
+```text
+React UI
+    ↓
+Hooks / State
+    ↓
+Tauri Commands
+    ↓
+Application Services
+    ↓
+Repositories
+    ↓
+Persistence
+```
 
-Frontend should not contain:
+Dependencies always point downward.
 
-- persistence logic
-- heavy computations
-- business-critical rules
+Do not bypass repositories.
+
+Do not access persistence directly from business logic.
+
+Do not move business logic into React.
+
+---
+
+## Frontend Guidelines
+
+React is responsible for:
+
+* rendering
+* user interaction
+* state orchestration
+
+React should not contain:
+
+* persistence
+* business rules
+* storage logic
 
 Guidelines:
 
-- Keep components focused.
-- Prefer composition.
-- Avoid deep prop drilling.
-- Keep state domain-oriented.
-- Use explicit TypeScript types.
+* keep components small
+* prefer composition
+* avoid deeply nested props
+* avoid duplicated logic
+* use custom hooks appropriately
+
+Always use explicit TypeScript types.
 
 Avoid `any`.
 
----
-
-## 4. Tauri / Rust
-
-Rust is the application core.
-
-Rust responsibilities:
-
-- business logic
-- persistence
-- performance-sensitive operations
-
-Frontend communicates only through Tauri APIs.
-
-Target architecture:
-
-React
-
-↓
-
-Tauri
-
-↓
-
-Rust
-
-↓
-
-SQLite
-
-Do not bypass architectural boundaries.
-
-Rust guidelines:
-
-- Prefer `Result`
-- Handle errors explicitly
-- Avoid `unwrap()` in production code
-- Avoid hidden global state
+If a type becomes difficult to express, improve the type model instead of using `any`.
 
 ---
 
-## 5. Testing
+## Backend Guidelines
+
+Rust owns:
+
+* business rules
+* repositories
+* persistence
+* validation
+* application services
+
+Guidelines:
+
+* prefer `Result`
+* propagate errors
+* avoid `unwrap()` in production
+* avoid hidden global state
+* keep modules focused
+
+Repositories own storage access.
+
+Persistence implementations should remain interchangeable.
+
+---
+
+## Refactoring
+
+Refactor only when it improves the codebase.
+
+Prefer incremental improvements.
+
+Avoid unrelated cleanup during feature work.
+
+Large refactorings should be divided into small reviewable steps.
+
+Preserve behavior unless explicitly instructed otherwise.
+
+---
+
+## Testing
+
+Changes should preserve existing behavior.
+
+Whenever practical:
+
+* add unit tests
+* update integration tests
+* cover edge cases
 
 Tests validate behavior, not implementation.
 
-Priorities:
-
-- unit tests
-- integration tests
-
-Test:
-
-- business rules
-- edge cases
-- interactions between modules
-
-Avoid:
-
-- brittle tests
-- excessive mocking
-- implementation-specific assertions
+Avoid brittle tests.
 
 ---
 
-## 6. DevOps
+## Quality Checklist
 
-CI must remain deterministic.
+Before considering a task complete:
 
-Pipelines should:
+Frontend:
 
-- install dependencies
-- run linting
-- run frontend tests
-- run Rust tests
-- build the application
+* npm run lint
+* npm run typecheck
+* npm run test
 
-Fail fast.
+Backend:
 
-Before adding dependencies, verify:
+* cargo fmt
+* cargo test
 
-- Is it necessary?
-- Is it maintained?
-- Does it increase complexity?
+Resolve failures instead of working around them.
+
+Avoid introducing cascading errors.
+
+---
+
+## Dependencies
+
+Before adding a dependency, verify:
+
+* Is it necessary?
+* Does the standard library already solve the problem?
+* Is an existing dependency sufficient?
+* Is it actively maintained?
 
 Prefer fewer dependencies.
 
 ---
 
-## 7. Documentation
-
-Documentation is part of engineering.
+## Documentation
 
 Update documentation whenever changes affect:
 
-- architecture
-- workflows
-- public interfaces
-- engineering decisions
+* architecture
+* workflows
+* public APIs
+* engineering decisions
 
-Avoid duplicating code inside documentation.
-
----
-
-## 8. Refactoring
-
-Refactor incrementally.
-
-Preserve existing behavior.
-
-Large changes must be split into small, reviewable steps.
-
-Avoid full rewrites unless explicitly requested.
+Documentation should explain intent rather than duplicate code.
 
 ---
 
-## 9. Decision Rule
+## AI Behavior
 
-When multiple solutions exist, choose the one that is:
+AI should:
 
-- simpler
-- easier to understand
-- easier to test
-- easier to maintain
-- easier to extend
+* follow existing architecture
+* challenge questionable designs
+* identify potential issues
+* explain trade-offs
+* ask questions when requirements are unclear
 
-Do not optimize for cleverness.
+AI should not:
+
+* invent requirements
+* redesign architecture without approval
+* introduce unnecessary abstractions
+* silently change behavior
+* ignore project conventions
+
+When uncertain, ask for clarification.
+
+---
+
+## Decision Rule
+
+When multiple valid solutions exist, choose the one that is:
+
+* simpler
+* more consistent
+* easier to understand
+* easier to test
+* easier to maintain
+* easier to extend
+
+Favor incremental improvement over cleverness.
+
+Leave the codebase in a better state than you found it.

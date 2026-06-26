@@ -1,53 +1,147 @@
 # oXyFlow
 
-> A desktop productivity suite built with Rust, Tauri and React, designed around flow state, low friction and modern product engineering.
+> **A lightweight, native-first productivity suite built with Rust, Tauri and React. Designed for flow, engineered for the long term.**
 
-oXyFlow is a passion project exploring how software development is evolving through AI-assisted engineering.
+oXyFlow is an experimental desktop productivity application that explores modern product engineering with AI-assisted development.
 
-The objective is simple: build fast, build sustainably and keep humans responsible for architecture, decisions and product vision.
+Rather than chasing features, the project focuses on building software that remains fast, maintainable and enjoyable to evolve.
 
-## ✨ Features
+AI helps implement ideas.
 
-- ⏱️ Time tracking
-- 📁 Project management
-- ✅ Task management
-- 🖥️ Native desktop application
-- 🧪 Automated testing
-- 🌍 Internationalization
-- 💻 Command Line Interface (CLI)
-
-## 🏗️ Tech Stack
-
-- Rust
-- Tauri
-- React
-- TypeScript
-- Vite
-
-## 🚀 Philosophy
-
-This project is built around three principles:
-
-- ⚡ Low friction
-- 🧠 Flow-first interactions
-- 🏗️ Sustainable engineering
-
-AI is used as an engineering accelerator, not as a replacement for software engineering.
-
-## 🛠️ Quick Start
-
-```bash
-npm install
-npm run tauri dev
-```
-
-## 📚 Documentation
-
-Additional documentation can be found in:
-
-- `ENGINEERING.md`
-- `AGENT.md`
+Humans remain responsible for architecture, engineering and product decisions.
 
 ---
 
-> Less clicking. More flow.
+## ✨ Current Features
+
+* ⏱️ Time tracking
+* 📁 Project management
+* ✅ Task management
+* 💾 SQLite persistence
+* 📄 CSV export
+* ⚙️ Configuration management
+* 🌍 Internationalization (i18n)
+* 💻 Command Line Interface (CLI)
+* 🧪 Unit & Integration Tests
+* 🖥️ Native desktop application
+
+---
+
+## 🏛 Architecture
+
+oXyFlow follows a layered architecture.
+
+```text
+React UI
+    ↓
+Hooks / State
+    ↓
+Tauri Commands
+    ↓
+Application Services
+    ↓
+Repositories
+    ↓
+Persistence Layer
+    ↓
+SQLite / CSV / Config
+```
+
+This separation keeps business logic independent from the UI and makes the application easier to maintain and extend.
+
+---
+
+## 🚀 Engineering Philosophy
+
+The project is built around five priorities:
+
+1. ✅ Correctness
+2. 🏗️ Maintainability
+3. 😊 User Experience
+4. ⚡ Performance
+5. ✨ New Features
+
+Core principles:
+
+* Native-first desktop application
+* Lightweight over raw performance
+* Flow-oriented UX
+* Sustainable engineering
+* Human-led AI-assisted development
+
+---
+
+## 🛠 Technology Stack
+
+### Backend
+
+* Rust
+* Tauri
+* SQLite
+
+### Frontend
+
+* React
+* TypeScript
+* Vite
+
+### Quality
+
+* Unit Tests
+* Integration Tests
+* ESLint
+* TypeScript
+* Cargo Test
+* Cargo Fmt
+
+---
+
+## 🚀 Getting Started
+
+Install dependencies
+
+```bash
+npm install
+```
+
+Run the application
+
+```bash
+npm run tauri dev
+```
+
+Verify code quality
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+
+cargo fmt
+cargo test
+```
+
+---
+
+## 📖 Project Documentation
+
+| Document         | Purpose                                 |
+| ---------------- | --------------------------------------- |
+| `MASTERMAP.md`   | Project roadmap and long-term vision    |
+| `ENGINEERING.md` | Engineering principles and architecture |
+| `AGENT.md`       | Operational guidelines for AI agents    |
+
+---
+
+## 🎯 Project Goals
+
+oXyFlow aims to demonstrate that modern software can be:
+
+* fast without unnecessary complexity
+* lightweight without sacrificing usability
+* AI-assisted without giving up engineering discipline
+* enjoyable to maintain for years
+
+---
+
+> **Less clicking. More flow.**
