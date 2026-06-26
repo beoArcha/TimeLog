@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useGlobalShortcuts } from '@core/hooks/useGlobalShortcuts';
+import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
 
 describe('Unit Tests: useGlobalShortcuts Hook', () => {

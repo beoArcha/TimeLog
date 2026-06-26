@@ -22,8 +22,14 @@
       "@features/*": [
         "./src/features/*"
       ],
-      "@core/*": [
-        "./src/core/*"
+      "@layout/*": [
+        "./src/layout/*"
+      ],
+      "@plugins/*": [
+        "./src/plugins/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
       ],
       "@common/*": [
         "./src/common/*"
@@ -35,5 +41,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src", "tests", "components"]
+  "include": ["src", "tests"]
 }

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useOxyFlow, OxyContext, OxyFlowState } from '@core/providers/OxyContext';
+import { useOxyFlow, OxyContext, OxyFlowState } from '@common/providers/OxyContext';
 import React from 'react';
 
 import { setupMatchMediaMock } from '../../shared/test-helpers';
@@ -22,7 +22,7 @@ const mockState: OxyFlowState = {
   setHolidays: vi.fn(),
   patches: [],
   setPatches: vi.fn(),
-  sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false },
+  sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false, activeSinks: [] },
   setSysSettings: vi.fn(),
   activeLog: null,
   setActiveLog: vi.fn(),

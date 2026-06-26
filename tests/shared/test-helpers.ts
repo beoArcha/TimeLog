@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { act } from '@testing-library/react';
-import { OxyFlowState } from '@core/providers/OxyContext';
+import { OxyFlowState } from '@common/providers/OxyContext';
 
 // Storage Mock
 export const setupLocalStorageMock = () => {
@@ -20,7 +20,6 @@ export const setupLocalStorageMock = () => {
   return store;
 };
 
-// MatchMedia Mock
 export const setupMatchMediaMock = (matches = false) => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -83,7 +82,7 @@ export const getMockOxyFlowState = (): OxyFlowState => ({
   setHolidays: vi.fn(),
   patches: [],
   setPatches: vi.fn(),
-  sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false },
+  sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false, activeSinks: [] },
   setSysSettings: vi.fn(),
   activeLog: null,
   setActiveLog: vi.fn(),

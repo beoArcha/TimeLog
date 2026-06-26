@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { translate, dictionaries } from '@core/i18n/i18n';
+import { translate, dictionaries } from '@common/i18n/i18n';
 
 describe('Unit Tests: Translations', () => {
   describe('translate function', () => {

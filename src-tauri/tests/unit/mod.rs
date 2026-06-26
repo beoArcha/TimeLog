@@ -1,2 +1,12 @@
+pub mod app_state_test;
+pub mod business_repository_test;
+pub mod cache_test;
+pub mod cli_shared_test;
+pub mod config_repository_test;
 pub mod db_test;
-pub mod timer_service_test;
+pub mod engine_test;
+pub mod errors_test;
+pub mod export_bindings_test;
+pub mod locale_test;
+pub mod tray_ids_test;
+pub mod tray_localization_test;

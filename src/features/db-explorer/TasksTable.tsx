@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Task } from '@bindings/Task';
-import CollapsibleCard from '@common/components/CollapsibleCard';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { translate } from '@core/i18n/i18n';
+import CollapsibleCard from '@components/common/CollapsibleCard';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { translate } from '@common/i18n/i18n';
 
 export default function TasksTable() {
   const { 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useTimeTicker } from '@core/hooks/useTimeTicker';
+import { useTimeTicker } from '@common/hooks/useTimeTicker';
 
 const TickerConsumer = () => {
   const { nowIso } = useTimeTicker();

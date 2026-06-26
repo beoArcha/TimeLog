@@ -14,21 +14,9 @@ pub fn set_gui_size(
     text_and_icon_size: TextAndIconSize,
     window: Window,
 ) -> Result<(), AppError> {
-    let (width, height, resizable) = match size {
-        GuiSize::Small => (320.0, 480.0, false),
-        GuiSize::Medium => match text_and_icon_size {
-            TextAndIconSize::Small => (380.0, 580.0, true),
-            TextAndIconSize::Medium => (400.0, 600.0, true),
-            TextAndIconSize::Large => (450.0, 650.0, true),
-        },
-        GuiSize::Large => match text_and_icon_size {
-            TextAndIconSize::Small => (750.0, 550.0, true),
-            TextAndIconSize::Medium => (800.0, 600.0, true),
-            TextAndIconSize::Large => (900.0, 700.0, true),
-        },
-    };
+    let (dims, resizable) = size.get_dimensions(text_and_icon_size);
     window.set_resizable(resizable)?;
-    window.set_size(Size::Logical(LogicalSize::new(width, height)))?;
+    window.set_size(Size::Logical(LogicalSize::new(dims.width, dims.height)))?;
     Ok(())
 }
 

@@ -2,8 +2,8 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@core/providers/OxyContext';
-import ManualTab from '../../../src/gui/tabs/ManualTab';
+import { OxyContext } from '@common/providers/OxyContext';
+import ManualTab from '../../../src/layout/tabs/ManualTab';
 import { toast } from 'sonner';
 import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
 

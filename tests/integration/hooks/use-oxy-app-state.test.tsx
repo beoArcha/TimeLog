@@ -6,8 +6,8 @@ import {
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useOxyAppState } from '@core/hooks/useOxyAppState';
-import { LocaleProvider } from '@core/providers/LocaleProvider';
+import { useOxyAppState } from '@common/hooks/useOxyAppState';
+import { LocaleProvider } from '@common/providers/LocaleProvider';
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <LocaleProvider>{children}</LocaleProvider>

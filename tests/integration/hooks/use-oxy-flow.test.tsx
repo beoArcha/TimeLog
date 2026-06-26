@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { useOxyFlow, OxyContext, OxyFlowState } from '@core/providers/OxyContext';
+import { useOxyFlow, OxyContext, OxyFlowState } from '@common/providers/OxyContext';
 
 const mockState: OxyFlowState = {
   customTranslations: {},
@@ -16,7 +16,7 @@ const mockState: OxyFlowState = {
   setHolidays: vi.fn(),
   patches: [],
   setPatches: vi.fn(),
-  sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false },
+  sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false, activeSinks: [] },
   setSysSettings: vi.fn(),
   activeLog: null,
   setActiveLog: vi.fn(),

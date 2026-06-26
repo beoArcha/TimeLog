@@ -1,7 +1,7 @@
 import React from 'react';
 import { Database } from 'lucide-react';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { translate } from '@core/i18n/i18n';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { translate } from '@common/i18n/i18n';
 
 import ProjectsTable from './ProjectsTable';
 import TasksTable from './TasksTable';

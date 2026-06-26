@@ -4,8 +4,8 @@ import CliInterface from '@features/cli/CliInterface';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
-import { LocaleProvider } from '@core/providers/LocaleProvider';
-import { OxyContext } from '@core/providers/OxyContext';
+import { LocaleProvider } from '@common/providers/LocaleProvider';
+import { OxyContext } from '@common/providers/OxyContext';
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();

@@ -1,9 +1,10 @@
 use crate::common::constants::*;
+use crate::persistence::PersistenceLayer;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::Arc;
 
 pub struct AppState {
-    pub db_conn: Mutex<rusqlite::Connection>,
+    pub persistence: Arc<PersistenceLayer>,
     pub was_maximized: std::sync::atomic::AtomicBool,
     pub minimize_to_tray: std::sync::atomic::AtomicBool,
 }
@@ -17,15 +18,4 @@ pub fn get_cli_db_path() -> PathBuf {
     let app_dir = base_dir.join(APP_NAME);
     let _ = std::fs::create_dir_all(&app_dir);
     app_dir.join(DEFAULT_DB_NAME)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_get_cli_db_path() {
-        let path = get_cli_db_path();
-        assert!(path.to_string_lossy().contains(DEFAULT_DB_NAME));
-    }
 }

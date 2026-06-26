@@ -2,9 +2,9 @@ import React from 'react';
 import { Task } from '@bindings/Task';
 import { Plus, CheckSquare, Square as EmptySquare, Trash2, Pencil, Play, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { translate } from '@core/i18n/i18n';
-import { GuiKey } from '@core/i18n/keys/GuiKey';
-import { CommonKey } from '@core/i18n/keys/CommonKey';
+import { translate } from '@common/i18n/i18n';
+import { GuiKey } from '@common/i18n/keys/GuiKey';
+import { CommonKey } from '@common/i18n/keys/CommonKey';
 import { getTaskDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
 
 interface TaskItemProps {

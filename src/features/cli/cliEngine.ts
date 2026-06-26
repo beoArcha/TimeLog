@@ -1,4 +1,4 @@
-import { translate } from '@core/i18n/i18n';
+import { translate } from '@common/i18n/i18n';
 import {
   TerminalLine,
   CliEngineContext,

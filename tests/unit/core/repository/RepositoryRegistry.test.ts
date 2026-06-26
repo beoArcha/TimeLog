@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RepositoryRegistry } from '../../../../src/core/repository/RepositoryRegistry';
+import { RepositoryRegistry } from '../../../../src/plugins/data/RepositoryRegistry';
 
 describe('Unit Tests: RepositoryRegistry', () => {
   it('should initialize with default sources, where localStorage is primary', () => {

@@ -31,6 +31,8 @@ pub struct Task {
     pub original_completed: Option<bool>,
     #[ts(optional)]
     pub edit_history: Option<Vec<TaskEditHistory>>,
+    #[ts(optional)]
+    pub archived: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -68,6 +70,16 @@ pub struct TimeLog {
     pub original_note: Option<String>,
     #[ts(optional)]
     pub edit_history: Option<Vec<TimeLogEditHistory>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[ts(export_to = "../../src/bindings/TimerRepositoryState.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct TimerRepositoryState {
+    pub projects: Vec<super::Project>,
+    pub tasks: Vec<Task>,
+    pub logs: Vec<TimeLog>,
+    pub active_log: Option<TimeLog>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
