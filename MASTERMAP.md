@@ -4,178 +4,249 @@
 
 ### 🎯 Vision
 
-Build a lightweight, flow-oriented productivity suite that combines native performance, sustainable engineering and modern AI-assisted development.
+Build a lightweight, flow-oriented productivity suite focused on native performance, maintainability and long-term sustainability.
+
+Core principles:
+
+* Correctness over cleverness
+* Sustainable architecture
+* Native-first experience
+* AI-friendly codebase
+* Flow-oriented productivity
 
 ---
 
-## Phase 1 - Foundation
+## Phase 1 — Foundation ✅ (Mostly Complete)
 
-**Goal:** Stabilize the codebase before expanding the product.
+**Goal:** Build a maintainable architecture.
 
 ### Architecture
 
-- [ ] Split oversized files
-- [ ] Reduce component responsibilities
-- [ ] Improve module boundaries
-- [ ] Remove code duplication
-- [ ] Improve maintainability
+* [x] Introduce layered backend architecture
+* [x] Separate persistence layer
+* [x] Introduce Repository pattern
+* [x] Add ConfigRepository
+* [x] Add CSV Sink
+* [x] Improve module boundaries
+* [x] Reduce code duplication
+* [ ] Continue splitting oversized modules
 
 ### Quality
 
-- [ ] Fill testing gaps
-- [ ] Improve test coverage
-- [ ] Refactor problematic areas
+* [x] Unit tests
+* [x] Integration tests
+* [x] Linting
+* [x] Type checking
+* [x] Rust formatting
+* [ ] Increase test coverage
+* [ ] Continue refactoring complex code
 
 ---
 
-## Phase 2 - Product MVP
+## Phase 2 — Backend Completion
 
-**Goal:** Build a usable product.
+**Goal:** Finish the application core.
 
-### Product
+### Domain
 
-- [ ] Fix bugs
-- [ ] Stabilize existing features
-- [ ] Improve usability
-- [ ] Remove friction points
+* [ ] Complete RepositoryManager
+* [ ] Complete timer domain
+* [ ] Complete project management
+* [ ] Complete task management
+* [ ] Complete configuration management
+
+### CLI
+
+* [ ] Database management commands
+* [ ] Settings commands
+* [ ] Timer commands
+* [ ] Project commands
+* [ ] Task commands
 
 ---
 
-## Phase 3 - Multi-Runtime Architecture
+## Phase 3 — Frontend Cleanup
+
+**Goal:** Make React easy to maintain.
+
+### Architecture Frontend
+
+* [ ] Reduce component responsibilities
+* [ ] Improve feature boundaries
+* [ ] Simplify state management
+* [ ] Remove duplicated logic
+* [ ] Improve hooks organization
+
+### UI
+
+* [ ] Improve layouts
+* [ ] Improve responsiveness
+* [ ] Improve accessibility
+* [ ] Improve loading states
+* [ ] Improve error handling
+
+---
+
+## Phase 4 — Product MVP
+
+**Goal:** Deliver a complete daily-use application.
+
+### Features
+
+* [ ] Stabilize timer workflow
+* [ ] Polish project workflow
+* [ ] Polish task workflow
+* [ ] Improve usability
+* [ ] Remove UX friction
+* [ ] Fix remaining bugs
+
+---
+
+## Phase 5 — Multi Runtime
 
 **Goal:** Support multiple execution environments.
 
-### Node/Web Runtime
+### Web Runtime
 
-```text
 React
+
 ↓
-localStorage
-```
 
-### Tauri/Desktop Runtime
+Browser Storage
 
-```text
+### Desktop Runtime
+
 React
+
 ↓
+
 Tauri
+
 ↓
+
 Rust
+
 ↓
+
 SQLite
-```
 
-**Tasks:**
+### Tasks
 
-- [ ] Separate runtime implementations
-- [ ] Share a common frontend
-- [ ] Define storage boundaries
+* [ ] Abstract runtime implementations
+* [ ] Share frontend logic
+* [ ] Runtime-specific storage adapters
+* [ ] Runtime-specific services
 
 ---
 
-## Phase 4 - Data Reliability
+## Phase 6 — Data Reliability
 
 **Goal:** Protect user data.
 
-### Backup
+### Storage
 
-- [ ] Automatic backups
-- [ ] Manual backups
-- [ ] Import
-- [ ] Export
-- [ ] Restore
-- [ ] Data validation
-
----
-
-## Phase 5 - Tauri Stabilization
-
-**Goal:** Mature the desktop experience.
-
-**Tasks:**
-
-- [ ] Improve Rust integration
-- [ ] Improve communication layers
-- [ ] Improve startup performance
-- [ ] Improve native behaviors
+* [ ] Automatic backups
+* [ ] Manual backups
+* [ ] Import
+* [ ] Export
+* [ ] Restore
+* [ ] Data validation
+* [ ] Database migrations
 
 ---
 
-## Phase 6 - Node UI Polish
+## Phase 7 — Desktop Experience
 
-**Goal:** Improve the web experience.
+**Goal:** Deliver a polished native application.
 
-**Tasks:**
+### Native
 
-- [ ] Improve layouts
-- [ ] Improve spacing
-- [ ] Improve responsiveness
-- [ ] Improve component states
-
----
-
-## Phase 7 - Desktop UX Polish
-
-**Goal:** Leverage native desktop capabilities.
-
-**Tasks:**
-
-- [ ] Keyboard shortcuts
-- [ ] Window behavior
-- [ ] Tray integration
-- [ ] Native menus
+* [ ] Startup optimization
+* [ ] IPC improvements
+* [ ] Keyboard shortcuts
+* [ ] Window management
+* [ ] Tray integration
+* [ ] Native menus
+* [ ] Native notifications
 
 ---
 
-## Phase 8 - Flow Expansion
+## Phase 8 — Flow Expansion
 
-**Goal:** Expand product capabilities.
+**Goal:** Expand productivity capabilities.
 
-**Tasks:**
+### Advanced features
 
-- [ ] New workflows
-- [ ] New views
-- [ ] Automation
-- [ ] Reporting
-- [ ] Analytics
-
----
-
-## ♾️ Continuous Iteration
-
-Development cycle:
-
-Feature
-→ Fixes
-→ UX improvements
-→ Optimization
-→ Refactoring
-→ Feature
+* [ ] Multiple workflows
+* [ ] Reporting
+* [ ] Analytics
+* [ ] Automation
+* [ ] Dashboard
+* [ ] Search
+* [ ] Filtering
 
 ---
 
-## Engineering Priorities
+## ♾ Continuous Engineering
 
-1. Correctness
-2. Maintainability
-3. User Experience
-4. Performance
-5. New Features
+Always maintain:
+
+* Correctness
+* Maintainability
+* Testability
+* Performance
+* Simplicity
+
+Engineering workflow:
+
+Architecture
+
+↓
+
+Implementation
+
+↓
+
+Tests
+
+↓
+
+Refactoring
+
+↓
+
+Optimization
+
+↓
+
+Release
 
 ---
 
 ## Long-Term Evolution
 
-Foundation
+Foundation ✅
+
 ↓
-Usable Product
+
+Complete Backend
+
 ↓
-Multi-Runtime Support
+
+Clean Frontend
+
 ↓
+
+Usable MVP
+
+↓
+
 Reliable Data
+
 ↓
-Polished UX
+
+Native Experience
+
 ↓
-Expanded Workflows
-↓
-Continuous Evolution
+
+Flow Platform

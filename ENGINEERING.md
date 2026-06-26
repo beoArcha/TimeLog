@@ -2,211 +2,317 @@
 
 ## Engineering Principles
 
-This project follows a Product Engineering approach.
+oXyFlow follows a Product Engineering approach.
 
-The objective is not to build software as fast as possible.
+The goal is not to build software as quickly as possible.
 
-The objective is to build software that remains understandable, maintainable and extensible over time.
+The goal is to build software that remains understandable, maintainable and extensible for years.
 
-AI is an engineering accelerator, not an engineering replacement.
-
----
-
-## Core Principles
-
-### 1. Human-first architecture
-
-AI may generate code.
-
-Humans own:
-
-- architecture
-- product decisions
-- technical decisions
-- code quality validation
-- long-term maintainability
+AI accelerates engineering. It does not replace engineering.
 
 ---
 
-### 2. Sustainable engineering
+## Core Values
 
-Prefer solutions that optimize for long-term maintenance over short-term speed.
+### 1. Correctness First
 
-Avoid unnecessary complexity.
-
-Every abstraction must have a clear purpose.
-
----
-
-### 3. Flow over features
-
-Features should reduce friction.
-
-Do not add functionality simply because it is possible.
-
-Each feature must improve user experience or solve a real problem.
-
----
-
-### 4. Native-first desktop application
-
-oXyFlow is a desktop application.
-
-Web technologies are used for UI.
-
-The application should behave like a native application.
+Correct software is always preferred over fast software.
 
 Priorities:
 
-1. Responsiveness
-2. Low resource consumption
-3. Predictable behavior
-4. Cross-platform compatibility
+1. Correctness
+2. Maintainability
+3. User Experience
+4. Performance
+5. New Features
+
+Never sacrifice correctness for speed.
 
 ---
 
-## Architectural Guidelines
+### 2. Sustainable Engineering
+
+Every change should reduce future maintenance cost.
+
+Prefer simple solutions over clever ones.
+
+Avoid unnecessary abstractions.
+
+Every abstraction must solve a real problem.
+
+---
+
+### 3. Human Ownership
+
+AI assists development.
+
+Humans own:
+
+* architecture
+* product vision
+* technical decisions
+* code quality
+* security
+* maintainability
+
+Generated code must always be reviewed.
+
+---
+
+### 4. Flow-Oriented Design
+
+Every feature should reduce friction.
+
+Avoid feature creep.
+
+New functionality should improve real user workflows rather than increase feature count.
+
+---
+
+### 5. Native-First Philosophy
+
+oXyFlow is a desktop application.
+
+React provides the UI.
+
+Rust provides the application core.
+
+The application should feel native.
+
+Priorities:
+
+* responsiveness
+* low memory usage
+* predictable behavior
+* cross-platform compatibility
+
+Lightweight operation is more important than maximum performance.
+
+---
+
+## Architecture
+
+### Layered Architecture
+
+The application is organized into clear layers.
+
+```text
+React UI
+    ↓
+Hooks / State
+    ↓
+Tauri Commands
+    ↓
+Application Services
+    ↓
+Repositories
+    ↓
+Persistence Layer
+    ↓
+SQLite / CSV / Config
+```
+
+Dependencies always point downward.
+
+Lower layers must never depend on higher layers.
+
+---
+
+### Domain Separation
+
+Keep business domains independent.
+
+Examples:
+
+* Timer
+* Projects
+* Tasks
+* Settings
+* Configuration
+
+Avoid large shared modules.
+
+---
 
 ### Single Responsibility
 
-Modules should have a single responsibility.
+Each module should have one reason to change.
 
-If a file exceeds ~300-400 lines, evaluate splitting it.
+Prefer many focused modules over a few large ones.
 
-Avoid "god objects", "god hooks" and "god components".
+If a file grows beyond roughly 300–400 lines, evaluate whether it should be split.
 
----
+Avoid:
 
-### Explicit boundaries
-
-Separate responsibilities clearly.
-
-Frontend:
-
-- UI
-- user interactions
-- state orchestration
-
-Rust:
-
-- business logic
-- persistence
-- performance-critical operations
-
-Shared:
-
-- contracts
-- data structures
-- type definitions
+* God Objects
+* God Components
+* God Hooks
+* God Services
 
 ---
 
-### Data ownership
+### Repository Pattern
 
-The frontend should not become the source of truth.
+Repositories own data access.
 
-Long-term architecture:
+Business logic must not directly communicate with storage.
 
-```text
-React
- ↓
-Tauri invoke()
- ↓
-Rust
- ↓
-SQLite
-```
+Storage implementations should be replaceable without changing business logic.
+
+---
+
+### Persistence Layer
+
+Persistence implementations should remain isolated.
+
+Supported storage backends may include:
+
+* SQLite
+* CSV
+* Configuration files
+
+Persistence should never leak into UI code.
+
+---
+
+## Frontend Guidelines
+
+React is responsible for:
+
+* presentation
+* user interaction
+* state orchestration
+
+React should not contain business logic.
+
+Complex business rules belong in Rust.
+
+---
+
+## Backend Guidelines
+
+Rust owns:
+
+* business rules
+* persistence
+* validation
+* application services
+* performance-critical operations
+
+Rust is the source of truth.
 
 ---
 
 ## State Management
 
-Avoid centralized "super stores".
+Prefer small domain-specific state.
 
-Prefer domain separation.
+Avoid global application stores whenever possible.
 
 Examples:
 
-- TimeLog
-- Projects
-- Tasks
-- Settings
-- Window state
+* Timer state
+* Projects
+* Tasks
+* Settings
+* Window state
 
-State should remain predictable and testable.
+State should remain predictable, isolated and testable.
 
 ---
 
-## Performance Guidelines
+## Performance
 
-Optimize only when necessary.
+Optimize only after correctness.
 
 Priorities:
 
-1. Avoid unnecessary re-renders
-2. Minimize I/O operations
-3. Keep startup time low
-4. Keep memory consumption predictable
+1. Low memory usage
+2. Fast startup
+3. Predictable resource consumption
+4. Efficient I/O
+5. Minimal unnecessary rendering
 
-Never optimize prematurely.
+Avoid premature optimization.
+
+Prefer lightweight solutions over micro-optimizations.
 
 ---
 
-## Testing Philosophy
+## Testing
 
-Tests validate behavior, not implementation.
+Tests validate behavior rather than implementation.
 
 Preferred order:
 
-- unit tests
-- integration tests
+1. Unit tests
+2. Integration tests
 
-Avoid brittle tests.
+Every architectural change should preserve existing tests.
 
 ---
 
-## AI-Assisted Engineering
+## Development Workflow
 
-AI is used as:
+Before considering a task complete, verify quality.
 
-- implementation accelerator
-- reviewer
-- challenger
-- documentation assistant
+Frontend:
 
-AI is not an authority.
+* npm run lint
+* npm run typecheck
+* npm run test
 
-Always validate:
+Backend:
 
-- architecture
-- correctness
-- security
-- maintainability
+* cargo fmt
+* cargo test
 
-Never blindly accept generated code.
+Address root causes instead of applying temporary fixes.
+
+Avoid introducing cascading errors.
+
+---
+
+## AI-Assisted Development
+
+AI should be used for:
+
+* implementation
+* architecture discussions
+* code review
+* documentation
+* brainstorming
+* identifying edge cases
+
+Never accept generated code without validation.
+
+AI suggestions should challenge existing solutions, not merely implement them.
 
 ---
 
 ## Documentation
 
-Documentation is part of engineering.
+Architecture is documented.
 
-Every major decision should be documented.
+Important design decisions are documented.
 
-Keep documentation concise and useful.
+Documentation should explain *why*, not repeat *what* the code already shows.
 
-Avoid documentation that duplicates code.
+Keep documentation concise and current.
 
 ---
 
 ## Decision Rule
 
-When multiple solutions exist, prefer the one that is:
+When several solutions are technically valid, prefer the one that is:
 
-- simpler
-- more maintainable
-- easier to understand
-- easier to test
-- easier to extend
+* simpler
+* easier to understand
+* easier to maintain
+* easier to test
+* easier to extend
+* consistent with the existing architecture
 
-over the one that is merely clever.
+Avoid unnecessary complexity.
+
+Consistency is usually more valuable than novelty.
