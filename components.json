@@ -13,16 +13,15 @@
   "iconLibrary": "lucide",
   "rtl": false,
   "aliases": {
-    "components": "@/components",
+    "components": "@/src/components",
     "utils": "@/lib/utils",
-    "ui": "@/components/ui",
+    "ui": "@/src/components/ui",
     "lib": "@/lib",
-    "hooks": "@/hooks",
-    "gui": "@/gui",
-    "core": "@/core",
-    "features": "@/features",
-    "common": "@/common",
-    "bindings": "@/bindings"
+    "hooks": "@/src/common/hooks",
+    "layout": "@/src/layout",
+    "features": "@/src/features",
+    "common": "@/src/common",
+    "bindings": "@/src/bindings"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

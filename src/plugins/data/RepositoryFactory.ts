@@ -1,7 +1,7 @@
 import { TimerRepository, RepositoryBackend } from './RepositoryTypes';
-import { LocalStorageTimerRepository } from './adapters/LocalStorageTimerRepository';
-import { SqliteTimerRepository } from './adapters/SqliteTimerRepository';
-import { RemoteTimerRepository } from './adapters/RemoteTimerRepository';
+import { LocalStorageTimerRepository } from './localstorage/LocalStorageTimerRepository';
+import { SqliteTimerRepository } from './sqlite/SqliteTimerRepository';
+import { RemoteTimerRepository } from './remote/RemoteTimerRepository';
 
 export class RepositoryFactory {
   static create(backend: RepositoryBackend): TimerRepository {

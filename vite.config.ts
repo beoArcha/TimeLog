@@ -15,10 +15,11 @@ export default defineConfig(() => {
       alias: {
         '@': path.resolve(__dirname, '.'),
         '@features': path.resolve(__dirname, './src/features'),
-        '@core': path.resolve(__dirname, './src/core'),
+        '@layout': path.resolve(__dirname, './src/layout'),
+        '@plugins': path.resolve(__dirname, './src/plugins'),
+        '@components': path.resolve(__dirname, './src/components'),
         '@common': path.resolve(__dirname, './src/common'),
         '@bindings': path.resolve(__dirname, './src/bindings'),
-        '@gui': path.resolve(__dirname, './src/gui'),
       },
     },
     build: {
@@ -77,7 +78,7 @@ export default defineConfig(() => {
             branches: 58,
             statements: 70,
           },
-          './src/core/**': {
+          './src/plugins/**': {
             lines: 40,
             functions: 40,
             branches: 40,

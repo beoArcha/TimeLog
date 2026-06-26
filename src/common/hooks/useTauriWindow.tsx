@@ -4,7 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 import { GuiSize } from '@bindings/GuiSize';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { Locale } from '@bindings/Locale';
-import { translate } from '@core/i18n/i18n';
+import { translate } from '@common/i18n/i18n';
 import { FrontendEvent } from '@bindings/FrontendEvent';
 import { TAURI_COMMANDS } from '@common/constants';
 

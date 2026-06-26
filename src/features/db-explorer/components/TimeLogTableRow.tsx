@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
-import { translate } from '@core/i18n/i18n';
+import { translate } from '@common/i18n/i18n';
 import { Locale } from '@bindings/Locale';
 
 interface TimeLogTableRowProps {

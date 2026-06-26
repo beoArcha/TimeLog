@@ -1,8 +1,8 @@
 import React from 'react';
 import { Cpu } from 'lucide-react';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { translate } from '@core/i18n/i18n';
-import { AppKey } from '@core/i18n/keys/AppKey';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { translate } from '@common/i18n/i18n';
+import { AppKey } from '@common/i18n/keys/AppKey';
 
 export default function GuiClosedAlert() {
   const { locale, customTranslations, setIsGuiClosed } = useOxyFlow();

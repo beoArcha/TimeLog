@@ -12,7 +12,7 @@ import {
   setupMatchMediaMock,
 } from '../../shared/test-helpers';
 
-import { useTauriWindow } from '@/src/core/hooks/useTauriWindow';
+import { useTauriWindow } from '@/src/common/hooks/useTauriWindow';
 
 describe('Unit Tests: useTauriWindow Hook', () => {
   const defaultProps = {

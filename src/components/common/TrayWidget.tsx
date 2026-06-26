@@ -1,10 +1,10 @@
 import React from 'react';
 import { AppWindow, Layers } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { translate } from '@core/i18n/i18n';
-import { TrayKey } from '@core/i18n/keys/TrayKey';
-import { DynamicKey } from '@core/i18n/keys/DynamicKey';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { translate } from '@common/i18n/i18n';
+import { TrayKey } from '@common/i18n/keys/TrayKey';
+import { DynamicKey } from '@common/i18n/keys/DynamicKey';
 
 interface TrayWidgetProps {
   onRestore: () => void;

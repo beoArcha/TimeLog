@@ -1,7 +1,7 @@
 import React from 'react';
-import { translate, LocaleType, TranslationDictionary } from '@core/i18n/i18n';
-import { DynamicKey } from '@core/i18n/keys/DynamicKey';
-import { EngineKey } from '@core/i18n/keys/EngineKey';
+import { translate, LocaleType, TranslationDictionary } from '@common/i18n/i18n';
+import { DynamicKey } from '@common/i18n/keys/DynamicKey';
+import { EngineKey } from '@common/i18n/keys/EngineKey';
 
 interface AppFooterProps {
   locale: LocaleType;

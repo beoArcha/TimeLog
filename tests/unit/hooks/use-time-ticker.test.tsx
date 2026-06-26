@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useTimeTicker } from '@core/hooks/useTimeTicker';
+import { useTimeTicker } from '@common/hooks/useTimeTicker';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
 
 describe('Unit Tests: useTimeTicker Hook', () => {

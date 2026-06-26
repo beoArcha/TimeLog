@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { LocaleProvider, useLocale } from '@core/providers/LocaleProvider';
+import { LocaleProvider, useLocale } from '@common/providers/LocaleProvider';
 import { setupLocalStorageMock } from '../../shared/test-helpers';
 import { STORAGE_KEYS } from '../../../src/common/constants';
 

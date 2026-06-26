@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock, BarChart, Database, Settings, UploadCloud, Terminal, BookOpen, Sparkles } from 'lucide-react';
-import { translate, LocaleType, TranslationDictionary } from '@core/i18n/i18n';
-import { TabKey } from '@core/i18n/keys/TabKey';
+import { translate, LocaleType, TranslationDictionary } from '@common/i18n/i18n';
+import { TabKey } from '@common/i18n/keys/TabKey';
 
 import { Theme } from '@common/types/ThemeTypes';
 

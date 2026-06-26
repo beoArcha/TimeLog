@@ -1,9 +1,9 @@
 import React from 'react';
 import { Shield, Moon, Sun, Eye, Laptop, Languages } from 'lucide-react';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { translate } from '@core/i18n/i18n';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { translate } from '@common/i18n/i18n';
 import versionsData from '../../versions.json';
-import { AppKey } from '@core/i18n/keys/AppKey';
+import { AppKey } from '@common/i18n/keys/AppKey';
 
 export default function Header() {
   const {

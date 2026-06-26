@@ -1,7 +1,7 @@
 import React from 'react';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { useGlobalShortcuts } from '@core/hooks/useGlobalShortcuts';
-import { translate } from '@core/i18n/i18n';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
+import { translate } from '@common/i18n/i18n';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Components
@@ -11,7 +11,7 @@ import ManualTab from '../tabs/ManualTab';
 import CreditsTab from '../tabs/CreditsTab';
 import SettingsTab from '../tabs/SettingsTab';
 import BackupTab from '../tabs/BackupTab';
-import TrayWidget from '@common/components/TrayWidget';
+import TrayWidget from '@components/common/TrayWidget';
 
 // Layout Components
 import GuiClosedAlert from '../layout/GuiClosedAlert';

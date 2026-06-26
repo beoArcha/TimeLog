@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
 import { UploadCloud, DownloadCloud, CheckCircle, Database } from 'lucide-react';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { translate } from '@core/i18n/i18n';
-import CollapsibleCard from '@common/components/CollapsibleCard';
-import { BackupKey } from '@/src/core/i18n/keys/BackupKey';
-import { DynamicKey } from '@/src/core/i18n/keys/DynamicKey';
-import { SettingsKey } from '@/src/core/i18n/keys/SettingsKey';
-import { TabKey } from '@/src/core/i18n/keys/TabKey';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { translate } from '@common/i18n/i18n';
+import CollapsibleCard from '@components/common/CollapsibleCard';
+import { BackupKey } from '@/src/common/i18n/keys/BackupKey';
+import { DynamicKey } from '@/src/common/i18n/keys/DynamicKey';
+import { SettingsKey } from '@/src/common/i18n/keys/SettingsKey';
+import { TabKey } from '@/src/common/i18n/keys/TabKey';
 
 export default function BackupTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);

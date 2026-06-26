@@ -2,7 +2,7 @@ import React from 'react';
 import { GuiState } from '../useGuiLogic';
 import { BarChart3 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { translate } from '@core/i18n/i18n';
+import { translate } from '@common/i18n/i18n';
 import { formatSeconds } from '@features/timelogs/timelogUtils';
 import { getThemeStyles } from './guiStyles';
 

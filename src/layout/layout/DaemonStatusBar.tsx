@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { RefreshCw, Minimize2 } from 'lucide-react';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { EngineKey } from '@core/i18n/keys/EngineKey';
-import { translate } from '@core/i18n/i18n';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { EngineKey } from '@common/i18n/keys/EngineKey';
+import { translate } from '@common/i18n/i18n';
 
 export default function DaemonStatusBar() {
   const {

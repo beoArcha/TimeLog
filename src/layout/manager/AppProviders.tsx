@@ -1,6 +1,6 @@
 import React from 'react';
-import { LocaleProvider } from '@core/providers/LocaleProvider';
-import { OxyProvider } from '@core/providers/OxyContext';
+import { LocaleProvider } from '@common/providers/LocaleProvider';
+import { OxyProvider } from '@common/providers/OxyContext';
 
 interface AppProvidersProps {
   children: React.ReactNode;

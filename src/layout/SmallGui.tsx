@@ -1,13 +1,13 @@
 import React from 'react';
 import { Clock, Maximize2, X, ChevronDown, Play, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { translate } from '@core/i18n/i18n';
+import { translate } from '@common/i18n/i18n';
 import versionsData from '../versions.json';
 import type { GuiRouterProps } from './GuiCommonProps';
 import { GuiState } from './useGuiLogic';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { SmallGuiKey } from '../core/i18n/keys/SmallGuiKey';
-import { DynamicKey } from '../core/i18n/keys/DynamicKey';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { SmallGuiKey } from '@common/i18n/keys/SmallGuiKey';
+import { DynamicKey } from '@common/i18n/keys/DynamicKey';
 
 type SmallGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 

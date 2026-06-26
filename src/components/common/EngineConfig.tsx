@@ -1,8 +1,8 @@
 import { Cpu } from 'lucide-react';
-import { useOxyFlow } from '@core/providers/OxyContext';
+import { useOxyFlow } from '@common/providers/OxyContext';
 import CollapsibleCard from './CollapsibleCard';
-import { translate } from '@core/i18n/i18n';
-import { EngineKey } from '@core/i18n/keys/EngineKey';
+import { translate } from '@common/i18n/i18n';
+import { EngineKey } from '@common/i18n/keys/EngineKey';
 
 export default function EngineConfig() {
   const { minimizeToTray, setMinimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, resolvedTheme, sysSettings, setSysSettings, locale, customTranslations } = useOxyFlow();

@@ -2,7 +2,7 @@ import React from 'react';
 import { GuiState } from '../useGuiLogic';
 import { Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { translate } from '@core/i18n/i18n';
+import { translate } from '@common/i18n/i18n';
 
 export default function DbInspector({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {

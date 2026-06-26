@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { LocalStorageTimerRepository } from '../../../../src/core/repository/adapters/LocalStorageTimerRepository';
+import { LocalStorageTimerRepository } from '../../../../src/plugins/data/localstorage/LocalStorageTimerRepository';
 import { setupLocalStorageMock } from '../../../shared/test-helpers';
 import { STORAGE_KEYS } from '../../../../src/common/constants';
 

@@ -1,6 +1,6 @@
 import { TimeLog } from '@bindings/TimeLog';
 import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
-import { translate } from '@core/i18n/i18n';
+import { translate } from '@common/i18n/i18n';
 import { TerminalLine, CliEngineContext } from './commands';
 
 export const runLogsCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {

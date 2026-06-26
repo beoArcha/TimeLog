@@ -1,12 +1,12 @@
 import React, { createContext, useContext } from 'react';
-import { useOxyAppState } from '@core/hooks/useOxyAppState';
+import { useOxyAppState } from '@common/hooks/useOxyAppState';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { Settings } from '@bindings/Settings';
-import { LocaleType, TranslationDictionary } from '@core/i18n/i18n';
+import { LocaleType, TranslationDictionary } from '@common/i18n/i18n';
 import { GuiSize } from '@bindings/GuiSize';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 

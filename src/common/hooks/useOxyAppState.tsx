@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { useLocale } from '@core/providers/LocaleProvider';
-import { translate } from '@core/i18n/i18n';
+import { useLocale } from '@common/providers/LocaleProvider';
+import { translate } from '@common/i18n/i18n';
 import { AlwaysOnTopConfig } from '@bindings/AlwaysOnTopConfig';
 
 import { useAppSettings } from './useAppSettings';
 import { useTimeTicker } from './useTimeTicker';
 import { useExternalApiSync } from './useExternalApiSync';
 import { useTimeLogData } from './useTimeLogData';
-import { useTauriWindow } from '@/src/core/hooks/useTauriWindow';
+import { useTauriWindow } from '@/src/common/hooks/useTauriWindow';
 
 export const useOxyAppState = () => {
   const [activeTab, setActiveTab] = useState<'gui' | 'cli' | 'rust'>('gui');

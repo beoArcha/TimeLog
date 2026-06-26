@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { translate } from '@core/i18n/i18n';
+import { translate } from '@common/i18n/i18n';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { Locale } from '@bindings/Locale';

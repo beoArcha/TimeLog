@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Sparkles } from 'lucide-react';
-import { useOxyFlow } from '@core/providers/OxyContext';
-import { translate } from '@core/i18n/i18n';
-import { DynamicKey } from '@core/i18n/keys/DynamicKey';
+import { useOxyFlow } from '@common/providers/OxyContext';
+import { translate } from '@common/i18n/i18n';
+import { DynamicKey } from '@common/i18n/keys/DynamicKey';
 
 export default function CreditsModal() {
   const {
