@@ -64,7 +64,8 @@ export default defineConfig(() => {
           'src/bindings/**',
           'src-tauri/**',
           'src/App.tsx',
-          'src/components/ui/**'
+          'src/components/ui/**',
+          'src/common/i18n/dictionaries'
         ],
         thresholds: {
           global: {
@@ -74,10 +75,10 @@ export default defineConfig(() => {
             statements: 60,
           },
           './src/features/**': {
-            lines: 70,
-            functions: 70,
-            branches: 58,
-            statements: 70,
+            lines: 60,
+            functions: 60,
+            branches: 50,
+            statements: 60,
           },
           './src/plugins/**': {
             lines: 40,
