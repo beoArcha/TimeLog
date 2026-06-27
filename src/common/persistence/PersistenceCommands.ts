@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { IPersistence } from './IPersistence';
-import { TimerRepositoryState, ApiPayload } from '@plugins/persistence/RepositoryTypes';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { ApiPayload } from './IPersistence';
 
 export class PersistenceCommands implements IPersistence {
   async load(): Promise<TimerRepositoryState | null> {

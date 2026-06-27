@@ -1,6 +1,7 @@
 import { IPersistence } from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
-import { TimerRepositoryState, ApiPayload } from '@plugins/persistence/RepositoryTypes';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { ApiPayload } from './IPersistence';
 
 export class PersistenceRouter implements IPersistence {
   private static instance: PersistenceRouter | null = null;

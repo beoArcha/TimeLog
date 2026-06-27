@@ -1,4 +1,10 @@
-import { TimerRepositoryState, ApiPayload } from '@plugins/persistence/RepositoryTypes';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { TimeLog } from '@bindings/TimeLog';
+
+export type ApiPayload = {
+  event: string;
+  log: TimeLog | (TimeLog & { endTime: string });
+};
 
 export interface IPersistence {
   load(): Promise<TimerRepositoryState | null>;

@@ -12,6 +12,7 @@ fn export_bindings() {
     Task::export().unwrap();
     TimeLogEditHistory::export().unwrap();
     TimeLog::export().unwrap();
+    TimerRepositoryState::export().unwrap();
     PatchLog::export().unwrap();
     Settings::export().unwrap();
     HolidayType::export().unwrap();

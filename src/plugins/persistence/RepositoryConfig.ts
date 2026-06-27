@@ -1,4 +1,4 @@
-import { RepositoryBackend } from './RepositoryTypes';
+export type RepositoryBackend = 'localStorage' | 'sqlite' | 'remote';
 
 const isTauri = () => {
   return typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__ !== undefined;

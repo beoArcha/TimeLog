@@ -8,7 +8,7 @@ import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
 import { STORAGE_KEYS } from '@common/constants';
 import { DEFAULT_HOLIDAYS, INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@features/timelogs/utils/initialData';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
-import { ApiPayload } from '@plugins/persistence/RepositoryTypes';
+import { ApiPayload } from '../persistence/IPersistence';
 
 const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
 const repository = PersistenceRouter.getInstance();

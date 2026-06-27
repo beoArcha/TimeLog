@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { IPersistence } from '@common/persistence/IPersistence';
-import { TimerRepositoryState } from '@plugins/persistence/RepositoryTypes';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 
 describe('Unit Tests: PersistenceRouter', () => {
   it('should delegate all calls to the active implementation', async () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockInvoke } from '../../shared/test-helpers';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { TimerRepositoryState } from '@plugins/persistence/RepositoryTypes';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 
 import { PersistenceCommands } from '@common/persistence/PersistenceCommands';
 
