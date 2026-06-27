@@ -1,5 +1,5 @@
 import React from 'react';
-import SmallGui from '../SmallGui/SmallGui';
+import SmallGui from '../small-gui/SmallGui';
 import { GuiState } from '../hooks/useGuiLogic';
 import type { GuiRouterProps } from '../types/GuiCommonProps';
 

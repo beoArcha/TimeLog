@@ -2,8 +2,8 @@ import React from 'react';
 import { Plus, Folder, TrendingUp } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { GuiKey } from '@common/i18n/keys/GuiKey';
-import { getProjectDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
-import { getThemeStyles, getScaleStyles } from '@layouts/parts/guiStyles';
+import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { getThemeStyles, getScaleStyles } from '@/src/layouts/parts/GuiStyles';
 import TaskItem from './components/TaskItem/TaskItem';
 
 export default function TaskListView({ state, isCondensed }: { state: any; isCondensed: boolean }) {

@@ -4,7 +4,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { Locale } from '@bindings/Locale';
 import { CheckSquare, Square as EmptySquare, Play, Square } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
-import { getTaskDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
+import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 
@@ -55,13 +55,12 @@ export function SubtaskItem({
   return (
     <div
       id={`subtask-item-${subTask.id}`}
-      className={`flex items-center justify-between gap-4 py-2 px-3 rounded-xl group/sub transition-all ${
-        isSubRunning
+      className={`flex items-center justify-between gap-4 py-2 px-3 rounded-xl group/sub transition-all ${isSubRunning
           ? 'bg-orange-500/10 border border-orange-500/20'
           : theme === 'light'
             ? 'hover:bg-[#EAE4DB]/80 border border-transparent text-[#2C2421]'
             : 'hover:bg-[#FCFAF8]/5 border border-transparent'
-      }`}
+        }`}
     >
       <div className="flex items-start sm:items-center gap-2.5 flex-1 min-w-0">
         <button
@@ -93,13 +92,12 @@ export function SubtaskItem({
             />
           ) : (
             <span
-              className={`text-xs font-semibold flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${
-                subTask.completed
+              className={`text-xs font-semibold flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${subTask.completed
                   ? 'line-through text-[#9B8C83] font-normal'
                   : theme === 'light'
                     ? 'text-[#2C2421]'
                     : 'text-slate-200'
-              }`}
+                }`}
             >
               <span className="truncate block max-w-full" title={subTask.name}>
                 {subTask.name}
@@ -129,13 +127,12 @@ export function SubtaskItem({
 
       <div className="flex items-center gap-3 shrink-0">
         <span
-          className={`font-mono text-[10px] px-2 py-1 rounded-md border transition-all ${
-            isSubRunning
+          className={`font-mono text-[10px] px-2 py-1 rounded-md border transition-all ${isSubRunning
               ? 'bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold'
               : theme === 'light'
                 ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#7A6A61]'
                 : 'bg-[#FCFAF8]/5 border-white/10 text-slate-300'
-          }`}
+            }`}
         >
           {formatSeconds(subDuration)}
         </span>
@@ -155,11 +152,10 @@ export function SubtaskItem({
             onClick={() => !subTask.completed && onStartTimer(subTask.id)}
             disabled={subTask.completed}
             title={translate(locale, 'common.startTimer', customTranslations)}
-            className={`text-[#9B8C83] hover:text-white rounded-lg p-2 transition-all cursor-pointer shrink-0 ${
-              theme === 'light'
+            className={`text-[#9B8C83] hover:text-white rounded-lg p-2 transition-all cursor-pointer shrink-0 ${theme === 'light'
                 ? 'bg-[#EAE4DB] hover:bg-teal-500 group-hover/sub:bg-teal-500 text-[#5A4A42]'
                 : 'bg-[#FCFAF8]/5 hover:bg-teal-500 group-hover/sub:bg-teal-500'
-            }`}
+              }`}
           >
             <Play className="w-3.5 h-3.5 fill-current shrink-0" />
           </button>

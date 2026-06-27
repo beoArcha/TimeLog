@@ -4,7 +4,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { Locale } from '@bindings/Locale';
-import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
+import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/i18n';
 import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
 import { STORAGE_KEYS } from '@common/constants';
@@ -243,7 +243,7 @@ export const runCompleteCommand = (args: string[], context: CliEngineContext, ou
   }
 };
 
-import { runLogsCommand, runReportCommand, runTimeCommand } from './reportCommands';
+import { runLogsCommand, runReportCommand, runTimeCommand } from './ReportCommands';
 export { runLogsCommand, runReportCommand, runTimeCommand };
 
 export const runHolidaysCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {

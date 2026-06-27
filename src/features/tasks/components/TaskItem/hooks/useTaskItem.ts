@@ -1,7 +1,7 @@
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { Locale } from '@bindings/Locale';
-import { getTaskDurationSeconds } from '@features/timelogs/utils/timelogUtils';
+import { getTaskDurationSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 
 interface UseTaskItemParams {
   rootTask: Task;

@@ -1,6 +1,7 @@
 import { isDesktopEnvironment } from '../utils/environment';
 import { IEngine } from './IEngine';
 import { EngineCommands } from './EngineCommands';
+import { EnginePlugin } from '../../plugins/engine/EnginePlugin';
 
 export class EngineRouter implements IEngine {
   private static instance: EngineRouter | null = null;
@@ -10,7 +11,7 @@ export class EngineRouter implements IEngine {
     if (isDesktopEnvironment()) {
       this.implementation = new EngineCommands();
     } else {
-      this.implementation = new EngineCommands();
+      this.implementation = new EnginePlugin();
     }
   }
 

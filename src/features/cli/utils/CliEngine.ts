@@ -15,7 +15,7 @@ import {
   runHolidaysCommand,
   runReportCommand,
   runTimeCommand
-} from './commands';
+} from './Commands';
 
 export type { TerminalLine, CliEngineContext };
 

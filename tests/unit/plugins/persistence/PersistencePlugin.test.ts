@@ -113,7 +113,7 @@ describe('Unit Tests: PersistencePlugin', () => {
 
   it('should reset state', async () => {
     await plugin.addProject({ name: 'Project', color: '#000' });
-    let state = await plugin.reset();
+    const state = await plugin.reset();
     expect(state.projects).toHaveLength(0);
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });

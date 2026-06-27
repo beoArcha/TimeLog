@@ -6,7 +6,7 @@ import ActiveTimerBanner from './parts/ActiveTimerBanner';
 import TaskListView from '@features/tasks/TaskListView';
 import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
-import { GUI_MIN_SIZES } from './parts/guiStyles';
+import { GUI_MIN_SIZES } from './parts/GuiStyles';
 
 type LargeGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 

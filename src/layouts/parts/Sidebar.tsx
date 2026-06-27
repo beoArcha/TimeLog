@@ -4,8 +4,8 @@ import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { GuiKey } from '@common/i18n/keys/GuiKey';
 import { CommonKey } from '@common/i18n/keys/CommonKey';
-import { getProjectDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
-import { PROJECT_COLORS, getScaleStyles } from './guiStyles';
+import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { PROJECT_COLORS, getScaleStyles } from './GuiStyles';
 import versionsData from '../../versions.json';
 
 export default function Sidebar({ state }: { state: GuiState }) {

@@ -4,8 +4,8 @@ import { Clock, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@common/i18n/i18n';
 import { GuiKey } from '@common/i18n/keys/GuiKey';
-import { getTaskDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
-import { getScaleStyles } from './guiStyles';
+import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { getScaleStyles } from './GuiStyles';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -28,8 +28,8 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
           exit={{ height: 0, opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.4, type: 'spring' }}
           className={`${sc.paddingMain} ${sc.roundedMain} border shadow-2xl flex flex-col ${isCondensed ? 'items-start' : 'sm:flex-row items-center justify-between'} ${sc.gapMain} relative overflow-hidden backdrop-blur-md transition-all ${theme === 'light'
-              ? 'bg-gradient-to-r from-orange-400/5 via-rose-500/5 to-orange-400/5 border-orange-500/30'
-              : 'bg-gradient-to-r from-orange-400/20 via-rose-500/20 to-orange-400/20 border-orange-400/30'
+            ? 'bg-gradient-to-r from-orange-400/5 via-rose-500/5 to-orange-400/5 border-orange-500/30'
+            : 'bg-gradient-to-r from-orange-400/20 via-rose-500/20 to-orange-400/20 border-orange-400/30'
             }`}
         >
           <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -90,8 +90,8 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
         </motion.div>
       ) : (
         <div id="active-timer-idle-banner" className={`backdrop-blur-md ${sc.roundedMain} ${sc.paddingMain} border flex flex-col ${isCondensed ? sc.gapMain : `md:flex-row items-center justify-between ${sc.gapMain}`} transition-all duration-300 ${theme === 'light'
-            ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-sm shadow-[#DFD7CB]/50'
-            : 'bg-[#FCFAF8]/5 border-white/10'
+          ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-sm shadow-[#DFD7CB]/50'
+          : 'bg-[#FCFAF8]/5 border-white/10'
           }`}>
           <div className={`flex items-center ${sc.gapMain}`}>
             <div className={`${sc.iconLarge} border ${sc.roundedSection} flex items-center justify-center shrink-0 ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
@@ -109,8 +109,8 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
           </div>
           <div className={isCondensed ? 'w-full pt-4 border-t border-[#DFD7CB] dark:border-white/10 text-center' : 'text-right'}>
             <span className={`text-xs border px-3 py-1.5 rounded-full font-mono font-medium whitespace-nowrap inline-block ${theme === 'light'
-                ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]'
-                : 'bg-[#FCFAF8]/5 text-slate-300 border-white/10'
+              ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]'
+              : 'bg-[#FCFAF8]/5 text-slate-300 border-white/10'
               }`}>
               {translate(locale, 'dynamic.idleSQLReady', customTranslations)}
             </span>
