@@ -6,8 +6,8 @@ import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
 import { LocalStorageDataManager } from '@plugins/data/dataManager';
 import { STORAGE_KEYS } from '@common/constants';
-import AddLogForm from './components/AddLogForm';
-import TimeLogTableRow from './components/TimeLogTableRow';
+import AddLogForm from './AddLogForm';
+import TimeLogTableRow from './TimeLogTableRow';
 
 const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
 

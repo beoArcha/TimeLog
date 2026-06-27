@@ -4,7 +4,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { Locale } from '@bindings/Locale';
 import { CheckSquare, Square as EmptySquare, Play, Square } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
-import { getTaskDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
+import { getTaskDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 

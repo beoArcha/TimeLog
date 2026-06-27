@@ -3,7 +3,7 @@ import { GuiState } from '../useGuiLogic';
 import { BarChart3 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { translate } from '@common/i18n/i18n';
-import { formatSeconds } from '@features/timelogs/timelogUtils';
+import { formatSeconds } from '@features/timelogs/utils/timelogUtils';
 import { getThemeStyles } from './guiStyles';
 
 export default function ReportView({ state }: { state: GuiState }) {

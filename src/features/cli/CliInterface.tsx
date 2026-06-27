@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, Send, ShieldCheck } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { executeCliCommand, TerminalLine, CliEngineContext } from './cliEngine';
+import { executeCliCommand, TerminalLine, CliEngineContext } from './utils/cliEngine';
 import versionsData from '../../versions.json';
 import { translate } from '@common/i18n/i18n';
 

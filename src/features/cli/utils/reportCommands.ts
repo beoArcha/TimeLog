@@ -1,5 +1,5 @@
 import { TimeLog } from '@bindings/TimeLog';
-import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
+import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
 import { translate } from '@common/i18n/i18n';
 import { TerminalLine, CliEngineContext } from './commands';
 

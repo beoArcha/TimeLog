@@ -2,7 +2,7 @@ import React from 'react';
 import { Plus, Folder, TrendingUp } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { GuiKey } from '@common/i18n/keys/GuiKey';
-import { getProjectDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
+import { getProjectDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
 import { getThemeStyles, getScaleStyles } from '../../layout/parts/guiStyles';
 import TaskItem from './components/TaskItem/TaskItem';
 

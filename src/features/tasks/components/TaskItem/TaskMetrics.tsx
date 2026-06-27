@@ -3,7 +3,7 @@ import { Locale } from '@bindings/Locale';
 import { Plus, Play, Square } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { GuiKey } from '@common/i18n/keys/GuiKey';
-import { formatSeconds } from '@features/timelogs/timelogUtils';
+import { formatSeconds } from '@features/timelogs/utils/timelogUtils';
 
 interface TaskMetricsProps {
   rootTask: Task;
