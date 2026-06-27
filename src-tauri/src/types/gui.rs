@@ -38,24 +38,24 @@ impl GuiSize {
         match self {
             GuiSize::Small => (
                 WindowDimensions {
-                    width: 340.0,
-                    height: 520.0,
+                    width: 360.0,
+                    height: 480.0,
                 },
                 false,
             ),
             GuiSize::Medium => {
                 let dims = match text_and_icon_size {
                     TextAndIconSize::Small => WindowDimensions {
-                        width: 400.0,
-                        height: 620.0,
+                        width: 540.0,
+                        height: 720.0,
                     },
                     TextAndIconSize::Medium => WindowDimensions {
-                        width: 440.0,
-                        height: 660.0,
+                        width: 630.0,
+                        height: 840.0,
                     },
                     TextAndIconSize::Large => WindowDimensions {
-                        width: 480.0,
-                        height: 700.0,
+                        width: 720.0,
+                        height: 960.0,
                     },
                 };
                 (dims, true)
