@@ -2,8 +2,8 @@ import React from 'react';
 import { Plus, Folder, TrendingUp } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { GuiKey } from '@common/i18n/keys/GuiKey';
-import { getProjectDurationSeconds, formatSeconds } from '@features/timelogs/timelogUtils';
-import { getThemeStyles, getScaleStyles } from '../../layout/parts/guiStyles';
+import { getProjectDurationSeconds, formatSeconds } from '@features/timelogs/utils/timelogUtils';
+import { getThemeStyles, getScaleStyles } from '@layouts/parts/guiStyles';
 import TaskItem from './components/TaskItem/TaskItem';
 
 export default function TaskListView({ state, isCondensed }: { state: any; isCondensed: boolean }) {
@@ -26,8 +26,8 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
   if (!selectedProject) {
     return (
       <div className={`border-2 border-dashed ${sc.roundedMain} p-16 text-center transition-all flex-1 min-h-0 ${theme === 'light'
-          ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#2C2421]'
-          : 'bg-[#FCFAF8]/5 border-white/10'
+        ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#2C2421]'
+        : 'bg-[#FCFAF8]/5 border-white/10'
         }`}>
         <Folder className="w-12 h-12 text-[#9B8C83] mx-auto mb-3" />
         <h3 className={`font-bold ${sc.textTitle} ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{translate(locale, 'dynamic.selectProject', customTranslations)}</h3>
@@ -38,10 +38,10 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
 
   return (
     <div id="project-tasks-sheet" className={`backdrop-blur-md ${sc.roundedMain} ${sc.paddingMain} border shadow-2xl flex flex-col ${sc.gapMain} transition-all duration-300 flex-1 min-h-0 ${theme === 'light'
-        ? 'bg-[#FCFAF8] border-[#DFD7CB]'
-        : theme === 'high-contrast'
-          ? 'bg-black border-2 border-white'
-          : 'bg-[#FCFAF8]/5 border-white/10'
+      ? 'bg-[#FCFAF8] border-[#DFD7CB]'
+      : theme === 'high-contrast'
+        ? 'bg-black border-2 border-white'
+        : 'bg-[#FCFAF8]/5 border-white/10'
       }`}>
       {/* Header with Title and Create Task Input */}
       <div>
@@ -73,10 +73,10 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
 
           {!isCondensed && (
             <div className={`text-left sm:text-right font-mono ${sc.textTitle} border ${sc.paddingSection} ${sc.roundedSection} flex flex-wrap items-center gap-2 transition-all w-fit ${theme === 'light'
-                ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]'
-                : theme === 'high-contrast'
-                  ? 'bg-black border-white text-white'
-                  : 'bg-[#FCFAF8]/5 border-white/10 text-slate-300'
+              ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]'
+              : theme === 'high-contrast'
+                ? 'bg-black border-white text-white'
+                : 'bg-[#FCFAF8]/5 border-white/10 text-slate-300'
               }`}>
               <div className="flex items-center gap-2">
                 <TrendingUp className={`${sc.iconMedium} text-orange-400`} />
@@ -98,8 +98,8 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
             value={newTaskName}
             onChange={e => setNewTaskName(e.target.value)}
             className={`flex-1 px-4 ${sc.inputPy} border ${sc.roundedMain} ${sc.textMain} focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all ${theme === 'light'
-                ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#2C2421] placeholder-[#9B8C83]'
-                : 'bg-[#FCFAF8]/5 border-white/10 text-white placeholder-[#9B8C83]'
+              ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#2C2421] placeholder-[#9B8C83]'
+              : 'bg-[#FCFAF8]/5 border-white/10 text-white placeholder-[#9B8C83]'
               }`}
           />
           <button
@@ -116,8 +116,8 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
       <div id="tasks-tree-container" className={`flex flex-col ${sc.gapMain} overflow-y-auto pr-1 flex-1 min-h-0`}>
         {rootTasks.length === 0 ? (
           <div className={`text-center py-16 border border-dashed rounded-[2rem] transition-all duration-300 ${theme === 'light'
-              ? 'border-[#DFD7CB] text-[#8A7A71] bg-[#F4EFEA]/50'
-              : 'border-white/10 text-[#9B8C83]'
+            ? 'border-[#DFD7CB] text-[#8A7A71] bg-[#F4EFEA]/50'
+            : 'border-white/10 text-[#9B8C83]'
             }`}>
             <Folder className="w-8 h-8 mx-auto text-[#9B8C83] mb-2" />
             <p className="text-sm font-semibold">{translate(locale, GuiKey.NoTasksInProject, customTranslations)}</p>

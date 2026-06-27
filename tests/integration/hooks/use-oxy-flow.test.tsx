@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { useOxyFlow, OxyContext, OxyFlowState } from '@common/providers/OxyContext';
+import { useOxyFlow, OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 
 const mockState: OxyFlowState = {
   customTranslations: {},

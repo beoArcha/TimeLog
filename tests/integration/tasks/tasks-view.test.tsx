@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import TaskListView from '../../../src/features/tasks/TaskListView';
+import TaskListView from '@features/tasks/TaskListView';
 
 describe('Integration Tests: TaskListView and TaskItem', () => {
   beforeEach(() => {

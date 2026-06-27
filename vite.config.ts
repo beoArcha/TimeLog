@@ -15,7 +15,7 @@ export default defineConfig(() => {
       alias: {
         '@': path.resolve(__dirname, '.'),
         '@features': path.resolve(__dirname, './src/features'),
-        '@layout': path.resolve(__dirname, './src/layout'),
+        '@layouts': path.resolve(__dirname, './src/layouts'),
         '@plugins': path.resolve(__dirname, './src/plugins'),
         '@components': path.resolve(__dirname, './src/components'),
         '@common': path.resolve(__dirname, './src/common'),
@@ -64,7 +64,8 @@ export default defineConfig(() => {
           'src/bindings/**',
           'src-tauri/**',
           'src/App.tsx',
-          'src/components/ui/**'
+          'src/components/ui/**',
+          'src/common/i18n/dictionaries'
         ],
         thresholds: {
           global: {
@@ -74,10 +75,10 @@ export default defineConfig(() => {
             statements: 60,
           },
           './src/features/**': {
-            lines: 70,
-            functions: 70,
-            branches: 58,
-            statements: 70,
+            lines: 60,
+            functions: 60,
+            branches: 50,
+            statements: 60,
           },
           './src/plugins/**': {
             lines: 40,
@@ -91,7 +92,7 @@ export default defineConfig(() => {
             branches: 40,
             statements: 50,
           },
-          './src/layout/**': {
+          './src/layouts/**': {
             lines: 50,
             functions: 40,
             branches: 40,

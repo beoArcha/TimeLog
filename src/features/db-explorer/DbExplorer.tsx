@@ -1,13 +1,13 @@
 import React from 'react';
 import { Database } from 'lucide-react';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
 
-import ProjectsTable from './ProjectsTable';
-import TasksTable from './TasksTable';
-import TimeLogsTable from './TimeLogsTable';
-import HolidaysLeavesTable from './HolidaysLeavesTable';
-import PatchLogsTable from './PatchLogsTable';
+import ProjectsTable from './components/ProjectsTable';
+import TasksTable from './components/TasksTable';
+import TimeLogsTable from './components/TimeLogsTable';
+import HolidaysLeavesTable from './components/HolidaysLeavesTable';
+import PatchLogsTable from './components/PatchLogsTable';
 
 export default function DbExplorer() {
   const { 

@@ -2,8 +2,8 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/providers/OxyContext';
-import BackupTab from '../../../src/layout/tabs/BackupTab';
+import { OxyContext } from '@common/hooks/OxyContext';
+import BackupTab from '@features/settings/BackupTab';
 import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
 
 describe('Integration Tests: BackupTab', () => {
@@ -19,7 +19,7 @@ describe('Integration Tests: BackupTab', () => {
   });
 
   it('Given BackupTab rendered, When export button is clicked, Then it should trigger json blob link creation and download', () => {
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => { });
     const mockState = getMockOxyFlowState();
 
     render(
@@ -37,7 +37,7 @@ describe('Integration Tests: BackupTab', () => {
   });
 
   it('Given BackupTab rendered, When import file is selected, Then it should parse json and set appropriate states', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
     const mockState = getMockOxyFlowState();
 
     render(
@@ -73,7 +73,7 @@ describe('Integration Tests: BackupTab', () => {
   });
 
   it('Given BackupTab rendered, When invalid JSON file is imported, Then it should show failure alert dialog and not update states', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
     const mockState = getMockOxyFlowState();
 
     render(

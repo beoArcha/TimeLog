@@ -22,8 +22,8 @@
       "@features/*": [
         "./src/features/*"
       ],
-      "@layout/*": [
-        "./src/layout/*"
+      "@layouts/*": [
+        "./src/layouts/*"
       ],
       "@plugins/*": [
         "./src/plugins/*"
@@ -41,5 +41,8 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src", "tests"]
+  "include": [
+    "src",
+    "tests"
+  ]
 }

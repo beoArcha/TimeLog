@@ -3,8 +3,8 @@ import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
-import { OxyContext } from '@common/providers/OxyContext';
-import { LocaleProvider } from '@common/providers/LocaleProvider';
+import { OxyContext } from '@common/hooks/OxyContext';
+import { LocaleProvider } from '@common/hooks/LocaleProvider';
 
 describe('Integration Tests: DbExplorer Projects Table', () => {
   beforeEach(() => {

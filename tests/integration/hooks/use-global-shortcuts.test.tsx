@@ -1,9 +1,9 @@
 import { renderHook, act, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { setupLocalStorageMock, setupMatchMediaMock } from '../../shared/test-helpers';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { useOxyAppState } from '@common/hooks/useOxyAppState';
-import { LocaleProvider } from '@common/providers/LocaleProvider';
-import { setupLocalStorageMock, setupMatchMediaMock } from '../../shared/test-helpers';
+import { LocaleProvider } from '@common/hooks/LocaleProvider';
 import React from 'react';
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (

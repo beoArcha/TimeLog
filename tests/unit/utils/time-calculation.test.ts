@@ -4,7 +4,7 @@ import {
   formatFriendlyDuration, 
   getTaskDurationSeconds, 
   getProjectDurationSeconds 
-} from '@features/timelogs/timelogUtils';
+} from '@features/timelogs/utils/timelogUtils';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 

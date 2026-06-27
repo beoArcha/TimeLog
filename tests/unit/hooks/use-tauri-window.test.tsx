@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { TAURI_COMMANDS } from '../../../src/common/constants';
+import { TAURI_COMMANDS } from '../../../src/common/tauri/tauri-commands';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
 
 import {
@@ -12,7 +12,7 @@ import {
   setupMatchMediaMock,
 } from '../../shared/test-helpers';
 
-import { useTauriWindow } from '@/src/common/hooks/useTauriWindow';
+import { useTauriWindow } from '@common/tauri/useTauriWindow';
 
 describe('Unit Tests: useTauriWindow Hook', () => {
   const defaultProps = {

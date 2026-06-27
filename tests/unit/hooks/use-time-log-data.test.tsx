@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { useTimeLogData } from '../../../src/common/hooks/useTimeLogData';
 import { setupLocalStorageMock } from '../../shared/test-helpers';
+import { useTimeLogData } from '../../../src/common/hooks/useTimeLogData';
 import { STORAGE_KEYS } from '../../../src/common/constants';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
 

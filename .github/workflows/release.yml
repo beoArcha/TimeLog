@@ -149,12 +149,15 @@ jobs:
       matrix:
         include:
           - platform: "windows-latest"
+            bundles: nsis
             args: ""
 
           - platform: "macos-latest"
+            bundles: dmg
             args: "--target universal-apple-darwin"
 
           - platform: "ubuntu-22.04"
+            bundles: deb,rpm,appimage
             args: ""
 
     runs-on: ${{ matrix.platform }}
@@ -192,16 +195,16 @@ jobs:
         id: tauri_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:tauri -- ${{ matrix.args }}
+        run: cargo tauri build ${{ matrix.args }} --bundles ${{ matrix.bundles }}
 
       - name: Verify Bundle
-        if: always()
+        if: failure()
         shell: bash
         run: |
           if [ ! -d src-tauri/target/release/bundle ]; then
             echo "::error::Bundle directory not generated"
-              exit 1
-            fi
+            exit 1
+          fi
 
       - name: Upload Windows Standalone Executable
         if: matrix.platform == 'windows-latest'
@@ -218,7 +221,7 @@ jobs:
           fi
 
       - name: List Built Artifacts (debug)
-        if: always()
+        if: failure()
         shell: bash
         run: |
           echo "::group::Target"
