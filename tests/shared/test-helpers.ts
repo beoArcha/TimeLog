@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import { act } from '@testing-library/react';
 import { OxyFlowState } from '@common/hooks/OxyContext';
+import { STORAGE_KEYS } from '@common/constants';
 
 // Storage Mock
 export const setupLocalStorageMock = () => {
@@ -49,7 +50,201 @@ export const triggerTauriEvent = (eventName: string, payload?: unknown) => {
   }
 };
 
-export const mockInvoke = vi.fn().mockResolvedValue(undefined);
+const STATE_DB_KEY = STORAGE_KEYS.STATE_DB;
+
+export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) => {
+  const rawState = localStorage.getItem(STATE_DB_KEY);
+  let state: any;
+  try {
+    state = rawState ? JSON.parse(rawState) : null;
+  } catch {
+    state = null;
+  }
+  if (!state) {
+    state = { projects: [], tasks: [], logs: [], activeLog: null };
+  }
+  if (!state.projects) state.projects = [];
+  if (!state.tasks) state.tasks = [];
+  if (!state.logs) state.logs = [];
+  if (state.activeLog === undefined) state.activeLog = null;
+
+  if (cmd === 'override_state') {
+    state = { ...state, ...args.state };
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'get_timer_state') {
+    return Promise.resolve(state);
+  }
+  if (cmd === 'add_project') {
+    const newProj = {
+      id: String(state.projects.length + 1),
+      name: args.name,
+      color: args.color,
+      createdAt: new Date().toISOString(),
+      archived: false,
+    };
+    state.projects.push(newProj);
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'toggle_project_archive') {
+    const proj = state.projects.find((p: any) => p.id === args.projectId);
+    if (proj) proj.archived = !proj.archived;
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'add_task') {
+    const newTask = {
+      id: String(100 + state.tasks.length + 1),
+      projectId: args.projectId,
+      parentTaskId: args.parentTaskId,
+      name: args.name,
+      createdAt: new Date().toISOString(),
+      completed: false,
+    };
+    state.tasks.push(newTask);
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'rename_project') {
+    const proj = state.projects.find((p: any) => p.id === args.projectId);
+    if (proj) proj.name = args.name;
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'rename_task') {
+    const task = state.tasks.find((t: any) => t.id === args.taskId);
+    if (task) task.name = args.name;
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'delete_task') {
+    const toDeleteIds = new Set<string>([args.taskId]);
+    let sizeBefore: number;
+    do {
+      sizeBefore = toDeleteIds.size;
+      state.tasks.forEach((t: any) => {
+        if (t.parentTaskId && toDeleteIds.has(t.parentTaskId)) {
+          toDeleteIds.add(t.id);
+        }
+      });
+    } while (toDeleteIds.size !== sizeBefore);
+
+    state.tasks = state.tasks.filter((t: any) => !toDeleteIds.has(t.id));
+    state.logs = state.logs.filter((l: any) => !toDeleteIds.has(l.taskId));
+    if (state.activeLog && toDeleteIds.has(state.activeLog.taskId)) {
+      state.activeLog = null;
+    }
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'toggle_task_complete') {
+    const task = state.tasks.find((t: any) => t.id === args.taskId);
+    if (task) {
+      task.completed = !task.completed;
+      if (task.completed) {
+        state.logs = state.logs.map((l: any) =>
+          l.taskId === args.taskId && !l.endTime
+            ? { ...l, endTime: new Date().toISOString() }
+            : l
+        );
+        if (state.activeLog?.taskId === args.taskId) {
+          state.activeLog = null;
+        }
+      }
+    }
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'start_timer') {
+    const taskId = args.taskId;
+    const task = state.tasks.find((t: any) => t.id === taskId);
+    if (!task) {
+      return Promise.resolve(state);
+    }
+    const isRunning = state.logs.some((l: any) => l.taskId === taskId && !l.endTime);
+    if (isRunning) {
+      state.logs = state.logs.map((l: any) => {
+        if (l.taskId === taskId && !l.endTime) {
+          return { ...l, endTime: new Date().toISOString() };
+        }
+        return l;
+      });
+      if (state.activeLog?.taskId === taskId) {
+        state.activeLog = null;
+      }
+      localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+      return Promise.resolve(state);
+    }
+
+    const parentId = task.parentTaskId;
+    state.logs = state.logs.map((l: any) => {
+      if (!l.endTime) {
+        if (parentId && l.taskId === parentId) return l;
+        return { ...l, endTime: new Date().toISOString() };
+      }
+      return l;
+    });
+
+    const newLog = {
+      id: 'log_' + (state.logs.length + 1),
+      taskId,
+      projectId: task.projectId,
+      startTime: new Date().toISOString(),
+      endTime: null,
+    };
+    state.logs.push(newLog);
+    state.activeLog = newLog;
+
+    if (parentId) {
+      const isParentRunning = state.logs.some((l: any) => l.taskId === parentId && !l.endTime);
+      if (!isParentRunning) {
+        const parentTask = state.tasks.find((t: any) => t.id === parentId);
+        if (parentTask) {
+          state.logs.push({
+            id: 'log_m_' + (state.logs.length + 1),
+            taskId: parentId,
+            projectId: parentTask.projectId,
+            startTime: new Date().toISOString(),
+            endTime: null,
+          });
+        }
+      }
+    }
+
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'stop_timer') {
+    state.logs = state.logs.map((l: any) => {
+      if (!l.endTime && (!args?.projectId || l.projectId === args.projectId)) {
+        return { ...l, endTime: new Date().toISOString() };
+      }
+      return l;
+    });
+    if (state.activeLog && (!args?.projectId || state.activeLog.projectId === args.projectId)) {
+      state.activeLog = null;
+    }
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
+  }
+  if (cmd === 'reset_database') {
+    const rawState = localStorage.getItem(STATE_DB_KEY);
+    let raw: any = {};
+    try {
+      raw = rawState ? JSON.parse(rawState) : {};
+    } catch {}
+    delete raw.projects;
+    delete raw.tasks;
+    delete raw.logs;
+    delete raw.activeLog;
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(raw));
+    return Promise.resolve({ projects: [], tasks: [], logs: [], activeLog: null });
+  }
+
+  return Promise.resolve(undefined);
+});
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: (cmd: string, args?: unknown) => {

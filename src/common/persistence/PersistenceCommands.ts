@@ -1,7 +1,8 @@
-import { TimerRepository, TimerRepositoryState, ApiPayload } from '../RepositoryTypes';
 import { invoke } from '@tauri-apps/api/core';
+import { IPersistence } from './IPersistence';
+import { TimerRepositoryState, ApiPayload } from '@plugins/persistence/RepositoryTypes';
 
-export class SqliteTimerRepository implements TimerRepository {
+export class PersistenceCommands implements IPersistence {
   async load(): Promise<TimerRepositoryState | null> {
     try {
       const state = await invoke<TimerRepositoryState>('get_timer_state');
@@ -10,13 +11,19 @@ export class SqliteTimerRepository implements TimerRepository {
       }
       return state;
     } catch (err) {
-      console.error('Failed to load state from SQLite:', err);
+      console.error('Failed to load state from SQLite via Tauri:', err);
       throw err;
     }
   }
 
-  async overrideState(_state: Partial<TimerRepositoryState>): Promise<TimerRepositoryState> {
-    return this.load() as Promise<TimerRepositoryState>;
+  async overrideState(state: Partial<TimerRepositoryState>): Promise<TimerRepositoryState> {
+    try {
+      await invoke('override_state', { state });
+    } catch (err) {
+      console.warn('override_state command not supported by backend:', err);
+    }
+    const currentState = await this.load();
+    return currentState || { projects: [], tasks: [], logs: [], activeLog: null };
   }
 
   async addProject(input: { name: string; color: string }): Promise<TimerRepositoryState> {
@@ -51,27 +58,60 @@ export class SqliteTimerRepository implements TimerRepository {
     return invoke<TimerRepositoryState>('toggle_task_complete', { taskId });
   }
 
+  // TODO(Stage EngineRouter):
+  // Temporary compatibility proxy.
+  // TODO(Stage EngineRouter):
+  // Temporary compatibility proxy.
   async startTimer(taskId: string): Promise<{ state: TimerRepositoryState; events: ApiPayload[] }> {
+    const prevState = await this.load();
+    const prevActiveLogs = prevState?.logs.filter(l => l.endTime === null || l.endTime === undefined) || [];
+    
     await invoke('start_timer', { taskId });
     const state = await this.load();
-    const activeLog = state?.activeLog;
+    const nextActiveLogs = state?.logs.filter(l => l.endTime === null || l.endTime === undefined) || [];
+    
     const events: ApiPayload[] = [];
-    if (activeLog) {
-      events.push({ event: 'START', log: activeLog });
-    }
+    
+    prevActiveLogs.forEach(prev => {
+      const isStillActive = nextActiveLogs.some(n => n.id === prev.id);
+      if (!isStillActive) {
+        const stoppedLog = state?.logs.find(l => l.id === prev.id);
+        if (stoppedLog) {
+          events.push({ event: 'TERMINATE', log: stoppedLog });
+        }
+      }
+    });
+    
+    nextActiveLogs.forEach(next => {
+      const wasActive = prevActiveLogs.some(p => p.id === next.id);
+      if (!wasActive) {
+        events.push({ event: 'START', log: next });
+      }
+    });
+    
     return { state: state || { projects: [], tasks: [], logs: [], activeLog: null }, events };
   }
 
+  // TODO(Stage EngineRouter):
+  // Temporary compatibility proxy.
   async stopTimer(projectId?: string): Promise<{ state: TimerRepositoryState; events: ApiPayload[] }> {
     const prevState = await this.load();
-    const stoppedLogs = prevState?.logs.filter(l => l.endTime === null || l.endTime === undefined) || [];
+    const prevActiveLogs = prevState?.logs.filter(l => l.endTime === null || l.endTime === undefined) || [];
     
     await invoke('stop_timer', { projectId });
     const state = await this.load();
+    const nextActiveLogs = state?.logs.filter(l => l.endTime === null || l.endTime === undefined) || [];
     
     const events: ApiPayload[] = [];
-    stoppedLogs.forEach(l => {
-      events.push({ event: 'TERMINATE', log: { ...l, endTime: new Date().toISOString() } });
+    
+    prevActiveLogs.forEach(prev => {
+      const isStillActive = nextActiveLogs.some(n => n.id === prev.id);
+      if (!isStillActive) {
+        const stoppedLog = state?.logs.find(l => l.id === prev.id);
+        if (stoppedLog) {
+          events.push({ event: 'TERMINATE', log: stoppedLog });
+        }
+      }
     });
     return { state: state || { projects: [], tasks: [], logs: [], activeLog: null }, events };
   }
