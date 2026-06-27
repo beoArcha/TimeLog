@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Task } from '@bindings/Task';
-import CollapsibleCard from '@components/common/CollapsibleCard';
+import CollapsibleCard from '@components/CollapsibleCard';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
 

@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { UploadCloud, DownloadCloud, CheckCircle, Database } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
-import CollapsibleCard from '@components/common/CollapsibleCard';
+import CollapsibleCard from '@components/CollapsibleCard';
 import { BackupKey } from '@/src/common/i18n/keys/BackupKey';
 import { DynamicKey } from '@/src/common/i18n/keys/DynamicKey';
 import { SettingsKey } from '@/src/common/i18n/keys/SettingsKey';

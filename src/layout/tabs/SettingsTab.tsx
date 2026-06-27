@@ -1,11 +1,11 @@
 import React from 'react';
 import { Settings, RefreshCw, AlertTriangle, CalendarDays, Info } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import EngineConfig from '@components/common/EngineConfig';
-import HolidaysAndLeaves from '@components/common/HolidaysAndLeaves';
+import EngineConfig from '@components/EngineConfig';
+import HolidaysAndLeaves from '@components/HolidaysAndLeaves';
 import { translate } from '@common/i18n/i18n';
 import { toast } from 'sonner';
-import CollapsibleCard from '@components/common/CollapsibleCard';
+import CollapsibleCard from '@components/CollapsibleCard';
 import versionsData from '../../versions.json';
 
 export default function SettingsTab() {

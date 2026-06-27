@@ -11,18 +11,18 @@ import ManualTab from '../tabs/ManualTab';
 import CreditsTab from '../tabs/CreditsTab';
 import SettingsTab from '../tabs/SettingsTab';
 import BackupTab from '../tabs/BackupTab';
-import TrayWidget from '@components/common/TrayWidget';
+import TrayWidget from '@components/TrayWidget';
 
 // Layout Components
 import GuiClosedAlert from '../components/GuiClosedAlert';
-import SystemNotification from '@components/common/SystemNotification';
+import SystemNotification from '@components/SystemNotification';
 import Header from '../components/Header';
 import DaemonStatusBar from '../components/DaemonStatusBar';
 import CreditsModal from '../components/CreditsModal';
-import BackgroundGradients from '@components/common/BackgroundGradients';
+import BackgroundGradients from '@components/BackgroundGradients';
 import TabBar from '../components/TabBar';
 import AppFooter from '../components/AppFooter';
-import RestoreButton from '@components/common/RestoreButton';
+import RestoreButton from '@components/RestoreButton';
 
 // Builders
 import SmallGuiBuilder from '../builders/SmallGuiBuilder';
