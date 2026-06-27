@@ -1,5 +1,5 @@
 import React from 'react';
-import { GuiState } from '../useGuiLogic';
+import { GuiState } from '../hooks/useGuiLogic';
 import { Clock, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@common/i18n/i18n';

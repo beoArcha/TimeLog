@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
-import CreditsTab from '../../../src/layout/tabs/CreditsTab';
+import CreditsTab from '@features/settings/CreditsTab';
 import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
 
 describe('Integration Tests: CreditsTab', () => {

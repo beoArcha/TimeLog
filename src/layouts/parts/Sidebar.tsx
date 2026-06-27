@@ -1,5 +1,5 @@
 import React from 'react';
-import { GuiState } from '../useGuiLogic';
+import { GuiState } from '../hooks/useGuiLogic';
 import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { GuiKey } from '@common/i18n/keys/GuiKey';

@@ -7,10 +7,10 @@ import { motion, AnimatePresence } from 'motion/react';
 // Components
 import CliInterface from '@features/cli/CliInterface';
 import DbExplorer from '@features/db-explorer/DbExplorer';
-import ManualTab from '../tabs/ManualTab';
-import CreditsTab from '../tabs/CreditsTab';
-import SettingsTab from '../tabs/SettingsTab';
-import BackupTab from '../tabs/BackupTab';
+import ManualTab from '@features/settings/ManualTab';
+import CreditsTab from '@features/settings/CreditsTab';
+import SettingsTab from '@features/settings/SettingsTab';
+import BackupTab from '@features/settings/BackupTab';
 import TrayWidget from '@components/TrayWidget';
 
 // Layout Components
@@ -30,8 +30,8 @@ import MediumGuiBuilder from '../builders/MediumGuiBuilder';
 import LargeGuiBuilder from '../builders/LargeGuiBuilder';
 
 // Types & Logics
-import { GuiCommonProps } from '../GuiCommonProps';
-import { useGuiLogic } from '../useGuiLogic';
+import { GuiCommonProps } from '../types/GuiCommonProps';
+import { useGuiLogic } from '../hooks/useGuiLogic';
 
 export default function GuiManager() {
   const state = useOxyFlow();

@@ -1,7 +1,7 @@
 import React from 'react';
 import SmallGui from '../SmallGui/SmallGui';
-import { GuiState } from '../useGuiLogic';
-import type { GuiRouterProps } from '../GuiCommonProps';
+import { GuiState } from '../hooks/useGuiLogic';
+import type { GuiRouterProps } from '../types/GuiCommonProps';
 
 type SmallGuiBuilderProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 

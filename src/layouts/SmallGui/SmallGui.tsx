@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
-import type { GuiRouterProps } from '../GuiCommonProps';
-import { GuiState } from '../useGuiLogic';
+import type { GuiRouterProps } from '../types/GuiCommonProps';
+import { GuiState } from '../hooks/useGuiLogic';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useSmallGui } from './hooks/useSmallGui';
 import { SmallGuiHeader } from './SmallGuiHeader';

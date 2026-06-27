@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
-import SettingsTab from '../../../src/layout/tabs/SettingsTab';
+import SettingsTab from '@features/settings/SettingsTab';
 import { toast } from 'sonner';
 import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { GuiState } from '../useGuiLogic';
+import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@common/i18n/i18n';

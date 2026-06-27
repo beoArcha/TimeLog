@@ -1,11 +1,11 @@
 import React from 'react';
-import { GuiState } from './useGuiLogic';
-import type { GuiRouterProps } from './GuiCommonProps';
+import { GuiState } from './hooks/useGuiLogic';
+import type { GuiRouterProps } from './types/GuiCommonProps';
 import Sidebar from './parts/Sidebar';
 import ActiveTimerBanner from './parts/ActiveTimerBanner';
 import TaskListView from '@features/tasks/TaskListView';
-import ReportView from './parts/ReportView';
-import DbInspector from './parts/DbInspector';
+import ReportView from '@features/reports/ReportView';
+import DbInspector from '@features/db-explorer/components/DbInspector';
 import { GUI_MIN_SIZES } from './parts/guiStyles';
 
 type LargeGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
