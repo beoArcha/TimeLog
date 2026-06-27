@@ -1,3 +1,4 @@
+import { isDesktopEnvironment } from '../utils/environment';
 import { IEngine } from './IEngine';
 import { EngineCommands } from './EngineCommands';
 
@@ -6,8 +7,7 @@ export class EngineRouter implements IEngine {
   private implementation: IEngine;
 
   private constructor() {
-    const isDesktop = true;
-    if (isDesktop) {
+    if (isDesktopEnvironment()) {
       this.implementation = new EngineCommands();
     } else {
       this.implementation = new EngineCommands();

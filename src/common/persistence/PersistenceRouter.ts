@@ -1,5 +1,7 @@
+import { isDesktopEnvironment } from '../utils/environment';
 import { IPersistence } from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
+import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 
 export class PersistenceRouter implements IPersistence {
@@ -7,13 +9,10 @@ export class PersistenceRouter implements IPersistence {
   private implementation: IPersistence;
 
   private constructor() {
-    // Prosty wybór implementacji. Na obecnym etapie obsługiwane jest wyłącznie środowisko Desktop (Tauri).
-    // Implementacja PersistencePlugin zostanie wprowadzona w kolejnym etapie.
-    const isDesktop = true;
-    if (isDesktop) {
+    if (isDesktopEnvironment()) {
       this.implementation = new PersistenceCommands();
     } else {
-      this.implementation = new PersistenceCommands();
+      this.implementation = new PersistencePlugin();
     }
   }
 

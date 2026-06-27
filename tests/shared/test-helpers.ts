@@ -4,6 +4,10 @@ import { OxyFlowState } from '@common/hooks/OxyContext';
 import { STORAGE_KEYS } from '@common/constants';
 
 // Storage Mock
+vi.mock('@common/utils/environment', () => ({
+  isDesktopEnvironment: vi.fn(() => true)
+}));
+
 export const setupLocalStorageMock = () => {
   const store: Record<string, string> = {};
   vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key: string) => store[key] || null);
@@ -18,6 +22,17 @@ export const setupLocalStorageMock = () => {
       delete store[key];
     }
   });
+
+  if (typeof crypto === 'undefined') {
+    Object.defineProperty(globalThis, 'crypto', {
+      value: {
+        randomUUID: () => ('mocked-uuid-' + Math.random().toString(36).substring(2, 9)) as `${string}-${string}-${string}-${string}-${string}`
+      }
+    });
+  } else if (!crypto.randomUUID) {
+    crypto.randomUUID = () => ('mocked-uuid-' + Math.random().toString(36).substring(2, 9)) as `${string}-${string}-${string}-${string}-${string}`;
+  }
+
   return store;
 };
 
@@ -234,7 +249,7 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) =
     let raw: any = {};
     try {
       raw = rawState ? JSON.parse(rawState) : {};
-    } catch {}
+    } catch { }
     delete raw.projects;
     delete raw.tasks;
     delete raw.logs;
