@@ -9,7 +9,25 @@ concurrency:
 
 env:
   NODE_VERSION: 24
+  RUST_WORKSPACE: "src-tauri -> target"
   CARGO_PROFILE_DEV_DEBUG: 0
+
+  UBUNTU_PACKAGES: >-
+    pkg-config
+    libgtk-3-dev
+    libwebkit2gtk-4.1-dev
+    libappindicator3-dev
+    librsvg2-dev
+    patchelf
+
+  UBUNTU_PACKAGES_LLD: >-
+    pkg-config
+    libgtk-3-dev
+    libwebkit2gtk-4.1-dev
+    libappindicator3-dev
+    librsvg2-dev
+    patchelf
+    lld
 
 jobs:
   # ──────────────────────────────────────────────
@@ -27,7 +45,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Node.js Dependencies
         run: npm ci
 
       - name: Run Unit Tests
@@ -61,7 +79,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Node.js Dependencies
         run: npm ci
 
       - name: Run Integration Tests
@@ -93,32 +111,24 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Rust Cache
+      - name: Restore Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "src-tauri -> target"
+          workspaces: ${{ env.RUST_WORKSPACE }}
 
       - name: Install cargo-tarpaulin
         uses: taiki-e/install-action@cargo-tarpaulin
 
-      - name: Install Linux dependencies
+      - name: Install Linux Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            lld
+          sudo apt-get install -y ${{ env.UBUNTU_PACKAGES_LLD }}
 
       - name: Run Rust Tests
         env:
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
 
-        run: |
-          cd src-tauri
-          cargo test
+        run: cargo test --manifest-path src-tauri/Cargo.toml
 
       - name: Upload Rust Coverage
         uses: actions/upload-artifact@v4
@@ -140,8 +150,10 @@ jobs:
         include:
           - platform: "windows-latest"
             args: ""
+
           - platform: "macos-latest"
             args: "--target universal-apple-darwin"
+
           - platform: "ubuntu-22.04"
             args: ""
 
@@ -151,43 +163,52 @@ jobs:
         with:
           ref: release
 
-      - name: setup node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
 
-      - name: install Rust stable
+      - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: install webkit2gtk and other deps (ubuntu only)
+      - name: Install Linux Dependencies
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y ${{ env.UBUNTU_PACKAGES }}
 
-      - name: Rust Cache
+      - name: Restore Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "src-tauri"
+          workspaces: ${{ env.RUST_WORKSPACE }}
 
-      - name: install frontend dependencies
+      - name: Install Frontend Dependencies
         run: npm ci || npm install
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: Build Tauri Artifacts
+        uses: tauri-apps/tauri-action@v0
         id: tauri_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tauriScript: npx tauri
           tagName: app-v__VERSION__
           releaseName: "App v__VERSION__"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Verify Bundle
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -d src-tauri/target/release/bundle ]; then
+            echo "::error::Bundle directory not generated"
+              exit 1
+            fi
 
       - name: Upload Windows Standalone Executable
         if: matrix.platform == 'windows-latest'
@@ -203,12 +224,19 @@ jobs:
             echo "Warning: Could not find compiled Windows executable for standalone upload"
           fi
 
-      - name: List built artifacts (debug)
+      - name: List Built Artifacts (debug)
         if: always()
         shell: bash
         run: |
-          echo "=== Listing all bundle artifacts ==="
-          find src-tauri/target -path "*/bundle/*" -type f 2>/dev/null || echo "No bundle directory found"
+          echo "::group::Target"
+          find src-tauri/target -maxdepth 3
+          echo "::endgroup::"
+          echo "::group::Release"
+          ls -R src-tauri/target/release || true
+          echo "::endgroup::"
+          echo "::group::Bundle"
+          ls -R src-tauri/target/release/bundle || true
+          echo "::endgroup::"
 
       - name: Collect artifact paths
         id: collect
@@ -217,24 +245,28 @@ jobs:
           ARTIFACT_DIR="artifacts-upload"
           mkdir -p "$ARTIFACT_DIR"
 
+          copy() {
+            find src-tauri/target -path "$1" -exec cp {} "$ARTIFACT_DIR/" \;
+          }
+
           # Find all relevant bundle files and copy them to a flat directory
           if [ "${{ matrix.platform }}" == "ubuntu-22.04" ]; then
-            find src-tauri/target -path "*/bundle/deb/*.deb" -exec cp {} "$ARTIFACT_DIR/" \;
-            find src-tauri/target -path "*/bundle/rpm/*.rpm" -exec cp {} "$ARTIFACT_DIR/" \;
-            find src-tauri/target -path "*/bundle/appimage/*.AppImage" -exec cp {} "$ARTIFACT_DIR/" \;
-            find src-tauri/target -path "*/bundle/appimage/*.AppImage.tar.gz" -exec cp {} "$ARTIFACT_DIR/" \;
+            copy "*/bundle/deb/*.deb"
+            copy "*/bundle/rpm/*.rpm"
+            copy "*/bundle/appimage/*.AppImage"
+            copy "*/bundle/appimage/*.AppImage.tar.gz"
           elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
-            find src-tauri/target -path "*/bundle/msi/*.msi" -exec cp {} "$ARTIFACT_DIR/" \;
-            find src-tauri/target -path "*/bundle/nsis/*.exe" -exec cp {} "$ARTIFACT_DIR/" \;
+            copy "*/bundle/msi/*.msi"
+            copy "*/bundle/nsis/*.exe"
           elif [ "${{ matrix.platform }}" == "macos-latest" ]; then
-            find src-tauri/target -path "*/bundle/dmg/*.dmg" -exec cp {} "$ARTIFACT_DIR/" \;
-            find src-tauri/target -path "*/bundle/macos/*.app" -exec cp -r {} "$ARTIFACT_DIR/" \;
+            copy "*/bundle/dmg/*.dmg"
+            copy "*/bundle/macos/*.app"
           fi
 
           echo "=== Collected artifacts ==="
           ls -la "$ARTIFACT_DIR/" || echo "No artifacts collected"
 
-      - name: Upload artifacts
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-artifacts-${{ matrix.platform }}

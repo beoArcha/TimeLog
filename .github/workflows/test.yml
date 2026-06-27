@@ -22,9 +22,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "24"
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NODE_VERSION: 24
+  RUST_WORKSPACE: "src-tauri -> target"
   CARGO_PROFILE_DEV_DEBUG: 0
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ──────────────────────────────────────────────
@@ -46,9 +47,9 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "src-tauri -> target"
+          workspaces: ${{ env.RUST_WORKSPACE }}
 
-      - name: Install Linux dependencies
+      - name: Install Linux Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -80,7 +81,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Node.js Dependencies
         run: npm ci
 
       - name: Typecheck
@@ -102,7 +103,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Node.js Dependencies
         run: npm ci
 
       - name: Run ESLint
@@ -125,7 +126,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Node.js Dependencies
         run: npm ci
 
       - name: Run Unit Tests
@@ -160,7 +161,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Node.js Dependencies
         run: npm ci
 
       - name: Run Integration Tests
@@ -196,12 +197,12 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "src-tauri -> target"
+          workspaces: ${{ env.RUST_WORKSPACE }}
 
       - name: Install cargo-tarpaulin
         uses: taiki-e/install-action@cargo-tarpaulin
 
-      - name: Install Linux dependencies
+      - name: Install Linux Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -251,7 +252,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Node.js Dependencies
         run: npm ci
 
       - name: Download Unit Coverage
@@ -309,8 +310,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Install dependencies
+      - name: Install Node.js Dependencies
         run: npm ci
 
-      - name: Build application
+      - name: Build Application
         run: npm run build
