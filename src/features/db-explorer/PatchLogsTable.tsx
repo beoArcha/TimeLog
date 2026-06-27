@@ -1,7 +1,7 @@
 import React from 'react';
 import { Database, Trash2, Plus } from 'lucide-react';
 import CollapsibleCard from '@components/common/CollapsibleCard';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
 import { LocalStorageDataManager as DataManager } from '@plugins/data/dataManager';
 

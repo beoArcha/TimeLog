@@ -1,5 +1,5 @@
 import { GuiState } from './GuiState';
-import { useOxyFlow, OxyFlowState } from '@common/providers/OxyContext';
+import { useOxyFlow, OxyFlowState } from '@common/hooks/OxyContext';
 import { GuiSize } from '@bindings/GuiSize';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 

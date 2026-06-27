@@ -1,6 +1,6 @@
 import React from 'react';
 import { Shield, Moon, Sun, Eye, Laptop, Languages } from 'lucide-react';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
 import versionsData from '../../versions.json';
 import { AppKey } from '@common/i18n/keys/AppKey';

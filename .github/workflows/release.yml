@@ -200,8 +200,8 @@ jobs:
         run: |
           if [ ! -d src-tauri/target/release/bundle ]; then
             echo "::error::Bundle directory not generated"
-              exit 1
-            fi
+            exit 1
+          fi
 
       - name: Upload Windows Standalone Executable
         if: matrix.platform == 'windows-latest'

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import CollapsibleCard from '@components/common/CollapsibleCard';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
 import { LocalStorageDataManager as DataManager } from '@plugins/data/dataManager';
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Project } from '@bindings/Project';
 import CollapsibleCard from '@components/common/CollapsibleCard';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
 
 export default function ProjectsTable() {

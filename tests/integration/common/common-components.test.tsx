@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/providers/OxyContext';
+import { OxyContext } from '@common/hooks/OxyContext';
 import TrayWidget from '../../../src/components/common/TrayWidget';
 import EngineConfig from '../../../src/components/common/EngineConfig';
 import HolidaysAndLeaves from '../../../src/components/common/HolidaysAndLeaves';

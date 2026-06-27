@@ -1,5 +1,5 @@
 import React from 'react';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { translate } from '@common/i18n/i18n';
 import { motion, AnimatePresence } from 'motion/react';

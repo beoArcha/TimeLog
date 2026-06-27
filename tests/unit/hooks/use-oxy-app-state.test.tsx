@@ -44,7 +44,7 @@ vi.mock('@common/hooks/useTimeTicker', () => ({ useTimeTicker: () => mockUseTime
 vi.mock('@common/hooks/useExternalApiSync', () => ({ useExternalApiSync: () => mockUseExternalApiSync() }));
 vi.mock('@common/hooks/useTimeLogData', () => ({ useTimeLogData: () => mockUseTimeLogData() }));
 vi.mock('@core/tauri/useTauriWindow', () => ({ useTauriWindow: () => mockUseTauriWindow() }));
-vi.mock('@common/providers/LocaleProvider', () => ({ useLocale: () => mockUseLocale() }));
+vi.mock('@common/hooks/LocaleProvider', () => ({ useLocale: () => mockUseLocale() }));
 
 // navigator.clipboard mock
 Object.defineProperty(navigator, 'clipboard', {

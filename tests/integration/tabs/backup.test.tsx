@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/providers/OxyContext';
+import { OxyContext } from '@common/hooks/OxyContext';
 import BackupTab from '../../../src/layout/tabs/BackupTab';
 import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
 

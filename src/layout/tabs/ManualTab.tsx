@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Cpu, Terminal, BookOpen } from 'lucide-react';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/common/CollapsibleCard';
 import { translate } from '@common/i18n/i18n';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Settings, RefreshCw, AlertTriangle, CalendarDays, Info } from 'lucide-react';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import EngineConfig from '@components/common/EngineConfig';
 import HolidaysAndLeaves from '@components/common/HolidaysAndLeaves';
 import { translate } from '@common/i18n/i18n';

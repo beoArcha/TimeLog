@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Database, Plus } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
 import CollapsibleCard from '@components/common/CollapsibleCard'; // Wait, let's make sure of the path to CollapsibleCard later, but for now we'll use @common/components/CollapsibleCard since we will move it there.
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
 import { LocalStorageDataManager } from '@plugins/data/dataManager';
 import { STORAGE_KEYS } from '@common/constants';

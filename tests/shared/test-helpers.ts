@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { act } from '@testing-library/react';
-import { OxyFlowState } from '@common/providers/OxyContext';
+import { OxyFlowState } from '@common/hooks/OxyContext';
 
 // Storage Mock
 export const setupLocalStorageMock = () => {

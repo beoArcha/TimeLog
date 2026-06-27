@@ -10,8 +10,8 @@ import {
 import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import App from '../../../src/App';
-import { LocaleProvider } from '@common/providers/LocaleProvider';
-import { OxyProvider } from '@common/providers/OxyContext';
+import { LocaleProvider } from '@common/hooks/LocaleProvider';
+import { OxyProvider } from '@common/hooks/OxyContext';
 
 const waitForTauriListener = async (eventName: string) => {
   await waitFor(() => {

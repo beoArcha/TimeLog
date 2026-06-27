@@ -1,5 +1,5 @@
 import { Cpu } from 'lucide-react';
-import { useOxyFlow } from '@common/providers/OxyContext';
+import { useOxyFlow } from '@common/hooks/OxyContext';
 import CollapsibleCard from './CollapsibleCard';
 import { translate } from '@common/i18n/i18n';
 import { EngineKey } from '@common/i18n/keys/EngineKey';
