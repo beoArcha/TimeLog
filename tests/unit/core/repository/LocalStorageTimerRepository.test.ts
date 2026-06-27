@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { LocalStorageTimerRepository } from '../../../../src/plugins/data/localstorage/LocalStorageTimerRepository';
+import { LocalStorageTimerRepository } from '@plugins/persistence/localstorage/LocalStorageTimerRepository';
 import { setupLocalStorageMock } from '../../../shared/test-helpers';
-import { STORAGE_KEYS } from '../../../../src/common/constants';
+import { STORAGE_KEYS } from '@common/constants';
 
 describe('Unit Tests: LocalStorageTimerRepository', () => {
   let repository: LocalStorageTimerRepository;

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { RepositoryManager } from '../../../../src/plugins/data/RepositoryManager';
-import { TimerRepository, TimerRepositoryState } from '../../../../src/plugins/data/RepositoryTypes';
+import { RepositoryManager } from '@plugins/persistence/RepositoryManager';
+import { TimerRepository, TimerRepositoryState } from '@plugins/persistence/RepositoryTypes';
 
 describe('Unit Tests: RepositoryManager delegation', () => {
   let mockRepo: TimerRepository;

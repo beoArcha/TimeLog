@@ -1,6 +1,6 @@
 import { TimerRepository, TimerRepositoryState, ApiPayload } from '../RepositoryTypes';
 import { STORAGE_KEYS } from '@common/constants';
-import { LocalStorageDataManager } from '@plugins/data/dataManager';
+import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';

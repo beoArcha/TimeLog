@@ -4,11 +4,11 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
-import { LocalStorageDataManager } from '@plugins/data/dataManager';
+import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
 import { STORAGE_KEYS } from '@common/constants';
 import { DEFAULT_HOLIDAYS, INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@features/timelogs/utils/initialData';
-import { RepositoryManager } from '@plugins/data/RepositoryManager';
-import { ApiPayload } from '@plugins/data/RepositoryTypes';
+import { RepositoryManager } from '@plugins/persistence/RepositoryManager';
+import { ApiPayload } from '@plugins/persistence/RepositoryTypes';
 
 const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
 const repository = RepositoryManager.getInstance();

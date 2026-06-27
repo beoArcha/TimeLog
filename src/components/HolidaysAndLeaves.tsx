@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Plus, Trash2, Database } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
-import { LocalStorageDataManager as DataManager } from '@plugins/data/dataManager';
+import { LocalStorageDataManager as DataManager } from '@plugins/persistence/dataManager';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import CollapsibleCard from './CollapsibleCard';
 import { DynamicKey } from '@common/i18n/keys/DynamicKey';

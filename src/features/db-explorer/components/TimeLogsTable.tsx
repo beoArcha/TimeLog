@@ -4,7 +4,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import CollapsibleCard from '@components/CollapsibleCard'; // Wait, let's make sure of the path to CollapsibleCard later, but for now we'll use @common/components/CollapsibleCard since we will move it there.
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
-import { LocalStorageDataManager } from '@plugins/data/dataManager';
+import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
 import { STORAGE_KEYS } from '@common/constants';
 import AddLogForm from './AddLogForm';
 import TimeLogTableRow from './TimeLogTableRow';
