@@ -186,7 +186,7 @@ jobs:
           workspaces: ${{ env.RUST_WORKSPACE }}
 
       - name: Install Frontend Dependencies
-        run: npm ci || npm install
+        run: npm ci
 
       - name: Build Tauri Artifacts
         uses: tauri-apps/tauri-action@v0
