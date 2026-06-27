@@ -22,8 +22,6 @@ describe('Unit Tests: PersistenceRouter', () => {
       renameTask: vi.fn().mockResolvedValue(mockState),
       deleteTask: vi.fn().mockResolvedValue(mockState),
       toggleTaskComplete: vi.fn().mockResolvedValue(mockState),
-      startTimer: vi.fn().mockResolvedValue({ state: mockState, events: [] }),
-      stopTimer: vi.fn().mockResolvedValue({ state: mockState, events: [] }),
       reset: vi.fn().mockResolvedValue(mockState),
     };
 
@@ -56,12 +54,6 @@ describe('Unit Tests: PersistenceRouter', () => {
 
     await router.toggleTaskComplete('t-id');
     expect(mockImplementation.toggleTaskComplete).toHaveBeenCalledWith('t-id');
-
-    await router.startTimer('t-id');
-    expect(mockImplementation.startTimer).toHaveBeenCalledWith('t-id');
-
-    await router.stopTimer('p-id');
-    expect(mockImplementation.stopTimer).toHaveBeenCalledWith('p-id');
 
     await router.reset();
     expect(mockImplementation.reset).toHaveBeenCalled();

@@ -8,6 +8,7 @@ import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
 import { STORAGE_KEYS } from '@common/constants';
 import { DEFAULT_HOLIDAYS, INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@features/timelogs/utils/initialData';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
+import { EngineRouter } from '../engine/EngineRouter';
 import { ApiPayload } from '../persistence/IPersistence';
 
 const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
@@ -196,14 +197,41 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setIsLoading(true);
       setRepositoryError(null);
       await ensureSeeded();
-      const { state: nextState, events } = await repository.startTimer(taskId);
 
-      setLogsState(nextState.logs);
-      setActiveLogState(nextState.activeLog);
+      const prevStateLogs = logs;
+      const prevActiveLogs = prevStateLogs.filter(l => l.endTime === null || l.endTime === undefined);
 
-      events.forEach(evt => {
-        pushToApi(evt, evt.event === 'START' ? `Starting ${evt.log.id}` : `Terminating ${evt.log.id}`);
-      });
+      await EngineRouter.getInstance().startTimer(taskId);
+      const nextState = await repository.load();
+
+      if (nextState) {
+        const nextActiveLogs = nextState.logs.filter(l => l.endTime === null || l.endTime === undefined);
+        const events: ApiPayload[] = [];
+
+        prevActiveLogs.forEach(prev => {
+          const isStillActive = nextActiveLogs.some(n => n.id === prev.id);
+          if (!isStillActive) {
+            const stoppedLog = nextState.logs.find(l => l.id === prev.id);
+            if (stoppedLog) {
+              events.push({ event: 'TERMINATE', log: stoppedLog });
+            }
+          }
+        });
+
+        nextActiveLogs.forEach(next => {
+          const wasActive = prevActiveLogs.some(p => p.id === next.id);
+          if (!wasActive) {
+            events.push({ event: 'START', log: next });
+          }
+        });
+
+        setLogsState(nextState.logs);
+        setActiveLogState(nextState.activeLog);
+
+        events.forEach(evt => {
+          pushToApi(evt, evt.event === 'START' ? `Starting ${evt.log.id}` : `Terminating ${evt.log.id}`);
+        });
+      }
     } catch (err: any) {
       setRepositoryError(err.message || 'Failed to start timer');
     } finally {
@@ -216,14 +244,34 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setIsLoading(true);
       setRepositoryError(null);
       await ensureSeeded();
-      const { state: nextState, events } = await repository.stopTimer(specificProjectId);
 
-      setLogsState(nextState.logs);
-      setActiveLogState(nextState.activeLog);
+      const prevStateLogs = logs;
+      const prevActiveLogs = prevStateLogs.filter(l => l.endTime === null || l.endTime === undefined);
 
-      events.forEach(evt => {
-        pushToApi(evt, `Terminating ${evt.log.id}`);
-      });
+      await EngineRouter.getInstance().stopTimer(specificProjectId);
+      const nextState = await repository.load();
+
+      if (nextState) {
+        const nextActiveLogs = nextState.logs.filter(l => l.endTime === null || l.endTime === undefined);
+        const events: ApiPayload[] = [];
+
+        prevActiveLogs.forEach(prev => {
+          const isStillActive = nextActiveLogs.some(n => n.id === prev.id);
+          if (!isStillActive) {
+            const stoppedLog = nextState.logs.find(l => l.id === prev.id);
+            if (stoppedLog) {
+              events.push({ event: 'TERMINATE', log: stoppedLog });
+            }
+          }
+        });
+
+        setLogsState(nextState.logs);
+        setActiveLogState(nextState.activeLog);
+
+        events.forEach(evt => {
+          pushToApi(evt, `Terminating ${evt.log.id}`);
+        });
+      }
     } catch (err: any) {
       setRepositoryError(err.message || 'Failed to stop timer');
     } finally {

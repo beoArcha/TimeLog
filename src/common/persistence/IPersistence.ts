@@ -17,13 +17,5 @@ export interface IPersistence {
   deleteTask(taskId: string): Promise<TimerRepositoryState>;
   toggleTaskComplete(taskId: string): Promise<TimerRepositoryState>;
   
-  // TODO(Stage EngineRouter):
-  // Temporary compatibility proxy.
-  startTimer(taskId: string): Promise<{ state: TimerRepositoryState; events: ApiPayload[] }>;
-  
-  // TODO(Stage EngineRouter):
-  // Temporary compatibility proxy.
-  stopTimer(projectId?: string): Promise<{ state: TimerRepositoryState; events: ApiPayload[] }>;
-  
   reset(): Promise<TimerRepositoryState>;
 }

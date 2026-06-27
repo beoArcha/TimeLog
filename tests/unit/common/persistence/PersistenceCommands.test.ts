@@ -70,15 +70,7 @@ describe('Unit Tests: PersistenceCommands', () => {
     expect(mockInvoke).toHaveBeenCalledWith('toggle_task_complete', { taskId: 't1' });
   });
 
-  it('should call start_timer and stop_timer (temporary compatibility)', async () => {
-    mockInvoke.mockResolvedValue({ activeLog: null, projects: [], tasks: [], logs: [] });
-    await commands.startTimer('t1');
-    expect(mockInvoke).toHaveBeenCalledWith('start_timer', { taskId: 't1' });
 
-    mockInvoke.mockResolvedValue({ activeLog: null, projects: [], tasks: [], logs: [] });
-    await commands.stopTimer('p1');
-    expect(mockInvoke).toHaveBeenCalledWith('stop_timer', { projectId: 'p1' });
-  });
 
   it('should call reset_database on reset', async () => {
     mockInvoke.mockResolvedValue({});

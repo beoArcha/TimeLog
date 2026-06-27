@@ -1,7 +1,6 @@
 import { IPersistence } from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
-import { ApiPayload } from './IPersistence';
 
 export class PersistenceRouter implements IPersistence {
   private static instance: PersistenceRouter | null = null;
@@ -63,18 +62,6 @@ export class PersistenceRouter implements IPersistence {
 
   async toggleTaskComplete(taskId: string): Promise<TimerRepositoryState> {
     return this.implementation.toggleTaskComplete(taskId);
-  }
-
-  // TODO(Stage EngineRouter):
-  // Temporary compatibility proxy.
-  async startTimer(taskId: string): Promise<{ state: TimerRepositoryState; events: ApiPayload[] }> {
-    return this.implementation.startTimer(taskId);
-  }
-
-  // TODO(Stage EngineRouter):
-  // Temporary compatibility proxy.
-  async stopTimer(projectId?: string): Promise<{ state: TimerRepositoryState; events: ApiPayload[] }> {
-    return this.implementation.stopTimer(projectId);
   }
 
   async reset(): Promise<TimerRepositoryState> {
