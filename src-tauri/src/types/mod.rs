@@ -2,6 +2,7 @@
 // Structs and enums in this module are used for exporting TypeScript bindings to the frontend via ts-rs.
 #![allow(unused_imports)]
 
+pub mod commands;
 pub mod frontend_event;
 pub mod gui;
 pub mod holiday;
@@ -12,6 +13,7 @@ pub mod settings;
 pub mod sinks;
 pub mod timelog;
 
+pub use commands::{AppCommand, WindowCommand, EngineCommand, PersistenceCommand};
 pub use frontend_event::FrontendEvent;
 pub use gui::{AlwaysOnTopConfig, GuiSize, TextAndIconSize, WindowDimensions};
 pub use holiday::{HolidayLeave, HolidayLeaveEditHistory, HolidayType};
@@ -23,3 +25,4 @@ pub use sinks::SinkType;
 pub use timelog::{
     PatchLog, Task, TaskEditHistory, TimeLog, TimeLogEditHistory, TimerRepositoryState,
 };
+

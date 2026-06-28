@@ -1,8 +1,10 @@
 import { IPersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
+import { Settings } from '@bindings/Settings';
 
 const STORAGE_KEY = 'timelog_persistence_plugin_state';
+const SETTINGS_KEY = 'timelog_persistence_plugin_settings';
 
 const getDefaultState = (): TimerRepositoryState => ({
   projects: [],
@@ -110,8 +112,30 @@ export class PersistencePlugin implements IPersistence {
     return this.save(current);
   }
 
+  async getSettings(): Promise<Settings> {
+    const data = localStorage.getItem(SETTINGS_KEY);
+    if (!data) {
+      return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: ['Csv'] };
+    }
+    try {
+      return JSON.parse(data) as Settings;
+    } catch {
+      return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: ['Csv'] };
+    }
+  }
+
+  async saveSettings(settings: Settings): Promise<void> {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (e) {
+      ErrorHandler.handle(new PersistenceException('Failed to save settings to LocalStorage', e, 'ERR_PERSISTENCE_SETTINGS_SAVE'));
+      throw e;
+    }
+  }
+
   async reset(): Promise<TimerRepositoryState> {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SETTINGS_KEY);
     return getDefaultState();
   }
 }

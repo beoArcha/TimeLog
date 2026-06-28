@@ -3,6 +3,10 @@ use ts_rs::TS;
 
 #[test]
 fn export_bindings() {
+    AppCommand::export().unwrap();
+    WindowCommand::export().unwrap();
+    EngineCommand::export().unwrap();
+    PersistenceCommand::export().unwrap();
     GuiSize::export().unwrap();
     TextAndIconSize::export().unwrap();
     AlwaysOnTopConfig::export().unwrap();

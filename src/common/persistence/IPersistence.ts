@@ -1,5 +1,6 @@
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { TimeLog } from '@bindings/TimeLog';
+import { Settings } from '@bindings/Settings';
 
 export type ApiPayload = {
   event: string;
@@ -17,5 +18,8 @@ export interface IPersistence {
   deleteTask(taskId: string): Promise<TimerRepositoryState>;
   toggleTaskComplete(taskId: string): Promise<TimerRepositoryState>;
   
+  getSettings(): Promise<Settings>;
+  saveSettings(settings: Settings): Promise<void>;
+
   reset(): Promise<TimerRepositoryState>;
 }

@@ -37,6 +37,7 @@ export const useAppSettings = () => {
   const resolvedTheme: Theme = theme === 'system' ? systemTheme : (theme as unknown as Theme);
   const setResolvedTheme = setSystemTheme;
 
+  // TODO: Migrate sysSettings to use the persistence layer / Tauri commands (get_settings / save_settings) via persistence router
   const [sysSettings, setSysSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SYS_SETTINGS);
     if (saved) {

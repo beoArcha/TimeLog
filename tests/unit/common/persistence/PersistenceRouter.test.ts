@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { IPersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { Settings } from '@bindings/Settings';
 
 describe('Unit Tests: PersistenceRouter', () => {
   it('should delegate all calls to the active implementation', async () => {
@@ -10,6 +11,13 @@ describe('Unit Tests: PersistenceRouter', () => {
       tasks: [],
       logs: [],
       activeLog: null,
+    };
+
+    const mockSettings: Settings = {
+      autoStart: false,
+      autoPauseOnSleep: true,
+      includePatchesInReports: true,
+      activeSinks: ['Csv'],
     };
 
     const mockImplementation: IPersistence = {
@@ -22,6 +30,8 @@ describe('Unit Tests: PersistenceRouter', () => {
       renameTask: vi.fn().mockResolvedValue(mockState),
       deleteTask: vi.fn().mockResolvedValue(mockState),
       toggleTaskComplete: vi.fn().mockResolvedValue(mockState),
+      getSettings: vi.fn().mockResolvedValue(mockSettings),
+      saveSettings: vi.fn().mockResolvedValue(undefined),
       reset: vi.fn().mockResolvedValue(mockState),
     };
 
@@ -54,6 +64,12 @@ describe('Unit Tests: PersistenceRouter', () => {
 
     await router.toggleTaskComplete('t-id');
     expect(mockImplementation.toggleTaskComplete).toHaveBeenCalledWith('t-id');
+
+    await router.getSettings();
+    expect(mockImplementation.getSettings).toHaveBeenCalled();
+
+    await router.saveSettings(mockSettings);
+    expect(mockImplementation.saveSettings).toHaveBeenCalledWith(mockSettings);
 
     await router.reset();
     expect(mockImplementation.reset).toHaveBeenCalled();

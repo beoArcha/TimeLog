@@ -3,6 +3,7 @@ import { IPersistence } from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
 import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { Settings } from '@bindings/Settings';
 
 export class PersistenceRouter implements IPersistence {
   private static instance: PersistenceRouter | null = null;
@@ -61,6 +62,14 @@ export class PersistenceRouter implements IPersistence {
 
   async toggleTaskComplete(taskId: string): Promise<TimerRepositoryState> {
     return this.implementation.toggleTaskComplete(taskId);
+  }
+
+  async getSettings(): Promise<Settings> {
+    return this.implementation.getSettings();
+  }
+
+  async saveSettings(settings: Settings): Promise<void> {
+    return this.implementation.saveSettings(settings);
   }
 
   async reset(): Promise<TimerRepositoryState> {
