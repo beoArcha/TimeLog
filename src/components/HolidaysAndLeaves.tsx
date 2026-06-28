@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Plus, Trash2, Database } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
-import { LocalStorageDataManager as DataManager } from '@plugins/persistence/dataManager';
+import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import CollapsibleCard from './CollapsibleCard';
 import { DynamicKey } from '@common/i18n/keys/DynamicKey';
@@ -115,8 +115,8 @@ export default function HolidaysAndLeaves() {
                       <td className="py-3 px-4 font-mono text-xs text-[#9B8C83]">{weekdayStr}</td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider ${h.type === 'holiday'
-                            ? theme === 'light' ? 'bg-orange-100 text-orange-600' : 'bg-orange-500/20 text-orange-300'
-                            : theme === 'light' ? 'bg-blue-100 text-blue-600' : 'bg-blue-500/20 text-blue-300'
+                          ? theme === 'light' ? 'bg-orange-100 text-orange-600' : 'bg-orange-500/20 text-orange-300'
+                          : theme === 'light' ? 'bg-blue-100 text-blue-600' : 'bg-blue-500/20 text-blue-300'
                           }`}>
                           {h.type === 'holiday' ? translate(locale, DynamicKey.Holiday, customTranslations) : translate(locale, DynamicKey.Vacation, customTranslations)}
                         </span>

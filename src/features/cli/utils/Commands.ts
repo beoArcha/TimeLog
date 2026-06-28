@@ -6,7 +6,7 @@ import { HolidayLeave } from '@bindings/HolidayLeave';
 import { Locale } from '@bindings/Locale';
 import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/i18n';
-import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
+import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
 import { STORAGE_KEYS } from '@common/constants';
 
 const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);

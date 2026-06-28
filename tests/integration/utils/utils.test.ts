@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { translate, dictionaries } from '@common/i18n/i18n';
-import { LocalStorageDataManager as DataManager } from '@plugins/persistence/dataManager';
+import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
 
 describe('Integration Tests: Utils (i18n and DataManager)', () => {
   describe('i18n Integration', () => {

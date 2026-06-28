@@ -4,7 +4,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import CollapsibleCard from '@components/CollapsibleCard'; // Wait, let's make sure of the path to CollapsibleCard later, but for now we'll use @common/components/CollapsibleCard since we will move it there.
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
-import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
+import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
 import { STORAGE_KEYS } from '@common/constants';
 import AddLogForm from './AddLogForm';
 import TimeLogTableRow from './TimeLogTableRow';
@@ -12,21 +12,21 @@ import TimeLogTableRow from './TimeLogTableRow';
 const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
 
 export default function TimeLogsTable() {
-  const { 
-    tasks, projects, 
-    logs, setLogs, 
-    locale, customTranslations, resolvedTheme 
+  const {
+    tasks, projects,
+    logs, setLogs,
+    locale, customTranslations, resolvedTheme
   } = useOxyFlow();
 
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
   const [showAddLogForm, setShowAddLogForm] = useState(false);
 
-  const themeClasses = resolvedTheme === 'light' 
+  const themeClasses = resolvedTheme === 'light'
     ? { wrapper: 'bg-white border-slate-200 shadow-slate-100', tableHeader: 'border-slate-200 text-slate-500 bg-slate-100/50' }
     : resolvedTheme === 'high-contrast'
-    ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
-    : { wrapper: 'bg-slate-900/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-slate-400 bg-black/30' };
+      ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
+      : { wrapper: 'bg-slate-900/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-slate-400 bg-black/30' };
 
   const handleSaveEdit = (id: string, startTime: string, endTime: string, note: string, reason: string) => {
     setLogs(curr => curr.map(l => {

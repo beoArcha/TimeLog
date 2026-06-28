@@ -4,7 +4,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
-import { LocalStorageDataManager } from '@plugins/persistence/dataManager';
+import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
 import { STORAGE_KEYS } from '@common/constants';
 import { DEFAULT_HOLIDAYS, INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@/src/features/timelogs/utils/InitialData';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
