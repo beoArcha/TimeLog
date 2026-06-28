@@ -1,5 +1,6 @@
 import { IPersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 
 const STORAGE_KEY = 'timelog_persistence_plugin_state';
 
@@ -17,7 +18,7 @@ export class PersistencePlugin implements IPersistence {
     try {
       return JSON.parse(data) as TimerRepositoryState;
     } catch (e) {
-      console.error('Failed to parse persistence state from LocalStorage', e);
+      ErrorHandler.handle(new PersistenceException('Failed to parse persistence state from LocalStorage', e, 'ERR_PERSISTENCE_PARSE'));
       return getDefaultState();
     }
   }
@@ -27,7 +28,7 @@ export class PersistencePlugin implements IPersistence {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       return state;
     } catch (e) {
-      console.error('Failed to save persistence state to LocalStorage', e);
+      ErrorHandler.handle(new PersistenceException('Failed to save persistence state to LocalStorage', e, 'ERR_PERSISTENCE_SAVE'));
       throw e;
     }
   }

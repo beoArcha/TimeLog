@@ -1,4 +1,5 @@
 import { AbstractException } from './AbstractException';
+import { ErrorLevel } from './ErrorLevel';
 
 export class ContextException extends AbstractException {
   constructor(message: string, code?: string, cause?: unknown) {
@@ -25,7 +26,13 @@ export class RepositoryException extends AbstractException {
 }
 
 export class PersistenceException extends AbstractException {
-  constructor(message: string, cause?: unknown, code?: string) {
+  constructor(message: string, cause?: unknown, code?: string, level: ErrorLevel = 'ERROR') {
+    super(message, level, code, cause);
+  }
+}
+
+export class EntityNotFoundException extends AbstractException {
+  constructor(message: string, code?: string, cause?: unknown) {
     super(message, 'ERROR', code, cause);
   }
 }

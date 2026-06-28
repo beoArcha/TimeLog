@@ -3,6 +3,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 
 // Definitions for the database state
 export interface DatabaseState {
@@ -37,7 +38,7 @@ export class LocalStorageDataManager implements IDataManager {
     try {
       return JSON.parse(stored) as FullAppState;
     } catch (err) {
-      console.warn('Failed parsing local LogTime by OxyFlow store', err);
+      ErrorHandler.handle(new PersistenceException('Failed parsing local LogTime by OxyFlow store', err, 'WARN_PERSISTENCE_PARSE', 'WARN'));
       return null;
     }
   }
@@ -46,7 +47,7 @@ export class LocalStorageDataManager implements IDataManager {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(state));
     } catch (err) {
-      console.error('Failed to save state to localStorage', err);
+      ErrorHandler.handle(new PersistenceException('Failed to save state to localStorage', err, 'ERR_PERSISTENCE_SAVE'));
     }
   }
 

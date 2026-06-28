@@ -1,6 +1,7 @@
 import { IEngine } from '@common/engine/IEngine';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { TimeLog } from '@bindings/TimeLog';
+import { ContextException, EntityNotFoundException } from '@common/exceptions';
 
 let logCounter = 0;
 
@@ -10,12 +11,12 @@ export class EnginePlugin implements IEngine {
   async startTimer(taskId: string): Promise<void> {
     const state = await this.persistence.load();
     if (!state) {
-      throw new Error('State not initialized');
+      throw new ContextException('State not initialized', 'ERR_ENGINE_STATE');
     }
 
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) {
-      throw new Error(`Task with ID ${taskId} not found`);
+      throw new EntityNotFoundException(`Task with ID ${taskId} not found`, 'ERR_TASK_NOT_FOUND');
     }
 
     const projectId = task.projectId;
@@ -51,7 +52,7 @@ export class EnginePlugin implements IEngine {
   async stopTimer(projectId?: string): Promise<void> {
     const state = await this.persistence.load();
     if (!state) {
-      throw new Error('State not initialized');
+      throw new ContextException('State not initialized', 'ERR_ENGINE_STATE');
     }
 
     const now = new Date().toISOString();

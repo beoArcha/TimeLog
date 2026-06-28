@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { UploadCloud, DownloadCloud, CheckCircle, Database } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/i18n';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { BackupKey } from '@/src/common/i18n/keys/BackupKey';
 import { DynamicKey } from '@/src/common/i18n/keys/DynamicKey';
@@ -38,7 +39,8 @@ export default function BackupTab() {
         if (data.holidays) setHolidays(data.holidays);
         if (data.patches) setPatches(data.patches);
         alert(translate(locale, BackupKey.RestoreSuccess, customTranslations));
-      } catch (_) {
+      } catch (err) {
+        ErrorHandler.handle(new PersistenceException('Failed to restore backup from file', err, 'ERR_BACKUP_RESTORE'));
         alert(translate(locale, BackupKey.InvalidBackup, customTranslations));
       }
     };
