@@ -49,7 +49,6 @@ Core principles:
 
 ### Domain
 
-* [ ] Complete RepositoryManager
 * [ ] Complete timer domain
 * [ ] Complete project management
 * [ ] Complete task management

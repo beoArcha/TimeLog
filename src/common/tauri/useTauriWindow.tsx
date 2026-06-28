@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ErrorHandler, TauriInteropException } from '../exceptions';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { GuiSize } from '@bindings/GuiSize';
@@ -17,7 +18,7 @@ const handleSetGuiSize = async (size: GuiSize, textIconSize: TextAndIconSize) =>
   try {
     await invoke(TAURI_COMMANDS.SET_GUI_SIZE, { size, textAndIconSize: textIconSize });
   } catch (err) {
-    console.error('Tauri resize error:', err);
+    ErrorHandler.handle(new TauriInteropException('Tauri resize error', err, 'ERR_TAURI_RESIZE'));
   }
 };
 
@@ -26,7 +27,7 @@ const handleWindowAlwaysOnTop = async (onTop: boolean) => {
   try {
     await invoke(TAURI_COMMANDS.SET_ALWAYS_ON_TOP, { alwaysOnTop: onTop });
   } catch (err) {
-    console.error('Tauri always on top error:', err);
+    ErrorHandler.handle(new TauriInteropException('Tauri always on top error', err, 'ERR_TAURI_ALWAYS_ON_TOP'));
   }
 };
 
@@ -102,7 +103,7 @@ export const useTauriWindow = ({
   useEffect(() => {
     if (isTauri()) {
       invoke(TAURI_COMMANDS.SET_MINIMIZE_TO_TRAY, { minimize: minimizeToTray }).catch(err => {
-        console.error('Failed to sync minimizeToTray with Rust:', err);
+        ErrorHandler.handle(new TauriInteropException('Failed to sync minimizeToTray with Rust', err, 'ERR_TAURI_SYNC_TRAY'));
       });
     }
   }, [minimizeToTray]);
@@ -188,20 +189,20 @@ export const useTauriWindow = ({
             try {
               await invoke(TAURI_COMMANDS.HIDE_WINDOW);
             } catch (err) {
-              console.error('Tauri hide_window error', err);
+              ErrorHandler.handle(new TauriInteropException('Tauri hide_window error', err, 'ERR_TAURI_HIDE'));
             }
           } else {
             try {
               await invoke(TAURI_COMMANDS.EXIT_APP);
             } catch (err) {
-              console.error('Tauri exit_app error', err);
+              ErrorHandler.handle(new TauriInteropException('Tauri exit_app error', err, 'ERR_TAURI_EXIT'));
             }
           }
         });
         unlisteners.push(uClose);
 
       } catch (err) {
-        console.error('Tauri listener setup error:', err);
+        ErrorHandler.handle(new TauriInteropException('Tauri listener setup error', err, 'ERR_TAURI_LISTENER_SETUP'));
       }
     };
 
@@ -224,7 +225,7 @@ export const useTauriWindow = ({
           await invoke(TAURI_COMMANDS.EXIT_APP);
         }
       } catch (err) {
-        console.error('Tauri close/hide error:', err);
+        ErrorHandler.handle(new TauriInteropException('Tauri close/hide error', err, 'ERR_TAURI_CLOSE_HIDE'));
       }
     } else {
       if (minimizeToTray) {
@@ -242,7 +243,7 @@ export const useTauriWindow = ({
       try {
         await invoke(TAURI_COMMANDS.CLOSE_WINDOW);
       } catch (err) {
-        console.error('Tauri close error:', err);
+        ErrorHandler.handle(new TauriInteropException('Tauri close error', err, 'ERR_TAURI_CLOSE'));
       }
     } else {
       setIsGuiClosed(true);
@@ -254,7 +255,7 @@ export const useTauriWindow = ({
       try {
         await invoke(TAURI_COMMANDS.MINIMIZE_WINDOW);
       } catch (err) {
-        console.error('Tauri minimize error:', err);
+        ErrorHandler.handle(new TauriInteropException('Tauri minimize error', err, 'ERR_TAURI_MINIMIZE'));
       }
     } else {
       setIsMinimized(true);

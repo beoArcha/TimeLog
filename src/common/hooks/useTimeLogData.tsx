@@ -6,6 +6,7 @@ import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
 import { STORAGE_KEYS } from '@common/constants';
+import { ErrorHandler, RepositoryException } from '../exceptions';
 import { DEFAULT_HOLIDAYS, INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@/src/features/timelogs/utils/InitialData';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
@@ -55,9 +56,10 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
           setActiveLogState(state.activeLog);
           setSelectedTaskId(state.tasks?.[0]?.id ?? (INIT_TASKS[1]?.id ?? null));
         }
-      } catch (err: any) {
-        setRepositoryError(err.message || 'Failed to load repository state');
-      } finally {
+      } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to load repository state', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to load repository state');
+    } finally {
         setIsInitialized(true);
         setIsLoading(false);
       }
@@ -97,8 +99,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       await ensureSeeded();
       const nextState = await repository.addProject({ name, color });
       setProjectsState(nextState.projects);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to add project');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to add project', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to add project');
     } finally {
       setIsLoading(false);
     }
@@ -111,8 +114,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       await ensureSeeded();
       const nextState = await repository.toggleProjectArchive(projectId);
       setProjectsState(nextState.projects);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to toggle project archive');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to toggle project archive', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to toggle project archive');
     } finally {
       setIsLoading(false);
     }
@@ -125,8 +129,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       await ensureSeeded();
       const nextState = await repository.addTask({ projectId, name, parentTaskId });
       setTasksState(nextState.tasks);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to add task');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to add task', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to add task');
     } finally {
       setIsLoading(false);
     }
@@ -139,8 +144,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       await ensureSeeded();
       const nextState = await repository.renameProject(projectId, newName);
       setProjectsState(nextState.projects);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to rename project');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to rename project', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to rename project');
     } finally {
       setIsLoading(false);
     }
@@ -153,8 +159,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       await ensureSeeded();
       const nextState = await repository.renameTask(taskId, newName);
       setTasksState(nextState.tasks);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to rename task');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to rename task', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to rename task');
     } finally {
       setIsLoading(false);
     }
@@ -169,8 +176,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to delete task');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to delete task', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to delete task');
     } finally {
       setIsLoading(false);
     }
@@ -185,8 +193,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to toggle task complete');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to toggle task complete', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to toggle task complete');
     } finally {
       setIsLoading(false);
     }
@@ -232,8 +241,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
           pushToApi(evt, evt.event === 'START' ? `Starting ${evt.log.id}` : `Terminating ${evt.log.id}`);
         });
       }
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to start timer');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to start timer', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to start timer');
     } finally {
       setIsLoading(false);
     }
@@ -272,8 +282,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
           pushToApi(evt, `Terminating ${evt.log.id}`);
         });
       }
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to stop timer');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to stop timer', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to stop timer');
     } finally {
       setIsLoading(false);
     }
@@ -287,8 +298,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       await repository.reset();
       dm.clearState();
       window.location.reload();
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to reset storage');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to reset storage', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to reset storage');
     } finally {
       setIsLoading(false);
     }
@@ -301,8 +313,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       const resolved = typeof action === 'function' ? action(projects) : action;
       const nextState = await repository.overrideState({ projects: resolved });
       setProjectsState(nextState.projects);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to set projects');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to set projects', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to set projects');
     }
   };
 
@@ -313,8 +326,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       const resolved = typeof action === 'function' ? action(tasks) : action;
       const nextState = await repository.overrideState({ tasks: resolved });
       setTasksState(nextState.tasks);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to set tasks');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to set tasks', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to set tasks');
     }
   };
 
@@ -325,8 +339,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       const resolved = typeof action === 'function' ? action(logs) : action;
       const nextState = await repository.overrideState({ logs: resolved });
       setLogsState(nextState.logs);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to set logs');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to set logs', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to set logs');
     }
   };
 
@@ -337,8 +352,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       const resolved = typeof action === 'function' ? action(activeLog) : action;
       const nextState = await repository.overrideState({ activeLog: resolved });
       setActiveLogState(nextState.activeLog);
-    } catch (err: any) {
-      setRepositoryError(err.message || 'Failed to set active log');
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to set active log', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to set active log');
     }
   };
 

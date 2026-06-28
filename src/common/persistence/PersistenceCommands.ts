@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { IPersistence } from './IPersistence';
+import { ErrorHandler, TauriInteropException } from '../exceptions';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 
 export class PersistenceCommands implements IPersistence {
@@ -11,7 +12,7 @@ export class PersistenceCommands implements IPersistence {
       }
       return state;
     } catch (err) {
-      console.error('Failed to load state from SQLite via Tauri:', err);
+      ErrorHandler.handle(new TauriInteropException('Failed to load state from SQLite via Tauri', err, 'ERR_TAURI_SQLITE_LOAD'));
       throw err;
     }
   }
@@ -20,7 +21,7 @@ export class PersistenceCommands implements IPersistence {
     try {
       await invoke('override_state', { state });
     } catch (err) {
-      console.warn('override_state command not supported by backend:', err);
+      ErrorHandler.handle(new TauriInteropException('override_state command not supported by backend', err, 'WARN_TAURI_OVERRIDE'));
     }
     const currentState = await this.load();
     return currentState || { projects: [], tasks: [], logs: [], activeLog: null };

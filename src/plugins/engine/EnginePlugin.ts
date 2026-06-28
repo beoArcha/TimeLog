@@ -21,7 +21,6 @@ export class EnginePlugin implements IEngine {
     const projectId = task.projectId;
     const now = new Date().toISOString();
 
-    // Close active logs in this project
     const projectTaskIds = new Set(
       state.tasks.filter(t => t.projectId === projectId).map(t => t.id)
     );
@@ -33,7 +32,6 @@ export class EnginePlugin implements IEngine {
       return log;
     });
 
-    // Create new log ID
     const logId = `log_${Date.now()}_${logCounter++}`;
     const newLog: TimeLog = {
       id: logId,

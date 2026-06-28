@@ -1,4 +1,5 @@
 import React, { createContext, useContext } from 'react';
+import { ContextException } from '../exceptions';
 import { useOxyAppState } from '@common/hooks/useOxyAppState';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
@@ -93,7 +94,7 @@ export const OxyContext = createContext<OxyFlowState | undefined>(undefined);
 
 export const useOxyFlow = () => {
   const ctx = useContext(OxyContext);
-  if (!ctx) throw new Error('useOxyFlow must be used within OxyContext.Provider');
+  if (!ctx) throw new ContextException('useOxyFlow must be used within OxyContext.Provider', 'ERR_OXY_CONTEXT');
   return ctx;
 };
 

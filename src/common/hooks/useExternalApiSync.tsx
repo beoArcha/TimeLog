@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@common/constants';
+import { ErrorHandler, NetworkException, PersistenceException } from '../exceptions';
 
 export const useExternalApiSync = () => {
   const [logToApi, setLogToApi] = useState<boolean>(() => localStorage.getItem(STORAGE_KEYS.LOG_TO_API) === 'true');
@@ -21,8 +22,8 @@ export const useExternalApiSync = () => {
       let headersObj = {};
       try {
         if (apiHeaders) headersObj = JSON.parse(apiHeaders);
-      } catch (_) {
-        console.error('Failed parse headers json');
+      } catch (err) {
+        ErrorHandler.handle(new PersistenceException('Failed parse headers json', err, 'ERR_PARSE_HEADERS'));
       }
       fetch(apiUrl, {
         method: apiMethod || 'POST',
@@ -32,7 +33,7 @@ export const useExternalApiSync = () => {
           ...headersObj,
         },
         body: JSON.stringify(payload),
-      }).catch(err => console.error('Failed API:', err));
+      }).catch(err => ErrorHandler.handle(new NetworkException('Failed API call', err, 'ERR_NETWORK_API')));
     } else {
       console.log(`[FILE APPEND logs.txt] ${logMsg}`);
     }

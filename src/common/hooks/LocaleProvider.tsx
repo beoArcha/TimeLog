@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { ContextException } from '../exceptions';
 import { LocaleType, TranslationDictionary } from '@common/i18n/i18n';
 import { STORAGE_KEYS } from '@common/constants';
 
@@ -78,6 +79,6 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useLocale = () => {
   const ctx = useContext(LocaleContext);
-  if (!ctx) throw new Error('useLocale must be used within LocaleProvider');
+  if (!ctx) throw new ContextException('useLocale must be used within LocaleProvider', 'ERR_LOCALE_CONTEXT');
   return ctx;
 };
