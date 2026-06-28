@@ -3,7 +3,7 @@ use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
-#[ts(export_to = "../../src/bindings/Locale.ts")]
+#[ts(export)]
 pub enum Locale {
     Pl,
     En,

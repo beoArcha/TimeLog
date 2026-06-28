@@ -3,7 +3,7 @@ use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
-#[ts(export_to = "../../src/bindings/GuiSize.ts")]
+#[ts(export)]
 pub enum GuiSize {
     Small,
     Medium,
@@ -12,7 +12,7 @@ pub enum GuiSize {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
-#[ts(export_to = "../../src/bindings/TextAndIconSize.ts")]
+#[ts(export)]
 pub enum TextAndIconSize {
     Small,
     Medium,
@@ -20,14 +20,14 @@ pub enum TextAndIconSize {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/AlwaysOnTopConfig.ts")]
+#[ts(export)]
 pub struct AlwaysOnTopConfig {
     pub small: bool,
     pub main: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, TS)]
-#[ts(export_to = "../../src/bindings/WindowDimensions.ts")]
+#[ts(export)]
 pub struct WindowDimensions {
     pub width: f64,
     pub height: f64,

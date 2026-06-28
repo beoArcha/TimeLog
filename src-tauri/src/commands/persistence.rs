@@ -1,13 +1,11 @@
 use crate::common::AppError;
 use crate::engine::Engine;
-use crate::AppState;
 use crate::types::{Settings, TimerRepositoryState};
+use crate::AppState;
 use tauri::State;
 
 #[tauri::command]
-pub fn get_timer_state(
-    state: State<'_, AppState>,
-) -> Result<TimerRepositoryState, AppError> {
+pub fn get_timer_state(state: State<'_, AppState>) -> Result<TimerRepositoryState, AppError> {
     let engine = Engine::new(&state.persistence);
     let current_state = engine.get_state()?;
     Ok(current_state)
@@ -96,9 +94,7 @@ pub fn toggle_task_complete(
 }
 
 #[tauri::command]
-pub fn reset_database(
-    state: State<'_, AppState>,
-) -> Result<TimerRepositoryState, AppError> {
+pub fn reset_database(state: State<'_, AppState>) -> Result<TimerRepositoryState, AppError> {
     let engine = Engine::new(&state.persistence);
     engine.reset_database()?;
     let current_state = engine.get_state()?;

@@ -2,7 +2,7 @@ use serde::Serialize;
 use ts_rs::TS;
 
 #[derive(TS, Serialize)]
-#[ts(export, export_to = "../../src/bindings/AppCommand.ts")]
+#[ts(export)]
 pub enum AppCommand {
     #[serde(rename = "exit_app")]
     ExitApp,
@@ -11,7 +11,7 @@ pub enum AppCommand {
 }
 
 #[derive(TS, Serialize)]
-#[ts(export, export_to = "../../src/bindings/WindowCommand.ts")]
+#[ts(export)]
 pub enum WindowCommand {
     #[serde(rename = "resize_window")]
     ResizeWindow,
@@ -32,7 +32,7 @@ pub enum WindowCommand {
 }
 
 #[derive(TS, Serialize)]
-#[ts(export, export_to = "../../src/bindings/EngineCommand.ts")]
+#[ts(export)]
 pub enum EngineCommand {
     #[serde(rename = "start_timer")]
     StartTimer,
@@ -43,7 +43,7 @@ pub enum EngineCommand {
 }
 
 #[derive(TS, Serialize)]
-#[ts(export, export_to = "../../src/bindings/PersistenceCommand.ts")]
+#[ts(export)]
 pub enum PersistenceCommand {
     #[serde(rename = "get_timer_state")]
     GetTimerState,

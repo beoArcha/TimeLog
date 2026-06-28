@@ -3,7 +3,7 @@ use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "kebab-case")]
-#[ts(export_to = "../../src/bindings/FrontendEvent.ts")]
+#[ts(export)]
 pub enum FrontendEvent {
     TraySetGuiVariant,
     TrayToggleOnTop,

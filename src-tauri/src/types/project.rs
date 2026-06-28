@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/ProjectEditHistory.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ProjectEditHistory {
     pub edited_at: String,
@@ -15,7 +15,7 @@ pub struct ProjectEditHistory {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/Project.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct Project {
     pub id: String,

@@ -13,7 +13,7 @@ pub mod settings;
 pub mod sinks;
 pub mod timelog;
 
-pub use commands::{AppCommand, WindowCommand, EngineCommand, PersistenceCommand};
+pub use commands::{AppCommand, EngineCommand, PersistenceCommand, WindowCommand};
 pub use frontend_event::FrontendEvent;
 pub use gui::{AlwaysOnTopConfig, GuiSize, TextAndIconSize, WindowDimensions};
 pub use holiday::{HolidayLeave, HolidayLeaveEditHistory, HolidayType};
@@ -25,4 +25,3 @@ pub use sinks::SinkType;
 pub use timelog::{
     PatchLog, Task, TaskEditHistory, TimeLog, TimeLogEditHistory, TimerRepositoryState,
 };
-

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/Settings.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub auto_start: bool,

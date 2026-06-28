@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/TaskEditHistory.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskEditHistory {
     pub edited_at: String,
@@ -15,7 +15,7 @@ pub struct TaskEditHistory {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/Task.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct Task {
     pub id: String,
@@ -36,7 +36,7 @@ pub struct Task {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/TimeLogEditHistory.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeLogEditHistory {
     pub edited_at: String,
@@ -51,7 +51,7 @@ pub struct TimeLogEditHistory {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/TimeLog.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeLog {
     pub id: String,
@@ -73,7 +73,7 @@ pub struct TimeLog {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/TimerRepositoryState.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct TimerRepositoryState {
     pub projects: Vec<super::Project>,
@@ -83,7 +83,7 @@ pub struct TimerRepositoryState {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/PatchLog.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct PatchLog {
     pub id: String,
