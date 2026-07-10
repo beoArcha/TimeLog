@@ -4,143 +4,227 @@
 
 ### 🎯 Vision
 
-Build a lightweight, flow-oriented productivity suite focused on native performance, maintainability and long-term sustainability.
+Build a lightweight, native-first productivity suite that prioritizes flow, correctness, maintainability, and long-term sustainability.
 
-Core principles:
-
-* Correctness over cleverness
-* Sustainable architecture
-* Native-first experience
-* AI-friendly codebase
-* Flow-oriented productivity
+The project should provide a single business model that can run across multiple environments while keeping platform-specific implementations isolated behind well-defined runtime abstractions.
 
 ---
 
-## Phase 1 — Foundation ✅ (Mostly Complete)
+## Core Principles
 
-**Goal:** Build a maintainable architecture.
+### Engineering
+
+* Correctness over cleverness
+* Simplicity over unnecessary abstractions
+* SOLID where it improves maintainability
+* KISS whenever possible
+* DRY without over-generalization
+* YAGNI until a requirement exists
 
 ### Architecture
 
-* [x] Introduce layered backend architecture
-* [x] Separate persistence layer
-* [x] Introduce Repository pattern
-* [x] Add ConfigRepository
-* [x] Add CSV Sink
-* [x] Improve module boundaries
-* [x] Reduce code duplication
-* [ ] Continue splitting oversized modules
+* Business logic must be platform independent.
+* Runtime-specific code must be isolated.
+* Storage is an implementation detail.
+* UI never communicates directly with persistence.
+* Every layer has a single responsibility.
+* Rust remains the reference implementation of the business engine.
 
-### Quality
+---
 
+## Current Architecture (v2)
+
+```text
+React UI
+    │
+    ├──────────────┐
+    │              │
+EngineRouter   PersistenceRouter
+    │              │
+    ├──────────────┤
+    │
+──────── Runtime Boundary ────────
+
+Desktop Runtime
+    │
+Tauri Commands
+    │
+Rust Engine
+    │
+SQLite
+
+Browser Runtime
+    │
+Engine Plugin
+    │
+Persistence Plugin
+    │
+LocalStorage
+```
+
+### Responsibilities
+
+#### React
+
+* UI
+* User interactions
+* Rendering
+* View state
+
+#### EngineRouter
+
+* Select active engine implementation.
+* Expose a single API to the frontend.
+* Contain no business logic.
+
+#### PersistenceRouter
+
+* Select active persistence implementation.
+* Abstract storage backends.
+* Contain no business logic.
+
+#### Runtime Plugins
+
+Provide platform-specific implementations while preserving a shared frontend.
+
+#### Rust Engine
+
+Source of truth for business rules.
+
+Responsibilities include:
+
+* timer calculations
+* domain validation
+* aggregates
+* business workflows
+
+#### Persistence Goals
+
+Responsible only for storing and retrieving data.
+
+Possible implementations include:
+
+* SQLite
+* LocalStorage
+* CSV
+* Future cloud synchronization
+
+---
+
+## Phase 1 — Foundation ✅
+
+### Core Architecture
+
+* [x] Layered architecture
+* [x] Repository abstraction
+* [x] Runtime abstraction
+* [x] EngineRouter
+* [x] PersistenceRouter
+* [x] Browser plugins
+* [x] Tauri command routing
+* [x] Shared domain models
+* [x] Rust as business engine
+
+### Core Engineering
+
+* [x] TypeScript strict mode
+* [x] Rust formatting
+* [x] ESLint
 * [x] Unit tests
 * [x] Integration tests
-* [x] Linting
-* [x] Type checking
-* [x] Rust formatting
-* [ ] Increase test coverage
-* [ ] Continue refactoring complex code
+* [x] CI pipeline
 
 ---
 
-## Phase 2 — Backend Completion
+## Phase 2 — Runtime Completion
 
-**Goal:** Finish the application core.
+**Goal:** Reach feature parity between Desktop and Browser runtimes.
 
-### Domain
+### Engine
 
-* [ ] Complete timer domain
-* [ ] Complete project management
-* [ ] Complete task management
-* [ ] Complete configuration management
+* [ ] Complete Browser EnginePlugin
+* [ ] Match Rust algorithms
+* [ ] Eliminate remaining runtime differences
 
-### CLI
+### Persistence
 
-* [ ] Database management commands
-* [ ] Settings commands
-* [ ] Timer commands
-* [ ] Project commands
-* [ ] Task commands
+* [ ] Complete PersistencePlugin
+* [ ] Full LocalStorage implementation
+* [ ] Unified repository interfaces
 
 ---
 
-## Phase 3 — Frontend Cleanup
+## Phase 3 — Backend Completion
 
-**Goal:** Make React easy to maintain.
+**Goal:** Finish all business domains.
 
-### Architecture Frontend
+### Timer
 
-* [ ] Reduce component responsibilities
-* [ ] Improve feature boundaries
-* [ ] Simplify state management
-* [ ] Remove duplicated logic
-* [ ] Improve hooks organization
+* [ ] Active timer
+* [ ] Pause / Resume
+* [ ] Manual log editing
+* [ ] Validation
 
-### UI
+### Projects
 
-* [ ] Improve layouts
-* [ ] Improve responsiveness
-* [ ] Improve accessibility
-* [ ] Improve loading states
-* [ ] Improve error handling
-
----
-
-## Phase 4 — Product MVP
-
-**Goal:** Deliver a complete daily-use application.
-
-### Features
-
-* [ ] Stabilize timer workflow
-* [ ] Polish project workflow
-* [ ] Polish task workflow
-* [ ] Improve usability
-* [ ] Remove UX friction
-* [ ] Fix remaining bugs
-
----
-
-## Phase 5 — Multi Runtime
-
-**Goal:** Support multiple execution environments.
-
-### Web Runtime
-
-React
-
-↓
-
-Browser Storage
-
-### Desktop Runtime
-
-React
-
-↓
-
-Tauri
-
-↓
-
-Rust
-
-↓
-
-SQLite
+* [ ] CRUD completion
+* [ ] Statistics
+* [ ] Metadata
 
 ### Tasks
 
-* [ ] Abstract runtime implementations
-* [ ] Share frontend logic
-* [ ] Runtime-specific storage adapters
-* [ ] Runtime-specific services
+* [ ] CRUD completion
+* [ ] Task hierarchy
+* [ ] Status management
+
+### Configuration
+
+* [ ] Application settings
+* [ ] User preferences
+* [ ] Runtime configuration
+
+---
+
+## Phase 4 — Frontend Refinement
+
+**Goal:** Simplify React while keeping business logic outside the UI.
+
+### Frontend architecture
+
+* [ ] Smaller components
+* [ ] Better feature boundaries
+* [ ] Improved hooks
+* [ ] Reduced duplicated state
+
+### UX
+
+* [ ] Responsive layouts
+* [ ] Accessibility
+* [ ] Error handling
+* [ ] Loading states
+* [ ] Keyboard navigation
+
+---
+
+## Phase 5 — MVP
+
+**Goal:** Deliver a complete application suitable for everyday use.
+
+### Features
+
+* [ ] Stable timer workflow
+* [ ] Stable project workflow
+* [ ] Stable task workflow
+* [ ] Configuration UI
+* [ ] Settings management
+* [ ] Polish user experience
+* [ ] Remove remaining blockers
 
 ---
 
 ## Phase 6 — Data Reliability
 
-**Goal:** Protect user data.
+**Goal:** Ensure user data is safe and recoverable.
 
 ### Storage
 
@@ -149,59 +233,90 @@ SQLite
 * [ ] Import
 * [ ] Export
 * [ ] Restore
-* [ ] Data validation
+* [ ] Validation
 * [ ] Database migrations
 
 ---
 
-## Phase 7 — Desktop Experience
+## Phase 7 — Native Experience
 
-**Goal:** Deliver a polished native application.
+**Goal:** Make the desktop application feel fully native.
 
-### Native
+### Desktop
 
 * [ ] Startup optimization
-* [ ] IPC improvements
-* [ ] Keyboard shortcuts
 * [ ] Window management
 * [ ] Tray integration
-* [ ] Native menus
 * [ ] Native notifications
+* [ ] Keyboard shortcuts
+* [ ] IPC optimization
 
 ---
 
-## Phase 8 — Flow Expansion
+## Phase 8 — Productivity Platform
 
-**Goal:** Expand productivity capabilities.
+**Goal:** Expand beyond time tracking.
 
-### Advanced features
+### Extended features
 
-* [ ] Multiple workflows
+* [ ] Dashboard
 * [ ] Reporting
 * [ ] Analytics
-* [ ] Automation
-* [ ] Dashboard
 * [ ] Search
 * [ ] Filtering
+* [ ] Automation
+* [ ] Workflow support
+* [ ] Plugin ecosystem
 
 ---
 
-## ♾ Continuous Engineering
+## Continuous Engineering
 
-Always maintain:
+Every contribution should improve at least one of the following:
 
-* Correctness
-* Maintainability
-* Testability
-* Performance
-* Simplicity
+* correctness
+* maintainability
+* readability
+* testability
+* performance
+* developer experience
 
-Engineering workflow:
+Development workflow:
 
-Architecture -> Implementation -> Tests -> Refactoring -> Optimization -> Release
+```text
+Architecture
+      ↓
+Contracts
+      ↓
+Implementation
+      ↓
+Tests
+      ↓
+Refactoring
+      ↓
+Optimization
+      ↓
+Release
+```
 
 ---
 
-## Long-Term Evolution
+### Long-Term Roadmap
 
-Foundation ✅ -> Complete Backend -> Clean Frontend -> Usable MVP -> Reliable Data -> Native Experience -> Flow Platform
+```text
+Foundation
+      ↓
+Runtime Parity
+      ↓
+Complete Backend
+      ↓
+Clean Frontend
+      ↓
+Stable MVP
+      ↓
+Reliable Data
+      ↓
+Native Desktop
+      ↓
+Productivity Platform
+```

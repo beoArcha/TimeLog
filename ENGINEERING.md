@@ -1,318 +1,434 @@
 # ENGINEERING.md
 
+## Engineering Guide
+
+This document defines the engineering principles, architectural rules, and development standards for oXyFlow.
+
+It is the authoritative reference for contributors, reviewers, and AI assistants.
+
+---
+
+## Design Goals
+
+The project is designed to achieve:
+
+* simplicity
+* maintainability
+* correctness
+* predictable architecture
+* high testability
+* runtime independence
+* native performance
+
+Every design decision should improve at least one of these goals without unnecessarily harming the others.
+
+---
+
 ## Engineering Principles
 
-oXyFlow follows a Product Engineering approach.
+### KISS
 
-The goal is not to build software as quickly as possible.
+Prefer the simplest solution that satisfies the requirements.
 
-The goal is to build software that remains understandable, maintainable and extensible for years.
-
-AI accelerates engineering. It does not replace engineering.
+Avoid premature abstractions.
 
 ---
 
-## Core Values
+### SOLID
 
-### 1. Correctness First
+Apply SOLID where it improves maintainability.
 
-Correct software is always preferred over fast software.
-
-Priorities:
-
-1. Correctness
-2. Maintainability
-3. User Experience
-4. Performance
-5. New Features
-
-Never sacrifice correctness for speed.
+Do not introduce interfaces or inheritance solely to satisfy theoretical purity.
 
 ---
 
-### 2. Sustainable Engineering
+### DRY
 
-Every change should reduce future maintenance cost.
+Avoid duplicated business logic.
 
-Prefer simple solutions over clever ones.
-
-Avoid unnecessary abstractions.
-
-Every abstraction must solve a real problem.
+Duplicated platform code is acceptable if it improves readability or runtime isolation.
 
 ---
 
-### 3. Human Ownership
+### YAGNI
 
-AI assists development.
+Do not implement future features until there is a concrete requirement.
 
-Humans own:
-
-* architecture
-* product vision
-* technical decisions
-* code quality
-* security
-* maintainability
-
-Generated code must always be reviewed.
+Keep extension points only where they already provide value.
 
 ---
 
-### 4. Flow-Oriented Design
+### Composition over Inheritance
 
-Every feature should reduce friction.
+Prefer composition.
 
-Avoid feature creep.
-
-New functionality should improve real user workflows rather than increase feature count.
+Runtime behavior should be assembled from routers and plugins instead of deep inheritance hierarchies.
 
 ---
 
-### 5. Native-First Philosophy
+## Architectural Overview
 
-oXyFlow is a desktop application.
-
-React provides the UI.
-
-Rust provides the application core.
-
-The application should feel native.
-
-Priorities:
-
-* responsiveness
-* low memory usage
-* predictable behavior
-* cross-platform compatibility
-
-Lightweight operation is more important than maximum performance.
-
----
-
-## Architecture
-
-### Layered Architecture
-
-The application is organized into clear layers.
+The application is divided into four major layers.
 
 ```text
 React UI
-    ↓
-Hooks / State
-    ↓
-Tauri Commands
-    ↓
-Application Services
-    ↓
-Repositories
-    ↓
-Persistence Layer
-    ↓
-SQLite / CSV / Config
+        │
+        ▼
+Routers
+        │
+        ▼
+Runtime Implementations
+        │
+        ▼
+Business Engine / Persistence
 ```
 
-Dependencies always point downward.
-
-Lower layers must never depend on higher layers.
+Each layer has a single responsibility.
 
 ---
 
-### Domain Separation
+## React Layer
 
-Keep business domains independent.
+Responsible for:
+
+* rendering
+* user interaction
+* local UI state
+* view composition
+
+React must never contain business rules.
+
+Examples of forbidden logic:
+
+* timer calculations
+* statistics
+* persistence decisions
+* runtime detection
+
+---
+
+## Routers
+
+Routers expose a stable API to the frontend.
+
+They select the active runtime implementation.
+
+Routers do not implement business logic.
+
+Current routers:
+
+* EngineRouter
+* PersistenceRouter
+
+---
+
+## EngineRouter
+
+Responsibilities:
+
+* expose engine operations
+* choose runtime implementation
+* keep frontend runtime-independent
+
+EngineRouter must not:
+
+* calculate business values
+* access storage directly
+* manipulate SQLite
+* know UI details
+
+---
+
+## PersistenceRouter
+
+Responsibilities:
+
+* abstract persistence
+* expose repository operations
+* route requests to the correct backend
+
+PersistenceRouter must not:
+
+* calculate elapsed time
+* validate business rules
+* implement domain workflows
+
+Persistence exists only to store and retrieve data.
+
+---
+
+## Runtime Implementations
+
+The project currently supports two runtime environments.
+
+### Desktop Runtime
+
+```text
+React
+
+↓
+
+EngineRouter
+PersistenceRouter
+
+↓
+
+Tauri Commands
+
+↓
+
+Rust Engine
+
+↓
+
+SQLite
+```
+
+The Rust implementation is the reference implementation.
+
+---
+
+### Browser Runtime
+
+```text
+React
+
+↓
+
+EngineRouter
+PersistenceRouter
+
+↓
+
+Engine Plugin
+Persistence Plugin
+
+↓
+
+LocalStorage
+```
+
+Browser plugins should replicate Rust behavior as closely as possible.
+
+---
+
+## Rust Engine
+
+Rust is the source of truth for business logic.
+
+Responsibilities include:
+
+* timer state
+* calculations
+* validation
+* aggregates
+* business workflows
+
+Whenever behavior differs between Rust and Browser implementations, Rust is considered correct.
+
+---
+
+## Persistence Layer
+
+Persistence is responsible only for storage.
+
+Possible implementations:
+
+* SQLite
+* LocalStorage
+* CSV
+* future cloud providers
+
+Persistence should never contain business rules.
+
+---
+
+## Repository Rules
+
+Repositories:
+
+* load data
+* save data
+* update data
+* delete data
+
+Repositories must not:
+
+* calculate statistics
+* modify business workflows
+* decide application behavior
+
+---
+
+## Business Rules
+
+Business rules belong exclusively to the Engine.
 
 Examples:
 
-* Timer
-* Projects
-* Tasks
-* Settings
-* Configuration
+* starting a timer
+* stopping a timer
+* elapsed time calculation
+* overlapping log validation
+* statistics generation
 
-Avoid large shared modules.
+These rules must exist exactly once per runtime implementation.
 
 ---
 
-### Single Responsibility
+## Frontend Rules
 
-Each module should have one reason to change.
+React components should remain as small as practical.
 
-Prefer many focused modules over a few large ones.
+Recommended order of responsibility:
 
-If a file grows beyond roughly 300–400 lines, evaluate whether it should be split.
+Component
+
+↓
+
+Feature Hook
+
+↓
+
+Router
+
+↓
+
+Runtime
+
+↓
+
+Business Engine
 
 Avoid:
 
-* God Objects
-* God Components
-* God Hooks
-* God Services
+* large components
+* duplicated state
+* business calculations in hooks
+* direct persistence access
 
 ---
 
-### Repository Pattern
+## Testing Strategy
 
-Repositories own data access.
+The testing pyramid consists of:
 
-Business logic must not directly communicate with storage.
+### Unit Tests
 
-Storage implementations should be replaceable without changing business logic.
+* utilities
+* domain logic
+* plugins
+* repositories
 
----
+### Integration Tests
 
-### Persistence Layer
-
-Persistence implementations should remain isolated.
-
-Supported storage backends may include:
-
-* SQLite
-* CSV
-* Configuration files
-
-Persistence should never leak into UI code.
-
----
-
-## Frontend Guidelines
-
-React is responsible for:
-
-* presentation
-* user interaction
-* state orchestration
-
-React should not contain business logic.
-
-Complex business rules belong in Rust.
-
----
-
-## Backend Guidelines
-
-Rust owns:
-
-* business rules
+* routers
+* Tauri commands
 * persistence
-* validation
-* application services
-* performance-critical operations
+* runtime communication
 
-Rust is the source of truth.
+### End-to-End Tests
 
----
-
-## State Management
-
-Prefer small domain-specific state.
-
-Avoid global application stores whenever possible.
-
-Examples:
-
-* Timer state
-* Projects
-* Tasks
-* Settings
-* Window state
-
-State should remain predictable, isolated and testable.
+* complete user workflows
+* timer lifecycle
+* project management
+* task management
 
 ---
 
-## Performance
+## Error Handling
+
+Errors should be:
+
+* explicit
+* typed where practical
+* propagated upward
+* presented to users with meaningful messages
+
+Avoid swallowing exceptions.
+
+---
+
+## Performance Guidelines
 
 Optimize only after correctness.
 
 Priorities:
 
-1. Low memory usage
-2. Fast startup
-3. Predictable resource consumption
-4. Efficient I/O
-5. Minimal unnecessary rendering
+1. Correctness
+2. Readability
+3. Maintainability
+4. Performance
 
-Avoid premature optimization.
-
-Prefer lightweight solutions over micro-optimizations.
+Do not introduce complexity for hypothetical performance gains.
 
 ---
 
-## Testing
+## Code Style
 
-Tests validate behavior rather than implementation.
+Preferred:
 
-Preferred order:
+* small functions
+* descriptive names
+* immutable data where practical
+* explicit control flow
 
-1. Unit tests
-2. Integration tests
+Avoid:
 
-Every architectural change should preserve existing tests.
-
----
-
-## Development Workflow
-
-Before considering a task complete, verify quality.
-
-Frontend:
-
-* npm run lint
-* npm run typecheck
-* npm run test
-
-Backend:
-
-* cargo fmt
-* cargo test
-
-Address root causes instead of applying temporary fixes.
-
-Avoid introducing cascading errors.
+* hidden side effects
+* deeply nested conditionals
+* unnecessary abstractions
+* magic values
 
 ---
 
-## AI-Assisted Development
+## AI Development Guidelines
 
-AI should be used for:
+AI-generated code must:
 
-* implementation
-* architecture discussions
-* code review
-* documentation
-* brainstorming
-* identifying edge cases
+* follow existing architecture
+* preserve runtime abstraction
+* avoid bypassing routers
+* avoid duplicating business logic
+* prefer existing domain models
+* keep Rust and Browser implementations behaviorally aligned
 
-Never accept generated code without validation.
+When extending functionality:
 
-AI suggestions should challenge existing solutions, not merely implement them.
-
----
-
-## Documentation
-
-Architecture is documented.
-
-Important design decisions are documented.
-
-Documentation should explain *why*, not repeat *what* the code already shows.
-
-Keep documentation concise and current.
+1. Update contracts.
+2. Implement runtime behavior.
+3. Add tests.
+4. Refactor only if necessary.
 
 ---
 
-## Decision Rule
+## Definition of Done
 
-When several solutions are technically valid, prefer the one that is:
+A feature is considered complete only when:
 
-* simpler
-* easier to understand
-* easier to maintain
-* easier to test
-* easier to extend
-* consistent with the existing architecture
+* architecture remains consistent
+* tests pass
+* lint passes
+* formatting passes
+* documentation is updated
+* both runtimes continue to behave consistently (where applicable)
 
-Avoid unnecessary complexity.
+---
 
-Consistency is usually more valuable than novelty.
+## Non-Negotiable Rules
+
+Never:
+
+* put business logic into React
+* bypass EngineRouter
+* bypass PersistenceRouter
+* duplicate business rules
+* let persistence decide business behavior
+* couple UI to storage implementation
+
+Always:
+
+* keep layers independent
+* keep responsibilities focused
+* write code that is easy to understand before making it clever
+* leave the codebase cleaner than you found it

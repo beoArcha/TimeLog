@@ -1,264 +1,319 @@
 # AGENT.md
 
-## AI Agent Operational Guidelines
+## AI Development Guide
 
-This repository is developed using AI-assisted engineering.
+This document defines the mandatory rules that every AI assistant must follow when contributing to oXyFlow.
 
-AI agents are implementation assistants.
-
-Humans own architecture, product direction and final technical decisions.
+These instructions override default coding habits whenever they conflict with generic AI behavior.
 
 ---
 
-## Mission
+## Primary Objective
 
-The objective is not to generate the most code.
+Produce code that is:
 
-The objective is to make the codebase better with every change.
+* correct
+* maintainable
+* readable
+* consistent with the existing architecture
 
-Every contribution should improve at least one of:
+Generating more code is **not** the objective.
 
-* correctness
-* maintainability
-* readability
-* consistency
-* documentation
-
----
-
-## Working Process
-
-For every task:
-
-1. Understand the existing implementation.
-2. Follow the current architecture.
-3. Make the smallest reasonable change.
-4. Validate the result.
-5. Update documentation when necessary.
-
-Avoid unnecessary rewrites.
+Generating the **right** code is.
 
 ---
 
-## Before Writing Code
+## Architecture First
 
-Always:
+Before writing any code, understand the architecture.
 
-* inspect related files
-* understand existing patterns
-* reuse existing abstractions
-* identify the correct architectural layer
+If an implementation would violate the architecture, choose another solution.
 
-Never introduce parallel implementations of existing functionality.
+Never optimize for the shortest implementation at the expense of consistency.
 
 ---
 
-## Engineering Priorities
-
-Always prioritize:
-
-1. Correctness
-2. Maintainability
-3. Consistency
-4. Simplicity
-5. Performance
-
-Never sacrifice architecture for short-term speed.
-
----
-
-## Architectural Rules
-
-Respect existing architectural boundaries.
+## Current Architecture
 
 ```text
 React UI
-    ↓
-Hooks / State
-    ↓
-Tauri Commands
-    ↓
-Application Services
-    ↓
-Repositories
-    ↓
-Persistence
+        │
+        ▼
+Feature Hooks
+        │
+        ▼
+EngineRouter
+PersistenceRouter
+        │
+        ▼
+Runtime Implementations
+        │
+        ├──────── Desktop Runtime
+        │             │
+        │             ▼
+        │      Tauri Commands
+        │             │
+        │             ▼
+        │        Rust Engine
+        │             │
+        │             ▼
+        │          SQLite
+        │
+        └──────── Browser Runtime
+                      │
+                      ▼
+               Engine Plugin
+               Persistence Plugin
+                      │
+                      ▼
+                 LocalStorage
 ```
 
-Dependencies always point downward.
-
-Do not bypass repositories.
-
-Do not access persistence directly from business logic.
-
-Do not move business logic into React.
+Everything should fit naturally into this architecture.
 
 ---
 
-## Frontend Guidelines
+## Layer Responsibilities
 
-React is responsible for:
+### React
+
+Responsible for:
 
 * rendering
 * user interaction
-* state orchestration
+* UI state
 
-React should not contain:
+React must never contain business logic.
 
-* persistence
-* business rules
-* storage logic
+---
 
-Guidelines:
+### Hooks
 
-* keep components small
+Responsible for:
+
+* coordinating UI
+* calling routers
+
+Hooks are not business services.
+
+---
+
+### EngineRouter
+
+Responsible for:
+
+* exposing business operations
+* selecting runtime implementation
+
+Never place business logic inside the router.
+
+---
+
+### PersistenceRouter
+
+Responsible for:
+
+* exposing persistence operations
+* selecting storage implementation
+
+Never implement business rules inside the persistence layer.
+
+---
+
+### Runtime Plugins
+
+Runtime plugins adapt platform-specific implementations.
+
+They should expose identical behavior whenever possible.
+
+---
+
+### Rust Engine
+
+Rust is the reference implementation.
+
+Whenever there is uncertainty, follow the Rust implementation.
+
+---
+
+## Mandatory Rules
+
+Always:
+
+* follow the existing architecture
+* reuse existing domain models
 * prefer composition
-* avoid deeply nested props
-* avoid duplicated logic
-* use custom hooks appropriately
+* keep functions focused
+* keep modules cohesive
+* write explicit code
+* preserve runtime abstraction
 
-Always use explicit TypeScript types.
+Never:
 
-Avoid `any`.
-
-If a type becomes difficult to express, improve the type model instead of using `any`.
+* bypass EngineRouter
+* bypass PersistenceRouter
+* access SQLite directly from React
+* duplicate business logic
+* move business rules into repositories
+* introduce unnecessary abstractions
 
 ---
 
-## Backend Guidelines
+## Business Logic
 
-Rust owns:
+Business logic belongs only inside the Engine.
 
-* business rules
-* repositories
-* persistence
+Examples include:
+
+* timer lifecycle
+* elapsed time
 * validation
-* application services
+* statistics
+* aggregates
 
-Guidelines:
-
-* prefer `Result`
-* propagate errors
-* avoid `unwrap()` in production
-* avoid hidden global state
-* keep modules focused
-
-Repositories own storage access.
-
-Persistence implementations should remain interchangeable.
+Business rules must exist only once per runtime implementation.
 
 ---
 
-## Refactoring
+## Persistence
 
-Refactor only when it improves the codebase.
+Persistence exists only to store data.
 
-Prefer incremental improvements.
+Allowed:
 
-Avoid unrelated cleanup during feature work.
+* CRUD
+* serialization
+* deserialization
+* transactions
 
-Large refactorings should be divided into small reviewable steps.
+Not allowed:
 
-Preserve behavior unless explicitly instructed otherwise.
+* validation
+* calculations
+* workflow decisions
+* statistics
 
 ---
 
-## Testing
+## Runtime Consistency
 
-Changes should preserve existing behavior.
+Desktop Runtime and Browser Runtime should behave identically whenever possible.
+
+If a feature is implemented in one runtime, consider whether the other runtime also requires the same behavior.
+
+---
+
+## Code Generation Guidelines
+
+When implementing a feature:
+
+1. Understand the requirement.
+2. Identify the correct architectural layer.
+3. Reuse existing models.
+4. Minimize changes.
+5. Add tests where appropriate.
+6. Verify architectural consistency.
+
+Do not start coding before understanding where the code belongs.
+
+---
+
+## Refactoring Rules
+
+Prefer small refactorings.
+
+Avoid large rewrites unless explicitly requested.
+
+When refactoring:
+
+* preserve behavior
+* improve readability
+* reduce duplication
+* improve separation of concerns
+
+Never mix refactoring with unrelated feature work.
+
+---
+
+## Testing Expectations
 
 Whenever practical:
 
-* add unit tests
-* update integration tests
-* cover edge cases
+* update existing tests
+* add new unit tests
+* keep integration tests passing
 
-Tests validate behavior, not implementation.
-
-Avoid brittle tests.
+Avoid introducing changes that reduce testability.
 
 ---
 
-## Quality Checklist
+## TypeScript Rules
 
-Before considering a task complete:
+Always:
 
-Frontend:
+* use strict typing
+* prefer explicit types when they improve readability
+* use existing interfaces
+* keep functions small
 
-* npm run lint
-* npm run typecheck
-* npm run test
+Never:
 
-Backend:
-
-* cargo fmt
-* cargo test
-
-Resolve failures instead of working around them.
-
-Avoid introducing cascading errors.
+* use `any`
+* suppress type errors
+* ignore compiler warnings
+* use non-null assertions unless unavoidable
 
 ---
 
-## Dependencies
+## Rust Rules
 
-Before adding a dependency, verify:
+Always:
 
-* Is it necessary?
-* Does the standard library already solve the problem?
-* Is an existing dependency sufficient?
-* Is it actively maintained?
+* follow idiomatic Rust
+* prefer ownership over unnecessary cloning
+* propagate errors correctly
+* keep modules cohesive
 
-Prefer fewer dependencies.
+Avoid unnecessary allocations and hidden side effects.
 
 ---
 
 ## Documentation
 
-Update documentation whenever changes affect:
+Whenever architecture changes:
 
-* architecture
-* workflows
-* public APIs
-* engineering decisions
+Update:
 
-Documentation should explain intent rather than duplicate code.
+* README.md
+* MASTERMAP.md
+* ENGINEERING.md
+* AGENT.md
 
----
-
-## AI Behavior
-
-AI should:
-
-* follow existing architecture
-* challenge questionable designs
-* identify potential issues
-* explain trade-offs
-* ask questions when requirements are unclear
-
-AI should not:
-
-* invent requirements
-* redesign architecture without approval
-* introduce unnecessary abstractions
-* silently change behavior
-* ignore project conventions
-
-When uncertain, ask for clarification.
+Documentation is part of the implementation.
 
 ---
 
-## Decision Rule
+## Pull Request Checklist
 
-When multiple valid solutions exist, choose the one that is:
+Before considering a task complete, verify:
 
-* simpler
-* more consistent
-* easier to understand
-* easier to test
-* easier to maintain
-* easier to extend
+* Architecture respected
+* Routers used correctly
+* No duplicated business logic
+* No business logic in React
+* No business logic in Persistence
+* Runtime consistency preserved
+* Tests updated
+* Lint passes
+* Formatting passes
+* Documentation updated (if required)
 
-Favor incremental improvement over cleverness.
+---
 
-Leave the codebase in a better state than you found it.
+## Guiding Principle
+
+When in doubt:
+
+Prefer the solution that makes the architecture clearer, even if it requires writing a little more code.
+
+The long-term maintainability of the project is more important than the size of an individual change.
