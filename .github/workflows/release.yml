@@ -188,6 +188,9 @@ jobs:
         with:
           workspaces: ${{ env.RUST_WORKSPACE }}
 
+      - name: Install cargo-tarpaulin
+        uses: taiki-e/install-action@cargo-tarpaulin
+
       - name: Install Frontend Dependencies
         run: npm ci
 
