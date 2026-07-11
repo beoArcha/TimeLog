@@ -1,13 +1,13 @@
-use crate::shared::test_db::setup_persistence_test;
+﻿use crate::shared::test_db::setup_persistence_test;
 use chrono::{Duration as ChronoDuration, Utc};
 use oxy_flow::engine::Engine;
-use oxy_flow::persistence::PersistenceLayer;
+use oxy_flow::persistence::Persistence;
 use oxy_flow::types::{Project, Task};
 
 #[test]
 fn test_engine_elapsed_time_calculations() {
     let (conn, config, _temp_dir) = setup_persistence_test("engine_elapsed");
-    let persistence = PersistenceLayer::new(&config).unwrap();
+    let persistence = Persistence::new(&config).unwrap();
     let engine = Engine::new(&persistence);
 
     let project = Project {
@@ -20,7 +20,7 @@ fn test_engine_elapsed_time_calculations() {
         original_color: None,
         edit_history: None,
     };
-    persistence.projects.create_project(project).unwrap();
+    persistence.projects.create(project).unwrap();
 
     let task = Task {
         id: "t1".to_string(),
@@ -34,7 +34,7 @@ fn test_engine_elapsed_time_calculations() {
         edit_history: None,
         archived: Some(false),
     };
-    persistence.tasks.create_task(task).unwrap();
+    persistence.tasks.create(task).unwrap();
 
     let subtask = Task {
         id: "t1-sub".to_string(),

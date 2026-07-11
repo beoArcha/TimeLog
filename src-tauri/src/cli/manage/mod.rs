@@ -1,5 +1,5 @@
-use crate::cli::shared::output::CliOutput;
-use crate::persistence::PersistenceLayer;
+﻿use crate::cli::shared::output::CliOutput;
+use crate::persistence::Persistence;
 use clap::Subcommand;
 
 pub mod project;
@@ -16,7 +16,7 @@ pub enum ManageCommand {
     Subtask(subtask::SubtaskCommand),
 }
 
-pub fn handle(cmd: ManageCommand, persistence: &PersistenceLayer) -> Result<CliOutput, String> {
+pub fn handle(cmd: ManageCommand, persistence: &Persistence) -> Result<CliOutput, String> {
     match cmd {
         ManageCommand::Project(c) => project::handle(c, persistence),
         ManageCommand::Task(c) => task::handle(c, persistence),

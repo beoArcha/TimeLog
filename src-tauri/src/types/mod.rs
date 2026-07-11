@@ -14,8 +14,8 @@ pub mod sinks;
 pub mod timelog;
 
 pub use commands::{
-    AppCommand, EngineCommand, CorePersistenceCommand, ProjectsPersistenceCommand,
-    TasksPersistenceCommand, SettingsPersistenceCommand, WindowCommand,
+    AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,
+    SettingsPersistenceCommand, TasksPersistenceCommand, WindowCommand,
 };
 pub use frontend_event::FrontendEvent;
 pub use gui::{AlwaysOnTopConfig, GuiSize, TextAndIconSize, WindowDimensions};

@@ -1,6 +1,6 @@
 use super::cache::PersistenceCache;
+use super::config::PersistenceConfig;
 use super::error::{PersistenceError, PersistenceResult};
-use crate::persistence::persistence_config::PersistenceConfig;
 use crate::repositories::business::BusinessRepository;
 use crate::repositories::config::ConfigRepository;
 use crate::sinks::csv::CsvSink;

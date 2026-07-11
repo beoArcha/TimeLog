@@ -52,9 +52,8 @@ fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
         db_path,
         csv_directory,
     };
-    let persistence = std::sync::Arc::new(crate::persistence::PersistenceLayer::new(
-        &persistence_config,
-    )?);
+    let persistence =
+        std::sync::Arc::new(crate::persistence::Persistence::new(&persistence_config)?);
 
     app.manage(AppState {
         persistence,

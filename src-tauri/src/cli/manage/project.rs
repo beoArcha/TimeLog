@@ -3,7 +3,7 @@ use crate::cli::shared::constants::{
 };
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
-use crate::persistence::PersistenceLayer;
+use crate::persistence::Persistence;
 use crate::types::Project;
 use clap::Subcommand;
 
@@ -20,7 +20,7 @@ pub enum ProjectCommand {
     },
 }
 
-pub fn handle(cmd: ProjectCommand, persistence: &PersistenceLayer) -> Result<CliOutput, String> {
+pub fn handle(cmd: ProjectCommand, persistence: &Persistence) -> Result<CliOutput, String> {
     match cmd {
         ProjectCommand::Create { name, color } => {
             let id = generate_id();
@@ -37,7 +37,7 @@ pub fn handle(cmd: ProjectCommand, persistence: &PersistenceLayer) -> Result<Cli
             };
             persistence
                 .projects
-                .create_project(project)
+                .create(project)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))
         }
@@ -45,7 +45,7 @@ pub fn handle(cmd: ProjectCommand, persistence: &PersistenceLayer) -> Result<Cli
         ProjectCommand::Archive { id } => {
             persistence
                 .projects
-                .archive_project(id.clone())
+                .archive(id.clone())
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_PROJECT_ARCHIVED.replace("{}", &id)))
         }

@@ -1,12 +1,12 @@
 use crate::shared::test_db::setup_persistence_test;
 use oxy_flow::engine::Engine;
-use oxy_flow::persistence::PersistenceLayer;
+use oxy_flow::persistence::Persistence;
 use oxy_flow::types::{Project, Task};
 
 #[test]
 fn test_commands_logic_integration_flow() {
     let (_conn, config, _temp_dir) = setup_persistence_test("commands_integration");
-    let persistence = PersistenceLayer::new(&config).unwrap();
+    let persistence = Persistence::new(&config).unwrap();
     let engine = Engine::new(&persistence);
 
     let project = Project {
@@ -19,7 +19,10 @@ fn test_commands_logic_integration_flow() {
         original_color: None,
         edit_history: None,
     };
-    persistence.projects.create_project(project).expect("add_project failed");
+    persistence
+        .projects
+        .create(project)
+        .expect("add_project failed");
     let state_after_proj = engine.get_state().unwrap();
     assert_eq!(state_after_proj.projects.len(), 1);
     assert_eq!(state_after_proj.projects[0].name, "CommandProj");
@@ -37,7 +40,7 @@ fn test_commands_logic_integration_flow() {
         edit_history: None,
         archived: Some(false),
     };
-    persistence.tasks.create_task(task).expect("add_task failed");
+    persistence.tasks.create(task).expect("add_task failed");
     let state_after_task = engine.get_state().unwrap();
     assert_eq!(state_after_task.tasks.len(), 1);
     assert_eq!(state_after_task.tasks[0].name, "CommandTask");
@@ -52,9 +55,12 @@ fn test_commands_logic_integration_flow() {
     let state_after_stop = engine.get_state().unwrap();
     assert!(state_after_stop.active_log.is_none());
 
-    let mut task = persistence.tasks.get_task(&task_id).unwrap().unwrap();
+    let mut task = persistence.tasks.get(task_id).unwrap().unwrap();
     task.completed = !task.completed;
-    persistence.tasks.patch_task(task).expect("toggle_task_complete failed");
+    persistence
+        .tasks
+        .patch(task)
+        .expect("toggle_task_complete failed");
     let state_after_complete = engine.get_state().unwrap();
     assert!(state_after_complete.tasks[0].completed);
 }

@@ -1,4 +1,4 @@
-use crate::common::AppError;
+﻿use crate::common::AppError;
 use crate::engine::Engine;
 use crate::types::TimerRepositoryState;
 use crate::AppState;
@@ -20,7 +20,7 @@ pub fn add_project(
         original_color: None,
         edit_history: None,
     };
-    state.persistence.projects.create_project(project)?;
+    state.persistence.projects.create(project)?;
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)
 }
@@ -30,10 +30,10 @@ pub fn toggle_project_archive(
     project_id: String,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
-    if let Some(mut project) = state.persistence.projects.get_project(&project_id)? {
+    if let Some(mut project) = state.persistence.projects.get(&project_id)? {
         let archived = project.archived.unwrap_or(false);
         project.archived = Some(!archived);
-        state.persistence.projects.patch_project(project)?;
+        state.persistence.projects.patch(project)?;
     }
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)
@@ -45,9 +45,9 @@ pub fn rename_project(
     name: String,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
-    if let Some(mut project) = state.persistence.projects.get_project(&project_id)? {
+    if let Some(mut project) = state.persistence.projects.get(&project_id)? {
         project.name = name;
-        state.persistence.projects.patch_project(project)?;
+        state.persistence.projects.patch(project)?;
     }
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)

@@ -1,5 +1,5 @@
-use crate::cli::shared::output::CliOutput;
-use crate::persistence::PersistenceLayer;
+﻿use crate::cli::shared::output::CliOutput;
+use crate::persistence::Persistence;
 use clap::Subcommand;
 
 #[allow(clippy::module_inception)]
@@ -10,7 +10,7 @@ pub enum SettingsCommand {
     View,
 }
 
-pub fn handle(cmd: SettingsCommand, persistence: &PersistenceLayer) -> Result<CliOutput, String> {
+pub fn handle(cmd: SettingsCommand, persistence: &Persistence) -> Result<CliOutput, String> {
     match cmd {
         SettingsCommand::View => settings::view(persistence),
     }

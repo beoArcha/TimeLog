@@ -1,4 +1,4 @@
-use crate::persistence::{PersistenceError, PersistenceLayer};
+use crate::persistence::{Persistence, PersistenceError};
 use chrono::{DateTime, Utc};
 use std::time::Duration;
 
@@ -13,16 +13,16 @@ pub enum EngineError {
 }
 
 pub struct Engine<'a> {
-    persistence: &'a PersistenceLayer,
+    persistence: &'a Persistence,
 }
 
 impl<'a> Engine<'a> {
-    pub fn new(persistence: &'a PersistenceLayer) -> Self {
+    pub fn new(persistence: &'a Persistence) -> Self {
         Self { persistence }
     }
 
     pub fn calculate_subtask_elapsed(&self, subtask_id: &str) -> Result<Duration, EngineError> {
-        let logs = self.persistence.core.get_time_logs_for_task(subtask_id)?;
+        let logs = self.persistence.time_logs.get_for_task(subtask_id)?;
         let mut total_duration = Duration::ZERO;
 
         for log in logs {
@@ -47,7 +47,7 @@ impl<'a> Engine<'a> {
     }
 
     pub fn calculate_task_elapsed(&self, task_id: &str) -> Result<Duration, EngineError> {
-        let logs = self.persistence.core.get_time_logs_for_task(task_id)?;
+        let logs = self.persistence.time_logs.get_for_task(task_id)?;
         let mut total_duration = Duration::ZERO;
 
         for log in logs {
@@ -68,7 +68,7 @@ impl<'a> Engine<'a> {
             }
         }
 
-        let subtasks = self.persistence.tasks.get_subtasks_for_task(task_id)?;
+        let subtasks = self.persistence.tasks.get_subtasks(task_id)?;
         for subtask in subtasks {
             total_duration += self.calculate_subtask_elapsed(&subtask.id)?;
         }
@@ -77,10 +77,7 @@ impl<'a> Engine<'a> {
     }
 
     pub fn calculate_project_elapsed(&self, project_id: &str) -> Result<Duration, EngineError> {
-        let parent_tasks = self
-            .persistence
-            .projects
-            .get_tasks_for_project(project_id)?;
+        let parent_tasks = self.persistence.projects.get_tasks(project_id)?;
         let mut total_duration = Duration::ZERO;
 
         for task in parent_tasks {
@@ -91,12 +88,12 @@ impl<'a> Engine<'a> {
     }
 
     pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
-        let proj_id = self.persistence.tasks.get_project_id_by_task_id(task_id)?;
+        let proj_id = self.persistence.tasks.get_project_id(task_id)?;
 
         let now = Utc::now().to_rfc3339();
         self.persistence
-            .core
-            .close_active_logs_by_project(&now, &proj_id)?;
+            .time_logs
+            .close_active_by_project(&now, &proj_id)?;
 
         let log_id = format!(
             "log_{}_{}",
@@ -104,9 +101,7 @@ impl<'a> Engine<'a> {
             LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
         );
 
-        self.persistence
-            .core
-            .insert_time_log(&log_id, task_id, &now)?;
+        self.persistence.time_logs.insert(&log_id, task_id, &now)?;
         Ok(())
     }
 
@@ -115,27 +110,27 @@ impl<'a> Engine<'a> {
         match project_id {
             Some(p_id) => {
                 self.persistence
-                    .core
-                    .close_active_logs_by_project(&now, p_id)?;
+                    .time_logs
+                    .close_active_by_project(&now, p_id)?;
             }
             None => {
-                self.persistence.core.close_all_active_logs(&now)?;
+                self.persistence.time_logs.close_all_active(&now)?;
             }
         }
         Ok(())
     }
 
     pub fn get_active_logs(&self) -> Result<Vec<String>, EngineError> {
-        let ids = self.persistence.core.query_active_logs()?;
+        let ids = self.persistence.time_logs.query_active()?;
         Ok(ids)
     }
 
     pub fn get_state(&self) -> Result<crate::types::TimerRepositoryState, EngineError> {
-        let projects = self.persistence.projects.get_all_projects()?;
-        let tasks = self.persistence.tasks.get_all_tasks()?;
-        let logs = self.persistence.core.get_all_time_logs()?;
+        let projects = self.persistence.projects.get_all()?;
+        let tasks = self.persistence.tasks.get_all()?;
+        let logs = self.persistence.time_logs.get_all()?;
 
-        let active_task_ids = self.persistence.core.query_active_logs()?;
+        let active_task_ids = self.persistence.time_logs.query_active()?;
         let active_log = if !active_task_ids.is_empty() {
             logs.iter()
                 .find(|l| l.end_time.is_none() && active_task_ids.contains(&l.task_id))

@@ -26,7 +26,7 @@ pub fn add_task(
     if task.parent_task_id.is_some() {
         state.persistence.tasks.create_subtask(task)?;
     } else {
-        state.persistence.tasks.create_task(task)?;
+        state.persistence.tasks.create(task)?;
     }
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)
@@ -38,9 +38,9 @@ pub fn rename_task(
     name: String,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
-    if let Some(mut task) = state.persistence.tasks.get_task(&task_id)? {
+    if let Some(mut task) = state.persistence.tasks.get(&task_id)? {
         task.name = name;
-        state.persistence.tasks.patch_task(task)?;
+        state.persistence.tasks.patch(task)?;
     }
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)
@@ -51,11 +51,14 @@ pub fn delete_task(
     task_id: String,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
-    if let Some(task) = state.persistence.tasks.get_task(&task_id)? {
+    if let Some(task) = state.persistence.tasks.get(&task_id)? {
         if task.parent_task_id.is_some() {
-            state.persistence.tasks.archive_subtask(task_id, task.project_id)?;
+            state
+                .persistence
+                .tasks
+                .archive_subtask(task_id, task.project_id)?;
         } else {
-            state.persistence.tasks.archive_task(task_id, task.project_id)?;
+            state.persistence.tasks.archive(task_id, task.project_id)?;
         }
     }
     let engine = Engine::new(&state.persistence);
@@ -67,9 +70,9 @@ pub fn toggle_task_complete(
     task_id: String,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
-    if let Some(mut task) = state.persistence.tasks.get_task(&task_id)? {
+    if let Some(mut task) = state.persistence.tasks.get(&task_id)? {
         task.completed = !task.completed;
-        state.persistence.tasks.patch_task(task)?;
+        state.persistence.tasks.patch(task)?;
     }
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)

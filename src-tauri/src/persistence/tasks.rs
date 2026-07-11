@@ -1,7 +1,7 @@
-use std::sync::Arc;
-use super::persistence_shared::PersistenceShared;
 use super::error::PersistenceResult;
-use crate::types::{Task, PersistenceEvent};
+use super::shared::PersistenceShared;
+use crate::types::{PersistenceEvent, Task};
+use std::sync::Arc;
 
 pub struct TasksPersistence {
     shared: Arc<PersistenceShared>,
@@ -12,7 +12,7 @@ impl TasksPersistence {
         Self { shared }
     }
 
-    pub fn create_task(&self, task: Task) -> PersistenceResult<()> {
+    pub fn create(&self, task: Task) -> PersistenceResult<()> {
         let event_task = task.clone();
         self.shared.execute_write(
             move || self.shared.business_repo.create_task(&task),
@@ -20,7 +20,7 @@ impl TasksPersistence {
         )
     }
 
-    pub fn patch_task(&self, task: Task) -> PersistenceResult<()> {
+    pub fn patch(&self, task: Task) -> PersistenceResult<()> {
         let event_task = task.clone();
         self.shared.execute_write(
             move || self.shared.business_repo.patch_task(&task),
@@ -28,7 +28,7 @@ impl TasksPersistence {
         )
     }
 
-    pub fn archive_task(&self, id: String, project_id: String) -> PersistenceResult<()> {
+    pub fn archive(&self, id: String, project_id: String) -> PersistenceResult<()> {
         let event_id = id.clone();
         let event_project_id = project_id.clone();
         self.shared.execute_write(
@@ -40,7 +40,7 @@ impl TasksPersistence {
         )
     }
 
-    pub fn get_task(&self, id: &str) -> PersistenceResult<Option<Task>> {
+    pub fn get(&self, id: &str) -> PersistenceResult<Option<Task>> {
         if let Some(task) = self.shared.cache.get_task(id) {
             return Ok(Some(task));
         }
@@ -79,21 +79,25 @@ impl TasksPersistence {
         )
     }
 
-    pub fn get_subtasks_for_task(&self, task_id: &str) -> PersistenceResult<Vec<Task>> {
+    pub fn get_subtasks(&self, task_id: &str) -> PersistenceResult<Vec<Task>> {
         if let Some(subtasks) = self.shared.cache.get_subtasks_for_task(task_id) {
             return Ok(subtasks);
         }
         let subtasks = self.shared.business_repo.get_subtasks_for_task(task_id)?;
-        self.shared.cache
+        self.shared
+            .cache
             .insert_subtasks_for_task(task_id.to_string(), subtasks.clone());
         Ok(subtasks)
     }
 
-    pub fn get_project_id_by_task_id(&self, task_id: &str) -> PersistenceResult<String> {
-        Ok(self.shared.business_repo.get_project_id_by_task_id(task_id)?)
+    pub fn get_project_id(&self, task_id: &str) -> PersistenceResult<String> {
+        Ok(self
+            .shared
+            .business_repo
+            .get_project_id_by_task_id(task_id)?)
     }
 
-    pub fn get_all_tasks(&self) -> PersistenceResult<Vec<Task>> {
+    pub fn get_all(&self) -> PersistenceResult<Vec<Task>> {
         Ok(self.shared.business_repo.get_all_tasks()?)
     }
 }

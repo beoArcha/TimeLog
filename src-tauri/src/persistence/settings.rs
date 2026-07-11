@@ -1,7 +1,7 @@
-use std::sync::Arc;
-use super::persistence_shared::PersistenceShared;
 use super::error::PersistenceResult;
+use super::shared::PersistenceShared;
 use crate::types::Settings;
+use std::sync::Arc;
 
 pub struct SettingsPersistence {
     shared: Arc<PersistenceShared>,
@@ -12,12 +12,12 @@ impl SettingsPersistence {
         Self { shared }
     }
 
-    pub fn get_settings(&self) -> PersistenceResult<Settings> {
+    pub fn get(&self) -> PersistenceResult<Settings> {
         let config = self.shared.config_repo.get_config()?;
         Ok(config)
     }
 
-    pub fn save_settings(&self, settings: Settings) -> PersistenceResult<()> {
+    pub fn save(&self, settings: Settings) -> PersistenceResult<()> {
         self.shared.config_repo.save_config(&settings)?;
         Ok(())
     }

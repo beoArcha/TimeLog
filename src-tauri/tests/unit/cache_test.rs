@@ -1,11 +1,11 @@
-use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::persistence::PersistenceLayer;
+﻿use crate::shared::test_db::setup_persistence_test;
+use oxy_flow::persistence::Persistence;
 use oxy_flow::types::Project;
 
 #[test]
 fn test_persistence_cache_hit_and_invalidation() {
     let (conn, config, _temp_dir) = setup_persistence_test("persistence_cache");
-    let persistence = PersistenceLayer::new(&config).unwrap();
+    let persistence = Persistence::new(&config).unwrap();
 
     let project = Project {
         id: "p-cache-1".to_string(),
@@ -18,9 +18,9 @@ fn test_persistence_cache_hit_and_invalidation() {
         edit_history: None,
     };
 
-    persistence.projects.create_project(project).unwrap();
+    persistence.projects.create(project).unwrap();
 
-    let p_fetched1 = persistence.projects.get_project("p-cache-1").unwrap().unwrap();
+    let p_fetched1 = persistence.projects.get("p-cache-1").unwrap().unwrap();
     assert_eq!(p_fetched1.name, "CachedProject");
 
     conn.execute(
@@ -29,7 +29,7 @@ fn test_persistence_cache_hit_and_invalidation() {
     )
     .unwrap();
 
-    let p_fetched2 = persistence.projects.get_project("p-cache-1").unwrap().unwrap();
+    let p_fetched2 = persistence.projects.get("p-cache-1").unwrap().unwrap();
     assert_eq!(p_fetched2.name, "CachedProject");
 
     let dummy_project = Project {
@@ -42,8 +42,8 @@ fn test_persistence_cache_hit_and_invalidation() {
         original_color: None,
         edit_history: None,
     };
-    persistence.projects.create_project(dummy_project).unwrap();
+    persistence.projects.create(dummy_project).unwrap();
 
-    let p_fetched3 = persistence.projects.get_project("p-cache-1").unwrap().unwrap();
+    let p_fetched3 = persistence.projects.get("p-cache-1").unwrap().unwrap();
     assert_eq!(p_fetched3.name, "DirectDbUpdate");
 }
