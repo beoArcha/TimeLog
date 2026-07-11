@@ -77,7 +77,10 @@ impl<'a> Engine<'a> {
     }
 
     pub fn calculate_project_elapsed(&self, project_id: &str) -> Result<Duration, EngineError> {
-        let parent_tasks = self.persistence.projects.get_tasks_for_project(project_id)?;
+        let parent_tasks = self
+            .persistence
+            .projects
+            .get_tasks_for_project(project_id)?;
         let mut total_duration = Duration::ZERO;
 
         for task in parent_tasks {
@@ -101,7 +104,9 @@ impl<'a> Engine<'a> {
             LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
         );
 
-        self.persistence.core.insert_time_log(&log_id, task_id, &now)?;
+        self.persistence
+            .core
+            .insert_time_log(&log_id, task_id, &now)?;
         Ok(())
     }
 
@@ -109,7 +114,9 @@ impl<'a> Engine<'a> {
         let now = Utc::now().to_rfc3339();
         match project_id {
             Some(p_id) => {
-                self.persistence.core.close_active_logs_by_project(&now, p_id)?;
+                self.persistence
+                    .core
+                    .close_active_logs_by_project(&now, p_id)?;
             }
             None => {
                 self.persistence.core.close_all_active_logs(&now)?;
@@ -143,95 +150,5 @@ impl<'a> Engine<'a> {
             logs,
             active_log,
         })
-    }
-
-    pub fn add_project(&self, name: String, color: String) -> Result<(), EngineError> {
-        let project = crate::types::Project {
-            id: format!("proj_{}", chrono::Utc::now().timestamp_millis()),
-            name,
-            color,
-            created_at: chrono::Utc::now().to_rfc3339(),
-            archived: Some(false),
-            original_name: None,
-            original_color: None,
-            edit_history: None,
-        };
-        self.persistence.projects.create_project(project)?;
-        Ok(())
-    }
-
-    pub fn toggle_project_archive(&self, project_id: String) -> Result<(), EngineError> {
-        if let Some(mut project) = self.persistence.projects.get_project(&project_id)? {
-            let archived = project.archived.unwrap_or(false);
-            project.archived = Some(!archived);
-            self.persistence.projects.patch_project(project)?;
-        }
-        Ok(())
-    }
-
-    pub fn add_task(
-        &self,
-        project_id: String,
-        name: String,
-        parent_task_id: Option<String>,
-    ) -> Result<(), EngineError> {
-        let task = crate::types::Task {
-            id: format!("task_{}", chrono::Utc::now().timestamp_millis()),
-            project_id,
-            parent_task_id,
-            name,
-            created_at: chrono::Utc::now().to_rfc3339(),
-            completed: false,
-            original_name: None,
-            original_completed: None,
-            edit_history: None,
-            archived: Some(false),
-        };
-        if task.parent_task_id.is_some() {
-            self.persistence.tasks.create_subtask(task)?;
-        } else {
-            self.persistence.tasks.create_task(task)?;
-        }
-        Ok(())
-    }
-
-    pub fn rename_project(&self, project_id: String, name: String) -> Result<(), EngineError> {
-        if let Some(mut project) = self.persistence.projects.get_project(&project_id)? {
-            project.name = name;
-            self.persistence.projects.patch_project(project)?;
-        }
-        Ok(())
-    }
-
-    pub fn rename_task(&self, task_id: String, name: String) -> Result<(), EngineError> {
-        if let Some(mut task) = self.persistence.tasks.get_task(&task_id)? {
-            task.name = name;
-            self.persistence.tasks.patch_task(task)?;
-        }
-        Ok(())
-    }
-
-    pub fn delete_task(&self, task_id: String) -> Result<(), EngineError> {
-        if let Some(task) = self.persistence.tasks.get_task(&task_id)? {
-            if task.parent_task_id.is_some() {
-                self.persistence.tasks.archive_subtask(task_id, task.project_id)?;
-            } else {
-                self.persistence.tasks.archive_task(task_id, task.project_id)?;
-            }
-        }
-        Ok(())
-    }
-
-    pub fn toggle_task_complete(&self, task_id: String) -> Result<(), EngineError> {
-        if let Some(mut task) = self.persistence.tasks.get_task(&task_id)? {
-            task.completed = !task.completed;
-            self.persistence.tasks.patch_task(task)?;
-        }
-        Ok(())
-    }
-
-    pub fn reset_database(&self) -> Result<(), EngineError> {
-        self.persistence.core.clear_all_data()?;
-        Ok(())
     }
 }
