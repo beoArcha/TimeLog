@@ -3,83 +3,66 @@ use ts_rs::TS;
 
 #[derive(TS, Serialize)]
 #[ts(export)]
+#[serde(rename_all = "snake_case")]
 pub enum AppCommand {
-    #[serde(rename = "exit_app")]
     ExitApp,
-    #[serde(rename = "set_minimize_to_tray")]
     SetMinimizeToTray,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
+#[serde(rename_all = "snake_case")]
 pub enum WindowCommand {
-    #[serde(rename = "resize_window")]
-    ResizeWindow,
-    #[serde(rename = "set_gui_size")]
-    SetGuiSize,
-    #[serde(rename = "set_always_on_top")]
+    Resize,
+    SetSize,
     SetAlwaysOnTop,
-    #[serde(rename = "minimize_window")]
-    MinimizeWindow,
-    #[serde(rename = "close_window")]
-    CloseWindow,
-    #[serde(rename = "hide_window")]
-    HideWindow,
-    #[serde(rename = "show_window")]
-    ShowWindow,
-    #[serde(rename = "set_window_resizable")]
-    SetWindowResizable,
+    Minimize,
+    Close,
+    Hide,
+    Show,
+    SetResizable,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
+#[serde(rename_all = "snake_case")]
 pub enum EngineCommand {
-    #[serde(rename = "start_timer")]
     StartTimer,
-    #[serde(rename = "stop_timer")]
     StopTimer,
-    #[serde(rename = "get_active_logs")]
     GetActiveLogs,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
+#[serde(rename_all = "snake_case")]
 pub enum CorePersistenceCommand {
-    #[serde(rename = "get_timer_state")]
     GetTimerState,
-    #[serde(rename = "reset_database")]
     ResetDatabase,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
+#[serde(rename_all = "snake_case")]
 pub enum ProjectsPersistenceCommand {
-    #[serde(rename = "add_project")]
     AddProject,
-    #[serde(rename = "rename_project")]
     RenameProject,
-    #[serde(rename = "toggle_project_archive")]
     ToggleProjectArchive,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
+#[serde(rename_all = "snake_case")]
 pub enum TasksPersistenceCommand {
-    #[serde(rename = "add_task")]
     AddTask,
-    #[serde(rename = "rename_task")]
     RenameTask,
-    #[serde(rename = "delete_task")]
     DeleteTask,
-    #[serde(rename = "toggle_task_complete")]
     ToggleTaskComplete,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
+#[serde(rename_all = "snake_case")]
 pub enum SettingsPersistenceCommand {
-    #[serde(rename = "get_settings")]
     GetSettings,
-    #[serde(rename = "save_settings")]
     SaveSettings,
 }

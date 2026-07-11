@@ -1,5 +1,9 @@
 use crate::app::state::AppState;
-use crate::commands;
+use crate::commands::{
+    app as app_cmds, engine,
+    persistence::{core, project, settings, task, time_log},
+    window,
+};
 use crate::common::constants::*;
 use crate::tray;
 use crate::types::FrontendEvent;
@@ -12,36 +16,36 @@ use tauri::{
 pub fn create_builder() -> tauri::Builder<tauri::Wry> {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            commands::engine::start_timer,
-            commands::engine::stop_timer,
-            commands::engine::get_active_logs,
-            commands::persistence::core::get_timer_state,
-            commands::persistence::core::reset_database,
-            commands::persistence::project::add_project,
-            commands::persistence::project::toggle_project_archive,
-            commands::persistence::project::rename_project,
-            commands::persistence::task::add_task,
-            commands::persistence::task::rename_task,
-            commands::persistence::task::delete_task,
-            commands::persistence::task::toggle_task_complete,
-            commands::persistence::settings::get_settings,
-            commands::persistence::settings::save_settings,
-            commands::persistence::time_log::get_time_logs_for_task,
-            commands::persistence::time_log::close_active_logs_by_project,
-            commands::persistence::time_log::close_all_active_logs,
-            commands::persistence::time_log::insert_time_log,
-            commands::persistence::time_log::query_active_logs,
-            commands::persistence::time_log::get_all_time_logs,
-            commands::window::set_gui_size,
-            commands::window::resize_window,
-            commands::window::set_always_on_top,
-            commands::window::minimize_window,
-            commands::window::close_window,
-            commands::window::hide_window,
-            commands::window::show_window,
-            commands::window::set_window_resizable,
-            commands::app::exit_app,
-            commands::app::set_minimize_to_tray
+            engine::start_timer,
+            engine::stop_timer,
+            engine::get_active_logs,
+            core::get_state,
+            core::reset,
+            project::add,
+            project::toggle_archive,
+            project::rename,
+            task::create,
+            task::update,
+            task::delete,
+            task::toggle_complete,
+            settings::get,
+            settings::save,
+            time_log::get_for_task,
+            time_log::close_active_by_project,
+            time_log::close_all_active,
+            time_log::insert,
+            time_log::query_active,
+            time_log::get_all,
+            window::set_size,
+            window::resize,
+            window::set_always_on_top,
+            window::minimize,
+            window::close,
+            window::hide,
+            window::show,
+            window::set_resizable,
+            app_cmds::exit_app,
+            app_cmds::set_minimize_to_tray
         ])
         .setup(setup_app)
         .on_window_event(handle_window_event)

@@ -1,11 +1,11 @@
-﻿use crate::common::AppError;
+use crate::common::AppError;
 use crate::engine::Engine;
 use crate::types::TimerRepositoryState;
 use crate::AppState;
 use tauri::State;
 
-#[tauri::command]
-pub fn add_project(
+#[tauri::command(rename = "add_project")]
+pub fn add(
     name: String,
     color: String,
     state: State<'_, AppState>,
@@ -25,8 +25,8 @@ pub fn add_project(
     Ok(engine.get_state()?)
 }
 
-#[tauri::command]
-pub fn toggle_project_archive(
+#[tauri::command(rename = "toggle_project_archive")]
+pub fn toggle_archive(
     project_id: String,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
@@ -39,8 +39,8 @@ pub fn toggle_project_archive(
     Ok(engine.get_state()?)
 }
 
-#[tauri::command]
-pub fn rename_project(
+#[tauri::command(rename = "rename_project")]
+pub fn rename(
     project_id: String,
     name: String,
     state: State<'_, AppState>,
