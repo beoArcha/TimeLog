@@ -1,4 +1,4 @@
-import { IPersistence } from '@common/persistence/IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { Settings } from '@bindings/Settings';
@@ -14,15 +14,126 @@ const getDefaultState = (): TimerRepositoryState => ({
 });
 
 export class PersistencePlugin implements IPersistence {
-  async load(): Promise<TimerRepositoryState | null> {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return getDefaultState();
-    try {
-      return JSON.parse(data) as TimerRepositoryState;
-    } catch (e) {
-      ErrorHandler.handle(new PersistenceException('Failed to parse persistence state from LocalStorage', e, 'ERR_PERSISTENCE_PARSE'));
-      return getDefaultState();
-    }
+  public core: ICorePersistence;
+  public projects: IProjectsPersistence;
+  public tasks: ITasksPersistence;
+  public settings: ISettingsPersistence;
+
+  constructor() {
+    this.core = {
+      load: async (): Promise<TimerRepositoryState | null> => {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (!data) return getDefaultState();
+        try {
+          return JSON.parse(data) as TimerRepositoryState;
+        } catch (e) {
+          ErrorHandler.handle(new PersistenceException('Failed to parse persistence state from LocalStorage', e, 'ERR_PERSISTENCE_PARSE'));
+          return getDefaultState();
+        }
+      },
+      overrideState: async (state: Partial<TimerRepositoryState>): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const newState = { ...current, ...state };
+        return this.save(newState);
+      },
+      reset: async (): Promise<TimerRepositoryState> => {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SETTINGS_KEY);
+        return getDefaultState();
+      }
+    };
+
+    this.projects = {
+      add: async (input: { name: string; color: string }): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const now = new Date().toISOString();
+        const newProject = {
+          id: crypto.randomUUID(),
+          name: input.name,
+          color: input.color,
+          createdAt: now,
+          archived: false,
+        };
+        current.projects.push(newProject);
+        return this.save(current);
+      },
+      toggleArchive: async (projectId: string): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const project = current.projects.find(p => p.id === projectId);
+        if (project) {
+          project.archived = !project.archived;
+        }
+        return this.save(current);
+      },
+      rename: async (projectId: string, name: string): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const project = current.projects.find(p => p.id === projectId);
+        if (project) {
+          project.name = name;
+        }
+        return this.save(current);
+      }
+    };
+
+    this.tasks = {
+      add: async (input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const now = new Date().toISOString();
+        const newTask = {
+          id: crypto.randomUUID(),
+          projectId: input.projectId,
+          name: input.name,
+          parentTaskId: input.parentTaskId,
+          createdAt: now,
+          completed: false,
+        };
+        current.tasks.push(newTask);
+        return this.save(current);
+      },
+      rename: async (taskId: string, name: string): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const task = current.tasks.find(t => t.id === taskId);
+        if (task) {
+          task.name = name;
+        }
+        return this.save(current);
+      },
+      delete: async (taskId: string): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        current.tasks = current.tasks.filter(t => t.id !== taskId);
+        return this.save(current);
+      },
+      toggleComplete: async (taskId: string): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const task = current.tasks.find(t => t.id === taskId);
+        if (task) {
+          task.completed = !task.completed;
+        }
+        return this.save(current);
+      }
+    };
+
+    this.settings = {
+      get: async (): Promise<Settings> => {
+        const data = localStorage.getItem(SETTINGS_KEY);
+        if (!data) {
+          return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: ['Csv'] };
+        }
+        try {
+          return JSON.parse(data) as Settings;
+        } catch {
+          return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: ['Csv'] };
+        }
+      },
+      save: async (settings: Settings): Promise<void> => {
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        } catch (e) {
+          ErrorHandler.handle(new PersistenceException('Failed to save settings to LocalStorage', e, 'ERR_PERSISTENCE_SETTINGS_SAVE'));
+          throw e;
+        }
+      }
+    };
   }
 
   private async save(state: TimerRepositoryState): Promise<TimerRepositoryState> {
@@ -33,109 +144,5 @@ export class PersistencePlugin implements IPersistence {
       ErrorHandler.handle(new PersistenceException('Failed to save persistence state to LocalStorage', e, 'ERR_PERSISTENCE_SAVE'));
       throw e;
     }
-  }
-
-  async overrideState(state: Partial<TimerRepositoryState>): Promise<TimerRepositoryState> {
-    const current = (await this.load()) || getDefaultState();
-    const newState = { ...current, ...state };
-    return this.save(newState);
-  }
-
-  async addProject(input: { name: string; color: string }): Promise<TimerRepositoryState> {
-    const current = (await this.load()) || getDefaultState();
-    const now = new Date().toISOString();
-    const newProject = {
-      id: crypto.randomUUID(),
-      name: input.name,
-      color: input.color,
-      createdAt: now,
-      archived: false,
-    };
-    current.projects.push(newProject);
-    return this.save(current);
-  }
-
-  async toggleProjectArchive(projectId: string): Promise<TimerRepositoryState> {
-    const current = (await this.load()) || getDefaultState();
-    const project = current.projects.find(p => p.id === projectId);
-    if (project) {
-      project.archived = !project.archived;
-    }
-    return this.save(current);
-  }
-
-  async addTask(input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState> {
-    const current = (await this.load()) || getDefaultState();
-    const now = new Date().toISOString();
-    const newTask = {
-      id: crypto.randomUUID(),
-      projectId: input.projectId,
-      name: input.name,
-      parentTaskId: input.parentTaskId,
-      createdAt: now,
-      completed: false,
-    };
-    current.tasks.push(newTask);
-    return this.save(current);
-  }
-
-  async renameProject(projectId: string, name: string): Promise<TimerRepositoryState> {
-    const current = (await this.load()) || getDefaultState();
-    const project = current.projects.find(p => p.id === projectId);
-    if (project) {
-      project.name = name;
-    }
-    return this.save(current);
-  }
-
-  async renameTask(taskId: string, name: string): Promise<TimerRepositoryState> {
-    const current = (await this.load()) || getDefaultState();
-    const task = current.tasks.find(t => t.id === taskId);
-    if (task) {
-      task.name = name;
-    }
-    return this.save(current);
-  }
-
-  async deleteTask(taskId: string): Promise<TimerRepositoryState> {
-    const current = (await this.load()) || getDefaultState();
-    current.tasks = current.tasks.filter(t => t.id !== taskId);
-    return this.save(current);
-  }
-
-  async toggleTaskComplete(taskId: string): Promise<TimerRepositoryState> {
-    const current = (await this.load()) || getDefaultState();
-    const task = current.tasks.find(t => t.id === taskId);
-    if (task) {
-      task.completed = !task.completed;
-    }
-    return this.save(current);
-  }
-
-  async getSettings(): Promise<Settings> {
-    const data = localStorage.getItem(SETTINGS_KEY);
-    if (!data) {
-      return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: ['Csv'] };
-    }
-    try {
-      return JSON.parse(data) as Settings;
-    } catch {
-      return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: ['Csv'] };
-    }
-  }
-
-  async saveSettings(settings: Settings): Promise<void> {
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    } catch (e) {
-      ErrorHandler.handle(new PersistenceException('Failed to save settings to LocalStorage', e, 'ERR_PERSISTENCE_SETTINGS_SAVE'));
-      throw e;
-    }
-  }
-
-  async reset(): Promise<TimerRepositoryState> {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(SETTINGS_KEY);
-    return getDefaultState();
   }
 }

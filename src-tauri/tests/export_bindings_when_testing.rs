@@ -6,7 +6,10 @@ fn export_bindings() {
     AppCommand::export().unwrap();
     WindowCommand::export().unwrap();
     EngineCommand::export().unwrap();
-    PersistenceCommand::export().unwrap();
+    CorePersistenceCommand::export().unwrap();
+    ProjectsPersistenceCommand::export().unwrap();
+    TasksPersistenceCommand::export().unwrap();
+    SettingsPersistenceCommand::export().unwrap();
     GuiSize::export().unwrap();
     TextAndIconSize::export().unwrap();
     AlwaysOnTopConfig::export().unwrap();

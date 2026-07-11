@@ -44,25 +44,40 @@ pub enum EngineCommand {
 
 #[derive(TS, Serialize)]
 #[ts(export)]
-pub enum PersistenceCommand {
+pub enum CorePersistenceCommand {
     #[serde(rename = "get_timer_state")]
     GetTimerState,
+    #[serde(rename = "reset_database")]
+    ResetDatabase,
+}
+
+#[derive(TS, Serialize)]
+#[ts(export)]
+pub enum ProjectsPersistenceCommand {
     #[serde(rename = "add_project")]
     AddProject,
-    #[serde(rename = "toggle_project_archive")]
-    ToggleProjectArchive,
-    #[serde(rename = "add_task")]
-    AddTask,
     #[serde(rename = "rename_project")]
     RenameProject,
+    #[serde(rename = "toggle_project_archive")]
+    ToggleProjectArchive,
+}
+
+#[derive(TS, Serialize)]
+#[ts(export)]
+pub enum TasksPersistenceCommand {
+    #[serde(rename = "add_task")]
+    AddTask,
     #[serde(rename = "rename_task")]
     RenameTask,
     #[serde(rename = "delete_task")]
     DeleteTask,
     #[serde(rename = "toggle_task_complete")]
     ToggleTaskComplete,
-    #[serde(rename = "reset_database")]
-    ResetDatabase,
+}
+
+#[derive(TS, Serialize)]
+#[ts(export)]
+pub enum SettingsPersistenceCommand {
     #[serde(rename = "get_settings")]
     GetSettings,
     #[serde(rename = "save_settings")]

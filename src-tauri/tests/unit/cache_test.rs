@@ -18,9 +18,9 @@ fn test_persistence_cache_hit_and_invalidation() {
         edit_history: None,
     };
 
-    persistence.create_project(project).unwrap();
+    persistence.projects.create_project(project).unwrap();
 
-    let p_fetched1 = persistence.get_project("p-cache-1").unwrap().unwrap();
+    let p_fetched1 = persistence.projects.get_project("p-cache-1").unwrap().unwrap();
     assert_eq!(p_fetched1.name, "CachedProject");
 
     conn.execute(
@@ -29,7 +29,7 @@ fn test_persistence_cache_hit_and_invalidation() {
     )
     .unwrap();
 
-    let p_fetched2 = persistence.get_project("p-cache-1").unwrap().unwrap();
+    let p_fetched2 = persistence.projects.get_project("p-cache-1").unwrap().unwrap();
     assert_eq!(p_fetched2.name, "CachedProject");
 
     let dummy_project = Project {
@@ -42,8 +42,8 @@ fn test_persistence_cache_hit_and_invalidation() {
         original_color: None,
         edit_history: None,
     };
-    persistence.create_project(dummy_project).unwrap();
+    persistence.projects.create_project(dummy_project).unwrap();
 
-    let p_fetched3 = persistence.get_project("p-cache-1").unwrap().unwrap();
+    let p_fetched3 = persistence.projects.get_project("p-cache-1").unwrap().unwrap();
     assert_eq!(p_fetched3.name, "DirectDbUpdate");
 }

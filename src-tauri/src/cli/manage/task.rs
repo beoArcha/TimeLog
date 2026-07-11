@@ -36,11 +36,12 @@ pub fn handle(cmd: TaskCommand, persistence: &PersistenceLayer) -> Result<CliOut
                 edit_history: Some(vec![]),
                 archived: Some(false),
             };
-            persistence.create_task(task).map_err(|e| e.to_string())?;
+            persistence.tasks.create_task(task).map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
         }
         TaskCommand::Archive { id, project_id } => {
             persistence
+                .tasks
                 .archive_task(id.clone(), project_id)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_TASK_ARCHIVED.replace("{}", &id)))

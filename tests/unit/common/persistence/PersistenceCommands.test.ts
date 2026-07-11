@@ -14,31 +14,31 @@ describe('Unit Tests: PersistenceCommands', () => {
     const mockState = { projects: [{ id: 'p1' }], tasks: [] };
     mockInvoke.mockResolvedValue(mockState);
 
-    const result = await commands.load();
+    const result = await commands.core.load();
     expect(mockInvoke).toHaveBeenCalledWith('get_timer_state');
     expect(result).toEqual(mockState);
   });
 
   it('should propagate errors correctly', async () => {
     mockInvoke.mockRejectedValue(new Error('Tauri Error'));
-    await expect(commands.load()).rejects.toThrow('Tauri Error');
+    await expect(commands.core.load()).rejects.toThrow('Tauri Error');
   });
 
   it('should call add_project', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.addProject({ name: 'Project 1', color: 'red' });
+    await commands.projects.add({ name: 'Project 1', color: 'red' });
     expect(mockInvoke).toHaveBeenCalledWith('add_project', { name: 'Project 1', color: 'red' });
   });
 
   it('should call toggle_project_archive', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.toggleProjectArchive('p1');
+    await commands.projects.toggleArchive('p1');
     expect(mockInvoke).toHaveBeenCalledWith('toggle_project_archive', { projectId: 'p1' });
   });
 
   it('should call add_task', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.addTask({ projectId: 'p1', name: 'Task 1', parentTaskId: null });
+    await commands.tasks.add({ projectId: 'p1', name: 'Task 1', parentTaskId: null });
     expect(mockInvoke).toHaveBeenCalledWith('add_task', {
       projectId: 'p1',
       name: 'Task 1',
@@ -48,33 +48,31 @@ describe('Unit Tests: PersistenceCommands', () => {
 
   it('should call rename_project', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.renameProject('p1', 'New Project Name');
+    await commands.projects.rename('p1', 'New Project Name');
     expect(mockInvoke).toHaveBeenCalledWith('rename_project', { projectId: 'p1', name: 'New Project Name' });
   });
 
   it('should call rename_task', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.renameTask('t1', 'New Task Name');
+    await commands.tasks.rename('t1', 'New Task Name');
     expect(mockInvoke).toHaveBeenCalledWith('rename_task', { taskId: 't1', name: 'New Task Name' });
   });
 
   it('should call delete_task', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.deleteTask('t1');
+    await commands.tasks.delete('t1');
     expect(mockInvoke).toHaveBeenCalledWith('delete_task', { taskId: 't1' });
   });
 
   it('should call toggle_task_complete', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.toggleTaskComplete('t1');
+    await commands.tasks.toggleComplete('t1');
     expect(mockInvoke).toHaveBeenCalledWith('toggle_task_complete', { taskId: 't1' });
   });
 
-
-
   it('should call reset_database on reset', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.reset();
+    await commands.core.reset();
     expect(mockInvoke).toHaveBeenCalledWith('reset_database');
   });
 });

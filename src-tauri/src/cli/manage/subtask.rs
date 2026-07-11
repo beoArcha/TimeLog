@@ -23,6 +23,7 @@ pub fn handle(cmd: SubtaskCommand, persistence: &PersistenceLayer) -> Result<Cli
     match cmd {
         SubtaskCommand::Create { task_id, name } => {
             let project_id = persistence
+                .tasks
                 .get_project_id_by_task_id(&task_id)
                 .map_err(|e| e.to_string())?;
             let id = generate_id();
@@ -40,12 +41,14 @@ pub fn handle(cmd: SubtaskCommand, persistence: &PersistenceLayer) -> Result<Cli
                 archived: Some(false),
             };
             persistence
+                .tasks
                 .create_subtask(subtask)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_SUBTASK_CREATED.replace("{}", &id)))
         }
         SubtaskCommand::Archive { id, task_id } => {
             persistence
+                .tasks
                 .archive_subtask(id.clone(), task_id)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_SUBTASK_ARCHIVED.replace("{}", &id)))

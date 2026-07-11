@@ -13,7 +13,10 @@ pub mod settings;
 pub mod sinks;
 pub mod timelog;
 
-pub use commands::{AppCommand, EngineCommand, PersistenceCommand, WindowCommand};
+pub use commands::{
+    AppCommand, EngineCommand, CorePersistenceCommand, ProjectsPersistenceCommand,
+    TasksPersistenceCommand, SettingsPersistenceCommand, WindowCommand,
+};
 pub use frontend_event::FrontendEvent;
 pub use gui::{AlwaysOnTopConfig, GuiSize, TextAndIconSize, WindowDimensions};
 pub use holiday::{HolidayLeave, HolidayLeaveEditHistory, HolidayType};

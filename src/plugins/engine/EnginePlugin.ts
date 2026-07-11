@@ -9,7 +9,7 @@ export class EnginePlugin implements IEngine {
   private persistence = PersistenceRouter.getInstance();
 
   async startTimer(taskId: string): Promise<void> {
-    const state = await this.persistence.load();
+    const state = await this.persistence.core.load();
     if (!state) {
       throw new ContextException('State not initialized', 'ERR_ENGINE_STATE');
     }
@@ -43,14 +43,14 @@ export class EnginePlugin implements IEngine {
 
     updatedLogs.push(newLog);
 
-    await this.persistence.overrideState({
+    await this.persistence.core.overrideState({
       logs: updatedLogs,
       activeLog: newLog
     });
   }
 
   async stopTimer(projectId?: string): Promise<void> {
-    const state = await this.persistence.load();
+    const state = await this.persistence.core.load();
     if (!state) {
       throw new ContextException('State not initialized', 'ERR_ENGINE_STATE');
     }
@@ -79,7 +79,7 @@ export class EnginePlugin implements IEngine {
 
     const activeLog = updatedLogs.find(log => !log.endTime) || null;
 
-    await this.persistence.overrideState({
+    await this.persistence.core.overrideState({
       logs: updatedLogs,
       activeLog
     });

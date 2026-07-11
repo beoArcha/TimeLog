@@ -36,6 +36,7 @@ pub fn handle(cmd: ProjectCommand, persistence: &PersistenceLayer) -> Result<Cli
                 edit_history: Some(vec![]),
             };
             persistence
+                .projects
                 .create_project(project)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))
@@ -43,6 +44,7 @@ pub fn handle(cmd: ProjectCommand, persistence: &PersistenceLayer) -> Result<Cli
         ProjectCommand::List => Ok(CliOutput::Success(MSG_LIST_NOT_IMPLEMENTED.to_string())),
         ProjectCommand::Archive { id } => {
             persistence
+                .projects
                 .archive_project(id.clone())
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_PROJECT_ARCHIVED.replace("{}", &id)))

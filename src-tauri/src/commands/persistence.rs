@@ -103,12 +103,12 @@ pub fn reset_database(state: State<'_, AppState>) -> Result<TimerRepositoryState
 
 #[tauri::command]
 pub fn get_settings(state: State<'_, AppState>) -> Result<Settings, AppError> {
-    let settings = state.persistence.get_config()?;
+    let settings = state.persistence.settings.get_settings()?;
     Ok(settings)
 }
 
 #[tauri::command]
 pub fn save_settings(settings: Settings, state: State<'_, AppState>) -> Result<(), AppError> {
-    state.persistence.save_config(settings)?;
+    state.persistence.settings.save_settings(settings)?;
     Ok(())
 }

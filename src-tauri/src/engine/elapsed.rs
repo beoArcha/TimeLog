@@ -22,7 +22,7 @@ impl<'a> Engine<'a> {
     }
 
     pub fn calculate_subtask_elapsed(&self, subtask_id: &str) -> Result<Duration, EngineError> {
-        let logs = self.persistence.get_time_logs_for_task(subtask_id)?;
+        let logs = self.persistence.core.get_time_logs_for_task(subtask_id)?;
         let mut total_duration = Duration::ZERO;
 
         for log in logs {
@@ -47,7 +47,7 @@ impl<'a> Engine<'a> {
     }
 
     pub fn calculate_task_elapsed(&self, task_id: &str) -> Result<Duration, EngineError> {
-        let logs = self.persistence.get_time_logs_for_task(task_id)?;
+        let logs = self.persistence.core.get_time_logs_for_task(task_id)?;
         let mut total_duration = Duration::ZERO;
 
         for log in logs {
@@ -68,7 +68,7 @@ impl<'a> Engine<'a> {
             }
         }
 
-        let subtasks = self.persistence.get_subtasks_for_task(task_id)?;
+        let subtasks = self.persistence.tasks.get_subtasks_for_task(task_id)?;
         for subtask in subtasks {
             total_duration += self.calculate_subtask_elapsed(&subtask.id)?;
         }
@@ -77,7 +77,7 @@ impl<'a> Engine<'a> {
     }
 
     pub fn calculate_project_elapsed(&self, project_id: &str) -> Result<Duration, EngineError> {
-        let parent_tasks = self.persistence.get_tasks_for_project(project_id)?;
+        let parent_tasks = self.persistence.projects.get_tasks_for_project(project_id)?;
         let mut total_duration = Duration::ZERO;
 
         for task in parent_tasks {
@@ -88,10 +88,11 @@ impl<'a> Engine<'a> {
     }
 
     pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
-        let proj_id = self.persistence.get_project_id_by_task_id(task_id)?;
+        let proj_id = self.persistence.tasks.get_project_id_by_task_id(task_id)?;
 
         let now = Utc::now().to_rfc3339();
         self.persistence
+            .core
             .close_active_logs_by_project(&now, &proj_id)?;
 
         let log_id = format!(
@@ -100,7 +101,7 @@ impl<'a> Engine<'a> {
             LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
         );
 
-        self.persistence.insert_time_log(&log_id, task_id, &now)?;
+        self.persistence.core.insert_time_log(&log_id, task_id, &now)?;
         Ok(())
     }
 
@@ -108,26 +109,26 @@ impl<'a> Engine<'a> {
         let now = Utc::now().to_rfc3339();
         match project_id {
             Some(p_id) => {
-                self.persistence.close_active_logs_by_project(&now, p_id)?;
+                self.persistence.core.close_active_logs_by_project(&now, p_id)?;
             }
             None => {
-                self.persistence.close_all_active_logs(&now)?;
+                self.persistence.core.close_all_active_logs(&now)?;
             }
         }
         Ok(())
     }
 
     pub fn get_active_logs(&self) -> Result<Vec<String>, EngineError> {
-        let ids = self.persistence.query_active_logs()?;
+        let ids = self.persistence.core.query_active_logs()?;
         Ok(ids)
     }
 
     pub fn get_state(&self) -> Result<crate::types::TimerRepositoryState, EngineError> {
-        let projects = self.persistence.get_all_projects()?;
-        let tasks = self.persistence.get_all_tasks()?;
-        let logs = self.persistence.get_all_time_logs()?;
+        let projects = self.persistence.projects.get_all_projects()?;
+        let tasks = self.persistence.tasks.get_all_tasks()?;
+        let logs = self.persistence.core.get_all_time_logs()?;
 
-        let active_task_ids = self.persistence.query_active_logs()?;
+        let active_task_ids = self.persistence.core.query_active_logs()?;
         let active_log = if !active_task_ids.is_empty() {
             logs.iter()
                 .find(|l| l.end_time.is_none() && active_task_ids.contains(&l.task_id))
@@ -155,15 +156,15 @@ impl<'a> Engine<'a> {
             original_color: None,
             edit_history: None,
         };
-        self.persistence.create_project(project)?;
+        self.persistence.projects.create_project(project)?;
         Ok(())
     }
 
     pub fn toggle_project_archive(&self, project_id: String) -> Result<(), EngineError> {
-        if let Some(mut project) = self.persistence.get_project(&project_id)? {
+        if let Some(mut project) = self.persistence.projects.get_project(&project_id)? {
             let archived = project.archived.unwrap_or(false);
             project.archived = Some(!archived);
-            self.persistence.patch_project(project)?;
+            self.persistence.projects.patch_project(project)?;
         }
         Ok(())
     }
@@ -187,50 +188,50 @@ impl<'a> Engine<'a> {
             archived: Some(false),
         };
         if task.parent_task_id.is_some() {
-            self.persistence.create_subtask(task)?;
+            self.persistence.tasks.create_subtask(task)?;
         } else {
-            self.persistence.create_task(task)?;
+            self.persistence.tasks.create_task(task)?;
         }
         Ok(())
     }
 
     pub fn rename_project(&self, project_id: String, name: String) -> Result<(), EngineError> {
-        if let Some(mut project) = self.persistence.get_project(&project_id)? {
+        if let Some(mut project) = self.persistence.projects.get_project(&project_id)? {
             project.name = name;
-            self.persistence.patch_project(project)?;
+            self.persistence.projects.patch_project(project)?;
         }
         Ok(())
     }
 
     pub fn rename_task(&self, task_id: String, name: String) -> Result<(), EngineError> {
-        if let Some(mut task) = self.persistence.get_task(&task_id)? {
+        if let Some(mut task) = self.persistence.tasks.get_task(&task_id)? {
             task.name = name;
-            self.persistence.patch_task(task)?;
+            self.persistence.tasks.patch_task(task)?;
         }
         Ok(())
     }
 
     pub fn delete_task(&self, task_id: String) -> Result<(), EngineError> {
-        if let Some(task) = self.persistence.get_task(&task_id)? {
+        if let Some(task) = self.persistence.tasks.get_task(&task_id)? {
             if task.parent_task_id.is_some() {
-                self.persistence.archive_subtask(task_id, task.project_id)?;
+                self.persistence.tasks.archive_subtask(task_id, task.project_id)?;
             } else {
-                self.persistence.archive_task(task_id, task.project_id)?;
+                self.persistence.tasks.archive_task(task_id, task.project_id)?;
             }
         }
         Ok(())
     }
 
     pub fn toggle_task_complete(&self, task_id: String) -> Result<(), EngineError> {
-        if let Some(mut task) = self.persistence.get_task(&task_id)? {
+        if let Some(mut task) = self.persistence.tasks.get_task(&task_id)? {
             task.completed = !task.completed;
-            self.persistence.patch_task(task)?;
+            self.persistence.tasks.patch_task(task)?;
         }
         Ok(())
     }
 
     pub fn reset_database(&self) -> Result<(), EngineError> {
-        self.persistence.clear_all_data()?;
+        self.persistence.core.clear_all_data()?;
         Ok(())
     }
 }

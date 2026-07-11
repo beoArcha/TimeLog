@@ -17,9 +17,9 @@ fn test_persistence_layer_integration_flow() {
         original_color: None,
         edit_history: None,
     };
-    persistence.create_project(project).unwrap();
+    persistence.projects.create_project(project).unwrap();
 
-    let p_opt = persistence.get_project("p-int-1").unwrap();
+    let p_opt = persistence.projects.get_project("p-int-1").unwrap();
     assert!(p_opt.is_some());
     let p = p_opt.unwrap();
     assert_eq!(p.name, "IntProject");
@@ -42,9 +42,9 @@ fn test_persistence_layer_integration_flow() {
         edit_history: None,
         archived: Some(false),
     };
-    persistence.create_task(task).unwrap();
+    persistence.tasks.create_task(task).unwrap();
 
-    let t_opt = persistence.get_task("t-int-1").unwrap();
+    let t_opt = persistence.tasks.get_task("t-int-1").unwrap();
     assert!(t_opt.is_some());
 }
 
@@ -68,13 +68,13 @@ fn test_persistence_layer_csv_sink_failure_handling() {
         edit_history: None,
     };
 
-    let result = persistence.create_project(project);
+    let result = persistence.projects.create_project(project);
     assert!(
         result.is_ok(),
         "CsvSink failure should not break persistence execution"
     );
 
-    let p_opt = persistence.get_project("p-err").unwrap();
+    let p_opt = persistence.projects.get_project("p-err").unwrap();
     assert!(p_opt.is_some(), "Project must still be saved to SQLite");
 }
 
@@ -93,7 +93,7 @@ fn test_persistence_layer_get_all_and_clear() {
         original_color: None,
         edit_history: None,
     };
-    persistence.create_project(project).unwrap();
+    persistence.projects.create_project(project).unwrap();
 
     let task = Task {
         id: "t-all-1".to_string(),
@@ -107,16 +107,16 @@ fn test_persistence_layer_get_all_and_clear() {
         edit_history: None,
         archived: Some(false),
     };
-    persistence.create_task(task).unwrap();
+    persistence.tasks.create_task(task).unwrap();
 
-    let projects = persistence.get_all_projects().unwrap();
+    let projects = persistence.projects.get_all_projects().unwrap();
     assert_eq!(projects.len(), 1);
 
-    let tasks = persistence.get_all_tasks().unwrap();
+    let tasks = persistence.tasks.get_all_tasks().unwrap();
     assert_eq!(tasks.len(), 1);
 
-    persistence.clear_all_data().unwrap();
+    persistence.core.clear_all_data().unwrap();
 
-    assert_eq!(persistence.get_all_projects().unwrap().len(), 0);
-    assert_eq!(persistence.get_all_tasks().unwrap().len(), 0);
+    assert_eq!(persistence.projects.get_all_projects().unwrap().len(), 0);
+    assert_eq!(persistence.tasks.get_all_tasks().unwrap().len(), 0);
 }

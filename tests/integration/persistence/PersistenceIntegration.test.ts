@@ -25,7 +25,7 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
     mockInvoke.mockResolvedValue(mockState);
 
     const router = PersistenceRouter.getInstance();
-    const result = await router.load();
+    const result = await router.core.load();
 
     expect(mockInvoke).toHaveBeenCalledWith('get_timer_state');
     expect(result).toEqual(mockState);
@@ -42,7 +42,7 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
     mockInvoke.mockResolvedValue(mockState);
 
     const router = PersistenceRouter.getInstance();
-    const result = await router.addProject({ name: 'New Project', color: '#00ff00' });
+    const result = await router.projects.add({ name: 'New Project', color: '#00ff00' });
 
     expect(mockInvoke).toHaveBeenCalledWith('add_project', { name: 'New Project', color: '#00ff00' });
     expect(result).toEqual(mockState);

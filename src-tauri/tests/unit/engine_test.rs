@@ -20,7 +20,7 @@ fn test_engine_elapsed_time_calculations() {
         original_color: None,
         edit_history: None,
     };
-    persistence.create_project(project).unwrap();
+    persistence.projects.create_project(project).unwrap();
 
     let task = Task {
         id: "t1".to_string(),
@@ -34,7 +34,7 @@ fn test_engine_elapsed_time_calculations() {
         edit_history: None,
         archived: Some(false),
     };
-    persistence.create_task(task).unwrap();
+    persistence.tasks.create_task(task).unwrap();
 
     let subtask = Task {
         id: "t1-sub".to_string(),
@@ -48,7 +48,7 @@ fn test_engine_elapsed_time_calculations() {
         edit_history: None,
         archived: Some(false),
     };
-    persistence.create_subtask(subtask).unwrap();
+    persistence.tasks.create_subtask(subtask).unwrap();
 
     let now = Utc::now();
     let start_10m_ago = (now - ChronoDuration::minutes(10)).to_rfc3339();
