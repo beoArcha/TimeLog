@@ -1,6 +1,7 @@
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { TimeLog } from '@bindings/TimeLog';
 import { Settings } from '@bindings/Settings';
+import { Task } from '@bindings/Task';
 
 export type ApiPayload = {
   event: string;
@@ -24,6 +25,8 @@ export interface ITasksPersistence {
   rename(taskId: string, name: string): Promise<TimerRepositoryState>;
   delete(taskId: string): Promise<TimerRepositoryState>;
   toggleComplete(taskId: string): Promise<TimerRepositoryState>;
+  getProjectId(taskId: string): Promise<string>;
+  getSubtasks(taskId: string): Promise<Task[]>;
 }
 
 export interface ISettingsPersistence {
@@ -31,9 +34,19 @@ export interface ISettingsPersistence {
   save(settings: Settings): Promise<void>;
 }
 
+export interface ITimeLogsPersistence {
+  getForTask(taskId: string): Promise<TimeLog[]>;
+  closeActiveByProject(endTime: string, projectId: string): Promise<void>;
+  closeAllActive(endTime: string): Promise<void>;
+  insert(logId: string, taskId: string, startTime: string): Promise<void>;
+  queryActive(): Promise<string[]>;
+  getAll(): Promise<TimeLog[]>;
+}
+
 export interface IPersistence {
   core: ICorePersistence;
   projects: IProjectsPersistence;
   tasks: ITasksPersistence;
   settings: ISettingsPersistence;
+  timeLogs: ITimeLogsPersistence;
 }

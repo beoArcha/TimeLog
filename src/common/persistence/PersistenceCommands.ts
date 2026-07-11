@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence } from './IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, ITimeLogsPersistence } from './IPersistence';
 import { ErrorHandler, TauriInteropException } from '../exceptions';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { CorePersistenceCommand } from '@bindings/CorePersistenceCommand';
@@ -7,12 +7,15 @@ import { ProjectsPersistenceCommand } from '@bindings/ProjectsPersistenceCommand
 import { TasksPersistenceCommand } from '@bindings/TasksPersistenceCommand';
 import { SettingsPersistenceCommand } from '@bindings/SettingsPersistenceCommand';
 import { Settings } from '@bindings/Settings';
+import { TimeLog } from '@bindings/TimeLog';
+import { Task } from '@bindings/Task';
 
 export class PersistenceCommands implements IPersistence {
   public core: ICorePersistence;
   public projects: IProjectsPersistence;
   public tasks: ITasksPersistence;
   public settings: ISettingsPersistence;
+  public timeLogs: ITimeLogsPersistence;
 
   constructor() {
     this.core = {
@@ -86,6 +89,18 @@ export class PersistenceCommands implements IPersistence {
       toggleComplete: async (taskId: string): Promise<TimerRepositoryState> => {
         const cmd: TasksPersistenceCommand = 'toggle_task_complete';
         return invoke<TimerRepositoryState>(cmd, { taskId });
+      },
+
+      getProjectId: async (taskId: string): Promise<string> => {
+        const state = await this.core.load();
+        const task = state?.tasks.find(t => t.id === taskId);
+        if (!task) throw new Error(`Task ${taskId} not found`);
+        return task.projectId;
+      },
+
+      getSubtasks: async (taskId: string): Promise<Task[]> => {
+        const state = await this.core.load();
+        return state?.tasks.filter(t => t.parentTaskId === taskId) || [];
       }
     };
 
@@ -108,6 +123,27 @@ export class PersistenceCommands implements IPersistence {
           ErrorHandler.handle(new TauriInteropException('Failed to save settings via Tauri', err, 'ERR_TAURI_SETTINGS_SAVE'));
           throw err;
         }
+      }
+    };
+
+    this.timeLogs = {
+      getForTask: async (taskId: string): Promise<TimeLog[]> => {
+        return invoke<TimeLog[]>('get_time_logs_for_task', { taskId });
+      },
+      closeActiveByProject: async (endTime: string, projectId: string): Promise<void> => {
+        await invoke('close_active_logs_by_project', { endTime, projectId });
+      },
+      closeAllActive: async (endTime: string): Promise<void> => {
+        await invoke('close_all_active_logs', { endTime });
+      },
+      insert: async (logId: string, taskId: string, startTime: string): Promise<void> => {
+        await invoke('insert_time_log', { logId, taskId, startTime });
+      },
+      queryActive: async (): Promise<string[]> => {
+        return invoke<string[]>('query_active_logs');
+      },
+      getAll: async (): Promise<TimeLog[]> => {
+        return invoke<TimeLog[]>('get_all_time_logs');
       }
     };
   }

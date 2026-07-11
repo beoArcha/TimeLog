@@ -1,7 +1,9 @@
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence } from '@common/persistence/IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, ITimeLogsPersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { Settings } from '@bindings/Settings';
+import { TimeLog } from '@bindings/TimeLog';
+import { Task } from '@bindings/Task';
 
 const STORAGE_KEY = 'timelog_persistence_plugin_state';
 const SETTINGS_KEY = 'timelog_persistence_plugin_settings';
@@ -18,6 +20,7 @@ export class PersistencePlugin implements IPersistence {
   public projects: IProjectsPersistence;
   public tasks: ITasksPersistence;
   public settings: ISettingsPersistence;
+  public timeLogs: ITimeLogsPersistence;
 
   constructor() {
     this.core = {
@@ -110,6 +113,16 @@ export class PersistencePlugin implements IPersistence {
           task.completed = !task.completed;
         }
         return this.save(current);
+      },
+      getProjectId: async (taskId: string): Promise<string> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const task = current.tasks.find(t => t.id === taskId);
+        if (!task) throw new PersistenceException(`Task ${taskId} not found`, undefined, 'ERR_PERSISTENCE_TASK_NOT_FOUND');
+        return task.projectId;
+      },
+      getSubtasks: async (taskId: string): Promise<Task[]> => {
+        const current = (await this.core.load()) || getDefaultState();
+        return current.tasks.filter(t => t.parentTaskId === taskId);
       }
     };
 
@@ -132,6 +145,72 @@ export class PersistencePlugin implements IPersistence {
           ErrorHandler.handle(new PersistenceException('Failed to save settings to LocalStorage', e, 'ERR_PERSISTENCE_SETTINGS_SAVE'));
           throw e;
         }
+      }
+    };
+
+    this.timeLogs = {
+      getForTask: async (taskId: string): Promise<TimeLog[]> => {
+        const current = (await this.core.load()) || getDefaultState();
+        return current.logs.filter(l => l.taskId === taskId);
+      },
+      closeActiveByProject: async (endTime: string, projectId: string): Promise<void> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const projectTaskIds = new Set(current.tasks.filter(t => t.projectId === projectId).map(t => t.id));
+        let changed = false;
+        current.logs = current.logs.map(log => {
+          if (!log.endTime && projectTaskIds.has(log.taskId)) {
+            changed = true;
+            return { ...log, endTime };
+          }
+          return log;
+        });
+        if (changed) {
+          current.activeLog = current.logs.find(l => !l.endTime) || null;
+          await this.save(current);
+        }
+      },
+      closeAllActive: async (endTime: string): Promise<void> => {
+        const current = (await this.core.load()) || getDefaultState();
+        let changed = false;
+        current.logs = current.logs.map(log => {
+          if (!log.endTime) {
+            changed = true;
+            return { ...log, endTime };
+          }
+          return log;
+        });
+        if (changed) {
+          current.activeLog = null;
+          await this.save(current);
+        }
+      },
+      insert: async (logId: string, taskId: string, startTime: string): Promise<void> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const task = current.tasks.find(t => t.id === taskId);
+        if (!task) throw new PersistenceException(`Task ${taskId} not found`, undefined, 'ERR_PERSISTENCE_TASK_NOT_FOUND');
+        const newLog: TimeLog = {
+          id: logId,
+          taskId,
+          projectId: task.projectId,
+          startTime,
+          endTime: null,
+          note: null,
+          originalStartTime: null,
+          originalEndTime: null,
+          originalNote: null,
+          editHistory: null
+        };
+        current.logs.push(newLog);
+        current.activeLog = newLog;
+        await this.save(current);
+      },
+      queryActive: async (): Promise<string[]> => {
+        const current = (await this.core.load()) || getDefaultState();
+        return current.logs.filter(l => !l.endTime).map(l => l.taskId);
+      },
+      getAll: async (): Promise<TimeLog[]> => {
+        const current = (await this.core.load()) || getDefaultState();
+        return current.logs;
       }
     };
   }

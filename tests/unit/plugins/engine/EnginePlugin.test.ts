@@ -50,6 +50,12 @@ const setupMockInvokeForRustBehavior = () => {
         taskId,
         projectId,
         startTime: now,
+        endTime: null,
+        note: null,
+        originalStartTime: null,
+        originalEndTime: null,
+        originalNote: null,
+        editHistory: null
       };
       updatedLogs.push(newLog);
 

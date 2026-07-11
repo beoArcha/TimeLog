@@ -1,5 +1,5 @@
 import { isDesktopEnvironment } from '../utils/environment';
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence } from './IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, ITimeLogsPersistence } from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
 import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
 
@@ -40,5 +40,9 @@ export class PersistenceRouter implements IPersistence {
 
   get settings(): ISettingsPersistence {
     return this.implementation.settings;
+  }
+
+  get timeLogs(): ITimeLogsPersistence {
+    return this.implementation.timeLogs;
   }
 }

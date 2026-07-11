@@ -9,79 +9,22 @@ export class EnginePlugin implements IEngine {
   private persistence = PersistenceRouter.getInstance();
 
   async startTimer(taskId: string): Promise<void> {
-    const state = await this.persistence.core.load();
-    if (!state) {
-      throw new ContextException('State not initialized', 'ERR_ENGINE_STATE');
-    }
-
-    const task = state.tasks.find(t => t.id === taskId);
-    if (!task) {
-      throw new EntityNotFoundException(`Task with ID ${taskId} not found`, 'ERR_TASK_NOT_FOUND');
-    }
-
-    const projectId = task.projectId;
+    const projectId = await this.persistence.tasks.getProjectId(taskId);
     const now = new Date().toISOString();
 
-    const projectTaskIds = new Set(
-      state.tasks.filter(t => t.projectId === projectId).map(t => t.id)
-    );
-
-    const updatedLogs = state.logs.map(log => {
-      if (!log.endTime && projectTaskIds.has(log.taskId)) {
-        return { ...log, endTime: now };
-      }
-      return log;
-    });
+    await this.persistence.timeLogs.closeActiveByProject(now, projectId);
 
     const logId = `log_${Date.now()}_${logCounter++}`;
-    const newLog: TimeLog = {
-      id: logId,
-      taskId,
-      projectId,
-      startTime: now,
-    };
-
-    updatedLogs.push(newLog);
-
-    await this.persistence.core.overrideState({
-      logs: updatedLogs,
-      activeLog: newLog
-    });
+    await this.persistence.timeLogs.insert(logId, taskId, now);
   }
 
   async stopTimer(projectId?: string): Promise<void> {
-    const state = await this.persistence.core.load();
-    if (!state) {
-      throw new ContextException('State not initialized', 'ERR_ENGINE_STATE');
-    }
-
     const now = new Date().toISOString();
-    let updatedLogs: TimeLog[];
 
     if (projectId) {
-      const projectTaskIds = new Set(
-        state.tasks.filter(t => t.projectId === projectId).map(t => t.id)
-      );
-      updatedLogs = state.logs.map(log => {
-        if (!log.endTime && projectTaskIds.has(log.taskId)) {
-          return { ...log, endTime: now };
-        }
-        return log;
-      });
+      await this.persistence.timeLogs.closeActiveByProject(now, projectId);
     } else {
-      updatedLogs = state.logs.map(log => {
-        if (!log.endTime) {
-          return { ...log, endTime: now };
-        }
-        return log;
-      });
+      await this.persistence.timeLogs.closeAllActive(now);
     }
-
-    const activeLog = updatedLogs.find(log => !log.endTime) || null;
-
-    await this.persistence.core.overrideState({
-      logs: updatedLogs,
-      activeLog
-    });
   }
 }
