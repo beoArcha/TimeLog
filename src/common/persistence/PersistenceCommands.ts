@@ -21,7 +21,7 @@ export class PersistenceCommands implements IPersistence {
     this.core = {
       load: async (): Promise<TimerRepositoryState | null> => {
         try {
-          const cmd: CorePersistenceCommand = 'get_timer_state';
+          const cmd: CorePersistenceCommand = 'get_state';
           const state = await invoke<TimerRepositoryState>(cmd);
           if (state.projects.length === 0 && state.tasks.length === 0) {
             return null;
@@ -44,31 +44,31 @@ export class PersistenceCommands implements IPersistence {
       },
 
       reset: async (): Promise<TimerRepositoryState> => {
-        const cmd: CorePersistenceCommand = 'reset_database';
+        const cmd: CorePersistenceCommand = 'reset';
         return invoke<TimerRepositoryState>(cmd);
       }
     };
 
     this.projects = {
       add: async (input: { name: string; color: string }): Promise<TimerRepositoryState> => {
-        const cmd: ProjectsPersistenceCommand = 'add_project';
+        const cmd: ProjectsPersistenceCommand = 'add';
         return invoke<TimerRepositoryState>(cmd, { name: input.name, color: input.color });
       },
 
       toggleArchive: async (projectId: string): Promise<TimerRepositoryState> => {
-        const cmd: ProjectsPersistenceCommand = 'toggle_project_archive';
+        const cmd: ProjectsPersistenceCommand = 'toggle_archive';
         return invoke<TimerRepositoryState>(cmd, { projectId });
       },
 
       rename: async (projectId: string, name: string): Promise<TimerRepositoryState> => {
-        const cmd: ProjectsPersistenceCommand = 'rename_project';
+        const cmd: ProjectsPersistenceCommand = 'rename';
         return invoke<TimerRepositoryState>(cmd, { projectId, name });
       }
     };
 
     this.tasks = {
       add: async (input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState> => {
-        const cmd: TasksPersistenceCommand = 'add_task';
+        const cmd: TasksPersistenceCommand = 'create';
         return invoke<TimerRepositoryState>(cmd, {
           projectId: input.projectId,
           name: input.name,
@@ -77,17 +77,17 @@ export class PersistenceCommands implements IPersistence {
       },
 
       rename: async (taskId: string, name: string): Promise<TimerRepositoryState> => {
-        const cmd: TasksPersistenceCommand = 'rename_task';
+        const cmd: TasksPersistenceCommand = 'update';
         return invoke<TimerRepositoryState>(cmd, { taskId, name });
       },
 
       delete: async (taskId: string): Promise<TimerRepositoryState> => {
-        const cmd: TasksPersistenceCommand = 'delete_task';
+        const cmd: TasksPersistenceCommand = 'delete';
         return invoke<TimerRepositoryState>(cmd, { taskId });
       },
 
       toggleComplete: async (taskId: string): Promise<TimerRepositoryState> => {
-        const cmd: TasksPersistenceCommand = 'toggle_task_complete';
+        const cmd: TasksPersistenceCommand = 'toggle_complete';
         return invoke<TimerRepositoryState>(cmd, { taskId });
       },
 
@@ -107,7 +107,7 @@ export class PersistenceCommands implements IPersistence {
     this.settings = {
       get: async (): Promise<Settings> => {
         try {
-          const cmd: SettingsPersistenceCommand = 'get_settings';
+          const cmd: SettingsPersistenceCommand = 'get';
           return await invoke<Settings>(cmd);
         } catch (err) {
           ErrorHandler.handle(new TauriInteropException('Failed to get settings via Tauri', err, 'ERR_TAURI_SETTINGS_GET'));
@@ -117,7 +117,7 @@ export class PersistenceCommands implements IPersistence {
 
       save: async (settings: Settings): Promise<void> => {
         try {
-          const cmd: SettingsPersistenceCommand = 'save_settings';
+          const cmd: SettingsPersistenceCommand = 'save';
           await invoke(cmd, { settings });
         } catch (err) {
           ErrorHandler.handle(new TauriInteropException('Failed to save settings via Tauri', err, 'ERR_TAURI_SETTINGS_SAVE'));
@@ -128,22 +128,22 @@ export class PersistenceCommands implements IPersistence {
 
     this.timeLogs = {
       getForTask: async (taskId: string): Promise<TimeLog[]> => {
-        return invoke<TimeLog[]>('get_time_logs_for_task', { taskId });
+        return invoke<TimeLog[]>('get_for_task', { taskId });
       },
       closeActiveByProject: async (endTime: string, projectId: string): Promise<void> => {
-        await invoke('close_active_logs_by_project', { endTime, projectId });
+        await invoke('close_active_by_project', { endTime, projectId });
       },
       closeAllActive: async (endTime: string): Promise<void> => {
-        await invoke('close_all_active_logs', { endTime });
+        await invoke('close_all_active', { endTime });
       },
       insert: async (logId: string, taskId: string, startTime: string): Promise<void> => {
-        await invoke('insert_time_log', { logId, taskId, startTime });
+        await invoke('insert', { logId, taskId, startTime });
       },
       queryActive: async (): Promise<string[]> => {
-        return invoke<string[]>('query_active_logs');
+        return invoke<string[]>('query_active');
       },
       getAll: async (): Promise<TimeLog[]> => {
-        return invoke<TimeLog[]>('get_all_time_logs');
+        return invoke<TimeLog[]>('get_all');
       }
     };
   }

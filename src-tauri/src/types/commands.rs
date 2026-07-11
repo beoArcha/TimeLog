@@ -36,33 +36,33 @@ pub enum EngineCommand {
 #[ts(export)]
 #[serde(rename_all = "snake_case")]
 pub enum CorePersistenceCommand {
-    GetTimerState,
-    ResetDatabase,
+    GetState,
+    Reset,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
 #[serde(rename_all = "snake_case")]
 pub enum ProjectsPersistenceCommand {
-    AddProject,
-    RenameProject,
-    ToggleProjectArchive,
+    Add,
+    Rename,
+    ToggleArchive,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
 #[serde(rename_all = "snake_case")]
 pub enum TasksPersistenceCommand {
-    AddTask,
-    RenameTask,
-    DeleteTask,
-    ToggleTaskComplete,
+    Create,
+    Update,
+    Delete,
+    ToggleComplete,
 }
 
 #[derive(TS, Serialize)]
 #[ts(export)]
 #[serde(rename_all = "snake_case")]
 pub enum SettingsPersistenceCommand {
-    GetSettings,
-    SaveSettings,
+    Get,
+    Save,
 }

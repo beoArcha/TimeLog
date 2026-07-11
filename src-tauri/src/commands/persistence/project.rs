@@ -4,7 +4,7 @@ use crate::types::TimerRepositoryState;
 use crate::AppState;
 use tauri::State;
 
-#[tauri::command(rename = "add_project")]
+#[tauri::command]
 pub fn add(
     name: String,
     color: String,
@@ -25,7 +25,7 @@ pub fn add(
     Ok(engine.get_state()?)
 }
 
-#[tauri::command(rename = "toggle_project_archive")]
+#[tauri::command]
 pub fn toggle_archive(
     project_id: String,
     state: State<'_, AppState>,
@@ -39,7 +39,7 @@ pub fn toggle_archive(
     Ok(engine.get_state()?)
 }
 
-#[tauri::command(rename = "rename_project")]
+#[tauri::command]
 pub fn rename(
     project_id: String,
     name: String,

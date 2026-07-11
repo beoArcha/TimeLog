@@ -4,7 +4,7 @@ use crate::types::TimerRepositoryState;
 use crate::AppState;
 use tauri::State;
 
-#[tauri::command(rename = "add_task")]
+#[tauri::command]
 pub fn create(
     project_id: String,
     name: String,
@@ -32,7 +32,7 @@ pub fn create(
     Ok(engine.get_state()?)
 }
 
-#[tauri::command(rename = "rename_task")]
+#[tauri::command]
 pub fn update(
     task_id: String,
     name: String,
@@ -46,7 +46,7 @@ pub fn update(
     Ok(engine.get_state()?)
 }
 
-#[tauri::command(rename = "delete_task")]
+#[tauri::command]
 pub fn delete(
     task_id: String,
     state: State<'_, AppState>,
@@ -65,7 +65,7 @@ pub fn delete(
     Ok(engine.get_state()?)
 }
 
-#[tauri::command(rename = "toggle_task_complete")]
+#[tauri::command]
 pub fn toggle_complete(
     task_id: String,
     state: State<'_, AppState>,
