@@ -29,4 +29,7 @@ fn export_bindings() {
     Locale::export().unwrap();
     SinkType::export().unwrap();
     WindowDimensions::export().unwrap();
+    ProjectStatistics::export().unwrap();
+    RuntimeConfig::export().unwrap();
+    TaskStatus::export().unwrap();
 }
