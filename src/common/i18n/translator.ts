@@ -33,9 +33,15 @@ export const dictionaries: Record<string, Record<string, Record<string, string>>
   help,
 };
 
-const isDev: boolean =
-  (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') ||
-  (typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV);
+export type DomainTranslations = Record<string, Record<string, string>>;
+
+function isDevelopmentEnv(): boolean {
+  return (
+    (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') ||
+    (typeof import.meta !== 'undefined' &&
+      Boolean((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV))
+  );
+}
 
 function interpolate(text: string, vars?: Record<string, string | number>): string {
   if (!vars) return text;
@@ -45,41 +51,73 @@ function interpolate(text: string, vars?: Record<string, string | number>): stri
   });
 }
 
+function resolveCustomTranslation(
+  domain: string,
+  key: string,
+  customDict?: Record<string, unknown>
+): string | undefined {
+  if (!customDict) return undefined;
+  const domainEntry = customDict[domain];
+  if (domainEntry && typeof domainEntry === 'object') {
+    const customVal = (domainEntry as Record<string, unknown>)[key];
+    if (typeof customVal === 'string') {
+      return customVal;
+    }
+  }
+  return undefined;
+}
+
+function resolveDictionaryTranslation(
+  domainDict: DomainTranslations,
+  locale: Locale,
+  key: string
+): string | undefined {
+  const resolvedLocale = locale === 'custom' ? 'en' : locale;
+  const langDict = domainDict[resolvedLocale] || domainDict['en'];
+  const translation = langDict?.[key];
+
+  if (translation !== undefined) {
+    return translation;
+  }
+
+  if (resolvedLocale !== 'en') {
+    return domainDict['en']?.[key];
+  }
+
+  return undefined;
+}
+
+function logMissingTranslation(domain: string, key: string): void {
+  if (isDevelopmentEnv()) {
+    console.warn(`[i18n] Missing translation: ${domain}.${key}`);
+  }
+}
+
 export function translate<D extends keyof DomainKeys>(
   locale: Locale,
   domain: D,
   key: DomainKeys[D],
-  customDict?: Record<string, any> | undefined,
+  customDict?: Record<string, unknown> | undefined,
   vars?: Record<string, string | number>
 ): string {
-  const domainDict = dictionaries[domain];
+  const domainDict = dictionaries[domain] as DomainTranslations | undefined;
   if (!domainDict) {
-    return key;
+    return interpolate(key, vars);
   }
 
   if (locale === 'custom' && customDict) {
-    const customVal = customDict[domain]?.[key];
-    if (typeof customVal === 'string') {
+    const customVal = resolveCustomTranslation(domain, key, customDict);
+    if (customVal !== undefined) {
       return interpolate(customVal, vars);
     }
   }
 
-  const resolvedLocale = locale === 'custom' ? 'en' : locale;
-  const langDict = domainDict[resolvedLocale] || domainDict['en'];
-  let translation = langDict?.[key];
-
-  if (translation === undefined && resolvedLocale !== 'en') {
-    translation = domainDict['en']?.[key];
-  }
-
+  const translation = resolveDictionaryTranslation(domainDict, locale, key);
   if (translation !== undefined) {
     return interpolate(translation, vars);
   }
 
-  if (isDev) {
-    console.warn(`[i18n] Missing translation: ${domain}.${key}`);
-  }
-
+  logMissingTranslation(domain, key);
   return interpolate(key, vars);
 }
 

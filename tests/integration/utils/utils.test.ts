@@ -32,7 +32,7 @@ describe('Integration Tests: Utils (i18n and DataManager)', () => {
       expect(translate('custom', 'app', 'Subtitle', customDict)).toBe('My Custom App Subtitle');
       expect(translate('custom', 'common', 'Save', customDict)).toBe('Commit Changes');
       expect(translate('custom', 'common', 'Cancel', customDict)).toBe('Cancel');
-      expect(translate('custom', 'common', 'NonexistentKey' as any, customDict)).toBe('NonexistentKey');
+      expect(translate('custom', 'common', 'NonexistentKey' as never, customDict)).toBe('NonexistentKey');
     });
   });
 

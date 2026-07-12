@@ -34,6 +34,6 @@ describe('Unit Tests: new_i18n Subsystem', () => {
   });
 
   it('should return the key literal itself if key is missing in all dictionaries', () => {
-    expect(translate('en', 'common', 'NonexistentKey' as any)).toBe('NonexistentKey');
+    expect(translate('en', 'common', 'NonexistentKey' as never)).toBe('NonexistentKey');
   });
 });
