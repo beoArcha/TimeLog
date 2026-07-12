@@ -3,6 +3,9 @@ export const de = {
     "cancel": "Abbrechen",
     "save": "Speichern",
     "edit": "Bearbeiten",
+    "editName": "Name bearbeiten",
+    "startTimer": "Start",
+    "stopTimer": "Stopp",
     "delete": "Löschen",
     "add": "Hinzufügen",
     "close": "Schließen",
@@ -45,7 +48,8 @@ export const de = {
     "synced": "Motor synchronisiert",
     "threads": "parallele Tracking-Threads (Projekte laufen gleichzeitig).",
     "minimizeToTray": "In Taskleiste minimieren",
-    "sqlReset": "Datenbank zurücksetzen (SQL Reset)"
+    "sqlReset": "Datenbank zurücksetzen (SQL Reset)",
+    "ready": "Motor: Bereit"
   },
   "gui": {
     "newProject": "Neues Projekt",
@@ -100,7 +104,11 @@ export const de = {
     "apiHeaders": "Benutzerdefinierte Header",
     "apiHeadersTitle": "Erweiterte Header",
     "apiHeadersDesc": "Fügen Sie benutzerdefinierte JSON-Nutzdaten für API-Anfrageheader hinzu.",
-    "clearDatabaseConfirm": "Sind Sie sicher, dass Sie die lokale SQLite-Datenbank vollständig löschen möchten? Alle Sitzungen werden gelöscht."
+    "clearDatabaseConfirm": "Sind Sie sicher, dass Sie die lokale SQLite-Datenbank vollständig löschen möchten? Alle Sitzungen werden gelöscht.",
+    "hardResetDesc": "Alle Daten werden gelöscht...",
+    "hardResetBtn": "Datenbank zurücksetzen",
+    "resetSuccess": "Datenbank erfolgreich zurückgesetzt. Alle Daten wurden gelöscht.",
+    "resetCancel": "Zurücksetzen abgebrochen. Keine Änderungen vorgenommen."
   },
   "tests": {
     "testsTitle": "QA Unit Tests Panel (Rust-Motor-Verifizierung)",
@@ -215,7 +223,7 @@ export const de = {
     "cliWelcomeSqliteConnected": "SQLite-Verbindung erfolgreich hergestellt.",
     "warningResetApp": "WARNUNG: Sind Sie sicher, dass Sie ALLE Protokolle, Aufgaben und Projekte löschen wollen? Feiertage werden nicht gelöscht. Diese Aktion kann nicht rückgängig gemacht werden! Geben Sie 'reset' ein, um zu bestätigen:",
     "noActiveTimersThisMoment": "Momentan keine aktiven Timer.",
-        "cliHelpTitle": "================ Verfügbare OxyFlowCLI Befehle ================",
+    "cliHelpTitle": "================ Verfügbare OxyFlowCLI Befehle ================",
     "cliProjectsDesc": "Listet alle Projekte in der SQLite-Datenbank auf",
     "cliTasksDesc": "Listet alle Aufgaben und Unteraufgaben eines Projekts auf",
     "cliAddProjectDesc": "Erstellt ein neues Projekt (Name in Anführungszeichen)",
@@ -322,7 +330,9 @@ export const de = {
     "themeLight": "Hell",
     "themeHighContrast": "Kontrast",
     "themeSystem": "Sys",
-    "noTaskSelected": "Wählen Sie zuerst eine Aufgabe aus, um den Timer zu starten / stoppen."
+    "noTaskSelected": "Wählen Sie zuerst eine Aufgabe aus, um den Timer zu starten / stoppen.",
+    "restoreDefault": "LogTime by OxyFlow Oberfläche wiederherstellen",
+    "defaultRestored": "LogTime by OxyFlow Oberfläche wiederhergestellt."
   },
   "dbExplorer": {
     "noteBeforeCorrection": "Notiz vor Korrektur:",
@@ -400,5 +410,11 @@ export const de = {
     "activeMeasuringThreads": "Aktive Erfassungs-Threads",
     "maximizeAndRestore": "GUI maximieren und wiederherstellen",
     "pauseAllProcesses": "Alle Prozesse anhalten"
+  },
+  "backupTab": {
+    "backupJson": "Backup JSON exportieren",
+    "restoreImportJson": "Backup JSON wiederherstellen / importieren",
+    "restoreSuccess": "Backup erfolgreich importiert!",
+    "invalidBackup": "Ungültige Backup-Datei."
   }
 };

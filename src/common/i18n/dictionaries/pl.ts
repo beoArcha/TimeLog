@@ -110,7 +110,9 @@ export const pl = {
     apiMethodDesc: 'Wybierz pomiędzy protokołami POST lub PUT.',
     apiHeaders: 'Niestandardowe Nagłówki',
     apiHeadersTitle: 'Zawansowane Nagłówki (Headers)',
-    apiHeadersDesc: 'Uzupełnij odpowiedni poprawny ciąg JSON, zostanie załączony do headers api.'
+    apiHeadersDesc: 'Uzupełnij odpowiedni poprawny ciąg JSON, zostanie załączony do headers api.',
+    resetSuccess: 'Baza danych zresetowana. Wszystkie dane usunięte.',
+    resetCancel: 'Anulowano reset. Żadne zmiany nie zostały wprowadzone.'
   },
   tests: {
     testsTitle: 'Testy QA i silnika',

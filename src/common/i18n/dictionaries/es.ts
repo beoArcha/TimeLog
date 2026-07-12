@@ -3,6 +3,9 @@ export const es = {
     "cancel": "Cancelar",
     "save": "Guardar",
     "edit": "Editar",
+    "editName": "Editar nombre",
+    "startTimer": "Iniciar",
+    "stopTimer": "Detener",
     "delete": "Eliminar",
     "add": "Añadir",
     "close": "Cerrar",
@@ -49,7 +52,8 @@ export const es = {
     "synced": "Motor sincronizado",
     "threads": "hilos de seguimiento (ejecución simultánea).",
     "minimizeToTray": "Minimizar a la bandeja",
-    "sqlReset": "Restablecer base de datos (SQL Reset)"
+    "sqlReset": "Restablecer base de datos (SQL Reset)",
+    "ready": "Motor: Listo"
   },
   "gui": {
     "newProject": "Nuevo Proyecto",
@@ -84,9 +88,9 @@ export const es = {
   "settings": {
     "hardResetDesc": "Eliminando todos los datos...",
     "hardResetBtn": "Restablecer base de datos",
-    "title": "Interface & Application Settings",
-    "description": "Manage global settings, language, colors, and API integrations.",
-    "holidaysTitle": "Holidays & Regional Settings",
+    "title": "Configuración de Interfaz y Aplicación",
+    "description": "Gestiona la configuración global, idioma, colores e integraciones API.",
+    "holidaysTitle": "Festivos y Configuración Regional",
     "addLanguage": "Añadir idioma",
     "customLanguageTitle": "Idioma personalizado",
     "customLanguageKey": "Clave",
@@ -106,7 +110,9 @@ export const es = {
     "apiHeaders": "Cabeceras personalizadas",
     "apiHeadersTitle": "Cabeceras",
     "apiHeadersDesc": "Añadir JSON de cabeceras personalizadas",
-    "clearDatabaseConfirm": "¿Está seguro de que desea borrar por completo la base de datos local SQLite? Se eliminarán todas las sesiones."
+    "clearDatabaseConfirm": "¿Está seguro de que desea borrar por completo la base de datos local SQLite? Se eliminarán todas las sesiones.",
+    "resetSuccess": "Base de datos restablecida. Todos los datos eliminados.",
+    "resetCancel": "Restablecimiento cancelado. No se realizaron cambios."
   },
   "tests": {
     "testsTitle": "Panel de Pruebas Unitarias (Verificación del motor Rust)",
@@ -129,30 +135,30 @@ export const es = {
     "andMoreRows": "...y {x} filas más",
     "actionsCrud": "acciones (SQL CRUD)",
     "originalValue": "original",
-    "dbTitle": "Tables Manager & History Audit (LogTime by OxyFlow Backend)",
-    "dbDesc": "View raw JSON/SQLite background database records. Thanks to timestamp logging, the calculator calculates time retrospectively, meaning you don't need to keep the application running. You can freely edit entries - their original values and change history are always preserved.",
-    "tauriDriver": "Tauri SQLite Driver",
-    "exportDb": "Export database",
-    "entriesCrucialLabel": "Entries are crucial: time is calculated based on them. It works backward, you don't need to be logged in live.",
-    "patchTableAllows": "The patch table allows patching sleep gaps or manually creating new periods to include in total work time.",
-    "actionsLabel": "actions",
-    "backupDesc": "Perform an immediate dump of the entire SQLite database, including project structures, logs, and patch fixes, or load a ready backup.",
-    "webhookDesc": "Configure LogTime by OxyFlow to send time dumps directly to an external system or database.",
-    "apiAddress": "API Address",
-    "bearerAuthTitle": "API Token (Bearer Auth)",
-    "quickShortcuts": "Quick clickable shortcuts:",
+    "dbTitle": "Gestor de Tablas y Auditoría de Historial (LogTime by OxyFlow Backend)",
+    "dbDesc": "Visualice los registros en bruto de la base de datos JSON/SQLite en segundo plano. Gracias al registro de marcas de tiempo, la calculadora calcula el tiempo de forma retroactiva, por lo que no necesita mantener la aplicación en ejecución. Puede editar las entradas libremente: sus valores originales y el historial de cambios siempre se conservan.",
+    "tauriDriver": "Controlador Tauri SQLite",
+    "exportDb": "Exportar base de datos",
+    "entriesCrucialLabel": "Las entradas son cruciales: el tiempo se calcula a partir de ellas. Funciona de forma retroactiva; no necesita estar conectado en directo.",
+    "patchTableAllows": "La tabla de parches permite corregir intervalos de reposo o crear manualmente nuevos períodos para incluirlos en el tiempo de trabajo total.",
+    "actionsLabel": "acciones",
+    "backupDesc": "Realice un volcado inmediato de toda la base de datos SQLite, incluyendo estructuras de proyectos, registros y correcciones de parches, o cargue una copia de seguridad lista.",
+    "webhookDesc": "Configure LogTime by OxyFlow para enviar volcados de tiempo directamente a un sistema externo o base de datos.",
+    "apiAddress": "Dirección de API",
+    "bearerAuthTitle": "Token de API (Bearer Auth)",
+    "quickShortcuts": "Accesos directos rápidos:",
     "settings_data": {
-      "title": "Interface & Application Settings",
-      "description": "Manage global settings, language, colors, and API integrations.",
-      "holidaysTitle": "Holidays & Regional Settings"
+      "title": "Configuración de Interfaz y Aplicación",
+      "description": "Gestiona la configuración global, idioma, colores e integraciones API.",
+      "holidaysTitle": "Festivos y Configuración Regional"
     },
     "engine_data": {
-      "configTitle": "Engine Options & Daemons",
-      "configDesc": "Advanced LogTime by OxyFlow microORM engine settings.",
-      "autoStart": "Start on system boot",
-      "autoPauseOnSleep": "Auto pause running timers on sleep",
-      "minimizeToTrayDefault": "Minimize to tray on window close",
-      "includePatchesInReports": "Include time patches in summaries"
+      "configTitle": "Opciones del Motor y Daemons",
+      "configDesc": "Configuraciones avanzadas del motor microORM LogTime by OxyFlow.",
+      "autoStart": "Iniciar al arrancar el sistema",
+      "autoPauseOnSleep": "Pausar automáticamente con la suspensión",
+      "minimizeToTrayDefault": "Minimizar a la bandeja al cerrar",
+      "includePatchesInReports": "Incluir parches de tiempo en resúmenes"
     },
     "projects": "Proyectos",
     "nenhumProjetoAindaAdicioneUmAc": "Aún sin proyectos.",
@@ -341,7 +347,9 @@ export const es = {
     "themeLight": "Claro",
     "themeHighContrast": "Alto",
     "themeSystem": "Sis",
-    "noTaskSelected": "Seleccione una tarea primero para iniciar."
+    "noTaskSelected": "Seleccione una tarea primero para iniciar.",
+    "restoreDefault": "Restaurar interfaz LogTime by OxyFlow",
+    "defaultRestored": "Interfaz LogTime by OxyFlow restaurada."
   },
   "dbExplorer": {
     "noteBeforeCorrection": "Nota antes de corrección:",
@@ -419,5 +427,11 @@ export const es = {
     "activeMeasuringThreads": "Hilos de seguimiento activos",
     "maximizeAndRestore": "Maximizar y Restaurar GUI",
     "pauseAllProcesses": "Pausar todos los procesos"
+  },
+  "backupTab": {
+    "backupJson": "Exportar copia de seguridad JSON",
+    "restoreImportJson": "Restaurar / Importar copia de seguridad JSON",
+    "restoreSuccess": "¡Copia de seguridad importada correctamente!",
+    "invalidBackup": "Archivo de copia de seguridad no válido."
   }
 };

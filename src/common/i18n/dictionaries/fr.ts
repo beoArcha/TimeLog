@@ -3,6 +3,9 @@ export const fr = {
     "cancel": "Annuler",
     "save": "Enregistrer",
     "edit": "Modifier",
+    "editName": "Modifier le nom",
+    "startTimer": "Démarrer",
+    "stopTimer": "Arrêter",
     "delete": "Supprimer",
     "add": "Ajouter",
     "close": "Fermer",
@@ -31,7 +34,7 @@ export const fr = {
     "db": "Base de données",
     "options": "Options",
     "manual": "Manuel",
-    "credits": "Créditos",
+    "credits": "Crédits",
     "rust": "Rust Source"
   },
   "engine": {
@@ -49,7 +52,8 @@ export const fr = {
     "synced": "Moteur synchronisé",
     "threads": "processus en parallèle (projets en cours).",
     "minimizeToTray": "Minimiser dans la barre",
-    "sqlReset": "Réinitialiser la base (SQL Reset)"
+    "sqlReset": "Réinitialiser la base (SQL Reset)",
+    "ready": "Moteur : Prêt"
   },
   "gui": {
     "newProject": "Nouveau Projet",
@@ -84,9 +88,9 @@ export const fr = {
   "settings": {
     "hardResetDesc": "Suppression de toutes les données...",
     "hardResetBtn": "Réinitialiser la base de données",
-    "title": "Interface & Application Settings",
-    "description": "Manage global settings, language, colors, and API integrations.",
-    "holidaysTitle": "Holidays & Regional Settings",
+    "title": "Paramètres de l'Interface et de l'Application",
+    "description": "Gérez les paramètres globaux, la langue, les couleurs et les intégrations API.",
+    "holidaysTitle": "Jours Fériés et Paramètres Régionaux",
     "addLanguage": "Ajouter une langue",
     "customLanguageTitle": "Langue personnalisée",
     "customLanguageKey": "Clé",
@@ -106,7 +110,9 @@ export const fr = {
     "apiHeaders": "En-têtes",
     "apiHeadersTitle": "Têtes personnalisées",
     "apiHeadersDesc": "Ajoutez du JSON pour l'en-tête API",
-    "clearDatabaseConfirm": "Êtes-vous sûr de vouloir vider complètement la base de données locale SQLite ? Toutes les sessions seront purgées."
+    "clearDatabaseConfirm": "Êtes-vous sûr de vouloir vider complètement la base de données locale SQLite ? Toutes les sessions seront purgées.",
+    "resetSuccess": "Base de données réinitialisée. Toutes les données effacées.",
+    "resetCancel": "Réinitialisation annulée. Aucun changement effectué."
   },
   "tests": {
     "testsTitle": "Panneau de Tests Unitaires",
@@ -129,30 +135,30 @@ export const fr = {
     "andMoreRows": "...et {x} lignes en plus",
     "actionsCrud": "actions (SQL CRUD)",
     "originalValue": "original",
-    "dbTitle": "Tables Manager & History Audit (LogTime by OxyFlow Backend)",
-    "dbDesc": "View raw JSON/SQLite background database records. Thanks to timestamp logging, the calculator calculates time retrospectively, meaning you don't need to keep the application running. You can freely edit entries - their original values and change history are always preserved.",
-    "tauriDriver": "Tauri SQLite Driver",
-    "exportDb": "Export database",
-    "entriesCrucialLabel": "Entries are crucial: time is calculated based on them. It works backward, you don't need to be logged in live.",
-    "patchTableAllows": "The patch table allows patching sleep gaps or manually creating new periods to include in total work time.",
+    "dbTitle": "Gestionnaire de Tables et Audit d'Historique (LogTime by OxyFlow Backend)",
+    "dbDesc": "Visualisez les enregistrements bruts de la base de données JSON/SQLite en arrière-plan. Grâce à la journalisation des horodatages, la calculatrice calcule le temps de manière rétroactive, ce qui signifie que vous n'avez pas besoin de garder l'application en cours d'exécution. Vous pouvez modifier librement les entrées - leurs valeurs originales et l'historique des modifications sont toujours conservés.",
+    "tauriDriver": "Pilote Tauri SQLite",
+    "exportDb": "Exporter la base de données",
+    "entriesCrucialLabel": "Les entrées sont essentielles : le temps est calculé à partir d'elles. Cela fonctionne en rétroactif, vous n'avez pas besoin d'être connecté en direct.",
+    "patchTableAllows": "La table de correctifs permet de corriger les interruptions de veille ou de créer manuellement de nouvelles périodes à inclure dans le temps de travail total.",
     "actionsLabel": "actions",
-    "backupDesc": "Perform an immediate dump of the entire SQLite database, including project structures, logs, and patch fixes, or load a ready backup.",
-    "webhookDesc": "Configure LogTime by OxyFlow to send time dumps directly to an external system or database.",
-    "apiAddress": "API Address",
-    "bearerAuthTitle": "API Token (Bearer Auth)",
-    "quickShortcuts": "Quick clickable shortcuts:",
+    "backupDesc": "Effectuez un dump immédiat de toute la base de données SQLite, y compris les structures de projets, les journaux et les correctifs, ou chargez une sauvegarde prête.",
+    "webhookDesc": "Configurez LogTime by OxyFlow pour envoyer des dumps de temps directement à un système externe ou une base de données.",
+    "apiAddress": "Adresse API",
+    "bearerAuthTitle": "Jeton API (Bearer Auth)",
+    "quickShortcuts": "Raccourcis rapides :",
     "settings_data": {
-      "title": "Interface & Application Settings",
-      "description": "Manage global settings, language, colors, and API integrations.",
-      "holidaysTitle": "Holidays & Regional Settings"
+      "title": "Paramètres de l'Interface et de l'Application",
+      "description": "Gérez les paramètres globaux, la langue, les couleurs et les intégrations API.",
+      "holidaysTitle": "Jours Fériés et Paramètres Régionaux"
     },
     "engine_data": {
-      "configTitle": "Engine Options & Daemons",
-      "configDesc": "Advanced LogTime by OxyFlow microORM engine settings.",
-      "autoStart": "Start on system boot",
-      "autoPauseOnSleep": "Auto pause running timers on sleep",
-      "minimizeToTrayDefault": "Minimize to tray on window close",
-      "includePatchesInReports": "Include time patches in summaries"
+      "configTitle": "Options du Moteur & Démons",
+      "configDesc": "Paramètres avancés du moteur microORM LogTime by OxyFlow.",
+      "autoStart": "Démarrer avec le système",
+      "autoPauseOnSleep": "Mettre en pause avec la mise en veille",
+      "minimizeToTrayDefault": "Minimiser dans la barre en fermant",
+      "includePatchesInReports": "Inclure les correctifs dans les résumés"
     },
     "projects": "Projets",
     "nenhumProjetoAindaAdicioneUmAc": "Pas de projets.",
@@ -183,7 +189,7 @@ export const fr = {
     "actions": "Actions",
     "noEntriesFoundInputAVacationAb": "Aucune entrée.",
     "hOLIDAY": "JOUR FÉRIÉ",
-    "vACATION": "VACACIONES",
+    "vACATION": "VACANCES",
     "deleteSQLDELETE": "Supprimer",
     "sQLAnalyticsEngine": "Moteur d'analyse SQL",
     "timeSummariesReports": "Résumés",
@@ -341,7 +347,9 @@ export const fr = {
     "themeLight": "Clair",
     "themeHighContrast": "Contraste",
     "themeSystem": "Sys",
-    "noTaskSelected": "Veuillez sélectionner une tâche pour démarrer."
+    "noTaskSelected": "Veuillez sélectionner une tâche pour démarrer.",
+    "restoreDefault": "Restaurer l'interface LogTime by OxyFlow",
+    "defaultRestored": "Interface LogTime by OxyFlow restaurée."
   },
   "dbExplorer": {
     "noteBeforeCorrection": "Note avant correction :",
@@ -419,5 +427,11 @@ export const fr = {
     "activeMeasuringThreads": "Threads de suivi actifs",
     "maximizeAndRestore": "Maximiser et Restaurer l'interface",
     "pauseAllProcesses": "Suspendre tous les processus"
+  },
+  "backupTab": {
+    "backupJson": "Exporter la sauvegarde JSON",
+    "restoreImportJson": "Restaurer / Importer la sauvegarde JSON",
+    "restoreSuccess": "Sauvegarde importée avec succès !",
+    "invalidBackup": "Fichier de sauvegarde invalide."
   }
 };
