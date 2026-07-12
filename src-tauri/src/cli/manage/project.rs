@@ -34,6 +34,9 @@ pub fn handle(cmd: ProjectCommand, persistence: &Persistence) -> Result<CliOutpu
                 original_name: Some(name),
                 original_color: color,
                 edit_history: Some(vec![]),
+                description: None,
+                icon: None,
+                tags: None,
             };
             persistence
                 .projects

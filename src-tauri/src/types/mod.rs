@@ -22,9 +22,10 @@ pub use gui::{AlwaysOnTopConfig, GuiSize, TextAndIconSize, WindowDimensions};
 pub use holiday::{HolidayLeave, HolidayLeaveEditHistory, HolidayType};
 pub use locale::Locale;
 pub use persistence_event::PersistenceEvent;
-pub use project::{Project, ProjectEditHistory};
-pub use settings::Settings;
+pub use project::{Project, ProjectEditHistory, ProjectStatistics};
+pub use settings::{Settings, RuntimeConfig};
 pub use sinks::SinkType;
 pub use timelog::{
-    PatchLog, Task, TaskEditHistory, TimeLog, TimeLogEditHistory, TimerRepositoryState,
+    PatchLog, Task, TaskEditHistory, TaskStatus, TimeLog, TimeLogEditHistory, TimerRepositoryState,
 };
+

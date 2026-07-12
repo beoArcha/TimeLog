@@ -1,4 +1,4 @@
-﻿use crate::shared::test_db::setup_persistence_test;
+use crate::shared::test_db::setup_persistence_test;
 use oxy_flow::persistence::Persistence;
 use oxy_flow::types::{Project, Task};
 
@@ -16,6 +16,9 @@ fn test_persistence_layer_integration_flow() {
         original_name: None,
         original_color: None,
         edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
     };
     persistence.projects.create(project).unwrap();
 
@@ -41,6 +44,7 @@ fn test_persistence_layer_integration_flow() {
         original_completed: None,
         edit_history: None,
         archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
     };
     persistence.tasks.create(task).unwrap();
 
@@ -66,6 +70,9 @@ fn test_persistence_layer_csv_sink_failure_handling() {
         original_name: None,
         original_color: None,
         edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
     };
 
     let result = persistence.projects.create(project);
@@ -92,6 +99,9 @@ fn test_persistence_layer_get_all_and_clear() {
         original_name: None,
         original_color: None,
         edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
     };
     persistence.projects.create(project).unwrap();
 
@@ -106,6 +116,7 @@ fn test_persistence_layer_get_all_and_clear() {
         original_completed: None,
         edit_history: None,
         archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
     };
     persistence.tasks.create(task).unwrap();
 

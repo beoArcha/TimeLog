@@ -4,6 +4,7 @@ import { GuiSize } from '@bindings/GuiSize';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { STORAGE_KEYS } from '@common/constants';
 import { Theme, ThemePreference } from '@common/types/ThemeTypes';
+import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 
 export const useAppSettings = () => {
   const [theme, setTheme] = useState<ThemePreference>(() => {
@@ -16,10 +17,55 @@ export const useAppSettings = () => {
     return (saved as TextAndIconSize) || 'medium';
   });
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.TEXT_ICON_SIZE, textAndIconSize);
-  }, [textAndIconSize]);
+  const [guiSize, setGuiSize] = useState<GuiSize>(() => {
+    return (localStorage.getItem(STORAGE_KEYS.GUI_VARIANT) as GuiSize) || 'large';
+  });
 
+  const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(() => {
+    return localStorage.getItem(STORAGE_KEYS.ALWAYS_ON_TOP_SMALL) === 'true';
+  });
+
+  const [alwaysOnTopMain, setAlwaysOnTopMain] = useState<boolean>(() => {
+    return localStorage.getItem(STORAGE_KEYS.ALWAYS_ON_TOP_MAIN) === 'true';
+  });
+
+  const [minimizeToTray, setMinimizeToTray] = useState<boolean>(() => {
+    return localStorage.getItem(STORAGE_KEYS.MIN_TO_TRAY) !== 'false';
+  });
+
+  const [sysSettings, setSysSettings] = useState<AppSettings>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SYS_SETTINGS);
+    if (saved) {
+      try { return JSON.parse(saved); } catch { }
+    }
+    return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true };
+  });
+
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  // 1. Initial async load from Persistence Layer
+  useEffect(() => {
+    PersistenceRouter.getInstance().settings.get().then((loaded) => {
+      setTheme(loaded.theme as ThemePreference);
+      setTextAndIconSize(loaded.textAndIconSize);
+      setGuiSize(loaded.guiVariant);
+      setAlwaysOnTopSmall(loaded.alwaysOnTopSmall);
+      setAlwaysOnTopMain(loaded.alwaysOnTopMain);
+      setMinimizeToTray(loaded.minimizeToTray);
+      setSysSettings({
+        autoStart: loaded.autoStart,
+        autoPauseOnSleep: loaded.autoPauseOnSleep,
+        includePatchesInReports: loaded.includePatchesInReports,
+        activeSinks: loaded.activeSinks,
+      });
+      setSettingsLoaded(true);
+    }).catch(err => {
+      console.warn('Failed to load settings from persistence router:', err);
+      setSettingsLoaded(true);
+    });
+  }, []);
+
+  // 2. LocalStorage fast-path fallback sync & Theme setup
   const [systemTheme, setSystemTheme] = useState<Theme>(() =>
     window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
   );
@@ -37,23 +83,6 @@ export const useAppSettings = () => {
   const resolvedTheme: Theme = theme === 'system' ? systemTheme : (theme as unknown as Theme);
   const setResolvedTheme = setSystemTheme;
 
-  // TODO: Migrate sysSettings to use the persistence layer / Tauri commands (get_settings / save_settings) via persistence router
-  const [sysSettings, setSysSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SYS_SETTINGS);
-    if (saved) {
-      try { return JSON.parse(saved); } catch { }
-    }
-    return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true };
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SYS_SETTINGS, JSON.stringify(sysSettings));
-  }, [sysSettings]);
-
-  const [guiSize, setGuiSize] = useState<GuiSize>(() => {
-    return (localStorage.getItem(STORAGE_KEYS.GUI_VARIANT) as GuiSize) || 'large';
-  });
-
   const [lastNonSmallVariant, setLastNonSmallVariant] = useState<Exclude<GuiSize, 'small'>>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.LAST_NON_SMALL_VARIANT);
     return (saved as Exclude<GuiSize, 'small'>) || 'large';
@@ -64,24 +93,58 @@ export const useAppSettings = () => {
   }
 
   useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.TEXT_ICON_SIZE, textAndIconSize);
+  }, [textAndIconSize]);
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.GUI_VARIANT, guiSize);
     if (guiSize !== 'small') {
       localStorage.setItem(STORAGE_KEYS.LAST_NON_SMALL_VARIANT, guiSize);
     }
   }, [guiSize]);
 
-  const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(() => {
-    return localStorage.getItem(STORAGE_KEYS.ALWAYS_ON_TOP_SMALL) === 'true';
-  });
-
-  const [alwaysOnTopMain, setAlwaysOnTopMain] = useState<boolean>(() => {
-    return localStorage.getItem(STORAGE_KEYS.ALWAYS_ON_TOP_MAIN) === 'true';
-  });
-
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ALWAYS_ON_TOP_SMALL, String(alwaysOnTopSmall));
     localStorage.setItem(STORAGE_KEYS.ALWAYS_ON_TOP_MAIN, String(alwaysOnTopMain));
   }, [alwaysOnTopSmall, alwaysOnTopMain]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.MIN_TO_TRAY, String(minimizeToTray));
+  }, [minimizeToTray]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SYS_SETTINGS, JSON.stringify(sysSettings));
+  }, [sysSettings]);
+
+  // 3. Persist back to the Persistence layer upon changes
+  useEffect(() => {
+    if (!settingsLoaded) return;
+    const saveSettings = async () => {
+      const payload: AppSettings = {
+        autoStart: sysSettings.autoStart,
+        autoPauseOnSleep: sysSettings.autoPauseOnSleep,
+        includePatchesInReports: sysSettings.includePatchesInReports,
+        activeSinks: sysSettings.activeSinks || ['Csv'],
+        theme: theme,
+        textAndIconSize: textAndIconSize,
+        guiVariant: guiSize,
+        alwaysOnTopSmall: alwaysOnTopSmall,
+        alwaysOnTopMain: alwaysOnTopMain,
+        minimizeToTray: minimizeToTray,
+      };
+      await PersistenceRouter.getInstance().settings.save(payload);
+    };
+    saveSettings().catch((e) => console.error("Failed to save settings to persistence:", e));
+  }, [
+    settingsLoaded,
+    sysSettings,
+    theme,
+    textAndIconSize,
+    guiSize,
+    alwaysOnTopSmall,
+    alwaysOnTopMain,
+    minimizeToTray,
+  ]);
 
   const [activeLargeTab, setActiveLargeTab] = useState<'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits'>('main');
   const [isSmallExpanded, setIsSmallExpanded] = useState<boolean>(true);
@@ -96,11 +159,6 @@ export const useAppSettings = () => {
   }, [currentProjectId]);
 
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
-  const [minimizeToTray, setMinimizeToTray] = useState<boolean>(() => localStorage.getItem(STORAGE_KEYS.MIN_TO_TRAY) !== 'false');
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.MIN_TO_TRAY, String(minimizeToTray));
-  }, [minimizeToTray]);
 
   return {
     theme, setTheme,

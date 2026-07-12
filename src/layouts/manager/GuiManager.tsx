@@ -66,8 +66,8 @@ export default function GuiManager() {
     sysSettings,
     handleAddProject,
     handleAddTask,
-    handleRenameProject,
-    handleRenameTask,
+    handleUpdateProject,
+    handleUpdateTask,
     handleToggleTaskComplete,
     handleDeleteTask,
     handleStartTimer,
@@ -92,8 +92,20 @@ export default function GuiManager() {
     sysSettings,
     onAddProject: handleAddProject,
     onAddTask: handleAddTask,
-    onRenameProject: handleRenameProject,
-    onRenameTask: handleRenameTask,
+    onRenameProject: (projectId: string, name: string) => {
+      const p = projects.find(proj => proj.id === projectId);
+      if (p) {
+        handleUpdateProject(projectId, name, p.color, p.description ?? null, p.icon ?? null, p.tags ?? null);
+      }
+    },
+    onRenameTask: (taskId: string, name: string) => {
+      const t = tasks.find(tsk => tsk.id === taskId);
+      if (t) {
+        handleUpdateTask(taskId, name, t.parentTaskId ?? null, t.status ?? null, t.completed);
+      }
+    },
+    onUpdateProject: handleUpdateProject,
+    onUpdateTask: handleUpdateTask,
     onToggleTaskComplete: handleToggleTaskComplete,
     onDeleteTask: handleDeleteTask,
     onStartTimer: handleStartTimer,

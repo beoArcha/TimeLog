@@ -1,7 +1,7 @@
 // Projects queries
 pub const INSERT_PROJECT: &str = "
-    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
 ";
 
 pub const UPDATE_PROJECT: &str = "
@@ -11,7 +11,10 @@ pub const UPDATE_PROJECT: &str = "
         archived = ?4, 
         original_name = ?5, 
         original_color = ?6, 
-        edit_history = ?7
+        edit_history = ?7,
+        description = ?8,
+        icon = ?9,
+        tags = ?10
     WHERE id = ?1
 ";
 
@@ -20,15 +23,16 @@ pub const ARCHIVE_PROJECT: &str = "
 ";
 
 pub const SELECT_PROJECT_BY_ID: &str = "
-    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history 
+    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags 
     FROM projects 
     WHERE id = ?1
 ";
 
+
 // Tasks queries
 pub const INSERT_TASK: &str = "
-    INSERT INTO tasks (id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+    INSERT INTO tasks (id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
 ";
 
 pub const UPDATE_TASK: &str = "
@@ -40,7 +44,8 @@ pub const UPDATE_TASK: &str = "
         original_name = ?6, 
         original_completed = ?7, 
         edit_history = ?8,
-        archived = ?9
+        archived = ?9,
+        status = ?10
     WHERE id = ?1
 ";
 
@@ -49,19 +54,19 @@ pub const ARCHIVE_TASK: &str = "
 ";
 
 pub const SELECT_TASK_BY_ID: &str = "
-    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived 
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
     FROM tasks 
     WHERE id = ?1
 ";
 
 pub const SELECT_TASKS_BY_PROJECT: &str = "
-    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived 
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
     FROM tasks 
     WHERE project_id = ?1 AND parent_task_id IS NULL
 ";
 
 pub const SELECT_SUBTASKS_BY_PARENT: &str = "
-    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived 
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
     FROM tasks 
     WHERE parent_task_id = ?1
 ";
@@ -159,14 +164,14 @@ pub const SELECT_ACTIVE_TASK_IDS: &str = "
 ";
 
 pub const SELECT_ALL_PROJECTS: &str = "
-    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history 
+    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags 
     FROM projects
 ";
 
 pub const DELETE_ALL_PROJECTS: &str = "DELETE FROM projects";
 
 pub const SELECT_ALL_TASKS: &str = "
-    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived 
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
     FROM tasks
 ";
 

@@ -31,6 +31,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
     selectedProject,
     onToggleTaskComplete,
     onRenameTask,
+    onUpdateTask,
     onDeleteTask,
     onStartTimer,
     onAddTask,
@@ -89,6 +90,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
           sc={sc}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
+          onUpdateTask={onUpdateTask}
           onDeleteTask={onDeleteTask}
           setEditingId={setEditingId}
           setEditName={setEditName}
@@ -138,6 +140,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
         th={th}
         onToggleTaskComplete={onToggleTaskComplete}
         onRenameTask={onRenameTask}
+        onUpdateTask={onUpdateTask}
         onDeleteTask={onDeleteTask}
         onStartTimer={onStartTimer}
         setEditingId={setEditingId}

@@ -1,12 +1,15 @@
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, ITimeLogsPersistence } from '@common/persistence/IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { Settings } from '@bindings/Settings';
 import { TimeLog } from '@bindings/TimeLog';
 import { Task } from '@bindings/Task';
+import { TaskStatus } from '@bindings/TaskStatus';
+import { RuntimeConfig } from '@bindings/RuntimeConfig';
 
 const STORAGE_KEY = 'timelog_persistence_plugin_state';
 const SETTINGS_KEY = 'timelog_persistence_plugin_settings';
+const RUN_CONFIGS_KEY = 'timelog_persistence_plugin_runtime_configs';
 
 const getDefaultState = (): TimerRepositoryState => ({
   projects: [],
@@ -20,6 +23,7 @@ export class PersistencePlugin implements IPersistence {
   public projects: IProjectsPersistence;
   public tasks: ITasksPersistence;
   public settings: ISettingsPersistence;
+  public runtimeConfigs: IRuntimeConfigPersistence;
   public timeLogs: ITimeLogsPersistence;
 
   constructor() {
@@ -42,12 +46,19 @@ export class PersistencePlugin implements IPersistence {
       reset: async (): Promise<TimerRepositoryState> => {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(SETTINGS_KEY);
+        localStorage.removeItem(RUN_CONFIGS_KEY);
         return getDefaultState();
       }
     };
 
     this.projects = {
-      add: async (input: { name: string; color: string }): Promise<TimerRepositoryState> => {
+      add: async (input: {
+        name: string;
+        color: string;
+        description: string | null;
+        icon: string | null;
+        tags: string[] | null;
+      }): Promise<TimerRepositoryState> => {
         const current = (await this.core.load()) || getDefaultState();
         const now = new Date().toISOString();
         const newProject = {
@@ -56,6 +67,9 @@ export class PersistencePlugin implements IPersistence {
           color: input.color,
           createdAt: now,
           archived: false,
+          description: input.description || undefined,
+          icon: input.icon || undefined,
+          tags: input.tags || undefined,
         };
         current.projects.push(newProject);
         return this.save(current);
@@ -65,6 +79,25 @@ export class PersistencePlugin implements IPersistence {
         const project = current.projects.find(p => p.id === projectId);
         if (project) {
           project.archived = !project.archived;
+        }
+        return this.save(current);
+      },
+      update: async (
+        projectId: string,
+        name: string,
+        color: string,
+        description: string | null,
+        icon: string | null,
+        tags: string[] | null
+      ): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        const project = current.projects.find(p => p.id === projectId);
+        if (project) {
+          project.name = name;
+          project.color = color;
+          project.description = description || undefined;
+          project.icon = icon || undefined;
+          project.tags = tags || undefined;
         }
         return this.save(current);
       },
@@ -81,16 +114,69 @@ export class PersistencePlugin implements IPersistence {
     this.tasks = {
       add: async (input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState> => {
         const current = (await this.core.load()) || getDefaultState();
+        
+        // Hierarchy validation
+        if (input.parentTaskId) {
+          const parent = current.tasks.find(t => t.id === input.parentTaskId);
+          if (parent && parent.parentTaskId) {
+            throw new PersistenceException('Cannot nest tasks more than one level deep', undefined, 'ERR_PERSISTENCE_HIERARCHY');
+          }
+        }
+
         const now = new Date().toISOString();
         const newTask = {
           id: crypto.randomUUID(),
           projectId: input.projectId,
           name: input.name,
-          parentTaskId: input.parentTaskId,
+          parentTaskId: input.parentTaskId || undefined,
           createdAt: now,
           completed: false,
+          status: 'Todo' as TaskStatus,
         };
         current.tasks.push(newTask);
+        return this.save(current);
+      },
+      update: async (
+        taskId: string,
+        name: string,
+        parentTaskId: string | null,
+        status: TaskStatus | null,
+        completed: boolean | null
+      ): Promise<TimerRepositoryState> => {
+        const current = (await this.core.load()) || getDefaultState();
+        
+        // Hierarchy validation
+        if (parentTaskId) {
+          if (taskId === parentTaskId) {
+            throw new PersistenceException('Task cannot be its own parent', undefined, 'ERR_PERSISTENCE_HIERARCHY');
+          }
+          const parent = current.tasks.find(t => t.id === parentTaskId);
+          if (parent && parent.parentTaskId) {
+            throw new PersistenceException('Cannot nest tasks more than one level deep', undefined, 'ERR_PERSISTENCE_HIERARCHY');
+          }
+          const hasSubtasks = current.tasks.some(t => t.parentTaskId === taskId);
+          if (hasSubtasks) {
+            throw new PersistenceException('Cannot set a parent for a task that already has subtasks', undefined, 'ERR_PERSISTENCE_HIERARCHY');
+          }
+        }
+
+        const task = current.tasks.find(t => t.id === taskId);
+        if (task) {
+          task.name = name;
+          task.parentTaskId = parentTaskId || undefined;
+          
+          if (completed !== null) {
+            task.completed = completed;
+            if (completed) {
+              task.status = 'Done';
+            } else if (task.status === 'Done') {
+              task.status = 'Todo';
+            }
+          } else if (status !== null) {
+            task.status = status;
+            task.completed = (status === 'Done');
+          }
+        }
         return this.save(current);
       },
       rename: async (taskId: string, name: string): Promise<TimerRepositoryState> => {
@@ -111,6 +197,7 @@ export class PersistencePlugin implements IPersistence {
         const task = current.tasks.find(t => t.id === taskId);
         if (task) {
           task.completed = !task.completed;
+          task.status = task.completed ? 'Done' : 'Todo';
         }
         return this.save(current);
       },
@@ -129,13 +216,23 @@ export class PersistencePlugin implements IPersistence {
     this.settings = {
       get: async (): Promise<Settings> => {
         const data = localStorage.getItem(SETTINGS_KEY);
-        if (!data) {
-          return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: ['Csv'] };
-        }
+        const defaults: Settings = {
+          autoStart: false,
+          autoPauseOnSleep: true,
+          includePatchesInReports: true,
+          activeSinks: ['Csv'],
+          theme: 'system',
+          textAndIconSize: 'medium',
+          guiVariant: 'large',
+          alwaysOnTopSmall: false,
+          alwaysOnTopMain: false,
+          minimizeToTray: true,
+        };
+        if (!data) return defaults;
         try {
-          return JSON.parse(data) as Settings;
+          return { ...defaults, ...JSON.parse(data) };
         } catch {
-          return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: ['Csv'] };
+          return defaults;
         }
       },
       save: async (settings: Settings): Promise<void> => {
@@ -144,6 +241,34 @@ export class PersistencePlugin implements IPersistence {
         } catch (e) {
           ErrorHandler.handle(new PersistenceException('Failed to save settings to LocalStorage', e, 'ERR_PERSISTENCE_SETTINGS_SAVE'));
           throw e;
+        }
+      }
+    };
+
+    this.runtimeConfigs = {
+      save: async (config: RuntimeConfig): Promise<void> => {
+        try {
+          const data = localStorage.getItem(RUN_CONFIGS_KEY);
+          const list: RuntimeConfig[] = data ? JSON.parse(data) : [];
+          const idx = list.findIndex(c => c.id === config.id);
+          if (idx !== -1) {
+            list[idx] = config;
+          } else {
+            list.push(config);
+          }
+          localStorage.setItem(RUN_CONFIGS_KEY, JSON.stringify(list));
+        } catch (e) {
+          ErrorHandler.handle(new PersistenceException('Failed to save runtime config to LocalStorage', e, 'ERR_PERSISTENCE_RUN_CONFIG_SAVE'));
+          throw e;
+        }
+      },
+      getAll: async (): Promise<RuntimeConfig[]> => {
+        try {
+          const data = localStorage.getItem(RUN_CONFIGS_KEY);
+          return data ? JSON.parse(data) : [];
+        } catch (e) {
+          ErrorHandler.handle(new PersistenceException('Failed to get runtime configs from LocalStorage', e, 'ERR_PERSISTENCE_RUN_CONFIG_GET'));
+          return [];
         }
       }
     };

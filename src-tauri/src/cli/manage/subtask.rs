@@ -39,6 +39,7 @@ pub fn handle(cmd: SubtaskCommand, persistence: &Persistence) -> Result<CliOutpu
                 original_completed: Some(false),
                 edit_history: Some(vec![]),
                 archived: Some(false),
+                status: Some(crate::types::TaskStatus::Todo),
             };
             persistence
                 .tasks

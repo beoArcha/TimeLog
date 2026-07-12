@@ -3,6 +3,7 @@ import { ContextException } from '../exceptions';
 import { useOxyAppState } from '@common/hooks/useOxyAppState';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
+import { TaskStatus } from '@bindings/TaskStatus';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
@@ -79,9 +80,24 @@ export interface OxyFlowState {
   setShowCreditsModal?: React.Dispatch<React.SetStateAction<boolean>>;
   selectedTaskId: string | null;
   setSelectedTaskId: (id: string | null) => void;
-  handleAddProject: (name: string, color: string) => void;
+  handleAddProject: (name: string, color: string, description: string | null, icon: string | null, tags: string[] | null) => void;
   handleToggleProjectArchive: (projectId: string) => void;
   handleAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
+  handleUpdateProject: (
+    projectId: string,
+    name: string,
+    color: string,
+    description: string | null,
+    icon: string | null,
+    tags: string[] | null
+  ) => void;
+  handleUpdateTask: (
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: TaskStatus | null,
+    completed: boolean | null
+  ) => void;
   handleRenameProject: (projectId: string, newName: string) => void;
   handleRenameTask: (taskId: string, newName: string) => void;
   handleDeleteTask: (taskId: string) => void;
@@ -96,6 +112,13 @@ export interface OxyFlowState {
     note: string | null,
     reason: string | null
   ) => Promise<void>;
+  handleRestoreState: (data: {
+    projects?: Project[];
+    tasks?: Task[];
+    logs?: TimeLog[];
+    holidays?: HolidayLeave[];
+    patches?: PatchLog[];
+  }) => Promise<void>;
 }
 
 export const OxyContext = createContext<OxyFlowState | undefined>(undefined);

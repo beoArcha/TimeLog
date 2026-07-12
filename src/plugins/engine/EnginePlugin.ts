@@ -2,6 +2,7 @@ import { IEngine } from '@common/engine/IEngine';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { TimeLog } from '@bindings/TimeLog';
 import { ContextException, EntityNotFoundException } from '@common/exceptions';
+import { ProjectStatistics } from '@bindings/ProjectStatistics';
 
 let logCounter = 0;
 
@@ -113,4 +114,35 @@ export class EnginePlugin implements IEngine {
 
     await this.persistence.core.overrideState(state);
   }
+
+  async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
+    const state = await this.persistence.core.load();
+    if (!state) {
+      return { totalDurationSec: 0, totalTasks: 0, completedTasks: 0 };
+    }
+
+    const projectTasks = state.tasks.filter(t => t.projectId === projectId);
+    const totalTasks = projectTasks.length;
+    const completedTasks = projectTasks.filter(t => t.completed).length;
+
+    const taskIds = new Set(projectTasks.map(t => t.id));
+    let totalDurationSec = 0;
+
+    for (const log of state.logs) {
+      if (taskIds.has(log.taskId)) {
+        const start = new Date(log.startTime).getTime();
+        const end = log.endTime ? new Date(log.endTime).getTime() : Date.now();
+        if (end >= start) {
+          totalDurationSec += Math.floor((end - start) / 1000);
+        }
+      }
+    }
+
+    return {
+      totalDurationSec,
+      totalTasks,
+      completedTasks,
+    };
+  }
 }
+

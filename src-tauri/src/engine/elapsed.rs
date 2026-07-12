@@ -258,4 +258,65 @@ impl<'a> Engine<'a> {
             active_log,
         })
     }
+
+    pub fn get_project_statistics(&self, project_id: &str) -> Result<crate::types::ProjectStatistics, EngineError> {
+        let elapsed = self.calculate_project_elapsed(project_id)?;
+        let tasks = self.persistence.projects.get_tasks(project_id)?;
+        
+        let mut total_tasks = 0;
+        let mut completed_tasks = 0;
+
+        for task in &tasks {
+            total_tasks += 1;
+            if task.completed {
+                completed_tasks += 1;
+            }
+            let subtasks = self.persistence.tasks.get_subtasks(&task.id)?;
+            for subtask in subtasks {
+                total_tasks += 1;
+                if subtask.completed {
+                    completed_tasks += 1;
+                }
+            }
+        }
+
+        Ok(crate::types::ProjectStatistics {
+            total_duration_sec: elapsed.as_secs(),
+            total_tasks,
+            completed_tasks,
+        })
+    }
+
+    pub fn validate_task_hierarchy(
+        &self,
+        task_id: Option<&str>,
+        parent_task_id: Option<&str>,
+    ) -> Result<(), EngineError> {
+        if let Some(p_id) = parent_task_id {
+            if let Some(t_id) = task_id {
+                if t_id == p_id {
+                    return Err(EngineError::Validation(
+                        "Task cannot be its own parent".to_string(),
+                    ));
+                }
+            }
+            if let Some(parent) = self.persistence.tasks.get(p_id)? {
+                if parent.parent_task_id.is_some() {
+                    return Err(EngineError::Validation(
+                        "Cannot nest tasks more than one level deep".to_string(),
+                    ));
+                }
+            }
+            if let Some(t_id) = task_id {
+                let subtasks = self.persistence.tasks.get_subtasks(t_id)?;
+                if !subtasks.is_empty() {
+                    return Err(EngineError::Validation(
+                        "Cannot set a parent for a task that already has subtasks".to_string(),
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
 }
+

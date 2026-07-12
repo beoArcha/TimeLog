@@ -91,6 +91,46 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) =
   if (cmd === 'get_timer_state' || cmd === 'get_state') {
     return Promise.resolve(state);
   }
+  if (cmd === 'get') {
+    const saved = localStorage.getItem('timelog_persistence_plugin_settings');
+    if (saved) {
+      try { return Promise.resolve(JSON.parse(saved)); } catch {}
+    }
+    const theme = localStorage.getItem('oxytime_theme') || 'system';
+    const textAndIconSize = localStorage.getItem('oxytime_text_icon_size') || 'medium';
+    const guiVariant = localStorage.getItem('oxytime_gui_variant') || 'large';
+    const alwaysOnTopSmall = localStorage.getItem('oxytime_always_on_top_small') === 'true';
+    const alwaysOnTopMain = localStorage.getItem('oxytime_always_on_top_main') === 'true';
+    const minimizeToTray = localStorage.getItem('oxytime_min_to_tray') !== 'false';
+    let autoStart = false;
+    let autoPauseOnSleep = true;
+    let includePatchesInReports = true;
+    const sysSaved = localStorage.getItem('oxytime_sys_settings');
+    if (sysSaved) {
+      try {
+        const parsed = JSON.parse(sysSaved);
+        autoStart = parsed.autoStart;
+        autoPauseOnSleep = parsed.autoPauseOnSleep;
+        includePatchesInReports = parsed.includePatchesInReports;
+      } catch {}
+    }
+    return Promise.resolve({
+      autoStart,
+      autoPauseOnSleep,
+      includePatchesInReports,
+      activeSinks: ['Csv'],
+      theme,
+      textAndIconSize,
+      guiVariant,
+      alwaysOnTopSmall,
+      alwaysOnTopMain,
+      minimizeToTray,
+    });
+  }
+  if (cmd === 'save') {
+    localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify(args.settings));
+    return Promise.resolve();
+  }
   if (cmd === 'add_project' || cmd === 'add') {
     const newProj = {
       id: String(state.projects.length + 1),
@@ -357,8 +397,11 @@ export const getMockOxyFlowState = (): OxyFlowState => ({
   handleAddTask: vi.fn(),
   handleRenameProject: vi.fn(),
   handleRenameTask: vi.fn(),
+  handleUpdateProject: vi.fn(),
+  handleUpdateTask: vi.fn(),
   handleDeleteTask: vi.fn(),
   handleToggleTaskComplete: vi.fn(),
   handleStartTimer: vi.fn(),
   handleStopTimer: vi.fn(),
+  handleRestoreState: vi.fn(),
 });

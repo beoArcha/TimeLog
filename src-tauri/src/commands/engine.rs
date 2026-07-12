@@ -24,6 +24,8 @@ pub fn get_active_logs(state: State<'_, AppState>) -> Result<Vec<String>, AppErr
     Ok(logs)
 }
 
+use crate::types::ProjectStatistics;
+
 #[tauri::command]
 pub fn edit_time_log(
     id: String,
@@ -45,3 +47,14 @@ pub fn edit_time_log(
     )?;
     Ok(())
 }
+
+#[tauri::command]
+pub fn get_project_statistics(
+    project_id: String,
+    state: State<'_, AppState>,
+) -> Result<ProjectStatistics, AppError> {
+    let engine = Engine::new(&state.persistence);
+    let stats = engine.get_project_statistics(&project_id)?;
+    Ok(stats)
+}
+

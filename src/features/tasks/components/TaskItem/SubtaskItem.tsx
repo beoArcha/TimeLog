@@ -24,6 +24,13 @@ interface SubtaskItemProps {
   th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
+  onUpdateTask: ((
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: import('@bindings/TaskStatus').TaskStatus | null,
+    completed: boolean | null
+  ) => void) | undefined;
   onDeleteTask: ((id: string) => void) | undefined;
   onStartTimer: (id: string) => void;
   setEditingId: (id: string | null) => void;
@@ -43,6 +50,7 @@ export function SubtaskItem({
   th,
   onToggleTaskComplete,
   onRenameTask,
+  onUpdateTask,
   onDeleteTask,
   onStartTimer,
   setEditingId,
@@ -102,6 +110,30 @@ export function SubtaskItem({
               <span className="truncate block max-w-full" title={subTask.name}>
                 {subTask.name}
               </span>
+              <select
+                value={subTask.status || 'Todo'}
+                onChange={(e) => {
+                  const newStatus = e.target.value as any;
+                  if (onUpdateTask) {
+                    onUpdateTask(subTask.id, subTask.name, subTask.parentTaskId || null, newStatus, null);
+                  }
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border outline-none cursor-pointer font-mono shrink-0 transition-all ${
+                  subTask.status === 'Done'
+                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/15'
+                    : subTask.status === 'InProgress'
+                      ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/15'
+                      : subTask.status === 'Blocked'
+                        ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/15'
+                        : 'bg-slate-500/10 text-slate-500 border-slate-500/20 hover:bg-slate-500/15'
+                }`}
+              >
+                <option value="Todo" className="bg-[#1b1c21] text-slate-200 text-xs">TODO</option>
+                <option value="InProgress" className="bg-[#1b1c21] text-blue-400 text-xs">In Progress</option>
+                <option value="Done" className="bg-[#1b1c21] text-emerald-400 text-xs">Done</option>
+                <option value="Blocked" className="bg-[#1b1c21] text-rose-450 text-xs">Blocked</option>
+              </select>
               {isSubRunning && (
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
               )}

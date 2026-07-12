@@ -21,6 +21,21 @@ export interface GuiCommonProps {
   onAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
   onRenameProject?: (projectId: string, newName: string) => void;
   onRenameTask?: (taskId: string, newName: string) => void;
+  onUpdateProject?: (
+    projectId: string,
+    name: string,
+    color: string,
+    description: string | null,
+    icon: string | null,
+    tags: string[] | null
+  ) => void;
+  onUpdateTask?: (
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: import('@bindings/TaskStatus').TaskStatus | null,
+    completed: boolean | null
+  ) => void;
   onToggleTaskComplete: (taskId: string) => void;
   onDeleteTask?: (taskId: string) => void;
   onStartTimer: (taskId: string) => void;

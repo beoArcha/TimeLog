@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, ITimeLogsPersistence } from './IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence } from './IPersistence';
 import { ErrorHandler, TauriInteropException } from '../exceptions';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { CorePersistenceCommand } from '@bindings/CorePersistenceCommand';
@@ -9,12 +9,15 @@ import { SettingsPersistenceCommand } from '@bindings/SettingsPersistenceCommand
 import { Settings } from '@bindings/Settings';
 import { TimeLog } from '@bindings/TimeLog';
 import { Task } from '@bindings/Task';
+import { TaskStatus } from '@bindings/TaskStatus';
+import { RuntimeConfig } from '@bindings/RuntimeConfig';
 
 export class PersistenceCommands implements IPersistence {
   public core: ICorePersistence;
   public projects: IProjectsPersistence;
   public tasks: ITasksPersistence;
   public settings: ISettingsPersistence;
+  public runtimeConfigs: IRuntimeConfigPersistence;
   public timeLogs: ITimeLogsPersistence;
 
   constructor() {
@@ -50,14 +53,45 @@ export class PersistenceCommands implements IPersistence {
     };
 
     this.projects = {
-      add: async (input: { name: string; color: string }): Promise<TimerRepositoryState> => {
+      add: async (input: {
+        name: string;
+        color: string;
+        description: string | null;
+        icon: string | null;
+        tags: string[] | null;
+      }): Promise<TimerRepositoryState> => {
         const cmd: ProjectsPersistenceCommand = 'add';
-        return invoke<TimerRepositoryState>(cmd, { name: input.name, color: input.color });
+        return invoke<TimerRepositoryState>(cmd, {
+          name: input.name,
+          color: input.color,
+          description: input.description,
+          icon: input.icon,
+          tags: input.tags,
+        });
       },
 
       toggleArchive: async (projectId: string): Promise<TimerRepositoryState> => {
         const cmd: ProjectsPersistenceCommand = 'toggle_archive';
         return invoke<TimerRepositoryState>(cmd, { projectId });
+      },
+
+      update: async (
+        projectId: string,
+        name: string,
+        color: string,
+        description: string | null,
+        icon: string | null,
+        tags: string[] | null
+      ): Promise<TimerRepositoryState> => {
+        const cmd: ProjectsPersistenceCommand = 'update_project' as any;
+        return invoke<TimerRepositoryState>(cmd, {
+          projectId,
+          name,
+          color,
+          description,
+          icon,
+          tags,
+        });
       },
 
       rename: async (projectId: string, name: string): Promise<TimerRepositoryState> => {
@@ -73,6 +107,23 @@ export class PersistenceCommands implements IPersistence {
           projectId: input.projectId,
           name: input.name,
           parentTaskId: input.parentTaskId,
+        });
+      },
+
+      update: async (
+        taskId: string,
+        name: string,
+        parentTaskId: string | null,
+        status: TaskStatus | null,
+        completed: boolean | null
+      ): Promise<TimerRepositoryState> => {
+        const cmd: TasksPersistenceCommand = 'update_task' as any;
+        return invoke<TimerRepositoryState>(cmd, {
+          taskId,
+          name,
+          parentTaskId,
+          status,
+          completed,
         });
       },
 
@@ -126,6 +177,28 @@ export class PersistenceCommands implements IPersistence {
       }
     };
 
+    this.runtimeConfigs = {
+      save: async (config: RuntimeConfig): Promise<void> => {
+        try {
+          const cmd: SettingsPersistenceCommand = 'save_runtime_config' as any;
+          await invoke(cmd, { config });
+        } catch (err) {
+          ErrorHandler.handle(new TauriInteropException('Failed to save runtime config via Tauri', err, 'ERR_TAURI_RUN_CONFIG_SAVE'));
+          throw err;
+        }
+      },
+
+      getAll: async (): Promise<RuntimeConfig[]> => {
+        try {
+          const cmd: SettingsPersistenceCommand = 'get_runtime_configs' as any;
+          return await invoke<RuntimeConfig[]>(cmd);
+        } catch (err) {
+          ErrorHandler.handle(new TauriInteropException('Failed to get runtime configs via Tauri', err, 'ERR_TAURI_RUN_CONFIG_GET'));
+          throw err;
+        }
+      }
+    };
+
     this.timeLogs = {
       getForTask: async (taskId: string): Promise<TimeLog[]> => {
         return invoke<TimeLog[]>('get_for_task', { taskId });
@@ -148,3 +221,4 @@ export class PersistenceCommands implements IPersistence {
     };
   }
 }
+

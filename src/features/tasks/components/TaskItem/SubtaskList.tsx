@@ -19,6 +19,13 @@ interface SubtaskListProps {
   th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
+  onUpdateTask: ((
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: import('@bindings/TaskStatus').TaskStatus | null,
+    completed: boolean | null
+  ) => void) | undefined;
   onDeleteTask: ((id: string) => void) | undefined;
   onStartTimer: (id: string) => void;
   setEditingId: (id: string | null) => void;
@@ -39,6 +46,7 @@ export function SubtaskList({
   th,
   onToggleTaskComplete,
   onRenameTask,
+  onUpdateTask,
   onDeleteTask,
   onStartTimer,
   setEditingId,
@@ -69,6 +77,7 @@ export function SubtaskList({
           th={th}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
+          onUpdateTask={onUpdateTask}
           onDeleteTask={onDeleteTask}
           onStartTimer={onStartTimer}
           setEditingId={setEditingId}

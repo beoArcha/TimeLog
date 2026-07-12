@@ -2,6 +2,8 @@ import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { TimeLog } from '@bindings/TimeLog';
 import { Settings } from '@bindings/Settings';
 import { Task } from '@bindings/Task';
+import { TaskStatus } from '@bindings/TaskStatus';
+import { RuntimeConfig } from '@bindings/RuntimeConfig';
 
 export type ApiPayload = {
   event: string;
@@ -15,13 +17,34 @@ export interface ICorePersistence {
 }
 
 export interface IProjectsPersistence {
-  add(input: { name: string; color: string }): Promise<TimerRepositoryState>;
+  add(input: {
+    name: string;
+    color: string;
+    description: string | null;
+    icon: string | null;
+    tags: string[] | null;
+  }): Promise<TimerRepositoryState>;
   toggleArchive(projectId: string): Promise<TimerRepositoryState>;
+  update(
+    projectId: string,
+    name: string,
+    color: string,
+    description: string | null,
+    icon: string | null,
+    tags: string[] | null
+  ): Promise<TimerRepositoryState>;
   rename(projectId: string, name: string): Promise<TimerRepositoryState>;
 }
 
 export interface ITasksPersistence {
   add(input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState>;
+  update(
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: TaskStatus | null,
+    completed: boolean | null
+  ): Promise<TimerRepositoryState>;
   rename(taskId: string, name: string): Promise<TimerRepositoryState>;
   delete(taskId: string): Promise<TimerRepositoryState>;
   toggleComplete(taskId: string): Promise<TimerRepositoryState>;
@@ -32,6 +55,11 @@ export interface ITasksPersistence {
 export interface ISettingsPersistence {
   get(): Promise<Settings>;
   save(settings: Settings): Promise<void>;
+}
+
+export interface IRuntimeConfigPersistence {
+  save(config: RuntimeConfig): Promise<void>;
+  getAll(): Promise<RuntimeConfig[]>;
 }
 
 export interface ITimeLogsPersistence {
@@ -48,5 +76,7 @@ export interface IPersistence {
   projects: IProjectsPersistence;
   tasks: ITasksPersistence;
   settings: ISettingsPersistence;
+  runtimeConfigs: IRuntimeConfigPersistence;
   timeLogs: ITimeLogsPersistence;
 }
+

@@ -35,6 +35,7 @@ pub fn handle(cmd: TaskCommand, persistence: &Persistence) -> Result<CliOutput, 
                 original_completed: Some(false),
                 edit_history: Some(vec![]),
                 archived: Some(false),
+                status: Some(crate::types::TaskStatus::Todo),
             };
             persistence.tasks.create(task).map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))

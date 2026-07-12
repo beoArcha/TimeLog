@@ -3,6 +3,8 @@ import { IEngine } from './IEngine';
 import { EngineCommands } from './EngineCommands';
 import { EnginePlugin } from '../../plugins/engine/EnginePlugin';
 
+import { ProjectStatistics } from '@bindings/ProjectStatistics';
+
 export class EngineRouter implements IEngine {
   private static instance: EngineRouter | null = null;
   private implementation: IEngine;
@@ -44,4 +46,9 @@ export class EngineRouter implements IEngine {
   ): Promise<void> {
     return this.implementation.editTimeLog(id, taskId, startTime, endTime, note, reason);
   }
+
+  async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
+    return this.implementation.getProjectStatistics(projectId);
+  }
 }
+

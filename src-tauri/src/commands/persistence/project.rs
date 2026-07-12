@@ -8,6 +8,9 @@ use tauri::State;
 pub fn add(
     name: String,
     color: String,
+    description: Option<String>,
+    icon: Option<String>,
+    tags: Option<Vec<String>>,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     let project = crate::types::Project {
@@ -19,6 +22,9 @@ pub fn add(
         original_name: None,
         original_color: None,
         edit_history: None,
+        description,
+        icon,
+        tags,
     };
     state.persistence.projects.create(project)?;
     let engine = Engine::new(&state.persistence);
@@ -40,15 +46,24 @@ pub fn toggle_archive(
 }
 
 #[tauri::command]
-pub fn rename(
+pub fn update_project(
     project_id: String,
     name: String,
+    color: String,
+    description: Option<String>,
+    icon: Option<String>,
+    tags: Option<Vec<String>>,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     if let Some(mut project) = state.persistence.projects.get(&project_id)? {
         project.name = name;
+        project.color = color;
+        project.description = description;
+        project.icon = icon;
+        project.tags = tags;
         state.persistence.projects.patch(project)?;
     }
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)
 }
+

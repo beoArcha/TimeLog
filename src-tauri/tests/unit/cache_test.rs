@@ -1,4 +1,4 @@
-﻿use crate::shared::test_db::setup_persistence_test;
+use crate::shared::test_db::setup_persistence_test;
 use oxy_flow::persistence::Persistence;
 use oxy_flow::types::Project;
 
@@ -16,6 +16,9 @@ fn test_persistence_cache_hit_and_invalidation() {
         original_name: None,
         original_color: None,
         edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
     };
 
     persistence.projects.create(project).unwrap();
@@ -41,6 +44,9 @@ fn test_persistence_cache_hit_and_invalidation() {
         original_name: None,
         original_color: None,
         edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
     };
     persistence.projects.create(dummy_project).unwrap();
 

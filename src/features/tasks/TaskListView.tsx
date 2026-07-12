@@ -5,6 +5,7 @@ import { GuiKey } from '@common/i18n/keys/GuiKey';
 import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { getThemeStyles, getScaleStyles } from '@/src/layouts/parts/GuiStyles';
 import TaskItem from './components/TaskItem/TaskItem';
+import { EngineRouter } from '@common/engine/EngineRouter';
 
 export default function TaskListView({ state, isCondensed }: { state: any; isCondensed: boolean }) {
   const {
@@ -12,6 +13,24 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
     selectedProject, rootTasks,
     newTaskName, setNewTaskName, onAddTask
   } = state;
+
+  const [stats, setStats] = React.useState<import('@bindings/ProjectStatistics').ProjectStatistics | null>(null);
+
+  React.useEffect(() => {
+    if (!selectedProject?.id) {
+      setStats(null);
+      return;
+    }
+    const fetchStats = async () => {
+      try {
+        const data = await EngineRouter.getInstance().getProjectStatistics(selectedProject.id);
+        setStats(data);
+      } catch (err) {
+        console.error("Failed to load project statistics:", err);
+      }
+    };
+    fetchStats();
+  }, [selectedProject?.id, tasks, logs]);
 
   const th = getThemeStyles(theme);
   const sc = getScaleStyles(state.textAndIconSize || 'medium');
@@ -88,6 +107,36 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
             </div>
           )}
         </div>
+
+        {stats && !isCondensed && (
+          <div className="grid grid-cols-3 gap-4 mb-6 animate-fade-in">
+            <div className={`p-4 rounded-2xl border transition-all ${
+              theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
+              <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Total Duration</p>
+              <p className="text-lg font-bold font-mono text-orange-500 mt-1">{formatSeconds(stats.totalDurationSec)}</p>
+            </div>
+            <div className={`p-4 rounded-2xl border transition-all ${
+              theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
+              <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Total Tasks</p>
+              <p className="text-lg font-bold text-slate-200 mt-1">{stats.totalTasks}</p>
+            </div>
+            <div className={`p-4 rounded-2xl border transition-all ${
+              theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
+              <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Completed Tasks</p>
+              <p className="text-lg font-bold text-slate-200 mt-1 flex items-center justify-between">
+                <span>{stats.completedTasks}</span>
+                {stats.totalTasks > 0 && (
+                  <span className="text-xs text-emerald-450">
+                    {Math.round((stats.completedTasks / stats.totalTasks) * 100)}%
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Add Root Task Form */}
         <form onSubmit={handleAddTaskSubmit} className={`flex gap-3 ${isCondensed ? 'mt-2' : ''}`}>

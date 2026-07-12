@@ -9,6 +9,10 @@ impl BusinessRepository {
     pub fn create_task(&self, task: &Task) -> Result<()> {
         let conn = self.connect()?;
         let edit_history_str = serde_json::to_string(&task.edit_history).ok();
+        let status_str = serde_json::to_string(&task.status.clone().unwrap_or(crate::types::TaskStatus::Todo))
+            .unwrap_or_else(|_| "\"Todo\"".to_string())
+            .trim_matches('"')
+            .to_string();
         conn.execute(
             constants::INSERT_TASK,
             params![
@@ -21,7 +25,8 @@ impl BusinessRepository {
                 task.original_name,
                 task.original_completed.unwrap_or(false) as i32,
                 edit_history_str,
-                task.archived.unwrap_or(false) as i32
+                task.archived.unwrap_or(false) as i32,
+                status_str
             ],
         )?;
         Ok(())
@@ -30,6 +35,10 @@ impl BusinessRepository {
     pub fn patch_task(&self, task: &Task) -> Result<()> {
         let conn = self.connect()?;
         let edit_history_str = serde_json::to_string(&task.edit_history).ok();
+        let status_str = serde_json::to_string(&task.status.clone().unwrap_or(crate::types::TaskStatus::Todo))
+            .unwrap_or_else(|_| "\"Todo\"".to_string())
+            .trim_matches('"')
+            .to_string();
         conn.execute(
             constants::UPDATE_TASK,
             params![
@@ -41,7 +50,8 @@ impl BusinessRepository {
                 task.original_name,
                 task.original_completed.unwrap_or(false) as i32,
                 edit_history_str,
-                task.archived.unwrap_or(false) as i32
+                task.archived.unwrap_or(false) as i32,
+                status_str
             ],
         )?;
         Ok(())
@@ -60,6 +70,9 @@ impl BusinessRepository {
         let completed_int: i32 = row.get(4)?;
         let orig_comp_int: Option<i32> = row.get(7)?;
         let archived_int: i32 = row.get(9)?;
+        let status_str: Option<String> = row.get(10)?;
+        let status: Option<crate::types::TaskStatus> = status_str
+            .and_then(|s| serde_json::from_str(&format!("\"{}\"", s)).ok());
 
         Ok(Task {
             id: row.get(0)?,
@@ -72,8 +85,10 @@ impl BusinessRepository {
             original_completed: orig_comp_int.map(|c| c == 1),
             edit_history,
             archived: Some(archived_int == 1),
+            status,
         })
     }
+
 
     pub fn get_task(&self, id: &str) -> Result<Option<Task>> {
         let conn = self.connect()?;

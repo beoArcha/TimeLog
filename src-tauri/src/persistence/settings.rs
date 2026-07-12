@@ -1,6 +1,6 @@
 use super::error::PersistenceResult;
 use super::shared::PersistenceShared;
-use crate::types::Settings;
+use crate::types::{Settings, RuntimeConfig};
 use std::sync::Arc;
 
 pub struct SettingsPersistence {
@@ -21,4 +21,15 @@ impl SettingsPersistence {
         self.shared.config_repo.save_config(&settings)?;
         Ok(())
     }
+
+    pub fn save_runtime_config(&self, config: RuntimeConfig) -> PersistenceResult<()> {
+        self.shared.config_repo.save_runtime_config(&config)?;
+        Ok(())
+    }
+
+    pub fn get_runtime_configs(&self) -> PersistenceResult<Vec<RuntimeConfig>> {
+        let configs = self.shared.config_repo.get_runtime_configs()?;
+        Ok(configs)
+    }
 }
+

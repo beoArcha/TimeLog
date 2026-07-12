@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { IEngine } from './IEngine';
 import { ErrorHandler, TauriInteropException } from '../exceptions';
 import { EngineCommand } from '@bindings/EngineCommand';
+import { ProjectStatistics } from '@bindings/ProjectStatistics';
 
 export class EngineCommands implements IEngine {
   async startTimer(taskId: string): Promise<void> {
@@ -40,4 +41,15 @@ export class EngineCommands implements IEngine {
       throw err;
     }
   }
+
+  async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
+    try {
+      const cmd: EngineCommand = 'get_project_statistics' as any;
+      return await invoke(cmd, { projectId });
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to get project statistics via Tauri', err, 'ERR_TAURI_ENGINE_STATS'));
+      throw err;
+    }
+  }
 }
+

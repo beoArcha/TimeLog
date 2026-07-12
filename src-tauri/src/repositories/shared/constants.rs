@@ -68,3 +68,23 @@ pub const CREATE_TIME_LOGS_HISTORY_TABLE: &str = "
         FOREIGN KEY(time_log_id) REFERENCES time_logs(id) ON DELETE CASCADE
     )
 ";
+
+pub const ALTER_PROJECTS_ADD_DESCRIPTION: &str =
+    "ALTER TABLE projects ADD COLUMN description TEXT";
+pub const ALTER_PROJECTS_ADD_ICON: &str =
+    "ALTER TABLE projects ADD COLUMN icon TEXT";
+pub const ALTER_PROJECTS_ADD_TAGS: &str =
+    "ALTER TABLE projects ADD COLUMN tags TEXT";
+
+pub const ALTER_TASKS_ADD_STATUS: &str =
+    "ALTER TABLE tasks ADD COLUMN status TEXT DEFAULT 'Todo'";
+
+pub const CREATE_RUNTIME_CONFIGS_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS runtime_configs (
+        id TEXT PRIMARY KEY,
+        runtime TEXT NOT NULL,
+        config TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )
+";
+

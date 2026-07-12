@@ -25,7 +25,6 @@ pub fn initialize_database(conn: &Connection) -> Result<()> {
     conn.execute(constants::CREATE_TIME_LOGS_TABLE, [])?;
     conn.execute(constants::CREATE_CONFIG_TABLE, [])?;
 
-    // Ensure backwards compatibility with older DB versions by trying to add columns if they don't exist
     let _ = conn.execute(constants::ALTER_PROJECTS_ADD_ARCHIVED, []);
     let _ = conn.execute(constants::ALTER_PROJECTS_ADD_ORIGINAL_NAME, []);
     let _ = conn.execute(constants::ALTER_PROJECTS_ADD_ORIGINAL_COLOR, []);
@@ -38,6 +37,12 @@ pub fn initialize_database(conn: &Connection) -> Result<()> {
 
     let _ = conn.execute(constants::ALTER_TIME_LOGS_ADD_NOTE, []);
     conn.execute(constants::CREATE_TIME_LOGS_HISTORY_TABLE, [])?;
+
+    let _ = conn.execute(constants::ALTER_PROJECTS_ADD_DESCRIPTION, []);
+    let _ = conn.execute(constants::ALTER_PROJECTS_ADD_ICON, []);
+    let _ = conn.execute(constants::ALTER_PROJECTS_ADD_TAGS, []);
+    let _ = conn.execute(constants::ALTER_TASKS_ADD_STATUS, []);
+    conn.execute(constants::CREATE_RUNTIME_CONFIGS_TABLE, [])?;
 
     Ok(())
 }

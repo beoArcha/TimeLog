@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
+import { TaskStatus } from '@bindings/TaskStatus';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
@@ -92,12 +93,18 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
-  const handleAddProject = async (name: string, color: string) => {
+  const handleAddProject = async (
+    name: string,
+    color: string,
+    description: string | null = null,
+    icon: string | null = null,
+    tags: string[] | null = null
+  ) => {
     try {
       setIsLoading(true);
       setRepositoryError(null);
       await ensureSeeded();
-      const nextState = await repository.projects.add({ name, color });
+      const nextState = await repository.projects.add({ name, color, description, icon, tags });
       setProjectsState(nextState.projects);
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to add project', err, 'ERR_REPOSITORY'));
@@ -132,6 +139,51 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to add task', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to add task');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateProject = async (
+    projectId: string,
+    name: string,
+    color: string,
+    description: string | null,
+    icon: string | null,
+    tags: string[] | null
+  ) => {
+    try {
+      setIsLoading(true);
+      setRepositoryError(null);
+      await ensureSeeded();
+      const nextState = await repository.projects.update(projectId, name, color, description, icon, tags);
+      setProjectsState(nextState.projects);
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to update project', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to update project');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateTask = async (
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: TaskStatus | null,
+    completed: boolean | null
+  ) => {
+    try {
+      setIsLoading(true);
+      setRepositoryError(null);
+      await ensureSeeded();
+      const nextState = await repository.tasks.update(taskId, name, parentTaskId, status, completed);
+      setTasksState(nextState.tasks);
+      setLogsState(nextState.logs);
+      setActiveLogState(nextState.activeLog);
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to update task', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to update task');
     } finally {
       setIsLoading(false);
     }
@@ -387,6 +439,39 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
+  const handleRestoreState = async (data: {
+    projects?: Project[];
+    tasks?: Task[];
+    logs?: TimeLog[];
+    holidays?: HolidayLeave[];
+    patches?: PatchLog[];
+  }) => {
+    try {
+      setIsLoading(true);
+      setRepositoryError(null);
+      const payload: Partial<TimerRepositoryState> = {};
+      if (data.projects) payload.projects = data.projects;
+      if (data.tasks) payload.tasks = data.tasks;
+      if (data.logs) payload.logs = data.logs;
+
+      const nextState = await repository.core.overrideState(payload);
+
+      if (data.projects) setProjectsState(nextState.projects);
+      if (data.tasks) setTasksState(nextState.tasks);
+      if (data.logs) setLogsState(nextState.logs);
+      if (nextState.activeLog !== undefined) setActiveLogState(nextState.activeLog);
+
+      if (data.holidays) setHolidays(data.holidays);
+      if (data.patches) setPatches(data.patches);
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to restore database state', err, 'ERR_REPOSITORY_RESTORE'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to restore database state');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     projects, setProjects,
     tasks, setTasks,
@@ -403,6 +488,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     handleAddProject,
     handleToggleProjectArchive,
     handleAddTask,
+    handleUpdateProject,
+    handleUpdateTask,
     handleRenameProject,
     handleRenameTask,
     handleDeleteTask,
@@ -411,5 +498,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     handleStopTimer,
     handleEditTimeLog,
     handleResetLocalStorage,
+    handleRestoreState,
   };
 };

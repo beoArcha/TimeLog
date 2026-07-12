@@ -71,11 +71,34 @@ impl ConfigRepository {
             }
         };
 
+        let theme = self.get_value(&conn, "theme")?;
+        let text_and_icon_size = self.get_value(&conn, "text_and_icon_size")?;
+        let gui_variant = self.get_value(&conn, "gui_variant")?;
+
+        let always_on_top_small = match self.get_value(&conn, "always_on_top_small")? {
+            Some(v) => v.parse::<bool>().ok(),
+            None => None,
+        };
+        let always_on_top_main = match self.get_value(&conn, "always_on_top_main")? {
+            Some(v) => v.parse::<bool>().ok(),
+            None => None,
+        };
+        let minimize_to_tray = match self.get_value(&conn, "minimize_to_tray")? {
+            Some(v) => v.parse::<bool>().ok(),
+            None => None,
+        };
+
         let settings = Settings {
             auto_start,
             auto_pause_on_sleep,
             include_patches_in_reports,
             active_sinks,
+            theme,
+            text_and_icon_size,
+            gui_variant,
+            always_on_top_small,
+            always_on_top_main,
+            minimize_to_tray,
         };
 
         if keys_changed {
@@ -104,6 +127,26 @@ impl ConfigRepository {
         )?;
         let active_sinks_str = serde_json::to_string(&settings.active_sinks)?;
         self.set_value(conn, "active_sinks", &active_sinks_str)?;
+
+        if let Some(ref t) = settings.theme {
+            self.set_value(conn, "theme", t)?;
+        }
+        if let Some(ref s) = settings.text_and_icon_size {
+            self.set_value(conn, "text_and_icon_size", s)?;
+        }
+        if let Some(ref g) = settings.gui_variant {
+            self.set_value(conn, "gui_variant", g)?;
+        }
+        if let Some(a) = settings.always_on_top_small {
+            self.set_value(conn, "always_on_top_small", &a.to_string())?;
+        }
+        if let Some(a) = settings.always_on_top_main {
+            self.set_value(conn, "always_on_top_main", &a.to_string())?;
+        }
+        if let Some(m) = settings.minimize_to_tray {
+            self.set_value(conn, "minimize_to_tray", &m.to_string())?;
+        }
+
         Ok(())
     }
 }

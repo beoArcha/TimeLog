@@ -18,6 +18,9 @@ fn test_commands_logic_integration_flow() {
         original_name: None,
         original_color: None,
         edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
     };
     persistence
         .projects
@@ -27,7 +30,7 @@ fn test_commands_logic_integration_flow() {
     assert_eq!(state_after_proj.projects.len(), 1);
     assert_eq!(state_after_proj.projects[0].name, "CommandProj");
     let project_id = &state_after_proj.projects[0].id;
-
+ 
     let task = Task {
         id: "task_1".to_string(),
         project_id: project_id.clone(),
@@ -35,6 +38,7 @@ fn test_commands_logic_integration_flow() {
         name: "CommandTask".to_string(),
         created_at: chrono::Utc::now().to_rfc3339(),
         completed: false,
+        status: Some(oxy_flow::types::TaskStatus::Todo),
         original_name: None,
         original_completed: None,
         edit_history: None,

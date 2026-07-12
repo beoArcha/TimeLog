@@ -14,6 +14,21 @@ pub struct TaskEditHistory {
     pub reason: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq)]
+#[ts(export)]
+pub enum TaskStatus {
+    Todo,
+    InProgress,
+    Done,
+    Blocked,
+}
+
+impl Default for TaskStatus {
+    fn default() -> Self {
+        Self::Todo
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
@@ -26,6 +41,8 @@ pub struct Task {
     pub created_at: String,
     pub completed: bool,
     #[ts(optional)]
+    pub status: Option<TaskStatus>,
+    #[ts(optional)]
     pub original_name: Option<String>,
     #[ts(optional)]
     pub original_completed: Option<bool>,
@@ -34,6 +51,7 @@ pub struct Task {
     #[ts(optional)]
     pub archived: Option<bool>,
 }
+
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
