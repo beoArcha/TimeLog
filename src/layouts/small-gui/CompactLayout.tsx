@@ -8,9 +8,9 @@ import { ActiveProjectCard } from './ActiveProjectCard';
 import { TaskVisibilityToggle } from './TaskVisibilityToggle';
 import { TaskList } from './TaskList';
 
-type SmallGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
+type CompactLayoutProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
-export default function SmallGui({ state, ...rest }: SmallGuiProps) {
+export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
   const {
     isSmallExpanded,
     setIsSmallExpanded,
