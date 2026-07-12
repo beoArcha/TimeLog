@@ -7,6 +7,8 @@ import { Project } from '@bindings/Project';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { Locale } from '@bindings/Locale';
 
+import { StatsSkeleton } from '@components/ui/Skeletons';
+
 interface ProjectHeaderCardProps {
   selectedProject: Project;
   projectDurationSeconds: number;
@@ -16,6 +18,7 @@ interface ProjectHeaderCardProps {
   customTranslations: any;
   sc: any;
   stats: ProjectStatistics | null;
+  loading: boolean;
   newTaskName: string;
   setNewTaskName: (name: string) => void;
   onAddTaskSubmit: (e: React.FormEvent) => void;
@@ -30,6 +33,7 @@ export default function ProjectHeaderCard({
   customTranslations,
   sc,
   stats,
+  loading,
   newTaskName,
   setNewTaskName,
   onAddTaskSubmit
@@ -80,7 +84,27 @@ export default function ProjectHeaderCard({
         )}
       </div>
 
-      {stats && !isCondensed && (
+      {loading && !isCondensed && (
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className={`rounded-2xl border transition-all ${
+            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+          }`}>
+            <StatsSkeleton />
+          </div>
+          <div className={`rounded-2xl border transition-all ${
+            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+          }`}>
+            <StatsSkeleton />
+          </div>
+          <div className={`rounded-2xl border transition-all ${
+            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+          }`}>
+            <StatsSkeleton />
+          </div>
+        </div>
+      )}
+
+      {stats && !loading && !isCondensed && (
         <div className="grid grid-cols-3 gap-4 mb-6 animate-fade-in">
           <div className={`p-4 rounded-2xl border transition-all ${
             theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'

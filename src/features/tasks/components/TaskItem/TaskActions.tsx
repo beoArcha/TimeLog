@@ -29,7 +29,7 @@ export function TaskActions({
   setEditName,
 }: TaskActionsProps) {
   return (
-    <div className="opacity-0 group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
+    <div className="opacity-100 md:opacity-0 md:group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
       <button
         type="button"
         title={translate(locale, 'common.editName', customTranslations)}

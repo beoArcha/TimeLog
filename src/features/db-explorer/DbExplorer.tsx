@@ -9,10 +9,12 @@ import TimeLogsTable from './components/TimeLogsTable';
 import HolidaysLeavesTable from './components/HolidaysLeavesTable';
 import PatchLogsTable from './components/PatchLogsTable';
 
+import { TableSkeleton } from '@components/ui/Skeletons';
+
 export default function DbExplorer() {
   const { 
     projects, tasks, logs, holidays, patches,
-    locale, customTranslations
+    locale, customTranslations, isLoading
   } = useOxyFlow();
 
   const handleExportDatabase = () => {
@@ -52,11 +54,19 @@ export default function DbExplorer() {
       </div>
 
       <div className="flex flex-col gap-8">
-        <ProjectsTable />
-        <TasksTable />
-        <TimeLogsTable />
-        <HolidaysLeavesTable />
-        <PatchLogsTable />
+        {isLoading ? (
+          <div className="bg-slate-900/10 border border-white/5 rounded-3xl p-6 shadow-xl">
+            <TableSkeleton rows={8} />
+          </div>
+        ) : (
+          <>
+            <ProjectsTable />
+            <TasksTable />
+            <TimeLogsTable />
+            <HolidaysLeavesTable />
+            <PatchLogsTable />
+          </>
+        )}
       </div>
     </div>
   );

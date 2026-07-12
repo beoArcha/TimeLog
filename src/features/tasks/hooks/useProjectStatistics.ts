@@ -5,12 +5,18 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { getProjectDurationSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { ErrorHandler } from '@common/exceptions/ErrorHandler';
+import { translate } from '@common/i18n/i18n';
+import { toast } from 'sonner';
+import { Locale } from '@bindings/Locale';
 
 interface UseProjectStatisticsProps {
   selectedProject: Project | null;
   tasks: Task[];
   logs: TimeLog[];
   nowIso: string;
+  locale?: Locale;
+  customTranslations?: any;
 }
 
 export interface UseProjectStatisticsResult {
@@ -25,6 +31,8 @@ export function useProjectStatistics({
   tasks,
   logs,
   nowIso,
+  locale,
+  customTranslations,
 }: UseProjectStatisticsProps): UseProjectStatisticsResult {
   const [stats, setStats] = useState<ProjectStatistics | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -54,7 +62,9 @@ export function useProjectStatistics({
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Failed to load project statistics');
-          console.error('Failed to load project statistics:', err);
+          ErrorHandler.handle(err);
+          const errorMsg = translate(locale || 'en', 'common.error', customTranslations) || 'Error';
+          toast.error(`${errorMsg}: Failed to load project statistics`);
         }
       } finally {
         if (isMounted) {
@@ -68,7 +78,7 @@ export function useProjectStatistics({
     return () => {
       isMounted = false;
     };
-  }, [projectId, tasks, logs]);
+  }, [projectId, tasks, logs, locale, customTranslations]);
 
   const projectDurationSeconds = useMemo(() => {
     if (!projectId) return 0;

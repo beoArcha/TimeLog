@@ -5,6 +5,8 @@ import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { STORAGE_KEYS } from '@common/constants';
 import { Theme, ThemePreference } from '@common/types/ThemeTypes';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { ErrorHandler } from '@common/exceptions/ErrorHandler';
+import { toast } from 'sonner';
 
 export const useAppSettings = () => {
   const [theme, setTheme] = useState<ThemePreference>(() => {
@@ -60,7 +62,7 @@ export const useAppSettings = () => {
       });
       setSettingsLoaded(true);
     }).catch(err => {
-      console.warn('Failed to load settings from persistence router:', err);
+      ErrorHandler.handle(err);
       setSettingsLoaded(true);
     });
   }, []);
@@ -134,7 +136,10 @@ export const useAppSettings = () => {
       };
       await PersistenceRouter.getInstance().settings.save(payload);
     };
-    saveSettings().catch((e) => console.error("Failed to save settings to persistence:", e));
+    saveSettings().catch((e) => {
+      ErrorHandler.handle(e);
+      toast.error('Failed to save settings to persistence');
+    });
   }, [
     settingsLoaded,
     sysSettings,

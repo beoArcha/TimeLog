@@ -74,11 +74,13 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     });
   }, [state]);
 
-  const { stats, projectDurationSeconds } = useProjectStatistics({
+  const { stats, loading, projectDurationSeconds } = useProjectStatistics({
     selectedProject,
     tasks,
     logs,
     nowIso,
+    locale,
+    customTranslations,
   });
 
   const taskItemState = React.useMemo(() => ({
@@ -129,6 +131,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         customTranslations={customTranslations}
         sc={sc}
         stats={stats}
+        loading={loading}
         newTaskName={newTaskName}
         setNewTaskName={setNewTaskName}
         onAddTaskSubmit={handleAddTaskSubmit}
