@@ -28,7 +28,7 @@ export interface CliEngineContext {
   onStopTimer: (projectId?: string) => void;
   nowIso: string;
   locale: Locale;
-  customTranslations?: any;
+  customTranslations?: Record<string, unknown>;
   holidays: HolidayLeave[];
   setHolidays: React.Dispatch<React.SetStateAction<HolidayLeave[]>>;
   selectedTaskId: string | null;

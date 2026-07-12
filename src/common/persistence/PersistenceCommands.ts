@@ -38,7 +38,7 @@ export class PersistenceCommands implements IPersistence {
 
       overrideState: async (state: Partial<TimerRepositoryState>): Promise<TimerRepositoryState> => {
         try {
-          await invoke('override_state' as any, { state });
+          await invoke('override_state', { state });
         } catch (err) {
           ErrorHandler.handle(new TauriInteropException('override_state command not supported by backend', err, 'WARN_TAURI_OVERRIDE'));
         }
@@ -83,7 +83,7 @@ export class PersistenceCommands implements IPersistence {
         icon: string | null,
         tags: string[] | null
       ): Promise<TimerRepositoryState> => {
-        const cmd: ProjectsPersistenceCommand = 'update_project' as any;
+        const cmd = 'update_project';
         return invoke<TimerRepositoryState>(cmd, {
           projectId,
           name,
@@ -117,7 +117,7 @@ export class PersistenceCommands implements IPersistence {
         status: TaskStatus | null,
         completed: boolean | null
       ): Promise<TimerRepositoryState> => {
-        const cmd: TasksPersistenceCommand = 'update_task' as any;
+        const cmd = 'update_task';
         return invoke<TimerRepositoryState>(cmd, {
           taskId,
           name,
@@ -180,7 +180,7 @@ export class PersistenceCommands implements IPersistence {
     this.runtimeConfigs = {
       save: async (config: RuntimeConfig): Promise<void> => {
         try {
-          const cmd: SettingsPersistenceCommand = 'save_runtime_config' as any;
+          const cmd = 'save_runtime_config';
           await invoke(cmd, { config });
         } catch (err) {
           ErrorHandler.handle(new TauriInteropException('Failed to save runtime config via Tauri', err, 'ERR_TAURI_RUN_CONFIG_SAVE'));
@@ -190,7 +190,7 @@ export class PersistenceCommands implements IPersistence {
 
       getAll: async (): Promise<RuntimeConfig[]> => {
         try {
-          const cmd: SettingsPersistenceCommand = 'get_runtime_configs' as any;
+          const cmd = 'get_runtime_configs';
           return await invoke<RuntimeConfig[]>(cmd);
         } catch (err) {
           ErrorHandler.handle(new TauriInteropException('Failed to get runtime configs via Tauri', err, 'ERR_TAURI_RUN_CONFIG_GET'));

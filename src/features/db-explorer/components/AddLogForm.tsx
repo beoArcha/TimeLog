@@ -8,7 +8,7 @@ interface AddLogFormProps {
   tasks: Task[];
   projects: Project[];
   locale: Locale;
-  customTranslations: any;
+  customTranslations: Record<string, unknown>;
   onSubmit: (taskId: string, startTime: string, endTime: string, note: string) => void;
   onCancel: () => void;
 }
@@ -31,7 +31,7 @@ export default function AddLogForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.taskId) {
-      alert('Najpierw wybierz zadanie!');
+      alert(translate(locale, 'task', 'TaskRequired', customTranslations));
       return;
     }
     onSubmit(form.taskId, form.startTime, form.endTime, form.note);
@@ -43,8 +43,8 @@ export default function AddLogForm({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
         <div>
           <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'AssignToTask', customTranslations)}</label>
-          <select 
-            value={form.taskId} 
+          <select
+            value={form.taskId}
             onChange={e => setForm(prev => ({ ...prev, taskId: e.target.value }))}
             className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none"
             required
@@ -57,31 +57,31 @@ export default function AddLogForm({
         </div>
         <div>
           <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'StartTime', customTranslations)}</label>
-          <input 
-            type="text" 
-            value={form.startTime} 
+          <input
+            type="text"
+            value={form.startTime}
             onChange={e => setForm(prev => ({ ...prev, startTime: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none select-text" 
+            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none select-text"
             required
           />
         </div>
         <div>
           <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'EndTime', customTranslations)}</label>
-          <input 
-            type="text" 
-            value={form.endTime} 
+          <input
+            type="text"
+            value={form.endTime}
             onChange={e => setForm(prev => ({ ...prev, endTime: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none select-text" 
+            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none select-text"
             placeholder="Wprowadź ISO lub pozostaw puste"
           />
         </div>
         <div>
           <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'Note', customTranslations)}</label>
-          <input 
-            type="text" 
-            value={form.note} 
+          <input
+            type="text"
+            value={form.note}
             onChange={e => setForm(prev => ({ ...prev, note: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none placeholder-slate-500" 
+            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none placeholder-slate-500"
             placeholder="np. Dodane wstecznie za wtorek"
           />
         </div>

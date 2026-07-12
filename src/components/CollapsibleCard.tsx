@@ -4,7 +4,7 @@ import { useOxyFlow } from '@common/hooks/OxyContext';
 
 interface CollapsibleCardProps {
   title?: React.ReactNode;
-  icon?: LucideIcon | any;
+  icon?: LucideIcon | React.ElementType;
   iconColor?: string;
   titleColor?: string;
   children: React.ReactNode;

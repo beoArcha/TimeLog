@@ -186,7 +186,8 @@ export type DatabaseKey =
   | 'TabDb'
   | 'TauriDriver'
   | 'TrackingActiveLabel'
-  | 'TypeLabel';
+  | 'TypeLabel'
+  | 'SyncErrorReason';
 
 export type EngineKey =
   | 'ActiveEngineUpper'
@@ -390,7 +391,8 @@ export type TaskKey =
   | 'SelectTaskPlaceholder'
   | 'SubtaskLabel'
   | 'TaskName'
-  | 'TasksAndSubtasks';
+  | 'TasksAndSubtasks'
+  | 'TaskRequired';
 
 export type TimerKey =
   | 'ActiveTracker'

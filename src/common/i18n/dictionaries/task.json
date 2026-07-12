@@ -14,7 +14,8 @@
     "CreateMainTaskHint": "Create a main project task above, then append subtasks.",
     "NoTasksInProfile": "No tasks in this profile.",
     "NoTaskSelected": "Select a task first to start / stop the timer.",
-    "SelectTaskPlaceholder": "-- Select task --"
+    "SelectTaskPlaceholder": "-- Select task --",
+    "TaskRequired": "Select a task first!"
   },
   "pl": {
     "AddTask": "Dodaj zadanie",
@@ -31,7 +32,8 @@
     "CreateMainTaskHint": "Stwórz główne zadanie poniżej, a potem dodaj podzadania.",
     "NoTasksInProfile": "Brak zadań w tym profilu.",
     "NoTaskSelected": "Zaznacz zadanie na liście, aby móc kontrolować dla niego czas.",
-    "SelectTaskPlaceholder": "-- Wybierz zadanie --"
+    "SelectTaskPlaceholder": "-- Wybierz zadanie --",
+    "TaskRequired": "Najpierw wybierz zadanie!"
   },
   "de": {
     "AddTask": "Aufgabe hinzufügen",
@@ -48,7 +50,8 @@
     "CreateMainTaskHint": "Erstellen Sie oben eine Hauptprojektaufgabe und fügen Sie dann Unteraufgaben hinzu.",
     "NoTasksInProfile": "Keine Aufgaben in diesem Profil.",
     "NoTaskSelected": "Wählen Sie zuerst eine Aufgabe aus, um den Timer zu starten / stoppen.",
-    "SelectTaskPlaceholder": "-- Aufgabe auswählen --"
+    "SelectTaskPlaceholder": "-- Aufgabe auswählen --",
+    "TaskRequired": "Wählen Sie zuerst eine Aufgabe!"
   },
   "es": {
     "AddTask": "Agregar Tarea",
@@ -65,7 +68,8 @@
     "CreateMainTaskHint": "Crea un proyecto arriba.",
     "NoTasksInProfile": "No hay tareas en este perfil.",
     "NoTaskSelected": "Seleccione una tarea primero para iniciar.",
-    "SelectTaskPlaceholder": "-- Seleccionar tarea --"
+    "SelectTaskPlaceholder": "-- Seleccionar tarea --",
+    "TaskRequired": "¡Selecciona una tarea primero!"
   },
   "fr": {
     "AddTask": "Ajouter une Tâche",
@@ -82,7 +86,8 @@
     "CreateMainTaskHint": "Créez un projet au-dessus.",
     "NoTasksInProfile": "Aucune tâche dans ce profil.",
     "NoTaskSelected": "Veuillez sélectionner une tâche pour démarrer.",
-    "SelectTaskPlaceholder": "-- Sélectionner une tâche --"
+    "SelectTaskPlaceholder": "-- Sélectionner une tâche --",
+    "TaskRequired": "Veuillez sélectionner une tâche d'abord!"
   },
   "pt-br": {
     "AddTask": "Adicionar Tarefa",
@@ -99,6 +104,7 @@
     "CreateMainTaskHint": "Crie um projeto acima.",
     "NoTasksInProfile": "Sem tarefas neste perfil.",
     "NoTaskSelected": "Selecione uma tarefa antes de iniciar o contador.",
-    "SelectTaskPlaceholder": "-- Selecionar tarefa --"
+    "SelectTaskPlaceholder": "-- Selecionar tarefa --",
+    "TaskRequired": "Selecione uma tarefa primeiro!"
   }
 }

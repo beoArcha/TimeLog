@@ -5,7 +5,7 @@ import { translate } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 
 interface TimeLogTableRowProps {
-  key?: any;
+  key?: string | number;
   l: TimeLog;
   isEditing: boolean;
   onStartEdit: () => void;
@@ -13,7 +13,7 @@ interface TimeLogTableRowProps {
   onCancelEdit: () => void;
   onDelete: () => void;
   locale: Locale;
-  customTranslations: any;
+  customTranslations: Record<string, unknown>;
   showHistory: boolean;
   onToggleHistory: () => void;
 }
@@ -34,7 +34,7 @@ export default function TimeLogTableRow({
     startTime: l.startTime,
     endTime: l.endTime || '',
     note: l.note || '',
-    reason: 'Błąd synchronizacji licznika / Korekta ręczna'
+    reason: translate(locale, 'database', 'SyncErrorReason', customTranslations)
   });
 
   const hasHistory = !!(l.editHistory && l.editHistory.length > 0);

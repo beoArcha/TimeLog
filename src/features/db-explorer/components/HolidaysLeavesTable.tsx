@@ -130,7 +130,7 @@ export default function HolidaysLeavesTable() {
                       {isEditing ? (
                         <select
                           value={holidayForm.type}
-                          onChange={e => setHolidayForm(prev => ({ ...prev, type: e.target.value as any }))}
+                          onChange={e => setHolidayForm(prev => ({ ...prev, type: e.target.value as HolidayLeave['type'] }))}
                           className="bg-black border border-white/20 px-2 py-1 rounded"
                         >
                           <option value="holiday">{translate(locale, 'database', 'HolidayType', customTranslations)}</option>

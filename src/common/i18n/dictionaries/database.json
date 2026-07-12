@@ -44,7 +44,8 @@
     "AddManualPatch": "Add Manual Patch",
     "NoPatches": "No patches",
     "NoPatchesStandardMode": "No patches (patch_logs). Engine operates in standard mode.",
-    "TabDb": "Database Explorer"
+    "TabDb": "Database Explorer",
+    "SyncErrorReason": "Sync Error / Manual Correction"
   },
   "pl": {
     "NoteBeforeCorrection": "Notatka przed korektą:",
@@ -91,7 +92,8 @@
     "AddManualPatch": "Dodaj Ręczny Patch",
     "NoPatches": "Brak poprawek",
     "NoPatchesStandardMode": "Brak łatek (patch_logs). Silnik operuje w standardowym trybie.",
-    "TabDb": "Podejrzenie bazy"
+    "TabDb": "Podejrzenie bazy",
+    "SyncErrorReason": "Błąd synchronizacji licznika / Korekta ręczna"
   },
   "de": {
     "NoteBeforeCorrection": "Notiz vor Korrektur:",
@@ -138,7 +140,8 @@
     "AddManualPatch": "Manuellen Patch hinzufügen",
     "NoPatches": "Keine Patches",
     "NoPatchesStandardMode": "Keine Patches (patch_logs). Der Motor arbeitet im Standardmodus.",
-    "TabDb": "Datenbank-Explorer"
+    "TabDb": "Datenbank-Explorer",
+    "SyncErrorReason": "Fehler bei der Zählersynchronisation / Manuelle Korrektur"
   },
   "es": {
     "NoteBeforeCorrection": "Nota antes de corrección:",
@@ -185,7 +188,8 @@
     "AddManualPatch": "Añadir parche manual",
     "NoPatches": "Sin parches",
     "NoPatchesStandardMode": "Sin parches. Modo estándar.",
-    "TabDb": "Base de datos"
+    "TabDb": "Base de datos",
+    "SyncErrorReason": "Error de sincronización del contador / Corrección manual"
   },
   "fr": {
     "NoteBeforeCorrection": "Note avant correction :",
@@ -232,7 +236,8 @@
     "AddManualPatch": "Ajouter un patch manuel",
     "NoPatches": "Aucun patch",
     "NoPatchesStandardMode": "Aucun patch. Mode standard.",
-    "TabDb": "Base de données"
+    "TabDb": "Base de données",
+    "SyncErrorReason": "Erreur de synchronisation du compteur / Correction manuelle"
   },
   "pt-br": {
     "NoteBeforeCorrection": "Nota antes da correção:",
@@ -279,6 +284,7 @@
     "AddManualPatch": "Adicionar Patch Manual",
     "NoPatches": "Sem patches",
     "NoPatchesStandardMode": "Sem patches. Modo padrão.",
-    "TabDb": "Banco de Dados"
+    "TabDb": "Banco de Dados",
+    "SyncErrorReason": "Erro de sincronização do contador / Correção manual"
   }
 }
