@@ -6,7 +6,6 @@ interface TaskActionsProps {
   taskId: string;
   taskName: string;
   locale: Locale;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customTranslations: any;
   deleteTitle: string;
   pencilSize: string;
@@ -33,6 +32,7 @@ export function TaskActions({
       <button
         type="button"
         title={translate(locale, 'common.editName', customTranslations)}
+        aria-label={translate(locale, 'common.editName', customTranslations)}
         onClick={(e) => {
           e.stopPropagation();
           setEditingId(taskId);
@@ -45,6 +45,7 @@ export function TaskActions({
       <button
         type="button"
         title={deleteTitle}
+        aria-label={deleteTitle}
         onClick={(e) => {
           e.stopPropagation();
           if (onDeleteTask) onDeleteTask(taskId);

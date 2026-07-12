@@ -7,6 +7,9 @@ export const TEST_CONSTANTS = {
   // Global Shortcuts
   EVENT_KEYDOWN: 'keydown',
   KEY_SPACE: 'Space',
+  KEY_DIGIT1: 'Digit1',
+  KEY_DIGIT4: 'Digit4',
+  KEY_ESCAPE: 'Escape',
   TAG_INPUT: 'input',
   
   // Time Ticker

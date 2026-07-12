@@ -147,6 +147,14 @@
     border-color: var(--border);
     outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
   }
+
+  button:focus-visible,
+  [role="tab"]:focus-visible {
+    outline: 2px solid rgba(249, 115, 22, 0.6);
+    outline-offset: 2px;
+    border-radius: inherit;
+  }
+
   body {
     background-color: var(--background);
     color: var(--foreground);
@@ -156,6 +164,7 @@
     margin: 0;
     padding: 0;
   }
+
   html {
     font-family: var(--font-sans);
     overflow: hidden;

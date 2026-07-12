@@ -78,8 +78,20 @@ export default function GuiManager() {
     setSelectedTaskId
   } = state;
 
+  const LARGE_TAB_IDS = ['main', 'reports', 'db', 'options', 'backup', 'cli', 'manual', 'credits'] as const;
+
   useGlobalShortcuts({
     onToggleTimer: handleToggleTimer,
+    onSwitchTab: (index) => {
+      if (guiSize === 'large' && index < LARGE_TAB_IDS.length) {
+        setActiveLargeTab(LARGE_TAB_IDS[index]);
+      }
+    },
+    onEscape: () => {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    },
   });
 
   const guiCommonProps: GuiCommonProps = {

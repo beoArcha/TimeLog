@@ -63,6 +63,7 @@ export function SmallGuiHeader({
           onClick={onRestoreWindow}
           className="p-1 rounded hover:bg-white/10 hover:text-orange-400 text-slate-400 cursor-pointer transition-colors flex items-center justify-center"
           title={restoreTitle}
+          aria-label={restoreTitle}
         >
           <Maximize2 className="w-3.5 h-3.5" />
         </button>
@@ -71,6 +72,7 @@ export function SmallGuiHeader({
           onClick={onMinimizeToTray}
           className="p-1 rounded hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 cursor-pointer transition-colors flex items-center justify-center"
           title={trayTitle}
+          aria-label={trayTitle}
         >
           <X className="w-3.5 h-3.5" />
         </button>

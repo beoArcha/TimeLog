@@ -73,6 +73,7 @@ export function TaskCard({
               : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30'
           }`}
           title={timerTitle}
+          aria-label={timerTitle}
         >
           {isRootActive ? (
             <Square className="w-3.5 h-3.5 fill-rose-500" />

@@ -1,10 +1,16 @@
 import { useEffect } from 'react';
 
+interface GlobalShortcutsConfig {
+  onToggleTimer: () => void;
+  onSwitchTab?: (index: number) => void;
+  onEscape?: () => void;
+}
+
 export function useGlobalShortcuts({
   onToggleTimer,
-}: {
-  onToggleTimer: () => void;
-}) {
+  onSwitchTab,
+  onEscape,
+}: GlobalShortcutsConfig) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -18,11 +24,23 @@ export function useGlobalShortcuts({
         e.preventDefault();
         onToggleTimer();
       }
+
+      if (e.altKey && onSwitchTab) {
+        const digitMatch = e.code.match(/^Digit([1-8])$/);
+        if (digitMatch) {
+          e.preventDefault();
+          onSwitchTab(parseInt(digitMatch[1], 10) - 1);
+        }
+      }
+
+      if (e.code === 'Escape' && !isInput && onEscape) {
+        onEscape();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onToggleTimer]);
+  }, [onToggleTimer, onSwitchTab, onEscape]);
 }

@@ -36,12 +36,14 @@ export default function TabBar({
       resolvedTheme === 'light' ? 'bg-[#EAE4DB]/50 border-[#DFD7CB]' : 'bg-black/35 border-white/5'
     }`}>
       <div className="max-w-7xl mx-auto px-6 overflow-x-auto">
-        <div className="flex gap-1.5 py-2.5 whitespace-nowrap min-w-max">
+        <div role="tablist" aria-label="Navigation tabs" className="flex gap-1.5 py-2.5 whitespace-nowrap min-w-max">
           {tabs.map(tb => {
             const isActive = activeLargeTab === tb.id;
             return (
               <button
                 key={tb.id}
+                role="tab"
+                aria-selected={isActive}
                 onClick={() => setActiveLargeTab(tb.id)}
                 data-testid={`tab-${tb.id}`}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-tight transition-all cursor-pointer capitalize ${

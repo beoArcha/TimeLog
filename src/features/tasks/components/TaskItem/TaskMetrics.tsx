@@ -14,9 +14,7 @@ interface TaskMetricsProps {
   showSubtaskFormForId: string | null;
   theme: string;
   locale: Locale;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customTranslations: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sc: any;
   onStartTimer: (id: string) => void;
   setShowSubtaskFormForId: (id: string | null) => void;
@@ -61,6 +59,7 @@ export function TaskMetrics({
             onClick={() => onStartTimer(rootTask.id)}
             className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer"
             title={translate(locale, 'common.stopTimer', customTranslations)}
+            aria-label={translate(locale, 'common.stopTimer', customTranslations)}
           >
             <Square className="w-3.5 h-3.5 fill-white" />
           </button>
@@ -74,6 +73,7 @@ export function TaskMetrics({
               : 'bg-teal-500 hover:bg-teal-600 text-white shadow-lg'
               }`}
             title={translate(locale, 'common.startTimer', customTranslations)}
+            aria-label={translate(locale, 'common.startTimer', customTranslations)}
           >
             <Play className="w-3.5 h-3.5 fill-white text-white" />
           </button>
@@ -89,6 +89,7 @@ export function TaskMetrics({
             : 'bg-[#FCFAF8]/5 hover:bg-[#FCFAF8]/15 text-slate-200 hover:text-white border-white/10'
             }`}
           title={translate(locale, GuiKey.AddSubtask, customTranslations)}
+          aria-label={translate(locale, GuiKey.AddSubtask, customTranslations)}
         >
           <Plus className="w-3.5 h-3.5 text-orange-500" />{' '}
           <span className={isCondensed ? 'hidden xs:inline' : ''}>

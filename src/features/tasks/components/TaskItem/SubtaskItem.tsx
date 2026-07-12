@@ -18,9 +18,7 @@ interface SubtaskItemProps {
   editName: string;
   theme: string;
   locale: Locale;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customTranslations: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
@@ -64,16 +62,17 @@ export function SubtaskItem({
     <div
       id={`subtask-item-${subTask.id}`}
       className={`flex items-center justify-between gap-4 py-2 px-3 rounded-xl group/sub transition-all ${isSubRunning
-          ? 'bg-orange-500/10 border border-orange-500/20'
-          : theme === 'light'
-            ? 'hover:bg-[#EAE4DB]/80 border border-transparent text-[#2C2421]'
-            : 'hover:bg-[#FCFAF8]/5 border border-transparent'
+        ? 'bg-orange-500/10 border border-orange-500/20'
+        : theme === 'light'
+          ? 'hover:bg-[#EAE4DB]/80 border border-transparent text-[#2C2421]'
+          : 'hover:bg-[#FCFAF8]/5 border border-transparent'
         }`}
     >
       <div className="flex items-start sm:items-center gap-2.5 flex-1 min-w-0">
         <button
           id={`check-subtask-${subTask.id}`}
           onClick={() => onToggleTaskComplete(subTask.id)}
+          aria-label={`${subTask.completed ? translate(locale, 'common.edit', customTranslations) : translate(locale, 'common.confirm', customTranslations)} ${subTask.name}`}
           className={`${th.textMuted} hover:text-orange-500 transition-colors cursor-pointer mt-0.5 sm:mt-0 shrink-0`}
         >
           {subTask.completed ? (
@@ -101,10 +100,10 @@ export function SubtaskItem({
           ) : (
             <span
               className={`text-xs font-semibold flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${subTask.completed
-                  ? 'line-through text-[#9B8C83] font-normal'
-                  : theme === 'light'
-                    ? 'text-[#2C2421]'
-                    : 'text-slate-200'
+                ? 'line-through text-[#9B8C83] font-normal'
+                : theme === 'light'
+                  ? 'text-[#2C2421]'
+                  : 'text-slate-200'
                 }`}
             >
               <span className="truncate block max-w-full" title={subTask.name}>
@@ -119,15 +118,14 @@ export function SubtaskItem({
                   }
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border outline-none cursor-pointer font-mono shrink-0 transition-all ${
-                  subTask.status === 'Done'
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border outline-none cursor-pointer font-mono shrink-0 transition-all ${subTask.status === 'Done'
                     ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/15'
                     : subTask.status === 'InProgress'
                       ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/15'
                       : subTask.status === 'Blocked'
                         ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/15'
                         : 'bg-slate-500/10 text-slate-500 border-slate-500/20 hover:bg-slate-500/15'
-                }`}
+                  }`}
               >
                 <option value="Todo" className="bg-[#1b1c21] text-slate-200 text-xs">TODO</option>
                 <option value="InProgress" className="bg-[#1b1c21] text-blue-400 text-xs">In Progress</option>
@@ -160,10 +158,10 @@ export function SubtaskItem({
       <div className="flex items-center gap-3 shrink-0">
         <span
           className={`font-mono text-[10px] px-2 py-1 rounded-md border transition-all ${isSubRunning
-              ? 'bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold'
-              : theme === 'light'
-                ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#7A6A61]'
-                : 'bg-[#FCFAF8]/5 border-white/10 text-slate-300'
+            ? 'bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold'
+            : theme === 'light'
+              ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#7A6A61]'
+              : 'bg-[#FCFAF8]/5 border-white/10 text-slate-300'
             }`}
         >
           {formatSeconds(subDuration)}
@@ -174,6 +172,7 @@ export function SubtaskItem({
             id={`stop-subtask-btn-${subTask.id}`}
             onClick={() => onStartTimer(subTask.id)}
             title={translate(locale, 'common.stopTimer', customTranslations)}
+            aria-label={translate(locale, 'common.stopTimer', customTranslations)}
             className="bg-rose-500 text-white rounded-lg p-2 transition-colors cursor-pointer animate-pulse shrink-0"
           >
             <Square className="w-3.5 h-3.5 fill-white text-white" />
@@ -184,9 +183,10 @@ export function SubtaskItem({
             onClick={() => !subTask.completed && onStartTimer(subTask.id)}
             disabled={subTask.completed}
             title={translate(locale, 'common.startTimer', customTranslations)}
+            aria-label={translate(locale, 'common.startTimer', customTranslations)}
             className={`text-[#9B8C83] hover:text-white rounded-lg p-2 transition-all cursor-pointer shrink-0 ${theme === 'light'
-                ? 'bg-[#EAE4DB] hover:bg-teal-500 group-hover/sub:bg-teal-500 text-[#5A4A42]'
-                : 'bg-[#FCFAF8]/5 hover:bg-teal-500 group-hover/sub:bg-teal-500'
+              ? 'bg-[#EAE4DB] hover:bg-teal-500 group-hover/sub:bg-teal-500 text-[#5A4A42]'
+              : 'bg-[#FCFAF8]/5 hover:bg-teal-500 group-hover/sub:bg-teal-500'
               }`}
           >
             <Play className="w-3.5 h-3.5 fill-current shrink-0" />

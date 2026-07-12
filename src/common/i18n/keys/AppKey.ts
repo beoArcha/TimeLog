@@ -20,4 +20,6 @@ export enum AppKey {
   ThemeHighContrast = 'app.themeHighContrast',
   ThemeSystem = 'app.themeSystem',
   NoTaskSelected = 'app.noTaskSelected',
+  RestoreDefault = 'app.restoreDefault',
+  DefaultRestored = 'app.defaultRestored',
 }

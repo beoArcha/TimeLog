@@ -74,7 +74,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
   it('Given root task form, When submitted with valid text, Then it should call onAddTask', () => {
     const state = setupMockState();
     render(<TaskListView state={state} isCondensed={false} />);
-    const submitBtn = screen.getByRole('button', { name: /Add/i });
+    const submitBtn = screen.getByRole('button', { name: /^Add Task$/i });
     fireEvent.click(submitBtn);
     expect(state.onAddTask).toHaveBeenCalledWith('proj_1', 'New Test Task', null);
     expect(state.setNewTaskName).toHaveBeenCalledWith('');
