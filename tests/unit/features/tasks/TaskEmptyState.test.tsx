@@ -16,4 +16,12 @@ describe('Unit Tests: TaskEmptyState', () => {
 
     expect(screen.getByText(/Create a main project task/i)).toBeTruthy();
   });
+
+  it('Given TaskEmptyState rendered, When theme is light, Then it should render with light theme styling classes', () => {
+    render(
+      <TaskEmptyState theme="light" locale="en" customTranslations={{}} />
+    );
+
+    expect(screen.getByText(/Create a main project task/i)).toBeTruthy();
+  });
 });

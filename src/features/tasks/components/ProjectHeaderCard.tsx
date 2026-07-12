@@ -85,7 +85,7 @@ export default function ProjectHeaderCard({
       </div>
 
       {loading && !isCondensed && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div data-testid="stats-skeleton-grid" className="grid grid-cols-3 gap-4 mb-6">
           <div className={`rounded-2xl border transition-all ${
             theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
           }`}>

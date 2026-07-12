@@ -108,4 +108,43 @@ describe('Unit Tests: useReportStatistics', () => {
     expect(result.current.filteredLogs).toHaveLength(1);
     expect(result.current.filteredLogs[0].id).toBe('l1');
   });
+
+  it('should filter logs by reportPeriod month and all, and sort alfabetic/date correctly', () => {
+    const { result } = renderHook(() =>
+      useReportStatistics({
+        logs,
+        patches,
+        projects,
+        tasks,
+        nowIso: '2026-07-12T15:00:00Z',
+        reportPeriod: 'month',
+        reportSort: 'date',
+        sysSettings: { includePatchesInReports: false, autoStart: false, autoPauseOnSleep: true, activeSinks: [] }
+      })
+    );
+
+    expect(result.current.filteredLogs).toHaveLength(2);
+    expect(result.current.displayLogs[0].id).toBe('l2');
+    expect(result.current.displayLogs[1].id).toBe('l1');
+
+    expect(result.current.projectChart[0].id).toBe('p1');
+    expect(result.current.projectChart[1].id).toBe('p2');
+  });
+
+  it('should filter logs by reportPeriod all correctly', () => {
+    const { result } = renderHook(() =>
+      useReportStatistics({
+        logs,
+        patches,
+        projects,
+        tasks,
+        nowIso: '2026-07-12T15:00:00Z',
+        reportPeriod: 'all',
+        reportSort: 'duration',
+        sysSettings: { includePatchesInReports: false, autoStart: false, autoPauseOnSleep: true, activeSinks: [] }
+      })
+    );
+
+    expect(result.current.filteredLogs).toHaveLength(2);
+  });
 });
