@@ -70,6 +70,10 @@ const mockState: OxyFlowState = {
   handleToggleTaskComplete: vi.fn(),
   handleStartTimer: vi.fn(),
   handleStopTimer: vi.fn(),
+  handleUpdateProject: vi.fn(),
+  handleUpdateTask: vi.fn(),
+  handleEditTimeLog: vi.fn(),
+  handleRestoreState: vi.fn(),
 };
 
 const ContextWrapper = ({ children }: { children: React.ReactNode }) => (

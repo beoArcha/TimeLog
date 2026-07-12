@@ -80,7 +80,7 @@ export interface OxyFlowState {
   setShowCreditsModal?: React.Dispatch<React.SetStateAction<boolean>>;
   selectedTaskId: string | null;
   setSelectedTaskId: (id: string | null) => void;
-  handleAddProject: (name: string, color: string, description: string | null, icon: string | null, tags: string[] | null) => void;
+  handleAddProject: (name: string, color: string, description?: string | null, icon?: string | null, tags?: string[] | null) => void;
   handleToggleProjectArchive: (projectId: string) => void;
   handleAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
   handleUpdateProject: (

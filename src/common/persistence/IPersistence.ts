@@ -20,9 +20,9 @@ export interface IProjectsPersistence {
   add(input: {
     name: string;
     color: string;
-    description: string | null;
-    icon: string | null;
-    tags: string[] | null;
+    description?: string | null;
+    icon?: string | null;
+    tags?: string[] | null;
   }): Promise<TimerRepositoryState>;
   toggleArchive(projectId: string): Promise<TimerRepositoryState>;
   update(

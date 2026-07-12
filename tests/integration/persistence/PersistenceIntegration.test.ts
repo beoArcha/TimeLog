@@ -44,7 +44,13 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
     const router = PersistenceRouter.getInstance();
     const result = await router.projects.add({ name: 'New Project', color: '#00ff00' });
 
-    expect(mockInvoke).toHaveBeenCalledWith('add', { name: 'New Project', color: '#00ff00' });
+    expect(mockInvoke).toHaveBeenCalledWith('add', {
+      name: 'New Project',
+      color: '#00ff00',
+      description: null,
+      icon: null,
+      tags: null,
+    });
     expect(result).toEqual(mockState);
   });
 });

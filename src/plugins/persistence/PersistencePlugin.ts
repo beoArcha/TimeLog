@@ -55,9 +55,9 @@ export class PersistencePlugin implements IPersistence {
       add: async (input: {
         name: string;
         color: string;
-        description: string | null;
-        icon: string | null;
-        tags: string[] | null;
+        description?: string | null;
+        icon?: string | null;
+        tags?: string[] | null;
       }): Promise<TimerRepositoryState> => {
         const current = (await this.core.load()) || getDefaultState();
         const now = new Date().toISOString();

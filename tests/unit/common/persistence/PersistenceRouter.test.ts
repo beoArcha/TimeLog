@@ -29,18 +29,34 @@ describe('Unit Tests: PersistenceRouter', () => {
       projects: {
         add: vi.fn().mockResolvedValue(mockState),
         toggleArchive: vi.fn().mockResolvedValue(mockState),
+        update: vi.fn().mockResolvedValue(mockState),
         rename: vi.fn().mockResolvedValue(mockState),
       },
       tasks: {
         add: vi.fn().mockResolvedValue(mockState),
+        update: vi.fn().mockResolvedValue(mockState),
         rename: vi.fn().mockResolvedValue(mockState),
         delete: vi.fn().mockResolvedValue(mockState),
         toggleComplete: vi.fn().mockResolvedValue(mockState),
+        getProjectId: vi.fn().mockResolvedValue('p-id'),
+        getSubtasks: vi.fn().mockResolvedValue([]),
       },
       settings: {
         get: vi.fn().mockResolvedValue(mockSettings),
         save: vi.fn().mockResolvedValue(undefined),
-      }
+      },
+      runtimeConfigs: {
+        save: vi.fn().mockResolvedValue(undefined),
+        getAll: vi.fn().mockResolvedValue([]),
+      },
+      timeLogs: {
+        getForTask: vi.fn().mockResolvedValue([]),
+        closeActiveByProject: vi.fn().mockResolvedValue(undefined),
+        closeAllActive: vi.fn().mockResolvedValue(undefined),
+        insert: vi.fn().mockResolvedValue(undefined),
+        queryActive: vi.fn().mockResolvedValue([]),
+        getAll: vi.fn().mockResolvedValue([]),
+      },
     };
 
     const router = PersistenceRouter.getInstance();
@@ -78,6 +94,18 @@ describe('Unit Tests: PersistenceRouter', () => {
 
     await router.settings.save(mockSettings);
     expect(mockImplementation.settings.save).toHaveBeenCalledWith(mockSettings);
+
+    await router.projects.update('p-id', 'name', 'color', null, null, null);
+    expect(mockImplementation.projects.update).toHaveBeenCalledWith('p-id', 'name', 'color', null, null, null);
+
+    await router.tasks.update('t-id', 'name', null, null, null);
+    expect(mockImplementation.tasks.update).toHaveBeenCalledWith('t-id', 'name', null, null, null);
+
+    await router.tasks.getProjectId('t-id');
+    expect(mockImplementation.tasks.getProjectId).toHaveBeenCalledWith('t-id');
+
+    await router.tasks.getSubtasks('t-id');
+    expect(mockImplementation.tasks.getSubtasks).toHaveBeenCalledWith('t-id');
 
     await router.core.reset();
     expect(mockImplementation.core.reset).toHaveBeenCalled();

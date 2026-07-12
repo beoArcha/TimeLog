@@ -56,17 +56,17 @@ export class PersistenceCommands implements IPersistence {
       add: async (input: {
         name: string;
         color: string;
-        description: string | null;
-        icon: string | null;
-        tags: string[] | null;
+        description?: string | null;
+        icon?: string | null;
+        tags?: string[] | null;
       }): Promise<TimerRepositoryState> => {
         const cmd: ProjectsPersistenceCommand = 'add';
         return invoke<TimerRepositoryState>(cmd, {
           name: input.name,
           color: input.color,
-          description: input.description,
-          icon: input.icon,
-          tags: input.tags,
+          description: input.description ?? null,
+          icon: input.icon ?? null,
+          tags: input.tags ?? null,
         });
       },
 

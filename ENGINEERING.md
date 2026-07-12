@@ -408,8 +408,9 @@ A feature is considered complete only when:
 
 * architecture remains consistent
 * tests pass
+* typecheck passes
 * lint passes
-* formatting passes
+* rust formating passes
 * documentation is updated
 * both runtimes continue to behave consistently (where applicable)
 

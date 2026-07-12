@@ -17,7 +17,13 @@ export interface GuiCommonProps {
   patches?: PatchLog[];
   sysSettings?: Settings;
   
-  onAddProject: (name: string, color: string) => void;
+  onAddProject: (
+    name: string,
+    color: string,
+    description?: string | null,
+    icon?: string | null,
+    tags?: string[] | null
+  ) => void;
   onAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
   onRenameProject?: (projectId: string, newName: string) => void;
   onRenameTask?: (taskId: string, newName: string) => void;

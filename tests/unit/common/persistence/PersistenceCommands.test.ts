@@ -27,7 +27,13 @@ describe('Unit Tests: PersistenceCommands', () => {
   it('should call add', async () => {
     mockInvoke.mockResolvedValue({});
     await commands.projects.add({ name: 'Project 1', color: 'red' });
-    expect(mockInvoke).toHaveBeenCalledWith('add', { name: 'Project 1', color: 'red' });
+    expect(mockInvoke).toHaveBeenCalledWith('add', {
+      name: 'Project 1',
+      color: 'red',
+      description: null,
+      icon: null,
+      tags: null,
+    });
   });
 
   it('should call toggle_archive', async () => {

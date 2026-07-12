@@ -18,7 +18,7 @@ export default function TaskListView({ state, isCondensed }: { state: any; isCon
 
   React.useEffect(() => {
     if (!selectedProject?.id) {
-      setStats(null);
+      queueMicrotask(() => setStats(null));
       return;
     }
     const fetchStats = async () => {

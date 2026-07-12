@@ -5,6 +5,7 @@ import { TaskStatus } from '@bindings/TaskStatus';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
 import { STORAGE_KEYS } from '@common/constants';
 import { ErrorHandler, RepositoryException } from '../exceptions';
