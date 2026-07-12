@@ -41,6 +41,10 @@ export function SubtaskRow({
     }
   };
 
+  const timerTitle = isSubActive
+    ? translate(locale, SmallGuiKey.StopMeasurement, customTranslations)
+    : translate(locale, SmallGuiKey.StartMeasurement, customTranslations);
+
   return (
     <div className="flex items-center justify-between gap-2 py-0.5">
       <span
@@ -53,6 +57,8 @@ export function SubtaskRow({
 
       <button
         onClick={handleClick}
+        title={timerTitle}
+        aria-label={timerTitle}
         className={`p-1 rounded-md transition-all cursor-pointer ${
           isSubActive
             ? 'bg-rose-500/25 text-rose-550'
