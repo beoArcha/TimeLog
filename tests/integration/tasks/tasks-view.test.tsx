@@ -102,7 +102,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
     const input = screen.getByDisplayValue('Task One Custom');
     fireEvent.change(input, { target: { value: 'Task One Renamed' } });
     fireEvent.blur(input);
-    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Custom');
+    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Renamed');
     expect(state.setEditingId).toHaveBeenCalledWith(null);
   });
 
@@ -146,7 +146,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
     fireEvent.change(input, { target: { value: 'Task One Renamed' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
 
-    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Custom');
+    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Renamed');
     expect(state.setEditingId).toHaveBeenCalledWith(null);
   });
 

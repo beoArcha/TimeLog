@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { Calendar, Plus, Trash2, Database } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
-import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { DynamicKey } from '@common/i18n/keys/DynamicKey';
 
 export default function HolidaysLeavesView() {
-  const { theme, holidays, setHolidays, locale } = useOxyFlow();
-  const { customTranslations } = useOxyFlow();
+  const { theme, holidays, handleAddHoliday, handleDeleteHoliday, locale, customTranslations } = useOxyFlow();
 
   const [newHolidayDate, setNewHolidayDate] = useState('2026-06-15');
   const [newHolidayType, setNewHolidayType] = useState<'holiday' | 'leave'>('leave');
@@ -17,12 +15,7 @@ export default function HolidaysLeavesView() {
   const handleAddHolidaySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHolidayDate || !newHolidayName) return;
-    setHolidays(prev => [...prev, {
-      id: DataManager.getNextId(holidays, 'h'),
-      date: newHolidayDate,
-      type: newHolidayType,
-      name: newHolidayName
-    }]);
+    handleAddHoliday(newHolidayDate, newHolidayType, newHolidayName);
     setNewHolidayName('');
   };
 
@@ -122,7 +115,7 @@ export default function HolidaysLeavesView() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <button onClick={() => setHolidays(prev => prev.filter(x => x.id !== h.id))} className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition-colors" title={translate(locale, DynamicKey.DeleteSqlDelete, customTranslations)}>
+                        <button onClick={() => handleDeleteHoliday(h.id)} className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition-colors" title={translate(locale, DynamicKey.DeleteSqlDelete, customTranslations)}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </td>

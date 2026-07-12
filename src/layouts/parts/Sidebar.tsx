@@ -11,11 +11,40 @@ import versionsData from '../../versions.json';
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
     projects, tasks, logs, nowIso, locale, customTranslations, theme,
-    newProjectName, setNewProjectName, newProjectColor, setNewProjectColor,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
-    editingId, setEditingId, editName, setEditName,
     onRenameProject, onToggleProjectArchive
   } = state;
+
+  const [newProjectName, setNewProjectNameLocal] = React.useState(() => state.newProjectName ?? '');
+  const [newProjectColor, setNewProjectColorLocal] = React.useState(() => state.newProjectColor ?? 'violet');
+  const [editingId, setEditingIdLocal] = React.useState<string | null>(() => state.editingId ?? null);
+  const [editName, setEditNameLocal] = React.useState(() => state.editName ?? '');
+
+  const setNewProjectName = React.useCallback((val: string) => {
+    setNewProjectNameLocal(val);
+    state.setNewProjectName?.(val);
+  }, [state]);
+
+  const setNewProjectColor = React.useCallback((val: string) => {
+    setNewProjectColorLocal(val);
+    state.setNewProjectColor?.(val);
+  }, [state]);
+
+  const setEditingId = React.useCallback((val: string | null | ((prev: string | null) => string | null)) => {
+    setEditingIdLocal(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      state.setEditingId?.(next);
+      return next;
+    });
+  }, [state]);
+
+  const setEditName = React.useCallback((val: string | ((prev: string) => string)) => {
+    setEditNameLocal(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      state.setEditName?.(next);
+      return next;
+    });
+  }, [state]);
 
   // Add Project Advanced fields
   const [showAddAdvanced, setShowAddAdvanced] = React.useState(false);

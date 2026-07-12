@@ -3,13 +3,12 @@ import { Folder } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { getThemeStyles, getScaleStyles } from '@/src/layouts/parts/GuiStyles';
 import TaskItem from './components/TaskItem/TaskItem';
-import { EngineRouter } from '@common/engine/EngineRouter';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
-import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import ProjectHeaderCard from './components/ProjectHeaderCard';
 import TaskEmptyState from './components/TaskEmptyState';
+import { useProjectStatistics } from './hooks/useProjectStatistics';
 
 interface TaskListViewProps {
   state: any;
@@ -19,8 +18,7 @@ interface TaskListViewProps {
 export default function TaskListView({ state, isCondensed }: TaskListViewProps) {
   const {
     tasks, logs, nowIso, locale, customTranslations, theme,
-    selectedProject, rootTasks,
-    newTaskName, setNewTaskName, onAddTask
+    selectedProject, rootTasks, onAddTask
   }: {
     tasks: Task[];
     logs: TimeLog[];
@@ -30,28 +28,66 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     theme: string;
     selectedProject: Project | null;
     rootTasks: Task[];
-    newTaskName: string;
-    setNewTaskName: (name: string) => void;
     onAddTask: (projectId: string, name: string, parentId: string | null) => void;
   } = state;
 
-  const [stats, setStats] = React.useState<ProjectStatistics | null>(null);
+  const [newTaskName, setNewTaskNameLocal] = React.useState(() => state.newTaskName ?? '');
+  const [editingId, setEditingIdLocal] = React.useState<string | null>(() => state.editingId ?? null);
+  const [editName, setEditNameLocal] = React.useState(() => state.editName ?? '');
+  const [showSubtaskFormForId, setShowSubtaskFormForIdLocal] = React.useState<string | null>(() => state.showSubtaskFormForId ?? null);
+  const [newSubtaskName, setNewSubtaskNameLocal] = React.useState(() => state.newSubtaskName ?? '');
 
-  React.useEffect(() => {
-    if (!selectedProject?.id) {
-      queueMicrotask(() => setStats(null));
-      return;
-    }
-    const fetchStats = async () => {
-      try {
-        const data = await EngineRouter.getInstance().getProjectStatistics(selectedProject.id);
-        setStats(data);
-      } catch (err) {
-        console.error("Failed to load project statistics:", err);
-      }
-    };
-    fetchStats();
-  }, [selectedProject?.id, tasks, logs]);
+  const setNewTaskName = React.useCallback((val: string) => {
+    setNewTaskNameLocal(val);
+    state.setNewTaskName?.(val);
+  }, [state]);
+
+  const setEditingId = React.useCallback((val: string | null | ((prev: string | null) => string | null)) => {
+    setEditingIdLocal(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      state.setEditingId?.(next);
+      return next;
+    });
+  }, [state]);
+
+  const setEditName = React.useCallback((val: string | ((prev: string) => string)) => {
+    setEditNameLocal(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      state.setEditName?.(next);
+      return next;
+    });
+  }, [state]);
+
+  const setShowSubtaskFormForId = React.useCallback((val: string | null | ((prev: string | null) => string | null)) => {
+    setShowSubtaskFormForIdLocal(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      state.setShowSubtaskFormForId?.(next);
+      return next;
+    });
+  }, [state]);
+
+  const setNewSubtaskName = React.useCallback((val: string | ((prev: string) => string)) => {
+    setNewSubtaskNameLocal(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      state.setNewSubtaskName?.(next);
+      return next;
+    });
+  }, [state]);
+
+  const { stats, projectDurationSeconds } = useProjectStatistics({
+    selectedProject,
+    tasks,
+    logs,
+    nowIso,
+  });
+
+  const taskItemState = React.useMemo(() => ({
+    ...state,
+    editingId, setEditingId,
+    editName, setEditName,
+    showSubtaskFormForId, setShowSubtaskFormForId,
+    newSubtaskName, setNewSubtaskName
+  }), [state, editingId, editName, showSubtaskFormForId, newSubtaskName]);
 
   const th = getThemeStyles(theme);
   const sc = getScaleStyles(state.textAndIconSize || 'medium');
@@ -86,9 +122,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
       
       <ProjectHeaderCard
         selectedProject={selectedProject}
-        tasks={tasks}
-        logs={logs}
-        nowIso={nowIso}
+        projectDurationSeconds={projectDurationSeconds}
         isCondensed={isCondensed}
         theme={theme}
         locale={locale}
@@ -113,7 +147,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
             <TaskItem
               key={rootTask.id}
               rootTask={rootTask}
-              state={state}
+              state={taskItemState}
               isCondensed={isCondensed}
               th={th}
               sc={sc}

@@ -473,6 +473,19 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
+  const handleAddHoliday = (date: string, type: 'holiday' | 'leave', name: string) => {
+    setHolidays(prev => [...prev, {
+      id: LocalStorageDataManager.getNextId(prev, 'h'),
+      date,
+      type,
+      name
+    }]);
+  };
+
+  const handleDeleteHoliday = (id: string) => {
+    setHolidays(prev => prev.filter(x => x.id !== id));
+  };
+
   return {
     projects, setProjects,
     tasks, setTasks,
@@ -500,5 +513,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     handleEditTimeLog,
     handleResetLocalStorage,
     handleRestoreState,
+    handleAddHoliday,
+    handleDeleteHoliday,
   };
 };

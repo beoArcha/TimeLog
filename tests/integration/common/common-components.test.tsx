@@ -88,7 +88,7 @@ describe('Integration Tests: Common Components', () => {
       const saveBtn = screen.getByText(/Save/i);
       fireEvent.click(saveBtn);
 
-      expect(mockState.setHolidays).toHaveBeenCalled();
+      expect(mockState.handleAddHoliday).toHaveBeenCalledWith('2026-06-15', 'leave', 'My Holiday');
     });
   });
 });

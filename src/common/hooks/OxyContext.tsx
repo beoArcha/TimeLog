@@ -120,6 +120,8 @@ export interface OxyFlowState {
     holidays?: HolidayLeave[];
     patches?: PatchLog[];
   }) => Promise<void>;
+  handleAddHoliday: (date: string, type: 'holiday' | 'leave', name: string) => void;
+  handleDeleteHoliday: (id: string) => void;
 }
 
 export const OxyContext = createContext<OxyFlowState | undefined>(undefined);

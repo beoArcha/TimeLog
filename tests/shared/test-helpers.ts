@@ -405,4 +405,6 @@ export const getMockOxyFlowState = (): OxyFlowState => ({
   handleStopTimer: vi.fn(),
   handleEditTimeLog: vi.fn(),
   handleRestoreState: vi.fn(),
+  handleAddHoliday: vi.fn(),
+  handleDeleteHoliday: vi.fn(),
 });

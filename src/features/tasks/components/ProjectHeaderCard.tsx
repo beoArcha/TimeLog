@@ -2,18 +2,14 @@ import React from 'react';
 import { Plus, TrendingUp } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { GuiKey } from '@common/i18n/keys/GuiKey';
-import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { Project } from '@bindings/Project';
-import { Task } from '@bindings/Task';
-import { TimeLog } from '@bindings/TimeLog';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { Locale } from '@bindings/Locale';
 
 interface ProjectHeaderCardProps {
   selectedProject: Project;
-  tasks: Task[];
-  logs: TimeLog[];
-  nowIso: string;
+  projectDurationSeconds: number;
   isCondensed: boolean;
   theme: string;
   locale: Locale;
@@ -27,9 +23,7 @@ interface ProjectHeaderCardProps {
 
 export default function ProjectHeaderCard({
   selectedProject,
-  tasks,
-  logs,
-  nowIso,
+  projectDurationSeconds,
   isCondensed,
   theme,
   locale,
@@ -62,7 +56,7 @@ export default function ProjectHeaderCard({
                 <span className="font-semibold">{translate(locale, 'dynamic.total', customTranslations)}:</span>
               </div>
               <span className={`font-bold ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
-                {formatSeconds(getProjectDurationSeconds(selectedProject.id, tasks, logs, nowIso))}
+                {formatSeconds(projectDurationSeconds)}
               </span>
             </div>
           )}
@@ -80,7 +74,7 @@ export default function ProjectHeaderCard({
               <span className="font-semibold">{translate(locale, 'dynamic.total', customTranslations)}:</span>
             </div>
             <span className={`font-bold ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
-              {formatSeconds(getProjectDurationSeconds(selectedProject.id, tasks, logs, nowIso))}
+              {formatSeconds(projectDurationSeconds)}
             </span>
           </div>
         )}
