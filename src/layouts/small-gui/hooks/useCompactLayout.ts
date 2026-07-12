@@ -5,7 +5,7 @@ import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
 
-interface UseSmallGuiParams {
+interface UseCompactLayoutParams {
   projects: Project[];
   tasks: Task[];
   locale: Locale;
@@ -18,7 +18,7 @@ interface UseSmallGuiParams {
   lastNonCompactVariant: Exclude<LayoutVariant, 'compact'> | undefined;
 }
 
-export interface SmallGuiDerived {
+export interface CompactLayoutDerived {
   activeProj: Project | undefined;
   projectRootTasks: Task[];
   handleStartTimer: (taskId: string) => void;
@@ -26,7 +26,7 @@ export interface SmallGuiDerived {
   handleRestoreWindow: () => void;
 }
 
-export function useSmallGui({
+export function useCompactLayout({
   projects,
   tasks,
   locale,
@@ -36,7 +36,7 @@ export function useSmallGui({
   onStopTimer,
   setLayoutVariant,
   lastNonCompactVariant,
-}: UseSmallGuiParams): SmallGuiDerived {
+}: UseCompactLayoutParams): CompactLayoutDerived {
   const activeProj = useMemo(
     () => projects.find((p) => p.id === currentProjectId) ?? projects[0],
     [projects, currentProjectId],

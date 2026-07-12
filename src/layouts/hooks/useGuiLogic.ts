@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
-import { GuiCommonProps } from '../types/LayoutCommonProps';
+import { LayoutCommonProps } from '../types/LayoutCommonProps';
 
-export function useGuiLogic(props: GuiCommonProps) {
+export function useGuiLogic(props: LayoutCommonProps) {
   const { projects, tasks } = props;
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(projects[0]?.id || null);

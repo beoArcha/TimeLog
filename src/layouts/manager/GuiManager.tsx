@@ -25,12 +25,12 @@ import AppFooter from '../components/AppFooter';
 import RestoreButton from '@components/RestoreButton';
 
 // Builders
-import SmallGuiBuilder from '../builders/SmallGuiBuilder';
+import SmallGuiBuilder from '../builders/CompactLayoutBuilder';
 import MediumGuiBuilder from '../builders/MediumGuiBuilder';
-import LargeGuiBuilder from '../builders/LargeGuiBuilder';
+import LargeGuiBuilder from '../builders/FullLayoutBuilder';
 
 // Types & Logics
-import { GuiCommonProps } from '../types/LayoutCommonProps';
+import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from '../hooks/useGuiLogic';
 
 export default function GuiManager() {
@@ -94,7 +94,7 @@ export default function GuiManager() {
     },
   });
 
-  const guiCommonProps: GuiCommonProps = {
+  const guiCommonProps: LayoutCommonProps = {
     projects,
     tasks,
     logs,

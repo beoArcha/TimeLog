@@ -7,9 +7,9 @@ import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
 import { GUI_MIN_SIZES } from './parts/LayoutStyles';
 
-type MediumGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
+type MediumLayoutProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
-export default function MediumGui({ state }: MediumGuiProps) {
+export default function MediumLayout({ state }: MediumLayoutProps) {
   const { theme, activeView, textAndIconSize = 'medium' } = state;
 
   return (

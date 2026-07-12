@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import type { GuiRouterProps } from '../types/LayoutCommonProps';
 import { GuiState } from '../hooks/useGuiLogic';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { useSmallGui } from './hooks/useSmallGui';
+import { useCompactLayout } from './hooks/useCompactLayout';
 import { CompactLayoutHeader } from './CompactLayoutHeader';
 import { ActiveProjectCard } from './ActiveProjectCard';
 import { TaskVisibilityToggle } from './TaskVisibilityToggle';
@@ -35,7 +35,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
   const { alwaysOnTopSmall, setAlwaysOnTopSmall } = useOxyFlow();
 
   const { activeProj, projectRootTasks, handleStartTimer, handleStopTimer, handleRestoreWindow } =
-    useSmallGui({
+    useCompactLayout({
       projects,
       tasks,
       locale,
@@ -59,10 +59,10 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
     >
       <div
         className={`rounded-2xl border shadow-2xl p-3 flex flex-col gap-2.5 relative overflow-hidden transition-all duration-300 w-full h-full ${resolvedTheme === 'light'
-            ? 'bg-white border-slate-200 text-slate-800'
-            : resolvedTheme === 'high-contrast'
-              ? 'bg-black border-2 border-white text-white'
-              : 'bg-slate-950/95 backdrop-blur-xl border-white/10 text-white'
+          ? 'bg-white border-slate-200 text-slate-800'
+          : resolvedTheme === 'high-contrast'
+            ? 'bg-black border-2 border-white text-white'
+            : 'bg-slate-950/95 backdrop-blur-xl border-white/10 text-white'
           }`}
       >
         {resolvedTheme !== 'high-contrast' && (

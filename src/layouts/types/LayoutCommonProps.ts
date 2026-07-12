@@ -9,7 +9,7 @@ import { TranslationDictionary } from '@common/i18n/translator';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { Locale } from '@/src/bindings/Locale';
 
-export interface GuiCommonProps {
+export interface LayoutCommonProps {
   projects: Project[];
   tasks: Task[];
   logs: TimeLog[];
@@ -65,7 +65,7 @@ export interface GuiCommonProps {
 
 export interface GuiRouterProps {
   variant: import('@bindings/LayoutVariant').LayoutVariant;
-  commonProps: GuiCommonProps;
+  commonProps: LayoutCommonProps;
 
   isSmallExpanded: boolean;
   setIsSmallExpanded: (val: boolean) => void;

@@ -8,9 +8,9 @@ import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
 import { GUI_MIN_SIZES } from './parts/LayoutStyles';
 
-type LargeGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
+type FullLayoutProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
-export default function LargeGui({ state }: LargeGuiProps) {
+export default function FullLayout({ state }: FullLayoutProps) {
   const { theme, activeView, textAndIconSize = 'medium' } = state;
 
   return (
