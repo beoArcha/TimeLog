@@ -2,79 +2,85 @@
 
 ## Engineering Guide
 
-This document defines the engineering principles, architectural rules, and development standards for oXyFlow.
+This document defines the engineering principles, architectural rules, development standards, and frontend/backend responsibilities for oXyFlow.
 
-It is the authoritative reference for contributors, reviewers, and AI assistants.
-
----
-
-## Design Goals
-
-The project is designed to achieve:
-
-* simplicity
-* maintainability
-* correctness
-* predictable architecture
-* high testability
-* runtime independence
-* native performance
-
-Every design decision should improve at least one of these goals without unnecessarily harming the others.
+It is the authoritative engineering reference for contributors, reviewers, and AI assistants.
 
 ---
 
-## Engineering Principles
+## Engineering Goals
+
+Every engineering decision should improve at least one of the following without unnecessarily harming the others.
+
+* Simplicity
+* Maintainability
+* Correctness
+* Predictability
+* Testability
+* Runtime Independence
+* Native User Experience
+* Long-Term Sustainability
+
+---
+
+## Core Engineering Principles
 
 ### KISS
 
-Prefer the simplest solution that satisfies the requirements.
+Prefer the simplest solution that satisfies the current requirements.
 
-Avoid premature abstractions.
+Avoid unnecessary abstraction.
+
+Avoid architecture created only for possible future scenarios.
 
 ---
 
 ### SOLID
 
-Apply SOLID where it improves maintainability.
+Apply SOLID only when it genuinely improves maintainability.
 
-Do not introduce interfaces or inheritance solely to satisfy theoretical purity.
+Avoid interfaces, inheritance or indirection that provide no practical value.
 
 ---
 
 ### DRY
 
-Avoid duplicated business logic.
+Business logic must never be duplicated.
 
-Duplicated platform code is acceptable if it improves readability or runtime isolation.
+Platform-specific implementations may differ when doing so improves readability or runtime isolation.
 
 ---
 
 ### YAGNI
 
-Do not implement future features until there is a concrete requirement.
+Never implement features for hypothetical future needs.
 
-Keep extension points only where they already provide value.
+Extension points should exist only when they already solve a real problem.
 
 ---
 
 ### Composition over Inheritance
 
-Prefer composition.
+The entire application is based on composition.
 
-Runtime behavior should be assembled from routers and plugins instead of deep inheritance hierarchies.
+Systems are assembled from:
+
+* Routers
+* Managers
+* Builders
+* Runtime implementations
+
+Avoid deep inheritance hierarchies.
 
 ---
 
-## Architectural Overview
-
-The application is divided into four major layers.
+## Architectural Layers
 
 ```text
 React UI
         │
         ▼
-Routers
+Application Routers
         │
         ▼
 Runtime Implementations
@@ -83,353 +89,441 @@ Runtime Implementations
 Business Engine / Persistence
 ```
 
-Each layer has a single responsibility.
+Every layer has exactly one responsibility.
 
 ---
 
-## React Layer
+## Backend Architecture
 
-Responsible for:
+### EngineRouter
+
+Responsible only for selecting the active Engine implementation.
+
+Never contains business logic.
+
+---
+
+### PersistenceRouter
+
+Responsible only for selecting the active Persistence implementation.
+
+Never contains business logic.
+
+---
+
+### Engine
+
+Business logic belongs exclusively to Engine.
+
+Responsibilities include:
+
+* timer lifecycle
+* elapsed calculations
+* statistics
+* validation
+* workflows
+* aggregates
+
+Rust remains the reference implementation.
+
+---
+
+### Persistence
+
+Persistence is responsible only for storing and retrieving data.
+
+Responsibilities:
+
+* load
+* save
+* update
+* delete
+
+Persistence never:
+
+* validates business rules
+* calculates statistics
+* changes workflows
+
+---
+
+## Frontend Architecture
+
+The frontend follows the same architectural philosophy as the backend.
+
+Business logic remains outside React.
+
+Frontend is divided into independent responsibilities.
+
+---
+
+### Runtime
+
+A Runtime represents the execution environment.
+
+Current runtimes:
+
+* Browser
+* Tauri
+
+Future runtimes may include:
+
+* Electron
+* Mobile
+* Embedded
+* WebView
+
+Runtime is responsible only for:
+
+* environment integration
+* native APIs
+* window management
+* runtime wrappers
+* runtime styling
+
+Runtime never changes:
+
+* business logic
+* layout composition
+* component hierarchy
+
+---
+
+### Runtime Applications
+
+Each runtime owns its application entry point.
+
+Examples:
+
+```text
+app-browser/
+
+app-tauri/
+```
+
+Both expose exactly the same frontend architecture.
+
+Differences should remain limited to:
+
+* runtime integration
+* window behavior
+* runtime CSS
+* native APIs
+
+---
+
+### LayoutManager
+
+LayoutManager composes the application inside the current runtime.
+
+Responsibilities:
+
+* host application shell
+* compose LayoutVariant
+* provide shared application structure
+* host common providers
+
+LayoutManager never decides:
+
+* runtime
+* layout variant
+* visual scale
+
+Those values come from application configuration.
+
+---
+
+### LayoutVariant
+
+LayoutVariant defines application composition.
+
+Examples:
+
+* Full
+* Half
+* Compact
+
+LayoutVariant determines:
+
+* page composition
+* column layout
+* navigation placement
+* major screen regions
+
+Each LayoutVariant has its own Builder.
+
+---
+
+### Layout Builders
+
+Builders compose layouts.
+
+Examples:
+
+* FullBuilder
+* HalfBuilder
+* CompactBuilder
+
+Builders never:
+
+* calculate sizes
+* detect runtime
+* modify business logic
+
+Builders only compose views.
+
+---
+
+### TextAndIconSize
+
+TextAndIconSize defines visual scale.
+
+It controls only:
+
+* typography
+* icon sizes
+* spacing
+* paddings
+* border radius
+* CSS Design Tokens
+
+It never changes layout composition.
+
+---
+
+## CSS Architecture
+
+CSS is responsible for presentation.
+
+React components should not calculate:
+
+* spacing
+* paddings
+* margins
+* typography
+* sizing
+
+Visual scaling belongs entirely to CSS Design Tokens.
+
+Application state is exposed through root classes.
+
+Example:
+
+```text
+runtime-tauri
+
+layout-full
+
+text-medium
+```
+
+Components consume only CSS variables.
+
+Example:
+
+```css
+padding: var(--spacing-card);
+```
+
+React should not contain conditional styling logic based on scale.
+
+---
+
+## React Responsibilities
+
+React is responsible only for:
 
 * rendering
 * user interaction
 * local UI state
 * view composition
 
-React must never contain business rules.
+React must never contain:
 
-Examples of forbidden logic:
-
-* timer calculations
-* statistics
-* persistence decisions
-* runtime detection
+* business calculations
+* persistence logic
+* runtime selection
+* platform-specific workflows
 
 ---
 
-## Routers
+## Component Rules
 
-Routers expose a stable API to the frontend.
+Components should:
 
-They select the active runtime implementation.
+* be small
+* have a single responsibility
+* remain reusable
+* avoid unnecessary state
 
-Routers do not implement business logic.
+Prefer composition.
 
-Current routers:
-
-* EngineRouter
-* PersistenceRouter
-
----
-
-## EngineRouter
-
-Responsibilities:
-
-* expose engine operations
-* choose runtime implementation
-* keep frontend runtime-independent
-
-EngineRouter must not:
-
-* calculate business values
-* access storage directly
-* manipulate SQLite
-* know UI details
+Avoid monolithic components.
 
 ---
 
-## PersistenceRouter
+## Hooks
 
-Responsibilities:
+Hooks orchestrate UI behavior.
 
-* abstract persistence
-* expose repository operations
-* route requests to the correct backend
+Hooks must not:
 
-PersistenceRouter must not:
-
-* calculate elapsed time
-* validate business rules
-* implement domain workflows
-
-Persistence exists only to store and retrieve data.
-
----
-
-## Runtime Implementations
-
-The project currently supports two runtime environments.
-
-### Desktop Runtime
-
-```text
-React
-
-↓
-
-EngineRouter
-PersistenceRouter
-
-↓
-
-Tauri Commands
-
-↓
-
-Rust Engine
-
-↓
-
-SQLite
-```
-
-The Rust implementation is the reference implementation.
-
----
-
-### Browser Runtime
-
-```text
-React
-
-↓
-
-EngineRouter
-PersistenceRouter
-
-↓
-
-Engine Plugin
-Persistence Plugin
-
-↓
-
-LocalStorage
-```
-
-Browser plugins should replicate Rust behavior as closely as possible.
-
----
-
-## Rust Engine
-
-Rust is the source of truth for business logic.
-
-Responsibilities include:
-
-* timer state
-* calculations
-* validation
-* aggregates
-* business workflows
-
-Whenever behavior differs between Rust and Browser implementations, Rust is considered correct.
-
----
-
-## Persistence Layer
-
-Persistence is responsible only for storage.
-
-Possible implementations:
-
-* SQLite
-* LocalStorage
-* CSV
-* future cloud providers
-
-Persistence should never contain business rules.
+* implement business logic
+* access persistence directly
+* duplicate Engine behavior
 
 ---
 
 ## Repository Rules
 
-Repositories:
+Repositories only access storage.
 
-* load data
-* save data
-* update data
-* delete data
+Never:
 
-Repositories must not:
-
-* calculate statistics
-* modify business workflows
-* decide application behavior
+* validate
+* calculate
+* orchestrate workflows
 
 ---
 
-## Business Rules
+## Runtime Rules
 
-Business rules belong exclusively to the Engine.
+Runtime-specific code must remain isolated.
 
-Examples:
+No shared component should know whether it runs inside:
 
-* starting a timer
-* stopping a timer
-* elapsed time calculation
-* overlapping log validation
-* statistics generation
+* Browser
+* Tauri
 
-These rules must exist exactly once per runtime implementation.
+Runtime differences belong only to runtime implementations.
 
 ---
 
-## Frontend Rules
+## Builder Rules
 
-React components should remain as small as practical.
+Builders define structure.
 
-Recommended order of responsibility:
+Builders never define scale.
 
-Component
-
-↓
-
-Feature Hook
-
-↓
-
-Router
-
-↓
-
-Runtime
-
-↓
-
-Business Engine
-
-Avoid:
-
-* large components
-* duplicated state
-* business calculations in hooks
-* direct persistence access
+Builders never define runtime behavior.
 
 ---
 
 ## Testing Strategy
 
-The testing pyramid consists of:
-
 ### Unit Tests
 
 * utilities
-* domain logic
 * plugins
 * repositories
+* builders
+
+---
 
 ### Integration Tests
 
 * routers
-* Tauri commands
-* persistence
 * runtime communication
-
-### End-to-End Tests
-
-* complete user workflows
-* timer lifecycle
-* project management
-* task management
+* tauri commands
+* persistence
 
 ---
 
-## Error Handling
+### End-to-End
 
-Errors should be:
-
-* explicit
-* typed where practical
-* propagated upward
-* presented to users with meaningful messages
-
-Avoid swallowing exceptions.
+* timer workflow
+* project workflow
+* task workflow
+* configuration
 
 ---
 
-## Performance Guidelines
+## Performance
 
-Optimize only after correctness.
-
-Priorities:
+Always prioritize:
 
 1. Correctness
-2. Readability
-3. Maintainability
+2. Maintainability
+3. Readability
 4. Performance
 
-Do not introduce complexity for hypothetical performance gains.
+Never sacrifice architecture for hypothetical optimizations.
 
 ---
 
-## Code Style
+## AI Development Workflow
 
-Preferred:
+Every architectural change follows the same sequence.
 
-* small functions
-* descriptive names
-* immutable data where practical
-* explicit control flow
+```text
+Architecture
 
-Avoid:
+↓
 
-* hidden side effects
-* deeply nested conditionals
-* unnecessary abstractions
-* magic values
+Documentation
 
----
+↓
 
-## AI Development Guidelines
+Contracts
 
-AI-generated code must:
+↓
 
-* follow existing architecture
-* preserve runtime abstraction
-* avoid bypassing routers
-* avoid duplicating business logic
-* prefer existing domain models
-* keep Rust and Browser implementations behaviorally aligned
+Implementation
 
-When extending functionality:
+↓
 
-1. Update contracts.
-2. Implement runtime behavior.
-3. Add tests.
-4. Refactor only if necessary.
+Tests
+
+↓
+
+Refactoring
+
+↓
+
+Optimization
+
+↓
+
+Release
+```
+
+AI must never skip steps.
 
 ---
 
 ## Definition of Done
 
-A feature is considered complete only when:
+A task is complete only when:
 
 * architecture remains consistent
+* documentation is updated
 * tests pass
 * typecheck passes
 * lint passes
-* rust formating passes
-* documentation is updated
-* both runtimes continue to behave consistently (where applicable)
+* formatting passes
+* both runtimes behave consistently
+* new code follows engineering rules
 
 ---
 
 ## Non-Negotiable Rules
 
-Never:
+### Never
 
-* put business logic into React
-* bypass EngineRouter
-* bypass PersistenceRouter
-* duplicate business rules
-* let persistence decide business behavior
-* couple UI to storage implementation
+* Put business logic into React.
+* Bypass EngineRouter.
+* Bypass PersistenceRouter.
+* Couple UI to storage.
+* Detect runtime inside shared components.
+* Calculate UI scale inside React components.
+* Mix layout composition with visual scaling.
 
-Always:
+### Always
 
-* keep layers independent
-* keep responsibilities focused
-* write code that is easy to understand before making it clever
-* leave the codebase cleaner than you found it
+* Keep responsibilities focused.
+* Prefer composition.
+* Isolate runtimes.
+* Keep LayoutVariant independent from TextAndIconSize.
+* Keep CSS responsible for presentation.
+* Keep components simple.
+* Leave the project cleaner than you found it.
