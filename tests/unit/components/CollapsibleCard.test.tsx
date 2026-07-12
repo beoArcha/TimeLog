@@ -66,4 +66,81 @@ describe('Unit Tests: CollapsibleCard', () => {
 
     expect(screen.getByText('Extra Info')).toBeTruthy();
   });
+
+  it('Given titleNode prop provided, Then it should render titleNode instead of title text', () => {
+    render(
+      <OxyContext.Provider value={mockState}>
+        <CollapsibleCard titleNode={<span data-testid="custom-title">Custom Node</span>}>
+          <div>Content</div>
+        </CollapsibleCard>
+      </OxyContext.Provider>
+    );
+
+    expect(screen.getByTestId('custom-title')).toBeTruthy();
+    expect(screen.queryByText('Custom Node')).toBeTruthy();
+  });
+
+  it('Given onClick prop provided, When header clicked, Then it should call onClick', () => {
+    const onClickSpy = vi.fn();
+    render(
+      <OxyContext.Provider value={mockState}>
+        <CollapsibleCard title="Clickable" onClick={onClickSpy}>
+          <div>Content</div>
+        </CollapsibleCard>
+      </OxyContext.Provider>
+    );
+
+    const header = screen.getByRole('button');
+    fireEvent.click(header);
+
+    expect(onClickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('Given card is collapsed, When Enter key pressed on header, Then it should expand and show content', () => {
+    render(
+      <OxyContext.Provider value={mockState}>
+        <CollapsibleCard title="Keyboard Card" defaultExpanded={false}>
+          <div>Keyboard Content</div>
+        </CollapsibleCard>
+      </OxyContext.Provider>
+    );
+
+    expect(screen.queryByText('Keyboard Content')).toBeNull();
+
+    const header = screen.getByRole('button');
+    fireEvent.keyDown(header, { key: 'Enter' });
+
+    expect(screen.getByText('Keyboard Content')).toBeTruthy();
+  });
+
+  it('Given card is collapsed, When Space key pressed on header, Then it should expand and show content', () => {
+    render(
+      <OxyContext.Provider value={mockState}>
+        <CollapsibleCard title="Space Card" defaultExpanded={false}>
+          <div>Space Content</div>
+        </CollapsibleCard>
+      </OxyContext.Provider>
+    );
+
+    expect(screen.queryByText('Space Content')).toBeNull();
+
+    const header = screen.getByRole('button');
+    fireEvent.keyDown(header, { key: ' ' });
+
+    expect(screen.getByText('Space Content')).toBeTruthy();
+  });
+
+  it('Given light theme, When rendered, Then it should apply light background classes', () => {
+    const lightState = { ...mockState, resolvedTheme: 'light' as const };
+    const { container } = render(
+      <OxyContext.Provider value={lightState}>
+        <CollapsibleCard title="Light Theme Card">
+          <div>Light Content</div>
+        </CollapsibleCard>
+      </OxyContext.Provider>
+    );
+
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper.className).toContain('bg-[#FCFAF7]');
+  });
 });
