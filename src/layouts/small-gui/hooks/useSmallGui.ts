@@ -44,7 +44,7 @@ export function useSmallGui({
 
   const projectRootTasks = useMemo(() => {
     if (!activeProj) return [];
-    return tasks.filter((t) => t.projectId === activeProj.id && t.parentTaskId === null);
+    return tasks.filter((t) => t.projectId === activeProj.id && !t.parentTaskId);
   }, [tasks, activeProj]);
 
   const handleStartTimer = (taskId: string) => {

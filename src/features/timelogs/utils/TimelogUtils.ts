@@ -30,7 +30,7 @@ export function getProjectDurationSeconds(
   logs: TimeLog[],
   nowIso: string
 ): number {
-  const rootTasks = tasks.filter(t => t.projectId === projectId && t.parentTaskId === null);
+  const rootTasks = tasks.filter(t => t.projectId === projectId && !t.parentTaskId);
   let total = 0;
   for (const task of rootTasks) {
     total += getTaskDurationSeconds(task.id, tasks, logs, nowIso);

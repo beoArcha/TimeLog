@@ -19,7 +19,7 @@ export function useGuiLogic(props: GuiCommonProps) {
   }, [tasks, selectedProject]);
 
   const rootTasks = useMemo(() => {
-    return projectTasks.filter(t => t.parentTaskId === null);
+    return projectTasks.filter(t => !t.parentTaskId);
   }, [projectTasks]);
 
   return {

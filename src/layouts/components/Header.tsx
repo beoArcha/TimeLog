@@ -53,6 +53,7 @@ export default function Header() {
             return (
               <button
                 key={sz}
+                data-testid={`gui-size-${sz}`}
                 onClick={() => {
                   setGuiSize(sz);
                   if (showToast) {
@@ -83,6 +84,7 @@ export default function Header() {
             return (
               <button
                 key={scale}
+                data-testid={`text-scale-${scale}`}
                 onClick={() => setTextAndIconSize(scale)}
                 className={`px-2.5 py-0.5 rounded-md uppercase transition-all cursor-pointer flex flex-col items-center justify-center min-w-[32px] ${isActive
                   ? resolvedTheme === 'light'

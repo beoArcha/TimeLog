@@ -68,7 +68,7 @@ export const runTasksCommand = (args: string[], context: CliEngineContext, outpu
   }
 
   const projTasks = tasks.filter(t => t.projectId === pId);
-  const rootTasks = projTasks.filter(t => t.parentTaskId === null);
+  const rootTasks = projTasks.filter(t => !t.parentTaskId);
 
   if (rootTasks.length === 0) {
     outputs.push({ text: `${proj.name}: ${translate(locale, 'cli', 'ProjNoTasksYet', customTranslations)}`, type: 'info' });

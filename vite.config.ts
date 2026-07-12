@@ -53,6 +53,13 @@ export default defineConfig(() => {
     },
     test: {
       environment: 'jsdom',
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        'tests/e2e/**',
+        '**/.{idea,git,cache,output,temp}/**',
+        '**/{karma,rollup,webpack,vite,vitest}.config.*'
+      ],
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'json-summary', 'html'],
