@@ -46,16 +46,16 @@ impl GuiSize {
             GuiSize::Medium => {
                 let dims = match text_and_icon_size {
                     TextAndIconSize::Small => WindowDimensions {
-                        width: 540.0,
+                        width: 480.0,
                         height: 720.0,
                     },
                     TextAndIconSize::Medium => WindowDimensions {
-                        width: 630.0,
-                        height: 840.0,
+                        width: 720.0,
+                        height: 1080.0,
                     },
                     TextAndIconSize::Large => WindowDimensions {
-                        width: 720.0,
-                        height: 960.0,
+                        width: 960.0,
+                        height: 1440.0,
                     },
                 };
                 (dims, true)
@@ -63,16 +63,16 @@ impl GuiSize {
             GuiSize::Large => {
                 let dims = match text_and_icon_size {
                     TextAndIconSize::Small => WindowDimensions {
-                        width: 850.0,
-                        height: 600.0,
+                        width: 960.0,
+                        height: 960.0,
                     },
                     TextAndIconSize::Medium => WindowDimensions {
-                        width: 950.0,
-                        height: 680.0,
+                        width: 1440.0,
+                        height: 1440.0,
                     },
                     TextAndIconSize::Large => WindowDimensions {
-                        width: 1050.0,
-                        height: 750.0,
+                        width: 1920.0,
+                        height: 1920.0,
                     },
                 };
                 (dims, true)
