@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getThemeStyles, getScaleStyles, PROJECT_COLORS, GUI_MIN_SIZES } from '../../../../src/layouts/parts/GuiStyles';
+import { getThemeStyles, getScaleStyles, PROJECT_COLORS, GUI_MIN_SIZES } from '../../../../src/layouts/parts/LayoutStyles';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 
 describe('Unit Tests: GuiStyles', () => {

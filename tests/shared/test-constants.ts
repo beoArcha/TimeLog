@@ -23,7 +23,7 @@ export const TEST_CONSTANTS = {
   TASK_ID_1021: '1021',
   
   // Tauri Window Tests
-  TOAST_LARGE: 'Rozmiar zmieniony na DUŻY (Maksymalizacja)',
+  TOAST_FULL: 'Rozmiar zmieniony na PEŁNY (Maksymalizacja)',
   TOAST_GUI_PREFIX: 'GUI: ',
   TOAST_ALWAYS_ON_TOP_ON: 'Zawsze na wierzchu: WŁĄCZONE',
   TOAST_ALWAYS_ON_TOP_OFF: 'Zawsze na wierzchu: WYŁĄCZONE',

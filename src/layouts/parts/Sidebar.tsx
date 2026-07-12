@@ -3,7 +3,7 @@ import { GuiState } from '../hooks/useGuiLogic';
 import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
-import { PROJECT_COLORS, getScaleStyles } from './GuiStyles';
+import { PROJECT_COLORS, getScaleStyles } from './LayoutStyles';
 import versionsData from '../../versions.json';
 
 export default function Sidebar({ state }: { state: GuiState }) {
@@ -134,11 +134,10 @@ export default function Sidebar({ state }: { state: GuiState }) {
                       maxLength={2}
                       value={newProjectIcon}
                       onChange={e => setNewProjectIcon(e.target.value)}
-                      className={`w-full px-2 py-1 border rounded-lg text-center outline-none text-xs ${
-                        theme === 'light'
+                      className={`w-full px-2 py-1 border rounded-lg text-center outline-none text-xs ${theme === 'light'
                           ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
                           : 'bg-black/20 border-white/10 text-white'
-                      }`}
+                        }`}
                     />
                   </div>
                   <div className="w-2/3">
@@ -147,11 +146,10 @@ export default function Sidebar({ state }: { state: GuiState }) {
                       placeholder="Tags (tag1, tag2)"
                       value={newProjectTags}
                       onChange={e => setNewProjectTags(e.target.value)}
-                      className={`w-full px-2 py-1 border rounded-lg outline-none text-xs ${
-                        theme === 'light'
+                      className={`w-full px-2 py-1 border rounded-lg outline-none text-xs ${theme === 'light'
                           ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
                           : 'bg-black/20 border-white/10 text-white'
-                      }`}
+                        }`}
                     />
                   </div>
                 </div>
@@ -159,11 +157,10 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   placeholder="Project description..."
                   value={newProjectDesc}
                   onChange={e => setNewProjectDesc(e.target.value)}
-                  className={`w-full px-2 py-1 border rounded-lg outline-none text-xs h-10 resize-none ${
-                    theme === 'light'
+                  className={`w-full px-2 py-1 border rounded-lg outline-none text-xs h-10 resize-none ${theme === 'light'
                       ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
                       : 'bg-black/20 border-white/10 text-white'
-                  }`}
+                    }`}
                 />
               </div>
             )}
@@ -283,7 +280,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                       <p className={`${sc.textMain} opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
                         }`}>
                         {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
- 
+
                         {editingId !== p.id && (
                           <button
                             id={`edit-project-btn-${p.id}`}
@@ -304,7 +301,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                         )}
- 
+
                         <button
                           id={`archive-project-btn-${p.id}`}
                           type="button"
@@ -320,7 +317,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                       </p>
                     </div>
                   </div>
- 
+
                   <div className={`flex items-center gap-1.5 z-10 font-mono ${sc.textMain} font-bold px-2.5 py-1 rounded-full border transition-all shrink-0 ${theme === 'light'
                     ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#5A4A42]'
                     : theme === 'high-contrast'
@@ -336,7 +333,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
           )}
         </div>
       </div>
- 
+
       <div className={`border ${sc.roundedMain} ${sc.paddingMain} relative overflow-hidden shadow-2xl transition-all duration-300 ${theme === 'light'
         ? 'bg-gradient-to-tr from-orange-500/5 to-rose-500/5 border-[#DFD7CB]'
         : theme === 'high-contrast'
@@ -363,9 +360,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
 
       {showEditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${
-            theme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]' : 'bg-[#1b1c21] border-white/10 text-white'
-          }`}>
+          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${theme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]' : 'bg-[#1b1c21] border-white/10 text-white'
+            }`}>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Pencil className="w-5 h-5 text-orange-450" />
               Edit Project Details
@@ -378,9 +374,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   type="text"
                   value={editProjName}
                   onChange={e => setEditProjName(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${
-                    theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
+                    }`}
                 />
               </div>
 
@@ -393,9 +388,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                     maxLength={2}
                     value={editProjIcon}
                     onChange={e => setEditProjIcon(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-xl outline-none text-center text-xl focus:ring-2 focus:ring-orange-400 ${
-                      theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-xl outline-none text-center text-xl focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
+                      }`}
                   />
                 </div>
 
@@ -407,9 +401,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                         key={col.name}
                         type="button"
                         onClick={() => setEditProjColor(col.name)}
-                        className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center cursor-pointer ${
-                          editProjColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
-                        }`}
+                        className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center cursor-pointer ${editProjColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
+                          }`}
                       >
                         {editProjColor === col.name && (
                           <span className="w-1 h-1 bg-[#FCFAF8] rounded-full"></span>
@@ -426,9 +419,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   placeholder="Optional project description..."
                   value={editProjDesc}
                   onChange={e => setEditProjDesc(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-xl outline-none h-16 resize-none focus:ring-2 focus:ring-orange-400 ${
-                    theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-xl outline-none h-16 resize-none focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
+                    }`}
                 />
               </div>
 
@@ -439,9 +431,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   placeholder="work, personal, design"
                   value={editProjTags}
                   onChange={e => setEditProjTags(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${
-                    theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
+                    }`}
                 />
               </div>
 
@@ -449,9 +440,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className={`px-4 py-2 text-sm font-semibold rounded-xl border cursor-pointer ${
-                    theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421] hover:bg-slate-50' : 'bg-transparent border-white/10 hover:bg-white/5 text-white'
-                  }`}
+                  className={`px-4 py-2 text-sm font-semibold rounded-xl border cursor-pointer ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421] hover:bg-slate-50' : 'bg-transparent border-white/10 hover:bg-white/5 text-white'
+                    }`}
                 >
                   Cancel
                 </button>

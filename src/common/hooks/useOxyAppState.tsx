@@ -30,8 +30,8 @@ export const useOxyAppState = () => {
     setAlwaysOnTopSmall: appSettings.setAlwaysOnTopSmall,
     alwaysOnTopMain: appSettings.alwaysOnTopMain,
     setAlwaysOnTopMain: appSettings.setAlwaysOnTopMain,
-    lastNonSmallVariant: appSettings.lastNonSmallVariant,
-    setLastNonSmallVariant: appSettings.setLastNonSmallVariant,
+    lastNonCompactVariant: appSettings.lastNonCompactVariant,
+    setLastNonCompactVariant: appSettings.setLastNonCompactVariant,
     handleStopTimer: timeLogData.handleStopTimer,
     locale,
     customTranslations

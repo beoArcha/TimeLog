@@ -4,7 +4,7 @@ import { Clock, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@common/i18n/translator';
 import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
-import { getScaleStyles } from './GuiStyles';
+import { getScaleStyles } from './LayoutStyles';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {

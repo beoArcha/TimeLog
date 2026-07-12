@@ -7,7 +7,7 @@ import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { Locale } from '@bindings/Locale';
 
 import { StatsSkeleton } from '@components/ui/Skeletons';
-import { getScaleStyles } from '@/src/layouts/parts/GuiStyles';
+import { getScaleStyles } from '@/src/layouts/parts/LayoutStyles';
 
 interface ProjectHeaderCardProps {
   selectedProject: Project;
@@ -86,19 +86,16 @@ export default function ProjectHeaderCard({
 
       {loading && !isCondensed && (
         <div data-testid="stats-skeleton-grid" className="grid grid-cols-3 gap-4 mb-6">
-          <div className={`rounded-2xl border transition-all ${
-            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
-          }`}>
+          <div className={`rounded-2xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
             <StatsSkeleton />
           </div>
-          <div className={`rounded-2xl border transition-all ${
-            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
-          }`}>
+          <div className={`rounded-2xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
             <StatsSkeleton />
           </div>
-          <div className={`rounded-2xl border transition-all ${
-            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
-          }`}>
+          <div className={`rounded-2xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
             <StatsSkeleton />
           </div>
         </div>
@@ -106,21 +103,18 @@ export default function ProjectHeaderCard({
 
       {stats && !loading && !isCondensed && (
         <div className="grid grid-cols-3 gap-4 mb-6 animate-fade-in">
-          <div className={`p-4 rounded-2xl border transition-all ${
-            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
-          }`}>
+          <div className={`p-4 rounded-2xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
             <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Total Duration</p>
             <p className="text-lg font-bold font-mono text-orange-500 mt-1">{formatSeconds(Number(stats.totalDurationSec))}</p>
           </div>
-          <div className={`p-4 rounded-2xl border transition-all ${
-            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
-          }`}>
+          <div className={`p-4 rounded-2xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
             <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Total Tasks</p>
             <p className="text-lg font-bold text-slate-200 mt-1">{stats.totalTasks}</p>
           </div>
-          <div className={`p-4 rounded-2xl border transition-all ${
-            theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
-          }`}>
+          <div className={`p-4 rounded-2xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            }`}>
             <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Completed Tasks</p>
             <p className="text-lg font-bold text-slate-200 mt-1 flex items-center justify-between">
               <span>{stats.completedTasks}</span>

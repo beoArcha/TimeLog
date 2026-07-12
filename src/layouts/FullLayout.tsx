@@ -1,12 +1,12 @@
 import React from 'react';
 import { GuiState } from './hooks/useGuiLogic';
-import type { GuiRouterProps } from './types/GuiCommonProps';
+import type { GuiRouterProps } from './types/LayoutCommonProps';
 import Sidebar from './parts/Sidebar';
 import ActiveTimerBanner from './parts/ActiveTimerBanner';
 import TaskListView from '@features/tasks/TaskListView';
 import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
-import { GUI_MIN_SIZES } from './parts/GuiStyles';
+import { GUI_MIN_SIZES } from './parts/LayoutStyles';
 
 type LargeGuiProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
@@ -17,7 +17,7 @@ export default function LargeGui({ state }: LargeGuiProps) {
     <div
       id="gui-container"
       className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'} flex-1`}
-      style={GUI_MIN_SIZES.large[textAndIconSize as keyof typeof GUI_MIN_SIZES.large] || GUI_MIN_SIZES.large['medium']}
+      style={GUI_MIN_SIZES.full[textAndIconSize]}
     >
       <Sidebar state={state} />
 

@@ -5,9 +5,9 @@ use ts_rs::TS;
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum LayoutVariant {
-    Small,
+    Compact,
     Medium,
-    Large,
+    Full,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
@@ -36,7 +36,7 @@ pub struct WindowDimensions {
 impl LayoutVariant {
     pub fn get_dimensions(self, text_and_icon_size: TextAndIconSize) -> (WindowDimensions, bool) {
         match self {
-            LayoutVariant::Small => (
+            LayoutVariant::Compact => (
                 WindowDimensions {
                     width: 360.0,
                     height: 480.0,
@@ -60,7 +60,7 @@ impl LayoutVariant {
                 };
                 (dims, true)
             }
-            LayoutVariant::Large => {
+            LayoutVariant::Full => {
                 let dims = match text_and_icon_size {
                     TextAndIconSize::Small => WindowDimensions {
                         width: 960.0,
@@ -80,4 +80,3 @@ impl LayoutVariant {
         }
     }
 }
-

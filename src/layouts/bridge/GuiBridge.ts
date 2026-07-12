@@ -32,7 +32,7 @@ export const GuiBridge = {
         }
         break;
       case 'set_always_on_top':
-        if (oxyFlowState.layoutVariant === 'small') {
+        if (oxyFlowState.layoutVariant === 'compact') {
           if (oxyFlowState.setAlwaysOnTopSmall) {
             oxyFlowState.setAlwaysOnTopSmall(intent.payload.alwaysOnTop);
           }

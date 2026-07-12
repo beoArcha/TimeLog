@@ -21,7 +21,7 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
     await expect(mainPage.tabMain).toBeVisible();
     await mainPage.switchLayoutVariant('medium');
     await expect(mainPage.tabMain).toBeHidden();
-    await mainPage.switchLayoutVariant('large');
+    await mainPage.switchLayoutVariant('full');
     await expect(mainPage.tabMain).toBeVisible();
   });
 

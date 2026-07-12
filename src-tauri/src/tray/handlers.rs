@@ -31,14 +31,29 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                     }
                 }
             }
-            TrayMenuId::GuiSmall => {
-                emit_to_main(app, FrontendEvent::TraySetGuiVariant, LayoutVariant::Small, true);
+            TrayMenuId::GuiCompact => {
+                emit_to_main(
+                    app,
+                    FrontendEvent::TraySetGuiVariant,
+                    LayoutVariant::Compact,
+                    true,
+                );
             }
             TrayMenuId::GuiMedium => {
-                emit_to_main(app, FrontendEvent::TraySetGuiVariant, LayoutVariant::Medium, true);
+                emit_to_main(
+                    app,
+                    FrontendEvent::TraySetGuiVariant,
+                    LayoutVariant::Medium,
+                    true,
+                );
             }
-            TrayMenuId::GuiLarge => {
-                emit_to_main(app, FrontendEvent::TraySetGuiVariant, LayoutVariant::Large, true);
+            TrayMenuId::GuiFull => {
+                emit_to_main(
+                    app,
+                    FrontendEvent::TraySetGuiVariant,
+                    LayoutVariant::Full,
+                    true,
+                );
             }
             TrayMenuId::ToggleOnTop => {
                 emit_to_main(app, FrontendEvent::TrayToggleOnTop, (), true);

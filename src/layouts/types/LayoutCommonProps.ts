@@ -73,5 +73,5 @@ export interface GuiRouterProps {
   handleMinimizeToTray: () => void;
   setLayoutVariant: (variant: import('@bindings/LayoutVariant').LayoutVariant) => void;
   currentProjectId: string;
-  lastNonSmallVariant?: Exclude<import('@bindings/LayoutVariant').LayoutVariant, 'small'>;
+  lastNonCompactVariant?: Exclude<import('@bindings/LayoutVariant').LayoutVariant, 'compact'>;
 }

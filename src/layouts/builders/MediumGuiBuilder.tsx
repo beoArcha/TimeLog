@@ -1,7 +1,7 @@
 import React from 'react';
-import MediumGui from '../MediumGui';
+import MediumGui from '../MediumLayout';
 import { GuiState } from '../hooks/useGuiLogic';
-import type { GuiRouterProps } from '../types/GuiCommonProps';
+import type { GuiRouterProps } from '../types/LayoutCommonProps';
 
 type MediumGuiBuilderProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 

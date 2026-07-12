@@ -4,18 +4,18 @@ import { LayoutVariant } from '@bindings/LayoutVariant';
 import versionsData from '../../versions.json';
 import { Locale } from '@/src/bindings/Locale';
 
-interface SmallGuiHeaderProps {
+interface CompactLayoutHeaderProps {
   locale: Locale;
-  customTranslations: any;
+  customTranslations: Record<string, unknown>;
   alwaysOnTopSmall: boolean;
-  lastNonSmallVariant: Exclude<LayoutVariant, 'small'> | undefined;
+  lastNonCompactVariant: Exclude<LayoutVariant, 'compact'> | undefined;
   setAlwaysOnTopSmall: (value: boolean) => void;
   showToast: (msg: string) => void;
   onRestoreWindow: () => void;
   onMinimizeToTray: () => void;
 }
 
-export function SmallGuiHeader({
+export function CompactLayoutHeader({
   locale,
   customTranslations,
   alwaysOnTopSmall,
@@ -23,7 +23,7 @@ export function SmallGuiHeader({
   showToast,
   onRestoreWindow,
   onMinimizeToTray,
-}: SmallGuiHeaderProps) {
+}: CompactLayoutHeaderProps) {
   const onTopToastMessage = (checked: boolean) =>
     checked
       ? translate(locale, 'timer', 'AlwaysOnTopOn', customTranslations)

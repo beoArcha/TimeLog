@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import ProjectHeaderCard from '../../../../src/features/tasks/components/ProjectHeaderCard';
-import { getScaleStyles } from '@/src/layouts/parts/GuiStyles';
+import { getScaleStyles } from '@/src/layouts/parts/LayoutStyles';
 import { Project } from '@bindings/Project';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 

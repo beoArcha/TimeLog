@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { GuiCommonProps } from '../types/GuiCommonProps';
+import { GuiCommonProps } from '../types/LayoutCommonProps';
 
 export function useGuiLogic(props: GuiCommonProps) {
   const { projects, tasks } = props;

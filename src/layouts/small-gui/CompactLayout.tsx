@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'motion/react';
-import type { GuiRouterProps } from '../types/GuiCommonProps';
+import type { GuiRouterProps } from '../types/LayoutCommonProps';
 import { GuiState } from '../hooks/useGuiLogic';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useSmallGui } from './hooks/useSmallGui';
-import { SmallGuiHeader } from './SmallGuiHeader';
+import { CompactLayoutHeader } from './CompactLayoutHeader';
 import { ActiveProjectCard } from './ActiveProjectCard';
 import { TaskVisibilityToggle } from './TaskVisibilityToggle';
 import { TaskList } from './TaskList';
@@ -18,7 +18,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
     handleMinimizeToTray,
     setLayoutVariant,
     currentProjectId,
-    lastNonSmallVariant,
+    lastNonCompactVariant,
   } = rest;
 
   const {
@@ -45,7 +45,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
       onStartTimer: state.onStartTimer,
       onStopTimer: state.onStopTimer,
       setLayoutVariant,
-      lastNonSmallVariant,
+      lastNonCompactVariant,
     });
 
   return (
@@ -58,23 +58,22 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
       className="w-full h-full flex flex-col p-1"
     >
       <div
-        className={`rounded-2xl border shadow-2xl p-3 flex flex-col gap-2.5 relative overflow-hidden transition-all duration-300 w-full h-full ${
-          resolvedTheme === 'light'
+        className={`rounded-2xl border shadow-2xl p-3 flex flex-col gap-2.5 relative overflow-hidden transition-all duration-300 w-full h-full ${resolvedTheme === 'light'
             ? 'bg-white border-slate-200 text-slate-800'
             : resolvedTheme === 'high-contrast'
               ? 'bg-black border-2 border-white text-white'
               : 'bg-slate-950/95 backdrop-blur-xl border-white/10 text-white'
-        }`}
+          }`}
       >
         {resolvedTheme !== 'high-contrast' && (
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500" />
         )}
 
-        <SmallGuiHeader
+        <CompactLayoutHeader
           locale={locale}
           customTranslations={customTranslations}
           alwaysOnTopSmall={alwaysOnTopSmall}
-          lastNonSmallVariant={lastNonSmallVariant}
+          lastNonCompactVariant={lastNonCompactVariant}
           setAlwaysOnTopSmall={setAlwaysOnTopSmall}
           showToast={showToast}
           onRestoreWindow={handleRestoreWindow}

@@ -1,7 +1,7 @@
 import React from 'react';
-import LargeGui from '../LargeGui';
+import LargeGui from '../FullLayout';
 import { GuiState } from '../hooks/useGuiLogic';
-import type { GuiRouterProps } from '../types/GuiCommonProps';
+import type { GuiRouterProps } from '../types/LayoutCommonProps';
 
 type LargeGuiBuilderProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 

@@ -20,7 +20,7 @@ export const useAppSettings = () => {
   });
 
   const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>(() => {
-    return (localStorage.getItem(STORAGE_KEYS.GUI_VARIANT) as LayoutVariant) || 'large';
+    return (localStorage.getItem(STORAGE_KEYS.GUI_VARIANT) as LayoutVariant) || 'full';
   });
 
   const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(() => {
@@ -85,13 +85,13 @@ export const useAppSettings = () => {
   const resolvedTheme: Theme = theme === 'system' ? systemTheme : (theme as unknown as Theme);
   const setResolvedTheme = setSystemTheme;
 
-  const [lastNonSmallVariant, setLastNonSmallVariant] = useState<Exclude<LayoutVariant, 'small'>>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.LAST_NON_SMALL_VARIANT);
-    return (saved as Exclude<LayoutVariant, 'small'>) || 'large';
+  const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.LAST_NON_COMPACT_VARIANT);
+    return (saved as Exclude<LayoutVariant, 'compact'>) || 'full';
   });
 
-  if (layoutVariant !== 'small' && layoutVariant !== lastNonSmallVariant) {
-    setLastNonSmallVariant(layoutVariant);
+  if (layoutVariant !== 'compact' && layoutVariant !== lastNonCompactVariant) {
+    setLastNonCompactVariant(layoutVariant);
   }
 
   useEffect(() => {
@@ -100,8 +100,8 @@ export const useAppSettings = () => {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.GUI_VARIANT, layoutVariant);
-    if (layoutVariant !== 'small') {
-      localStorage.setItem(STORAGE_KEYS.LAST_NON_SMALL_VARIANT, layoutVariant);
+    if (layoutVariant !== 'compact') {
+      localStorage.setItem(STORAGE_KEYS.LAST_NON_COMPACT_VARIANT, layoutVariant);
     }
   }, [layoutVariant]);
 
@@ -171,7 +171,7 @@ export const useAppSettings = () => {
     resolvedTheme, setResolvedTheme,
     sysSettings, setSysSettings,
     layoutVariant, setLayoutVariant,
-    lastNonSmallVariant, setLastNonSmallVariant,
+    lastNonCompactVariant, setLastNonCompactVariant,
     alwaysOnTopSmall, setAlwaysOnTopSmall,
     alwaysOnTopMain, setAlwaysOnTopMain,
     activeLargeTab, setActiveLargeTab,

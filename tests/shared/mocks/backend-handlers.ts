@@ -284,7 +284,7 @@ export const BACKEND_HANDLERS: Record<string, (args: MockCommandArgs) => Promise
     }
     const theme = localStorage.getItem('oxytime_theme') || 'system';
     const textAndIconSize = localStorage.getItem('oxytime_text_icon_size') || 'medium';
-    const guiVariant = localStorage.getItem('oxytime_gui_variant') || 'large';
+    const guiVariant = localStorage.getItem('oxytime_gui_variant') || 'full';
     const alwaysOnTopSmall = localStorage.getItem('oxytime_always_on_top_small') === 'true';
     const alwaysOnTopMain = localStorage.getItem('oxytime_always_on_top_main') === 'true';
     const minimizeToTray = localStorage.getItem('oxytime_min_to_tray') !== 'false';

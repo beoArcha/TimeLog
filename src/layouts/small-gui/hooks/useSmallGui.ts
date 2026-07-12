@@ -15,7 +15,7 @@ interface UseSmallGuiParams {
   onStartTimer: (taskId: string) => void;
   onStopTimer: () => void;
   setLayoutVariant: (variant: LayoutVariant) => void;
-  lastNonSmallVariant: Exclude<LayoutVariant, 'small'> | undefined;
+  lastNonCompactVariant: Exclude<LayoutVariant, 'compact'> | undefined;
 }
 
 export interface SmallGuiDerived {
@@ -35,7 +35,7 @@ export function useSmallGui({
   onStartTimer,
   onStopTimer,
   setLayoutVariant,
-  lastNonSmallVariant,
+  lastNonCompactVariant,
 }: UseSmallGuiParams): SmallGuiDerived {
   const activeProj = useMemo(
     () => projects.find((p) => p.id === currentProjectId) ?? projects[0],
@@ -56,7 +56,7 @@ export function useSmallGui({
   };
 
   const handleRestoreWindow = () => {
-    const target = lastNonSmallVariant ?? 'large';
+    const target = lastNonCompactVariant ?? 'full';
     setLayoutVariant(target);
     const sizeLabel =
       target === 'medium'
@@ -64,8 +64,8 @@ export function useSmallGui({
           ? 'ŚREDNI'
           : 'MEDIUM'
         : locale === 'pl'
-          ? 'DUŻY'
-          : 'LARGE';
+          ? 'PEŁNY'
+          : 'FULL';
     showToast(
       locale === 'pl'
         ? `Rozmiar zmieniony na ${sizeLabel}`

@@ -223,7 +223,7 @@ export class PersistencePlugin implements IPersistence {
           activeSinks: ['Csv'],
           theme: 'system',
           textAndIconSize: 'medium',
-          guiVariant: 'large',
+          guiVariant: 'full',
           alwaysOnTopSmall: false,
           alwaysOnTopMain: false,
           minimizeToTray: true,

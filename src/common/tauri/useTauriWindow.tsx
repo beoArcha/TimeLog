@@ -40,8 +40,8 @@ interface TauriWindowProps {
   setAlwaysOnTopSmall: React.Dispatch<React.SetStateAction<boolean>>;
   alwaysOnTopMain: boolean;
   setAlwaysOnTopMain: React.Dispatch<React.SetStateAction<boolean>>;
-  lastNonSmallVariant: Exclude<LayoutVariant, 'small'>;
-  setLastNonSmallVariant: React.Dispatch<React.SetStateAction<Exclude<LayoutVariant, 'small'>>>;
+  lastNonCompactVariant: Exclude<LayoutVariant, 'compact'>;
+  setLastNonCompactVariant: React.Dispatch<React.SetStateAction<Exclude<LayoutVariant, 'compact'>>>;
   handleStopTimer: (specificProjectId?: string) => void;
   locale: Locale;
   customTranslations: Record<string, unknown>;
@@ -53,7 +53,7 @@ export const useTauriWindow = ({
   minimizeToTray,
   alwaysOnTopSmall, setAlwaysOnTopSmall,
   alwaysOnTopMain, setAlwaysOnTopMain,
-  lastNonSmallVariant: _lastNonSmallVariant, setLastNonSmallVariant,
+  lastNonCompactVariant: _lastNonCompactVariant, setLastNonCompactVariant,
   handleStopTimer,
   locale, customTranslations
 }: TauriWindowProps) => {
@@ -77,7 +77,7 @@ export const useTauriWindow = ({
     handleStopTimer,
     showToast,
     setLayoutVariant,
-    setLastNonSmallVariant,
+    setLastNonCompactVariant,
     setAlwaysOnTopSmall,
     setAlwaysOnTopMain,
   });
@@ -94,7 +94,7 @@ export const useTauriWindow = ({
       handleStopTimer,
       showToast,
       setLayoutVariant,
-      setLastNonSmallVariant,
+      setLastNonCompactVariant,
       setAlwaysOnTopSmall,
       setAlwaysOnTopMain,
     };
@@ -112,7 +112,7 @@ export const useTauriWindow = ({
     const applyWindowConfig = async () => {
       await handleSetLayoutVariant(layoutVariant, textAndIconSize);
       await new Promise(resolve => setTimeout(resolve, 50));
-      if (layoutVariant !== 'small') {
+      if (layoutVariant !== 'compact') {
         await handleWindowAlwaysOnTop(alwaysOnTopMain);
       } else {
         await handleWindowAlwaysOnTop(alwaysOnTopSmall);
@@ -131,27 +131,27 @@ export const useTauriWindow = ({
       try {
         const uMax = await listen('native-window-maximized' satisfies FrontendEvent, () => {
           if (!active) return;
-          stateRef.current.setLayoutVariant('large');
-          stateRef.current.setLastNonSmallVariant('large');
-          stateRef.current.showToast("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
+          stateRef.current.setLayoutVariant('full');
+          stateRef.current.setLastNonCompactVariant('full');
+          stateRef.current.showToast("Rozmiar zmieniony na PEŁNY (Maksymalizacja)");
         });
         unlisteners.push(uMax);
 
         const uRest = await listen('native-window-restored' satisfies FrontendEvent, () => {
           if (!active) return;
-          stateRef.current.setLayoutVariant('large');
+          stateRef.current.setLayoutVariant('full');
         });
         unlisteners.push(uRest);
 
         const uVariant = await listen('tray-set-gui-variant' satisfies FrontendEvent, async (event) => {
           if (!active) return;
           const payload = event.payload as LayoutVariant;
-          if (['small', 'medium', 'large'].includes(payload)) {
+          if (['compact', 'medium', 'full'].includes(payload)) {
             stateRef.current.setLayoutVariant(payload);
             await handleSetLayoutVariant(payload, stateRef.current.textAndIconSize);
-            const flag = payload === 'small' ? stateRef.current.alwaysOnTopSmall : stateRef.current.alwaysOnTopMain;
+            const flag = payload === 'compact' ? stateRef.current.alwaysOnTopSmall : stateRef.current.alwaysOnTopMain;
             await handleWindowAlwaysOnTop(flag);
-            stateRef.current.showToast(`GUI: ${payload === 'small' ? 'Mały' : payload === 'medium' ? 'Średni' : 'Duży'}`);
+            stateRef.current.showToast(`GUI: ${payload === 'compact' ? 'Kompaktowy' : payload === 'medium' ? 'Średni' : 'Pełny'}`);
           }
         });
         unlisteners.push(uVariant);
@@ -165,7 +165,7 @@ export const useTauriWindow = ({
 
         const uToggleTop = await listen('tray-toggle-on-top' satisfies FrontendEvent, async () => {
           if (!active) return;
-          if (stateRef.current.layoutVariant === 'small') {
+          if (stateRef.current.layoutVariant === 'compact') {
             stateRef.current.setAlwaysOnTopSmall(prev => {
               const next = !prev;
               handleWindowAlwaysOnTop(next);

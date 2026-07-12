@@ -36,9 +36,9 @@ export class MainLayoutPage extends BasePage {
     this.tabDb = page.locator('[data-testid="tab-db"]');
     this.tabOptions = page.locator('[data-testid="tab-options"]');
 
-    this.sizeSmallBtn = page.locator('[data-testid="layout-variant-small"]');
+    this.sizeSmallBtn = page.locator('[data-testid="layout-variant-compact"]');
     this.sizeMediumBtn = page.locator('[data-testid="layout-variant-medium"]');
-    this.sizeLargeBtn = page.locator('[data-testid="layout-variant-large"]');
+    this.sizeLargeBtn = page.locator('[data-testid="layout-variant-full"]');
 
     // Timer Banner
     this.idleTimerBanner = page.locator('#active-timer-idle-banner');
@@ -57,12 +57,12 @@ export class MainLayoutPage extends BasePage {
     this.tasksTreeContainer = page.locator('#tasks-tree-container');
   }
 
-  async switchLayoutVariant(variant: 'small' | 'medium' | 'large') {
-    if (variant === 'small') {
+  async switchLayoutVariant(variant: 'compact' | 'medium' | 'full') {
+    if (variant === 'compact') {
       await this.sizeSmallBtn.click();
     } else if (variant === 'medium') {
       await this.sizeMediumBtn.click();
-    } else if (variant === 'large') {
+    } else if (variant === 'full') {
       await this.sizeLargeBtn.click();
     }
   }

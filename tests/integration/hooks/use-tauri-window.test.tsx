@@ -12,7 +12,7 @@ import { TAURI_COMMANDS } from '../../../src/common/tauri/tauri-commands';
 
 describe('Integration Tests: useTauriWindow Events Integration', () => {
   const defaultProps = {
-    layoutVariant: 'large' as const,
+    layoutVariant: 'full' as const,
     setLayoutVariant: vi.fn(),
     textAndIconSize: 'medium' as const,
     minimizeToTray: false,
@@ -20,8 +20,8 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     setAlwaysOnTopSmall: vi.fn(),
     alwaysOnTopMain: false,
     setAlwaysOnTopMain: vi.fn(),
-    lastNonSmallVariant: 'large' as const,
-    setLastNonSmallVariant: vi.fn(),
+    lastNonCompactVariant: 'full' as const,
+    setLastNonCompactVariant: vi.fn(),
     handleStopTimer: vi.fn(),
     locale: 'en' as const,
     customTranslations: {},
@@ -52,8 +52,8 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     expect(tauriEventRegistry['native-window-maximized']).toBeDefined();
     triggerTauriEvent('native-window-maximized');
 
-    expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('large');
-    expect(defaultProps.setLastNonSmallVariant).toHaveBeenCalledWith('large');
+    expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('full');
+    expect(defaultProps.setLastNonCompactVariant).toHaveBeenCalledWith('full');
   });
 
   it('should toggle alwaysOnTop state through tray-toggle-on-top event based on current layoutVariant', async () => {
@@ -62,7 +62,7 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
 
     renderHook(() => useTauriWindow({
       ...defaultProps,
-      layoutVariant: 'large',
+      layoutVariant: 'full',
       setAlwaysOnTopMain: setAlwaysOnTopMainSpy,
       setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
     }));
@@ -75,7 +75,7 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     vi.clearAllMocks();
     renderHook(() => useTauriWindow({
       ...defaultProps,
-      layoutVariant: 'small',
+      layoutVariant: 'compact',
       setAlwaysOnTopMain: setAlwaysOnTopMainSpy,
       setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
     }));

@@ -1,3 +1,6 @@
+import { LayoutVariant } from '@bindings/LayoutVariant';
+import { TextAndIconSize } from '@bindings/TextAndIconSize';
+
 export const getThemeStyles = (theme: string) => ({
   bgMuted: theme === 'light' ? 'bg-[#F4EFEA]' : 'bg-black/20',
   bgCard: theme === 'light' ? 'bg-[#FCFAF8]' : 'bg-[#FCFAF8]/5',
@@ -18,20 +21,21 @@ export const PROJECT_COLORS = [
   { name: 'emerald', bg: 'bg-emerald-500', hex: '#10b981', text: 'text-emerald-500' },
 ];
 
-export const GUI_MIN_SIZES = {
+export const GUI_MIN_SIZES: Record<
+  Exclude<LayoutVariant, 'compact'>,
+  Record<TextAndIconSize, { minWidth: string; minHeight: string }>
+> = {
   medium: {
-    'small': { minWidth: '480px', minHeight: '720px' },
-    'medium': { minWidth: '640px', minHeight: '1080px' },
-    'large': { minWidth: '864px', minHeight: '1440px' }
+    small: { minWidth: '480px', minHeight: '720px' },
+    medium: { minWidth: '640px', minHeight: '1080px' },
+    large: { minWidth: '864px', minHeight: '1440px' }
   },
-  large: {
-    'small': { minWidth: '1280px', minHeight: '720px' },
-    'medium': { minWidth: '1920px', minHeight: '1080px' },
-    'large': { minWidth: '2560px', minHeight: '1440px' }
+  full: {
+    small: { minWidth: '1280px', minHeight: '720px' },
+    medium: { minWidth: '1920px', minHeight: '1080px' },
+    large: { minWidth: '2560px', minHeight: '1440px' }
   }
 };
-
-import { TextAndIconSize } from '@bindings/TextAndIconSize';
 
 export const getScaleStyles = (scale: TextAndIconSize) => {
   switch (scale) {

@@ -37,7 +37,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'large', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'full', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -49,7 +49,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     fireEvent.click(smallBtn);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'small', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'compact', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -79,10 +79,10 @@ describe('Integration Tests: Tauri GUI Events', () => {
     await waitForTauriListener('tray-set-gui-variant');
 
     mockInvoke.mockClear();
-    triggerTauriEvent('tray-set-gui-variant', 'small');
+    triggerTauriEvent('tray-set-gui-variant', 'compact');
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'small', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'compact', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -108,7 +108,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_update_window_always_on_top_config_when_toggling_setting_in_small_view', async () => {
-    localStorage.setItem('oxytime_gui_variant', 'small');
+    localStorage.setItem('oxytime_gui_variant', 'compact');
     localStorage.setItem('oxytime_always_on_top_small', 'false');
 
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
@@ -128,7 +128,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_handle_small_gui_close_button_click_to_hide_window_when_minimize_to_tray_is_enabled', async () => {
-    localStorage.setItem('oxytime_gui_variant', 'small');
+    localStorage.setItem('oxytime_gui_variant', 'compact');
     localStorage.setItem('oxytime_min_to_tray', 'true');
 
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
@@ -144,7 +144,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_handle_small_gui_close_button_click_to_exit_app_when_minimize_to_tray_is_disabled', async () => {
-    localStorage.setItem('oxytime_gui_variant', 'small');
+    localStorage.setItem('oxytime_gui_variant', 'compact');
     localStorage.setItem('oxytime_min_to_tray', 'false');
 
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
@@ -160,13 +160,13 @@ describe('Integration Tests: Tauri GUI Events', () => {
   });
 
   it('should_handle_small_gui_restore_button_click_to_restore_gui_variant_and_unlock_resizing', async () => {
-    localStorage.setItem('oxytime_gui_variant', 'small');
-    localStorage.setItem('oxytime_last_non_small_variant', 'large');
+    localStorage.setItem('oxytime_gui_variant', 'compact');
+    localStorage.setItem('oxytime_last_non_compact_variant', 'full');
 
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'small', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'compact', textAndIconSize: expect.any(String) });
     });
 
     mockInvoke.mockClear();
@@ -175,12 +175,12 @@ describe('Integration Tests: Tauri GUI Events', () => {
     fireEvent.click(restoreBtn);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'large', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'full', textAndIconSize: expect.any(String) });
     });
   });
 
   it('should_respect_generated_layout_variant_and_always_on_top_config_types', () => {
-    const variants: import('../../../src/bindings/LayoutVariant').LayoutVariant[] = ['small', 'medium', 'large'];
+    const variants: import('../../../src/bindings/LayoutVariant').LayoutVariant[] = ['compact', 'medium', 'full'];
     expect(variants).toHaveLength(3);
 
     const config: import('../../../src/bindings/AlwaysOnTopConfig').AlwaysOnTopConfig = {

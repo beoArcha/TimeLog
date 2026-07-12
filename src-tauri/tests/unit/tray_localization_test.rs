@@ -79,9 +79,9 @@ fn test_pt_br_translations() {
 fn test_all_items_covered_for_pl() {
     let items = [
         TrayItem::ToggleVisibility,
-        TrayItem::GuiSmall,
+        TrayItem::GuiCompact,
         TrayItem::GuiMedium,
-        TrayItem::GuiLarge,
+        TrayItem::GuiFull,
         TrayItem::ToggleOnTop,
         TrayItem::StopAllTimers,
         TrayItem::QuitApp,

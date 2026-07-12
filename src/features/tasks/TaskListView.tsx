@@ -1,7 +1,7 @@
 import React from 'react';
 import { Folder } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import { getThemeStyles, getScaleStyles } from '@/src/layouts/parts/GuiStyles';
+import { getThemeStyles, getScaleStyles } from '@/src/layouts/parts/LayoutStyles';
 import TaskItem from './components/TaskItem/TaskItem';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';

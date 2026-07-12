@@ -30,7 +30,7 @@ import MediumGuiBuilder from '../builders/MediumGuiBuilder';
 import LargeGuiBuilder from '../builders/LargeGuiBuilder';
 
 // Types & Logics
-import { GuiCommonProps } from '../types/GuiCommonProps';
+import { GuiCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from '../hooks/useGuiLogic';
 
 export default function GuiManager() {
@@ -83,7 +83,7 @@ export default function GuiManager() {
   useGlobalShortcuts({
     onToggleTimer: handleToggleTimer,
     onSwitchTab: (index) => {
-      if (layoutVariant === 'large' && index < LARGE_TAB_IDS.length) {
+      if (layoutVariant === 'full' && index < LARGE_TAB_IDS.length) {
         setActiveLargeTab(LARGE_TAB_IDS[index]);
       }
     },
@@ -152,15 +152,14 @@ export default function GuiManager() {
   };
 
   return (
-    <div 
-      id="app-root-container" 
-      className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-auto p-3 sm:p-6 ${
-        resolvedTheme === 'light' 
-          ? 'bg-[#F4EFEA] text-[#2C2421] selection:bg-orange-500/20 selection:text-orange-950' 
-          : resolvedTheme === 'high-contrast' 
-          ? 'bg-black text-white selection:bg-yellow-500/30 selection:text-white' 
+    <div
+      id="app-root-container"
+      className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-auto p-3 sm:p-6 ${resolvedTheme === 'light'
+        ? 'bg-[#F4EFEA] text-[#2C2421] selection:bg-orange-500/20 selection:text-orange-950'
+        : resolvedTheme === 'high-contrast'
+          ? 'bg-black text-white selection:bg-yellow-500/30 selection:text-white'
           : 'bg-[#0b0f19] text-slate-200 selection:bg-orange-500/30 selection:text-white'
-      }`}
+        }`}
     >
       <BackgroundGradients theme={resolvedTheme} />
 
@@ -179,8 +178,8 @@ export default function GuiManager() {
             }}
             showToast={showToast}
           />
-        ) : layoutVariant === 'small' ? (
-          <SmallGuiBuilder 
+        ) : layoutVariant === 'compact' ? (
+          <SmallGuiBuilder
             state={guiState}
             {...sharedProps}
           />
@@ -192,17 +191,16 @@ export default function GuiManager() {
             exit={{ opacity: 0, scale: 0.98 }}
             className="flex-1 flex flex-col w-full"
           >
-            <div className={`rounded-[2rem] shadow-3xl overflow-hidden flex flex-col flex-1 border transition-all duration-300 ${
-              resolvedTheme === 'light'
-                ? 'bg-[#FCFAF7] border-[#DFD7CB]'
-                : resolvedTheme === 'high-contrast'
+            <div className={`rounded-[2rem] shadow-3xl overflow-hidden flex flex-col flex-1 border transition-all duration-300 ${resolvedTheme === 'light'
+              ? 'bg-[#FCFAF7] border-[#DFD7CB]'
+              : resolvedTheme === 'high-contrast'
                 ? 'bg-black border-2 border-white'
                 : 'bg-slate-900/50 backdrop-blur-2xl border-white/10'
-            }`}>
-              
+              }`}>
+
               <Header />
 
-              {layoutVariant === 'large' && (
+              {layoutVariant === 'full' && (
                 <TabBar
                   locale={locale}
                   customTranslations={customTranslations}
@@ -213,22 +211,22 @@ export default function GuiManager() {
               )}
 
               <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 z-10 flex flex-col gap-6">
-                
+
                 <DaemonStatusBar />
 
                 <div id="tab-viewport" className="min-h-[480px]">
                   {layoutVariant === 'medium' && (
-                    <MediumGuiBuilder 
+                    <MediumGuiBuilder
                       state={guiState}
                       {...sharedProps}
                     />
                   )}
 
-                  {layoutVariant === 'large' && (
+                  {layoutVariant === 'full' && (
                     <AnimatePresence mode="wait">
                       {activeLargeTab === 'main' && (
                         <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <LargeGuiBuilder 
+                          <LargeGuiBuilder
                             state={guiState}
                             {...sharedProps}
                           />
@@ -264,7 +262,7 @@ export default function GuiManager() {
 
                       {activeLargeTab === 'reports' && (
                         <motion.div key="large-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <LargeGuiBuilder 
+                          <LargeGuiBuilder
                             state={guiState}
                             {...sharedProps}
                           />

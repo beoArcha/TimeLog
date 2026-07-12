@@ -16,7 +16,7 @@ import { useTauriWindow } from '@common/tauri/useTauriWindow';
 
 describe('Unit Tests: useTauriWindow Hook', () => {
   const defaultProps = {
-    layoutVariant: 'large' as const,
+    layoutVariant: 'full' as const,
     setLayoutVariant: vi.fn(),
     textAndIconSize: 'medium' as const,
     minimizeToTray: false,
@@ -24,8 +24,8 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     setAlwaysOnTopSmall: vi.fn(),
     alwaysOnTopMain: false,
     setAlwaysOnTopMain: vi.fn(),
-    lastNonSmallVariant: 'large' as const,
-    setLastNonSmallVariant: vi.fn(),
+    lastNonCompactVariant: 'full' as const,
+    setLastNonCompactVariant: vi.fn(),
     handleStopTimer: vi.fn(),
     locale: 'en' as const,
     customTranslations: {},
@@ -52,7 +52,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
 
   it('should_invoke_set_layout_variant_on_mount', () => {
     renderHook(() => useTauriWindow(defaultProps));
-    expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.SET_LAYOUT_VARIANT, { variant: 'large', textAndIconSize: 'medium' });
+    expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.SET_LAYOUT_VARIANT, { variant: 'full', textAndIconSize: 'medium' });
   });
 
   it('should_resize_to_large_and_trigger_toast_when_receiving_native_window_maximized_event', async () => {
@@ -63,8 +63,8 @@ describe('Unit Tests: useTauriWindow Hook', () => {
       triggerTauriEvent('native-window-maximized');
     });
 
-    expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('large');
-    expect(result.current.trayNotification).toBe(TEST_CONSTANTS.TOAST_LARGE);
+    expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('full');
+    expect(result.current.trayNotification).toBe(TEST_CONSTANTS.TOAST_FULL);
   });
 
   it('should_resize_to_large_when_receiving_native_window_restored_event', async () => {
@@ -75,7 +75,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
       triggerTauriEvent('native-window-restored');
     });
 
-    expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('large');
+    expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('full');
   });
 
   it('should_change_layout_variant_when_receiving_tray_set_gui_variant_event', async () => {
@@ -124,7 +124,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     });
     renderHook(() => useTauriWindow({
       ...defaultProps,
-      layoutVariant: 'small',
+      layoutVariant: 'compact',
       setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
     }));
     await waitForListeners();

@@ -2,7 +2,7 @@ import React from 'react';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { BarChart3 } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import { getThemeStyles } from '@/src/layouts/parts/GuiStyles';
+import { getThemeStyles } from '@/src/layouts/parts/LayoutStyles';
 import ReportStatsCards from './components/ReportStatsCards';
 import ReportPeriodSelector from './components/ReportPeriodSelector';
 import ReportLogList from './components/ReportLogList';

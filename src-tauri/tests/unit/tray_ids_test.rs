@@ -5,9 +5,9 @@ use oxy_flow::types::Locale;
 fn test_from_str_round_trip() {
     let ids = [
         TrayMenuId::ToggleVisibility,
-        TrayMenuId::GuiSmall,
+        TrayMenuId::GuiCompact,
         TrayMenuId::GuiMedium,
-        TrayMenuId::GuiLarge,
+        TrayMenuId::GuiFull,
         TrayMenuId::ToggleOnTop,
         TrayMenuId::StopAllTimers,
         TrayMenuId::QuitApp,
