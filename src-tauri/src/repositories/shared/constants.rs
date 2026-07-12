@@ -26,6 +26,7 @@ pub const CREATE_TIME_LOGS_TABLE: &str = "
         task_id TEXT NOT NULL,
         start_time TEXT NOT NULL,
         end_time TEXT,
+        note TEXT,
         FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
     )
 ";
@@ -52,3 +53,18 @@ pub const ALTER_TASKS_ADD_ORIGINAL_COMPLETED: &str =
 pub const ALTER_TASKS_ADD_EDIT_HISTORY: &str = "ALTER TABLE tasks ADD COLUMN edit_history TEXT";
 pub const ALTER_TASKS_ADD_ARCHIVED: &str =
     "ALTER TABLE tasks ADD COLUMN archived INTEGER DEFAULT 0";
+
+pub const ALTER_TIME_LOGS_ADD_NOTE: &str = "ALTER TABLE time_logs ADD COLUMN note TEXT";
+
+pub const CREATE_TIME_LOGS_HISTORY_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS time_logs_history (
+        id TEXT PRIMARY KEY,
+        time_log_id TEXT NOT NULL,
+        edited_at TEXT NOT NULL,
+        prev_start_time TEXT NOT NULL,
+        prev_end_time TEXT,
+        prev_note TEXT,
+        reason TEXT NOT NULL,
+        FOREIGN KEY(time_log_id) REFERENCES time_logs(id) ON DELETE CASCADE
+    )
+";

@@ -193,12 +193,9 @@ export class PersistencePlugin implements IPersistence {
           taskId,
           projectId: task.projectId,
           startTime,
-          endTime: null,
-          note: null,
-          originalStartTime: null,
-          originalEndTime: null,
-          originalNote: null,
-          editHistory: null
+          endTime: undefined,
+          note: undefined,
+          editHistory: undefined
         };
         current.logs.push(newLog);
         current.activeLog = newLog;

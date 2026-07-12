@@ -160,8 +160,6 @@ Possible implementations include:
 
 ### Timer
 
-* [ ] Active timer
-* [ ] Pause / Resume
 * [ ] Manual log editing
 * [ ] Validation
 

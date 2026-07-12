@@ -88,10 +88,10 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) =
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
     return Promise.resolve(state);
   }
-  if (cmd === 'get_timer_state') {
+  if (cmd === 'get_timer_state' || cmd === 'get_state') {
     return Promise.resolve(state);
   }
-  if (cmd === 'add_project') {
+  if (cmd === 'add_project' || cmd === 'add') {
     const newProj = {
       id: String(state.projects.length + 1),
       name: args.name,
@@ -103,13 +103,13 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) =
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
     return Promise.resolve(state);
   }
-  if (cmd === 'toggle_project_archive') {
+  if (cmd === 'toggle_project_archive' || cmd === 'toggle_archive') {
     const proj = state.projects.find((p: any) => p.id === args.projectId);
     if (proj) proj.archived = !proj.archived;
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
     return Promise.resolve(state);
   }
-  if (cmd === 'add_task') {
+  if (cmd === 'add_task' || cmd === 'create') {
     const newTask = {
       id: String(100 + state.tasks.length + 1),
       projectId: args.projectId,
@@ -122,19 +122,19 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) =
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
     return Promise.resolve(state);
   }
-  if (cmd === 'rename_project') {
+  if (cmd === 'rename_project' || cmd === 'rename') {
     const proj = state.projects.find((p: any) => p.id === args.projectId);
     if (proj) proj.name = args.name;
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
     return Promise.resolve(state);
   }
-  if (cmd === 'rename_task') {
-    const task = state.tasks.find((t: any) => t.id === args.taskId);
+  if (cmd === 'rename_task' || cmd === 'update') {
+    const task = state.tasks.find((t: any) => t.id === args.taskId || t.id === args.id);
     if (task) task.name = args.name;
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
     return Promise.resolve(state);
   }
-  if (cmd === 'delete_task') {
+  if (cmd === 'delete_task' || cmd === 'delete') {
     const toDeleteIds = new Set<string>([args.taskId]);
     let sizeBefore: number;
     do {
@@ -154,7 +154,7 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) =
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
     return Promise.resolve(state);
   }
-  if (cmd === 'toggle_task_complete') {
+  if (cmd === 'toggle_task_complete' || cmd === 'toggle_complete') {
     const task = state.tasks.find((t: any) => t.id === args.taskId);
     if (task) {
       task.completed = !task.completed;
@@ -244,7 +244,7 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) =
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
     return Promise.resolve(state);
   }
-  if (cmd === 'reset_database') {
+  if (cmd === 'reset_database' || cmd === 'reset') {
     const rawState = localStorage.getItem(STATE_DB_KEY);
     let raw: any = {};
     try {
@@ -256,6 +256,27 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: any) =
     delete raw.activeLog;
     localStorage.setItem(STATE_DB_KEY, JSON.stringify(raw));
     return Promise.resolve({ projects: [], tasks: [], logs: [], activeLog: null });
+  }
+  if (cmd === 'edit_time_log') {
+    const logId = args.id;
+    const log = state.logs.find((l: any) => l.id === logId);
+    if (log) {
+      log.taskId = args.taskId;
+      log.startTime = args.startTime;
+      log.endTime = args.endTime;
+      log.note = args.note;
+      
+      const historyItem = {
+        editedAt: new Date().toISOString(),
+        prevStartTime: args.startTime,
+        prevEndTime: args.endTime,
+        prevNote: args.note,
+        reason: args.reason || 'Korekta'
+      };
+      log.editHistory = log.editHistory ? [...log.editHistory, historyItem] : [historyItem];
+    }
+    localStorage.setItem(STATE_DB_KEY, JSON.stringify(state));
+    return Promise.resolve(state);
   }
 
   return Promise.resolve(undefined);

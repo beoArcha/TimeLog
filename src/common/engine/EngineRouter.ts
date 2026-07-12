@@ -33,4 +33,15 @@ export class EngineRouter implements IEngine {
   async stopTimer(projectId?: string): Promise<void> {
     return this.implementation.stopTimer(projectId);
   }
+
+  async editTimeLog(
+    id: string,
+    taskId: string,
+    startTime: string,
+    endTime: string | null,
+    note: string | null,
+    reason: string | null
+  ): Promise<void> {
+    return this.implementation.editTimeLog(id, taskId, startTime, endTime, note, reason);
+  }
 }

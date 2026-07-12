@@ -23,4 +23,21 @@ export class EngineCommands implements IEngine {
       throw err;
     }
   }
+
+  async editTimeLog(
+    id: string,
+    taskId: string,
+    startTime: string,
+    endTime: string | null,
+    note: string | null,
+    reason: string | null
+  ): Promise<void> {
+    try {
+      const cmd: EngineCommand = 'edit_time_log' as any;
+      await invoke(cmd, { id, taskId, startTime, endTime, note, reason });
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to edit time log via Tauri', err, 'ERR_TAURI_ENGINE_EDIT'));
+      throw err;
+    }
+  }
 }

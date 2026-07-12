@@ -37,7 +37,17 @@ export default function TimeLogTableRow({
     reason: 'Błąd synchronizacji licznika / Korekta ręczna'
   });
 
-  const hasHistory = !!(l.originalStartTime || l.originalEndTime !== undefined || l.originalNote !== undefined || l.editHistory);
+  const hasHistory = !!(l.editHistory && l.editHistory.length > 0);
+
+  const getOriginalStartTime = () => {
+    if (!l.editHistory || l.editHistory.length === 0) return l.startTime;
+    for (const h of l.editHistory) {
+      if (h.prevStartTime) {
+        return h.prevStartTime;
+      }
+    }
+    return l.startTime;
+  };
 
   const handleSave = () => {
     onSaveEdit(form.startTime, form.endTime, form.note, form.reason);
@@ -88,7 +98,7 @@ export default function TimeLogTableRow({
         <td className="py-3.5 px-4">
           {hasHistory ? (
             <span className="text-[10px] bg-amber-550/10 text-amber-500 border border-amber-550/25 px-2 py-0.5 rounded-md font-bold block w-max">
-              Oryg start: {l.originalStartTime ? new Date(l.originalStartTime).toLocaleTimeString() : 'N/A'}
+              Oryg start: {getOriginalStartTime() ? new Date(getOriginalStartTime()).toLocaleTimeString() : 'N/A'}
             </span>
           ) : (
             <span className="text-slate-500 text-[10px]">{translate(locale, 'dbExplorer.noChanges', customTranslations)}</span>

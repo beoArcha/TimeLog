@@ -6,17 +6,19 @@ use rusqlite::params;
 
 impl BusinessRepository {
     fn map_time_log_row(row: &rusqlite::Row) -> rusqlite::Result<TimeLog> {
+        let edit_history_str: Option<String> = row.get(6)?;
+        let edit_history = edit_history_str
+            .and_then(|s| serde_json::from_str::<Vec<crate::types::TimeLogEditHistory>>(&s).ok())
+            .filter(|v| !v.is_empty());
+
         Ok(TimeLog {
             id: row.get(0)?,
             task_id: row.get(1)?,
             project_id: row.get(2)?,
             start_time: row.get(3)?,
             end_time: row.get(4)?,
-            note: None,
-            original_start_time: None,
-            original_end_time: None,
-            original_note: None,
-            edit_history: None,
+            note: row.get(5)?,
+            edit_history,
         })
     }
 
@@ -78,5 +80,50 @@ impl BusinessRepository {
             logs.push(r?);
         }
         Ok(logs)
+    }
+
+    pub fn get_time_log_by_id(&self, log_id: &str) -> Result<TimeLog> {
+        let conn = self.connect()?;
+        let mut stmt = conn.prepare(constants::SELECT_TIME_LOG_BY_ID)?;
+        Ok(stmt.query_row(params![log_id], Self::map_time_log_row)?)
+    }
+
+    pub fn update_time_log_with_history(
+        &self,
+        id: &str,
+        task_id: &str,
+        start_time: &str,
+        end_time: Option<&str>,
+        note: Option<&str>,
+        history_id: &str,
+        edited_at: &str,
+        prev_start_time: Option<&str>,
+        prev_end_time: Option<&str>,
+        prev_note: Option<&str>,
+        reason: Option<&str>,
+    ) -> Result<()> {
+        let mut conn = self.connect()?;
+        let tx = conn.transaction()?;
+
+        tx.execute(
+            constants::UPDATE_TIME_LOG,
+            params![id, task_id, start_time, end_time, note],
+        )?;
+
+        tx.execute(
+            constants::INSERT_TIME_LOG_HISTORY,
+            params![
+                history_id,
+                id,
+                edited_at,
+                prev_start_time,
+                prev_end_time,
+                prev_note,
+                reason
+            ],
+        )?;
+
+        tx.commit()?;
+        Ok(())
     }
 }

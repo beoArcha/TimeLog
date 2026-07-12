@@ -358,6 +358,35 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
+  const handleEditTimeLog = async (
+    id: string,
+    taskId: string,
+    startTime: string,
+    endTime: string | null,
+    note: string | null,
+    reason: string | null
+  ): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setRepositoryError(null);
+      await ensureSeeded();
+
+      await EngineRouter.getInstance().editTimeLog(id, taskId, startTime, endTime, note, reason);
+
+      const nextState = await repository.core.load();
+      if (nextState) {
+        setLogsState(nextState.logs);
+        setActiveLogState(nextState.activeLog);
+      }
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to edit time log', err, 'ERR_REPOSITORY_EDIT_TIME_LOG'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to edit time log');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     projects, setProjects,
     tasks, setTasks,
@@ -380,6 +409,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     handleToggleTaskComplete,
     handleStartTimer,
     handleStopTimer,
+    handleEditTimeLog,
     handleResetLocalStorage,
   };
 };

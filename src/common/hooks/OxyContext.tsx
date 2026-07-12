@@ -88,6 +88,14 @@ export interface OxyFlowState {
   handleToggleTaskComplete: (taskId: string) => void;
   handleStartTimer: (taskId: string) => void;
   handleStopTimer: (specificProjectId?: string) => void;
+  handleEditTimeLog: (
+    id: string,
+    taskId: string,
+    startTime: string,
+    endTime: string | null,
+    note: string | null,
+    reason: string | null
+  ) => Promise<void>;
 }
 
 export const OxyContext = createContext<OxyFlowState | undefined>(undefined);

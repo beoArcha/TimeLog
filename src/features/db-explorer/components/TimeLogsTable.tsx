@@ -15,7 +15,8 @@ export default function TimeLogsTable() {
   const {
     tasks, projects,
     logs, setLogs,
-    locale, customTranslations, resolvedTheme
+    locale, customTranslations, resolvedTheme,
+    handleEditTimeLog, showToast
   } = useOxyFlow();
 
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
@@ -28,44 +29,30 @@ export default function TimeLogsTable() {
       ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
       : { wrapper: 'bg-slate-900/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-slate-400 bg-black/30' };
 
-  const handleSaveEdit = (id: string, startTime: string, endTime: string, note: string, reason: string) => {
-    setLogs(curr => curr.map(l => {
-      if (l.id === id) {
-        const finalEndTime = endTime.trim() === '' ? null : endTime;
-        const hasChanged = l.startTime !== startTime || l.endTime !== finalEndTime || (l.note || '') !== note;
-        if (!hasChanged) {
-          setEditingLogId(null);
-          return l;
-        }
+  const handleSaveEdit = async (id: string, startTime: string, endTime: string, note: string, reason: string) => {
+    const existingLog = logs.find(l => l.id === id);
+    if (!existingLog) return;
 
-        const originalStartTime = l.originalStartTime || l.startTime;
-        const originalEndTime = l.originalEndTime !== undefined ? l.originalEndTime : l.endTime;
-        const originalNote = l.originalNote !== undefined ? l.originalNote : l.note || '';
+    const finalEndTime = endTime.trim() === '' ? null : endTime;
+    const finalNote = note.trim() === '' ? null : note;
+    
+    const hasChanged = existingLog.startTime !== startTime || 
+                       (existingLog.endTime || '') !== (finalEndTime || '') || 
+                       (existingLog.note || '') !== (finalNote || '');
+                       
+    if (!hasChanged) {
+      setEditingLogId(null);
+      return;
+    }
 
-        const newHistoryItem = {
-          editedAt: new Date().toISOString(),
-          prevStartTime: l.startTime,
-          prevEndTime: l.endTime,
-          prevNote: l.note,
-          reason: reason || 'Korekta ręczna wpisu'
-        };
-
-        const updatedHistory = l.editHistory ? [...l.editHistory, newHistoryItem] : [newHistoryItem];
-
-        return {
-          ...l,
-          startTime,
-          endTime: finalEndTime,
-          note,
-          originalStartTime,
-          originalEndTime,
-          originalNote,
-          editHistory: updatedHistory
-        };
+    try {
+      await handleEditTimeLog(id, existingLog.taskId, startTime, finalEndTime, finalNote, reason);
+      setEditingLogId(null);
+    } catch (err) {
+      if (showToast) {
+        showToast(err instanceof Error ? err.message : 'Wystąpił błąd podczas zapisu');
       }
-      return l;
-    }));
-    setEditingLogId(null);
+    }
   };
 
   const handleDeleteLog = (id: string) => {

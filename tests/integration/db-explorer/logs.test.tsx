@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, screen, cleanup } from '@testing-library/react';
+import { render, fireEvent, screen, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { OxyContext } from '@common/hooks/OxyContext';
@@ -24,6 +24,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const setProjects = vi.fn();
     const setTasks = vi.fn();
     const setLogs = vi.fn();
+    const handleEditTimeLog = vi.fn();
 
     const defaultState = {
       projects: [
@@ -38,6 +39,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
         { id: 'log_1', taskId: 'task_1', projectId: 'proj_1', startTime: '2026-06-12T01:00:00Z', endTime: '2026-06-12T02:00:00Z', note: 'First log' },
       ],
       setLogs,
+      handleEditTimeLog,
       holidays: [],
       setHolidays: vi.fn(),
       patches: [],
@@ -91,6 +93,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     return {
       ...utils,
       setLogs,
+      handleEditTimeLog,
     };
   };
 
@@ -135,9 +138,9 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     expect(setLogs).not.toHaveBeenCalled();
   });
 
-  it('should_handle_editing_and_deleting_logs_when_modified_in_logs_table', () => {
+  it('should_handle_editing_and_deleting_logs_when_modified_in_logs_table', async () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-    const { setLogs } = setup();
+    const { setLogs, handleEditTimeLog } = setup();
 
     const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
 
@@ -150,13 +153,18 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const saveBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
     fireEvent.click(saveBtn);
 
-    expect(setLogs).toHaveBeenCalled();
+    expect(handleEditTimeLog).toHaveBeenCalled();
+
+    // Wait for edit mode to close before finding and clicking delete button
+    await waitFor(() => {
+      expect(logsTableWrapper?.querySelector('input[placeholder="Uzasadnienie rzetelności"]')).toBeNull();
+    });
 
     const deleteBtn = logsTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
     fireEvent.click(deleteBtn);
 
     expect(confirmSpy).toHaveBeenCalled();
-    expect(setLogs).toHaveBeenCalledTimes(2);
+    expect(setLogs).toHaveBeenCalled();
   });
 
   it('Given a log list, When editing is started and canceled, Then it should exit edit mode', () => {
@@ -173,7 +181,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
   });
 
   it('Given a log list, When editing is started and saved with no changes, Then it should close editing without triggering setLogs', () => {
-    const { setLogs } = setup();
+    const { handleEditTimeLog } = setup();
     const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
 
     const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
@@ -182,13 +190,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const saveBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
     fireEvent.click(saveBtn);
 
-    expect(setLogs).toHaveBeenCalled();
-    const updateFn = setLogs.mock.calls[0][0];
-    const initialLogs = [
-      { id: 'log_1', taskId: 'task_1', projectId: 'proj_1', startTime: '2026-06-12T01:00:00Z', endTime: '2026-06-12T02:00:00Z', note: 'First log' }
-    ];
-    const updatedLogs = updateFn(initialLogs);
-    expect(updatedLogs[0]).toBe(initialLogs[0]);
+    expect(handleEditTimeLog).not.toHaveBeenCalled();
   });
 
   it('Given a log list with history, When clicking history button, Then it should toggle the history details view', () => {
@@ -201,9 +203,6 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
           startTime: '2026-06-12T01:00:00Z',
           endTime: '2026-06-12T02:00:00Z',
           note: 'First log',
-          originalStartTime: '2026-06-12T00:50:00Z',
-          originalEndTime: '2026-06-12T02:00:00Z',
-          originalNote: 'Original Note',
           editHistory: [
             {
               editedAt: '2026-06-12T01:05:00Z',

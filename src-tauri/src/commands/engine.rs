@@ -23,3 +23,25 @@ pub fn get_active_logs(state: State<'_, AppState>) -> Result<Vec<String>, AppErr
     let logs = engine.get_active_logs()?;
     Ok(logs)
 }
+
+#[tauri::command]
+pub fn edit_time_log(
+    id: String,
+    task_id: String,
+    start_time: String,
+    end_time: Option<String>,
+    note: Option<String>,
+    reason: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
+    let engine = Engine::new(&state.persistence);
+    engine.edit_log(
+        &id,
+        &task_id,
+        &start_time,
+        end_time.as_deref(),
+        note.as_deref(),
+        reason.as_deref(),
+    )?;
+    Ok(())
+}

@@ -27,4 +27,90 @@ export class EnginePlugin implements IEngine {
       await this.persistence.timeLogs.closeAllActive(now);
     }
   }
+
+  async editTimeLog(
+    id: string,
+    taskId: string,
+    startTime: string,
+    endTime: string | null,
+    note: string | null,
+    reason: string | null
+  ): Promise<void> {
+    const state = await this.persistence.core.load();
+    if (!state) {
+      throw new Error('Database state not initialized');
+    }
+
+    const currentLog = state.logs.find(l => l.id === id);
+    if (!currentLog) {
+      throw new EntityNotFoundException(`Time log ${id} not found`);
+    }
+
+    const start = new Date(startTime).getTime();
+    if (isNaN(start)) {
+      throw new Error('Parse time error: start_time is invalid');
+    }
+    const end = endTime ? new Date(endTime).getTime() : Date.now();
+    if (isNaN(end)) {
+      throw new Error('Parse time error: end_time is invalid');
+    }
+    if (end < start) {
+      throw new Error('End time cannot be before start time');
+    }
+    if (start > Date.now()) {
+      throw new Error('Start time cannot be in the future');
+    }
+
+    for (const log of state.logs) {
+      if (log.id === id) {
+        continue;
+      }
+      const logStart = new Date(log.startTime).getTime();
+      const logEnd = log.endTime ? new Date(log.endTime).getTime() : Date.now();
+      if (start < logEnd && logStart < end) {
+        throw new Error(`Time log overlaps with an existing log (ID: ${log.id})`);
+      }
+    }
+
+    const prevStartTime = currentLog.startTime !== startTime ? currentLog.startTime : undefined;
+    const prevEndTime = currentLog.endTime !== endTime ? (currentLog.endTime || undefined) : undefined;
+    const prevNote = currentLog.note !== note ? (currentLog.note || undefined) : undefined;
+
+    const historyItem = {
+      editedAt: new Date().toISOString(),
+      prevStartTime,
+      prevEndTime,
+      prevNote,
+      reason: reason || undefined,
+    };
+
+    const updatedHistory = currentLog.editHistory ? [...currentLog.editHistory, historyItem] : [historyItem];
+
+    state.logs = state.logs.map(l => {
+      if (l.id === id) {
+        return {
+          ...l,
+          taskId,
+          startTime,
+          endTime: endTime || undefined,
+          note: note || undefined,
+          editHistory: updatedHistory,
+        };
+      }
+      return l;
+    });
+
+    if (state.activeLog && state.activeLog.id === id) {
+      state.activeLog = {
+        ...state.activeLog,
+        taskId,
+        startTime,
+        endTime: endTime || undefined,
+        note: note || undefined,
+        editHistory: updatedHistory,
+      };
+    }
+
+    await this.persistence.core.overrideState(state);
+  }
 }

@@ -56,4 +56,39 @@ impl TimeLogsPersistence {
     pub fn get_all(&self) -> PersistenceResult<Vec<TimeLog>> {
         Ok(self.shared.business_repo.get_all_time_logs()?)
     }
+
+    pub fn get_by_id(&self, log_id: &str) -> PersistenceResult<TimeLog> {
+        Ok(self.shared.business_repo.get_time_log_by_id(log_id)?)
+    }
+
+    pub fn update_with_history(
+        &self,
+        id: &str,
+        task_id: &str,
+        start_time: &str,
+        end_time: Option<&str>,
+        note: Option<&str>,
+        history_id: &str,
+        edited_at: &str,
+        prev_start_time: Option<&str>,
+        prev_end_time: Option<&str>,
+        prev_note: Option<&str>,
+        reason: Option<&str>,
+    ) -> PersistenceResult<()> {
+        self.shared.business_repo.update_time_log_with_history(
+            id,
+            task_id,
+            start_time,
+            end_time,
+            note,
+            history_id,
+            edited_at,
+            prev_start_time,
+            prev_end_time,
+            prev_note,
+            reason,
+        )?;
+        self.shared.cache.clear();
+        Ok(())
+    }
 }

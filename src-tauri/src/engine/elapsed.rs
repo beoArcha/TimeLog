@@ -10,6 +10,8 @@ pub enum EngineError {
     Persistence(#[from] PersistenceError),
     #[error("Parse time error: {0}")]
     ParseTime(String),
+    #[error("Validation error: {0}")]
+    Validation(String),
 }
 
 pub struct Engine<'a> {
@@ -123,6 +125,116 @@ impl<'a> Engine<'a> {
     pub fn get_active_logs(&self) -> Result<Vec<String>, EngineError> {
         let ids = self.persistence.time_logs.query_active()?;
         Ok(ids)
+    }
+
+    pub fn validate_time_log(
+        &self,
+        log_id: &str,
+        _task_id: &str,
+        start_time: &str,
+        end_time: Option<&str>,
+    ) -> Result<(), EngineError> {
+        let start = DateTime::parse_from_rfc3339(start_time)
+            .map_err(|e| EngineError::ParseTime(e.to_string()))?
+            .with_timezone(&Utc);
+
+        let end = match end_time {
+            Some(e_str) => {
+                let e = DateTime::parse_from_rfc3339(e_str)
+                    .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                    .with_timezone(&Utc);
+                if e < start {
+                    return Err(EngineError::Validation(
+                        "End time cannot be before start time".to_string(),
+                    ));
+                }
+                e
+            }
+            None => Utc::now(),
+        };
+
+        if start > Utc::now() {
+            return Err(EngineError::Validation(
+                "Start time cannot be in the future".to_string(),
+            ));
+        }
+
+        let all_logs = self.persistence.time_logs.get_all()?;
+
+        for log in all_logs {
+            if log.id == log_id {
+                continue;
+            }
+
+            let log_start = DateTime::parse_from_rfc3339(&log.start_time)
+                .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                .with_timezone(&Utc);
+
+            let log_end = match log.end_time {
+                Some(ref e_str) => DateTime::parse_from_rfc3339(e_str)
+                    .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                    .with_timezone(&Utc),
+                None => Utc::now(),
+            };
+
+            if start < log_end && log_start < end {
+                return Err(EngineError::Validation(format!(
+                    "Time log overlaps with an existing log (ID: {})",
+                    log.id
+                )));
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn edit_log(
+        &self,
+        log_id: &str,
+        new_task_id: &str,
+        new_start_time: &str,
+        new_end_time: Option<&str>,
+        new_note: Option<&str>,
+        reason: Option<&str>,
+    ) -> Result<(), EngineError> {
+        let current_log = self.persistence.time_logs.get_by_id(log_id)?;
+
+        self.validate_time_log(log_id, new_task_id, new_start_time, new_end_time)?;
+
+        let prev_start = if current_log.start_time != new_start_time {
+            Some(current_log.start_time.as_str())
+        } else {
+            None
+        };
+        let prev_end = if current_log.end_time.as_deref() != new_end_time {
+            current_log.end_time.as_deref()
+        } else {
+            None
+        };
+        let prev_note = if current_log.note.as_deref() != new_note {
+            current_log.note.as_deref()
+        } else {
+            None
+        };
+
+        let history_id = format!("history_{}", Utc::now().timestamp_millis());
+        let edited_at = Utc::now().to_rfc3339();
+
+        self.persistence.time_logs.update_with_history(
+            log_id,
+            new_task_id,
+            new_start_time,
+            new_end_time,
+            new_note,
+            &history_id,
+            &edited_at,
+            prev_start,
+            prev_end,
+            prev_note,
+            reason,
+        )?;
+
+        Ok(())
     }
 
     pub fn get_state(&self) -> Result<crate::types::TimerRepositoryState, EngineError> {

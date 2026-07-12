@@ -63,12 +63,6 @@ pub struct TimeLog {
     #[ts(optional)]
     pub note: Option<String>,
     #[ts(optional)]
-    pub original_start_time: Option<String>,
-    #[ts(optional)]
-    pub original_end_time: Option<String>,
-    #[ts(optional)]
-    pub original_note: Option<String>,
-    #[ts(optional)]
     pub edit_history: Option<Vec<TimeLogEditHistory>>,
 }
 
