@@ -1,5 +1,5 @@
 use crate::common::AppError;
-use crate::types::{Settings, RuntimeConfig};
+use crate::types::{RuntimeConfig, Settings};
 use crate::AppState;
 use tauri::State;
 
@@ -22,8 +22,10 @@ pub fn get_runtime_configs(state: State<'_, AppState>) -> Result<Vec<RuntimeConf
 }
 
 #[tauri::command]
-pub fn save_runtime_config(config: RuntimeConfig, state: State<'_, AppState>) -> Result<(), AppError> {
+pub fn save_runtime_config(
+    config: RuntimeConfig,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
     state.persistence.settings.save_runtime_config(config)?;
     Ok(())
 }
-

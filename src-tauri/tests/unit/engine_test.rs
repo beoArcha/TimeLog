@@ -186,7 +186,9 @@ fn test_task_hierarchy_validation() {
     persistence.tasks.create(task1).unwrap();
 
     // 1. Same task as parent
-    assert!(engine.validate_task_hierarchy(Some("t_h1"), Some("t_h1")).is_err());
+    assert!(engine
+        .validate_task_hierarchy(Some("t_h1"), Some("t_h1"))
+        .is_err());
 
     // 2. Add valid subtask
     let task2 = Task {
@@ -207,4 +209,3 @@ fn test_task_hierarchy_validation() {
     // 3. Try to add subtask to a subtask (invalid, depth > 1)
     assert!(engine.validate_task_hierarchy(None, Some("t_h2")).is_err());
 }
-

@@ -23,9 +23,8 @@ pub use holiday::{HolidayLeave, HolidayLeaveEditHistory, HolidayType};
 pub use locale::Locale;
 pub use persistence_event::PersistenceEvent;
 pub use project::{Project, ProjectEditHistory, ProjectStatistics};
-pub use settings::{Settings, RuntimeConfig};
+pub use settings::{RuntimeConfig, Settings};
 pub use sinks::SinkType;
 pub use timelog::{
     PatchLog, Task, TaskEditHistory, TaskStatus, TimeLog, TimeLogEditHistory, TimerRepositoryState,
 };
-

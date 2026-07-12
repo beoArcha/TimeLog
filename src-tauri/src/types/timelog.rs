@@ -52,7 +52,6 @@ pub struct Task {
     pub archived: Option<bool>,
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]

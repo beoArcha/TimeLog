@@ -127,4 +127,3 @@ pub fn toggle_complete(
     }
     Ok(engine.get_state()?)
 }
-

@@ -1,6 +1,6 @@
 use super::error::PersistenceResult;
 use super::shared::PersistenceShared;
-use crate::types::{Settings, RuntimeConfig};
+use crate::types::{RuntimeConfig, Settings};
 use std::sync::Arc;
 
 pub struct SettingsPersistence {
@@ -32,4 +32,3 @@ impl SettingsPersistence {
         Ok(configs)
     }
 }
-

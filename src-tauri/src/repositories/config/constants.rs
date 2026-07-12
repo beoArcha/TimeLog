@@ -10,4 +10,3 @@ pub const INSERT_RUNTIME_CONFIG: &str = "
 pub const SELECT_ALL_RUNTIME_CONFIGS: &str = "
     SELECT id, runtime, config, created_at FROM runtime_configs
 ";
-

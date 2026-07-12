@@ -28,7 +28,6 @@ pub const SELECT_PROJECT_BY_ID: &str = "
     WHERE id = ?1
 ";
 
-
 // Tasks queries
 pub const INSERT_TASK: &str = "
     INSERT INTO tasks (id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status)

@@ -57,4 +57,3 @@ pub fn get_project_statistics(
     let stats = engine.get_project_statistics(&project_id)?;
     Ok(stats)
 }
-

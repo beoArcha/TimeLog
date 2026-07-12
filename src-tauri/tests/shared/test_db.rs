@@ -27,7 +27,8 @@ pub fn setup_persistence_test(
         rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE
             | rusqlite::OpenFlags::SQLITE_OPEN_CREATE
             | rusqlite::OpenFlags::SQLITE_OPEN_URI,
-    ).expect("open shared memdb failed");
+    )
+    .expect("open shared memdb failed");
     let _ = conn.pragma_update(None, "journal_mode", "WAL");
     let _ = conn.pragma_update(None, "foreign_keys", "ON");
     initialize_database(&conn).expect("initialize_database failed");

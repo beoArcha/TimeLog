@@ -1,6 +1,6 @@
 pub mod constants;
-pub mod settings;
 pub mod runtime_config;
+pub mod settings;
 
 use crate::repositories::shared::errors::Result;
 use crate::repositories::shared::{establish_connection, initialize_database};

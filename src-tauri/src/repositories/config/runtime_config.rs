@@ -9,12 +9,7 @@ impl ConfigRepository {
         let conn = self.connect()?;
         conn.execute(
             constants::INSERT_RUNTIME_CONFIG,
-            params![
-                config.id,
-                config.runtime,
-                config.config,
-                config.created_at
-            ],
+            params![config.id, config.runtime, config.config, config.created_at],
         )?;
         Ok(())
     }

@@ -259,10 +259,13 @@ impl<'a> Engine<'a> {
         })
     }
 
-    pub fn get_project_statistics(&self, project_id: &str) -> Result<crate::types::ProjectStatistics, EngineError> {
+    pub fn get_project_statistics(
+        &self,
+        project_id: &str,
+    ) -> Result<crate::types::ProjectStatistics, EngineError> {
         let elapsed = self.calculate_project_elapsed(project_id)?;
         let tasks = self.persistence.projects.get_tasks(project_id)?;
-        
+
         let mut total_tasks = 0;
         let mut completed_tasks = 0;
 
@@ -319,4 +322,3 @@ impl<'a> Engine<'a> {
         Ok(())
     }
 }
-

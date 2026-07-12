@@ -66,4 +66,3 @@ pub fn update_project(
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)
 }
-

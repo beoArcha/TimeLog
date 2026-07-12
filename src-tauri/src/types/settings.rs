@@ -50,4 +50,3 @@ pub struct RuntimeConfig {
     pub config: String,
     pub created_at: String,
 }
-

@@ -79,7 +79,6 @@ impl BusinessRepository {
         })
     }
 
-
     pub fn get_project(&self, id: &str) -> Result<Option<Project>> {
         let conn = self.connect()?;
         let mut stmt = conn.prepare(constants::SELECT_PROJECT_BY_ID)?;

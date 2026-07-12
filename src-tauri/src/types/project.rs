@@ -46,5 +46,3 @@ pub struct ProjectStatistics {
     pub total_tasks: u32,
     pub completed_tasks: u32,
 }
-
-
