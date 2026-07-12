@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Settings as AppSettings } from '@bindings/Settings';
-import { GuiSize } from '@bindings/GuiSize';
+import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { STORAGE_KEYS } from '@common/constants';
 import { Theme, ThemePreference } from '@common/types/ThemeTypes';
@@ -19,8 +19,8 @@ export const useAppSettings = () => {
     return (saved as TextAndIconSize) || 'medium';
   });
 
-  const [guiSize, setGuiSize] = useState<GuiSize>(() => {
-    return (localStorage.getItem(STORAGE_KEYS.GUI_VARIANT) as GuiSize) || 'large';
+  const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>(() => {
+    return (localStorage.getItem(STORAGE_KEYS.GUI_VARIANT) as LayoutVariant) || 'large';
   });
 
   const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(() => {
@@ -50,7 +50,7 @@ export const useAppSettings = () => {
     PersistenceRouter.getInstance().settings.get().then((loaded) => {
       setTheme(loaded.theme as ThemePreference);
       setTextAndIconSize(loaded.textAndIconSize);
-      setGuiSize(loaded.guiVariant);
+      setLayoutVariant(loaded.guiVariant as LayoutVariant);
       setAlwaysOnTopSmall(loaded.alwaysOnTopSmall);
       setAlwaysOnTopMain(loaded.alwaysOnTopMain);
       setMinimizeToTray(loaded.minimizeToTray);
@@ -85,13 +85,13 @@ export const useAppSettings = () => {
   const resolvedTheme: Theme = theme === 'system' ? systemTheme : (theme as unknown as Theme);
   const setResolvedTheme = setSystemTheme;
 
-  const [lastNonSmallVariant, setLastNonSmallVariant] = useState<Exclude<GuiSize, 'small'>>(() => {
+  const [lastNonSmallVariant, setLastNonSmallVariant] = useState<Exclude<LayoutVariant, 'small'>>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.LAST_NON_SMALL_VARIANT);
-    return (saved as Exclude<GuiSize, 'small'>) || 'large';
+    return (saved as Exclude<LayoutVariant, 'small'>) || 'large';
   });
 
-  if (guiSize !== 'small' && guiSize !== lastNonSmallVariant) {
-    setLastNonSmallVariant(guiSize);
+  if (layoutVariant !== 'small' && layoutVariant !== lastNonSmallVariant) {
+    setLastNonSmallVariant(layoutVariant);
   }
 
   useEffect(() => {
@@ -99,11 +99,11 @@ export const useAppSettings = () => {
   }, [textAndIconSize]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.GUI_VARIANT, guiSize);
-    if (guiSize !== 'small') {
-      localStorage.setItem(STORAGE_KEYS.LAST_NON_SMALL_VARIANT, guiSize);
+    localStorage.setItem(STORAGE_KEYS.GUI_VARIANT, layoutVariant);
+    if (layoutVariant !== 'small') {
+      localStorage.setItem(STORAGE_KEYS.LAST_NON_SMALL_VARIANT, layoutVariant);
     }
-  }, [guiSize]);
+  }, [layoutVariant]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ALWAYS_ON_TOP_SMALL, String(alwaysOnTopSmall));
@@ -129,7 +129,7 @@ export const useAppSettings = () => {
         activeSinks: sysSettings.activeSinks || ['Csv'],
         theme: theme,
         textAndIconSize: textAndIconSize,
-        guiVariant: guiSize,
+        guiVariant: layoutVariant,
         alwaysOnTopSmall: alwaysOnTopSmall,
         alwaysOnTopMain: alwaysOnTopMain,
         minimizeToTray: minimizeToTray,
@@ -145,7 +145,7 @@ export const useAppSettings = () => {
     sysSettings,
     theme,
     textAndIconSize,
-    guiSize,
+    layoutVariant,
     alwaysOnTopSmall,
     alwaysOnTopMain,
     minimizeToTray,
@@ -170,7 +170,7 @@ export const useAppSettings = () => {
     textAndIconSize, setTextAndIconSize,
     resolvedTheme, setResolvedTheme,
     sysSettings, setSysSettings,
-    guiSize, setGuiSize,
+    layoutVariant, setLayoutVariant,
     lastNonSmallVariant, setLastNonSmallVariant,
     alwaysOnTopSmall, setAlwaysOnTopSmall,
     alwaysOnTopMain, setAlwaysOnTopMain,

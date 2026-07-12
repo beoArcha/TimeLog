@@ -1,5 +1,5 @@
 use crate::tray::ids::TrayMenuId;
-use crate::types::{FrontendEvent, GuiSize};
+use crate::types::{FrontendEvent, LayoutVariant};
 use tauri::{menu::MenuEvent, AppHandle, Emitter, Manager};
 
 fn emit_to_main<R: tauri::Runtime, S: serde::Serialize + Clone>(
@@ -32,13 +32,13 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
                 }
             }
             TrayMenuId::GuiSmall => {
-                emit_to_main(app, FrontendEvent::TraySetGuiVariant, GuiSize::Small, true);
+                emit_to_main(app, FrontendEvent::TraySetGuiVariant, LayoutVariant::Small, true);
             }
             TrayMenuId::GuiMedium => {
-                emit_to_main(app, FrontendEvent::TraySetGuiVariant, GuiSize::Medium, true);
+                emit_to_main(app, FrontendEvent::TraySetGuiVariant, LayoutVariant::Medium, true);
             }
             TrayMenuId::GuiLarge => {
-                emit_to_main(app, FrontendEvent::TraySetGuiVariant, GuiSize::Large, true);
+                emit_to_main(app, FrontendEvent::TraySetGuiVariant, LayoutVariant::Large, true);
             }
             TrayMenuId::ToggleOnTop => {
                 emit_to_main(app, FrontendEvent::TrayToggleOnTop, (), true);

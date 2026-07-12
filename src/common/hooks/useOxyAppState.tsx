@@ -22,8 +22,8 @@ export const useOxyAppState = () => {
   const apiSync = useExternalApiSync();
   const timeLogData = useTimeLogData(apiSync.pushToApi);
   const tauriWindow = useTauriWindow({
-    guiSize: appSettings.guiSize,
-    setGuiSize: appSettings.setGuiSize,
+    layoutVariant: appSettings.layoutVariant,
+    setLayoutVariant: appSettings.setLayoutVariant,
     textAndIconSize: appSettings.textAndIconSize,
     minimizeToTray: appSettings.minimizeToTray,
     alwaysOnTopSmall: appSettings.alwaysOnTopSmall,

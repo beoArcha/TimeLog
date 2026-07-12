@@ -1,6 +1,6 @@
 import { Clock, Maximize2, X } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import { GuiSize } from '@bindings/GuiSize';
+import { LayoutVariant } from '@bindings/LayoutVariant';
 import versionsData from '../../versions.json';
 import { Locale } from '@/src/bindings/Locale';
 
@@ -8,7 +8,7 @@ interface SmallGuiHeaderProps {
   locale: Locale;
   customTranslations: any;
   alwaysOnTopSmall: boolean;
-  lastNonSmallVariant: Exclude<GuiSize, 'small'> | undefined;
+  lastNonSmallVariant: Exclude<LayoutVariant, 'small'> | undefined;
   setAlwaysOnTopSmall: (value: boolean) => void;
   showToast: (msg: string) => void;
   onRestoreWindow: () => void;

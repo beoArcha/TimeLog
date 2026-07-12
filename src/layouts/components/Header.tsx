@@ -6,8 +6,8 @@ import versionsData from '../../versions.json';
 
 export default function Header() {
   const {
-    guiSize,
-    setGuiSize,
+    layoutVariant,
+    setLayoutVariant,
     textAndIconSize,
     setTextAndIconSize,
     theme,
@@ -49,13 +49,13 @@ export default function Header() {
         <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
           }`}>
           {(['small', 'medium', 'large'] as const).map(sz => {
-            const isActive = guiSize === sz;
+            const isActive = layoutVariant === sz;
             return (
               <button
                 key={sz}
-                data-testid={`gui-size-${sz}`}
+                data-testid={`layout-variant-${sz}`}
                 onClick={() => {
-                  setGuiSize(sz);
+                  setLayoutVariant(sz);
                   if (showToast) {
                     const label = sz === 'small' ? translate(locale, 'app', 'SizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app', 'SizeMedium', customTranslations) : translate(locale, 'app', 'SizeLarge', customTranslations);
                     showToast(`${translate(locale, 'app', 'SizeChanged', customTranslations)} ${label}`);

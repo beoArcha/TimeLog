@@ -17,11 +17,11 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
     await expect(page.locator('#app-root-container')).toContainText(/Zaznacz projekt w bocznym menu|Select project/i);
   });
 
-  test('should switch GUI sizes in the header and toggle tab visibility', async ({ mainPage }) => {
+  test('should switch layout variants in the header and toggle tab visibility', async ({ mainPage }) => {
     await expect(mainPage.tabMain).toBeVisible();
-    await mainPage.switchGuiSize('medium');
+    await mainPage.switchLayoutVariant('medium');
     await expect(mainPage.tabMain).toBeHidden();
-    await mainPage.switchGuiSize('large');
+    await mainPage.switchLayoutVariant('large');
     await expect(mainPage.tabMain).toBeVisible();
   });
 

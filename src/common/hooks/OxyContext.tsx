@@ -10,7 +10,7 @@ import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { Settings } from '@bindings/Settings';
 import { TranslationDictionary } from '@common/i18n/translator';
-import { GuiSize } from '@bindings/GuiSize';
+import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { Locale } from '@bindings/Locale';
 
@@ -46,8 +46,8 @@ export interface OxyFlowState {
 
   textAndIconSize: TextAndIconSize;
   setTextAndIconSize: React.Dispatch<React.SetStateAction<TextAndIconSize>>;
-  guiSize: GuiSize;
-  setGuiSize: React.Dispatch<React.SetStateAction<GuiSize>>;
+  layoutVariant: LayoutVariant;
+  setLayoutVariant: React.Dispatch<React.SetStateAction<LayoutVariant>>;
 
   engineState: 'searching' | 'connected';
   enginePID: number;

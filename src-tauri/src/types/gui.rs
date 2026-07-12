@@ -4,7 +4,7 @@ use ts_rs::TS;
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
-pub enum GuiSize {
+pub enum LayoutVariant {
     Small,
     Medium,
     Large,
@@ -33,17 +33,17 @@ pub struct WindowDimensions {
     pub height: f64,
 }
 
-impl GuiSize {
+impl LayoutVariant {
     pub fn get_dimensions(self, text_and_icon_size: TextAndIconSize) -> (WindowDimensions, bool) {
         match self {
-            GuiSize::Small => (
+            LayoutVariant::Small => (
                 WindowDimensions {
                     width: 360.0,
                     height: 480.0,
                 },
                 false,
             ),
-            GuiSize::Medium => {
+            LayoutVariant::Medium => {
                 let dims = match text_and_icon_size {
                     TextAndIconSize::Small => WindowDimensions {
                         width: 480.0,
@@ -60,7 +60,7 @@ impl GuiSize {
                 };
                 (dims, true)
             }
-            GuiSize::Large => {
+            LayoutVariant::Large => {
                 let dims = match text_and_icon_size {
                     TextAndIconSize::Small => WindowDimensions {
                         width: 960.0,
@@ -80,3 +80,4 @@ impl GuiSize {
         }
     }
 }
+

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useOxyAppState } from '@common/hooks/useOxyAppState';
 
 const mockUseAppSettings = vi.fn(() => ({
-  guiSize: 'large',
+  layoutVariant: 'large',
   textAndIconSize: 'medium',
   minimizeToTray: false,
   alwaysOnTopSmall: false,

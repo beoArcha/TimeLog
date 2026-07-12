@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
-import { GuiSize } from '@bindings/GuiSize';
+import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
 
@@ -14,8 +14,8 @@ interface UseSmallGuiParams {
   showToast: (msg: string) => void;
   onStartTimer: (taskId: string) => void;
   onStopTimer: () => void;
-  setGuiSize: (variant: GuiSize) => void;
-  lastNonSmallVariant: Exclude<GuiSize, 'small'> | undefined;
+  setLayoutVariant: (variant: LayoutVariant) => void;
+  lastNonSmallVariant: Exclude<LayoutVariant, 'small'> | undefined;
 }
 
 export interface SmallGuiDerived {
@@ -34,7 +34,7 @@ export function useSmallGui({
   showToast,
   onStartTimer,
   onStopTimer,
-  setGuiSize,
+  setLayoutVariant,
   lastNonSmallVariant,
 }: UseSmallGuiParams): SmallGuiDerived {
   const activeProj = useMemo(
@@ -57,7 +57,7 @@ export function useSmallGui({
 
   const handleRestoreWindow = () => {
     const target = lastNonSmallVariant ?? 'large';
-    setGuiSize(target);
+    setLayoutVariant(target);
     const sizeLabel =
       target === 'medium'
         ? locale === 'pl'

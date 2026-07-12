@@ -64,14 +64,14 @@ export interface GuiCommonProps {
 }
 
 export interface GuiRouterProps {
-  variant: import('@bindings/GuiSize').GuiSize;
+  variant: import('@bindings/LayoutVariant').LayoutVariant;
   commonProps: GuiCommonProps;
 
   isSmallExpanded: boolean;
   setIsSmallExpanded: (val: boolean) => void;
   showToast: (msg: string) => void;
   handleMinimizeToTray: () => void;
-  setGuiSize: (variant: import('@bindings/GuiSize').GuiSize) => void;
+  setLayoutVariant: (variant: import('@bindings/LayoutVariant').LayoutVariant) => void;
   currentProjectId: string;
-  lastNonSmallVariant?: Exclude<import('@bindings/GuiSize').GuiSize, 'small'>;
+  lastNonSmallVariant?: Exclude<import('@bindings/LayoutVariant').LayoutVariant, 'small'>;
 }

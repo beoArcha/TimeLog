@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ErrorHandler, TauriInteropException } from '../exceptions';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { GuiSize } from '@bindings/GuiSize';
+import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { Locale } from '@bindings/Locale';
 import { translate } from '@common/i18n/translator';
@@ -13,10 +13,10 @@ const isTauri = () => {
   return typeof window !== 'undefined' && (window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined;
 };
 
-const handleSetGuiSize = async (size: GuiSize, textIconSize: TextAndIconSize) => {
+const handleSetLayoutVariant = async (variant: LayoutVariant, textIconSize: TextAndIconSize) => {
   if (!isTauri()) return;
   try {
-    await invoke(TAURI_COMMANDS.SET_GUI_SIZE, { size, textAndIconSize: textIconSize });
+    await invoke(TAURI_COMMANDS.SET_LAYOUT_VARIANT, { variant, textAndIconSize: textIconSize });
   } catch (err) {
     ErrorHandler.handle(new TauriInteropException('Tauri resize error', err, 'ERR_TAURI_RESIZE'));
   }
@@ -32,23 +32,23 @@ const handleWindowAlwaysOnTop = async (onTop: boolean) => {
 };
 
 interface TauriWindowProps {
-  guiSize: GuiSize;
-  setGuiSize: (size: GuiSize) => void;
+  layoutVariant: LayoutVariant;
+  setLayoutVariant: (variant: LayoutVariant) => void;
   textAndIconSize: TextAndIconSize;
   minimizeToTray: boolean;
   alwaysOnTopSmall: boolean;
   setAlwaysOnTopSmall: React.Dispatch<React.SetStateAction<boolean>>;
   alwaysOnTopMain: boolean;
   setAlwaysOnTopMain: React.Dispatch<React.SetStateAction<boolean>>;
-  lastNonSmallVariant: Exclude<GuiSize, 'small'>;
-  setLastNonSmallVariant: React.Dispatch<React.SetStateAction<Exclude<GuiSize, 'small'>>>;
+  lastNonSmallVariant: Exclude<LayoutVariant, 'small'>;
+  setLastNonSmallVariant: React.Dispatch<React.SetStateAction<Exclude<LayoutVariant, 'small'>>>;
   handleStopTimer: (specificProjectId?: string) => void;
   locale: Locale;
   customTranslations: Record<string, unknown>;
 }
 
 export const useTauriWindow = ({
-  guiSize, setGuiSize,
+  layoutVariant, setLayoutVariant,
   textAndIconSize,
   minimizeToTray,
   alwaysOnTopSmall, setAlwaysOnTopSmall,
@@ -67,7 +67,7 @@ export const useTauriWindow = ({
   };
 
   const stateRef = useRef({
-    guiSize,
+    layoutVariant,
     textAndIconSize,
     minimizeToTray,
     alwaysOnTopSmall,
@@ -76,7 +76,7 @@ export const useTauriWindow = ({
     customTranslations,
     handleStopTimer,
     showToast,
-    setGuiSize,
+    setLayoutVariant,
     setLastNonSmallVariant,
     setAlwaysOnTopSmall,
     setAlwaysOnTopMain,
@@ -84,7 +84,7 @@ export const useTauriWindow = ({
 
   useEffect(() => {
     stateRef.current = {
-      guiSize,
+      layoutVariant,
       textAndIconSize,
       minimizeToTray,
       alwaysOnTopSmall,
@@ -93,7 +93,7 @@ export const useTauriWindow = ({
       customTranslations,
       handleStopTimer,
       showToast,
-      setGuiSize,
+      setLayoutVariant,
       setLastNonSmallVariant,
       setAlwaysOnTopSmall,
       setAlwaysOnTopMain,
@@ -110,16 +110,16 @@ export const useTauriWindow = ({
 
   useEffect(() => {
     const applyWindowConfig = async () => {
-      await handleSetGuiSize(guiSize, textAndIconSize);
+      await handleSetLayoutVariant(layoutVariant, textAndIconSize);
       await new Promise(resolve => setTimeout(resolve, 50));
-      if (guiSize !== 'small') {
+      if (layoutVariant !== 'small') {
         await handleWindowAlwaysOnTop(alwaysOnTopMain);
       } else {
         await handleWindowAlwaysOnTop(alwaysOnTopSmall);
       }
     };
     applyWindowConfig();
-  }, [guiSize, textAndIconSize, alwaysOnTopSmall, alwaysOnTopMain]);
+  }, [layoutVariant, textAndIconSize, alwaysOnTopSmall, alwaysOnTopMain]);
 
   useEffect(() => {
     if (!isTauri()) return;
@@ -131,7 +131,7 @@ export const useTauriWindow = ({
       try {
         const uMax = await listen('native-window-maximized' satisfies FrontendEvent, () => {
           if (!active) return;
-          stateRef.current.setGuiSize('large');
+          stateRef.current.setLayoutVariant('large');
           stateRef.current.setLastNonSmallVariant('large');
           stateRef.current.showToast("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
         });
@@ -139,16 +139,16 @@ export const useTauriWindow = ({
 
         const uRest = await listen('native-window-restored' satisfies FrontendEvent, () => {
           if (!active) return;
-          stateRef.current.setGuiSize('large');
+          stateRef.current.setLayoutVariant('large');
         });
         unlisteners.push(uRest);
 
         const uVariant = await listen('tray-set-gui-variant' satisfies FrontendEvent, async (event) => {
           if (!active) return;
-          const payload = event.payload as GuiSize;
+          const payload = event.payload as LayoutVariant;
           if (['small', 'medium', 'large'].includes(payload)) {
-            stateRef.current.setGuiSize(payload);
-            await handleSetGuiSize(payload, stateRef.current.textAndIconSize);
+            stateRef.current.setLayoutVariant(payload);
+            await handleSetLayoutVariant(payload, stateRef.current.textAndIconSize);
             const flag = payload === 'small' ? stateRef.current.alwaysOnTopSmall : stateRef.current.alwaysOnTopMain;
             await handleWindowAlwaysOnTop(flag);
             stateRef.current.showToast(`GUI: ${payload === 'small' ? 'Mały' : payload === 'medium' ? 'Średni' : 'Duży'}`);
@@ -165,7 +165,7 @@ export const useTauriWindow = ({
 
         const uToggleTop = await listen('tray-toggle-on-top' satisfies FrontendEvent, async () => {
           if (!active) return;
-          if (stateRef.current.guiSize === 'small') {
+          if (stateRef.current.layoutVariant === 'small') {
             stateRef.current.setAlwaysOnTopSmall(prev => {
               const next = !prev;
               handleWindowAlwaysOnTop(next);

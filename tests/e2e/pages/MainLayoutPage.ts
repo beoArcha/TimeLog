@@ -36,9 +36,9 @@ export class MainLayoutPage extends BasePage {
     this.tabDb = page.locator('[data-testid="tab-db"]');
     this.tabOptions = page.locator('[data-testid="tab-options"]');
 
-    this.sizeSmallBtn = page.locator('[data-testid="gui-size-small"]');
-    this.sizeMediumBtn = page.locator('[data-testid="gui-size-medium"]');
-    this.sizeLargeBtn = page.locator('[data-testid="gui-size-large"]');
+    this.sizeSmallBtn = page.locator('[data-testid="layout-variant-small"]');
+    this.sizeMediumBtn = page.locator('[data-testid="layout-variant-medium"]');
+    this.sizeLargeBtn = page.locator('[data-testid="layout-variant-large"]');
 
     // Timer Banner
     this.idleTimerBanner = page.locator('#active-timer-idle-banner');
@@ -57,12 +57,12 @@ export class MainLayoutPage extends BasePage {
     this.tasksTreeContainer = page.locator('#tasks-tree-container');
   }
 
-  async switchGuiSize(size: 'small' | 'medium' | 'large') {
-    if (size === 'small') {
+  async switchLayoutVariant(variant: 'small' | 'medium' | 'large') {
+    if (variant === 'small') {
       await this.sizeSmallBtn.click();
-    } else if (size === 'medium') {
+    } else if (variant === 'medium') {
       await this.sizeMediumBtn.click();
-    } else if (size === 'large') {
+    } else if (variant === 'large') {
       await this.sizeLargeBtn.click();
     }
   }

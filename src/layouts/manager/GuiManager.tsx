@@ -40,7 +40,7 @@ export default function GuiManager() {
     isGuiClosed,
     isMinimized,
     setIsMinimized,
-    guiSize,
+    layoutVariant,
     resolvedTheme,
     locale,
     customTranslations,
@@ -52,7 +52,7 @@ export default function GuiManager() {
     lastNonSmallVariant,
     showToast,
     handleMinimizeToTray,
-    setGuiSize,
+    setLayoutVariant,
     handleToggleTimer,
     handleStopTimer,
     handleResetLocalStorage,
@@ -83,7 +83,7 @@ export default function GuiManager() {
   useGlobalShortcuts({
     onToggleTimer: handleToggleTimer,
     onSwitchTab: (index) => {
-      if (guiSize === 'large' && index < LARGE_TAB_IDS.length) {
+      if (layoutVariant === 'large' && index < LARGE_TAB_IDS.length) {
         setActiveLargeTab(LARGE_TAB_IDS[index]);
       }
     },
@@ -146,7 +146,7 @@ export default function GuiManager() {
     setIsSmallExpanded,
     showToast: showToast!,
     handleMinimizeToTray: handleMinimizeToTray!,
-    setGuiSize,
+    setLayoutVariant,
     currentProjectId,
     lastNonSmallVariant,
   };
@@ -179,7 +179,7 @@ export default function GuiManager() {
             }}
             showToast={showToast}
           />
-        ) : guiSize === 'small' ? (
+        ) : layoutVariant === 'small' ? (
           <SmallGuiBuilder 
             state={guiState}
             {...sharedProps}
@@ -202,7 +202,7 @@ export default function GuiManager() {
               
               <Header />
 
-              {guiSize === 'large' && (
+              {layoutVariant === 'large' && (
                 <TabBar
                   locale={locale}
                   customTranslations={customTranslations}
@@ -217,14 +217,14 @@ export default function GuiManager() {
                 <DaemonStatusBar />
 
                 <div id="tab-viewport" className="min-h-[480px]">
-                  {guiSize === 'medium' && (
+                  {layoutVariant === 'medium' && (
                     <MediumGuiBuilder 
                       state={guiState}
                       {...sharedProps}
                     />
                   )}
 
-                  {guiSize === 'large' && (
+                  {layoutVariant === 'large' && (
                     <AnimatePresence mode="wait">
                       {activeLargeTab === 'main' && (
                         <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

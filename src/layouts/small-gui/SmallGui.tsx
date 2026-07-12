@@ -16,7 +16,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
     setIsSmallExpanded,
     showToast,
     handleMinimizeToTray,
-    setGuiSize,
+    setLayoutVariant,
     currentProjectId,
     lastNonSmallVariant,
   } = rest;
@@ -44,7 +44,7 @@ export default function SmallGui({ state, ...rest }: SmallGuiProps) {
       showToast,
       onStartTimer: state.onStartTimer,
       onStopTimer: state.onStopTimer,
-      setGuiSize,
+      setLayoutVariant,
       lastNonSmallVariant,
     });
 

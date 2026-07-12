@@ -40,7 +40,7 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             time_log::insert,
             time_log::query_active,
             time_log::get_all,
-            window::set_size,
+            window::set_layout_variant,
             window::resize,
             window::set_always_on_top,
             window::minimize,

@@ -14,7 +14,7 @@ pub enum AppCommand {
 #[serde(rename_all = "snake_case")]
 pub enum WindowCommand {
     Resize,
-    SetSize,
+    SetLayoutVariant,
     SetAlwaysOnTop,
     Minimize,
     Close,

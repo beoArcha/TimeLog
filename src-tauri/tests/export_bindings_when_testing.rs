@@ -10,7 +10,7 @@ fn export_bindings() {
     ProjectsPersistenceCommand::export().unwrap();
     TasksPersistenceCommand::export().unwrap();
     SettingsPersistenceCommand::export().unwrap();
-    GuiSize::export().unwrap();
+    LayoutVariant::export().unwrap();
     TextAndIconSize::export().unwrap();
     AlwaysOnTopConfig::export().unwrap();
     ProjectEditHistory::export().unwrap();
