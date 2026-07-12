@@ -21,7 +21,7 @@
     "test:integration": "vitest run tests/integration",
     "test:coverage": "vitest run --coverage",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
-    "coverage": "vitest run --coverage",
+    "test:rust:coverage": "cargo test --manifest-path src-tauri/Cargo.toml -- --no-run && cargo test --manifest-path src-tauri/Cargo.toml --coverage",
     "build:tauri": "npx @tauri-apps/cli build",
     "build:tauri:debug": "npx @tauri-apps/cli build --debug",
     "build:all": "npm run build && npm run build:tauri",
