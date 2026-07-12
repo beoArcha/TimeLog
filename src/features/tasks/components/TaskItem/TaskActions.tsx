@@ -30,6 +30,7 @@ export function TaskActions({
   return (
     <div className="opacity-100 md:opacity-0 md:group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
       <button
+        id={`edit-task-btn-${taskId}`}
         type="button"
         title={translate(locale, 'common', 'EditName', customTranslations)}
         aria-label={translate(locale, 'common', 'EditName', customTranslations)}
@@ -43,6 +44,7 @@ export function TaskActions({
         <Pencil className={pencilSize} />
       </button>
       <button
+        id={`delete-task-btn-${taskId}`}
         type="button"
         title={deleteTitle}
         aria-label={deleteTitle}

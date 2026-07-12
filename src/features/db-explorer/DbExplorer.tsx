@@ -29,7 +29,7 @@ export default function DbExplorer() {
   };
 
   return (
-    <div className="text-left flex flex-col gap-8 pb-12">
+    <div id="db-explorer-panel" className="text-left flex flex-col gap-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 border-white/5">
         <div>
           <h2 className="text-xl font-heading font-extrabold flex items-center gap-2 dark:text-white">
@@ -45,6 +45,7 @@ export default function DbExplorer() {
             {translate(locale, 'database', 'TauriDriver', customTranslations)}
           </span>
           <button
+            data-testid="export-db-btn"
             onClick={handleExportDatabase}
             className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg border border-slate-600 transition-colors uppercase font-bold tracking-wider cursor-pointer"
           >

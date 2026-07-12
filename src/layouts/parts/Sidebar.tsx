@@ -286,6 +286,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
  
                         {editingId !== p.id && (
                           <button
+                            id={`edit-project-btn-${p.id}`}
                             type="button"
                             title={translate(locale, 'common', 'EditName', customTranslations)}
                             onClick={(e) => {
@@ -305,6 +306,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                         )}
  
                         <button
+                          id={`archive-project-btn-${p.id}`}
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();

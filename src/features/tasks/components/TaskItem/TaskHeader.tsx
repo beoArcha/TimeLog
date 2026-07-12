@@ -56,6 +56,8 @@ export function TaskHeader({
     <div className={`flex items-start sm:items-center ${sc.gapSection} flex-1 min-w-0 w-full`}>
       <button
         id={`check-task-${rootTask.id}`}
+        role="checkbox"
+        aria-checked={rootTask.completed}
         onClick={() => onToggleTaskComplete(rootTask.id)}
         className={`${th.textMuted} hover:text-orange-500 transition-colors cursor-pointer shrink-0 mt-0.5 sm:mt-0`}
       >

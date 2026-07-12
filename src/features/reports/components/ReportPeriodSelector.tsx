@@ -28,6 +28,7 @@ export default function ReportPeriodSelector({
         <span className="text-xs font-mono text-[#9B8C83]">{translate(locale, 'common', 'Period', customTranslations)}</span>
         {(['today', 'week', 'month', 'all'] as const).map(p => (
           <button
+            data-testid={`period-btn-${p}`}
             key={p}
             onClick={() => setReportPeriod(p)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all cursor-pointer ${reportPeriod === p
@@ -46,6 +47,7 @@ export default function ReportPeriodSelector({
       <div className="flex items-center gap-2">
         <span className="text-xs font-mono text-[#9B8C83]">{translate(locale, 'report', 'SortBy', customTranslations)}</span>
         <select
+          data-testid="report-sort-select"
           value={reportSort}
           onChange={e => setReportSort(e.target.value as 'date' | 'duration')}
           className={`px-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all ${theme === 'light' ? 'bg-[#FCFAF8] text-[#2C2421] border-[#DFD7CB]' : 'bg-slate-900 border-white/10 text-white'

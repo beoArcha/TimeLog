@@ -106,4 +106,53 @@ export class MainLayoutPage extends BasePage {
   async stopActiveTimer() {
     await this.stopTimerBtn.click();
   }
+
+  async toggleTaskComplete(taskId: string) {
+    await this.page.locator(`#check-task-${taskId}`).click();
+  }
+
+  async deleteTask(taskId: string) {
+    await this.page.locator(`#delete-task-btn-${taskId}`).click();
+  }
+
+  async editTaskName(taskId: string, newName: string) {
+    await this.page.locator(`#edit-task-btn-${taskId}`).click();
+    const input = this.page.locator('input[type="text"]:focus');
+    await input.fill(newName);
+    await input.press('Enter');
+  }
+
+  async createSubtask(parentTaskId: string, subtaskName: string) {
+    await this.page.locator(`#show-subtask-form-btn-${parentTaskId}`).click();
+    await this.page.locator(`#new-subtask-input-${parentTaskId}`).fill(subtaskName);
+    await this.page.locator(`#submit-subtask-btn-${parentTaskId}`).click();
+  }
+
+  async toggleSubtaskComplete(subtaskId: string) {
+    await this.page.locator(`#check-subtask-${subtaskId}`).click();
+  }
+
+  async startTimerForSubtask(subtaskId: string) {
+    await this.page.locator(`#start-subtask-btn-${subtaskId}`).click();
+  }
+
+  async stopTimerForSubtask(subtaskId: string) {
+    await this.page.locator(`#stop-subtask-btn-${subtaskId}`).click();
+  }
+
+  async toggleProjectArchive(projectId: string) {
+    await this.page.locator(`#archive-project-btn-${projectId}`).click();
+  }
+
+  async editProjectName(projectId: string, newName: string) {
+    await this.page.locator(`#edit-project-btn-${projectId}`).click();
+    const modalInput = this.page.locator('input[type="text"][placeholder*="Nazwa"], input[type="text"]:focus');
+    await modalInput.fill(newName);
+    const saveBtn = this.page.locator('button', { hasText: /Zapisz|Save/i });
+    if (await saveBtn.isVisible()) {
+      await saveBtn.click();
+    } else {
+      await modalInput.press('Enter');
+    }
+  }
 }

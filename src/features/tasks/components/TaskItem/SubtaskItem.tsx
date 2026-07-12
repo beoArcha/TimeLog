@@ -71,6 +71,8 @@ export function SubtaskItem({
       <div className="flex items-start sm:items-center gap-2.5 flex-1 min-w-0">
         <button
           id={`check-subtask-${subTask.id}`}
+          role="checkbox"
+          aria-checked={subTask.completed}
           onClick={() => onToggleTaskComplete(subTask.id)}
           aria-label={`${subTask.completed ? translate(locale, 'common', 'Edit', customTranslations) : translate(locale, 'common', 'Confirm', customTranslations)} ${subTask.name}`}
           className={`${th.textMuted} hover:text-orange-500 transition-colors cursor-pointer mt-0.5 sm:mt-0 shrink-0`}

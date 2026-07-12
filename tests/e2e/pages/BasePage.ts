@@ -11,7 +11,7 @@ export interface TimerRepositoryState {
 }
 
 export class BasePage {
-  protected page: Page;
+  public readonly page: Page;
 
   constructor(page: Page) {
     this.page = page;
