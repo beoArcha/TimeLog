@@ -4,6 +4,7 @@ import { setupLocalStorageMock } from '../../shared/test-helpers';
 import { useTimeLogData } from '../../../src/common/hooks/useTimeLogData';
 import { STORAGE_KEYS } from '../../../src/common/constants';
 import { TEST_CONSTANTS } from '../../shared/test-constants';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 
 const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
 
@@ -113,9 +114,9 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(addedProj).toBeDefined();
     expect(addedProj?.color).toBe('rose');
 
-    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    const saved: TimerRepositoryState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
     expect(saved.projects).toHaveLength(initialCount + 1);
-    expect(saved.projects.some((p: any) => p.name === 'Brand New Project')).toBe(true);
+    expect(saved.projects.some(p => p.name === 'Brand New Project')).toBe(true);
   });
 
   it('Given active project, When handleToggleProjectArchive is called, Then project archived flag updates and persists to storage', async () => {
@@ -129,8 +130,8 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
 
     expect(result.current.projects.find(p => p.id === projectId)?.archived).toBe(!initialArchived);
 
-    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
-    expect(saved.projects.find((p: any) => p.id === projectId)?.archived).toBe(!initialArchived);
+    const saved: TimerRepositoryState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.projects.find(p => p.id === projectId)?.archived).toBe(!initialArchived);
   });
 
   it('Given active project, When handleAddTask is called, Then task updates and persists to storage', async () => {
@@ -146,9 +147,9 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(addedTask).toBeDefined();
     expect(addedTask?.parentTaskId).toBe(TEST_CONSTANTS.TASK_ID_101);
 
-    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    const saved: TimerRepositoryState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
     expect(saved.tasks).toHaveLength(initialCount + 1);
-    expect(saved.tasks.some((t: any) => t.name === 'Integration Subtask')).toBe(true);
+    expect(saved.tasks.some(t => t.name === 'Integration Subtask')).toBe(true);
   });
 
   it('Given active project and task, When handleRenameProject and handleRenameTask are called, Then state and storage update', async () => {
@@ -162,9 +163,9 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(result.current.projects.find(p => p.id === TEST_CONSTANTS.PROJECT_ID_1)?.name).toBe('Super Backend');
     expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_101)?.name).toBe('Super Schema Setup');
 
-    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
-    expect(saved.projects.find((p: any) => p.id === TEST_CONSTANTS.PROJECT_ID_1)?.name).toBe('Super Backend');
-    expect(saved.tasks.find((t: any) => t.id === TEST_CONSTANTS.TASK_ID_101)?.name).toBe('Super Schema Setup');
+    const saved: TimerRepositoryState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.projects.find(p => p.id === TEST_CONSTANTS.PROJECT_ID_1)?.name).toBe('Super Backend');
+    expect(saved.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_101)?.name).toBe('Super Schema Setup');
   });
 
   it('Given task with nested task and logs, When handleDeleteTask is called, Then task, nested tasks, and associated logs are deleted and persist', async () => {
@@ -179,9 +180,9 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
 
     expect(result.current.logs.some(l => l.taskId === TEST_CONSTANTS.TASK_ID_102 || l.taskId === TEST_CONSTANTS.TASK_ID_1021)).toBe(false);
 
-    const saved = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
-    expect(saved.tasks.find((t: any) => t.id === TEST_CONSTANTS.TASK_ID_102)).toBeUndefined();
-    expect(saved.logs.some((l: any) => l.taskId === TEST_CONSTANTS.TASK_ID_102)).toBe(false);
+    const saved: TimerRepositoryState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    expect(saved.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)).toBeUndefined();
+    expect(saved.logs.some(l => l.taskId === TEST_CONSTANTS.TASK_ID_102)).toBe(false);
   });
 
   it('Given active timer on a task, When handleToggleTaskComplete is called, Then completed flag changes and active log on that task terminates', async () => {
