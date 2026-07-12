@@ -6,7 +6,7 @@ import { Locale } from '@bindings/Locale';
 interface TaskEmptyStateProps {
   theme: string;
   locale: Locale;
-  customTranslations: any;
+  customTranslations: Record<string, unknown>;
 }
 
 export default function TaskEmptyState({

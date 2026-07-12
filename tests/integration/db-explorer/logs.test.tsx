@@ -134,7 +134,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const form = container.querySelector('form') as HTMLFormElement;
     fireEvent.submit(form);
 
-    expect(alertSpy).toHaveBeenCalledWith('Najpierw wybierz zadanie!');
+    expect(alertSpy).toHaveBeenCalledWith('Select a task first!');
     expect(setLogs).not.toHaveBeenCalled();
   });
 

@@ -7,6 +7,7 @@ import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { Locale } from '@bindings/Locale';
 
 import { StatsSkeleton } from '@components/ui/Skeletons';
+import { getScaleStyles } from '@/src/layouts/parts/GuiStyles';
 
 interface ProjectHeaderCardProps {
   selectedProject: Project;
@@ -14,8 +15,8 @@ interface ProjectHeaderCardProps {
   isCondensed: boolean;
   theme: string;
   locale: Locale;
-  customTranslations: any;
-  sc: any;
+  customTranslations: Record<string, unknown>;
+  sc: ReturnType<typeof getScaleStyles>;
   stats: ProjectStatistics | null;
   loading: boolean;
   newTaskName: string;
