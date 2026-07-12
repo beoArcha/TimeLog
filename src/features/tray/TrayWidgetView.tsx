@@ -12,7 +12,7 @@ interface TrayWidgetProps {
   showToast: (msg: string) => void;
 }
 
-export default function TrayWidget({ onRestore, onStopAll }: TrayWidgetProps) {
+export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps) {
   const {
     projects,
     tasks,

@@ -3,10 +3,10 @@ import { Calendar, Plus, Trash2, Database } from 'lucide-react';
 import { translate } from '@common/i18n/i18n';
 import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import CollapsibleCard from './CollapsibleCard';
+import CollapsibleCard from '@components/CollapsibleCard';
 import { DynamicKey } from '@common/i18n/keys/DynamicKey';
 
-export default function HolidaysAndLeaves() {
+export default function HolidaysLeavesView() {
   const { theme, holidays, setHolidays, locale } = useOxyFlow();
   const { customTranslations } = useOxyFlow();
 

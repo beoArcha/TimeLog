@@ -11,7 +11,7 @@ import ManualTab from '@features/settings/ManualTab';
 import CreditsTab from '@features/settings/CreditsTab';
 import SettingsTab from '@features/settings/SettingsTab';
 import BackupTab from '@features/settings/BackupTab';
-import TrayWidget from '@components/TrayWidget';
+import TrayWidgetView from '@features/tray/TrayWidgetView';
 
 // Layout Components
 import GuiClosedAlert from '../components/GuiClosedAlert';
@@ -156,7 +156,7 @@ export default function GuiManager() {
 
       <AnimatePresence mode="wait">
         {isMinimized ? (
-          <TrayWidget
+          <TrayWidgetView
             onRestore={() => {
               setIsMinimized(false);
               showToast?.(translate(locale, 'app.maximizeRestore', customTranslations));

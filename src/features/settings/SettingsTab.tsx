@@ -2,7 +2,7 @@ import React from 'react';
 import { Settings, RefreshCw, AlertTriangle, CalendarDays, Info } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import EngineConfig from '@components/EngineConfig';
-import HolidaysAndLeaves from '@components/HolidaysAndLeaves';
+import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
 import { translate } from '@common/i18n/i18n';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
@@ -41,7 +41,7 @@ export default function SettingsTab() {
 
         <div className="mt-2">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400" /> {translate(locale, 'settings.holidaysTitle', customTranslations)}</h3>
-          <HolidaysAndLeaves />
+          <HolidaysLeavesView />
         </div>
 
         <CollapsibleCard

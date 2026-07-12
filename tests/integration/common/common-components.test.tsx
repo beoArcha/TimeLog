@@ -3,9 +3,9 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
-import TrayWidget from '../../../src/components/TrayWidget';
+import TrayWidgetView from '../../../src/features/tray/TrayWidgetView';
 import EngineConfig from '../../../src/components/EngineConfig';
-import HolidaysAndLeaves from '../../../src/components/HolidaysAndLeaves';
+import HolidaysLeavesView from '../../../src/features/holidays/HolidaysLeavesView';
 import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
 
 describe('Integration Tests: Common Components', () => {
@@ -18,15 +18,15 @@ describe('Integration Tests: Common Components', () => {
     cleanup();
   });
 
-  describe('TrayWidget', () => {
-    it('Given TrayWidget rendered, When restore button clicked, Then it should call onRestore', () => {
+  describe('TrayWidgetView', () => {
+    it('Given TrayWidgetView rendered, When restore button clicked, Then it should call onRestore', () => {
       const mockState = getMockOxyFlowState();
       const onRestoreSpy = vi.fn();
       const onStopAllSpy = vi.fn();
 
       render(
         <OxyContext.Provider value={mockState}>
-          <TrayWidget onRestore={onRestoreSpy} onStopAll={onStopAllSpy} showToast={vi.fn()} />
+          <TrayWidgetView onRestore={onRestoreSpy} onStopAll={onStopAllSpy} showToast={vi.fn()} />
         </OxyContext.Provider>
       );
 
@@ -35,7 +35,7 @@ describe('Integration Tests: Common Components', () => {
       expect(onRestoreSpy).toHaveBeenCalled();
     });
 
-    it('Given TrayWidget rendered with running logs, When pause all clicked, Then it should call onStopAll', () => {
+    it('Given TrayWidgetView rendered with running logs, When pause all clicked, Then it should call onStopAll', () => {
       const mockState = getMockOxyFlowState();
       mockState.logs = [
         { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T12:00:00Z', endTime: null }
@@ -45,7 +45,7 @@ describe('Integration Tests: Common Components', () => {
 
       render(
         <OxyContext.Provider value={mockState}>
-          <TrayWidget onRestore={onRestoreSpy} onStopAll={onStopAllSpy} showToast={vi.fn()} />
+          <TrayWidgetView onRestore={onRestoreSpy} onStopAll={onStopAllSpy} showToast={vi.fn()} />
         </OxyContext.Provider>
       );
 
@@ -73,12 +73,12 @@ describe('Integration Tests: Common Components', () => {
     });
   });
 
-  describe('HolidaysAndLeaves', () => {
-    it('Given HolidaysAndLeaves rendered, When form submitted, Then it should call setHolidays', () => {
+  describe('HolidaysLeavesView', () => {
+    it('Given HolidaysLeavesView rendered, When form submitted, Then it should call setHolidays', () => {
       const mockState = getMockOxyFlowState();
       render(
         <OxyContext.Provider value={mockState}>
-          <HolidaysAndLeaves />
+          <HolidaysLeavesView />
         </OxyContext.Provider>
       );
 
