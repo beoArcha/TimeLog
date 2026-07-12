@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ContextException } from '../exceptions';
 import { LocaleType, TranslationDictionary } from '@common/i18n/i18n';

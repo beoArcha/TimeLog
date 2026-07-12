@@ -30,6 +30,8 @@ pub enum EngineCommand {
     StartTimer,
     StopTimer,
     GetActiveLogs,
+    EditTimeLog,
+    GetProjectStatistics,
 }
 
 #[derive(TS, Serialize)]

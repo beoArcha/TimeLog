@@ -34,7 +34,7 @@ export class EngineCommands implements IEngine {
     reason: string | null
   ): Promise<void> {
     try {
-      const cmd: EngineCommand = 'edit_time_log' as any;
+      const cmd: EngineCommand = 'edit_time_log';
       await invoke(cmd, { id, taskId, startTime, endTime, note, reason });
     } catch (err) {
       ErrorHandler.handle(new TauriInteropException('Failed to edit time log via Tauri', err, 'ERR_TAURI_ENGINE_EDIT'));
@@ -44,7 +44,7 @@ export class EngineCommands implements IEngine {
 
   async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
     try {
-      const cmd: EngineCommand = 'get_project_statistics' as any;
+      const cmd: EngineCommand = 'get_project_statistics';
       return await invoke(cmd, { projectId });
     } catch (err) {
       ErrorHandler.handle(new TauriInteropException('Failed to get project statistics via Tauri', err, 'ERR_TAURI_ENGINE_STATS'));

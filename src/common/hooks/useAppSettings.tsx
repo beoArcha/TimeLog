@@ -36,7 +36,7 @@ export const useAppSettings = () => {
   const [sysSettings, setSysSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SYS_SETTINGS);
     if (saved) {
-      try { return JSON.parse(saved); } catch { }
+      try { return JSON.parse(saved); } catch (_e) { /* ignore parse errors and fall back to default settings */ }
     }
     return { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true };
   });

@@ -17,9 +17,9 @@ export const useExternalApiSync = () => {
     localStorage.setItem(STORAGE_KEYS.API_HEADERS, apiHeaders);
   }, [logToApi, apiToken, apiUrl, apiMethod, apiHeaders]);
 
-  const pushToApi = (payload: any, logMsg: string) => {
+  const pushToApi = (payload: unknown, logMsg: string) => {
     if (logToApi && apiUrl) {
-      let headersObj = {};
+      let headersObj: Record<string, string> = {};
       try {
         if (apiHeaders) headersObj = JSON.parse(apiHeaders);
       } catch (err) {
