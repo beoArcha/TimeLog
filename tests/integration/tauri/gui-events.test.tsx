@@ -37,7 +37,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'large', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_size', { size: 'large', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -49,7 +49,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     fireEvent.click(smallBtn);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'small', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_size', { size: 'small', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -60,7 +60,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     fireEvent.click(mediumBtn);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'medium', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_size', { size: 'medium', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -82,7 +82,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     triggerTauriEvent('tray-set-gui-variant', 'small');
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'small', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_size', { size: 'small', textAndIconSize: expect.any(String) });
     });
   });
 
@@ -139,7 +139,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     fireEvent.click(closeBtn);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('hide_window');
+      expect(mockInvoke).toHaveBeenCalledWith('hide');
     });
   });
 
@@ -166,7 +166,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     render(<LocaleProvider><OxyProvider><App /></OxyProvider></LocaleProvider>);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'small', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_size', { size: 'small', textAndIconSize: expect.any(String) });
     });
 
     mockInvoke.mockClear();
@@ -175,7 +175,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
     fireEvent.click(restoreBtn);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('set_gui_size', { size: 'large', textAndIconSize: expect.any(String) });
+      expect(mockInvoke).toHaveBeenCalledWith('set_size', { size: 'large', textAndIconSize: expect.any(String) });
     });
   });
 
