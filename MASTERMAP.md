@@ -4,9 +4,11 @@
 
 ### 🎯 Vision
 
-Build a lightweight, native-first productivity suite that prioritizes flow, correctness, maintainability, and long-term sustainability.
+Build a lightweight, native-first productivity suite focused on flow, correctness, maintainability and long-term sustainability.
 
-The project should provide a single business model that can run across multiple environments while keeping platform-specific implementations isolated behind well-defined runtime abstractions.
+The project is built around a single business model with multiple runtime implementations.
+
+Every architectural layer must remain independently replaceable while exposing a single, consistent API to the rest of the application.
 
 ---
 
@@ -21,256 +23,377 @@ The project should provide a single business model that can run across multiple 
 * DRY without over-generalization
 * YAGNI until a requirement exists
 
+---
+
 ### Architecture
 
-* Business logic must be platform independent.
-* Runtime-specific code must be isolated.
+* Business logic is runtime independent.
+* Runtime-specific code is always isolated.
 * Storage is an implementation detail.
 * UI never communicates directly with persistence.
 * Every layer has a single responsibility.
 * Rust remains the reference implementation of the business engine.
+* Every runtime should be replaceable without affecting the remaining architecture.
 
 ---
 
-## Current Architecture (v2)
+## Architecture (v3)
 
 ```text
-React UI
-    │
-    ├──────────────┐
-    │              │
-EngineRouter   PersistenceRouter
-    │              │
-    ├──────────────┤
-    │
-──────── Runtime Boundary ────────
-
-Desktop Runtime
-    │
-Tauri Commands
-    │
-Rust Engine
-    │
-SQLite
-
-Browser Runtime
-    │
-Engine Plugin
-    │
-Persistence Plugin
-    │
-LocalStorage
+                     React Frontend
+                            │
+             ┌──────────────┴──────────────┐
+             │                             │
+      EngineRouter                PersistenceRouter
+             │                             │
+             └──────────────┬──────────────┘
+                            │
+                     Runtime Boundary
+                            │
+        ┌───────────────────┴───────────────────┐
+        │                                       │
+ Desktop Runtime                         Browser Runtime
+        │                                       │
+    Tauri App                             Browser App
+        │                                       │
+        └───────────────────┬───────────────────┘
+                            │
+                     LayoutManager
+                            │
+      ┌─────────────┬─────────────┬─────────────┐
+      │             │             │
+  FullBuilder   HalfBuilder   CompactBuilder
+                            │
+                    Shared Components
 ```
 
-### Responsibilities
+---
 
-#### React
+## Frontend Architecture
 
-* UI
-* User interactions
+The frontend is composed of three completely independent dimensions.
+
+### Runtime
+
+Defines where the application executes.
+
+Examples:
+
+* Browser
+* Tauri
+
+Future runtimes may include:
+
+* Electron
+* Mobile
+* Embedded
+
+Runtime is responsible only for:
+
+* environment integration
+* window integration
+* runtime-specific wrappers
+* runtime-specific styling
+
+Runtime never changes:
+
+* application structure
+* layout composition
+* business logic
+
+---
+
+### LayoutVariant
+
+Defines the composition of the application.
+
+Examples:
+
+* Full
+* Half
+* Compact
+
+LayoutVariant determines:
+
+* page composition
+* number of columns
+* placement of major UI regions
+* overall screen organization
+
+Each LayoutVariant has its own Builder.
+
+Builders are responsible only for composing views.
+
+They never modify styling.
+
+---
+
+### TextAndIconSize
+
+Defines the visual scale.
+
+Responsible only for:
+
+* typography
+* icon sizes
+* spacing
+* paddings
+* border radius
+* design tokens
+
+It never changes application composition.
+
+---
+
+## CSS Architecture
+
+CSS is responsible for visual scaling.
+
+React components should never calculate spacing or sizing.
+
+The root application exposes only state.
+
+Example:
+
+```text
+runtime-tauri
+
+layout-full
+
+text-medium
+```
+
+CSS resolves those states using Design Tokens.
+
+Components consume only CSS variables.
+
+This keeps components completely independent from visual scaling.
+
+---
+
+## Responsibilities
+
+### React
+
 * Rendering
+* User interaction
 * View state
 
-#### EngineRouter
+Contains no business logic.
 
-* Select active engine implementation.
-* Expose a single API to the frontend.
-* Contain no business logic.
+---
 
-#### PersistenceRouter
+### EngineRouter
 
-* Select active persistence implementation.
-* Abstract storage backends.
-* Contain no business logic.
+* Responsible only for selecting the active Engine implementation.
+* Contains no business logic.
 
-#### Runtime Plugins
+---
 
-Provide platform-specific implementations while preserving a shared frontend.
+### PersistenceRouter
 
-#### Rust Engine
+* Responsible only for selecting the active Persistence implementation.
+* Contains no business logic.
 
-Source of truth for business rules.
+---
 
-Responsibilities include:
+### LayoutManager
+
+Responsible for composing the selected LayoutVariant inside the active Runtime.
+
+Responsibilities:
+
+* host application layout
+* compose builders
+* provide shared application shell
+
+LayoutManager does NOT decide:
+
+* runtime
+* layout variant
+* visual scale
+
+Those values come from application configuration.
+
+---
+
+### Layout Builders
+
+Responsible only for composing UI.
+
+Examples:
+
+* FullBuilder
+* HalfBuilder
+* CompactBuilder
+
+Builders contain no runtime logic.
+
+Builders contain no sizing logic.
+
+---
+
+### Runtime integration
+
+Responsible only for platform integration.
+
+Examples:
+
+Desktop Runtime
+
+* Tauri
+* Drag region
+* Native window
+* Tray
+* Native integrations
+
+Browser Runtime
+
+* Browser wrapper
+* Responsive container
+* Browser integrations
+
+---
+
+### Rust Engine
+
+Reference implementation.
+
+Responsible for:
 
 * timer calculations
-* domain validation
+* validation
+* workflows
+* business rules
 * aggregates
-* business workflows
 
-#### Persistence Goals
+---
+
+### Persistence
 
 Responsible only for storing and retrieving data.
 
-Possible implementations include:
+Possible implementations:
 
 * SQLite
 * LocalStorage
 * CSV
-* Future cloud synchronization
+* Cloud
 
 ---
 
-## Phase 1 — Foundation ✅
+## Current Development Roadmap
 
-### Core Architecture
+### Phase 1 — Foundation ✅
 
-* [x] Layered architecture
-* [x] Repository abstraction
-* [x] Runtime abstraction
-* [x] EngineRouter
-* [x] PersistenceRouter
-* [x] Browser plugins
-* [x] Tauri command routing
-* [x] Shared domain models
-* [x] Rust as business engine
+Completed:
 
-### Core Engineering
-
-* [x] TypeScript strict mode
-* [x] Rust formatting
-* [x] ESLint
-* [x] Unit tests
-* [x] Integration tests
-* [x] CI pipeline
+* Runtime abstraction
+* EngineRouter
+* PersistenceRouter
+* Browser plugins
+* Rust engine
+* Shared contracts
+* TypeScript strict mode
+* CI
+* Testing
 
 ---
 
-## Phase 2 — Runtime Completion
+### Phase 2 — Frontend Architecture Modernization
 
-**Goal:** Reach feature parity between Desktop and Browser runtimes.
+Goal:
 
-### Engine
+Create a modular frontend architecture mirroring Engine and Persistence.
 
-* [ ] Complete Browser EnginePlugin
-* [ ] Match Rust algorithms
-* [ ] Eliminate remaining runtime differences
+#### Phase 2A
 
-### Persistence
+* Rename GuiSize → LayoutVariant
 
-* [ ] Complete PersistencePlugin
-* [ ] Full LocalStorage implementation
-* [ ] Unified repository interfaces
+#### Phase 2B
 
----
+* Introduce Runtime applications
+* app-browser
+* app-tauri
 
-## Phase 3 — Backend Completion
+#### Phase 2C
 
-**Goal:** Finish all business domains.
+* Introduce LayoutManager
 
-### Timer
+#### Phase 2D
 
-* [ ] Manual log editing
-* [ ] Validation
+* Introduce Layout Builders
 
-### Projects
+#### Phase 2E
 
-* [ ] CRUD completion
-* [ ] Statistics
-* [ ] Metadata
+* Move sizing entirely to CSS Design Tokens
 
-### Tasks
+#### Phase 2F
 
-* [ ] CRUD completion
-* [ ] Task hierarchy
-* [ ] Status management
-
-### Configuration
-
-* [ ] Application settings
-* [ ] User preferences
-* [ ] Runtime configuration
+* Desktop polish
+* Browser polish
 
 ---
 
-## Phase 4 — Frontend Refinement
+### Phase 3 — Runtime Completion
 
-**Goal:** Simplify React while keeping business logic outside the UI.
+Goal:
 
-### Frontend architecture
+Feature parity.
 
-* [ ] Smaller components
-* [ ] Better feature boundaries
-* [ ] Improved hooks
-* [ ] Reduced duplicated state
-
-### UX
-
-* [ ] Responsive layouts
-* [ ] Accessibility
-* [ ] Error handling
-* [ ] Loading states
-* [ ] Keyboard navigation
+* Browser Engine
+* Browser Persistence
+* Unified contracts
 
 ---
 
-## Phase 5 — MVP
+### Phase 4 — Backend Completion
 
-**Goal:** Deliver a complete application suitable for everyday use.
-
-### Features
-
-* [ ] Stable timer workflow
-* [ ] Stable project workflow
-* [ ] Stable task workflow
-* [ ] Configuration UI
-* [ ] Settings management
-* [ ] Polish user experience
-* [ ] Remove remaining blockers
+* Timer
+* Projects
+* Tasks
+* Configuration
 
 ---
 
-## Phase 6 — Data Reliability
+### Phase 5 — MVP
 
-**Goal:** Ensure user data is safe and recoverable.
-
-### Storage
-
-* [ ] Automatic backups
-* [ ] Manual backups
-* [ ] Import
-* [ ] Export
-* [ ] Restore
-* [ ] Validation
-* [ ] Database migrations
+Stable daily application.
 
 ---
 
-## Phase 7 — Native Experience
+### Phase 6 — Data Reliability
 
-**Goal:** Make the desktop application feel fully native.
-
-### Desktop
-
-* [ ] Startup optimization
-* [ ] Window management
-* [ ] Tray integration
-* [ ] Native notifications
-* [ ] Keyboard shortcuts
-* [ ] IPC optimization
+* Backup
+* Restore
+* Import
+* Export
+* Migration
 
 ---
 
-## Phase 8 — Productivity Platform
+### Phase 7 — Native Desktop
 
-**Goal:** Expand beyond time tracking.
+* Window polish
+* Tray
+* Notifications
+* IPC optimization
 
-### Extended features
+---
 
-* [ ] Dashboard
-* [ ] Reporting
-* [ ] Analytics
-* [ ] Search
-* [ ] Filtering
-* [ ] Automation
-* [ ] Workflow support
-* [ ] Plugin ecosystem
+### Phase 8 — Productivity Platform
+
+* Dashboard
+* Reports
+* Analytics
+* Automation
+* Plugins
 
 ---
 
 ## Continuous Engineering
 
-Every contribution should improve at least one of the following:
+Every contribution should improve at least one of:
 
 * correctness
 * maintainability
@@ -283,38 +406,40 @@ Development workflow:
 
 ```text
 Architecture
-      ↓
+        ↓
+Documentation
+        ↓
 Contracts
-      ↓
+        ↓
 Implementation
-      ↓
+        ↓
 Tests
-      ↓
+        ↓
 Refactoring
-      ↓
+        ↓
 Optimization
-      ↓
+        ↓
 Release
 ```
 
 ---
 
-### Long-Term Roadmap
+## Long-Term Architecture
 
 ```text
 Foundation
-      ↓
+        ↓
+Frontend Architecture
+        ↓
 Runtime Parity
-      ↓
+        ↓
 Complete Backend
-      ↓
-Clean Frontend
-      ↓
+        ↓
 Stable MVP
-      ↓
+        ↓
 Reliable Data
-      ↓
+        ↓
 Native Desktop
-      ↓
+        ↓
 Productivity Platform
 ```
