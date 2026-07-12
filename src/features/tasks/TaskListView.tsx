@@ -1,6 +1,6 @@
 import React from 'react';
 import { Folder } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { getThemeStyles, getScaleStyles } from '@/src/layouts/parts/GuiStyles';
 import TaskItem from './components/TaskItem/TaskItem';
 import { Project } from '@bindings/Project';
@@ -9,6 +9,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import ProjectHeaderCard from './components/ProjectHeaderCard';
 import TaskEmptyState from './components/TaskEmptyState';
 import { useProjectStatistics } from './hooks/useProjectStatistics';
+import { Locale } from '@bindings/Locale';
 
 interface TaskListViewProps {
   state: any;
@@ -23,7 +24,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     tasks: Task[];
     logs: TimeLog[];
     nowIso: string;
-    locale: any;
+    locale: Locale;
     customTranslations?: any;
     theme: string;
     selectedProject: Project | null;
@@ -108,7 +109,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         : 'bg-[#FCFAF8]/5 border-white/10'
         }`}>
         <Folder className="w-12 h-12 text-[#9B8C83] mx-auto mb-3" />
-        <h3 className={`font-bold ${sc.textTitle} ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{translate(locale, 'dynamic.selectProject', customTranslations)}</h3>
+        <h3 className={`font-bold ${sc.textTitle} ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations)}</h3>
         <p className={`${sc.textMain} mt-1 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>Zaznacz projekt w bocznym menu po lewej stronie, aby zacząć zarządzać czasem.</p>
       </div>
     );
@@ -121,7 +122,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         ? 'bg-black border-2 border-white'
         : 'bg-[#FCFAF8]/5 border-white/10'
       }`}>
-      
+
       <ProjectHeaderCard
         selectedProject={selectedProject}
         projectDurationSeconds={projectDurationSeconds}
@@ -137,7 +138,6 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         onAddTaskSubmit={handleAddTaskSubmit}
       />
 
-      {/* Tree Grid List of Tasks & Subtasks */}
       <div id="tasks-tree-container" className={`flex flex-col ${sc.gapMain} overflow-y-auto pr-1 flex-1 min-h-0`}>
         {rootTasks.length === 0 ? (
           <TaskEmptyState

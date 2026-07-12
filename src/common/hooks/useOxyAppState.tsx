@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { AlwaysOnTopConfig } from '@bindings/AlwaysOnTopConfig';
 
 import { useAppSettings } from './useAppSettings';
@@ -50,13 +50,13 @@ export const useOxyAppState = () => {
     } else if (timeLogData.selectedTaskId) {
       timeLogData.handleStartTimer(timeLogData.selectedTaskId);
     } else {
-      tauriWindow.showToast(translate(locale, 'app.noTaskSelected', customTranslations) || 'Zaznacz zadanie aby rozpocząć/zatrzymać timer');
+      tauriWindow.showToast(translate(locale, 'timer', 'SelectTaskToPlay', customTranslations) || 'Zaznacz zadanie aby rozpocząć/zatrzymać timer');
     }
   };
 
   const handleCopyText = (text: string) => {
     navigator.clipboard.writeText(text);
-    tauriWindow.showToast(translate(locale, 'dynamic.copiedToClipboard', customTranslations));
+    tauriWindow.showToast(translate(locale, 'common', 'CopiedToClipboard', customTranslations));
   };
 
   return {

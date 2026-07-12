@@ -1,9 +1,8 @@
 import React from 'react';
 import { Shield, Moon, Sun, Eye, Laptop, Languages } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import versionsData from '../../versions.json';
-import { AppKey } from '@common/i18n/keys/AppKey';
 
 export default function Header() {
   const {
@@ -41,7 +40,7 @@ export default function Header() {
           </h1>
           <p className={`text-[10px] font-sans mt-0.5 ${resolvedTheme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
             }`}>
-            {translate(locale, AppKey.Subtitle, customTranslations)}
+            {translate(locale, 'app', 'Subtitle', customTranslations)}
           </p>
         </div>
       </div>
@@ -57,8 +56,8 @@ export default function Header() {
                 onClick={() => {
                   setGuiSize(sz);
                   if (showToast) {
-                    const label = sz === 'small' ? translate(locale, AppKey.SizeSmall, customTranslations) : sz === 'medium' ? translate(locale, AppKey.SizeMedium, customTranslations) : translate(locale, AppKey.SizeLarge, customTranslations);
-                    showToast(`${translate(locale, AppKey.SizeChanged, customTranslations)} ${label}`);
+                    const label = sz === 'small' ? translate(locale, 'app', 'SizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app', 'SizeMedium', customTranslations) : translate(locale, 'app', 'SizeLarge', customTranslations);
+                    showToast(`${translate(locale, 'app', 'SizeChanged', customTranslations)} ${label}`);
                   }
                 }}
                 className={`px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${isActive
@@ -70,7 +69,7 @@ export default function Header() {
                     : 'text-[#9B8C83] hover:text-white'
                   }`}
               >
-                {sz === 'small' ? translate(locale, AppKey.SizeSmall, customTranslations) : sz === 'medium' ? translate(locale, AppKey.SizeMedium, customTranslations) : translate(locale, AppKey.SizeLarge, customTranslations)}
+                {sz === 'small' ? translate(locale, 'app', 'SizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app', 'SizeMedium', customTranslations) : translate(locale, 'app', 'SizeLarge', customTranslations)}
               </button>
             );
           })}

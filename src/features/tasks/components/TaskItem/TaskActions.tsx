@@ -1,6 +1,6 @@
 import { Locale } from '@bindings/Locale';
 import { Pencil, Trash2 } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 interface TaskActionsProps {
   taskId: string;
@@ -31,8 +31,8 @@ export function TaskActions({
     <div className="opacity-100 md:opacity-0 md:group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
       <button
         type="button"
-        title={translate(locale, 'common.editName', customTranslations)}
-        aria-label={translate(locale, 'common.editName', customTranslations)}
+        title={translate(locale, 'common', 'EditName', customTranslations)}
+        aria-label={translate(locale, 'common', 'EditName', customTranslations)}
         onClick={(e) => {
           e.stopPropagation();
           setEditingId(taskId);

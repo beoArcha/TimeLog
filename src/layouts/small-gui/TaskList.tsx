@@ -1,9 +1,9 @@
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { Project } from '@bindings/Project';
-import { translate, LocaleType, TranslationDictionary } from '@common/i18n/i18n';
-import { DynamicKey } from '@common/i18n/keys/DynamicKey';
+import { translate } from '@common/i18n/translator';
 import { TaskCard } from './TaskCard';
+import { Locale } from '@/src/bindings/Locale';
 
 interface TaskListProps {
   activeProj: Project | undefined;
@@ -11,8 +11,8 @@ interface TaskListProps {
   allTasks: Task[];
   activeLog: TimeLog | null;
   resolvedTheme: string | undefined;
-  locale: LocaleType;
-  customTranslations: Partial<TranslationDictionary> | undefined;
+  locale: Locale;
+  customTranslations: any;
   onStartTimer: (taskId: string) => void;
   onStopTimer: () => void;
   showToast: (msg: string) => void;
@@ -33,7 +33,7 @@ export function TaskList({
   if (!activeProj) {
     return (
       <p className="text-xs italic text-slate-400 text-center py-4">
-        {translate(locale, DynamicKey.NoProjects, customTranslations)}
+        {translate(locale, 'project', 'NoProjects', customTranslations)}
       </p>
     );
   }
@@ -41,7 +41,7 @@ export function TaskList({
   if (rootTasks.length === 0) {
     return (
       <p className="text-xs italic text-slate-400 text-center py-4">
-        {translate(locale, DynamicKey.NoTasksInProfile, customTranslations)}
+        {translate(locale, 'task', 'NoTasksInProfile', customTranslations)}
       </p>
     );
   }

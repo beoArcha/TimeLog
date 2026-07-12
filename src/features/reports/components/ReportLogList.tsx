@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { Locale } from '@bindings/Locale';
 
@@ -34,7 +34,7 @@ export default function ReportLogList({
   if (filteredLogs.length === 0) {
     return (
       <div className="text-center py-12 text-[#9B8C83] text-xs font-mono">
-        ⚠️ {translate(locale, 'dynamic.noDataInSqliteLogsForTheSelect', customTranslations)}
+        ⚠️ {translate(locale, 'report', 'NoDataSelectedRange', customTranslations)}
       </div>
     );
   }
@@ -44,7 +44,7 @@ export default function ReportLogList({
       {/* Graphical bars representation */}
       <div className="flex flex-col gap-3">
         <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase flex items-center gap-1.5">
-          📊 {translate(locale, 'dynamic.gRAPHICALPROJECTTIMEDISTRIBUTI', customTranslations)}
+          📊 {translate(locale, 'report', 'GraphicalDistribution', customTranslations)}
         </h4>
         <div className="flex flex-col gap-4">
           {projectChart.map(pc => {
@@ -61,10 +61,10 @@ export default function ReportLogList({
                 <div className={`w-full h-3 rounded-full overflow-hidden relative ${theme === 'light' ? 'bg-[#EAE4DB]' : 'bg-[#FCFAF8]/5'
                   }`}>
                   <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${widthPct}%` }}
-                    transition={{ duration: 0.5 }}
-                    className="h-full bg-gradient-to-r from-orange-400 to-rose-500 rounded-full"
+                     initial={{ width: 0 }}
+                     animate={{ width: `${widthPct}%` }}
+                     transition={{ duration: 0.5 }}
+                     className="h-full bg-gradient-to-r from-orange-400 to-rose-500 rounded-full"
                   />
                 </div>
                 {pc.tasks.length > 0 && (
@@ -86,7 +86,7 @@ export default function ReportLogList({
       {/* Regular logs output */}
       <div className="flex flex-col gap-3 mt-4">
         <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
-          📋 {translate(locale, 'dynamic.pLAINSQLITELOGSDUMP', customTranslations)} ({displayLogs.length})
+          📋 {translate(locale, 'report', 'PlainDump', customTranslations)} ({displayLogs.length})
         </h4>
         <div className={`rounded-[1.5rem] border max-h-[250px] overflow-y-auto p-4 flex flex-col gap-2 ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB] shadow-inner' : 'bg-black/20 border-white/5'
           }`}>

@@ -3,7 +3,7 @@ import { Terminal, Send, ShieldCheck } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { executeCliCommand, TerminalLine, CliEngineContext } from './utils/CliEngine';
 import versionsData from '../../versions.json';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 export default function CliInterface() {
   const context = useOxyFlow();
@@ -152,7 +152,7 @@ export default function CliInterface() {
           ? 'bg-black border-white text-white'
           : 'bg-white/5 border-white/10 text-slate-400'
         }`}>
-        <span className={`font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'dynamic.quickShortcuts', customTranslations)}</span>
+        <span className={`font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'help', 'QuickShortcuts', customTranslations)}</span>
         <button
           id="cmd-project-list-btn"
           type="button"

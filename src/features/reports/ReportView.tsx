@@ -1,7 +1,7 @@
 import React from 'react';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { BarChart3 } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { getThemeStyles } from '@/src/layouts/parts/GuiStyles';
 import ReportStatsCards from './components/ReportStatsCards';
 import ReportPeriodSelector from './components/ReportPeriodSelector';
@@ -30,12 +30,12 @@ export default function ReportView({ state }: { state: GuiState }) {
       }`}>
       <div>
         <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
-          {translate(locale, 'dynamic.sQLAnalyticsEngine', customTranslations)}
+          {translate(locale, 'report', 'SqlAnalyticsEngine', customTranslations)}
         </span>
         <h2 className={`font-sans font-bold text-2xl mt-1.5 flex items-center gap-2 ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
           }`}>
           <BarChart3 className="w-6 h-6 text-orange-400" />
-          {translate(locale, 'dynamic.timeSummariesReports', customTranslations)}
+          {translate(locale, 'report', 'TimeSummariesReports', customTranslations)}
         </h2>
       </div>
 

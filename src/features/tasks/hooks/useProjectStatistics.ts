@@ -6,7 +6,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { getProjectDurationSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { toast } from 'sonner';
 import { Locale } from '@bindings/Locale';
 
@@ -63,7 +63,7 @@ export function useProjectStatistics({
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Failed to load project statistics');
           ErrorHandler.handle(err);
-          const errorMsg = translate(locale || 'en', 'common.error', customTranslations) || 'Error';
+          const errorMsg = translate(locale || 'en', 'common', 'ErrGeneric', customTranslations) || 'Error';
           toast.error(`${errorMsg}: Failed to load project statistics`);
         }
       } finally {

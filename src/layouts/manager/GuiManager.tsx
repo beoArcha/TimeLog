@@ -1,7 +1,7 @@
 import React from 'react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Components
@@ -171,11 +171,11 @@ export default function GuiManager() {
           <TrayWidgetView
             onRestore={() => {
               setIsMinimized(false);
-              showToast?.(translate(locale, 'app.maximizeRestore', customTranslations));
+              showToast?.(translate(locale, 'app', 'MaximizeRestore', customTranslations));
             }}
             onStopAll={() => {
               handleStopTimer();
-              showToast?.(translate(locale, 'app.stoppedThreads', customTranslations));
+              showToast?.(translate(locale, 'app', 'StoppedThreads', customTranslations));
             }}
             showToast={showToast}
           />

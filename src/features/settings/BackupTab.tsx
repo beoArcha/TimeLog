@@ -1,13 +1,9 @@
 import React, { useRef } from 'react';
 import { UploadCloud, DownloadCloud, CheckCircle, Database } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import CollapsibleCard from '@components/CollapsibleCard';
-import { BackupKey } from '@/src/common/i18n/keys/BackupKey';
-import { DynamicKey } from '@/src/common/i18n/keys/DynamicKey';
-import { SettingsKey } from '@/src/common/i18n/keys/SettingsKey';
-import { TabKey } from '@/src/common/i18n/keys/TabKey';
 
 export default function BackupTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,10 +44,10 @@ export default function BackupTab() {
           if (data.patches) setPatches(data.patches);
         }
 
-        alert(translate(locale, BackupKey.RestoreSuccess, customTranslations));
+        alert(translate(locale, 'settings', 'RestoreSuccess', customTranslations));
       } catch (err) {
         ErrorHandler.handle(new PersistenceException('Failed to restore backup from file', err, 'ERR_BACKUP_RESTORE'));
-        alert(translate(locale, BackupKey.InvalidBackup, customTranslations));
+        alert(translate(locale, 'settings', 'InvalidBackup', customTranslations));
       }
     };
     reader.readAsText(file);
@@ -67,15 +63,15 @@ export default function BackupTab() {
       }`}>
       <div>
         <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
-          {translate(locale, TabKey.Backup, customTranslations)}
+          {translate(locale, 'settings', 'TabBackup', customTranslations)}
         </span>
         <h2 className={`font-sans font-bold text-2xl mt-1.5 flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-slate-900' : 'text-white'
           }`}>
           <UploadCloud className="w-6 h-6 text-emerald-400" />
-          {translate(locale, TabKey.Backup, customTranslations)}
+          {translate(locale, 'settings', 'TabBackup', customTranslations)}
         </h2>
         <p className={`text-xs mt-2 ${resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
-          {translate(locale, SettingsKey.SendLogsToApi, customTranslations)}
+          {translate(locale, 'settings', 'SendLogsToApi', customTranslations)}
         </p>
       </div>
 
@@ -86,7 +82,7 @@ export default function BackupTab() {
         defaultExpanded={true}
       >
         <p className={`text-xs ${resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
-          {translate(locale, DynamicKey.BackupDesc, customTranslations)}
+          {translate(locale, 'settings', 'BackupDesc', customTranslations)}
         </p>
         <div className="flex gap-4 mt-2">
           <button
@@ -95,7 +91,7 @@ export default function BackupTab() {
             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2"
           >
             <UploadCloud className="w-4 h-4" />
-            {translate(locale, BackupKey.BackupJson, customTranslations)}
+            {translate(locale, 'settings', 'BackupJson', customTranslations)}
           </button>
 
           <button
@@ -104,7 +100,7 @@ export default function BackupTab() {
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2"
           >
             <DownloadCloud className="w-4 h-4" />
-            {translate(locale, BackupKey.RestoreImportJson, customTranslations)}
+            {translate(locale, 'settings', 'RestoreImportJson', customTranslations)}
           </button>
           <input
             type="file"
@@ -118,14 +114,14 @@ export default function BackupTab() {
       </CollapsibleCard>
 
       <CollapsibleCard
-        title={translate(locale, SettingsKey.SendLogsToApi, customTranslations)}
+        title={translate(locale, 'settings', 'SendLogsToApi', customTranslations)}
         icon={UploadCloud}
         iconColor="text-indigo-500"
         defaultExpanded={false}
         headerTestId="api-push-collapse-header"
       >
         <p className={`text-xs ${resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
-          {translate(locale, DynamicKey.WebhookDesc, customTranslations)}
+          {translate(locale, 'settings', 'WebhookDesc', customTranslations)}
         </p>
 
         <label className="flex items-center gap-2 cursor-pointer w-fit mt-2">
@@ -137,14 +133,14 @@ export default function BackupTab() {
             data-testid="api-push-toggle"
           />
           <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
-            {translate(locale, SettingsKey.SendLogsToApi, customTranslations)}
+            {translate(locale, 'settings', 'SendLogsToApi', customTranslations)}
           </span>
         </label>
 
         {logToApi && (
           <div className="flex flex-col gap-3 mt-4 pl-6 border-l-2 border-indigo-500/20">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, DynamicKey.ApiAddress, customTranslations)}</label>
+              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiAddress', customTranslations)}</label>
               <input
                 type="text"
                 value={apiUrl}
@@ -156,7 +152,7 @@ export default function BackupTab() {
               />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, DynamicKey.BearerAuthTitle, customTranslations)}</label>
+              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'BearerAuthTitle', customTranslations)}</label>
               <input
                 type="password"
                 value={apiToken}
@@ -168,7 +164,7 @@ export default function BackupTab() {
               />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, SettingsKey.ApiMethod, customTranslations)}</label>
+              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiMethod', customTranslations)}</label>
               <select
                 value={apiMethod}
                 onChange={(e) => setApiMethod(e.target.value as 'POST' | 'PUT')}
@@ -181,8 +177,8 @@ export default function BackupTab() {
             </div>
 
             <div className="flex flex-col gap-1.5 mt-2">
-              <label className={`text-xs font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, SettingsKey.ApiHeaders, customTranslations)}</label>
-              <p className="text-[10px] text-slate-400">{translate(locale, SettingsKey.ApiHeadersDesc, customTranslations)}</p>
+              <label className={`text-xs font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiHeaders', customTranslations)}</label>
+              <p className="text-[10px] text-slate-400">{translate(locale, 'settings', 'ApiHeadersDesc', customTranslations)}</p>
               <textarea
                 value={apiHeaders}
                 onChange={(e) => setApiHeaders(e.target.value)}
@@ -194,7 +190,7 @@ export default function BackupTab() {
             </div>
 
             <div className="text-[10px] text-indigo-500 font-mono font-bold mt-2 flex items-center gap-1.5">
-              <CheckCircle className="w-3.5 h-3.5" /> {translate(locale, 'common.success', customTranslations)}!
+              <CheckCircle className="w-3.5 h-3.5" /> {translate(locale, 'common', 'ErrSuccess', customTranslations)}!
             </div>
           </div>
         )}

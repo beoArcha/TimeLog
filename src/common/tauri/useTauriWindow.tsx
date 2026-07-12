@@ -5,7 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { GuiSize } from '@bindings/GuiSize';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { Locale } from '@bindings/Locale';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { FrontendEvent } from '@bindings/FrontendEvent';
 import { TAURI_COMMANDS } from './tauri-commands';
 
@@ -159,7 +159,7 @@ export const useTauriWindow = ({
         const uStopAll = await listen('tray-stop-all-timers' satisfies FrontendEvent, () => {
           if (!active) return;
           stateRef.current.handleStopTimer();
-          stateRef.current.showToast(translate(stateRef.current.locale, 'app.stoppedThreads', stateRef.current.customTranslations));
+          stateRef.current.showToast(translate(stateRef.current.locale, 'app', 'StoppedThreads', stateRef.current.customTranslations));
         });
         unlisteners.push(uStopAll);
 
@@ -230,10 +230,10 @@ export const useTauriWindow = ({
     } else {
       if (minimizeToTray) {
         setIsMinimized(true);
-        showToast(translate(locale, 'dynamic.oxyFlowMinimizedToTrayEngineKe', customTranslations));
+        showToast(translate(locale, 'app', 'OxyFlowMinimizedToTray', customTranslations));
       } else {
         setIsGuiClosed(true);
-        showToast(translate(locale, 'dynamic.gUIClosedOxyFlowEngineLogsUISh', customTranslations));
+        showToast(translate(locale, 'app', 'GuiClosedEngineKeepRunning', customTranslations));
       }
     }
   };

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Plus, TrendingUp } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
-import { GuiKey } from '@common/i18n/keys/GuiKey';
+import { translate } from '@common/i18n/translator';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { Project } from '@bindings/Project';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
@@ -44,7 +43,7 @@ export default function ProjectHeaderCard({
         }`}>
         <div className={`flex-1 min-w-0 ${isCondensed ? 'w-full' : ''}`}>
           <span className={`${sc.textMain} tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25 ${isCondensed ? 'inline-block mb-2 whitespace-nowrap' : ''}`}>
-            {translate(locale, GuiKey.SelectProject, customTranslations)}
+            {translate(locale, 'project', 'SelectProject', customTranslations)}
           </span>
           <h2 className={`font-sans font-bold mt-1.5 flex items-center ${sc.gapMain} ${sc.textGiant} ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
             }`}>
@@ -57,7 +56,7 @@ export default function ProjectHeaderCard({
               }`}>
               <div className="flex items-center gap-2">
                 <TrendingUp className={`${sc.iconSmall} text-orange-400`} />
-                <span className="font-semibold">{translate(locale, 'dynamic.total', customTranslations)}:</span>
+                <span className="font-semibold">{translate(locale, 'common', 'Total', customTranslations)}:</span>
               </div>
               <span className={`font-bold ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
                 {formatSeconds(projectDurationSeconds)}
@@ -75,7 +74,7 @@ export default function ProjectHeaderCard({
             }`}>
             <div className="flex items-center gap-2">
               <TrendingUp className={`${sc.iconMedium} text-orange-400`} />
-              <span className="font-semibold">{translate(locale, 'dynamic.total', customTranslations)}:</span>
+              <span className="font-semibold">{translate(locale, 'common', 'Total', customTranslations)}:</span>
             </div>
             <span className={`font-bold ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
               {formatSeconds(projectDurationSeconds)}
@@ -139,7 +138,7 @@ export default function ProjectHeaderCard({
         <input
           id="new-task-input"
           type="text"
-          placeholder={translate(locale, GuiKey.EnterMainTaskName, customTranslations)}
+          placeholder={translate(locale, 'task', 'EnterMainTaskName', customTranslations)}
           value={newTaskName}
           onChange={e => setNewTaskName(e.target.value)}
           className={`flex-1 px-4 ${sc.inputPy} border ${sc.roundedMain} ${sc.textMain} focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all ${theme === 'light'
@@ -152,7 +151,7 @@ export default function ProjectHeaderCard({
           type="submit"
           className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold ${sc.roundedMain} px-5 sm:px-6 py-3 sm:py-3.5 ${sc.textMain} flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shrink-0`}
         >
-          <Plus className={sc.iconMedium} /> <span className={isCondensed ? 'hidden xs:inline' : ''}>{translate(locale, GuiKey.AddTask, customTranslations)}</span>
+          <Plus className={sc.iconMedium} /> <span className={isCondensed ? 'hidden xs:inline' : ''}>{translate(locale, 'task', 'AddTask', customTranslations)}</span>
         </button>
       </form>
     </div>

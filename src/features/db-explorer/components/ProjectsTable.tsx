@@ -3,7 +3,7 @@ import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Project } from '@bindings/Project';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 export default function ProjectsTable() {
   const { 
@@ -73,7 +73,7 @@ export default function ProjectsTable() {
 
   return (
     <CollapsibleCard
-      title={`projects table (${projects.length} ${translate(locale, 'dynamic.records', customTranslations)})`}
+      title={`projects table (${projects.length} ${translate(locale, 'database', 'Records', customTranslations)})`}
       icon={Database}
       iconColor="text-orange-400"
       titleColor="text-orange-400"
@@ -88,8 +88,8 @@ export default function ProjectsTable() {
               <th className="py-3 px-4 rounded-l-xl">id</th>
               <th className="py-3 px-4">name</th>
               <th className="py-3 px-4">color</th>
-              <th className="py-3 px-4">{translate(locale, 'dynamic.originalValue', customTranslations)}</th>
-              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'dynamic.actionsCrud', customTranslations)}</th>
+              <th className="py-3 px-4">{translate(locale, 'database', 'OriginalValue', customTranslations)}</th>
+              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'database', 'ActionsCrud', customTranslations)}</th>
             </tr>
           </thead>
           <tbody className="dark:text-white">
@@ -136,7 +136,7 @@ export default function ProjectsTable() {
                           Oryginał: {p.originalName || p.name}
                         </span>
                       ) : (
-                        <span className="text-slate-500 text-[10px]">{translate(locale, 'dynamic.noPatches', customTranslations)}</span>
+                        <span className="text-slate-500 text-[10px]">{translate(locale, 'database', 'NoPatches', customTranslations)}</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
@@ -192,8 +192,8 @@ export default function ProjectsTable() {
                           {p.editHistory.map((h, hIdx) => (
                             <div key={hIdx} className="text-[11px] text-slate-400 mt-1">
                               <span className="text-slate-500">[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
-                              {translate(locale, 'dbExplorer.changeFromName', customTranslations)} <strong className="text-white">"{h.prevName}"</strong> ({translate(locale, 'dbExplorer.color', customTranslations)} {h.prevColor}) &rarr;{' '}
-                              {translate(locale, 'dbExplorer.reason', customTranslations)} <em className="text-teal-350">"{h.reason}"</em>
+                              {translate(locale, 'database', 'ChangeFromName', customTranslations)} <strong className="text-white">"{h.prevName}"</strong> ({translate(locale, 'common', 'Color', customTranslations)} {h.prevColor}) &rarr;{' '}
+                              {translate(locale, 'database', 'Reason', customTranslations)} <em className="text-teal-350">"{h.reason}"</em>
                             </div>
                           ))}
                         </div>

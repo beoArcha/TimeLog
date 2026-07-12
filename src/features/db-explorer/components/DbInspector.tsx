@@ -2,7 +2,7 @@ import React from 'react';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 export default function DbInspector({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -47,7 +47,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
               : 'bg-[#FCFAF8]/10 hover:bg-[#FCFAF8]/20 text-slate-200 hover:text-white border-white/10'
               }`}
           >
-            {showDbInspector ? translate(locale, 'dynamic.hideSqlitePreview', customTranslations) : translate(locale, 'dynamic.exploreSqliteStructure', customTranslations)}
+            {showDbInspector ? translate(locale, 'database', 'HideSqlitePreview', customTranslations) : translate(locale, 'database', 'ExploreStructure', customTranslations)}
           </button>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                         {tasks.length > 8 && (
                           <tr>
                             <td colSpan={4} className="text-[10px] text-[#8A7A71] py-1 text-center">
-                              {translate(locale, 'dynamic.andMoreRows', customTranslations).replace('{x}', (tasks.length - 8).toString())}
+                              {translate(locale, 'database', 'AndMoreRows', customTranslations).replace('{x}', (tasks.length - 8).toString())}
                             </td>
                           </tr>
                         )}

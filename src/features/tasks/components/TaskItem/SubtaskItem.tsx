@@ -3,7 +3,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { Locale } from '@bindings/Locale';
 import { CheckSquare, Square as EmptySquare, Play, Square } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
@@ -72,7 +72,7 @@ export function SubtaskItem({
         <button
           id={`check-subtask-${subTask.id}`}
           onClick={() => onToggleTaskComplete(subTask.id)}
-          aria-label={`${subTask.completed ? translate(locale, 'common.edit', customTranslations) : translate(locale, 'common.confirm', customTranslations)} ${subTask.name}`}
+          aria-label={`${subTask.completed ? translate(locale, 'common', 'Edit', customTranslations) : translate(locale, 'common', 'Confirm', customTranslations)} ${subTask.name}`}
           className={`${th.textMuted} hover:text-orange-500 transition-colors cursor-pointer mt-0.5 sm:mt-0 shrink-0`}
         >
           {subTask.completed ? (
@@ -171,8 +171,8 @@ export function SubtaskItem({
           <button
             id={`stop-subtask-btn-${subTask.id}`}
             onClick={() => onStartTimer(subTask.id)}
-            title={translate(locale, 'common.stopTimer', customTranslations)}
-            aria-label={translate(locale, 'common.stopTimer', customTranslations)}
+            title={translate(locale, 'timer', 'StopMeasurement', customTranslations)}
+            aria-label={translate(locale, 'timer', 'StopMeasurement', customTranslations)}
             className="bg-rose-500 text-white rounded-lg p-2 transition-colors cursor-pointer animate-pulse shrink-0"
           >
             <Square className="w-3.5 h-3.5 fill-white text-white" />
@@ -182,8 +182,8 @@ export function SubtaskItem({
             id={`start-subtask-btn-${subTask.id}`}
             onClick={() => !subTask.completed && onStartTimer(subTask.id)}
             disabled={subTask.completed}
-            title={translate(locale, 'common.startTimer', customTranslations)}
-            aria-label={translate(locale, 'common.startTimer', customTranslations)}
+            title={translate(locale, 'timer', 'StartMeasurement', customTranslations)}
+            aria-label={translate(locale, 'timer', 'StartMeasurement', customTranslations)}
             className={`text-[#9B8C83] hover:text-white rounded-lg p-2 transition-all cursor-pointer shrink-0 ${theme === 'light'
               ? 'bg-[#EAE4DB] hover:bg-teal-500 group-hover/sub:bg-teal-500 text-[#5A4A42]'
               : 'bg-[#FCFAF8]/5 hover:bg-teal-500 group-hover/sub:bg-teal-500'

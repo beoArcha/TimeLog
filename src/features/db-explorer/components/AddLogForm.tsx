@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { Locale } from '@bindings/Locale';
@@ -42,21 +42,21 @@ export default function AddLogForm({
       <p className="text-xs font-bold text-orange-400 uppercase tracking-wide">SQL Command: INSERT INTO time_logs</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
         <div>
-          <label className="block text-slate-400 mb-1">{translate(locale, 'dbExplorer.assignToTask', customTranslations)}</label>
+          <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'AssignToTask', customTranslations)}</label>
           <select 
             value={form.taskId} 
             onChange={e => setForm(prev => ({ ...prev, taskId: e.target.value }))}
             className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none"
             required
           >
-            <option value="">{translate(locale, 'dynamic.selectTask', customTranslations)}</option>
+            <option value="">{translate(locale, 'task', 'SelectTaskPlaceholder', customTranslations)}</option>
             {tasks.map(t => (
               <option key={t.id} value={t.id}>{projects.find(p => p.id === t.projectId)?.name} &gt; {t.name}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-slate-400 mb-1">{translate(locale, 'dbExplorer.startTime', customTranslations)}</label>
+          <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'StartTime', customTranslations)}</label>
           <input 
             type="text" 
             value={form.startTime} 
@@ -66,7 +66,7 @@ export default function AddLogForm({
           />
         </div>
         <div>
-          <label className="block text-slate-400 mb-1">{translate(locale, 'dbExplorer.endTime', customTranslations)}</label>
+          <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'EndTime', customTranslations)}</label>
           <input 
             type="text" 
             value={form.endTime} 
@@ -76,7 +76,7 @@ export default function AddLogForm({
           />
         </div>
         <div>
-          <label className="block text-slate-400 mb-1">{translate(locale, 'dbExplorer.note', customTranslations)}</label>
+          <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'Note', customTranslations)}</label>
           <input 
             type="text" 
             value={form.note} 

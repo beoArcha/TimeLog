@@ -1,4 +1,4 @@
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import {
   TerminalLine,
   CliEngineContext,
@@ -42,21 +42,21 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
     case 'help':
     case 'oxyhelp': {
       outputs.push(
-        { text: translate(context.locale, 'dynamic.cliHelpTitle', context.customTranslations), type: 'info' },
-        { text: `  projects                      - ${translate(context.locale, 'dynamic.cliProjectsDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  tasks <id_projektu/proj_id>   - ${translate(context.locale, 'dynamic.cliTasksDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  addproject "<nazwa/name>"     - ${translate(context.locale, 'dynamic.cliAddProjectDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  addtask <pId> "<nazwa/name>"  - ${translate(context.locale, 'dynamic.cliAddTaskDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  addsubtask <parent_id> "<n>"  - ${translate(context.locale, 'dynamic.cliAddSubtaskDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  start [task_id]               - ${translate(context.locale, 'dynamic.cliStartDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  stop [all]                    - ${translate(context.locale, 'dynamic.cliStopDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  status                        - ${translate(context.locale, 'dynamic.cliStatusDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  complete <task_id>            - ${translate(context.locale, 'dynamic.cliCompleteDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  logs                          - ${translate(context.locale, 'dynamic.cliLogsDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  time <subtask/task/profile> <id> [today/week/month] - ${translate(context.locale, 'dynamic.cliTimeCmdDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  holidays [add type Y-M-D "N"] - ${translate(context.locale, 'dynamic.cliHolidaysDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  report [today/week/month/all] - ${translate(context.locale, 'dynamic.cliReportDesc', context.customTranslations)}`, type: 'output' },
-        { text: `  clear                         - ${translate(context.locale, 'dynamic.cliClearDesc', context.customTranslations)}`, type: 'output' },
+        { text: translate(context.locale, 'cli', 'HelpTitle', context.customTranslations), type: 'info' },
+        { text: `  projects                      - ${translate(context.locale, 'cli', 'ProjectsDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  tasks <id_projektu/proj_id>   - ${translate(context.locale, 'cli', 'TasksDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  addproject "<nazwa/name>"     - ${translate(context.locale, 'cli', 'AddProjectDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  addtask <pId> "<nazwa/name>"  - ${translate(context.locale, 'cli', 'AddTaskDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  addsubtask <parent_id> "<n>"  - ${translate(context.locale, 'cli', 'AddSubtaskDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  start [task_id]               - ${translate(context.locale, 'cli', 'StartDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  stop [all]                    - ${translate(context.locale, 'cli', 'StopDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  status                        - ${translate(context.locale, 'cli', 'StatusDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  complete <task_id>            - ${translate(context.locale, 'cli', 'CompleteDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  logs                          - ${translate(context.locale, 'cli', 'LogsDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  time <subtask/task/profile> <id> [today/week/month] - ${translate(context.locale, 'cli', 'TimeCmdDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  holidays [add type Y-M-D "N"] - ${translate(context.locale, 'cli', 'HolidaysDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  report [today/week/month/all] - ${translate(context.locale, 'cli', 'ReportDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  clear                         - ${translate(context.locale, 'cli', 'ClearDesc', context.customTranslations)}`, type: 'output' },
         { text: `==================================================================`, type: 'info' }
       );
       break;

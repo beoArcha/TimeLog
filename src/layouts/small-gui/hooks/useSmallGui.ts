@@ -2,12 +2,13 @@ import { useMemo } from 'react';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { GuiSize } from '@bindings/GuiSize';
-import { LocaleType, TranslationDictionary } from '@common/i18n/i18n';
+import { TranslationDictionary } from '@common/i18n/translator';
+import { Locale } from '@/src/bindings/Locale';
 
 interface UseSmallGuiParams {
   projects: Project[];
   tasks: Task[];
-  locale: LocaleType;
+  locale: Locale;
   customTranslations: Partial<TranslationDictionary> | undefined;
   currentProjectId: string;
   showToast: (msg: string) => void;

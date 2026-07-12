@@ -1,6 +1,6 @@
 import { TimeLog } from '@bindings/TimeLog';
 import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { TerminalLine, CliEngineContext } from './Commands';
 
 export const runLogsCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {
@@ -9,8 +9,8 @@ export const runLogsCommand = (args: string[], context: CliEngineContext, output
   const filterArg = args[0] ? args[0].toLowerCase() : 'all';
   const sortArg = args[1] ? args[1].toLowerCase() : 'date';
 
-  const transRunning = (translate(locale, 'dynamic.filterRunning', customTranslations) || 'running').toLowerCase();
-  const transCaptured = (translate(locale, 'dynamic.filterCaptured', customTranslations) || 'captured').toLowerCase();
+  const transRunning = (translate(locale, 'cli', 'FilterRunning', customTranslations) || 'running').toLowerCase();
+  const transCaptured = (translate(locale, 'cli', 'FilterCaptured', customTranslations) || 'captured').toLowerCase();
 
   if (filterArg === 'running' || filterArg === transRunning) {
     filteredLogs = filteredLogs.filter(log => !log.endTime);
@@ -18,9 +18,9 @@ export const runLogsCommand = (args: string[], context: CliEngineContext, output
     filteredLogs = filteredLogs.filter(log => log.endTime);
   }
 
-  const transDuration = (translate(locale, 'dynamic.sortDuration', customTranslations) || 'duration').toLowerCase();
-  const transProject = (translate(locale, 'dynamic.sortProject', customTranslations) || 'project').toLowerCase();
-  const transStatus = (translate(locale, 'dynamic.sortStatus', customTranslations) || 'status').toLowerCase();
+  const transDuration = (translate(locale, 'cli', 'SortDuration', customTranslations) || 'duration').toLowerCase();
+  const transProject = (translate(locale, 'cli', 'SortProject', customTranslations) || 'project').toLowerCase();
+  const transStatus = (translate(locale, 'cli', 'SortStatus', customTranslations) || 'status').toLowerCase();
 
   if (sortArg === 'duration' || sortArg === transDuration || sortArg === 'czas') {
     filteredLogs.sort((a, b) => {
@@ -40,13 +40,13 @@ export const runLogsCommand = (args: string[], context: CliEngineContext, output
   }
 
   if (filteredLogs.length === 0) {
-    outputs.push({ text: translate(locale, 'dynamic.cliNoLogsFound', customTranslations), type: 'info' });
+    outputs.push({ text: translate(locale, 'cli', 'NoLogsFound', customTranslations), type: 'info' });
   } else {
-    const hId = (translate(locale, 'dynamic.cliLogId', customTranslations) || 'ID').padEnd(4).substring(0, 4);
-    const hPrj = (translate(locale, 'dynamic.cliLogPrjId', customTranslations) || 'PRJ ID').padEnd(6).substring(0, 6);
-    const hStart = (translate(locale, 'dynamic.cliLogStart', customTranslations) || 'STARTED AT').padEnd(10).substring(0, 10);
-    const hStat = (translate(locale, 'dynamic.cliLogStatus', customTranslations) || 'STATUS').padEnd(8).substring(0, 8);
-    const hDur = (translate(locale, 'dynamic.cliLogDuration', customTranslations) || 'DURATION').padEnd(22).substring(0, 22);
+    const hId = (translate(locale, 'cli', 'LogId', customTranslations) || 'ID').padEnd(4).substring(0, 4);
+    const hPrj = (translate(locale, 'cli', 'LogPrjId', customTranslations) || 'PRJ ID').padEnd(6).substring(0, 6);
+    const hStart = (translate(locale, 'cli', 'LogStart', customTranslations) || 'STARTED AT').padEnd(10).substring(0, 10);
+    const hStat = (translate(locale, 'cli', 'LogStatus', customTranslations) || 'STATUS').padEnd(8).substring(0, 8);
+    const hDur = (translate(locale, 'cli', 'LogDuration', customTranslations) || 'DURATION').padEnd(22).substring(0, 22);
 
     outputs.push({ text: '┌──────┬────────┬────────────┬──────────┬────────────────────────┐', type: 'info' });
     outputs.push({ text: `│ ${hId} │ ${hPrj} │ ${hStart} │ ${hStat} │ ${hDur} │`, type: 'info' });
@@ -102,12 +102,12 @@ export const runReportCommand = (args: string[], context: CliEngineContext, outp
   });
 
   if (filteredLogs.length === 0) {
-    outputs.push({ text: `${translate(locale, 'dynamic.cliNoLogsPeriod', customTranslations)} ${period}`, type: 'info' });
+    outputs.push({ text: `${translate(locale, 'cli', 'NoLogsPeriod', customTranslations)} ${period}`, type: 'info' });
     return;
   }
 
-  outputs.push({ text: `================ ${translate(locale, 'dynamic.cliReportTimeHeader', customTranslations)}: ${period.toUpperCase()} (Sort: ${sortBy}) ================`, type: 'info' });
-  outputs.push({ text: translate(locale, 'dynamic.cliReportSysList', customTranslations), type: 'info' });
+  outputs.push({ text: `================ ${translate(locale, 'cli', 'ReportTimeHeader', customTranslations)}: ${period.toUpperCase()} (Sort: ${sortBy}) ================`, type: 'info' });
+  outputs.push({ text: translate(locale, 'cli', 'ReportSysList', customTranslations), type: 'info' });
 
   const sortedLogs = [...filteredLogs];
   if (sortBy === 'date') {
@@ -134,7 +134,7 @@ export const runReportCommand = (args: string[], context: CliEngineContext, outp
   });
 
   outputs.push({ text: '', type: 'output' });
-  outputs.push({ text: translate(locale, 'dynamic.cliReportGraph', customTranslations), type: 'info' });
+  outputs.push({ text: translate(locale, 'cli', 'ReportGraph', customTranslations), type: 'info' });
 
   const projectTimeMap: Record<string, number> = {};
   filteredLogs.forEach(log => {

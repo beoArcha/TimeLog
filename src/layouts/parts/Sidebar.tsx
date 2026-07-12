@@ -1,9 +1,7 @@
 import React from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
-import { GuiKey } from '@common/i18n/keys/GuiKey';
-import { CommonKey } from '@common/i18n/keys/CommonKey';
+import { translate } from '@common/i18n/translator';
 import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS, getScaleStyles } from './GuiStyles';
 import versionsData from '../../versions.json';
@@ -94,7 +92,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
           <h3 className={`font-sans font-semibold ${sc.textTitle} flex items-center gap-2 ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
             }`}>
             <Folder className={`${sc.iconMedium} text-orange-400`} />
-            {translate(locale, 'dynamic.projects', customTranslations)} ({projects.length})
+            {translate(locale, 'project', 'ProjectsLabel', customTranslations)} ({projects.length})
           </h3>
           <span className={`${sc.textMain} bg-orange-500/20 border border-orange-500/30 text-orange-600 px-2 py-1 rounded-full font-mono font-bold uppercase tracking-wider`}>
             MicroORM Tables
@@ -107,7 +105,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
             <input
               id="new-project-input"
               type="text"
-              placeholder={translate(locale, GuiKey.EnterProjectName, customTranslations)}
+              placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
               value={newProjectName}
               onChange={e => setNewProjectName(e.target.value)}
               className={`w-full border px-3 ${sc.inputPy} ${sc.roundedSection} ${sc.textMain} focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all ${theme === 'light'
@@ -192,7 +190,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 type="submit"
                 className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white ${sc.roundedSection} px-3.5 py-1.5 ${sc.textMain} font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md`}
               >
-                <Plus className={sc.iconSmall} /> {translate(locale, CommonKey.Save, customTranslations)}
+                <Plus className={sc.iconSmall} /> {translate(locale, 'common', 'Save', customTranslations)}
               </button>
             </div>
           </div>
@@ -202,7 +200,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
         <div id="projects-list-container" className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto pr-1">
           {projects.length === 0 ? (
             <div className="text-center py-8 text-[#9B8C83] text-xs font-sans">
-              {translate(locale, 'dynamic.nenhumProjetoAindaAdicioneUmAc', customTranslations)}
+              {translate(locale, 'project', 'NoProjectsYet', customTranslations)}
             </div>
           ) : (
             projects.map(p => {
@@ -263,7 +261,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                         />
                       ) : (
                         <p className={`font-semibold ${sc.textMain} truncate ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
-                          }`}>{p.archived && <span className={`${sc.textMain} bg-red-500 text-white px-1 py-0.5 rounded mr-1 leading-none uppercase`}>{translate(locale, 'dynamic.archiveNoun', customTranslations)}</span>}{p.name}</p>
+                          }`}>{p.archived && <span className={`${sc.textMain} bg-red-500 text-white px-1 py-0.5 rounded mr-1 leading-none uppercase`}>{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</p>
                       )}
 
                       {p.description && (
@@ -284,12 +282,12 @@ export default function Sidebar({ state }: { state: GuiState }) {
 
                       <p className={`${sc.textMain} opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
                         }`}>
-                        {translate(locale, 'dynamic.createdAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
+                        {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
  
                         {editingId !== p.id && (
                           <button
                             type="button"
-                            title={translate(locale, 'common.editName', customTranslations)}
+                            title={translate(locale, 'common', 'EditName', customTranslations)}
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditProjId(p.id);
@@ -315,7 +313,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                           className={`opacity-0 group-hover:opacity-100 transition duration-200 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider ${theme === 'light' ? 'bg-[#DFD7CB] text-[#5A4A42] hover:bg-red-500 hover:text-white' : 'bg-[#FCFAF8]/10 text-slate-300 hover:bg-red-500 hover:text-white'
                             } cursor-pointer`}
                         >
-                          {p.archived ? translate(locale, 'dynamic.unarchive', customTranslations) : translate(locale, 'dynamic.archive', customTranslations)}
+                          {p.archived ? translate(locale, 'common', 'Unarchive', customTranslations) : translate(locale, 'common', 'Archive', customTranslations)}
                         </button>
                       </p>
                     </div>
@@ -352,11 +350,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-orange-400 animate-pulse" />
             <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-medium tracking-wide border ${theme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42]' : 'bg-[#FCFAF8]/10 border-white/10'
-              }`}>{translate(locale, 'dynamic.countingEngine', customTranslations)} v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.engine}</span>
+              }`}>{translate(locale, 'engine', 'CountingEngine', customTranslations)} v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.engine}</span>
           </div>
-          <h4 className={`font-sans font-bold text-lg mt-1 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-100'}`}>{translate(locale, 'dynamic.createdForRhythm', customTranslations)}</h4>
+          <h4 className={`font-sans font-bold text-lg mt-1 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-100'}`}>{translate(locale, 'engine', 'CreatedForRhythm', customTranslations)}</h4>
           <p className={`text-xs leading-relaxed ${theme === 'light' ? 'text-[#7A6A61]' : 'text-slate-300'}`}>
-            {translate(locale, 'dynamic.heroDescription', customTranslations)}
+            {translate(locale, 'engine', 'HeroDescription', customTranslations)}
           </p>
         </div>
       </div>

@@ -1,21 +1,22 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ContextException } from '../exceptions';
-import { LocaleType, TranslationDictionary } from '@common/i18n/i18n';
+import { TranslationDictionary } from '@common/i18n/translator';
 import { STORAGE_KEYS } from '@common/constants';
+import { Locale } from '@/src/bindings/Locale';
 
 interface LocaleContextProps {
-  localePref: LocaleType;
-  setLocalePref: React.Dispatch<React.SetStateAction<LocaleType>>;
-  locale: LocaleType;
-  setLocale: React.Dispatch<React.SetStateAction<LocaleType>>;
+  localePref: Locale;
+  setLocalePref: React.Dispatch<React.SetStateAction<Locale>>;
+  locale: Locale;
+  setLocale: React.Dispatch<React.SetStateAction<Locale>>;
   customTranslations: Partial<TranslationDictionary>;
   setCustomTranslations: React.Dispatch<React.SetStateAction<Partial<TranslationDictionary>>>;
 }
 
 const LocaleContext = createContext<LocaleContextProps | undefined>(undefined);
 
-function resolveSystemLocale(): LocaleType {
+function resolveSystemLocale(): Locale {
   const browserLang = navigator.language.toLowerCase();
   if (browserLang.startsWith('pl')) return 'pl';
   if (browserLang.startsWith('de')) return 'de';
@@ -26,23 +27,23 @@ function resolveSystemLocale(): LocaleType {
 }
 
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [localePref, setLocalePref] = useState<LocaleType>(() => {
+  const [localePref, setLocalePref] = useState<Locale>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.LOCALE_PREF);
-    if (saved) return saved as LocaleType;
+    if (saved) return saved as Locale;
     return 'system';
   });
 
-  const [localeOverride, setLocaleOverride] = useState<[LocaleType, LocaleType] | null>(null);
+  const [localeOverride, setLocaleOverride] = useState<[Locale, Locale] | null>(null);
 
-  const locale = useMemo<LocaleType>(() => {
+  const locale = useMemo<Locale>(() => {
     if (localeOverride !== null && localeOverride[0] === localePref) return localeOverride[1];
     return localePref === 'system' ? resolveSystemLocale() : localePref;
   }, [localePref, localeOverride]);
 
-  const setLocale: React.Dispatch<React.SetStateAction<LocaleType>> = (value) => {
+  const setLocale: React.Dispatch<React.SetStateAction<Locale>> = (value) => {
     setLocaleOverride((prev) => {
       const current = prev !== null && prev[0] === localePref ? prev[1] : (localePref === 'system' ? resolveSystemLocale() : localePref);
-      const next = typeof value === 'function' ? (value as (p: LocaleType) => LocaleType)(current) : value;
+      const next = typeof value === 'function' ? (value as (p: Locale) => Locale)(current) : value;
       return [localePref, next];
     });
   };

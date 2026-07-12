@@ -9,9 +9,10 @@ import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { Settings } from '@bindings/Settings';
-import { LocaleType, TranslationDictionary } from '@common/i18n/i18n';
+import { TranslationDictionary } from '@common/i18n/translator';
 import { GuiSize } from '@bindings/GuiSize';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
+import { Locale } from '@bindings/Locale';
 
 export interface OxyFlowState {
   customTranslations: Partial<TranslationDictionary>;
@@ -26,31 +27,31 @@ export interface OxyFlowState {
   setHolidays: React.Dispatch<React.SetStateAction<HolidayLeave[]>>;
   patches: PatchLog[];
   setPatches: React.Dispatch<React.SetStateAction<PatchLog[]>>;
-  
+
   sysSettings: Settings;
   setSysSettings: React.Dispatch<React.SetStateAction<Settings>>;
-  
+
   activeLog: TimeLog | null;
   setActiveLog: React.Dispatch<React.SetStateAction<TimeLog | null>>;
-  
-  localePref: LocaleType;
-  setLocalePref: React.Dispatch<React.SetStateAction<LocaleType>>;
-  locale: LocaleType;
-  setLocale: React.Dispatch<React.SetStateAction<LocaleType>>;
-  
+
+  localePref: Locale;
+  setLocalePref: React.Dispatch<React.SetStateAction<Locale>>;
+  locale: Locale;
+  setLocale: React.Dispatch<React.SetStateAction<Locale>>;
+
   theme: import('@common/types/ThemeTypes').ThemePreference;
   setTheme: React.Dispatch<React.SetStateAction<import('@common/types/ThemeTypes').ThemePreference>>;
   resolvedTheme: import('@common/types/ThemeTypes').Theme;
   setResolvedTheme: React.Dispatch<React.SetStateAction<import('@common/types/ThemeTypes').Theme>>;
-  
+
   textAndIconSize: TextAndIconSize;
   setTextAndIconSize: React.Dispatch<React.SetStateAction<TextAndIconSize>>;
   guiSize: GuiSize;
   setGuiSize: React.Dispatch<React.SetStateAction<GuiSize>>;
-  
+
   engineState: 'searching' | 'connected';
   enginePID: number;
-  
+
   minimizeToTray: boolean;
   setMinimizeToTray: React.Dispatch<React.SetStateAction<boolean>>;
   alwaysOnTopSmall: boolean;
@@ -67,13 +68,13 @@ export interface OxyFlowState {
   setApiHeaders: React.Dispatch<React.SetStateAction<string>>;
   apiUrl: string;
   setApiUrl: React.Dispatch<React.SetStateAction<string>>;
-  
+
   nowIso: string;
   isGuiClosed: boolean;
   setIsGuiClosed: React.Dispatch<React.SetStateAction<boolean>>;
   isMinimized?: boolean;
   setIsMinimized?: React.Dispatch<React.SetStateAction<boolean>>;
-  
+
   showToast?: (msg: string) => void;
   handleMinimizeToTray?: () => Promise<void>;
   handleResetLocalStorage?: () => void;

@@ -2,9 +2,7 @@ import React from 'react';
 import { AppWindow, Layers } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
-import { TrayKey } from '@common/i18n/keys/TrayKey';
-import { DynamicKey } from '@common/i18n/keys/DynamicKey';
+import { translate } from '@common/i18n/translator';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -59,18 +57,18 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
             }`}>
             OxyFlow Engine
             <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wider uppercase">
-              {translate(locale, TrayKey.EngineRunningBackground, customTranslations)}
+              {translate(locale, 'engine', 'EngineRunningBackground', customTranslations)}
             </span>
           </h1>
           <p className={`text-sm mt-2 max-w-md font-sans ${resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-300'
             }`}>
-            {translate(locale, TrayKey.TrayDescription, customTranslations)}
+            {translate(locale, 'engine', 'TrayDescription', customTranslations)}
           </p>
           <div className={`text-xs px-4 py-2 rounded-xl font-mono inline-block mt-4 border ${resolvedTheme === 'light'
             ? 'bg-slate-100 border-slate-200 text-slate-700'
             : 'bg-white/5 border-white/10 text-slate-300'
             }`}>
-            {translate(locale, TrayKey.DaemonEnginePid, customTranslations)} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {translate(locale, TrayKey.SqliteThread, customTranslations)}
+            {translate(locale, 'engine', 'DaemonEnginePid', customTranslations)} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {translate(locale, 'engine', 'SqliteThread', customTranslations)}
           </div>
         </div>
 
@@ -82,11 +80,11 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
           }`}>
           <p className={`text-[10px] font-mono uppercase tracking-widest mb-3 border-b pb-1.5 ${resolvedTheme === 'light' ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/5'
             }`}>
-            {translate(locale, TrayKey.ActiveMeasuringThreads, customTranslations)} ({activeRunningLogs.length})
+            {translate(locale, 'engine', 'ActiveMeasuringThreads', customTranslations)} ({activeRunningLogs.length})
           </p>
           {activeRunningLogs.length === 0 ? (
             <p className={`text-xs italic text-center py-2 ${resolvedTheme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-              {translate(locale, DynamicKey.NoActiveTimersThisMoment, customTranslations)}
+              {translate(locale, 'timer', 'NoActiveTimers', customTranslations)}
             </p>
           ) : (
             <div className="flex flex-col gap-2">
@@ -127,7 +125,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
             className="flex-1 bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold py-3.5 rounded-2xl text-sm transition-all shadow-lg shadow-orange-500/10 cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
           >
             <AppWindow className="w-4.5 h-4.5" />
-            {translate(locale, TrayKey.MaximizeAndRestore, customTranslations)}
+            {translate(locale, 'engine', 'MaximizeAndRestore', customTranslations)}
           </button>
           <button
             id="tray-kill-all-btn"
@@ -137,10 +135,10 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
               ? 'bg-transparent text-slate-400 border-slate-200/20 cursor-not-allowed opacity-40'
               : resolvedTheme === 'light'
                 ? 'bg-slate-100 hover:bg-rose-50 text-rose-650 border-slate-200 cursor-pointer'
-                : 'bg-white/5 hover:bg-rose-550/15 text-rose-400 border-white/10 hover:border-rose-500/20 cursor-pointer'
+                : 'bg-white/5 hover:bg-rose-550/15 text-rose-450 border-white/10 hover:border-rose-500/20 cursor-pointer'
               }`}
           >
-            {translate(locale, TrayKey.PauseAllProcesses, customTranslations)}
+            {translate(locale, 'engine', 'PauseAllProcesses', customTranslations)}
           </button>
         </div>
       </div>

@@ -1,8 +1,7 @@
 import { Task } from '@bindings/Task';
 import { Locale } from '@bindings/Locale';
 import { CheckSquare, Square as EmptySquare } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
-import { GuiKey } from '@common/i18n/keys/GuiKey';
+import { translate } from '@common/i18n/translator';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 
@@ -15,11 +14,8 @@ interface TaskHeaderProps {
   editName: string;
   theme: string;
   locale: Locale;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customTranslations: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   th: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sc: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
@@ -87,13 +83,12 @@ export function TaskHeader({
           />
         ) : (
           <span
-            className={`font-semibold ${sc.textTitle} flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${
-              rootTask.completed
+            className={`font-semibold ${sc.textTitle} flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${rootTask.completed
                 ? 'line-through text-[#9B8C83] font-normal'
                 : theme === 'light'
                   ? 'text-[#2C2421]'
                   : 'text-slate-100'
-            }`}
+              }`}
           >
             <span className="truncate block max-w-full" title={rootTask.name}>
               {rootTask.name}
@@ -107,15 +102,14 @@ export function TaskHeader({
                 }
               }}
               onClick={(e) => e.stopPropagation()}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded border outline-none cursor-pointer font-mono shrink-0 transition-all ${
-                rootTask.status === 'Done'
+              className={`text-[10px] font-bold px-2 py-0.5 rounded border outline-none cursor-pointer font-mono shrink-0 transition-all ${rootTask.status === 'Done'
                   ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/15'
                   : rootTask.status === 'InProgress'
                     ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/15'
                     : rootTask.status === 'Blocked'
                       ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/15'
                       : 'bg-slate-500/10 text-slate-500 border-slate-500/20 hover:bg-slate-500/15'
-              }`}
+                }`}
             >
               <option value="Todo" className="bg-[#1b1c21] text-slate-200">TODO</option>
               <option value="InProgress" className="bg-[#1b1c21] text-blue-400">In Progress</option>
@@ -126,23 +120,22 @@ export function TaskHeader({
               <span className="inline-flex items-center gap-1.5 text-[10px] bg-amber-550/15 border border-amber-500/35 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
                 <span className="truncate max-w-[120px]" title={runningSubtask.name}>
-                  {translate(locale, GuiKey.SubtaskLabel, customTranslations)}: {runningSubtask.name}
+                  {translate(locale, 'task', 'SubtaskLabel', customTranslations)}: {runningSubtask.name}
                 </span>
               </span>
             )}
             {isCurrentRunning && (
               <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/15 border border-emerald-500/35 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
-                {translate(locale, GuiKey.InProgressLabel, customTranslations)}
+                {translate(locale, 'task', 'InProgressLabel', customTranslations)}
               </span>
             )}
           </span>
         )}
 
         <span
-          className={`text-[10px] font-mono block mt-0.5 whitespace-normal leading-tight ${
-            theme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
-          }`}
+          className={`text-[10px] font-mono block mt-0.5 whitespace-normal leading-tight ${theme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
+            }`}
         >
           ID: {rootTask.id} • SQLite table entry {isCurrentRunning || isChildRunning ? '(Sygnał liczenia aktywny)' : ''}
         </span>

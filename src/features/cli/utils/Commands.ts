@@ -5,7 +5,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { Locale } from '@bindings/Locale';
 import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
 import { STORAGE_KEYS } from '@common/constants';
 
@@ -38,10 +38,10 @@ export interface CliEngineContext {
 export const runProjectsCommand = (context: CliEngineContext, outputs: TerminalLine[]): void => {
   const { projects, tasks, logs, nowIso, locale, customTranslations } = context;
   if (projects.length === 0) {
-    outputs.push({ text: translate(locale, 'dynamic.cliErrNoProjects', customTranslations), type: 'error' });
+    outputs.push({ text: translate(locale, 'cli', 'ErrNoProjects', customTranslations), type: 'error' });
   } else {
     outputs.push({ text: '┌──────┬────────────────────────────────┬────────────────────────┐', type: 'info' });
-    outputs.push({ text: translate(locale, 'dynamic.cliProjHeader', customTranslations), type: 'info' });
+    outputs.push({ text: translate(locale, 'cli', 'ProjHeader', customTranslations), type: 'info' });
     outputs.push({ text: '├──────┼────────────────────────────────┼────────────────────────┤', type: 'info' });
     projects.forEach(p => {
       const timeStr = formatSeconds(getProjectDurationSeconds(p.id, tasks, logs, nowIso));
@@ -58,12 +58,12 @@ export const runTasksCommand = (args: string[], context: CliEngineContext, outpu
   const { projects, tasks, logs, nowIso, locale, customTranslations, selectedTaskId } = context;
   const pId = args[0];
   if (!pId) {
-    outputs.push({ text: translate(locale, 'dynamic.cliRequiresProjId', customTranslations), type: 'error' });
+    outputs.push({ text: translate(locale, 'cli', 'RequiresProjId', customTranslations), type: 'error' });
     return;
   }
   const proj = projects.find(p => p.id === pId);
   if (!proj) {
-    outputs.push({ text: `${translate(locale, 'dynamic.cliProjNotExist', customTranslations)} ${pId}`, type: 'error' });
+    outputs.push({ text: `${translate(locale, 'cli', 'ProjNotExist', customTranslations)} ${pId}`, type: 'error' });
     return;
   }
 
@@ -71,9 +71,9 @@ export const runTasksCommand = (args: string[], context: CliEngineContext, outpu
   const rootTasks = projTasks.filter(t => t.parentTaskId === null);
 
   if (rootTasks.length === 0) {
-    outputs.push({ text: `${proj.name}: ${translate(locale, 'dynamic.cliProjNoTasksYet', customTranslations)}`, type: 'info' });
+    outputs.push({ text: `${proj.name}: ${translate(locale, 'cli', 'ProjNoTasksYet', customTranslations)}`, type: 'info' });
   } else {
-    outputs.push({ text: `${translate(locale, 'dynamic.cliProjTasksHeader', customTranslations)}: ${proj.name} [ID: ${proj.id}]`, type: 'success' });
+    outputs.push({ text: `${translate(locale, 'cli', 'ProjTasksHeader', customTranslations)}: ${proj.name} [ID: ${proj.id}]`, type: 'success' });
     rootTasks.forEach(root => {
       const statusSymbol = root.completed ? '[X]' : '[ ]';
       const duration = formatSeconds(getTaskDurationSeconds(root.id, tasks, logs, nowIso));
@@ -101,10 +101,10 @@ export const runAddProjectCommand = (args: string[], context: CliEngineContext, 
   const { onAddProject, locale, customTranslations } = context;
   const name = args[0];
   if (!name) {
-    outputs.push({ text: translate(locale, 'dynamic.cliErrSpecifyProjQuotes', customTranslations), type: 'error' });
+    outputs.push({ text: translate(locale, 'cli', 'ErrSpecifyProjQuotes', customTranslations), type: 'error' });
   } else {
     onAddProject(name, 'indigo');
-    outputs.push({ text: `${translate(locale, 'dynamic.cliSuccessCreatedProj', customTranslations)}: ${name}`, type: 'success' });
+    outputs.push({ text: `${translate(locale, 'cli', 'SuccessCreatedProj', customTranslations)}: ${name}`, type: 'success' });
   }
 };
 
@@ -113,14 +113,14 @@ export const runAddTaskCommand = (args: string[], context: CliEngineContext, out
   const pId = args[0];
   const taskName = args[1];
   if (!pId || !taskName) {
-    outputs.push({ text: translate(locale, 'dynamic.cliErrUsageAddTask', customTranslations), type: 'error' });
+    outputs.push({ text: translate(locale, 'cli', 'ErrUsageAddTask', customTranslations), type: 'error' });
   } else {
     const projExists = projects.some(p => p.id === pId);
     if (!projExists) {
-      outputs.push({ text: `${translate(locale, 'dynamic.cliProjNotExist', customTranslations)} ${pId}`, type: 'error' });
+      outputs.push({ text: `${translate(locale, 'cli', 'ProjNotExist', customTranslations)} ${pId}`, type: 'error' });
     } else {
       onAddTask(pId, taskName, null);
-      outputs.push({ text: `${translate(locale, 'dynamic.cliSuccessAddedTask', customTranslations)}: ${taskName}`, type: 'success' });
+      outputs.push({ text: `${translate(locale, 'cli', 'SuccessAddedTask', customTranslations)}: ${taskName}`, type: 'success' });
     }
   }
 };
@@ -130,14 +130,14 @@ export const runAddSubtaskCommand = (args: string[], context: CliEngineContext, 
   const parentId = args[0];
   const subName = args[1];
   if (!parentId || !subName) {
-    outputs.push({ text: translate(locale, 'dynamic.cliErrUsageAddSubtask', customTranslations), type: 'error' });
+    outputs.push({ text: translate(locale, 'cli', 'ErrUsageAddSubtask', customTranslations), type: 'error' });
   } else {
     const parentTask = tasks.find(t => t.id === parentId);
     if (!parentTask) {
-      outputs.push({ text: `${translate(locale, 'dynamic.cliErrTaskNotExist', customTranslations)} ${parentId}`, type: 'error' });
+      outputs.push({ text: `${translate(locale, 'cli', 'ErrTaskNotExist', customTranslations)} ${parentId}`, type: 'error' });
     } else {
       onAddTask(parentTask.projectId, subName, parentId);
-      outputs.push({ text: `${translate(locale, 'dynamic.cliSuccessAddedSubtask', customTranslations)}: ${subName}`, type: 'success' });
+      outputs.push({ text: `${translate(locale, 'cli', 'SuccessAddedSubtask', customTranslations)}: ${subName}`, type: 'success' });
     }
   }
 };
@@ -158,7 +158,7 @@ export const runStartCommand = (args: string[], context: CliEngineContext, outpu
       const taskObj = tasks.find(t => t.id === currentTaskId);
       if (!taskObj) {
         outputs.push({
-          text: `${translate(locale, 'dynamic.cliErrTaskNotExist', customTranslations)} ${currentTaskId}`,
+          text: `${translate(locale, 'cli', 'ErrTaskNotExist', customTranslations)} ${currentTaskId}`,
           type: 'error'
         });
       } else if (taskObj.completed) {
@@ -177,13 +177,13 @@ export const runStartCommand = (args: string[], context: CliEngineContext, outpu
   } else {
     const taskObj = tasks.find(t => t.id === tId);
     if (!taskObj) {
-      outputs.push({ text: `${translate(locale, 'dynamic.cliErrTaskNotExist', customTranslations)} ${tId}`, type: 'error' });
+      outputs.push({ text: `${translate(locale, 'cli', 'ErrTaskNotExist', customTranslations)} ${tId}`, type: 'error' });
     } else if (taskObj.completed) {
-      outputs.push({ text: `${translate(locale, 'dynamic.cliErrTaskCompleted', customTranslations)} ${taskObj.name}`, type: 'error' });
+      outputs.push({ text: `${translate(locale, 'cli', 'ErrTaskCompleted', customTranslations)} ${taskObj.name}`, type: 'error' });
     } else {
       setSelectedTaskId(tId);
       onStartTimer(tId);
-      outputs.push({ text: `▶️ ${translate(locale, 'dynamic.cliTimerStarted', customTranslations)}: ${taskObj.name} [ID: ${tId}]`, type: 'success' });
+      outputs.push({ text: `▶️ ${translate(locale, 'cli', 'TimerStarted', customTranslations)}: ${taskObj.name} [ID: ${tId}]`, type: 'success' });
     }
   }
 };
@@ -200,7 +200,7 @@ export const runStopCommand = (args: string[], context: CliEngineContext, output
     });
   } else {
     if (!activeLog) {
-      outputs.push({ text: translate(context.locale, 'dynamic.cliNoActiveTimer', context.customTranslations), type: 'info' });
+      outputs.push({ text: translate(context.locale, 'cli', 'NoActiveTimer', context.customTranslations), type: 'info' });
     } else {
       const t = tasks.find(x => x.id === activeLog.taskId);
       onStopTimer();
@@ -216,14 +216,14 @@ export const runStatusCommand = (context: CliEngineContext, outputs: TerminalLin
     const p = t ? projects.find(x => x.id === t.projectId) : null;
     const diffSeconds = getTaskDurationSeconds(activeLog.taskId, tasks, logs, nowIso);
     outputs.push(
-      { text: translate(locale, 'dynamic.cliStatusHeader', customTranslations), type: 'info' },
+      { text: translate(locale, 'cli', 'StatusHeader', customTranslations), type: 'info' },
       { text: `  Task : ${t?.name} (ID: ${t?.id})`, type: 'output' },
       { text: `  Project : ${p?.name} (ID: ${p?.id})`, type: 'output' },
       { text: `  Time    : ${formatSeconds(diffSeconds)} elapsed`, type: 'success' },
       { text: '=========================================================', type: 'info' }
     );
   } else {
-    outputs.push({ text: translate(locale, 'dynamic.cliStateIdle', customTranslations), type: 'info' });
+    outputs.push({ text: translate(locale, 'cli', 'StateIdle', customTranslations), type: 'info' });
   }
 };
 
@@ -231,14 +231,14 @@ export const runCompleteCommand = (args: string[], context: CliEngineContext, ou
   const { tasks, onToggleTaskComplete, locale, customTranslations } = context;
   const tId = args[0];
   if (!tId) {
-    outputs.push({ text: translate(locale, 'dynamic.cliUsageCompleteTask', customTranslations), type: 'error' });
+    outputs.push({ text: translate(locale, 'cli', 'UsageCompleteTask', customTranslations), type: 'error' });
   } else {
     const tExists = tasks.some(t => t.id === tId);
     if (!tExists) {
-      outputs.push({ text: `${translate(locale, 'dynamic.cliErrTaskNotExist', customTranslations)} ${tId}`, type: 'error' });
+      outputs.push({ text: `${translate(locale, 'cli', 'ErrTaskNotExist', customTranslations)} ${tId}`, type: 'error' });
     } else {
       onToggleTaskComplete(tId);
-      outputs.push({ text: `${translate(locale, 'dynamic.cliTaskToggled', customTranslations)}: ${tId}`, type: 'success' });
+      outputs.push({ text: `${translate(locale, 'cli', 'TaskToggled', customTranslations)}: ${tId}`, type: 'success' });
     }
   }
 };
@@ -261,7 +261,7 @@ export const runHolidaysCommand = (args: string[], context: CliEngineContext, ou
     } else {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(date)) {
-        outputs.push({ text: translate(locale, 'dynamic.cliInvalidDateFormat', customTranslations), type: 'error' });
+        outputs.push({ text: translate(locale, 'cli', 'ErrInvalidDateFormat', customTranslations), type: 'error' });
       } else {
         const newHoliday: HolidayLeave = {
           id: dm.getNextId(holidays, 'hol_'),
@@ -278,10 +278,10 @@ export const runHolidaysCommand = (args: string[], context: CliEngineContext, ou
     }
   } else {
     if (holidays.length === 0) {
-      outputs.push({ text: translate(locale, 'dynamic.cliNoHolidays', customTranslations), type: 'info' });
+      outputs.push({ text: translate(locale, 'cli', 'NoHolidays', customTranslations), type: 'info' });
     } else {
       outputs.push({ text: '┌──────┬────────────┬─────────────┬────────────────────────────────┐', type: 'info' });
-      outputs.push({ text: translate(locale, 'dynamic.cliHolidaysHeader', customTranslations), type: 'info' });
+      outputs.push({ text: translate(locale, 'cli', 'HolidaysHeader', customTranslations), type: 'info' });
       outputs.push({ text: '├──────┼────────────┼─────────────┼────────────────────────────────┤', type: 'info' });
       holidays.forEach(h => {
         const typeStr = h.type === 'holiday' ? 'HOLIDAY' : 'LEAVE';

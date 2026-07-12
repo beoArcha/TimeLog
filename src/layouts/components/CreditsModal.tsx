@@ -2,8 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Sparkles } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
-import { DynamicKey } from '@common/i18n/keys/DynamicKey';
+import { translate } from '@common/i18n/translator';
 
 export default function CreditsModal() {
   const {
@@ -49,13 +48,13 @@ export default function CreditsModal() {
             <h3 className={`font-sans font-bold text-2xl mt-2 flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
               }`}>
               <Sparkles className="w-6 h-6 text-orange-400 animate-pulse" />
-              {translate(locale, DynamicKey.AboutFlowCreditsMit, customTranslations)}
+              {translate(locale, 'help', 'AboutFlowCreditsMit', customTranslations)}
             </h3>
           </div>
 
           <div className="flex flex-col gap-3">
             <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
-              🕺 {translate(locale, DynamicKey.AboutCreatorVibeCodingVibe, customTranslations)}
+              🕺 {translate(locale, 'help', 'AboutCreatorVibeCodingVibe', customTranslations)}
             </h4>
             <div className={`p-5 rounded-3xl border transition-all ${resolvedTheme === 'light'
                 ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#2C2421]'
@@ -89,20 +88,20 @@ export default function CreditsModal() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
-                💖 {translate(locale, DynamicKey.ComponentCreatorsAcknowledgement, customTranslations)}
+                💖 {translate(locale, 'help', 'ComponentCreatorsAcknowledgement', customTranslations)}
               </h4>
               <ul className={`p-4 rounded-3xl border list-disc pl-5 text-xs flex flex-col gap-1.5 leading-relaxed ${resolvedTheme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]' : 'bg-[#FCFAF8]/5 border-white/5 text-slate-300'
                 }`}>
-                <li><strong className="text-orange-400">Lucide React</strong>: {translate(locale, DynamicKey.ForGorgeousConsistentVectorIco, customTranslations)}</li>
-                <li><strong className="text-orange-400">Motion / Framer Motion</strong>: {translate(locale, DynamicKey.ForCinematicReactiveStateTrans, customTranslations)}</li>
-                <li><strong className="text-orange-400">Tailwind CSS v4</strong>: {translate(locale, DynamicKey.ForRapidElegantResponsiveUtili, customTranslations)}</li>
-                <li><strong className="text-orange-400">Vite & React 18</strong>: {translate(locale, DynamicKey.ForImmediateDevIterationsAndSo, customTranslations)}</li>
+                <li><strong className="text-orange-400">Lucide React</strong>: {translate(locale, 'help', 'ForGorgeousConsistentVectorIco', customTranslations)}</li>
+                <li><strong className="text-orange-400">Motion / Framer Motion</strong>: {translate(locale, 'help', 'ForCinematicReactiveStateTrans', customTranslations)}</li>
+                <li><strong className="text-orange-400">Tailwind CSS v4</strong>: {translate(locale, 'help', 'ForRapidElegantResponsiveUtili', customTranslations)}</li>
+                <li><strong className="text-orange-400">Vite & React 18</strong>: {translate(locale, 'help', 'ForImmediateDevIterationsAndSo', customTranslations)}</li>
               </ul>
             </div>
 
             <div className="flex flex-col gap-2">
               <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
-                📄 {translate(locale, DynamicKey.MitLicense, customTranslations)}
+                📄 {translate(locale, 'help', 'MitLicense', customTranslations)}
               </h4>
               <div className={`p-4 rounded-3xl border text-[9px] font-mono leading-relaxed h-[120px] overflow-y-auto ${resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42] shadow-inner' : 'bg-black/40 border-white/5 text-[#9B8C83]'
                 }`}>
@@ -139,7 +138,7 @@ export default function CreditsModal() {
               onClick={() => setShowCreditsModal(false)}
               className="bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold text-xs rounded-xl px-5 py-2.5 hover:opacity-95 transition-opacity cursor-pointer shadow-md"
             >
-              {translate(locale, DynamicKey.GreatClose, customTranslations)}
+              {translate(locale, 'help', 'GreatClose', customTranslations)}
             </button>
           </div>
 

@@ -1,12 +1,12 @@
 import { Project } from '@bindings/Project';
-import { translate, LocaleType, TranslationDictionary } from '@common/i18n/i18n';
-import { SmallGuiKey } from '@common/i18n/keys/SmallGuiKey';
+import { translate } from '@common/i18n/translator';
+import { Locale } from '@/src/bindings/Locale';
 
 interface ActiveProjectCardProps {
   activeProj: Project;
   resolvedTheme: string | undefined;
-  locale: LocaleType;
-  customTranslations: Partial<TranslationDictionary> | undefined;
+  locale: Locale;
+  customTranslations: any;
 }
 
 export function ActiveProjectCard({
@@ -23,12 +23,11 @@ export function ActiveProjectCard({
         />
         <div className="text-left">
           <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none">
-            {translate(locale, SmallGuiKey.AppProfile, customTranslations)}
+            {translate(locale, 'timer', 'AppProfile', customTranslations)}
           </p>
           <h4
-            className={`text-xs font-bold font-sans mt-0.5 truncate max-w-[220px] ${
-              resolvedTheme === 'light' ? 'text-slate-800' : 'text-slate-200'
-            }`}
+            className={`text-xs font-bold font-sans mt-0.5 truncate max-w-[220px] ${resolvedTheme === 'light' ? 'text-slate-800' : 'text-slate-200'
+              }`}
             title={activeProj.name}
           >
             {activeProj.name}

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Folder } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
-import { GuiKey } from '@common/i18n/keys/GuiKey';
+import { translate } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 
 interface TaskEmptyStateProps {
@@ -21,9 +20,9 @@ export default function TaskEmptyState({
       : 'border-white/10 text-[#9B8C83]'
       }`}>
       <Folder className="w-8 h-8 mx-auto text-[#9B8C83] mb-2" />
-      <p className="text-sm font-semibold">{translate(locale, GuiKey.NoTasksInProject, customTranslations)}</p>
+      <p className="text-sm font-semibold">{translate(locale, 'task', 'NoTasksInProject', customTranslations)}</p>
       <p className="text-xs text-[#8A7A71] mt-1">
-        {translate(locale, 'dynamic.createAMainProjectTaskAboveThe', customTranslations)}
+        {translate(locale, 'task', 'CreateMainTaskHint', customTranslations)}
       </p>
     </div>
   );

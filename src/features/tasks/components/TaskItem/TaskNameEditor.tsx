@@ -1,6 +1,6 @@
 import React from 'react';
 import { Locale } from '@bindings/Locale';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 interface TaskNameEditorProps {
   taskId: string;
@@ -10,7 +10,6 @@ interface TaskNameEditorProps {
   theme: string;
   textSizeClass: string;
   locale: Locale;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customTranslations: any;
   onRenameTask: ((id: string, name: string) => void) | undefined;
   setEditName: (name: string) => void;
@@ -57,12 +56,11 @@ export function TaskNameEditor({
       onClick={(e) => e.stopPropagation()}
       onBlur={commitEdit}
       onKeyDown={handleKeyDown}
-      aria-label={translate(locale, 'common.editName', customTranslations)}
-      className={`font-semibold ${textSizeClass} rounded px-1 outline-none w-full max-w-sm mr-2 ${
-        theme === 'light'
+      aria-label={translate(locale, 'common', 'EditName', customTranslations)}
+      className={`font-semibold ${textSizeClass} rounded px-1 outline-none w-full max-w-sm mr-2 ${theme === 'light'
           ? 'bg-white text-[#2C2421] border-[#DFD7CB]'
           : 'bg-black text-white border-white/20'
-      } border`}
+        } border`}
     />
   );
 }

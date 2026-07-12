@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 
 interface TimeLogTableRowProps {
@@ -80,7 +80,7 @@ export default function TimeLogTableRow({
               placeholder="Koniec czasu lub puste"
             />
           ) : (
-            <span className="text-indigo-400 font-semibold">{l.endTime || translate(locale, 'dbExplorer.trackingActive', customTranslations)}</span>
+            <span className="text-indigo-400 font-semibold">{l.endTime || translate(locale, 'database', 'TrackingActiveLabel', customTranslations)}</span>
           )}
         </td>
         <td className="py-3.5 px-4 truncate max-w-xs">
@@ -92,7 +92,7 @@ export default function TimeLogTableRow({
               className="bg-black/35 border border-white/20 px-2 py-1 rounded text-white"
             />
           ) : (
-            <span>{l.note || <span className="text-slate-500 italic">{translate(locale, 'dynamic.noNote', customTranslations)}</span>}</span>
+            <span>{l.note || <span className="text-slate-500 italic">{translate(locale, 'database', 'NoNote', customTranslations)}</span>}</span>
           )}
         </td>
         <td className="py-3.5 px-4">
@@ -101,7 +101,7 @@ export default function TimeLogTableRow({
               Oryg start: {getOriginalStartTime() ? new Date(getOriginalStartTime()).toLocaleTimeString() : 'N/A'}
             </span>
           ) : (
-            <span className="text-slate-500 text-[10px]">{translate(locale, 'dbExplorer.noChanges', customTranslations)}</span>
+            <span className="text-slate-500 text-[10px]">{translate(locale, 'database', 'NoChanges', customTranslations)}</span>
           )}
         </td>
         <td className="py-3.5 px-4 text-right">

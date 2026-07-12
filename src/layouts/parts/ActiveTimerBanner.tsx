@@ -2,8 +2,7 @@ import React from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { Clock, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { translate } from '@common/i18n/i18n';
-import { GuiKey } from '@common/i18n/keys/GuiKey';
+import { translate } from '@common/i18n/translator';
 import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { getScaleStyles } from './GuiStyles';
 
@@ -50,7 +49,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[10px] bg-orange-500/20 border border-orange-500/30 text-orange-500 font-bold px-2 py-0.5 rounded-full font-mono uppercase whitespace-nowrap">
-                  {translate(locale, GuiKey.ActiveTracker, customTranslations)}
+                  {translate(locale, 'timer', 'ActiveTracker', customTranslations)}
                 </span>
                 {activeProject && (
                   <span className={`text-xs font-semibold drop-shadow-sm flex items-center gap-1.5 min-w-0 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-200'
@@ -72,7 +71,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             <div className="text-right">
               <p className={`text-[10px] font-semibold tracking-wider font-mono uppercase ${theme === 'light' ? 'text-[#5A4A42]' : 'text-[#9B8C83]'
                 }`}>
-                {translate(locale, 'dynamic.registradoHoje', customTranslations)}
+                {translate(locale, 'timer', 'RegisteredToday', customTranslations)}
               </p>
               <p id="active-timer-display" className={`text-3xl font-extrabold tracking-tight font-mono ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
                 }`}>
@@ -100,10 +99,10 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             </div>
             <div>
               <h4 className={`font-semibold ${sc.textTitle} leading-tight ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
-                {translate(locale, 'dynamic.todosOsRastreadoresParados', customTranslations)}
+                {translate(locale, 'timer', 'AllTrackersStopped', customTranslations)}
               </h4>
               <p className={`text-xs mt-0.5 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>
-                {translate(locale, 'dynamic.selecioneUmaTarefaAbaixoEJogue', customTranslations)}
+                {translate(locale, 'timer', 'SelectTaskToPlay', customTranslations)}
               </p>
             </div>
           </div>
@@ -112,7 +111,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
               ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]'
               : 'bg-[#FCFAF8]/5 text-slate-300 border-white/10'
               }`}>
-              {translate(locale, 'dynamic.idleSQLReady', customTranslations)}
+              {translate(locale, 'engine', 'IdleSqlReady', customTranslations)}
             </span>
           </div>
         </div>

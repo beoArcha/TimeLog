@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import CollapsibleCard from '@components/CollapsibleCard';
-import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
+
+import { useOxyFlow } from '@common/hooks/OxyContext';
 
 export default function HolidaysLeavesTable() {
   const {
@@ -68,7 +69,7 @@ export default function HolidaysLeavesTable() {
 
   return (
     <CollapsibleCard
-      title={`holidays_leaves table (${holidays.length} ${translate(locale, 'dynamic.recordsPlural', customTranslations)})`}
+      title={`holidays_leaves table (${holidays.length} ${translate(locale, 'database', 'RecordsPlural', customTranslations)})`}
       icon={Database}
       iconColor="text-rose-400"
       titleColor="text-rose-400"
@@ -88,7 +89,7 @@ export default function HolidaysLeavesTable() {
           }}
           className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all cursor-pointer"
         >
-          {translate(locale, 'dynamic.addLeave', customTranslations)}
+          {translate(locale, 'calendar', 'AddLeave', customTranslations)}
         </button>
       }
     >
@@ -100,8 +101,8 @@ export default function HolidaysLeavesTable() {
               <th className="py-3 px-4">date</th>
               <th className="py-3 px-4">type</th>
               <th className="py-3 px-4">name</th>
-              <th className="py-3 px-4">{translate(locale, 'dynamic.originalValue', customTranslations)}</th>
-              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'dbExplorer.actions', customTranslations)}</th>
+              <th className="py-3 px-4">{translate(locale, 'database', 'OriginalValue', customTranslations)}</th>
+              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</th>
             </tr>
           </thead>
           <tbody className="dark:text-white">
@@ -132,8 +133,8 @@ export default function HolidaysLeavesTable() {
                           onChange={e => setHolidayForm(prev => ({ ...prev, type: e.target.value as any }))}
                           className="bg-black border border-white/20 px-2 py-1 rounded"
                         >
-                          <option value="holiday">{translate(locale, 'dbExplorer.holiday', customTranslations)}</option>
-                          <option value="leave">{translate(locale, 'dbExplorer.leave', customTranslations)}</option>
+                          <option value="holiday">{translate(locale, 'database', 'HolidayType', customTranslations)}</option>
+                          <option value="leave">{translate(locale, 'database', 'LeaveType', customTranslations)}</option>
                         </select>
                       ) : (
                         <span className="text-indigo-400">{h.type}</span>
@@ -157,7 +158,7 @@ export default function HolidaysLeavesTable() {
                           Oryg: {h.originalName || h.name} ({h.originalDate})
                         </span>
                       ) : (
-                        <span className="text-slate-500 text-[10px]">{translate(locale, 'dbExplorer.noChanges', customTranslations)}</span>
+                        <span className="text-slate-500 text-[10px]">{translate(locale, 'database', 'NoChanges', customTranslations)}</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
@@ -210,8 +211,8 @@ export default function HolidaysLeavesTable() {
                           {h.editHistory.map((x, idx) => (
                             <div key={idx} className="text-[11px] text-slate-400 mt-1">
                               <span className="text-slate-500">[{new Date(x.editedAt).toLocaleString()}]</span>{' '}
-                              {translate(locale, 'dbExplorer.modificationFrom', customTranslations)} <strong className="text-white">"{x.prevName}"</strong> ({x.prevDate}, {translate(locale, 'dbExplorer.type', customTranslations)} {x.prevType}) &rarr;{' '}
-                              {translate(locale, 'dbExplorer.reasonForModification', customTranslations)} <em className="text-teal-350">"{x.reason}"</em>
+                              {translate(locale, 'database', 'ModificationFrom', customTranslations)} <strong className="text-white">"{x.prevName}"</strong> ({x.prevDate}, {translate(locale, 'common', 'Type', customTranslations)} {x.prevType}) &rarr;{' '}
+                              {translate(locale, 'database', 'ReasonForModification', customTranslations)} <em className="text-teal-350">"{x.reason}"</em>
                             </div>
                           ))}
                         </div>

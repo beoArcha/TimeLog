@@ -1,11 +1,10 @@
 import React from 'react';
-import { translate, LocaleType, TranslationDictionary } from '@common/i18n/i18n';
-import { DynamicKey } from '@common/i18n/keys/DynamicKey';
-import { EngineKey } from '@common/i18n/keys/EngineKey';
+import { translate } from '@common/i18n/translator';
+import { Locale } from '@/src/bindings/Locale';
 
 interface AppFooterProps {
-  locale: LocaleType;
-  customTranslations: Partial<TranslationDictionary>;
+  locale: Locale;
+  customTranslations: any;
   handleResetLocalStorage: () => void;
   setShowCreditsModal: (show: boolean) => void;
 }
@@ -26,17 +25,17 @@ export default function AppFooter({
           onClick={() => setShowCreditsModal(true)}
           className="text-teal-400 hover:text-teal-300 font-bold underline transition-colors cursor-pointer"
         >
-          {translate(locale, DynamicKey.MitLicenseCreditsOxyFlow, customTranslations)}
+          {translate(locale, 'help', 'MitLicenseCreditsOxyFlow', customTranslations)}
         </button>
       </div>
       <div className="flex gap-4">
-        <span>{translate(locale, EngineKey.EngineReady, customTranslations)}</span>
+        <span>{translate(locale, 'engine', 'Ready', customTranslations)}</span>
         <button
           id="db-clean-force-btn"
           onClick={handleResetLocalStorage}
           className="text-orange-455 hover:text-orange-300 font-bold transition-all cursor-pointer"
         >
-          {translate(locale, EngineKey.SqlReset, customTranslations)}
+          {translate(locale, 'engine', 'SqlReset', customTranslations)}
         </button>
       </div>
     </footer>

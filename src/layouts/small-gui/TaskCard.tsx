@@ -2,9 +2,9 @@ import React from 'react';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { Play, Square } from 'lucide-react';
-import { translate, LocaleType, TranslationDictionary } from '@common/i18n/i18n';
-import { SmallGuiKey } from '@common/i18n/keys/SmallGuiKey';
+import { translate } from '@common/i18n/translator';
 import { SubtaskRow } from './SubtaskRow';
+import { Locale } from '@/src/bindings/Locale';
 
 interface TaskCardProps {
   key?: React.Key;
@@ -12,8 +12,8 @@ interface TaskCardProps {
   subtasks: Task[];
   activeLog: TimeLog | null;
   resolvedTheme: string | undefined;
-  locale: LocaleType;
-  customTranslations: Partial<TranslationDictionary> | undefined;
+  locale: Locale;
+  customTranslations: any;
   onStartTimer: (taskId: string) => void;
   onStopTimer: () => void;
   showToast: (msg: string) => void;
@@ -36,42 +36,39 @@ export function TaskCard({
     if (isRootActive) {
       onStopTimer();
       showToast(
-        `${translate(locale, SmallGuiKey.StoppedMeasurement, customTranslations)}${task.name}`,
+        `${translate(locale, 'timer', 'StoppedMeasurement', customTranslations)}${task.name}`,
       );
     } else {
       onStartTimer(task.id);
       showToast(
-        `${translate(locale, SmallGuiKey.StartedMeasurement, customTranslations)}${task.name}`,
+        `${translate(locale, 'timer', 'StartedMeasurement', customTranslations)}${task.name}`,
       );
     }
   };
 
   const timerTitle = isRootActive
-    ? translate(locale, SmallGuiKey.StopMeasurement, customTranslations)
-    : translate(locale, SmallGuiKey.StartMeasurement, customTranslations);
+    ? translate(locale, 'timer', 'StopMeasurement', customTranslations)
+    : translate(locale, 'timer', 'StartMeasurement', customTranslations);
 
   return (
     <div
-      className={`p-2 rounded-xl transition-colors border ${
-        resolvedTheme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/5'
-      }`}
+      className={`p-2 rounded-xl transition-colors border ${resolvedTheme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/5'
+        }`}
     >
       <div className="flex items-center justify-between gap-2">
         <span
-          className={`text-xs font-semibold truncate flex-1 ${
-            task.completed ? 'line-through text-slate-500' : ''
-          }`}
+          className={`text-xs font-semibold truncate flex-1 ${task.completed ? 'line-through text-slate-500' : ''
+            }`}
         >
           {task.name}
         </span>
 
         <button
           onClick={handleTimerClick}
-          className={`p-1.5 rounded-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer ${
-            isRootActive
+          className={`p-1.5 rounded-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer ${isRootActive
               ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
               : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30'
-          }`}
+            }`}
           title={timerTitle}
           aria-label={timerTitle}
         >

@@ -3,7 +3,7 @@ import { Database, Plus } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
 import CollapsibleCard from '@components/CollapsibleCard'; // Wait, let's make sure of the path to CollapsibleCard later, but for now we'll use @common/components/CollapsibleCard since we will move it there.
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
 import { STORAGE_KEYS } from '@common/constants';
 import AddLogForm from './AddLogForm';
@@ -82,7 +82,7 @@ export default function TimeLogsTable() {
 
   return (
     <CollapsibleCard
-      title={`time_logs table (${logs.length} ${translate(locale, 'dynamic.records', customTranslations)})`}
+      title={`time_logs table (${logs.length} ${translate(locale, 'database', 'Records', customTranslations)})`}
       icon={Database}
       iconColor="text-indigo-400"
       titleColor="text-indigo-400"
@@ -94,11 +94,11 @@ export default function TimeLogsTable() {
           onClick={() => setShowAddLogForm(!showAddLogForm)}
           className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all hover:scale-[1.01]"
         >
-          <Plus className="w-3.5 h-3.5" /> {translate(locale, 'dynamic.addLogManually', customTranslations)}
+          <Plus className="w-3.5 h-3.5" /> {translate(locale, 'database', 'AddLogManually', customTranslations)}
         </button>
       }
     >
-      <p className="text-[11px] text-slate-400 mb-4 mt-0.5">{translate(locale, 'dynamic.entriesCrucialLabel', customTranslations)}</p>
+      <p className="text-[11px] text-slate-400 mb-4 mt-0.5">{translate(locale, 'database', 'EntriesCrucialLabel', customTranslations)}</p>
 
       {showAddLogForm && (
         <AddLogForm
@@ -117,11 +117,11 @@ export default function TimeLogsTable() {
             <tr className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
               <th className="py-3 px-4 rounded-l-xl">id</th>
               <th className="py-3 px-4">task_id</th>
-              <th className="py-3 px-4">{translate(locale, 'dbExplorer.startStamp', customTranslations)}</th>
-              <th className="py-3 px-4">{translate(locale, 'dbExplorer.endStamp', customTranslations)}</th>
+              <th className="py-3 px-4">{translate(locale, 'database', 'StartStamp', customTranslations)}</th>
+              <th className="py-3 px-4">{translate(locale, 'database', 'EndStamp', customTranslations)}</th>
               <th className="py-3 px-4">note</th>
-              <th className="py-3 px-4">{translate(locale, 'dbExplorer.originalStamps', customTranslations)}</th>
-              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'dbExplorer.actions', customTranslations)}</th>
+              <th className="py-3 px-4">{translate(locale, 'database', 'OriginalStamps', customTranslations)}</th>
+              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</th>
             </tr>
           </thead>
           <tbody className="dark:text-white">

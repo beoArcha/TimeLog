@@ -1,12 +1,12 @@
 import { Clock, Maximize2, X } from 'lucide-react';
-import { translate, LocaleType, TranslationDictionary } from '@common/i18n/i18n';
-import { SmallGuiKey } from '@common/i18n/keys/SmallGuiKey';
+import { translate } from '@common/i18n/translator';
 import { GuiSize } from '@bindings/GuiSize';
 import versionsData from '../../versions.json';
+import { Locale } from '@/src/bindings/Locale';
 
 interface SmallGuiHeaderProps {
-  locale: LocaleType;
-  customTranslations: Partial<TranslationDictionary> | undefined;
+  locale: Locale;
+  customTranslations: any;
   alwaysOnTopSmall: boolean;
   lastNonSmallVariant: Exclude<GuiSize, 'small'> | undefined;
   setAlwaysOnTopSmall: (value: boolean) => void;
@@ -26,8 +26,8 @@ export function SmallGuiHeader({
 }: SmallGuiHeaderProps) {
   const onTopToastMessage = (checked: boolean) =>
     checked
-      ? translate(locale, SmallGuiKey.OnTopOn, customTranslations)
-      : translate(locale, SmallGuiKey.OnTopOff, customTranslations);
+      ? translate(locale, 'timer', 'AlwaysOnTopOn', customTranslations)
+      : translate(locale, 'timer', 'AlwaysOnTopOff', customTranslations);
 
   const restoreTitle =
     locale === 'pl' ? 'Przywróć większy rozmiar' : 'Restore larger size';
