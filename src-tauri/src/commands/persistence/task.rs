@@ -64,11 +64,7 @@ pub fn update_task(
             }
         } else if let Some(stat) = status {
             task.status = Some(stat.clone());
-            if stat == crate::types::TaskStatus::Done {
-                task.completed = true;
-            } else {
-                task.completed = false;
-            }
+            task.completed = stat == crate::types::TaskStatus::Done;
         }
 
         if task.completed {

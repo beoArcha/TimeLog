@@ -88,6 +88,7 @@ impl BusinessRepository {
         Ok(stmt.query_row(params![log_id], Self::map_time_log_row)?)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn update_time_log_with_history(
         &self,
         id: &str,

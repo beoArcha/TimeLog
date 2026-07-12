@@ -9,11 +9,20 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
+    "typecheck:rust": "cargo check --manifest-path src-tauri/Cargo.toml",
     "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "lint:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
+    "lint:rust:fix": "cargo fmt --manifest-path src-tauri/Cargo.toml",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "build:tauri": "npx @tauri-apps/cli build",
-    "build:tauri:debug": "npx @tauri-apps/cli build --debug"
+    "build:tauri:debug": "npx @tauri-apps/cli build --debug",
+    "build:all": "npm run build && npm run build:tauri",
+    "build:all:debug": "npm run build:tauri:debug",
+    "fix:all": "npm run lint:fix && npm run lint:rust:fix",
+    "check:all": "npm run typecheck && npm run typecheck:rust && npm run lint && npm run lint:rust",
+    "test:all": "npm run test && npm run test:coverage"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

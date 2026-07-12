@@ -61,6 +61,7 @@ impl TimeLogsPersistence {
         Ok(self.shared.business_repo.get_time_log_by_id(log_id)?)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn update_with_history(
         &self,
         id: &str,

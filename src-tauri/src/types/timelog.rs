@@ -14,19 +14,14 @@ pub struct TaskEditHistory {
     pub reason: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Default)]
 #[ts(export)]
 pub enum TaskStatus {
+    #[default]
     Todo,
     InProgress,
     Done,
     Blocked,
-}
-
-impl Default for TaskStatus {
-    fn default() -> Self {
-        Self::Todo
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
