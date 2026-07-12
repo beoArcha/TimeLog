@@ -33,7 +33,7 @@ export const dictionaries: Record<string, Record<string, Record<string, string>>
   help,
 };
 
-const isDev =
+const isDev: boolean =
   (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') ||
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV);
 
