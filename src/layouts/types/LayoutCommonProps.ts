@@ -63,12 +63,12 @@ export interface LayoutCommonProps {
   activeView?: string;
 }
 
-export interface GuiRouterProps {
+export interface LayoutRouterProps {
   variant: import('@bindings/LayoutVariant').LayoutVariant;
   commonProps: LayoutCommonProps;
 
-  isSmallExpanded: boolean;
-  setIsSmallExpanded: (val: boolean) => void;
+  isCompactExpanded: boolean;
+  setIsCompactExpanded: (val: boolean) => void;
   showToast: (msg: string) => void;
   handleMinimizeToTray: () => void;
   setLayoutVariant: (variant: import('@bindings/LayoutVariant').LayoutVariant) => void;

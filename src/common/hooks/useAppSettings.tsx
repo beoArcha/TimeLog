@@ -152,7 +152,7 @@ export const useAppSettings = () => {
   ]);
 
   const [activeLargeTab, setActiveLargeTab] = useState<'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits'>('main');
-  const [isSmallExpanded, setIsSmallExpanded] = useState<boolean>(true);
+  const [isCompactExpanded, setIsCompactExpanded] = useState<boolean>(true);
   const [currentProjectId, setCurrentProjectId] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEYS.CURRENT_PROJ_ID) || '1';
   });
@@ -175,7 +175,7 @@ export const useAppSettings = () => {
     alwaysOnTopSmall, setAlwaysOnTopSmall,
     alwaysOnTopMain, setAlwaysOnTopMain,
     activeLargeTab, setActiveLargeTab,
-    isSmallExpanded, setIsSmallExpanded,
+    isCompactExpanded, setIsCompactExpanded,
     currentProjectId, setCurrentProjectId,
     showCreditsModal, setShowCreditsModal,
     minimizeToTray, setMinimizeToTray

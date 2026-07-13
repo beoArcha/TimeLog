@@ -48,6 +48,10 @@ export interface OxyFlowState {
   setTextAndIconSize: React.Dispatch<React.SetStateAction<TextAndIconSize>>;
   layoutVariant: LayoutVariant;
   setLayoutVariant: React.Dispatch<React.SetStateAction<LayoutVariant>>;
+  isCompactExpanded: boolean;
+  setIsCompactExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  lastNonCompactVariant?: Exclude<LayoutVariant, 'compact'>;
+  setLastNonCompactVariant?: React.Dispatch<React.SetStateAction<Exclude<LayoutVariant, 'compact'>>>;
 
   engineState: 'searching' | 'connected';
   enginePID: number;

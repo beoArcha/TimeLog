@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import type { GuiRouterProps } from '../types/LayoutCommonProps';
+import type { LayoutRouterProps } from '../types/LayoutCommonProps';
 import { GuiState } from '../hooks/useGuiLogic';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useCompactLayout } from './hooks/useCompactLayout';
@@ -8,12 +8,12 @@ import { ActiveProjectCard } from './ActiveProjectCard';
 import { TaskVisibilityToggle } from './TaskVisibilityToggle';
 import { TaskList } from './TaskList';
 
-type CompactLayoutProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
+type CompactLayoutProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
 export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
   const {
-    isSmallExpanded,
-    setIsSmallExpanded,
+    isCompactExpanded,
+    setIsCompactExpanded,
     showToast,
     handleMinimizeToTray,
     setLayoutVariant,
@@ -90,15 +90,15 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
         )}
 
         <TaskVisibilityToggle
-          isExpanded={isSmallExpanded}
+          isExpanded={isCompactExpanded}
           resolvedTheme={resolvedTheme}
           locale={locale}
           customTranslations={customTranslations}
-          onToggle={() => setIsSmallExpanded(!isSmallExpanded)}
+          onToggle={() => setIsCompactExpanded(!isCompactExpanded)}
         />
 
         <AnimatePresence>
-          {isSmallExpanded && (
+          {isCompactExpanded && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}

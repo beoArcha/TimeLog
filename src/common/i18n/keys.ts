@@ -409,6 +409,7 @@ export type TimerKey =
   | 'SelectTaskToPlay'
   | 'ShowTasks'
   | 'SmallGuiTitle'
+  | 'CompactLayoutTitle'
   | 'StartMeasurement'
   | 'StartTimer'
   | 'StartedMeasurement'

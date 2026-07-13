@@ -1,13 +1,13 @@
 import React from 'react';
 import { GuiState } from './hooks/useGuiLogic';
-import type { GuiRouterProps } from './types/LayoutCommonProps';
+import type { LayoutRouterProps } from './types/LayoutCommonProps';
 import ActiveTimerBanner from './parts/ActiveTimerBanner';
 import TaskListView from '@features/tasks/TaskListView';
 import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
 import { GUI_MIN_SIZES } from './parts/LayoutStyles';
 
-type MediumLayoutProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
+type MediumLayoutProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
 export default function MediumLayout({ state }: MediumLayoutProps) {
   const { theme, activeView, textAndIconSize = 'medium' } = state;

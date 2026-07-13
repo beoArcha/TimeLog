@@ -25,9 +25,9 @@ import AppFooter from '../components/AppFooter';
 import RestoreButton from '@components/RestoreButton';
 
 // Builders
-import SmallGuiBuilder from '../builders/CompactLayoutBuilder';
-import MediumGuiBuilder from '../builders/MediumGuiBuilder';
-import LargeGuiBuilder from '../builders/FullLayoutBuilder';
+import CompactLayoutBuilder from '../builders/CompactLayoutBuilder';
+import MediumLayoutBuilder from '../builders/MediumLayoutBuilder';
+import FullLayoutBuilder from '../builders/FullLayoutBuilder';
 
 // Types & Logics
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
@@ -46,10 +46,10 @@ export default function GuiManager() {
     customTranslations,
     activeLargeTab,
     setActiveLargeTab,
-    isSmallExpanded,
-    setIsSmallExpanded,
+    isCompactExpanded,
+    setIsCompactExpanded,
     currentProjectId,
-    lastNonSmallVariant,
+    lastNonCompactVariant,
     showToast,
     handleMinimizeToTray,
     setLayoutVariant,
@@ -142,13 +142,13 @@ export default function GuiManager() {
   }
 
   const sharedProps = {
-    isSmallExpanded,
-    setIsSmallExpanded,
+    isCompactExpanded,
+    setIsCompactExpanded,
     showToast: showToast!,
     handleMinimizeToTray: handleMinimizeToTray!,
     setLayoutVariant,
     currentProjectId,
-    lastNonSmallVariant,
+    lastNonCompactVariant,
   };
 
   return (
@@ -179,7 +179,7 @@ export default function GuiManager() {
             showToast={showToast}
           />
         ) : layoutVariant === 'compact' ? (
-          <SmallGuiBuilder
+          <CompactLayoutBuilder
             state={guiState}
             {...sharedProps}
           />
@@ -216,7 +216,7 @@ export default function GuiManager() {
 
                 <div id="tab-viewport" className="min-h-[480px]">
                   {layoutVariant === 'medium' && (
-                    <MediumGuiBuilder
+                    <MediumLayoutBuilder
                       state={guiState}
                       {...sharedProps}
                     />
@@ -226,7 +226,7 @@ export default function GuiManager() {
                     <AnimatePresence mode="wait">
                       {activeLargeTab === 'main' && (
                         <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <LargeGuiBuilder
+                          <FullLayoutBuilder
                             state={guiState}
                             {...sharedProps}
                           />
@@ -262,7 +262,7 @@ export default function GuiManager() {
 
                       {activeLargeTab === 'reports' && (
                         <motion.div key="large-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <LargeGuiBuilder
+                          <FullLayoutBuilder
                             state={guiState}
                             {...sharedProps}
                           />

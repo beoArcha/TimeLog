@@ -1,10 +1,10 @@
 import React from 'react';
-import CompactLayout from '../small-gui/CompactLayout';
+import CompactLayout from '../compact/CompactLayout';
 import { GuiState } from '../hooks/useGuiLogic';
-import type { GuiRouterProps } from '../types/LayoutCommonProps';
+import type { LayoutRouterProps } from '../types/LayoutCommonProps';
 
-type CompactLayoutBuilderProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
+type CompactLayoutBuilderProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
-export default function SmallGuiBuilder({ state, ...rest }: CompactLayoutBuilderProps) {
+export default function CompactLayoutBuilder({ state, ...rest }: CompactLayoutBuilderProps) {
   return <CompactLayout state={state} {...rest} />;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { GuiState } from './hooks/useGuiLogic';
-import type { GuiRouterProps } from './types/LayoutCommonProps';
+import type { LayoutRouterProps } from './types/LayoutCommonProps';
 import Sidebar from './parts/Sidebar';
 import ActiveTimerBanner from './parts/ActiveTimerBanner';
 import TaskListView from '@features/tasks/TaskListView';
@@ -8,7 +8,7 @@ import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
 import { GUI_MIN_SIZES } from './parts/LayoutStyles';
 
-type FullLayoutProps = Omit<GuiRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
+type FullLayoutProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
 export default function FullLayout({ state }: FullLayoutProps) {
   const { theme, activeView, textAndIconSize = 'medium' } = state;
