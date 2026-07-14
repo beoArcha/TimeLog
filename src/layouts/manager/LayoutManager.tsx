@@ -3,6 +3,7 @@ import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { translate } from '@common/i18n/translator';
 import { motion, AnimatePresence } from 'motion/react';
+import AppProviders from './AppProviders';
 
 // Components
 import CliInterface from '@features/cli/CliInterface';
@@ -33,7 +34,7 @@ import FullLayoutBuilder from '../builders/FullLayoutBuilder';
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from '../hooks/useGuiLogic';
 
-export default function GuiManager() {
+function LayoutManagerContent() {
   const state = useOxyFlow();
 
   const {
@@ -322,5 +323,13 @@ export default function GuiManager() {
       )}
 
     </div>
+  );
+}
+
+export default function LayoutManager() {
+  return (
+    <AppProviders>
+      <LayoutManagerContent />
+    </AppProviders>
   );
 }
