@@ -14,7 +14,6 @@ interface TaskMetricsProps {
   theme: string;
   locale: Locale;
   customTranslations: any;
-  sc: any;
   onStartTimer: (id: string) => void;
   setShowSubtaskFormForId: (id: string | null) => void;
 }

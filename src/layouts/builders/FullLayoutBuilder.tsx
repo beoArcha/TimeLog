@@ -6,18 +6,16 @@ import ActiveTimerBanner from '../parts/ActiveTimerBanner';
 import TaskListView from '@features/tasks/TaskListView';
 import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
-import { GUI_MIN_SIZES } from '../parts/LayoutStyles';
 
 type FullLayoutBuilderProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
 export default function FullLayoutBuilder({ state }: FullLayoutBuilderProps) {
-  const { theme, activeView, textAndIconSize = 'medium' } = state;
+  const { theme, activeView } = state;
 
   return (
     <div
       id="gui-container"
-      className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'} flex-1`}
-      style={GUI_MIN_SIZES.full[textAndIconSize]}
+      className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'} flex-1 gui-min-size`}
     >
       <Sidebar state={state} />
 

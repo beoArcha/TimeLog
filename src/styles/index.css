@@ -174,3 +174,151 @@
     padding: 0;
   }
 }
+
+/* --- Phase 2E: CSS Design Tokens & Scaling --- */
+:root {
+  /* Default / Medium scale tokens */
+  --padding-main: 1.5rem;
+  --padding-section: 1rem;
+  --gap-main: 1.25rem;
+  --gap-section: 0.75rem;
+  --rounded-main: 1.5rem;
+  --rounded-section: 1rem;
+  --text-main: 0.875rem;
+  --text-title: 1rem;
+  --text-giant: 1.875rem;
+  --icon-small: 1rem;
+  --icon-medium: 1.25rem;
+  --icon-large: 2rem;
+  --input-py: 0.75rem;
+
+  /* Default GUI dimensions (fallback to full/medium layout config) */
+  --gui-min-width: 640px;
+  --gui-min-height: 1080px;
+}
+
+/* Small scale overrides */
+[data-text-size="small"] {
+  --padding-main: 1rem;
+  --padding-section: 0.75rem;
+  --gap-main: 0.75rem;
+  --gap-section: 0.5rem;
+  --rounded-main: 1rem;
+  --rounded-section: 0.75rem;
+  --text-main: 0.75rem;
+  --text-title: 0.875rem;
+  --text-giant: 1.25rem;
+  --icon-small: 0.75rem;
+  --icon-medium: 1rem;
+  --icon-large: 1.5rem;
+  --input-py: 0.5rem;
+}
+
+/* Large scale overrides */
+[data-text-size="large"] {
+  --padding-main: 2rem;
+  --padding-section: 1.5rem;
+  --gap-main: 2rem;
+  --gap-section: 1.25rem;
+  --rounded-main: 2.5rem;
+  --rounded-section: 1.5rem;
+  --text-main: 1rem;
+  --text-title: 1.25rem;
+  --text-giant: 3rem;
+  --icon-small: 1.25rem;
+  --icon-medium: 1.75rem;
+  --icon-large: 2.5rem;
+  --input-py: 1rem;
+}
+
+/* Layout Variants + Scale combinations for GUI min sizes */
+[data-layout-variant="medium"][data-text-size="small"] {
+  --gui-min-width: 480px;
+  --gui-min-height: 720px;
+}
+
+[data-layout-variant="medium"][data-text-size="medium"] {
+  --gui-min-width: 720px;
+  --gui-min-height: 1080px;
+}
+
+[data-layout-variant="medium"][data-text-size="large"] {
+  --gui-min-width: 960px;
+  --gui-min-height: 1440px;
+}
+
+[data-layout-variant="full"][data-text-size="small"] {
+  --gui-min-width: 960px;
+  --gui-min-height: 960px;
+}
+
+[data-layout-variant="full"][data-text-size="medium"] {
+  --gui-min-width: 1080px;
+  --gui-min-height: 1080px;
+}
+
+[data-layout-variant="full"][data-text-size="large"] {
+  --gui-min-width: 1440px;
+  --gui-min-height: 1440px;
+}
+
+@utility padding-main {
+  padding: var(--padding-main) !important;
+}
+
+@utility padding-section {
+  padding: var(--padding-section) !important;
+}
+
+@utility gap-main {
+  gap: var(--gap-main) !important;
+}
+
+@utility gap-section {
+  gap: var(--gap-section) !important;
+}
+
+@utility rounded-main {
+  border-radius: var(--rounded-main) !important;
+}
+
+@utility rounded-section {
+  border-radius: var(--rounded-section) !important;
+}
+
+@utility text-main {
+  font-size: var(--text-main) !important;
+}
+
+@utility text-title {
+  font-size: var(--text-title) !important;
+}
+
+@utility text-giant {
+  font-size: var(--text-giant) !important;
+}
+
+@utility icon-small {
+  width: var(--icon-small) !important;
+  height: var(--icon-small) !important;
+}
+
+@utility icon-medium {
+  width: var(--icon-medium) !important;
+  height: var(--icon-medium) !important;
+}
+
+@utility icon-large {
+  width: var(--icon-large) !important;
+  height: var(--icon-large) !important;
+}
+
+@utility input-py {
+  padding-top: var(--input-py) !important;
+  padding-bottom: var(--input-py) !important;
+}
+
+@utility gui-min-size {
+  min-width: var(--gui-min-width) !important;
+  min-height: var(--gui-min-height) !important;
+}

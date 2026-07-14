@@ -3,7 +3,7 @@ import { GuiState } from '../hooks/useGuiLogic';
 import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
-import { PROJECT_COLORS, getScaleStyles } from './LayoutStyles';
+import { PROJECT_COLORS } from './LayoutStyles';
 import versionsData from '../../versions.json';
 
 export default function Sidebar({ state }: { state: GuiState }) {
@@ -59,8 +59,6 @@ export default function Sidebar({ state }: { state: GuiState }) {
   const [editProjIcon, setEditProjIcon] = React.useState('');
   const [editProjTags, setEditProjTags] = React.useState('');
 
-  const sc = getScaleStyles(state.textAndIconSize || 'medium');
-
   const handleAddProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProjectName.trim()) return;
@@ -80,8 +78,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
   };
 
   return (
-    <div id="projects-sidebar" className={`lg:col-span-4 flex flex-col ${sc.gapMain}`}>
-      <div className={`backdrop-blur-md ${sc.roundedMain} ${sc.paddingMain} border shadow-2xl transition-all duration-300 ${theme === 'light'
+    <div id="projects-sidebar" className={`lg:col-span-4 flex flex-col gap-main`}>
+      <div className={`backdrop-blur-md rounded-main padding-main border shadow-2xl transition-all duration-300 ${theme === 'light'
         ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-[#DFD7CB]'
         : theme === 'high-contrast'
           ? 'bg-black border-2 border-white text-white'
@@ -89,26 +87,26 @@ export default function Sidebar({ state }: { state: GuiState }) {
         }`}>
         <div className={`flex items-center justify-between mb-4 border-b pb-3 ${theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10'
           }`}>
-          <h3 className={`font-sans font-semibold ${sc.textTitle} flex items-center gap-2 ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
+          <h3 className={`font-sans font-semibold text-title flex items-center gap-2 ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
             }`}>
-            <Folder className={`${sc.iconMedium} text-orange-400`} />
+            <Folder className={`icon-medium text-orange-400`} />
             {translate(locale, 'project', 'ProjectsLabel', customTranslations)} ({projects.length})
           </h3>
-          <span className={`${sc.textMain} bg-orange-500/20 border border-orange-500/30 text-orange-600 px-2 py-1 rounded-full font-mono font-bold uppercase tracking-wider`}>
+          <span className={`text-main bg-orange-500/20 border border-orange-500/30 text-orange-600 px-2 py-1 rounded-full font-mono font-bold uppercase tracking-wider`}>
             MicroORM Tables
           </span>
         </div>
 
-        <form onSubmit={handleAddProjectSubmit} className={`mb-6 ${sc.paddingSection} ${sc.roundedSection} border transition-all ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+        <form onSubmit={handleAddProjectSubmit} className={`mb-6 padding-section rounded-section border transition-all ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
           }`}>
-          <div className={`flex flex-col ${sc.gapSection}`}>
+          <div className={`flex flex-col gap-section`}>
             <input
               id="new-project-input"
               type="text"
               placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
               value={newProjectName}
               onChange={e => setNewProjectName(e.target.value)}
-              className={`w-full border px-3 ${sc.inputPy} ${sc.roundedSection} ${sc.textMain} focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all ${theme === 'light'
+              className={`w-full border px-3 input-py rounded-section text-main focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all ${theme === 'light'
                 ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421] placeholder-[#9B8C83]'
                 : 'bg-[#FCFAF8]/5 border-white/10 text-white placeholder-[#9B8C83]'
                 }`}
@@ -118,7 +116,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
               <button
                 type="button"
                 onClick={() => setShowAddAdvanced(!showAddAdvanced)}
-                className="text-[10px] font-mono text-slate-400 hover:text-orange-450 transition-colors uppercase tracking-wider cursor-pointer"
+                className="text-[10px] font-mono text-slate-400 hover:text-orange-455 transition-colors uppercase tracking-wider cursor-pointer"
               >
                 {showAddAdvanced ? 'Hide Options' : 'More Options'}
               </button>
@@ -165,7 +163,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
               </div>
             )}
 
-            <div className={`flex items-center justify-between ${sc.gapSection} mt-1`}>
+            <div className={`flex items-center justify-between gap-section mt-1`}>
               <div className="flex gap-1.5">
                 {PROJECT_COLORS.map(col => (
                   <button
@@ -173,7 +171,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                     key={col.name}
                     type="button"
                     onClick={() => setNewProjectColor(col.name)}
-                    className={`${sc.iconLarge} rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${newProjectColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-80'
+                    className={`icon-large rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${newProjectColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-80'
                       }`}
                   >
                     {newProjectColor === col.name && (
@@ -185,9 +183,9 @@ export default function Sidebar({ state }: { state: GuiState }) {
               <button
                 id="add-project-btn"
                 type="submit"
-                className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white ${sc.roundedSection} px-3.5 py-1.5 ${sc.textMain} font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md`}
+                className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white rounded-section px-3.5 py-1.5 text-main font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md`}
               >
-                <Plus className={sc.iconSmall} /> {translate(locale, 'common', 'Save', customTranslations)}
+                <Plus className="icon-small" /> {translate(locale, 'common', 'Save', customTranslations)}
               </button>
             </div>
           </div>
@@ -210,7 +208,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   id={`project-item-${p.id}`}
                   key={p.id}
                   onClick={() => setSelectedProjectId(p.id)}
-                  className={`text-left w-full ${sc.paddingSection} ${sc.roundedSection} flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${isSelected
+                  className={`text-left w-full padding-section rounded-section flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${isSelected
                     ? theme === 'light'
                       ? 'bg-orange-50 border-l-4 border-l-orange-500 border border-[#DFD7CB]/80 shadow-sm'
                       : theme === 'high-contrast'
@@ -223,11 +221,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 >
                   <div className="flex items-center gap-2.5 z-10 animate-fade-in min-w-0 flex-1 mr-2">
                     {p.icon ? (
-                      <span className={`${sc.iconMedium} flex items-center justify-center text-lg shrink-0`}>
+                      <span className={`icon-medium flex items-center justify-center text-lg shrink-0`}>
                         {p.icon}
                       </span>
                     ) : (
-                      <span className={`${sc.iconSmall} rounded-full ${projColor.bg} shadow-md shadow-black/20 shrink-0`} />
+                      <span className={`icon-small rounded-full ${projColor.bg} shadow-md shadow-black/20 shrink-0`} />
                     )}
                     <div className="min-w-0 flex-1">
                       {editingId === p.id ? (
@@ -253,12 +251,12 @@ export default function Sidebar({ state }: { state: GuiState }) {
                               setEditingId(null);
                             }
                           }}
-                          className={`font-semibold ${sc.textMain} rounded px-1 outline-none ${theme === 'light' ? 'bg-white text-[#2C2421] border-[#DFD7CB]' : 'bg-black text-white border-white/20'
+                          className={`font-semibold text-main rounded px-1 outline-none ${theme === 'light' ? 'bg-white text-[#2C2421] border-[#DFD7CB]' : 'bg-black text-white border-white/20'
                             } border`}
                         />
                       ) : (
-                        <p className={`font-semibold ${sc.textMain} truncate ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
-                          }`}>{p.archived && <span className={`${sc.textMain} bg-red-500 text-white px-1 py-0.5 rounded mr-1 leading-none uppercase`}>{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</p>
+                        <p className={`font-semibold text-main truncate ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
+                          }`}>{p.archived && <span className={`text-main bg-red-500 text-white px-1 py-0.5 rounded mr-1 leading-none uppercase`}>{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</p>
                       )}
 
                       {p.description && (
@@ -277,7 +275,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                         </div>
                       )}
 
-                      <p className={`${sc.textMain} opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
+                      <p className={`text-main opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
                         }`}>
                         {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
 
@@ -318,13 +316,13 @@ export default function Sidebar({ state }: { state: GuiState }) {
                     </div>
                   </div>
 
-                  <div className={`flex items-center gap-1.5 z-10 font-mono ${sc.textMain} font-bold px-2.5 py-1 rounded-full border transition-all shrink-0 ${theme === 'light'
+                  <div className={`flex items-center gap-1.5 z-10 font-mono text-main font-bold px-2.5 py-1 rounded-full border transition-all shrink-0 ${theme === 'light'
                     ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#5A4A42]'
                     : theme === 'high-contrast'
                       ? 'bg-black border-white text-white'
                       : 'bg-[#FCFAF8]/5 border-white/10 text-[#9B8C83]'
                     }`}>
-                    <Clock className={`${sc.iconMedium} text-orange-450`} />
+                    <Clock className={`icon-medium text-orange-450`} />
                     {formatSeconds(totalSeconds)}
                   </div>
                 </div>
@@ -334,7 +332,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
         </div>
       </div>
 
-      <div className={`border ${sc.roundedMain} ${sc.paddingMain} relative overflow-hidden shadow-2xl transition-all duration-300 ${theme === 'light'
+      <div className={`border rounded-main padding-main relative overflow-hidden shadow-2xl transition-all duration-300 ${theme === 'light'
         ? 'bg-gradient-to-tr from-orange-500/5 to-rose-500/5 border-[#DFD7CB]'
         : theme === 'high-contrast'
           ? 'bg-black border-2 border-white text-white'

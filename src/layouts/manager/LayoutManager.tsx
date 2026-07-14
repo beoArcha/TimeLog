@@ -159,6 +159,8 @@ function LayoutManagerContent() {
   return (
     <div
       id="app-root-container"
+      data-layout-variant={layoutVariant}
+      data-text-size={state.textAndIconSize || 'medium'}
       className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-auto p-3 sm:p-6 ${resolvedTheme === 'light'
         ? 'bg-[#F4EFEA] text-[#2C2421] selection:bg-orange-500/20 selection:text-orange-950'
         : resolvedTheme === 'high-contrast'

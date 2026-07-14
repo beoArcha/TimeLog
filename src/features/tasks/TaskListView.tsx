@@ -1,7 +1,7 @@
 import React from 'react';
 import { Folder } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import { getThemeStyles, getScaleStyles } from '@/src/layouts/parts/LayoutStyles';
+import { getThemeStyles } from '@/src/layouts/parts/LayoutStyles';
 import TaskItem from './components/TaskItem/TaskItem';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
@@ -93,7 +93,6 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
   }), [state, editingId, editName, showSubtaskFormForId, newSubtaskName]);
 
   const th = getThemeStyles(theme);
-  const sc = getScaleStyles(state.textAndIconSize || 'medium');
 
   const handleAddTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,19 +103,19 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
 
   if (!selectedProject) {
     return (
-      <div className={`border-2 border-dashed ${sc.roundedMain} p-16 text-center transition-all flex-1 min-h-0 ${theme === 'light'
+      <div className={`border-2 border-dashed rounded-main p-16 text-center transition-all flex-1 min-h-0 ${theme === 'light'
         ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#2C2421]'
         : 'bg-[#FCFAF8]/5 border-white/10'
         }`}>
         <Folder className="w-12 h-12 text-[#9B8C83] mx-auto mb-3" />
-        <h3 className={`font-bold ${sc.textTitle} ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations)}</h3>
-        <p className={`${sc.textMain} mt-1 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>Zaznacz projekt w bocznym menu po lewej stronie, aby zacząć zarządzać czasem.</p>
+        <h3 className={`font-bold text-title ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations)}</h3>
+        <p className={`text-main mt-1 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>Zaznacz projekt w bocznym menu po lewej stronie, aby zacząć zarządzać czasem.</p>
       </div>
     );
   }
 
   return (
-    <div id="project-tasks-sheet" className={`backdrop-blur-md ${sc.roundedMain} ${sc.paddingMain} border shadow-2xl flex flex-col ${sc.gapMain} transition-all duration-300 flex-1 min-h-0 ${theme === 'light'
+    <div id="project-tasks-sheet" className={`backdrop-blur-md rounded-main padding-main border shadow-2xl flex flex-col gap-main transition-all duration-300 flex-1 min-h-0 ${theme === 'light'
       ? 'bg-[#FCFAF8] border-[#DFD7CB]'
       : theme === 'high-contrast'
         ? 'bg-black border-2 border-white'
@@ -130,7 +129,6 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         theme={theme}
         locale={locale}
         customTranslations={customTranslations}
-        sc={sc}
         stats={stats}
         loading={loading}
         newTaskName={newTaskName}
@@ -138,7 +136,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         onAddTaskSubmit={handleAddTaskSubmit}
       />
 
-      <div id="tasks-tree-container" className={`flex flex-col ${sc.gapMain} overflow-y-auto pr-1 flex-1 min-h-0`}>
+      <div id="tasks-tree-container" className={`flex flex-col gap-main overflow-y-auto pr-1 flex-1 min-h-0`}>
         {rootTasks.length === 0 ? (
           <TaskEmptyState
             theme={theme}
@@ -153,7 +151,6 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
               state={taskItemState}
               isCondensed={isCondensed}
               th={th}
-              sc={sc}
             />
           ))
         )}
@@ -161,3 +158,4 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     </div>
   );
 }
+

@@ -16,7 +16,6 @@ interface TaskHeaderProps {
   locale: Locale;
   customTranslations: any;
   th: any;
-  sc: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
   onUpdateTask: ((
@@ -42,7 +41,6 @@ export function TaskHeader({
   locale,
   customTranslations,
   th,
-  sc,
   onToggleTaskComplete,
   onRenameTask,
   onUpdateTask,
@@ -53,7 +51,7 @@ export function TaskHeader({
   const isEditing = editingId === rootTask.id;
 
   return (
-    <div className={`flex items-start sm:items-center ${sc.gapSection} flex-1 min-w-0 w-full`}>
+    <div className={`flex items-start sm:items-center gap-section flex-1 min-w-0 w-full`}>
       <button
         id={`check-task-${rootTask.id}`}
         role="checkbox"
@@ -62,9 +60,9 @@ export function TaskHeader({
         className={`${th.textMuted} hover:text-orange-500 transition-colors cursor-pointer shrink-0 mt-0.5 sm:mt-0`}
       >
         {rootTask.completed ? (
-          <CheckSquare className={`${sc.iconMedium} text-orange-500 fill-orange-500/10`} />
+          <CheckSquare className={`icon-medium text-orange-500 fill-orange-500/10`} />
         ) : (
-          <EmptySquare className={`${sc.iconMedium}`} />
+          <EmptySquare className={`icon-medium`} />
         )}
       </button>
 
@@ -76,7 +74,7 @@ export function TaskHeader({
             editName={editName}
             isEditing={isEditing}
             theme={theme}
-            textSizeClass={`font-semibold ${sc.textMain}`}
+            textSizeClass={`font-semibold text-main`}
             locale={locale}
             customTranslations={customTranslations}
             onRenameTask={onRenameTask}
@@ -85,7 +83,7 @@ export function TaskHeader({
           />
         ) : (
           <span
-            className={`font-semibold ${sc.textTitle} flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${rootTask.completed
+            className={`font-semibold text-title flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${rootTask.completed
                 ? 'line-through text-[#9B8C83] font-normal'
                 : theme === 'light'
                   ? 'text-[#2C2421]'
