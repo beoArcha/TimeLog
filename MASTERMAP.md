@@ -306,11 +306,11 @@ Goal:
 
 Create a modular frontend architecture mirroring Engine and Persistence.
 
-#### Phase 2A
+#### Phase 2A ✅
 
 * Rename GuiSize → LayoutVariant
 
-#### Phase 2B
+#### Phase 2B ✅
 
 * Introduce Runtime applications
 * app-browser
