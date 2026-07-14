@@ -84,6 +84,8 @@ export interface OxyFlowState {
   showToast?: (msg: string) => void;
   handleMinimizeToTray?: () => Promise<void>;
   handleResetLocalStorage?: () => void;
+  trayNotification?: string | null;
+  setTrayNotification?: React.Dispatch<React.SetStateAction<string | null>>;
   showCreditsModal?: boolean;
   setShowCreditsModal?: React.Dispatch<React.SetStateAction<boolean>>;
   selectedTaskId: string | null;
