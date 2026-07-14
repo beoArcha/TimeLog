@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import type { LayoutRouterProps } from '../types/LayoutCommonProps';
 import { GuiState } from '../hooks/useGuiLogic';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useCompactLayout } from './hooks/useCompactLayout';
 import { CompactLayoutHeader } from './CompactLayoutHeader';
 import { ActiveProjectCard } from './ActiveProjectCard';
@@ -19,6 +18,8 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
     setLayoutVariant,
     currentProjectId,
     lastNonCompactVariant,
+    alwaysOnTopSmall,
+    setAlwaysOnTopSmall,
   } = rest;
 
   const {
@@ -32,7 +33,7 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
 
   const resolvedTheme = theme;
 
-  const { alwaysOnTopSmall, setAlwaysOnTopSmall } = useOxyFlow();
+
 
   const { activeProj, projectRootTasks, handleStartTimer, handleStopTimer, handleRestoreWindow } =
     useCompactLayout({

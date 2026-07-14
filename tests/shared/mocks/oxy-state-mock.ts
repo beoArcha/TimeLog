@@ -32,6 +32,8 @@ export const getMockOxyFlowState = (): OxyFlowState => ({
   setIsCompactExpanded: vi.fn(),
   lastNonCompactVariant: 'full',
   setLastNonCompactVariant: vi.fn(),
+  activeLargeTab: 'main',
+  setActiveLargeTab: vi.fn(),
   textAndIconSize: 'medium',
   setTextAndIconSize: vi.fn(),
   engineState: 'connected',

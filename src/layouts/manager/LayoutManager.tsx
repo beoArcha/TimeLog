@@ -51,6 +51,8 @@ function LayoutManagerContent() {
     setIsCompactExpanded,
     currentProjectId,
     lastNonCompactVariant,
+    alwaysOnTopSmall,
+    setAlwaysOnTopSmall,
     showToast,
     handleMinimizeToTray,
     setLayoutVariant,
@@ -150,6 +152,8 @@ function LayoutManagerContent() {
     setLayoutVariant,
     currentProjectId,
     lastNonCompactVariant,
+    alwaysOnTopSmall,
+    setAlwaysOnTopSmall,
   };
 
   return (

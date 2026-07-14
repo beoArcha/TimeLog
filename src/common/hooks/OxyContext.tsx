@@ -52,6 +52,8 @@ export interface OxyFlowState {
   setIsCompactExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   lastNonCompactVariant?: Exclude<LayoutVariant, 'compact'>;
   setLastNonCompactVariant?: React.Dispatch<React.SetStateAction<Exclude<LayoutVariant, 'compact'>>>;
+  activeLargeTab: 'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits';
+  setActiveLargeTab: React.Dispatch<React.SetStateAction<'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits'>>;
 
   engineState: 'searching' | 'connected';
   enginePID: number;

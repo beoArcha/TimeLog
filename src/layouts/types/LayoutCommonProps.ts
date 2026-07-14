@@ -74,4 +74,6 @@ export interface LayoutRouterProps {
   setLayoutVariant: (variant: import('@bindings/LayoutVariant').LayoutVariant) => void;
   currentProjectId: string;
   lastNonCompactVariant?: Exclude<import('@bindings/LayoutVariant').LayoutVariant, 'compact'>;
+  alwaysOnTopSmall: boolean;
+  setAlwaysOnTopSmall: (val: boolean) => void;
 }
