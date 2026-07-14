@@ -104,7 +104,7 @@ export default function CreditsTab() {
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
             </div>
             <h3 className={`text-sm font-bold ${headingColor}`}>
-              {translate(locale, 'help', 'LicenseTitle', customTranslations) || 'MIT License'}
+              {translate(locale, 'help', 'LicenseTitle', customTranslations) || 'MPL-2.0 License'}
             </h3>
           </div>
           <div className={`p-4 rounded-xl border font-mono text-[9px] leading-relaxed 
@@ -113,7 +113,7 @@ export default function CreditsTab() {
               <FileSignature className="w-3 h-3 inline-block mr-1 -mt-0.5" />
               OxyFlow
             </div>
-            {translate(locale, 'help', 'LicenseBody', customTranslations) || `Copyright (c) 2026 OxyFlow Team\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software...`}
+            {translate(locale, 'help', 'LicenseBody', customTranslations) || `Copyright (c) 2026 OxyFlow Team\n\nThis Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.`}
           </div>
         </motion.div>
       </div>

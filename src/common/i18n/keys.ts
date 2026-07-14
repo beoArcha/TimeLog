@@ -230,7 +230,7 @@ export type EngineKey =
 
 export type HelpKey =
   | 'AboutCreatorVibeCodingVibe'
-  | 'AboutFlowCreditsMit'
+  | 'AboutFlowCreditsMpl'
   | 'BrainIsSqlite'
   | 'CargoConfig'
   | 'CompilationTitle'
@@ -259,8 +259,8 @@ export type HelpKey =
   | 'InstallInstruction6'
   | 'LicenseBody'
   | 'LicenseTitle'
-  | 'MitLicense'
-  | 'MitLicenseCreditsOxyFlow'
+  | 'MplLicense'
+  | 'MplLicenseCreditsOxyFlow'
   | 'OsSelected'
   | 'OssThanks'
   | 'OssThanksDesc'

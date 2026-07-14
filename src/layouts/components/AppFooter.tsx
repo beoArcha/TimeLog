@@ -25,7 +25,7 @@ export default function AppFooter({
           onClick={() => setShowCreditsModal(true)}
           className="text-teal-400 hover:text-teal-300 font-bold underline transition-colors cursor-pointer"
         >
-          {translate(locale, 'help', 'MitLicenseCreditsOxyFlow', customTranslations)}
+          {translate(locale, 'help', 'MplLicenseCreditsOxyFlow', customTranslations)}
         </button>
       </div>
       <div className="flex gap-4">

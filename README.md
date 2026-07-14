@@ -144,4 +144,12 @@ oXyFlow aims to demonstrate that modern software can be:
 
 ---
 
+## 📄 License
+
+This project is licensed under the Mozilla Public License Version 2.0 (MPL-2.0).
+
+See [LICENSE.md](file:///c:/Users/Krzysiu/Source/TimeLog/LICENSE.md) and [NOTICE.md](file:///c:/Users/Krzysiu/Source/TimeLog/NOTICE.md) for details.
+
+---
+
 > **Less clicking. More flow.**

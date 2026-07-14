@@ -2,6 +2,7 @@
   "name": "oxy-flow",
   "private": true,
   "version": "1.6.0",
+  "license": "MPL-2.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
