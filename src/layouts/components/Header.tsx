@@ -23,10 +23,11 @@ export default function Header() {
 
   return (
     <div
+      data-tauri-drag-region
       className={`border-b transition-all duration-300 ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-slate-900/60 backdrop-blur-2xl border-white/5'
         } py-3.5 px-6 flex flex-col sm:flex-row items-center justify-between gap-4`}
     >
-      <div className="flex items-center gap-3">
+      <div data-tauri-drag-region className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white transform hover:rotate-3 transition-transform">
           <Shield className="w-5 h-5 text-white" />
         </div>

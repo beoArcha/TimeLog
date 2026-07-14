@@ -3,6 +3,7 @@ import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { translate } from '@common/i18n/translator';
 import { motion, AnimatePresence } from 'motion/react';
+import { isDesktopEnvironment } from '@common/utils/environment';
 import AppProviders from './AppProviders';
 
 // Components
@@ -34,7 +35,11 @@ import FullLayoutBuilder from '../builders/FullLayoutBuilder';
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from '../hooks/useGuiLogic';
 
-function LayoutManagerContent() {
+interface LayoutManagerContentProps {
+  runtime: 'tauri' | 'browser';
+}
+
+function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
   const state = useOxyFlow();
 
   const {
@@ -159,6 +164,7 @@ function LayoutManagerContent() {
   return (
     <div
       id="app-root-container"
+      data-runtime={runtime}
       data-layout-variant={layoutVariant}
       data-text-size={state.textAndIconSize || 'medium'}
       className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-auto p-3 sm:p-6 ${resolvedTheme === 'light'
@@ -332,10 +338,11 @@ function LayoutManagerContent() {
   );
 }
 
-export default function LayoutManager() {
+export default function LayoutManager({ runtime }: { runtime?: 'tauri' | 'browser' } = {}) {
+  const resolvedRuntime = runtime || (isDesktopEnvironment() ? 'tauri' : 'browser');
   return (
     <AppProviders>
-      <LayoutManagerContent />
+      <LayoutManagerContent runtime={resolvedRuntime} />
     </AppProviders>
   );
 }

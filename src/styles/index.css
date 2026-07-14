@@ -322,3 +322,42 @@
   min-width: var(--gui-min-width) !important;
   min-height: var(--gui-min-height) !important;
 }
+
+/* ==========================================
+   Runtime Polish: Desktop (Tauri) vs Browser
+   ========================================== */
+
+/* Desktop (Tauri) Runtime Polish */
+[data-runtime="tauri"] {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+[data-runtime="tauri"] input,
+[data-runtime="tauri"] textarea,
+[data-runtime="tauri"] [contenteditable="true"],
+[data-runtime="tauri"] .selectable-text {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Custom sleek scrollbars for desktop runtime */
+[data-runtime="tauri"] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+[data-runtime="tauri"] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+[data-runtime="tauri"] ::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.3);
+  border-radius: 3px;
+}
+[data-runtime="tauri"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.5);
+}
+
+/* Browser Runtime Polish */
+[data-runtime="browser"] {
+  overscroll-behavior-y: none;
+}

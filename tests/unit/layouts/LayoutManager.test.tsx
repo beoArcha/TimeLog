@@ -111,4 +111,21 @@ describe('Unit Tests: LayoutManager', () => {
     expect(queryByTestId('medium-layout')).toBeNull();
     expect(getByTestId('layout-tab-bar')).not.toBeNull();
   });
+
+  it('should render data-runtime, data-layout-variant and data-text-size attributes on root container', () => {
+    activeMockState = {
+      ...getMockOxyFlowState(),
+      layoutVariant: 'medium',
+      textAndIconSize: 'large',
+      isGuiClosed: false,
+      isMinimized: false
+    };
+
+    const { container } = render(<LayoutManager runtime="tauri" />);
+    const rootContainer = container.querySelector('#app-root-container');
+    expect(rootContainer).not.toBeNull();
+    expect(rootContainer?.getAttribute('data-runtime')).toBe('tauri');
+    expect(rootContainer?.getAttribute('data-layout-variant')).toBe('medium');
+    expect(rootContainer?.getAttribute('data-text-size')).toBe('large');
+  });
 });
