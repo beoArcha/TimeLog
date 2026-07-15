@@ -20,6 +20,7 @@ export default defineConfig(() => {
         '@components': path.resolve(__dirname, './src/components'),
         '@common': path.resolve(__dirname, './src/common'),
         '@bindings': path.resolve(__dirname, './src/bindings'),
+        '@tests': path.resolve(__dirname, './tests'),
       },
     },
     build: {
