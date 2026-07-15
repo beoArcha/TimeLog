@@ -6,7 +6,6 @@ import DbExplorer from '@features/db-explorer/DbExplorer';
 import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
-// Mock child components using exact relative path from test file
 vi.mock('@features/db-explorer/components/ProjectsTable', () => ({
   default: () => <div data-testid="mock-projects-table">ProjectsTable</div>
 }));
