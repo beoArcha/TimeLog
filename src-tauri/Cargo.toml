@@ -1,6 +1,6 @@
 [package]
 name = "oxy-flow"
-version = "1.6.1"
+version = "1.7.1"
 edition = "2021"
 description = "Lightweight work-timer built with Tauri v2 speed, SQLite, and a background system tray daemon."
 license = "MPL-2.0"
