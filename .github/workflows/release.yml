@@ -202,9 +202,11 @@ jobs:
           
           EXE_PATH=$(find src-tauri/target -maxdepth 4 -name "OxyFlow.exe" -o -name "oxy-flow.exe" | head -n 1)
           if [ -f "$EXE_PATH" ]; then
-            cp "$EXE_PATH" src-tauri/target/OxyFlow-Standalone-x64.exe
+            STANDALONE_NAME="OxyFlow-Standalone-x64-v${APP_VERSION}.exe"            
             
-            gh release upload "app-v${APP_VERSION}" src-tauri/target/OxyFlow-Standalone-x64.exe --clobber || true
+            cp "$EXE_PATH" "src-tauri/target/$STANDALONE_NAME"
+            
+            gh release upload "app-v${APP_VERSION}" "src-tauri/target/$STANDALONE_NAME" --clobber || true
           else
             echo "Warning: Could not find compiled Windows executable for standalone upload"
           fi
@@ -243,6 +245,7 @@ jobs:
           elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
             copy "*/bundle/msi/*.msi"
             copy "*/bundle/nsis/*.exe"
+            cp "src-tauri/target/OxyFlow-Standalone-x64-v${APP_VERSION}.exe" "$ARTIFACT_DIR/" || true
           elif [ "${{ matrix.platform }}" == "macos-latest" ]; then
             copy "*/bundle/dmg/*.dmg"
             copy "*/bundle/macos/*.app"
