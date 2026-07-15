@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import HolidaysLeavesTable from '@features/db-explorer/components/HolidaysLeavesTable';
 import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
