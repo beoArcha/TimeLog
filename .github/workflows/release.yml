@@ -9,16 +9,8 @@ concurrency:
 
 env:
   NODE_VERSION: 24
-  RUST_WORKSPACE: "src-tauri -> target"
+  RUST_WORKSPACE: "src-tauri"
   CARGO_PROFILE_DEV_DEBUG: 0
-
-  UBUNTU_PACKAGES: >-
-    pkg-config
-    libgtk-3-dev
-    libwebkit2gtk-4.1-dev
-    libappindicator3-dev
-    librsvg2-dev
-    patchelf
 
   UBUNTU_PACKAGES_LLD: >-
     pkg-config
@@ -128,7 +120,7 @@ jobs:
         env:
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
 
-        run: cargo test --manifest-path src-tauri/Cargo.toml
+        run: cargo tarpaulin --out Xml --output-dir coverage/rust --manifest-path src-tauri/Cargo.toml
 
       - name: Upload Rust Coverage
         uses: actions/upload-artifact@v4
@@ -181,15 +173,12 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ${{ env.UBUNTU_PACKAGES }}
+          sudo apt-get install -y ${{ env.UBUNTU_PACKAGES_LLD }}
 
       - name: Restore Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: ${{ env.RUST_WORKSPACE }}
-
-      - name: Install cargo-tarpaulin
-        uses: taiki-e/install-action@cargo-tarpaulin
 
       - name: Install Frontend Dependencies
         run: npm ci
@@ -198,16 +187,8 @@ jobs:
         id: tauri_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: cargo tauri build ${{ matrix.args }} --bundles ${{ matrix.bundles }}
-
-      - name: Verify Bundle
-        if: failure()
-        shell: bash
-        run: |
-          if [ ! -d src-tauri/target/release/bundle ]; then
-            echo "::error::Bundle directory not generated"
-            exit 1
-          fi
+          RUSTFLAGS: ${{ matrix.platform == 'ubuntu-22.04' && '-C link-arg=-fuse-ld=lld' || '' }}
+        run: npx tauri build ${{ matrix.args }} --bundles ${{ matrix.bundles }}
 
       - name: Upload Windows Standalone Executable
         if: matrix.platform == 'windows-latest'
@@ -215,10 +196,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
+          # Pobranie wersji bezpośrednio z package.json
+          APP_VERSION=$(node -p "require('./package.json').version")
+          echo "Wykryta wersja aplikacji: $APP_VERSION"
+          
           EXE_PATH=$(find src-tauri/target -maxdepth 4 -name "OxyFlow.exe" -o -name "oxy-flow.exe" | head -n 1)
           if [ -f "$EXE_PATH" ]; then
             cp "$EXE_PATH" src-tauri/target/OxyFlow-Standalone-x64.exe
-            gh release upload "app-v${{ steps.tauri_build.outputs.appVersion }}" src-tauri/target/OxyFlow-Standalone-x64.exe --clobber || true
+            
+            gh release upload "app-v${APP_VERSION}" src-tauri/target/OxyFlow-Standalone-x64.exe --clobber || true
           else
             echo "Warning: Could not find compiled Windows executable for standalone upload"
           fi
