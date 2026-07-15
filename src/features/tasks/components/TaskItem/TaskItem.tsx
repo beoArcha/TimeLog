@@ -10,16 +10,12 @@ import { SubtaskList } from './SubtaskList';
 interface TaskItemProps {
   key?: React.Key;
   rootTask: Task;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any;
   isCondensed: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   th: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sc: any;
 }
 
-export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskItemProps) {
+export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemProps) {
   const {
     tasks,
     logs,
@@ -31,6 +27,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
     selectedProject,
     onToggleTaskComplete,
     onRenameTask,
+    onUpdateTask,
     onDeleteTask,
     onStartTimer,
     onAddTask,
@@ -58,22 +55,21 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
   return (
     <div
       id={`root-task-card-${rootTask.id}`}
-      className={`${sc.roundedMain} ${sc.paddingSection} border transition-all flex flex-col ${sc.gapMain} group/root relative overflow-hidden backdrop-blur-md ${
-        isAnyRunning
+      className={`rounded-main padding-section border transition-all flex flex-col gap-main group/root relative overflow-hidden backdrop-blur-md ${isAnyRunning
           ? theme === 'light'
             ? 'bg-gradient-to-r from-orange-400/5 to-rose-500/5 border-orange-500/40 shadow-md text-[#2C2421]'
             : 'bg-gradient-to-r from-orange-500/10 to-rose-500/10 border-orange-500/40 shadow-xl text-white'
           : theme === 'light'
             ? 'bg-[#F4EFEA] border-[#DFD7CB]/80 hover:border-orange-500/25 hover:bg-[#EAE4DB] text-[#2C2421]'
             : 'bg-[#FCFAF8]/5 border-white/10 hover:border-orange-500/25 hover:bg-[#FCFAF8]/10 text-white'
-      }`}
+        }`}
     >
       {isAnyRunning && (
         <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-orange-400 to-rose-500" />
       )}
 
       <div
-        className={`flex ${isCondensed ? `flex-col ${sc.gapMain}` : `items-center justify-between ${sc.gapMain}`} animate-fade-in pl-1`}
+        className={`flex ${isCondensed ? 'flex-col gap-main' : 'items-center justify-between gap-main'} animate-fade-in pl-1`}
       >
         <TaskHeader
           rootTask={rootTask}
@@ -86,9 +82,9 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
           locale={locale}
           customTranslations={customTranslations}
           th={th}
-          sc={sc}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
+          onUpdateTask={onUpdateTask}
           onDeleteTask={onDeleteTask}
           setEditingId={setEditingId}
           setEditName={setEditName}
@@ -104,7 +100,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
           theme={theme}
           locale={locale}
           customTranslations={customTranslations}
-          sc={sc}
           onStartTimer={onStartTimer}
           setShowSubtaskFormForId={setShowSubtaskFormForId}
         />
@@ -138,6 +133,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th, sc }: TaskI
         th={th}
         onToggleTaskComplete={onToggleTaskComplete}
         onRenameTask={onRenameTask}
+        onUpdateTask={onUpdateTask}
         onDeleteTask={onDeleteTask}
         onStartTimer={onStartTimer}
         setEditingId={setEditingId}

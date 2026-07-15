@@ -20,6 +20,7 @@ export default defineConfig(() => {
         '@components': path.resolve(__dirname, './src/components'),
         '@common': path.resolve(__dirname, './src/common'),
         '@bindings': path.resolve(__dirname, './src/bindings'),
+        '@tests': path.resolve(__dirname, './tests'),
       },
     },
     build: {
@@ -53,6 +54,13 @@ export default defineConfig(() => {
     },
     test: {
       environment: 'jsdom',
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        'tests/e2e/**',
+        '**/.{idea,git,cache,output,temp}/**',
+        '**/{karma,rollup,webpack,vite,vitest}.config.*'
+      ],
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'json-summary', 'html'],

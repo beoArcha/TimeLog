@@ -6,7 +6,6 @@ pub mod config_repository_test;
 pub mod db_test;
 pub mod engine_test;
 pub mod errors_test;
-pub mod export_bindings_test;
 pub mod locale_test;
 pub mod tray_ids_test;
 pub mod tray_localization_test;

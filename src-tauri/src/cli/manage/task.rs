@@ -1,7 +1,7 @@
 use crate::cli::shared::constants::{MSG_TASK_ARCHIVED, MSG_TASK_CREATED};
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
-use crate::persistence::PersistenceLayer;
+use crate::persistence::Persistence;
 use crate::types::Task;
 use clap::Subcommand;
 
@@ -19,7 +19,7 @@ pub enum TaskCommand {
     },
 }
 
-pub fn handle(cmd: TaskCommand, persistence: &PersistenceLayer) -> Result<CliOutput, String> {
+pub fn handle(cmd: TaskCommand, persistence: &Persistence) -> Result<CliOutput, String> {
     match cmd {
         TaskCommand::Create { project_id, name } => {
             let id = generate_id();
@@ -35,13 +35,15 @@ pub fn handle(cmd: TaskCommand, persistence: &PersistenceLayer) -> Result<CliOut
                 original_completed: Some(false),
                 edit_history: Some(vec![]),
                 archived: Some(false),
+                status: Some(crate::types::TaskStatus::Todo),
             };
-            persistence.create_task(task).map_err(|e| e.to_string())?;
+            persistence.tasks.create(task).map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
         }
         TaskCommand::Archive { id, project_id } => {
             persistence
-                .archive_task(id.clone(), project_id)
+                .tasks
+                .archive(id.clone(), project_id)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_TASK_ARCHIVED.replace("{}", &id)))
         }

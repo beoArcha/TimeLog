@@ -2,8 +2,8 @@ import React from 'react';
 import { Settings, RefreshCw, AlertTriangle, CalendarDays, Info } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
 import EngineConfig from '@components/EngineConfig';
-import HolidaysAndLeaves from '@components/HolidaysAndLeaves';
-import { translate } from '@common/i18n/i18n';
+import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
+import { translate } from '@common/i18n/translator';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
 import versionsData from '../../versions.json';
@@ -12,15 +12,15 @@ export default function SettingsTab() {
   const { customTranslations, resolvedTheme, locale, setProjects, setTasks, setLogs } = useOxyFlow();
 
   const handleResetData = () => {
-    const response = window.prompt(translate(locale, 'dynamic.warningResetApp', customTranslations));
+    const response = window.prompt(translate(locale, 'cli', 'WarningResetApp', customTranslations));
     if (response === 'reset') {
       setProjects([]);
       setTasks([]);
       setLogs([]);
       localStorage.removeItem('oxytime_state_db_6');
-      toast.success(translate(locale, 'settings.resetSuccess', customTranslations));
+      toast.success(translate(locale, 'engine', 'ResetSuccess', customTranslations));
     } else if (response !== null) {
-      toast.error(translate(locale, 'settings.resetCancel', customTranslations));
+      toast.error(translate(locale, 'engine', 'ResetCancel', customTranslations));
     }
   };
 
@@ -30,9 +30,9 @@ export default function SettingsTab() {
         <div>
           <h2 className={`text-lg font-bold flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
             <Settings className="w-5 h-5 text-amber-500 animate-spin-slow" />
-            <span>{translate(locale, 'settings.title', customTranslations)}</span>
+            <span>{translate(locale, 'settings', 'Title', customTranslations)}</span>
           </h2>
-          <p className={`text-xs ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>{translate(locale, 'settings.description', customTranslations)}</p>
+          <p className={`text-xs ${resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-300'}`}>{translate(locale, 'settings', 'Description', customTranslations)}</p>
         </div>
       </div>
 
@@ -40,12 +40,12 @@ export default function SettingsTab() {
         <EngineConfig />
 
         <div className="mt-2">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400" /> {translate(locale, 'settings.holidaysTitle', customTranslations)}</h3>
-          <HolidaysAndLeaves />
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400" /> {translate(locale, 'settings', 'HolidaysTitle', customTranslations)}</h3>
+          <HolidaysLeavesView />
         </div>
 
         <CollapsibleCard
-          title={translate(locale, 'settings.destructiveZone', customTranslations)}
+          title={translate(locale, 'engine', 'DestructiveZone', customTranslations)}
           icon={AlertTriangle}
           iconColor="text-rose-500"
           titleColor="text-rose-500"
@@ -53,12 +53,12 @@ export default function SettingsTab() {
           wrapperClassName="p-6 rounded-3xl border border-rose-500/30 bg-rose-500/5 flex flex-col gap-4"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
-            <p className={`text-xs max-w-sm ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>{translate(locale, 'settings.hardResetDesc', customTranslations)}</p>
+            <p className={`text-xs max-w-sm ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>{translate(locale, 'engine', 'HardResetDesc', customTranslations)}</p>
             <button
               onClick={handleResetData}
               className="bg-rose-500 hover:bg-rose-600 px-6 py-3 rounded-2xl text-white text-xs font-bold uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >
-              <RefreshCw className="w-4 h-4" /> {translate(locale, 'settings.hardResetBtn', customTranslations)}
+              <RefreshCw className="w-4 h-4" /> {translate(locale, 'engine', 'HardResetBtn', customTranslations)}
             </button>
           </div>
         </CollapsibleCard>

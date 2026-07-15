@@ -2,25 +2,25 @@ import React from 'react';
 import { Database, Trash2, Plus } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
-import { LocalStorageDataManager as DataManager } from '@plugins/persistence/dataManager';
+import { translate } from '@common/i18n/translator';
+import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
 
 export default function PatchLogsTable() {
-  const { 
-    projects, 
-    patches, setPatches, 
-    locale, customTranslations, resolvedTheme 
+  const {
+    projects,
+    patches, setPatches,
+    locale, customTranslations, resolvedTheme
   } = useOxyFlow();
 
-  const themeClasses = resolvedTheme === 'light' 
+  const themeClasses = resolvedTheme === 'light'
     ? { wrapper: 'bg-white border-slate-200 shadow-slate-100', tableHeader: 'border-slate-200 text-slate-500 bg-slate-100/50' }
     : resolvedTheme === 'high-contrast'
-    ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
-    : { wrapper: 'bg-slate-900/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-slate-400 bg-black/30' };
+      ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
+      : { wrapper: 'bg-slate-900/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-slate-400 bg-black/30' };
 
   return (
     <CollapsibleCard
-      title={`patch_logs table (${patches?.length || 0} ${translate(locale, 'dynamic.records', customTranslations)})`}
+      title={`patch_logs table (${patches?.length || 0} ${translate(locale, 'database', 'Records', customTranslations)})`}
       icon={Database}
       iconColor="text-emerald-400"
       titleColor="text-emerald-400"
@@ -46,12 +46,12 @@ export default function PatchLogsTable() {
           className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all hover:scale-[1.01]"
         >
           <Plus className="w-3.5 h-3.5" />
-          {translate(locale, 'dynamic.addManualPatch', customTranslations)}
+          {translate(locale, 'database', 'AddManualPatch', customTranslations)}
         </button>
       }
     >
-      <p className="text-[11px] text-slate-400 mb-4 mt-0.5">{translate(locale, 'dynamic.patchTableAllows', customTranslations)}</p>
-      
+      <p className="text-[11px] text-slate-400 mb-4 mt-0.5">{translate(locale, 'database', 'PatchTableAllows', customTranslations)}</p>
+
       <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
         <table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <thead>
@@ -87,7 +87,7 @@ export default function PatchLogsTable() {
             ))}
             {(patches || []).length === 0 && (
               <tr>
-                <td colSpan={7} className="py-6 text-center text-slate-500 italic">{translate(locale, 'dynamic.noPatchesOperatingStandard', customTranslations)}</td>
+                <td colSpan={7} className="py-6 text-center text-slate-500 italic">{translate(locale, 'database', 'NoPatchesStandardMode', customTranslations)}</td>
               </tr>
             )}
           </tbody>

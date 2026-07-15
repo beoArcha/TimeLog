@@ -1,14 +1,13 @@
 import React from 'react';
 import { Shield, Moon, Sun, Eye, Laptop, Languages } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import versionsData from '../../versions.json';
-import { AppKey } from '@common/i18n/keys/AppKey';
 
 export default function Header() {
   const {
-    guiSize,
-    setGuiSize,
+    layoutVariant,
+    setLayoutVariant,
     textAndIconSize,
     setTextAndIconSize,
     theme,
@@ -24,10 +23,11 @@ export default function Header() {
 
   return (
     <div
+      data-tauri-drag-region
       className={`border-b transition-all duration-300 ${resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-slate-900/60 backdrop-blur-2xl border-white/5'
         } py-3.5 px-6 flex flex-col sm:flex-row items-center justify-between gap-4`}
     >
-      <div className="flex items-center gap-3">
+      <div data-tauri-drag-region className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white transform hover:rotate-3 transition-transform">
           <Shield className="w-5 h-5 text-white" />
         </div>
@@ -41,7 +41,7 @@ export default function Header() {
           </h1>
           <p className={`text-[10px] font-sans mt-0.5 ${resolvedTheme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
             }`}>
-            {translate(locale, AppKey.Subtitle, customTranslations)}
+            {translate(locale, 'app', 'Subtitle', customTranslations)}
           </p>
         </div>
       </div>
@@ -49,16 +49,17 @@ export default function Header() {
       <div className="flex flex-wrap items-center gap-3">
         <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
           }`}>
-          {(['small', 'medium', 'large'] as const).map(sz => {
-            const isActive = guiSize === sz;
+          {(['compact', 'medium', 'full'] as const).map(sz => {
+            const isActive = layoutVariant === sz;
             return (
               <button
                 key={sz}
+                data-testid={`layout-variant-${sz}`}
                 onClick={() => {
-                  setGuiSize(sz);
+                  setLayoutVariant(sz);
                   if (showToast) {
-                    const label = sz === 'small' ? translate(locale, AppKey.SizeSmall, customTranslations) : sz === 'medium' ? translate(locale, AppKey.SizeMedium, customTranslations) : translate(locale, AppKey.SizeLarge, customTranslations);
-                    showToast(`${translate(locale, AppKey.SizeChanged, customTranslations)} ${label}`);
+                    const label = sz === 'compact' ? translate(locale, 'app', 'SizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app', 'SizeMedium', customTranslations) : translate(locale, 'app', 'SizeLarge', customTranslations);
+                    showToast(`${translate(locale, 'app', 'SizeChanged', customTranslations)} ${label}`);
                   }
                 }}
                 className={`px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${isActive
@@ -70,7 +71,7 @@ export default function Header() {
                     : 'text-[#9B8C83] hover:text-white'
                   }`}
               >
-                {sz === 'small' ? translate(locale, AppKey.SizeSmall, customTranslations) : sz === 'medium' ? translate(locale, AppKey.SizeMedium, customTranslations) : translate(locale, AppKey.SizeLarge, customTranslations)}
+                {sz === 'compact' ? translate(locale, 'app', 'SizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app', 'SizeMedium', customTranslations) : translate(locale, 'app', 'SizeLarge', customTranslations)}
               </button>
             );
           })}
@@ -84,6 +85,7 @@ export default function Header() {
             return (
               <button
                 key={scale}
+                data-testid={`text-scale-${scale}`}
                 onClick={() => setTextAndIconSize(scale)}
                 className={`px-2.5 py-0.5 rounded-md uppercase transition-all cursor-pointer flex flex-col items-center justify-center min-w-[32px] ${isActive
                   ? resolvedTheme === 'light'

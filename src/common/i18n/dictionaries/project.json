@@ -1,0 +1,80 @@
+{
+  "en": {
+    "NewProject": "New Project",
+    "ProjectName": "Project Name",
+    "ProjectTotalTime": "Project Total Time",
+    "AddNewProject": "Add New Project",
+    "EnterProjectName": "Enter project name",
+    "ChooseProjectColor": "Choose project accent color",
+    "SelectProject": "Select project",
+    "NoProjects": "No projects.",
+    "ProjectsLabel": "Projects",
+    "NoProjectsYet": "No projects yet. Add one!",
+    "SelectProjectPlaceholder": "Select project"
+  },
+  "pl": {
+    "NewProject": "Nowy Projekt",
+    "ProjectName": "Nazwa projektu",
+    "ProjectTotalTime": "Suma czasu projektu",
+    "AddNewProject": "Dodaj Nowy Projekt",
+    "EnterProjectName": "Wpisz nazwę projektu",
+    "ChooseProjectColor": "Wybierz kolor projektu",
+    "SelectProject": "Wybierz projekt",
+    "NoProjects": "Brak projektów.",
+    "ProjectsLabel": "Projekty",
+    "NoProjectsYet": "Brak projektów. Dodaj powyżej!",
+    "SelectProjectPlaceholder": "Wybierz projekt"
+  },
+  "de": {
+    "NewProject": "Neues Projekt",
+    "ProjectName": "Projektname",
+    "ProjectTotalTime": "Gesamtzeit des Projekts",
+    "AddNewProject": "Neues Projekt hinzufügen",
+    "EnterProjectName": "Projektnamen eingeben",
+    "ChooseProjectColor": "Projekt-Akzentfarbe wählen",
+    "SelectProject": "Projekt auswählen",
+    "NoProjects": "Keine Projekte.",
+    "ProjectsLabel": "Projekte",
+    "NoProjectsYet": "Noch keine Projekte. Fügen Sie eins hinzu!",
+    "SelectProjectPlaceholder": "Projekt auswählen"
+  },
+  "es": {
+    "NewProject": "Nuevo Proyecto",
+    "ProjectName": "Nombre del Proyecto",
+    "ProjectTotalTime": "Tiempo Total del Proyecto",
+    "AddNewProject": "Añadir Nuevo Proyecto",
+    "EnterProjectName": "Ingresar nombre del proyecto",
+    "ChooseProjectColor": "Elegir color de acento",
+    "SelectProject": "Seleccionar proyecto",
+    "NoProjects": "Sin proyectos.",
+    "ProjectsLabel": "Proyectos",
+    "NoProjectsYet": "Aún sin proyectos.",
+    "SelectProjectPlaceholder": "Seleccionar proyecto"
+  },
+  "fr": {
+    "NewProject": "Nouveau Projet",
+    "ProjectName": "Nom du Projet",
+    "ProjectTotalTime": "Temps Total du Projet",
+    "AddNewProject": "Ajouter un nouveau projet",
+    "EnterProjectName": "Entrez le nom du projet",
+    "ChooseProjectColor": "Choisissez la couleur du projet",
+    "SelectProject": "Sélectionner un projet",
+    "NoProjects": "Aucun projet.",
+    "ProjectsLabel": "Projets",
+    "NoProjectsYet": "Pas de projets.",
+    "SelectProjectPlaceholder": "Sélectionner un projet"
+  },
+  "pt-br": {
+    "NewProject": "Novo Projeto",
+    "ProjectName": "Nome do Projeto",
+    "ProjectTotalTime": "Tempo Total do Projeto",
+    "AddNewProject": "Adicionar Novo Projeto",
+    "EnterProjectName": "Digite o nome do projeto",
+    "ChooseProjectColor": "Escolha a cor do projeto",
+    "SelectProject": "Selecionar projeto",
+    "NoProjects": "Sem projetos.",
+    "ProjectsLabel": "Projetos",
+    "NoProjectsYet": "Nenhum projeto ainda.",
+    "SelectProjectPlaceholder": "Selecionar projeto"
+  }
+}

@@ -1,318 +1,529 @@
 # ENGINEERING.md
 
-## Engineering Principles
+## Engineering Guide
 
-oXyFlow follows a Product Engineering approach.
+This document defines the engineering principles, architectural rules, development standards, and frontend/backend responsibilities for oXyFlow.
 
-The goal is not to build software as quickly as possible.
-
-The goal is to build software that remains understandable, maintainable and extensible for years.
-
-AI accelerates engineering. It does not replace engineering.
+It is the authoritative engineering reference for contributors, reviewers, and AI assistants.
 
 ---
 
-## Core Values
+## Engineering Goals
 
-### 1. Correctness First
+Every engineering decision should improve at least one of the following without unnecessarily harming the others.
 
-Correct software is always preferred over fast software.
-
-Priorities:
-
-1. Correctness
-2. Maintainability
-3. User Experience
-4. Performance
-5. New Features
-
-Never sacrifice correctness for speed.
+* Simplicity
+* Maintainability
+* Correctness
+* Predictability
+* Testability
+* Runtime Independence
+* Native User Experience
+* Long-Term Sustainability
 
 ---
 
-### 2. Sustainable Engineering
+## Core Engineering Principles
 
-Every change should reduce future maintenance cost.
+### KISS
 
-Prefer simple solutions over clever ones.
+Prefer the simplest solution that satisfies the current requirements.
 
-Avoid unnecessary abstractions.
+Avoid unnecessary abstraction.
 
-Every abstraction must solve a real problem.
-
----
-
-### 3. Human Ownership
-
-AI assists development.
-
-Humans own:
-
-* architecture
-* product vision
-* technical decisions
-* code quality
-* security
-* maintainability
-
-Generated code must always be reviewed.
+Avoid architecture created only for possible future scenarios.
 
 ---
 
-### 4. Flow-Oriented Design
+### SOLID
 
-Every feature should reduce friction.
+Apply SOLID only when it genuinely improves maintainability.
 
-Avoid feature creep.
-
-New functionality should improve real user workflows rather than increase feature count.
+Avoid interfaces, inheritance or indirection that provide no practical value.
 
 ---
 
-### 5. Native-First Philosophy
+### DRY
 
-oXyFlow is a desktop application.
+Business logic must never be duplicated.
 
-React provides the UI.
-
-Rust provides the application core.
-
-The application should feel native.
-
-Priorities:
-
-* responsiveness
-* low memory usage
-* predictable behavior
-* cross-platform compatibility
-
-Lightweight operation is more important than maximum performance.
+Platform-specific implementations may differ when doing so improves readability or runtime isolation.
 
 ---
 
-## Architecture
+### YAGNI
 
-### Layered Architecture
+Never implement features for hypothetical future needs.
 
-The application is organized into clear layers.
+Extension points should exist only when they already solve a real problem.
+
+---
+
+### Composition over Inheritance
+
+The entire application is based on composition.
+
+Systems are assembled from:
+
+* Routers
+* Managers
+* Builders
+* Runtime implementations
+
+Avoid deep inheritance hierarchies.
+
+---
+
+## Architectural Layers
 
 ```text
 React UI
-    ↓
-Hooks / State
-    ↓
-Tauri Commands
-    ↓
-Application Services
-    ↓
-Repositories
-    ↓
-Persistence Layer
-    ↓
-SQLite / CSV / Config
+        │
+        ▼
+Application Routers
+        │
+        ▼
+Runtime Implementations
+        │
+        ▼
+Business Engine / Persistence
 ```
 
-Dependencies always point downward.
-
-Lower layers must never depend on higher layers.
+Every layer has exactly one responsibility.
 
 ---
 
-### Domain Separation
+## Backend Architecture
 
-Keep business domains independent.
+### EngineRouter
 
-Examples:
+Responsible only for selecting the active Engine implementation.
 
-* Timer
-* Projects
-* Tasks
-* Settings
-* Configuration
-
-Avoid large shared modules.
+Never contains business logic.
 
 ---
 
-### Single Responsibility
+### PersistenceRouter
 
-Each module should have one reason to change.
+Responsible only for selecting the active Persistence implementation.
 
-Prefer many focused modules over a few large ones.
-
-If a file grows beyond roughly 300–400 lines, evaluate whether it should be split.
-
-Avoid:
-
-* God Objects
-* God Components
-* God Hooks
-* God Services
+Never contains business logic.
 
 ---
 
-### Repository Pattern
+### Engine
 
-Repositories own data access.
+Business logic belongs exclusively to Engine.
 
-Business logic must not directly communicate with storage.
+Responsibilities include:
 
-Storage implementations should be replaceable without changing business logic.
-
----
-
-### Persistence Layer
-
-Persistence implementations should remain isolated.
-
-Supported storage backends may include:
-
-* SQLite
-* CSV
-* Configuration files
-
-Persistence should never leak into UI code.
-
----
-
-## Frontend Guidelines
-
-React is responsible for:
-
-* presentation
-* user interaction
-* state orchestration
-
-React should not contain business logic.
-
-Complex business rules belong in Rust.
-
----
-
-## Backend Guidelines
-
-Rust owns:
-
-* business rules
-* persistence
+* timer lifecycle
+* elapsed calculations
+* statistics
 * validation
-* application services
-* performance-critical operations
+* workflows
+* aggregates
 
-Rust is the source of truth.
+Rust remains the reference implementation.
 
 ---
 
-## State Management
+### Persistence
 
-Prefer small domain-specific state.
+Persistence is responsible only for storing and retrieving data.
 
-Avoid global application stores whenever possible.
+Responsibilities:
+
+* load
+* save
+* update
+* delete
+
+Persistence never:
+
+* validates business rules
+* calculates statistics
+* changes workflows
+
+---
+
+## Frontend Architecture
+
+The frontend follows the same architectural philosophy as the backend.
+
+Business logic remains outside React.
+
+Frontend is divided into independent responsibilities.
+
+---
+
+### Runtime
+
+A Runtime represents the execution environment.
+
+Current runtimes:
+
+* Browser
+* Tauri
+
+Future runtimes may include:
+
+* Electron
+* Mobile
+* Embedded
+* WebView
+
+Runtime is responsible only for:
+
+* environment integration
+* native APIs
+* window management
+* runtime wrappers
+* runtime styling
+
+Runtime never changes:
+
+* business logic
+* layout composition
+* component hierarchy
+
+---
+
+### Runtime Applications
+
+Each runtime owns its application entry point.
 
 Examples:
 
-* Timer state
-* Projects
-* Tasks
-* Settings
-* Window state
+```text
+app-browser/
 
-State should remain predictable, isolated and testable.
+app-tauri/
+```
+
+Both expose exactly the same frontend architecture.
+
+Differences should remain limited to:
+
+* runtime integration
+* window behavior
+* runtime CSS
+* native APIs
+
+---
+
+### LayoutManager
+
+LayoutManager composes the application inside the current runtime.
+
+Responsibilities:
+
+* host application shell
+* compose LayoutVariant
+* provide shared application structure
+* host common providers
+
+LayoutManager never decides:
+
+* runtime
+* layout variant
+* visual scale
+
+Those values come from application configuration.
+
+---
+
+### LayoutVariant
+
+LayoutVariant defines application composition.
+
+Examples:
+
+* Full
+* Half
+* Compact
+
+LayoutVariant determines:
+
+* page composition
+* column layout
+* navigation placement
+* major screen regions
+
+Each LayoutVariant has its own Builder.
+
+---
+
+### Layout Builders
+
+Builders compose layouts.
+
+Examples:
+
+* FullBuilder
+* HalfBuilder
+* CompactBuilder
+
+Builders never:
+
+* calculate sizes
+* detect runtime
+* modify business logic
+
+Builders only compose views.
+
+---
+
+### TextAndIconSize
+
+TextAndIconSize defines visual scale.
+
+It controls only:
+
+* typography
+* icon sizes
+* spacing
+* paddings
+* border radius
+* CSS Design Tokens
+
+It never changes layout composition.
+
+---
+
+## CSS Architecture
+
+CSS is responsible for presentation.
+
+React components should not calculate:
+
+* spacing
+* paddings
+* margins
+* typography
+* sizing
+
+Visual scaling belongs entirely to CSS Design Tokens.
+
+Application state is exposed through root classes.
+
+Example:
+
+```text
+runtime-tauri
+
+layout-full
+
+text-medium
+```
+
+Components consume only CSS variables.
+
+Example:
+
+```css
+padding: var(--spacing-card);
+```
+
+React should not contain conditional styling logic based on scale.
+
+---
+
+## React Responsibilities
+
+React is responsible only for:
+
+* rendering
+* user interaction
+* local UI state
+* view composition
+
+React must never contain:
+
+* business calculations
+* persistence logic
+* runtime selection
+* platform-specific workflows
+
+---
+
+## Component Rules
+
+Components should:
+
+* be small
+* have a single responsibility
+* remain reusable
+* avoid unnecessary state
+
+Prefer composition.
+
+Avoid monolithic components.
+
+---
+
+## Hooks
+
+Hooks orchestrate UI behavior.
+
+Hooks must not:
+
+* implement business logic
+* access persistence directly
+* duplicate Engine behavior
+
+---
+
+## Repository Rules
+
+Repositories only access storage.
+
+Never:
+
+* validate
+* calculate
+* orchestrate workflows
+
+---
+
+## Runtime Rules
+
+Runtime-specific code must remain isolated.
+
+No shared component should know whether it runs inside:
+
+* Browser
+* Tauri
+
+Runtime differences belong only to runtime implementations.
+
+---
+
+## Builder Rules
+
+Builders define structure.
+
+Builders never define scale.
+
+Builders never define runtime behavior.
+
+---
+
+## Testing Strategy
+
+### Unit Tests
+
+* utilities
+* plugins
+* repositories
+* builders
+
+---
+
+### Integration Tests
+
+* routers
+* runtime communication
+* tauri commands
+* persistence
+
+---
+
+### End-to-End
+
+* timer workflow
+* project workflow
+* task workflow
+* configuration
 
 ---
 
 ## Performance
 
-Optimize only after correctness.
+Always prioritize:
 
-Priorities:
+1. Correctness
+2. Maintainability
+3. Readability
+4. Performance
 
-1. Low memory usage
-2. Fast startup
-3. Predictable resource consumption
-4. Efficient I/O
-5. Minimal unnecessary rendering
-
-Avoid premature optimization.
-
-Prefer lightweight solutions over micro-optimizations.
+Never sacrifice architecture for hypothetical optimizations.
 
 ---
 
-## Testing
+## AI Development Workflow
 
-Tests validate behavior rather than implementation.
+Every architectural change follows the same sequence.
 
-Preferred order:
+```text
+Architecture
 
-1. Unit tests
-2. Integration tests
+↓
 
-Every architectural change should preserve existing tests.
+Documentation
 
----
+↓
 
-## Development Workflow
+Contracts
 
-Before considering a task complete, verify quality.
+↓
 
-Frontend:
+Implementation
 
-* npm run lint
-* npm run typecheck
-* npm run test
+↓
 
-Backend:
+Tests
 
-* cargo fmt
-* cargo test
+↓
 
-Address root causes instead of applying temporary fixes.
+Refactoring
 
-Avoid introducing cascading errors.
+↓
 
----
+Optimization
 
-## AI-Assisted Development
+↓
 
-AI should be used for:
+Release
+```
 
-* implementation
-* architecture discussions
-* code review
-* documentation
-* brainstorming
-* identifying edge cases
-
-Never accept generated code without validation.
-
-AI suggestions should challenge existing solutions, not merely implement them.
+AI must never skip steps.
 
 ---
 
-## Documentation
+## Definition of Done
 
-Architecture is documented.
+A task is complete only when:
 
-Important design decisions are documented.
-
-Documentation should explain *why*, not repeat *what* the code already shows.
-
-Keep documentation concise and current.
+* architecture remains consistent
+* documentation is updated
+* tests pass
+* typecheck passes
+* lint passes
+* formatting passes
+* both runtimes behave consistently
+* new code follows engineering rules
 
 ---
 
-## Decision Rule
+## Non-Negotiable Rules
 
-When several solutions are technically valid, prefer the one that is:
+### Never
 
-* simpler
-* easier to understand
-* easier to maintain
-* easier to test
-* easier to extend
-* consistent with the existing architecture
+* Put business logic into React.
+* Bypass EngineRouter.
+* Bypass PersistenceRouter.
+* Couple UI to storage.
+* Detect runtime inside shared components.
+* Calculate UI scale inside React components.
+* Mix layout composition with visual scaling.
 
-Avoid unnecessary complexity.
+### Always
 
-Consistency is usually more valuable than novelty.
+* Keep responsibilities focused.
+* Prefer composition.
+* Isolate runtimes.
+* Keep LayoutVariant independent from TextAndIconSize.
+* Keep CSS responsible for presentation.
+* Keep components simple.
+* Leave the project cleaner than you found it.

@@ -14,9 +14,9 @@ pub fn get_text(item: TrayItem, locale: Locale) -> &'static str {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TrayItem {
     ToggleVisibility,
-    GuiSmall,
+    GuiCompact,
     GuiMedium,
-    GuiLarge,
+    GuiFull,
     ToggleOnTop,
     StopAllTimers,
     QuitApp,
@@ -25,9 +25,9 @@ pub enum TrayItem {
 fn en(item: TrayItem) -> &'static str {
     match item {
         TrayItem::ToggleVisibility => "Show / Hide Window",
-        TrayItem::GuiSmall => "GUI: Small",
+        TrayItem::GuiCompact => "GUI: Compact",
         TrayItem::GuiMedium => "GUI: Medium",
-        TrayItem::GuiLarge => "GUI: Large",
+        TrayItem::GuiFull => "GUI: Full",
         TrayItem::ToggleOnTop => "Always on Top",
         TrayItem::StopAllTimers => "Stop All Timers",
         TrayItem::QuitApp => "Quit Completely",
@@ -37,9 +37,9 @@ fn en(item: TrayItem) -> &'static str {
 fn pl(item: TrayItem) -> &'static str {
     match item {
         TrayItem::ToggleVisibility => "Pokaż / Ukryj okno",
-        TrayItem::GuiSmall => "GUI: Mały",
+        TrayItem::GuiCompact => "GUI: Kompaktowy",
         TrayItem::GuiMedium => "GUI: Średni",
-        TrayItem::GuiLarge => "GUI: Duży",
+        TrayItem::GuiFull => "GUI: Pełny",
         TrayItem::ToggleOnTop => "Zawsze na wierzchu",
         TrayItem::StopAllTimers => "Zatrzymaj wszystkie timery",
         TrayItem::QuitApp => "Wyjdź całkowicie",
@@ -49,9 +49,9 @@ fn pl(item: TrayItem) -> &'static str {
 fn de(item: TrayItem) -> &'static str {
     match item {
         TrayItem::ToggleVisibility => "Fenster anzeigen / ausblenden",
-        TrayItem::GuiSmall => "GUI: Klein",
+        TrayItem::GuiCompact => "GUI: Kompakt",
         TrayItem::GuiMedium => "GUI: Mittel",
-        TrayItem::GuiLarge => "GUI: Groß",
+        TrayItem::GuiFull => "GUI: Voll",
         TrayItem::ToggleOnTop => "Immer im Vordergrund",
         TrayItem::StopAllTimers => "Alle Timer stoppen",
         TrayItem::QuitApp => "Vollständig beenden",
@@ -61,9 +61,9 @@ fn de(item: TrayItem) -> &'static str {
 fn fr(item: TrayItem) -> &'static str {
     match item {
         TrayItem::ToggleVisibility => "Afficher / Masquer la fenêtre",
-        TrayItem::GuiSmall => "GUI: Petit",
+        TrayItem::GuiCompact => "GUI: Compact",
         TrayItem::GuiMedium => "GUI: Moyen",
-        TrayItem::GuiLarge => "GUI: Grand",
+        TrayItem::GuiFull => "GUI: Plein",
         TrayItem::ToggleOnTop => "Toujours au premier plan",
         TrayItem::StopAllTimers => "Arrêter tous les minuteurs",
         TrayItem::QuitApp => "Quitter complètement",
@@ -73,9 +73,9 @@ fn fr(item: TrayItem) -> &'static str {
 fn es(item: TrayItem) -> &'static str {
     match item {
         TrayItem::ToggleVisibility => "Mostrar / Ocultar ventana",
-        TrayItem::GuiSmall => "GUI: Pequeño",
+        TrayItem::GuiCompact => "GUI: Compacto",
         TrayItem::GuiMedium => "GUI: Mediano",
-        TrayItem::GuiLarge => "GUI: Grande",
+        TrayItem::GuiFull => "GUI: Completo",
         TrayItem::ToggleOnTop => "Siempre en primer plano",
         TrayItem::StopAllTimers => "Detener todos los temporizadores",
         TrayItem::QuitApp => "Salir completamente",
@@ -85,9 +85,9 @@ fn es(item: TrayItem) -> &'static str {
 fn pt_br(item: TrayItem) -> &'static str {
     match item {
         TrayItem::ToggleVisibility => "Mostrar / Ocultar janela",
-        TrayItem::GuiSmall => "GUI: Pequeno",
+        TrayItem::GuiCompact => "GUI: Compacto",
         TrayItem::GuiMedium => "GUI: Médio",
-        TrayItem::GuiLarge => "GUI: Grande",
+        TrayItem::GuiFull => "GUI: Completo",
         TrayItem::ToggleOnTop => "Sempre no topo",
         TrayItem::StopAllTimers => "Parar todos os cronômetros",
         TrayItem::QuitApp => "Sair completamente",

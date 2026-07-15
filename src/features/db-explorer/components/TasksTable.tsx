@@ -3,7 +3,7 @@ import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Task } from '@bindings/Task';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 export default function TasksTable() {
   const { 
@@ -70,7 +70,7 @@ export default function TasksTable() {
 
   return (
     <CollapsibleCard
-      title={`tasks table (${tasks.length} ${translate(locale, 'dynamic.recordsPlural', customTranslations)})`}
+      title={`tasks table (${tasks.length} ${translate(locale, 'database', 'RecordsPlural', customTranslations)})`}
       icon={Database}
       iconColor="text-teal-400"
       titleColor="text-teal-400"
@@ -86,8 +86,8 @@ export default function TasksTable() {
               <th className="py-3 px-4">project_id</th>
               <th className="py-3 px-4">name</th>
               <th className="py-3 px-4">completed</th>
-              <th className="py-3 px-4">{translate(locale, 'dynamic.originalValue', customTranslations)}</th>
-              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'dbExplorer.actions', customTranslations)}</th>
+              <th className="py-3 px-4">{translate(locale, 'database', 'OriginalValue', customTranslations)}</th>
+              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</th>
             </tr>
           </thead>
           <tbody className="dark:text-white">
@@ -132,7 +132,7 @@ export default function TasksTable() {
                           Oryg: {t.originalName || t.name} ({t.originalCompleted ? 'Gotowe' : 'W toku'})
                         </span>
                       ) : (
-                        <span className="text-slate-500 text-[10px]">{translate(locale, 'dynamic.noPatches', customTranslations)}</span>
+                        <span className="text-slate-500 text-[10px]">{translate(locale, 'database', 'NoPatches', customTranslations)}</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
@@ -185,8 +185,8 @@ export default function TasksTable() {
                           {t.editHistory.map((h, hIdx) => (
                             <div key={hIdx} className="text-[11px] text-slate-400 mt-1">
                               <span className="text-slate-500">[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
-                              {translate(locale, 'dbExplorer.originalPrevName', customTranslations)} <strong className="text-white">"{h.prevName}"</strong> ({translate(locale, 'dbExplorer.completed', customTranslations)} {h.prevCompleted ? translate(locale, 'dbExplorer.yes', customTranslations) : translate(locale, 'dbExplorer.no', customTranslations)}) &rarr;{' '}
-                              {translate(locale, 'dbExplorer.reasonForCorrection', customTranslations)} <em className="text-teal-350">"{h.reason}"</em>
+                              {translate(locale, 'database', 'OriginalPrevName', customTranslations)} <strong className="text-white">"{h.prevName}"</strong> ({translate(locale, 'database', 'Completed', customTranslations)} {h.prevCompleted ? translate(locale, 'common', 'Yes', customTranslations) : translate(locale, 'common', 'No', customTranslations)}) &rarr;{' '}
+                              {translate(locale, 'database', 'ReasonForCorrection', customTranslations)} <em className="text-teal-350">"{h.reason}"</em>
                             </div>
                           ))}
                         </div>

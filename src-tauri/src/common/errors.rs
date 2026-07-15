@@ -48,3 +48,12 @@ impl From<crate::engine::EngineError> for AppError {
         }
     }
 }
+
+impl From<crate::persistence::PersistenceError> for AppError {
+    fn from(err: crate::persistence::PersistenceError) -> Self {
+        match err {
+            crate::persistence::PersistenceError::Database(e) => AppError::Database(e),
+            crate::persistence::PersistenceError::Validation(e) => AppError::Generic(e),
+        }
+    }
+}

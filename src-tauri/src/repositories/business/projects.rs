@@ -8,6 +8,7 @@ impl BusinessRepository {
     pub fn create_project(&self, project: &Project) -> Result<()> {
         let conn = self.connect()?;
         let edit_history_str = serde_json::to_string(&project.edit_history).ok();
+        let tags_str = serde_json::to_string(&project.tags).ok();
         conn.execute(
             constants::INSERT_PROJECT,
             params![
@@ -18,7 +19,10 @@ impl BusinessRepository {
                 project.archived.unwrap_or(false) as i32,
                 project.original_name,
                 project.original_color,
-                edit_history_str
+                edit_history_str,
+                project.description,
+                project.icon,
+                tags_str
             ],
         )?;
         Ok(())
@@ -27,6 +31,7 @@ impl BusinessRepository {
     pub fn patch_project(&self, project: &Project) -> Result<()> {
         let conn = self.connect()?;
         let edit_history_str = serde_json::to_string(&project.edit_history).ok();
+        let tags_str = serde_json::to_string(&project.tags).ok();
         conn.execute(
             constants::UPDATE_PROJECT,
             params![
@@ -36,7 +41,10 @@ impl BusinessRepository {
                 project.archived.unwrap_or(false) as i32,
                 project.original_name,
                 project.original_color,
-                edit_history_str
+                edit_history_str,
+                project.description,
+                project.icon,
+                tags_str
             ],
         )?;
         Ok(())
@@ -53,6 +61,8 @@ impl BusinessRepository {
         let edit_history: Option<Vec<ProjectEditHistory>> =
             edit_history_str.and_then(|s| serde_json::from_str(&s).ok());
         let archived_int: i32 = row.get(4)?;
+        let tags_str: Option<String> = row.get(10)?;
+        let tags: Option<Vec<String>> = tags_str.and_then(|s| serde_json::from_str(&s).ok());
 
         Ok(Project {
             id: row.get(0)?,
@@ -63,6 +73,9 @@ impl BusinessRepository {
             original_name: row.get(5)?,
             original_color: row.get(6)?,
             edit_history,
+            description: row.get(8)?,
+            icon: row.get(9)?,
+            tags,
         })
     }
 

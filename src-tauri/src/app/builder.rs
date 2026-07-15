@@ -1,5 +1,9 @@
 use crate::app::state::AppState;
-use crate::commands;
+use crate::commands::{
+    app as app_cmds, engine,
+    persistence::{core, project, settings, task, time_log},
+    window,
+};
 use crate::common::constants::*;
 use crate::tray;
 use crate::types::FrontendEvent;
@@ -12,28 +16,40 @@ use tauri::{
 pub fn create_builder() -> tauri::Builder<tauri::Wry> {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            commands::timer::start_timer,
-            commands::timer::stop_timer,
-            commands::timer::get_active_logs,
-            commands::timer::get_timer_state,
-            commands::timer::add_project,
-            commands::timer::toggle_project_archive,
-            commands::timer::add_task,
-            commands::timer::rename_project,
-            commands::timer::rename_task,
-            commands::timer::delete_task,
-            commands::timer::toggle_task_complete,
-            commands::timer::reset_database,
-            commands::window::set_gui_size,
-            commands::window::resize_window,
-            commands::window::set_always_on_top,
-            commands::window::minimize_window,
-            commands::window::close_window,
-            commands::window::hide_window,
-            commands::window::show_window,
-            commands::window::set_window_resizable,
-            commands::app::exit_app,
-            commands::app::set_minimize_to_tray
+            engine::start_timer,
+            engine::stop_timer,
+            engine::get_active_logs,
+            engine::edit_time_log,
+            engine::get_project_statistics,
+            core::get_state,
+            core::reset,
+            project::add,
+            project::toggle_archive,
+            project::update_project,
+            task::create,
+            task::update_task,
+            task::delete,
+            task::toggle_complete,
+            settings::get,
+            settings::save,
+            settings::get_runtime_configs,
+            settings::save_runtime_config,
+            time_log::get_for_task,
+            time_log::close_active_by_project,
+            time_log::close_all_active,
+            time_log::insert,
+            time_log::query_active,
+            time_log::get_all,
+            window::set_layout_variant,
+            window::resize,
+            window::set_always_on_top,
+            window::minimize,
+            window::close,
+            window::hide,
+            window::show,
+            window::set_resizable,
+            app_cmds::exit_app,
+            app_cmds::set_minimize_to_tray
         ])
         .setup(setup_app)
         .on_window_event(handle_window_event)
@@ -50,9 +66,8 @@ fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
         db_path,
         csv_directory,
     };
-    let persistence = std::sync::Arc::new(crate::persistence::PersistenceLayer::new(
-        &persistence_config,
-    )?);
+    let persistence =
+        std::sync::Arc::new(crate::persistence::Persistence::new(&persistence_config)?);
 
     app.manage(AppState {
         persistence,

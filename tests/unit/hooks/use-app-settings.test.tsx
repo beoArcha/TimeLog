@@ -17,7 +17,7 @@ describe('Unit Tests: useAppSettings Hook', () => {
     const { result } = renderHook(() => useAppSettings());
 
     expect(result.current.theme).toBe('light');
-    expect(result.current.guiSize).toBe('medium');
+    expect(result.current.layoutVariant).toBe('medium');
   });
 
   it('should_update_localStorage_when_textAndIconSize_changes', () => {

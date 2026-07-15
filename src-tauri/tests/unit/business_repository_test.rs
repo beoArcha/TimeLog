@@ -19,6 +19,9 @@ fn test_business_repository_crud() {
         original_name: None,
         original_color: None,
         edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
     };
     repo.create_project(&project).unwrap();
 
@@ -43,6 +46,7 @@ fn test_business_repository_crud() {
         original_completed: None,
         edit_history: None,
         archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
     };
     repo.create_task(&task).unwrap();
 
@@ -64,6 +68,7 @@ fn test_business_repository_crud() {
         original_completed: None,
         edit_history: None,
         archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
     };
     repo.create_subtask(&subtask).unwrap();
 
@@ -99,6 +104,9 @@ fn test_business_repository_get_all_and_clear() {
         original_name: None,
         original_color: None,
         edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
     };
     repo.create_project(&project).unwrap();
 
@@ -113,6 +121,7 @@ fn test_business_repository_get_all_and_clear() {
         original_completed: None,
         edit_history: None,
         archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
     };
     repo.create_task(&task).unwrap();
     repo.insert_time_log("tl_all", "t_all", "2026-06-22T20:00:00Z")

@@ -36,6 +36,9 @@
       ],
       "@bindings/*": [
         "./src/bindings/*"
+      ],
+      "@tests/*": [
+        "./tests/*"
       ]
     },
     "allowImportingTsExtensions": true,

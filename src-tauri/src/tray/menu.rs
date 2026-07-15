@@ -23,9 +23,9 @@ pub fn build_tray_menu<R: tauri::Runtime>(app: &App<R>) -> tauri::Result<Menu<R>
 
     let toggle_item = create_menu_item(app, TrayMenuId::ToggleVisibility, locale)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
-    let gui_small = create_menu_item(app, TrayMenuId::GuiSmall, locale)?;
+    let gui_compact = create_menu_item(app, TrayMenuId::GuiCompact, locale)?;
     let gui_medium = create_menu_item(app, TrayMenuId::GuiMedium, locale)?;
-    let gui_large = create_menu_item(app, TrayMenuId::GuiLarge, locale)?;
+    let gui_full = create_menu_item(app, TrayMenuId::GuiFull, locale)?;
     let sep2 = PredefinedMenuItem::separator(app)?;
     let toggle_on_top = create_menu_item(app, TrayMenuId::ToggleOnTop, locale)?;
     let stop_all = create_menu_item(app, TrayMenuId::StopAllTimers, locale)?;
@@ -37,9 +37,9 @@ pub fn build_tray_menu<R: tauri::Runtime>(app: &App<R>) -> tauri::Result<Menu<R>
         &[
             &toggle_item,
             &sep1,
-            &gui_small,
+            &gui_compact,
             &gui_medium,
-            &gui_large,
+            &gui_full,
             &sep2,
             &toggle_on_top,
             &stop_all,

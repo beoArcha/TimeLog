@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, Send, ShieldCheck } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { executeCliCommand, TerminalLine, CliEngineContext } from './utils/cliEngine';
+import { executeCliCommand, TerminalLine, CliEngineContext } from './utils/CliEngine';
 import versionsData from '../../versions.json';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 export default function CliInterface() {
   const context = useOxyFlow();
@@ -65,10 +65,10 @@ export default function CliInterface() {
 
   return (
     <div id="cli-interface" className={`flex flex-col gap-4 backdrop-blur-md rounded-3xl p-6 border shadow-2xl relative transition-all duration-300 ${resolvedTheme === 'light'
-        ? 'bg-white border-slate-200 text-slate-800 shadow-slate-100'
-        : resolvedTheme === 'high-contrast'
-          ? 'bg-black border-2 border-white text-white'
-          : 'bg-white/5 border-white/10 text-white'
+      ? 'bg-white border-slate-200 text-slate-800 shadow-slate-100'
+      : resolvedTheme === 'high-contrast'
+        ? 'bg-black border-2 border-white text-white'
+        : 'bg-white/5 border-white/10 text-white'
       }`}>
       <div className={`flex items-center justify-between border-b pb-3 ${resolvedTheme === 'light' ? 'border-slate-200' : 'border-white/10'}`}>
         <div className="flex items-center gap-3">
@@ -96,10 +96,10 @@ export default function CliInterface() {
       <div
         id="terminal-history"
         className={`rounded-2xl p-4 min-h-[380px] max-h-[480px] overflow-y-auto font-mono text-xs leading-relaxed flex flex-col gap-1.5 focus:outline-none border ${resolvedTheme === 'light'
-            ? 'bg-slate-900 border-slate-300 text-slate-200 shadow-inner'
-            : resolvedTheme === 'high-contrast'
-              ? 'bg-black border-2 border-white text-white'
-              : 'bg-black/20 border-white/15 text-slate-300'
+          ? 'bg-slate-900 border-slate-300 text-slate-200 shadow-inner'
+          : resolvedTheme === 'high-contrast'
+            ? 'bg-black border-2 border-white text-white'
+            : 'bg-black/20 border-white/15 text-slate-300'
           }`}
       >
         {terminalHistory.map((line, index) => {
@@ -119,10 +119,10 @@ export default function CliInterface() {
       </div>
 
       <form onSubmit={handleFormSubmit} className={`flex gap-2 p-1.5 rounded-2xl border transition-all ${resolvedTheme === 'light'
-          ? 'bg-slate-55 border-slate-200'
-          : resolvedTheme === 'high-contrast'
-            ? 'bg-black border-white'
-            : 'bg-black/25 border-white/10'
+        ? 'bg-slate-55 border-slate-200'
+        : resolvedTheme === 'high-contrast'
+          ? 'bg-black border-white'
+          : 'bg-black/25 border-white/10'
         }`}>
         <span className="text-orange-500 font-mono text-sm self-center pl-2 font-bold select-none">
           oxyflow&gt;
@@ -147,19 +147,19 @@ export default function CliInterface() {
       </form>
 
       <div className={`border rounded-2xl p-3 flex flex-wrap items-center gap-2 text-[10px] font-mono transition-all ${resolvedTheme === 'light'
-          ? 'bg-slate-50 border-slate-200 text-slate-600'
-          : resolvedTheme === 'high-contrast'
-            ? 'bg-black border-white text-white'
-            : 'bg-white/5 border-white/10 text-slate-400'
+        ? 'bg-slate-50 border-slate-200 text-slate-600'
+        : resolvedTheme === 'high-contrast'
+          ? 'bg-black border-white text-white'
+          : 'bg-white/5 border-white/10 text-slate-400'
         }`}>
-        <span className={`font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'dynamic.quickShortcuts', customTranslations)}</span>
+        <span className={`font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'help', 'QuickShortcuts', customTranslations)}</span>
         <button
           id="cmd-project-list-btn"
           type="button"
           onClick={() => executeCommand('projects')}
           className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
-              ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
-              : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
+            ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
+            : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
             }`}
         >
           projects
@@ -169,8 +169,8 @@ export default function CliInterface() {
           type="button"
           onClick={() => executeCommand('status')}
           className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
-              ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
-              : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
+            ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
+            : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
             }`}
         >
           status
@@ -180,8 +180,8 @@ export default function CliInterface() {
           type="button"
           onClick={() => executeCommand('logs')}
           className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
-              ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
-              : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
+            ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
+            : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
             }`}
         >
           logs
@@ -191,8 +191,8 @@ export default function CliInterface() {
           type="button"
           onClick={() => executeCommand('stop')}
           className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
-              ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-150'
-              : 'bg-white/5 hover:bg-rose-500/20 text-rose-300 border-white/10'
+            ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-150'
+            : 'bg-white/5 hover:bg-rose-500/20 text-rose-300 border-white/10'
             }`}
         >
           stop

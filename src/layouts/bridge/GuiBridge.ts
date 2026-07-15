@@ -1,10 +1,10 @@
 import { GuiState } from './GuiState';
 import { useOxyFlow, OxyFlowState } from '@common/hooks/OxyContext';
-import { GuiSize } from '@bindings/GuiSize';
+import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 
 export type GuiIntent =
-  | { type: 'set_gui_size'; payload: { size: GuiSize; textAndIconSize: TextAndIconSize } }
+  | { type: 'set_layout_variant'; payload: { variant: LayoutVariant; textAndIconSize: TextAndIconSize } }
   | { type: 'set_always_on_top'; payload: { alwaysOnTop: boolean } }
   | { type: 'set_minimize_to_tray'; payload: { minimize: boolean } }
   | { type: 'hide_window' }
@@ -23,16 +23,16 @@ export const GuiBridge = {
     if (!oxyFlowState) return;
 
     switch (intent.type) {
-      case 'set_gui_size':
-        if (oxyFlowState.setGuiSize) {
-          oxyFlowState.setGuiSize(intent.payload.size);
+      case 'set_layout_variant':
+        if (oxyFlowState.setLayoutVariant) {
+          oxyFlowState.setLayoutVariant(intent.payload.variant);
         }
         if (oxyFlowState.setTextAndIconSize) {
           oxyFlowState.setTextAndIconSize(intent.payload.textAndIconSize);
         }
         break;
       case 'set_always_on_top':
-        if (oxyFlowState.guiSize === 'small') {
+        if (oxyFlowState.layoutVariant === 'compact') {
           if (oxyFlowState.setAlwaysOnTopSmall) {
             oxyFlowState.setAlwaysOnTopSmall(intent.payload.alwaysOnTop);
           }
@@ -91,7 +91,7 @@ export const GuiBridge = {
 export function useGuiState(): GuiState {
   const state = useOxyFlow();
   return {
-    guiSize: state.guiSize,
+    layoutVariant: state.layoutVariant,
     resolvedTheme: state.resolvedTheme,
     textAndIconSize: state.textAndIconSize,
   };

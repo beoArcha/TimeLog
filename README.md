@@ -2,116 +2,103 @@
 
 > **A lightweight, native-first productivity suite built with Rust, Tauri and React. Designed for flow, engineered for the long term.**
 
-oXyFlow is an experimental desktop productivity application that explores modern product engineering with AI-assisted development.
+oXyFlow is an experimental desktop productivity application that explores modern product engineering with AI-assisted development. 
 
-Rather than chasing features, the project focuses on building software that remains fast, maintainable and enjoyable to evolve.
-
-AI helps implement ideas.
-
-Humans remain responsible for architecture, engineering and product decisions.
+Rather than chasing features, the project focuses on building software that remains fast, maintainable, and intuitive to evolve. AI helps implement ideas, but humans remain strictly responsible for architecture, engineering, and product decisions.
 
 ---
 
-## ✨ Current Features
+## ✨ Features
 
-* ⏱️ Time tracking
-* 📁 Project management
-* ✅ Task management
-* 💾 SQLite persistence
-* 📄 CSV export
-* ⚙️ Configuration management
-* 🌍 Internationalization (i18n)
-* 💻 Command Line Interface (CLI)
-* 🧪 Unit & Integration Tests
-* 🖥️ Native desktop application
+* ⏱️ **Zero-Friction Time Tracking**
+* 📁 **Project & Task Management**
+* 🖥️ **Multi-Runtime Support** (Native Desktop via Tauri & Browser execution)
+* 💾 **Reliable Persistence** (SQLite / CSV)
+* 🎨 **Decoupled UI Scaling** (CSS-driven Layout Variants & Design Tokens)
+* 🌍 **Internationalization (i18n)**
+* 💻 **Command Line Interface (CLI)**
+* 🧪 **Comprehensive Testing** (Unit & Integration)
 
 ---
 
-## 🏛 Architecture
+## 🏛 Architecture (v3)
 
-oXyFlow follows a layered architecture.
+oXyFlow is built around a single business model with multiple runtime implementations. Every architectural layer remains independently replaceable while exposing a single, consistent API.
 
 ```text
-React UI
-    ↓
-Hooks / State
-    ↓
-Tauri Commands
-    ↓
-Application Services
-    ↓
-Repositories
-    ↓
-Persistence Layer
-    ↓
-SQLite / CSV / Config
+                     React Frontend
+                            │
+             ┌──────────────┴──────────────┐
+             │                             │
+      EngineRouter                PersistenceRouter
+             │                             │
+             └──────────────┬──────────────┘
+                            │
+                     Runtime Boundary
+                            │
+        ┌───────────────────┴───────────────────┐
+        │                                       │
+ Desktop Runtime                         Browser Runtime
+        │                                       │
+        └───────────────────┬───────────────────┘
+                            │
+                     LayoutManager
+                            │
+                    Layout Builders 
+               (Full / Half / Compact)
 ```
 
-This separation keeps business logic independent from the UI and makes the application easier to maintain and extend.
+**Key Architectural Pillars:**
+1. **Engine & Persistence:** Rust remains the reference implementation for the business engine. Storage is just an implementation detail.
+2. **Runtime Independence:** The UI never knows if it's running in Tauri or a Browser.
+3. **Decoupled Styling:** React components handle view state and composition. Visual scaling (typography, spacing) is handled entirely by CSS Design Tokens.
 
 ---
 
-## 🚀 Engineering Philosophy
+## 🚀 Engineering & UX Philosophy
 
-The project is built around five priorities:
+We build for the tired user. 
+* **Intuitive Discovery:** Features map to the user's mental model. No hunting, no nested mazes.
+* **Zero Friction:** Core actions (like starting a timer) require a single click.
+* **Correctness over cleverness:** Architecture is more important than implementation speed.
+* **Performance is UX:** The UI must never stutter. Background sync never blocks the UI thread.
 
-1. ✅ Correctness
-2. 🏗️ Maintainability
-3. 😊 User Experience
-4. ⚡ Performance
-5. ✨ New Features
+---
 
-Core principles:
+## 📖 Project Documentation
 
-* Native-first desktop application
-* Lightweight over raw performance
-* Flow-oriented UX
-* Sustainable engineering
-* Human-led AI-assisted development
+To understand how oXyFlow is built and maintained, please review our core manifests:
+
+| Document                | Purpose                                                                |
+| ----------------------- | ---------------------------------------------------------------------- |
+| `MASTERMAP.md`          | Project roadmap, long-term vision, and core architecture diagram       |
+| `ENGINEERING.md`        | Strict engineering principles, layer responsibilities, and coding standards |
+| `USEREXPERIENCE.md`     | The UX philosophy: protecting user focus, zero friction, and predictability |
+| `AGENT.md`              | Operational guidelines and mandatory rules for AI assistants           |
 
 ---
 
 ## 🛠 Technology Stack
 
-### Backend
-
-* Rust
-* Tauri
-* SQLite
-
-### Frontend
-
-* React
-* TypeScript
-* Vite
-
-### Quality
-
-* Unit Tests
-* Integration Tests
-* ESLint
-* TypeScript
-* Cargo Test
-* Cargo Fmt
+**Backend:** Rust, Tauri, SQLite
+**Frontend:** React, TypeScript, Vite, Motion
+**Quality:** Playwright (e2e), Cargo Test, ESLint, strict TypeScript
 
 ---
 
 ## 🚀 Getting Started
 
-Install dependencies
-
+Install dependencies:
 ```bash
 npm install
 ```
 
-Run the application
-
+Run the application (Desktop Runtime):
 ```bash
 npm run tauri dev
 ```
 
-Verify code quality
-
+Verify code quality:
 ```bash
 npm run lint
 npm run typecheck
@@ -123,24 +110,10 @@ cargo test
 
 ---
 
-## 📖 Project Documentation
+## 📄 License
 
-| Document         | Purpose                                 |
-| ---------------- | --------------------------------------- |
-| `MASTERMAP.md`   | Project roadmap and long-term vision    |
-| `ENGINEERING.md` | Engineering principles and architecture |
-| `AGENT.md`       | Operational guidelines for AI agents    |
-
----
-
-## 🎯 Project Goals
-
-oXyFlow aims to demonstrate that modern software can be:
-
-* fast without unnecessary complexity
-* lightweight without sacrificing usability
-* AI-assisted without giving up engineering discipline
-* enjoyable to maintain for years
+This project is licensed under the Mozilla Public License Version 2.0 (MPL-2.0).
+See `LICENSE.md` and `NOTICE.md` for details.
 
 ---
 

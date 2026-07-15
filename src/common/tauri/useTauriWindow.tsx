@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ErrorHandler, TauriInteropException } from '../exceptions';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { GuiSize } from '@bindings/GuiSize';
+import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { Locale } from '@bindings/Locale';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { FrontendEvent } from '@bindings/FrontendEvent';
 import { TAURI_COMMANDS } from './tauri-commands';
 
@@ -12,12 +13,12 @@ const isTauri = () => {
   return typeof window !== 'undefined' && (window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined;
 };
 
-const handleSetGuiSize = async (size: GuiSize, textIconSize: TextAndIconSize) => {
+const handleSetLayoutVariant = async (variant: LayoutVariant, textIconSize: TextAndIconSize) => {
   if (!isTauri()) return;
   try {
-    await invoke(TAURI_COMMANDS.SET_GUI_SIZE, { size, textAndIconSize: textIconSize });
+    await invoke(TAURI_COMMANDS.SET_LAYOUT_VARIANT, { variant, textAndIconSize: textIconSize });
   } catch (err) {
-    console.error('Tauri resize error:', err);
+    ErrorHandler.handle(new TauriInteropException('Tauri resize error', err, 'ERR_TAURI_RESIZE'));
   }
 };
 
@@ -26,33 +27,33 @@ const handleWindowAlwaysOnTop = async (onTop: boolean) => {
   try {
     await invoke(TAURI_COMMANDS.SET_ALWAYS_ON_TOP, { alwaysOnTop: onTop });
   } catch (err) {
-    console.error('Tauri always on top error:', err);
+    ErrorHandler.handle(new TauriInteropException('Tauri always on top error', err, 'ERR_TAURI_ALWAYS_ON_TOP'));
   }
 };
 
 interface TauriWindowProps {
-  guiSize: GuiSize;
-  setGuiSize: (size: GuiSize) => void;
+  layoutVariant: LayoutVariant;
+  setLayoutVariant: (variant: LayoutVariant) => void;
   textAndIconSize: TextAndIconSize;
   minimizeToTray: boolean;
   alwaysOnTopSmall: boolean;
   setAlwaysOnTopSmall: React.Dispatch<React.SetStateAction<boolean>>;
   alwaysOnTopMain: boolean;
   setAlwaysOnTopMain: React.Dispatch<React.SetStateAction<boolean>>;
-  lastNonSmallVariant: Exclude<GuiSize, 'small'>;
-  setLastNonSmallVariant: React.Dispatch<React.SetStateAction<Exclude<GuiSize, 'small'>>>;
+  lastNonCompactVariant: Exclude<LayoutVariant, 'compact'>;
+  setLastNonCompactVariant: React.Dispatch<React.SetStateAction<Exclude<LayoutVariant, 'compact'>>>;
   handleStopTimer: (specificProjectId?: string) => void;
   locale: Locale;
   customTranslations: Record<string, unknown>;
 }
 
 export const useTauriWindow = ({
-  guiSize, setGuiSize,
+  layoutVariant, setLayoutVariant,
   textAndIconSize,
   minimizeToTray,
   alwaysOnTopSmall, setAlwaysOnTopSmall,
   alwaysOnTopMain, setAlwaysOnTopMain,
-  lastNonSmallVariant: _lastNonSmallVariant, setLastNonSmallVariant,
+  lastNonCompactVariant: _lastNonCompactVariant, setLastNonCompactVariant,
   handleStopTimer,
   locale, customTranslations
 }: TauriWindowProps) => {
@@ -66,7 +67,7 @@ export const useTauriWindow = ({
   };
 
   const stateRef = useRef({
-    guiSize,
+    layoutVariant,
     textAndIconSize,
     minimizeToTray,
     alwaysOnTopSmall,
@@ -75,15 +76,15 @@ export const useTauriWindow = ({
     customTranslations,
     handleStopTimer,
     showToast,
-    setGuiSize,
-    setLastNonSmallVariant,
+    setLayoutVariant,
+    setLastNonCompactVariant,
     setAlwaysOnTopSmall,
     setAlwaysOnTopMain,
   });
 
   useEffect(() => {
     stateRef.current = {
-      guiSize,
+      layoutVariant,
       textAndIconSize,
       minimizeToTray,
       alwaysOnTopSmall,
@@ -92,8 +93,8 @@ export const useTauriWindow = ({
       customTranslations,
       handleStopTimer,
       showToast,
-      setGuiSize,
-      setLastNonSmallVariant,
+      setLayoutVariant,
+      setLastNonCompactVariant,
       setAlwaysOnTopSmall,
       setAlwaysOnTopMain,
     };
@@ -102,23 +103,23 @@ export const useTauriWindow = ({
   useEffect(() => {
     if (isTauri()) {
       invoke(TAURI_COMMANDS.SET_MINIMIZE_TO_TRAY, { minimize: minimizeToTray }).catch(err => {
-        console.error('Failed to sync minimizeToTray with Rust:', err);
+        ErrorHandler.handle(new TauriInteropException('Failed to sync minimizeToTray with Rust', err, 'ERR_TAURI_SYNC_TRAY'));
       });
     }
   }, [minimizeToTray]);
 
   useEffect(() => {
     const applyWindowConfig = async () => {
-      await handleSetGuiSize(guiSize, textAndIconSize);
+      await handleSetLayoutVariant(layoutVariant, textAndIconSize);
       await new Promise(resolve => setTimeout(resolve, 50));
-      if (guiSize !== 'small') {
+      if (layoutVariant !== 'compact') {
         await handleWindowAlwaysOnTop(alwaysOnTopMain);
       } else {
         await handleWindowAlwaysOnTop(alwaysOnTopSmall);
       }
     };
     applyWindowConfig();
-  }, [guiSize, textAndIconSize, alwaysOnTopSmall, alwaysOnTopMain]);
+  }, [layoutVariant, textAndIconSize, alwaysOnTopSmall, alwaysOnTopMain]);
 
   useEffect(() => {
     if (!isTauri()) return;
@@ -130,27 +131,27 @@ export const useTauriWindow = ({
       try {
         const uMax = await listen('native-window-maximized' satisfies FrontendEvent, () => {
           if (!active) return;
-          stateRef.current.setGuiSize('large');
-          stateRef.current.setLastNonSmallVariant('large');
-          stateRef.current.showToast("Rozmiar zmieniony na DUŻY (Maksymalizacja)");
+          stateRef.current.setLayoutVariant('full');
+          stateRef.current.setLastNonCompactVariant('full');
+          stateRef.current.showToast("Rozmiar zmieniony na PEŁNY (Maksymalizacja)");
         });
         unlisteners.push(uMax);
 
         const uRest = await listen('native-window-restored' satisfies FrontendEvent, () => {
           if (!active) return;
-          stateRef.current.setGuiSize('large');
+          stateRef.current.setLayoutVariant('full');
         });
         unlisteners.push(uRest);
 
         const uVariant = await listen('tray-set-gui-variant' satisfies FrontendEvent, async (event) => {
           if (!active) return;
-          const payload = event.payload as GuiSize;
-          if (['small', 'medium', 'large'].includes(payload)) {
-            stateRef.current.setGuiSize(payload);
-            await handleSetGuiSize(payload, stateRef.current.textAndIconSize);
-            const flag = payload === 'small' ? stateRef.current.alwaysOnTopSmall : stateRef.current.alwaysOnTopMain;
+          const payload = event.payload as LayoutVariant;
+          if (['compact', 'medium', 'full'].includes(payload)) {
+            stateRef.current.setLayoutVariant(payload);
+            await handleSetLayoutVariant(payload, stateRef.current.textAndIconSize);
+            const flag = payload === 'compact' ? stateRef.current.alwaysOnTopSmall : stateRef.current.alwaysOnTopMain;
             await handleWindowAlwaysOnTop(flag);
-            stateRef.current.showToast(`GUI: ${payload === 'small' ? 'Mały' : payload === 'medium' ? 'Średni' : 'Duży'}`);
+            stateRef.current.showToast(`GUI: ${payload === 'compact' ? 'Kompaktowy' : payload === 'medium' ? 'Średni' : 'Pełny'}`);
           }
         });
         unlisteners.push(uVariant);
@@ -158,13 +159,13 @@ export const useTauriWindow = ({
         const uStopAll = await listen('tray-stop-all-timers' satisfies FrontendEvent, () => {
           if (!active) return;
           stateRef.current.handleStopTimer();
-          stateRef.current.showToast(translate(stateRef.current.locale, 'app.stoppedThreads', stateRef.current.customTranslations));
+          stateRef.current.showToast(translate(stateRef.current.locale, 'app', 'StoppedThreads', stateRef.current.customTranslations));
         });
         unlisteners.push(uStopAll);
 
         const uToggleTop = await listen('tray-toggle-on-top' satisfies FrontendEvent, async () => {
           if (!active) return;
-          if (stateRef.current.guiSize === 'small') {
+          if (stateRef.current.layoutVariant === 'compact') {
             stateRef.current.setAlwaysOnTopSmall(prev => {
               const next = !prev;
               handleWindowAlwaysOnTop(next);
@@ -188,20 +189,20 @@ export const useTauriWindow = ({
             try {
               await invoke(TAURI_COMMANDS.HIDE_WINDOW);
             } catch (err) {
-              console.error('Tauri hide_window error', err);
+              ErrorHandler.handle(new TauriInteropException('Tauri hide_window error', err, 'ERR_TAURI_HIDE'));
             }
           } else {
             try {
               await invoke(TAURI_COMMANDS.EXIT_APP);
             } catch (err) {
-              console.error('Tauri exit_app error', err);
+              ErrorHandler.handle(new TauriInteropException('Tauri exit_app error', err, 'ERR_TAURI_EXIT'));
             }
           }
         });
         unlisteners.push(uClose);
 
       } catch (err) {
-        console.error('Tauri listener setup error:', err);
+        ErrorHandler.handle(new TauriInteropException('Tauri listener setup error', err, 'ERR_TAURI_LISTENER_SETUP'));
       }
     };
 
@@ -224,15 +225,15 @@ export const useTauriWindow = ({
           await invoke(TAURI_COMMANDS.EXIT_APP);
         }
       } catch (err) {
-        console.error('Tauri close/hide error:', err);
+        ErrorHandler.handle(new TauriInteropException('Tauri close/hide error', err, 'ERR_TAURI_CLOSE_HIDE'));
       }
     } else {
       if (minimizeToTray) {
         setIsMinimized(true);
-        showToast(translate(locale, 'dynamic.oxyFlowMinimizedToTrayEngineKe', customTranslations));
+        showToast(translate(locale, 'app', 'OxyFlowMinimizedToTray', customTranslations));
       } else {
         setIsGuiClosed(true);
-        showToast(translate(locale, 'dynamic.gUIClosedOxyFlowEngineLogsUISh', customTranslations));
+        showToast(translate(locale, 'app', 'GuiClosedEngineKeepRunning', customTranslations));
       }
     }
   };
@@ -242,7 +243,7 @@ export const useTauriWindow = ({
       try {
         await invoke(TAURI_COMMANDS.CLOSE_WINDOW);
       } catch (err) {
-        console.error('Tauri close error:', err);
+        ErrorHandler.handle(new TauriInteropException('Tauri close error', err, 'ERR_TAURI_CLOSE'));
       }
     } else {
       setIsGuiClosed(true);
@@ -254,7 +255,7 @@ export const useTauriWindow = ({
       try {
         await invoke(TAURI_COMMANDS.MINIMIZE_WINDOW);
       } catch (err) {
-        console.error('Tauri minimize error:', err);
+        ErrorHandler.handle(new TauriInteropException('Tauri minimize error', err, 'ERR_TAURI_MINIMIZE'));
       }
     } else {
       setIsMinimized(true);

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 
 interface TimeLogTableRowProps {
-  key?: any;
+  key?: string | number;
   l: TimeLog;
   isEditing: boolean;
   onStartEdit: () => void;
@@ -13,7 +13,7 @@ interface TimeLogTableRowProps {
   onCancelEdit: () => void;
   onDelete: () => void;
   locale: Locale;
-  customTranslations: any;
+  customTranslations: Record<string, unknown>;
   showHistory: boolean;
   onToggleHistory: () => void;
 }
@@ -34,10 +34,20 @@ export default function TimeLogTableRow({
     startTime: l.startTime,
     endTime: l.endTime || '',
     note: l.note || '',
-    reason: 'Błąd synchronizacji licznika / Korekta ręczna'
+    reason: translate(locale, 'database', 'SyncErrorReason', customTranslations)
   });
 
-  const hasHistory = !!(l.originalStartTime || l.originalEndTime !== undefined || l.originalNote !== undefined || l.editHistory);
+  const hasHistory = !!(l.editHistory && l.editHistory.length > 0);
+
+  const getOriginalStartTime = () => {
+    if (!l.editHistory || l.editHistory.length === 0) return l.startTime;
+    for (const h of l.editHistory) {
+      if (h.prevStartTime) {
+        return h.prevStartTime;
+      }
+    }
+    return l.startTime;
+  };
 
   const handleSave = () => {
     onSaveEdit(form.startTime, form.endTime, form.note, form.reason);
@@ -70,7 +80,7 @@ export default function TimeLogTableRow({
               placeholder="Koniec czasu lub puste"
             />
           ) : (
-            <span className="text-indigo-400 font-semibold">{l.endTime || translate(locale, 'dbExplorer.trackingActive', customTranslations)}</span>
+            <span className="text-indigo-400 font-semibold">{l.endTime || translate(locale, 'database', 'TrackingActiveLabel', customTranslations)}</span>
           )}
         </td>
         <td className="py-3.5 px-4 truncate max-w-xs">
@@ -82,16 +92,16 @@ export default function TimeLogTableRow({
               className="bg-black/35 border border-white/20 px-2 py-1 rounded text-white"
             />
           ) : (
-            <span>{l.note || <span className="text-slate-500 italic">{translate(locale, 'dynamic.noNote', customTranslations)}</span>}</span>
+            <span>{l.note || <span className="text-slate-500 italic">{translate(locale, 'database', 'NoNote', customTranslations)}</span>}</span>
           )}
         </td>
         <td className="py-3.5 px-4">
           {hasHistory ? (
             <span className="text-[10px] bg-amber-550/10 text-amber-500 border border-amber-550/25 px-2 py-0.5 rounded-md font-bold block w-max">
-              Oryg start: {l.originalStartTime ? new Date(l.originalStartTime).toLocaleTimeString() : 'N/A'}
+              Oryg start: {getOriginalStartTime() ? new Date(getOriginalStartTime()).toLocaleTimeString() : 'N/A'}
             </span>
           ) : (
-            <span className="text-slate-500 text-[10px]">{translate(locale, 'dbExplorer.noChanges', customTranslations)}</span>
+            <span className="text-slate-500 text-[10px]">{translate(locale, 'database', 'NoChanges', customTranslations)}</span>
           )}
         </td>
         <td className="py-3.5 px-4 text-right">

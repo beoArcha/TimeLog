@@ -4,7 +4,7 @@ import { useOxyFlow } from '@common/hooks/OxyContext';
 
 interface CollapsibleCardProps {
   title?: React.ReactNode;
-  icon?: LucideIcon | any;
+  icon?: LucideIcon | React.ElementType;
   iconColor?: string;
   titleColor?: string;
   children: React.ReactNode;
@@ -49,8 +49,13 @@ export default function CollapsibleCard({
   return (
     <div className={wrapperClassName || defaultWrapper}>
       <div 
+        role="button"
+        tabIndex={0}
         className="flex items-center justify-between cursor-pointer select-none"
         onClick={handleToggle}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleToggle(); } }}
+        aria-expanded={isExpanded}
+        aria-controls={`collapsible-content-${headerTestId ?? 'card'}`}
         data-testid={headerTestId}
       >
         <div className="flex items-center gap-2">
@@ -68,7 +73,10 @@ export default function CollapsibleCard({
       </div>
       
       {isExpanded && (
-        <div className={`animate-in fade-in slide-in-from-top-2 duration-300 ${contentClassName || ''}`}>
+        <div
+          id={`collapsible-content-${headerTestId ?? 'card'}`}
+          className={`animate-in fade-in slide-in-from-top-2 duration-300 ${contentClassName || ''}`}
+        >
           {children}
         </div>
       )}

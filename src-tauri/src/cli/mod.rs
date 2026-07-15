@@ -1,4 +1,4 @@
-pub mod manage;
+﻿pub mod manage;
 pub mod settings;
 pub mod shared;
 pub mod timer;
@@ -7,11 +7,11 @@ pub use shared::output::CliOutput;
 pub use shared::parser::CliArgs;
 
 use crate::engine::Engine;
-use crate::persistence::PersistenceLayer;
+use crate::persistence::Persistence;
 
 pub fn handle_cli(
     args: CliArgs,
-    persistence: &PersistenceLayer,
+    persistence: &Persistence,
     engine: &Engine,
 ) -> Result<CliOutput, String> {
     match args.command {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 import { AlwaysOnTopConfig } from '@bindings/AlwaysOnTopConfig';
 
 import { useAppSettings } from './useAppSettings';
@@ -22,16 +22,16 @@ export const useOxyAppState = () => {
   const apiSync = useExternalApiSync();
   const timeLogData = useTimeLogData(apiSync.pushToApi);
   const tauriWindow = useTauriWindow({
-    guiSize: appSettings.guiSize,
-    setGuiSize: appSettings.setGuiSize,
+    layoutVariant: appSettings.layoutVariant,
+    setLayoutVariant: appSettings.setLayoutVariant,
     textAndIconSize: appSettings.textAndIconSize,
     minimizeToTray: appSettings.minimizeToTray,
     alwaysOnTopSmall: appSettings.alwaysOnTopSmall,
     setAlwaysOnTopSmall: appSettings.setAlwaysOnTopSmall,
     alwaysOnTopMain: appSettings.alwaysOnTopMain,
     setAlwaysOnTopMain: appSettings.setAlwaysOnTopMain,
-    lastNonSmallVariant: appSettings.lastNonSmallVariant,
-    setLastNonSmallVariant: appSettings.setLastNonSmallVariant,
+    lastNonCompactVariant: appSettings.lastNonCompactVariant,
+    setLastNonCompactVariant: appSettings.setLastNonCompactVariant,
     handleStopTimer: timeLogData.handleStopTimer,
     locale,
     customTranslations
@@ -50,13 +50,13 @@ export const useOxyAppState = () => {
     } else if (timeLogData.selectedTaskId) {
       timeLogData.handleStartTimer(timeLogData.selectedTaskId);
     } else {
-      tauriWindow.showToast(translate(locale, 'app.noTaskSelected', customTranslations) || 'Zaznacz zadanie aby rozpocząć/zatrzymać timer');
+      tauriWindow.showToast(translate(locale, 'timer', 'SelectTaskToPlay', customTranslations) || 'Zaznacz zadanie aby rozpocząć/zatrzymać timer');
     }
   };
 
   const handleCopyText = (text: string) => {
     navigator.clipboard.writeText(text);
-    tauriWindow.showToast(translate(locale, 'dynamic.copiedToClipboard', customTranslations));
+    tauriWindow.showToast(translate(locale, 'common', 'CopiedToClipboard', customTranslations));
   };
 
   return {

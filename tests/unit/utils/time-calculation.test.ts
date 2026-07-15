@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  formatSeconds, 
-  formatFriendlyDuration, 
-  getTaskDurationSeconds, 
-  getProjectDurationSeconds 
-} from '@features/timelogs/utils/timelogUtils';
+import {
+  formatSeconds,
+  formatFriendlyDuration,
+  getTaskDurationSeconds,
+  getProjectDurationSeconds
+} from '@/src/features/timelogs/utils/TimelogUtils';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 

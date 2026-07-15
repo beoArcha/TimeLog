@@ -6,18 +6,12 @@ use oxy_flow::cli::shared::parser::CliCommands;
 use oxy_flow::cli::timer::TimerCommand;
 use oxy_flow::cli::{handle_cli, CliArgs, CliOutput};
 use oxy_flow::engine::Engine;
-use oxy_flow::persistence::PersistenceLayer;
+use oxy_flow::persistence::Persistence;
 use rusqlite::Connection;
 
-fn setup(
-    db_name: &str,
-) -> (
-    PersistenceLayer,
-    Connection,
-    crate::shared::test_db::TempCsvDir,
-) {
+fn setup(db_name: &str) -> (Persistence, Connection, crate::shared::test_db::TempCsvDir) {
     let (conn, config, temp_dir) = setup_persistence_test(db_name);
-    let persistence = PersistenceLayer::new(&config).expect("failed to create persistence layer");
+    let persistence = Persistence::new(&config).expect("failed to create persistence layer");
 
     let now = chrono::Utc::now().to_rfc3339();
     conn.execute(

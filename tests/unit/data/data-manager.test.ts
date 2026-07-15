@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LocalStorageDataManager as DataManager } from '@plugins/persistence/dataManager';
+import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
 
 describe('Unit Tests: DataManager Logic', () => {
   it('should_generate_next_id_sequentially_for_numeric_ids_when_items_are_provided', () => {

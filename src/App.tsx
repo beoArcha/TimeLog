@@ -1,11 +1,12 @@
 import React from 'react';
-import AppProviders from '@layouts/manager/AppProviders';
-import GuiManager from '@layouts/manager/GuiManager';
+import { isDesktopEnvironment } from '@common/utils/environment';
+import AppBrowser from './app-browser/AppBrowser';
+import AppTauri from './app-tauri/AppTauri';
 
 export default function App() {
-  return (
-    <AppProviders>
-      <GuiManager />
-    </AppProviders>
-  );
+  if (isDesktopEnvironment()) {
+    return <AppTauri />;
+  }
+  return <AppBrowser />;
 }
+

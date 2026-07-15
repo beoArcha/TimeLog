@@ -74,7 +74,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
   it('Given root task form, When submitted with valid text, Then it should call onAddTask', () => {
     const state = setupMockState();
     render(<TaskListView state={state} isCondensed={false} />);
-    const submitBtn = screen.getByRole('button', { name: /Add/i });
+    const submitBtn = screen.getByRole('button', { name: /^Add Task$/i });
     fireEvent.click(submitBtn);
     expect(state.onAddTask).toHaveBeenCalledWith('proj_1', 'New Test Task', null);
     expect(state.setNewTaskName).toHaveBeenCalledWith('');
@@ -102,7 +102,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
     const input = screen.getByDisplayValue('Task One Custom');
     fireEvent.change(input, { target: { value: 'Task One Renamed' } });
     fireEvent.blur(input);
-    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Custom');
+    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Renamed');
     expect(state.setEditingId).toHaveBeenCalledWith(null);
   });
 
@@ -146,7 +146,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
     fireEvent.change(input, { target: { value: 'Task One Renamed' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
 
-    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Custom');
+    expect(state.onRenameTask).toHaveBeenCalledWith('task_1', 'Task One Renamed');
     expect(state.setEditingId).toHaveBeenCalledWith(null);
   });
 

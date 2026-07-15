@@ -1,10 +1,10 @@
-use crate::common::constants::*;
-use crate::persistence::PersistenceLayer;
+﻿use crate::common::constants::*;
+use crate::persistence::Persistence;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 pub struct AppState {
-    pub persistence: Arc<PersistenceLayer>,
+    pub persistence: Arc<Persistence>,
     pub was_maximized: std::sync::atomic::AtomicBool,
     pub minimize_to_tray: std::sync::atomic::AtomicBool,
 }

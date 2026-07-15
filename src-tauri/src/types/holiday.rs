@@ -3,14 +3,14 @@ use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
-#[ts(export_to = "../../src/bindings/HolidayType.ts")]
+#[ts(export)]
 pub enum HolidayType {
     Holiday,
     Leave,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/HolidayLeaveEditHistory.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct HolidayLeaveEditHistory {
     pub edited_at: String,
@@ -25,7 +25,7 @@ pub struct HolidayLeaveEditHistory {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export_to = "../../src/bindings/HolidayLeave.ts")]
+#[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct HolidayLeave {
     pub id: String,

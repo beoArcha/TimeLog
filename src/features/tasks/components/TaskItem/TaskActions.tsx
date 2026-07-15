@@ -1,12 +1,11 @@
 import { Locale } from '@bindings/Locale';
 import { Pencil, Trash2 } from 'lucide-react';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 interface TaskActionsProps {
   taskId: string;
   taskName: string;
   locale: Locale;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   customTranslations: any;
   deleteTitle: string;
   pencilSize: string;
@@ -29,10 +28,12 @@ export function TaskActions({
   setEditName,
 }: TaskActionsProps) {
   return (
-    <div className="opacity-0 group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
+    <div className="opacity-100 md:opacity-0 md:group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
       <button
+        id={`edit-task-btn-${taskId}`}
         type="button"
-        title={translate(locale, 'common.editName', customTranslations)}
+        title={translate(locale, 'common', 'EditName', customTranslations)}
+        aria-label={translate(locale, 'common', 'EditName', customTranslations)}
         onClick={(e) => {
           e.stopPropagation();
           setEditingId(taskId);
@@ -43,8 +44,10 @@ export function TaskActions({
         <Pencil className={pencilSize} />
       </button>
       <button
+        id={`delete-task-btn-${taskId}`}
         type="button"
         title={deleteTitle}
+        aria-label={deleteTitle}
         onClick={(e) => {
           e.stopPropagation();
           if (onDeleteTask) onDeleteTask(taskId);

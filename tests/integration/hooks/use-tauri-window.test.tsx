@@ -12,16 +12,16 @@ import { TAURI_COMMANDS } from '../../../src/common/tauri/tauri-commands';
 
 describe('Integration Tests: useTauriWindow Events Integration', () => {
   const defaultProps = {
-    guiSize: 'large' as const,
-    setGuiSize: vi.fn(),
+    layoutVariant: 'full' as const,
+    setLayoutVariant: vi.fn(),
     textAndIconSize: 'medium' as const,
     minimizeToTray: false,
     alwaysOnTopSmall: false,
     setAlwaysOnTopSmall: vi.fn(),
     alwaysOnTopMain: false,
     setAlwaysOnTopMain: vi.fn(),
-    lastNonSmallVariant: 'large' as const,
-    setLastNonSmallVariant: vi.fn(),
+    lastNonCompactVariant: 'full' as const,
+    setLastNonCompactVariant: vi.fn(),
     handleStopTimer: vi.fn(),
     locale: 'en' as const,
     customTranslations: {},
@@ -52,17 +52,17 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     expect(tauriEventRegistry['native-window-maximized']).toBeDefined();
     triggerTauriEvent('native-window-maximized');
 
-    expect(defaultProps.setGuiSize).toHaveBeenCalledWith('large');
-    expect(defaultProps.setLastNonSmallVariant).toHaveBeenCalledWith('large');
+    expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('full');
+    expect(defaultProps.setLastNonCompactVariant).toHaveBeenCalledWith('full');
   });
 
-  it('should toggle alwaysOnTop state through tray-toggle-on-top event based on current guiSize', async () => {
+  it('should toggle alwaysOnTop state through tray-toggle-on-top event based on current layoutVariant', async () => {
     const setAlwaysOnTopMainSpy = vi.fn();
     const setAlwaysOnTopSmallSpy = vi.fn();
 
     renderHook(() => useTauriWindow({
       ...defaultProps,
-      guiSize: 'large',
+      layoutVariant: 'full',
       setAlwaysOnTopMain: setAlwaysOnTopMainSpy,
       setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
     }));
@@ -75,7 +75,7 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     vi.clearAllMocks();
     renderHook(() => useTauriWindow({
       ...defaultProps,
-      guiSize: 'small',
+      layoutVariant: 'compact',
       setAlwaysOnTopMain: setAlwaysOnTopMainSpy,
       setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
     }));

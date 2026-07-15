@@ -3,7 +3,7 @@ export const STORAGE_KEYS = {
   TEXT_ICON_SIZE: 'oxytime_text_icon_size',
   SYS_SETTINGS: 'oxytime_sys_settings',
   GUI_VARIANT: 'oxytime_gui_variant',
-  LAST_NON_SMALL_VARIANT: 'oxytime_last_non_small_variant',
+  LAST_NON_COMPACT_VARIANT: 'oxytime_last_non_compact_variant',
   ALWAYS_ON_TOP_SMALL: 'oxytime_always_on_top_small',
   ALWAYS_ON_TOP_MAIN: 'oxytime_always_on_top_main',
   CURRENT_PROJ_ID: 'oxytime_current_proj_id',

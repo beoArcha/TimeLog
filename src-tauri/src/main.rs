@@ -1,4 +1,4 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+﻿#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
 use oxy_flow::{app, cli};
@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             db_path,
             csv_directory,
         };
-        let persistence = oxy_flow::persistence::PersistenceLayer::new(&persistence_config)?;
+        let persistence = oxy_flow::persistence::Persistence::new(&persistence_config)?;
         let engine = oxy_flow::engine::Engine::new(&persistence);
         if let Ok(cli_args) = cli::CliArgs::try_parse() {
             let output = cli::handle_cli(cli_args, &persistence, &engine)?;

@@ -2,8 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { RefreshCw, Minimize2 } from 'lucide-react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { EngineKey } from '@common/i18n/keys/EngineKey';
-import { translate } from '@common/i18n/i18n';
+import { translate } from '@common/i18n/translator';
 
 export default function DaemonStatusBar() {
   const {
@@ -28,8 +27,8 @@ export default function DaemonStatusBar() {
       >
         <RefreshCw className="w-5 h-5 text-orange-400 animate-spin" />
         <div className="flex-1 text-left">
-          <strong className="text-white">{translate(locale, EngineKey.Searching, customTranslations)}</strong>
-          <p className="text-[10px] text-[#9B8C83] mt-0.5">{translate(locale, EngineKey.Connecting, customTranslations)}</p>
+          <strong className="text-white">{translate(locale, 'engine', 'Searching', customTranslations)}</strong>
+          <p className="text-[10px] text-[#9B8C83] mt-0.5">{translate(locale, 'engine', 'Connecting', customTranslations)}</p>
         </div>
       </motion.div>
     );
@@ -46,8 +45,8 @@ export default function DaemonStatusBar() {
       <div className="flex items-start md:items-center gap-2.5 text-left">
         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping mt-1 md:mt-0 shrink-0"></div>
         <p className={`text-[11px] leading-relaxed ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
-          {translate(locale, EngineKey.Connected, customTranslations)} (PID: <strong className={`font-mono ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{enginePID}</strong>). <br className="hidden sm:inline md:hidden" />
-          {translate(locale, EngineKey.Synced, customTranslations)} <strong className="text-emerald-500 font-mono">{activeRunningLogs.length}</strong> {translate(locale, EngineKey.Threads, customTranslations)}
+          {translate(locale, 'engine', 'Connected', customTranslations)} (PID: <strong className={`font-mono ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{enginePID}</strong>). <br className="hidden sm:inline md:hidden" />
+          {translate(locale, 'engine', 'Synced', customTranslations)} <strong className="text-emerald-500 font-mono">{activeRunningLogs.length}</strong> {translate(locale, 'engine', 'Threads', customTranslations)}
         </p>
       </div>
       {handleMinimizeToTray && (
@@ -59,7 +58,7 @@ export default function DaemonStatusBar() {
             : 'bg-[#FCFAF8]/5 hover:bg-[#FCFAF8]/10 text-slate-300 hover:text-white border-white/10'
             }`}
         >
-          <Minimize2 className="w-3 h-3 text-orange-400" /> {translate(locale, EngineKey.MinimizeToTray, customTranslations)}
+          <Minimize2 className="w-3 h-3 text-orange-400" /> {translate(locale, 'engine', 'MinimizeToTray', customTranslations)}
         </button>
       )}
     </motion.div>

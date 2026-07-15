@@ -1,7 +1,7 @@
 use crate::cli::shared::constants::{MSG_SUBTASK_ARCHIVED, MSG_SUBTASK_CREATED};
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
-use crate::persistence::PersistenceLayer;
+use crate::persistence::Persistence;
 use crate::types::Task;
 use clap::Subcommand;
 
@@ -19,11 +19,12 @@ pub enum SubtaskCommand {
     },
 }
 
-pub fn handle(cmd: SubtaskCommand, persistence: &PersistenceLayer) -> Result<CliOutput, String> {
+pub fn handle(cmd: SubtaskCommand, persistence: &Persistence) -> Result<CliOutput, String> {
     match cmd {
         SubtaskCommand::Create { task_id, name } => {
             let project_id = persistence
-                .get_project_id_by_task_id(&task_id)
+                .tasks
+                .get_project_id(&task_id)
                 .map_err(|e| e.to_string())?;
             let id = generate_id();
             let now = current_timestamp();
@@ -38,14 +39,17 @@ pub fn handle(cmd: SubtaskCommand, persistence: &PersistenceLayer) -> Result<Cli
                 original_completed: Some(false),
                 edit_history: Some(vec![]),
                 archived: Some(false),
+                status: Some(crate::types::TaskStatus::Todo),
             };
             persistence
+                .tasks
                 .create_subtask(subtask)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_SUBTASK_CREATED.replace("{}", &id)))
         }
         SubtaskCommand::Archive { id, task_id } => {
             persistence
+                .tasks
                 .archive_subtask(id.clone(), task_id)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_SUBTASK_ARCHIVED.replace("{}", &id)))

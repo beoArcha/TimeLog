@@ -1,19 +1,17 @@
-import { IPersistence } from './IPersistence';
+import { isDesktopEnvironment } from '../utils/environment';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence } from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
-import { TimerRepositoryState, ApiPayload } from '@plugins/persistence/RepositoryTypes';
+import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
 
 export class PersistenceRouter implements IPersistence {
   private static instance: PersistenceRouter | null = null;
   private implementation: IPersistence;
 
   private constructor() {
-    // Prosty wybór implementacji. Na obecnym etapie obsługiwane jest wyłącznie środowisko Desktop (Tauri).
-    // Implementacja PersistencePlugin zostanie wprowadzona w kolejnym etapie.
-    const isDesktop = true;
-    if (isDesktop) {
+    if (isDesktopEnvironment()) {
       this.implementation = new PersistenceCommands();
     } else {
-      this.implementation = new PersistenceCommands();
+      this.implementation = new PersistencePlugin();
     }
   }
 
@@ -28,55 +26,27 @@ export class PersistenceRouter implements IPersistence {
     this.implementation = implementation;
   }
 
-  async load(): Promise<TimerRepositoryState | null> {
-    return this.implementation.load();
+  get core(): ICorePersistence {
+    return this.implementation.core;
   }
 
-  async overrideState(state: Partial<TimerRepositoryState>): Promise<TimerRepositoryState> {
-    return this.implementation.overrideState(state);
+  get projects(): IProjectsPersistence {
+    return this.implementation.projects;
   }
 
-  async addProject(input: { name: string; color: string }): Promise<TimerRepositoryState> {
-    return this.implementation.addProject(input);
+  get tasks(): ITasksPersistence {
+    return this.implementation.tasks;
   }
 
-  async toggleProjectArchive(projectId: string): Promise<TimerRepositoryState> {
-    return this.implementation.toggleProjectArchive(projectId);
+  get settings(): ISettingsPersistence {
+    return this.implementation.settings;
   }
 
-  async addTask(input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState> {
-    return this.implementation.addTask(input);
+  get runtimeConfigs(): IRuntimeConfigPersistence {
+    return this.implementation.runtimeConfigs;
   }
 
-  async renameProject(projectId: string, name: string): Promise<TimerRepositoryState> {
-    return this.implementation.renameProject(projectId, name);
-  }
-
-  async renameTask(taskId: string, name: string): Promise<TimerRepositoryState> {
-    return this.implementation.renameTask(taskId, name);
-  }
-
-  async deleteTask(taskId: string): Promise<TimerRepositoryState> {
-    return this.implementation.deleteTask(taskId);
-  }
-
-  async toggleTaskComplete(taskId: string): Promise<TimerRepositoryState> {
-    return this.implementation.toggleTaskComplete(taskId);
-  }
-
-  // TODO(Stage EngineRouter):
-  // Temporary compatibility proxy.
-  async startTimer(taskId: string): Promise<{ state: TimerRepositoryState; events: ApiPayload[] }> {
-    return this.implementation.startTimer(taskId);
-  }
-
-  // TODO(Stage EngineRouter):
-  // Temporary compatibility proxy.
-  async stopTimer(projectId?: string): Promise<{ state: TimerRepositoryState; events: ApiPayload[] }> {
-    return this.implementation.stopTimer(projectId);
-  }
-
-  async reset(): Promise<TimerRepositoryState> {
-    return this.implementation.reset();
+  get timeLogs(): ITimeLogsPersistence {
+    return this.implementation.timeLogs;
   }
 }

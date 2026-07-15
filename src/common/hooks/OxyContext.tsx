@@ -1,14 +1,18 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext } from 'react';
+import { ContextException } from '../exceptions';
 import { useOxyAppState } from '@common/hooks/useOxyAppState';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
+import { TaskStatus } from '@bindings/TaskStatus';
 import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { Settings } from '@bindings/Settings';
-import { LocaleType, TranslationDictionary } from '@common/i18n/i18n';
-import { GuiSize } from '@bindings/GuiSize';
+import { TranslationDictionary } from '@common/i18n/translator';
+import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
+import { Locale } from '@bindings/Locale';
 
 export interface OxyFlowState {
   customTranslations: Partial<TranslationDictionary>;
@@ -23,31 +27,37 @@ export interface OxyFlowState {
   setHolidays: React.Dispatch<React.SetStateAction<HolidayLeave[]>>;
   patches: PatchLog[];
   setPatches: React.Dispatch<React.SetStateAction<PatchLog[]>>;
-  
+
   sysSettings: Settings;
   setSysSettings: React.Dispatch<React.SetStateAction<Settings>>;
-  
+
   activeLog: TimeLog | null;
   setActiveLog: React.Dispatch<React.SetStateAction<TimeLog | null>>;
-  
-  localePref: LocaleType;
-  setLocalePref: React.Dispatch<React.SetStateAction<LocaleType>>;
-  locale: LocaleType;
-  setLocale: React.Dispatch<React.SetStateAction<LocaleType>>;
-  
+
+  localePref: Locale;
+  setLocalePref: React.Dispatch<React.SetStateAction<Locale>>;
+  locale: Locale;
+  setLocale: React.Dispatch<React.SetStateAction<Locale>>;
+
   theme: import('@common/types/ThemeTypes').ThemePreference;
   setTheme: React.Dispatch<React.SetStateAction<import('@common/types/ThemeTypes').ThemePreference>>;
   resolvedTheme: import('@common/types/ThemeTypes').Theme;
   setResolvedTheme: React.Dispatch<React.SetStateAction<import('@common/types/ThemeTypes').Theme>>;
-  
+
   textAndIconSize: TextAndIconSize;
   setTextAndIconSize: React.Dispatch<React.SetStateAction<TextAndIconSize>>;
-  guiSize: GuiSize;
-  setGuiSize: React.Dispatch<React.SetStateAction<GuiSize>>;
-  
+  layoutVariant: LayoutVariant;
+  setLayoutVariant: React.Dispatch<React.SetStateAction<LayoutVariant>>;
+  isCompactExpanded: boolean;
+  setIsCompactExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  lastNonCompactVariant?: Exclude<LayoutVariant, 'compact'>;
+  setLastNonCompactVariant?: React.Dispatch<React.SetStateAction<Exclude<LayoutVariant, 'compact'>>>;
+  activeLargeTab: 'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits';
+  setActiveLargeTab: React.Dispatch<React.SetStateAction<'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits'>>;
+
   engineState: 'searching' | 'connected';
   enginePID: number;
-  
+
   minimizeToTray: boolean;
   setMinimizeToTray: React.Dispatch<React.SetStateAction<boolean>>;
   alwaysOnTopSmall: boolean;
@@ -64,36 +74,70 @@ export interface OxyFlowState {
   setApiHeaders: React.Dispatch<React.SetStateAction<string>>;
   apiUrl: string;
   setApiUrl: React.Dispatch<React.SetStateAction<string>>;
-  
+
   nowIso: string;
   isGuiClosed: boolean;
   setIsGuiClosed: React.Dispatch<React.SetStateAction<boolean>>;
   isMinimized?: boolean;
   setIsMinimized?: React.Dispatch<React.SetStateAction<boolean>>;
-  
+
   showToast?: (msg: string) => void;
   handleMinimizeToTray?: () => Promise<void>;
   handleResetLocalStorage?: () => void;
+  trayNotification?: string | null;
+  setTrayNotification?: React.Dispatch<React.SetStateAction<string | null>>;
   showCreditsModal?: boolean;
   setShowCreditsModal?: React.Dispatch<React.SetStateAction<boolean>>;
   selectedTaskId: string | null;
   setSelectedTaskId: (id: string | null) => void;
-  handleAddProject: (name: string, color: string) => void;
+  handleAddProject: (name: string, color: string, description?: string | null, icon?: string | null, tags?: string[] | null) => void;
   handleToggleProjectArchive: (projectId: string) => void;
   handleAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
+  handleUpdateProject: (
+    projectId: string,
+    name: string,
+    color: string,
+    description: string | null,
+    icon: string | null,
+    tags: string[] | null
+  ) => void;
+  handleUpdateTask: (
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: TaskStatus | null,
+    completed: boolean | null
+  ) => void;
   handleRenameProject: (projectId: string, newName: string) => void;
   handleRenameTask: (taskId: string, newName: string) => void;
   handleDeleteTask: (taskId: string) => void;
   handleToggleTaskComplete: (taskId: string) => void;
   handleStartTimer: (taskId: string) => void;
   handleStopTimer: (specificProjectId?: string) => void;
+  handleEditTimeLog: (
+    id: string,
+    taskId: string,
+    startTime: string,
+    endTime: string | null,
+    note: string | null,
+    reason: string | null
+  ) => Promise<void>;
+  handleRestoreState: (data: {
+    projects?: Project[];
+    tasks?: Task[];
+    logs?: TimeLog[];
+    holidays?: HolidayLeave[];
+    patches?: PatchLog[];
+  }) => Promise<void>;
+  handleAddHoliday: (date: string, type: 'holiday' | 'leave', name: string) => void;
+  handleDeleteHoliday: (id: string) => void;
 }
 
 export const OxyContext = createContext<OxyFlowState | undefined>(undefined);
 
 export const useOxyFlow = () => {
   const ctx = useContext(OxyContext);
-  if (!ctx) throw new Error('useOxyFlow must be used within OxyContext.Provider');
+  if (!ctx) throw new ContextException('useOxyFlow must be used within OxyContext.Provider', 'ERR_OXY_CONTEXT');
   return ctx;
 };
 

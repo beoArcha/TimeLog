@@ -10,79 +10,75 @@ describe('Unit Tests: PersistenceCommands', () => {
     commands = new PersistenceCommands();
   });
 
-  it('should call get_timer_state on load', async () => {
+  it('should call get_state on load', async () => {
     const mockState = { projects: [{ id: 'p1' }], tasks: [] };
     mockInvoke.mockResolvedValue(mockState);
 
-    const result = await commands.load();
-    expect(mockInvoke).toHaveBeenCalledWith('get_timer_state');
+    const result = await commands.core.load();
+    expect(mockInvoke).toHaveBeenCalledWith('get_state');
     expect(result).toEqual(mockState);
   });
 
   it('should propagate errors correctly', async () => {
     mockInvoke.mockRejectedValue(new Error('Tauri Error'));
-    await expect(commands.load()).rejects.toThrow('Tauri Error');
+    await expect(commands.core.load()).rejects.toThrow('Tauri Error');
   });
 
-  it('should call add_project', async () => {
+  it('should call add', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.addProject({ name: 'Project 1', color: 'red' });
-    expect(mockInvoke).toHaveBeenCalledWith('add_project', { name: 'Project 1', color: 'red' });
+    await commands.projects.add({ name: 'Project 1', color: 'red' });
+    expect(mockInvoke).toHaveBeenCalledWith('add', {
+      name: 'Project 1',
+      color: 'red',
+      description: null,
+      icon: null,
+      tags: null,
+    });
   });
 
-  it('should call toggle_project_archive', async () => {
+  it('should call toggle_archive', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.toggleProjectArchive('p1');
-    expect(mockInvoke).toHaveBeenCalledWith('toggle_project_archive', { projectId: 'p1' });
+    await commands.projects.toggleArchive('p1');
+    expect(mockInvoke).toHaveBeenCalledWith('toggle_archive', { projectId: 'p1' });
   });
 
-  it('should call add_task', async () => {
+  it('should call create', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.addTask({ projectId: 'p1', name: 'Task 1', parentTaskId: null });
-    expect(mockInvoke).toHaveBeenCalledWith('add_task', {
+    await commands.tasks.add({ projectId: 'p1', name: 'Task 1', parentTaskId: null });
+    expect(mockInvoke).toHaveBeenCalledWith('create', {
       projectId: 'p1',
       name: 'Task 1',
       parentTaskId: null,
     });
   });
 
-  it('should call rename_project', async () => {
+  it('should call rename', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.renameProject('p1', 'New Project Name');
-    expect(mockInvoke).toHaveBeenCalledWith('rename_project', { projectId: 'p1', name: 'New Project Name' });
+    await commands.projects.rename('p1', 'New Project Name');
+    expect(mockInvoke).toHaveBeenCalledWith('rename', { projectId: 'p1', name: 'New Project Name' });
   });
 
-  it('should call rename_task', async () => {
+  it('should call update', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.renameTask('t1', 'New Task Name');
-    expect(mockInvoke).toHaveBeenCalledWith('rename_task', { taskId: 't1', name: 'New Task Name' });
+    await commands.tasks.rename('t1', 'New Task Name');
+    expect(mockInvoke).toHaveBeenCalledWith('update', { taskId: 't1', name: 'New Task Name' });
   });
 
-  it('should call delete_task', async () => {
+  it('should call delete', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.deleteTask('t1');
-    expect(mockInvoke).toHaveBeenCalledWith('delete_task', { taskId: 't1' });
+    await commands.tasks.delete('t1');
+    expect(mockInvoke).toHaveBeenCalledWith('delete', { taskId: 't1' });
   });
 
-  it('should call toggle_task_complete', async () => {
+  it('should call toggle_complete', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.toggleTaskComplete('t1');
-    expect(mockInvoke).toHaveBeenCalledWith('toggle_task_complete', { taskId: 't1' });
+    await commands.tasks.toggleComplete('t1');
+    expect(mockInvoke).toHaveBeenCalledWith('toggle_complete', { taskId: 't1' });
   });
 
-  it('should call start_timer and stop_timer (temporary compatibility)', async () => {
-    mockInvoke.mockResolvedValue({ activeLog: null, projects: [], tasks: [], logs: [] });
-    await commands.startTimer('t1');
-    expect(mockInvoke).toHaveBeenCalledWith('start_timer', { taskId: 't1' });
-
-    mockInvoke.mockResolvedValue({ activeLog: null, projects: [], tasks: [], logs: [] });
-    await commands.stopTimer('p1');
-    expect(mockInvoke).toHaveBeenCalledWith('stop_timer', { projectId: 'p1' });
-  });
-
-  it('should call reset_database on reset', async () => {
+  it('should call reset on reset', async () => {
     mockInvoke.mockResolvedValue({});
-    await commands.reset();
-    expect(mockInvoke).toHaveBeenCalledWith('reset_database');
+    await commands.core.reset();
+    expect(mockInvoke).toHaveBeenCalledWith('reset');
   });
 });
