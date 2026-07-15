@@ -32,7 +32,7 @@ describe('Unit Tests: DbExplorer', () => {
     locale: 'en',
     customTranslations: {},
     isLoading: false
-  };
+  } as unknown as OxyFlowState;
 
   afterEach(() => {
     cleanup();

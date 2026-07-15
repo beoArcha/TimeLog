@@ -42,7 +42,8 @@ describe('Unit Tests: DbInspector', () => {
     activeLargeTab: 'db',
     activeView: 'tasks',
     patches: []
-  });
+  } as unknown as GuiState);
+
 
   it('should render the SQLite Client header and tables', () => {
     const state = getMockGuiState();
