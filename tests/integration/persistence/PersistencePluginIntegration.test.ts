@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
-import { setupLocalStorageMock } from '../../shared/mocks/browser-mocks';
+import { setupLocalStorageMock } from '@tests/shared/mocks/browser-mocks';
 import { PersistenceException, ErrorHandler } from '@common/exceptions';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
 import { Settings } from '@bindings/Settings';

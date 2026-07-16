@@ -4,7 +4,7 @@ import { render, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LayoutManager from '@layouts/manager/LayoutManager';
 import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
-import { getMockOxyFlowState } from '../../shared/test-helpers';
+import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 vi.mock('@components/BackgroundGradients', () => ({
   default: () => <div data-testid="bg-gradients">Gradients</div>
@@ -75,7 +75,7 @@ vi.mock('@features/tray/TrayWidgetView', () => ({
 
 let activeMockState: OxyFlowState;
 
-vi.mock('../../../src/layouts/manager/AppProviders', () => ({
+vi.mock('@layouts/manager/AppProviders', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <OxyContext.Provider value={activeMockState}>
       {children}

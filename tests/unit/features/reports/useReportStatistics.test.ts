@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { useReportStatistics } from '../../../../src/features/reports/hooks/useReportStatistics';
+import { useReportStatistics } from '@features/reports/hooks/useReportStatistics';
 import { TimeLog } from '@bindings/TimeLog';
 import { PatchLog } from '@bindings/PatchLog';
 import { Project } from '@bindings/Project';

@@ -2,9 +2,9 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import EngineConfig from '../../../src/components/EngineConfig';
+import EngineConfig from '@components/EngineConfig';
 import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
-import { getMockOxyFlowState } from '../../shared/test-helpers';
+import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: EngineConfig', () => {
   afterEach(() => {

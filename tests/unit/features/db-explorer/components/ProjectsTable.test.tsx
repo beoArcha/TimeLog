@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import ProjectsTable from '../../../../../src/features/db-explorer/components/ProjectsTable';
+import ProjectsTable from '@features/db-explorer/components/ProjectsTable';
 import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 

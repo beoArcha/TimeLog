@@ -3,10 +3,10 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
-import TrayWidgetView from '../../../src/features/tray/TrayWidgetView';
-import EngineConfig from '../../../src/components/EngineConfig';
-import HolidaysLeavesView from '../../../src/features/holidays/HolidaysLeavesView';
-import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
+import TrayWidgetView from '@features/tray/TrayWidgetView';
+import EngineConfig from '@components/EngineConfig';
+import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
+import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Integration Tests: Common Components', () => {
   beforeEach(() => {

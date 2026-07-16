@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
-import { setupLocalStorageMock } from '../../../shared/test-helpers';
+import { setupLocalStorageMock } from '@tests/shared/test-helpers';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
 
 const STORAGE_KEY = 'timelog_persistence_plugin_state';

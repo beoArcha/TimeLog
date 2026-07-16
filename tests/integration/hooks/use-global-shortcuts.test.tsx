@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { setupLocalStorageMock, setupMatchMediaMock } from '../../shared/test-helpers';
+import { setupLocalStorageMock, setupMatchMediaMock } from '@tests/shared/test-helpers';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { useOxyAppState } from '@common/hooks/useOxyAppState';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';

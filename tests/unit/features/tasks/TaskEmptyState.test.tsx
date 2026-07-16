@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
-import TaskEmptyState from '../../../../src/features/tasks/components/TaskEmptyState';
+import TaskEmptyState from '@features/tasks/components/TaskEmptyState';
 
 describe('Unit Tests: TaskEmptyState', () => {
   afterEach(() => {

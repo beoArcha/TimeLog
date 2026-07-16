@@ -1,7 +1,7 @@
 import {
   setupLocalStorageMock,
   setupMatchMediaMock,
-} from '../../shared/test-helpers';
+} from '@tests/shared/test-helpers';
 
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';

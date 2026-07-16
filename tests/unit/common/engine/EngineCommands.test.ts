@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockInvoke } from '../../../shared/test-helpers';
+import { mockInvoke } from '@tests/shared/test-helpers';
 import { EngineCommands } from '@common/engine/EngineCommands';
 
 describe('Unit Tests: EngineCommands', () => {

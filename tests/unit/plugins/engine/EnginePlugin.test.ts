@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { setupLocalStorageMock, mockInvoke } from '../../../shared/test-helpers';
+import { setupLocalStorageMock, mockInvoke } from '@tests/shared/test-helpers';
 import { EngineCommands } from '@common/engine/EngineCommands';
 import { EnginePlugin } from '@plugins/engine/EnginePlugin';
 import { STORAGE_KEYS } from '@common/constants';
@@ -18,8 +18,8 @@ let mockLogCounter = 0;
 const setupMockInvokeForRustBehavior = () => {
   mockInvoke.mockImplementation(async (cmd: string, args?: { taskId?: string; projectId?: string }) => {
     const rawState = localStorage.getItem(DESKTOP_STATE_KEY);
-    const state: TimerRepositoryState = rawState 
-      ? JSON.parse(rawState) 
+    const state: TimerRepositoryState = rawState
+      ? JSON.parse(rawState)
       : { projects: [], tasks: [], logs: [], activeLog: null };
 
     if (cmd === 'start_timer') {

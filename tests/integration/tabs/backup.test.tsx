@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
 import BackupTab from '@features/settings/BackupTab';
-import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
+import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Integration Tests: BackupTab', () => {
   beforeEach(() => {

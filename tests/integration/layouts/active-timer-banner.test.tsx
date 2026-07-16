@@ -2,9 +2,9 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import ActiveTimerBanner from '../../../src/layouts/parts/ActiveTimerBanner';
-import { GuiState } from '../../../src/layouts/hooks/useGuiLogic';
-import { getMockOxyFlowState } from '../../shared/test-helpers';
+import ActiveTimerBanner from '@layouts/parts/ActiveTimerBanner';
+import { GuiState } from '@layouts/hooks/useGuiLogic';
+import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Integration Tests: ActiveTimerBanner', () => {
   let mockState: ReturnType<typeof getMockOxyFlowState>;

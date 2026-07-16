@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { setupLocalStorageMock } from '../../shared/mocks/browser-mocks';
+import { setupLocalStorageMock } from '@tests/shared/mocks/browser-mocks';
 import { useTimeLogData } from '@common/hooks/useTimeLogData';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler } from '@common/exceptions';

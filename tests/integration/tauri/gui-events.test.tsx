@@ -5,7 +5,7 @@ import {
   tauriEventRegistry,
   triggerTauriEvent,
   setupMatchMediaMock,
-} from '../../shared/test-helpers';
+} from '@tests/shared/test-helpers';
 
 import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';

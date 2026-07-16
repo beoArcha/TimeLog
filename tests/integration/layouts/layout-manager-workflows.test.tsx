@@ -4,7 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import GuiClosedAlert from '@layouts/components/GuiClosedAlert';
-import { getMockOxyFlowState } from '../../shared/mocks/oxy-state-mock';
+import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
 function createMockState(overrides: Partial<OxyFlowState> = {}): OxyFlowState {
   return {

@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
 import { ErrorHandler, ContextException, PersistenceException } from '@common/exceptions';
 import SystemNotification from '@components/SystemNotification';
-import { getMockOxyFlowState } from '../../shared/mocks/oxy-state-mock';
+import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
 describe('Integration Tests: Error Handling and Notifications', () => {
   beforeEach(() => {

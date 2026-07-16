@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
-import { TEST_CONSTANTS } from '../../shared/test-constants';
+import { TEST_CONSTANTS } from '@tests/shared/test-constants';
 
 describe('Unit Tests: useGlobalShortcuts Hook', () => {
   const onToggleTimer = vi.fn();

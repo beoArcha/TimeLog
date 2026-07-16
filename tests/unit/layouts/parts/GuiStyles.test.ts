@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getThemeStyles, PROJECT_COLORS } from '../../../../src/layouts/parts/LayoutStyles';
+import { getThemeStyles, PROJECT_COLORS } from '@layouts/parts/LayoutStyles';
 
 describe('Unit Tests: GuiStyles', () => {
   it('should return light theme styles when theme is light', () => {

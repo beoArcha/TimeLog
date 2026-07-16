@@ -6,9 +6,9 @@ import {
   triggerTauriEvent,
   setupLocalStorageMock,
   setupMatchMediaMock,
-} from '../../shared/test-helpers';
+} from '@tests/shared/test-helpers';
 import { useTauriWindow } from '@common/tauri/useTauriWindow';
-import { TAURI_COMMANDS } from '../../../src/common/tauri/tauri-commands';
+import { TAURI_COMMANDS } from '@common/tauri/tauri-commands';
 
 describe('Integration Tests: useTauriWindow Events Integration', () => {
   const defaultProps = {

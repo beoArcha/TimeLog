@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useOxyFlow, OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import React from 'react';
 
-import { setupMatchMediaMock } from '../../shared/test-helpers';
+import { setupMatchMediaMock } from '@tests/shared/test-helpers';
 
 beforeEach(() => {
   setupMatchMediaMock(false);

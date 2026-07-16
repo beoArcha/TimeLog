@@ -1,8 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useAppSettings } from '@common/hooks/useAppSettings';
-import { setupLocalStorageMock, setupMatchMediaMock } from '../../shared/test-helpers';
-import { STORAGE_KEYS } from '../../../src/common/constants';
+import { setupLocalStorageMock, setupMatchMediaMock } from '@tests/shared/test-helpers';
+import { STORAGE_KEYS } from '@common/constants';
 
 describe('Unit Tests: useAppSettings Hook', () => {
   beforeEach(() => {

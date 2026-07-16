@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { setupLocalStorageMock } from '../../shared/mocks/browser-mocks';
-import { mockInvoke } from '../../shared/mocks/tauri-ipc-mock';
+import { setupLocalStorageMock } from '@tests/shared/mocks/browser-mocks';
+import { mockInvoke } from '@tests/shared/mocks/tauri-ipc-mock';
 import { EngineRouter } from '@common/engine/EngineRouter';
 import { EngineCommands } from '@common/engine/EngineCommands';
 import { EnginePlugin } from '@plugins/engine/EnginePlugin';

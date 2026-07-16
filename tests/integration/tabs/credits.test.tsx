@@ -4,7 +4,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
 import CreditsTab from '@features/settings/CreditsTab';
-import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
+import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Integration Tests: CreditsTab', () => {
   beforeEach(() => {

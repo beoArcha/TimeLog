@@ -1,9 +1,9 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { setupLocalStorageMock } from '../../shared/test-helpers';
-import { useTimeLogData } from '../../../src/common/hooks/useTimeLogData';
-import { STORAGE_KEYS } from '../../../src/common/constants';
-import { TEST_CONSTANTS } from '../../shared/test-constants';
+import { setupLocalStorageMock } from '@tests/shared/test-helpers';
+import { useTimeLogData } from '@common/hooks/useTimeLogData';
+import { STORAGE_KEYS } from '@common/constants';
+import { TEST_CONSTANTS } from '@tests/shared/test-constants';
 
 const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
 

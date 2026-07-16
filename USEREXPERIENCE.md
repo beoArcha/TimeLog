@@ -2,8 +2,8 @@
 
 ## User Experience Guide
 
-This document defines the user experience (UX) principles for oXyFlow. 
-It protects the user's focus, flow, and sanity. 
+This document defines the user experience (UX) principles for oXyFlow.
+It protects the user's focus, flow, and sanity.
 
 Architecture exists to serve the user, not the other way around.
 
@@ -13,7 +13,7 @@ Architecture exists to serve the user, not the other way around.
 
 > **Less clicking. More flow.**
 
-The application must get out of the user's way. 
+The application must get out of the user's way.
 It is a productivity tool, not a destination.
 
 ---
@@ -24,6 +24,7 @@ Placement of features must be strictly logical.
 If a user intuitively assumes a button, setting, or command belongs in a specific place, it must be exactly there.
 
 This applies equally to:
+
 * Graphical User Interface (GUI)
 * Command Line Interface (CLI)
 
@@ -48,6 +49,7 @@ Every additional click is a failure of design.
 
 The application must react the same way every single time.
 Behavior must remain consistent across:
+
 * Browser Runtime
 * Desktop Runtime
 
@@ -72,6 +74,7 @@ Waiting for the interface to catch up is considered a critical UX bug.
 When running as a desktop application, oXyFlow must behave like a first-class citizen of the operating system.
 
 Required native behaviors:
+
 * System-wide keyboard shortcuts
 * System tray integration
 * Native window controls
@@ -103,5 +106,5 @@ Any of the following must be treated as a bug, equivalent to a system crash:
 
 ## Guiding Principle
 
-Design for the tired user. 
+Design for the tired user.
 If the interface requires active thinking to navigate, it needs to be redesigned.

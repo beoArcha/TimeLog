@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { EnginePlugin } from '../../../../src/plugins/engine/EnginePlugin';
-import { PersistenceRouter } from '../../../../src/common/persistence/PersistenceRouter';
-import { IPersistence } from '../../../../src/common/persistence/IPersistence';
+import { EnginePlugin } from '@plugins/engine/EnginePlugin';
+import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { IPersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { Settings } from '@bindings/Settings';
 import { TimeLog } from '@bindings/TimeLog';

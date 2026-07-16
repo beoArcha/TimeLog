@@ -2,12 +2,12 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
-import { Button } from '../../../../src/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '../../../../src/components/ui/card';
-import { Input } from '../../../../src/components/ui/input';
-import { Skeleton, StatsSkeleton, TableSkeleton } from '../../../../src/components/ui/Skeletons';
+import { Button } from '@components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
+import { Input } from '@components/ui/input';
+import { Skeleton, StatsSkeleton, TableSkeleton } from '@components/ui/Skeletons';
 import { OxyContext } from '@common/hooks/OxyContext';
-import { getMockOxyFlowState } from '../../../shared/test-helpers';
+import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: UI Primitives', () => {
   afterEach(() => {

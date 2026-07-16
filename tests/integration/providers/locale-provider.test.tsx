@@ -2,8 +2,8 @@ import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LocaleProvider, useLocale } from '@common/hooks/LocaleProvider';
-import { setupLocalStorageMock } from '../../shared/test-helpers';
-import { STORAGE_KEYS } from '../../../src/common/constants';
+import { setupLocalStorageMock } from '@tests/shared/test-helpers';
+import { STORAGE_KEYS } from '@common/constants';
 
 describe('Unit Tests: LocaleProvider & useLocale', () => {
   beforeEach(() => {

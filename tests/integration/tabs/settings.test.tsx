@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
 import SettingsTab from '@features/settings/SettingsTab';
 import { toast } from 'sonner';
-import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
+import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 vi.mock('sonner', () => ({
   toast: {

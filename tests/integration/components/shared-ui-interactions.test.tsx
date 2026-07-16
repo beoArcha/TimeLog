@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OxyContext } from '@common/hooks/OxyContext';
 import CollapsibleCard from '@components/CollapsibleCard';
 import RestoreButton from '@components/RestoreButton';
-import { getMockOxyFlowState } from '../../shared/mocks/oxy-state-mock';
+import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
 describe('Integration Tests: Shared UI Component Interactions', () => {
   beforeEach(() => {

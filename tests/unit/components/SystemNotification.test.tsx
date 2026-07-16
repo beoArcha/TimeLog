@@ -2,10 +2,10 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import SystemNotification from '../../../src/components/SystemNotification';
-import RestoreButton from '../../../src/components/RestoreButton';
+import SystemNotification from '@components/SystemNotification';
+import RestoreButton from '@components/RestoreButton';
 import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
-import { getMockOxyFlowState } from '../../shared/test-helpers';
+import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: SystemNotification & RestoreButton', () => {
   afterEach(() => {
