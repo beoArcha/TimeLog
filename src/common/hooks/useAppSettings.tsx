@@ -45,7 +45,6 @@ export const useAppSettings = () => {
 
   const [settingsLoaded, setSettingsLoaded] = useState(false);
 
-  // 1. Initial async load from Persistence Layer
   useEffect(() => {
     PersistenceRouter.getInstance().settings.get().then((loaded) => {
       setTheme(loaded.theme as ThemePreference);
@@ -67,7 +66,6 @@ export const useAppSettings = () => {
     });
   }, []);
 
-  // 2. LocalStorage fast-path fallback sync & Theme setup
   const [systemTheme, setSystemTheme] = useState<Theme>(() =>
     window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
   );

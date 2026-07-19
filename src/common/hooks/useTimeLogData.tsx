@@ -13,6 +13,9 @@ import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
 import { ApiPayload } from '../persistence/IPersistence';
 
+import { STORAGE_KEYS } from '@common/constants';
+
+const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
 const repository = PersistenceRouter.getInstance();
 
 export { type ApiPayload };
@@ -23,8 +26,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const [logs, setLogsState] = useState<TimeLog[]>(INIT_LOGS);
   const [activeLog, setActiveLogState] = useState<TimeLog | null>(null);
 
-  const [holidays, setHolidays] = useState<HolidayLeave[]>(DEFAULT_HOLIDAYS);
-  const [patches, setPatches] = useState<PatchLog[]>([]);
+  const [holidays, setHolidays] = useState<HolidayLeave[]>(() => dm.loadState()?.holidays ?? DEFAULT_HOLIDAYS);
+  const [patches, setPatches] = useState<PatchLog[]>(() => dm.loadState()?.patches ?? []);
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -69,6 +72,14 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
 
   useEffect(() => {
     if (isInitialized && !isResetting.current) {
+      dm.saveState({
+        projects,
+        tasks,
+        logs,
+        activeLog,
+        holidays,
+        patches,
+      });
       repository.core.overrideState({
         projects,
         tasks,
@@ -78,7 +89,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
         ErrorHandler.handle(new RepositoryException('Failed to persist state via router', err, 'ERR_REPOSITORY'));
       });
     }
-  }, [isInitialized, projects, tasks, logs, activeLog]);
+  }, [holidays, patches, isInitialized, projects, tasks, logs, activeLog]);
 
   const ensureSeeded = async () => {
     if (isSeedingRequired.current) {
@@ -347,6 +358,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setIsLoading(true);
       setRepositoryError(null);
       await repository.core.reset();
+      dm.clearState();
       window.location.reload();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to reset storage', err, 'ERR_REPOSITORY'));
