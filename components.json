@@ -21,7 +21,8 @@
     "layout": "@/src/layout",
     "features": "@/src/features",
     "common": "@/src/common",
-    "bindings": "@/src/bindings"
+    "bindings": "@/src/bindings",
+    "app": "@/src"
   },
   "menuColor": "default",
   "menuAccent": "subtle",
