@@ -163,15 +163,15 @@ export default function Sidebar({ state }: { state: GuiState }) {
               </div>
             )}
 
-            <div className={`flex items-center justify-between gap-section mt-1`}>
-              <div className="flex gap-1.5">
+            <div className={`flex flex-wrap items-center justify-between gap-section mt-1.5`}>
+              <div className="flex flex-wrap gap-1.5">
                 {PROJECT_COLORS.map(col => (
                   <button
                     id={`color-picker-${col.name}`}
                     key={col.name}
                     type="button"
                     onClick={() => setNewProjectColor(col.name)}
-                    className={`icon-large rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${newProjectColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-80'
+                    className={`icon-medium shrink-0 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${newProjectColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-80'
                       }`}
                   >
                     {newProjectColor === col.name && (
@@ -183,7 +183,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
               <button
                 id="add-project-btn"
                 type="submit"
-                className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white rounded-section px-3.5 py-1.5 text-main font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md`}
+                className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white rounded-section px-3 py-1.5 text-main font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md shrink-0`}
               >
                 <Plus className="icon-small" /> {translate(locale, 'common', 'Save', customTranslations)}
               </button>
@@ -329,30 +329,6 @@ export default function Sidebar({ state }: { state: GuiState }) {
               );
             })
           )}
-        </div>
-      </div>
-
-      <div className={`border rounded-main padding-main relative overflow-hidden shadow-2xl transition-all duration-300 ${theme === 'light'
-        ? 'bg-gradient-to-tr from-orange-500/5 to-rose-500/5 border-[#DFD7CB]'
-        : theme === 'high-contrast'
-          ? 'bg-black border-2 border-white text-white'
-          : 'bg-gradient-to-tr from-orange-500/10 to-rose-500/10 border-white/10 text-white'
-        }`}>
-        <div className="absolute inset-0 opacity-5 pointer-events-none">
-          <svg viewBox="0 0 100 100" className="w-full h-full preserve-3d">
-            <path d="M0,50 Q25,30 50,50 T100,50 L100,100 L0,100 Z" fill="white" />
-          </svg>
-        </div>
-        <div className="relative z-10 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-orange-400 animate-pulse" />
-            <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-medium tracking-wide border ${theme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42]' : 'bg-[#FCFAF8]/10 border-white/10'
-              }`}>{translate(locale, 'engine', 'CountingEngine', customTranslations)} v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.engine}</span>
-          </div>
-          <h4 className={`font-sans font-bold text-lg mt-1 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-100'}`}>{translate(locale, 'engine', 'CreatedForRhythm', customTranslations)}</h4>
-          <p className={`text-xs leading-relaxed ${theme === 'light' ? 'text-[#7A6A61]' : 'text-slate-300'}`}>
-            {translate(locale, 'engine', 'HeroDescription', customTranslations)}
-          </p>
         </div>
       </div>
 
