@@ -3,7 +3,6 @@ import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { translate } from '@common/i18n/translator';
 import { motion, AnimatePresence } from 'motion/react';
-import { isDesktopEnvironment } from '@common/utils/environment';
 import AppProviders from './AppProviders';
 
 // Components
@@ -338,11 +337,10 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
   );
 }
 
-export default function LayoutManager({ runtime }: { runtime?: 'tauri' | 'browser' } = {}) {
-  const resolvedRuntime = runtime || (isDesktopEnvironment() ? 'tauri' : 'browser');
+export default function LayoutManager({ runtime }: { runtime: 'tauri' | 'browser' }) {
   return (
     <AppProviders>
-      <LayoutManagerContent runtime={resolvedRuntime} />
+      <LayoutManagerContent runtime={runtime} />
     </AppProviders>
   );
 }

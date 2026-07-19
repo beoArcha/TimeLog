@@ -100,7 +100,7 @@ describe('Unit Tests: LayoutManager', () => {
       isMinimized: false
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager />);
+    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
 
     expect(getByTestId('compact-layout')).not.toBeNull();
     expect(queryByTestId('medium-layout')).toBeNull();
@@ -115,7 +115,7 @@ describe('Unit Tests: LayoutManager', () => {
       isMinimized: false
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager />);
+    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
 
     expect(getByTestId('medium-layout')).not.toBeNull();
     expect(queryByTestId('compact-layout')).toBeNull();
@@ -133,7 +133,7 @@ describe('Unit Tests: LayoutManager', () => {
       isMinimized: false
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager />);
+    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
 
     expect(getByTestId('full-layout')).not.toBeNull();
     expect(queryByTestId('compact-layout')).toBeNull();
@@ -166,7 +166,7 @@ describe('Unit Tests: LayoutManager', () => {
       isMinimized: false
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager />);
+    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
     expect(getByTestId('gui-closed-alert')).not.toBeNull();
     expect(queryByTestId('medium-layout')).toBeNull();
   });
@@ -186,7 +186,7 @@ describe('Unit Tests: LayoutManager', () => {
       handleStopTimer: handleStopTimerMock
     };
 
-    const { getByTestId } = render(<LayoutManager />);
+    const { getByTestId } = render(<LayoutManager runtime="browser" />);
     expect(getByTestId('tray-widget-view')).not.toBeNull();
     expect(getByTestId('restore-btn')).not.toBeNull();
 
@@ -219,7 +219,7 @@ describe('Unit Tests: LayoutManager', () => {
         isMinimized: false
       };
 
-      const { getByTestId, unmount } = render(<LayoutManager />);
+      const { getByTestId, unmount } = render(<LayoutManager runtime="browser" />);
       expect(getByTestId(tab.testId)).not.toBeNull();
       unmount();
     }
