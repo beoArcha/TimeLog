@@ -1,5 +1,6 @@
+export interface OxyFlowState { [key: string]: any }
+
 import { vi } from 'vitest';
-import { OxyFlowState } from '@common/hooks/OxyContext';
 
 export const getMockOxyFlowState = (): OxyFlowState => ({
   customTranslations: {},

@@ -1,12 +1,12 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { setupLocalStorageMock } from '../../shared/test-helpers';
-import { useTimeLogData } from '../../../src/common/hooks/useTimeLogData';
-import { STORAGE_KEYS } from '../../../src/common/constants';
-import { TEST_CONSTANTS } from '../../shared/test-constants';
+import { setupLocalStorageMock } from '@tests/shared/test-helpers';
+import { useTimeLogData } from '@common/hooks/useTimeLogData';
+import { TEST_CONSTANTS } from '@tests/shared/test-constants';
+import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { PersistencePlugin } from '../../../src/plugins/persistence/PersistencePlugin';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
-
-const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
+const LOCAL_STORAGE_KEY = 'timelog_persistence_plugin_state';
 
 describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
   const pushToApi = vi.fn();
@@ -24,9 +24,10 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     (window as any).location = originalLocation;
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     setupLocalStorageMock();
+    PersistenceRouter.getInstance().setImplementationForTesting(new PersistencePlugin());
   });
 
   const renderTimeLog = async () => {
@@ -36,7 +37,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
   };
 
   it('Given empty storage, When application starts, Then default state is created', async () => {
-    localStorage.removeItem(STORAGE_KEYS.STATE_DB);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
 
     const { result } = await renderTimeLog();
 
@@ -45,7 +46,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     expect(result.current.logs).toHaveLength(3);
     expect(result.current.isInitialized).toBe(true);
 
-    const saved = localStorage.getItem(STORAGE_KEYS.STATE_DB);
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     expect(saved).toBeDefined();
     expect(JSON.parse(saved!).projects).toHaveLength(3);
   });
@@ -59,7 +60,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
       holidays: [],
       patches: []
     };
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingState));
 
     const { result } = await renderTimeLog();
 
@@ -70,16 +71,16 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
   });
 
   it('Given corrupted storage, When application starts, Then fallback state is created', async () => {
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, '{corrupted-json-data...');
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+    localStorage.setItem(LOCAL_STORAGE_KEY, '{corrupted-json-data...');
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
     const { result } = await renderTimeLog();
 
-    expect(result.current.projects).toHaveLength(3);
+    expect(result.current.projects).toHaveLength(0);
     expect(result.current.isInitialized).toBe(true);
-    expect(warnSpy).toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalled();
 
-    warnSpy.mockRestore();
+    errorSpy.mockRestore();
   });
 
   it('Given active timer, When application reloads, Then timer is restored', async () => {
@@ -92,7 +93,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
       holidays: [],
       patches: []
     };
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingState));
 
     const { result } = await renderTimeLog();
 
@@ -195,7 +196,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
       holidays: [],
       patches: []
     };
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingState));
 
     const { result } = await renderTimeLog();
 
@@ -267,7 +268,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
       holidays: [],
       patches: []
     };
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingState));
 
     const { result } = await renderTimeLog();
     expect(result.current.logs.filter(l => l.endTime === null)).toHaveLength(1);
@@ -291,7 +292,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
       holidays: [],
       patches: []
     };
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingState));
 
     const { result } = await renderTimeLog();
 
@@ -315,7 +316,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
       holidays: [],
       patches: []
     };
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingState));
 
     const { result } = await renderTimeLog();
 
@@ -346,7 +347,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
       holidays: [],
       patches: []
     };
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingState));
 
     const { result } = await renderTimeLog();
 
@@ -380,7 +381,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
       holidays: [],
       patches: []
     };
-    localStorage.setItem(STORAGE_KEYS.STATE_DB, JSON.stringify(existingState));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existingState));
 
     const { result } = await renderTimeLog();
 

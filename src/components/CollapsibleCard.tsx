@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, LucideIcon } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useSettings } from '@common/hooks/SettingsContext';
+
 
 interface CollapsibleCardProps {
   title?: React.ReactNode;
@@ -34,7 +35,7 @@ export default function CollapsibleCard({
   headerTestId
 }: CollapsibleCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const { resolvedTheme } = useOxyFlow();
+  const { resolvedTheme } = useSettings();;
 
   const isLight = resolvedTheme === 'light';
   

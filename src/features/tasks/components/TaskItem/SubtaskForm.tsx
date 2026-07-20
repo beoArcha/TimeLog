@@ -1,14 +1,11 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Locale } from '@bindings/Locale';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 
 interface SubtaskFormProps {
   parentTaskId: string;
   newSubtaskName: string;
   theme: string;
-  locale: Locale;
-  customTranslations: any;
   setNewSubtaskName: (name: string) => void;
   onSubmit: (parentTaskId: string, e: React.FormEvent) => void;
 }
@@ -17,11 +14,12 @@ export function SubtaskForm({
   parentTaskId,
   newSubtaskName,
   theme,
-  locale,
-  customTranslations,
   setNewSubtaskName,
   onSubmit,
 }: SubtaskFormProps) {
+  const { t: tTask } = useTranslation('task');
+  const { t: tCommon } = useTranslation('common');
+
   return (
     <motion.form
       id={`subtask-form-${parentTaskId}`}
@@ -36,7 +34,7 @@ export function SubtaskForm({
         id={`new-subtask-input-${parentTaskId}`}
         type="text"
         required
-        placeholder={translate(locale, 'task', 'EnterSubtaskName', customTranslations)}
+        placeholder={tTask('EnterSubtaskName')}
         value={newSubtaskName}
         onChange={(e) => setNewSubtaskName(e.target.value)}
         className={`flex-1 px-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all ${theme === 'light'
@@ -49,7 +47,7 @@ export function SubtaskForm({
         type="submit"
         className="bg-gradient-to-tr from-orange-400 to-rose-500 text-white text-xs font-semibold rounded-xl px-3 py-1.5 hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
       >
-        {translate(locale, 'common', 'Save', customTranslations)}
+        {tCommon('Save')}
       </button>
     </motion.form>
   );

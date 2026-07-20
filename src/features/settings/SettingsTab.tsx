@@ -1,31 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Settings, RefreshCw, AlertTriangle, CalendarDays, Info } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import EngineConfig from '@components/EngineConfig';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
 import { translate } from '@common/i18n/translator';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
+import PromptModal from '@components/PromptModal';
 import versionsData from '../../versions.json';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
 
 export default function SettingsTab() {
-  const { customTranslations, resolvedTheme, locale, setProjects, setTasks, setLogs } = useOxyFlow();
+  const { customTranslations, locale } = useLocale();
+  const { resolvedTheme } = useSettings();
+  const { setProjects, setTasks, setLogs } = useData();;
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
-  const handleResetData = () => {
-    const response = window.prompt(translate(locale, 'cli', 'WarningResetApp', customTranslations));
+  const handleConfirmReset = (response: string) => {
+    setIsResetModalOpen(false);
     if (response === 'reset') {
       setProjects([]);
       setTasks([]);
       setLogs([]);
       localStorage.removeItem('oxytime_state_db_6');
       toast.success(translate(locale, 'engine', 'ResetSuccess', customTranslations));
-    } else if (response !== null) {
+    } else {
       toast.error(translate(locale, 'engine', 'ResetCancel', customTranslations));
     }
   };
 
   return (
     <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
+      <PromptModal
+        isOpen={isResetModalOpen}
+        title={translate(locale, 'engine', 'DestructiveZone', customTranslations)}
+        message={translate(locale, 'cli', 'WarningResetApp', customTranslations)}
+        onConfirm={handleConfirmReset}
+        onCancel={() => setIsResetModalOpen(false)}
+      />
       <div className={`border-b pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${resolvedTheme === 'light' ? 'border-[#DFD7CB]' : 'border-white/5'}`}>
         <div>
           <h2 className={`text-lg font-bold flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
@@ -55,7 +68,7 @@ export default function SettingsTab() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
             <p className={`text-xs max-w-sm ${resolvedTheme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>{translate(locale, 'engine', 'HardResetDesc', customTranslations)}</p>
             <button
-              onClick={handleResetData}
+              onClick={() => setIsResetModalOpen(true)}
               className="bg-rose-500 hover:bg-rose-600 px-6 py-3 rounded-2xl text-white text-xs font-bold uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >
               <RefreshCw className="w-4 h-4" /> {translate(locale, 'engine', 'HardResetBtn', customTranslations)}

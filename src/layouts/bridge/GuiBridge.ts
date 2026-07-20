@@ -1,5 +1,5 @@
 import { GuiState } from './GuiState';
-import { useOxyFlow, OxyFlowState } from '@common/hooks/OxyContext';
+import { useSettings } from '@common/hooks/SettingsContext';
 import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
 
@@ -18,7 +18,7 @@ export type GuiIntent =
   | { type: 'stop_timer'; payload: { projectId: string | null } };
 
 export const GuiBridge = {
-  sendIntent: async (intent: GuiIntent, oxyFlowState?: OxyFlowState): Promise<void> => {
+  sendIntent: async (intent: GuiIntent, oxyFlowState?: any): Promise<void> => {
     console.log('[GuiBridge] Sending intent:', intent);
     if (!oxyFlowState) return;
 
@@ -89,10 +89,10 @@ export const GuiBridge = {
 };
 
 export function useGuiState(): GuiState {
-  const state = useOxyFlow();
+  const settings = useSettings();
   return {
-    layoutVariant: state.layoutVariant,
-    resolvedTheme: state.resolvedTheme,
-    textAndIconSize: state.textAndIconSize,
+    layoutVariant: settings.layoutVariant,
+    resolvedTheme: settings.resolvedTheme,
+    textAndIconSize: settings.textAndIconSize,
   };
 }

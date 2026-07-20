@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ContextException } from '../exceptions';
 import { TranslationDictionary } from '@common/i18n/translator';
-import { STORAGE_KEYS } from '@common/constants';
+import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { ErrorHandler } from '../exceptions';
 import { Locale } from '@/src/bindings/Locale';
 
 interface LocaleContextProps {
@@ -14,7 +15,7 @@ interface LocaleContextProps {
   setCustomTranslations: React.Dispatch<React.SetStateAction<Partial<TranslationDictionary>>>;
 }
 
-const LocaleContext = createContext<LocaleContextProps | undefined>(undefined);
+export const LocaleContext = createContext<LocaleContextProps | undefined>(undefined);
 
 function resolveSystemLocale(): Locale {
   const browserLang = navigator.language.toLowerCase();
@@ -27,11 +28,8 @@ function resolveSystemLocale(): Locale {
 }
 
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [localePref, setLocalePref] = useState<Locale>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.LOCALE_PREF);
-    if (saved) return saved as Locale;
-    return 'system';
-  });
+  const [localePref, setLocalePref] = useState<Locale>('system');
+  const [loaded, setLoaded] = useState(false);
 
   const [localeOverride, setLocaleOverride] = useState<[Locale, Locale] | null>(null);
 
@@ -48,29 +46,34 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
-  const [customTranslations, setCustomTranslations] = useState<Partial<TranslationDictionary>>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (err) {
-        console.warn(err);
-      }
-    }
-    return {};
-  });
+  const [customTranslations, setCustomTranslations] = useState<Partial<TranslationDictionary>>({});
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.LOCALE_PREF, localePref);
-  }, [localePref]);
+    Promise.all([
+      PersistenceRouter.getInstance().locale.getLocalePref(),
+      PersistenceRouter.getInstance().locale.getLocale(),
+      PersistenceRouter.getInstance().locale.getCustomTranslations(),
+    ]).then(([pref, _loc, trans]) => {
+      setLocalePref((pref as Locale) || 'system');
+      setCustomTranslations(trans);
+      setLoaded(true);
+    }).catch(ErrorHandler.handle);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.LOCALE, locale);
-  }, [locale]);
+    if (!loaded) return;
+    PersistenceRouter.getInstance().locale.saveLocalePref(localePref).catch(ErrorHandler.handle);
+  }, [localePref, loaded]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS, JSON.stringify(customTranslations));
-  }, [customTranslations]);
+    if (!loaded) return;
+    PersistenceRouter.getInstance().locale.saveLocale(locale).catch(ErrorHandler.handle);
+  }, [locale, loaded]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    PersistenceRouter.getInstance().locale.saveCustomTranslations(customTranslations as Record<string, Record<string, string>>).catch(ErrorHandler.handle);
+  }, [customTranslations, loaded]);
 
   return (
     <LocaleContext.Provider value={{ localePref, setLocalePref, locale, setLocale, customTranslations, setCustomTranslations }}>

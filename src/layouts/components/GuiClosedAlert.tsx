@@ -1,10 +1,12 @@
 import React from 'react';
 import { Cpu } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/translator';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useEngine } from '@common/hooks/EngineContext';
 
 export default function GuiClosedAlert() {
-  const { locale, customTranslations, setIsGuiClosed } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { setIsGuiClosed } = useEngine();;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0b0f19] text-white flex-col gap-4 font-mono">

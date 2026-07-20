@@ -1,12 +1,13 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/hooks/OxyContext';
-import TrayWidgetView from '../../../src/features/tray/TrayWidgetView';
-import EngineConfig from '../../../src/components/EngineConfig';
-import HolidaysLeavesView from '../../../src/features/holidays/HolidaysLeavesView';
-import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
+
+import TrayWidgetView from '@features/tray/TrayWidgetView';
+import EngineConfig from '@components/EngineConfig';
+import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
+import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Integration Tests: Common Components', () => {
   beforeEach(() => {
@@ -25,9 +26,9 @@ describe('Integration Tests: Common Components', () => {
       const onStopAllSpy = vi.fn();
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <TrayWidgetView onRestore={onRestoreSpy} onStopAll={onStopAllSpy} showToast={vi.fn()} />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const restoreBtn = screen.getByText(/Maximize and Restore/i);
@@ -44,9 +45,9 @@ describe('Integration Tests: Common Components', () => {
       const onStopAllSpy = vi.fn();
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <TrayWidgetView onRestore={onRestoreSpy} onStopAll={onStopAllSpy} showToast={vi.fn()} />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const pauseBtn = screen.getByText(/Suspend all processes/i);
@@ -59,9 +60,9 @@ describe('Integration Tests: Common Components', () => {
     it('Given EngineConfig rendered, When autoStart checkbox toggled, Then it should call setSysSettings', () => {
       const mockState = getMockOxyFlowState();
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <EngineConfig />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const header = screen.getByText('Engine Options & Daemons');
@@ -77,9 +78,9 @@ describe('Integration Tests: Common Components', () => {
     it('Given HolidaysLeavesView rendered, When form submitted, Then it should call setHolidays', () => {
       const mockState = getMockOxyFlowState();
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <HolidaysLeavesView />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const nameInput = screen.getByPlaceholderText(/e.g. Vibe dancing leave.../i);

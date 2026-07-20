@@ -1,4 +1,4 @@
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence } from '@common/persistence/IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence, IHolidaysPersistence, IPatchesPersistence, IUiStatePersistence, IExternalApiPersistence, ILocalePersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { Settings } from '@bindings/Settings';
@@ -6,10 +6,10 @@ import { TimeLog } from '@bindings/TimeLog';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
-
-const STORAGE_KEY = 'timelog_persistence_plugin_state';
-const SETTINGS_KEY = 'timelog_persistence_plugin_settings';
-const RUN_CONFIGS_KEY = 'timelog_persistence_plugin_runtime_configs';
+import { HolidayLeave } from '@bindings/HolidayLeave';
+import { PatchLog } from '@bindings/PatchLog';
+import { INIT_PROJECTS, INIT_TASKS, INIT_LOGS, DEFAULT_HOLIDAYS } from './InitialData';
+import { STORAGE_KEYS } from '@common/constants/storage-keys';
 
 const getDefaultState = (): TimerRepositoryState => ({
   projects: [],
@@ -25,12 +25,28 @@ export class PersistencePlugin implements IPersistence {
   public settings: ISettingsPersistence;
   public runtimeConfigs: IRuntimeConfigPersistence;
   public timeLogs: ITimeLogsPersistence;
+  public holidays: IHolidaysPersistence;
+  public patches: IPatchesPersistence;
+  public uiState: IUiStatePersistence;
+  public externalApi: IExternalApiPersistence;
+  public locale: ILocalePersistence;
 
   constructor() {
     this.core = {
       load: async (): Promise<TimerRepositoryState | null> => {
-        const data = localStorage.getItem(STORAGE_KEY);
-        if (!data) return getDefaultState();
+        const data = localStorage.getItem(STORAGE_KEYS.STORAGE_KEY);
+        if (!data) {
+          // Initialize empty local storage with defaults on first run
+          localStorage.setItem(STORAGE_KEYS.HOLIDAYS_KEY, JSON.stringify(DEFAULT_HOLIDAYS));
+          const seedState = {
+            projects: INIT_PROJECTS,
+            tasks: INIT_TASKS,
+            logs: INIT_LOGS,
+            activeLog: null
+          };
+          await this.save(seedState);
+          return seedState;
+        }
         try {
           return JSON.parse(data) as TimerRepositoryState;
         } catch (e) {
@@ -44,9 +60,10 @@ export class PersistencePlugin implements IPersistence {
         return this.save(newState);
       },
       reset: async (): Promise<TimerRepositoryState> => {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(SETTINGS_KEY);
-        localStorage.removeItem(RUN_CONFIGS_KEY);
+        localStorage.removeItem(STORAGE_KEYS.STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEYS.SETTINGS_KEY);
+        localStorage.removeItem(STORAGE_KEYS.RUN_CONFIGS_KEY);
+        localStorage.removeItem(STORAGE_KEYS.HOLIDAYS_KEY);
         return getDefaultState();
       }
     };
@@ -114,7 +131,7 @@ export class PersistencePlugin implements IPersistence {
     this.tasks = {
       add: async (input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState> => {
         const current = (await this.core.load()) || getDefaultState();
-        
+
         // Hierarchy validation
         if (input.parentTaskId) {
           const parent = current.tasks.find(t => t.id === input.parentTaskId);
@@ -144,7 +161,7 @@ export class PersistencePlugin implements IPersistence {
         completed: boolean | null
       ): Promise<TimerRepositoryState> => {
         const current = (await this.core.load()) || getDefaultState();
-        
+
         // Hierarchy validation
         if (parentTaskId) {
           if (taskId === parentTaskId) {
@@ -164,7 +181,7 @@ export class PersistencePlugin implements IPersistence {
         if (task) {
           task.name = name;
           task.parentTaskId = parentTaskId || undefined;
-          
+
           if (completed !== null) {
             task.completed = completed;
             if (completed) {
@@ -187,9 +204,28 @@ export class PersistencePlugin implements IPersistence {
         }
         return this.save(current);
       },
-      delete: async (taskId: string): Promise<TimerRepositoryState> => {
+      delete: async (id: string): Promise<TimerRepositoryState> => {
         const current = (await this.core.load()) || getDefaultState();
-        current.tasks = current.tasks.filter(t => t.id !== taskId);
+
+        const idsToDelete = new Set<string>([id]);
+        let added: boolean;
+        do {
+          added = false;
+          current.tasks.forEach(t => {
+            if (t.parentTaskId && idsToDelete.has(t.parentTaskId) && !idsToDelete.has(t.id)) {
+              idsToDelete.add(t.id);
+              added = true;
+            }
+          });
+        } while (added);
+
+        current.tasks = current.tasks.filter(t => !idsToDelete.has(t.id));
+        current.logs = current.logs.filter(l => !idsToDelete.has(l.taskId));
+
+        if (current.activeLog && idsToDelete.has(current.activeLog.taskId)) {
+          current.activeLog = null;
+        }
+
         return this.save(current);
       },
       toggleComplete: async (taskId: string): Promise<TimerRepositoryState> => {
@@ -198,6 +234,12 @@ export class PersistencePlugin implements IPersistence {
         if (task) {
           task.completed = !task.completed;
           task.status = task.completed ? 'Done' : 'Todo';
+          if (task.completed && current.activeLog?.taskId === taskId) {
+            const now = new Date().toISOString();
+            current.activeLog.endTime = now;
+            current.logs = current.logs.map(l => l.id === current.activeLog?.id ? { ...l, endTime: now } : l);
+            current.activeLog = null;
+          }
         }
         return this.save(current);
       },
@@ -215,7 +257,7 @@ export class PersistencePlugin implements IPersistence {
 
     this.settings = {
       get: async (): Promise<Settings> => {
-        const data = localStorage.getItem(SETTINGS_KEY);
+        const data = localStorage.getItem(STORAGE_KEYS.SETTINGS_KEY);
         const defaults: Settings = {
           autoStart: false,
           autoPauseOnSleep: true,
@@ -237,7 +279,7 @@ export class PersistencePlugin implements IPersistence {
       },
       save: async (settings: Settings): Promise<void> => {
         try {
-          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+          localStorage.setItem(STORAGE_KEYS.SETTINGS_KEY, JSON.stringify(settings));
         } catch (e) {
           ErrorHandler.handle(new PersistenceException('Failed to save settings to LocalStorage', e, 'ERR_PERSISTENCE_SETTINGS_SAVE'));
           throw e;
@@ -248,7 +290,7 @@ export class PersistencePlugin implements IPersistence {
     this.runtimeConfigs = {
       save: async (config: RuntimeConfig): Promise<void> => {
         try {
-          const data = localStorage.getItem(RUN_CONFIGS_KEY);
+          const data = localStorage.getItem(STORAGE_KEYS.RUN_CONFIGS_KEY);
           const list: RuntimeConfig[] = data ? JSON.parse(data) : [];
           const idx = list.findIndex(c => c.id === config.id);
           if (idx !== -1) {
@@ -256,7 +298,7 @@ export class PersistencePlugin implements IPersistence {
           } else {
             list.push(config);
           }
-          localStorage.setItem(RUN_CONFIGS_KEY, JSON.stringify(list));
+          localStorage.setItem(STORAGE_KEYS.RUN_CONFIGS_KEY, JSON.stringify(list));
         } catch (e) {
           ErrorHandler.handle(new PersistenceException('Failed to save runtime config to LocalStorage', e, 'ERR_PERSISTENCE_RUN_CONFIG_SAVE'));
           throw e;
@@ -264,7 +306,7 @@ export class PersistencePlugin implements IPersistence {
       },
       getAll: async (): Promise<RuntimeConfig[]> => {
         try {
-          const data = localStorage.getItem(RUN_CONFIGS_KEY);
+          const data = localStorage.getItem(STORAGE_KEYS.RUN_CONFIGS_KEY);
           return data ? JSON.parse(data) : [];
         } catch (e) {
           ErrorHandler.handle(new PersistenceException('Failed to get runtime configs from LocalStorage', e, 'ERR_PERSISTENCE_RUN_CONFIG_GET'));
@@ -335,11 +377,92 @@ export class PersistencePlugin implements IPersistence {
         return current.logs;
       }
     };
+
+    this.holidays = {
+      getAll: async (): Promise<HolidayLeave[]> => {
+        const data = localStorage.getItem(STORAGE_KEYS.HOLIDAYS_KEY);
+        if (!data) return DEFAULT_HOLIDAYS;
+        try {
+          return JSON.parse(data);
+        } catch {
+          return DEFAULT_HOLIDAYS;
+        }
+      },
+      save: async (holidays: HolidayLeave[]): Promise<void> => {
+        localStorage.setItem(STORAGE_KEYS.HOLIDAYS_KEY, JSON.stringify(holidays));
+      }
+    };
+
+    this.patches = {
+      getAll: async (): Promise<PatchLog[]> => {
+        const data = localStorage.getItem(STORAGE_KEYS.PATCHES);
+        if (!data) return [];
+        try {
+          return JSON.parse(data);
+        } catch {
+          return [];
+        }
+      },
+      save: async (patches: PatchLog[]): Promise<void> => {
+        localStorage.setItem(STORAGE_KEYS.PATCHES, JSON.stringify(patches));
+      }
+    };
+
+    this.uiState = {
+      getCurrentProjectId: async (): Promise<string | null> => {
+        return localStorage.getItem(STORAGE_KEYS.CURRENT_PROJ_ID);
+      },
+      saveCurrentProjectId: async (id: string): Promise<void> => {
+        localStorage.setItem(STORAGE_KEYS.CURRENT_PROJ_ID, id);
+      },
+      getLastNonCompactVariant: async (): Promise<string> => {
+        return localStorage.getItem(STORAGE_KEYS.LAST_NON_COMPACT_VARIANT) || 'full';
+      },
+      saveLastNonCompactVariant: async (variant: string): Promise<void> => {
+        localStorage.setItem(STORAGE_KEYS.LAST_NON_COMPACT_VARIANT, variant);
+      }
+    };
+
+    this.externalApi = {
+      getSettings: async () => {
+        return {
+          logToApi: localStorage.getItem(STORAGE_KEYS.LOG_TO_API) === 'true',
+          apiToken: localStorage.getItem(STORAGE_KEYS.API_TOKEN) || '',
+          apiUrl: localStorage.getItem(STORAGE_KEYS.API_URL) || '',
+          apiMethod: (localStorage.getItem(STORAGE_KEYS.API_METHOD) as 'POST' | 'PUT') || 'POST',
+          apiHeaders: localStorage.getItem(STORAGE_KEYS.API_HEADERS) || '',
+        };
+      },
+      saveSettings: async (settings) => {
+        localStorage.setItem(STORAGE_KEYS.LOG_TO_API, String(settings.logToApi));
+        localStorage.setItem(STORAGE_KEYS.API_TOKEN, settings.apiToken);
+        localStorage.setItem(STORAGE_KEYS.API_URL, settings.apiUrl);
+        localStorage.setItem(STORAGE_KEYS.API_METHOD, settings.apiMethod);
+        localStorage.setItem(STORAGE_KEYS.API_HEADERS, settings.apiHeaders);
+      }
+    };
+
+    this.locale = {
+      getLocalePref: async () => localStorage.getItem(STORAGE_KEYS.LOCALE_PREF) || 'system',
+      saveLocalePref: async (pref: string) => localStorage.setItem(STORAGE_KEYS.LOCALE_PREF, pref),
+      getLocale: async () => localStorage.getItem(STORAGE_KEYS.LOCALE) || 'system',
+      saveLocale: async (loc: string) => localStorage.setItem(STORAGE_KEYS.LOCALE, loc),
+      getCustomTranslations: async () => {
+        const saved = localStorage.getItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS);
+        if (saved) {
+          try { return JSON.parse(saved); } catch (_) { return {}; }
+        }
+        return {};
+      },
+      saveCustomTranslations: async (translations) => {
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS, JSON.stringify(translations));
+      }
+    };
   }
 
   private async save(state: TimerRepositoryState): Promise<TimerRepositoryState> {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(state));
       return state;
     } catch (e) {
       ErrorHandler.handle(new PersistenceException('Failed to save persistence state to LocalStorage', e, 'ERR_PERSISTENCE_SAVE'));

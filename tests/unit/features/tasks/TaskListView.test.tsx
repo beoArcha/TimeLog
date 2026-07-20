@@ -1,11 +1,29 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import TaskListView from '@features/tasks/TaskListView';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { EngineRouter } from '@common/engine/EngineRouter';
 
 describe('Unit Tests: TaskListView', () => {
+  const mockGetProjectStatistics = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetProjectStatistics.mockResolvedValue({
+      totalTasks: 0,
+      completedTasks: 0,
+      totalDurationSeconds: 0n
+    });
+    EngineRouter.getInstance().setImplementationForTesting({
+      startTimer: vi.fn(),
+      stopTimer: vi.fn(),
+      editTimeLog: vi.fn(),
+      getProjectStatistics: mockGetProjectStatistics,
+    } as any);
+  });
+
   const mockState = {
     ...getMockOxyFlowState(),
     tasks: [],
@@ -19,8 +37,14 @@ describe('Unit Tests: TaskListView', () => {
     onAddTask: vi.fn(),
   };
 
-  it('should render project header card and empty tasks layout', () => {
+  it('should render project header card and empty tasks layout', async () => {
     render(<TaskListView state={mockState} isCondensed={false} />);
     expect(screen.getByText(/Selected Project/i)).not.toBeNull();
+
+    await waitFor(() => {
+      expect(mockGetProjectStatistics).toHaveBeenCalledWith('p1');
+    });
+
+    await screen.findByText('Total Duration');
   });
 });

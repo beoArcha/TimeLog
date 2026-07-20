@@ -1,10 +1,13 @@
 import { Cpu } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+
 import CollapsibleCard from './CollapsibleCard';
 import { translate } from '@common/i18n/translator';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 export default function EngineConfig() {
-  const { minimizeToTray, setMinimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, resolvedTheme, sysSettings, setSysSettings, locale, customTranslations } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { minimizeToTray, setMinimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, resolvedTheme, sysSettings, setSysSettings } = useSettings();;
 
   const updateSetting = (key: keyof typeof sysSettings, value: boolean) => {
     setSysSettings(prev => ({ ...prev, [key]: value }));

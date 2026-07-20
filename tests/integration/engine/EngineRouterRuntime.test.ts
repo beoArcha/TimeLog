@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { setupLocalStorageMock } from '../../shared/mocks/browser-mocks';
-import { mockInvoke } from '../../shared/mocks/tauri-ipc-mock';
+import { setupLocalStorageMock } from '@tests/shared/mocks/browser-mocks';
+import { mockInvoke } from '@tests/shared/mocks/tauri-ipc-mock';
 import { EngineRouter } from '@common/engine/EngineRouter';
 import { EngineCommands } from '@common/engine/EngineCommands';
 import { EnginePlugin } from '@plugins/engine/EnginePlugin';
@@ -54,9 +54,15 @@ describe('Integration Tests: EngineRouter with EngineCommands and EnginePlugin',
   });
 
   describe('EnginePlugin Delegation (Browser Runtime)', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       setupLocalStorageMock();
       PersistenceRouter.getInstance().setImplementationForTesting(new PersistencePlugin());
+      await PersistenceRouter.getInstance().core.overrideState({
+        projects: [],
+        tasks: [],
+        logs: [],
+        activeLog: null
+      });
       EngineRouter.getInstance().setImplementationForTesting(new EnginePlugin());
     });
 

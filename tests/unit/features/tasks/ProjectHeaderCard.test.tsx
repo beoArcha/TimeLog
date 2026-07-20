@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import ProjectHeaderCard from '../../../../src/features/tasks/components/ProjectHeaderCard';
+import ProjectHeaderCard from '@features/tasks/components/ProjectHeaderCard';
 import { Project } from '@bindings/Project';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 
@@ -28,8 +28,6 @@ describe('Unit Tests: ProjectHeaderCard', () => {
         projectDurationSeconds={3600}
         isCondensed={false}
         theme="dark"
-        locale="en"
-        customTranslations={{}}
         stats={null}
         loading={false}
         newTaskName="New Task"
@@ -52,8 +50,6 @@ describe('Unit Tests: ProjectHeaderCard', () => {
         projectDurationSeconds={0}
         isCondensed={false}
         theme="dark"
-        locale="en"
-        customTranslations={{}}
         stats={null}
         loading={false}
         newTaskName=""
@@ -82,8 +78,6 @@ describe('Unit Tests: ProjectHeaderCard', () => {
         projectDurationSeconds={1800}
         isCondensed={true}
         theme="light"
-        locale="en"
-        customTranslations={{}}
         stats={null}
         loading={false}
         newTaskName=""
@@ -103,8 +97,6 @@ describe('Unit Tests: ProjectHeaderCard', () => {
         projectDurationSeconds={0}
         isCondensed={false}
         theme="light"
-        locale="en"
-        customTranslations={{}}
         stats={null}
         loading={true}
         newTaskName=""
@@ -130,8 +122,6 @@ describe('Unit Tests: ProjectHeaderCard', () => {
         projectDurationSeconds={5400}
         isCondensed={false}
         theme="high-contrast"
-        locale="en"
-        customTranslations={{}}
         stats={mockStats}
         loading={false}
         newTaskName=""
@@ -159,8 +149,6 @@ describe('Unit Tests: ProjectHeaderCard', () => {
         projectDurationSeconds={0}
         isCondensed={false}
         theme="dark"
-        locale="en"
-        customTranslations={{}}
         stats={mockStats}
         loading={false}
         newTaskName=""

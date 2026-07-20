@@ -1,10 +1,10 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/hooks/OxyContext';
 import BackupTab from '@features/settings/BackupTab';
-import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
+import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Integration Tests: BackupTab', () => {
   beforeEach(() => {
@@ -23,9 +23,9 @@ describe('Integration Tests: BackupTab', () => {
     const mockState = getMockOxyFlowState();
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <BackupTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const exportBtn = screen.getByTestId('export-backup-btn');
@@ -41,9 +41,9 @@ describe('Integration Tests: BackupTab', () => {
     const mockState = getMockOxyFlowState();
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <BackupTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const file = new File(
@@ -77,9 +77,9 @@ describe('Integration Tests: BackupTab', () => {
     const mockState = getMockOxyFlowState();
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <BackupTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const file = new File(
@@ -102,9 +102,9 @@ describe('Integration Tests: BackupTab', () => {
     const mockState = getMockOxyFlowState();
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <BackupTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     // Webhook inputs should not be visible when logToApi is false

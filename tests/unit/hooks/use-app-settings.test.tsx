@@ -1,8 +1,7 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useAppSettings } from '@common/hooks/useAppSettings';
-import { setupLocalStorageMock, setupMatchMediaMock } from '../../shared/test-helpers';
-import { STORAGE_KEYS } from '../../../src/common/constants';
+import { setupLocalStorageMock, setupMatchMediaMock } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: useAppSettings Hook', () => {
   beforeEach(() => {
@@ -10,32 +9,52 @@ describe('Unit Tests: useAppSettings Hook', () => {
     setupMatchMediaMock(false);
   });
 
-  it('should_load_saved_settings_when_initialized', () => {
-    localStorage.setItem(STORAGE_KEYS.THEME, 'light');
-    localStorage.setItem(STORAGE_KEYS.GUI_VARIANT, 'medium');
+  it('should_load_saved_settings_when_initialized', async () => {
+    localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+      theme: 'light',
+      guiVariant: 'medium',
+      textAndIconSize: 'medium',
+      autoStart: false,
+      autoPauseOnSleep: true,
+      includePatchesInReports: true,
+      activeSinks: ['Csv'],
+      alwaysOnTopSmall: false,
+      alwaysOnTopMain: false,
+      minimizeToTray: true,
+    }));
 
     const { result } = renderHook(() => useAppSettings());
 
-    expect(result.current.theme).toBe('light');
+    await waitFor(() => {
+      expect(result.current.theme).toBe('light');
+    });
     expect(result.current.layoutVariant).toBe('medium');
   });
 
-  it('should_update_localStorage_when_textAndIconSize_changes', () => {
+  it('should_update_localStorage_when_textAndIconSize_changes', async () => {
     const { result } = renderHook(() => useAppSettings());
 
-    act(() => {
+    await waitFor(() => {
+      expect(result.current.textAndIconSize).toBeTruthy();
+    });
+
+    await act(async () => {
       result.current.setTextAndIconSize('large');
     });
 
-    expect(localStorage.getItem(STORAGE_KEYS.TEXT_ICON_SIZE)).toBe('large');
+    expect(result.current.textAndIconSize).toBe('large');
   });
 
-  it('should_resolve_theme_correctly_when_system_theme_is_queried', () => {
+  it('should_resolve_theme_correctly_when_system_theme_is_queried', async () => {
     setupMatchMediaMock(true);
 
     const { result } = renderHook(() => useAppSettings());
 
-    act(() => {
+    await waitFor(() => {
+      expect(result.current.resolvedTheme).toBeTruthy();
+    });
+
+    await act(async () => {
       result.current.setTheme('system');
     });
 

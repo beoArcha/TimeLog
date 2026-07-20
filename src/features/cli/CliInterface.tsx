@@ -1,13 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, Send, ShieldCheck } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useEngine } from '@common/hooks/EngineContext';
+import { useData } from '@common/hooks/DataContext';
 import { executeCliCommand, TerminalLine, CliEngineContext } from './utils/CliEngine';
 import versionsData from '../../versions.json';
 import { translate } from '@common/i18n/translator';
 
 export default function CliInterface() {
-  const context = useOxyFlow();
-  const { locale, customTranslations, resolvedTheme } = context;
+  const { locale, customTranslations } = useLocale();
+  const { resolvedTheme } = useSettings();
+  const { nowIso } = useEngine();
+  const data = useData();
 
   const [input, setInput] = useState('');
   const [terminalHistory, setTerminalHistory] = useState<TerminalLine[]>([
@@ -41,12 +46,22 @@ export default function CliInterface() {
 
   const executeCommand = (cmdText: string) => {
     const cliContext: CliEngineContext = {
-      ...context,
-      onAddProject: context.handleAddProject,
-      onAddTask: context.handleAddTask,
-      onToggleTaskComplete: context.handleToggleTaskComplete,
-      onStartTimer: context.handleStartTimer,
-      onStopTimer: context.handleStopTimer,
+      projects: data.projects,
+      tasks: data.tasks,
+      logs: data.logs,
+      activeLog: data.activeLog,
+      nowIso,
+      locale,
+      customTranslations,
+      holidays: data.holidays,
+      setHolidays: data.setHolidays,
+      selectedTaskId: data.selectedTaskId,
+      setSelectedTaskId: data.setSelectedTaskId,
+      onAddProject: data.handleAddProject,
+      onAddTask: data.handleAddTask,
+      onToggleTaskComplete: data.handleToggleTaskComplete,
+      onStartTimer: data.handleStartTimer,
+      onStopTimer: data.handleStopTimer,
     };
     const outputs = executeCliCommand(cmdText, cliContext);
     if (outputs.length === 1 && outputs[0].text === '__CLEAR__') {

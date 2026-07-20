@@ -1,12 +1,12 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import GuiClosedAlert from '@layouts/components/GuiClosedAlert';
-import { getMockOxyFlowState } from '../../shared/mocks/oxy-state-mock';
+import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
-function createMockState(overrides: Partial<OxyFlowState> = {}): OxyFlowState {
+function createMockState(overrides: Partial<any> = {}): any {
   return {
     ...getMockOxyFlowState(),
     ...overrides,
@@ -27,9 +27,9 @@ describe('Integration Tests: Layout Manager Component Workflows', () => {
       const state = createMockState({ isGuiClosed: true });
 
       render(
-        <OxyContext.Provider value={state}>
+        <MockProviders state={state}>
           <GuiClosedAlert />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       expect(screen.getByText(/GUI Closed/i)).toBeDefined();
@@ -40,9 +40,9 @@ describe('Integration Tests: Layout Manager Component Workflows', () => {
       const state = createMockState({ isGuiClosed: true });
 
       render(
-        <OxyContext.Provider value={state}>
+        <MockProviders state={state}>
           <GuiClosedAlert />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const restartBtn = screen.getByText(/Restart GUI Client/i);

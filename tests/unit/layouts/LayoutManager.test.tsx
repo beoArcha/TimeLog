@@ -1,10 +1,10 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LayoutManager from '@layouts/manager/LayoutManager';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
-import { getMockOxyFlowState } from '../../shared/test-helpers';
+import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 vi.mock('@components/BackgroundGradients', () => ({
   default: () => <div data-testid="bg-gradients">Gradients</div>
@@ -73,13 +73,13 @@ vi.mock('@features/tray/TrayWidgetView', () => ({
   )
 }));
 
-let activeMockState: OxyFlowState;
+let activeMockState: any;
 
-vi.mock('../../../src/layouts/manager/AppProviders', () => ({
+vi.mock('@layouts/manager/AppProviders', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
-    <OxyContext.Provider value={activeMockState}>
+    <MockProviders state={activeMockState}>
       {children}
-    </OxyContext.Provider>
+    </MockProviders>
   )
 }));
 
@@ -100,7 +100,7 @@ describe('Unit Tests: LayoutManager', () => {
       isMinimized: false
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager />);
+    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
 
     expect(getByTestId('compact-layout')).not.toBeNull();
     expect(queryByTestId('medium-layout')).toBeNull();
@@ -115,7 +115,7 @@ describe('Unit Tests: LayoutManager', () => {
       isMinimized: false
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager />);
+    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
 
     expect(getByTestId('medium-layout')).not.toBeNull();
     expect(queryByTestId('compact-layout')).toBeNull();
@@ -133,7 +133,7 @@ describe('Unit Tests: LayoutManager', () => {
       isMinimized: false
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager />);
+    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
 
     expect(getByTestId('full-layout')).not.toBeNull();
     expect(queryByTestId('compact-layout')).toBeNull();
@@ -166,7 +166,7 @@ describe('Unit Tests: LayoutManager', () => {
       isMinimized: false
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager />);
+    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
     expect(getByTestId('gui-closed-alert')).not.toBeNull();
     expect(queryByTestId('medium-layout')).toBeNull();
   });
@@ -186,7 +186,7 @@ describe('Unit Tests: LayoutManager', () => {
       handleStopTimer: handleStopTimerMock
     };
 
-    const { getByTestId } = render(<LayoutManager />);
+    const { getByTestId } = render(<LayoutManager runtime="browser" />);
     expect(getByTestId('tray-widget-view')).not.toBeNull();
     expect(getByTestId('restore-btn')).not.toBeNull();
 
@@ -219,7 +219,7 @@ describe('Unit Tests: LayoutManager', () => {
         isMinimized: false
       };
 
-      const { getByTestId, unmount } = render(<LayoutManager />);
+      const { getByTestId, unmount } = render(<LayoutManager runtime="browser" />);
       expect(getByTestId(tab.testId)).not.toBeNull();
       unmount();
     }

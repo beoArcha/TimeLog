@@ -1,14 +1,14 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import TasksTable from '@features/db-explorer/components/TasksTable';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: TasksTable', () => {
   const setTasksMock = vi.fn();
-  const mockState: OxyFlowState = {
+  const mockState: any = {
     ...getMockOxyFlowState(),
     tasks: [
       { id: 't1', projectId: 'p1', name: 'Task One', completed: false, createdAt: '2026-06-15T00:00:00Z', status: null, parentTaskId: null }
@@ -20,9 +20,9 @@ describe('Unit Tests: TasksTable', () => {
 
   it('should render tasks list', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <TasksTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText(/Task One/i)).not.toBeNull();
@@ -30,9 +30,9 @@ describe('Unit Tests: TasksTable', () => {
 
   it('should open edit form and handle save', () => {
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <TasksTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const editBtn = container.querySelector('.lucide-pen-line')?.closest('button');

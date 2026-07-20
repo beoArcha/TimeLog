@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { LocalStorageDataManager } from '@plugins/persistence/DataManager';
-import { setupLocalStorageMock } from '../../../shared/test-helpers';
+import { setupLocalStorageMock } from '@tests/shared/test-helpers';
 import { FullAppState } from '@plugins/persistence/DataManager';
 
 const TEST_KEY = 'test_storage_key';

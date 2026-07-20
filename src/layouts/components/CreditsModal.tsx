@@ -1,17 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Sparkles } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/translator';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 export default function CreditsModal() {
-  const {
-    showCreditsModal,
-    setShowCreditsModal,
-    resolvedTheme,
-    locale,
-    customTranslations
-  } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { showCreditsModal, setShowCreditsModal, resolvedTheme } = useSettings();;
 
   if (!showCreditsModal || !setShowCreditsModal) return null;
 

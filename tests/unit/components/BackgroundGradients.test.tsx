@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import BackgroundGradients from '../../../src/components/BackgroundGradients';
+import BackgroundGradients from '@components/BackgroundGradients';
 
 describe('Unit Tests: BackgroundGradients', () => {
   afterEach(() => {

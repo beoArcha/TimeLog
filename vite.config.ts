@@ -21,6 +21,7 @@ export default defineConfig(() => {
         '@common': path.resolve(__dirname, './src/common'),
         '@bindings': path.resolve(__dirname, './src/bindings'),
         '@tests': path.resolve(__dirname, './tests'),
+        '@app': path.resolve(__dirname, './src'),
       },
     },
     build: {

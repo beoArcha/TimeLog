@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockInvoke } from '../../../shared/test-helpers';
+import { mockInvoke } from '@tests/shared/test-helpers';
 import { PersistenceCommands } from '@common/persistence/PersistenceCommands';
 
 describe('Unit Tests: PersistenceCommands', () => {

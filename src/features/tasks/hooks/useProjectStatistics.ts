@@ -6,17 +6,14 @@ import { TimeLog } from '@bindings/TimeLog';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { getProjectDurationSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 import { toast } from 'sonner';
-import { Locale } from '@bindings/Locale';
 
 interface UseProjectStatisticsProps {
   selectedProject: Project | null;
   tasks: Task[];
   logs: TimeLog[];
   nowIso: string;
-  locale?: Locale;
-  customTranslations?: any;
 }
 
 export interface UseProjectStatisticsResult {
@@ -31,12 +28,11 @@ export function useProjectStatistics({
   tasks,
   logs,
   nowIso,
-  locale,
-  customTranslations,
 }: UseProjectStatisticsProps): UseProjectStatisticsResult {
   const [stats, setStats] = useState<ProjectStatistics | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { t: tCommon } = useTranslation('common');
 
   const projectId = selectedProject?.id ?? null;
 
@@ -63,7 +59,7 @@ export function useProjectStatistics({
         if (isMounted) {
           setError(err instanceof Error ? err.message : 'Failed to load project statistics');
           ErrorHandler.handle(err);
-          const errorMsg = translate(locale || 'en', 'common', 'ErrGeneric', customTranslations) || 'Error';
+          const errorMsg = tCommon('ErrGeneric') || 'Error';
           toast.error(`${errorMsg}: Failed to load project statistics`);
         }
       } finally {
@@ -78,7 +74,7 @@ export function useProjectStatistics({
     return () => {
       isMounted = false;
     };
-  }, [projectId, tasks, logs, locale, customTranslations]);
+  }, [projectId, tasks, logs, tCommon]);
 
   const projectDurationSeconds = useMemo(() => {
     if (!projectId) return 0;

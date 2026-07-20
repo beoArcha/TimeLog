@@ -1,7 +1,7 @@
 import { Task } from '@bindings/Task';
-import { Locale } from '@bindings/Locale';
+import { TaskStatus } from '@bindings/TaskStatus';
 import { CheckSquare, Square as EmptySquare } from 'lucide-react';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 
@@ -13,8 +13,6 @@ interface TaskHeaderProps {
   editingId: string | null;
   editName: string;
   theme: string;
-  locale: Locale;
-  customTranslations: any;
   th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
@@ -22,7 +20,7 @@ interface TaskHeaderProps {
     taskId: string,
     name: string,
     parentTaskId: string | null,
-    status: import('@bindings/TaskStatus').TaskStatus | null,
+    status: TaskStatus | null,
     completed: boolean | null
   ) => void) | undefined;
   onDeleteTask: ((id: string) => void) | undefined;
@@ -38,8 +36,6 @@ export function TaskHeader({
   editingId,
   editName,
   theme,
-  locale,
-  customTranslations,
   th,
   onToggleTaskComplete,
   onRenameTask,
@@ -49,6 +45,7 @@ export function TaskHeader({
   setEditName,
 }: TaskHeaderProps) {
   const isEditing = editingId === rootTask.id;
+  const { t: tTask } = useTranslation('task');
 
   return (
     <div className={`flex items-start sm:items-center gap-section flex-1 min-w-0 w-full`}>
@@ -75,8 +72,6 @@ export function TaskHeader({
             isEditing={isEditing}
             theme={theme}
             textSizeClass={`font-semibold text-main`}
-            locale={locale}
-            customTranslations={customTranslations}
             onRenameTask={onRenameTask}
             setEditName={setEditName}
             setEditingId={setEditingId}
@@ -96,7 +91,7 @@ export function TaskHeader({
             <select
               value={rootTask.status || 'Todo'}
               onChange={(e) => {
-                const newStatus = e.target.value as any;
+                const newStatus = e.target.value as TaskStatus;
                 if (onUpdateTask) {
                   onUpdateTask(rootTask.id, rootTask.name, rootTask.parentTaskId || null, newStatus, null);
                 }
@@ -120,14 +115,14 @@ export function TaskHeader({
               <span className="inline-flex items-center gap-1.5 text-[10px] bg-amber-550/15 border border-amber-500/35 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
                 <span className="truncate max-w-[120px]" title={runningSubtask.name}>
-                  {translate(locale, 'task', 'SubtaskLabel', customTranslations)}: {runningSubtask.name}
+                  {tTask('SubtaskLabel')}: {runningSubtask.name}
                 </span>
               </span>
             )}
             {isCurrentRunning && (
               <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/15 border border-emerald-500/35 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
-                {translate(locale, 'task', 'InProgressLabel', customTranslations)}
+                {tTask('InProgressLabel')}
               </span>
             )}
           </span>
@@ -144,8 +139,6 @@ export function TaskHeader({
           <TaskActions
             taskId={rootTask.id}
             taskName={rootTask.name}
-            locale={locale}
-            customTranslations={customTranslations}
             deleteTitle="Usuń zadanie"
             pencilSize="w-3.5 h-3.5"
             trashSize="w-3.5 h-3.5"

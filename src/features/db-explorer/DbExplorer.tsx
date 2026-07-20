@@ -1,6 +1,6 @@
 import React from 'react';
 import { Database } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+
 import { translate } from '@common/i18n/translator';
 
 import ProjectsTable from './components/ProjectsTable';
@@ -10,12 +10,14 @@ import HolidaysLeavesTable from './components/HolidaysLeavesTable';
 import PatchLogsTable from './components/PatchLogsTable';
 
 import { TableSkeleton } from '@components/ui/Skeletons';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useData } from '@common/hooks/DataContext';
+import { useEngine } from '@common/hooks/EngineContext';
 
 export default function DbExplorer() {
-  const { 
-    projects, tasks, logs, holidays, patches,
-    locale, customTranslations, isLoading
-  } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { projects, tasks, logs, holidays, patches } = useData();
+  const { isLoading } = useEngine();;
 
   const handleExportDatabase = () => {
     const data = { projects, tasks, logs, holidays, patches };

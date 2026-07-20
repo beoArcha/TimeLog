@@ -1,9 +1,9 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, cleanup, within } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import HolidaysLeavesTable from '@features/db-explorer/components/HolidaysLeavesTable';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 
@@ -36,16 +36,16 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
   ];
 
   it('should render holidays list table in default theme', () => {
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: 'dark',
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(within(container).getByText('Summer Holiday')).not.toBeNull();
@@ -53,30 +53,30 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
   });
 
   it('should render correctly in light theme and high-contrast theme', () => {
-    const mockStateLight: OxyFlowState = {
+    const mockStateLight: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: 'light',
     };
 
     const { container, rerender } = render(
-      <OxyContext.Provider value={mockStateLight}>
+      <MockProviders state={mockStateLight}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(within(container).getByText('Summer Holiday')).not.toBeNull();
 
-    const mockStateHighContrast: OxyFlowState = {
+    const mockStateHighContrast: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: 'high-contrast',
     };
 
     rerender(
-      <OxyContext.Provider value={mockStateHighContrast}>
+      <MockProviders state={mockStateHighContrast}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(within(container).getByText('Summer Holiday')).not.toBeNull();
@@ -84,16 +84,16 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should add a new holiday entity on clicking add button', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const addButtons = within(container).getAllByRole('button', { name: /Add Leave/i });
@@ -109,16 +109,16 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should start editing, modify values, and save holiday with audit history update', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const row0 = container.querySelectorAll('tbody tr')[0];
@@ -156,15 +156,15 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
   });
 
   it('should cancel edit on clicking cancel (X) button', () => {
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const row0 = container.querySelectorAll('tbody tr')[0];
@@ -181,16 +181,16 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should close editing without modifying if no changes made when saving', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const row0 = container.querySelectorAll('tbody tr')[0];
@@ -208,16 +208,16 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should append to existing edit history when editing a record that already has history', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const row1 = container.querySelectorAll('tbody tr')[1]; // hol_2
@@ -245,16 +245,16 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should delete a holiday when clicking delete button', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const row0 = container.querySelectorAll('tbody tr')[0];
@@ -270,15 +270,15 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
   });
 
   it('should toggle history details row when clicking history icon button', () => {
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const row1 = container.querySelectorAll('tbody tr')[1];
@@ -295,16 +295,16 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should save edit with default reason when reason input is cleared to empty string', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const row0 = container.querySelectorAll('tbody tr')[0];
@@ -337,15 +337,15 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
       }
     ];
 
-    const mockState: OxyFlowState = {
+    const mockState: any = {
       ...getMockOxyFlowState(),
       holidays: holidaysWithMissingOriginalName,
     };
 
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesTable />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(within(container).getByText(/Oryg:\s*Autumn Day\s*\(\s*2026-09-02\s*\)/)).not.toBeNull();

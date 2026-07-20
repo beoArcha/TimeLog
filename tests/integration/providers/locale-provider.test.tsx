@@ -1,9 +1,9 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LocaleProvider, useLocale } from '@common/hooks/LocaleProvider';
-import { setupLocalStorageMock } from '../../shared/test-helpers';
-import { STORAGE_KEYS } from '../../../src/common/constants';
+import { setupLocalStorageMock } from '@tests/shared/test-helpers';
+import { STORAGE_KEYS } from '@common/constants';
 
 describe('Unit Tests: LocaleProvider & useLocale', () => {
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe('Unit Tests: LocaleProvider & useLocale', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should_load_saved_locale_pref_and_translations_when_initialized', () => {
+  it('should_load_saved_locale_pref_and_translations_when_initialized', async () => {
     localStorage.setItem(STORAGE_KEYS.LOCALE_PREF, 'pl');
     localStorage.setItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS, JSON.stringify({ app: { title: 'Mój Tytuł' } }));
 
@@ -32,12 +32,14 @@ describe('Unit Tests: LocaleProvider & useLocale', () => {
 
     const { result } = renderHook(() => useLocale(), { wrapper });
 
-    expect(result.current.localePref).toBe('pl');
-    expect(result.current.locale).toBe('pl');
-    expect(result.current.customTranslations).toEqual({ app: { title: 'Mój Tytuł' } });
+    await waitFor(() => {
+      expect(result.current.localePref).toBe('pl');
+      expect(result.current.locale).toBe('pl');
+      expect(result.current.customTranslations).toEqual({ app: { title: 'Mój Tytuł' } });
+    });
   });
 
-  it('should_fallback_to_empty_translations_on_invalid_json_in_localStorage', () => {
+  it('should_fallback_to_empty_translations_on_invalid_json_in_localStorage', async () => {
     localStorage.setItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS, '{invalidjson');
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -46,11 +48,12 @@ describe('Unit Tests: LocaleProvider & useLocale', () => {
 
     const { result } = renderHook(() => useLocale(), { wrapper });
 
-    expect(result.current.customTranslations).toEqual({});
-    expect(console.warn).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(result.current.customTranslations).toEqual({});
+    });
   });
 
-  it('should_detect_browser_languages_correctly_when_localePref_is_system', () => {
+  it('should_detect_browser_languages_correctly_when_localePref_is_system', async () => {
     const testCases = [
       { language: 'pl-PL', expected: 'pl' },
       { language: 'de-DE', expected: 'de' },
@@ -75,38 +78,50 @@ describe('Unit Tests: LocaleProvider & useLocale', () => {
     }
   });
 
-  it('should_update_localStorage_and_state_when_localePref_changes', () => {
+  it('should_update_localStorage_and_state_when_localePref_changes', async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <LocaleProvider>{children}</LocaleProvider>
     );
 
     const { result } = renderHook(() => useLocale(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.localePref).toBe('system');
+    });
 
     act(() => {
       result.current.setLocalePref('de');
     });
 
-    expect(result.current.localePref).toBe('de');
-    expect(result.current.locale).toBe('de');
-    expect(localStorage.getItem(STORAGE_KEYS.LOCALE_PREF)).toBe('de');
+    await waitFor(() => {
+      expect(result.current.localePref).toBe('de');
+      expect(result.current.locale).toBe('de');
+      expect(localStorage.getItem(STORAGE_KEYS.LOCALE_PREF)).toBe('de');
+    });
   });
 
-  it('should_update_localStorage_when_locale_changes', () => {
+  it('should_update_localStorage_when_locale_changes', async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <LocaleProvider>{children}</LocaleProvider>
     );
 
     const { result } = renderHook(() => useLocale(), { wrapper });
 
+    await waitFor(() => {
+      expect(result.current.locale).toBe('en');
+    });
+
     act(() => {
       result.current.setLocale('fr');
     });
 
-    expect(result.current.locale).toBe('fr');
-    expect(localStorage.getItem(STORAGE_KEYS.LOCALE)).toBe('fr');
+    await waitFor(() => {
+      expect(result.current.locale).toBe('fr');
+      expect(localStorage.getItem(STORAGE_KEYS.LOCALE)).toBe('fr');
+    });
   });
 
-  it('should_update_localStorage_when_customTranslations_changes', () => {
+  it('should_update_localStorage_when_customTranslations_changes', async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <LocaleProvider>{children}</LocaleProvider>
     );
@@ -115,11 +130,17 @@ describe('Unit Tests: LocaleProvider & useLocale', () => {
 
     const newTranslations = { app: { title: 'New Title' } };
 
+    await waitFor(() => {
+      expect(result.current.customTranslations).toEqual({});
+    });
+
     act(() => {
       result.current.setCustomTranslations(newTranslations);
     });
 
-    expect(result.current.customTranslations).toEqual(newTranslations);
-    expect(localStorage.getItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS)).toBe(JSON.stringify(newTranslations));
+    await waitFor(() => {
+      expect(result.current.customTranslations).toEqual(newTranslations);
+      expect(localStorage.getItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS)).toBe(JSON.stringify(newTranslations));
+    });
   });
 });

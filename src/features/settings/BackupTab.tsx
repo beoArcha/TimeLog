@@ -1,13 +1,17 @@
 import React, { useRef } from 'react';
 import { UploadCloud, DownloadCloud, CheckCircle, Database } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/translator';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
 
 export default function BackupTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { resolvedTheme, logToApi, setLogToApi, apiToken, setApiToken, apiUrl, setApiUrl, apiMethod, setApiMethod, apiHeaders, setApiHeaders, projects, setProjects, tasks, setTasks, logs, setLogs, holidays, setHolidays, patches, setPatches, locale, customTranslations, handleRestoreState } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { resolvedTheme, logToApi, setLogToApi, apiToken, setApiToken, apiUrl, setApiUrl, apiMethod, setApiMethod, apiHeaders, setApiHeaders } = useSettings();
+  const { projects, setProjects, tasks, setTasks, logs, setLogs, holidays, setHolidays, patches, setPatches, handleRestoreState } = useData();;
 
   const handleExportDatabase = () => {
     const data = { projects, tasks, logs, holidays, patches };

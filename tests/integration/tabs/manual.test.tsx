@@ -1,11 +1,11 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/hooks/OxyContext';
 import ManualTab from '@features/settings/ManualTab';
 import { toast } from 'sonner';
-import { setupMatchMediaMock, getMockOxyFlowState } from '../../shared/test-helpers';
+import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -28,9 +28,9 @@ describe('Integration Tests: ManualTab', () => {
     const mockState = getMockOxyFlowState();
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <ManualTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText('Compilation Manual, Shortcuts & Arch (Tauri OS Guides)')).toBeDefined();
@@ -47,9 +47,9 @@ describe('Integration Tests: ManualTab', () => {
     mockState.customTranslations = {}; // Empty custom translations
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <ManualTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     // Should fall back to English translation

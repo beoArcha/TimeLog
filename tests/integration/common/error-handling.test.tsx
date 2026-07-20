@@ -1,11 +1,11 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/hooks/OxyContext';
 import { ErrorHandler, ContextException, PersistenceException } from '@common/exceptions';
 import SystemNotification from '@components/SystemNotification';
-import { getMockOxyFlowState } from '../../shared/mocks/oxy-state-mock';
+import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
 describe('Integration Tests: Error Handling and Notifications', () => {
   beforeEach(() => {
@@ -78,9 +78,9 @@ describe('Integration Tests: Error Handling and Notifications', () => {
       mockState.setTrayNotification = vi.fn();
 
       const { container } = render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <SystemNotification />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       expect(container.firstChild).toBeNull();
@@ -93,9 +93,9 @@ describe('Integration Tests: Error Handling and Notifications', () => {
       mockState.resolvedTheme = 'dark';
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <SystemNotification />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       // Verify text
@@ -115,9 +115,9 @@ describe('Integration Tests: Error Handling and Notifications', () => {
       mockState.resolvedTheme = 'light';
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <SystemNotification />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const notificationDiv = screen.getByText('Alert message').closest('#tray-toast-notification');
@@ -133,9 +133,9 @@ describe('Integration Tests: Error Handling and Notifications', () => {
       mockState.resolvedTheme = 'high-contrast';
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <SystemNotification />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const notificationDiv = screen.getByText('Alert message').closest('#tray-toast-notification');

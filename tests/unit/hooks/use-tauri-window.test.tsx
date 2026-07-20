@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { TAURI_COMMANDS } from '../../../src/common/tauri/tauri-commands';
-import { TEST_CONSTANTS } from '../../shared/test-constants';
+import { TAURI_COMMANDS } from '@common/tauri/tauri-commands';
+import { TEST_CONSTANTS } from '@tests/shared/test-constants';
 
 import {
   mockInvoke,
@@ -10,7 +10,7 @@ import {
   triggerTauriEvent,
   setupLocalStorageMock,
   setupMatchMediaMock,
-} from '../../shared/test-helpers';
+} from '@tests/shared/test-helpers';
 
 import { useTauriWindow } from '@common/tauri/useTauriWindow';
 

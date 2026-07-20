@@ -1,11 +1,13 @@
 import React from 'react';
 import { Heart, Code2, Users, FileSignature, Coffee, ShieldCheck, HeartHandshake } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/translator';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 export default function CreditsTab() {
-  const { resolvedTheme, locale, customTranslations } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { resolvedTheme } = useSettings();;
 
   const isLight = resolvedTheme === 'light';
   const headingColor = isLight ? 'text-slate-900' : 'text-white';

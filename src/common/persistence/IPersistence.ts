@@ -4,6 +4,8 @@ import { Settings } from '@bindings/Settings';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
+import { HolidayLeave } from '@bindings/HolidayLeave';
+import { PatchLog } from '@bindings/PatchLog';
 
 export type ApiPayload = {
   event: string;
@@ -62,6 +64,37 @@ export interface IRuntimeConfigPersistence {
   getAll(): Promise<RuntimeConfig[]>;
 }
 
+export interface IHolidaysPersistence {
+  getAll(): Promise<HolidayLeave[]>;
+  save(holidays: HolidayLeave[]): Promise<void>;
+}
+
+export interface IPatchesPersistence {
+  getAll(): Promise<PatchLog[]>;
+  save(patches: PatchLog[]): Promise<void>;
+}
+
+export interface IUiStatePersistence {
+  getCurrentProjectId(): Promise<string | null>;
+  saveCurrentProjectId(id: string): Promise<void>;
+  getLastNonCompactVariant(): Promise<string>;
+  saveLastNonCompactVariant(variant: string): Promise<void>;
+}
+
+export interface IExternalApiPersistence {
+  getSettings(): Promise<{ logToApi: boolean; apiToken: string; apiUrl: string; apiMethod: 'POST' | 'PUT'; apiHeaders: string }>;
+  saveSettings(settings: { logToApi: boolean; apiToken: string; apiUrl: string; apiMethod: 'POST' | 'PUT'; apiHeaders: string }): Promise<void>;
+}
+
+export interface ILocalePersistence {
+  getLocalePref(): Promise<string>;
+  saveLocalePref(localePref: string): Promise<void>;
+  getLocale(): Promise<string>;
+  saveLocale(locale: string): Promise<void>;
+  getCustomTranslations(): Promise<Record<string, Record<string, string>>>;
+  saveCustomTranslations(translations: Record<string, Record<string, string>>): Promise<void>;
+}
+
 export interface ITimeLogsPersistence {
   getForTask(taskId: string): Promise<TimeLog[]>;
   closeActiveByProject(endTime: string, projectId: string): Promise<void>;
@@ -78,5 +111,10 @@ export interface IPersistence {
   settings: ISettingsPersistence;
   runtimeConfigs: IRuntimeConfigPersistence;
   timeLogs: ITimeLogsPersistence;
+  holidays: IHolidaysPersistence;
+  patches: IPatchesPersistence;
+  uiState: IUiStatePersistence;
+  externalApi: IExternalApiPersistence;
+  locale: ILocalePersistence;
 }
 

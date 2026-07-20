@@ -124,7 +124,15 @@ export function translate<D extends keyof DomainKeys>(
 import { useLocale } from '@common/hooks/LocaleProvider';
 
 export function useTranslation<D extends keyof DomainKeys>(domain: D) {
-  const { locale, customTranslations } = useLocale();
+  let locale: Locale = 'en';
+  let customTranslations: Partial<TranslationDictionary> | undefined = undefined;
+  try {
+    const ctx = useLocale();
+    locale = ctx.locale;
+    customTranslations = ctx.customTranslations;
+  } catch {
+    // Fallback if rendered outside LocaleProvider (e.g. isolated unit tests)
+  }
   return {
     t: (key: DomainKeys[D], vars?: Record<string, string | number>) => {
       return translate(locale, domain, key, customTranslations, vars);

@@ -20,8 +20,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
     tasks,
     logs,
     nowIso,
-    locale,
-    customTranslations,
     theme,
     projectTasks,
     selectedProject,
@@ -55,7 +53,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
   return (
     <div
       id={`root-task-card-${rootTask.id}`}
-      className={`rounded-main padding-section border transition-all flex flex-col gap-main group/root relative overflow-hidden backdrop-blur-md ${isAnyRunning
+      className={`rounded-main padding-section border transition-all flex flex-col gap-section group/root relative overflow-hidden backdrop-blur-md ${isAnyRunning
           ? theme === 'light'
             ? 'bg-gradient-to-r from-orange-400/5 to-rose-500/5 border-orange-500/40 shadow-md text-[#2C2421]'
             : 'bg-gradient-to-r from-orange-500/10 to-rose-500/10 border-orange-500/40 shadow-xl text-white'
@@ -69,7 +67,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
       )}
 
       <div
-        className={`flex ${isCondensed ? 'flex-col gap-main' : 'items-center justify-between gap-main'} animate-fade-in pl-1`}
+        className={`flex ${isCondensed ? 'flex-col gap-section' : 'items-center justify-between gap-section'} animate-fade-in pl-1`}
       >
         <TaskHeader
           rootTask={rootTask}
@@ -79,8 +77,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
           editingId={editingId}
           editName={editName}
           theme={theme}
-          locale={locale}
-          customTranslations={customTranslations}
           th={th}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
@@ -98,8 +94,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
           isCondensed={isCondensed}
           showSubtaskFormForId={showSubtaskFormForId}
           theme={theme}
-          locale={locale}
-          customTranslations={customTranslations}
           onStartTimer={onStartTimer}
           setShowSubtaskFormForId={setShowSubtaskFormForId}
         />
@@ -111,8 +105,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
             parentTaskId={rootTask.id}
             newSubtaskName={newSubtaskName}
             theme={theme}
-            locale={locale}
-            customTranslations={customTranslations}
             setNewSubtaskName={setNewSubtaskName}
             onSubmit={handleAddSubtaskSubmit}
           />
@@ -128,8 +120,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
         editingId={editingId}
         editName={editName}
         theme={theme}
-        locale={locale}
-        customTranslations={customTranslations}
         th={th}
         onToggleTaskComplete={onToggleTaskComplete}
         onRenameTask={onRenameTask}

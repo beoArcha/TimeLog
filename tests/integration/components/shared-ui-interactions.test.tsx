@@ -1,11 +1,11 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/hooks/OxyContext';
 import CollapsibleCard from '@components/CollapsibleCard';
 import RestoreButton from '@components/RestoreButton';
-import { getMockOxyFlowState } from '../../shared/mocks/oxy-state-mock';
+import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
 describe('Integration Tests: Shared UI Component Interactions', () => {
   beforeEach(() => {
@@ -21,11 +21,11 @@ describe('Integration Tests: Shared UI Component Interactions', () => {
       const mockState = getMockOxyFlowState();
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <CollapsibleCard title="My Card" defaultExpanded={true} headerTestId="card-test">
             <div data-testid="card-child">Child Content</div>
           </CollapsibleCard>
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       expect(screen.getByTestId('card-child')).toBeDefined();
@@ -36,11 +36,11 @@ describe('Integration Tests: Shared UI Component Interactions', () => {
       const clickSpy = vi.fn();
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <CollapsibleCard title="My Card" defaultExpanded={true} onClick={clickSpy} headerTestId="card-test">
             <div data-testid="card-child">Child Content</div>
           </CollapsibleCard>
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       expect(screen.getByTestId('card-child')).toBeDefined();
@@ -59,11 +59,11 @@ describe('Integration Tests: Shared UI Component Interactions', () => {
       const mockState = getMockOxyFlowState();
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <CollapsibleCard title="Keyboard Card" defaultExpanded={false} headerTestId="kb-test">
             <div data-testid="kb-child">Keyboard Child</div>
           </CollapsibleCard>
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       expect(screen.queryByTestId('kb-child')).toBeNull();
@@ -87,9 +87,9 @@ describe('Integration Tests: Shared UI Component Interactions', () => {
       const showToastSpy = vi.fn();
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <RestoreButton setIsMinimized={setIsMinimizedSpy} showToast={showToastSpy} />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const restoreBtn = screen.getByRole('button');

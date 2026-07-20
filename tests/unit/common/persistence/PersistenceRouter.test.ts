@@ -57,6 +57,32 @@ describe('Unit Tests: PersistenceRouter', () => {
         queryActive: vi.fn().mockResolvedValue([]),
         getAll: vi.fn().mockResolvedValue([]),
       },
+      holidays: {
+        getAll: vi.fn().mockResolvedValue([]),
+        save: vi.fn().mockResolvedValue(undefined),
+      },
+      patches: {
+        getAll: vi.fn().mockResolvedValue([]),
+        save: vi.fn().mockResolvedValue(undefined),
+      },
+      uiState: {
+        getCurrentProjectId: vi.fn().mockResolvedValue(null),
+        saveCurrentProjectId: vi.fn().mockResolvedValue(undefined),
+        getLastNonCompactVariant: vi.fn().mockResolvedValue('full'),
+        saveLastNonCompactVariant: vi.fn().mockResolvedValue(undefined),
+      },
+      externalApi: {
+        getSettings: vi.fn().mockResolvedValue({ logToApi: false, apiToken: '', apiUrl: '', apiMethod: 'POST', apiHeaders: '' }),
+        saveSettings: vi.fn().mockResolvedValue(undefined),
+      },
+      locale: {
+        getLocalePref: vi.fn().mockResolvedValue('system'),
+        saveLocalePref: vi.fn().mockResolvedValue(undefined),
+        getLocale: vi.fn().mockResolvedValue('system'),
+        saveLocale: vi.fn().mockResolvedValue(undefined),
+        getCustomTranslations: vi.fn().mockResolvedValue({}),
+        saveCustomTranslations: vi.fn().mockResolvedValue(undefined),
+      },
     };
 
     const router = PersistenceRouter.getInstance();

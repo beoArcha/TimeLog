@@ -1,14 +1,14 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import SettingsTab from '@features/settings/SettingsTab';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: SettingsTab', () => {
   const setSysSettingsMock = vi.fn();
-  const mockState: OxyFlowState = {
+  const mockState: any = {
     ...getMockOxyFlowState(),
     locale: 'en',
     customTranslations: {},
@@ -23,9 +23,9 @@ describe('Unit Tests: SettingsTab', () => {
 
   it('should render general settings options', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <SettingsTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText(/Engine Options & Daemons/i)).not.toBeNull();
@@ -33,9 +33,9 @@ describe('Unit Tests: SettingsTab', () => {
 
   it('should handle settings input change', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <SettingsTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     // Expand the engine config panel

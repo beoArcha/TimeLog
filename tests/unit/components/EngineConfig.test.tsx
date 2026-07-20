@@ -1,10 +1,10 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import EngineConfig from '../../../src/components/EngineConfig';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
-import { getMockOxyFlowState } from '../../shared/test-helpers';
+import EngineConfig from '@components/EngineConfig';
+import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: EngineConfig', () => {
   afterEach(() => {
@@ -12,13 +12,13 @@ describe('Unit Tests: EngineConfig', () => {
     vi.restoreAllMocks();
   });
 
-  const renderEngineConfig = (overrides: Partial<OxyFlowState> = {}) => {
+  const renderEngineConfig = (overrides: Partial<any> = {}) => {
     const baseState = getMockOxyFlowState();
-    const state = { ...baseState, ...overrides } as OxyFlowState;
+    const state = { ...baseState, ...overrides } as any;
     return render(
-      <OxyContext.Provider value={state}>
+      <MockProviders state={state}>
         <EngineConfig />
-      </OxyContext.Provider>
+      </MockProviders>
     );
   };
 
