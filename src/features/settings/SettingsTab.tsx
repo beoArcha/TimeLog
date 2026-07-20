@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Settings, RefreshCw, AlertTriangle, CalendarDays, Info } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import EngineConfig from '@components/EngineConfig';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
 import { translate } from '@common/i18n/translator';
@@ -8,9 +7,14 @@ import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
 import PromptModal from '@components/PromptModal';
 import versionsData from '../../versions.json';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
 
 export default function SettingsTab() {
-  const { customTranslations, resolvedTheme, locale, setProjects, setTasks, setLogs } = useOxyFlow();
+  const { customTranslations, locale } = useLocale();
+  const { resolvedTheme } = useSettings();
+  const { setProjects, setTasks, setLogs } = useData();;
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   const handleConfirmReset = (response: string) => {

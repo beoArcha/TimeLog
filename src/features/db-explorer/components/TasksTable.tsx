@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Task } from '@bindings/Task';
 import CollapsibleCard from '@components/CollapsibleCard';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+
 import { translate } from '@common/i18n/translator';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
 
 export default function TasksTable() {
-  const { 
-    tasks, setTasks, 
-    setLogs, 
-    locale, customTranslations, resolvedTheme 
-  } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { resolvedTheme } = useSettings();
+  const { tasks, setTasks, setLogs } = useData();;
 
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [taskForm, setTaskForm] = useState<{ name: string; completed: boolean; reason: string }>({ name: '', completed: false, reason: '' });

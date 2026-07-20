@@ -1,5 +1,4 @@
 import React from 'react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { AppLogo } from './header-parts/AppLogo';
 import { LayoutSelector } from './header-parts/LayoutSelector';
@@ -7,10 +6,11 @@ import { TextScaleSelector } from './header-parts/TextScaleSelector';
 import { ThemeSelector } from './header-parts/ThemeSelector';
 import { LanguageSelector } from './header-parts/LanguageSelector';
 import { StatusIndicator } from './header-parts/StatusIndicator';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 export default function Header() {
   const { dragRegionProps } = usePlatformCapabilities();
-  const { resolvedTheme } = useOxyFlow();
+  const { resolvedTheme } = useSettings();;
 
   return (
     <div

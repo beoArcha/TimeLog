@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence } from './IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence, IHolidaysPersistence, IPatchesPersistence, IUiStatePersistence, IExternalApiPersistence, ILocalePersistence } from './IPersistence';
 import { ErrorHandler, TauriInteropException } from '../exceptions';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { CorePersistenceCommand } from '@bindings/CorePersistenceCommand';
@@ -11,6 +11,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
+import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
 
 export class PersistenceCommands implements IPersistence {
   public core: ICorePersistence;
@@ -19,6 +20,11 @@ export class PersistenceCommands implements IPersistence {
   public settings: ISettingsPersistence;
   public runtimeConfigs: IRuntimeConfigPersistence;
   public timeLogs: ITimeLogsPersistence;
+  public holidays: IHolidaysPersistence;
+  public patches: IPatchesPersistence;
+  public uiState: IUiStatePersistence;
+  public externalApi: IExternalApiPersistence;
+  public locale: ILocalePersistence;
 
   constructor() {
     this.core = {
@@ -219,6 +225,13 @@ export class PersistenceCommands implements IPersistence {
         return invoke<TimeLog[]>('get_all');
       }
     };
+
+    const plugin = new PersistencePlugin();
+    this.holidays = plugin.holidays;
+    this.patches = plugin.patches;
+    this.uiState = plugin.uiState;
+    this.externalApi = plugin.externalApi;
+    this.locale = plugin.locale;
   }
 }
 

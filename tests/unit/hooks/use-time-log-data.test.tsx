@@ -1,9 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { setupLocalStorageMock } from '@tests/shared/test-helpers';
+import { setupLocalStorageMock, saveMockDbState } from '@tests/shared/test-helpers';
 import { useTimeLogData } from '@common/hooks/useTimeLogData';
 import { STORAGE_KEYS } from '@common/constants';
 import { TEST_CONSTANTS } from '@tests/shared/test-constants';
+import { INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@plugins/persistence/InitialData';
 
 const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
 
@@ -26,6 +27,12 @@ describe('Unit Tests: useTimeLogData Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupLocalStorageMock();
+    saveMockDbState({
+      projects: INIT_PROJECTS,
+      tasks: INIT_TASKS,
+      logs: INIT_LOGS,
+      activeLog: null
+    });
     vi.spyOn(console, 'warn').mockImplementation(() => { });
     vi.spyOn(console, 'error').mockImplementation(() => { });
   });
@@ -189,24 +196,22 @@ describe('Unit Tests: useTimeLogData Hook', () => {
   });
 
   it('should_clear_local_storage_and_reload_when_handleResetLocalStorage_is_called', async () => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, 'some-state');
     const { result } = await renderTimeLog();
 
     await act(async () => {
       await result.current.handleResetLocalStorage();
     });
 
-    expect(localStorage.getItem(LOCAL_STORAGE_KEY)).toBeNull();
+    const state = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+    expect(state).toEqual({});
     expect(window.location.reload).toHaveBeenCalled();
   });
 
-  it('should_fall_back_to_defaults_when_storage_contains_invalid_json', async () => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, '{invalid-json');
+  it('should_handle_empty_backend_state_gracefully', async () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
 
     const { result } = await renderTimeLog();
-
-    expect(console.warn).toHaveBeenCalled();
-    expect(result.current.projects).toHaveLength(3);
+    expect(result.current.projects).toHaveLength(0);
   });
 
   it('should_do_nothing_when_handleRenameProject_is_called_with_non_existent_id', async () => {

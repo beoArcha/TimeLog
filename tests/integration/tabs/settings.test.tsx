@@ -1,8 +1,8 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext } from '@common/hooks/OxyContext';
 import SettingsTab from '@features/settings/SettingsTab';
 import { toast } from 'sonner';
 import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
@@ -25,13 +25,12 @@ describe('Integration Tests: SettingsTab', () => {
   });
 
   it('Given SettingsTab rendered, When hard reset database button is clicked and confirmed, Then it should clear all local state and remove database storage', () => {
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('reset');
     const mockState = getMockOxyFlowState();
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <SettingsTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     // Expand the Destructive Zone collapsible card
@@ -41,7 +40,11 @@ describe('Integration Tests: SettingsTab', () => {
     const resetBtn = screen.getByText('Reset database');
     fireEvent.click(resetBtn);
 
-    expect(promptSpy).toHaveBeenCalled();
+    const input = document.querySelector('input[type="text"]')!;
+    fireEvent.change(input, { target: { value: 'reset' } });
+    const confirmBtn = screen.getByText('Zatwierdź');
+    fireEvent.click(confirmBtn);
+
     expect(mockState.setProjects).toHaveBeenCalledWith([]);
     expect(mockState.setTasks).toHaveBeenCalledWith([]);
     expect(mockState.setLogs).toHaveBeenCalledWith([]);
@@ -49,13 +52,12 @@ describe('Integration Tests: SettingsTab', () => {
   });
 
   it('Given SettingsTab rendered, When hard reset database button is clicked and cancelled, Then it should not clear states and show cancel error toast', () => {
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('no');
     const mockState = getMockOxyFlowState();
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <SettingsTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     // Expand the Destructive Zone collapsible card
@@ -65,7 +67,11 @@ describe('Integration Tests: SettingsTab', () => {
     const resetBtn = screen.getByText('Reset database');
     fireEvent.click(resetBtn);
 
-    expect(promptSpy).toHaveBeenCalled();
+    const input = document.querySelector('input[type="text"]')!;
+    fireEvent.change(input, { target: { value: 'no' } });
+    const confirmBtn = screen.getByText('Zatwierdź');
+    fireEvent.click(confirmBtn);
+
     expect(mockState.setProjects).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalled();
   });
@@ -74,9 +80,9 @@ describe('Integration Tests: SettingsTab', () => {
     const mockState = getMockOxyFlowState();
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <SettingsTab />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     // Expand Engine Settings

@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppWindow } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useLocale } from '@common/hooks/LocaleProvider';
 
 interface RestoreButtonProps {
   setIsMinimized: (val: boolean) => void;
@@ -9,7 +9,7 @@ interface RestoreButtonProps {
 }
 
 export default function RestoreButton({ setIsMinimized, showToast }: RestoreButtonProps) {
-  const { locale, customTranslations } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();;
 
   return (
     <div className="fixed bottom-6 right-6 z-[100] animate-bounce">

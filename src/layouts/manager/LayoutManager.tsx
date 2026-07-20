@@ -1,5 +1,8 @@
 import React from 'react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useEngine } from '@common/hooks/EngineContext';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useData } from '@common/hooks/DataContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { translate } from '@common/i18n/translator';
 import { motion, AnimatePresence } from 'motion/react';
@@ -39,16 +42,21 @@ interface LayoutManagerContentProps {
 }
 
 function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
-  const state = useOxyFlow();
-
   const {
     isGuiClosed,
     isMinimized,
     setIsMinimized,
+    showToast,
+    handleMinimizeToTray,
+    handleToggleTimer,
+    handleResetLocalStorage,
+    nowIso,
+  } = useEngine();
+
+  const {
     layoutVariant,
     resolvedTheme,
-    locale,
-    customTranslations,
+    textAndIconSize,
     activeLargeTab,
     setActiveLargeTab,
     isCompactExpanded,
@@ -57,20 +65,24 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
     lastNonCompactVariant,
     alwaysOnTopSmall,
     setAlwaysOnTopSmall,
-    showToast,
-    handleMinimizeToTray,
     setLayoutVariant,
-    handleToggleTimer,
-    handleStopTimer,
-    handleResetLocalStorage,
     setShowCreditsModal,
+    sysSettings,
+  } = useSettings();
+
+  const {
+    locale,
+    customTranslations,
+  } = useLocale();
+
+  const {
+    handleStopTimer,
     projects,
     tasks,
     logs,
     activeLog,
     holidays,
     patches,
-    sysSettings,
     handleAddProject,
     handleAddTask,
     handleUpdateProject,
@@ -80,10 +92,9 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
     handleStartTimer,
     handleToggleProjectArchive,
     setHolidays,
-    nowIso,
     selectedTaskId,
     setSelectedTaskId
-  } = state;
+  } = useData();
 
   const LARGE_TAB_IDS = ['main', 'reports', 'db', 'options', 'backup', 'cli', 'manual', 'credits'] as const;
 
@@ -135,7 +146,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
     locale,
     customTranslations,
     theme: resolvedTheme,
-    textAndIconSize: state.textAndIconSize,
+    textAndIconSize: useSettings().textAndIconSize,
     selectedTaskId,
     setSelectedTaskId,
     activeLargeTab,
@@ -165,7 +176,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
       id="app-root-container"
       data-runtime={runtime}
       data-layout-variant={layoutVariant}
-      data-text-size={state.textAndIconSize || 'medium'}
+      data-text-size={textAndIconSize || 'medium'}
       className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-auto p-3 sm:p-6 ${resolvedTheme === 'light'
         ? 'bg-[#F4EFEA] text-[#2C2421] selection:bg-orange-500/20 selection:text-orange-950'
         : resolvedTheme === 'high-contrast'

@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { Calendar, Plus, Trash2, Database } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
 
 export default function HolidaysLeavesView() {
-  const { theme, holidays, handleAddHoliday, handleDeleteHoliday, locale, customTranslations } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { theme } = useSettings();
+  const { holidays, handleAddHoliday, handleDeleteHoliday } = useData();;
 
   const [newHolidayDate, setNewHolidayDate] = useState('2026-06-15');
   const [newHolidayType, setNewHolidayType] = useState<'holiday' | 'leave'>('leave');

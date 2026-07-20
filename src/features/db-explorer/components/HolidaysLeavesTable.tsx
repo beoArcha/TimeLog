@@ -4,14 +4,16 @@ import { HolidayLeave } from '@bindings/HolidayLeave';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { translate } from '@common/i18n/translator';
 import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
 
-import { useOxyFlow } from '@common/hooks/OxyContext';
+
 
 export default function HolidaysLeavesTable() {
-  const {
-    holidays, setHolidays,
-    locale, customTranslations, resolvedTheme
-  } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { resolvedTheme } = useSettings();
+  const { holidays, setHolidays } = useData();;
 
   const [editingHolidayId, setEditingHolidayId] = useState<string | null>(null);
   const [holidayForm, setHolidayForm] = useState<{ name: string; date: string; type: 'holiday' | 'leave'; reason: string }>({ name: '', date: '', type: 'holiday', reason: '' });

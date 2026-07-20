@@ -1,10 +1,10 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Settings } from 'lucide-react';
-import { OxyContext } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: CollapsibleCard', () => {
@@ -17,11 +17,11 @@ describe('Unit Tests: CollapsibleCard', () => {
 
   it('Given defaultExpanded = true, When rendered, Then it should show children and expand icon', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CollapsibleCard title="My Card Title" icon={Settings} defaultExpanded={true}>
           <div>Card Content Body</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText('My Card Title')).toBeTruthy();
@@ -30,11 +30,11 @@ describe('Unit Tests: CollapsibleCard', () => {
 
   it('Given defaultExpanded = false, When rendered, Then it should hide children initially', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CollapsibleCard title="Collapsed Card" defaultExpanded={false}>
           <div>Hidden Content</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.queryByText('Hidden Content')).toBeNull();
@@ -42,11 +42,11 @@ describe('Unit Tests: CollapsibleCard', () => {
 
   it('Given card header clicked, When defaultExpanded is true, Then it should hide children', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CollapsibleCard title="Toggable Card" defaultExpanded={true}>
           <div>Toggable Content</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const header = screen.getByText('Toggable Card');
@@ -57,11 +57,11 @@ describe('Unit Tests: CollapsibleCard', () => {
 
   it('Given headerRight element provided, When rendered, Then it should show headerRight', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CollapsibleCard title="Header Right Card" headerRight={<span>Extra Info</span>}>
           <div>Content</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText('Extra Info')).toBeTruthy();
@@ -69,11 +69,11 @@ describe('Unit Tests: CollapsibleCard', () => {
 
   it('Given titleNode prop provided, Then it should render titleNode instead of title text', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CollapsibleCard titleNode={<span data-testid="custom-title">Custom Node</span>}>
           <div>Content</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByTestId('custom-title')).toBeTruthy();
@@ -83,11 +83,11 @@ describe('Unit Tests: CollapsibleCard', () => {
   it('Given onClick prop provided, When header clicked, Then it should call onClick', () => {
     const onClickSpy = vi.fn();
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CollapsibleCard title="Clickable" onClick={onClickSpy}>
           <div>Content</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const header = screen.getByRole('button');
@@ -98,11 +98,11 @@ describe('Unit Tests: CollapsibleCard', () => {
 
   it('Given card is collapsed, When Enter key pressed on header, Then it should expand and show content', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CollapsibleCard title="Keyboard Card" defaultExpanded={false}>
           <div>Keyboard Content</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.queryByText('Keyboard Content')).toBeNull();
@@ -115,11 +115,11 @@ describe('Unit Tests: CollapsibleCard', () => {
 
   it('Given card is collapsed, When Space key pressed on header, Then it should expand and show content', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CollapsibleCard title="Space Card" defaultExpanded={false}>
           <div>Space Content</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.queryByText('Space Content')).toBeNull();
@@ -133,11 +133,11 @@ describe('Unit Tests: CollapsibleCard', () => {
   it('Given light theme, When rendered, Then it should apply light background classes', () => {
     const lightState = { ...mockState, resolvedTheme: 'light' as const };
     const { container } = render(
-      <OxyContext.Provider value={lightState}>
+      <MockProviders state={lightState}>
         <CollapsibleCard title="Light Theme Card">
           <div>Light Content</div>
         </CollapsibleCard>
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const wrapper = container.firstChild as HTMLElement;

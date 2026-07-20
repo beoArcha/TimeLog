@@ -1,8 +1,10 @@
 import React from 'react';
 import { AppWindow, Layers } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { useTranslation } from '@common/i18n/translator';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
+import { useEngine } from '@common/hooks/EngineContext';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -11,14 +13,9 @@ interface TrayWidgetProps {
 }
 
 export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps) {
-  const {
-    projects,
-    tasks,
-    logs,
-    enginePID,
-    resolvedTheme,
-    nowIso,
-  } = useOxyFlow();
+  const { resolvedTheme } = useSettings();
+  const { projects, tasks, logs } = useData();
+  const { enginePID, nowIso } = useEngine();;
 
   const { t: tEngine } = useTranslation('engine');
   const { t: tTimer } = useTranslation('timer');

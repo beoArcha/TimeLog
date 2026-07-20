@@ -1,9 +1,10 @@
 import React from 'react';
 import { Moon, Sun, Eye, Laptop, LucideIcon } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/translator';
 import { ThemePreference } from '@common/types/ThemeTypes';
 import { AppKey } from '@common/i18n/keys';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 interface ThemeOption {
   id: ThemePreference;
@@ -19,7 +20,8 @@ const THEME_OPTIONS: ThemeOption[] = [
 ];
 
 export const ThemeSelector: React.FC = () => {
-  const { theme, setTheme, resolvedTheme, locale, customTranslations } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { theme, setTheme, resolvedTheme } = useSettings();;
 
   return (
     <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${

@@ -3,6 +3,13 @@ import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 import { setupLocalStorageMock } from '@tests/shared/test-helpers';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
 
+vi.mock('@plugins/persistence/InitialData', () => ({
+  INIT_PROJECTS: [],
+  INIT_TASKS: [],
+  INIT_LOGS: [],
+  DEFAULT_HOLIDAYS: []
+}));
+
 const STORAGE_KEY = 'timelog_persistence_plugin_state';
 const SETTINGS_KEY = 'timelog_persistence_plugin_settings';
 const RUN_CONFIGS_KEY = 'timelog_persistence_plugin_runtime_configs';
@@ -10,9 +17,11 @@ const RUN_CONFIGS_KEY = 'timelog_persistence_plugin_runtime_configs';
 describe('Unit Tests: PersistencePlugin', () => {
   let plugin: PersistencePlugin;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     setupLocalStorageMock();
+    localStorage.clear();
     plugin = new PersistencePlugin();
+    await plugin.core.overrideState({ projects: [], tasks: [], logs: [], activeLog: null });
   });
 
   afterEach(() => {

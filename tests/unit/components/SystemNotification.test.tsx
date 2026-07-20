@@ -1,10 +1,10 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import SystemNotification from '@components/SystemNotification';
 import RestoreButton from '@components/RestoreButton';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: SystemNotification & RestoreButton', () => {
@@ -19,12 +19,12 @@ describe('Unit Tests: SystemNotification & RestoreButton', () => {
       const stateProp = {
         ...mockState,
         trayNotification: null,
-      } as unknown as OxyFlowState;
+      } as unknown as any;
 
       render(
-        <OxyContext.Provider value={stateProp}>
+        <MockProviders state={stateProp}>
           <SystemNotification />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       expect(screen.queryByText(/System Notification Tray/i)).toBeNull();
@@ -37,12 +37,12 @@ describe('Unit Tests: SystemNotification & RestoreButton', () => {
         ...mockState,
         trayNotification: 'Engine started successfully',
         setTrayNotification: setTrayNotificationSpy,
-      } as unknown as OxyFlowState;
+      } as unknown as any;
 
       render(
-        <OxyContext.Provider value={stateProp}>
+        <MockProviders state={stateProp}>
           <SystemNotification />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       expect(screen.getByText('Engine started successfully')).toBeTruthy();
@@ -61,9 +61,9 @@ describe('Unit Tests: SystemNotification & RestoreButton', () => {
       const showToastSpy = vi.fn();
 
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <RestoreButton setIsMinimized={setIsMinimizedSpy} showToast={showToastSpy} />
-        </OxyContext.Provider>
+        </MockProviders>
       );
 
       const restoreBtn = screen.getByRole('button');

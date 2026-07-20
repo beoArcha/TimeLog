@@ -1,13 +1,13 @@
 import React, { useContext } from 'react';
 import { cn } from '@/lib/utils';
-import { OxyContext } from '@common/hooks/OxyContext';
+import { SettingsContext } from '@common/hooks/SettingsContext';
 
 interface SkeletonProps extends React.ComponentProps<'div'> {
   className?: string;
 }
 
 export function Skeleton({ className, ...props }: SkeletonProps) {
-  const ctx = useContext(OxyContext);
+  const ctx = useContext(SettingsContext);
   const resolvedTheme = ctx?.resolvedTheme || 'dark';
   
   return (

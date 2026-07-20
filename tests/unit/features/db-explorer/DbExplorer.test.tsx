@@ -1,9 +1,9 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 vi.mock('@features/db-explorer/components/ProjectsTable', () => ({
@@ -23,7 +23,7 @@ vi.mock('@features/db-explorer/components/PatchLogsTable', () => ({
 }));
 
 describe('Unit Tests: DbExplorer', () => {
-  const mockState: OxyFlowState = {
+  const mockState: any = {
     ...getMockOxyFlowState(),
     projects: [
       { id: 'p1', name: 'Proj A', color: 'indigo', createdAt: '2026-06-15', archived: false, description: null, icon: null, tags: null }
@@ -31,7 +31,7 @@ describe('Unit Tests: DbExplorer', () => {
     locale: 'en',
     customTranslations: {},
     isLoading: false
-  } as unknown as OxyFlowState;
+  } as unknown as any;
 
   afterEach(() => {
     cleanup();
@@ -39,9 +39,9 @@ describe('Unit Tests: DbExplorer', () => {
 
   it('should render all mocked table components when loaded', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <DbExplorer />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByTestId('mock-projects-table')).not.toBeNull();
@@ -54,9 +54,9 @@ describe('Unit Tests: DbExplorer', () => {
   it('should render table skeletons when isLoading is true', () => {
     const loadingState = { ...mockState, isLoading: true };
     render(
-      <OxyContext.Provider value={loadingState}>
+      <MockProviders state={loadingState}>
         <DbExplorer />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.queryByTestId('mock-projects-table')).toBeNull();
@@ -70,9 +70,9 @@ describe('Unit Tests: DbExplorer', () => {
     global.URL.revokeObjectURL = revokeObjectURLMock;
 
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <DbExplorer />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const exportBtn = screen.getByTestId('export-db-btn');

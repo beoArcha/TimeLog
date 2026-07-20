@@ -1,16 +1,16 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: HolidaysLeavesView', () => {
   const handleAddHolidayMock = vi.fn();
   const handleDeleteHolidayMock = vi.fn();
 
-  const mockState: OxyFlowState = {
+  const mockState: any = {
     ...getMockOxyFlowState(),
     holidays: [
       { id: 'hol_1', date: '2026-07-20', type: 'holiday', name: 'Summer Holiday' }
@@ -23,9 +23,9 @@ describe('Unit Tests: HolidaysLeavesView', () => {
 
   it('should render holidays view and list existing ones', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesView />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText(/Summer Holiday/i)).not.toBeNull();
@@ -33,9 +33,9 @@ describe('Unit Tests: HolidaysLeavesView', () => {
 
   it('should trigger handleAddHoliday on form submit', () => {
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesView />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const descInput = container.querySelector('input[type="text"]') as HTMLInputElement;
@@ -51,9 +51,9 @@ describe('Unit Tests: HolidaysLeavesView', () => {
 
   it('should trigger handleDeleteHoliday when delete is clicked', () => {
     const { container } = render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <HolidaysLeavesView />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const deleteBtn = container.querySelector('.lucide-trash2')?.closest('button');

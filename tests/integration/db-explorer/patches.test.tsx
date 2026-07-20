@@ -1,9 +1,9 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
-import { OxyContext } from '@common/hooks/OxyContext';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
 
 describe('Integration Tests: DbExplorer Patches Table', () => {
@@ -74,9 +74,9 @@ describe('Integration Tests: DbExplorer Patches Table', () => {
     const value = { ...defaultState, ...customValue };
     const utils = render(
       <LocaleProvider>
-        <OxyContext.Provider value={value as any}>
+        <MockProviders state={value as any}>
           <DbExplorer />
-        </OxyContext.Provider>
+        </MockProviders>
       </LocaleProvider>
     );
 
@@ -88,17 +88,19 @@ describe('Integration Tests: DbExplorer Patches Table', () => {
 
   it('should_add_and_delete_patch_manually_when_patch_table_actions_are_triggered', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-    const promptSpy = vi.spyOn(window, 'prompt')
-      .mockReturnValueOnce('2026-06-12T05:00:00Z') // start time
-      .mockReturnValueOnce('2026-06-12T06:00:00Z') // end time
-      .mockReturnValueOnce('Test patch note'); // patch note
 
     const { setPatches } = setup();
 
     const addPatchBtn = screen.getByText(/add manual patch/i);
     fireEvent.click(addPatchBtn);
 
-    expect(promptSpy).toHaveBeenCalledTimes(3);
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.change(inputs[0], { target: { value: '2026-06-12T05:00:00Z' } });
+    fireEvent.change(inputs[1], { target: { value: '2026-06-12T06:00:00Z' } });
+    fireEvent.change(inputs[2], { target: { value: 'Test patch note' } });
+
+    fireEvent.click(screen.getByText(/Zapisz łatkę/i));
+
     expect(setPatches).toHaveBeenCalled();
 
     // Test delete patch

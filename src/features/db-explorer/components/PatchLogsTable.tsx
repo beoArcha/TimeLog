@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { Database, Trash2, Plus, X } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+
 import { translate } from '@common/i18n/translator';
 import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
 import { motion, AnimatePresence } from 'motion/react';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
 
 export default function PatchLogsTable() {
-  const {
-    projects,
-    patches, setPatches,
-    locale, customTranslations, resolvedTheme
-  } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { resolvedTheme } = useSettings();
+  const { projects, patches, setPatches } = useData();;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [startTime, setStartTime] = useState('');

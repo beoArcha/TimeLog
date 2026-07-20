@@ -1,9 +1,11 @@
 import React from 'react';
 import { Languages } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 export const LanguageSelector: React.FC = () => {
-  const { localePref, setLocalePref, resolvedTheme } = useOxyFlow();
+  const { localePref, setLocalePref } = useLocale();
+  const { resolvedTheme } = useSettings();;
 
   return (
     <div className={`flex items-center p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${

@@ -1,5 +1,5 @@
 import { isDesktopEnvironment } from '../utils/environment';
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence } from './IPersistence';
+import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence, IHolidaysPersistence, IPatchesPersistence, IUiStatePersistence, IExternalApiPersistence, ILocalePersistence } from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
 import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
 
@@ -48,5 +48,25 @@ export class PersistenceRouter implements IPersistence {
 
   get timeLogs(): ITimeLogsPersistence {
     return this.implementation.timeLogs;
+  }
+
+  get holidays(): IHolidaysPersistence {
+    return this.implementation.holidays;
+  }
+
+  get patches(): IPatchesPersistence {
+    return this.implementation.patches;
+  }
+
+  get uiState(): IUiStatePersistence {
+    return this.implementation.uiState;
+  }
+
+  get externalApi(): IExternalApiPersistence {
+    return this.implementation.externalApi;
+  }
+
+  get locale(): ILocalePersistence {
+    return this.implementation.locale;
   }
 }

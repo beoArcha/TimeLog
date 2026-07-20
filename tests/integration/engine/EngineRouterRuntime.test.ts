@@ -54,9 +54,15 @@ describe('Integration Tests: EngineRouter with EngineCommands and EnginePlugin',
   });
 
   describe('EnginePlugin Delegation (Browser Runtime)', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       setupLocalStorageMock();
       PersistenceRouter.getInstance().setImplementationForTesting(new PersistencePlugin());
+      await PersistenceRouter.getInstance().core.overrideState({
+        projects: [],
+        tasks: [],
+        logs: [],
+        activeLog: null
+      });
       EngineRouter.getInstance().setImplementationForTesting(new EnginePlugin());
     });
 

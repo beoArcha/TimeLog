@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
+import { INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@plugins/persistence/InitialData';
 import { setupLocalStorageMock } from '@tests/shared/mocks/browser-mocks';
 import { PersistenceException, ErrorHandler } from '@common/exceptions';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
@@ -10,11 +11,17 @@ import { Settings } from '@bindings/Settings';
 describe('Integration Tests: PersistenceRouter with PersistencePlugin (LocalStorage)', () => {
   let _store: Record<string, string>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.restoreAllMocks();
     _store = setupLocalStorageMock();
 
     PersistenceRouter.getInstance().setImplementationForTesting(new PersistencePlugin());
+    await PersistenceRouter.getInstance().core.overrideState({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null
+    });
   });
 
   afterEach(() => {
@@ -22,18 +29,19 @@ describe('Integration Tests: PersistenceRouter with PersistencePlugin (LocalStor
   });
 
   describe('Core State Management', () => {
-    it('Given empty LocalStorage, When state is loaded, Then it should return default empty repository state', async () => {
+    it('Given empty LocalStorage, When state is loaded, Then it should return seeded repository state', async () => {
+      localStorage.clear();
       const router = PersistenceRouter.getInstance();
       const state = await router.core.load();
       expect(state).toEqual({
-        projects: [],
-        tasks: [],
-        logs: [],
+        projects: INIT_PROJECTS,
+        tasks: INIT_TASKS,
+        logs: INIT_LOGS,
         activeLog: null,
       });
     });
 
-    it('Given malformed JSON in LocalStorage, When state is loaded, Then it should return default state and trigger error handler', async () => {
+    it('Given malformed JSON in LocalStorage, When state is loaded, Then it should return default empty state and trigger error handler', async () => {
       localStorage.setItem('timelog_persistence_plugin_state', 'invalid-json{');
       const router = PersistenceRouter.getInstance();
       const state = await router.core.load();

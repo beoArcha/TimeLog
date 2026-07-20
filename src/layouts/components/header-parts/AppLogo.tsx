@@ -1,13 +1,15 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/translator';
 import versionsData from '../../../versions.json';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 export const AppLogo: React.FC = () => {
   const { dragRegionProps } = usePlatformCapabilities();
-  const { resolvedTheme, locale, customTranslations } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { resolvedTheme } = useSettings();;
 
   return (
     <div {...dragRegionProps} className="flex items-center gap-3">

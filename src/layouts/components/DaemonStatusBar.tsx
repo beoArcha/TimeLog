@@ -1,19 +1,17 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { RefreshCw, Minimize2 } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/translator';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useData } from '@common/hooks/DataContext';
+import { useEngine } from '@common/hooks/EngineContext';
 
 export default function DaemonStatusBar() {
-  const {
-    engineState,
-    enginePID,
-    locale,
-    customTranslations,
-    logs,
-    resolvedTheme,
-    handleMinimizeToTray
-  } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { resolvedTheme } = useSettings();
+  const { logs } = useData();
+  const { engineState, enginePID, handleMinimizeToTray } = useEngine();;
 
   const activeRunningLogs = logs.filter(l => l.endTime === null);
 

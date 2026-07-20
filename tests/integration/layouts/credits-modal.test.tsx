@@ -1,12 +1,12 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import CreditsModal from '@layouts/components/CreditsModal';
 import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
-function createCreditsModalState(overrides: Partial<OxyFlowState> = {}): OxyFlowState {
+function createCreditsModalState(overrides: Partial<any> = {}): any {
   return {
     ...getMockOxyFlowState(),
     showCreditsModal: true,
@@ -28,9 +28,9 @@ describe('Integration Tests: CreditsModal', () => {
     const state = createCreditsModalState({ showCreditsModal: false });
 
     const { container } = render(
-      <OxyContext.Provider value={state}>
+      <MockProviders state={state}>
         <CreditsModal />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(container.firstChild).toBeNull();
@@ -40,9 +40,9 @@ describe('Integration Tests: CreditsModal', () => {
     const state = createCreditsModalState();
 
     render(
-      <OxyContext.Provider value={state}>
+      <MockProviders state={state}>
         <CreditsModal />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText(/^Mozilla Public License Version 2\.0/)).toBeDefined();
@@ -58,9 +58,9 @@ describe('Integration Tests: CreditsModal', () => {
     const state = createCreditsModalState();
 
     render(
-      <OxyContext.Provider value={state}>
+      <MockProviders state={state}>
         <CreditsModal />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const closeBtn = screen.getByRole('button', { name: /Zamknij/i });
@@ -72,9 +72,9 @@ describe('Integration Tests: CreditsModal', () => {
     const state = createCreditsModalState({ resolvedTheme: 'light' });
 
     render(
-      <OxyContext.Provider value={state}>
+      <MockProviders state={state}>
         <CreditsModal />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const containerDiv = document.getElementById('credits-modal-container');

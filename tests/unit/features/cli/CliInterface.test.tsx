@@ -1,9 +1,9 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 import CliInterface from '@features/cli/CliInterface';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 // Mock scrollIntoView globally
@@ -11,7 +11,7 @@ beforeAll(() => {
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
-const mockState: OxyFlowState = {
+const mockState: any = {
   ...getMockOxyFlowState(),
   locale: 'en',
   customTranslations: {},
@@ -25,9 +25,9 @@ describe('Unit Tests: CliInterface', () => {
 
   it('should render the CLI interface with initial greeting lines', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CliInterface />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText(/LogTime by OxyFlow CLI/i)).not.toBeNull();
@@ -35,9 +35,9 @@ describe('Unit Tests: CliInterface', () => {
 
   it('should handle terminal command input submission', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CliInterface />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const inputField = screen.getByPlaceholderText(/Enter command/i) as HTMLInputElement;
@@ -51,9 +51,9 @@ describe('Unit Tests: CliInterface', () => {
 
   it('should execute quick shortcut buttons', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <CliInterface />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     const prjBtn = screen.getByRole('button', { name: 'projects' });

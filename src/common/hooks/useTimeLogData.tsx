@@ -6,28 +6,23 @@ import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
-import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
 import { ErrorHandler, RepositoryException } from '../exceptions';
-import { DEFAULT_HOLIDAYS, INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@/src/features/timelogs/utils/InitialData';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
 import { ApiPayload } from '../persistence/IPersistence';
 
-import { STORAGE_KEYS } from '@common/constants';
-
-const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
 const repository = PersistenceRouter.getInstance();
 
 export { type ApiPayload };
 
 export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) => void) => {
-  const [projects, setProjectsState] = useState<Project[]>(INIT_PROJECTS);
-  const [tasks, setTasksState] = useState<Task[]>(INIT_TASKS);
-  const [logs, setLogsState] = useState<TimeLog[]>(INIT_LOGS);
+  const [projects, setProjectsState] = useState<Project[]>([]);
+  const [tasks, setTasksState] = useState<Task[]>([]);
+  const [logs, setLogsState] = useState<TimeLog[]>([]);
   const [activeLog, setActiveLogState] = useState<TimeLog | null>(null);
 
-  const [holidays, setHolidays] = useState<HolidayLeave[]>(() => dm.loadState()?.holidays ?? DEFAULT_HOLIDAYS);
-  const [patches, setPatches] = useState<PatchLog[]>(() => dm.loadState()?.patches ?? []);
+  const [holidays, setHolidaysState] = useState<HolidayLeave[]>([]);
+  const [patches, setPatchesState] = useState<PatchLog[]>([]);
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -37,28 +32,27 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const [engineState, setEngineState] = useState<'searching' | 'connected'>('connected');
   const [enginePID, setEnginePID] = useState<number>(() => Math.floor(2500 + Math.random() * 5000));
 
-  const isSeedingRequired = useRef(false);
   const isResetting = useRef(false);
 
   useEffect(() => {
     const loadState = async () => {
       try {
         setIsLoading(true);
-        const state = await repository.core.load();
-        if (state === null) {
-          isSeedingRequired.current = true;
-          setProjectsState(INIT_PROJECTS);
-          setTasksState(INIT_TASKS);
-          setLogsState(INIT_LOGS);
-          setActiveLogState(null);
-          setSelectedTaskId(INIT_TASKS[1]?.id ?? null);
-        } else {
+        const [state, loadedHolidays, loadedPatches] = await Promise.all([
+          repository.core.load(),
+          repository.holidays.getAll(),
+          repository.patches.getAll()
+        ]);
+
+        if (state !== null) {
           setProjectsState(state.projects);
           setTasksState(state.tasks);
           setLogsState(state.logs);
           setActiveLogState(state.activeLog);
-          setSelectedTaskId(state.tasks?.[0]?.id ?? (INIT_TASKS[1]?.id ?? null));
+          setSelectedTaskId(state.tasks?.[0]?.id ?? null);
         }
+        setHolidaysState(loadedHolidays);
+        setPatchesState(loadedPatches);
       } catch (err) {
         ErrorHandler.handle(new RepositoryException('Failed to load repository state', err, 'ERR_REPOSITORY'));
         setRepositoryError(err instanceof Error ? err.message : 'Failed to load repository state');
@@ -70,39 +64,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     loadState();
   }, []);
 
-  useEffect(() => {
-    if (isInitialized && !isResetting.current) {
-      dm.saveState({
-        projects,
-        tasks,
-        logs,
-        activeLog,
-        holidays,
-        patches,
-      });
-      repository.core.overrideState({
-        projects,
-        tasks,
-        logs,
-        activeLog,
-      }).catch(err => {
-        ErrorHandler.handle(new RepositoryException('Failed to persist state via router', err, 'ERR_REPOSITORY'));
-      });
-    }
-  }, [holidays, patches, isInitialized, projects, tasks, logs, activeLog]);
-
-  const ensureSeeded = async () => {
-    if (isSeedingRequired.current) {
-      isSeedingRequired.current = false;
-      await repository.core.overrideState({
-        projects,
-        tasks,
-        logs,
-        activeLog,
-      });
-    }
-  };
-
   const handleAddProject = async (
     name: string,
     color: string,
@@ -113,7 +74,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.projects.add({ name, color, description, icon, tags });
       setProjectsState(nextState.projects);
     } catch (err) {
@@ -128,7 +88,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.projects.toggleArchive(projectId);
       setProjectsState(nextState.projects);
     } catch (err) {
@@ -143,7 +102,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.tasks.add({ projectId, name, parentTaskId });
       setTasksState(nextState.tasks);
     } catch (err) {
@@ -165,7 +123,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.projects.update(projectId, name, color, description, icon, tags);
       setProjectsState(nextState.projects);
     } catch (err) {
@@ -186,7 +143,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.tasks.update(taskId, name, parentTaskId, status, completed);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
@@ -203,7 +159,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.projects.rename(projectId, newName);
       setProjectsState(nextState.projects);
     } catch (err) {
@@ -218,7 +173,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.tasks.rename(taskId, newName);
       setTasksState(nextState.tasks);
     } catch (err) {
@@ -233,7 +187,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.tasks.delete(taskId);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
@@ -250,7 +203,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
       const nextState = await repository.tasks.toggleComplete(taskId);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
@@ -267,7 +219,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
 
       const prevStateLogs = logs;
       const prevActiveLogs = prevStateLogs.filter(l => l.endTime === null || l.endTime === undefined);
@@ -315,7 +266,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
 
       const prevStateLogs = logs;
       const prevActiveLogs = prevStateLogs.filter(l => l.endTime === null || l.endTime === undefined);
@@ -358,7 +308,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setIsLoading(true);
       setRepositoryError(null);
       await repository.core.reset();
-      dm.clearState();
       window.location.reload();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to reset storage', err, 'ERR_REPOSITORY'));
@@ -371,7 +320,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const setProjects = async (action: React.SetStateAction<Project[]>) => {
     try {
       setRepositoryError(null);
-      await ensureSeeded();
       const resolved = typeof action === 'function' ? action(projects) : action;
       const nextState = await repository.core.overrideState({ projects: resolved });
       setProjectsState(nextState.projects);
@@ -384,7 +332,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const setTasks = async (action: React.SetStateAction<Task[]>) => {
     try {
       setRepositoryError(null);
-      await ensureSeeded();
       const resolved = typeof action === 'function' ? action(tasks) : action;
       const nextState = await repository.core.overrideState({ tasks: resolved });
       setTasksState(nextState.tasks);
@@ -397,7 +344,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const setLogs = async (action: React.SetStateAction<TimeLog[]>) => {
     try {
       setRepositoryError(null);
-      await ensureSeeded();
       const resolved = typeof action === 'function' ? action(logs) : action;
       const nextState = await repository.core.overrideState({ logs: resolved });
       setLogsState(nextState.logs);
@@ -410,7 +356,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const setActiveLog = async (action: React.SetStateAction<TimeLog | null>) => {
     try {
       setRepositoryError(null);
-      await ensureSeeded();
       const resolved = typeof action === 'function' ? action(activeLog) : action;
       const nextState = await repository.core.overrideState({ activeLog: resolved });
       setActiveLogState(nextState.activeLog);
@@ -431,7 +376,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      await ensureSeeded();
 
       await EngineRouter.getInstance().editTimeLog(id, taskId, startTime, endTime, note, reason);
 
@@ -482,17 +426,43 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
-  const handleAddHoliday = (date: string, type: 'holiday' | 'leave', name: string) => {
-    setHolidays(prev => [...prev, {
-      id: LocalStorageDataManager.getNextId(prev, 'h'),
+  const setHolidays = async (action: React.SetStateAction<HolidayLeave[]>) => {
+    try {
+      setRepositoryError(null);
+      const resolved = typeof action === 'function' ? action(holidays) : action;
+      await repository.holidays.save(resolved);
+      setHolidaysState(resolved);
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to set holidays', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to set holidays');
+    }
+  };
+
+  const setPatches = async (action: React.SetStateAction<PatchLog[]>) => {
+    try {
+      setRepositoryError(null);
+      const resolved = typeof action === 'function' ? action(patches) : action;
+      await repository.patches.save(resolved);
+      setPatchesState(resolved);
+    } catch (err) {
+      ErrorHandler.handle(new RepositoryException('Failed to set patches', err, 'ERR_REPOSITORY'));
+      setRepositoryError(err instanceof Error ? err.message : 'Failed to set patches');
+    }
+  };
+
+  const handleAddHoliday = async (date: string, type: 'holiday' | 'leave', name: string) => {
+    const nextHolidays = [...holidays, {
+      id: crypto.randomUUID(),
       date,
       type,
       name
-    }]);
+    }];
+    await setHolidays(nextHolidays);
   };
 
-  const handleDeleteHoliday = (id: string) => {
-    setHolidays(prev => prev.filter(x => x.id !== id));
+  const handleDeleteHoliday = async (id: string) => {
+    const nextHolidays = holidays.filter(x => x.id !== id);
+    await setHolidays(nextHolidays);
   };
 
   return {

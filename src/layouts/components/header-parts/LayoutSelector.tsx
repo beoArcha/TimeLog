@@ -1,9 +1,13 @@
 import React from 'react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
 import { translate } from '@common/i18n/translator';
+import { useLocale } from '@common/hooks/LocaleProvider';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useEngine } from '@common/hooks/EngineContext';
 
 export const LayoutSelector: React.FC = () => {
-  const { layoutVariant, setLayoutVariant, resolvedTheme, locale, customTranslations, showToast } = useOxyFlow();
+  const { locale, customTranslations } = useLocale();
+  const { layoutVariant, setLayoutVariant, resolvedTheme } = useSettings();
+  const { showToast } = useEngine();;
 
   return (
     <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${

@@ -1,8 +1,10 @@
 import React from 'react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useEngine } from '@common/hooks/EngineContext';
 
 export const StatusIndicator: React.FC = () => {
-  const { engineState, resolvedTheme } = useOxyFlow();
+  const { resolvedTheme } = useSettings();
+  const { engineState } = useEngine();;
 
   return (
     <div className="flex items-center gap-3">

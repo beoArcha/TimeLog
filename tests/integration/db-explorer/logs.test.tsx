@@ -1,9 +1,9 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
-import { OxyContext } from '@common/hooks/OxyContext';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
 
 describe('Integration Tests: DbExplorer Logs Table', () => {
@@ -84,9 +84,9 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const value = { ...defaultState, ...customValue };
     const utils = render(
       <LocaleProvider>
-        <OxyContext.Provider value={value as any}>
+        <MockProviders state={value as any}>
           <DbExplorer />
-        </OxyContext.Provider>
+        </MockProviders>
       </LocaleProvider>
     );
 

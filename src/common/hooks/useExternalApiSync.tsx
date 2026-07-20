@@ -1,21 +1,32 @@
 import { useState, useEffect } from 'react';
-import { STORAGE_KEYS } from '@common/constants';
+import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler, NetworkException, PersistenceException } from '../exceptions';
 
 export const useExternalApiSync = () => {
-  const [logToApi, setLogToApi] = useState<boolean>(() => localStorage.getItem(STORAGE_KEYS.LOG_TO_API) === 'true');
-  const [apiToken, setApiToken] = useState<string>(() => localStorage.getItem(STORAGE_KEYS.API_TOKEN) || '');
-  const [apiUrl, setApiUrl] = useState<string>(() => localStorage.getItem(STORAGE_KEYS.API_URL) || '');
-  const [apiMethod, setApiMethod] = useState<'POST' | 'PUT'>(() => (localStorage.getItem(STORAGE_KEYS.API_METHOD) as 'POST' | 'PUT') || 'POST');
-  const [apiHeaders, setApiHeaders] = useState<string>(() => localStorage.getItem(STORAGE_KEYS.API_HEADERS) || '');
+  const [logToApi, setLogToApi] = useState<boolean>(false);
+  const [apiToken, setApiToken] = useState<string>('');
+  const [apiUrl, setApiUrl] = useState<string>('');
+  const [apiMethod, setApiMethod] = useState<'POST' | 'PUT'>('POST');
+  const [apiHeaders, setApiHeaders] = useState<string>('');
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.LOG_TO_API, String(logToApi));
-    localStorage.setItem(STORAGE_KEYS.API_TOKEN, apiToken);
-    localStorage.setItem(STORAGE_KEYS.API_URL, apiUrl);
-    localStorage.setItem(STORAGE_KEYS.API_METHOD, apiMethod);
-    localStorage.setItem(STORAGE_KEYS.API_HEADERS, apiHeaders);
-  }, [logToApi, apiToken, apiUrl, apiMethod, apiHeaders]);
+    PersistenceRouter.getInstance().externalApi.getSettings().then(settings => {
+      setLogToApi(settings.logToApi);
+      setApiToken(settings.apiToken);
+      setApiUrl(settings.apiUrl);
+      setApiMethod(settings.apiMethod);
+      setApiHeaders(settings.apiHeaders);
+      setLoaded(true);
+    }).catch(ErrorHandler.handle);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    PersistenceRouter.getInstance().externalApi.saveSettings({
+      logToApi, apiToken, apiUrl, apiMethod, apiHeaders
+    }).catch(ErrorHandler.handle);
+  }, [logToApi, apiToken, apiUrl, apiMethod, apiHeaders, loaded]);
 
   const pushToApi = (payload: unknown, logMsg: string) => {
     if (logToApi && apiUrl) {

@@ -1,9 +1,9 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LayoutManager from '@layouts/manager/LayoutManager';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 vi.mock('@components/BackgroundGradients', () => ({
@@ -73,13 +73,13 @@ vi.mock('@features/tray/TrayWidgetView', () => ({
   )
 }));
 
-let activeMockState: OxyFlowState;
+let activeMockState: any;
 
 vi.mock('@layouts/manager/AppProviders', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
-    <OxyContext.Provider value={activeMockState}>
+    <MockProviders state={activeMockState}>
       {children}
-    </OxyContext.Provider>
+    </MockProviders>
   )
 }));
 

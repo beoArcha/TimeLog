@@ -1,3 +1,4 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
@@ -6,7 +7,6 @@ import { Button } from '@components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
 import { Input } from '@components/ui/input';
 import { Skeleton, StatsSkeleton, TableSkeleton } from '@components/ui/Skeletons';
-import { OxyContext } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: UI Primitives', () => {
@@ -53,11 +53,11 @@ describe('Unit Tests: UI Primitives', () => {
     it('should render Skeleton components', () => {
       const mockState = getMockOxyFlowState();
       render(
-        <OxyContext.Provider value={mockState}>
+        <MockProviders state={mockState}>
           <Skeleton className="custom-class" />
           <StatsSkeleton />
           <TableSkeleton rows={2} />
-        </OxyContext.Provider>
+        </MockProviders>
       );
       const skeleton = document.querySelector('.custom-class');
       expect(skeleton).toBeTruthy();

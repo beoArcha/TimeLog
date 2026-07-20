@@ -1,16 +1,16 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import TrayWidgetView from '@features/tray/TrayWidgetView';
-import { OxyContext, OxyFlowState } from '@common/hooks/OxyContext';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: TrayWidgetView', () => {
   const onRestoreMock = vi.fn();
   const onStopAllMock = vi.fn();
 
-  const mockState: OxyFlowState = {
+  const mockState: any = {
     ...getMockOxyFlowState(),
     locale: 'en',
     customTranslations: {},
@@ -22,13 +22,13 @@ describe('Unit Tests: TrayWidgetView', () => {
 
   it('should render active background view and trigger callbacks', () => {
     render(
-      <OxyContext.Provider value={mockState}>
+      <MockProviders state={mockState}>
         <TrayWidgetView
           onRestore={onRestoreMock}
           onStopAll={onStopAllMock}
           showToast={vi.fn()}
         />
-      </OxyContext.Provider>
+      </MockProviders>
     );
 
     expect(screen.getByText(/OxyFlow Engine/i)).not.toBeNull();

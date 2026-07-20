@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, X } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useSettings } from '@common/hooks/SettingsContext';
+import { useEngine } from '@common/hooks/EngineContext';
 
 export default function SystemNotification() {
-  const { trayNotification, setTrayNotification, resolvedTheme } = useOxyFlow();
+  const { resolvedTheme } = useSettings();
+  const { trayNotification, setTrayNotification } = useEngine();;
 
   return (
     <AnimatePresence>

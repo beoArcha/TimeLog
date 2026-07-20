@@ -1,3 +1,4 @@
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import CliInterface from '@features/cli/CliInterface';
@@ -5,7 +6,6 @@ import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
-import { OxyContext } from '@common/hooks/OxyContext';
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();
@@ -48,9 +48,9 @@ describe('Integration Tests: CliInterface Component', () => {
     const combinedProps = { ...defaultProps, ...props };
     const utils = render(
       <LocaleProvider>
-         <OxyContext.Provider value={combinedProps as any}>
+         <MockProviders state={combinedProps as any}>
             <CliInterface />
-         </OxyContext.Provider>
+         </MockProviders>
       </LocaleProvider>
     );
     const input = utils.container.querySelector('input') as HTMLInputElement;

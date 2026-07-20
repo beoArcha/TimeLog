@@ -1,8 +1,8 @@
 import React from 'react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 export const TextScaleSelector: React.FC = () => {
-  const { textAndIconSize, setTextAndIconSize, resolvedTheme } = useOxyFlow();
+  const { textAndIconSize, setTextAndIconSize, resolvedTheme } = useSettings();;
 
   return (
     <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${

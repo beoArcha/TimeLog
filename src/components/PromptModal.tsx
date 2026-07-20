@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, HelpCircle } from 'lucide-react';
-import { useOxyFlow } from '@common/hooks/OxyContext';
+import { useSettings } from '@common/hooks/SettingsContext';
 
 interface PromptModalProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ export default function PromptModal({
   onConfirm,
   onCancel,
 }: PromptModalProps) {
-  const { resolvedTheme } = useOxyFlow();
+  const { resolvedTheme } = useSettings();;
   const [value, setValue] = useState(defaultValue);
 
   if (!isOpen) return null;
