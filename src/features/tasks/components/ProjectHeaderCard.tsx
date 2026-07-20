@@ -1,10 +1,9 @@
 import React from 'react';
 import { Plus, TrendingUp } from 'lucide-react';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { Project } from '@bindings/Project';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
-import { Locale } from '@bindings/Locale';
 
 import { StatsSkeleton } from '@components/ui/Skeletons';
 
@@ -13,8 +12,6 @@ interface ProjectHeaderCardProps {
   projectDurationSeconds: number;
   isCondensed: boolean;
   theme: string;
-  locale: Locale;
-  customTranslations: Record<string, unknown>;
   stats: ProjectStatistics | null;
   loading: boolean;
   newTaskName: string;
@@ -27,21 +24,23 @@ export default function ProjectHeaderCard({
   projectDurationSeconds,
   isCondensed,
   theme,
-  locale,
-  customTranslations,
   stats,
   loading,
   newTaskName,
   setNewTaskName,
   onAddTaskSubmit
 }: ProjectHeaderCardProps) {
+  const { t: tProject } = useTranslation('project');
+  const { t: tCommon } = useTranslation('common');
+  const { t: tTask } = useTranslation('task');
+
   return (
     <div>
       <div className={`flex flex-col ${isCondensed ? 'gap-2 items-start' : 'sm:flex-row sm:items-start justify-between gap-2'} border-b pb-3 mb-3 ${theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10'
         }`}>
         <div className={`flex-1 min-w-0 ${isCondensed ? 'w-full' : ''}`}>
           <span className={`text-main tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-2.5 py-0.5 rounded-full font-bold uppercase border border-orange-500/25 ${isCondensed ? 'inline-block mb-1.5 whitespace-nowrap' : ''}`}>
-            {translate(locale, 'project', 'SelectProject', customTranslations)}
+            {tProject('SelectProject')}
           </span>
           <h2 className={`font-sans font-bold mt-1 flex items-center gap-section text-title ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
             }`}>
@@ -54,7 +53,7 @@ export default function ProjectHeaderCard({
               }`}>
               <div className="flex items-center gap-1.5">
                 <TrendingUp className={`icon-small text-orange-400`} />
-                <span className="font-semibold">{translate(locale, 'common', 'Total', customTranslations)}:</span>
+                <span className="font-semibold">{tCommon('Total')}:</span>
               </div>
               <span className={`font-bold ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
                 {formatSeconds(projectDurationSeconds)}
@@ -72,7 +71,7 @@ export default function ProjectHeaderCard({
             }`}>
             <div className="flex items-center gap-1.5">
               <TrendingUp className={`icon-medium text-orange-400`} />
-              <span className="font-semibold">{translate(locale, 'common', 'Total', customTranslations)}:</span>
+              <span className="font-semibold">{tCommon('Total')}:</span>
             </div>
             <span className={`font-bold ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
               {formatSeconds(projectDurationSeconds)}
@@ -130,7 +129,7 @@ export default function ProjectHeaderCard({
         <input
           id="new-task-input"
           type="text"
-          placeholder={translate(locale, 'task', 'EnterMainTaskName', customTranslations)}
+          placeholder={tTask('EnterMainTaskName')}
           value={newTaskName}
           onChange={e => setNewTaskName(e.target.value)}
           className={`flex-1 px-3 input-py border rounded-main text-main focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all ${theme === 'light'
@@ -143,7 +142,7 @@ export default function ProjectHeaderCard({
           type="submit"
           className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold rounded-main px-4 button-h text-main flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md shrink-0`}
         >
-          <Plus className="icon-small" /> <span className={isCondensed ? 'hidden xs:inline' : ''}>{translate(locale, 'task', 'AddTask', customTranslations)}</span>
+          <Plus className="icon-small" /> <span className={isCondensed ? 'hidden xs:inline' : ''}>{tTask('AddTask')}</span>
         </button>
       </form>
     </div>

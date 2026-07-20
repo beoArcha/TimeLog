@@ -20,8 +20,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
     tasks,
     logs,
     nowIso,
-    locale,
-    customTranslations,
     theme,
     projectTasks,
     selectedProject,
@@ -79,8 +77,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
           editingId={editingId}
           editName={editName}
           theme={theme}
-          locale={locale}
-          customTranslations={customTranslations}
           th={th}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
@@ -98,8 +94,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
           isCondensed={isCondensed}
           showSubtaskFormForId={showSubtaskFormForId}
           theme={theme}
-          locale={locale}
-          customTranslations={customTranslations}
           onStartTimer={onStartTimer}
           setShowSubtaskFormForId={setShowSubtaskFormForId}
         />
@@ -111,8 +105,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
             parentTaskId={rootTask.id}
             newSubtaskName={newSubtaskName}
             theme={theme}
-            locale={locale}
-            customTranslations={customTranslations}
             setNewSubtaskName={setNewSubtaskName}
             onSubmit={handleAddSubtaskSubmit}
           />
@@ -128,8 +120,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
         editingId={editingId}
         editName={editName}
         theme={theme}
-        locale={locale}
-        customTranslations={customTranslations}
         th={th}
         onToggleTaskComplete={onToggleTaskComplete}
         onRenameTask={onRenameTask}

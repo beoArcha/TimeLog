@@ -1,6 +1,6 @@
 import React from 'react';
 import { Folder } from 'lucide-react';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 import { getThemeStyles } from '@/src/layouts/parts/LayoutStyles';
 import TaskItem from './components/TaskItem/TaskItem';
 import { Project } from '@bindings/Project';
@@ -9,7 +9,6 @@ import { TimeLog } from '@bindings/TimeLog';
 import ProjectHeaderCard from './components/ProjectHeaderCard';
 import TaskEmptyState from './components/TaskEmptyState';
 import { useProjectStatistics } from './hooks/useProjectStatistics';
-import { Locale } from '@bindings/Locale';
 
 interface TaskListViewProps {
   state: any;
@@ -18,19 +17,19 @@ interface TaskListViewProps {
 
 export default function TaskListView({ state, isCondensed }: TaskListViewProps) {
   const {
-    tasks, logs, nowIso, locale, customTranslations, theme,
+    tasks, logs, nowIso, theme,
     selectedProject, rootTasks, onAddTask
   }: {
     tasks: Task[];
     logs: TimeLog[];
     nowIso: string;
-    locale: Locale;
-    customTranslations?: any;
     theme: string;
     selectedProject: Project | null;
     rootTasks: Task[];
     onAddTask: (projectId: string, name: string, parentId: string | null) => void;
   } = state;
+
+  const { t: tProject } = useTranslation('project');
 
   const [newTaskName, setNewTaskNameLocal] = React.useState(() => state.newTaskName ?? '');
   const [editingId, setEditingIdLocal] = React.useState<string | null>(() => state.editingId ?? null);
@@ -80,8 +79,6 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     tasks,
     logs,
     nowIso,
-    locale,
-    customTranslations,
   });
 
   const taskItemState = React.useMemo(() => ({
@@ -108,7 +105,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         : 'bg-[#FCFAF8]/5 border-white/10'
         }`}>
         <Folder className="w-12 h-12 text-[#9B8C83] mx-auto mb-3" />
-        <h3 className={`font-bold text-title ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations)}</h3>
+        <h3 className={`font-bold text-title ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{tProject('SelectProjectPlaceholder')}</h3>
         <p className={`text-main mt-1 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>Zaznacz projekt w bocznym menu po lewej stronie, aby zacząć zarządzać czasem.</p>
       </div>
     );
@@ -127,8 +124,6 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         projectDurationSeconds={projectDurationSeconds}
         isCondensed={isCondensed}
         theme={theme}
-        locale={locale}
-        customTranslations={customTranslations}
         stats={stats}
         loading={loading}
         newTaskName={newTaskName}
@@ -140,8 +135,6 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         {rootTasks.length === 0 ? (
           <TaskEmptyState
             theme={theme}
-            locale={locale}
-            customTranslations={customTranslations}
           />
         ) : (
           rootTasks.map((rootTask: Task) => (

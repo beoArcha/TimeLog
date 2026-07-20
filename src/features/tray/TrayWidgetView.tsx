@@ -2,7 +2,7 @@ import React from 'react';
 import { AppWindow, Layers } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOxyFlow } from '@common/hooks/OxyContext';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -18,9 +18,10 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
     enginePID,
     resolvedTheme,
     nowIso,
-    locale,
-    customTranslations
   } = useOxyFlow();
+
+  const { t: tEngine } = useTranslation('engine');
+  const { t: tTimer } = useTranslation('timer');
 
   const activeRunningLogs = logs.filter(l => l.endTime === null);
 
@@ -31,9 +32,9 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -20 }}
-      className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full my-auto py-16 px-4"
+      className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full my-auto padding-main"
     >
-      <div className={`rounded-[2.5rem] p-8 shadow-3xl w-full text-center flex flex-col items-center gap-6 relative overflow-hidden group border transition-all duration-300 ${resolvedTheme === 'light'
+      <div className={`rounded-main padding-main shadow-3xl w-full text-center flex flex-col items-center gap-main relative overflow-hidden group border transition-all duration-300 ${resolvedTheme === 'light'
         ? 'bg-white border-slate-200'
         : resolvedTheme === 'high-contrast'
           ? 'bg-black border-2 border-white'
@@ -42,8 +43,8 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500"></div>
 
         <div className="relative">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-2xl flex items-center justify-center text-white transform hover:rotate-6 transition-transform">
-            <Layers className="w-10 h-10 text-white" />
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-2xl flex items-center justify-center text-white transform hover:rotate-6 transition-transform">
+            <Layers className="w-8 h-8 text-white" />
           </div>
           <span className="absolute -top-1 -right-1 flex h-5 w-5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -57,18 +58,18 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
             }`}>
             OxyFlow Engine
             <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wider uppercase">
-              {translate(locale, 'engine', 'EngineRunningBackground', customTranslations)}
+              {tEngine('EngineRunningBackground')}
             </span>
           </h1>
           <p className={`text-sm mt-2 max-w-md font-sans ${resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-300'
             }`}>
-            {translate(locale, 'engine', 'TrayDescription', customTranslations)}
+            {tEngine('TrayDescription')}
           </p>
           <div className={`text-xs px-4 py-2 rounded-xl font-mono inline-block mt-4 border ${resolvedTheme === 'light'
             ? 'bg-slate-100 border-slate-200 text-slate-700'
             : 'bg-white/5 border-white/10 text-slate-300'
             }`}>
-            {translate(locale, 'engine', 'DaemonEnginePid', customTranslations)} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {translate(locale, 'engine', 'SqliteThread', customTranslations)}
+            {tEngine('DaemonEnginePid')} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {tEngine('SqliteThread')}
           </div>
         </div>
 
@@ -80,11 +81,11 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
           }`}>
           <p className={`text-[10px] font-mono uppercase tracking-widest mb-3 border-b pb-1.5 ${resolvedTheme === 'light' ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/5'
             }`}>
-            {translate(locale, 'engine', 'ActiveMeasuringThreads', customTranslations)} ({activeRunningLogs.length})
+            {tEngine('ActiveMeasuringThreads')} ({activeRunningLogs.length})
           </p>
           {activeRunningLogs.length === 0 ? (
             <p className={`text-xs italic text-center py-2 ${resolvedTheme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-              {translate(locale, 'timer', 'NoActiveTimers', customTranslations)}
+              {tTimer('NoActiveTimers')}
             </p>
           ) : (
             <div className="flex flex-col gap-2">
@@ -122,23 +123,23 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
           <button
             id="tray-restore-btn"
             onClick={onRestore}
-            className="flex-1 bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold py-3.5 rounded-2xl text-sm transition-all shadow-lg shadow-orange-500/10 cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
+            className="flex-1 bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold py-3 rounded-2xl text-sm transition-all shadow-lg shadow-orange-500/10 cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
           >
             <AppWindow className="w-4.5 h-4.5" />
-            {translate(locale, 'engine', 'MaximizeAndRestore', customTranslations)}
+            {tEngine('MaximizeAndRestore')}
           </button>
           <button
             id="tray-kill-all-btn"
             onClick={onStopAll}
             disabled={activeRunningLogs.length === 0}
-            className={`py-3.5 px-6 rounded-2xl text-sm font-semibold border transition-all ${activeRunningLogs.length === 0
+            className={`py-3 px-6 rounded-2xl text-sm font-semibold border transition-all ${activeRunningLogs.length === 0
               ? 'bg-transparent text-slate-400 border-slate-200/20 cursor-not-allowed opacity-40'
               : resolvedTheme === 'light'
                 ? 'bg-slate-100 hover:bg-rose-50 text-rose-650 border-slate-200 cursor-pointer'
                 : 'bg-white/5 hover:bg-rose-550/15 text-rose-450 border-white/10 hover:border-rose-500/20 cursor-pointer'
               }`}
           >
-            {translate(locale, 'engine', 'PauseAllProcesses', customTranslations)}
+            {tEngine('PauseAllProcesses')}
           </button>
         </div>
       </div>

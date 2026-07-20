@@ -1,6 +1,5 @@
 import React from 'react';
-import { Locale } from '@bindings/Locale';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 
 interface TaskNameEditorProps {
   taskId: string;
@@ -9,8 +8,6 @@ interface TaskNameEditorProps {
   isEditing: boolean;
   theme: string;
   textSizeClass: string;
-  locale: Locale;
-  customTranslations: any;
   onRenameTask: ((id: string, name: string) => void) | undefined;
   setEditName: (name: string) => void;
   setEditingId: (id: string | null) => void;
@@ -23,12 +20,12 @@ export function TaskNameEditor({
   isEditing,
   theme,
   textSizeClass,
-  locale,
-  customTranslations,
   onRenameTask,
   setEditName,
   setEditingId,
 }: TaskNameEditorProps) {
+  const { t: tCommon } = useTranslation('common');
+
   const commitEdit = () => {
     if (onRenameTask && editName.trim() && editName.trim() !== taskName) {
       onRenameTask(taskId, editName.trim());
@@ -56,7 +53,7 @@ export function TaskNameEditor({
       onClick={(e) => e.stopPropagation()}
       onBlur={commitEdit}
       onKeyDown={handleKeyDown}
-      aria-label={translate(locale, 'common', 'EditName', customTranslations)}
+      aria-label={tCommon('EditName')}
       className={`font-semibold ${textSizeClass} rounded px-1 outline-none w-full max-w-sm mr-2 ${theme === 'light'
           ? 'bg-white text-[#2C2421] border-[#DFD7CB]'
           : 'bg-black text-white border-white/20'

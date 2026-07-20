@@ -11,7 +11,7 @@ describe('Unit Tests: TaskEmptyState', () => {
 
   it('Given TaskEmptyState rendered, When locale is en, Then it should show English text', () => {
     render(
-      <TaskEmptyState theme="dark" locale="en" customTranslations={{}} />
+      <TaskEmptyState theme="dark" />
     );
 
     expect(screen.getByText(/Create a main project task/i)).toBeTruthy();
@@ -19,7 +19,7 @@ describe('Unit Tests: TaskEmptyState', () => {
 
   it('Given TaskEmptyState rendered, When theme is light, Then it should render with light theme styling classes', () => {
     render(
-      <TaskEmptyState theme="light" locale="en" customTranslations={{}} />
+      <TaskEmptyState theme="light" />
     );
 
     expect(screen.getByText(/Create a main project task/i)).toBeTruthy();

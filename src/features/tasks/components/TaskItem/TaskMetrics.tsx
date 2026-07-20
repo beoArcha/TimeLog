@@ -1,7 +1,6 @@
 import { Task } from '@bindings/Task';
-import { Locale } from '@bindings/Locale';
 import { Plus, Play, Square } from 'lucide-react';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 
 interface TaskMetricsProps {
@@ -12,8 +11,6 @@ interface TaskMetricsProps {
   isCondensed: boolean;
   showSubtaskFormForId: string | null;
   theme: string;
-  locale: Locale;
-  customTranslations: any;
   onStartTimer: (id: string) => void;
   setShowSubtaskFormForId: (id: string | null) => void;
 }
@@ -26,11 +23,12 @@ export function TaskMetrics({
   isCondensed,
   showSubtaskFormForId,
   theme,
-  locale,
-  customTranslations,
   onStartTimer,
   setShowSubtaskFormForId,
 }: TaskMetricsProps) {
+  const { t: tTask } = useTranslation('task');
+  const { t: tTimer } = useTranslation('timer');
+
   return (
     <div
       className={`flex items-center gap-3 ${isCondensed
@@ -47,7 +45,7 @@ export function TaskMetrics({
             : 'bg-[#FCFAF8]/5 border-white/10 text-slate-200'
           }`}
       >
-        {translate(locale, 'task', 'CounterLabel', customTranslations)}: {formatSeconds(rootDuration)}
+        {tTask('CounterLabel')}: {formatSeconds(rootDuration)}
       </span>
 
       <div className="flex items-center gap-2 shrink-0">
@@ -56,8 +54,8 @@ export function TaskMetrics({
             id={`stop-btn-${rootTask.id}`}
             onClick={() => onStartTimer(rootTask.id)}
             className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer"
-            title={translate(locale, 'timer', 'StopMeasurement', customTranslations)}
-            aria-label={translate(locale, 'timer', 'StopMeasurement', customTranslations)}
+            title={tTimer('StopMeasurement')}
+            aria-label={tTimer('StopMeasurement')}
           >
             <Square className="w-3.5 h-3.5 fill-white" />
           </button>
@@ -70,8 +68,8 @@ export function TaskMetrics({
               ? 'bg-[#FCFAF8]/5 text-[#9B8C83] border border-transparent cursor-not-allowed opacity-50'
               : 'bg-teal-500 hover:bg-teal-600 text-white shadow-lg'
               }`}
-            title={translate(locale, 'timer', 'StartMeasurement', customTranslations)}
-            aria-label={translate(locale, 'timer', 'StartMeasurement', customTranslations)}
+            title={tTimer('StartMeasurement')}
+            aria-label={tTimer('StartMeasurement')}
           >
             <Play className="w-3.5 h-3.5 fill-white text-white" />
           </button>
@@ -86,12 +84,12 @@ export function TaskMetrics({
             ? 'bg-[#EAE4DB] hover:bg-[#DFD7CB] text-[#5A4A42] border-[#DFD7CB]'
             : 'bg-[#FCFAF8]/5 hover:bg-[#FCFAF8]/15 text-slate-200 hover:text-white border-white/10'
             }`}
-          title={translate(locale, 'task', 'AddSubtask', customTranslations)}
-          aria-label={translate(locale, 'task', 'AddSubtask', customTranslations)}
+          title={tTask('AddSubtask')}
+          aria-label={tTask('AddSubtask')}
         >
           <Plus className="w-3.5 h-3.5 text-orange-500" />{' '}
           <span className={isCondensed ? 'hidden xs:inline' : ''}>
-            {translate(locale, 'task', 'SubtaskLabel', customTranslations)}
+            {tTask('SubtaskLabel')}
           </span>
         </button>
       </div>

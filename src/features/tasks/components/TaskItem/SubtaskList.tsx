@@ -1,6 +1,6 @@
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
-import { Locale } from '@bindings/Locale';
+import { TaskStatus } from '@bindings/TaskStatus';
 import { SubtaskItem } from './SubtaskItem';
 
 interface SubtaskListProps {
@@ -12,10 +12,6 @@ interface SubtaskListProps {
   editingId: string | null;
   editName: string;
   theme: string;
-  locale: Locale;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  customTranslations: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
@@ -23,7 +19,7 @@ interface SubtaskListProps {
     taskId: string,
     name: string,
     parentTaskId: string | null,
-    status: import('@bindings/TaskStatus').TaskStatus | null,
+    status: TaskStatus | null,
     completed: boolean | null
   ) => void) | undefined;
   onDeleteTask: ((id: string) => void) | undefined;
@@ -41,8 +37,6 @@ export function SubtaskList({
   editingId,
   editName,
   theme,
-  locale,
-  customTranslations,
   th,
   onToggleTaskComplete,
   onRenameTask,
@@ -72,8 +66,6 @@ export function SubtaskList({
           editingId={editingId}
           editName={editName}
           theme={theme}
-          locale={locale}
-          customTranslations={customTranslations}
           th={th}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}

@@ -1,10 +1,9 @@
 import React from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
-import { Folder, Plus, Sparkles, Clock, Pencil } from 'lucide-react';
+import { Folder, Plus, Clock, Pencil } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from './LayoutStyles';
-import versionsData from '../../versions.json';
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
@@ -133,8 +132,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                       value={newProjectIcon}
                       onChange={e => setNewProjectIcon(e.target.value)}
                       className={`w-full px-2 py-1 border rounded-lg text-center outline-none text-xs ${theme === 'light'
-                          ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
-                          : 'bg-black/20 border-white/10 text-white'
+                        ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
+                        : 'bg-black/20 border-white/10 text-white'
                         }`}
                     />
                   </div>
@@ -145,8 +144,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                       value={newProjectTags}
                       onChange={e => setNewProjectTags(e.target.value)}
                       className={`w-full px-2 py-1 border rounded-lg outline-none text-xs ${theme === 'light'
-                          ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
-                          : 'bg-black/20 border-white/10 text-white'
+                        ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
+                        : 'bg-black/20 border-white/10 text-white'
                         }`}
                     />
                   </div>
@@ -156,8 +155,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   value={newProjectDesc}
                   onChange={e => setNewProjectDesc(e.target.value)}
                   className={`w-full px-2 py-1 border rounded-lg outline-none text-xs h-10 resize-none ${theme === 'light'
-                      ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
-                      : 'bg-black/20 border-white/10 text-white'
+                    ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
+                    : 'bg-black/20 border-white/10 text-white'
                     }`}
                 />
               </div>

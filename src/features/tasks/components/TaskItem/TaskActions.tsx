@@ -1,12 +1,9 @@
-import { Locale } from '@bindings/Locale';
 import { Pencil, Trash2 } from 'lucide-react';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 
 interface TaskActionsProps {
   taskId: string;
   taskName: string;
-  locale: Locale;
-  customTranslations: any;
   deleteTitle: string;
   pencilSize: string;
   trashSize: string;
@@ -18,8 +15,6 @@ interface TaskActionsProps {
 export function TaskActions({
   taskId,
   taskName,
-  locale,
-  customTranslations,
   deleteTitle,
   pencilSize,
   trashSize,
@@ -27,13 +22,15 @@ export function TaskActions({
   setEditingId,
   setEditName,
 }: TaskActionsProps) {
+  const { t: tCommon } = useTranslation('common');
+
   return (
     <div className="opacity-100 md:opacity-0 md:group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
       <button
         id={`edit-task-btn-${taskId}`}
         type="button"
-        title={translate(locale, 'common', 'EditName', customTranslations)}
-        aria-label={translate(locale, 'common', 'EditName', customTranslations)}
+        title={tCommon('EditName')}
+        aria-label={tCommon('EditName')}
         onClick={(e) => {
           e.stopPropagation();
           setEditingId(taskId);

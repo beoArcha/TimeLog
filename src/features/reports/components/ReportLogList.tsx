@@ -1,21 +1,21 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
-import { Locale } from '@bindings/Locale';
+import { TimeLog } from '@bindings/TimeLog';
+import { Project } from '@bindings/Project';
+import { Task } from '@bindings/Task';
+import { ProjectChartItem } from '../hooks/useReportStatistics';
 
 interface ReportLogListProps {
-  filteredLogs: any[];
-  projectChart: any[];
+  filteredLogs: TimeLog[];
+  projectChart: ProjectChartItem[];
   maxSec: number;
-  displayLogs: any[];
-  projects: any[];
-  tasks: any[];
+  displayLogs: TimeLog[];
+  projects: Project[];
+  tasks: Task[];
   nowIso: string;
   theme: string;
-  locale: Locale;
-  customTranslations: any;
-  th: any;
 }
 
 export default function ReportLogList({
@@ -27,14 +27,13 @@ export default function ReportLogList({
   tasks,
   nowIso,
   theme,
-  locale,
-  customTranslations,
-  th
 }: ReportLogListProps) {
+  const { t } = useTranslation('report');
+
   if (filteredLogs.length === 0) {
     return (
       <div className="text-center py-12 text-[#9B8C83] text-xs font-mono">
-        ⚠️ {translate(locale, 'report', 'NoDataSelectedRange', customTranslations)}
+        ⚠️ {t('NoDataSelectedRange')}
       </div>
     );
   }
@@ -44,7 +43,7 @@ export default function ReportLogList({
       {/* Graphical bars representation */}
       <div className="flex flex-col gap-3">
         <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase flex items-center gap-1.5">
-          📊 {translate(locale, 'report', 'GraphicalDistribution', customTranslations)}
+          📊 {t('GraphicalDistribution')}
         </h4>
         <div className="flex flex-col gap-4">
           {projectChart.map(pc => {
@@ -69,9 +68,9 @@ export default function ReportLogList({
                 </div>
                 {pc.tasks.length > 0 && (
                   <div className="flex flex-col gap-1 mt-1 pl-4 border-l-2 border-white/10 dark:border-white/5">
-                    {pc.tasks.map((tt: any) => (
-                      <div key={tt.task!.id} className="flex justify-between items-center text-[10px] text-[#8A7A71] dark:text-[#9B8C83]">
-                        <span className="truncate">{tt.task!.name}</span>
+                    {pc.tasks.map((tt) => (
+                      <div key={tt.task?.id || Math.random()} className="flex justify-between items-center text-[10px] text-[#8A7A71] dark:text-[#9B8C83]">
+                        <span className="truncate">{tt.task?.name || 'N/A'}</span>
                         <span className="font-mono">{formatSeconds(tt.seconds)}</span>
                       </div>
                     ))}
@@ -86,13 +85,13 @@ export default function ReportLogList({
       {/* Regular logs output */}
       <div className="flex flex-col gap-3 mt-4">
         <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
-          📋 {translate(locale, 'report', 'PlainDump', customTranslations)} ({displayLogs.length})
+          📋 {t('PlainDump')} ({displayLogs.length})
         </h4>
         <div className={`rounded-[1.5rem] border max-h-[250px] overflow-y-auto p-4 flex flex-col gap-2 ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB] shadow-inner' : 'bg-black/20 border-white/5'
           }`}>
           {displayLogs.map(log => {
             const p = projects.find(x => x.id === log.projectId);
-            const t = tasks.find(x => x.id === log.taskId);
+            const tObj = tasks.find(x => x.id === log.taskId);
             const start = new Date(log.startTime).getTime();
             const end = log.endTime ? new Date(log.endTime).getTime() : new Date(nowIso).getTime();
             const durSeconds = Math.max(0, Math.floor((end - start) / 1000));
@@ -105,8 +104,8 @@ export default function ReportLogList({
               >
                 <span className="truncate flex items-center gap-1">
                   <span className="font-mono text-indigo-400 text-[10px] shrink-0 font-bold">[{new Date(log.startTime).toLocaleTimeString()}]</span>
-                  <strong className={`${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-200'}`}>"{t?.name || 'N/A'}"</strong>
-                  <span className={`${th.textMuted} text-[10px]`}>({p?.name})</span>
+                  <strong className={`${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-200'}`}>"{tObj?.name || 'N/A'}"</strong>
+                  <span className="text-[#9B8C83] text-[10px]">({p?.name})</span>
                 </span>
                 <span className="font-mono text-orange-400 shrink-0 self-end sm:self-auto font-bold">{formatSeconds(durSeconds)}</span>
               </div>

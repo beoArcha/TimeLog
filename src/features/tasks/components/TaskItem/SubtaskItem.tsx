@@ -1,9 +1,9 @@
 import React from 'react';
 import { Task } from '@bindings/Task';
+import { TaskStatus } from '@bindings/TaskStatus';
 import { TimeLog } from '@bindings/TimeLog';
-import { Locale } from '@bindings/Locale';
 import { CheckSquare, Square as EmptySquare, Play, Square } from 'lucide-react';
-import { translate } from '@common/i18n/translator';
+import { useTranslation } from '@common/i18n/translator';
 import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
@@ -17,8 +17,6 @@ interface SubtaskItemProps {
   editingId: string | null;
   editName: string;
   theme: string;
-  locale: Locale;
-  customTranslations: any;
   th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
@@ -26,7 +24,7 @@ interface SubtaskItemProps {
     taskId: string,
     name: string,
     parentTaskId: string | null,
-    status: import('@bindings/TaskStatus').TaskStatus | null,
+    status: TaskStatus | null,
     completed: boolean | null
   ) => void) | undefined;
   onDeleteTask: ((id: string) => void) | undefined;
@@ -43,8 +41,6 @@ export function SubtaskItem({
   editingId,
   editName,
   theme,
-  locale,
-  customTranslations,
   th,
   onToggleTaskComplete,
   onRenameTask,
@@ -54,6 +50,9 @@ export function SubtaskItem({
   setEditingId,
   setEditName,
 }: SubtaskItemProps) {
+  const { t: tCommon } = useTranslation('common');
+  const { t: tTimer } = useTranslation('timer');
+
   const subDuration = getTaskDurationSeconds(subTask.id, tasks, logs, nowIso);
   const isSubRunning = logs.some((l: TimeLog) => l.taskId === subTask.id && l.endTime === null);
   const isEditing = editingId === subTask.id;
@@ -74,7 +73,7 @@ export function SubtaskItem({
           role="checkbox"
           aria-checked={subTask.completed}
           onClick={() => onToggleTaskComplete(subTask.id)}
-          aria-label={`${subTask.completed ? translate(locale, 'common', 'Edit', customTranslations) : translate(locale, 'common', 'Confirm', customTranslations)} ${subTask.name}`}
+          aria-label={`${subTask.completed ? tCommon('Edit') : tCommon('Confirm')} ${subTask.name}`}
           className={`${th.textMuted} hover:text-orange-500 transition-colors cursor-pointer mt-0.5 sm:mt-0 shrink-0`}
         >
           {subTask.completed ? (
@@ -93,8 +92,6 @@ export function SubtaskItem({
               isEditing={isEditing}
               theme={theme}
               textSizeClass="font-semibold text-xs"
-              locale={locale}
-              customTranslations={customTranslations}
               onRenameTask={onRenameTask}
               setEditName={setEditName}
               setEditingId={setEditingId}
@@ -114,7 +111,7 @@ export function SubtaskItem({
               <select
                 value={subTask.status || 'Todo'}
                 onChange={(e) => {
-                  const newStatus = e.target.value as any;
+                  const newStatus = e.target.value as TaskStatus;
                   if (onUpdateTask) {
                     onUpdateTask(subTask.id, subTask.name, subTask.parentTaskId || null, newStatus, null);
                   }
@@ -144,8 +141,6 @@ export function SubtaskItem({
             <TaskActions
               taskId={subTask.id}
               taskName={subTask.name}
-              locale={locale}
-              customTranslations={customTranslations}
               deleteTitle="Usuń podzadanie"
               pencilSize="w-3 h-3"
               trashSize="w-3 h-3"
@@ -173,8 +168,8 @@ export function SubtaskItem({
           <button
             id={`stop-subtask-btn-${subTask.id}`}
             onClick={() => onStartTimer(subTask.id)}
-            title={translate(locale, 'timer', 'StopMeasurement', customTranslations)}
-            aria-label={translate(locale, 'timer', 'StopMeasurement', customTranslations)}
+            title={tTimer('StopMeasurement')}
+            aria-label={tTimer('StopMeasurement')}
             className="bg-rose-500 text-white rounded-lg p-2 transition-colors cursor-pointer animate-pulse shrink-0"
           >
             <Square className="w-3.5 h-3.5 fill-white text-white" />
@@ -184,8 +179,8 @@ export function SubtaskItem({
             id={`start-subtask-btn-${subTask.id}`}
             onClick={() => !subTask.completed && onStartTimer(subTask.id)}
             disabled={subTask.completed}
-            title={translate(locale, 'timer', 'StartMeasurement', customTranslations)}
-            aria-label={translate(locale, 'timer', 'StartMeasurement', customTranslations)}
+            title={tTimer('StartMeasurement')}
+            aria-label={tTimer('StartMeasurement')}
             className={`text-[#9B8C83] hover:text-white rounded-lg p-2 transition-all cursor-pointer shrink-0 ${theme === 'light'
               ? 'bg-[#EAE4DB] hover:bg-teal-500 group-hover/sub:bg-teal-500 text-[#5A4A42]'
               : 'bg-[#FCFAF8]/5 hover:bg-teal-500 group-hover/sub:bg-teal-500'

@@ -4,6 +4,10 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import TaskListView from '@features/tasks/TaskListView';
 
+import { LocaleProvider } from '@common/hooks/LocaleProvider';
+
+const renderWithLocale = (ui: React.ReactElement) => render(<LocaleProvider>{ui}</LocaleProvider>);
+
 describe('Integration Tests: TaskListView and TaskItem', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -59,13 +63,13 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given no selected project, When rendered, Then it should prompt to select a project', () => {
     const state = setupMockState({ selectedProject: null });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
     expect(screen.getByText('Select project')).toBeDefined();
   });
 
   it('Given selected project and root tasks, When rendered, Then it should show project name and tasks', () => {
     const state = setupMockState();
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
     expect(screen.getByText('Project Alpha')).toBeDefined();
     expect(screen.getByText('Task One')).toBeDefined();
     expect(screen.getByText('Task Two')).toBeDefined();
@@ -73,7 +77,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given root task form, When submitted with valid text, Then it should call onAddTask', () => {
     const state = setupMockState();
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
     const submitBtn = screen.getByRole('button', { name: /^Add Task$/i });
     fireEvent.click(submitBtn);
     expect(state.onAddTask).toHaveBeenCalledWith('proj_1', 'New Test Task', null);
@@ -82,7 +86,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given root task, When complete square clicked, Then it should toggle complete status', () => {
     const state = setupMockState();
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
     const checkBtn = document.getElementById('check-task-task_1') as HTMLElement;
     fireEvent.click(checkBtn);
     expect(state.onToggleTaskComplete).toHaveBeenCalledWith('task_1');
@@ -90,7 +94,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given root task, When start timer clicked, Then it should trigger start timer', () => {
     const state = setupMockState({ logs: [] });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
     const playBtn = document.getElementById('start-btn-task_1') as HTMLElement;
     fireEvent.click(playBtn);
     expect(state.onStartTimer).toHaveBeenCalledWith('task_1');
@@ -98,7 +102,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given editing task, When input value changes and blur, Then it should trigger rename', () => {
     const state = setupMockState({ editingId: 'task_1', editName: 'Task One Custom' });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
     const input = screen.getByDisplayValue('Task One Custom');
     fireEvent.change(input, { target: { value: 'Task One Renamed' } });
     fireEvent.blur(input);
@@ -108,7 +112,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given root task, When subtask button clicked, Then it should open the subtask form and allow submitting a new subtask', () => {
     const state = setupMockState({ showSubtaskFormForId: 'task_1' });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
     const submitBtn = screen.getByRole('button', { name: /Save/i });
     fireEvent.click(submitBtn);
@@ -120,7 +124,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given subtask, When complete button clicked, Then it should toggle subtask completion', () => {
     const state = setupMockState();
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
     const checkBtn = document.getElementById('check-subtask-subtask_1') as HTMLElement;
     fireEvent.click(checkBtn);
@@ -130,7 +134,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given subtask, When delete button clicked, Then it should trigger onDeleteTask', () => {
     const state = setupMockState();
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
     const deleteBtn = screen.getByTitle('Usuń podzadanie');
     fireEvent.click(deleteBtn);
@@ -140,7 +144,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given editing task, When Enter is pressed in rename input, Then it should trigger rename', () => {
     const state = setupMockState({ editingId: 'task_1', editName: 'Task One Custom' });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
     const input = screen.getByDisplayValue('Task One Custom');
     fireEvent.change(input, { target: { value: 'Task One Renamed' } });
@@ -152,7 +156,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given editing task, When Escape is pressed in rename input, Then it should cancel edit', () => {
     const state = setupMockState({ editingId: 'task_1', editName: 'Task One Custom' });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
     const input = screen.getByDisplayValue('Task One Custom');
     fireEvent.keyDown(input, { key: 'Escape', code: 'Escape' });
@@ -166,7 +170,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
         { id: 'l2', taskId: 'subtask_1', projectId: 'proj_1', startTime: '2026-06-15T12:00:00Z', endTime: null }
       ]
     });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
     const stopBtn = document.getElementById('stop-subtask-btn-subtask_1') as HTMLElement;
     fireEvent.click(stopBtn);
@@ -176,7 +180,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given stopped subtask timer, When start button clicked, Then it should start subtask timer', () => {
     const state = setupMockState({ logs: [] });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
     const startBtn = document.getElementById('start-subtask-btn-subtask_1') as HTMLElement;
     fireEvent.click(startBtn);
@@ -186,7 +190,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
 
   it('Given subtask, When rename input blurs or Enter key is pressed, Then it should rename subtask', () => {
     const state = setupMockState({ editingId: 'subtask_1', editName: 'Subtask One Custom' });
-    render(<TaskListView state={state} isCondensed={false} />);
+    renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
     const input = screen.getByDisplayValue('Subtask One Custom');
     fireEvent.blur(input);
