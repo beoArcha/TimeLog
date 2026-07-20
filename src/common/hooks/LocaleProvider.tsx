@@ -1,6 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { ContextException } from '../exceptions';
 import { TranslationDictionary } from '@common/i18n/translator';
 import { STORAGE_KEYS } from '@common/constants';
 import { Locale } from '@/src/bindings/Locale';
@@ -81,6 +80,15 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useLocale = () => {
   const ctx = useContext(LocaleContext);
-  if (!ctx) throw new ContextException('useLocale must be used within LocaleProvider', 'ERR_LOCALE_CONTEXT');
+  if (!ctx) {
+    return {
+      localePref: 'en' as Locale,
+      setLocalePref: () => {},
+      locale: 'en' as Locale,
+      setLocale: () => {},
+      customTranslations: {},
+      setCustomTranslations: () => {},
+    };
+  }
   return ctx;
 };
