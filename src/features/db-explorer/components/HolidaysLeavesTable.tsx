@@ -3,17 +3,15 @@ import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { translate } from '@common/i18n/translator';
-import { LocalStorageDataManager as DataManager } from '@/src/plugins/persistence/DataManager';
+import { getNextId } from '@common/utils/idGenerator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 
-
-
 export default function HolidaysLeavesTable() {
   const { locale, customTranslations } = useLocale();
   const { resolvedTheme } = useSettings();
-  const { holidays, setHolidays } = useData();;
+  const { holidays, setHolidays } = useData();
 
   const [editingHolidayId, setEditingHolidayId] = useState<string | null>(null);
   const [holidayForm, setHolidayForm] = useState<{ name: string; date: string; type: 'holiday' | 'leave'; reason: string }>({ name: '', date: '', type: 'holiday', reason: '' });
@@ -82,7 +80,7 @@ export default function HolidaysLeavesTable() {
         <button
           onClick={() => {
             const newEntity: HolidayLeave = {
-              id: DataManager.getNextId(holidays, 'e'),
+              id: getNextId(holidays, 'e'),
               date: new Date().toISOString().slice(0, 10),
               type: 'holiday',
               name: 'Nowe Święto/Dzień wolny'

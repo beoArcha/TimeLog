@@ -1,9 +1,8 @@
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
-import { calculateTaskElapsed, calculateProjectElapsed } from '@plugins/engine/elapsed';
 
 /**
- * @deprecated Legacy migration forwarder. Access via IEngine / EngineRouter.
+ * Pure calculation: Calculates total elapsed seconds for a task and its subtasks from in-memory arrays.
  */
 export function getTaskDurationSeconds(
   taskId: string,
@@ -11,11 +10,28 @@ export function getTaskDurationSeconds(
   logs: TimeLog[],
   nowIso?: string
 ): number {
-  return calculateTaskElapsed(taskId, tasks, logs, nowIso);
+  const currentNow = nowIso ? new Date(nowIso).getTime() : Date.now();
+  let totalSeconds = 0;
+
+  const taskLogs = logs.filter(log => log.taskId === taskId);
+  for (const log of taskLogs) {
+    const start = new Date(log.startTime).getTime();
+    const end = log.endTime ? new Date(log.endTime).getTime() : currentNow;
+    if (end >= start) {
+      totalSeconds += Math.max(0, Math.floor((end - start) / 1000));
+    }
+  }
+
+  const childTasks = tasks.filter(t => t.parentTaskId === taskId);
+  for (const child of childTasks) {
+    totalSeconds += getTaskDurationSeconds(child.id, tasks, logs, nowIso);
+  }
+
+  return totalSeconds;
 }
 
 /**
- * @deprecated Legacy migration forwarder. Access via IEngine / EngineRouter.
+ * Pure calculation: Calculates total elapsed seconds for all root tasks in a project from in-memory arrays.
  */
 export function getProjectDurationSeconds(
   projectId: string,
@@ -23,7 +39,12 @@ export function getProjectDurationSeconds(
   logs: TimeLog[],
   nowIso?: string
 ): number {
-  return calculateProjectElapsed(projectId, tasks, logs, nowIso);
+  const rootTasks = tasks.filter(t => t.projectId === projectId && !t.parentTaskId);
+  let totalSeconds = 0;
+  for (const task of rootTasks) {
+    totalSeconds += getTaskDurationSeconds(task.id, tasks, logs, nowIso);
+  }
+  return totalSeconds;
 }
 
 export function formatSeconds(totalSeconds: number): string {
