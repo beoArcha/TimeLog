@@ -94,15 +94,9 @@ impl<'a> Engine<'a> {
         filter: &crate::types::ElapsedRangeFilter,
     ) -> Result<Duration, EngineError> {
         let all_logs = self.persistence.time_logs.get_all()?;
-        let now = if let Some(ref now_str) = filter.now_iso {
-            DateTime::parse_from_rfc3339(now_str)
-                .map_err(|e| EngineError::ParseTime(e.to_string()))?
-                .with_timezone(&Utc)
-        } else {
-            Utc::now()
-        };
+        let now = Utc::now();
 
-        let range_start = if let Some(ref s) = filter.start_date {
+        let range_start = if let Some(ref s) = filter.from {
             Some(
                 DateTime::parse_from_rfc3339(s)
                     .map_err(|e| EngineError::ParseTime(e.to_string()))?
@@ -112,7 +106,7 @@ impl<'a> Engine<'a> {
             None
         };
 
-        let range_end = if let Some(ref e) = filter.end_date {
+        let range_end = if let Some(ref e) = filter.to {
             Some(
                 DateTime::parse_from_rfc3339(e)
                     .map_err(|e| EngineError::ParseTime(e.to_string()))?
@@ -121,6 +115,7 @@ impl<'a> Engine<'a> {
         } else {
             None
         };
+
 
         let mut total_duration = Duration::ZERO;
 

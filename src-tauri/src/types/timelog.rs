@@ -112,10 +112,9 @@ pub struct ElapsedRangeFilter {
     #[ts(optional)]
     pub project_id: Option<String>,
     #[ts(optional)]
-    pub start_date: Option<String>,
+    pub from: Option<String>,
     #[ts(optional)]
-    pub end_date: Option<String>,
-    #[ts(optional)]
-    pub now_iso: Option<String>,
+    pub to: Option<String>,
 }
+
 

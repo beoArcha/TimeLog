@@ -259,10 +259,10 @@ fn test_engine_elapsed_range() {
     let filter = oxy_flow::types::ElapsedRangeFilter {
         task_id: Some("t_rng".to_string()),
         project_id: None,
-        start_date: Some("2026-06-15T10:30:00Z".to_string()),
-        end_date: Some("2026-06-15T11:30:00Z".to_string()),
-        now_iso: None,
+        from: Some("2026-06-15T10:30:00Z".to_string()),
+        to: Some("2026-06-15T11:30:00Z".to_string()),
     };
+
 
     let elapsed = engine.calculate_elapsed_range(&filter).unwrap();
     assert_eq!(elapsed.as_secs(), 1800);

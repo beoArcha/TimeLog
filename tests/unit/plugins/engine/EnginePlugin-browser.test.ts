@@ -285,4 +285,92 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       expect(callArg.activeLog!.endTime).toBe('2026-07-12T10:45:00Z');
     });
   });
+
+  describe('Elapsed Accessors & Operations', () => {
+    it('should calculate task elapsed correctly', async () => {
+      mockState.logs = [
+        { id: 'l1', projectId: 'p1', taskId: 't1', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T10:30:00Z' },
+      ];
+      const elapsed = await plugin.getTaskElapsed('t1');
+      expect(elapsed).toBe(1800);
+    });
+
+    it('should calculate project elapsed correctly', async () => {
+      mockState.logs = [
+        { id: 'l1', projectId: 'p1', taskId: 't1', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
+      ];
+      const elapsed = await plugin.getProjectElapsed('p1');
+      expect(elapsed).toBe(3600);
+    });
+
+    it('should calculate elapsed range correctly', async () => {
+      mockState.logs = [
+        { id: 'l1', projectId: 'p1', taskId: 't1', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
+      ];
+      const elapsed = await plugin.getElapsedRange({
+        taskId: 't1',
+        from: '2026-06-15T10:30:00Z',
+        to: '2026-06-15T11:30:00Z',
+      });
+      expect(elapsed).toBe(1800);
+    });
+  });
+
+  describe('Project & Task operations delegation', () => {
+    it('should delegate project operations to persistence', async () => {
+      await plugin.addProject({ name: 'New P', color: '#ff0000' });
+      expect(mockImplementation.projects.add).toHaveBeenCalled();
+
+      await plugin.updateProject('p1', 'Updated P', '#00ff00', null, null, null);
+      expect(mockImplementation.projects.update).toHaveBeenCalledWith('p1', 'Updated P', '#00ff00', null, null, null);
+
+      await plugin.renameProject('p1', 'Renamed P');
+      expect(mockImplementation.projects.rename).toHaveBeenCalledWith('p1', 'Renamed P');
+
+      await plugin.toggleProjectArchive('p1');
+      expect(mockImplementation.projects.toggleArchive).toHaveBeenCalledWith('p1');
+    });
+
+    it('should delegate task operations to persistence', async () => {
+      await plugin.addTask({ projectId: 'p1', name: 'New Task' });
+      expect(mockImplementation.tasks.add).toHaveBeenCalled();
+
+      await plugin.updateTask('t1', 'Updated Task', null, null, true);
+      expect(mockImplementation.tasks.update).toHaveBeenCalledWith('t1', 'Updated Task', null, null, true);
+
+      await plugin.renameTask('t1', 'Renamed Task');
+      expect(mockImplementation.tasks.rename).toHaveBeenCalledWith('t1', 'Renamed Task');
+
+      await plugin.toggleTaskComplete('t1');
+      expect(mockImplementation.tasks.toggleComplete).toHaveBeenCalledWith('t1');
+
+      await plugin.deleteTask('t1');
+      expect(mockImplementation.tasks.delete).toHaveBeenCalledWith('t1');
+    });
+
+    it('should delegate settings and runtime config operations to persistence', async () => {
+      await plugin.getSettings();
+      expect(mockImplementation.settings.get).toHaveBeenCalled();
+
+      await plugin.saveSettings({ autoStart: true, autoPauseOnSleep: true, includePatchesInReports: true, activeSinks: [] });
+      expect(mockImplementation.settings.save).toHaveBeenCalled();
+
+      await plugin.getRuntimeConfigs();
+      expect(mockImplementation.runtimeConfigs.getAll).toHaveBeenCalled();
+
+      await plugin.saveRuntimeConfig({ id: 'c1', runtime: 'tauri', config: '{}', createdAt: '2026-06-15T00:00:00Z' });
+      expect(mockImplementation.runtimeConfigs.save).toHaveBeenCalled();
+    });
+
+
+    it('should delegate state operations to persistence core', async () => {
+      const state = await plugin.getState();
+      expect(state).toEqual(mockState);
+      expect(mockImplementation.core.load).toHaveBeenCalled();
+
+      await plugin.resetState();
+      expect(mockImplementation.core.reset).toHaveBeenCalled();
+    });
+  });
 });
+
