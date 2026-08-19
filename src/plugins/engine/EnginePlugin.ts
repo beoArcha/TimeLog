@@ -16,6 +16,7 @@ import {
   validateProjectName,
   validateTaskName,
   validateTaskHierarchy,
+  validateTimeLog,
 } from './validation';
 
 let logCounter = 0;
@@ -100,44 +101,16 @@ export class EnginePlugin implements IEngine {
       throw new EntityNotFoundException(`Time log ${id} not found`);
     }
 
-    const start = new Date(startTime).getTime();
-    if (isNaN(start)) {
-      const err = new EngineException('Parse time error: start_time is invalid', undefined, 'ERR_ENGINE_PARSE_TIME');
+    try {
+      validateTimeLog(id, startTime, endTime, state.logs);
+    } catch (err) {
       ErrorHandler.handle(err);
       throw err;
-    }
-    const end = endTime ? new Date(endTime).getTime() : Date.now();
-    if (isNaN(end)) {
-      const err = new EngineException('Parse time error: end_time is invalid', undefined, 'ERR_ENGINE_PARSE_TIME');
-      ErrorHandler.handle(err);
-      throw err;
-    }
-    if (end < start) {
-      const err = new EngineException('End time cannot be before start time', undefined, 'ERR_ENGINE_VALIDATION');
-      ErrorHandler.handle(err);
-      throw err;
-    }
-    if (start > Date.now()) {
-      const err = new EngineException('Start time cannot be in the future', undefined, 'ERR_ENGINE_VALIDATION');
-      ErrorHandler.handle(err);
-      throw err;
-    }
-
-    for (const log of state.logs) {
-      if (log.id === id) {
-        continue;
-      }
-      const logStart = new Date(log.startTime).getTime();
-      const logEnd = log.endTime ? new Date(log.endTime).getTime() : Date.now();
-      if (start < logEnd && logStart < end) {
-        const err = new EngineException(`Time log overlaps with an existing log (ID: ${log.id})`, undefined, 'ERR_ENGINE_OVERLAP');
-        ErrorHandler.handle(err);
-        throw err;
-      }
     }
 
     const prevStartTime = currentLog.startTime !== startTime ? currentLog.startTime : undefined;
     const prevEndTime = currentLog.endTime !== endTime ? (currentLog.endTime || undefined) : undefined;
+
     const prevNote = currentLog.note !== note ? (currentLog.note || undefined) : undefined;
 
     const historyItem = {

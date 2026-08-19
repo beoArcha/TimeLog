@@ -3,10 +3,12 @@ import {
   validateProjectName,
   validateTaskName,
   validateTaskHierarchy,
+  validateTimeLog,
 } from '@plugins/engine/validation';
 import { EngineValidationError, EngineError } from '@common/exceptions';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
+import { TimeLog } from '@bindings/TimeLog';
 
 
 describe('Unit Tests: Engine Validation (Browser Internal)', () => {
@@ -20,6 +22,12 @@ describe('Unit Tests: Engine Validation (Browser Internal)', () => {
     { id: 't2', projectId: 'p1', parentTaskId: 't1', name: 'Subtask 1.1', createdAt: '2026-06-12T00:00:00Z', completed: false },
     { id: 't3', projectId: 'p1', parentTaskId: null, name: 'Root Task 2', createdAt: '2026-06-12T00:00:00Z', completed: false },
   ];
+
+  const mockLogs: TimeLog[] = [
+    { id: 'log1', projectId: 'p1', taskId: 't1', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
+    { id: 'log2', projectId: 'p1', taskId: 't2', startTime: '2026-06-15T13:00:00Z', endTime: '2026-06-15T14:00:00Z' },
+  ];
+
 
   describe('validateProjectName', () => {
     it('Given empty name, Then it should throw EngineValidationError (inheriting from EngineError)', () => {
@@ -88,4 +96,51 @@ describe('Unit Tests: Engine Validation (Browser Internal)', () => {
       expect(() => validateTaskHierarchy('t3', 't1', mockTasks)).not.toThrow();
     });
   });
+
+  describe('validateTimeLog', () => {
+    const fixedNow = new Date('2026-06-15T18:00:00Z').getTime();
+
+    it('Given invalid startTime, Then it should throw ERR_ENGINE_PARSE_TIME', () => {
+      expect(() => validateTimeLog('new_log', 'invalid-date', '2026-06-15T12:00:00Z', mockLogs, fixedNow)).toThrow(
+        'Parse time error: start_time is invalid'
+      );
+    });
+
+    it('Given invalid endTime, Then it should throw ERR_ENGINE_PARSE_TIME', () => {
+      expect(() => validateTimeLog('new_log', '2026-06-15T12:00:00Z', 'invalid-date', mockLogs, fixedNow)).toThrow(
+        'Parse time error: end_time is invalid'
+      );
+    });
+
+    it('Given endTime before startTime, Then it should throw ERR_ENGINE_VALIDATION', () => {
+      expect(() =>
+        validateTimeLog('new_log', '2026-06-15T12:00:00Z', '2026-06-15T11:00:00Z', mockLogs, fixedNow)
+      ).toThrow('End time cannot be before start time');
+    });
+
+    it('Given startTime in the future, Then it should throw ERR_ENGINE_VALIDATION', () => {
+      expect(() =>
+        validateTimeLog('new_log', '2026-06-15T19:00:00Z', '2026-06-15T20:00:00Z', mockLogs, fixedNow)
+      ).toThrow('Start time cannot be in the future');
+    });
+
+    it('Given overlapping time interval, Then it should throw ERR_ENGINE_OVERLAP', () => {
+      expect(() =>
+        validateTimeLog('new_log', '2026-06-15T10:30:00Z', '2026-06-15T11:30:00Z', mockLogs, fixedNow)
+      ).toThrow('Time log overlaps with an existing log (ID: log1)');
+    });
+
+    it('Given overlapping time interval with self (same logId), Then it should pass', () => {
+      expect(() =>
+        validateTimeLog('log1', '2026-06-15T10:00:00Z', '2026-06-15T11:00:00Z', mockLogs, fixedNow)
+      ).not.toThrow();
+    });
+
+    it('Given non-overlapping valid interval, Then it should pass', () => {
+      expect(() =>
+        validateTimeLog('new_log', '2026-06-15T11:00:00Z', '2026-06-15T12:00:00Z', mockLogs, fixedNow)
+      ).not.toThrow();
+    });
+  });
 });
+

@@ -1,5 +1,6 @@
 import { Task } from '@bindings/Task';
 import { Project } from '@bindings/Project';
+import { TimeLog } from '@bindings/TimeLog';
 import { EngineValidationError } from '@common/exceptions';
 
 /**
@@ -76,6 +77,51 @@ export function validateTaskHierarchy(
         'Cannot set a parent for a task that already has subtasks',
         undefined,
         'ERR_ENGINE_VALIDATION'
+      );
+    }
+  }
+}
+
+/**
+ * Validates time log timing and overlaps.
+ * Internal to EnginePlugin (Browser runtime).
+ */
+export function validateTimeLog(
+  logId: string | null | undefined,
+  startTime: string,
+  endTime: string | null | undefined,
+  existingLogs: TimeLog[],
+  nowMs: number = Date.now()
+): void {
+  const start = new Date(startTime).getTime();
+  if (isNaN(start)) {
+    throw new EngineValidationError('Parse time error: start_time is invalid', undefined, 'ERR_ENGINE_PARSE_TIME');
+  }
+
+  const end = endTime ? new Date(endTime).getTime() : nowMs;
+  if (isNaN(end)) {
+    throw new EngineValidationError('Parse time error: end_time is invalid', undefined, 'ERR_ENGINE_PARSE_TIME');
+  }
+
+  if (end < start) {
+    throw new EngineValidationError('End time cannot be before start time', undefined, 'ERR_ENGINE_VALIDATION');
+  }
+
+  if (start > nowMs) {
+    throw new EngineValidationError('Start time cannot be in the future', undefined, 'ERR_ENGINE_VALIDATION');
+  }
+
+  for (const log of existingLogs) {
+    if (log.id === logId) {
+      continue;
+    }
+    const logStart = new Date(log.startTime).getTime();
+    const logEnd = log.endTime ? new Date(log.endTime).getTime() : nowMs;
+    if (start < logEnd && logStart < end) {
+      throw new EngineValidationError(
+        `Time log overlaps with an existing log (ID: ${log.id})`,
+        undefined,
+        'ERR_ENGINE_OVERLAP'
       );
     }
   }
