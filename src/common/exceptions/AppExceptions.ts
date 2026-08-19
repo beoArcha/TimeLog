@@ -36,3 +36,10 @@ export class EntityNotFoundException extends AbstractException {
     super(message, 'ERROR', code, cause);
   }
 }
+
+export class EngineException extends AbstractException {
+  constructor(message: string, cause?: unknown, code?: string, level: ErrorLevel = 'ERROR') {
+    super(message, level, code, cause);
+  }
+}
+
