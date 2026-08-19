@@ -1,6 +1,6 @@
 {
   "productName": "OxyFlow",
-  "version": "1.6.5",
+  "version": "1.7.5",
   "identifier": "com.oxytime.oxyflow",
   "build": {
     "beforeBuildCommand": "npm run build",
