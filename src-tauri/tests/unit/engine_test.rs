@@ -263,8 +263,6 @@ fn test_engine_elapsed_range() {
         to: Some("2026-06-15T11:30:00Z".to_string()),
     };
 
-
     let elapsed = engine.calculate_elapsed_range(&filter).unwrap();
     assert_eq!(elapsed.as_secs(), 1800);
 }
-

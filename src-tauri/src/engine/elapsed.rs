@@ -116,7 +116,6 @@ impl<'a> Engine<'a> {
             None
         };
 
-
         let mut total_duration = Duration::ZERO;
 
         for log in all_logs {
@@ -160,7 +159,6 @@ impl<'a> Engine<'a> {
 
         Ok(total_duration)
     }
-
 
     pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
         let proj_id = self.persistence.tasks.get_project_id(task_id)?;

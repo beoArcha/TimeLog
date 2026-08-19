@@ -29,4 +29,3 @@ pub use timelog::{
     ElapsedRangeFilter, PatchLog, Task, TaskEditHistory, TaskStatus, TimeLog, TimeLogEditHistory,
     TimerRepositoryState,
 };
-

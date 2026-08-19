@@ -38,7 +38,6 @@ pub enum EngineCommand {
     GetProjectStatistics,
 }
 
-
 #[derive(TS, Serialize)]
 #[ts(export)]
 #[serde(rename_all = "snake_case")]

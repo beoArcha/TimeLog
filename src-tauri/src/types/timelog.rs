@@ -116,5 +116,3 @@ pub struct ElapsedRangeFilter {
     #[ts(optional)]
     pub to: Option<String>,
 }
-
-
