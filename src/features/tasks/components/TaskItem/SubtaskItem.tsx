@@ -13,7 +13,8 @@ interface SubtaskItemProps {
   subTask: Task;
   tasks: Task[];
   logs: TimeLog[];
-  nowIso: string;
+  nowIso?: string;
+  metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
   editingId: string | null;
   editName: string;
   theme: string;
@@ -38,6 +39,7 @@ export function SubtaskItem({
   tasks,
   logs,
   nowIso,
+  metrics,
   editingId,
   editName,
   theme,
@@ -53,8 +55,13 @@ export function SubtaskItem({
   const { t: tCommon } = useTranslation('common');
   const { t: tTimer } = useTranslation('timer');
 
-  const subDuration = getTaskDurationSeconds(subTask.id, tasks, logs, nowIso);
-  const isSubRunning = logs.some((l: TimeLog) => l.taskId === subTask.id && l.endTime === null);
+  const subMetric = metrics?.tasks?.[subTask.id];
+  const subDuration = subMetric
+    ? subMetric.elapsedSeconds
+    : (nowIso ? getTaskDurationSeconds(subTask.id, tasks, logs, nowIso) : 0);
+  const isSubRunning = subMetric
+    ? subMetric.isRunning
+    : logs.some((l: TimeLog) => l.taskId === subTask.id && l.endTime === null);
   const isEditing = editingId === subTask.id;
 
   return (

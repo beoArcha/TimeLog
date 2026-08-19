@@ -50,6 +50,7 @@ export default function CliInterface() {
       tasks: data.tasks,
       logs: data.logs,
       activeLog: data.activeLog,
+      metrics: data.computedMetrics,
       nowIso,
       locale,
       customTranslations,

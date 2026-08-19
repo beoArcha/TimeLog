@@ -9,6 +9,7 @@ import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { Settings } from '@bindings/Settings';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { ElapsedRangeFilter } from '../../plugins/engine/elapsed';
 
 export class EngineRouter implements IEngine {
@@ -57,7 +58,17 @@ export class EngineRouter implements IEngine {
     return [];
   }
 
-  // Pure Elapsed Accessors
+  async getComputedMetrics(nowIso?: string): Promise<EngineComputedMetrics> {
+    if (this.implementation.getComputedMetrics) {
+      return this.implementation.getComputedMetrics(nowIso);
+    }
+    return {
+      snapshotNowIso: nowIso || new Date().toISOString(),
+      tasks: {},
+      projects: {},
+    };
+  }
+
   async getTaskElapsed(taskId: string, nowIso?: string): Promise<number> {
     if (this.implementation.getTaskElapsed) {
       return this.implementation.getTaskElapsed(taskId, nowIso);
@@ -79,7 +90,6 @@ export class EngineRouter implements IEngine {
     return 0;
   }
 
-  // TimeLogs
   async editTimeLog(
     id: string,
     taskId: string,
@@ -91,7 +101,6 @@ export class EngineRouter implements IEngine {
     return this.implementation.editTimeLog(id, taskId, startTime, endTime, note, reason);
   }
 
-  // Projects
   async addProject(input: CreateProjectInput): Promise<TimerRepositoryState> {
     if (this.implementation.addProject) {
       return this.implementation.addProject(input);
@@ -139,7 +148,6 @@ export class EngineRouter implements IEngine {
     return this.implementation.getProjectStatistics(projectId);
   }
 
-  // Tasks
   async addTask(input: CreateTaskInput): Promise<TimerRepositoryState> {
     if (this.implementation.addTask) {
       return this.implementation.addTask(input);
@@ -191,7 +199,6 @@ export class EngineRouter implements IEngine {
     throw err;
   }
 
-  // Configuration
   async getSettings(): Promise<Settings> {
     if (this.implementation.getSettings) {
       return this.implementation.getSettings();
@@ -228,7 +235,6 @@ export class EngineRouter implements IEngine {
     throw err;
   }
 
-  // State Management
   async getState(): Promise<TimerRepositoryState | null> {
     if (this.implementation.getState) {
       return this.implementation.getState();

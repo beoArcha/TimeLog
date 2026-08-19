@@ -168,7 +168,7 @@ export const runReportCommand = (args: string[], context: CliEngineContext, outp
 };
 
 export const runTimeCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {
-  const { logs, tasks, projects, nowIso } = context;
+  const { logs, tasks, projects, metrics, nowIso } = context;
   const type = args[0];
   const targetId = args[1];
   const period = args[2] || 'all';
@@ -181,31 +181,44 @@ export const runTimeCommand = (args: string[], context: CliEngineContext, output
   let dur: number;
   let pName: string;
 
-  const filterLogsByPeriod = (L: TimeLog[]) => L.filter(log => {
-    const testDate = new Date(log.startTime);
-    const nDate = new Date(nowIso);
-    if (period === 'today') {
-      return testDate.toDateString() === nDate.toDateString();
-    } else if (period === 'week') {
-      const diff = nDate.getTime() - testDate.getTime();
-      return diff < 7 * 24 * 3600 * 1000;
-    } else if (period === 'month') {
-      return testDate.getMonth() === nDate.getMonth() && testDate.getFullYear() === nDate.getFullYear();
+  if (period === 'all' && metrics) {
+    if (type === 'profile') {
+      dur = metrics.projects[targetId]?.totalElapsedSeconds ?? (nowIso ? getProjectDurationSeconds(targetId, tasks, logs, nowIso) : 0);
+      pName = projects.find(p => p.id === targetId)?.name || targetId;
+    } else if (type === 'task' || type === 'subtask') {
+      dur = metrics.tasks[targetId]?.elapsedSeconds ?? (nowIso ? getTaskDurationSeconds(targetId, tasks, logs, nowIso) : 0);
+      pName = tasks.find(t => t.id === targetId)?.name || targetId;
+    } else {
+      outputs.push({ text: 'Error: Type must be subtask, task, or profile.', type: 'error' });
+      return;
     }
-    return true;
-  });
-
-  const filteredLogs = filterLogsByPeriod(logs);
-
-  if (type === 'profile') {
-    dur = getProjectDurationSeconds(targetId, tasks, filteredLogs, nowIso);
-    pName = projects.find(p => p.id === targetId)?.name || targetId;
-  } else if (type === 'task' || type === 'subtask') {
-    dur = getTaskDurationSeconds(targetId, tasks, filteredLogs, nowIso);
-    pName = tasks.find(t => t.id === targetId)?.name || targetId;
   } else {
-    outputs.push({ text: 'Error: Type must be subtask, task, or profile.', type: 'error' });
-    return;
+    const filterLogsByPeriod = (L: TimeLog[]) => L.filter(log => {
+      const testDate = new Date(log.startTime);
+      const nDate = nowIso ? new Date(nowIso) : new Date();
+      if (period === 'today') {
+        return testDate.toDateString() === nDate.toDateString();
+      } else if (period === 'week') {
+        const diff = nDate.getTime() - testDate.getTime();
+        return diff < 7 * 24 * 3600 * 1000;
+      } else if (period === 'month') {
+        return testDate.getMonth() === nDate.getMonth() && testDate.getFullYear() === nDate.getFullYear();
+      }
+      return true;
+    });
+
+    const filteredLogs = filterLogsByPeriod(logs);
+
+    if (type === 'profile') {
+      dur = nowIso ? getProjectDurationSeconds(targetId, tasks, filteredLogs, nowIso) : 0;
+      pName = projects.find(p => p.id === targetId)?.name || targetId;
+    } else if (type === 'task' || type === 'subtask') {
+      dur = nowIso ? getTaskDurationSeconds(targetId, tasks, filteredLogs, nowIso) : 0;
+      pName = tasks.find(t => t.id === targetId)?.name || targetId;
+    } else {
+      outputs.push({ text: 'Error: Type must be subtask, task, or profile.', type: 'error' });
+      return;
+    }
   }
 
   outputs.push({ text: `[${period.toUpperCase()}] Time elapsed for ${type.toUpperCase()} "${pName}": ${formatSeconds(dur)}`, type: 'success' });

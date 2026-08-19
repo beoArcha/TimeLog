@@ -50,7 +50,8 @@ export interface LayoutCommonProps {
   onToggleProjectArchive?: (projectId: string) => void;
   setHolidays: React.Dispatch<React.SetStateAction<HolidayLeave[]>>;
 
-  nowIso: string;
+  metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
+  nowIso?: string;
   locale: Locale;
   customTranslations?: Partial<TranslationDictionary>;
   theme?: string;

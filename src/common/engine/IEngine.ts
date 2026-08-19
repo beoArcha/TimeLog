@@ -3,7 +3,16 @@ import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { Settings } from '@bindings/Settings';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
+import { TaskComputedMetrics } from '@bindings/TaskComputedMetrics';
+import { ProjectComputedMetrics } from '@bindings/ProjectComputedMetrics';
 import { ElapsedRangeFilter } from '../../plugins/engine/elapsed';
+
+export {
+  type EngineComputedMetrics,
+  type TaskComputedMetrics,
+  type ProjectComputedMetrics,
+};
 
 export interface CreateProjectInput {
   name: string;
@@ -20,18 +29,16 @@ export interface CreateTaskInput {
 }
 
 export interface IEngine {
-  // Timer Lifecycle
   startTimer(taskId: string): Promise<void>;
   stopTimer(projectId?: string): Promise<void>;
   resumeTimer?(taskId: string): Promise<void>;
   getActiveLogs?(): Promise<string[]>;
 
-  // Pure Elapsed Accessors
+  getComputedMetrics?(nowIso?: string): Promise<EngineComputedMetrics>;
   getTaskElapsed?(taskId: string, nowIso?: string): Promise<number>;
   getProjectElapsed?(projectId: string, nowIso?: string): Promise<number>;
   getElapsedRange?(range: ElapsedRangeFilter, nowIso?: string): Promise<number>;
 
-  // TimeLogs
   editTimeLog(
     id: string,
     taskId: string,
@@ -41,7 +48,6 @@ export interface IEngine {
     reason: string | null
   ): Promise<void>;
 
-  // Projects
   addProject?(input: CreateProjectInput): Promise<TimerRepositoryState>;
   updateProject?(
     projectId: string,
@@ -55,7 +61,6 @@ export interface IEngine {
   toggleProjectArchive?(projectId: string): Promise<TimerRepositoryState>;
   getProjectStatistics(projectId: string): Promise<ProjectStatistics>;
 
-  // Tasks
   addTask?(input: CreateTaskInput): Promise<TimerRepositoryState>;
   updateTask?(
     taskId: string,
@@ -68,15 +73,10 @@ export interface IEngine {
   deleteTask?(taskId: string): Promise<TimerRepositoryState>;
   toggleTaskComplete?(taskId: string): Promise<TimerRepositoryState>;
 
-  // Configuration
   getSettings?(): Promise<Settings>;
   saveSettings?(settings: Settings): Promise<void>;
   getRuntimeConfigs?(): Promise<RuntimeConfig[]>;
   saveRuntimeConfig?(config: RuntimeConfig): Promise<void>;
-
-  // State Management
   getState?(): Promise<TimerRepositoryState | null>;
   resetState?(): Promise<TimerRepositoryState>;
 }
-
-

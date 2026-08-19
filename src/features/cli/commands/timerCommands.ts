@@ -70,11 +70,11 @@ export const runStopCommand = (args: string[], context: CliEngineContext, output
 };
 
 export const runStatusCommand = (context: CliEngineContext, outputs: TerminalLine[]): void => {
-  const { activeLog, tasks, projects, logs, nowIso, locale, customTranslations } = context;
+  const { activeLog, tasks, projects, logs, metrics, nowIso, locale, customTranslations } = context;
   if (activeLog) {
     const t = tasks.find(x => x.id === activeLog.taskId);
     const p = t ? projects.find(x => x.id === t.projectId) : null;
-    const diffSeconds = getTaskDurationSeconds(activeLog.taskId, tasks, logs, nowIso);
+    const diffSeconds = metrics?.tasks[activeLog.taskId]?.elapsedSeconds ?? (nowIso ? getTaskDurationSeconds(activeLog.taskId, tasks, logs, nowIso) : 0);
     outputs.push(
       { text: translate(locale, 'cli', 'StatusHeader', customTranslations), type: 'info' },
       { text: `  Task : ${t?.name} (ID: ${t?.id})`, type: 'output' },

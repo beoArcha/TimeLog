@@ -33,4 +33,7 @@ fn export_bindings() {
     RuntimeConfig::export().unwrap();
     TaskStatus::export().unwrap();
     ElapsedRangeFilter::export().unwrap();
+    TaskComputedMetrics::export().unwrap();
+    ProjectComputedMetrics::export().unwrap();
+    EngineComputedMetrics::export().unwrap();
 }

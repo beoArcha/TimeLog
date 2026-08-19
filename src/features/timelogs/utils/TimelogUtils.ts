@@ -2,6 +2,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 
 /**
+ * @deprecated Legacy UI calculation. Use precomputed metrics from Engine (`EngineComputedMetrics`) instead.
  * Pure calculation: Calculates total elapsed seconds for a task and its subtasks from in-memory arrays.
  */
 export function getTaskDurationSeconds(
@@ -31,6 +32,7 @@ export function getTaskDurationSeconds(
 }
 
 /**
+ * @deprecated Legacy UI calculation. Use precomputed metrics from Engine (`EngineComputedMetrics`) instead.
  * Pure calculation: Calculates total elapsed seconds for all root tasks in a project from in-memory arrays.
  */
 export function getProjectDurationSeconds(

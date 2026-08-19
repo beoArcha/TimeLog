@@ -26,12 +26,13 @@ export function calculateReportStatistics({
   patches: PatchLog[];
   projects: Project[];
   tasks: Task[];
-  nowIso: string;
+  nowIso?: string;
   reportPeriod: string;
   reportSort: string;
   sysSettings?: Settings | null;
 }): ReportStatisticsResult {
-  const now = new Date(nowIso);
+  const now = nowIso ? new Date(nowIso) : new Date();
+  const nowMs = now.getTime();
   const startOfToday = new Date(now).setHours(0, 0, 0, 0);
   const startOfWeek = calculateStartOfWeek(now);
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
@@ -40,7 +41,7 @@ export function calculateReportStatistics({
     let sum = logs.reduce((acc, log) => {
       const logStart = new Date(log.startTime).getTime();
       if (logStart >= timeLimitMs) {
-        const logEnd = log.endTime ? new Date(log.endTime).getTime() : new Date(nowIso).getTime();
+        const logEnd = log.endTime ? new Date(log.endTime).getTime() : nowMs;
         return acc + Math.max(0, Math.floor((logEnd - logStart) / 1000));
       }
       return acc;
@@ -50,7 +51,7 @@ export function calculateReportStatistics({
       sum += patches.reduce((acc, p) => {
         const pStart = new Date(p.startTime).getTime();
         if (pStart >= timeLimitMs) {
-          const pEnd = p.endTime ? new Date(p.endTime).getTime() : new Date(nowIso).getTime();
+          const pEnd = p.endTime ? new Date(p.endTime).getTime() : nowMs;
           return acc + Math.max(0, Math.floor((pEnd - pStart) / 1000));
         }
         return acc;

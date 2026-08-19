@@ -13,7 +13,8 @@ interface UseProjectStatisticsProps {
   selectedProject: Project | null;
   tasks: Task[];
   logs: TimeLog[];
-  nowIso: string;
+  nowIso?: string;
+  metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
 }
 
 export interface UseProjectStatisticsResult {
@@ -28,6 +29,7 @@ export function useProjectStatistics({
   tasks,
   logs,
   nowIso,
+  metrics,
 }: UseProjectStatisticsProps): UseProjectStatisticsResult {
   const [stats, setStats] = useState<ProjectStatistics | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -78,8 +80,11 @@ export function useProjectStatistics({
 
   const projectDurationSeconds = useMemo(() => {
     if (!projectId) return 0;
-    return getProjectDurationSeconds(projectId, tasks, logs, nowIso);
-  }, [projectId, tasks, logs, nowIso]);
+    if (metrics?.projects?.[projectId]) {
+      return metrics.projects[projectId].totalElapsedSeconds;
+    }
+    return nowIso ? getProjectDurationSeconds(projectId, tasks, logs, nowIso) : 0;
+  }, [projectId, metrics, tasks, logs, nowIso]);
 
   return {
     stats,

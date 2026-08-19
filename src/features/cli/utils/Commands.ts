@@ -15,12 +15,13 @@ export interface CliEngineContext {
   tasks: Task[];
   logs: TimeLog[];
   activeLog: TimeLog | null;
+  metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
   onAddProject: (name: string, color: string) => void;
   onAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
   onToggleTaskComplete: (taskId: string) => void;
   onStartTimer: (taskId: string) => void;
   onStopTimer: (projectId?: string) => void;
-  nowIso: string;
+  nowIso?: string;
   locale: Locale;
   customTranslations?: Record<string, unknown>;
   holidays: HolidayLeave[];

@@ -11,7 +11,7 @@ interface UseReportStatisticsProps {
   patches: PatchLog[];
   projects: Project[];
   tasks: Task[];
-  nowIso: string;
+  nowIso?: string;
   reportPeriod: string;
   reportSort: string;
   sysSettings?: Settings | null;

@@ -7,7 +7,8 @@ interface SubtaskListProps {
   subTasks: Task[];
   tasks: Task[];
   logs: TimeLog[];
-  nowIso: string;
+  nowIso?: string;
+  metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
   isCondensed: boolean;
   editingId: string | null;
   editName: string;
@@ -33,6 +34,7 @@ export function SubtaskList({
   tasks,
   logs,
   nowIso,
+  metrics,
   isCondensed,
   editingId,
   editName,
@@ -63,6 +65,7 @@ export function SubtaskList({
           tasks={tasks}
           logs={logs}
           nowIso={nowIso}
+          metrics={metrics}
           editingId={editingId}
           editName={editName}
           theme={theme}

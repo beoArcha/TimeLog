@@ -26,6 +26,7 @@ pub use project::{Project, ProjectEditHistory, ProjectStatistics};
 pub use settings::{RuntimeConfig, Settings};
 pub use sinks::SinkType;
 pub use timelog::{
-    ElapsedRangeFilter, PatchLog, Task, TaskEditHistory, TaskStatus, TimeLog, TimeLogEditHistory,
+    ElapsedRangeFilter, EngineComputedMetrics, PatchLog, ProjectComputedMetrics, Task,
+    TaskComputedMetrics, TaskEditHistory, TaskStatus, TimeLog, TimeLogEditHistory,
     TimerRepositoryState,
 };

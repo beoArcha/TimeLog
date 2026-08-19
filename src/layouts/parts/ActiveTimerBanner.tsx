@@ -7,7 +7,7 @@ import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/u
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
-    tasks, logs, activeLog, nowIso, locale, customTranslations, theme,
+    tasks, logs, activeLog, metrics, nowIso, locale, customTranslations, theme,
     onStopTimer, projects
   } = state;
 
@@ -19,10 +19,10 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
       {activeLog ? (
         <motion.div
           id="active-timer-banner"
-          initial={{ height: 0, opacity: 0, scale: 0.95 }}
-          animate={{ height: 'auto', opacity: 1, scale: 1 }}
-          exit={{ height: 0, opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.4, type: 'spring' }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.2 }}
           className={`padding-section rounded-main border shadow-xl flex flex-col ${isCondensed ? 'items-start' : 'sm:flex-row items-center justify-between'} gap-section relative overflow-hidden backdrop-blur-md transition-all ${theme === 'light'
             ? 'bg-gradient-to-r from-orange-400/5 via-rose-500/5 to-orange-400/5 border-orange-500/30'
             : 'bg-gradient-to-r from-orange-400/20 via-rose-500/20 to-orange-400/20 border-orange-400/30'
@@ -72,7 +72,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
               </p>
               <p id="active-timer-display" className={`text-xl font-extrabold tracking-tight font-mono ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
                 }`}>
-                {formatSeconds(getTaskDurationSeconds(activeTask?.id || '', tasks, logs, nowIso))}
+                {formatSeconds(activeTask ? (metrics?.tasks?.[activeTask.id]?.elapsedSeconds ?? (nowIso ? getTaskDurationSeconds(activeTask.id, tasks, logs, nowIso) : 0)) : 0)}
               </p>
             </div>
             <button

@@ -40,7 +40,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
   } = state;
 
   const { subTasks, rootDuration, runningSubtask, isCurrentRunning, isChildRunning, isAnyRunning } =
-    useTaskItem({ rootTask, tasks, logs, nowIso, projectTasks });
+    useTaskItem({ rootTask, tasks, logs, nowIso, metrics: state.metrics, projectTasks });
 
   const handleAddSubtaskSubmit = (parentTaskId: string, e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +116,7 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
         tasks={tasks}
         logs={logs}
         nowIso={nowIso}
+        metrics={state.metrics}
         isCondensed={isCondensed}
         editingId={editingId}
         editName={editName}

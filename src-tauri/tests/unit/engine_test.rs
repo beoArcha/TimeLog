@@ -266,3 +266,99 @@ fn test_engine_elapsed_range() {
     let elapsed = engine.calculate_elapsed_range(&filter).unwrap();
     assert_eq!(elapsed.as_secs(), 1800);
 }
+
+#[test]
+fn test_engine_computed_metrics() {
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_computed_metrics");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let project = Project {
+        id: "p_comp".to_string(),
+        name: "CompProj".to_string(),
+        color: "orange".to_string(),
+        created_at: "2026-06-15T00:00:00Z".to_string(),
+        archived: Some(false),
+        original_name: None,
+        original_color: None,
+        edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
+    };
+    persistence.projects.create(project).unwrap();
+
+    let task = Task {
+        id: "t_comp".to_string(),
+        project_id: "p_comp".to_string(),
+        parent_task_id: None,
+        name: "CompTask".to_string(),
+        completed: false,
+        created_at: "2026-06-15T00:00:00Z".to_string(),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
+    };
+    persistence.tasks.create(task).unwrap();
+
+    let subtask = Task {
+        id: "t_comp_sub".to_string(),
+        project_id: "p_comp".to_string(),
+        parent_task_id: Some("t_comp".to_string()),
+        name: "CompSubtask".to_string(),
+        completed: false,
+        created_at: "2026-06-15T00:00:00Z".to_string(),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
+    };
+    persistence.tasks.create_subtask(subtask).unwrap();
+
+    // Insert closed log for parent (12:00 to 12:30 = 1800s)
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, ?)",
+        [
+            "l_comp1",
+            "t_comp",
+            "2026-06-15T12:00:00Z",
+            "2026-06-15T12:30:00Z",
+        ],
+    )
+    .unwrap();
+
+    // Insert active log for subtask (start 13:00, against 14:00 snapshot = 3600s)
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, NULL)",
+        ["l_comp2", "t_comp_sub", "2026-06-15T13:00:00Z"],
+    )
+    .unwrap();
+
+    let metrics = engine
+        .get_computed_metrics(Some("2026-06-15T14:00:00Z"))
+        .unwrap();
+
+    assert_eq!(metrics.snapshot_now_iso, "2026-06-15T14:00:00+00:00");
+
+    let t1 = metrics.tasks.get("t_comp").unwrap();
+    assert_eq!(t1.elapsed_seconds, 5400);
+    assert_eq!(t1.self_elapsed_seconds, 1800);
+    assert_eq!(t1.is_running, false);
+    assert_eq!(t1.has_running_child, true);
+
+    let t_sub = metrics.tasks.get("t_comp_sub").unwrap();
+    assert_eq!(t_sub.elapsed_seconds, 3600);
+    assert_eq!(t_sub.self_elapsed_seconds, 3600);
+    assert_eq!(t_sub.is_running, true);
+    assert_eq!(t_sub.has_running_child, false);
+
+    let p = metrics.projects.get("p_comp").unwrap();
+    assert_eq!(p.total_elapsed_seconds, 5400);
+    assert_eq!(p.today_elapsed_seconds, 5400);
+    assert_eq!(p.active_task_count, 2);
+    assert_eq!(p.completed_task_count, 0);
+    assert_eq!(p.is_running, true);
+}
