@@ -96,9 +96,23 @@ export class PersistencePlugin implements IPersistence {
         const project = current.projects.find(p => p.id === projectId);
         if (project) {
           project.archived = !project.archived;
+          if (project.archived) {
+            const projectTaskIds = new Set(
+              current.tasks.filter(t => t.projectId === projectId).map(t => t.id)
+            );
+            if (current.activeLog && projectTaskIds.has(current.activeLog.taskId)) {
+              const now = new Date().toISOString();
+              current.activeLog.endTime = now;
+              current.logs = current.logs.map(l =>
+                l.id === current.activeLog?.id ? { ...l, endTime: now } : l
+              );
+              current.activeLog = null;
+            }
+          }
         }
         return this.save(current);
       },
+
       update: async (
         projectId: string,
         name: string,

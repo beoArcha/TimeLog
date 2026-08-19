@@ -156,14 +156,50 @@ describe('Unit Tests: PersistencePlugin', () => {
     expect(state.tasks[0].name).toBe('New Task');
   });
 
-  it('should delete a task', async () => {
-    await plugin.tasks.add({ projectId: 'p1', name: 'Task 1', parentTaskId: null });
+  it('should delete a task and cascade delete its subtasks, logs and activeLog', async () => {
+    await plugin.tasks.add({ projectId: 'p1', name: 'Parent', parentTaskId: null });
     let state = await plugin.core.load();
+    const parentId = state!.tasks[0].id;
+
+    await plugin.tasks.add({ projectId: 'p1', name: 'Child', parentTaskId: parentId });
+    state = await plugin.core.load();
+    const childId = state!.tasks.find(t => t.parentTaskId === parentId)!.id;
+
+    // Add time logs
+    await plugin.timeLogs.insert('log-parent', parentId, '2026-06-15T10:00:00Z');
+    await plugin.timeLogs.insert('log-child', childId, '2026-06-15T11:00:00Z');
+
+    state = await plugin.core.load();
+    expect(state!.tasks).toHaveLength(2);
+    expect(state!.logs).toHaveLength(2);
+    expect(state!.activeLog).not.toBeNull();
+
+    // Delete parent task
+    state = await plugin.tasks.delete(parentId);
+    expect(state.tasks).toHaveLength(0);
+    expect(state.logs).toHaveLength(0);
+    expect(state.activeLog).toBeNull();
+  });
+
+  it('should close active log when archiving a project', async () => {
+    await plugin.projects.add({ name: 'Active Proj', color: '#ff0000' });
+    let state = await plugin.core.load();
+    const projId = state!.projects[0].id;
+
+    await plugin.tasks.add({ projectId: projId, name: 'Task In Proj', parentTaskId: null });
+    state = await plugin.core.load();
     const taskId = state!.tasks[0].id;
 
-    state = await plugin.tasks.delete(taskId);
-    expect(state.tasks).toHaveLength(0);
+    await plugin.timeLogs.insert('log-active', taskId, '2026-06-15T10:00:00Z');
+    state = await plugin.core.load();
+    expect(state!.activeLog).not.toBeNull();
+
+    state = await plugin.projects.toggleArchive(projId);
+    expect(state.projects[0].archived).toBe(true);
+    expect(state.activeLog).toBeNull();
+    expect(state.logs[0].endTime).toBeDefined();
   });
+
 
   it('should toggle task complete and set status to Done', async () => {
     await plugin.tasks.add({ projectId: 'p1', name: 'Task 1', parentTaskId: null });

@@ -102,3 +102,17 @@ pub struct PatchLog {
     #[ts(optional)]
     pub is_system_event: Option<bool>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, Default)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct ElapsedRangeFilter {
+    #[ts(optional)]
+    pub task_id: Option<String>,
+    #[ts(optional)]
+    pub project_id: Option<String>,
+    #[ts(optional)]
+    pub from: Option<String>,
+    #[ts(optional)]
+    pub to: Option<String>,
+}

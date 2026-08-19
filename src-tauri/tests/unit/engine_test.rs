@@ -209,3 +209,60 @@ fn test_task_hierarchy_validation() {
     // 3. Try to add subtask to a subtask (invalid, depth > 1)
     assert!(engine.validate_task_hierarchy(None, Some("t_h2")).is_err());
 }
+
+#[test]
+fn test_engine_elapsed_range() {
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_range");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let project = Project {
+        id: "p_rng".to_string(),
+        name: "RangeProj".to_string(),
+        color: "green".to_string(),
+        created_at: Utc::now().to_rfc3339(),
+        archived: Some(false),
+        original_name: None,
+        original_color: None,
+        edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
+    };
+    persistence.projects.create(project).unwrap();
+
+    let task = Task {
+        id: "t_rng".to_string(),
+        project_id: "p_rng".to_string(),
+        parent_task_id: None,
+        name: "TaskRange".to_string(),
+        completed: false,
+        created_at: Utc::now().to_rfc3339(),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
+    };
+    persistence.tasks.create(task).unwrap();
+
+    // 10:00 to 11:00 (3600s)
+    let s1 = "2026-06-15T10:00:00Z";
+    let e1 = "2026-06-15T11:00:00Z";
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, ?)",
+        ["l_rng1", "t_rng", s1, e1],
+    )
+    .unwrap();
+
+    // Range filtering: 10:30 to 11:30 -> should give 1800s (from 10:30 to 11:00)
+    let filter = oxy_flow::types::ElapsedRangeFilter {
+        task_id: Some("t_rng".to_string()),
+        project_id: None,
+        from: Some("2026-06-15T10:30:00Z".to_string()),
+        to: Some("2026-06-15T11:30:00Z".to_string()),
+    };
+
+    let elapsed = engine.calculate_elapsed_range(&filter).unwrap();
+    assert_eq!(elapsed.as_secs(), 1800);
+}

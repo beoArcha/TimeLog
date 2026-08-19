@@ -1,10 +1,7 @@
 import { CliEngineContext, TerminalLine } from '../utils/Commands';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { translate } from '@common/i18n/translator';
-import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
-import { STORAGE_KEYS } from '@common/constants';
-
-const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
+import { getNextId } from '@common/utils/idGenerator';
 
 export const runHolidaysCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {
   const { holidays, setHolidays, locale, customTranslations } = context;
@@ -24,7 +21,7 @@ export const runHolidaysCommand = (args: string[], context: CliEngineContext, ou
         outputs.push({ text: translate(locale, 'cli', 'ErrInvalidDateFormat', customTranslations), type: 'error' });
       } else {
         const newHoliday: HolidayLeave = {
-          id: dm.getNextId(holidays, 'hol_'),
+          id: getNextId(holidays, 'hol_'),
           date,
           type: type as 'holiday' | 'leave',
           name,

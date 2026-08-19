@@ -29,7 +29,11 @@ pub enum WindowCommand {
 pub enum EngineCommand {
     StartTimer,
     StopTimer,
+    ResumeTimer,
     GetActiveLogs,
+    GetTaskElapsed,
+    GetProjectElapsed,
+    GetElapsedRange,
     EditTimeLog,
     GetProjectStatistics,
 }

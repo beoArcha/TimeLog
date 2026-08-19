@@ -64,6 +64,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     loadState();
   }, []);
 
+  const engine = EngineRouter.getInstance();
+
   const handleAddProject = async (
     name: string,
     color: string,
@@ -74,7 +76,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.projects.add({ name, color, description, icon, tags });
+      const nextState = await engine.addProject({ name, color, description, icon, tags });
       setProjectsState(nextState.projects);
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to add project', err, 'ERR_REPOSITORY'));
@@ -88,8 +90,10 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.projects.toggleArchive(projectId);
+      const nextState = await engine.toggleProjectArchive(projectId);
       setProjectsState(nextState.projects);
+      setLogsState(nextState.logs);
+      setActiveLogState(nextState.activeLog);
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to toggle project archive', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to toggle project archive');
@@ -102,7 +106,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.tasks.add({ projectId, name, parentTaskId });
+      const nextState = await engine.addTask({ projectId, name, parentTaskId });
       setTasksState(nextState.tasks);
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to add task', err, 'ERR_REPOSITORY'));
@@ -123,7 +127,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.projects.update(projectId, name, color, description, icon, tags);
+      const nextState = await engine.updateProject(projectId, name, color, description, icon, tags);
       setProjectsState(nextState.projects);
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to update project', err, 'ERR_REPOSITORY'));
@@ -143,7 +147,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.tasks.update(taskId, name, parentTaskId, status, completed);
+      const nextState = await engine.updateTask(taskId, name, parentTaskId, status, completed);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -159,7 +163,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.projects.rename(projectId, newName);
+      const nextState = await engine.renameProject(projectId, newName);
       setProjectsState(nextState.projects);
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to rename project', err, 'ERR_REPOSITORY'));
@@ -173,7 +177,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.tasks.rename(taskId, newName);
+      const nextState = await engine.renameTask(taskId, newName);
       setTasksState(nextState.tasks);
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to rename task', err, 'ERR_REPOSITORY'));
@@ -187,7 +191,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.tasks.delete(taskId);
+      const nextState = await engine.deleteTask(taskId);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -203,7 +207,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await repository.tasks.toggleComplete(taskId);
+      const nextState = await engine.toggleTaskComplete(taskId);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -214,6 +218,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setIsLoading(false);
     }
   };
+
 
   const handleStartTimer = async (taskId: string) => {
     try {

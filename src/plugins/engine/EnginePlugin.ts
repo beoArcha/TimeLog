@@ -1,13 +1,31 @@
-import { IEngine } from '@common/engine/IEngine';
+import { IEngine, CreateProjectInput, CreateTaskInput } from '@common/engine/IEngine';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { EntityNotFoundException } from '@common/exceptions';
+import { EntityNotFoundException, EngineException, ErrorHandler } from '@common/exceptions';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { TaskStatus } from '@bindings/TaskStatus';
+import { Settings } from '@bindings/Settings';
+import { RuntimeConfig } from '@bindings/RuntimeConfig';
+import {
+  calculateTaskElapsed,
+  calculateProjectElapsed,
+  calculateElapsedRange,
+  ElapsedRangeFilter,
+} from './elapsed';
+import {
+  validateProjectName,
+  validateTaskName,
+  validateTaskHierarchy,
+  validateTimeLog,
+} from './validation';
 
 let logCounter = 0;
+
 
 export class EnginePlugin implements IEngine {
   private persistence = PersistenceRouter.getInstance();
 
+  // Timer Lifecycle
   async startTimer(taskId: string): Promise<void> {
     const projectId = await this.persistence.tasks.getProjectId(taskId);
     const now = new Date().toISOString();
@@ -28,6 +46,41 @@ export class EnginePlugin implements IEngine {
     }
   }
 
+  async resumeTimer(taskId: string): Promise<void> {
+    return this.startTimer(taskId);
+  }
+
+  async getActiveLogs(): Promise<string[]> {
+    return this.persistence.timeLogs.queryActive();
+  }
+
+  // Pure Elapsed Accessors
+  async getTaskElapsed(taskId: string, nowIso?: string): Promise<number> {
+    const state = await this.persistence.core.load();
+    if (!state) {
+      return 0;
+    }
+    return calculateTaskElapsed(taskId, state.tasks, state.logs, nowIso);
+  }
+
+  async getProjectElapsed(projectId: string, nowIso?: string): Promise<number> {
+    const state = await this.persistence.core.load();
+    if (!state) {
+      return 0;
+    }
+    return calculateProjectElapsed(projectId, state.tasks, state.logs, nowIso);
+  }
+
+  async getElapsedRange(range: ElapsedRangeFilter, nowIso?: string): Promise<number> {
+    const state = await this.persistence.core.load();
+    if (!state) {
+      return 0;
+    }
+    return calculateElapsedRange(range, state.tasks, state.logs, nowIso);
+  }
+
+
+  // TimeLogs
   async editTimeLog(
     id: string,
     taskId: string,
@@ -38,7 +91,9 @@ export class EnginePlugin implements IEngine {
   ): Promise<void> {
     const state = await this.persistence.core.load();
     if (!state) {
-      throw new Error('Database state not initialized');
+      const err = new EngineException('Database state not initialized', undefined, 'ERR_ENGINE_STATE');
+      ErrorHandler.handle(err);
+      throw err;
     }
 
     const currentLog = state.logs.find(l => l.id === id);
@@ -46,34 +101,16 @@ export class EnginePlugin implements IEngine {
       throw new EntityNotFoundException(`Time log ${id} not found`);
     }
 
-    const start = new Date(startTime).getTime();
-    if (isNaN(start)) {
-      throw new Error('Parse time error: start_time is invalid');
-    }
-    const end = endTime ? new Date(endTime).getTime() : Date.now();
-    if (isNaN(end)) {
-      throw new Error('Parse time error: end_time is invalid');
-    }
-    if (end < start) {
-      throw new Error('End time cannot be before start time');
-    }
-    if (start > Date.now()) {
-      throw new Error('Start time cannot be in the future');
-    }
-
-    for (const log of state.logs) {
-      if (log.id === id) {
-        continue;
-      }
-      const logStart = new Date(log.startTime).getTime();
-      const logEnd = log.endTime ? new Date(log.endTime).getTime() : Date.now();
-      if (start < logEnd && logStart < end) {
-        throw new Error(`Time log overlaps with an existing log (ID: ${log.id})`);
-      }
+    try {
+      validateTimeLog(id, startTime, endTime, state.logs);
+    } catch (err) {
+      ErrorHandler.handle(err);
+      throw err;
     }
 
     const prevStartTime = currentLog.startTime !== startTime ? currentLog.startTime : undefined;
     const prevEndTime = currentLog.endTime !== endTime ? (currentLog.endTime || undefined) : undefined;
+
     const prevNote = currentLog.note !== note ? (currentLog.note || undefined) : undefined;
 
     const historyItem = {
@@ -114,6 +151,48 @@ export class EnginePlugin implements IEngine {
     await this.persistence.core.overrideState(state);
   }
 
+  // Projects
+  async addProject(input: CreateProjectInput): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    if (state) {
+      validateProjectName(input.name, state.projects);
+    }
+    return this.persistence.projects.add({
+      name: input.name,
+      color: input.color,
+      description: input.description ?? null,
+      icon: input.icon ?? null,
+      tags: input.tags ?? null,
+    });
+  }
+
+  async updateProject(
+    projectId: string,
+    name: string,
+    color: string,
+    description: string | null,
+    icon: string | null,
+    tags: string[] | null
+  ): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    if (state) {
+      validateProjectName(name, state.projects, projectId);
+    }
+    return this.persistence.projects.update(projectId, name, color, description, icon, tags);
+  }
+
+  async renameProject(projectId: string, name: string): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    if (state) {
+      validateProjectName(name, state.projects, projectId);
+    }
+    return this.persistence.projects.rename(projectId, name);
+  }
+
+  async toggleProjectArchive(projectId: string): Promise<TimerRepositoryState> {
+    return this.persistence.projects.toggleArchive(projectId);
+  }
+
   async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
     const state = await this.persistence.core.load();
     if (!state) {
@@ -123,19 +202,7 @@ export class EnginePlugin implements IEngine {
     const projectTasks = state.tasks.filter(t => t.projectId === projectId);
     const totalTasks = projectTasks.length;
     const completedTasks = projectTasks.filter(t => t.completed).length;
-
-    const taskIds = new Set(projectTasks.map(t => t.id));
-    let totalDurationSec = BigInt(0);
-
-    for (const log of state.logs) {
-      if (taskIds.has(log.taskId)) {
-        const start = new Date(log.startTime).getTime();
-        const end = log.endTime ? new Date(log.endTime).getTime() : Date.now();
-        if (end >= start) {
-          totalDurationSec += BigInt(Math.floor((end - start) / 1000));
-        }
-      }
-    }
+    const totalDurationSec = BigInt(calculateProjectElapsed(projectId, state.tasks, state.logs));
 
     return {
       totalDurationSec,
@@ -143,5 +210,75 @@ export class EnginePlugin implements IEngine {
       completedTasks,
     };
   }
-}
 
+  // Tasks
+  async addTask(input: CreateTaskInput): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    validateTaskName(input.name);
+    if (state) {
+      validateTaskHierarchy(null, input.parentTaskId, state.tasks);
+    }
+    return this.persistence.tasks.add({
+      projectId: input.projectId,
+      name: input.name,
+      parentTaskId: input.parentTaskId ?? null,
+    });
+  }
+
+  async updateTask(
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: TaskStatus | null,
+    completed: boolean | null
+  ): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    if (name) {
+      validateTaskName(name);
+    }
+    if (state) {
+      validateTaskHierarchy(taskId, parentTaskId, state.tasks);
+    }
+    return this.persistence.tasks.update(taskId, name, parentTaskId, status, completed);
+  }
+
+  async renameTask(taskId: string, name: string): Promise<TimerRepositoryState> {
+    validateTaskName(name);
+    return this.persistence.tasks.rename(taskId, name);
+  }
+
+
+  async deleteTask(taskId: string): Promise<TimerRepositoryState> {
+    return this.persistence.tasks.delete(taskId);
+  }
+
+  async toggleTaskComplete(taskId: string): Promise<TimerRepositoryState> {
+    return this.persistence.tasks.toggleComplete(taskId);
+  }
+
+  // Configuration
+  async getSettings(): Promise<Settings> {
+    return this.persistence.settings.get();
+  }
+
+  async saveSettings(settings: Settings): Promise<void> {
+    return this.persistence.settings.save(settings);
+  }
+
+  async getRuntimeConfigs(): Promise<RuntimeConfig[]> {
+    return this.persistence.runtimeConfigs.getAll();
+  }
+
+  async saveRuntimeConfig(config: RuntimeConfig): Promise<void> {
+    return this.persistence.runtimeConfigs.save(config);
+  }
+
+  // State Management
+  async getState(): Promise<TimerRepositoryState | null> {
+    return this.persistence.core.load();
+  }
+
+  async resetState(): Promise<TimerRepositoryState> {
+    return this.persistence.core.reset();
+  }
+}

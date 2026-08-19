@@ -3,16 +3,13 @@ import { Database, Plus } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
 import CollapsibleCard from '@components/CollapsibleCard'; // Wait, let's make sure of the path to CollapsibleCard later, but for now we'll use @common/components/CollapsibleCard since we will move it there.
 import { translate } from '@common/i18n/translator';
-import { LocalStorageDataManager } from '@/src/plugins/persistence/DataManager';
-import { STORAGE_KEYS } from '@common/constants';
+import { getNextId } from '@common/utils/idGenerator';
 import AddLogForm from './AddLogForm';
 import TimeLogTableRow from './TimeLogTableRow';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import { useEngine } from '@common/hooks/EngineContext';
-
-const dm = new LocalStorageDataManager(STORAGE_KEYS.STATE_DB);
 
 export default function TimeLogsTable() {
   const { locale, customTranslations } = useLocale();
@@ -69,7 +66,7 @@ export default function TimeLogsTable() {
     const finalEndTime = endTime.trim() === '' ? null : endTime;
 
     const newLog: TimeLog = {
-      id: dm.getNextId(logs, 'log_man_'),
+      id: getNextId(logs, 'log_man_'),
       taskId,
       projectId: selectedTask.projectId,
       startTime,
