@@ -18,7 +18,11 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
         .invoke_handler(tauri::generate_handler![
             engine::start_timer,
             engine::stop_timer,
+            engine::resume_timer,
             engine::get_active_logs,
+            engine::get_task_elapsed,
+            engine::get_project_elapsed,
+            engine::get_elapsed_range,
             engine::edit_time_log,
             engine::get_project_statistics,
             core::get_state,

@@ -1,5 +1,6 @@
 use crate::common::AppError;
 use crate::engine::Engine;
+use crate::types::{ElapsedRangeFilter, ProjectStatistics};
 use crate::AppState;
 use tauri::State;
 
@@ -18,13 +19,51 @@ pub fn stop_timer(project_id: Option<String>, state: State<'_, AppState>) -> Res
 }
 
 #[tauri::command]
+pub fn resume_timer(task_id: String, state: State<'_, AppState>) -> Result<(), AppError> {
+    let engine = Engine::new(&state.persistence);
+    engine.start_timer(&task_id)?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn get_active_logs(state: State<'_, AppState>) -> Result<Vec<String>, AppError> {
     let engine = Engine::new(&state.persistence);
     let logs = engine.get_active_logs()?;
     Ok(logs)
 }
 
-use crate::types::ProjectStatistics;
+#[tauri::command]
+pub fn get_task_elapsed(
+    task_id: String,
+    _now_iso: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<u64, AppError> {
+    let engine = Engine::new(&state.persistence);
+    let duration = engine.calculate_task_elapsed(&task_id)?;
+    Ok(duration.as_secs())
+}
+
+#[tauri::command]
+pub fn get_project_elapsed(
+    project_id: String,
+    _now_iso: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<u64, AppError> {
+    let engine = Engine::new(&state.persistence);
+    let duration = engine.calculate_project_elapsed(&project_id)?;
+    Ok(duration.as_secs())
+}
+
+#[tauri::command]
+pub fn get_elapsed_range(
+    range: ElapsedRangeFilter,
+    _now_iso: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<u64, AppError> {
+    let engine = Engine::new(&state.persistence);
+    let duration = engine.calculate_elapsed_range(&range)?;
+    Ok(duration.as_secs())
+}
 
 #[tauri::command]
 pub fn edit_time_log(

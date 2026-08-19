@@ -89,6 +89,84 @@ impl<'a> Engine<'a> {
         Ok(total_duration)
     }
 
+    pub fn calculate_elapsed_range(
+        &self,
+        filter: &crate::types::ElapsedRangeFilter,
+    ) -> Result<Duration, EngineError> {
+        let all_logs = self.persistence.time_logs.get_all()?;
+        let now = if let Some(ref now_str) = filter.now_iso {
+            DateTime::parse_from_rfc3339(now_str)
+                .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                .with_timezone(&Utc)
+        } else {
+            Utc::now()
+        };
+
+        let range_start = if let Some(ref s) = filter.start_date {
+            Some(
+                DateTime::parse_from_rfc3339(s)
+                    .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                    .with_timezone(&Utc),
+            )
+        } else {
+            None
+        };
+
+        let range_end = if let Some(ref e) = filter.end_date {
+            Some(
+                DateTime::parse_from_rfc3339(e)
+                    .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                    .with_timezone(&Utc),
+            )
+        } else {
+            None
+        };
+
+        let mut total_duration = Duration::ZERO;
+
+        for log in all_logs {
+            if let Some(ref target_task_id) = filter.task_id {
+                if &log.task_id != target_task_id {
+                    continue;
+                }
+            }
+            if let Some(ref target_project_id) = filter.project_id {
+                if &log.project_id != target_project_id {
+                    continue;
+                }
+            }
+
+            let start = DateTime::parse_from_rfc3339(&log.start_time)
+                .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                .with_timezone(&Utc);
+
+            let end = match log.end_time {
+                Some(ref end_str) => DateTime::parse_from_rfc3339(end_str)
+                    .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                    .with_timezone(&Utc),
+                None => now,
+            };
+
+            let effective_start = match range_start {
+                Some(rs) => std::cmp::max(start, rs),
+                None => start,
+            };
+
+            let effective_end = match range_end {
+                Some(re) => std::cmp::min(end, re),
+                None => end,
+            };
+
+            if effective_end > effective_start {
+                let diff = effective_end.signed_duration_since(effective_start);
+                total_duration += Duration::from_secs(diff.num_seconds() as u64);
+            }
+        }
+
+        Ok(total_duration)
+    }
+
+
     pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
         let proj_id = self.persistence.tasks.get_project_id(task_id)?;
 

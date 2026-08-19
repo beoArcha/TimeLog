@@ -32,4 +32,6 @@ fn export_bindings() {
     ProjectStatistics::export().unwrap();
     RuntimeConfig::export().unwrap();
     TaskStatus::export().unwrap();
+    ElapsedRangeFilter::export().unwrap();
 }
+
