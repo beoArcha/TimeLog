@@ -14,7 +14,7 @@ interface ReportLogListProps {
   displayLogs: TimeLog[];
   projects: Project[];
   tasks: Task[];
-  nowIso: string;
+  nowIso?: string;
   theme: string;
 }
 
@@ -93,7 +93,7 @@ export default function ReportLogList({
             const p = projects.find(x => x.id === log.projectId);
             const tObj = tasks.find(x => x.id === log.taskId);
             const start = new Date(log.startTime).getTime();
-            const end = log.endTime ? new Date(log.endTime).getTime() : new Date(nowIso).getTime();
+            const end = log.endTime ? new Date(log.endTime).getTime() : (nowIso ? new Date(nowIso).getTime() : start);
             const durSeconds = Math.max(0, Math.floor((end - start) / 1000));
 
             return (

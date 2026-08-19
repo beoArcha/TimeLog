@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateTaskElapsed, calculateProjectElapsed, calculateElapsedRange } from '@plugins/engine/elapsed';
+import { calculateTaskElapsed, calculateProjectElapsed, calculateElapsedRange, computeAllMetrics } from '@plugins/engine/elapsed';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 
@@ -55,6 +55,40 @@ describe('Unit Tests: Browser Engine Pure Elapsed Module (plugins/engine/elapsed
       '2026-06-15T14:00:00Z'
     );
     expect(taskRange).toBe(5400);
+  });
+
+  it('should compute all task and project metrics in a single O(N) pass', () => {
+    const sampleProjects = [
+      { id: 'p1', name: 'Project 1', color: 'orange', description: null, icon: null, tags: null, createdAt: '2026-06-15T00:00:00Z', archived: false },
+      { id: 'p2', name: 'Project 2', color: 'blue', description: null, icon: null, tags: null, createdAt: '2026-06-15T00:00:00Z', archived: false },
+    ];
+
+    const metrics = computeAllMetrics(sampleTasks, sampleLogs, sampleProjects, '2026-06-15T14:00:00Z');
+
+    expect(metrics.snapshotNowIso).toBe('2026-06-15T14:00:00.000Z');
+    expect(metrics.tasks['t1']).toEqual({
+      taskId: 't1',
+      elapsedSeconds: 5400,
+      selfElapsedSeconds: 1800,
+      isRunning: false,
+      hasRunningChild: true,
+    });
+    expect(metrics.tasks['t2']).toEqual({
+      taskId: 't2',
+      elapsedSeconds: 3600,
+      selfElapsedSeconds: 3600,
+      isRunning: true,
+      hasRunningChild: false,
+    });
+    expect(metrics.projects['p1']).toEqual({
+      projectId: 'p1',
+      totalElapsedSeconds: 5400,
+      todayElapsedSeconds: 5400,
+      thisWeekElapsedSeconds: 5400,
+      activeTaskCount: 2,
+      completedTaskCount: 0,
+      isRunning: true,
+    });
   });
 
   it('should return 0 when no logs exist for task or project', () => {

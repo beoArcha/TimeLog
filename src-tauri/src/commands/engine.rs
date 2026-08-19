@@ -1,6 +1,6 @@
 use crate::common::AppError;
 use crate::engine::Engine;
-use crate::types::{ElapsedRangeFilter, ProjectStatistics};
+use crate::types::{ElapsedRangeFilter, EngineComputedMetrics, ProjectStatistics};
 use crate::AppState;
 use tauri::State;
 
@@ -95,4 +95,14 @@ pub fn get_project_statistics(
     let engine = Engine::new(&state.persistence);
     let stats = engine.get_project_statistics(&project_id)?;
     Ok(stats)
+}
+
+#[tauri::command]
+pub fn get_computed_metrics(
+    now_iso: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<EngineComputedMetrics, AppError> {
+    let engine = Engine::new(&state.persistence);
+    let metrics = engine.get_computed_metrics(now_iso.as_deref())?;
+    Ok(metrics)
 }

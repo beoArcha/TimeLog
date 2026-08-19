@@ -79,6 +79,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     tasks,
     logs,
     nowIso,
+    metrics: state.metrics,
   });
 
   const taskItemState = React.useMemo(() => ({

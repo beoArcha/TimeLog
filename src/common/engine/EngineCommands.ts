@@ -6,6 +6,7 @@ import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { Settings } from '@bindings/Settings';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { ElapsedRangeFilter } from '../../plugins/engine/elapsed';
 
 export class EngineCommands implements IEngine {
@@ -41,6 +42,15 @@ export class EngineCommands implements IEngine {
       return await invoke<string[]>('get_active_logs');
     } catch (err) {
       ErrorHandler.handle(new TauriInteropException('Failed to get active logs via Tauri', err, 'ERR_TAURI_ENGINE_ACTIVE_LOGS'));
+      throw err;
+    }
+  }
+
+  async getComputedMetrics(nowIso?: string): Promise<EngineComputedMetrics> {
+    try {
+      return await invoke<EngineComputedMetrics>('get_computed_metrics', { nowIso });
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to get computed metrics via Tauri', err, 'ERR_TAURI_ENGINE_COMPUTED_METRICS'));
       throw err;
     }
   }

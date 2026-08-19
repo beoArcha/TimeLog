@@ -14,8 +14,8 @@ interface TrayWidgetProps {
 
 export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps) {
   const { resolvedTheme } = useSettings();
-  const { projects, tasks, logs } = useData();
-  const { enginePID, nowIso } = useEngine();;
+  const { projects, tasks, logs, computedMetrics } = useData();
+  const { enginePID, nowIso } = useEngine();
 
   const { t: tEngine } = useTranslation('engine');
   const { t: tTimer } = useTranslation('timer');
@@ -90,7 +90,8 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
                 const proj = projects.find(p => p.id === l.projectId);
                 const taskObj = tasks.find(t => t.id === l.taskId);
                 const start = new Date(l.startTime).getTime();
-                const elapsed = Math.max(0, Math.floor((new Date(nowIso).getTime() - start) / 1000));
+                const taskMetric = computedMetrics?.tasks?.[l.taskId];
+                const elapsed = taskMetric ? taskMetric.selfElapsedSeconds : (nowIso ? Math.max(0, Math.floor((new Date(nowIso).getTime() - start) / 1000)) : 0);
 
                 const hrs = Math.floor(elapsed / 3600);
                 const mins = Math.floor((elapsed % 3600) / 60);

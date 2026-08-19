@@ -6,6 +6,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { ErrorHandler, RepositoryException } from '../exceptions';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
@@ -20,6 +21,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const [tasks, setTasksState] = useState<Task[]>([]);
   const [logs, setLogsState] = useState<TimeLog[]>([]);
   const [activeLog, setActiveLogState] = useState<TimeLog | null>(null);
+  const [computedMetrics, setComputedMetrics] = useState<EngineComputedMetrics | null>(null);
 
   const [holidays, setHolidaysState] = useState<HolidayLeave[]>([]);
   const [patches, setPatchesState] = useState<PatchLog[]>([]);
@@ -33,6 +35,25 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const [enginePID, setEnginePID] = useState<number>(() => Math.floor(2500 + Math.random() * 5000));
 
   const isResetting = useRef(false);
+  const engine = EngineRouter.getInstance();
+
+  const fetchComputedMetrics = async (nowIso?: string) => {
+    try {
+      const metrics = await engine.getComputedMetrics(nowIso);
+      setComputedMetrics(prev => {
+        if (!prev) return metrics;
+        const tasksEqual = JSON.stringify(prev.tasks) === JSON.stringify(metrics.tasks);
+        const projectsEqual = JSON.stringify(prev.projects) === JSON.stringify(metrics.projects);
+        if (tasksEqual && projectsEqual && prev.snapshotNowIso === metrics.snapshotNowIso) {
+          return prev;
+        }
+        return metrics;
+      });
+      return metrics;
+    } catch {
+      return null;
+    }
+  };
 
   useEffect(() => {
     const loadState = async () => {
@@ -53,6 +74,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
         }
         setHolidaysState(loadedHolidays);
         setPatchesState(loadedPatches);
+        await fetchComputedMetrics();
       } catch (err) {
         ErrorHandler.handle(new RepositoryException('Failed to load repository state', err, 'ERR_REPOSITORY'));
         setRepositoryError(err instanceof Error ? err.message : 'Failed to load repository state');
@@ -63,8 +85,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     };
     loadState();
   }, []);
-
-  const engine = EngineRouter.getInstance();
 
   const handleAddProject = async (
     name: string,
@@ -78,6 +98,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setRepositoryError(null);
       const nextState = await engine.addProject({ name, color, description, icon, tags });
       setProjectsState(nextState.projects);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to add project', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to add project');
@@ -94,6 +115,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setProjectsState(nextState.projects);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to toggle project archive', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to toggle project archive');
@@ -108,6 +130,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setRepositoryError(null);
       const nextState = await engine.addTask({ projectId, name, parentTaskId });
       setTasksState(nextState.tasks);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to add task', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to add task');
@@ -129,6 +152,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setRepositoryError(null);
       const nextState = await engine.updateProject(projectId, name, color, description, icon, tags);
       setProjectsState(nextState.projects);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to update project', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to update project');
@@ -151,6 +175,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to update task', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to update task');
@@ -165,6 +190,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setRepositoryError(null);
       const nextState = await engine.renameProject(projectId, newName);
       setProjectsState(nextState.projects);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to rename project', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to rename project');
@@ -179,6 +205,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setRepositoryError(null);
       const nextState = await engine.renameTask(taskId, newName);
       setTasksState(nextState.tasks);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to rename task', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to rename task');
@@ -195,6 +222,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to delete task', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to delete task');
@@ -211,6 +239,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to toggle task complete', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to toggle task complete');
@@ -254,6 +283,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
 
         setLogsState(nextState.logs);
         setActiveLogState(nextState.activeLog);
+        await fetchComputedMetrics();
 
         events.forEach(evt => {
           pushToApi(evt, evt.event === 'START' ? `Starting ${evt.log.id}` : `Terminating ${evt.log.id}`);
@@ -294,6 +324,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
 
         setLogsState(nextState.logs);
         setActiveLogState(nextState.activeLog);
+        await fetchComputedMetrics();
 
         events.forEach(evt => {
           pushToApi(evt, `Terminating ${evt.log.id}`);
@@ -328,6 +359,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       const resolved = typeof action === 'function' ? action(projects) : action;
       const nextState = await repository.core.overrideState({ projects: resolved });
       setProjectsState(nextState.projects);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to set projects', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to set projects');
@@ -340,6 +372,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       const resolved = typeof action === 'function' ? action(tasks) : action;
       const nextState = await repository.core.overrideState({ tasks: resolved });
       setTasksState(nextState.tasks);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to set tasks', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to set tasks');
@@ -352,6 +385,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       const resolved = typeof action === 'function' ? action(logs) : action;
       const nextState = await repository.core.overrideState({ logs: resolved });
       setLogsState(nextState.logs);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to set logs', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to set logs');
@@ -364,6 +398,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       const resolved = typeof action === 'function' ? action(activeLog) : action;
       const nextState = await repository.core.overrideState({ activeLog: resolved });
       setActiveLogState(nextState.activeLog);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to set active log', err, 'ERR_REPOSITORY'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to set active log');
@@ -388,6 +423,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       if (nextState) {
         setLogsState(nextState.logs);
         setActiveLogState(nextState.activeLog);
+        await fetchComputedMetrics();
       }
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to edit time log', err, 'ERR_REPOSITORY_EDIT_TIME_LOG'));
@@ -422,6 +458,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
 
       if (data.holidays) setHolidays(data.holidays);
       if (data.patches) setPatches(data.patches);
+      await fetchComputedMetrics();
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to restore database state', err, 'ERR_REPOSITORY_RESTORE'));
       setRepositoryError(err instanceof Error ? err.message : 'Failed to restore database state');
@@ -475,6 +512,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     tasks, setTasks,
     logs, setLogs,
     activeLog, setActiveLog,
+    computedMetrics,
+    refreshComputedMetrics: fetchComputedMetrics,
     holidays, setHolidays,
     patches, setPatches,
     selectedTaskId, setSelectedTaskId,
@@ -501,3 +540,4 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     handleDeleteHoliday,
   };
 };
+

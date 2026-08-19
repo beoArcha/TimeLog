@@ -10,7 +10,9 @@ import {
   calculateTaskElapsed,
   calculateProjectElapsed,
   calculateElapsedRange,
+  computeAllMetrics,
   ElapsedRangeFilter,
+  EngineComputedMetrics,
 } from './elapsed';
 import {
   validateProjectName,
@@ -54,7 +56,19 @@ export class EnginePlugin implements IEngine {
     return this.persistence.timeLogs.queryActive();
   }
 
-  // Pure Elapsed Accessors
+  // Pure Elapsed Accessors & Computed Metrics
+  async getComputedMetrics(nowIso?: string): Promise<EngineComputedMetrics> {
+    const state = await this.persistence.core.load();
+    if (!state) {
+      return {
+        snapshotNowIso: nowIso || new Date().toISOString(),
+        tasks: {},
+        projects: {},
+      };
+    }
+    return computeAllMetrics(state.tasks, state.logs, state.projects, nowIso);
+  }
+
   async getTaskElapsed(taskId: string, nowIso?: string): Promise<number> {
     const state = await this.persistence.core.load();
     if (!state) {

@@ -1,5 +1,4 @@
 import React, { createContext, useContext } from 'react';
-import { useTimeTicker } from './useTimeTicker';
 import { useTauriWindow } from '../tauri/useTauriWindow';
 import { useSettings } from './SettingsContext';
 import { useData } from './DataContext';
@@ -8,7 +7,10 @@ import { ContextException } from '../exceptions';
 import { translate } from '../i18n/translator';
 import { AlwaysOnTopConfig } from '@bindings/AlwaysOnTopConfig';
 
-export type EngineState = ReturnType<typeof useTimeTicker> & ReturnType<typeof useTauriWindow> & {
+export type EngineState = {
+  nowIso: string;
+  setNowIso: (iso: string) => void;
+} & ReturnType<typeof useTauriWindow> & {
   handleToggleTimer: () => void;
   handleCopyText: (text: string) => void;
   alwaysOnTopConfig: AlwaysOnTopConfig;
@@ -32,9 +34,8 @@ export const useEngine = () => {
 
 export const EngineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { layoutVariant, setLayoutVariant, textAndIconSize, minimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, lastNonCompactVariant, setLastNonCompactVariant } = useSettings();
-  const { handleStopTimer, activeLog, selectedTaskId, handleStartTimer } = useData();
+  const { handleStopTimer, activeLog, selectedTaskId, handleStartTimer, computedMetrics } = useData();
   const { locale, customTranslations } = useLocale();
-  const timeTicker = useTimeTicker();
 
   const tauriWindow = useTauriWindow({
     layoutVariant,
@@ -80,7 +81,8 @@ export const EngineProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const state: EngineState = {
-    ...timeTicker,
+    nowIso: computedMetrics?.snapshotNowIso || '',
+    setNowIso: () => {},
     ...tauriWindow,
     handleToggleTimer,
     handleCopyText,

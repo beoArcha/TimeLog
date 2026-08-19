@@ -116,3 +116,36 @@ pub struct ElapsedRangeFilter {
     #[ts(optional)]
     pub to: Option<String>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskComputedMetrics {
+    pub task_id: String,
+    pub elapsed_seconds: u64,
+    pub self_elapsed_seconds: u64,
+    pub is_running: bool,
+    pub has_running_child: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct ProjectComputedMetrics {
+    pub project_id: String,
+    pub total_elapsed_seconds: u64,
+    pub today_elapsed_seconds: u64,
+    pub this_week_elapsed_seconds: u64,
+    pub active_task_count: usize,
+    pub completed_task_count: usize,
+    pub is_running: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct EngineComputedMetrics {
+    pub snapshot_now_iso: String,
+    pub tasks: std::collections::HashMap<String, TaskComputedMetrics>,
+    pub projects: std::collections::HashMap<String, ProjectComputedMetrics>,
+}

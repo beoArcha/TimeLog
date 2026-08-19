@@ -7,7 +7,7 @@ import { PROJECT_COLORS } from './LayoutStyles';
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
-    projects, tasks, logs, nowIso, locale, customTranslations, theme,
+    projects, tasks, logs, metrics, nowIso, locale, customTranslations, theme,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
     onRenameProject, onToggleProjectArchive
   } = state;
@@ -199,7 +199,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
           ) : (
             projects.map(p => {
               const projColor = PROJECT_COLORS.find(c => c.name === p.color) || PROJECT_COLORS[0];
-              const totalSeconds = getProjectDurationSeconds(p.id, tasks, logs, nowIso);
+              const totalSeconds = metrics?.projects[p.id]?.totalElapsedSeconds ?? (nowIso ? getProjectDurationSeconds(p.id, tasks, logs, nowIso) : 0);
               const isSelected = selectedProjectId === p.id;
 
               return (

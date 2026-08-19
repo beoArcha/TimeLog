@@ -36,6 +36,7 @@ pub enum EngineCommand {
     GetElapsedRange,
     EditTimeLog,
     GetProjectStatistics,
+    GetComputedMetrics,
 }
 
 #[derive(TS, Serialize)]

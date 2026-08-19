@@ -7,7 +7,8 @@ interface UseTaskItemParams {
   rootTask: Task;
   tasks: Task[];
   logs: TimeLog[];
-  nowIso: string;
+  nowIso?: string;
+  metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
   projectTasks: Task[];
   locale?: Locale;
 }
@@ -26,18 +27,27 @@ export function useTaskItem({
   tasks,
   logs,
   nowIso,
+  metrics,
   projectTasks,
 }: UseTaskItemParams): UseTaskItemResult {
   const subTasks = projectTasks.filter((t: Task) => t.parentTaskId === rootTask.id);
-  const rootDuration = getTaskDurationSeconds(rootTask.id, tasks, logs, nowIso);
 
-  const isCurrentRunning = logs.some(
-    (l: TimeLog) => l.taskId === rootTask.id && l.endTime === null,
-  );
-  const runningSubtask = subTasks.find((sub: Task) =>
-    logs.some((l: TimeLog) => l.taskId === sub.id && l.endTime === null),
-  );
-  const isChildRunning = !!runningSubtask;
+  const taskMetric = metrics?.tasks?.[rootTask.id];
+  const rootDuration = taskMetric
+    ? taskMetric.elapsedSeconds
+    : (nowIso ? getTaskDurationSeconds(rootTask.id, tasks, logs, nowIso) : 0);
+
+  const isCurrentRunning = taskMetric
+    ? taskMetric.isRunning
+    : logs.some((l: TimeLog) => l.taskId === rootTask.id && l.endTime === null);
+
+  const runningSubtask = subTasks.find((sub: Task) => {
+    const subMetric = metrics?.tasks?.[sub.id];
+    if (subMetric !== undefined) return subMetric.isRunning;
+    return logs.some((l: TimeLog) => l.taskId === sub.id && l.endTime === null);
+  });
+
+  const isChildRunning = taskMetric ? taskMetric.hasRunningChild : !!runningSubtask;
   const isAnyRunning = isCurrentRunning || isChildRunning;
 
   return {
@@ -49,3 +59,4 @@ export function useTaskItem({
     isAnyRunning,
   };
 }
+
