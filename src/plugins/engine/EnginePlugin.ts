@@ -12,8 +12,14 @@ import {
   calculateElapsedRange,
   ElapsedRangeFilter,
 } from './elapsed';
+import {
+  validateProjectName,
+  validateTaskName,
+  validateTaskHierarchy,
+} from './validation';
 
 let logCounter = 0;
+
 
 export class EnginePlugin implements IEngine {
   private persistence = PersistenceRouter.getInstance();
@@ -174,6 +180,10 @@ export class EnginePlugin implements IEngine {
 
   // Projects
   async addProject(input: CreateProjectInput): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    if (state) {
+      validateProjectName(input.name, state.projects);
+    }
     return this.persistence.projects.add({
       name: input.name,
       color: input.color,
@@ -191,10 +201,18 @@ export class EnginePlugin implements IEngine {
     icon: string | null,
     tags: string[] | null
   ): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    if (state) {
+      validateProjectName(name, state.projects, projectId);
+    }
     return this.persistence.projects.update(projectId, name, color, description, icon, tags);
   }
 
   async renameProject(projectId: string, name: string): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    if (state) {
+      validateProjectName(name, state.projects, projectId);
+    }
     return this.persistence.projects.rename(projectId, name);
   }
 
@@ -222,6 +240,11 @@ export class EnginePlugin implements IEngine {
 
   // Tasks
   async addTask(input: CreateTaskInput): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    validateTaskName(input.name);
+    if (state) {
+      validateTaskHierarchy(null, input.parentTaskId, state.tasks);
+    }
     return this.persistence.tasks.add({
       projectId: input.projectId,
       name: input.name,
@@ -236,12 +259,21 @@ export class EnginePlugin implements IEngine {
     status: TaskStatus | null,
     completed: boolean | null
   ): Promise<TimerRepositoryState> {
+    const state = await this.persistence.core.load();
+    if (name) {
+      validateTaskName(name);
+    }
+    if (state) {
+      validateTaskHierarchy(taskId, parentTaskId, state.tasks);
+    }
     return this.persistence.tasks.update(taskId, name, parentTaskId, status, completed);
   }
 
   async renameTask(taskId: string, name: string): Promise<TimerRepositoryState> {
+    validateTaskName(name);
     return this.persistence.tasks.rename(taskId, name);
   }
+
 
   async deleteTask(taskId: string): Promise<TimerRepositoryState> {
     return this.persistence.tasks.delete(taskId);

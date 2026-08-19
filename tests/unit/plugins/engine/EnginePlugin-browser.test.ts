@@ -372,5 +372,32 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       expect(mockImplementation.core.reset).toHaveBeenCalled();
     });
   });
+
+  describe('Validation Enforcement', () => {
+    it('should throw when adding project with empty name', async () => {
+      await expect(plugin.addProject({ name: '   ', color: '#ff0000' }))
+        .rejects.toThrow('Project name cannot be empty');
+    });
+
+    it('should throw when adding project with duplicate name', async () => {
+      await expect(plugin.addProject({ name: 'Project 1', color: '#ff0000' }))
+        .rejects.toThrow('Project with name "Project 1" already exists');
+    });
+
+    it('should throw when adding task with empty name', async () => {
+      await expect(plugin.addTask({ projectId: 'p1', name: '' }))
+        .rejects.toThrow('Task name cannot be empty');
+    });
+
+    it('should throw when adding circular task hierarchy', async () => {
+      mockState.tasks = [
+        { id: 't1', projectId: 'p1', parentTaskId: null, name: 'Root', createdAt: '2026-06-12T00:00:00Z', completed: false },
+        { id: 't2', projectId: 'p1', parentTaskId: 't1', name: 'Sub', createdAt: '2026-06-12T00:00:00Z', completed: false },
+      ];
+      await expect(plugin.addTask({ projectId: 'p1', name: 'Deep Sub', parentTaskId: 't2' }))
+        .rejects.toThrow('Cannot nest tasks more than one level deep');
+    });
+  });
 });
+
 
