@@ -52,6 +52,7 @@ export function TaskCard({
 
   return (
     <div
+      data-testid={`compact-task-card-${task.id}`}
       className={`p-2 rounded-xl transition-colors border ${resolvedTheme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/5'
         }`}
     >
@@ -64,10 +65,11 @@ export function TaskCard({
         </span>
 
         <button
+          data-testid={`compact-timer-btn-${task.id}`}
           onClick={handleTimerClick}
           className={`p-1.5 rounded-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer ${isRootActive
-              ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
-              : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30'
+            ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
+            : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30'
             }`}
           title={timerTitle}
           aria-label={timerTitle}

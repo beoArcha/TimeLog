@@ -6,6 +6,12 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
   });
 
   test('should correctly render main layout elements in a clean state', async ({ mainPage, page }) => {
+    await mainPage.seedStorage({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
     await expect(mainPage.headerLogo).toBeVisible();
     await expect(mainPage.tabMain).toBeVisible();
     await expect(mainPage.tabReports).toBeVisible();
@@ -28,14 +34,14 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
   test('should allow a complete workflow of project and task creation', async ({ mainPage }) => {
     await mainPage.createProject('Projekt Alpha E2E', 'violet');
 
-    const projectCard = mainPage.projectsListContainer.locator('[id^="project-item-"]');
-    await expect(projectCard).toContainText('Projekt Alpha E2E');
+    const projectCard = mainPage.projectsListContainer.locator('[id^="project-item-"]', { hasText: 'Projekt Alpha E2E' });
+    await expect(projectCard).toBeVisible();
     await mainPage.selectProject('Projekt Alpha E2E');
     await expect(mainPage.newTaskInput).toBeVisible();
     await mainPage.createTask('Zadanie Główne E2E');
 
-    const taskCard = mainPage.tasksTreeContainer.locator('[id^="root-task-card-"]');
-    await expect(taskCard).toContainText('Zadanie Główne E2E');
+    const taskCard = mainPage.tasksTreeContainer.locator('[id^="root-task-card-"]', { hasText: 'Zadanie Główne E2E' });
+    await expect(taskCard).toBeVisible();
   });
 
   test('should correctly seed initial state and control active timer banner', async ({ mainPage }) => {

@@ -24,6 +24,7 @@ export function TaskVisibilityToggle({
   return (
     <div className="pt-1 text-center">
       <button
+        data-testid="compact-toggle-tasks-btn"
         onClick={onToggle}
         className={`w-full py-1 rounded-xl transition-all font-mono text-[9px] uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer ${resolvedTheme === 'light'
             ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
