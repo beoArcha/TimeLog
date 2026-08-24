@@ -126,6 +126,59 @@ fn test_persistence_layer_get_all_and_clear() {
     let tasks = persistence.tasks.get_all().unwrap();
     assert_eq!(tasks.len(), 1);
 
+    // Patch project and task
+    let mut proj_to_patch = projects[0].clone();
+    proj_to_patch.name = "PatchedAllProject".to_string();
+    persistence.projects.patch(proj_to_patch).unwrap();
+
+    let mut task_to_patch = tasks[0].clone();
+    task_to_patch.name = "PatchedAllTask".to_string();
+    persistence.tasks.patch(task_to_patch).unwrap();
+
+    // Create, patch, and archive subtask
+    let subtask = Task {
+        id: "st-all-1".to_string(),
+        project_id: "p-all-1".to_string(),
+        parent_task_id: Some("t-all-1".to_string()),
+        name: "SubTaskAll".to_string(),
+        completed: false,
+        created_at: "2026-06-22T20:00:00Z".to_string(),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
+    };
+    persistence.tasks.create_subtask(subtask.clone()).unwrap();
+
+    let mut subtask_to_patch = subtask;
+    subtask_to_patch.name = "SubTaskAllPatched".to_string();
+    persistence.tasks.patch_subtask(subtask_to_patch).unwrap();
+
+    persistence
+        .tasks
+        .archive_subtask("st-all-1".to_string(), "p-all-1".to_string())
+        .unwrap();
+
+    // Settings runtime config methods
+    persistence
+        .settings
+        .save_runtime_config(oxy_flow::types::RuntimeConfig {
+            id: "cfg_1".to_string(),
+            runtime: "test_runtime".to_string(),
+            config: "{\"mode\":\"test\"}".to_string(),
+            created_at: "2026-06-22T20:00:00Z".to_string(),
+        })
+        .unwrap();
+    let configs = persistence.settings.get_runtime_configs().unwrap();
+    assert_eq!(
+        configs
+            .iter()
+            .find(|c| c.runtime == "test_runtime")
+            .map(|c| c.config.as_str()),
+        Some("{\"mode\":\"test\"}")
+    );
+
     persistence.core.clear_all_data().unwrap();
 
     assert_eq!(persistence.projects.get_all().unwrap().len(), 0);

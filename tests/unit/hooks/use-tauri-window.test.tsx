@@ -20,6 +20,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     setLayoutVariant: vi.fn(),
     textAndIconSize: 'medium' as const,
     minimizeToTray: false,
+    setMinimizeToTray: vi.fn(),
     alwaysOnTopSmall: false,
     setAlwaysOnTopSmall: vi.fn(),
     alwaysOnTopMain: false,
@@ -30,6 +31,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     locale: 'en' as const,
     customTranslations: {},
   };
+
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -147,7 +149,26 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.EXIT_APP);
   });
 
+  it('should_toggle_minimize_to_tray_when_receiving_tray_toggle_minimize_to_tray_event', async () => {
+    const setMinimizeToTray = vi.fn();
+    const { result } = renderHook(() => useTauriWindow({
+      ...defaultProps,
+      minimizeToTray: false,
+      setMinimizeToTray,
+    }));
+    await waitForListeners();
+
+    act(() => {
+      triggerTauriEvent('tray-toggle-minimize-to-tray', true);
+    });
+    await waitForListeners();
+
+    expect(setMinimizeToTray).toHaveBeenCalledWith(true);
+    expect(result.current.trayNotification).toBe('Minimize to tray: ON');
+  });
+
   it('should_hide_window_on_close_requested_when_minimizeToTray_is_true', async () => {
+
     renderHook(() => useTauriWindow({
       ...defaultProps,
       minimizeToTray: true,

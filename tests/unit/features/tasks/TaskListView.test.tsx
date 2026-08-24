@@ -1,7 +1,6 @@
-// @vitest-environment jsdom
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import TaskListView from '@features/tasks/TaskListView';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 import { EngineRouter } from '@common/engine/EngineRouter';
@@ -9,13 +8,18 @@ import { EngineRouter } from '@common/engine/EngineRouter';
 describe('Unit Tests: TaskListView', () => {
   const mockGetProjectStatistics = vi.fn();
 
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetProjectStatistics.mockResolvedValue({
       totalTasks: 0,
       completedTasks: 0,
-      totalDurationSeconds: 0n
+      totalDurationSec: 0
     });
+
     EngineRouter.getInstance().setImplementationForTesting({
       startTimer: vi.fn(),
       stopTimer: vi.fn(),
@@ -23,6 +27,7 @@ describe('Unit Tests: TaskListView', () => {
       getProjectStatistics: mockGetProjectStatistics,
     } as any);
   });
+
 
   const mockState = {
     ...getMockOxyFlowState(),
@@ -46,5 +51,32 @@ describe('Unit Tests: TaskListView', () => {
     });
 
     await screen.findByText('Total Duration');
+  });
+
+  it('should render project header card with synchronous metrics immediately', async () => {
+    const stateWithMetrics = {
+      ...mockState,
+      metrics: {
+        snapshotNowIso: '2026-06-15T12:00:00Z',
+        tasks: {},
+        projects: {
+          p1: {
+            projectId: 'p1',
+            totalElapsedSeconds: 7200,
+            todayElapsedSeconds: 3600,
+            thisWeekElapsedSeconds: 7200,
+            activeTaskCount: 2,
+            completedTaskCount: 1,
+            isRunning: false,
+          },
+        },
+      },
+    };
+
+    render(<TaskListView state={stateWithMetrics} isCondensed={false} />);
+    expect(screen.getByText(/Selected Project/i)).not.toBeNull();
+    expect(screen.getByText('Total Duration')).not.toBeNull();
+    expect(screen.getByTestId('stats-cards-grid')).not.toBeNull();
+    expect(screen.queryByTestId('stats-skeleton-grid')).toBeNull();
   });
 });

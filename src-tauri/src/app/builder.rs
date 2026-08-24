@@ -6,7 +6,7 @@ use crate::commands::{
 };
 use crate::common::constants::*;
 use crate::tray;
-use crate::types::FrontendEvent;
+use crate::types::{FrontendEvent, LayoutVariant};
 
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -74,15 +74,34 @@ fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
     let persistence =
         std::sync::Arc::new(crate::persistence::Persistence::new(&persistence_config)?);
 
+    let initial_settings = persistence.settings.get().unwrap_or_default();
+    let initial_minimize_to_tray = initial_settings.minimize_to_tray.unwrap_or(true);
+    let initial_gui_variant = initial_settings
+        .gui_variant
+        .as_deref()
+        .and_then(LayoutVariant::from_str_opt)
+        .unwrap_or_default();
+    let initial_always_on_top = if initial_gui_variant == LayoutVariant::Compact {
+        initial_settings.always_on_top_small.unwrap_or(false)
+    } else {
+        initial_settings.always_on_top_main.unwrap_or(false)
+    };
+
+    let (tray_menu, tray_handles) = tray::build_tray_menu(
+        app,
+        initial_gui_variant,
+        initial_always_on_top,
+        initial_minimize_to_tray,
+    )?;
+
     app.manage(AppState {
         persistence,
         was_maximized: std::sync::atomic::AtomicBool::new(false),
-        minimize_to_tray: std::sync::atomic::AtomicBool::new(true),
+        minimize_to_tray: std::sync::atomic::AtomicBool::new(initial_minimize_to_tray),
+        tray_handles: Some(tray_handles),
     });
 
-    let tray_menu = tray::build_tray_menu(app)?;
-
-    let _tray = TrayIconBuilder::new()
+    let _tray = TrayIconBuilder::with_id("main_tray")
         .icon(app.default_window_icon().unwrap().clone())
         .tooltip(APP_NAME)
         .menu(&tray_menu)

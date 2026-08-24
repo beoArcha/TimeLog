@@ -10,8 +10,9 @@ import { useEngine } from '@common/hooks/EngineContext';
 export default function DaemonStatusBar() {
   const { locale, customTranslations } = useLocale();
   const { resolvedTheme } = useSettings();
-  const { logs } = useData();
-  const { engineState, enginePID, handleMinimizeToTray } = useEngine();;
+  const { logs, engineState, enginePID } = useData();
+  const { handleMinimizeToTray } = useEngine();
+
 
   const activeRunningLogs = logs.filter(l => l.endTime === null);
 

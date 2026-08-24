@@ -22,6 +22,7 @@ export class ReportsPage extends BasePage {
   }
 
   async openReportsTab() {
+    await this.tabReportsBtn.waitFor({ state: 'visible' });
     await this.tabReportsBtn.click();
   }
 

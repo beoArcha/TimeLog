@@ -16,6 +16,7 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     setLayoutVariant: vi.fn(),
     textAndIconSize: 'medium' as const,
     minimizeToTray: false,
+    setMinimizeToTray: vi.fn(),
     alwaysOnTopSmall: false,
     setAlwaysOnTopSmall: vi.fn(),
     alwaysOnTopMain: false,
@@ -26,6 +27,7 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     locale: 'en' as const,
     customTranslations: {},
   };
+
 
   beforeEach(() => {
     vi.clearAllMocks();

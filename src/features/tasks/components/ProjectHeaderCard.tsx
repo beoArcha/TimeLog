@@ -98,24 +98,34 @@ export default function ProjectHeaderCard({
       )}
 
       {stats && !loading && !isCondensed && (
-        <div className="grid grid-cols-3 stats-card-gap mb-3 animate-fade-in">
-          <div className={`stats-card-p rounded-xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+        <div data-testid="stats-cards-grid" className="grid grid-cols-3 stats-card-gap mb-3">
+          <div className={`stats-card-p rounded-xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : theme === 'high-contrast' ? 'bg-black border-2 border-white' : 'bg-[#FCFAF8]/5 border-white/10'
             }`}>
-            <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Total Duration</p>
-            <p className="text-base font-bold font-mono text-orange-500 mt-0.5">{formatSeconds(Number(stats.totalDurationSec))}</p>
+            <p className={`text-[10px] uppercase font-mono tracking-wider ${theme === 'light' ? 'text-[#7A6A61]' : theme === 'high-contrast' ? 'text-white' : 'text-slate-400'}`}>
+              {tProject('TotalDuration')}
+            </p>
+            <p className="text-base font-bold font-mono text-orange-500 mt-0.5">
+              {formatSeconds(Number(stats.totalDurationSec ?? (stats as unknown as { totalDurationSeconds?: number }).totalDurationSeconds ?? 0) || 0)}
+            </p>
           </div>
-          <div className={`stats-card-p rounded-xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+
+          <div className={`stats-card-p rounded-xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : theme === 'high-contrast' ? 'bg-black border-2 border-white' : 'bg-[#FCFAF8]/5 border-white/10'
             }`}>
-            <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Total Tasks</p>
-            <p className="text-base font-bold text-slate-200 mt-0.5">{stats.totalTasks}</p>
+            <p className={`text-[10px] uppercase font-mono tracking-wider ${theme === 'light' ? 'text-[#7A6A61]' : theme === 'high-contrast' ? 'text-white' : 'text-slate-400'}`}>
+              {tProject('TotalTasks')}
+            </p>
+            <p className={`text-base font-bold mt-0.5 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-100'}`}>{stats.totalTasks}</p>
           </div>
-          <div className={`stats-card-p rounded-xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+
+          <div className={`stats-card-p rounded-xl border transition-all ${theme === 'light' ? 'bg-[#F4EFEA]/80 border-[#DFD7CB]' : theme === 'high-contrast' ? 'bg-black border-2 border-white' : 'bg-[#FCFAF8]/5 border-white/10'
             }`}>
-            <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Completed Tasks</p>
-            <p className="text-base font-bold text-slate-200 mt-0.5 flex items-center justify-between">
+            <p className={`text-[10px] uppercase font-mono tracking-wider ${theme === 'light' ? 'text-[#7A6A61]' : theme === 'high-contrast' ? 'text-white' : 'text-slate-400'}`}>
+              {tProject('CompletedTasks')}
+            </p>
+            <p className={`text-base font-bold mt-0.5 flex items-center justify-between ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-100'}`}>
               <span>{stats.completedTasks}</span>
               {stats.totalTasks > 0 && (
-                <span className="text-xs text-emerald-450">
+                <span className="text-xs text-emerald-500 dark:text-emerald-400 font-semibold">
                   {Math.round((stats.completedTasks / stats.totalTasks) * 100)}%
                 </span>
               )}
@@ -123,6 +133,7 @@ export default function ProjectHeaderCard({
           </div>
         </div>
       )}
+
 
       {/* Add Root Task Form */}
       <form onSubmit={onAddTaskSubmit} className={`flex gap-2 ${isCondensed ? 'mt-2' : ''}`}>
@@ -148,4 +159,3 @@ export default function ProjectHeaderCard({
     </div>
   );
 }
-

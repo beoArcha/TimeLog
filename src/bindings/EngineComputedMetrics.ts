@@ -2,8 +2,4 @@
 import type { ProjectComputedMetrics } from "./ProjectComputedMetrics";
 import type { TaskComputedMetrics } from "./TaskComputedMetrics";
 
-export type EngineComputedMetrics = {
-  snapshotNowIso: string;
-  tasks: Record<string, TaskComputedMetrics>;
-  projects: Record<string, ProjectComputedMetrics>;
-};
+export type EngineComputedMetrics = { snapshotNowIso: string, tasks: { [key in string]?: TaskComputedMetrics }, projects: { [key in string]?: ProjectComputedMetrics }, };

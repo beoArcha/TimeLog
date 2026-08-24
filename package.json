@@ -1,7 +1,7 @@
 {
   "name": "oxy-flow",
   "private": true,
-  "version": "1.7.5",
+  "version": "1.6.6",
   "license": "MPL-2.0",
   "type": "module",
   "scripts": {
@@ -24,7 +24,7 @@
     "test:integration": "vitest run tests/integration",
     "test:coverage": "vitest run --coverage",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
-    "test:rust:coverage": "cargo test --manifest-path src-tauri/Cargo.toml -- --no-run && cargo test --manifest-path src-tauri/Cargo.toml --coverage",
+    "test:rust:coverage": "cargo tarpaulin --manifest-path src-tauri/Cargo.toml",
     "build:tauri": "npx @tauri-apps/cli build",
     "build:tauri:debug": "npx @tauri-apps/cli build --debug",
     "build:all": "npm run build && npm run build:tauri",

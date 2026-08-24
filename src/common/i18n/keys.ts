@@ -7,6 +7,8 @@ export type AppKey =
   | 'GuiClosedTitle'
   | 'MaximizeRestore'
   | 'MinimizeToTray'
+  | 'MinimizeToTrayOff'
+  | 'MinimizeToTrayOn'
   | 'OxyFlowMinimizedToTray'
   | 'RestartGui'
   | 'RestoreDefault'
@@ -316,7 +318,16 @@ export type HelpKey =
 export type ProjectKey =
   | 'AddNewProject'
   | 'ChooseProjectColor'
+  | 'ColorTheme'
+  | 'CompletedTasks'
+  | 'Description'
+  | 'DescriptionPlaceholder'
+  | 'EditProjectTitle'
+  | 'EmojiIcon'
   | 'EnterProjectName'
+  | 'HideOptions'
+  | 'IconPlaceholder'
+  | 'MoreOptions'
   | 'NewProject'
   | 'NoProjects'
   | 'NoProjectsYet'
@@ -324,7 +335,12 @@ export type ProjectKey =
   | 'ProjectTotalTime'
   | 'ProjectsLabel'
   | 'SelectProject'
-  | 'SelectProjectPlaceholder';
+  | 'SelectProjectPlaceholder'
+  | 'Tags'
+  | 'TagsPlaceholder'
+  | 'TotalDuration'
+  | 'TotalTasks';
+
 
 export type ReportKey =
   | 'AccumulatedMonthSeconds'
@@ -382,6 +398,7 @@ export type TaskKey =
   | 'AddTask'
   | 'CounterLabel'
   | 'CreateMainTaskHint'
+  | 'DeleteTask'
   | 'EnterMainTaskName'
   | 'EnterSubtaskName'
   | 'InProgressLabel'
@@ -393,6 +410,7 @@ export type TaskKey =
   | 'TaskName'
   | 'TasksAndSubtasks'
   | 'TaskRequired';
+
 
 export type TimerKey =
   | 'ActiveTracker'

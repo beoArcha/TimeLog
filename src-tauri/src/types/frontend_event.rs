@@ -7,6 +7,7 @@ use ts_rs::TS;
 pub enum FrontendEvent {
     TraySetGuiVariant,
     TrayToggleOnTop,
+    TrayToggleMinimizeToTray,
     TrayStopAllTimers,
     NativeCloseRequested,
     NativeWindowMaximized,
@@ -20,6 +21,7 @@ impl FrontendEvent {
         match self {
             FrontendEvent::TraySetGuiVariant => "tray-set-gui-variant",
             FrontendEvent::TrayToggleOnTop => "tray-toggle-on-top",
+            FrontendEvent::TrayToggleMinimizeToTray => "tray-toggle-minimize-to-tray",
             FrontendEvent::TrayStopAllTimers => "tray-stop-all-timers",
             FrontendEvent::NativeCloseRequested => "native-close-requested",
             FrontendEvent::NativeWindowMaximized => "native-window-maximized",

@@ -69,4 +69,40 @@ describe('Unit Tests: useProjectStatistics', () => {
     });
     expect(mockGetProjectStatistics).toHaveBeenCalledWith('p1');
   });
+
+  it('should compute statistics synchronously when metrics are provided without loading flicker', () => {
+    const mockMetrics: import('@bindings/EngineComputedMetrics').EngineComputedMetrics = {
+      snapshotNowIso: '2026-06-15T12:00:00Z',
+      tasks: {},
+      projects: {
+        p1: {
+          projectId: 'p1',
+          totalElapsedSeconds: 3600,
+          todayElapsedSeconds: 1800,
+          thisWeekElapsedSeconds: 3600,
+          activeTaskCount: 5,
+          completedTaskCount: 3,
+          isRunning: true,
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useProjectStatistics({
+      selectedProject: selectedProj,
+      tasks: [],
+      logs: [],
+      nowIso: '2026-06-15T12:00:00Z',
+      metrics: mockMetrics,
+    }));
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.projectDurationSeconds).toBe(3600);
+    expect(result.current.stats).toEqual({
+      totalDurationSec: 3600,
+      totalTasks: 8,
+      completedTasks: 3,
+    });
+
+    expect(mockGetProjectStatistics).not.toHaveBeenCalled();
+  });
 });

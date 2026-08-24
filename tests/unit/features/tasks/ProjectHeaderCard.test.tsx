@@ -111,7 +111,7 @@ describe('Unit Tests: ProjectHeaderCard', () => {
 
   it('Given stats provided, When not loading, Then it should render duration, total tasks, and completion ratio', () => {
     const mockStats: ProjectStatistics = {
-      totalDurationSec: 5400n,
+      totalDurationSec: 5400,
       totalTasks: 5,
       completedTasks: 2
     };
@@ -138,10 +138,11 @@ describe('Unit Tests: ProjectHeaderCard', () => {
 
   it('Given zero tasks in stats, When rendered, Then it should not show completion percentage', () => {
     const mockStats: ProjectStatistics = {
-      totalDurationSec: 0n,
+      totalDurationSec: 0,
       totalTasks: 0,
       completedTasks: 0
     };
+
 
     render(
       <ProjectHeaderCard

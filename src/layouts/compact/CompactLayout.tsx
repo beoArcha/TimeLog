@@ -101,6 +101,7 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
         <AnimatePresence>
           {isCompactExpanded && (
             <motion.div
+              data-testid="compact-tasks-drawer"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
