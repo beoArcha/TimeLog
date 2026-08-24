@@ -117,7 +117,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 onClick={() => setShowAddAdvanced(!showAddAdvanced)}
                 className="text-[10px] font-mono text-slate-400 hover:text-orange-455 transition-colors uppercase tracking-wider cursor-pointer"
               >
-                {showAddAdvanced ? 'Hide Options' : 'More Options'}
+                {translate(locale, 'project', showAddAdvanced ? 'HideOptions' : 'MoreOptions', customTranslations)}
               </button>
             </div>
 
@@ -127,7 +127,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   <div className="w-1/3">
                     <input
                       type="text"
-                      placeholder="Icon (🚀)"
+                      placeholder={translate(locale, 'project', 'IconPlaceholder', customTranslations)}
                       maxLength={2}
                       value={newProjectIcon}
                       onChange={e => setNewProjectIcon(e.target.value)}
@@ -140,7 +140,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   <div className="w-2/3">
                     <input
                       type="text"
-                      placeholder="Tags (tag1, tag2)"
+                      placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
                       value={newProjectTags}
                       onChange={e => setNewProjectTags(e.target.value)}
                       className={`w-full px-2 py-1 border rounded-lg outline-none text-xs ${theme === 'light'
@@ -151,7 +151,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   </div>
                 </div>
                 <textarea
-                  placeholder="Project description..."
+                  placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
                   value={newProjectDesc}
                   onChange={e => setNewProjectDesc(e.target.value)}
                   className={`w-full px-2 py-1 border rounded-lg outline-none text-xs h-10 resize-none ${theme === 'light'
@@ -161,6 +161,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 />
               </div>
             )}
+
 
             <div className={`flex flex-wrap items-center justify-between gap-section mt-1.5`}>
               <div className="flex flex-wrap gap-1.5">
@@ -337,12 +338,14 @@ export default function Sidebar({ state }: { state: GuiState }) {
             }`}>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Pencil className="w-5 h-5 text-orange-450" />
-              Edit Project Details
+              {translate(locale, 'project', 'EditProjectTitle', customTranslations)}
             </h3>
 
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">Project Name</label>
+                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  {translate(locale, 'project', 'ProjectName', customTranslations)}
+                </label>
                 <input
                   type="text"
                   value={editProjName}
@@ -354,7 +357,9 @@ export default function Sidebar({ state }: { state: GuiState }) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">Emoji Icon</label>
+                  <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                    {translate(locale, 'project', 'EmojiIcon', customTranslations)}
+                  </label>
                   <input
                     type="text"
                     placeholder="🚀"
@@ -367,7 +372,9 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">Color Theme</label>
+                  <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                    {translate(locale, 'project', 'ColorTheme', customTranslations)}
+                  </label>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {PROJECT_COLORS.map(col => (
                       <button
@@ -387,9 +394,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
               </div>
 
               <div>
-                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">Description</label>
+                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  {translate(locale, 'project', 'Description', customTranslations)}
+                </label>
                 <textarea
-                  placeholder="Optional project description..."
+                  placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
                   value={editProjDesc}
                   onChange={e => setEditProjDesc(e.target.value)}
                   className={`w-full px-3 py-2 border rounded-xl outline-none h-16 resize-none focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
@@ -398,10 +407,12 @@ export default function Sidebar({ state }: { state: GuiState }) {
               </div>
 
               <div>
-                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">Tags (comma-separated)</label>
+                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  {translate(locale, 'project', 'Tags', customTranslations)}
+                </label>
                 <input
                   type="text"
-                  placeholder="work, personal, design"
+                  placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
                   value={editProjTags}
                   onChange={e => setEditProjTags(e.target.value)}
                   className={`w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
@@ -416,7 +427,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   className={`px-4 py-2 text-sm font-semibold rounded-xl border cursor-pointer ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421] hover:bg-slate-50' : 'bg-transparent border-white/10 hover:bg-white/5 text-white'
                     }`}
                 >
-                  Cancel
+                  {translate(locale, 'common', 'Cancel', customTranslations)}
                 </button>
                 <button
                   type="button"
@@ -436,13 +447,14 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   }}
                   className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 rounded-xl shadow-md cursor-pointer border-0"
                 >
-                  Save Changes
+                  {translate(locale, 'common', 'Save', customTranslations)}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

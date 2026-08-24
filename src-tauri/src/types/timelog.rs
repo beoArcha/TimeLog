@@ -122,7 +122,9 @@ pub struct ElapsedRangeFilter {
 #[serde(rename_all = "camelCase")]
 pub struct TaskComputedMetrics {
     pub task_id: String,
+    #[ts(type = "number")]
     pub elapsed_seconds: u64,
+    #[ts(type = "number")]
     pub self_elapsed_seconds: u64,
     pub is_running: bool,
     pub has_running_child: bool,
@@ -133,8 +135,11 @@ pub struct TaskComputedMetrics {
 #[serde(rename_all = "camelCase")]
 pub struct ProjectComputedMetrics {
     pub project_id: String,
+    #[ts(type = "number")]
     pub total_elapsed_seconds: u64,
+    #[ts(type = "number")]
     pub today_elapsed_seconds: u64,
+    #[ts(type = "number")]
     pub this_week_elapsed_seconds: u64,
     pub active_task_count: usize,
     pub completed_task_count: usize,

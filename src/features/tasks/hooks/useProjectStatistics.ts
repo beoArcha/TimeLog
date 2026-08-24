@@ -31,31 +31,57 @@ export function useProjectStatistics({
   nowIso,
   metrics,
 }: UseProjectStatisticsProps): UseProjectStatisticsResult {
-  const [stats, setStats] = useState<ProjectStatistics | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [asyncStats, setAsyncStats] = useState<ProjectStatistics | null>(null);
+  const [asyncLoading, setAsyncLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { t: tCommon } = useTranslation('common');
 
   const projectId = selectedProject?.id ?? null;
+  const projectMetric = projectId && metrics?.projects ? metrics.projects[projectId] : null;
+
+  const projectDurationSeconds = useMemo(() => {
+    if (!projectId) return 0;
+    if (projectMetric) {
+      return projectMetric.totalElapsedSeconds;
+    }
+    return nowIso ? getProjectDurationSeconds(projectId, tasks, logs, nowIso) : 0;
+  }, [projectId, projectMetric, tasks, logs, nowIso]);
+
+  const statsFromMetrics = useMemo<ProjectStatistics | null>(() => {
+    if (!projectId || !projectMetric) return null;
+    return {
+      totalDurationSec: projectMetric.totalElapsedSeconds,
+      totalTasks: projectMetric.activeTaskCount + projectMetric.completedTaskCount,
+      completedTasks: projectMetric.completedTaskCount,
+    };
+  }, [projectId, projectMetric]);
+
+  const fallbackStats = useMemo<ProjectStatistics | null>(() => {
+    if (!projectId) return null;
+    const projectTasks = tasks.filter(t => t.projectId === projectId);
+    const totalTasks = projectTasks.length;
+    const completedTasks = projectTasks.filter(t => t.completed).length;
+    return {
+      totalDurationSec: projectDurationSeconds,
+      totalTasks,
+      completedTasks,
+    };
+  }, [projectId, tasks, projectDurationSeconds]);
+
 
   useEffect(() => {
-    if (!projectId) {
-      queueMicrotask(() => {
-        setStats(null);
-        setLoading(false);
-        setError(null);
-      });
+    if (!projectId || projectMetric) {
       return;
     }
 
     let isMounted = true;
     const fetchStats = async () => {
       try {
-        setLoading(true);
-        setError(null);
+        setAsyncLoading(true);
         const data = await EngineRouter.getInstance().getProjectStatistics(projectId);
         if (isMounted) {
-          setStats(data);
+          setAsyncStats(data);
+          setError(null);
         }
       } catch (err) {
         if (isMounted) {
@@ -66,7 +92,7 @@ export function useProjectStatistics({
         }
       } finally {
         if (isMounted) {
-          setLoading(false);
+          setAsyncLoading(false);
         }
       }
     };
@@ -76,20 +102,15 @@ export function useProjectStatistics({
     return () => {
       isMounted = false;
     };
-  }, [projectId, tasks, logs, tCommon]);
+  }, [projectId, projectMetric, tCommon]);
 
-  const projectDurationSeconds = useMemo(() => {
-    if (!projectId) return 0;
-    if (metrics?.projects?.[projectId]) {
-      return metrics.projects[projectId].totalElapsedSeconds;
-    }
-    return nowIso ? getProjectDurationSeconds(projectId, tasks, logs, nowIso) : 0;
-  }, [projectId, metrics, tasks, logs, nowIso]);
+  const stats = statsFromMetrics ?? asyncStats ?? fallbackStats;
+  const loading = projectMetric ? false : asyncLoading;
 
   return {
     stats,
     loading,
-    error,
+    error: projectId ? error : null,
     projectDurationSeconds,
   };
 }

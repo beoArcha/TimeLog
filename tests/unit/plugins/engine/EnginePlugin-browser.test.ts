@@ -129,7 +129,7 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       const stats = await plugin.getProjectStatistics('p1');
       expect(stats.totalTasks).toBe(0);
       expect(stats.completedTasks).toBe(0);
-      expect(stats.totalDurationSec).toBe(BigInt(0));
+      expect(stats.totalDurationSec).toBe(0);
     });
 
     it('Given project with tasks and logs, Then it should compute statistics correctly', async () => {
@@ -140,7 +140,7 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       const stats = await plugin.getProjectStatistics('p1');
       expect(stats.totalTasks).toBe(1);
       expect(stats.completedTasks).toBe(0);
-      expect(stats.totalDurationSec).toBe(BigInt(1800));
+      expect(stats.totalDurationSec).toBe(1800);
     });
 
     it('Given project with completed tasks, Then it should count them correctly', async () => {
@@ -156,7 +156,7 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       const stats = await plugin.getProjectStatistics('p-nonexistent');
       expect(stats.totalTasks).toBe(0);
       expect(stats.completedTasks).toBe(0);
-      expect(stats.totalDurationSec).toBe(BigInt(0));
+      expect(stats.totalDurationSec).toBe(0);
     });
 
     it('Given active log without endTime, Then it should use current time for duration', async () => {
@@ -168,11 +168,12 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       ];
 
       const stats = await plugin.getProjectStatistics('p1');
-      expect(stats.totalDurationSec).toBe(BigInt(60));
+      expect(stats.totalDurationSec).toBe(60);
 
       vi.useRealTimers();
     });
   });
+
 
   describe('editTimeLog', () => {
     it('Given state is null, Then it should throw Error', async () => {

@@ -180,7 +180,8 @@ describe('Integration Tests: EngineRouter with EngineCommands and EnginePlugin',
       const stats = await engine.getProjectStatistics(projId);
       expect(stats.totalTasks).toBe(2);
       expect(stats.completedTasks).toBe(1);
-      expect(stats.totalDurationSec).toBe(BigInt(4500));
+      expect(stats.totalDurationSec).toBe(4500);
     });
   });
+
 });

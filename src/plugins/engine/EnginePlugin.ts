@@ -210,13 +210,13 @@ export class EnginePlugin implements IEngine {
   async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
     const state = await this.persistence.core.load();
     if (!state) {
-      return { totalDurationSec: BigInt(0), totalTasks: 0, completedTasks: 0 };
+      return { totalDurationSec: 0, totalTasks: 0, completedTasks: 0 };
     }
 
     const projectTasks = state.tasks.filter(t => t.projectId === projectId);
     const totalTasks = projectTasks.length;
     const completedTasks = projectTasks.filter(t => t.completed).length;
-    const totalDurationSec = BigInt(calculateProjectElapsed(projectId, state.tasks, state.logs));
+    const totalDurationSec = calculateProjectElapsed(projectId, state.tasks, state.logs);
 
     return {
       totalDurationSec,
@@ -224,6 +224,7 @@ export class EnginePlugin implements IEngine {
       completedTasks,
     };
   }
+
 
   // Tasks
   async addTask(input: CreateTaskInput): Promise<TimerRepositoryState> {

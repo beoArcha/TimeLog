@@ -42,6 +42,7 @@ pub struct Project {
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ProjectStatistics {
+    #[ts(type = "number")]
     pub total_duration_sec: u64,
     pub total_tasks: u32,
     pub completed_tasks: u32,

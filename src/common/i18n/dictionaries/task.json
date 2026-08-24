@@ -2,6 +2,7 @@
   "en": {
     "AddTask": "Add Task",
     "AddSubtask": "Add Subtask",
+    "DeleteTask": "Delete task",
     "TaskName": "Task Name",
     "AddSubtaskTitle": "Add New Subtask",
     "EnterMainTaskName": "Enter main task name",
@@ -20,6 +21,7 @@
   "pl": {
     "AddTask": "Dodaj zadanie",
     "AddSubtask": "Dodaj podzadanie",
+    "DeleteTask": "Usuń zadanie",
     "TaskName": "Nazwa zadania",
     "AddSubtaskTitle": "Dodaj Nowe Podzadanie",
     "EnterMainTaskName": "Wpisz nazwę zadania głównego",
@@ -38,6 +40,7 @@
   "de": {
     "AddTask": "Aufgabe hinzufügen",
     "AddSubtask": "Unteraufgabe hinzufügen",
+    "DeleteTask": "Aufgabe löschen",
     "TaskName": "Aufgabenname",
     "AddSubtaskTitle": "Neue Unteraufgabe hinzufügen",
     "EnterMainTaskName": "Name der Hauptaufgabe eingeben",
@@ -56,6 +59,7 @@
   "es": {
     "AddTask": "Agregar Tarea",
     "AddSubtask": "Agregar Subtarea",
+    "DeleteTask": "Eliminar tarea",
     "TaskName": "Nombre de la Tarea",
     "AddSubtaskTitle": "Añadir Nueva Subtarea",
     "EnterMainTaskName": "Ingresar nombre de la tarea principal",
@@ -74,6 +78,7 @@
   "fr": {
     "AddTask": "Ajouter une Tâche",
     "AddSubtask": "Ajouter une Sous-tâche",
+    "DeleteTask": "Supprimer la tâche",
     "TaskName": "Nom de la tâche",
     "AddSubtaskTitle": "Ajouter une nouvelle sous-tâche",
     "EnterMainTaskName": "Entrez le nom de la tâche",
@@ -92,6 +97,7 @@
   "pt-br": {
     "AddTask": "Adicionar Tarefa",
     "AddSubtask": "Adicionar Subtarefa",
+    "DeleteTask": "Excluir tarefa",
     "TaskName": "Nome da Tarefa",
     "AddSubtaskTitle": "Adicionar Nova Subtarefa",
     "EnterMainTaskName": "Digite o nome da tarefa principal",
