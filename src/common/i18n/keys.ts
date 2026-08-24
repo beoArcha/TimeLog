@@ -7,6 +7,8 @@ export type AppKey =
   | 'GuiClosedTitle'
   | 'MaximizeRestore'
   | 'MinimizeToTray'
+  | 'MinimizeToTrayOff'
+  | 'MinimizeToTrayOn'
   | 'OxyFlowMinimizedToTray'
   | 'RestartGui'
   | 'RestoreDefault'

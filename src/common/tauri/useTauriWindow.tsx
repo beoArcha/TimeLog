@@ -136,7 +136,7 @@ export const useTauriWindow = ({
           if (!active) return;
           stateRef.current.setLayoutVariant('full');
           stateRef.current.setLastNonCompactVariant('full');
-          stateRef.current.showToast("Rozmiar zmieniony na PEŁNY (Maksymalizacja)");
+          stateRef.current.showToast(translate(stateRef.current.locale, 'app', 'MaximizeRestore', stateRef.current.customTranslations));
         });
         unlisteners.push(uMax);
 
@@ -154,7 +154,13 @@ export const useTauriWindow = ({
             await handleSetLayoutVariant(payload, stateRef.current.textAndIconSize);
             const flag = payload === 'compact' ? stateRef.current.alwaysOnTopSmall : stateRef.current.alwaysOnTopMain;
             await handleWindowAlwaysOnTop(flag);
-            stateRef.current.showToast(`GUI: ${payload === 'compact' ? 'Kompaktowy' : payload === 'medium' ? 'Średni' : 'Pełny'}`);
+            const sizeLabel = payload === 'compact'
+              ? translate(stateRef.current.locale, 'app', 'SizeSmall', stateRef.current.customTranslations)
+              : payload === 'medium'
+                ? translate(stateRef.current.locale, 'app', 'SizeMedium', stateRef.current.customTranslations)
+                : translate(stateRef.current.locale, 'app', 'SizeLarge', stateRef.current.customTranslations);
+            const prefix = translate(stateRef.current.locale, 'app', 'SizeChanged', stateRef.current.customTranslations);
+            stateRef.current.showToast(`${prefix} ${sizeLabel}`);
           }
         });
         unlisteners.push(uVariant);
@@ -172,14 +178,20 @@ export const useTauriWindow = ({
             stateRef.current.setAlwaysOnTopSmall(prev => {
               const next = !prev;
               handleWindowAlwaysOnTop(next);
-              stateRef.current.showToast(next ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
+              const msg = next
+                ? translate(stateRef.current.locale, 'timer', 'AlwaysOnTopOn', stateRef.current.customTranslations)
+                : translate(stateRef.current.locale, 'timer', 'AlwaysOnTopOff', stateRef.current.customTranslations);
+              stateRef.current.showToast(msg);
               return next;
             });
           } else {
             stateRef.current.setAlwaysOnTopMain(prev => {
               const next = !prev;
               handleWindowAlwaysOnTop(next);
-              stateRef.current.showToast(next ? 'Zawsze na wierzchu: WŁĄCZONE' : 'Zawsze na wierzchu: WYŁĄCZONE');
+              const msg = next
+                ? translate(stateRef.current.locale, 'timer', 'AlwaysOnTopOn', stateRef.current.customTranslations)
+                : translate(stateRef.current.locale, 'timer', 'AlwaysOnTopOff', stateRef.current.customTranslations);
+              stateRef.current.showToast(msg);
               return next;
             });
           }
@@ -190,10 +202,12 @@ export const useTauriWindow = ({
           if (!active) return;
           const next = typeof event.payload === 'boolean' ? event.payload : !stateRef.current.minimizeToTray;
           stateRef.current.setMinimizeToTray(next);
-          stateRef.current.showToast(next ? 'Minimalizuj do zasobnika: WŁĄCZONE' : 'Minimalizuj do zasobnika: WYŁĄCZONE');
+          const msg = next
+            ? translate(stateRef.current.locale, 'app', 'MinimizeToTrayOn', stateRef.current.customTranslations)
+            : translate(stateRef.current.locale, 'app', 'MinimizeToTrayOff', stateRef.current.customTranslations);
+          stateRef.current.showToast(msg);
         });
         unlisteners.push(uToggleMinTray);
-
 
         const uClose = await listen('native-close-requested' satisfies FrontendEvent, async () => {
           if (!active) return;

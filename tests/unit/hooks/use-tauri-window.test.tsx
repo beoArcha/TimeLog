@@ -151,7 +151,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
 
   it('should_toggle_minimize_to_tray_when_receiving_tray_toggle_minimize_to_tray_event', async () => {
     const setMinimizeToTray = vi.fn();
-    renderHook(() => useTauriWindow({
+    const { result } = renderHook(() => useTauriWindow({
       ...defaultProps,
       minimizeToTray: false,
       setMinimizeToTray,
@@ -164,6 +164,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     await waitForListeners();
 
     expect(setMinimizeToTray).toHaveBeenCalledWith(true);
+    expect(result.current.trayNotification).toBe('Minimize to tray: ON');
   });
 
   it('should_hide_window_on_close_requested_when_minimizeToTray_is_true', async () => {
