@@ -15,6 +15,7 @@ pub fn build_tray_menu(
     app: &App,
     initial_variant: LayoutVariant,
     initial_always_on_top: bool,
+    initial_minimize_to_tray: bool,
 ) -> tauri::Result<(Menu<tauri::Wry>, TrayCheckHandles)> {
     let locale = get_system_locale();
 
@@ -59,6 +60,14 @@ pub fn build_tray_menu(
         initial_always_on_top,
         None::<&str>,
     )?;
+    let toggle_minimize_to_tray = CheckMenuItem::with_id(
+        app,
+        TrayMenuId::ToggleMinimizeToTray.as_str(),
+        TrayMenuId::ToggleMinimizeToTray.get_text(locale),
+        true,
+        initial_minimize_to_tray,
+        None::<&str>,
+    )?;
     let stop_all = MenuItem::with_id(
         app,
         TrayMenuId::StopAllTimers.as_str(),
@@ -85,6 +94,7 @@ pub fn build_tray_menu(
             &gui_full,
             &sep2,
             &toggle_on_top,
+            &toggle_minimize_to_tray,
             &stop_all,
             &sep3,
             &quit_item,
@@ -96,6 +106,7 @@ pub fn build_tray_menu(
         gui_medium,
         gui_full,
         toggle_on_top,
+        toggle_minimize_to_tray,
     };
 
     Ok((tray_menu, handles))

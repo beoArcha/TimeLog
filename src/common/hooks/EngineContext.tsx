@@ -33,7 +33,7 @@ export const useEngine = () => {
 };
 
 export const EngineProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { layoutVariant, setLayoutVariant, textAndIconSize, minimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, lastNonCompactVariant, setLastNonCompactVariant } = useSettings();
+  const { layoutVariant, setLayoutVariant, textAndIconSize, minimizeToTray, setMinimizeToTray, alwaysOnTopSmall, setAlwaysOnTopSmall, alwaysOnTopMain, setAlwaysOnTopMain, lastNonCompactVariant, setLastNonCompactVariant } = useSettings();
   const { handleStopTimer, activeLog, selectedTaskId, handleStartTimer, computedMetrics } = useData();
   const { locale, customTranslations } = useLocale();
 
@@ -42,6 +42,7 @@ export const EngineProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setLayoutVariant,
     textAndIconSize,
     minimizeToTray,
+    setMinimizeToTray,
     alwaysOnTopSmall,
     setAlwaysOnTopSmall,
     alwaysOnTopMain,
@@ -52,6 +53,7 @@ export const EngineProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     locale,
     customTranslations
   });
+
 
   const [activeTab, setActiveTab] = React.useState<'gui' | 'cli' | 'rust'>('gui');
   const [isMediumHeaderOpen, setIsMediumHeaderOpen] = React.useState<boolean>(false);

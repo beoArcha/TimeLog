@@ -8,6 +8,7 @@ pub enum TrayMenuId {
     GuiMedium,
     GuiFull,
     ToggleOnTop,
+    ToggleMinimizeToTray,
     StopAllTimers,
     QuitApp,
 }
@@ -20,6 +21,7 @@ impl TrayMenuId {
             TrayMenuId::GuiMedium => "gui_medium",
             TrayMenuId::GuiFull => "gui_full",
             TrayMenuId::ToggleOnTop => "toggle_on_top",
+            TrayMenuId::ToggleMinimizeToTray => "toggle_minimize_to_tray",
             TrayMenuId::StopAllTimers => "stop_all",
             TrayMenuId::QuitApp => "quit_app",
         }
@@ -33,6 +35,7 @@ impl TrayMenuId {
             "gui_medium" => Some(TrayMenuId::GuiMedium),
             "gui_full" => Some(TrayMenuId::GuiFull),
             "toggle_on_top" => Some(TrayMenuId::ToggleOnTop),
+            "toggle_minimize_to_tray" => Some(TrayMenuId::ToggleMinimizeToTray),
             "stop_all" => Some(TrayMenuId::StopAllTimers),
             "quit_app" => Some(TrayMenuId::QuitApp),
             _ => None,
@@ -46,6 +49,7 @@ impl TrayMenuId {
             TrayMenuId::GuiMedium => TrayItem::GuiMedium,
             TrayMenuId::GuiFull => TrayItem::GuiFull,
             TrayMenuId::ToggleOnTop => TrayItem::ToggleOnTop,
+            TrayMenuId::ToggleMinimizeToTray => TrayItem::ToggleMinimizeToTray,
             TrayMenuId::StopAllTimers => TrayItem::StopAllTimers,
             TrayMenuId::QuitApp => TrayItem::QuitApp,
         }

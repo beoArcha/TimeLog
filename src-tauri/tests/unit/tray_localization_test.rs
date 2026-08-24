@@ -22,6 +22,7 @@ fn test_all_items_across_all_locales() {
         TrayItem::GuiMedium,
         TrayItem::GuiFull,
         TrayItem::ToggleOnTop,
+        TrayItem::ToggleMinimizeToTray,
         TrayItem::StopAllTimers,
         TrayItem::QuitApp,
     ];
@@ -57,6 +58,10 @@ fn test_specific_locale_translations() {
         "Pokaż / Ukryj okno"
     );
     assert_eq!(
+        get_text(TrayItem::ToggleMinimizeToTray, Locale::Pl),
+        "Minimalizuj do zasobnika"
+    );
+    assert_eq!(
         get_text(TrayItem::StopAllTimers, Locale::Pl),
         "Zatrzymaj wszystkie timery"
     );
@@ -68,6 +73,10 @@ fn test_specific_locale_translations() {
     );
     assert_eq!(get_text(TrayItem::GuiCompact, Locale::De), "GUI: Kompakt");
     assert_eq!(
+        get_text(TrayItem::ToggleMinimizeToTray, Locale::De),
+        "In die Taskleiste minimieren"
+    );
+    assert_eq!(
         get_text(TrayItem::QuitApp, Locale::De),
         "Vollständig beenden"
     );
@@ -78,6 +87,10 @@ fn test_specific_locale_translations() {
     );
     assert_eq!(get_text(TrayItem::GuiMedium, Locale::Fr), "GUI: Moyen");
     assert_eq!(
+        get_text(TrayItem::ToggleMinimizeToTray, Locale::Fr),
+        "Réduire dans la zone de notification"
+    );
+    assert_eq!(
         get_text(TrayItem::QuitApp, Locale::Fr),
         "Quitter complètement"
     );
@@ -87,6 +100,10 @@ fn test_specific_locale_translations() {
         "Mostrar / Ocultar ventana"
     );
     assert_eq!(get_text(TrayItem::GuiFull, Locale::Es), "GUI: Completo");
+    assert_eq!(
+        get_text(TrayItem::ToggleMinimizeToTray, Locale::Es),
+        "Minimizar a la bandeja"
+    );
     assert_eq!(
         get_text(TrayItem::QuitApp, Locale::Es),
         "Salir completamente"
@@ -99,6 +116,10 @@ fn test_specific_locale_translations() {
     assert_eq!(
         get_text(TrayItem::ToggleOnTop, Locale::PtBr),
         "Sempre no topo"
+    );
+    assert_eq!(
+        get_text(TrayItem::ToggleMinimizeToTray, Locale::PtBr),
+        "Minimizar para a bandeja"
     );
     assert_eq!(
         get_text(TrayItem::QuitApp, Locale::PtBr),

@@ -10,6 +10,7 @@ pub struct TrayCheckHandles {
     pub gui_medium: CheckMenuItem<tauri::Wry>,
     pub gui_full: CheckMenuItem<tauri::Wry>,
     pub toggle_on_top: CheckMenuItem<tauri::Wry>,
+    pub toggle_minimize_to_tray: CheckMenuItem<tauri::Wry>,
 }
 
 pub struct AppState {

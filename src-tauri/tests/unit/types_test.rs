@@ -74,6 +74,10 @@ fn test_frontend_events_as_str() {
         "tray-toggle-on-top"
     );
     assert_eq!(
+        FrontendEvent::TrayToggleMinimizeToTray.as_str(),
+        "tray-toggle-minimize-to-tray"
+    );
+    assert_eq!(
         FrontendEvent::TrayStopAllTimers.as_str(),
         "tray-stop-all-timers"
     );

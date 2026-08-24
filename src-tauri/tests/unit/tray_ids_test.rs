@@ -9,6 +9,7 @@ fn test_from_str_round_trip() {
         TrayMenuId::GuiMedium,
         TrayMenuId::GuiFull,
         TrayMenuId::ToggleOnTop,
+        TrayMenuId::ToggleMinimizeToTray,
         TrayMenuId::StopAllTimers,
         TrayMenuId::QuitApp,
     ];
@@ -36,6 +37,7 @@ fn test_get_text_delegates_to_localization() {
         TrayMenuId::GuiMedium,
         TrayMenuId::GuiFull,
         TrayMenuId::ToggleOnTop,
+        TrayMenuId::ToggleMinimizeToTray,
         TrayMenuId::StopAllTimers,
         TrayMenuId::QuitApp,
     ];

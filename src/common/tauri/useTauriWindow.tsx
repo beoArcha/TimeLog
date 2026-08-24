@@ -36,6 +36,7 @@ interface TauriWindowProps {
   setLayoutVariant: (variant: LayoutVariant) => void;
   textAndIconSize: TextAndIconSize;
   minimizeToTray: boolean;
+  setMinimizeToTray: React.Dispatch<React.SetStateAction<boolean>>;
   alwaysOnTopSmall: boolean;
   setAlwaysOnTopSmall: React.Dispatch<React.SetStateAction<boolean>>;
   alwaysOnTopMain: boolean;
@@ -50,7 +51,7 @@ interface TauriWindowProps {
 export const useTauriWindow = ({
   layoutVariant, setLayoutVariant,
   textAndIconSize,
-  minimizeToTray,
+  minimizeToTray, setMinimizeToTray,
   alwaysOnTopSmall, setAlwaysOnTopSmall,
   alwaysOnTopMain, setAlwaysOnTopMain,
   lastNonCompactVariant: _lastNonCompactVariant, setLastNonCompactVariant,
@@ -80,6 +81,7 @@ export const useTauriWindow = ({
     setLastNonCompactVariant,
     setAlwaysOnTopSmall,
     setAlwaysOnTopMain,
+    setMinimizeToTray,
   });
 
   useEffect(() => {
@@ -97,6 +99,7 @@ export const useTauriWindow = ({
       setLastNonCompactVariant,
       setAlwaysOnTopSmall,
       setAlwaysOnTopMain,
+      setMinimizeToTray,
     };
   });
 
@@ -182,6 +185,15 @@ export const useTauriWindow = ({
           }
         });
         unlisteners.push(uToggleTop);
+
+        const uToggleMinTray = await listen('tray-toggle-minimize-to-tray' satisfies FrontendEvent, (event) => {
+          if (!active) return;
+          const next = typeof event.payload === 'boolean' ? event.payload : !stateRef.current.minimizeToTray;
+          stateRef.current.setMinimizeToTray(next);
+          stateRef.current.showToast(next ? 'Minimalizuj do zasobnika: WŁĄCZONE' : 'Minimalizuj do zasobnika: WYŁĄCZONE');
+        });
+        unlisteners.push(uToggleMinTray);
+
 
         const uClose = await listen('native-close-requested' satisfies FrontendEvent, async () => {
           if (!active) return;

@@ -87,8 +87,12 @@ fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
         initial_settings.always_on_top_main.unwrap_or(false)
     };
 
-    let (tray_menu, tray_handles) =
-        tray::build_tray_menu(app, initial_gui_variant, initial_always_on_top)?;
+    let (tray_menu, tray_handles) = tray::build_tray_menu(
+        app,
+        initial_gui_variant,
+        initial_always_on_top,
+        initial_minimize_to_tray,
+    )?;
 
     app.manage(AppState {
         persistence,

@@ -21,6 +21,12 @@ pub fn update_tray_always_on_top(state: &AppState, on_top: bool) {
     }
 }
 
+pub fn update_tray_minimize_to_tray(state: &AppState, enabled: bool) {
+    if let Some(ref handles) = state.tray_handles {
+        let _ = handles.toggle_minimize_to_tray.set_checked(enabled);
+    }
+}
+
 fn emit_to_main<R: tauri::Runtime, S: serde::Serialize + Clone>(
     app: &AppHandle<R>,
     event: FrontendEvent,
@@ -32,8 +38,9 @@ fn emit_to_main<R: tauri::Runtime, S: serde::Serialize + Clone>(
             let _ = window.show();
             let _ = window.set_focus();
         }
-        let _ = window.emit(event.as_str(), payload);
+        let _ = window.emit(event.as_str(), payload.clone());
     }
+    let _ = app.emit(event.as_str(), payload);
 }
 
 pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent) {
@@ -80,6 +87,17 @@ pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent
             }
             TrayMenuId::ToggleOnTop => {
                 emit_to_main(app, FrontendEvent::TrayToggleOnTop, (), true);
+            }
+            TrayMenuId::ToggleMinimizeToTray => {
+                let current = state
+                    .minimize_to_tray
+                    .load(std::sync::atomic::Ordering::Relaxed);
+                let next = !current;
+                state
+                    .minimize_to_tray
+                    .store(next, std::sync::atomic::Ordering::Relaxed);
+                update_tray_minimize_to_tray(&state, next);
+                emit_to_main(app, FrontendEvent::TrayToggleMinimizeToTray, next, false);
             }
             TrayMenuId::StopAllTimers => {
                 emit_to_main(app, FrontendEvent::TrayStopAllTimers, (), false);
