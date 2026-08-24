@@ -71,26 +71,22 @@ fn test_engine_elapsed_time_calculations() {
     )
     .unwrap();
 
+    let start_20m_ago = (now - ChronoDuration::minutes(20)).to_rfc3339();
+    let end_15m_ago = (now - ChronoDuration::minutes(15)).to_rfc3339();
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, ?)",
+        ["l3", "t1-sub", &start_20m_ago, &end_15m_ago],
+    )
+    .unwrap();
+
     let subtask_elapsed = engine.calculate_subtask_elapsed("t1-sub").unwrap();
-    assert!(
-        subtask_elapsed.as_secs() >= 598 && subtask_elapsed.as_secs() <= 602,
-        "subtask elapsed: {:?}",
-        subtask_elapsed
-    );
+    assert!(subtask_elapsed.as_secs() >= 898 && subtask_elapsed.as_secs() <= 902);
 
     let task_elapsed = engine.calculate_task_elapsed("t1").unwrap();
-    assert!(
-        task_elapsed.as_secs() >= 898 && task_elapsed.as_secs() <= 902,
-        "task elapsed: {:?}",
-        task_elapsed
-    );
+    assert!(task_elapsed.as_secs() >= 1198 && task_elapsed.as_secs() <= 1202);
 
     let proj_elapsed = engine.calculate_project_elapsed("p1").unwrap();
-    assert!(
-        proj_elapsed.as_secs() >= 898 && proj_elapsed.as_secs() <= 902,
-        "project elapsed: {:?}",
-        proj_elapsed
-    );
+    assert!(proj_elapsed.as_secs() >= 1198 && proj_elapsed.as_secs() <= 1202);
 }
 
 #[test]
@@ -258,13 +254,43 @@ fn test_engine_elapsed_range() {
     // Range filtering: 10:30 to 11:30 -> should give 1800s (from 10:30 to 11:00)
     let filter = oxy_flow::types::ElapsedRangeFilter {
         task_id: Some("t_rng".to_string()),
-        project_id: None,
+        project_id: Some("p_rng".to_string()),
         from: Some("2026-06-15T10:30:00Z".to_string()),
         to: Some("2026-06-15T11:30:00Z".to_string()),
     };
 
     let elapsed = engine.calculate_elapsed_range(&filter).unwrap();
     assert_eq!(elapsed.as_secs(), 1800);
+
+    // Mismatched task_id
+    let filter_mismatch_task = oxy_flow::types::ElapsedRangeFilter {
+        task_id: Some("other_task".to_string()),
+        project_id: None,
+        from: None,
+        to: None,
+    };
+    assert_eq!(
+        engine
+            .calculate_elapsed_range(&filter_mismatch_task)
+            .unwrap()
+            .as_secs(),
+        0
+    );
+
+    // Mismatched project_id
+    let filter_mismatch_proj = oxy_flow::types::ElapsedRangeFilter {
+        task_id: None,
+        project_id: Some("other_proj".to_string()),
+        from: None,
+        to: None,
+    };
+    assert_eq!(
+        engine
+            .calculate_elapsed_range(&filter_mismatch_proj)
+            .unwrap()
+            .as_secs(),
+        0
+    );
 }
 
 #[test]
@@ -361,4 +387,89 @@ fn test_engine_computed_metrics() {
     assert_eq!(p.active_task_count, 2);
     assert_eq!(p.completed_task_count, 0);
     assert_eq!(p.is_running, true);
+}
+
+#[test]
+fn test_engine_edit_log_with_all_fields() {
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_edit_log_all");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let project = Project {
+        id: "p_edit".to_string(),
+        name: "EditProj".to_string(),
+        color: "purple".to_string(),
+        created_at: "2026-06-15T00:00:00Z".to_string(),
+        archived: Some(false),
+        original_name: None,
+        original_color: None,
+        edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
+    };
+    persistence.projects.create(project).unwrap();
+
+    let task1 = Task {
+        id: "t_edit_1".to_string(),
+        project_id: "p_edit".to_string(),
+        parent_task_id: None,
+        name: "EditTask1".to_string(),
+        completed: false,
+        created_at: "2026-06-15T00:00:00Z".to_string(),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
+    };
+    persistence.tasks.create(task1).unwrap();
+
+    let task2 = Task {
+        id: "t_edit_2".to_string(),
+        project_id: "p_edit".to_string(),
+        parent_task_id: None,
+        name: "EditTask2".to_string(),
+        completed: false,
+        created_at: "2026-06-15T00:00:00Z".to_string(),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+        status: Some(oxy_flow::types::TaskStatus::Todo),
+    };
+    persistence.tasks.create(task2).unwrap();
+
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time, note) VALUES (?, ?, ?, ?, ?)",
+        [
+            "l_edit_1",
+            "t_edit_1",
+            "2026-06-15T08:00:00Z",
+            "2026-06-15T09:00:00Z",
+            "Old Note",
+        ],
+    )
+    .unwrap();
+
+    engine
+        .edit_log(
+            "l_edit_1",
+            "t_edit_2",
+            "2026-06-15T08:15:00Z",
+            Some("2026-06-15T09:15:00Z"),
+            Some("New Note"),
+            Some("Correction"),
+        )
+        .unwrap();
+
+    let updated_log = persistence.time_logs.get_by_id("l_edit_1").unwrap();
+    assert_eq!(updated_log.task_id, "t_edit_2");
+    assert_eq!(updated_log.start_time, "2026-06-15T08:15:00Z");
+    assert_eq!(
+        updated_log.end_time.as_deref(),
+        Some("2026-06-15T09:15:00Z")
+    );
+    assert_eq!(updated_log.note.as_deref(), Some("New Note"));
+    assert!(!updated_log.edit_history.unwrap_or_default().is_empty());
 }

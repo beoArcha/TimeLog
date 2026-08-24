@@ -167,8 +167,8 @@ fn test_cli_output_status_displays_correctly() {
 }
 
 #[test]
-fn test_cli_manage_project_create() {
-    let (persistence, _conn, _temp) = setup("test_cli_manage_project_create");
+fn test_cli_manage_project_create_and_archive() {
+    let (persistence, _conn, _temp) = setup("test_cli_manage_project_create_and_archive");
     let engine = Engine::new(&persistence);
     let result = handle_cli(
         CliArgs {
@@ -186,11 +186,22 @@ fn test_cli_manage_project_create() {
     } else {
         panic!("Expected Success output");
     }
+
+    let archive_res = handle_cli(
+        CliArgs {
+            command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Archive {
+                id: "p1".into(),
+            })),
+        },
+        &persistence,
+        &engine,
+    );
+    assert!(archive_res.is_ok());
 }
 
 #[test]
-fn test_cli_manage_task_create() {
-    let (persistence, _conn, _temp) = setup("test_cli_manage_task_create");
+fn test_cli_manage_task_create_and_archive() {
+    let (persistence, _conn, _temp) = setup("test_cli_manage_task_create_and_archive");
     let engine = Engine::new(&persistence);
     let result = handle_cli(
         CliArgs {
@@ -208,4 +219,16 @@ fn test_cli_manage_task_create() {
     } else {
         panic!("Expected Success output");
     }
+
+    let archive_res = handle_cli(
+        CliArgs {
+            command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Archive {
+                id: "t1".into(),
+                project_id: "p1".into(),
+            })),
+        },
+        &persistence,
+        &engine,
+    );
+    assert!(archive_res.is_ok());
 }

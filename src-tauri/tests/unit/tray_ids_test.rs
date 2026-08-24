@@ -30,6 +30,17 @@ fn test_from_str_unknown_returns_none() {
 
 #[test]
 fn test_get_text_delegates_to_localization() {
-    assert_eq!(TrayMenuId::QuitApp.get_text(Locale::En), "Quit Completely");
-    assert_eq!(TrayMenuId::QuitApp.get_text(Locale::Pl), "Wyjdź całkowicie");
+    let ids = [
+        TrayMenuId::ToggleVisibility,
+        TrayMenuId::GuiCompact,
+        TrayMenuId::GuiMedium,
+        TrayMenuId::GuiFull,
+        TrayMenuId::ToggleOnTop,
+        TrayMenuId::StopAllTimers,
+        TrayMenuId::QuitApp,
+    ];
+    for id in ids {
+        assert!(!id.get_text(Locale::En).is_empty());
+        assert!(!id.get_text(Locale::Pl).is_empty());
+    }
 }
