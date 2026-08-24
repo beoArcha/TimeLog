@@ -11,6 +11,11 @@ pub fn get(state: State<'_, AppState>) -> Result<Settings, AppError> {
 
 #[tauri::command]
 pub fn save(settings: Settings, state: State<'_, AppState>) -> Result<(), AppError> {
+    if let Some(m) = settings.minimize_to_tray {
+        state
+            .minimize_to_tray
+            .store(m, std::sync::atomic::Ordering::Relaxed);
+    }
     state.persistence.settings.save(settings)?;
     Ok(())
 }

@@ -1,13 +1,25 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS, Default)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum LayoutVariant {
     Compact,
     Medium,
+    #[default]
     Full,
+}
+
+impl LayoutVariant {
+    pub fn from_str_opt(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            "compact" => Some(LayoutVariant::Compact),
+            "medium" => Some(LayoutVariant::Medium),
+            "full" => Some(LayoutVariant::Full),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]

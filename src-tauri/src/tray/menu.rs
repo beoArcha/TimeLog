@@ -1,7 +1,8 @@
+use crate::app::state::TrayCheckHandles;
 use crate::tray::ids::TrayMenuId;
-use crate::types::Locale;
+use crate::types::{LayoutVariant, Locale};
 use tauri::{
-    menu::{Menu, MenuItem, PredefinedMenuItem},
+    menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem},
     App,
 };
 
@@ -10,27 +11,69 @@ fn get_system_locale() -> Locale {
     Locale::from_sys_lang(&sys_lang)
 }
 
-fn create_menu_item<R: tauri::Runtime>(
-    app: &App<R>,
-    id: TrayMenuId,
-    locale: Locale,
-) -> tauri::Result<MenuItem<R>> {
-    MenuItem::with_id(app, id.as_str(), id.get_text(locale), true, None::<&str>)
-}
-
-pub fn build_tray_menu<R: tauri::Runtime>(app: &App<R>) -> tauri::Result<Menu<R>> {
+pub fn build_tray_menu(
+    app: &App,
+    initial_variant: LayoutVariant,
+    initial_always_on_top: bool,
+) -> tauri::Result<(Menu<tauri::Wry>, TrayCheckHandles)> {
     let locale = get_system_locale();
 
-    let toggle_item = create_menu_item(app, TrayMenuId::ToggleVisibility, locale)?;
+    let toggle_item = MenuItem::with_id(
+        app,
+        TrayMenuId::ToggleVisibility.as_str(),
+        TrayMenuId::ToggleVisibility.get_text(locale),
+        true,
+        None::<&str>,
+    )?;
     let sep1 = PredefinedMenuItem::separator(app)?;
-    let gui_compact = create_menu_item(app, TrayMenuId::GuiCompact, locale)?;
-    let gui_medium = create_menu_item(app, TrayMenuId::GuiMedium, locale)?;
-    let gui_full = create_menu_item(app, TrayMenuId::GuiFull, locale)?;
+    let gui_compact = CheckMenuItem::with_id(
+        app,
+        TrayMenuId::GuiCompact.as_str(),
+        TrayMenuId::GuiCompact.get_text(locale),
+        true,
+        initial_variant == LayoutVariant::Compact,
+        None::<&str>,
+    )?;
+    let gui_medium = CheckMenuItem::with_id(
+        app,
+        TrayMenuId::GuiMedium.as_str(),
+        TrayMenuId::GuiMedium.get_text(locale),
+        true,
+        initial_variant == LayoutVariant::Medium,
+        None::<&str>,
+    )?;
+    let gui_full = CheckMenuItem::with_id(
+        app,
+        TrayMenuId::GuiFull.as_str(),
+        TrayMenuId::GuiFull.get_text(locale),
+        true,
+        initial_variant == LayoutVariant::Full,
+        None::<&str>,
+    )?;
     let sep2 = PredefinedMenuItem::separator(app)?;
-    let toggle_on_top = create_menu_item(app, TrayMenuId::ToggleOnTop, locale)?;
-    let stop_all = create_menu_item(app, TrayMenuId::StopAllTimers, locale)?;
+    let toggle_on_top = CheckMenuItem::with_id(
+        app,
+        TrayMenuId::ToggleOnTop.as_str(),
+        TrayMenuId::ToggleOnTop.get_text(locale),
+        true,
+        initial_always_on_top,
+        None::<&str>,
+    )?;
+    let stop_all = MenuItem::with_id(
+        app,
+        TrayMenuId::StopAllTimers.as_str(),
+        TrayMenuId::StopAllTimers.get_text(locale),
+        true,
+        None::<&str>,
+    )?;
     let sep3 = PredefinedMenuItem::separator(app)?;
-    let quit_item = create_menu_item(app, TrayMenuId::QuitApp, locale)?;
+    let quit_item = MenuItem::with_id(
+        app,
+        TrayMenuId::QuitApp.as_str(),
+        TrayMenuId::QuitApp.get_text(locale),
+        true,
+        None::<&str>,
+    )?;
 
     let tray_menu = Menu::with_items(
         app,
@@ -48,5 +91,12 @@ pub fn build_tray_menu<R: tauri::Runtime>(app: &App<R>) -> tauri::Result<Menu<R>
         ],
     )?;
 
-    Ok(tray_menu)
+    let handles = TrayCheckHandles {
+        gui_compact,
+        gui_medium,
+        gui_full,
+        toggle_on_top,
+    };
+
+    Ok((tray_menu, handles))
 }
