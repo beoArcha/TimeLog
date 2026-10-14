@@ -5,7 +5,7 @@ import { useSettings } from '@common/hooks/SettingsContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { useData } from '@common/hooks/DataContext';
 import { executeCliCommand, TerminalLine, CliEngineContext } from './utils/CliEngine';
-import versionsData from '../../versions.json';
+import versionsData from '@app/versions.json';
 import { translate } from '@common/i18n/translator';
 
 export default function CliInterface() {

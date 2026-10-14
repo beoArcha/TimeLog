@@ -1,7 +1,7 @@
 import { isDesktopEnvironment } from '../utils/environment';
 import { IEngine } from './IEngine';
 import { EngineCommands } from './EngineCommands';
-import { EnginePlugin } from '../../plugins/engine/EnginePlugin';
+import { EnginePlugin } from '@plugins/engine/EnginePlugin';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';

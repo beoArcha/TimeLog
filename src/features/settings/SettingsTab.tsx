@@ -6,7 +6,7 @@ import { translate } from '@common/i18n/translator';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
 import PromptModal from '@components/PromptModal';
-import versionsData from '../../versions.json';
+import versionsData from '@app/versions.json';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';

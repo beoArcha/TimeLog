@@ -11,7 +11,7 @@ import { ErrorHandler, RepositoryException } from '../exceptions';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
 import { ApiPayload } from '../persistence/IPersistence';
-import { validateProjectName, validateTaskName, validateTaskHierarchy } from '../../plugins/engine/validation';
+import { validateProjectName, validateTaskName, validateTaskHierarchy } from '@plugins/engine/validation';
 
 const repository = PersistenceRouter.getInstance();
 

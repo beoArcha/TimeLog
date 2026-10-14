@@ -1,8 +1,8 @@
 import { Clock, Maximize2, X } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { LayoutVariant } from '@bindings/LayoutVariant';
-import versionsData from '../../versions.json';
-import { Locale } from '@/src/bindings/Locale';
+import versionsData from '@app/versions.json';
+import { Locale } from '@bindings/Locale';
 
 interface CompactLayoutHeaderProps {
   locale: Locale;

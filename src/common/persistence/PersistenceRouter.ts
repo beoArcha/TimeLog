@@ -1,7 +1,7 @@
 import { isDesktopEnvironment } from '../utils/environment';
 import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence, IHolidaysPersistence, IPatchesPersistence, IUiStatePersistence, IExternalApiPersistence, ILocalePersistence } from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
-import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
+import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 
 export class PersistenceRouter implements IPersistence {
   private static instance: PersistenceRouter | null = null;

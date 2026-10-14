@@ -11,7 +11,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
-import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
+import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 
 export class PersistenceCommands implements IPersistence {
   public core: ICorePersistence;
