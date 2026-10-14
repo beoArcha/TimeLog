@@ -37,6 +37,18 @@
       "@bindings/*": [
         "./src/bindings/*"
       ],
+      "@styles/*": [
+        "./src/styles/*"
+      ],
+      "@app-browser/*": [
+        "./src/app-browser/*"
+      ],
+      "@app-tauri/*": [
+        "./src/app-tauri/*"
+      ],
+      "@app/*": [
+        "./src/*"
+      ],
       "@tests/*": [
         "./tests/*"
       ]
