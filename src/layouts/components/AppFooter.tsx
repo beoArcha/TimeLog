@@ -33,7 +33,7 @@ export default function AppFooter({
         <button
           id="db-clean-force-btn"
           onClick={handleResetLocalStorage}
-          className="text-orange-455 hover:text-orange-300 font-bold transition-all cursor-pointer"
+          className="text-orange-500 hover:text-orange-400 font-bold transition-all cursor-pointer"
         >
           {translate(locale, 'engine', 'SqlReset', customTranslations)}
         </button>

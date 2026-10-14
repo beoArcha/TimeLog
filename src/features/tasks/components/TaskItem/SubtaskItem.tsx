@@ -5,6 +5,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { CheckSquare, Square as EmptySquare, Play, Square } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
+import { TimerDisplay } from '@/src/components/ui/timer-display';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 
@@ -159,16 +160,13 @@ export function SubtaskItem({
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
-        <span
-          className={`font-mono text-[10px] px-2 py-1 rounded-md border transition-all ${isSubRunning
-            ? 'bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold'
-            : theme === 'light'
-              ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#7A6A61]'
-              : 'bg-[#FCFAF8]/5 border-white/10 text-slate-300'
-            }`}
-        >
-          {subFormattedElapsed}
-        </span>
+        <TimerDisplay
+          value={subFormattedElapsed}
+          isRunning={isSubRunning}
+          size="xs"
+          variant="pill"
+          theme={theme}
+        />
 
         {isSubRunning ? (
           <button

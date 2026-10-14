@@ -24,7 +24,7 @@ export default function SystemNotification() {
               : 'bg-slate-900/90 backdrop-blur-2xl border-orange-500/40 text-white'
           }`}
         >
-          <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center text-orange-450 shrink-0 border border-orange-500/30 animate-pulse">
+          <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center text-orange-500 shrink-0 border border-orange-500/30 animate-pulse">
             <Bell className="w-5 h-5 text-orange-400" />
           </div>
           <div className="flex-1">

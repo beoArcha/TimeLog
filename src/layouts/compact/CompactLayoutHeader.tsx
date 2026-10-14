@@ -37,7 +37,7 @@ export function CompactLayoutHeader({
   return (
     <div className="flex items-center justify-between border-b pb-2 border-white/10 select-none">
       <div className="flex items-center gap-1.5">
-        <div className="w-5 h-5 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-450 border border-orange-505/30">
+        <div className="w-5 h-5 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500 border border-orange-500/30">
           <Clock className="w-3 h-3 text-orange-400 animate-pulse" />
         </div>
         <span className="font-sans font-bold text-[10px] tracking-tight">

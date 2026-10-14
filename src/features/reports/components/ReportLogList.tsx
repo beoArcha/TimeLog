@@ -55,7 +55,7 @@ export default function ReportLogList({
                     <span className={`w-2.5 h-2.5 rounded-full bg-${pc.color}-500`} />
                     {pc.name}
                   </span>
-                  <span className="font-mono text-orange-450">{formatSeconds(pc.seconds)}</span>
+                  <span className="font-mono text-orange-500">{formatSeconds(pc.seconds)}</span>
                 </div>
                 <div className={`w-full h-3 rounded-full overflow-hidden relative ${theme === 'light' ? 'bg-[#EAE4DB]' : 'bg-[#FCFAF8]/5'
                   }`}>

@@ -175,7 +175,7 @@
   }
 }
 
-/* --- Phase 2E: CSS Design Tokens & Scaling --- */
+/* Design Tokens & Scale Variables */
 :root {
   /* Default / Medium scale tokens */
   --padding-main: 1.5rem;

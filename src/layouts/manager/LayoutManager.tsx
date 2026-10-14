@@ -8,7 +8,6 @@ import { translate } from '@common/i18n/translator';
 import { motion, AnimatePresence } from 'motion/react';
 import AppProviders from './AppProviders';
 
-// Components
 import CliInterface from '@features/cli/CliInterface';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import ManualTab from '@features/settings/ManualTab';
@@ -17,7 +16,6 @@ import SettingsTab from '@features/settings/SettingsTab';
 import BackupTab from '@features/settings/BackupTab';
 import TrayWidgetView from '@features/tray/TrayWidgetView';
 
-// Layout Components
 import GuiClosedAlert from '../components/GuiClosedAlert';
 import SystemNotification from '@components/SystemNotification';
 import Header from '../components/Header';
@@ -28,12 +26,10 @@ import TabBar from '../components/TabBar';
 import AppFooter from '../components/AppFooter';
 import RestoreButton from '@components/RestoreButton';
 
-// Builders
 import CompactLayoutBuilder from '../builders/CompactLayoutBuilder';
 import MediumLayoutBuilder from '../builders/MediumLayoutBuilder';
 import FullLayoutBuilder from '../builders/FullLayoutBuilder';
 
-// Types & Logics
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from '../hooks/useGuiLogic';
 

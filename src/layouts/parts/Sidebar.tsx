@@ -43,13 +43,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
     });
   }, [state]);
 
-  // Add Project Advanced fields
   const [showAddAdvanced, setShowAddAdvanced] = React.useState(false);
   const [newProjectDesc, setNewProjectDesc] = React.useState('');
   const [newProjectIcon, setNewProjectIcon] = React.useState('');
   const [newProjectTags, setNewProjectTags] = React.useState('');
 
-  // Edit Project Modal fields
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [editProjId, setEditProjId] = React.useState('');
   const [editProjName, setEditProjName] = React.useState('');
@@ -115,7 +113,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
               <button
                 type="button"
                 onClick={() => setShowAddAdvanced(!showAddAdvanced)}
-                className="text-[10px] font-mono text-slate-400 hover:text-orange-455 transition-colors uppercase tracking-wider cursor-pointer"
+                className="text-[10px] font-mono text-slate-400 hover:text-orange-500 transition-colors uppercase tracking-wider cursor-pointer"
               >
                 {translate(locale, 'project', showAddAdvanced ? 'HideOptions' : 'MoreOptions', customTranslations)}
               </button>
@@ -191,7 +189,6 @@ export default function Sidebar({ state }: { state: GuiState }) {
           </div>
         </form>
 
-        {/* Project List */}
         <div id="projects-list-container" className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto pr-1">
           {projects.length === 0 ? (
             <div className="text-center py-8 text-[#9B8C83] text-xs font-sans">
@@ -322,7 +319,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                       ? 'bg-black border-white text-white'
                       : 'bg-[#FCFAF8]/5 border-white/10 text-[#9B8C83]'
                     }`}>
-                    <Clock className={`icon-medium text-orange-450`} />
+                    <Clock className={`icon-medium text-orange-500`} />
                     {formatSeconds(totalSeconds)}
                   </div>
                 </div>
@@ -337,7 +334,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
           <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${theme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]' : 'bg-[#1b1c21] border-white/10 text-white'
             }`}>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-orange-450" />
+              <Pencil className="w-5 h-5 text-orange-500" />
               {translate(locale, 'project', 'EditProjectTitle', customTranslations)}
             </h3>
 

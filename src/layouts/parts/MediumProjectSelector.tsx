@@ -1,8 +1,10 @@
+// TODO: [UI-COMPONENT] Move ProjectSelector to src/components/ui/project-selector.tsx
 import React, { useState } from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { PROJECT_COLORS } from './LayoutStyles';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
+import { ProjectBadge } from '@/src/components/ui/project-badge';
 import {
   Folder,
   Plus,
@@ -267,17 +269,13 @@ export default function MediumProjectSelector({
                       : 'hover:bg-slate-500/10'
                   }`}
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div
-                      className="w-3.5 h-3.5 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: p.color
-                          ? `var(--tw-color-${p.color}-500, #f97316)`
-                          : '#f97316',
-                      }}
-                    />
-                    <span className="text-xs truncate">{p.name}</span>
-                  </div>
+                  <ProjectBadge
+                    name={p.name}
+                    color={p.color}
+                    icon={p.icon}
+                    size="sm"
+                    className="flex-1"
+                  />
                   <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-slate-400">
                     <span>{formatSeconds(dur)}</span>
                     <span className="text-[10px]">({pTasks.length})</span>

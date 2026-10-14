@@ -4,6 +4,8 @@ import { Clock, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@common/i18n/translator';
 import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
+import { ProjectBadge } from '@/src/components/ui/project-badge';
+import { TimerDisplay } from '@/src/components/ui/timer-display';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -36,12 +38,12 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             }`}
         >
           <div className="absolute inset-0 opacity-15 pointer-events-none">
-            <div className="absolute top-0 left-0 w-16 h-16 bg-orange-450 rounded-full filter blur-md animate-pulse"></div>
+            <div className="absolute top-0 left-0 w-16 h-16 bg-orange-500 rounded-full filter blur-md animate-pulse"></div>
           </div>
 
           <div className={`flex items-center gap-section z-10 ${isCondensed ? 'w-full' : 'sm:w-auto w-full'}`}>
             <div className="relative">
-              <div className={`icon-medium shrink-0 rounded-xl flex items-center justify-center border shadow-md ${theme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB] text-orange-500' : 'bg-[#FCFAF8]/10 border-white/10 text-orange-450'
+              <div className={`icon-medium shrink-0 rounded-xl flex items-center justify-center border shadow-md ${theme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB] text-orange-500' : 'bg-[#FCFAF8]/10 border-white/10 text-orange-500'
                 }`}>
                 <Clock className="w-3/5 h-3/5 animate-pulse text-orange-500" />
               </div>
@@ -56,11 +58,13 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
                   {translate(locale, 'timer', 'ActiveTracker', customTranslations)}
                 </span>
                 {activeProject && (
-                  <span className={`text-xs font-semibold drop-shadow-sm flex items-center gap-1 min-w-0 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-200'
-                    }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full bg-[var(--project-color,orange)] shrink-0`} style={{ backgroundColor: activeProject.color ? `var(--tw-color-${activeProject.color}-500)` : undefined }} />
-                    <span className="truncate" title={activeProject.name.length > 512 ? activeProject.name.slice(0, 512) + '...' : activeProject.name}>{activeProject.name}</span>
-                  </span>
+                  <ProjectBadge
+                    name={activeProject.name}
+                    color={activeProject.color}
+                    icon={activeProject.icon}
+                    size="xs"
+                    textClassName={theme === 'light' ? 'text-[#2C2421]' : 'text-slate-200'}
+                  />
                 )}
               </div>
               <h4 className={`font-sans font-extrabold text-title mt-0.5 leading-snug truncate ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
@@ -77,10 +81,13 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
                 }`}>
                 {translate(locale, 'timer', 'RegisteredToday', customTranslations)}
               </p>
-              <p id="active-timer-display" className={`text-xl font-extrabold tracking-tight font-mono ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
-                }`}>
-                {formattedElapsed}
-              </p>
+              <TimerDisplay
+                id="active-timer-display"
+                value={formattedElapsed}
+                isRunning={true}
+                size="xl"
+                theme={theme}
+              />
             </div>
             <button
               id="stop-timer-btn"
