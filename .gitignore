@@ -10,5 +10,5 @@ coverage/
 test-results/
 playwright-report/
 playwright-video/
-.aistudio
-.vscode
+.aistudio/
+.vscode/
