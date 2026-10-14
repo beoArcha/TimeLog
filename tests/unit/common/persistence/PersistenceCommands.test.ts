@@ -52,16 +52,60 @@ describe('Unit Tests: PersistenceCommands', () => {
     });
   });
 
-  it('should call rename', async () => {
-    mockInvoke.mockResolvedValue({});
-    await commands.projects.rename('p1', 'New Project Name');
-    expect(mockInvoke).toHaveBeenCalledWith('rename', { projectId: 'p1', name: 'New Project Name' });
+  it('should call update_project on update and rename', async () => {
+    const mockState = {
+      projects: [{ id: 'p1', name: 'Old', color: '#ff0000', description: null, icon: null, tags: null }],
+      tasks: [],
+      logs: [],
+      activeLog: null
+    };
+    mockInvoke.mockResolvedValue(mockState);
+    await commands.projects.update('p1', 'New Name', '#00ff00', null, null, null);
+    expect(mockInvoke).toHaveBeenCalledWith('update_project', {
+      projectId: 'p1',
+      name: 'New Name',
+      color: '#00ff00',
+      description: null,
+      icon: null,
+      tags: null,
+    });
+
+    await commands.projects.rename('p1', 'Renamed');
+    expect(mockInvoke).toHaveBeenCalledWith('update_project', {
+      projectId: 'p1',
+      name: 'Renamed',
+      color: '#ff0000',
+      description: null,
+      icon: null,
+      tags: null,
+    });
   });
 
-  it('should call update', async () => {
-    mockInvoke.mockResolvedValue({});
-    await commands.tasks.rename('t1', 'New Task Name');
-    expect(mockInvoke).toHaveBeenCalledWith('update', { taskId: 't1', name: 'New Task Name' });
+  it('should call update_task on update and rename', async () => {
+    const mockState = {
+      projects: [],
+      tasks: [{ id: 't1', name: 'Old Task', projectId: 'p1', parentTaskId: null, status: null, completed: false }],
+      logs: [],
+      activeLog: null
+    };
+    mockInvoke.mockResolvedValue(mockState);
+    await commands.tasks.update('t1', 'New Task', null, 'Todo', false);
+    expect(mockInvoke).toHaveBeenCalledWith('update_task', {
+      taskId: 't1',
+      name: 'New Task',
+      parentTaskId: null,
+      status: 'Todo',
+      completed: false,
+    });
+
+    await commands.tasks.rename('t1', 'Renamed Task');
+    expect(mockInvoke).toHaveBeenCalledWith('update_task', {
+      taskId: 't1',
+      name: 'Renamed Task',
+      parentTaskId: null,
+      status: null,
+      completed: false,
+    });
   });
 
   it('should call delete', async () => {

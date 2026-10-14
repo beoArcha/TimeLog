@@ -23,7 +23,7 @@ import {
   Clock
 } from 'lucide-react';
 
-type MediumLayoutBuilderProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & {
+type MediumLayoutBuilderProps = Partial<Omit<LayoutRouterProps, 'variant' | 'commonProps'>> & {
   state: GuiState;
   dockPosition?: 'right' | 'left';
   onToggleDock?: () => void;

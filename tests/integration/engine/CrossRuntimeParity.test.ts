@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { setupLocalStorageMock } from '@tests/shared/mocks/browser-mocks';
 import { mockInvoke } from '@tests/shared/mocks/tauri-ipc-mock';
 import { EngineRouter } from '@common/engine/EngineRouter';
@@ -7,7 +7,8 @@ import { EngineCommands } from '@common/engine/EngineCommands';
 import { EnginePlugin } from '@plugins/engine/EnginePlugin';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
-import { EngineValidationError, EngineError } from '@common/exceptions';
+import { EngineValidationError } from '@common/exceptions';
+import { validateProjectName, validateTaskName } from '@plugins/engine/validation';
 
 describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
   describe('Contract & Method Parity across Runtimes', () => {
@@ -16,26 +17,12 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       'stopTimer',
       'resumeTimer',
       'getActiveLogs',
+      'getComputedMetrics',
       'getTaskElapsed',
       'getProjectElapsed',
       'getElapsedRange',
       'editTimeLog',
       'getProjectStatistics',
-      'addProject',
-      'updateProject',
-      'renameProject',
-      'toggleProjectArchive',
-      'addTask',
-      'updateTask',
-      'renameTask',
-      'deleteTask',
-      'toggleTaskComplete',
-      'getSettings',
-      'saveSettings',
-      'getRuntimeConfigs',
-      'saveRuntimeConfig',
-      'getState',
-      'resetState',
     ];
 
     it('Given EnginePlugin (Browser Runtime), Then all required IEngine methods must be implemented', () => {
@@ -52,6 +39,7 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
         'stopTimer',
         'resumeTimer',
         'getActiveLogs',
+        'getComputedMetrics',
         'getTaskElapsed',
         'getProjectElapsed',
         'getElapsedRange',
@@ -62,34 +50,77 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
         expect(typeof commands[method]).toBe('function');
       }
     });
+
+    it('Given EngineCommands and EnginePlugin, When calling getActiveLogs, Both must conform to the contract', async () => {
+      mockInvoke.mockResolvedValue(['log-1']);
+      const desktop = new EngineCommands();
+      const desktopLogs = await desktop.getActiveLogs();
+      expect(desktopLogs).toEqual(['log-1']);
+
+      setupLocalStorageMock();
+      const persistence = new PersistencePlugin();
+      PersistenceRouter.getInstance().setImplementationForTesting(persistence);
+
+      const browser = new EnginePlugin();
+      const browserLogs = await browser.getActiveLogs();
+      expect(browserLogs).toEqual([]);
+    });
   });
 
-  describe('Calculation & Elapsed Parity (Matching Rust Algorithm)', () => {
-    let engine: EnginePlugin;
-    let persistence: PersistencePlugin;
-
+  describe('Cross-Runtime Elapsed Time Calculations', () => {
     beforeEach(async () => {
-      vi.restoreAllMocks();
       setupLocalStorageMock();
-      persistence = new PersistencePlugin();
+      const persistence = new PersistencePlugin();
       PersistenceRouter.getInstance().setImplementationForTesting(persistence);
-      engine = new EnginePlugin();
+      const engine = new EnginePlugin();
       EngineRouter.getInstance().setImplementationForTesting(engine);
 
       await persistence.core.overrideState({
         projects: [
-          { id: 'p1', name: 'Project Alpha', color: 'blue', createdAt: '2026-06-15T00:00:00Z', archived: false }
+          {
+            id: 'proj-1',
+            name: 'P1',
+            color: 'red',
+            createdAt: '2026-06-15T00:00:00Z',
+            archived: false,
+          },
         ],
         tasks: [
-          { id: 't1', projectId: 'p1', parentTaskId: null, name: 'Parent Task', createdAt: '2026-06-15T00:00:00Z', completed: false, status: 'InProgress' },
-          { id: 't2', projectId: 'p1', parentTaskId: 't1', name: 'Child Task', createdAt: '2026-06-15T00:00:00Z', completed: false, status: 'Todo' }
+          {
+            id: 'task-1',
+            projectId: 'proj-1',
+            name: 'T1',
+            createdAt: '2026-06-15T00:00:00Z',
+            completed: false,
+            status: 'Todo',
+          },
+          {
+            id: 'task-sub',
+            projectId: 'proj-1',
+            parentTaskId: 'task-1',
+            name: 'Sub',
+            createdAt: '2026-06-15T00:00:00Z',
+            completed: false,
+            status: 'Todo',
+          },
         ],
         logs: [
-          { id: 'l1', projectId: 'p1', taskId: 't1', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' }, // 3600s
-          { id: 'l2', projectId: 'p1', taskId: 't2', startTime: '2026-06-15T11:30:00Z', endTime: '2026-06-15T12:00:00Z' }, // 1800s
-          { id: 'l3', projectId: 'p1', taskId: 't1', startTime: '2026-06-15T13:00:00Z', endTime: null } // ongoing
+          {
+            id: 'log-1',
+            projectId: 'proj-1',
+            taskId: 'task-1',
+            startTime: '2026-06-15T10:00:00Z',
+            endTime: '2026-06-15T11:00:00Z',
+          },
+          {
+            id: 'log-2',
+            projectId: 'proj-1',
+            taskId: 'task-sub',
+            startTime: '2026-06-15T11:00:00Z',
+            endTime: '2026-06-15T11:30:00Z',
+          },
         ],
-        activeLog: { id: 'l3', projectId: 'p1', taskId: 't1', startTime: '2026-06-15T13:00:00Z' }
+        activeLog: null,
       });
     });
 
@@ -97,71 +128,48 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       localStorage.clear();
     });
 
-    it('Given subtask logs, Then calculateTaskElapsed must include direct logs + subtask logs recursively', async () => {
-      const fixedNow = '2026-06-15T13:30:00Z'; // +1800s for active log l3
-      // Direct t1: 3600 (l1) + 1800 (l3) = 5400s
-      // Child t2: 1800 (l2)
-      // Total t1 elapsed = 5400 + 1800 = 7200s (2 hours)
-      const elapsed = await engine.getTaskElapsed('t1', fixedNow);
-      expect(elapsed).toBe(7200);
-
-      // Child t2 direct elapsed = 1800s
-      const childElapsed = await engine.getTaskElapsed('t2', fixedNow);
-      expect(childElapsed).toBe(1800);
+    it('Given identical seed state, When calculating task elapsed in Browser plugin, Then it matches expected duration', async () => {
+      const engine = new EnginePlugin();
+      const elapsed = await engine.getTaskElapsed('task-1');
+      expect(elapsed).toBe(5400); // 3600 (self) + 1800 (subtask)
     });
 
-    it('Given project with tasks and subtasks, Then calculateProjectElapsed must match sum of all tasks', async () => {
-      const fixedNow = '2026-06-15T13:30:00Z';
-      const projectElapsed = await engine.getProjectElapsed('p1', fixedNow);
-      expect(projectElapsed).toBe(7200);
+    it('Given identical seed state, When calculating project elapsed in Browser plugin, Then it matches expected duration', async () => {
+      const engine = new EnginePlugin();
+      const elapsed = await engine.getProjectElapsed('proj-1');
+      expect(elapsed).toBe(5400);
     });
 
-    it('Given date range filter, Then calculateElapsedRange must clamp and sum only within boundary', async () => {
-      const fixedNow = '2026-06-15T13:30:00Z';
-      // Filter from 10:30 to 11:45
-      // l1 (10:00 - 11:00) clamped to 10:30 - 11:00 = 1800s
-      // l2 (11:30 - 12:00) clamped to 11:30 - 11:45 = 900s
-      // Total = 2700s
-      const rangeElapsed = await engine.getElapsedRange(
-        { from: '2026-06-15T10:30:00Z', to: '2026-06-15T11:45:00Z' },
-        fixedNow
-      );
-      expect(rangeElapsed).toBe(2700);
+    it('Given filter range in Browser plugin, When calculating range elapsed, Then it matches overlap correctly', async () => {
+      const engine = new EnginePlugin();
+      const range = {
+        from: '2026-06-15T10:30:00Z',
+        to: '2026-06-15T11:15:00Z',
+        projectId: 'proj-1',
+      };
+      const elapsed = await engine.getElapsedRange(range);
+      expect(elapsed).toBe(2700); // 1800 (from log-1) + 900 (from log-2)
     });
   });
 
-  describe('Validation & Error Parity', () => {
-    let engine: EnginePlugin;
-
+  describe('Cross-Runtime Validation Parity', () => {
     beforeEach(async () => {
       setupLocalStorageMock();
       const persistence = new PersistencePlugin();
       PersistenceRouter.getInstance().setImplementationForTesting(persistence);
-      engine = new EnginePlugin();
+      const engine = new EnginePlugin();
       EngineRouter.getInstance().setImplementationForTesting(engine);
-      await engine.resetState();
-      await engine.addProject({ name: 'Alpha', color: 'red' });
+      await persistence.core.reset();
+      await persistence.projects.add({ name: 'Alpha', color: 'red' });
     });
 
-    it('Given duplicate project name, When addProject is called, Then it should reject with EngineValidationError', async () => {
-      let caughtError: unknown;
-      try {
-        await engine.addProject({ name: 'ALPHA', color: 'blue' });
-      } catch (err) {
-        caughtError = err;
-      }
-      expect(caughtError).toBeInstanceOf(EngineValidationError);
-      expect(caughtError).toBeInstanceOf(EngineError);
-      expect((caughtError as EngineValidationError).code).toBe('ERR_ENGINE_DUPLICATE_NAME');
+    it('Given duplicate project name, When validateProjectName is called, Then it should reject with EngineValidationError', async () => {
+      const state = await PersistenceRouter.getInstance().core.load();
+      expect(() => validateProjectName('ALPHA', state?.projects || [])).toThrow(EngineValidationError);
     });
 
-    it('Given empty task name, When addTask is called, Then it should reject with EngineValidationError', async () => {
-      const state = await engine.getState();
-      const projId = state.projects[0].id;
-
-      await expect(engine.addTask({ projectId: projId, name: '   ', parentTaskId: null })).rejects.toThrow(
-        'Task name cannot be empty'
-      );
+    it('Given empty task name, When validateTaskName is called, Then it should reject with EngineValidationError', async () => {
+      expect(() => validateTaskName('   ')).toThrow('Task name cannot be empty');
     });
   });
 

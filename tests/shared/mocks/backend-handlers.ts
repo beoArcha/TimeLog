@@ -82,11 +82,38 @@ const renameProjectHandler = async (args: MockCommandArgs): Promise<MockDatabase
   return state;
 };
 
+const updateProjectHandler = async (args: MockCommandArgs): Promise<MockDatabaseState> => {
+  const state = getMockDbState();
+  const proj = state.projects.find((p) => p.id === args.projectId);
+  if (proj) {
+    if (args.name !== undefined) proj.name = args.name ?? '';
+    if (args.color !== undefined) proj.color = args.color ?? '';
+    if (args.description !== undefined) proj.description = args.description ?? null;
+    if (args.icon !== undefined) proj.icon = args.icon ?? null;
+    if (args.tags !== undefined) proj.tags = args.tags ?? null;
+  }
+  saveMockDbState(state);
+  return state;
+};
+
 const renameTaskHandler = async (args: MockCommandArgs): Promise<MockDatabaseState> => {
   const state = getMockDbState();
   const task = state.tasks.find((t) => t.id === args.taskId || t.id === args.id);
   if (task) {
     task.name = args.name ?? '';
+  }
+  saveMockDbState(state);
+  return state;
+};
+
+const updateTaskHandler = async (args: MockCommandArgs): Promise<MockDatabaseState> => {
+  const state = getMockDbState();
+  const task = state.tasks.find((t) => t.id === args.taskId || t.id === args.id);
+  if (task) {
+    if (args.name !== undefined) task.name = args.name ?? '';
+    if (args.parentTaskId !== undefined) task.parentTaskId = args.parentTaskId ?? null;
+    if (args.status !== undefined) task.status = (args.status as Task['status']) ?? null;
+    if (args.completed !== undefined) task.completed = args.completed ?? false;
   }
   saveMockDbState(state);
   return state;
@@ -329,8 +356,10 @@ export const BACKEND_HANDLERS: Record<string, (args: MockCommandArgs) => Promise
   create: addTaskHandler,
   rename_project: renameProjectHandler,
   rename: renameProjectHandler,
+  update_project: updateProjectHandler,
   rename_task: renameTaskHandler,
-  update: renameTaskHandler,
+  update_task: updateTaskHandler,
+  update: updateTaskHandler,
   delete_task: deleteTaskHandler,
   delete: deleteTaskHandler,
   toggle_task_complete: toggleTaskCompleteHandler,

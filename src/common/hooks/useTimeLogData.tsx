@@ -11,6 +11,7 @@ import { ErrorHandler, RepositoryException } from '../exceptions';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
 import { ApiPayload } from '../persistence/IPersistence';
+import { validateProjectName, validateTaskName, validateTaskHierarchy } from '../../plugins/engine/validation';
 
 const repository = PersistenceRouter.getInstance();
 
@@ -96,7 +97,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.addProject({ name, color, description, icon, tags });
+      validateProjectName(name, projects);
+      const nextState = await repository.projects.add({ name, color, description, icon, tags });
       setProjectsState(nextState.projects);
       await fetchComputedMetrics();
     } catch (err) {
@@ -111,7 +113,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.toggleProjectArchive(projectId);
+      const nextState = await repository.projects.toggleArchive(projectId);
       setProjectsState(nextState.projects);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -128,7 +130,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.addTask({ projectId, name, parentTaskId });
+      validateTaskName(name);
+      validateTaskHierarchy(null, parentTaskId, tasks);
+      const nextState = await repository.tasks.add({ projectId, name, parentTaskId });
       setTasksState(nextState.tasks);
       await fetchComputedMetrics();
     } catch (err) {
@@ -150,7 +154,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.updateProject(projectId, name, color, description, icon, tags);
+      validateProjectName(name, projects, projectId);
+      const nextState = await repository.projects.update(projectId, name, color, description, icon, tags);
       setProjectsState(nextState.projects);
       await fetchComputedMetrics();
     } catch (err) {
@@ -171,7 +176,11 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.updateTask(taskId, name, parentTaskId, status, completed);
+      if (name) {
+        validateTaskName(name);
+      }
+      validateTaskHierarchy(taskId, parentTaskId, tasks);
+      const nextState = await repository.tasks.update(taskId, name, parentTaskId, status, completed);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -188,7 +197,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.renameProject(projectId, newName);
+      validateProjectName(newName, projects, projectId);
+      const nextState = await repository.projects.rename(projectId, newName);
       setProjectsState(nextState.projects);
       await fetchComputedMetrics();
     } catch (err) {
@@ -203,7 +213,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.renameTask(taskId, newName);
+      validateTaskName(newName);
+      const nextState = await repository.tasks.rename(taskId, newName);
       setTasksState(nextState.tasks);
       await fetchComputedMetrics();
     } catch (err) {
@@ -218,7 +229,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.deleteTask(taskId);
+      const nextState = await repository.tasks.delete(taskId);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -235,7 +246,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.toggleTaskComplete(taskId);
+      const nextState = await repository.tasks.toggleComplete(taskId);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);

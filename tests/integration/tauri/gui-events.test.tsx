@@ -45,9 +45,9 @@ describe('Integration Tests: Tauri GUI Events', () => {
   it('should_trigger_resize_and_lock_resizability_when_switching_to_small_mode', async () => {
     render(<LocaleProvider><MockProviders state={getMockOxyFlowState()}><App /></MockProviders></LocaleProvider>);
 
-    const smallBtn = await screen.findByText(/małe|small/i);
+    const smallBtns = await screen.findAllByTestId('layout-variant-compact');
     mockInvoke.mockClear();
-    fireEvent.click(smallBtn);
+    fireEvent.click(smallBtns[0]);
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'compact', textAndIconSize: expect.any(String) });
@@ -56,9 +56,9 @@ describe('Integration Tests: Tauri GUI Events', () => {
 
   it('should_trigger_resize_and_enable_resizability_when_switching_to_medium_mode', async () => {
     render(<LocaleProvider><MockProviders state={getMockOxyFlowState()}><App /></MockProviders></LocaleProvider>);
-    const mediumBtn = await screen.findByText(/średnie|medium/i);
+    const mediumBtns = await screen.findAllByTestId('layout-variant-medium');
     mockInvoke.mockClear();
-    fireEvent.click(mediumBtn);
+    fireEvent.click(mediumBtns[0]);
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('set_layout_variant', { variant: 'medium', textAndIconSize: expect.any(String) });
