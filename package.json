@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.49.1",
     "@tauri-apps/cli": "^2.0.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
@@ -68,7 +69,7 @@
     "esbuild": "^0.25.0",
     "eslint": "^10.5.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
+    "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
     "nyc": "^18.0.0",
@@ -77,7 +78,6 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.61.1",
-    "@playwright/test": "^1.49.1",
     "vite": "^6.2.3",
     "vitest": "^4.1.8"
   }
