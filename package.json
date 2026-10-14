@@ -31,7 +31,9 @@
     "build:all:debug": "npm run build:tauri:debug",
     "fix:all": "npm run lint:fix && npm run format:rust",
     "check:all": "npm run typecheck && npm run typecheck:rust && npm run format:rust:check && npm run lint && npm run lint:rust",
-    "test:all": "npm run test && npm run test:rust"
+    "test:all": "npm run test && npm run test:rust",
+    "check:frontend": "npm run typecheck && npm run lint && npm run test",
+    "check:backend": "npm run typecheck:rust && npm run format:rust:check && npm run lint:rust"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
