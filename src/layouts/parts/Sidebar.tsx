@@ -2,12 +2,12 @@ import React from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { Folder, Plus, Clock, Pencil } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from './LayoutStyles';
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
-    projects, tasks, logs, metrics, nowIso, locale, customTranslations, theme,
+    projects, metrics, locale, customTranslations, theme,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
     onRenameProject, onToggleProjectArchive
   } = state;
@@ -200,7 +200,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
           ) : (
             projects.map(p => {
               const projColor = PROJECT_COLORS.find(c => c.name === p.color) || PROJECT_COLORS[0];
-              const totalSeconds = metrics?.projects[p.id]?.totalElapsedSeconds ?? (nowIso ? getProjectDurationSeconds(p.id, tasks, logs, nowIso) : 0);
+              const totalSeconds = metrics?.projects?.[p.id]?.totalElapsedSeconds ?? 0;
               const isSelected = selectedProjectId === p.id;
 
               return (

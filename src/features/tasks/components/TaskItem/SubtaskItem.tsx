@@ -4,7 +4,7 @@ import { TaskStatus } from '@bindings/TaskStatus';
 import { TimeLog } from '@bindings/TimeLog';
 import { CheckSquare, Square as EmptySquare, Play, Square } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
-import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 
@@ -55,13 +55,12 @@ export function SubtaskItem({
   const { t: tCommon } = useTranslation('common');
   const { t: tTimer } = useTranslation('timer');
 
-  const subMetric = metrics?.tasks?.[subTask.id];
-  const subDuration = subMetric
-    ? subMetric.elapsedSeconds
-    : (nowIso ? getTaskDurationSeconds(subTask.id, tasks, logs, nowIso) : 0);
-  const isSubRunning = subMetric
-    ? subMetric.isRunning
-    : logs.some((l: TimeLog) => l.taskId === subTask.id && l.endTime === null);
+  const { isRunning: isSubRunning, formattedElapsed: subFormattedElapsed } = useLiveTaskElapsed(subTask.id, {
+    metrics,
+    tasks,
+    logs,
+    nowIso,
+  });
   const isEditing = editingId === subTask.id;
 
   return (
@@ -168,7 +167,7 @@ export function SubtaskItem({
               : 'bg-[#FCFAF8]/5 border-white/10 text-slate-300'
             }`}
         >
-          {formatSeconds(subDuration)}
+          {subFormattedElapsed}
         </span>
 
         {isSubRunning ? (

@@ -1,5 +1,5 @@
 import { CliEngineContext, TerminalLine } from '../utils/Commands';
-import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
 
 export const runStartCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {
@@ -70,11 +70,11 @@ export const runStopCommand = (args: string[], context: CliEngineContext, output
 };
 
 export const runStatusCommand = (context: CliEngineContext, outputs: TerminalLine[]): void => {
-  const { activeLog, tasks, projects, logs, metrics, nowIso, locale, customTranslations } = context;
+  const { activeLog, tasks, projects, metrics, locale, customTranslations } = context;
   if (activeLog) {
     const t = tasks.find(x => x.id === activeLog.taskId);
     const p = t ? projects.find(x => x.id === t.projectId) : null;
-    const diffSeconds = metrics?.tasks[activeLog.taskId]?.elapsedSeconds ?? (nowIso ? getTaskDurationSeconds(activeLog.taskId, tasks, logs, nowIso) : 0);
+    const diffSeconds = metrics?.tasks[activeLog.taskId]?.elapsedSeconds ?? Math.max(0, Math.floor((Date.now() - new Date(activeLog.startTime).getTime()) / 1000));
     outputs.push(
       { text: translate(locale, 'cli', 'StatusHeader', customTranslations), type: 'info' },
       { text: `  Task : ${t?.name} (ID: ${t?.id})`, type: 'output' },

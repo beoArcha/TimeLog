@@ -3,16 +3,23 @@ import { GuiState } from '../hooks/useGuiLogic';
 import { Clock, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@common/i18n/translator';
-import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
-    tasks, logs, activeLog, metrics, nowIso, locale, customTranslations, theme,
+    tasks, logs, nowIso, activeLog, metrics, locale, customTranslations, theme,
     onStopTimer, projects
   } = state;
 
   const activeTask = activeLog ? tasks.find(t => t.id === activeLog.taskId) : null;
   const activeProject = activeTask ? projects.find(p => p.id === activeTask.projectId) : null;
+  const { formattedElapsed } = useLiveTaskElapsed(activeTask?.id ?? '', {
+    metrics,
+    activeLog,
+    tasks,
+    logs,
+    nowIso,
+  });
 
   return (
     <AnimatePresence mode="wait">
@@ -72,7 +79,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
               </p>
               <p id="active-timer-display" className={`text-xl font-extrabold tracking-tight font-mono ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
                 }`}>
-                {formatSeconds(activeTask ? (metrics?.tasks?.[activeTask.id]?.elapsedSeconds ?? (nowIso ? getTaskDurationSeconds(activeTask.id, tasks, logs, nowIso) : 0)) : 0)}
+                {formattedElapsed}
               </p>
             </div>
             <button

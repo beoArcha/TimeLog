@@ -1,5 +1,6 @@
 import { TimeLog } from '@bindings/TimeLog';
-import { getProjectDurationSeconds, getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { calculateProjectElapsed, calculateTaskElapsed } from '@/src/plugins/engine/elapsed';
 import { translate } from '@common/i18n/translator';
 import { TerminalLine, CliEngineContext } from './Commands';
 
@@ -183,10 +184,10 @@ export const runTimeCommand = (args: string[], context: CliEngineContext, output
 
   if (period === 'all' && metrics) {
     if (type === 'profile') {
-      dur = metrics.projects[targetId]?.totalElapsedSeconds ?? (nowIso ? getProjectDurationSeconds(targetId, tasks, logs, nowIso) : 0);
+      dur = metrics.projects[targetId]?.totalElapsedSeconds ?? calculateProjectElapsed(targetId, tasks, logs, nowIso);
       pName = projects.find(p => p.id === targetId)?.name || targetId;
     } else if (type === 'task' || type === 'subtask') {
-      dur = metrics.tasks[targetId]?.elapsedSeconds ?? (nowIso ? getTaskDurationSeconds(targetId, tasks, logs, nowIso) : 0);
+      dur = metrics.tasks[targetId]?.elapsedSeconds ?? calculateTaskElapsed(targetId, tasks, logs, nowIso);
       pName = tasks.find(t => t.id === targetId)?.name || targetId;
     } else {
       outputs.push({ text: 'Error: Type must be subtask, task, or profile.', type: 'error' });
@@ -210,10 +211,10 @@ export const runTimeCommand = (args: string[], context: CliEngineContext, output
     const filteredLogs = filterLogsByPeriod(logs);
 
     if (type === 'profile') {
-      dur = nowIso ? getProjectDurationSeconds(targetId, tasks, filteredLogs, nowIso) : 0;
+      dur = calculateProjectElapsed(targetId, tasks, filteredLogs, nowIso);
       pName = projects.find(p => p.id === targetId)?.name || targetId;
     } else if (type === 'task' || type === 'subtask') {
-      dur = nowIso ? getTaskDurationSeconds(targetId, tasks, filteredLogs, nowIso) : 0;
+      dur = calculateTaskElapsed(targetId, tasks, filteredLogs, nowIso);
       pName = tasks.find(t => t.id === targetId)?.name || targetId;
     } else {
       outputs.push({ text: 'Error: Type must be subtask, task, or profile.', type: 'error' });

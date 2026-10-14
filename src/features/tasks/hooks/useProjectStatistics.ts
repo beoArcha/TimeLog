@@ -4,7 +4,7 @@ import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
-import { getProjectDurationSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { calculateProjectElapsed } from '@/src/plugins/engine/elapsed';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { useTranslation } from '@common/i18n/translator';
 import { toast } from 'sonner';
@@ -44,7 +44,7 @@ export function useProjectStatistics({
     if (projectMetric) {
       return projectMetric.totalElapsedSeconds;
     }
-    return nowIso ? getProjectDurationSeconds(projectId, tasks, logs, nowIso) : 0;
+    return calculateProjectElapsed(projectId, tasks, logs, nowIso);
   }, [projectId, projectMetric, tasks, logs, nowIso]);
 
   const statsFromMetrics = useMemo<ProjectStatistics | null>(() => {

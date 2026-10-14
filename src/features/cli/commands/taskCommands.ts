@@ -1,9 +1,9 @@
 import { CliEngineContext, TerminalLine } from '../utils/Commands';
-import { getTaskDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
 
 export const runTasksCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {
-  const { projects, tasks, logs, metrics, nowIso, locale, customTranslations, selectedTaskId } = context;
+  const { projects, tasks, metrics, locale, customTranslations, selectedTaskId } = context;
   const pId = args[0];
   if (!pId) {
     outputs.push({ text: translate(locale, 'cli', 'RequiresProjId', customTranslations), type: 'error' });
@@ -24,7 +24,7 @@ export const runTasksCommand = (args: string[], context: CliEngineContext, outpu
     outputs.push({ text: `${translate(locale, 'cli', 'ProjTasksHeader', customTranslations)}: ${proj.name} [ID: ${proj.id}]`, type: 'success' });
     rootTasks.forEach(root => {
       const statusSymbol = root.completed ? '[X]' : '[ ]';
-      const rootSecs = metrics?.tasks[root.id]?.elapsedSeconds ?? (nowIso ? getTaskDurationSeconds(root.id, tasks, logs, nowIso) : 0);
+      const rootSecs = metrics?.tasks[root.id]?.elapsedSeconds ?? 0;
       const duration = formatSeconds(rootSecs);
       const isSetLabel = root.id === selectedTaskId ? ' (Selected)' : '';
       outputs.push({
@@ -35,7 +35,7 @@ export const runTasksCommand = (args: string[], context: CliEngineContext, outpu
       const subs = projTasks.filter(t => t.parentTaskId === root.id);
       subs.forEach(sub => {
         const subStatus = sub.completed ? '[X]' : '[ ]';
-        const subSecs = metrics?.tasks[sub.id]?.elapsedSeconds ?? (nowIso ? getTaskDurationSeconds(sub.id, tasks, logs, nowIso) : 0);
+        const subSecs = metrics?.tasks[sub.id]?.elapsedSeconds ?? 0;
         const subDuration = formatSeconds(subSecs);
         const isSubSetLabel = sub.id === selectedTaskId ? ' (Selected)' : '';
         outputs.push({

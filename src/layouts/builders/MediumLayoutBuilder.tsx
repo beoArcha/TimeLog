@@ -7,7 +7,7 @@ import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
 import SettingsTab from '@features/settings/SettingsTab';
 import { PROJECT_COLORS } from '../parts/LayoutStyles';
-import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
 import {
   ListTodo,
@@ -38,8 +38,6 @@ export default function MediumLayoutBuilder({
     theme,
     projects = [],
     tasks = [],
-    logs = [],
-    nowIso = '',
     locale = 'en',
     customTranslations,
     selectedProjectId,
@@ -145,7 +143,7 @@ export default function MediumLayoutBuilder({
                     <span className="flex items-center gap-1 text-orange-500 font-semibold">
                       <Clock className="w-3 h-3" />
                       {formatSeconds(
-                        getProjectDurationSeconds(selectedProject.id, tasks, logs, nowIso)
+                        state.metrics?.projects?.[selectedProject.id]?.totalElapsedSeconds ?? 0
                       )}
                     </span>
                     <span>·</span>
@@ -296,7 +294,7 @@ export default function MediumLayoutBuilder({
               <div className="max-h-60 overflow-y-auto p-1.5 flex flex-col gap-1">
                 {projects.map((p: any) => {
                   const isSelected = p.id === selectedProject?.id;
-                  const dur = getProjectDurationSeconds(p.id, tasks, logs, nowIso);
+                  const dur = state.metrics?.projects?.[p.id]?.totalElapsedSeconds ?? 0;
                   const pTasks = tasks.filter((t: any) => t.projectId === p.id);
                   return (
                     <button
