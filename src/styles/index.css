@@ -233,18 +233,25 @@
 
 /* Layout Variants + Scale combinations for GUI min sizes */
 [data-layout-variant="medium"][data-text-size="small"] {
-  --gui-min-width: 480px;
-  --gui-min-height: 720px;
+  --gui-min-width: 400px;
+  --gui-min-height: 600px;
 }
 
 [data-layout-variant="medium"][data-text-size="medium"] {
-  --gui-min-width: 720px;
-  --gui-min-height: 1080px;
+  --gui-min-width: 440px;
+  --gui-min-height: 720px;
 }
 
 [data-layout-variant="medium"][data-text-size="large"] {
-  --gui-min-width: 960px;
-  --gui-min-height: 1440px;
+  --gui-min-width: 480px;
+  --gui-min-height: 800px;
+}
+
+@media (max-width: 767px) {
+  [data-layout-variant="medium"] {
+    --gui-min-width: 100% !important;
+    --gui-min-height: auto !important;
+  }
 }
 
 [data-layout-variant="full"][data-text-size="small"] {
@@ -316,6 +323,10 @@
 @utility input-py {
   padding-top: var(--input-py) !important;
   padding-bottom: var(--input-py) !important;
+}
+
+@utility button-h {
+  min-height: 2.5rem;
 }
 
 @utility gui-min-size {

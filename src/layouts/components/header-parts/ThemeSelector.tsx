@@ -21,7 +21,7 @@ const THEME_OPTIONS: ThemeOption[] = [
 
 export const ThemeSelector: React.FC = () => {
   const { locale, customTranslations } = useLocale();
-  const { theme, setTheme, resolvedTheme } = useSettings();;
+  const { theme, setTheme, resolvedTheme, layoutVariant } = useSettings();
 
   return (
     <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
@@ -34,7 +34,9 @@ export const ThemeSelector: React.FC = () => {
           <button
             key={th.id}
             onClick={() => setTheme(th.id)}
-            className={`px-2.5 py-0.5 flex items-center gap-1.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+            title={labelText}
+            aria-label={labelText}
+            className={`p-1 sm:px-2 sm:py-0.5 flex items-center gap-1.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
               isActive
                 ? resolvedTheme === 'light'
                   ? 'bg-[#FCFAF8] text-orange-600 border border-[#DFD7CB] shadow-sm font-bold'
@@ -45,7 +47,7 @@ export const ThemeSelector: React.FC = () => {
             }`}
           >
             <th.icon className="w-3 h-3" />
-            <span className="hidden xl:inline">{labelText}</span>
+            {layoutVariant === 'full' && <span className="hidden xl:inline">{labelText}</span>}
           </button>
         );
       })}

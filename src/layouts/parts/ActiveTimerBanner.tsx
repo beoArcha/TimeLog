@@ -78,9 +78,9 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             <button
               id="stop-timer-btn"
               onClick={() => onStopTimer()}
-              className={`bg-rose-500 hover:bg-rose-600 text-white rounded-section button-h px-3 transition-all duration-300 flex items-center justify-center shadow-md transform active:scale-95 group cursor-pointer`}
+              className={`bg-rose-500 hover:bg-rose-600 text-white rounded-xl h-10 w-10 sm:h-11 sm:w-11 min-h-[40px] min-w-[40px] transition-all duration-300 flex items-center justify-center shadow-md transform active:scale-95 group cursor-pointer shrink-0`}
             >
-              <Square className={`icon-small text-white fill-white group-hover:scale-110 transition-transform`} />
+              <Square className={`w-4 h-4 text-white fill-white group-hover:scale-110 transition-transform`} />
             </button>
           </div>
         </motion.div>

@@ -15,6 +15,11 @@ export const LayoutSelector: React.FC = () => {
     }`}>
       {(['compact', 'medium', 'full'] as const).map(sz => {
         const isActive = layoutVariant === sz;
+        const fullLabel = sz === 'compact'
+          ? translate(locale, 'app', 'SizeSmall', customTranslations)
+          : sz === 'medium'
+            ? translate(locale, 'app', 'SizeMedium', customTranslations)
+            : translate(locale, 'app', 'SizeLarge', customTranslations);
         return (
           <button
             key={sz}
@@ -22,11 +27,11 @@ export const LayoutSelector: React.FC = () => {
             onClick={() => {
               setLayoutVariant(sz);
               if (showToast) {
-                const label = sz === 'compact' ? translate(locale, 'app', 'SizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app', 'SizeMedium', customTranslations) : translate(locale, 'app', 'SizeLarge', customTranslations);
-                showToast(`${translate(locale, 'app', 'SizeChanged', customTranslations)} ${label}`);
+                showToast(`${translate(locale, 'app', 'SizeChanged', customTranslations)} ${fullLabel}`);
               }
             }}
-            className={`px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${isActive
+            title={fullLabel}
+            className={`px-1.5 sm:px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${isActive
               ? resolvedTheme === 'light'
                 ? 'bg-[#FCFAF8] text-[#2C2421] border border-[#DFD7CB] shadow-sm font-bold'
                 : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
@@ -35,7 +40,8 @@ export const LayoutSelector: React.FC = () => {
                 : 'text-[#9B8C83] hover:text-white'
               }`}
           >
-            {sz === 'compact' ? translate(locale, 'app', 'SizeSmall', customTranslations) : sz === 'medium' ? translate(locale, 'app', 'SizeMedium', customTranslations) : translate(locale, 'app', 'SizeLarge', customTranslations)}
+            <span className={layoutVariant === 'full' ? 'hidden sm:inline' : 'hidden'}>{fullLabel}</span>
+            <span className={layoutVariant === 'full' ? 'sm:hidden' : ''}>{sz === 'compact' ? 'S' : sz === 'medium' ? 'M' : 'L'}</span>
           </button>
         );
       })}

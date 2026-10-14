@@ -113,7 +113,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
   }
 
   return (
-    <div id="project-tasks-sheet" className={`backdrop-blur-md rounded-main padding-main border shadow-2xl flex flex-col gap-main transition-all duration-300 flex-1 min-h-0 ${theme === 'light'
+    <div id="project-tasks-sheet" className={`backdrop-blur-md rounded-main ${isCondensed ? 'p-3 sm:p-4 gap-3' : 'padding-main gap-main'} border shadow-2xl flex flex-col transition-all duration-300 ${isCondensed ? 'w-full' : 'flex-1 min-h-0'} ${theme === 'light'
       ? 'bg-[#FCFAF8] border-[#DFD7CB]'
       : theme === 'high-contrast'
         ? 'bg-black border-2 border-white'
@@ -132,7 +132,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         onAddTaskSubmit={handleAddTaskSubmit}
       />
 
-      <div id="tasks-tree-container" className={`flex flex-col gap-main overflow-y-auto pr-1 flex-1 min-h-0`}>
+      <div id="tasks-tree-container" className={`flex flex-col gap-main ${isCondensed ? 'overflow-visible' : 'overflow-y-auto flex-1 min-h-0'} pr-1`}>
         {rootTasks.length === 0 ? (
           <TaskEmptyState
             theme={theme}

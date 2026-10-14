@@ -31,7 +31,7 @@ export default function TabBar({
   ];
 
   return (
-    <div className={`border-b transition-all duration-300 ${resolvedTheme === 'light' ? 'bg-[#EAE4DB]/50 border-[#DFD7CB]' : 'bg-black/35 border-white/5'
+    <div className={`shrink-0 z-20 border-b transition-all duration-300 ${resolvedTheme === 'light' ? 'bg-[#EAE4DB]/50 border-[#DFD7CB]' : 'bg-black/35 border-white/5'
       }`}>
       <div className="max-w-7xl mx-auto px-6 overflow-x-auto">
         <div role="tablist" aria-label="Navigation tabs" className="flex gap-1.5 py-2.5 whitespace-nowrap min-w-max">

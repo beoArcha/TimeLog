@@ -10,25 +10,43 @@ import { useSettings } from '@common/hooks/SettingsContext';
 
 export default function Header() {
   const { dragRegionProps } = usePlatformCapabilities();
-  const { resolvedTheme } = useSettings();;
+  const { resolvedTheme, layoutVariant } = useSettings();
+
+  const isMediumMode = layoutVariant === 'medium';
 
   return (
-    <div
+    <header
       {...dragRegionProps}
-      className={`border-b transition-all duration-300 ${
+      data-testid="layout-header"
+      className={`shrink-0 sticky top-0 z-30 border-b transition-all duration-300 ${
         resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-slate-900/60 backdrop-blur-2xl border-white/5'
-      } py-3.5 px-6 flex flex-col sm:flex-row items-center justify-between gap-4`}
+      } py-2 px-3 sm:py-2.5 sm:px-4 flex ${
+        isMediumMode ? 'flex-col gap-2' : 'flex-col md:flex-row md:items-center'
+      } justify-between md:gap-3`}
     >
-      <AppLogo />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <LayoutSelector />
-        <TextScaleSelector />
-        <ThemeSelector />
-        <LanguageSelector />
+      <div className="flex items-center justify-between gap-2 w-full md:w-auto">
+        <AppLogo />
+        <div className={`flex ${isMediumMode ? '' : 'md:hidden'} items-center gap-1.5`}>
+          <StatusIndicator />
+          <LayoutSelector />
+        </div>
       </div>
 
-      <StatusIndicator />
-    </div>
+      <div className={`flex items-center justify-between ${isMediumMode ? '' : 'md:justify-end'} gap-1.5 sm:gap-2 w-full md:w-auto`}>
+        {!isMediumMode && (
+          <div className="hidden md:flex items-center">
+            <LayoutSelector />
+          </div>
+        )}
+        <ThemeSelector />
+        <TextScaleSelector />
+        <LanguageSelector />
+        {!isMediumMode && (
+          <div className="hidden md:flex items-center">
+            <StatusIndicator />
+          </div>
+        )}
+      </div>
+    </header>
   );
 }

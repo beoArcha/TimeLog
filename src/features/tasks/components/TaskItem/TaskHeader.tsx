@@ -63,77 +63,79 @@ export function TaskHeader({
         )}
       </button>
 
-      <div className="min-w-0 flex-1 flex items-center justify-between group/taskedit">
-        {isEditing ? (
-          <TaskNameEditor
-            taskId={rootTask.id}
-            taskName={rootTask.name}
-            editName={editName}
-            isEditing={isEditing}
-            theme={theme}
-            textSizeClass={`font-semibold text-main`}
-            onRenameTask={onRenameTask}
-            setEditName={setEditName}
-            setEditingId={setEditingId}
-          />
-        ) : (
-          <span
-            className={`font-semibold text-title flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${rootTask.completed
-                ? 'line-through text-[#9B8C83] font-normal'
-                : theme === 'light'
-                  ? 'text-[#2C2421]'
-                  : 'text-slate-100'
-              }`}
-          >
-            <span className="truncate block max-w-full" title={rootTask.name}>
-              {rootTask.name}
-            </span>
-            <select
-              value={rootTask.status || 'Todo'}
-              onChange={(e) => {
-                const newStatus = e.target.value as TaskStatus;
-                if (onUpdateTask) {
-                  onUpdateTask(rootTask.id, rootTask.name, rootTask.parentTaskId || null, newStatus, null);
-                }
-              }}
-              onClick={(e) => e.stopPropagation()}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded border outline-none cursor-pointer font-mono shrink-0 transition-all ${rootTask.status === 'Done'
-                  ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/15'
-                  : rootTask.status === 'InProgress'
-                    ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/15'
-                    : rootTask.status === 'Blocked'
-                      ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/15'
-                      : 'bg-slate-500/10 text-slate-500 border-slate-500/20 hover:bg-slate-500/15'
+      <div className="min-w-0 flex-1 flex items-center justify-between gap-2 group/taskedit">
+        <div className="min-w-0 flex-1 flex flex-col justify-center">
+          {isEditing ? (
+            <TaskNameEditor
+              taskId={rootTask.id}
+              taskName={rootTask.name}
+              editName={editName}
+              isEditing={isEditing}
+              theme={theme}
+              textSizeClass={`font-semibold text-main`}
+              onRenameTask={onRenameTask}
+              setEditName={setEditName}
+              setEditingId={setEditingId}
+            />
+          ) : (
+            <span
+              className={`font-semibold text-title flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${rootTask.completed
+                  ? 'line-through text-[#9B8C83] font-normal'
+                  : theme === 'light'
+                    ? 'text-[#2C2421]'
+                    : 'text-slate-100'
                 }`}
             >
-              <option value="Todo" className="bg-[#1b1c21] text-slate-200">TODO</option>
-              <option value="InProgress" className="bg-[#1b1c21] text-blue-400">In Progress</option>
-              <option value="Done" className="bg-[#1b1c21] text-emerald-400">Done</option>
-              <option value="Blocked" className="bg-[#1b1c21] text-rose-450">Blocked</option>
-            </select>
-            {isChildRunning && runningSubtask && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] bg-amber-550/15 border border-amber-500/35 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
-                <span className="truncate max-w-[120px]" title={runningSubtask.name}>
-                  {tTask('SubtaskLabel')}: {runningSubtask.name}
+              <span className="truncate block max-w-full" title={rootTask.name}>
+                {rootTask.name}
+              </span>
+              <select
+                value={rootTask.status || 'Todo'}
+                onChange={(e) => {
+                  const newStatus = e.target.value as TaskStatus;
+                  if (onUpdateTask) {
+                    onUpdateTask(rootTask.id, rootTask.name, rootTask.parentTaskId || null, newStatus, null);
+                  }
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className={`text-[10px] font-bold px-2 py-0.5 rounded border outline-none cursor-pointer font-mono shrink-0 transition-all ${rootTask.status === 'Done'
+                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/15'
+                    : rootTask.status === 'InProgress'
+                      ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/15'
+                      : rootTask.status === 'Blocked'
+                        ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/15'
+                        : 'bg-slate-500/10 text-slate-500 border-slate-500/20 hover:bg-slate-500/15'
+                  }`}
+              >
+                <option value="Todo" className="bg-[#1b1c21] text-slate-200">TODO</option>
+                <option value="InProgress" className="bg-[#1b1c21] text-blue-400">In Progress</option>
+                <option value="Done" className="bg-[#1b1c21] text-emerald-400">Done</option>
+                <option value="Blocked" className="bg-[#1b1c21] text-rose-450">Blocked</option>
+              </select>
+              {isChildRunning && runningSubtask && (
+                <span className="inline-flex items-center gap-1.5 text-[10px] bg-amber-550/15 border border-amber-500/35 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+                  <span className="truncate max-w-[120px]" title={runningSubtask.name}>
+                    {tTask('SubtaskLabel')}: {runningSubtask.name}
+                  </span>
                 </span>
-              </span>
-            )}
-            {isCurrentRunning && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/15 border border-emerald-500/35 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
-                {tTask('InProgressLabel')}
-              </span>
-            )}
-          </span>
-        )}
+              )}
+              {isCurrentRunning && (
+                <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/15 border border-emerald-500/35 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                  {tTask('InProgressLabel')}
+                </span>
+              )}
+            </span>
+          )}
 
-        <span
-          className={`text-[10px] font-mono block mt-0.5 whitespace-normal leading-tight ${theme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
-            }`}
-        >
-          ID: {rootTask.id} • SQLite table entry {isCurrentRunning || isChildRunning ? '(Sygnał liczenia aktywny)' : ''}
-        </span>
+          <span
+            className={`text-[10px] font-mono block mt-0.5 truncate leading-tight ${theme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
+              }`}
+          >
+            ID: {rootTask.id} • SQLite table entry {isCurrentRunning || isChildRunning ? '(Sygnał liczenia aktywny)' : ''}
+          </span>
+        </div>
 
         {!isEditing && (
           <TaskActions

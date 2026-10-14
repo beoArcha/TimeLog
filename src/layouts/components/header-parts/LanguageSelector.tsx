@@ -5,32 +5,54 @@ import { useSettings } from '@common/hooks/SettingsContext';
 
 export const LanguageSelector: React.FC = () => {
   const { localePref, setLocalePref } = useLocale();
-  const { resolvedTheme } = useSettings();;
+  const { resolvedTheme, layoutVariant } = useSettings();
+
+  const showExpanded = layoutVariant === 'full';
 
   return (
     <div className={`flex items-center p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
       resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
     }`}>
-      <Languages className={`w-3.5 h-3.5 mx-2 ${resolvedTheme === 'light' ? 'text-blue-500' : 'text-blue-400'}`} />
-      {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as const).map(l => {
-        const isActive = localePref === l;
-        return (
-          <button
-            key={l}
-            onClick={() => setLocalePref(l)}
-            className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${isActive
-              ? resolvedTheme === 'light'
-                ? 'bg-blue-500 text-white border border-blue-600 shadow-sm font-bold'
-                : 'bg-blue-500 text-white border border-blue-600 font-bold'
-              : resolvedTheme === 'light'
-                ? 'text-[#8A7A71] hover:text-[#2C2421]'
-                : 'text-[#9B8C83] hover:text-white'
-              }`}
-          >
-            {l}
-          </button>
-        );
-      })}
+      <Languages className={`w-3.5 h-3.5 mx-1 sm:mx-1.5 ${resolvedTheme === 'light' ? 'text-blue-500' : 'text-blue-400'}`} />
+
+      {/* Mobile & Medium compact select dropdown */}
+      <select
+        value={localePref}
+        onChange={e => setLocalePref(e.target.value as any)}
+        className={`${showExpanded ? 'lg:hidden' : ''} bg-transparent text-[9px] font-bold uppercase pr-0.5 py-0.5 focus:outline-none cursor-pointer`}
+        aria-label="Język"
+      >
+        {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as const).map(l => (
+          <option key={l} value={l} className="bg-slate-900 text-white dark:bg-slate-900">
+            {l.toUpperCase()}
+          </option>
+        ))}
+      </select>
+
+      {/* Large desktop expanded buttons (only in full layout) */}
+      {showExpanded && (
+        <div className="hidden lg:flex items-center">
+        {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as const).map(l => {
+          const isActive = localePref === l;
+          return (
+            <button
+              key={l}
+              onClick={() => setLocalePref(l)}
+              className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${isActive
+                ? resolvedTheme === 'light'
+                  ? 'bg-blue-500 text-white border border-blue-600 shadow-sm font-bold'
+                  : 'bg-blue-500 text-white border border-blue-600 font-bold'
+                : resolvedTheme === 'light'
+                  ? 'text-[#8A7A71] hover:text-[#2C2421]'
+                  : 'text-[#9B8C83] hover:text-white'
+                }`}
+            >
+              {l}
+            </button>
+          );
+        })}
+        </div>
+      )}
     </div>
   );
 };
