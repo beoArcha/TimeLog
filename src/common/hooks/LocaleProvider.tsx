@@ -1,10 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ContextException } from '../exceptions';
-import { TranslationDictionary } from '@common/i18n/translator';
+import { TranslationDictionary } from '@common/i18n/types';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler } from '../exceptions';
-import { Locale } from '@/src/bindings/Locale';
+import { Locale } from '@bindings/Locale';
 
 interface LocaleContextProps {
   localePref: Locale;

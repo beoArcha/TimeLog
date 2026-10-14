@@ -1,4 +1,4 @@
-import { CliEngineContext, TerminalLine } from '../utils/Commands';
+import { CliEngineContext, TerminalLine } from '../types';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';

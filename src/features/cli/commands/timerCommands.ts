@@ -1,5 +1,5 @@
-import { CliEngineContext, TerminalLine } from '../utils/Commands';
-import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { CliEngineContext, TerminalLine } from '../types';
+import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
 
 export const runStartCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {

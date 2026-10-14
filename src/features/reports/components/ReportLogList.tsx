@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from '@common/i18n/translator';
-import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { TimeLog } from '@bindings/TimeLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
-import { ProjectChartItem } from '../hooks/useReportStatistics';
+import { ProjectChartItem } from '../types';
 
 interface ReportLogListProps {
   filteredLogs: TimeLog[];
