@@ -100,17 +100,30 @@ Rust is the reference implementation.
 
 ### Persistence
 
-Stores and retrieves data.
+Stores and retrieves data records (CRUD: projects, tasks, timelogs).
 
-Nothing more.
+Never validates business intervals or computes timer metrics.
 
 ---
 
-## Frontend Architecture
+### Context Layering (ISP)
 
-The frontend follows exactly the same architectural philosophy.
+Contexts are strictly split by domain:
 
-It consists of four independent concepts.
+- `WindowShellContext`: Tray, window minimization, notifications, toasts.
+- `DataContext`: Reactive state for projects, tasks, timelogs, and CRUD handlers.
+- `EngineContext`: Metrics calculations, background sync, and daemon status.
+- `SettingsContext`: LayoutVariant, theme, and TextAndIconSize.
+
+Never import EngineContext solely for window/shell actions.
+
+---
+
+### Live Calculation Hooks
+
+Always use `useLiveTaskElapsed` or `useLiveProjectElapsed` for displaying elapsed time.
+
+Never write custom `setInterval` tickers in components.
 
 ---
 

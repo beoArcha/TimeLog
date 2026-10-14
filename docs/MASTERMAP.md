@@ -335,19 +335,31 @@ Create a modular frontend architecture mirroring Engine and Persistence.
 
 ---
 
-### Phase 3 — Runtime Completion
+### Phase 3 — Runtime Completion ✅
 
 Goal:
 
-Feature parity.
+Feature parity and clean contract separation.
 
-* Browser Engine
-* Browser Persistence
-* Unified contracts
+* Browser Engine (`EnginePlugin`) & Rust parity
+* Browser Persistence (`PersistencePlugin`) & SQLite parity
+* Clean contract separation (`IEngine` for timers/metrics vs `PersistenceRouter` for CRUD)
+* TypeScript generated bindings synchronization (`UpdateProject`, `UpdateTask`)
 
 ---
 
-### Phase 4 — Backend Completion
+### Phase 4 — Frontend Code Review & Clean Refactoring ✅
+
+* Unified live calculation hooks (`useLiveTaskElapsed`, `useLiveProjectElapsed`) eliminating duplicate time logic
+* Context decomposition adhering to ISP/SRP (`WindowShellContext` separated from `EngineContext` and `DataContext`)
+* Medium Layout Builder decomposition (`MediumProjectSelector`, `MediumTabBar`)
+* Reusable atomic UI controls (`ProjectBadge`, `TimerDisplay`)
+* Clean code comment audit (removal of decorative ASCII dividers, trivial comments)
+* 100% test coverage preserved across 100 test files (570 tests)
+
+---
+
+### Phase 5 — MVP & Hardening
 
 * Timer
 * Projects

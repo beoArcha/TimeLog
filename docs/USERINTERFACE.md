@@ -183,6 +183,30 @@ No custom layout inventions.
 
 ---
 
+### Reusable Atomic UI Controls
+
+Primitive and domain-agnostic UI elements reside strictly in `src/components/ui/`:
+
+- `ProjectBadge`: Standardized project color dot/icon + truncated title badge.
+- `TimerDisplay`: Standardized monospace timer display with design tokens and active states.
+- `Button`, `Card`, `Input`, `Tabs`: Headless Base-UI primitives styled with Tailwind design tokens.
+
+Components must consume these shared controls rather than re-implementing ad-hoc styled spans or timer paragraphs.
+
+---
+
+### Layout Decomposition & Builders
+
+Layout Builders compose autonomous sub-parts rather than nesting large inline templates:
+
+- `MediumLayoutBuilder`:
+  - `MediumProjectSelector`: Dropdown project selector with dock toggle.
+  - `ActiveTimerBanner`: Active tracker state display.
+  - Tab views: `TaskListView`, `ReportView`, `SettingsTab`.
+  - `MediumTabBar`: Docked bottom navigation.
+
+---
+
 ## Runtime Behavior
 
 ### TAURI

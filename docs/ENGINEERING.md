@@ -113,16 +113,15 @@ Never contains business logic.
 
 ### Engine
 
-Business logic belongs exclusively to Engine.
+Business logic and calculations belong exclusively to Engine (`IEngine`).
 
 Responsibilities include:
 
-* timer lifecycle
-* elapsed calculations
-* statistics
-* validation
-* workflows
-* aggregates
+* timer lifecycle (`start_timer`, `stop_timer`)
+* elapsed calculations and aggregates (`recalculate_metrics`)
+* metric aggregation (snapshot metrics for tasks and projects)
+* log interval validation (`validate_time_log`)
+* parity between Rust core and Browser `EnginePlugin`
 
 Rust remains the reference implementation.
 
@@ -130,20 +129,20 @@ Rust remains the reference implementation.
 
 ### Persistence
 
-Persistence is responsible only for storing and retrieving data.
+Persistence (`IPersistence` / `PersistenceRouter`) is responsible only for storing, retrieving, and mutating entity state.
 
 Responsibilities:
 
-* load
-* save
-* update
-* delete
+* read state (`load_all`)
+* entity CRUD (`add_project`, `update_project`, `archive_project`, `add_task`, `update_task`, `delete_task`, `add_time_log`, `edit_time_log`, `delete_time_log`)
+* backup and export operations
+* parity between SQLite backend (Tauri) and LocalStorage `PersistencePlugin` (Browser)
 
 Persistence never:
 
-* validates business rules
-* calculates statistics
-* changes workflows
+* validates business time overlap rules (Engine responsibility)
+* calculates metric statistics
+* orchestrates active timer ticks
 
 ---
 
@@ -371,6 +370,29 @@ Hooks must not:
 * implement business logic
 * access persistence directly
 * duplicate Engine behavior
+
+### Live Calculation Hooks
+
+Time elapsed calculations must never be duplicated across components or layouts.
+
+* `useLiveTaskElapsed(taskId, options)`: Single source of truth for task elapsed time. Reconciles cached snapshot metrics (`EngineComputedMetrics`) with the live delta from the active timer tick.
+* `useLiveProjectElapsed(projectId, options)`: Computes aggregate live elapsed time for entire projects.
+
+Ad-hoc ticker intervals (`setInterval` / `useTimeTicker`) in individual components are strictly forbidden.
+
+---
+
+## Context Architecture (ISP & SRP)
+
+Contexts are decomposed by domain responsibility to prevent unnecessary component re-renders:
+
+1. **`WindowShellContext`**: Controls window lifecycle, tray minimization, toasts, and shell alerts.
+2. **`DataContext`**: Manages entity records (projects, tasks, timelogs), selections, and CRUD operations.
+3. **`EngineContext`**: Manages metrics calculations, background sync, and daemon status.
+4. **`SettingsContext`**: Manages user preferences (layout variant, theme, visual scale).
+5. **`LocaleProvider`**: Manages current locale and dictionary translations.
+
+No component should import an Engine context simply to minimize a window or trigger a toast notification.
 
 ---
 
