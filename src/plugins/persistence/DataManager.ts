@@ -5,7 +5,9 @@ import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 
-// Definitions for the database state
+/**
+ * In-memory snapshot of local database entities.
+ */
 export interface DatabaseState {
   projects: Project[];
   tasks: Task[];

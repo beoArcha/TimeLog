@@ -1,17 +1,15 @@
-// TODO: [UI-COMPONENT] Move ProjectSelector to src/components/ui/project-selector.tsx
 import React, { useState } from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { PROJECT_COLORS } from './LayoutStyles';
-import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
-import { ProjectBadge } from '@/src/components/ui/project-badge';
+import { ProjectBadge } from '@components/ui/project-badge';
+import { MediumHeaderActions } from './MediumHeaderActions';
 import {
   Folder,
   Plus,
   ChevronDown,
   Check,
-  PanelLeft,
-  PanelRight,
   X,
   Clock,
 } from 'lucide-react';
@@ -68,13 +66,20 @@ export default function MediumProjectSelector({
               : 'bg-white/5 border-white/10 text-white'
         }`}
       >
-        {/* Project Quick Switcher Trigger */}
         <button
           type="button"
           onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-          className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer hover:opacity-85 transition-opacity"
-          title="Zmień projekt"
-          aria-label="Wybierz projekt"
+          className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer hover:opacity-85 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 rounded-xl p-1"
+          title={
+            translate(locale, 'project', 'ChangeProject', customTranslations) ||
+            'Change project'
+          }
+          aria-label={
+            translate(locale, 'project', 'SelectProject', customTranslations) ||
+            'Select project'
+          }
+          aria-expanded={isProjectDropdownOpen}
+          aria-haspopup="dialog"
         >
           <div
             className="w-4 h-4 rounded-full shrink-0 shadow-xs ring-1 ring-white/20"
@@ -89,9 +94,10 @@ export default function MediumProjectSelector({
               <span className="font-bold text-sm truncate block">
                 {selectedProject?.name ||
                   translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations) ||
-                  'Wybierz projekt'}
+                  'Select project'}
               </span>
               <ChevronDown
+                aria-hidden="true"
                 className={`w-3.5 h-3.5 shrink-0 transition-transform ${
                   isProjectDropdownOpen ? 'rotate-180 text-orange-400' : 'text-slate-400'
                 }`}
@@ -100,63 +106,34 @@ export default function MediumProjectSelector({
             {selectedProject && (
               <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400">
                 <span className="flex items-center gap-1 text-orange-500 font-semibold">
-                  <Clock className="w-3 h-3" />
+                  <Clock className="w-3 h-3" aria-hidden="true" />
                   {formatSeconds(
                     state.metrics?.projects?.[selectedProject.id]?.totalElapsedSeconds ?? 0
                   )}
                 </span>
                 <span>·</span>
-                <span>{tasks.filter(t => t.projectId === selectedProject.id).length} zadań</span>
+                <span>
+                  {tasks.filter(t => t.projectId === selectedProject.id).length}{' '}
+                  {translate(locale, 'project', 'TotalTasks', customTranslations) || 'tasks'}
+                </span>
               </div>
             )}
           </div>
         </button>
 
-        {/* Quick Actions in Header */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              setIsProjectDropdownOpen(true);
-              setIsAddingProject(true);
-            }}
-            className={`p-2 rounded-xl border transition-all cursor-pointer ${
-              theme === 'light'
-                ? 'bg-white border-[#DFD7CB] text-orange-600 hover:bg-orange-50'
-                : 'bg-white/10 border-white/10 text-orange-400 hover:bg-white/20'
-            }`}
-            title="Nowy projekt"
-            aria-label="Nowy projekt"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-
-          {/* PC Dock Position Switcher */}
-          <button
-            type="button"
-            onClick={onToggleDock}
-            className={`hidden lg:flex p-2 rounded-xl border transition-all cursor-pointer items-center justify-center ${
-              theme === 'light'
-                ? 'bg-white border-[#DFD7CB] text-slate-700 hover:bg-slate-100'
-                : 'bg-white/10 border-white/10 text-slate-300 hover:bg-white/20'
-            }`}
-            title={
-              dockPosition === 'right'
-                ? 'Przełącz pasek na lewą stronę PC'
-                : 'Przełącz pasek na prawą stronę PC'
-            }
-            aria-label="Przełącz stronę dokowania"
-          >
-            {dockPosition === 'right' ? (
-              <PanelLeft className="w-4 h-4" />
-            ) : (
-              <PanelRight className="w-4 h-4" />
-            )}
-          </button>
-        </div>
+        <MediumHeaderActions
+          theme={theme}
+          dockPosition={dockPosition}
+          onToggleDock={onToggleDock}
+          onOpenCreateProject={() => {
+            setIsProjectDropdownOpen(true);
+            setIsAddingProject(true);
+          }}
+          locale={locale}
+          customTranslations={customTranslations}
+        />
       </div>
 
-      {/* Project Dropdown / Modal Overlay */}
       {isProjectDropdownOpen && (
         <div
           className={`absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${

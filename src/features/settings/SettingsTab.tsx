@@ -76,7 +76,6 @@ export default function SettingsTab() {
           </div>
         </CollapsibleCard>
 
-        {/* Application Version Details */}
         <CollapsibleCard
           title="OxyFlow Versions"
           icon={Info}

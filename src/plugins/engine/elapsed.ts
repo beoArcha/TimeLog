@@ -14,32 +14,26 @@ export interface ElapsedRangeFilter {
 
 export { type TaskComputedMetrics, type ProjectComputedMetrics, type EngineComputedMetrics };
 
-/**
- * Pure calculation: Single-pass O(N) evaluation of all task and project metrics
- * using a single unified snapshot timestamp.
- */
-export function computeAllMetrics(
-  tasks: Task[],
+interface LogMetricsAggregation {
+  taskSelfElapsed: Record<string, number>;
+  taskIsRunning: Record<string, boolean>;
+  projectTotalElapsed: Record<string, number>;
+  projectTodayElapsed: Record<string, number>;
+  projectWeekElapsed: Record<string, number>;
+  projectIsRunning: Record<string, boolean>;
+}
+
+interface TaskHierarchyIndex {
+  subtasksMap: Record<string, string[]>;
+  projectTaskCounts: Record<string, { active: number; completed: number }>;
+}
+
+function aggregateLogMetrics(
   logs: TimeLog[],
-  projects: Project[],
-  nowIso?: string
-): EngineComputedMetrics {
-  const snapshotNow = nowIso ? new Date(nowIso) : new Date();
-  const snapshotNowIso = snapshotNow.toISOString();
-  const nowMs = snapshotNow.getTime();
-
-  // UTC start of today
-  const todayStart = new Date(snapshotNow);
-  todayStart.setUTCHours(0, 0, 0, 0);
-  const todayStartMs = todayStart.getTime();
-
-  // UTC start of week (Monday 00:00:00)
-  const weekStart = new Date(todayStart);
-  const day = weekStart.getUTCDay(); // 0 is Sunday, 1 is Monday...
-  const diffToMonday = (day + 6) % 7; // days from Monday
-  weekStart.setUTCDate(weekStart.getUTCDate() - diffToMonday);
-  const weekStartMs = weekStart.getTime();
-
+  nowMs: number,
+  todayStartMs: number,
+  weekStartMs: number
+): LogMetricsAggregation {
   const taskSelfElapsed: Record<string, number> = {};
   const taskIsRunning: Record<string, boolean> = {};
   const projectTotalElapsed: Record<string, number> = {};
@@ -47,7 +41,6 @@ export function computeAllMetrics(
   const projectWeekElapsed: Record<string, number> = {};
   const projectIsRunning: Record<string, boolean> = {};
 
-  // 1. Single pass over logs
   for (const log of logs) {
     const startMs = Date.parse(log.startTime);
     const isActive = log.endTime === null || log.endTime === undefined;
@@ -63,7 +56,6 @@ export function computeAllMetrics(
         projectIsRunning[log.projectId] = true;
       }
 
-      // Today overlap
       const todayOverlapStart = Math.max(startMs, todayStartMs);
       const todayOverlapEnd = Math.min(endMs, nowMs);
       if (todayOverlapEnd >= todayOverlapStart) {
@@ -71,7 +63,6 @@ export function computeAllMetrics(
         projectTodayElapsed[log.projectId] = (projectTodayElapsed[log.projectId] || 0) + todaySecs;
       }
 
-      // Week overlap
       const weekOverlapStart = Math.max(startMs, weekStartMs);
       const weekOverlapEnd = Math.min(endMs, nowMs);
       if (weekOverlapEnd >= weekOverlapStart) {
@@ -81,7 +72,17 @@ export function computeAllMetrics(
     }
   }
 
-  // 2. Index tasks
+  return {
+    taskSelfElapsed,
+    taskIsRunning,
+    projectTotalElapsed,
+    projectTodayElapsed,
+    projectWeekElapsed,
+    projectIsRunning,
+  };
+}
+
+function indexTaskHierarchy(tasks: Task[]): TaskHierarchyIndex {
   const subtasksMap: Record<string, string[]> = {};
   const projectTaskCounts: Record<string, { active: number; completed: number }> = {};
 
@@ -103,7 +104,15 @@ export function computeAllMetrics(
     }
   }
 
-  // 3. Compute task metrics
+  return { subtasksMap, projectTaskCounts };
+}
+
+function buildTaskComputedMetrics(
+  tasks: Task[],
+  taskSelfElapsed: Record<string, number>,
+  taskIsRunning: Record<string, boolean>,
+  subtasksMap: Record<string, string[]>
+): Record<string, TaskComputedMetrics> {
   const computedTasks: Record<string, TaskComputedMetrics> = {};
   for (const task of tasks) {
     const selfElapsed = taskSelfElapsed[task.id] || 0;
@@ -128,8 +137,17 @@ export function computeAllMetrics(
       hasRunningChild,
     };
   }
+  return computedTasks;
+}
 
-  // 4. Compute project metrics
+function buildProjectComputedMetrics(
+  projects: Project[],
+  projectTotalElapsed: Record<string, number>,
+  projectTodayElapsed: Record<string, number>,
+  projectWeekElapsed: Record<string, number>,
+  projectIsRunning: Record<string, boolean>,
+  projectTaskCounts: Record<string, { active: number; completed: number }>
+): Record<string, ProjectComputedMetrics> {
   const computedProjects: Record<string, ProjectComputedMetrics> = {};
   for (const project of projects) {
     const totalElapsed = projectTotalElapsed[project.id] || 0;
@@ -148,11 +166,56 @@ export function computeAllMetrics(
       isRunning,
     };
   }
+  return computedProjects;
+}
+
+/**
+ * Pure calculation: Single-pass O(N) evaluation of all task and project metrics
+ * using a single unified snapshot timestamp.
+ */
+export function computeAllMetrics(
+  tasks: Task[],
+  logs: TimeLog[],
+  projects: Project[],
+  nowIso?: string
+): EngineComputedMetrics {
+  const snapshotNow = nowIso ? new Date(nowIso) : new Date();
+  const snapshotNowIso = snapshotNow.toISOString();
+  const nowMs = snapshotNow.getTime();
+
+  const todayStart = new Date(snapshotNow);
+  todayStart.setUTCHours(0, 0, 0, 0);
+  const todayStartMs = todayStart.getTime();
+
+  const weekStart = new Date(todayStart);
+  const day = weekStart.getUTCDay();
+  const diffToMonday = (day + 6) % 7;
+  weekStart.setUTCDate(weekStart.getUTCDate() - diffToMonday);
+  const weekStartMs = weekStart.getTime();
+
+  const logMetrics = aggregateLogMetrics(logs, nowMs, todayStartMs, weekStartMs);
+  const hierarchy = indexTaskHierarchy(tasks);
+
+  const tasksMetrics = buildTaskComputedMetrics(
+    tasks,
+    logMetrics.taskSelfElapsed,
+    logMetrics.taskIsRunning,
+    hierarchy.subtasksMap
+  );
+
+  const projectsMetrics = buildProjectComputedMetrics(
+    projects,
+    logMetrics.projectTotalElapsed,
+    logMetrics.projectTodayElapsed,
+    logMetrics.projectWeekElapsed,
+    logMetrics.projectIsRunning,
+    hierarchy.projectTaskCounts
+  );
 
   return {
     snapshotNowIso,
-    tasks: computedTasks,
-    projects: computedProjects,
+    tasks: tasksMetrics,
+    projects: projectsMetrics,
   };
 }
 

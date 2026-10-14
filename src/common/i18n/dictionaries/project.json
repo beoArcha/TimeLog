@@ -1,6 +1,7 @@
 {
   "en": {
     "NewProject": "New Project",
+    "ChangeProject": "Change project",
     "ProjectName": "Project Name",
     "ProjectTotalTime": "Project Total Time",
     "AddNewProject": "Add New Project",
@@ -27,6 +28,7 @@
   },
   "pl": {
     "NewProject": "Nowy Projekt",
+    "ChangeProject": "Zmień projekt",
     "ProjectName": "Nazwa projektu",
     "ProjectTotalTime": "Suma czasu projektu",
     "AddNewProject": "Dodaj Nowy Projekt",
@@ -53,6 +55,7 @@
   },
   "de": {
     "NewProject": "Neues Projekt",
+    "ChangeProject": "Projekt ändern",
     "ProjectName": "Projektname",
     "ProjectTotalTime": "Gesamtzeit des Projekts",
     "AddNewProject": "Neues Projekt hinzufügen",
@@ -79,6 +82,7 @@
   },
   "es": {
     "NewProject": "Nuevo Proyecto",
+    "ChangeProject": "Cambiar proyecto",
     "ProjectName": "Nombre del Proyecto",
     "ProjectTotalTime": "Tiempo Total del Proyecto",
     "AddNewProject": "Añadir Nuevo Proyecto",
@@ -105,6 +109,7 @@
   },
   "fr": {
     "NewProject": "Nouveau Projet",
+    "ChangeProject": "Changer de projet",
     "ProjectName": "Nom du Projet",
     "ProjectTotalTime": "Temps Total du Projet",
     "AddNewProject": "Ajouter un nouveau projet",
@@ -131,6 +136,7 @@
   },
   "pt-br": {
     "NewProject": "Novo Projeto",
+    "ChangeProject": "Mudar projeto",
     "ProjectName": "Nome do Projeto",
     "ProjectTotalTime": "Tempo Total do Projeto",
     "AddNewProject": "Adicionar Novo Projeto",

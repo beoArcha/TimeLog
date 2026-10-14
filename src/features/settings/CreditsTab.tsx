@@ -27,7 +27,6 @@ export default function CreditsTab() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* The Philosophy of Flow */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
           className={`p-5 rounded-3xl border transition-all duration-300 flex flex-col h-full ${cardBg}`}
@@ -45,7 +44,6 @@ export default function CreditsTab() {
           </p>
         </motion.div>
 
-        {/* OSS Technologies */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className={`p-5 rounded-3xl border transition-all duration-300 flex flex-col h-full ${cardBg}`}
@@ -71,7 +69,6 @@ export default function CreditsTab() {
           </div>
         </motion.div>
 
-        {/* The Team / Open Source contributors */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           className={`p-5 rounded-3xl border transition-all duration-300 flex flex-col h-full ${cardBg}`}
@@ -96,7 +93,6 @@ export default function CreditsTab() {
           </div>
         </motion.div>
 
-        {/* License Block */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           className={`p-5 rounded-3xl border transition-all duration-300 flex flex-col h-full ${cardBg}`}

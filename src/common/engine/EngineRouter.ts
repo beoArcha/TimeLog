@@ -6,6 +6,11 @@ import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';
 
+/**
+ * Unified dispatch router for the timer engine.
+ * Automatically delegates to Tauri IPC commands in desktop mode
+ * or to the local in-memory engine plugin in browser mode.
+ */
 export class EngineRouter implements IEngine {
   private static instance: EngineRouter | null = null;
   private implementation: IEngine;
@@ -18,6 +23,7 @@ export class EngineRouter implements IEngine {
     }
   }
 
+  /** Returns the singleton router instance. */
   static getInstance(): EngineRouter {
     if (!this.instance) {
       this.instance = new EngineRouter();
@@ -25,6 +31,7 @@ export class EngineRouter implements IEngine {
     return this.instance;
   }
 
+  /** Overrides the underlying engine implementation for test suites. */
   setImplementationForTesting(impl: IEngine): void {
     this.implementation = impl;
   }

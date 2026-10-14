@@ -158,8 +158,6 @@ export default function ProjectHeaderCard({
         </div>
       )}
 
-
-      {/* Add Root Task Form */}
       <form onSubmit={onAddTaskSubmit} className={`flex gap-2 ${isCondensed ? 'mt-2' : ''}`}>
         <input
           id="new-task-input"

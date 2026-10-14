@@ -1,6 +1,10 @@
 export type AppKey =
   | 'CloseToTray'
   | 'DefaultRestored'
+  | 'DockPosition'
+  | 'DockSwitchPosition'
+  | 'DockSwitchToLeft'
+  | 'DockSwitchToRight'
   | 'FullScreen'
   | 'GuiClosedDesc'
   | 'GuiClosedEngineKeepRunning'
@@ -317,6 +321,7 @@ export type HelpKey =
 
 export type ProjectKey =
   | 'AddNewProject'
+  | 'ChangeProject'
   | 'ChooseProjectColor'
   | 'ColorTheme'
   | 'CompletedTasks'

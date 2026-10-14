@@ -40,7 +40,6 @@ export default function ReportLogList({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Graphical bars representation */}
       <div className="flex flex-col gap-3">
         <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase flex items-center gap-1.5">
           📊 {t('GraphicalDistribution')}
@@ -82,7 +81,6 @@ export default function ReportLogList({
         </div>
       </div>
 
-      {/* Regular logs output */}
       <div className="flex flex-col gap-3 mt-4">
         <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
           📋 {t('PlainDump')} ({displayLogs.length})

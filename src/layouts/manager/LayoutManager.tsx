@@ -166,9 +166,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
     setMediumDockPosition(next);
     try {
       localStorage.setItem('oxy_medium_dock_pos', next);
-    } catch {
-      // ignore storage access errors
-    }
+    } catch {}
   };
 
   if (isGuiClosed) {

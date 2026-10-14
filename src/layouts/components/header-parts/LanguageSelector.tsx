@@ -15,7 +15,6 @@ export const LanguageSelector: React.FC = () => {
     }`}>
       <Languages className={`w-3.5 h-3.5 mx-1 sm:mx-1.5 ${resolvedTheme === 'light' ? 'text-blue-500' : 'text-blue-400'}`} />
 
-      {/* Mobile & Medium compact select dropdown */}
       <select
         value={localePref}
         onChange={e => setLocalePref(e.target.value as any)}
@@ -29,7 +28,6 @@ export const LanguageSelector: React.FC = () => {
         ))}
       </select>
 
-      {/* Large desktop expanded buttons (only in full layout) */}
       {showExpanded && (
         <div className="hidden lg:flex items-center">
         {(['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as const).map(l => {

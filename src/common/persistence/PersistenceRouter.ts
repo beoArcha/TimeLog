@@ -3,6 +3,11 @@ import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence
 import { PersistenceCommands } from './PersistenceCommands';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 
+/**
+ * Unified dispatch router for persistence operations.
+ * Automatically delegates to Tauri IPC commands in desktop mode
+ * or to the local in-memory persistence plugin in browser mode.
+ */
 export class PersistenceRouter implements IPersistence {
   private static instance: PersistenceRouter | null = null;
   private implementation: IPersistence;
@@ -15,6 +20,7 @@ export class PersistenceRouter implements IPersistence {
     }
   }
 
+  /** Returns the singleton router instance. */
   static getInstance(): PersistenceRouter {
     if (!PersistenceRouter.instance) {
       PersistenceRouter.instance = new PersistenceRouter();
@@ -22,6 +28,7 @@ export class PersistenceRouter implements IPersistence {
     return PersistenceRouter.instance;
   }
 
+  /** Overrides the underlying persistence implementation for test suites. */
   setImplementationForTesting(implementation: IPersistence): void {
     this.implementation = implementation;
   }

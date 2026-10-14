@@ -334,9 +334,7 @@
   min-height: var(--gui-min-height) !important;
 }
 
-/* ==========================================
-   Runtime Polish: Desktop (Tauri) vs Browser
-   ========================================== */
+/* Runtime Polish: Desktop (Tauri) vs Browser */
 
 /* Desktop (Tauri) Runtime Polish */
 [data-runtime="tauri"] {
