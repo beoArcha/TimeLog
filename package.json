@@ -18,6 +18,8 @@
     "format:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml",
     "format:rust:check": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
     "test": "vitest run",
+    "test:arch": "vitest run tests/architecture/specs",
+    "test:arch:all": "vitest run tests/architecture",
     "test:e2e": "playwright test --config=tests/e2e/config/playwright.config.ts",
     "test:e2e:ui": "playwright test --config=tests/e2e/config/playwright.config.ts --ui",
     "test:unit": "vitest run tests/unit",
@@ -32,7 +34,7 @@
     "fix:all": "npm run lint:fix && npm run format:rust",
     "check:all": "npm run typecheck && npm run typecheck:rust && npm run format:rust:check && npm run lint && npm run lint:rust",
     "test:all": "npm run test && npm run test:rust",
-    "check:frontend": "npm run typecheck && npm run lint && npm run test",
+    "check:frontend": "npm run typecheck && npm run lint && npm run test:arch && npm run test",
     "check:backend": "npm run typecheck:rust && npm run format:rust:check && npm run lint:rust"
   },
   "dependencies": {

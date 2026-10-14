@@ -1,9 +1,5 @@
 import { useMemo } from 'react';
-import { TimeLog } from '@bindings/TimeLog';
-import { PatchLog } from '@bindings/PatchLog';
-import { Project } from '@bindings/Project';
-import { Task } from '@bindings/Task';
-import { Settings } from '@bindings/Settings';
+
 import { calculateReportStatistics } from '../utils/reportCalculator';
 import { UseReportStatisticsProps, ProjectChartItem, ReportStatisticsResult } from '../types';
 
