@@ -24,10 +24,14 @@ export function useGuiLogic(props: LayoutCommonProps) {
 
   return {
     ...props,
-    selectedProjectId, setSelectedProjectId,
-    reportPeriod, setReportPeriod,
-    reportSort, setReportSort,
-    showDbInspector, setShowDbInspector,
+    selectedProjectId,
+    setSelectedProjectId,
+    reportPeriod,
+    setReportPeriod,
+    reportSort,
+    setReportSort,
+    showDbInspector,
+    setShowDbInspector,
 
     selectedProject,
     projectTasks,
@@ -35,4 +39,23 @@ export function useGuiLogic(props: LayoutCommonProps) {
   };
 }
 
-export type GuiState = ReturnType<typeof useGuiLogic> & Record<string, any>;
+export type GuiBaseState = ReturnType<typeof useGuiLogic>;
+
+export interface GuiStateExtensions {
+  newProjectName?: string;
+  setNewProjectName?: (val: string) => void;
+  newProjectColor?: string;
+  setNewProjectColor?: (val: string) => void;
+  newTaskName?: string;
+  setNewTaskName?: (val: string) => void;
+  editingId?: string | null;
+  setEditingId?: (id: string | null) => void;
+  editName?: string;
+  setEditName?: (name: string) => void;
+  showSubtaskFormForId?: string | null;
+  setShowSubtaskFormForId?: (id: string | null) => void;
+  newSubtaskName?: string;
+  setNewSubtaskName?: (name: string) => void;
+}
+
+export type GuiState = GuiBaseState & GuiStateExtensions;

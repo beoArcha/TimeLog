@@ -1,10 +1,10 @@
 import React from 'react';
 import { useSettings } from '@common/hooks/SettingsContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 
 export const StatusIndicator: React.FC = () => {
   const { resolvedTheme } = useSettings();
-  const { engineState } = useEngine();;
+  const { engineState } = useWindowShell();
 
   return (
     <div className="flex items-center gap-1.5" title={engineState === 'searching' ? 'CONNECTING' : 'DAEMON RUNNING'}>

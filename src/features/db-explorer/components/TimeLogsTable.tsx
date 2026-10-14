@@ -9,13 +9,13 @@ import TimeLogTableRow from './TimeLogTableRow';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 
 export default function TimeLogsTable() {
   const { locale, customTranslations } = useLocale();
   const { resolvedTheme } = useSettings();
   const { tasks, projects, logs, setLogs, handleEditTimeLog } = useData();
-  const { showToast } = useEngine();;
+  const { showToast } = useWindowShell();
 
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);

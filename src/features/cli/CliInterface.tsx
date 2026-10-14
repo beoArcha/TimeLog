@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, Send, ShieldCheck } from 'lucide-react';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { useData } from '@common/hooks/DataContext';
 import { executeCliCommand, TerminalLine, CliEngineContext } from './utils/CliEngine';
 import versionsData from '../../versions.json';
@@ -11,7 +11,7 @@ import { translate } from '@common/i18n/translator';
 export default function CliInterface() {
   const { locale, customTranslations } = useLocale();
   const { resolvedTheme } = useSettings();
-  const { nowIso } = useEngine();
+  const { nowIso } = useWindowShell();
   const data = useData();
 
   const [input, setInput] = useState('');

@@ -2,11 +2,11 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, X } from 'lucide-react';
 import { useSettings } from '@common/hooks/SettingsContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 
 export default function SystemNotification() {
   const { resolvedTheme } = useSettings();
-  const { trayNotification, setTrayNotification } = useEngine();;
+  const { trayNotification, setTrayNotification } = useWindowShell();
 
   return (
     <AnimatePresence>

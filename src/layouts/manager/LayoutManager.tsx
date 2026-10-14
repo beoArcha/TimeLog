@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSettings } from '@common/hooks/SettingsContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
@@ -51,7 +51,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
     handleToggleTimer,
     handleResetLocalStorage,
     nowIso,
-  } = useEngine();
+  } = useWindowShell();
 
   const {
     layoutVariant,

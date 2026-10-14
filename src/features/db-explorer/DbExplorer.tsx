@@ -12,12 +12,10 @@ import PatchLogsTable from './components/PatchLogsTable';
 import { TableSkeleton } from '@components/ui/Skeletons';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
-import { useEngine } from '@common/hooks/EngineContext';
 
 export default function DbExplorer() {
   const { locale, customTranslations } = useLocale();
-  const { projects, tasks, logs, holidays, patches } = useData();
-  const { isLoading } = useEngine();;
+  const { projects, tasks, logs, holidays, patches, isLoading } = useData();
 
   const handleExportDatabase = () => {
     const data = { projects, tasks, logs, holidays, patches };

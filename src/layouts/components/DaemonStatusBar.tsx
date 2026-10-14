@@ -5,13 +5,13 @@ import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 
 export default function DaemonStatusBar() {
   const { locale, customTranslations } = useLocale();
   const { resolvedTheme } = useSettings();
-  const { logs, engineState, enginePID } = useData();
-  const { handleMinimizeToTray } = useEngine();
+  const { logs, engineState } = useData();
+  const { handleMinimizeToTray } = useWindowShell();
 
 
   const activeRunningLogs = logs.filter(l => l.endTime === null);
@@ -48,7 +48,6 @@ export default function DaemonStatusBar() {
           <span className="font-semibold text-emerald-600 dark:text-emerald-400">
             {translate(locale, 'engine', 'Connected', customTranslations)}
           </span>
-          <span className="hidden sm:inline"> (PID: <strong className={`font-mono ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>{enginePID}</strong>)</span>
           {' · '}
           <span>{translate(locale, 'engine', 'Synced', customTranslations)} <strong className="text-emerald-500 font-mono">{activeRunningLogs.length}</strong> {translate(locale, 'engine', 'Threads', customTranslations)}</span>
         </p>

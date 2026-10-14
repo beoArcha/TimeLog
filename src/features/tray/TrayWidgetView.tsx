@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { useTranslation } from '@common/i18n/translator';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -15,7 +15,7 @@ interface TrayWidgetProps {
 export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps) {
   const { resolvedTheme } = useSettings();
   const { projects, tasks, logs, computedMetrics } = useData();
-  const { enginePID, nowIso } = useEngine();
+  const { nowIso } = useWindowShell();
 
   const { t: tEngine } = useTranslation('engine');
   const { t: tTimer } = useTranslation('timer');
@@ -66,7 +66,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
             ? 'bg-slate-100 border-slate-200 text-slate-700'
             : 'bg-white/5 border-white/10 text-slate-300'
             }`}>
-            {tEngine('DaemonEnginePid')} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {tEngine('SqliteThread')}
+            {tEngine('DaemonEnginePid')} <strong className="text-orange-500 font-bold">8421</strong> {tEngine('SqliteThread')}
           </div>
         </div>
 
