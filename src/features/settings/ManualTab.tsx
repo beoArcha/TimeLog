@@ -2,40 +2,44 @@ import React, { useState } from 'react';
 import { Cpu, Terminal, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { Button } from '@components/ui/button';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 
 export default function ManualTab() {
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme } = useSettings();;
+  const { resolvedTheme } = useSettings();
   const [currentOs, setCurrentOs] = useState<'windows' | 'macos' | 'linux'>('windows');
 
   const osButtons = (
     <div className="flex gap-2">
       {(['windows', 'macos', 'linux'] as const).map(os => (
-        <button
+        <Button
           key={os}
+          type="button"
+          variant={currentOs === os ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => {
             setCurrentOs(os);
             toast.success(translate(locale, 'help', 'OsSelected', customTranslations) + ": " + os.toUpperCase());
           }}
-          className={`text-xs px-3 py-1 bg-white/5 border border-white/5 rounded-lg capitalize font-mono font-bold hover:text-white cursor-pointer transition-all ${currentOs === os ? 'bg-orange-500/20 border-orange-500/35 text-orange-400' : 'text-slate-400'}`}
+          className={`text-xs px-3 py-1 rounded-lg capitalize font-mono font-bold transition-all h-auto ${currentOs === os ? 'bg-orange-500/20 hover:bg-orange-500/30 border-orange-500/35 text-orange-400' : 'text-slate-400'}`}
         >
           {os}
-        </button>
+        </Button>
       ))}
     </div>
   );
 
   return (
     <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
-      <div className={`border-b pb-3 ${resolvedTheme === 'light' ? 'border-[#DFD7CB]' : 'border-white/5'}`}>
-        <h2 className={`text-lg font-bold flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
+      <div className={`border-b pb-3 ${resolvedTheme === 'light' ? 'border-border' : 'border-white/5'}`}>
+        <h2 className={`text-lg font-bold flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-foreground' : 'text-white'}`}>
           <BookOpen className="w-5 h-5 text-rose-500" />
           <span>{translate(locale, 'help', 'Title', customTranslations)}</span>
         </h2>
-        <p className={`text-xs ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'help', 'Description', customTranslations)}</p>
+        <p className={`text-xs ${resolvedTheme === 'light' ? 'text-muted-foreground' : 'text-slate-300'}`}>{translate(locale, 'help', 'Description', customTranslations)}</p>
       </div>
 
       <CollapsibleCard

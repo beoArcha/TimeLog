@@ -67,7 +67,7 @@ describe('Unit Tests: MediumLayoutBuilder', () => {
     fireEvent.click(projectTrigger);
 
     expect(screen.getByText('Projekt Beta')).not.toBeNull();
-    expect(screen.getByText('Nowy projekt')).not.toBeNull();
+    expect(screen.getByText(/nowy projekt/i)).not.toBeNull();
 
     // Click on Projekt Beta
     fireEvent.click(screen.getByText('Projekt Beta'));

@@ -64,7 +64,7 @@ export default [
         ignores: ["src/components/ui/**", "**/*.test.tsx", "**/*.spec.tsx"],
         rules: {
             "no-restricted-syntax": [
-                "warn",
+                "error",
                 {
                     selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td)$/]",
                     message: "Raw HTML element is forbidden. Use Design System primitives (@components/ui/*) or composite components (@components/*).",

@@ -4,6 +4,10 @@ import { Folder, Plus, Clock, Pencil } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from './LayoutStyles';
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
+import { Textarea } from '@components/ui/textarea';
+import { Label } from '@components/ui/label';
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
@@ -77,14 +81,14 @@ export default function Sidebar({ state }: { state: GuiState }) {
   return (
     <div id="projects-sidebar" className={`lg:col-span-4 flex flex-col gap-main`}>
       <div className={`backdrop-blur-md rounded-main padding-main border shadow-2xl transition-all duration-300 ${theme === 'light'
-        ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-[#DFD7CB]'
+        ? 'bg-card border-border shadow-muted/50'
         : theme === 'high-contrast'
           ? 'bg-black border-2 border-white text-white'
-          : 'bg-[#FCFAF8]/5 border-white/10'
+          : 'bg-card/5 border-border/10'
         }`}>
-        <div className={`flex items-center justify-between mb-4 border-b pb-3 ${theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10'
+        <div className={`flex items-center justify-between mb-4 border-b pb-3 ${theme === 'light' ? 'border-border' : 'border-border/10'
           }`}>
-          <h3 className={`font-sans font-semibold text-title flex items-center gap-2 ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
+          <h3 className={`font-sans font-semibold text-title flex items-center gap-2 ${theme === 'light' ? 'text-foreground' : 'text-white'
             }`}>
             <Folder className={`icon-medium text-orange-400`} />
             {translate(locale, 'project', 'ProjectsLabel', customTranslations)} ({projects.length})
@@ -94,104 +98,109 @@ export default function Sidebar({ state }: { state: GuiState }) {
           </span>
         </div>
 
-        <form onSubmit={handleAddProjectSubmit} className={`mb-6 padding-section rounded-section border transition-all ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+        <form onSubmit={handleAddProjectSubmit} className={`mb-6 padding-section rounded-section border transition-all ${theme === 'light' ? 'bg-muted/40 border-border' : 'bg-card/5 border-border/10'
           }`}>
           <div className={`flex flex-col gap-section`}>
-            <input
+            <Input
               id="new-project-input"
               type="text"
               placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
               value={newProjectName}
               onChange={e => setNewProjectName(e.target.value)}
               className={`w-full border px-3 input-py rounded-section text-main focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all ${theme === 'light'
-                ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421] placeholder-[#9B8C83]'
-                : 'bg-[#FCFAF8]/5 border-white/10 text-white placeholder-[#9B8C83]'
+                ? 'bg-card border-border text-foreground placeholder-muted-foreground'
+                : 'bg-card/5 border-border/10 text-white placeholder-muted-foreground'
                 }`}
             />
 
             <div className="flex justify-between items-center mt-1">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="xs"
                 onClick={() => setShowAddAdvanced(!showAddAdvanced)}
-                className="text-[10px] font-mono text-slate-400 hover:text-orange-500 transition-colors uppercase tracking-wider cursor-pointer"
+                className="text-[10px] font-mono text-muted-foreground hover:text-orange-500 transition-colors uppercase tracking-wider h-auto p-0"
               >
                 {translate(locale, 'project', showAddAdvanced ? 'HideOptions' : 'MoreOptions', customTranslations)}
-              </button>
+              </Button>
             </div>
 
             {showAddAdvanced && (
-              <div className="flex flex-col gap-2 mt-1 pt-2 border-t border-[#DFD7CB]/40 dark:border-white/5 animate-fade-in">
+              <div className="flex flex-col gap-2 mt-1 pt-2 border-t border-border/40 dark:border-white/5 animate-fade-in">
                 <div className="flex gap-2">
                   <div className="w-1/3">
-                    <input
+                    <Input
                       type="text"
                       placeholder={translate(locale, 'project', 'IconPlaceholder', customTranslations)}
                       maxLength={2}
                       value={newProjectIcon}
                       onChange={e => setNewProjectIcon(e.target.value)}
-                      className={`w-full px-2 py-1 border rounded-lg text-center outline-none text-xs ${theme === 'light'
-                        ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
-                        : 'bg-black/20 border-white/10 text-white'
+                      className={`w-full px-2 py-1 text-center text-xs ${theme === 'light'
+                        ? 'bg-card border-border text-foreground'
+                        : 'bg-black/20 border-border/10 text-white'
                         }`}
                     />
                   </div>
                   <div className="w-2/3">
-                    <input
+                    <Input
                       type="text"
                       placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
                       value={newProjectTags}
                       onChange={e => setNewProjectTags(e.target.value)}
-                      className={`w-full px-2 py-1 border rounded-lg outline-none text-xs ${theme === 'light'
-                        ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
-                        : 'bg-black/20 border-white/10 text-white'
+                      className={`w-full px-2 py-1 text-xs ${theme === 'light'
+                        ? 'bg-card border-border text-foreground'
+                        : 'bg-black/20 border-border/10 text-white'
                         }`}
                     />
                   </div>
                 </div>
-                <textarea
+                <Textarea
                   placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
                   value={newProjectDesc}
                   onChange={e => setNewProjectDesc(e.target.value)}
-                  className={`w-full px-2 py-1 border rounded-lg outline-none text-xs h-10 resize-none ${theme === 'light'
-                    ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
-                    : 'bg-black/20 border-white/10 text-white'
+                  className={`w-full px-2 py-1 text-xs min-h-[40px] h-10 resize-none ${theme === 'light'
+                    ? 'bg-card border-border text-foreground'
+                    : 'bg-black/20 border-border/10 text-white'
                     }`}
                 />
               </div>
             )}
 
-
             <div className={`flex flex-wrap items-center justify-between gap-section mt-1.5`}>
               <div className="flex flex-wrap gap-1.5">
                 {PROJECT_COLORS.map(col => (
-                  <button
+                  <Button
                     id={`color-picker-${col.name}`}
                     key={col.name}
                     type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => setNewProjectColor(col.name)}
-                    className={`icon-medium shrink-0 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${newProjectColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-80'
+                    className={`icon-medium shrink-0 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${newProjectColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-80'
                       }`}
                   >
                     {newProjectColor === col.name && (
-                      <span className="w-1.5 h-1.5 bg-[#FCFAF8] rounded-full"></span>
+                      <span className="w-1.5 h-1.5 bg-card rounded-full"></span>
                     )}
-                  </button>
+                  </Button>
                 ))}
               </div>
-              <button
+              <Button
                 id="add-project-btn"
                 type="submit"
-                className={`bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white rounded-section px-3 py-1.5 text-main font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-md shrink-0`}
+                variant="accent"
+                size="sm"
+                className="rounded-section px-3 text-main font-semibold flex items-center gap-1 shrink-0"
               >
                 <Plus className="icon-small" /> {translate(locale, 'common', 'Save', customTranslations)}
-              </button>
+              </Button>
             </div>
           </div>
         </form>
 
         <div id="projects-list-container" className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto pr-1">
           {projects.length === 0 ? (
-            <div className="text-center py-8 text-[#9B8C83] text-xs font-sans">
+            <div className="text-center py-8 text-muted-foreground text-xs font-sans">
               {translate(locale, 'project', 'NoProjectsYet', customTranslations)}
             </div>
           ) : (
@@ -207,13 +216,13 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   onClick={() => setSelectedProjectId(p.id)}
                   className={`text-left w-full padding-section rounded-section flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${isSelected
                     ? theme === 'light'
-                      ? 'bg-orange-50 border-l-4 border-l-orange-500 border border-[#DFD7CB]/80 shadow-sm'
+                      ? 'bg-orange-50 border-l-4 border-l-orange-500 border border-border/80 shadow-xs'
                       : theme === 'high-contrast'
                         ? 'bg-black border-l-4 border-l-yellow-400 border-2 border-white'
-                        : 'bg-[#FCFAF8]/10 border-l-4 border-l-orange-400 border border-white/15'
+                        : 'bg-card/10 border-l-4 border-l-orange-400 border border-white/15'
                     : theme === 'light'
-                      ? 'bg-transparent border border-transparent hover:bg-[#EAE4DB] text-[#2C2421]'
-                      : 'bg-transparent border border-transparent hover:bg-[#FCFAF8]/5'
+                      ? 'bg-transparent border border-transparent hover:bg-muted text-foreground'
+                      : 'bg-transparent border border-transparent hover:bg-card/5'
                     } ${p.archived ? 'opacity-50 grayscale' : ''}`}
                 >
                   <div className="flex items-center gap-2.5 z-10 animate-fade-in min-w-0 flex-1 mr-2">
@@ -226,7 +235,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                     )}
                     <div className="min-w-0 flex-1">
                       {editingId === p.id ? (
-                        <input
+                        <Input
                           type="text"
                           value={editName}
                           autoFocus
@@ -248,16 +257,16 @@ export default function Sidebar({ state }: { state: GuiState }) {
                               setEditingId(null);
                             }
                           }}
-                          className={`font-semibold text-main rounded px-1 outline-none ${theme === 'light' ? 'bg-white text-[#2C2421] border-[#DFD7CB]' : 'bg-black text-white border-white/20'
-                            } border`}
+                          className={`font-semibold text-main rounded px-1 outline-none h-7 ${theme === 'light' ? 'bg-background text-foreground border-border' : 'bg-black text-white border-white/20'
+                            }`}
                         />
                       ) : (
-                        <p className={`font-semibold text-main truncate ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
-                          }`}>{p.archived && <span className={`text-main bg-red-500 text-white px-1 py-0.5 rounded mr-1 leading-none uppercase`}>{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</p>
+                        <p className={`font-semibold text-main truncate ${theme === 'light' ? 'text-foreground' : 'text-white'
+                          }`}>{p.archived && <span className={`text-main bg-destructive text-destructive-foreground px-1 py-0.5 rounded mr-1 leading-none uppercase`}>{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</p>
                       )}
 
                       {p.description && (
-                        <p className={`text-[10px] leading-tight mt-0.5 truncate ${theme === 'light' ? 'text-[#7A6A61]' : 'text-slate-400'}`}>
+                        <p className={`text-[10px] leading-tight mt-0.5 truncate text-muted-foreground`}>
                           {p.description}
                         </p>
                       )}
@@ -272,14 +281,15 @@ export default function Sidebar({ state }: { state: GuiState }) {
                         </div>
                       )}
 
-                      <p className={`text-main opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'
-                        }`}>
+                      <p className={`text-main opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5 text-muted-foreground`}>
                         {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
 
                         {editingId !== p.id && (
-                          <button
+                          <Button
                             id={`edit-project-btn-${p.id}`}
                             type="button"
+                            variant="ghost"
+                            size="icon-xs"
                             title={translate(locale, 'common', 'EditName', customTranslations)}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -291,33 +301,34 @@ export default function Sidebar({ state }: { state: GuiState }) {
                               setEditProjTags(p.tags ? p.tags.join(', ') : '');
                               setShowEditModal(true);
                             }}
-                            className={`opacity-0 group-hover:opacity-100 transition duration-200 p-1 rounded text-slate-500 hover:text-orange-500 hover:bg-orange-500/10 cursor-pointer`}
+                            className={`opacity-0 group-hover:opacity-100 transition duration-200 text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10`}
                           >
                             <Pencil className="w-3.5 h-3.5" />
-                          </button>
+                          </Button>
                         )}
 
-                        <button
+                        <Button
                           id={`archive-project-btn-${p.id}`}
                           type="button"
+                          variant="outline"
+                          size="xs"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (onToggleProjectArchive) onToggleProjectArchive(p.id);
                           }}
-                          className={`opacity-0 group-hover:opacity-100 transition duration-200 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider ${theme === 'light' ? 'bg-[#DFD7CB] text-[#5A4A42] hover:bg-red-500 hover:text-white' : 'bg-[#FCFAF8]/10 text-slate-300 hover:bg-red-500 hover:text-white'
-                            } cursor-pointer`}
+                          className={`opacity-0 group-hover:opacity-100 transition duration-200 px-1.5 py-0.5 h-auto rounded text-[9px] uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground`}
                         >
                           {p.archived ? translate(locale, 'common', 'Unarchive', customTranslations) : translate(locale, 'common', 'Archive', customTranslations)}
-                        </button>
+                        </Button>
                       </p>
                     </div>
                   </div>
 
                   <div className={`flex items-center gap-1.5 z-10 font-mono text-main font-bold px-2.5 py-1 rounded-full border transition-all shrink-0 ${theme === 'light'
-                    ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#5A4A42]'
+                    ? 'bg-card border-border text-foreground'
                     : theme === 'high-contrast'
                       ? 'bg-black border-white text-white'
-                      : 'bg-[#FCFAF8]/5 border-white/10 text-[#9B8C83]'
+                      : 'bg-card/5 border-border/10 text-muted-foreground'
                     }`}>
                     <Clock className={`icon-medium text-orange-500`} />
                     {formatSeconds(totalSeconds)}
@@ -331,7 +342,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
 
       {showEditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${theme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]' : 'bg-[#1b1c21] border-white/10 text-white'
+          <div className={`w-full max-w-md p-6 rounded-3xl border shadow-2xl transition-all duration-300 ${theme === 'light' ? 'bg-card border-border text-foreground' : 'bg-card border-border/10 text-white'
             }`}>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Pencil className="w-5 h-5 text-orange-500" />
@@ -340,94 +351,96 @@ export default function Sidebar({ state }: { state: GuiState }) {
 
             <div className="flex flex-col gap-4">
               <div>
-                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
                   {translate(locale, 'project', 'ProjectName', customTranslations)}
-                </label>
-                <input
+                </Label>
+                <Input
                   type="text"
                   value={editProjName}
                   onChange={e => setEditProjName(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
+                  className={`w-full ${theme === 'light' ? 'bg-background border-border text-foreground' : 'bg-black/20 border-white/10 text-white'
                     }`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
                     {translate(locale, 'project', 'EmojiIcon', customTranslations)}
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     type="text"
                     placeholder="🚀"
                     maxLength={2}
                     value={editProjIcon}
                     onChange={e => setEditProjIcon(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-xl outline-none text-center text-xl focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
+                    className={`w-full text-center text-xl ${theme === 'light' ? 'bg-background border-border text-foreground' : 'bg-black/20 border-white/10 text-white'
                       }`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
                     {translate(locale, 'project', 'ColorTheme', customTranslations)}
-                  </label>
+                  </Label>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {PROJECT_COLORS.map(col => (
-                      <button
+                      <Button
                         key={col.name}
                         type="button"
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => setEditProjColor(col.name)}
-                        className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center cursor-pointer ${editProjColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
+                        className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${editProjColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
                           }`}
                       >
                         {editProjColor === col.name && (
-                          <span className="w-1 h-1 bg-[#FCFAF8] rounded-full"></span>
+                          <span className="w-1 h-1 bg-card rounded-full"></span>
                         )}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
                   {translate(locale, 'project', 'Description', customTranslations)}
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
                   value={editProjDesc}
                   onChange={e => setEditProjDesc(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-xl outline-none h-16 resize-none focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
+                  className={`w-full h-16 resize-none ${theme === 'light' ? 'bg-background border-border text-foreground' : 'bg-black/20 border-white/10 text-white'
                     }`}
                 />
               </div>
 
               <div>
-                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
                   {translate(locale, 'project', 'Tags', customTranslations)}
-                </label>
-                <input
+                </Label>
+                <Input
                   type="text"
                   placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
                   value={editProjTags}
                   onChange={e => setEditProjTags(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-orange-400 ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421]' : 'bg-black/20 border-white/10 text-white'
+                  className={`w-full ${theme === 'light' ? 'bg-background border-border text-foreground' : 'bg-black/20 border-white/10 text-white'
                     }`}
                 />
               </div>
 
               <div className="flex justify-end gap-3 mt-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setShowEditModal(false)}
-                  className={`px-4 py-2 text-sm font-semibold rounded-xl border cursor-pointer ${theme === 'light' ? 'bg-white border-[#DFD7CB] text-[#2C2421] hover:bg-slate-50' : 'bg-transparent border-white/10 hover:bg-white/5 text-white'
-                    }`}
                 >
                   {translate(locale, 'common', 'Cancel', customTranslations)}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="accent"
                   onClick={() => {
                     if (onUpdateProject && editProjName.trim()) {
                       const tagsArr = editProjTags.split(',').map(t => t.trim()).filter(Boolean);
@@ -442,10 +455,9 @@ export default function Sidebar({ state }: { state: GuiState }) {
                     }
                     setShowEditModal(false);
                   }}
-                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 rounded-xl shadow-md cursor-pointer border-0"
                 >
                   {translate(locale, 'common', 'Save', customTranslations)}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

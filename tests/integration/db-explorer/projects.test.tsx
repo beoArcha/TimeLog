@@ -109,8 +109,8 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
     const { setProjects } = setup();
 
     // Click edit on Project Alpha
-    const editBtns = screen.getAllByTitle(/Modyfikuj/i);
-    fireEvent.click(editBtns[0]); // first modyfikuj button is on Project Alpha
+    const editBtns = screen.getAllByRole('button', { name: /Edit|Modyfikuj/i });
+    fireEvent.click(editBtns[0]); // first edit button is on Project Alpha
 
     // Find input for name and change it
     const nameInput = screen.getByDisplayValue('Project Alpha');
@@ -121,11 +121,11 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
     fireEvent.change(colorSelect, { target: { value: 'indigo' } });
 
     // Find reason input
-    const reasonInput = screen.getByPlaceholderText(/Powód zmiany/i);
+    const reasonInput = screen.getByPlaceholderText(/Reason|Powód/i);
     fireEvent.change(reasonInput, { target: { value: 'Reason for project change' } });
 
     // Click save
-    const saveBtn = screen.getByTitle(/Zapisz/i);
+    const saveBtn = screen.getByRole('button', { name: /Save|Zapisz/i });
     fireEvent.click(saveBtn);
 
     expect(setProjects).toHaveBeenCalled();
@@ -134,10 +134,10 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
   it('should_cancel_editing_without_changes_when_canceling_project_edit', () => {
     const { setProjects } = setup();
 
-    const editBtns = screen.getAllByTitle(/Modyfikuj/i);
+    const editBtns = screen.getAllByRole('button', { name: /Edit|Modyfikuj/i });
     fireEvent.click(editBtns[0]);
 
-    const cancelBtn = screen.getByTitle(/Anuluj/i);
+    const cancelBtn = screen.getByRole('button', { name: /Cancel|Anuluj/i });
     fireEvent.click(cancelBtn);
 
     expect(setProjects).not.toHaveBeenCalled();
@@ -147,7 +147,7 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const { setProjects, setTasks, setLogs } = setup();
 
-    const deleteBtns = screen.getAllByTitle(/Wycofaj/i);
+    const deleteBtns = screen.getAllByRole('button', { name: /Delete|Usuń|Wycofaj/i });
     fireEvent.click(deleteBtns[0]); // first project delete
 
     expect(confirmSpy).toHaveBeenCalled();
@@ -172,16 +172,16 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
 
     setup({ projects: projectWithHistory });
 
-    expect(screen.getByText(/Oryginał: Original Alpha/i)).toBeDefined();
+    expect(screen.getByText(/Original Alpha/i)).toBeDefined();
 
-    const historyBtn = screen.getByTitle(/Zobacz historię rewizji/i);
+    const historyBtn = screen.getByRole('button', { name: /Revision History|historię rewizji/i });
     fireEvent.click(historyBtn);
 
-    expect(screen.getByText(/Historia poprawek obiektu/i)).toBeDefined();
+    expect(screen.getByText(/Audit Trail|Historia/i)).toBeDefined();
     expect(screen.getByText(/Initial fix/i)).toBeDefined();
 
     // Close it
     fireEvent.click(historyBtn);
-    expect(screen.queryByText(/Historia poprawek obiektu/i)).toBeNull();
+    expect(screen.queryByText(/Audit Trail|Historia/i)).toBeNull();
   });
 });

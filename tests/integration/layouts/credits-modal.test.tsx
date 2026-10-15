@@ -49,7 +49,7 @@ describe('Integration Tests: CreditsModal', () => {
     expect(screen.getByText(/Lucide React/)).toBeDefined();
     expect(screen.getByText(/Tailwind CSS v4/)).toBeDefined();
 
-    const closeBtn = screen.getByRole('button', { name: /Zamknij/i });
+    const closeBtn = screen.getByRole('button', { name: /^Close$|^Zamknij$/i });
     fireEvent.click(closeBtn);
     expect(state.setShowCreditsModal).toHaveBeenCalledWith(false);
   });
@@ -63,12 +63,12 @@ describe('Integration Tests: CreditsModal', () => {
       </MockProviders>
     );
 
-    const closeBtn = screen.getByRole('button', { name: /Zamknij/i });
+    const closeBtn = screen.getByRole('button', { name: /^Close$|^Zamknij$/i });
     fireEvent.click(closeBtn);
     expect(state.setShowCreditsModal).toHaveBeenCalledWith(false);
   });
 
-  it('Given light theme, When CreditsModal is rendered, Then it applies light theme colors', () => {
+  it('Given light theme, When CreditsModal is rendered, Then it applies semantic card tokens', () => {
     const state = createCreditsModalState({ resolvedTheme: 'light' });
 
     render(
@@ -79,7 +79,7 @@ describe('Integration Tests: CreditsModal', () => {
 
     const containerDiv = document.getElementById('credits-modal-container');
     expect(containerDiv).not.toBeNull();
-    expect(containerDiv?.className).toContain('bg-[#FCFAF8]');
-    expect(containerDiv?.className).toContain('border-[#DFD7CB]');
+    expect(containerDiv?.className).toContain('bg-card');
+    expect(containerDiv?.className).toContain('border-border');
   });
 });

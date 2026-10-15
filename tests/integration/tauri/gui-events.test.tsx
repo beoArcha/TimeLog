@@ -136,7 +136,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
 
     mockInvoke.mockClear();
 
-    const closeBtn = await screen.findByTitle('Close / Hide to Tray');
+    const closeBtn = await screen.findByTestId('compact-close-btn');
     fireEvent.click(closeBtn);
 
     await waitFor(() => {
@@ -152,7 +152,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
 
     mockInvoke.mockClear();
 
-    const closeBtn = await screen.findByTitle('Close / Hide to Tray');
+    const closeBtn = await screen.findByTestId('compact-close-btn');
     fireEvent.click(closeBtn);
 
     await waitFor(() => {
@@ -172,7 +172,7 @@ describe('Integration Tests: Tauri GUI Events', () => {
 
     mockInvoke.mockClear();
 
-    const restoreBtn = await screen.findByTitle('Restore larger size');
+    const restoreBtn = await screen.findByTestId('compact-restore-btn');
     fireEvent.click(restoreBtn);
 
     await waitFor(() => {

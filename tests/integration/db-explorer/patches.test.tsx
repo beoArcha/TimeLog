@@ -99,14 +99,14 @@ describe('Integration Tests: DbExplorer Patches Table', () => {
     fireEvent.change(inputs[1], { target: { value: '2026-06-12T06:00:00Z' } });
     fireEvent.change(inputs[2], { target: { value: 'Test patch note' } });
 
-    fireEvent.click(screen.getByText(/Zapisz łatkę/i));
+    fireEvent.click(screen.getByRole('button', { name: /Save|Zapisz/i }));
 
     expect(setPatches).toHaveBeenCalled();
 
     // Test delete patch
-    const patchesTableWrapper = screen.getByText(/patch_logs table/i).closest('.border');
-    const deleteBtn = patchesTableWrapper?.querySelector('tbody tr button') as HTMLElement; // Trash2 button
-    fireEvent.click(deleteBtn);
+    const deleteBtns = screen.getAllByRole('button', { name: /Delete|Usuń/i });
+    const patchDeleteBtn = deleteBtns[deleteBtns.length - 1];
+    fireEvent.click(patchDeleteBtn);
 
     expect(confirmSpy).toHaveBeenCalled();
     expect(setPatches).toHaveBeenCalledTimes(2);

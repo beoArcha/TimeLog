@@ -107,7 +107,8 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
     const completedCheckbox = tasksTableWrapper?.querySelector('input[type="checkbox"]') as HTMLInputElement;
     fireEvent.click(completedCheckbox); // toggle completion
 
-    const reasonInput = tasksTableWrapper?.querySelector('input[placeholder="Powód (reason)"]') as HTMLInputElement;
+    const reasonInput = (tasksTableWrapper?.querySelector('input[placeholder*="Reason"], input[placeholder*="Powód"]') ||
+      tasksTableWrapper?.querySelectorAll('input[type="text"]')[1]) as HTMLInputElement;
     fireEvent.change(reasonInput, { target: { value: 'Done with task' } });
 
     const saveBtn = tasksTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;

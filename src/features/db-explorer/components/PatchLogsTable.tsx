@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
 import { Database, Trash2, Plus, X } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
-
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@components/ui/table';
+import { Input } from '@components/ui/input';
+import { Label } from '@components/ui/label';
+import { Button } from '@components/ui/button';
 
 export default function PatchLogsTable() {
   const { locale, customTranslations } = useLocale();
@@ -22,7 +32,7 @@ export default function PatchLogsTable() {
   const handleOpenModal = () => {
     setStartTime(new Date().toISOString());
     setEndTime(new Date(Date.now() + 3600000).toISOString());
-    setPatchNote('Korekta po uśpieniu systemu');
+    setPatchNote('System sleep correction');
     setIsModalOpen(true);
   };
 
@@ -34,17 +44,17 @@ export default function PatchLogsTable() {
         projectId: projects[0].id,
         startTime,
         endTime,
-        patchNote: patchNote || 'Korekta manualna'
+        patchNote: patchNote || 'Manual correction'
       }]);
       setIsModalOpen(false);
     }
   };
 
   const themeClasses = resolvedTheme === 'light'
-    ? { wrapper: 'bg-white border-slate-200 shadow-slate-100', tableHeader: 'border-slate-200 text-slate-500 bg-slate-100/50' }
+    ? { wrapper: 'bg-card border-border shadow-xs', tableHeader: 'border-border text-muted-foreground bg-muted/50' }
     : resolvedTheme === 'high-contrast'
       ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
-      : { wrapper: 'bg-slate-900/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-slate-400 bg-black/30' };
+      : { wrapper: 'bg-card/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-muted-foreground bg-black/30' };
 
   return (
     <>
@@ -52,69 +62,85 @@ export default function PatchLogsTable() {
         {isModalOpen && (
           <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="patch-modal-title"
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               className={`w-full max-w-lg rounded-3xl border shadow-2xl p-6 flex flex-col gap-4 relative ${
                 resolvedTheme === 'light'
-                  ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
+                  ? 'bg-card border-border text-foreground'
                   : resolvedTheme === 'high-contrast'
                   ? 'bg-black border-2 border-white text-white'
-                  : 'bg-slate-950 border-white/10 text-white'
+                  : 'bg-card border-white/10 text-white'
               }`}
             >
-              <button
+              <Button
+                variant="ghost"
+                size="icon-xs"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-5 right-5 p-1.5 rounded-xl hover:bg-white/10 text-[#9B8C83]"
+                className="absolute top-5 right-5 text-muted-foreground"
+                title={translate(locale, 'common', 'Close', customTranslations)}
+                aria-label={translate(locale, 'common', 'Close', customTranslations)}
               >
                 <X className="w-5 h-5" />
-              </button>
+              </Button>
 
-              <h3 className="font-bold text-lg">{translate(locale, 'database', 'AddManualPatch', customTranslations)}</h3>
+              <h3 id="patch-modal-title" className="font-bold text-lg">{translate(locale, 'database', 'AddManualPatch', customTranslations)}</h3>
 
               <form onSubmit={handleAddPatch} className="flex flex-col gap-3">
                 <div>
-                  <label className="text-xs font-mono text-slate-400 block mb-1">Czas startowy (ISO)</label>
-                  <input
+                  <Label className="text-xs font-mono text-muted-foreground block mb-1">
+                    {translate(locale, 'database', 'StartTimeIso', customTranslations)}
+                  </Label>
+                  <Input
                     type="text"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-mono border bg-slate-900 border-white/10 text-white"
+                    aria-label={translate(locale, 'database', 'StartTimeIso', customTranslations)}
+                    className="w-full text-xs font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-mono text-slate-400 block mb-1">Czas końcowy (ISO)</label>
-                  <input
+                  <Label className="text-xs font-mono text-muted-foreground block mb-1">
+                    {translate(locale, 'database', 'EndTimeIso', customTranslations)}
+                  </Label>
+                  <Input
                     type="text"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-mono border bg-slate-900 border-white/10 text-white"
+                    aria-label={translate(locale, 'database', 'EndTimeIso', customTranslations)}
+                    className="w-full text-xs font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-mono text-slate-400 block mb-1">Powód łatki (patchNote)</label>
-                  <input
+                  <Label className="text-xs font-mono text-muted-foreground block mb-1">
+                    {translate(locale, 'database', 'PatchNoteReason', customTranslations)}
+                  </Label>
+                  <Input
                     type="text"
                     value={patchNote}
                     onChange={(e) => setPatchNote(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-mono border bg-slate-900 border-white/10 text-white"
+                    aria-label={translate(locale, 'database', 'PatchNoteReason', customTranslations)}
+                    className="w-full text-xs font-mono"
                   />
                 </div>
 
                 <div className="flex justify-end gap-2 mt-3">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 text-xs font-semibold rounded-xl border border-white/10 text-slate-300 hover:bg-white/10"
                   >
-                    Anuluj
-                  </button>
-                  <button
+                    {translate(locale, 'common', 'Cancel', customTranslations)}
+                  </Button>
+                  <Button
                     type="submit"
-                    className="px-5 py-2 text-xs font-bold text-black bg-emerald-500 hover:bg-emerald-600 rounded-xl shadow-md cursor-pointer"
+                    variant="accent"
                   >
-                    Zapisz łatkę
-                  </button>
+                    {translate(locale, 'common', 'Save', customTranslations)}
+                  </Button>
                 </div>
               </form>
             </motion.div>
@@ -123,7 +149,7 @@ export default function PatchLogsTable() {
       </AnimatePresence>
 
       <CollapsibleCard
-        title={`patch_logs table (${patches?.length || 0} ${translate(locale, 'database', 'Records', customTranslations)})`}
+        title={`${translate(locale, 'database', 'PatchLogsTableTitle', customTranslations)} (${patches?.length || 0} ${translate(locale, 'database', 'Records', customTranslations)})`}
         icon={Database}
         iconColor="text-emerald-400"
         titleColor="text-emerald-400"
@@ -131,59 +157,68 @@ export default function PatchLogsTable() {
         wrapperClassName={`p-6 rounded-3xl border shadow-xl ${themeClasses.wrapper}`}
         headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400 text-left"
         headerRight={
-          <button
+          <Button
+            variant="accent"
+            size="sm"
             onClick={handleOpenModal}
-            className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all hover:scale-[1.01]"
+            className="rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             {translate(locale, 'database', 'AddManualPatch', customTranslations)}
-          </button>
+          </Button>
         }
       >
-      <p className="text-[11px] text-slate-400 mb-4 mt-0.5">{translate(locale, 'database', 'PatchTableAllows', customTranslations)}</p>
+        <p className="text-[11px] text-muted-foreground mb-4 mt-0.5">{translate(locale, 'database', 'PatchTableAllows', customTranslations)}</p>
 
-      <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
-        <table className="w-full text-xs font-mono text-left whitespace-nowrap">
-          <thead>
-            <tr className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
-              <th className="py-3 px-4 rounded-l-xl">id</th>
-              <th className="py-3 px-4">project_id</th>
-              <th className="py-3 px-4">task_id (opt)</th>
-              <th className="py-3 px-4">start_time</th>
-              <th className="py-3 px-4">end_time</th>
-              <th className="py-3 px-4">patch_note / reason</th>
-              <th className="py-3 px-4 rounded-r-xl text-right">actions</th>
-            </tr>
-          </thead>
-          <tbody className="dark:text-white">
-            {(patches || []).map(p => (
-              <tr key={p.id} className="border-b border-white/5 hover:bg-white/5">
-                <td className="py-3.5 px-4 font-bold text-emerald-400">{p.id}</td>
-                <td className="py-3.5 px-4">{p.projectId}</td>
-                <td className="py-3.5 px-4 text-slate-400">{p.taskId || 'NULL'}</td>
-                <td className="py-3.5 px-4 border-l border-white/5">{new Date(p.startTime).toLocaleString()}</td>
-                <td className="py-3.5 px-4">{new Date(p.endTime).toLocaleString()}</td>
-                <td className="py-3.5 px-4 italic text-slate-400">{p.patchNote} {p.isSystemEvent && <span className="text-emerald-500 font-bold ml-1">[SYSTEM]</span>}</td>
-                <td className="py-3.5 px-4 text-right">
-                  <button onClick={() => {
-                    if (confirm('Usunąć tę łatkę z bazy?')) {
-                      setPatches(curr => curr.filter(x => x.id !== p.id));
-                    }
-                  }} className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {(patches || []).length === 0 && (
-              <tr>
-                <td colSpan={7} className="py-6 text-center text-slate-500 italic">{translate(locale, 'database', 'NoPatchesStandardMode', customTranslations)}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </CollapsibleCard>
-  </>
+        <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
+          <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
+            <TableHeader>
+              <TableRow className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
+                <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
+                <TableHead className="py-3 px-4">project_id</TableHead>
+                <TableHead className="py-3 px-4">task_id (opt)</TableHead>
+                <TableHead className="py-3 px-4">start_time</TableHead>
+                <TableHead className="py-3 px-4">end_time</TableHead>
+                <TableHead className="py-3 px-4">{translate(locale, 'database', 'PatchNoteReason', customTranslations)}</TableHead>
+                <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="dark:text-white">
+              {(patches || []).map(p => (
+                <TableRow key={p.id} className="border-b border-white/5 hover:bg-white/5">
+                  <TableCell className="py-3.5 px-4 font-bold text-emerald-400">{p.id}</TableCell>
+                  <TableCell className="py-3.5 px-4">{p.projectId}</TableCell>
+                  <TableCell className="py-3.5 px-4 text-muted-foreground">{p.taskId || 'NULL'}</TableCell>
+                  <TableCell className="py-3.5 px-4 border-l border-white/5">{new Date(p.startTime).toLocaleString()}</TableCell>
+                  <TableCell className="py-3.5 px-4">{new Date(p.endTime).toLocaleString()}</TableCell>
+                  <TableCell className="py-3.5 px-4 italic text-muted-foreground">{p.patchNote} {p.isSystemEvent && <span className="text-emerald-500 font-bold ml-1">[SYSTEM]</span>}</TableCell>
+                  <TableCell className="py-3.5 px-4 text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => {
+                        if (confirm(translate(locale, 'database', 'DeleteConfirmPatch', customTranslations))) {
+                          setPatches(curr => curr.filter(x => x.id !== p.id));
+                        }
+                      }}
+                      className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
+                      title={translate(locale, 'common', 'Delete', customTranslations)}
+                      aria-label={translate(locale, 'common', 'Delete', customTranslations)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(patches || []).length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-6 text-center text-muted-foreground italic">{translate(locale, 'database', 'NoPatchesStandardMode', customTranslations)}</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CollapsibleCard>
+    </>
   );
 }

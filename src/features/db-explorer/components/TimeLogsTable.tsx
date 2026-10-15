@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Database, Plus } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
-import CollapsibleCard from '@components/CollapsibleCard'; // Wait, let's make sure of the path to CollapsibleCard later, but for now we'll use @common/components/CollapsibleCard since we will move it there.
+import CollapsibleCard from '@components/CollapsibleCard';
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
 import AddLogForm from './AddLogForm';
@@ -10,6 +10,14 @@ import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@components/ui/table';
+import { Button } from '@components/ui/button';
 
 export default function TimeLogsTable() {
   const { locale, customTranslations } = useLocale();
@@ -22,10 +30,10 @@ export default function TimeLogsTable() {
   const [showAddLogForm, setShowAddLogForm] = useState(false);
 
   const themeClasses = resolvedTheme === 'light'
-    ? { wrapper: 'bg-white border-slate-200 shadow-slate-100', tableHeader: 'border-slate-200 text-slate-500 bg-slate-100/50' }
+    ? { wrapper: 'bg-card border-border shadow-xs', tableHeader: 'border-border text-muted-foreground bg-muted/50' }
     : resolvedTheme === 'high-contrast'
       ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
-      : { wrapper: 'bg-slate-900/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-slate-400 bg-black/30' };
+      : { wrapper: 'bg-card/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-muted-foreground bg-black/30' };
 
   const handleSaveEdit = async (id: string, startTime: string, endTime: string, note: string, reason: string) => {
     const existingLog = logs.find(l => l.id === id);
@@ -48,13 +56,13 @@ export default function TimeLogsTable() {
       setEditingLogId(null);
     } catch (err) {
       if (showToast) {
-        showToast(err instanceof Error ? err.message : 'Wystąpił błąd podczas zapisu');
+        showToast(err instanceof Error ? err.message : 'Error while saving');
       }
     }
   };
 
   const handleDeleteLog = (id: string) => {
-    if (confirm('Czy na pewno chcesz bezpowrotnie skasować ten log czasowy?')) {
+    if (confirm('Are you sure you want to permanently delete this time log?')) {
       setLogs(curr => curr.filter(l => l.id !== id));
     }
   };
@@ -71,7 +79,7 @@ export default function TimeLogsTable() {
       projectId: selectedTask.projectId,
       startTime,
       endTime: finalEndTime,
-      note: note || 'Ręczna rejestracja czasu'
+      note: note || 'Manual time registration'
     };
 
     setLogs(curr => [...curr, newLog]);
@@ -88,15 +96,17 @@ export default function TimeLogsTable() {
       wrapperClassName={`p-6 rounded-3xl border shadow-xl ${themeClasses.wrapper}`}
       headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-indigo-400 text-left"
       headerRight={
-        <button
+        <Button
+          variant="accent"
+          size="sm"
           onClick={() => setShowAddLogForm(!showAddLogForm)}
-          className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all hover:scale-[1.01]"
+          className="rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
         >
           <Plus className="w-3.5 h-3.5" /> {translate(locale, 'database', 'AddLogManually', customTranslations)}
-        </button>
+        </Button>
       }
     >
-      <p className="text-[11px] text-slate-400 mb-4 mt-0.5">{translate(locale, 'database', 'EntriesCrucialLabel', customTranslations)}</p>
+      <p className="text-[11px] text-muted-foreground mb-4 mt-0.5">{translate(locale, 'database', 'EntriesCrucialLabel', customTranslations)}</p>
 
       {showAddLogForm && (
         <AddLogForm
@@ -110,19 +120,19 @@ export default function TimeLogsTable() {
       )}
 
       <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
-        <table className="w-full text-xs font-mono text-left whitespace-nowrap">
-          <thead>
-            <tr className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
-              <th className="py-3 px-4 rounded-l-xl">id</th>
-              <th className="py-3 px-4">task_id</th>
-              <th className="py-3 px-4">{translate(locale, 'database', 'StartStamp', customTranslations)}</th>
-              <th className="py-3 px-4">{translate(locale, 'database', 'EndStamp', customTranslations)}</th>
-              <th className="py-3 px-4">note</th>
-              <th className="py-3 px-4">{translate(locale, 'database', 'OriginalStamps', customTranslations)}</th>
-              <th className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</th>
-            </tr>
-          </thead>
-          <tbody className="dark:text-white">
+        <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
+          <TableHeader>
+            <TableRow className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
+              <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
+              <TableHead className="py-3 px-4">task_id</TableHead>
+              <TableHead className="py-3 px-4">{translate(locale, 'database', 'StartStamp', customTranslations)}</TableHead>
+              <TableHead className="py-3 px-4">{translate(locale, 'database', 'EndStamp', customTranslations)}</TableHead>
+              <TableHead className="py-3 px-4">note</TableHead>
+              <TableHead className="py-3 px-4">{translate(locale, 'database', 'OriginalStamps', customTranslations)}</TableHead>
+              <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="dark:text-white">
             {logs.map(l => (
               <TimeLogTableRow
                 key={l.id}
@@ -138,8 +148,8 @@ export default function TimeLogsTable() {
                 onToggleHistory={() => setShowHistoryRecordId(showHistoryRecordId === l.id ? null : l.id)}
               />
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </CollapsibleCard>
   );

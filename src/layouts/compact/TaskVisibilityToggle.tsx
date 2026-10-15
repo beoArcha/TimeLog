@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
+import { Button } from '@components/ui/button';
 
 interface TaskVisibilityToggleProps {
   isExpanded: boolean;
@@ -23,10 +24,12 @@ export function TaskVisibilityToggle({
 
   return (
     <div className="pt-1 text-center">
-      <button
+      <Button
+        variant="ghost"
+        size="xs"
         data-testid="compact-toggle-tasks-btn"
         onClick={onToggle}
-        className={`w-full py-1 rounded-xl transition-all font-mono text-[9px] uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer ${resolvedTheme === 'light'
+        className={`w-full py-1 h-auto rounded-xl transition-all font-mono text-[9px] uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer ${resolvedTheme === 'light'
             ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
             : 'bg-white/5 hover:bg-white/10 text-slate-300'
           }`}
@@ -38,7 +41,7 @@ export function TaskVisibilityToggle({
               }`}
           />
         </div>
-      </button>
+      </Button>
     </div>
   );
 }

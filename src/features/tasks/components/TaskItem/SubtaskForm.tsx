@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from '@common/i18n/translator';
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
 
 interface SubtaskFormProps {
   parentTaskId: string;
@@ -27,10 +29,10 @@ export function SubtaskForm({
       animate={{ height: 'auto', opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       onSubmit={(e) => onSubmit(parentTaskId, e)}
-      className={`p-2.5 rounded-2xl border flex gap-2 ml-8 mt-1 ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+      className={`p-2.5 rounded-2xl border flex gap-2 ml-8 mt-1 ${theme === 'light' ? 'bg-muted/40 border-border' : 'bg-card/5 border-white/10'
         }`}
     >
-      <input
+      <Input
         id={`new-subtask-input-${parentTaskId}`}
         type="text"
         required
@@ -38,17 +40,19 @@ export function SubtaskForm({
         value={newSubtaskName}
         onChange={(e) => setNewSubtaskName(e.target.value)}
         className={`flex-1 px-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all ${theme === 'light'
-            ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421] placeholder-[#9B8C83]'
-            : 'bg-slate-950 text-white border-white/10 placeholder-[#8A7A71]'
+            ? 'bg-card border-border text-foreground placeholder-muted-foreground'
+            : 'bg-slate-950 text-white border-white/10 placeholder-muted-foreground'
           }`}
       />
-      <button
+      <Button
         id={`submit-subtask-btn-${parentTaskId}`}
         type="submit"
-        className="bg-gradient-to-tr from-orange-400 to-rose-500 text-white text-xs font-semibold rounded-xl px-3 py-1.5 hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
+        variant="accent"
+        size="xs"
+        className="text-white text-xs font-semibold rounded-xl px-3 py-1.5 hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
       >
         {tCommon('Save')}
-      </button>
+      </Button>
     </motion.form>
   );
 }

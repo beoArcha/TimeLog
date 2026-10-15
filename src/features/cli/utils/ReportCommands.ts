@@ -10,8 +10,8 @@ export const runLogsCommand = (args: string[], context: CliEngineContext, output
   const filterArg = args[0] ? args[0].toLowerCase() : 'all';
   const sortArg = args[1] ? args[1].toLowerCase() : 'date';
 
-  const transRunning = (translate(locale, 'cli', 'FilterRunning', customTranslations) || 'running').toLowerCase();
-  const transCaptured = (translate(locale, 'cli', 'FilterCaptured', customTranslations) || 'captured').toLowerCase();
+  const transRunning = translate(locale, 'cli', 'FilterRunning', customTranslations).toLowerCase();
+  const transCaptured = translate(locale, 'cli', 'FilterCaptured', customTranslations).toLowerCase();
 
   if (filterArg === 'running' || filterArg === transRunning) {
     filteredLogs = filteredLogs.filter(log => !log.endTime);
@@ -19,9 +19,9 @@ export const runLogsCommand = (args: string[], context: CliEngineContext, output
     filteredLogs = filteredLogs.filter(log => log.endTime);
   }
 
-  const transDuration = (translate(locale, 'cli', 'SortDuration', customTranslations) || 'duration').toLowerCase();
-  const transProject = (translate(locale, 'cli', 'SortProject', customTranslations) || 'project').toLowerCase();
-  const transStatus = (translate(locale, 'cli', 'SortStatus', customTranslations) || 'status').toLowerCase();
+  const transDuration = translate(locale, 'cli', 'SortDuration', customTranslations).toLowerCase();
+  const transProject = translate(locale, 'cli', 'SortProject', customTranslations).toLowerCase();
+  const transStatus = translate(locale, 'cli', 'SortStatus', customTranslations).toLowerCase();
 
   if (sortArg === 'duration' || sortArg === transDuration || sortArg === 'czas') {
     filteredLogs.sort((a, b) => {
@@ -43,11 +43,11 @@ export const runLogsCommand = (args: string[], context: CliEngineContext, output
   if (filteredLogs.length === 0) {
     outputs.push({ text: translate(locale, 'cli', 'NoLogsFound', customTranslations), type: 'info' });
   } else {
-    const hId = (translate(locale, 'cli', 'LogId', customTranslations) || 'ID').padEnd(4).substring(0, 4);
-    const hPrj = (translate(locale, 'cli', 'LogPrjId', customTranslations) || 'PRJ ID').padEnd(6).substring(0, 6);
-    const hStart = (translate(locale, 'cli', 'LogStart', customTranslations) || 'STARTED AT').padEnd(10).substring(0, 10);
-    const hStat = (translate(locale, 'cli', 'LogStatus', customTranslations) || 'STATUS').padEnd(8).substring(0, 8);
-    const hDur = (translate(locale, 'cli', 'LogDuration', customTranslations) || 'DURATION').padEnd(22).substring(0, 22);
+    const hId = translate(locale, 'cli', 'LogId', customTranslations).padEnd(4).substring(0, 4);
+    const hPrj = translate(locale, 'cli', 'LogPrjId', customTranslations).padEnd(6).substring(0, 6);
+    const hStart = translate(locale, 'cli', 'LogStart', customTranslations).padEnd(10).substring(0, 10);
+    const hStat = translate(locale, 'cli', 'LogStatus', customTranslations).padEnd(8).substring(0, 8);
+    const hDur = translate(locale, 'cli', 'LogDuration', customTranslations).padEnd(22).substring(0, 22);
 
     outputs.push({ text: '┌──────┬────────┬────────────┬──────────┬────────────────────────┐', type: 'info' });
     outputs.push({ text: `│ ${hId} │ ${hPrj} │ ${hStart} │ ${hStat} │ ${hDur} │`, type: 'info' });

@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
 import { translate } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
+import { TableRow, TableCell } from '@components/ui/table';
+import { Input } from '@components/ui/input';
+import { Button } from '@components/ui/button';
 
 interface TimeLogTableRowProps {
   key?: string | number;
@@ -55,112 +58,148 @@ export default function TimeLogTableRow({
 
   return (
     <>
-      <tr className="border-b border-white/5 hover:bg-white/5 text-left">
-        <td className="py-3.5 px-4 font-bold text-slate-500">{l.id}</td>
-        <td className="py-3.5 px-4 text-teal-400 font-bold">{l.taskId}</td>
-        <td className="py-3.5 px-4">
+      <TableRow className="border-b border-white/5 hover:bg-white/5 text-left">
+        <TableCell className="py-3.5 px-4 font-bold text-muted-foreground">{l.id}</TableCell>
+        <TableCell className="py-3.5 px-4 text-teal-400 font-bold">{l.taskId}</TableCell>
+        <TableCell className="py-3.5 px-4">
           {isEditing ? (
-            <input
+            <Input
               type="text"
               value={form.startTime}
               onChange={e => setForm(prev => ({ ...prev, startTime: e.target.value }))}
-              className="bg-black/35 border border-white/20 select-text px-2 py-1 rounded text-white"
+              className="bg-black/35 border border-white/20 px-2 py-1 h-7 rounded text-white"
+              aria-label={translate(locale, 'database', 'StartTime', customTranslations)}
             />
           ) : (
             <span className="text-emerald-500 dark:text-emerald-400 font-semibold">{l.startTime}</span>
           )}
-        </td>
-        <td className="py-3.5 px-4">
+        </TableCell>
+        <TableCell className="py-3.5 px-4">
           {isEditing ? (
-            <input
+            <Input
               type="text"
               value={form.endTime}
               onChange={e => setForm(prev => ({ ...prev, endTime: e.target.value }))}
-              className="bg-black/35 border border-white/20 select-text px-2 py-1 rounded text-white"
-              placeholder="Koniec czasu lub puste"
+              className="bg-black/35 border border-white/20 px-2 py-1 h-7 rounded text-white"
+              placeholder={translate(locale, 'database', 'EndTime', customTranslations)}
+              aria-label={translate(locale, 'database', 'EndTime', customTranslations)}
             />
           ) : (
             <span className="text-indigo-400 font-semibold">{l.endTime || translate(locale, 'database', 'TrackingActiveLabel', customTranslations)}</span>
           )}
-        </td>
-        <td className="py-3.5 px-4 truncate max-w-xs">
+        </TableCell>
+        <TableCell className="py-3.5 px-4 truncate max-w-xs">
           {isEditing ? (
-            <input
+            <Input
               type="text"
               value={form.note}
               onChange={e => setForm(prev => ({ ...prev, note: e.target.value }))}
-              className="bg-black/35 border border-white/20 px-2 py-1 rounded text-white"
+              className="bg-black/35 border border-white/20 px-2 py-1 h-7 rounded text-white"
+              aria-label={translate(locale, 'database', 'Note', customTranslations)}
             />
           ) : (
-            <span>{l.note || <span className="text-slate-500 italic">{translate(locale, 'database', 'NoNote', customTranslations)}</span>}</span>
+            <span>{l.note || <span className="text-muted-foreground italic">{translate(locale, 'database', 'NoNote', customTranslations)}</span>}</span>
           )}
-        </td>
-        <td className="py-3.5 px-4">
+        </TableCell>
+        <TableCell className="py-3.5 px-4">
           {hasHistory ? (
-            <span className="text-[10px] bg-amber-550/10 text-amber-500 border border-amber-550/25 px-2 py-0.5 rounded-md font-bold block w-max">
-              Oryg start: {getOriginalStartTime() ? new Date(getOriginalStartTime()).toLocaleTimeString() : 'N/A'}
+            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-md font-bold block w-max">
+              {translate(locale, 'database', 'OriginalStart', customTranslations)} {getOriginalStartTime() ? new Date(getOriginalStartTime()).toLocaleTimeString() : 'N/A'}
             </span>
           ) : (
-            <span className="text-slate-500 text-[10px]">{translate(locale, 'database', 'NoChanges', customTranslations)}</span>
+            <span className="text-muted-foreground text-[10px]">{translate(locale, 'database', 'NoChanges', customTranslations)}</span>
           )}
-        </td>
-        <td className="py-3.5 px-4 text-right">
+        </TableCell>
+        <TableCell className="py-3.5 px-4 text-right">
           <div className="flex items-center justify-end gap-2">
             {hasHistory && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon-xs"
                 onClick={onToggleHistory}
                 className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20 cursor-pointer"
+                title={translate(locale, 'database', 'RevisionHistory', customTranslations)}
+                aria-label={translate(locale, 'database', 'RevisionHistory', customTranslations)}
               >
                 <History className="w-3.5 h-3.5" />
-              </button>
+              </Button>
             )}
             {isEditing ? (
               <>
-                <input
+                <Input
                   type="text"
-                  placeholder="Uzasadnienie rzetelności"
+                  placeholder={translate(locale, 'database', 'Reason', customTranslations)}
+                  aria-label={translate(locale, 'database', 'Reason', customTranslations)}
                   value={form.reason}
                   onChange={e => setForm(prev => ({ ...prev, reason: e.target.value }))}
-                  className="text-[9px] bg-black/45 border border-white/10 px-1 py-0.5 rounded w-32 text-white mr-1"
+                  className="text-[9px] bg-black/45 border border-white/10 px-1 py-0.5 h-6 rounded w-32 text-white mr-1"
                 />
-                <button onClick={handleSave} className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-400 cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={handleSave}
+                  className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-400 cursor-pointer"
+                  title={translate(locale, 'common', 'Save', customTranslations)}
+                  aria-label={translate(locale, 'common', 'Save', customTranslations)}
+                >
                   <Check className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={onCancelEdit} className="p-1.5 rounded-lg bg-rose-500/25 hover:bg-rose-500/35 text-rose-450 cursor-pointer">
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={onCancelEdit}
+                  className="p-1.5 rounded-lg bg-rose-500/25 hover:bg-rose-500/35 text-rose-450 cursor-pointer"
+                  title={translate(locale, 'common', 'Cancel', customTranslations)}
+                  aria-label={translate(locale, 'common', 'Cancel', customTranslations)}
+                >
                   <X className="w-3.5 h-3.5" />
-                </button>
+                </Button>
               </>
             ) : (
               <>
-                <button onClick={onStartEdit} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={onStartEdit}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 cursor-pointer"
+                  title={translate(locale, 'common', 'Edit', customTranslations)}
+                  aria-label={translate(locale, 'common', 'Edit', customTranslations)}
+                >
                   <Edit3 className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={onDelete} className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer">
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={onDelete}
+                  className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
+                  title={translate(locale, 'common', 'Delete', customTranslations)}
+                  aria-label={translate(locale, 'common', 'Delete', customTranslations)}
+                >
                   <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                </Button>
               </>
             )}
           </div>
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
 
       {showHistory && l.editHistory && (
-        <tr>
-          <td colSpan={7} className="py-3 px-5 bg-black/20 border-b border-white/5 rounded-b-2xl">
+        <TableRow>
+          <TableCell colSpan={7} className="py-3 px-5 bg-black/20 border-b border-white/5 rounded-b-2xl">
             <div className="flex flex-col gap-1 border-l-2 border-teal-500 pl-4 py-1 text-left">
               <p className="text-[10px] uppercase font-bold tracking-widest text-teal-400 flex items-center gap-1.5">
-                <History className="w-3" /> Oryginał i historia korekt wpisu czasowego
+                <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}
               </p>
               {l.editHistory.map((h, hIdx) => (
-                <div key={hIdx} className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                  <span className="text-slate-500">[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
-                  Start: <strong className="text-white">"{h.prevStartTime}"</strong>, Koniec: <strong className="text-white">"{h.prevEndTime || 'Brak'}"</strong>, Notatka: <strong className="text-white">"{h.prevNote}"</strong> &rarr;{' '}
-                  Uzasadnienie: <em className="text-teal-300">"{h.reason}"</em>
+                <div key={hIdx} className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                  <span>[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
+                  {translate(locale, 'database', 'StartTime', customTranslations)} <strong className="text-foreground">"{h.prevStartTime}"</strong>, {translate(locale, 'database', 'EndTime', customTranslations)} <strong className="text-foreground">"{h.prevEndTime || translate(locale, 'common', 'No', customTranslations)}"</strong>, {translate(locale, 'database', 'Note', customTranslations)} <strong className="text-foreground">"{h.prevNote}"</strong> &rarr;{' '}
+                  {translate(locale, 'database', 'Reason', customTranslations)} <em className="text-teal-300">"{h.reason}"</em>
                 </div>
               ))}
             </div>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       )}
     </>
   );

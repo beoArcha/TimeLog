@@ -19,7 +19,7 @@ export default function CreditsTab() {
       <div className={`border-b pb-4 ${isLight ? 'border-slate-200' : 'border-white/5'}`}>
         <h2 className={`text-xl font-black flex items-center gap-3 ${headingColor}`}>
           <Heart className="w-6 h-6 text-rose-500 animate-pulse drop-shadow-sm" />
-          <span>{translate(locale, 'help', 'CreditsTitle', customTranslations) || 'Credits, OSS & Creators'}</span>
+          <span>{translate(locale, 'help', 'CreditsTitle', customTranslations)}</span>
         </h2>
         <p className={`text-xs mt-1.5 leading-relaxed max-w-2xl ${mutedColor}`}>
           {translate(locale, 'help', 'CreditsDesc', customTranslations)}
@@ -36,7 +36,7 @@ export default function CreditsTab() {
               <HeartHandshake className="w-4 h-4 text-rose-500" />
             </div>
             <h3 className={`text-sm font-bold ${headingColor}`}>
-              {translate(locale, 'help', 'ZoukTitle', customTranslations) || 'The Philosophy of Flow'}
+              {translate(locale, 'help', 'ZoukTitle', customTranslations)}
             </h3>
           </div>
           <p className={`text-[11px] leading-relaxed flex-grow font-medium ${mutedColor}`}>
@@ -53,7 +53,7 @@ export default function CreditsTab() {
               <Code2 className="w-4 h-4 text-indigo-500" />
             </div>
             <h3 className={`text-sm font-bold ${headingColor}`}>
-              {translate(locale, 'help', 'OssThanks', customTranslations) || 'Open Source Technologies'}
+              {translate(locale, 'help', 'OssThanks', customTranslations)}
             </h3>
           </div>
           <p className={`text-[11px] leading-relaxed mb-4 flex-grow font-medium ${mutedColor}`}>
@@ -78,7 +78,7 @@ export default function CreditsTab() {
               <Users className="w-4 h-4 text-teal-500" />
             </div>
             <h3 className={`text-sm font-bold ${headingColor}`}>
-              {translate(locale, 'help', 'TeamTitle', customTranslations) || 'Core Team & Contributors'}
+              {translate(locale, 'help', 'TeamTitle', customTranslations)}
             </h3>
           </div>
           <p className={`text-[11px] leading-relaxed font-medium mb-4 whitespace-pre-wrap ${mutedColor}`}>
@@ -102,7 +102,7 @@ export default function CreditsTab() {
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
             </div>
             <h3 className={`text-sm font-bold ${headingColor}`}>
-              {translate(locale, 'help', 'LicenseTitle', customTranslations) || 'MPL-2.0 License'}
+              {translate(locale, 'help', 'LicenseTitle', customTranslations)}
             </h3>
           </div>
           <div className={`p-4 rounded-xl border font-mono text-[9px] leading-relaxed 
@@ -111,7 +111,7 @@ export default function CreditsTab() {
               <FileSignature className="w-3 h-3 inline-block mr-1 -mt-0.5" />
               OxyFlow
             </div>
-            {translate(locale, 'help', 'LicenseBody', customTranslations) || `Copyright (c) 2026 OxyFlow Team\n\nThis Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.`}
+            {translate(locale, 'help', 'LicenseBody', customTranslations)}
           </div>
         </motion.div>
       </div>

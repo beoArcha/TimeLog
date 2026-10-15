@@ -4,6 +4,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { Play, Square } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
+import { Button } from '@components/ui/button';
 
 interface SubtaskRowProps {
   key?: React.Key;
@@ -54,12 +55,14 @@ export function SubtaskRow({
         ↳ {subtask.name}
       </span>
 
-      <button
+      <Button
+        variant="ghost"
+        size="icon-xs"
         onClick={handleClick}
         title={timerTitle}
         aria-label={timerTitle}
         className={`p-1 rounded-md transition-all cursor-pointer ${isSubActive
-            ? 'bg-rose-500/25 text-rose-550'
+            ? 'bg-rose-500/25 text-rose-500'
             : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
           }`}
       >
@@ -68,7 +71,7 @@ export function SubtaskRow({
         ) : (
           <Play className="w-2.5 h-2.5 fill-emerald-500" />
         )}
-      </button>
+      </Button>
     </div>
   );
 }

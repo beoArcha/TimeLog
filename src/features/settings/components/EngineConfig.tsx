@@ -1,6 +1,8 @@
 import React from 'react';
 import { Cpu } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { Checkbox } from '@components/ui/checkbox';
+import { Label } from '@components/ui/label';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
@@ -39,77 +41,65 @@ export default function EngineConfig() {
         </p>
 
         <div className="flex flex-col gap-4">
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
+          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+            <Checkbox
               checked={sysSettings?.autoStart}
-              onChange={(e) => updateSetting('autoStart', e.target.checked)}
-              className="w-4 h-4 accent-emerald-500"
+              onCheckedChange={(checked) => updateSetting('autoStart', !!checked)}
             />
             <span className="text-xs font-semibold text-foreground">
               {translate(locale, 'engine', 'AutoStart', customTranslations)}
             </span>
-          </label>
+          </Label>
 
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
+          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+            <Checkbox
               checked={sysSettings?.autoPauseOnSleep}
-              onChange={(e) => updateSetting('autoPauseOnSleep', e.target.checked)}
-              className="w-4 h-4 accent-emerald-500"
+              onCheckedChange={(checked) => updateSetting('autoPauseOnSleep', !!checked)}
             />
             <span className="text-xs font-semibold text-foreground">
               {translate(locale, 'engine', 'AutoPauseOnSleep', customTranslations)}
             </span>
-          </label>
+          </Label>
 
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
+          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+            <Checkbox
               checked={sysSettings?.includePatchesInReports}
-              onChange={(e) => updateSetting('includePatchesInReports', e.target.checked)}
-              className="w-4 h-4 accent-emerald-500"
+              onCheckedChange={(checked) => updateSetting('includePatchesInReports', !!checked)}
             />
             <span className="text-xs font-semibold text-foreground">
               {translate(locale, 'engine', 'IncludePatchesInReports', customTranslations)}
             </span>
-          </label>
+          </Label>
 
-          <label className="flex items-center gap-2 cursor-pointer w-fit mt-2 border-t border-border pt-4">
-            <input
-              type="checkbox"
+          <Label className="flex items-center gap-2 cursor-pointer w-fit mt-2 border-t border-border pt-4 font-normal">
+            <Checkbox
               checked={minimizeToTray}
-              onChange={(e) => setMinimizeToTray(e.target.checked)}
-              className="w-4 h-4 accent-orange-500"
+              onCheckedChange={(checked) => setMinimizeToTray(!!checked)}
             />
             <span className="text-xs font-semibold text-foreground">
               {translate(locale, 'engine', 'MinimizeToTrayDefault', customTranslations)}
             </span>
-          </label>
+          </Label>
 
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
+          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+            <Checkbox
               checked={alwaysOnTopSmall}
-              onChange={(e) => setAlwaysOnTopSmall(e.target.checked)}
-              className="w-4 h-4 accent-orange-500"
+              onCheckedChange={(checked) => setAlwaysOnTopSmall(!!checked)}
             />
             <span className="text-xs font-semibold text-foreground">
-              {translate(locale, 'engine', 'AlwaysOnTopSmall', customTranslations) || 'Always on top (Compact view)'}
+              {translate(locale, 'engine', 'AlwaysOnTopSmall', customTranslations)}
             </span>
-          </label>
+          </Label>
 
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
+          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+            <Checkbox
               checked={alwaysOnTopMain}
-              onChange={(e) => setAlwaysOnTopMain(e.target.checked)}
-              className="w-4 h-4 accent-orange-500"
+              onCheckedChange={(checked) => setAlwaysOnTopMain(!!checked)}
             />
             <span className="text-xs font-semibold text-foreground">
-              {translate(locale, 'engine', 'AlwaysOnTopMain', customTranslations) || 'Always on top (Standard and Expanded view)'}
+              {translate(locale, 'engine', 'AlwaysOnTopMain', customTranslations)}
             </span>
-          </label>
+          </Label>
         </div>
       </div>
     </CollapsibleCard>

@@ -2,6 +2,7 @@
   "en": {
     "Cancel": "Cancel",
     "Save": "Save",
+    "Send": "Send",
     "Edit": "Edit",
     "EditName": "Edit name",
     "Delete": "Delete",
@@ -39,6 +40,7 @@
   "pl": {
     "Cancel": "Anuluj",
     "Save": "Zapisz",
+    "Send": "Wyślij",
     "Edit": "Edytuj",
     "EditName": "Zmień nazwę",
     "Delete": "Usuń",
@@ -76,6 +78,7 @@
   "de": {
     "Cancel": "Abbrechen",
     "Save": "Speichern",
+    "Send": "Senden",
     "Edit": "Bearbeiten",
     "EditName": "Name bearbeiten",
     "Delete": "Löschen",
@@ -113,6 +116,7 @@
   "es": {
     "Cancel": "Cancelar",
     "Save": "Guardar",
+    "Send": "Enviar",
     "Edit": "Editar",
     "EditName": "Editar nombre",
     "Delete": "Eliminar",
@@ -150,6 +154,7 @@
   "fr": {
     "Cancel": "Annuler",
     "Save": "Enregistrer",
+    "Send": "Envoyer",
     "Edit": "Modifier",
     "EditName": "Modifier le nom",
     "Delete": "Supprimer",
@@ -187,6 +192,7 @@
   "pt-br": {
     "Cancel": "Cancelar",
     "Save": "Salvar",
+    "Send": "Enviar",
     "Edit": "Editar",
     "EditName": "Editar nome",
     "Delete": "Deletar",

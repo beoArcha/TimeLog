@@ -136,7 +136,7 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
     const state = setupMockState();
     renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 
-    const deleteBtn = screen.getByTitle('Usuń podzadanie');
+    const deleteBtn = document.getElementById('delete-task-btn-subtask_1')!;
     fireEvent.click(deleteBtn);
 
     expect(state.onDeleteTask).toHaveBeenCalledWith('subtask_1');

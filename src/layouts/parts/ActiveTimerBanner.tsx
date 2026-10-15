@@ -6,6 +6,7 @@ import { translate } from '@common/i18n/translator';
 import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
 import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
 import { TimerDisplay } from '@/src/features/timelogs/components/TimerDisplay';
+import { Button } from '@components/ui/button';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -43,7 +44,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
 
           <div className={`flex items-center gap-section z-10 ${isCondensed ? 'w-full' : 'sm:w-auto w-full'}`}>
             <div className="relative">
-              <div className={`icon-medium shrink-0 rounded-xl flex items-center justify-center border shadow-md ${theme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB] text-orange-500' : 'bg-[#FCFAF8]/10 border-white/10 text-orange-500'
+              <div className={`icon-medium shrink-0 rounded-xl flex items-center justify-center border shadow-md ${theme === 'light' ? 'bg-card border-border text-orange-500' : 'bg-card/10 border-white/10 text-orange-500'
                 }`}>
                 <Clock className="w-3/5 h-3/5 animate-pulse text-orange-500" />
               </div>
@@ -63,22 +64,21 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
                     color={activeProject.color}
                     icon={activeProject.icon}
                     size="xs"
-                    textClassName={theme === 'light' ? 'text-[#2C2421]' : 'text-slate-200'}
+                    textClassName={theme === 'light' ? 'text-foreground' : 'text-slate-200'}
                   />
                 )}
               </div>
-              <h4 className={`font-sans font-extrabold text-title mt-0.5 leading-snug truncate ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
+              <h4 className={`font-sans font-extrabold text-title mt-0.5 leading-snug truncate ${theme === 'light' ? 'text-foreground' : 'text-white'
                 }`} title={activeTask?.name?.length && activeTask.name.length > 512 ? activeTask.name.slice(0, 512) + '...' : activeTask?.name}>
                 {activeTask?.name}
               </h4>
             </div>
           </div>
 
-          <div className={`flex items-center gap-section z-10 w-full ${isCondensed ? 'justify-between pt-2 border-t' : 'sm:w-auto justify-between sm:justify-end border-t sm:border-0 pt-2 sm:pt-0'} ${theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10'
+          <div className={`flex items-center gap-section z-10 w-full ${isCondensed ? 'justify-between pt-2 border-t' : 'sm:w-auto justify-between sm:justify-end border-t sm:border-0 pt-2 sm:pt-0'} ${theme === 'light' ? 'border-border' : 'border-white/10'
             }`}>
             <div className="text-right">
-              <p className={`text-[9px] font-semibold tracking-wider font-mono uppercase ${theme === 'light' ? 'text-[#5A4A42]' : 'text-[#9B8C83]'
-                }`}>
+              <p className={`text-[9px] font-semibold tracking-wider font-mono uppercase text-muted-foreground`}>
                 {translate(locale, 'timer', 'RegisteredToday', customTranslations)}
               </p>
               <TimerDisplay
@@ -89,38 +89,42 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
                 theme={theme}
               />
             </div>
-            <button
+            <Button
               id="stop-timer-btn"
+              variant="destructive"
+              size="icon"
               onClick={() => onStopTimer()}
-              className={`bg-rose-500 hover:bg-rose-600 text-white rounded-xl h-10 w-10 sm:h-11 sm:w-11 min-h-[40px] min-w-[40px] transition-all duration-300 flex items-center justify-center shadow-md transform active:scale-95 group cursor-pointer shrink-0`}
+              className="rounded-xl h-10 w-10 sm:h-11 sm:w-11 min-h-[40px] min-w-[40px] shadow-md transform active:scale-95 group cursor-pointer shrink-0"
+              title={translate(locale, 'timer', 'StopTimer', customTranslations)}
+              aria-label={translate(locale, 'timer', 'StopTimer', customTranslations)}
             >
-              <Square className={`w-4 h-4 text-white fill-white group-hover:scale-110 transition-transform`} />
-            </button>
+              <Square className="w-4 h-4 text-white fill-white group-hover:scale-110 transition-transform" />
+            </Button>
           </div>
         </motion.div>
       ) : (
         <div id="active-timer-idle-banner" className={`backdrop-blur-md rounded-main padding-section border flex flex-col ${isCondensed ? 'gap-section' : `md:flex-row items-center justify-between gap-section`} transition-all duration-300 ${theme === 'light'
-          ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-sm shadow-[#DFD7CB]/50'
-          : 'bg-[#FCFAF8]/5 border-white/10'
+          ? 'bg-card border-border shadow-xs'
+          : 'bg-card/5 border-white/10'
           }`}>
           <div className={`flex items-center gap-section`}>
-            <div className={`icon-medium border rounded-section flex items-center justify-center shrink-0 ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB]' : 'bg-[#FCFAF8]/5 border-white/10'
+            <div className={`icon-medium border rounded-section flex items-center justify-center shrink-0 ${theme === 'light' ? 'bg-muted/40 border-border' : 'bg-card/5 border-white/10'
               }`}>
               <Clock className="w-3/5 h-3/5 text-orange-400" />
             </div>
             <div>
-              <h4 className={`font-semibold text-title leading-tight ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'}`}>
+              <h4 className={`font-semibold text-title leading-tight ${theme === 'light' ? 'text-foreground' : 'text-white'}`}>
                 {translate(locale, 'timer', 'AllTrackersStopped', customTranslations)}
               </h4>
-              <p className={`text-xs mt-0.5 ${theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]'}`}>
+              <p className="text-xs mt-0.5 text-muted-foreground">
                 {translate(locale, 'timer', 'SelectTaskToPlay', customTranslations)}
               </p>
             </div>
           </div>
-          <div className={isCondensed ? 'w-full pt-2 border-t border-[#DFD7CB] dark:border-white/10 text-center' : 'text-right'}>
+          <div className={isCondensed ? 'w-full pt-2 border-t border-border dark:border-white/10 text-center' : 'text-right'}>
             <span className={`text-xs border px-2.5 py-1 rounded-full font-mono font-medium whitespace-nowrap inline-block ${theme === 'light'
-              ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#5A4A42]'
-              : 'bg-[#FCFAF8]/5 text-slate-300 border-white/10'
+              ? 'bg-muted/40 border-border text-foreground'
+              : 'bg-card/5 text-slate-300 border-white/10'
               }`}>
               {translate(locale, 'engine', 'IdleSqlReady', customTranslations)}
             </span>

@@ -108,6 +108,29 @@ function SelectLabel({
   );
 }
 
+export type NativeSelectProps = React.SelectHTMLAttributes<HTMLSelectElement>;
+
+const NativeSelect = React.forwardRef<HTMLSelectElement, NativeSelectProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <select
+        ref={ref}
+        data-slot="native-select"
+        className={cn(
+          "h-7 w-full rounded-lg border border-input bg-transparent px-2 py-0.5 text-xs shadow-xs transition-colors outline-none",
+          "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </select>
+    );
+  }
+);
+NativeSelect.displayName = "NativeSelect";
+
 export {
   Select,
   SelectGroup,
@@ -116,4 +139,5 @@ export {
   SelectContent,
   SelectItem,
   SelectLabel,
+  NativeSelect,
 };

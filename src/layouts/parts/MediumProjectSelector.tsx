@@ -5,6 +5,8 @@ import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
 import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
 import { MediumHeaderActions } from './MediumHeaderActions';
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
 import {
   Folder,
   Plus,
@@ -60,24 +62,19 @@ export default function MediumProjectSelector({
       <div
         className={`p-2.5 sm:p-3 rounded-2xl border flex items-center justify-between gap-2 transition-all ${
           theme === 'light'
-            ? 'bg-[#F4EFEA] border-[#DFD7CB] text-[#2C2421]'
+            ? 'bg-muted/40 border-border text-foreground'
             : theme === 'high-contrast'
               ? 'bg-black border-2 border-white text-white'
-              : 'bg-white/5 border-white/10 text-white'
+              : 'bg-card/5 border-border/10 text-white'
         }`}
       >
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-          className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer hover:opacity-85 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 rounded-xl p-1"
-          title={
-            translate(locale, 'project', 'ChangeProject', customTranslations) ||
-            'Change project'
-          }
-          aria-label={
-            translate(locale, 'project', 'SelectProject', customTranslations) ||
-            'Select project'
-          }
+          className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer hover:opacity-85 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 rounded-xl p-1 h-auto justify-start"
+          title={translate(locale, 'project', 'ChangeProject', customTranslations)}
+          aria-label={translate(locale, 'project', 'SelectProject', customTranslations)}
           aria-expanded={isProjectDropdownOpen}
           aria-haspopup="dialog"
         >
@@ -93,18 +90,17 @@ export default function MediumProjectSelector({
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-sm truncate block">
                 {selectedProject?.name ||
-                  translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations) ||
-                  'Select project'}
+                  translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations)}
               </span>
               <ChevronDown
                 aria-hidden="true"
                 className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-                  isProjectDropdownOpen ? 'rotate-180 text-orange-400' : 'text-slate-400'
+                  isProjectDropdownOpen ? 'rotate-180 text-orange-400' : 'text-muted-foreground'
                 }`}
               />
             </div>
             {selectedProject && (
-              <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400">
+              <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
                 <span className="flex items-center gap-1 text-orange-500 font-semibold">
                   <Clock className="w-3 h-3" aria-hidden="true" />
                   {formatSeconds(
@@ -114,12 +110,12 @@ export default function MediumProjectSelector({
                 <span>·</span>
                 <span>
                   {tasks.filter(t => t.projectId === selectedProject.id).length}{' '}
-                  {translate(locale, 'project', 'TotalTasks', customTranslations) || 'tasks'}
+                  {translate(locale, 'project', 'TotalTasks', customTranslations)}
                 </span>
               </div>
             )}
           </div>
-        </button>
+        </Button>
 
         <MediumHeaderActions
           theme={theme}
@@ -138,56 +134,62 @@ export default function MediumProjectSelector({
         <div
           className={`absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${
             theme === 'light'
-              ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#2C2421]'
+              ? 'bg-card border-border text-foreground'
               : theme === 'high-contrast'
                 ? 'bg-black border-2 border-white text-white'
-                : 'bg-slate-900 border-white/20 text-white backdrop-blur-2xl'
+                : 'bg-card border-border/20 text-white backdrop-blur-2xl'
           }`}
         >
           <div className="p-3 border-b border-inherit flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Folder className="w-4 h-4 text-orange-400" />
               <span className="font-bold text-xs uppercase tracking-wider">
-                {translate(locale, 'project', 'ProjectsLabel', customTranslations) || 'Projekty'} (
+                {translate(locale, 'project', 'ProjectsLabel', customTranslations)} (
                 {projects.length})
               </span>
             </div>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-xs"
               onClick={() => {
                 setIsProjectDropdownOpen(false);
                 setIsAddingProject(false);
               }}
-              className="p-1 rounded-lg hover:opacity-70 cursor-pointer"
-              aria-label="Zamknij"
+              className="p-1 rounded-lg hover:opacity-70 cursor-pointer text-muted-foreground"
+              aria-label={translate(locale, 'common', 'Close', customTranslations)}
             >
-              <X className="w-4 h-4 text-slate-400" />
-            </button>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
 
           {isAddingProject ? (
             <form onSubmit={handleCreateProject} className="p-3 border-b border-inherit bg-orange-500/5">
-              <p className="text-xs font-semibold mb-2 text-orange-500">Dodaj nowy projekt</p>
-              <input
+              <p className="text-xs font-semibold mb-2 text-orange-500">
+                {translate(locale, 'project', 'NewProject', customTranslations)}
+              </p>
+              <Input
                 type="text"
                 value={newProjectName}
                 onChange={e => setNewProjectName(e.target.value)}
-                placeholder="Nazwa projektu..."
+                placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
                 autoFocus
                 required
-                className={`w-full px-3 py-2 text-xs rounded-xl border mb-2 focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                className={`w-full mb-2 ${
                   theme === 'light'
-                    ? 'bg-white border-[#DFD7CB] text-[#2C2421]'
+                    ? 'bg-background border-border text-foreground'
                     : 'bg-black/50 border-white/20 text-white'
                 }`}
               />
               <div className="flex items-center gap-1.5 mb-3 flex-wrap">
                 {PROJECT_COLORS.map(c => (
-                  <button
+                  <Button
                     key={c.name}
                     type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => setNewProjectColor(c.name)}
-                    className={`w-5 h-5 rounded-full transition-transform cursor-pointer ${
+                    className={`w-5 h-5 rounded-full transition-transform cursor-pointer p-0 ${
                       newProjectColor === c.name
                         ? 'scale-125 ring-2 ring-orange-400'
                         : 'opacity-70 hover:opacity-100'
@@ -198,32 +200,35 @@ export default function MediumProjectSelector({
                 ))}
               </div>
               <div className="flex items-center justify-end gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setIsAddingProject(false)}
-                  className="px-3 py-1.5 text-xs rounded-lg hover:opacity-70 cursor-pointer"
                 >
-                  Anuluj
-                </button>
-                <button
+                  {translate(locale, 'common', 'Cancel', customTranslations)}
+                </Button>
+                <Button
                   type="submit"
+                  variant="accent"
+                  size="sm"
                   disabled={!newProjectName.trim()}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-orange-500 hover:bg-orange-600 text-white cursor-pointer disabled:opacity-50"
                 >
-                  Utwórz
-                </button>
+                  {translate(locale, 'common', 'Save', customTranslations)}
+                </Button>
               </div>
             </form>
           ) : (
             <div className="p-2 border-b border-inherit">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => setIsAddingProject(true)}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 transition-colors cursor-pointer h-auto"
               >
                 <Plus className="w-4 h-4" />
-                <span>Nowy projekt</span>
-              </button>
+                <span>{translate(locale, 'project', 'NewProject', customTranslations)}</span>
+              </Button>
             </div>
           )}
 
@@ -233,17 +238,18 @@ export default function MediumProjectSelector({
               const dur = state.metrics?.projects?.[p.id]?.totalElapsedSeconds ?? 0;
               const pTasks = tasks.filter(t => t.projectId === p.id);
               return (
-                <button
+                <Button
                   key={p.id}
                   type="button"
+                  variant="ghost"
                   onClick={() => {
                     setSelectedProjectId?.(p.id);
                     setIsProjectDropdownOpen(false);
                   }}
-                  className={`w-full p-2.5 rounded-xl flex items-center justify-between gap-2 text-left cursor-pointer transition-colors ${
+                  className={`w-full p-2.5 rounded-xl flex items-center justify-between gap-2 text-left cursor-pointer transition-colors h-auto ${
                     isSelected
                       ? 'bg-orange-500/15 text-orange-600 dark:text-orange-300 font-bold'
-                      : 'hover:bg-slate-500/10'
+                      : 'hover:bg-muted/50 text-foreground'
                   }`}
                 >
                   <ProjectBadge
@@ -253,12 +259,12 @@ export default function MediumProjectSelector({
                     size="sm"
                     className="flex-1"
                   />
-                  <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-slate-400">
+                  <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-muted-foreground">
                     <span>{formatSeconds(dur)}</span>
                     <span className="text-[10px]">({pTasks.length})</span>
                     {isSelected && <Check className="w-3.5 h-3.5 text-orange-500 ml-1 shrink-0" />}
                   </div>
-                </button>
+                </Button>
               );
             })}
           </div>

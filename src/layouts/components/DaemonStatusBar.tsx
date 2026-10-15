@@ -6,13 +6,13 @@ import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
+import { Button } from '@components/ui/button';
 
 export default function DaemonStatusBar() {
   const { locale, customTranslations } = useLocale();
   const { resolvedTheme } = useSettings();
   const { logs, engineState } = useData();
   const { handleMinimizeToTray } = useWindowShell();
-
 
   const activeRunningLogs = logs.filter(l => l.endTime === null);
 
@@ -27,7 +27,7 @@ export default function DaemonStatusBar() {
         <RefreshCw className="w-5 h-5 text-orange-400 animate-spin" />
         <div className="flex-1 text-left">
           <strong className="text-white">{translate(locale, 'engine', 'Searching', customTranslations)}</strong>
-          <p className="text-[10px] text-[#9B8C83] mt-0.5">{translate(locale, 'engine', 'Connecting', customTranslations)}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">{translate(locale, 'engine', 'Connecting', customTranslations)}</p>
         </div>
       </motion.div>
     );
@@ -53,19 +53,21 @@ export default function DaemonStatusBar() {
         </p>
       </div>
       {handleMinimizeToTray && (
-        <button
+        <Button
           id="minimize-tray-shortcut"
+          variant="outline"
+          size="xs"
           onClick={handleMinimizeToTray}
-          className={`text-[10px] border px-2.5 py-1 rounded-lg flex items-center shrink-0 justify-center gap-1.5 transition-all cursor-pointer font-mono font-semibold ${
+          className={`text-[10px] flex items-center shrink-0 justify-center gap-1.5 transition-all cursor-pointer font-mono font-semibold ${
             resolvedTheme === 'light'
-              ? 'bg-[#FCFAF8] hover:bg-slate-100 text-slate-700 hover:text-[#2C2421] border-[#DFD7CB]'
-              : 'bg-[#FCFAF8]/5 hover:bg-[#FCFAF8]/10 text-slate-300 hover:text-white border-white/10'
+              ? 'bg-card hover:bg-muted text-foreground border-border'
+              : 'bg-card/5 hover:bg-card/10 text-slate-300 hover:text-white border-white/10'
           }`}
           title={translate(locale, 'engine', 'MinimizeToTray', customTranslations)}
         >
           <Minimize2 className="w-3 h-3 text-orange-400" />
           <span className="hidden sm:inline">{translate(locale, 'engine', 'MinimizeToTray', customTranslations)}</span>
-        </button>
+        </Button>
       )}
     </motion.div>
   );

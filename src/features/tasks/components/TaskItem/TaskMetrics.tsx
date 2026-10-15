@@ -2,6 +2,7 @@ import { Task } from '@bindings/Task';
 import { Plus, Play, Square } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { Button } from '@components/ui/button';
 
 interface TaskMetricsProps {
   rootTask: Task;
@@ -32,7 +33,7 @@ export function TaskMetrics({
   return (
     <div
       className={`flex items-center gap-3 ${isCondensed
-        ? `w-full justify-between pt-3 border-t ${theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10'
+        ? `w-full justify-between pt-3 border-t ${theme === 'light' ? 'border-border' : 'border-white/10'
         }`
         : ''
         }`}
@@ -41,8 +42,8 @@ export function TaskMetrics({
         className={`text-xs font-mono font-extrabold px-3 py-1.5 rounded-full border transition-all ${isAnyRunning
           ? 'bg-orange-500/20 border-orange-500/30 text-orange-600 dark:text-orange-300 shadow-md scale-105 animate-pulse'
           : theme === 'light'
-            ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#5A4A42]'
-            : 'bg-[#FCFAF8]/5 border-white/10 text-slate-200'
+            ? 'bg-muted border-border text-foreground'
+            : 'bg-card/5 border-white/10 text-slate-200'
           }`}
       >
         {tTask('CounterLabel')}: {formatSeconds(rootDuration)}
@@ -50,39 +51,45 @@ export function TaskMetrics({
 
       <div className="flex items-center gap-2 shrink-0">
         {isCurrentRunning ? (
-          <button
+          <Button
             id={`stop-btn-${rootTask.id}`}
+            variant="destructive"
+            size="icon-xs"
             onClick={() => onStartTimer(rootTask.id)}
-            className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer"
+            className="rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer"
             title={tTimer('StopMeasurement')}
             aria-label={tTimer('StopMeasurement')}
           >
             <Square className="w-3.5 h-3.5 fill-white" />
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             id={`start-btn-${rootTask.id}`}
+            variant="ghost"
+            size="icon-xs"
             onClick={() => !rootTask.completed && onStartTimer(rootTask.id)}
             disabled={rootTask.completed}
             className={`rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer ${rootTask.completed
-              ? 'bg-[#FCFAF8]/5 text-[#9B8C83] border border-transparent cursor-not-allowed opacity-50'
+              ? 'bg-card/5 text-muted-foreground border border-transparent cursor-not-allowed opacity-50'
               : 'bg-teal-500 hover:bg-teal-600 text-white shadow-lg'
               }`}
             title={tTimer('StartMeasurement')}
             aria-label={tTimer('StartMeasurement')}
           >
             <Play className="w-3.5 h-3.5 fill-white text-white" />
-          </button>
+          </Button>
         )}
 
-        <button
+        <Button
           id={`show-subtask-form-btn-${rootTask.id}`}
+          variant="outline"
+          size="xs"
           onClick={() =>
             setShowSubtaskFormForId(showSubtaskFormForId === rootTask.id ? null : rootTask.id)
           }
-          className={`rounded-xl px-2.5 py-2 text-[11px] font-semibold flex items-center gap-1 transition-all border cursor-pointer shrink-0 ${theme === 'light'
-            ? 'bg-[#EAE4DB] hover:bg-[#DFD7CB] text-[#5A4A42] border-[#DFD7CB]'
-            : 'bg-[#FCFAF8]/5 hover:bg-[#FCFAF8]/15 text-slate-200 hover:text-white border-white/10'
+          className={`rounded-xl px-2.5 py-2 h-auto text-[11px] font-semibold flex items-center gap-1 transition-all border cursor-pointer shrink-0 ${theme === 'light'
+            ? 'bg-muted hover:bg-muted/80 text-foreground border-border'
+            : 'bg-card/5 hover:bg-card/15 text-slate-200 hover:text-white border-white/10'
             }`}
           title={tTask('AddSubtask')}
           aria-label={tTask('AddSubtask')}
@@ -91,7 +98,7 @@ export function TaskMetrics({
           <span className={isCondensed ? 'hidden xs:inline' : ''}>
             {tTask('SubtaskLabel')}
           </span>
-        </button>
+        </Button>
       </div>
     </div>
   );

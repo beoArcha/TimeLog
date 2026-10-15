@@ -3,6 +3,9 @@ import { translate } from '@common/i18n/translator';
 import { LayoutVariant } from '@bindings/LayoutVariant';
 import versionsData from '@app/versions.json';
 import { Locale } from '@bindings/Locale';
+import { Button } from '@components/ui/button';
+import { Checkbox } from '@components/ui/checkbox';
+import { Label } from '@components/ui/label';
 
 interface CompactLayoutHeaderProps {
   locale: Locale;
@@ -30,9 +33,9 @@ export function CompactLayoutHeader({
       : translate(locale, 'timer', 'AlwaysOnTopOff', customTranslations);
 
   const restoreTitle =
-    locale === 'pl' ? 'Przywróć większy rozmiar' : 'Restore larger size';
+    translate(locale, 'app', 'MaximizeRestore', customTranslations);
   const trayTitle =
-    locale === 'pl' ? 'Zamknij / Ukryj do Tray' : 'Close / Hide to Tray';
+    translate(locale, 'app', 'CloseToTray', customTranslations);
 
   return (
     <div className="flex items-center justify-between border-b pb-2 border-white/10 select-none">
@@ -46,36 +49,44 @@ export function CompactLayoutHeader({
       </div>
 
       <div className="flex items-center gap-1.5">
-        <label className="flex items-center gap-0.5 font-mono text-[10px] mr-1 text-slate-400 hover:text-orange-400 cursor-pointer select-none">
-          <input
-            type="checkbox"
+        <Label className="flex items-center gap-1 font-mono text-[10px] mr-1 text-slate-400 hover:text-orange-400 cursor-pointer select-none">
+          <Checkbox
             checked={alwaysOnTopSmall}
-            onChange={(e) => {
-              setAlwaysOnTopSmall(e.target.checked);
-              showToast(onTopToastMessage(e.target.checked));
+            onCheckedChange={(checked) => {
+              const isChecked = Boolean(checked);
+              setAlwaysOnTopSmall(isChecked);
+              showToast(onTopToastMessage(isChecked));
             }}
-            className="w-3 h-3 rounded select-none accent-orange-500 cursor-pointer"
+            className="w-3.5 h-3.5 rounded select-none border-slate-500 data-checked:bg-orange-500 data-checked:border-orange-500"
           />
           <span>Top</span>
-        </label>
+        </Label>
 
-        <button
+        <Button
+          id="compact-restore-btn"
+          data-testid="compact-restore-btn"
+          variant="ghost"
+          size="icon-xs"
           onClick={onRestoreWindow}
-          className="p-1 rounded hover:bg-white/10 hover:text-orange-400 text-slate-400 cursor-pointer transition-colors flex items-center justify-center"
+          className="p-1 rounded hover:bg-white/10 hover:text-orange-400 text-slate-400 cursor-pointer transition-colors"
           title={restoreTitle}
           aria-label={restoreTitle}
         >
           <Maximize2 className="w-3.5 h-3.5" />
-        </button>
+        </Button>
 
-        <button
+        <Button
+          id="compact-close-btn"
+          data-testid="compact-close-btn"
+          variant="ghost"
+          size="icon-xs"
           onClick={onMinimizeToTray}
-          className="p-1 rounded hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 cursor-pointer transition-colors flex items-center justify-center"
+          className="p-1 rounded hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 cursor-pointer transition-colors"
           title={trayTitle}
           aria-label={trayTitle}
         >
           <X className="w-3.5 h-3.5" />
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -78,7 +78,7 @@ export const WindowShellProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } else if (selectedTaskId) {
       handleStartTimer(selectedTaskId);
     } else {
-      tauriWindow.showToast(translate(locale, 'timer', 'SelectTaskToPlay', customTranslations) || 'Zaznacz zadanie aby rozpocząć/zatrzymać timer');
+      tauriWindow.showToast(translate(locale, 'timer', 'SelectTaskToPlay', customTranslations));
     }
   };
 

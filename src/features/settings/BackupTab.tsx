@@ -3,6 +3,12 @@ import { UploadCloud, DownloadCloud, CheckCircle, Database } from 'lucide-react'
 import { translate } from '@common/i18n/translator';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
+import { Checkbox } from '@components/ui/checkbox';
+import { Label } from '@components/ui/label';
+import { NativeSelect } from '@components/ui/select';
+import { Textarea } from '@components/ui/textarea';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
@@ -11,7 +17,7 @@ export default function BackupTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { locale, customTranslations } = useLocale();
   const { resolvedTheme, logToApi, setLogToApi, apiToken, setApiToken, apiUrl, setApiUrl, apiMethod, setApiMethod, apiHeaders, setApiHeaders } = useSettings();
-  const { projects, setProjects, tasks, setTasks, logs, setLogs, holidays, setHolidays, patches, setPatches, handleRestoreState } = useData();;
+  const { projects, setProjects, tasks, setTasks, logs, setLogs, holidays, setHolidays, patches, setPatches, handleRestoreState } = useData();
 
   const handleExportDatabase = () => {
     const data = { projects, tasks, logs, holidays, patches };
@@ -89,24 +95,24 @@ export default function BackupTab() {
           {translate(locale, 'settings', 'BackupDesc', customTranslations)}
         </p>
         <div className="flex gap-4 mt-2">
-          <button
+          <Button
             onClick={handleExportDatabase}
             data-testid="export-backup-btn"
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2 h-auto"
           >
             <UploadCloud className="w-4 h-4" />
             {translate(locale, 'settings', 'BackupJson', customTranslations)}
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={() => fileInputRef.current?.click()}
             data-testid="import-backup-btn"
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2 h-auto"
           >
             <DownloadCloud className="w-4 h-4" />
             {translate(locale, 'settings', 'RestoreImportJson', customTranslations)}
-          </button>
-          <input
+          </Button>
+          <Input
             type="file"
             accept=".json"
             ref={fileInputRef}
@@ -128,67 +134,65 @@ export default function BackupTab() {
           {translate(locale, 'settings', 'WebhookDesc', customTranslations)}
         </p>
 
-        <label className="flex items-center gap-2 cursor-pointer w-fit mt-2">
-          <input
-            type="checkbox"
+        <Label className="flex items-center gap-2 cursor-pointer w-fit mt-2 font-normal">
+          <Checkbox
             checked={logToApi}
-            onChange={(e) => setLogToApi(e.target.checked)}
-            className="w-4 h-4 accent-amber-500"
+            onCheckedChange={(checked) => setLogToApi(!!checked)}
             data-testid="api-push-toggle"
           />
           <span className={`text-xs font-semibold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
             {translate(locale, 'settings', 'SendLogsToApi', customTranslations)}
           </span>
-        </label>
+        </Label>
 
         {logToApi && (
           <div className="flex flex-col gap-3 mt-4 pl-6 border-l-2 border-indigo-500/20">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiAddress', customTranslations)}</label>
-              <input
+              <Label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiAddress', customTranslations)}</Label>
+              <Input
                 type="text"
                 value={apiUrl}
                 onChange={(e) => setApiUrl(e.target.value)}
                 data-testid="api-url-input"
                 placeholder="https://moj-serwer.pl/api/oxyflow-logs"
-                className={`flex-1 rounded-xl text-xs p-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono transition-all ${resolvedTheme === 'light' ? 'bg-white border border-[#DFD7CB] text-[#2C2421]' : 'bg-slate-900 border border-white/10 text-white shadow-inner'
+                className={`flex-1 rounded-xl text-xs p-3 font-mono transition-all ${resolvedTheme === 'light' ? 'bg-white border-border text-foreground' : 'bg-slate-900 border-white/10 text-white shadow-inner'
                   }`}
               />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'BearerAuthTitle', customTranslations)}</label>
-              <input
+              <Label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'BearerAuthTitle', customTranslations)}</Label>
+              <Input
                 type="password"
                 value={apiToken}
                 onChange={(e) => setApiToken(e.target.value)}
                 data-testid="api-token-input"
                 placeholder="eyJh..."
-                className={`flex-1 rounded-xl text-xs p-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono transition-all ${resolvedTheme === 'light' ? 'bg-white border border-[#DFD7CB] text-[#2C2421]' : 'bg-slate-900 border border-white/10 text-white shadow-inner'
+                className={`flex-1 rounded-xl text-xs p-3 font-mono transition-all ${resolvedTheme === 'light' ? 'bg-white border-border text-foreground' : 'bg-slate-900 border-white/10 text-white shadow-inner'
                   }`}
               />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiMethod', customTranslations)}</label>
-              <select
+              <Label className={`text-xs w-20 font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiMethod', customTranslations)}</Label>
+              <NativeSelect
                 value={apiMethod}
                 onChange={(e) => setApiMethod(e.target.value as 'POST' | 'PUT')}
-                className={`flex-1 rounded-xl text-xs p-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono transition-all ${resolvedTheme === 'light' ? 'bg-white border border-[#DFD7CB] text-[#2C2421]' : 'bg-slate-900 border border-white/10 text-white shadow-inner'
+                className={`flex-1 rounded-xl text-xs p-3 font-mono transition-all ${resolvedTheme === 'light' ? 'bg-white border-border text-foreground' : 'bg-slate-900 border-white/10 text-white shadow-inner'
                   }`}
               >
                 <option value="POST">POST</option>
                 <option value="PUT">PUT</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="flex flex-col gap-1.5 mt-2">
-              <label className={`text-xs font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiHeaders', customTranslations)}</label>
+              <Label className={`text-xs font-mono font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'settings', 'ApiHeaders', customTranslations)}</Label>
               <p className="text-[10px] text-slate-400">{translate(locale, 'settings', 'ApiHeadersDesc', customTranslations)}</p>
-              <textarea
+              <Textarea
                 value={apiHeaders}
                 onChange={(e) => setApiHeaders(e.target.value)}
                 placeholder='{"Authorization": "Bearer token", "X-Custom": "value"}'
                 rows={4}
-                className={`w-full rounded-xl text-xs p-3 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono transition-all ${resolvedTheme === 'light' ? 'bg-white border border-[#DFD7CB] text-[#2C2421]' : 'bg-slate-900 border border-white/10 text-white shadow-inner'
+                className={`w-full rounded-xl text-xs p-3 font-mono transition-all ${resolvedTheme === 'light' ? 'bg-white border-border text-foreground' : 'bg-slate-900 border-white/10 text-white shadow-inner'
                   }`}
               />
             </div>

@@ -5,6 +5,7 @@ import { Play, Square } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { SubtaskRow } from './SubtaskRow';
 import { Locale } from '@/src/bindings/Locale';
+import { Button } from '@components/ui/button';
 
 interface TaskCardProps {
   key?: React.Key;
@@ -64,12 +65,14 @@ export function TaskCard({
           {task.name}
         </span>
 
-        <button
+        <Button
+          variant="ghost"
+          size="icon-xs"
           data-testid={`compact-timer-btn-${task.id}`}
           onClick={handleTimerClick}
           className={`p-1.5 rounded-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer ${isRootActive
             ? 'bg-rose-500/20 text-rose-500 border border-rose-500/30'
-            : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/30'
+            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
             }`}
           title={timerTitle}
           aria-label={timerTitle}
@@ -79,7 +82,7 @@ export function TaskCard({
           ) : (
             <Play className="w-3.5 h-3.5 fill-emerald-500" />
           )}
-        </button>
+        </Button>
       </div>
 
       {subtasks.length > 0 && (

@@ -4,6 +4,7 @@ import { translate } from '@common/i18n/translator';
 import { LocaleContext } from '@common/hooks/LocaleProvider';
 import { Locale } from '@bindings/Locale';
 import { TranslationDictionary } from '@common/i18n/types';
+import { Button } from '@components/ui/button';
 
 export interface MediumHeaderActionsProps {
   theme?: string;
@@ -27,21 +28,18 @@ export const MediumHeaderActions: React.FC<MediumHeaderActionsProps> = ({
   const activeCustomTranslations = propCustomTranslations ?? context?.customTranslations;
 
   const newProjectLabel =
-    translate(activeLocale, 'project', 'NewProject', activeCustomTranslations) || 'New Project';
+    translate(activeLocale, 'project', 'NewProject', activeCustomTranslations);
 
   const dockSwitchTitle =
     dockPosition === 'right'
-      ? translate(activeLocale, 'app', 'DockSwitchToLeft', activeCustomTranslations) ||
-        'Switch dock to the left side'
-      : translate(activeLocale, 'app', 'DockSwitchToRight', activeCustomTranslations) ||
-        'Switch dock to the right side';
+      ? translate(activeLocale, 'app', 'DockSwitchToLeft', activeCustomTranslations)
+      : translate(activeLocale, 'app', 'DockSwitchToRight', activeCustomTranslations);
 
   const dockAriaLabel =
-    translate(activeLocale, 'app', 'DockSwitchPosition', activeCustomTranslations) ||
-    'Switch dock side';
+    translate(activeLocale, 'app', 'DockSwitchPosition', activeCustomTranslations);
 
   const toolbarLabel =
-    translate(activeLocale, 'common', 'Actions', activeCustomTranslations) || 'Actions';
+    translate(activeLocale, 'common', 'Actions', activeCustomTranslations);
 
   return (
     <div
@@ -49,27 +47,31 @@ export const MediumHeaderActions: React.FC<MediumHeaderActionsProps> = ({
       aria-label={toolbarLabel}
       className="flex items-center gap-1.5 shrink-0"
     >
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="icon"
         onClick={onOpenCreateProject}
-        className={`p-2 rounded-xl border transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 ${
+        className={`rounded-xl transition-all cursor-pointer ${
           theme === 'light'
-            ? 'bg-white border-[#DFD7CB] text-orange-600 hover:bg-orange-50'
+            ? 'bg-background border-border text-orange-600 hover:bg-orange-50'
             : 'bg-white/10 border-white/10 text-orange-400 hover:bg-white/20'
         }`}
         title={newProjectLabel}
         aria-label={newProjectLabel}
       >
         <Plus className="w-4 h-4" aria-hidden="true" />
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="icon"
         onClick={onToggleDock}
         aria-pressed={dockPosition === 'left'}
-        className={`hidden lg:flex p-2 rounded-xl border transition-all cursor-pointer items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 ${
+        className={`hidden lg:flex rounded-xl transition-all cursor-pointer items-center justify-center ${
           theme === 'light'
-            ? 'bg-white border-[#DFD7CB] text-slate-700 hover:bg-slate-100'
+            ? 'bg-background border-border text-foreground hover:bg-muted'
             : 'bg-white/10 border-white/10 text-slate-300 hover:bg-white/20'
         }`}
         title={dockSwitchTitle}
@@ -80,7 +82,7 @@ export const MediumHeaderActions: React.FC<MediumHeaderActionsProps> = ({
         ) : (
           <PanelRight className="w-4 h-4" aria-hidden="true" />
         )}
-      </button>
+      </Button>
     </div>
   );
 };

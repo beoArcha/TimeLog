@@ -1,14 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, X } from 'lucide-react';
-import { useSettings } from '@common/hooks/SettingsContext';
+import { Button } from '@components/ui/button';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 
 /**
  * System notification banner for displaying tray and engine state alerts.
  */
 export default function SystemNotification() {
-  const { resolvedTheme } = useSettings();
   const { trayNotification, setTrayNotification } = useWindowShell();
 
   return (
@@ -19,13 +18,7 @@ export default function SystemNotification() {
           initial={{ opacity: 0, y: -50, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.95 }}
-          className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] max-w-md w-full border-2 p-4 rounded-2xl shadow-2xl flex items-start gap-3.5 ${
-            resolvedTheme === 'light'
-              ? 'bg-[#FCFAF8]/95 backdrop-blur-xl border-orange-500/50 text-[#2C2421]'
-              : resolvedTheme === 'high-contrast'
-              ? 'bg-black border-white text-white'
-              : 'bg-slate-900/90 backdrop-blur-2xl border-orange-500/40 text-white'
-          }`}
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] max-w-md w-full border-2 p-4 rounded-2xl shadow-2xl flex items-start gap-3.5 bg-card/95 backdrop-blur-xl border-orange-500/50 text-card-foreground"
         >
           <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center text-orange-500 shrink-0 border border-orange-500/30 animate-pulse">
             <Bell className="w-5 h-5 text-orange-400" />
@@ -35,22 +28,17 @@ export default function SystemNotification() {
               <span className="text-xs font-mono font-bold tracking-wider text-orange-500 uppercase">
                 System Notification Tray
               </span>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setTrayNotification(null)}
-                className={`text-xs ${
-                  resolvedTheme === 'light'
-                    ? 'text-[#8A7A71] hover:text-slate-950'
-                    : 'text-[#9B8C83] hover:text-white'
-                }`}
+                className="size-6 p-0 text-muted-foreground hover:text-foreground"
+                aria-label="Close notification"
               >
                 <X className="w-4 h-4 cursor-pointer" />
-              </button>
+              </Button>
             </div>
-            <p
-              className={`text-xs font-sans mt-1 leading-relaxed ${
-                resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-200'
-              }`}
-            >
+            <p className="text-xs font-sans mt-1 leading-relaxed text-muted-foreground">
               {trayNotification}
             </p>
           </div>

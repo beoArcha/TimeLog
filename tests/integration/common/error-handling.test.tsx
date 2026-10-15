@@ -108,7 +108,7 @@ describe('Integration Tests: Error Handling and Notifications', () => {
       expect(mockState.setTrayNotification).toHaveBeenCalledWith(null);
     });
 
-    it('Given light theme, When SystemNotification is rendered, Then it applies light theme color classes', () => {
+    it('Given light theme, When SystemNotification is rendered, Then it applies semantic design tokens', () => {
       const mockState = getMockOxyFlowState();
       mockState.trayNotification = 'Alert message';
       mockState.setTrayNotification = vi.fn();
@@ -122,11 +122,11 @@ describe('Integration Tests: Error Handling and Notifications', () => {
 
       const notificationDiv = screen.getByText('Alert message').closest('#tray-toast-notification');
       expect(notificationDiv).not.toBeNull();
-      expect(notificationDiv?.className).toContain('bg-[#FCFAF8]/95');
-      expect(notificationDiv?.className).toContain('text-[#2C2421]');
+      expect(notificationDiv?.className).toContain('bg-card/95');
+      expect(notificationDiv?.className).toContain('text-card-foreground');
     });
 
-    it('Given high-contrast theme, When SystemNotification is rendered, Then it applies high-contrast color classes', () => {
+    it('Given high-contrast theme, When SystemNotification is rendered, Then it preserves notification container structure', () => {
       const mockState = getMockOxyFlowState();
       mockState.trayNotification = 'Alert message';
       mockState.setTrayNotification = vi.fn();
@@ -140,8 +140,8 @@ describe('Integration Tests: Error Handling and Notifications', () => {
 
       const notificationDiv = screen.getByText('Alert message').closest('#tray-toast-notification');
       expect(notificationDiv).not.toBeNull();
-      expect(notificationDiv?.className).toContain('bg-black');
-      expect(notificationDiv?.className).toContain('border-white');
+      expect(notificationDiv?.className).toContain('bg-card/95');
+      expect(notificationDiv?.className).toContain('text-card-foreground');
     });
   });
 });

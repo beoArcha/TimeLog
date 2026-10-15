@@ -5,6 +5,7 @@ import { ThemePreference } from '@common/types/ThemeTypes';
 import { AppKey } from '@common/i18n/keys';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
+import { Button } from '@components/ui/button';
 
 interface ThemeOption {
   id: ThemePreference;
@@ -25,30 +26,32 @@ export const ThemeSelector: React.FC = () => {
 
   return (
     <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
-      resolvedTheme === 'light' ? 'bg-[#EAE4DB] border-[#DFD7CB]' : 'bg-slate-950/40 border-white/10'
+      resolvedTheme === 'light' ? 'bg-muted/40 border-border' : 'bg-slate-950/40 border-white/10'
     }`}>
       {THEME_OPTIONS.map(th => {
         const isActive = theme === th.id;
         const labelText = translate(locale, 'app', th.labelKey, customTranslations);
         return (
-          <button
+          <Button
             key={th.id}
+            variant="ghost"
+            size="xs"
             onClick={() => setTheme(th.id)}
             title={labelText}
             aria-label={labelText}
-            className={`p-1 sm:px-2 sm:py-0.5 flex items-center gap-1.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+            className={`p-1 sm:px-2 sm:py-0.5 h-auto flex items-center gap-1.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
               isActive
                 ? resolvedTheme === 'light'
-                  ? 'bg-[#FCFAF8] text-orange-600 border border-[#DFD7CB] shadow-sm font-bold'
-                  : 'bg-[#FCFAF8]/10 text-white border border-white/10 font-bold'
+                  ? 'bg-card text-orange-600 border border-border shadow-xs font-bold'
+                  : 'bg-card/10 text-white border border-white/10 font-bold'
                 : resolvedTheme === 'light'
-                  ? 'text-[#8A7A71] hover:text-[#2C2421]'
-                  : 'text-[#9B8C83] hover:text-white'
+                  ? 'text-muted-foreground hover:text-foreground'
+                  : 'text-muted-foreground hover:text-white'
             }`}
           >
             <th.icon className="w-3 h-3" />
             {layoutVariant === 'full' && <span className="hidden xl:inline">{labelText}</span>}
-          </button>
+          </Button>
         );
       })}
     </div>
