@@ -4,11 +4,11 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import SettingsTab from '@features/settings/SettingsTab';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: SettingsTab', () => {
   const setSysSettingsMock = vi.fn();
-  const mockState: any = {
+  const mockState: OxyFlowState = {
     ...getMockOxyFlowState(),
     locale: 'en',
     customTranslations: {},

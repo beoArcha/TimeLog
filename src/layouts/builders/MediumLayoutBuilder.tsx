@@ -40,7 +40,9 @@ export default function MediumLayoutBuilder({
       setInternalDockPos(next);
       try {
         localStorage.setItem('oxy_medium_dock_pos', next);
-      } catch {}
+      } catch (_err) {
+        // Storage access may fail in quota-restricted or sandboxed environments
+      }
     }
   };
 

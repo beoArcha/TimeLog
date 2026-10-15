@@ -2,31 +2,18 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useTasksManager } from '@common/hooks/data/useTasksManager';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { createMockRepositoryState, createMockActionRunner } from './test-doubles';
 
 describe('Unit Tests: useTasksManager Hook', () => {
   const router = PersistenceRouter.getInstance();
 
-  const mockRepositoryState = {
-    projects: [],
-    setProjectsState: vi.fn(),
+  const mockRepositoryState = createMockRepositoryState({
     tasks: [
-      { id: 't1', projectId: 'p1', parentTaskId: null, name: 'Task 1', createdAt: '2026-01-01', completed: false },
+      { id: 't1', projectId: 'p1', parentTaskId: null, name: 'Task 1', createdAt: '2026-01-01', completed: false, status: null },
     ],
-    setTasksState: vi.fn(),
-    logs: [],
-    setLogsState: vi.fn(),
-    activeLog: null,
-    setActiveLogState: vi.fn(),
-    syncRepositoryState: vi.fn(),
-  };
+  });
 
-  const mockActionRunner = {
-    isLoading: false,
-    setIsLoading: vi.fn(),
-    repositoryError: null,
-    setRepositoryError: vi.fn(),
-    runAction: vi.fn(async (_msg: string, fn: () => Promise<any>) => fn()),
-  };
+  const mockActionRunner = createMockActionRunner();
 
   const refreshComputedMetrics = vi.fn().mockResolvedValue(null);
 
@@ -37,7 +24,7 @@ describe('Unit Tests: useTasksManager Hook', () => {
   it('should add task and update tasks state', async () => {
     const updatedTasks = [
       ...mockRepositoryState.tasks,
-      { id: 't2', projectId: 'p1', parentTaskId: null, name: 'Task 2', createdAt: '2026-01-02', completed: false },
+      { id: 't2', projectId: 'p1', parentTaskId: null, name: 'Task 2', createdAt: '2026-01-02', completed: false, status: null },
     ];
     vi.spyOn(router.tasks, 'add').mockResolvedValue({
       projects: [],
@@ -48,8 +35,8 @@ describe('Unit Tests: useTasksManager Hook', () => {
 
     const { result } = renderHook(() =>
       useTasksManager({
-        repositoryState: mockRepositoryState as any,
-        actionRunner: mockActionRunner as any,
+        repositoryState: mockRepositoryState,
+        actionRunner: mockActionRunner,
         refreshComputedMetrics,
       })
     );
@@ -75,8 +62,8 @@ describe('Unit Tests: useTasksManager Hook', () => {
 
     const { result } = renderHook(() =>
       useTasksManager({
-        repositoryState: mockRepositoryState as any,
-        actionRunner: mockActionRunner as any,
+        repositoryState: mockRepositoryState,
+        actionRunner: mockActionRunner,
         refreshComputedMetrics,
       })
     );
@@ -94,8 +81,8 @@ describe('Unit Tests: useTasksManager Hook', () => {
   it('should allow setting selectedTaskId', () => {
     const { result } = renderHook(() =>
       useTasksManager({
-        repositoryState: mockRepositoryState as any,
-        actionRunner: mockActionRunner as any,
+        repositoryState: mockRepositoryState,
+        actionRunner: mockActionRunner,
         refreshComputedMetrics,
       })
     );

@@ -2,31 +2,18 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useProjectsManager } from '@common/hooks/data/useProjectsManager';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { createMockRepositoryState, createMockActionRunner } from './test-doubles';
 
 describe('Unit Tests: useProjectsManager Hook', () => {
   const router = PersistenceRouter.getInstance();
 
-  const mockRepositoryState = {
+  const mockRepositoryState = createMockRepositoryState({
     projects: [
-      { id: 'p1', name: 'Existing Project', color: 'blue', createdAt: '2026-01-01', archived: false },
+      { id: 'p1', name: 'Existing Project', color: 'blue', createdAt: '2026-01-01', archived: false, description: null, icon: null, tags: null },
     ],
-    setProjectsState: vi.fn(),
-    tasks: [],
-    setTasksState: vi.fn(),
-    logs: [],
-    setLogsState: vi.fn(),
-    activeLog: null,
-    setActiveLogState: vi.fn(),
-    syncRepositoryState: vi.fn(),
-  };
+  });
 
-  const mockActionRunner = {
-    isLoading: false,
-    setIsLoading: vi.fn(),
-    repositoryError: null,
-    setRepositoryError: vi.fn(),
-    runAction: vi.fn(async (_msg: string, fn: () => Promise<any>) => fn()),
-  };
+  const mockActionRunner = createMockActionRunner();
 
   const refreshComputedMetrics = vi.fn().mockResolvedValue(null);
 
@@ -37,7 +24,7 @@ describe('Unit Tests: useProjectsManager Hook', () => {
   it('should add a project and update state and refresh metrics', async () => {
     const updatedProjects = [
       ...mockRepositoryState.projects,
-      { id: 'p2', name: 'New Project', color: 'green', createdAt: '2026-01-02', archived: false },
+      { id: 'p2', name: 'New Project', color: 'green', createdAt: '2026-01-02', archived: false, description: null, icon: null, tags: null },
     ];
     vi.spyOn(router.projects, 'add').mockResolvedValue({
       projects: updatedProjects,
@@ -48,8 +35,8 @@ describe('Unit Tests: useProjectsManager Hook', () => {
 
     const { result } = renderHook(() =>
       useProjectsManager({
-        repositoryState: mockRepositoryState as any,
-        actionRunner: mockActionRunner as any,
+        repositoryState: mockRepositoryState,
+        actionRunner: mockActionRunner,
         refreshComputedMetrics,
       })
     );
@@ -75,8 +62,8 @@ describe('Unit Tests: useProjectsManager Hook', () => {
 
     const { result } = renderHook(() =>
       useProjectsManager({
-        repositoryState: mockRepositoryState as any,
-        actionRunner: mockActionRunner as any,
+        repositoryState: mockRepositoryState,
+        actionRunner: mockActionRunner,
         refreshComputedMetrics,
       })
     );
@@ -104,8 +91,8 @@ describe('Unit Tests: useProjectsManager Hook', () => {
 
     const { result } = renderHook(() =>
       useProjectsManager({
-        repositoryState: mockRepositoryState as any,
-        actionRunner: mockActionRunner as any,
+        repositoryState: mockRepositoryState,
+        actionRunner: mockActionRunner,
         refreshComputedMetrics,
       })
     );

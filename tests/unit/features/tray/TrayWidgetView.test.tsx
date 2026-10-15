@@ -4,13 +4,13 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import TrayWidgetView from '@features/tray/TrayWidgetView';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: TrayWidgetView', () => {
   const onRestoreMock = vi.fn();
   const onStopAllMock = vi.fn();
 
-  const mockState: any = {
+  const mockState: OxyFlowState = {
     ...getMockOxyFlowState(),
     locale: 'en',
     customTranslations: {},

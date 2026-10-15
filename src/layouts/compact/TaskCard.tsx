@@ -3,6 +3,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { Play, Square } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
+import { TranslationDictionary } from '@common/i18n/types';
 import { SubtaskRow } from './SubtaskRow';
 import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
@@ -12,9 +13,8 @@ interface TaskCardProps {
   task: Task;
   subtasks: Task[];
   activeLog: TimeLog | null;
-  resolvedTheme?: string | undefined;
   locale: Locale;
-  customTranslations: any;
+  customTranslations?: Partial<TranslationDictionary>;
   onStartTimer: (taskId: string) => void;
   onStopTimer: () => void;
   showToast: (msg: string) => void;

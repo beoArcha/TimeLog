@@ -71,7 +71,7 @@ describe('Integration Tests: DbExplorer Main Container', () => {
     const value = { ...defaultState, ...customValue };
     const utils = render(
       <LocaleProvider>
-        <MockProviders state={value as any}>
+        <MockProviders state={value}>
           <DbExplorer />
         </MockProviders>
       </LocaleProvider>

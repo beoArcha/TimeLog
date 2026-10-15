@@ -1,5 +1,37 @@
 import { vi } from 'vitest';
 
+declare global {
+  interface Window {
+    __TAURI_INTERNALS__?: Record<string, unknown>;
+  }
+}
+
+export const setTauriDesktopEnvironment = (active = true): void => {
+  if (active) {
+    window.__TAURI_INTERNALS__ = {};
+  } else {
+    delete window.__TAURI_INTERNALS__;
+  }
+};
+
+export const setupWindowLocationMock = () => {
+  const originalLocation = window.location;
+  const reloadMock = vi.fn();
+  Object.defineProperty(window, 'location', {
+    configurable: true,
+    value: { ...originalLocation, reload: reloadMock },
+  });
+  return {
+    reloadMock,
+    restore: () => {
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    },
+  };
+};
+
 export const setupLocalStorageMock = (): Record<string, string> => {
   const store: Record<string, string> = {};
 

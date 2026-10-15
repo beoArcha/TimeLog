@@ -4,7 +4,7 @@ import React from 'react';
 import { render, fireEvent, cleanup, within } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import HolidaysLeavesTable from '@features/db-explorer/components/HolidaysLeavesTable';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 
 describe('Unit Tests: HolidaysLeavesTable', () => {
@@ -36,7 +36,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
   ];
 
   it('should render holidays list table in default theme', () => {
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: 'dark',
@@ -53,7 +53,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
   });
 
   it('should render correctly in light theme and high-contrast theme', () => {
-    const mockStateLight: any = {
+    const mockStateLight: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: 'light',
@@ -67,7 +67,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
     expect(within(container).getByText('Summer Holiday')).not.toBeNull();
 
-    const mockStateHighContrast: any = {
+    const mockStateHighContrast: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: 'high-contrast',
@@ -84,7 +84,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should add a new holiday entity on clicking add button', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
@@ -109,7 +109,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should start editing, modify values, and save holiday with audit history update', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
@@ -156,7 +156,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
   });
 
   it('should cancel edit on clicking cancel (X) button', () => {
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
     };
@@ -181,7 +181,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should close editing without modifying if no changes made when saving', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
@@ -208,7 +208,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should append to existing edit history when editing a record that already has history', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
@@ -245,7 +245,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should delete a holiday when clicking delete button', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
@@ -270,7 +270,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
   });
 
   it('should toggle history details row when clicking history icon button', () => {
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
     };
@@ -295,7 +295,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
 
   it('should save edit with default reason when reason input is cleared to empty string', () => {
     const setHolidaysMock = vi.fn();
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
       setHolidays: setHolidaysMock,
@@ -337,7 +337,7 @@ describe('Unit Tests: HolidaysLeavesTable', () => {
       }
     ];
 
-    const mockState: any = {
+    const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: holidaysWithMissingOriginalName,
     };

@@ -4,13 +4,13 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: HolidaysLeavesView', () => {
   const handleAddHolidayMock = vi.fn();
   const handleDeleteHolidayMock = vi.fn();
 
-  const mockState: any = {
+  const mockState: OxyFlowState = {
     ...getMockOxyFlowState(),
     holidays: [
       { id: 'hol_1', date: '2026-07-20', type: 'holiday', name: 'Summer Holiday' }

@@ -6,6 +6,7 @@ import {
   triggerTauriEvent,
   setupMatchMediaMock,
   getMockOxyFlowState,
+  setTauriDesktopEnvironment,
 } from '@tests/shared/test-helpers';
 
 import React from 'react';
@@ -24,13 +25,13 @@ describe('Integration Tests: Tauri GUI Events', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    (window as any).__TAURI_INTERNALS__ = {};
+    setTauriDesktopEnvironment(true);
 
     setupMatchMediaMock(false);
   });
 
   afterEach(() => {
-    delete (window as any).__TAURI_INTERNALS__;
+    setTauriDesktopEnvironment(false);
     cleanup();
   });
 

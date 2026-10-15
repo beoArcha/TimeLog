@@ -16,8 +16,8 @@ describe('Unit Tests: useRepositoryState Hook', () => {
 
     act(() => {
       result.current.syncRepositoryState({
-        projects: [{ id: 'p1', name: 'Project 1', color: 'blue' } as any],
-        tasks: [{ id: 't1', projectId: 'p1', name: 'Task 1' } as any],
+        projects: [{ id: 'p1', name: 'Project 1', color: 'blue', createdAt: '2026-01-01', archived: false, description: null, icon: null, tags: null }],
+        tasks: [{ id: 't1', projectId: 'p1', name: 'Task 1', createdAt: '2026-01-01', completed: false, status: null, parentTaskId: null }],
       });
     });
 
@@ -28,7 +28,7 @@ describe('Unit Tests: useRepositoryState Hook', () => {
 
     act(() => {
       result.current.syncRepositoryState({
-        activeLog: { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-01-01' } as any,
+        activeLog: { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-01-01', endTime: null, note: null, editHistory: null },
       });
     });
 

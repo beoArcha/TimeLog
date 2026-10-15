@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import TaskListView from '@features/tasks/TaskListView';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 import { EngineRouter } from '@common/engine/EngineRouter';
+import { IEngine } from '@common/engine/IEngine';
 
 describe('Unit Tests: TaskListView', () => {
   const mockGetProjectStatistics = vi.fn();
@@ -25,7 +26,7 @@ describe('Unit Tests: TaskListView', () => {
       stopTimer: vi.fn(),
       editTimeLog: vi.fn(),
       getProjectStatistics: mockGetProjectStatistics,
-    } as any);
+    } as unknown as IEngine);
   });
 
 

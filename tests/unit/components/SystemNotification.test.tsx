@@ -19,7 +19,7 @@ describe('Unit Tests: SystemNotification & RestoreButton', () => {
       const stateProp = {
         ...mockState,
         trayNotification: null,
-      } as unknown as any;
+      };
 
       render(
         <MockProviders state={stateProp}>
@@ -37,7 +37,7 @@ describe('Unit Tests: SystemNotification & RestoreButton', () => {
         ...mockState,
         trayNotification: 'Engine started successfully',
         setTrayNotification: setTrayNotificationSpy,
-      } as unknown as any;
+      };
 
       render(
         <MockProviders state={stateProp}>

@@ -6,6 +6,7 @@ import {
   triggerTauriEvent,
   setupLocalStorageMock,
   setupMatchMediaMock,
+  setTauriDesktopEnvironment,
 } from '@tests/shared/test-helpers';
 import { useTauriWindow } from '@common/tauri/useTauriWindow';
 import { TAURI_COMMANDS } from '@common/tauri/tauri-commands';
@@ -34,11 +35,11 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     setupLocalStorageMock();
     setupMatchMediaMock(false);
     // Simulate being inside Tauri
-    (window as any).__TAURI_INTERNALS__ = {};
+    setTauriDesktopEnvironment(true);
   });
 
   afterEach(() => {
-    delete (window as any).__TAURI_INTERNALS__;
+    setTauriDesktopEnvironment(false);
   });
 
   const waitForListeners = async () => {

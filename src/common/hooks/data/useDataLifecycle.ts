@@ -32,9 +32,30 @@ export const useDataLifecycle = ({
   const [engineState, setEngineState] = useState<'searching' | 'connected'>('connected');
   const isResetting = useRef(false);
 
+  const initDepsRef = useRef({
+    actionRunner,
+    repositoryState,
+    holidaysManager,
+    patchesManager,
+    refreshComputedMetrics,
+    onTaskSelected,
+  });
+
+  useEffect(() => {
+    initDepsRef.current = {
+      actionRunner,
+      repositoryState,
+      holidaysManager,
+      patchesManager,
+      refreshComputedMetrics,
+      onTaskSelected,
+    };
+  });
+
   useEffect(() => {
     const loadState = async () => {
-      await actionRunner.runAction('Failed to load repository state', async () => {
+      const deps = initDepsRef.current;
+      await deps.actionRunner.runAction('Failed to load repository state', async () => {
         const router = PersistenceRouter.getInstance();
         const [state, loadedHolidays, loadedPatches] = await Promise.all([
           router.core.load(),
@@ -43,15 +64,15 @@ export const useDataLifecycle = ({
         ]);
 
         if (state !== null) {
-          repositoryState.setProjectsState(state.projects);
-          repositoryState.setTasksState(state.tasks);
-          repositoryState.setLogsState(state.logs);
-          repositoryState.setActiveLogState(state.activeLog);
-          onTaskSelected?.(state.tasks?.[0]?.id ?? null);
+          deps.repositoryState.setProjectsState(state.projects);
+          deps.repositoryState.setTasksState(state.tasks);
+          deps.repositoryState.setLogsState(state.logs);
+          deps.repositoryState.setActiveLogState(state.activeLog);
+          deps.onTaskSelected?.(state.tasks?.[0]?.id ?? null);
         }
-        holidaysManager.setHolidaysState(loadedHolidays);
-        patchesManager.setPatchesState(loadedPatches);
-        await refreshComputedMetrics();
+        deps.holidaysManager.setHolidaysState(loadedHolidays);
+        deps.patchesManager.setPatchesState(loadedPatches);
+        await deps.refreshComputedMetrics();
       });
       setIsInitialized(true);
     };

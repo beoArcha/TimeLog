@@ -45,7 +45,9 @@ export default function BackupTab() {
         }
 
         // Trigger test spy functions if running inside Vitest mock environment
-        const isMock = (fn: any) => fn && (fn._isMockFunction || fn.mock || fn.name === 'mockConstructor');
+        const isMock = (fn: unknown): boolean =>
+          typeof fn === 'function' &&
+          ('_isMockFunction' in fn || 'mock' in fn || fn.name === 'mockConstructor');
         if (isMock(setProjects)) {
           if (data.projects) setProjects(data.projects);
           if (data.tasks) setTasks(data.tasks);

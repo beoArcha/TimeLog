@@ -48,7 +48,7 @@ describe('Integration Tests: CliInterface Component', () => {
     const combinedProps = { ...defaultProps, ...props };
     const utils = render(
       <LocaleProvider>
-         <MockProviders state={combinedProps as any}>
+         <MockProviders state={combinedProps}>
             <CliInterface />
          </MockProviders>
       </LocaleProvider>

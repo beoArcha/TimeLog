@@ -4,7 +4,7 @@ import React from 'react';
 import { render, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LayoutManager from '@layouts/manager/LayoutManager';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 vi.mock('@layouts/components/BackgroundGradients', () => ({
   default: () => <div data-testid="bg-gradients">Gradients</div>
@@ -28,7 +28,7 @@ vi.mock('@layouts/components/AppFooter', () => ({
   default: () => <footer data-testid="app-footer">Footer</footer>
 }));
 vi.mock('@layouts/components/RestoreButton', () => ({
-  default: ({ setIsMinimized }: any) => (
+  default: ({ setIsMinimized }: { setIsMinimized: (val: boolean) => void }) => (
     <button data-testid="restore-btn" onClick={() => setIsMinimized(false)}>Restore</button>
   )
 }));
@@ -65,7 +65,7 @@ vi.mock('@features/settings/BackupTab', () => ({
   default: () => <div data-testid="mock-backup-tab">BackupTab</div>
 }));
 vi.mock('@features/tray/TrayWidgetView', () => ({
-  default: ({ onRestore, onStopAll }: any) => (
+  default: ({ onRestore, onStopAll }: { onRestore: () => void; onStopAll: () => void }) => (
     <div data-testid="tray-widget-view">
       <button data-testid="btn-restore" onClick={onRestore}>Restore</button>
       <button data-testid="btn-stop-all" onClick={onStopAll}>Stop All</button>
@@ -73,7 +73,7 @@ vi.mock('@features/tray/TrayWidgetView', () => ({
   )
 }));
 
-let activeMockState: any;
+let activeMockState: OxyFlowState;
 
 vi.mock('@layouts/manager/AppProviders', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
@@ -214,7 +214,7 @@ describe('Unit Tests: LayoutManager', () => {
       activeMockState = {
         ...getMockOxyFlowState(),
         layoutVariant: 'full',
-        activeLargeTab: tab.tabName as any,
+        activeLargeTab: tab.tabName,
         isGuiClosed: false,
         isMinimized: false
       };

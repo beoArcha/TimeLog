@@ -2,43 +2,21 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useDataLifecycle } from '@common/hooks/data/useDataLifecycle';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import {
+  createMockRepositoryState,
+  createMockActionRunner,
+  createMockHolidaysManager,
+  createMockPatchesManager,
+} from './test-doubles';
 
 describe('Unit Tests: useDataLifecycle Hook', () => {
   const router = PersistenceRouter.getInstance();
 
-  const mockRepositoryState = {
-    projects: [],
-    setProjectsState: vi.fn(),
-    tasks: [],
-    setTasksState: vi.fn(),
-    logs: [],
-    setLogsState: vi.fn(),
-    activeLog: null,
-    setActiveLogState: vi.fn(),
-    syncRepositoryState: vi.fn(),
-  };
-
-  const mockHolidaysManager = {
-    holidays: [],
-    setHolidaysState: vi.fn(),
-    setHolidays: vi.fn(),
-    handleAddHoliday: vi.fn(),
-    handleDeleteHoliday: vi.fn(),
-  };
-
-  const mockPatchesManager = {
-    patches: [],
-    setPatchesState: vi.fn(),
-    setPatches: vi.fn(),
-  };
-
-  const mockActionRunner = {
-    isLoading: false,
-    setIsLoading: vi.fn(),
-    repositoryError: null,
-    setRepositoryError: vi.fn(),
-    runAction: vi.fn(async (_msg: string, fn: () => Promise<any>) => fn()),
-  };
+  const mockRepositoryState = createMockRepositoryState();
+  const mockHolidaysManager = createMockHolidaysManager();
+  const mockPatchesManager = createMockPatchesManager();
+  const mockActionRunner = createMockActionRunner();
 
   const refreshComputedMetrics = vi.fn().mockResolvedValue(null);
   const onTaskSelected = vi.fn();
@@ -48,22 +26,22 @@ describe('Unit Tests: useDataLifecycle Hook', () => {
   });
 
   it('should hydrate repository state on mount', async () => {
-    const loadedState = {
-      projects: [{ id: 'p1', name: 'Proj 1', color: 'blue', createdAt: '2026-01-01' }],
-      tasks: [{ id: 't1', projectId: 'p1', name: 'Task 1', createdAt: '2026-01-01', completed: false }],
+    const loadedState: TimerRepositoryState = {
+      projects: [{ id: 'p1', name: 'Proj 1', color: 'blue', createdAt: '2026-01-01', archived: false, description: null, icon: null, tags: null }],
+      tasks: [{ id: 't1', projectId: 'p1', name: 'Task 1', createdAt: '2026-01-01', completed: false, status: null, parentTaskId: null }],
       logs: [],
       activeLog: null,
     };
-    vi.spyOn(router.core, 'load').mockResolvedValue(loadedState as any);
+    vi.spyOn(router.core, 'load').mockResolvedValue(loadedState);
     vi.spyOn(router.holidays, 'getAll').mockResolvedValue([]);
     vi.spyOn(router.patches, 'getAll').mockResolvedValue([]);
 
     const { result } = renderHook(() =>
       useDataLifecycle({
-        repositoryState: mockRepositoryState as any,
-        holidaysManager: mockHolidaysManager as any,
-        patchesManager: mockPatchesManager as any,
-        actionRunner: mockActionRunner as any,
+        repositoryState: mockRepositoryState,
+        holidaysManager: mockHolidaysManager,
+        patchesManager: mockPatchesManager,
+        actionRunner: mockActionRunner,
         refreshComputedMetrics,
         onTaskSelected,
       })
@@ -77,18 +55,26 @@ describe('Unit Tests: useDataLifecycle Hook', () => {
   });
 
   it('should reset storage and trigger window reload on handleResetLocalStorage', async () => {
+    const reloadMock = vi.fn();
     const originalLocation = window.location;
-    delete (window as any).location;
-    window.location = { ...originalLocation, reload: vi.fn() } as any;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...originalLocation, reload: reloadMock },
+    });
 
-    const resetSpy = vi.spyOn(router.core, 'reset').mockResolvedValue({} as any);
+    const resetSpy = vi.spyOn(router.core, 'reset').mockResolvedValue({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
 
     const { result } = renderHook(() =>
       useDataLifecycle({
-        repositoryState: mockRepositoryState as any,
-        holidaysManager: mockHolidaysManager as any,
-        patchesManager: mockPatchesManager as any,
-        actionRunner: mockActionRunner as any,
+        repositoryState: mockRepositoryState,
+        holidaysManager: mockHolidaysManager,
+        patchesManager: mockPatchesManager,
+        actionRunner: mockActionRunner,
         refreshComputedMetrics,
       })
     );
@@ -98,8 +84,11 @@ describe('Unit Tests: useDataLifecycle Hook', () => {
     });
 
     expect(resetSpy).toHaveBeenCalled();
-    expect(window.location.reload).toHaveBeenCalled();
+    expect(reloadMock).toHaveBeenCalled();
 
-    (window as any).location = originalLocation;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation,
+    });
   });
 });

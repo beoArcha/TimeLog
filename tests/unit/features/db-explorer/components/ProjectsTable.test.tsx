@@ -4,11 +4,11 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ProjectsTable from '@features/db-explorer/components/ProjectsTable';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: ProjectsTable', () => {
   const setProjectsMock = vi.fn();
-  const mockState: any = {
+  const mockState: OxyFlowState = {
     ...getMockOxyFlowState(),
     projects: [
       { id: 'p1', name: 'Original Name', color: 'indigo', createdAt: '2026-06-15T00:00:00Z', archived: false, description: null, icon: null, tags: null }

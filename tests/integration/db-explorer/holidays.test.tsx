@@ -73,7 +73,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     const value = { ...defaultState, ...customValue };
     const utils = render(
       <LocaleProvider>
-        <MockProviders state={value as any}>
+        <MockProviders state={value}>
           <DbExplorer />
         </MockProviders>
       </LocaleProvider>

@@ -4,14 +4,14 @@ import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 import CliInterface from '@features/cli/CliInterface';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 // Mock scrollIntoView globally
 beforeAll(() => {
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
-const mockState: any = {
+const mockState: OxyFlowState = {
   ...getMockOxyFlowState(),
   locale: 'en',
   customTranslations: {},

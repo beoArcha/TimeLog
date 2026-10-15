@@ -10,6 +10,7 @@ import {
   useHolidays,
   usePatches,
   useDataLifecycleState,
+  type DataState,
 } from '@common/hooks/DataContext';
 
 describe('Unit Tests: DataContext & Domain Slice Hooks', () => {
@@ -55,7 +56,7 @@ describe('Unit Tests: DataContext & Domain Slice Hooks', () => {
   };
 
   const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <DataContext.Provider value={mockDataState as any}>{children}</DataContext.Provider>
+    <DataContext.Provider value={mockDataState as unknown as DataState}>{children}</DataContext.Provider>
   );
 
   it('should throw exception when useData is used outside of DataProvider', () => {

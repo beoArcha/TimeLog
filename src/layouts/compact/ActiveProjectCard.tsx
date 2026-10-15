@@ -1,12 +1,12 @@
 import { Project } from '@bindings/Project';
 import { translate } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
+import { TranslationDictionary } from '@common/i18n/types';
 
 interface ActiveProjectCardProps {
   activeProj: Project;
-  resolvedTheme?: string | undefined;
   locale: Locale;
-  customTranslations: any;
+  customTranslations?: Partial<TranslationDictionary>;
 }
 
 export function ActiveProjectCard({

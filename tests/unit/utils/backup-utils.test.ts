@@ -4,7 +4,11 @@ describe('Unit Tests: Backup and Settings Utilities', () => {
   it('should_simulate_parsing_and_falling_back_when_custom_api_headers_are_provided', () => {
     const validHeaders = '{"X-Token": "123"}';
     let parsed = {};
-    try { parsed = JSON.parse(validHeaders) } catch (_) { }
+    try {
+      parsed = JSON.parse(validHeaders);
+    } catch (_err) {
+      /* Fallback on JSON parse error */
+    }
     expect(parsed).toHaveProperty('X-Token', '123');
 
     const invalidHeaders = '{token: 123';
@@ -12,7 +16,9 @@ describe('Unit Tests: Backup and Settings Utilities', () => {
     try {
       const custom = JSON.parse(invalidHeaders);
       parsedInvalid = { ...parsedInvalid, ...custom };
-    } catch (_) { }
+    } catch (_err) {
+      /* Fallback on invalid JSON header syntax */
+    }
     expect(parsedInvalid).toHaveProperty('Authorization', 'Bearer fallback');
     expect(parsedInvalid).not.toHaveProperty('token');
   });

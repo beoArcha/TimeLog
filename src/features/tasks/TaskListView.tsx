@@ -1,16 +1,51 @@
 import React from 'react';
 import { Folder } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
-import TaskItem from './components/TaskItem/TaskItem';
-import { Project } from '@bindings/Project';
+import TaskItem, { TaskItemState } from './components/TaskItem/TaskItem';
 import { Task } from '@bindings/Task';
+import { Project } from '@bindings/Project';
 import { TimeLog } from '@bindings/TimeLog';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import ProjectHeaderCard from './components/ProjectHeaderCard';
 import TaskEmptyState from './components/TaskEmptyState';
 import { useProjectStatistics } from './hooks/useProjectStatistics';
 
-interface TaskListViewProps {
-  state: any;
+import { TaskStatus } from '@bindings/TaskStatus';
+
+export interface TaskListViewState {
+  tasks: Task[];
+  logs: TimeLog[];
+  nowIso?: string;
+  selectedProject: Project | null;
+  rootTasks: Task[];
+  onAddTask: (projectId: string, name: string, parentId: string | null) => void;
+  onToggleTaskComplete?: (taskId: string) => void;
+  onRenameTask?: (taskId: string, newName: string) => void;
+  onUpdateTask?: (
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: TaskStatus | null,
+    completed: boolean | null
+  ) => void;
+  onDeleteTask?: (taskId: string) => void;
+  onStartTimer?: (taskId: string) => void;
+  projectTasks?: Task[];
+  metrics?: EngineComputedMetrics | null;
+  newTaskName?: string;
+  setNewTaskName?: (val: string) => void;
+  editingId?: string | null;
+  setEditingId?: (val: string | null) => void;
+  editName?: string;
+  setEditName?: (val: string) => void;
+  showSubtaskFormForId?: string | null;
+  setShowSubtaskFormForId?: (val: string | null) => void;
+  newSubtaskName?: string;
+  setNewSubtaskName?: (val: string) => void;
+}
+
+export interface TaskListViewProps {
+  state: TaskListViewState;
   isCondensed: boolean;
 }
 
@@ -18,14 +53,6 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
   const {
     tasks, logs, nowIso,
     selectedProject, rootTasks, onAddTask
-  }: {
-    tasks: Task[];
-    logs: TimeLog[];
-    nowIso: string;
-    theme?: string;
-    selectedProject: Project | null;
-    rootTasks: Task[];
-    onAddTask: (projectId: string, name: string, parentId: string | null) => void;
   } = state;
 
   const { t: tProject } = useTranslation('project');
@@ -81,13 +108,49 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     metrics: state.metrics,
   });
 
-  const taskItemState = React.useMemo(() => ({
-    ...state,
-    editingId, setEditingId,
-    editName, setEditName,
-    showSubtaskFormForId, setShowSubtaskFormForId,
-    newSubtaskName, setNewSubtaskName
-  }), [state, editingId, editName, showSubtaskFormForId, newSubtaskName]);
+  const taskItemState: TaskItemState = React.useMemo(() => ({
+    tasks,
+    logs,
+    nowIso,
+    projectTasks: state.projectTasks ?? tasks,
+    selectedProject,
+    onToggleTaskComplete: state.onToggleTaskComplete ?? (() => {}),
+    onRenameTask: state.onRenameTask ?? (() => {}),
+    onUpdateTask: state.onUpdateTask,
+    onDeleteTask: state.onDeleteTask ?? (() => {}),
+    onStartTimer: state.onStartTimer ?? (() => {}),
+    onAddTask,
+    showSubtaskFormForId,
+    setShowSubtaskFormForId,
+    newSubtaskName,
+    setNewSubtaskName,
+    editingId,
+    setEditingId,
+    editName,
+    setEditName,
+    metrics: state.metrics,
+  }), [
+    tasks,
+    logs,
+    nowIso,
+    state.projectTasks,
+    selectedProject,
+    state.onToggleTaskComplete,
+    state.onRenameTask,
+    state.onUpdateTask,
+    state.onDeleteTask,
+    state.onStartTimer,
+    onAddTask,
+    showSubtaskFormForId,
+    setShowSubtaskFormForId,
+    newSubtaskName,
+    setNewSubtaskName,
+    editingId,
+    setEditingId,
+    editName,
+    setEditName,
+    state.metrics,
+  ]);
 
   const handleAddTaskSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -4,10 +4,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import PatchLogsTable from '@features/db-explorer/components/PatchLogsTable';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: PatchLogsTable', () => {
-  const mockState: any = {
+  const mockState: OxyFlowState = {
     ...getMockOxyFlowState(),
     patches: [
       { id: 'pat_1', projectId: 'p1', startTime: '2026-06-15T12:00:00Z', endTime: '2026-06-15T13:00:00Z', patchNote: 'Initial Setup schema patch', isSystemEvent: false }

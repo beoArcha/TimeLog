@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import MediumLayoutBuilder from '@layouts/builders/MediumLayoutBuilder';
+import type { GuiState } from '@layouts/hooks/useGuiLogic';
 
 vi.mock('@layouts/parts/ActiveTimerBanner', () => ({
   default: () => <div data-testid="mock-active-timer-banner">Active Timer Banner</div>
@@ -33,7 +34,7 @@ describe('Unit Tests: MediumLayoutBuilder', () => {
     cleanup();
   });
 
-  const mockState: any = {
+  const mockState = {
     theme: 'dark',
     locale: 'pl',
     projects: [
@@ -49,7 +50,7 @@ describe('Unit Tests: MediumLayoutBuilder', () => {
     nowIso: '2026-01-01T12:00:00Z',
     onAddProject: vi.fn(),
     customTranslations: {}
-  };
+  } as unknown as GuiState;
 
   it('Given MediumLayoutBuilder rendered, Then it should show project name, tasks view and bottom nav', () => {
     render(<MediumLayoutBuilder state={mockState} />);

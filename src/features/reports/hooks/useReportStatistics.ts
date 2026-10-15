@@ -6,17 +6,38 @@ import { UseReportStatisticsProps, ProjectChartItem, ReportStatisticsResult } fr
 export type { UseReportStatisticsProps, ProjectChartItem, ReportStatisticsResult };
 
 export function useReportStatistics(props: UseReportStatisticsProps): ReportStatisticsResult {
+  const {
+    logs,
+    patches,
+    projects,
+    tasks,
+    nowIso,
+    reportPeriod,
+    reportSort,
+    sysSettings,
+  } = props;
+
   return useMemo(
-    () => calculateReportStatistics(props),
+    () =>
+      calculateReportStatistics({
+        logs,
+        patches,
+        projects,
+        tasks,
+        nowIso,
+        reportPeriod,
+        reportSort,
+        sysSettings,
+      }),
     [
-      props.logs,
-      props.patches,
-      props.projects,
-      props.tasks,
-      props.nowIso,
-      props.reportPeriod,
-      props.reportSort,
-      props.sysSettings?.includePatchesInReports,
+      logs,
+      patches,
+      projects,
+      tasks,
+      nowIso,
+      reportPeriod,
+      reportSort,
+      sysSettings,
     ]
   );
 }

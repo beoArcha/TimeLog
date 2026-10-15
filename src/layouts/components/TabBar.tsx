@@ -1,15 +1,25 @@
 import React from 'react';
 import { Clock, BarChart, Database, Settings, UploadCloud, Terminal, BookOpen, Sparkles } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
+import { TranslationDictionary } from '@common/i18n/types';
 import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
 
+export type LargeTabId =
+  | 'main'
+  | 'reports'
+  | 'db'
+  | 'options'
+  | 'backup'
+  | 'cli'
+  | 'manual'
+  | 'credits';
+
 interface TabBarProps {
   locale: Locale;
-  customTranslations: any;
-  resolvedTheme?: string;
+  customTranslations?: Partial<TranslationDictionary>;
   activeLargeTab: string;
-  setActiveLargeTab: (tab: any) => void;
+  setActiveLargeTab: (tab: LargeTabId) => void;
 }
 
 export default function TabBar({
@@ -18,7 +28,12 @@ export default function TabBar({
   activeLargeTab,
   setActiveLargeTab,
 }: TabBarProps) {
-  const tabs = [
+  const tabs: Array<{
+    id: LargeTabId;
+    icon: React.ComponentType<{ className?: string }>;
+    iconColor: string;
+    label: string;
+  }> = [
     { id: 'main', icon: Clock, iconColor: 'text-orange-400', label: translate(locale, 'app', 'TabMain', customTranslations) },
     { id: 'reports', icon: BarChart, iconColor: 'text-teal-400', label: translate(locale, 'report', 'TabReports', customTranslations) },
     { id: 'db', icon: Database, iconColor: 'text-indigo-400', label: translate(locale, 'database', 'TabDb', customTranslations) },
