@@ -168,7 +168,20 @@ describe('Integration Tests: TaskListView and TaskItem', () => {
     const state = setupMockState({
       logs: [
         { id: 'l2', taskId: 'subtask_1', projectId: 'proj_1', startTime: '2026-06-15T12:00:00Z', endTime: null }
-      ]
+      ],
+      metrics: {
+        snapshotNowIso: '2026-06-15T12:00:00Z',
+        tasks: {
+          subtask_1: {
+            taskId: 'subtask_1',
+            elapsedSeconds: 0,
+            selfElapsedSeconds: 0,
+            isRunning: true,
+            hasRunningChild: false,
+          },
+        },
+        projects: {},
+      },
     });
     renderWithLocale(<TaskListView state={state} isCondensed={false} />);
 

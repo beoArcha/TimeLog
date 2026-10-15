@@ -43,9 +43,6 @@ interface SubtaskItemProps {
 
 export function SubtaskItem({
   subTask,
-  tasks,
-  logs,
-  nowIso,
   metrics,
   editingId,
   editName,
@@ -62,9 +59,6 @@ export function SubtaskItem({
 
   const { isRunning: isSubRunning, formattedElapsed: subFormattedElapsed } = useLiveTaskElapsed(subTask.id, {
     metrics,
-    tasks,
-    logs,
-    nowIso,
   });
   const isEditing = editingId === subTask.id;
 

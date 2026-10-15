@@ -105,4 +105,65 @@ describe('Unit Tests: useProjectStatistics', () => {
 
     expect(mockGetProjectStatistics).not.toHaveBeenCalled();
   });
+
+  it('should handle error when async statistics fetch fails', async () => {
+    mockGetProjectStatistics.mockRejectedValue(new Error('Network error'));
+
+    const { result } = renderHook(() => useProjectStatistics({
+      selectedProject: selectedProj,
+    }));
+
+    expect(result.current.loading).toBe(true);
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.error).toBe('Network error');
+    expect(result.current.stats).toBeNull();
+  });
+
+  it('should reset stats and loading state when selectedProject changes', async () => {
+    mockGetProjectStatistics.mockImplementation(async (id: string) => {
+      if (id === 'p2') {
+        return {
+          totalTasks: 10,
+          completedTasks: 5,
+          totalDurationSec: 1000,
+        };
+      }
+      return {
+        totalTasks: 4,
+        completedTasks: 2,
+        totalDurationSec: 7200,
+      };
+    });
+
+    const { result, rerender } = renderHook(
+      ({ project }: { project: Project | null }) =>
+        useProjectStatistics({ selectedProject: project }),
+      { initialProps: { project: selectedProj } }
+    );
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+    expect(result.current.stats?.totalTasks).toBe(4);
+
+    const projectTwo: Project = {
+      ...selectedProj,
+      id: 'p2',
+      name: 'Project Two',
+    };
+
+    rerender({ project: projectTwo });
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.stats).toBeNull();
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+    expect(result.current.stats?.totalTasks).toBe(10);
+  });
 });

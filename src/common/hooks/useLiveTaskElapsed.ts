@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { TimeLog } from '@bindings/TimeLog';
-import { Task } from '@bindings/Task';
-import { calculateTaskElapsed, calculateProjectElapsed } from '@/src/plugins/engine/elapsed';
 
 export interface UseLiveTaskElapsedOptions {
   /**
@@ -14,13 +12,7 @@ export interface UseLiveTaskElapsedOptions {
   /** Precomputed engine metrics snapshot. */
   metrics?: EngineComputedMetrics | null;
   /** Current active log if any. */
-  activeLog?: TimeLog | null;
-  /** Optional tasks array for fallback calculation when metrics snapshot is absent. */
-  tasks?: Task[];
-  /** Optional logs array for fallback calculation when metrics snapshot is absent. */
-  logs?: TimeLog[];
-  /** Optional nowIso timestamp for fallback calculation. */
-  nowIso?: string;
+  activeLog?: TimeLog | null;  
 }
 
 export interface UseLiveTaskElapsedResult {
@@ -43,26 +35,30 @@ export function useLiveTaskElapsed(
   const refreshIntervalMs = Math.max(4, options?.refreshIntervalMs ?? 1000);
   const metrics = options?.metrics;
   const activeLog = options?.activeLog;
-  const tasks = options?.tasks;
-  const logs = options?.logs;
-  const nowIso = options?.nowIso;
 
   const isRunning = Boolean(
     taskId && (
       metrics?.tasks?.[taskId]?.isRunning ??
-      (activeLog ? activeLog.taskId === taskId : Boolean(logs?.some(l => l.taskId === taskId && !l.endTime)))
+      (activeLog ? activeLog.taskId === taskId : false)
     )
   );
 
-  const baseElapsed = (taskId && metrics?.tasks?.[taskId]?.elapsedSeconds) ??
-    (taskId && tasks && logs ? calculateTaskElapsed(taskId, tasks, logs, nowIso) : 0);
+  const baseElapsed = (taskId && metrics?.tasks?.[taskId]?.elapsedSeconds) ?? 0;
 
-  const [liveExtraSeconds, setLiveExtraSeconds] = useState(0);
+  const getElapsedDelta = () => {
+    if (!isRunning) return 0;
+    const startTickMs = metrics?.snapshotNowIso
+      ? new Date(metrics.snapshotNowIso).getTime()
+      : (activeLog?.startTime ? new Date(activeLog.startTime).getTime() : Date.now());
+    return Math.max(0, Math.floor((Date.now() - startTickMs) / 1000));
+  };
+
+  const [liveExtraSeconds, setLiveExtraSeconds] = useState(getElapsedDelta);
 
   const [prevTaskId, setPrevTaskId] = useState(taskId);
   if (prevTaskId !== taskId) {
     setPrevTaskId(taskId);
-    setLiveExtraSeconds(0);
+    setLiveExtraSeconds(getElapsedDelta());
   }
 
   useEffect(() => {
@@ -72,7 +68,7 @@ export function useLiveTaskElapsed(
 
     const startTickMs = metrics?.snapshotNowIso
       ? new Date(metrics.snapshotNowIso).getTime()
-      : Date.now();
+      : (activeLog?.startTime ? new Date(activeLog.startTime).getTime() : Date.now());
 
     const update = () => {
       const now = Date.now();
@@ -85,7 +81,7 @@ export function useLiveTaskElapsed(
     return () => {
       clearInterval(intervalId);
     };
-  }, [isRunning, baseElapsed, metrics?.snapshotNowIso, refreshIntervalMs]);
+  }, [isRunning, baseElapsed, metrics?.snapshotNowIso, activeLog?.startTime, refreshIntervalMs]);
 
   const elapsed = isRunning ? baseElapsed + liveExtraSeconds : baseElapsed;
 
@@ -104,9 +100,6 @@ export interface UseLiveProjectElapsedOptions {
   refreshIntervalMs?: number;
   metrics?: EngineComputedMetrics | null;
   activeLog?: TimeLog | null;
-  tasks?: Task[];
-  logs?: TimeLog[];
-  nowIso?: string;
 }
 
 export interface UseLiveProjectElapsedResult {
@@ -125,9 +118,6 @@ export function useLiveProjectElapsed(
   const refreshIntervalMs = Math.max(4, options?.refreshIntervalMs ?? 1000);
   const metrics = options?.metrics;
   const activeLog = options?.activeLog;
-  const tasks = options?.tasks;
-  const logs = options?.logs;
-  const nowIso = options?.nowIso;
 
   const isRunning = Boolean(
     projectId && (
@@ -136,15 +126,22 @@ export function useLiveProjectElapsed(
     )
   );
 
-  const baseElapsed = (projectId && metrics?.projects?.[projectId]?.totalElapsedSeconds) ??
-    (projectId && tasks && logs ? calculateProjectElapsed(projectId, tasks, logs, nowIso) : 0);
+  const baseElapsed = (projectId && metrics?.projects?.[projectId]?.totalElapsedSeconds) ?? 0;
 
-  const [liveExtraSeconds, setLiveExtraSeconds] = useState(0);
+  const getElapsedDelta = () => {
+    if (!isRunning) return 0;
+    const startTickMs = metrics?.snapshotNowIso
+      ? new Date(metrics.snapshotNowIso).getTime()
+      : (activeLog?.startTime ? new Date(activeLog.startTime).getTime() : Date.now());
+    return Math.max(0, Math.floor((Date.now() - startTickMs) / 1000));
+  };
+
+  const [liveExtraSeconds, setLiveExtraSeconds] = useState(getElapsedDelta);
 
   const [prevProjectId, setPrevProjectId] = useState(projectId);
   if (prevProjectId !== projectId) {
     setPrevProjectId(projectId);
-    setLiveExtraSeconds(0);
+    setLiveExtraSeconds(getElapsedDelta());
   }
 
   useEffect(() => {
@@ -154,7 +151,7 @@ export function useLiveProjectElapsed(
 
     const startTickMs = metrics?.snapshotNowIso
       ? new Date(metrics.snapshotNowIso).getTime()
-      : Date.now();
+      : (activeLog?.startTime ? new Date(activeLog.startTime).getTime() : Date.now());
 
     const update = () => {
       const now = Date.now();
@@ -167,7 +164,7 @@ export function useLiveProjectElapsed(
     return () => {
       clearInterval(intervalId);
     };
-  }, [isRunning, baseElapsed, metrics?.snapshotNowIso, refreshIntervalMs]);
+  }, [isRunning, baseElapsed, metrics?.snapshotNowIso, activeLog?.startTime, refreshIntervalMs]);
 
   const elapsed = isRunning ? baseElapsed + liveExtraSeconds : baseElapsed;
 

@@ -16,11 +16,26 @@ describe('Unit Tests: useTaskItem', () => {
       { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T12:00:00Z', endTime: '2026-06-15T13:00:00Z', note: null, editHistory: null }
     ];
 
+    const mockMetrics = {
+      snapshotNowIso: '2026-06-15T14:00:00Z',
+      tasks: {
+        t1: {
+          taskId: 't1',
+          elapsedSeconds: 3600,
+          selfElapsedSeconds: 3600,
+          isRunning: false,
+          hasRunningChild: false,
+        },
+      },
+      projects: {},
+    };
+
     const { result } = renderHook(() => useTaskItem({
       rootTask,
       tasks,
       logs,
       nowIso: '2026-06-15T14:00:00Z',
+      metrics: mockMetrics,
       projectTasks
     }));
 

@@ -148,4 +148,72 @@ describe('Unit Tests: useLiveTaskElapsed & useLiveProjectElapsed', () => {
     expect(activeResult.current.elapsedSeconds).toBe(610);
     expect(inactiveResult.current.elapsedSeconds).toBe(50);
   });
+
+  it('Given null metrics during initialization, Then it should return safe 0 for inactive tasks without errors', () => {
+    const { result } = renderHook(() =>
+      useLiveTaskElapsed('task-uninitialized', { metrics: null })
+    );
+
+    expect(result.current.isRunning).toBe(false);
+    expect(result.current.elapsedSeconds).toBe(0);
+    expect(result.current.formattedElapsed).toBe('00:00:00');
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(result.current.elapsedSeconds).toBe(0);
+  });
+
+  it('Given null metrics but active log during initialization, Then it should tick live elapsed from activeLog start time', () => {
+    vi.setSystemTime(new Date('2026-06-15T12:00:00.000Z'));
+    const activeLog: TimeLog = {
+      id: 'log-transitional',
+      taskId: 'task-transitional',
+      projectId: 'proj-1',
+      startTime: '2026-06-15T11:59:50.000Z', // 10s elapsed
+    };
+
+    const { result } = renderHook(() =>
+      useLiveTaskElapsed('task-transitional', { metrics: null, activeLog })
+    );
+
+    expect(result.current.isRunning).toBe(true);
+    expect(result.current.elapsedSeconds).toBe(10);
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(result.current.elapsedSeconds).toBe(15);
+  });
+
+  it('Given changing taskId, Then it should reset live extra seconds cleanly', () => {
+    vi.setSystemTime(new Date('2026-06-15T12:00:00.000Z'));
+    const activeLog1: TimeLog = {
+      id: 'log-1',
+      taskId: 'task-active',
+      projectId: 'proj-1',
+      startTime: '2026-06-15T11:55:00.000Z',
+    };
+
+    let currentTaskId = 'task-active';
+    let currentLog: TimeLog | null = activeLog1;
+
+    const { result, rerender } = renderHook(() =>
+      useLiveTaskElapsed(currentTaskId, { metrics: baseMetrics, activeLog: currentLog })
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(result.current.elapsedSeconds).toBe(305);
+
+    currentTaskId = 'task-inactive';
+    currentLog = null;
+    rerender();
+
+    expect(result.current.isRunning).toBe(false);
+    expect(result.current.elapsedSeconds).toBe(120);
+  });
 });
