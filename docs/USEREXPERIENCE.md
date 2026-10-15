@@ -92,12 +92,36 @@ Components must gracefully handle long texts and missing data without breaking t
 
 ---
 
+## 7. Accessibility as a Core Pillar (WCAG)
+
+Accessibility is an essential aspect of UX, ensuring effortless control for every user:
+
+* Every interactive element has an accessible name (`aria-label`, `title`) so screen readers and assistive devices can operate seamlessly.
+* Full keyboard navigation without requiring mouse interaction: Tab loops, Enter activation, and Escape cancellation.
+* Focus management and modal dialog traps: opening a modal keeps focus inside, closing it restores focus to the trigger.
+* Live status reporting: CLI logs and background daemon updates announce changes politely (`aria-live="polite"`).
+
+---
+
+## 8. Frictionless Multilingual Flow (i18n)
+
+Localization must be instantaneous, robust, and zero-distraction:
+
+* Real-time locale switching across 6 supported languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) without application reloads.
+* Automatic fallback: If a user translation is missing, the interface falls back to standard dictionaries seamlessly without layout jumping or placeholder breakage.
+* Consistent domain terminology across the Graphical User Interface (GUI), Command Line Interface (CLI), and system tray.
+
+---
+
 ## Definition of a UX Bug
 
 Any of the following must be treated as a bug, equivalent to a system crash:
 
 * The user has to click more than twice for a core action.
 * The user cannot intuitively find a feature within 2 seconds.
+* An interactive element cannot be navigated or triggered via keyboard.
+* An icon button lacks an accessible name or tooltip.
+* Text overflows or breaks layout due to language length differences.
 * The UI freezes or drops frames.
 * The application steals focus aggressively.
 * A CLI command feels unnatural or contradicts GUI behavior.

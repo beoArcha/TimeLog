@@ -359,18 +359,18 @@ Feature parity and clean contract separation.
 
 ---
 
-### Phase 5 — MVP & Hardening
+### Phase 5 — Unified Design System, Architectural Guardrails, a11y & i18n ✅
 
-* Timer
-* Projects
-* Tasks
-* Configuration
+* **Primitive & Composite UI Layers**: Complete design system implementation (`src/components/ui/` primitives and `src/components/` composites).
+* **Automated Architectural Enforcement**: Vitest AST scanner (`no-raw-html-primitives.rule.ts`) and ESLint rules enforcing zero raw HTML elements outside `src/components/ui/` with zero allowlist exceptions.
+* **WCAG Accessibility (a11y)**: Modal dialog traps, accessible names for all interactive controls, `<Label>` association, ARIA Live terminal regions.
+* **Universal Internationalization (i18n)**: Fully typed keys in `keys.ts` across 6 locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) with automatic English dictionary fallback (zero `{translate(...) || '...'}` anti-patterns).
+* **Semantic Theme Tokens**: Elimination of hardcoded hex values in favor of adaptive CSS variables (`light`, `dark`, `high-contrast`).
+* **Complete Test Suite**: 100% green across 113 test files (628 tests) verified via `npm run check:frontend`.
 
 ---
 
-### Phase 5 — MVP
-
-Stable daily application.
+### Phase 6 — Data Reliability & Hardening
 
 ---
 

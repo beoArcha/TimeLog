@@ -231,7 +231,7 @@ It never changes layout.
 
 ---
 
-## CSS Rules
+## CSS & Theming Rules
 
 Presentation belongs to CSS.
 
@@ -252,6 +252,68 @@ padding: var(--spacing-card);
 ```
 
 Never generate React code that calculates visual scale.
+Never use hardcoded hex values (e.g. `#FCFAF8`, `#DFD7CB`, `#2C2421`) in components or Tailwind classes.
+Use semantic tokens (`bg-card`, `border-border`, `text-card-foreground`, `bg-background`, `text-foreground`).
+
+---
+
+## Design System & Primitive UI Components
+
+All user interface controls are partitioned into:
+
+1. Primitives: `src/components/ui/` (`Button`, `Input`, `Label`, `Select`, `Checkbox`, `Card`, `Table`, `Tabs`, `SearchInput`)
+2. Composites: `src/components/` (`StatCard`, `CollapsibleCard`, `ConfirmDialog`, `PromptDialog`, `SegmentedControl`, `EmptyState`, `DataTable`)
+
+### Absolute Rule: Zero Raw HTML Primitives
+
+AI assistants must NEVER use raw HTML interactive elements:
+`<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>`
+outside `src/components/ui/`.
+
+Always use primitives from `@components/ui/...` or composites from `@components/...`.
+This rule is strictly enforced by the AST architecture test (`tests/architecture/specs/no-raw-html-primitives.arch.test.ts`) and ESLint `no-restricted-syntax`.
+
+---
+
+## Internationalization (i18n) Rules
+
+All user-facing text, titles, placeholders, and accessible names MUST use `translate(...)` or `useTranslation`.
+
+### Anti-Pattern Prohibition: No Manual Fallback Operators
+
+Never write:
+`{translate(...) || 'Fallback'}`
+
+The `translator.ts` engine automatically defaults to the `en` dictionary if a key is missing. Adding `|| '...'` creates clutter, obscures missing dictionary entries, and violates i18n standards.
+
+### Complete Dictionary Coverage
+
+Whenever adding a new translation key:
+
+1. Add it to all 6 locales: `en`, `pl`, `de`, `es`, `fr`, `pt-br`.
+2. Register the key in `src/common/i18n/keys.ts`.
+
+---
+
+## Accessibility (a11y) Rules
+
+Every UI component must follow WCAG standards:
+
+- Every interactive element (especially icon buttons) must have an accessible name via `aria-label` or `title`.
+- Modals must have `role="dialog"`, `aria-modal="true"`, and `aria-labelledby`.
+- Terminal and daemon logs must have `role="log"` and `aria-live="polite"`.
+- Form inputs must be linked with `<Label htmlFor="...">` or have an `aria-label`.
+- All controls must be navigable and operable using the keyboard (Tab, Enter, Space, Escape).
+
+---
+
+## Clean Code & Comments Rules
+
+1. Language: All code, comments, test descriptions, and test IDs MUST be in English.
+2. Purpose: Comments should only explain technical or business rationale.
+3. No Declarative Claims: Never write comments stating compliance ("adhering to WCAG...", "fully integrated with i18n...").
+4. No Decorative Banners: Never use `===`, `***`, or ASCII dividers.
+5. Standard: Use JSDoc for exported functions, interfaces, and components when clarifying non-obvious behavior.
 
 ---
 
@@ -521,11 +583,16 @@ A task is complete only if:
 
 - Architecture remains consistent.
 - Responsibilities remain clear.
-- Tests pass.
-- TypeScript passes.
-- Rust builds.
-- Formatting passes.
-- Documentation is updated.
+- Zero raw HTML primitives outside `src/components/ui/`.
+- No `{translate(...) || 'Fallback'}` anti-patterns.
+- All interactive elements meet a11y standards (accessible names, roles, focus).
+- Tests pass (`npm run test`).
+- Architectural tests pass (`npm run test:arch`).
+- TypeScript passes (`npm run typecheck`).
+- Lint passes (`npm run lint`).
+- Combined check passes (`npm run check:frontend`).
+- Rust builds and passes check if backend touched.
+- Documentation is updated (`docs/`, `AGENT.md`).
 - Runtime independence is preserved.
 - Layout independence is preserved.
 - Visual scaling remains CSS-driven.

@@ -83,8 +83,8 @@ To understand how oXyFlow is built and maintained, please review our core manife
 ## 🛠 Technology Stack
 
 **Backend:** Rust, Tauri, SQLite
-**Frontend:** React, TypeScript, Vite, Motion
-**Quality:** Playwright (e2e), Cargo Test, ESLint, strict TypeScript
+**Frontend:** React, TypeScript, Vite, Motion, Tailwind CSS v4, Base-UI / Radix
+**Quality:** Vitest, Playwright (e2e), AST Architecture Rules, Cargo Test, ESLint, strict TypeScript
 
 ---
 
@@ -102,14 +102,16 @@ Run the application (Desktop Runtime):
 npm run tauri dev
 ```
 
-Verify code quality:
+Verify code quality (automated frontend suite):
 
 ```bash
-npm run lint
-npm run typecheck
-npm run test
+npm run check:frontend
+```
 
-cargo fmt
+Verify backend:
+
+```bash
+cargo fmt --check
 cargo test
 ```
 

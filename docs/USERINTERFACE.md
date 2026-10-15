@@ -183,15 +183,71 @@ No custom layout inventions.
 
 ---
 
-### Reusable Atomic UI Controls
+### Design System Architecture
 
-Primitive and domain-agnostic UI elements reside strictly in `src/components/ui/`:
+The UI is strictly organized into two distinct layers of reusable components:
 
+#### 1. Primitive UI Controls (`src/components/ui/`)
+
+Atomic, domain-agnostic headless primitives built on top of Radix / Base-UI and styled with Tailwind CSS design tokens:
+
+- `Button`: Interactive button with size (`default`, `sm`, `lg`, `icon`, `icon-xs`) and variant (`default`, `accent`, `destructive`, `outline`, `ghost`, `link`) tokens.
+- `Input`: Accessible input control with focus rings and tokenized padding.
+- `Label`: Accessible label component built on Radix Label primitives.
+- `Select`: Accessible dropdown selector (`Select`, `SelectTrigger`, `SelectContent`, `SelectItem`, `SelectValue`).
+- `Checkbox`: Accessible toggle control with checked indicator.
+- `Card`: Container primitive (`Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`).
+- `Table`: Tabular primitives (`Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`).
+- `Tabs`: Segmented tab switching primitives (`Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`).
+- `SearchInput`: Standardized search box with integrated search icon, clear button, and accessible input.
 - `ProjectBadge`: Standardized project color dot/icon + truncated title badge.
-- `TimerDisplay`: Standardized monospace timer display with design tokens and active states.
-- `Button`, `Card`, `Input`, `Tabs`: Headless Base-UI primitives styled with Tailwind design tokens.
+- `TimerDisplay`: Monospace timer display with design tokens and active live states.
 
-Components must consume these shared controls rather than re-implementing ad-hoc styled spans or timer paragraphs.
+#### 2. Composite Components (`src/components/`)
+
+Higher-level UX building blocks composed entirely of UI primitives:
+
+- `StatCard`: Metric summary card with title, icon, value, optional delta badge, and trend indicator.
+- `CollapsibleCard`: Expandable section card with header, badge count, actions, and animated collapsible body.
+- `ConfirmDialog`: Accessible confirmation dialog replacing browser `confirm()` with semantic cancel and action buttons.
+- `PromptDialog`: Accessible input dialog replacing browser `prompt()`.
+- `SegmentedControl`: Compact option switcher replacing ad-hoc button groups.
+- `EmptyState`: Standardized empty view displaying icon, message, and call-to-action button.
+- `DataTable`: Unified table wrapper featuring scrollable viewport and tokenized layout.
+
+---
+
+### Architectural Protection: Zero Raw HTML Primitives
+
+Raw HTML form and table tags are strictly forbidden outside `src/components/ui/`:
+
+- **Forbidden elements**: `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>`.
+- **Enforcement**:
+  1. **Vitest Architecture Rule** (`tests/architecture/rules/no-raw-html-primitives.rule.ts`): Parses TypeScript AST to ensure zero instances across all feature views and layouts. Zero allowlist exceptions.
+  2. **ESLint AST Rule** (`eslint.config.js`): Uses `no-restricted-syntax` to report forbidden raw JSX elements in real time in IDE and during linting.
+
+---
+
+### Accessibility (a11y) & WCAG Guidelines
+
+All interactive elements must guarantee accessible operation:
+
+- **Accessible Names**: All icon buttons and interactive controls must have an `aria-label` or `title`.
+- **Form Association**: Every `<Input>` must have an associated `<Label htmlFor="...">` or explicit `aria-label`.
+- **Modal Dialogs**: Modals must declare `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` referencing the modal title.
+- **Dynamic Content**: Terminal and daemon logging areas must declare `role="log"` and `aria-live="polite"`.
+- **Keyboard Navigation**: All interactive elements must support keyboard focus (`tabIndex`, Enter/Space activation, Escape to close/cancel).
+
+---
+
+### Internationalization (i18n) Standards
+
+The interface is completely localized across 6 languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`):
+
+- **Universal Translation Pipeline**: All text, titles, placeholders, and accessible labels must use `translate(locale, domain, key, customTranslations)` or `useTranslation`.
+- **Automatic Fallback (No Anti-Patterns)**: Never use manual fallback operators in JSX templates (`{translate(...) || 'Fallback'}`). The `translator.ts` engine automatically defaults to the `en` dictionary if a key is missing.
+- **Type Safety**: All translation domains and keys are strongly typed in `src/common/i18n/keys.ts`.
+- **Completeness**: Any new translation key introduced must be added to all 6 dictionary files (`cli.json`, `common.json`, `database.json`, `help.json`, `project.json`, `settings.json`, `task.json`, `timer.json`).
 
 ---
 
@@ -224,21 +280,21 @@ Layout Builders compose autonomous sub-parts rather than nesting large inline te
 
 ---
 
-## CSS Strategy
+## CSS & Theming Strategy
 
-UI must be driven by state, not hardcoded values.
+UI must be driven by semantic design tokens, not hardcoded values.
 
 Required approach:
 
-- CSS variables
-- data-attributes (e.g. `data-layout`, `data-size`)
-- proportional units (%, vw)
+- Semantic CSS variables (`bg-card`, `border-border`, `text-card-foreground`, `bg-background`, `text-foreground`, `text-muted-foreground`, etc.).
+- Tokens adapt automatically across `light`, `dark`, and `high-contrast` themes.
+- Proportional units and spacing variables.
 
 Forbidden:
 
-- inline styles
-- page-specific hacks
-- pixel-based layout logic
+- Inline hex values (e.g. `bg-[#FCFAF8]`, `border-[#DFD7CB]`, `text-[#2C2421]`).
+- Page-specific CSS overrides or ad-hoc style tags.
+- Pixel-based layout logic.
 
 ---
 

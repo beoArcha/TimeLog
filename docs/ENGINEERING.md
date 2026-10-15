@@ -431,7 +431,14 @@ Builders never define runtime behavior.
 
 ---
 
-## Testing Strategy
+### Architectural Tests
+
+* AST scanning for raw HTML primitives (`no-raw-html-primitives.rule.ts` with zero exceptions)
+* Runtime isolation and boundary checks
+* Circular dependency detection
+* Persistence boundary enforcement
+
+---
 
 ### Unit Tests
 
@@ -439,6 +446,7 @@ Builders never define runtime behavior.
 * plugins
 * repositories
 * builders
+* design system primitives and composites
 
 ---
 
@@ -448,6 +456,7 @@ Builders never define runtime behavior.
 * runtime communication
 * tauri commands
 * persistence
+* composite dialogs and view workflows
 
 ---
 
@@ -457,6 +466,26 @@ Builders never define runtime behavior.
 * project workflow
 * task workflow
 * configuration
+
+---
+
+## Design System, a11y & i18n Standards
+
+### 1. Primitive UI Layer
+
+All atomic interactive elements belong exclusively in `src/components/ui/`. Writing raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>` anywhere else is an architectural violation enforced by tests and linter.
+
+### 2. Internationalization (i18n)
+
+All user-facing strings, labels, and placeholders must use `translate(...)` or `useTranslation`. Never use manual fallback operators in JSX (`{translate(...) || 'Fallback'}`); fallback to `en` dictionary is handled by the translation engine.
+
+### 3. Accessibility (a11y)
+
+All buttons, inputs, modals, and tables must meet WCAG standards with proper ARIA attributes (`aria-label`, `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, `role="log"`).
+
+### 4. Code Comments & Clean Code
+
+Comments must explain technical or business rationale only. Never write declarative claims ("adhering to WCAG..."), decorative dividers (`===`, `***`), or Polish comments. Use concise technical English.
 
 ---
 
