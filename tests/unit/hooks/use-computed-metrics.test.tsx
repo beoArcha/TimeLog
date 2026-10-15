@@ -35,7 +35,7 @@ describe('Unit Tests: useComputedMetrics Hook', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       computedMetrics: mockMetrics,
       refreshComputedMetrics: mockRefresh,
-    } as any);
+    } as unknown as DataContextModule.DataState);
 
     const { result } = renderHook(() => useComputedMetrics());
 

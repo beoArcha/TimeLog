@@ -55,7 +55,7 @@ export default function HolidaysLeavesView() {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label className="text-[10px] font-mono tracking-wider text-muted-foreground uppercase">{translate(locale, 'common', 'Type', customTranslations)}</Label>
-              <NativeSelect value={newHolidayType} onChange={e => setNewHolidayType(e.target.value as any)} className="w-full font-mono">
+              <NativeSelect value={newHolidayType} onChange={e => setNewHolidayType(e.target.value as 'holiday' | 'leave')} className="w-full font-mono">
                 <option value="leave">{translate(locale, 'calendar', 'VacationLeave', customTranslations)}</option>
                 <option value="holiday">{translate(locale, 'calendar', 'OfficialHoliday', customTranslations)}</option>
               </NativeSelect>

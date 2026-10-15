@@ -4,7 +4,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import EngineConfig from '@/src/features/settings/components/EngineConfig';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: EngineConfig', () => {
   afterEach(() => {
@@ -12,9 +12,9 @@ describe('Unit Tests: EngineConfig', () => {
     vi.restoreAllMocks();
   });
 
-  const renderEngineConfig = (overrides: Partial<any> = {}) => {
+  const renderEngineConfig = (overrides: Partial<OxyFlowState> = {}) => {
     const baseState = getMockOxyFlowState();
-    const state = { ...baseState, ...overrides } as any;
+    const state = { ...baseState, ...overrides };
     return render(
       <MockProviders state={state}>
         <EngineConfig />

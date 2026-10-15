@@ -4,9 +4,14 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import CreditsModal from '@layouts/components/CreditsModal';
-import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
-function createCreditsModalState(overrides: Partial<any> = {}): any {
+type CreditsModalState = OxyFlowState & {
+  showCreditsModal?: boolean;
+  setShowCreditsModal?: (show: boolean) => void;
+};
+
+function createCreditsModalState(overrides: Partial<CreditsModalState> = {}): CreditsModalState {
   return {
     ...getMockOxyFlowState(),
     showCreditsModal: true,

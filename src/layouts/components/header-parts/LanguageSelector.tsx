@@ -2,6 +2,7 @@ import React from 'react';
 import { Languages } from 'lucide-react';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
+import { Locale } from '@bindings/Locale';
 import { Button } from '@components/ui/button';
 import {
   Select,
@@ -27,7 +28,7 @@ export const LanguageSelector: React.FC = () => {
         <Select
           value={localePref}
           onValueChange={(val) => {
-            if (val) setLocalePref(val as any);
+            if (val) setLocalePref(val as Locale);
           }}
         >
           <SelectTrigger

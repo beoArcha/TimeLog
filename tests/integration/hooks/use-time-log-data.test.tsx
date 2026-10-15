@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
-import { setupLocalStorageMock } from '@tests/shared/test-helpers';
+import { setupLocalStorageMock, setupWindowLocationMock } from '@tests/shared/test-helpers';
 import { useTimeLogData } from '@common/hooks/useTimeLogData';
 import { TEST_CONSTANTS } from '@tests/shared/test-constants';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
@@ -10,18 +10,14 @@ const LOCAL_STORAGE_KEY = 'timelog_persistence_plugin_state';
 
 describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
   const pushToApi = vi.fn();
-  const originalLocation = window.location;
+  let locationMock: ReturnType<typeof setupWindowLocationMock>;
 
   beforeAll(() => {
-    delete (window as any).location;
-    window.location = {
-      ...originalLocation,
-      reload: vi.fn(),
-    } as any;
+    locationMock = setupWindowLocationMock();
   });
 
   afterAll(() => {
-    (window as any).location = originalLocation;
+    locationMock.restore();
   });
 
   beforeEach(async () => {

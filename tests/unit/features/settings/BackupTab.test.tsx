@@ -4,14 +4,14 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import BackupTab from '@features/settings/BackupTab';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: BackupTab', () => {
   const handleRestoreStateMock = vi.fn();
   const setProjectsMock = vi.fn();
   Object.defineProperty(setProjectsMock, '_isMockFunction', { value: true });
 
-  const mockState: any = {
+  const mockState: OxyFlowState = {
     ...getMockOxyFlowState(),
     locale: 'en',
     customTranslations: {},

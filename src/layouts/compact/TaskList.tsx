@@ -2,6 +2,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { Project } from '@bindings/Project';
 import { translate } from '@common/i18n/translator';
+import { TranslationDictionary } from '@common/i18n/types';
 import { TaskCard } from './TaskCard';
 import { Locale } from '@/src/bindings/Locale';
 
@@ -10,9 +11,8 @@ interface TaskListProps {
   rootTasks: Task[];
   allTasks: Task[];
   activeLog: TimeLog | null;
-  resolvedTheme?: string | undefined;
   locale: Locale;
-  customTranslations: any;
+  customTranslations?: Partial<TranslationDictionary>;
   onStartTimer: (taskId: string) => void;
   onStopTimer: () => void;
   showToast: (msg: string) => void;

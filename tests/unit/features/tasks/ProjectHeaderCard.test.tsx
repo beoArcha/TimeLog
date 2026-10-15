@@ -68,7 +68,7 @@ describe('Unit Tests: ProjectHeaderCard', () => {
     const projectWithoutColor: Project = {
       id: 'proj_2',
       name: 'Project Beta',
-      color: undefined as any,
+      color: undefined as unknown as string,
       createdAt: '2026-06-12T00:00:00Z'
     };
 

@@ -1,11 +1,12 @@
 import React from 'react';
 import { translate } from '@common/i18n/translator';
+import { TranslationDictionary } from '@common/i18n/types';
 import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
 
 interface AppFooterProps {
   locale: Locale;
-  customTranslations: any;
+  customTranslations?: Partial<TranslationDictionary>;
   handleResetLocalStorage: () => void;
   setShowCreditsModal: (show: boolean) => void;
 }

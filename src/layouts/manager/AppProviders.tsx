@@ -1,8 +1,8 @@
 import React from 'react';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
-import { SettingsProvider } from '@common/hooks/SettingsContext';
-import { DataProvider } from '@common/hooks/DataContext';
-import { WindowShellProvider } from '@common/contexts/WindowShellContext';
+import { SettingsProvider } from '@common/hooks/SettingsProvider';
+import { DataProvider } from '@common/hooks/DataProvider';
+import { WindowShellProvider } from '@common/contexts/WindowShellProvider';
 
 interface AppProvidersProps {
   children: React.ReactNode;

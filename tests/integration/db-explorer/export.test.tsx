@@ -68,7 +68,7 @@ describe('Integration Tests: DbExplorer Export Database', () => {
     const value = { ...defaultState, ...customValue };
     const utils = render(
       <LocaleProvider>
-        <MockProviders state={value as any}>
+        <MockProviders state={value}>
           <DbExplorer />
         </MockProviders>
       </LocaleProvider>
@@ -89,7 +89,7 @@ describe('Integration Tests: DbExplorer Export Database', () => {
       download: '',
       click: clickSpy
     };
-    vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
+    vi.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLAnchorElement);
 
     fireEvent.click(exportBtn);
 

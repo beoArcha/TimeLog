@@ -8,7 +8,7 @@ import { STORAGE_KEYS } from '@common/constants';
 describe('Unit Tests: useExternalApiSync Hook', () => {
   beforeEach(() => {
     setupLocalStorageMock();
-    global.fetch = vi.fn().mockResolvedValue({ json: () => Promise.resolve({ ok: true }) } as any);
+    global.fetch = vi.fn().mockResolvedValue({ json: () => Promise.resolve({ ok: true }) } as unknown as Response);
     vi.spyOn(console, 'log').mockImplementation(() => { });
   });
 

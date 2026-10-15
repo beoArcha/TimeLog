@@ -6,11 +6,45 @@ import { TaskHeader } from './TaskHeader';
 import { TaskMetrics } from './TaskMetrics';
 import { SubtaskForm } from './SubtaskForm';
 import { SubtaskList } from './SubtaskList';
+import { Project } from '@bindings/Project';
+import { TimeLog } from '@bindings/TimeLog';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 
-interface TaskItemProps {
+import { TaskStatus } from '@bindings/TaskStatus';
+
+export interface TaskItemState {
+  tasks: Task[];
+  logs: TimeLog[];
+  nowIso?: string;
+  projectTasks: Task[];
+  selectedProject: Project | null;
+  onToggleTaskComplete: (taskId: string) => void;
+  onRenameTask: (taskId: string, newName: string) => void;
+  onUpdateTask?: (
+    taskId: string,
+    name: string,
+    parentTaskId: string | null,
+    status: TaskStatus | null,
+    completed: boolean | null
+  ) => void;
+  onDeleteTask: (taskId: string) => void;
+  onStartTimer: (taskId: string) => void;
+  onAddTask: (projectId: string, name: string, parentId: string | null) => void;
+  showSubtaskFormForId?: string | null;
+  setShowSubtaskFormForId?: (val: string | null) => void;
+  newSubtaskName?: string;
+  setNewSubtaskName?: (val: string) => void;
+  editingId?: string | null;
+  setEditingId?: (val: string | null) => void;
+  editName?: string;
+  setEditName?: (val: string) => void;
+  metrics?: EngineComputedMetrics | null;
+}
+
+export interface TaskItemProps {
   key?: React.Key;
   rootTask: Task;
-  state: any;
+  state: TaskItemState;
   isCondensed: boolean;
 }
 

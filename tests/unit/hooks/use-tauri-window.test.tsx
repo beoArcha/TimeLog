@@ -10,6 +10,7 @@ import {
   triggerTauriEvent,
   setupLocalStorageMock,
   setupMatchMediaMock,
+  setTauriDesktopEnvironment,
 } from '@tests/shared/test-helpers';
 
 import { useTauriWindow } from '@common/tauri/useTauriWindow';
@@ -38,11 +39,11 @@ describe('Unit Tests: useTauriWindow Hook', () => {
     setupLocalStorageMock();
     setupMatchMediaMock(false);
     vi.spyOn(console, 'error').mockImplementation(() => { });
-    (window as any).__TAURI_INTERNALS__ = {};
+    setTauriDesktopEnvironment(true);
   });
 
   afterEach(() => {
-    delete (window as any).__TAURI_INTERNALS__;
+    setTauriDesktopEnvironment(false);
     vi.restoreAllMocks();
   });
 
@@ -216,7 +217,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
   });
 
   it('should_set_isMinimized_when_handleMinimizeToTray_is_called_outside_tauri_with_minimizeToTray_true', async () => {
-    delete (window as any).__TAURI_INTERNALS__;
+    setTauriDesktopEnvironment(false);
     const { result } = renderHook(() => useTauriWindow({
       ...defaultProps,
       minimizeToTray: true,
@@ -230,7 +231,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
   });
 
   it('should_set_isGuiClosed_when_handleMinimizeToTray_is_called_outside_tauri_with_minimizeToTray_false', async () => {
-    delete (window as any).__TAURI_INTERNALS__;
+    setTauriDesktopEnvironment(false);
     const { result } = renderHook(() => useTauriWindow({
       ...defaultProps,
       minimizeToTray: false,
@@ -244,7 +245,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
   });
 
   it('should_set_isGuiClosed_when_handleCloseWindow_is_called_outside_tauri', async () => {
-    delete (window as any).__TAURI_INTERNALS__;
+    setTauriDesktopEnvironment(false);
     const { result } = renderHook(() => useTauriWindow(defaultProps));
 
     await act(async () => {
@@ -255,7 +256,7 @@ describe('Unit Tests: useTauriWindow Hook', () => {
   });
 
   it('should_set_isMinimized_when_handleMinimizeWindow_is_called_outside_tauri', async () => {
-    delete (window as any).__TAURI_INTERNALS__;
+    setTauriDesktopEnvironment(false);
     const { result } = renderHook(() => useTauriWindow(defaultProps));
 
     await act(async () => {

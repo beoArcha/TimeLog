@@ -1,13 +1,13 @@
 import { ChevronDown } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
+import { TranslationDictionary } from '@common/i18n/types';
 import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
 
 interface TaskVisibilityToggleProps {
   isExpanded: boolean;
-  resolvedTheme?: string | undefined;
   locale: Locale;
-  customTranslations: any;
+  customTranslations?: Partial<TranslationDictionary>;
   onToggle: () => void;
 }
 
