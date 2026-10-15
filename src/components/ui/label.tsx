@@ -1,22 +1,7 @@
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import { type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-
-const labelVariants = cva(
-  "text-xs font-semibold leading-none select-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-  {
-    variants: {
-      variant: {
-        default: "",
-        muted: "text-muted-foreground font-normal",
-        error: "text-destructive font-medium",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-);
+import { labelVariants } from "./label-variants";
 
 export type LabelProps = React.LabelHTMLAttributes<HTMLLabelElement> &
   VariantProps<typeof labelVariants>;
@@ -34,4 +19,5 @@ function Label({ className, variant, ...props }: LabelProps) {
   );
 }
 
-export { Label, labelVariants };
+export { Label };
+

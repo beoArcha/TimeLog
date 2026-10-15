@@ -6,5 +6,4 @@ export {
   type WindowShellState as EngineState,
   WindowShellContext as EngineContext,
   useWindowShell as useEngine,
-  WindowShellProvider as EngineProvider,
 } from '../contexts/WindowShellContext';

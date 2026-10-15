@@ -1,6 +1,5 @@
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import { useTimeLogData } from './useTimeLogData';
-import { useSettings } from './SettingsContext';
 import { ContextException } from '../exceptions';
 
 export type DataState = ReturnType<typeof useTimeLogData>;
@@ -83,10 +82,4 @@ export const useDataLifecycleState = () => {
     handleResetLocalStorage: data.handleResetLocalStorage,
     handleRestoreState: data.handleRestoreState,
   };
-};
-
-export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { pushToApi } = useSettings();
-  const state = useTimeLogData(pushToApi);
-  return <DataContext.Provider value={state}>{children}</DataContext.Provider>;
 };
