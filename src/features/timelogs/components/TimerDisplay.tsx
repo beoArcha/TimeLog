@@ -8,7 +8,6 @@ export interface TimerDisplayProps {
   isRunning?: boolean;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'plain' | 'pill' | 'highlight';
-  theme?: string;
   id?: string;
   className?: string;
 }
@@ -21,7 +20,6 @@ export function TimerDisplay({
   isRunning = false,
   size = 'md',
   variant = 'plain',
-  theme,
   id,
   className,
 }: TimerDisplayProps) {
@@ -37,22 +35,17 @@ export function TimerDisplay({
 
   const variantClasses = {
     plain: cn(
-      theme === 'light' ? 'text-foreground' : 'text-foreground',
+      'text-foreground',
       isRunning && 'text-orange-500 dark:text-orange-400'
     ),
     pill: cn(
       'px-2 py-0.5 rounded-md border transition-all inline-flex items-center justify-center',
       isRunning
         ? 'bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold'
-        : theme === 'light'
-          ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#7A6A61]'
-          : 'bg-muted border-border border-white/10 text-muted-foreground'
+        : 'bg-muted border-border text-muted-foreground'
     ),
     highlight: cn(
-      'px-2.5 py-1 rounded-full border transition-all inline-flex items-center justify-center font-bold',
-      theme === 'high-contrast'
-        ? 'bg-black border-white text-white'
-        : 'bg-card border-border text-foreground'
+      'px-2.5 py-1 rounded-full border border-border bg-card text-card-foreground transition-all inline-flex items-center justify-center font-bold'
     ),
   }[variant];
 

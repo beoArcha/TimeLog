@@ -242,6 +242,7 @@ React components should not calculate:
 - typography
 - paddings
 - icon sizes
+- theme visual variants via inline branching
 
 Components consume Design Tokens only.
 
@@ -254,6 +255,21 @@ padding: var(--spacing-card);
 Never generate React code that calculates visual scale.
 Never use hardcoded hex values (e.g. `#FCFAF8`, `#DFD7CB`, `#2C2421`) in components or Tailwind classes.
 Use semantic tokens (`bg-card`, `border-border`, `text-card-foreground`, `bg-background`, `text-foreground`).
+
+### Theme Dependency Inversion Principle (DIP)
+
+UI components must NEVER branch on active themes using inline ternaries:
+
+- Forbidden: `resolvedTheme === 'light' ? ... : ...`
+- Forbidden: `theme === 'high-contrast' ? ... : ...`
+- Forbidden: `theme === 'dark' ? ... : ...`
+
+Instead, follow DIP and Kiss:
+
+1. Components consume semantic CSS utility classes or CSS custom properties directly.
+2. The global visual theme identity is managed by `ThemeRegistry` (`src/styles/themeRegistry.ts`) which sets `data-theme="..."` on `document.documentElement`.
+3. New themes (e.g., custom high-contrast or branded themes) are registered via `ThemeRegistry.getInstance().register(...)` with their respective CSS variables without modifying any UI component code.
+4. Enforced automatically across the entire codebase by the AST architecture test `tests/architecture/specs/no-inline-theme-ternaries.arch.test.ts`.
 
 ---
 

@@ -7,13 +7,11 @@ import { Button } from '@components/ui/button';
 
 export const LayoutSelector: React.FC = () => {
   const { locale, customTranslations } = useLocale();
-  const { layoutVariant, setLayoutVariant, resolvedTheme } = useSettings();
+  const { layoutVariant, setLayoutVariant } = useSettings();
   const { showToast } = useWindowShell();
 
   return (
-    <div className={`flex p-0.5 rounded-lg border transition-all duration-300 text-[10px] font-sans ${
-      resolvedTheme === 'light' ? 'bg-muted/40 border-border' : 'bg-slate-950/40 border-white/10'
-    }`}>
+    <div className="flex p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-[10px] font-sans">
       {(['compact', 'medium', 'full'] as const).map(sz => {
         const isActive = layoutVariant === sz;
         const fullLabel = sz === 'compact'
@@ -34,14 +32,11 @@ export const LayoutSelector: React.FC = () => {
               }
             }}
             title={fullLabel}
-            className={`px-1.5 sm:px-2.5 py-0.5 h-auto rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${isActive
-              ? resolvedTheme === 'light'
+            className={`px-1.5 sm:px-2.5 py-0.5 h-auto rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+              isActive
                 ? 'bg-card text-foreground border border-border shadow-xs font-bold'
-                : 'bg-card/10 text-white border border-white/10 font-bold'
-              : resolvedTheme === 'light'
-                ? 'text-muted-foreground hover:text-foreground'
-                : 'text-muted-foreground hover:text-white'
-              }`}
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
           >
             <span className={layoutVariant === 'full' ? 'hidden sm:inline' : 'hidden'}>{fullLabel}</span>
             <span className={layoutVariant === 'full' ? 'sm:hidden' : ''}>{sz === 'compact' ? 'S' : sz === 'medium' ? 'M' : 'L'}</span>

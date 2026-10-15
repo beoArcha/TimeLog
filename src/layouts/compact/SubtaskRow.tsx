@@ -49,7 +49,7 @@ export function SubtaskRow({
   return (
     <div className="flex items-center justify-between gap-2 py-0.5">
       <span
-        className={`text-[11px] truncate flex-1 ${subtask.completed ? 'line-through text-slate-500' : 'text-slate-300'
+        className={`text-[11px] truncate flex-1 ${subtask.completed ? 'line-through text-muted-foreground' : 'text-foreground'
           }`}
       >
         ↳ {subtask.name}

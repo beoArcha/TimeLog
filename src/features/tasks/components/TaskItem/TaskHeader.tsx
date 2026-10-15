@@ -20,8 +20,6 @@ interface TaskHeaderProps {
   runningSubtask: Task | undefined;
   editingId: string | null;
   editName: string;
-  theme: string;
-  th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
   onUpdateTask: ((
@@ -43,8 +41,6 @@ export function TaskHeader({
   runningSubtask,
   editingId,
   editName,
-  theme,
-  th,
   onToggleTaskComplete,
   onRenameTask,
   onUpdateTask,
@@ -64,7 +60,7 @@ export function TaskHeader({
         size="icon-xs"
         aria-checked={rootTask.completed}
         onClick={() => onToggleTaskComplete(rootTask.id)}
-        className={`${th.textMuted} hover:text-orange-500 transition-colors cursor-pointer shrink-0 mt-0.5 sm:mt-0 p-0 h-auto`}
+        className="text-muted-foreground hover:text-orange-500 transition-colors cursor-pointer shrink-0 mt-0.5 sm:mt-0 p-0 h-auto"
       >
         {rootTask.completed ? (
           <CheckSquare className={`icon-medium text-orange-500 fill-orange-500/10`} />
@@ -81,7 +77,6 @@ export function TaskHeader({
               taskName={rootTask.name}
               editName={editName}
               isEditing={isEditing}
-              theme={theme}
               textSizeClass={`font-semibold text-main`}
               onRenameTask={onRenameTask}
               setEditName={setEditName}
@@ -91,9 +86,7 @@ export function TaskHeader({
             <span
               className={`font-semibold text-title flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${rootTask.completed
                   ? 'line-through text-muted-foreground font-normal'
-                  : theme === 'light'
-                    ? 'text-foreground'
-                    : 'text-slate-100'
+                  : 'text-foreground'
                 }`}
             >
               <span className="truncate block max-w-full" title={rootTask.name}>
@@ -157,7 +150,7 @@ export function TaskHeader({
           <TaskActions
             taskId={rootTask.id}
             taskName={rootTask.name}
-            deleteTitle={tTask('DeleteTask') || 'Delete task'}
+            deleteTitle={tTask('DeleteTask')}
             pencilSize="w-3.5 h-3.5"
             trashSize="w-3.5 h-3.5"
             onDeleteTask={onDeleteTask}

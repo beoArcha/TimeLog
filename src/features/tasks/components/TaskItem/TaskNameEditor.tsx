@@ -7,7 +7,6 @@ interface TaskNameEditorProps {
   taskName: string;
   editName: string;
   isEditing: boolean;
-  theme: string;
   textSizeClass: string;
   onRenameTask: ((id: string, name: string) => void) | undefined;
   setEditName: (name: string) => void;
@@ -19,7 +18,6 @@ export function TaskNameEditor({
   taskName,
   editName,
   isEditing,
-  theme,
   textSizeClass,
   onRenameTask,
   setEditName,
@@ -55,10 +53,7 @@ export function TaskNameEditor({
       onBlur={commitEdit}
       onKeyDown={handleKeyDown}
       aria-label={tCommon('EditName')}
-      className={`font-semibold ${textSizeClass} rounded px-1 outline-none w-full max-w-sm mr-2 h-7 ${theme === 'light'
-          ? 'bg-background text-foreground border-border'
-          : 'bg-black text-white border-white/20'
-        }`}
+      className={`font-semibold ${textSizeClass} rounded px-1 outline-none w-full max-w-sm mr-2 h-7 bg-background text-foreground border-border`}
     />
   );
 }

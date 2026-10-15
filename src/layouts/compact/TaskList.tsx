@@ -10,7 +10,7 @@ interface TaskListProps {
   rootTasks: Task[];
   allTasks: Task[];
   activeLog: TimeLog | null;
-  resolvedTheme: string | undefined;
+  resolvedTheme?: string | undefined;
   locale: Locale;
   customTranslations: any;
   onStartTimer: (taskId: string) => void;
@@ -23,7 +23,6 @@ export function TaskList({
   rootTasks,
   allTasks,
   activeLog,
-  resolvedTheme,
   locale,
   customTranslations,
   onStartTimer,
@@ -32,7 +31,7 @@ export function TaskList({
 }: TaskListProps) {
   if (!activeProj) {
     return (
-      <p className="text-xs italic text-slate-400 text-center py-4">
+      <p className="text-xs italic text-muted-foreground text-center py-4">
         {translate(locale, 'project', 'NoProjects', customTranslations)}
       </p>
     );
@@ -40,7 +39,7 @@ export function TaskList({
 
   if (rootTasks.length === 0) {
     return (
-      <p className="text-xs italic text-slate-400 text-center py-4">
+      <p className="text-xs italic text-muted-foreground text-center py-4">
         {translate(locale, 'task', 'NoTasksInProfile', customTranslations)}
       </p>
     );
@@ -57,7 +56,6 @@ export function TaskList({
             task={task}
             subtasks={subtasks}
             activeLog={activeLog}
-            resolvedTheme={resolvedTheme}
             locale={locale}
             customTranslations={customTranslations}
             onStartTimer={onStartTimer}

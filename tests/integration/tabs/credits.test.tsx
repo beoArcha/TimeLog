@@ -31,7 +31,7 @@ describe('Integration Tests: CreditsTab', () => {
     expect(screen.getByText('Tauri')).toBeDefined();
   });
 
-  it('Given CreditsTab rendered, When resolvedTheme is light, Then it should use light theme styling classes', () => {
+  it('Given CreditsTab rendered, When resolvedTheme is light, Then it should use semantic styling classes', () => {
     const mockState = getMockOxyFlowState();
     mockState.resolvedTheme = 'light';
 
@@ -43,6 +43,6 @@ describe('Integration Tests: CreditsTab', () => {
 
     expect(screen.getByText('Credits, OSS & Creators')).toBeDefined();
     const headers = screen.getAllByRole('heading', { level: 2 });
-    expect(headers[0].className).toContain('text-slate-900');
+    expect(headers[0].className).toContain('text-foreground');
   });
 });

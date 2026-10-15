@@ -12,8 +12,6 @@ interface SubtaskListProps {
   isCondensed: boolean;
   editingId: string | null;
   editName: string;
-  theme: string;
-  th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
   onUpdateTask: ((
@@ -38,8 +36,6 @@ export function SubtaskList({
   isCondensed,
   editingId,
   editName,
-  theme,
-  th,
   onToggleTaskComplete,
   onRenameTask,
   onUpdateTask,
@@ -56,7 +52,7 @@ export function SubtaskList({
     <div
       className={`flex flex-col gap-2 ml-8 border-l pl-4 mt-2 overflow-y-auto pr-1 ${
         isCondensed ? 'max-h-[250px]' : ''
-      } ${theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10'}`}
+      } border-border`}
     >
       {subTasks.map((subTask: Task) => (
         <SubtaskItem
@@ -68,8 +64,6 @@ export function SubtaskList({
           metrics={metrics}
           editingId={editingId}
           editName={editName}
-          theme={theme}
-          th={th}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
           onUpdateTask={onUpdateTask}

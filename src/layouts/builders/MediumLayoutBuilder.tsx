@@ -20,7 +20,7 @@ export default function MediumLayoutBuilder({
   dockPosition: externalDockPos,
   onToggleDock,
 }: MediumLayoutBuilderProps) {
-  const { theme, locale, customTranslations } = state;
+  const { locale, customTranslations } = state;
   const [mediumTab, setMediumTab] = useState<MediumTabType>('tasks');
   const [internalDockPos, setInternalDockPos] = useState<'right' | 'left'>(() => {
     try {
@@ -77,7 +77,6 @@ export default function MediumLayoutBuilder({
         <MediumTabBar
           currentTab={mediumTab}
           onSelectTab={setMediumTab}
-          theme={theme}
           locale={locale}
           customTranslations={customTranslations}
         />

@@ -10,28 +10,20 @@ describe('Unit Tests: BackgroundGradients', () => {
     vi.restoreAllMocks();
   });
 
-  it('Given high-contrast theme, Then it should render nothing', () => {
-    const { container } = render(<BackgroundGradients theme="high-contrast" />);
-    expect(container.firstChild).toBeNull();
+  it('Given BackgroundGradients rendered, Then it should render ambient gradients container with aria-hidden', () => {
+    const { container } = render(<BackgroundGradients />);
+    const root = container.querySelector('.ambient-gradients');
+    expect(root).not.toBeNull();
+    expect(root?.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('Given dark theme, Then it should render three gradient divs with dark opacity classes', () => {
-    const { container } = render(<BackgroundGradients theme="dark" />);
-    const divs = container.querySelectorAll('div');
+  it('Given BackgroundGradients rendered, Then it should render ambient color token layers', () => {
+    const { container } = render(<BackgroundGradients />);
+    const divs = container.querySelectorAll('.ambient-gradients > div');
     expect(divs).toHaveLength(3);
     const classes = Array.from(divs).map(d => d.className);
-    expect(classes.some(c => c.includes('bg-orange-500/10'))).toBe(true);
-    expect(classes.some(c => c.includes('bg-rose-500/10'))).toBe(true);
-    expect(classes.some(c => c.includes('bg-violet-500/10'))).toBe(true);
-  });
-
-  it('Given light theme, Then it should render three gradient divs with light opacity classes', () => {
-    const { container } = render(<BackgroundGradients theme="light" />);
-    const divs = container.querySelectorAll('div');
-    expect(divs).toHaveLength(3);
-    const classes = Array.from(divs).map(d => d.className);
-    expect(classes.some(c => c.includes('bg-orange-500/5'))).toBe(true);
-    expect(classes.some(c => c.includes('bg-rose-500/5'))).toBe(true);
-    expect(classes.some(c => c.includes('bg-violet-500/5'))).toBe(true);
+    expect(classes.some(c => c.includes('bg-ambient-1'))).toBe(true);
+    expect(classes.some(c => c.includes('bg-ambient-2'))).toBe(true);
+    expect(classes.some(c => c.includes('bg-ambient-3'))).toBe(true);
   });
 });

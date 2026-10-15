@@ -1,9 +1,7 @@
 import React from 'react';
-import { useSettings } from '@common/hooks/SettingsContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 
 export const StatusIndicator: React.FC = () => {
-  const { resolvedTheme } = useSettings();
   const { engineState } = useWindowShell();
 
   return (
@@ -16,10 +14,8 @@ export const StatusIndicator: React.FC = () => {
 
       <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold hidden sm:inline whitespace-nowrap ${
         engineState === 'searching'
-          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-350 animate-pulse border border-amber-500/20'
-          : resolvedTheme === 'light'
-            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15'
+          ? 'bg-amber-500/20 text-amber-500 animate-pulse border border-amber-500/20'
+          : 'bg-success/15 text-success border border-success/30'
       }`}>
         {engineState === 'searching' ? 'CONNECTING' : 'DAEMON RUNNING'}
       </span>

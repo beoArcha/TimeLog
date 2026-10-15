@@ -2,7 +2,6 @@ import React from 'react';
 import { AppWindow, Layers } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTranslation } from '@common/i18n/translator';
-import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
@@ -14,7 +13,6 @@ interface TrayWidgetProps {
 }
 
 export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps) {
-  const { resolvedTheme } = useSettings();
   const { projects, tasks, logs, computedMetrics } = useData();
   const { nowIso } = useWindowShell();
 
@@ -32,12 +30,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
       exit={{ opacity: 0, scale: 0.95, y: -20 }}
       className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full my-auto padding-main"
     >
-      <div className={`rounded-main padding-main shadow-3xl w-full text-center flex flex-col items-center gap-main relative overflow-hidden group border transition-all duration-300 ${resolvedTheme === 'light'
-        ? 'bg-white border-slate-200'
-        : resolvedTheme === 'high-contrast'
-          ? 'bg-black border-2 border-white'
-          : 'bg-slate-900/60 backdrop-blur-2xl border-white/10'
-        }`}>
+      <div className="rounded-main padding-main shadow-3xl w-full text-center flex flex-col items-center gap-main relative overflow-hidden group border border-border bg-card text-card-foreground transition-all duration-300">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500"></div>
 
         <div className="relative">
@@ -46,43 +39,31 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
           </div>
           <span className="absolute -top-1 -right-1 flex h-5 w-5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className={`relative inline-flex rounded-full h-5 w-5 bg-emerald-500 border-2 ${resolvedTheme === 'light' ? 'border-white' : 'border-slate-900'
-              }`}></span>
+            <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500 border-2 border-background"></span>
           </span>
         </div>
 
         <div>
-          <h1 className={`font-heading font-extrabold text-2xl tracking-tight flex items-center gap-2 justify-center ${resolvedTheme === 'light' ? 'text-slate-900' : 'text-white'
-            }`}>
+          <h1 className="font-heading font-extrabold text-2xl tracking-tight flex items-center gap-2 justify-center text-foreground">
             OxyFlow Engine
             <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wider uppercase">
               {tEngine('EngineRunningBackground')}
             </span>
           </h1>
-          <p className={`text-sm mt-2 max-w-md font-sans ${resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-300'
-            }`}>
+          <p className="text-sm mt-2 max-w-md font-sans text-muted-foreground">
             {tEngine('TrayDescription')}
           </p>
-          <div className={`text-xs px-4 py-2 rounded-xl font-mono inline-block mt-4 border ${resolvedTheme === 'light'
-            ? 'bg-slate-100 border-slate-200 text-slate-700'
-            : 'bg-white/5 border-white/10 text-slate-300'
-            }`}>
+          <div className="text-xs px-4 py-2 rounded-xl font-mono inline-block mt-4 border border-border bg-muted/40 text-foreground">
             {tEngine('DaemonEnginePid')} <strong className="text-orange-500 font-bold">8421</strong> {tEngine('SqliteThread')}
           </div>
         </div>
 
-        <div className={`w-full rounded-2xl p-4 text-left border max-h-[180px] overflow-y-auto ${resolvedTheme === 'light'
-          ? 'bg-slate-50 border-slate-200'
-          : resolvedTheme === 'high-contrast'
-            ? 'bg-black border-white border-2'
-            : 'bg-black/30 border-white/5'
-          }`}>
-          <p className={`text-[10px] font-mono uppercase tracking-widest mb-3 border-b pb-1.5 ${resolvedTheme === 'light' ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/5'
-            }`}>
+        <div className="w-full rounded-2xl p-4 text-left border border-border bg-muted/20 max-h-[180px] overflow-y-auto">
+          <p className="text-[10px] font-mono uppercase tracking-widest mb-3 border-b border-border pb-1.5 text-muted-foreground">
             {tEngine('ActiveMeasuringThreads')} ({activeRunningLogs.length})
           </p>
           {activeRunningLogs.length === 0 ? (
-            <p className={`text-xs italic text-center py-2 ${resolvedTheme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+            <p className="text-xs italic text-center py-2 text-muted-foreground">
               {tTimer('NoActiveTimers')}
             </p>
           ) : (
@@ -100,10 +81,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
                 const timeStr = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 
                 return (
-                  <div key={l.id} className={`flex items-center justify-between text-xs p-2.5 rounded-xl border ${resolvedTheme === 'light'
-                    ? 'bg-white border-slate-200 text-slate-800'
-                    : 'bg-white/5 border-white/10 text-slate-200'
-                    }`}>
+                  <div key={l.id} className="flex items-center justify-between text-xs p-2.5 rounded-xl border border-border bg-card text-card-foreground">
                     <div className="flex items-center gap-2">
                       <span className={`w-2.5 h-2.5 rounded-full bg-${proj?.color || 'rose'}-500 shadow-md`} />
                       <span className="font-semibold truncate max-w-[140px] sm:max-w-xs">{taskObj?.name}</span>

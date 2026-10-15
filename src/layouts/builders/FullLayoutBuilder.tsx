@@ -10,12 +10,12 @@ import DbInspector from '@features/db-explorer/components/DbInspector';
 type FullLayoutBuilderProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
 export default function FullLayoutBuilder({ state }: FullLayoutBuilderProps) {
-  const { theme, activeView } = state;
+  const { activeView } = state;
 
   return (
     <div
       id="gui-container"
-      className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'} flex-1 gui-min-size`}
+      className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-foreground flex-1 gui-min-size"
     >
       <Sidebar state={state} />
 

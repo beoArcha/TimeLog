@@ -10,7 +10,7 @@ import { useReportStatistics } from './hooks/useReportStatistics';
 
 export default function ReportView({ state }: { state: GuiState }) {
   const {
-    projects, tasks, logs, nowIso, theme,
+    projects, tasks, logs, nowIso,
     reportPeriod, setReportPeriod, reportSort, setReportSort,
     sysSettings, patches
   } = state;
@@ -21,18 +21,12 @@ export default function ReportView({ state }: { state: GuiState }) {
   });
 
   return (
-    <div id="reports-panel" className={`backdrop-blur-md rounded-[2.5rem] p-8 border shadow-2xl flex flex-col gap-6 transition-all duration-300 ${theme === 'light'
-      ? 'bg-[#FCFAF8] border-[#DFD7CB] shadow-[#DFD7CB]'
-      : theme === 'high-contrast'
-        ? 'bg-black border-2 border-white'
-        : 'bg-[#FCFAF8]/5 border-white/10'
-      }`}>
+    <div id="reports-panel" className="backdrop-blur-md rounded-[2.5rem] p-8 border border-border bg-card text-foreground shadow-2xl flex flex-col gap-6 transition-all duration-300">
       <div>
         <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
           {t('SqlAnalyticsEngine')}
         </span>
-        <h2 className={`font-sans font-bold text-2xl mt-1.5 flex items-center gap-2 ${theme === 'light' ? 'text-[#2C2421]' : 'text-white'
-          }`}>
+        <h2 className="font-sans font-bold text-2xl mt-1.5 flex items-center gap-2 text-foreground">
           <BarChart3 className="w-6 h-6 text-orange-400" />
           {t('TimeSummariesReports')}
         </h2>
@@ -42,7 +36,6 @@ export default function ReportView({ state }: { state: GuiState }) {
         todaySec={todaySec}
         weekSec={weekSec}
         monthSec={monthSec}
-        theme={theme}
       />
 
       <ReportPeriodSelector
@@ -50,7 +43,6 @@ export default function ReportView({ state }: { state: GuiState }) {
         setReportPeriod={setReportPeriod}
         reportSort={reportSort}
         setReportSort={setReportSort}
-        theme={theme}
       />
 
       <ReportLogList
@@ -61,7 +53,6 @@ export default function ReportView({ state }: { state: GuiState }) {
         projects={projects}
         tasks={tasks}
         nowIso={nowIso}
-        theme={theme}
       />
     </div>
   );

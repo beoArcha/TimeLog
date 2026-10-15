@@ -5,7 +5,6 @@ import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import {
   Table,
@@ -21,7 +20,6 @@ import { Button } from '@components/ui/button';
 
 export default function PatchLogsTable() {
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme } = useSettings();
   const { projects, patches, setPatches } = useData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,12 +48,6 @@ export default function PatchLogsTable() {
     }
   };
 
-  const themeClasses = resolvedTheme === 'light'
-    ? { wrapper: 'bg-card border-border shadow-xs', tableHeader: 'border-border text-muted-foreground bg-muted/50' }
-    : resolvedTheme === 'high-contrast'
-      ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
-      : { wrapper: 'bg-card/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-muted-foreground bg-black/30' };
-
   return (
     <>
       <AnimatePresence>
@@ -68,13 +60,7 @@ export default function PatchLogsTable() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className={`w-full max-w-lg rounded-3xl border shadow-2xl p-6 flex flex-col gap-4 relative ${
-                resolvedTheme === 'light'
-                  ? 'bg-card border-border text-foreground'
-                  : resolvedTheme === 'high-contrast'
-                  ? 'bg-black border-2 border-white text-white'
-                  : 'bg-card border-white/10 text-white'
-              }`}
+              className="w-full max-w-lg rounded-3xl border border-border bg-card text-card-foreground shadow-2xl p-6 flex flex-col gap-4 relative"
             >
               <Button
                 variant="ghost"
@@ -154,7 +140,7 @@ export default function PatchLogsTable() {
         iconColor="text-emerald-400"
         titleColor="text-emerald-400"
         defaultExpanded={true}
-        wrapperClassName={`p-6 rounded-3xl border shadow-xl ${themeClasses.wrapper}`}
+        wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
         headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400 text-left"
         headerRight={
           <Button
@@ -173,7 +159,7 @@ export default function PatchLogsTable() {
         <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
           <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
             <TableHeader>
-              <TableRow className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
+              <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
                 <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
                 <TableHead className="py-3 px-4">project_id</TableHead>
                 <TableHead className="py-3 px-4">task_id (opt)</TableHead>
@@ -183,13 +169,13 @@ export default function PatchLogsTable() {
                 <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="dark:text-white">
+            <TableBody className="text-foreground">
               {(patches || []).map(p => (
-                <TableRow key={p.id} className="border-b border-white/5 hover:bg-white/5">
+                <TableRow key={p.id} className="border-b border-border/50 hover:bg-muted/50">
                   <TableCell className="py-3.5 px-4 font-bold text-emerald-400">{p.id}</TableCell>
                   <TableCell className="py-3.5 px-4">{p.projectId}</TableCell>
                   <TableCell className="py-3.5 px-4 text-muted-foreground">{p.taskId || 'NULL'}</TableCell>
-                  <TableCell className="py-3.5 px-4 border-l border-white/5">{new Date(p.startTime).toLocaleString()}</TableCell>
+                  <TableCell className="py-3.5 px-4 border-l border-border/50">{new Date(p.startTime).toLocaleString()}</TableCell>
                   <TableCell className="py-3.5 px-4">{new Date(p.endTime).toLocaleString()}</TableCell>
                   <TableCell className="py-3.5 px-4 italic text-muted-foreground">{p.patchNote} {p.isSystemEvent && <span className="text-emerald-500 font-bold ml-1">[SYSTEM]</span>}</TableCell>
                   <TableCell className="py-3.5 px-4 text-right">

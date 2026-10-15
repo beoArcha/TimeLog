@@ -7,7 +7,6 @@ import { Input } from '@components/ui/input';
 interface SubtaskFormProps {
   parentTaskId: string;
   newSubtaskName: string;
-  theme: string;
   setNewSubtaskName: (name: string) => void;
   onSubmit: (parentTaskId: string, e: React.FormEvent) => void;
 }
@@ -15,7 +14,6 @@ interface SubtaskFormProps {
 export function SubtaskForm({
   parentTaskId,
   newSubtaskName,
-  theme,
   setNewSubtaskName,
   onSubmit,
 }: SubtaskFormProps) {
@@ -29,8 +27,7 @@ export function SubtaskForm({
       animate={{ height: 'auto', opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       onSubmit={(e) => onSubmit(parentTaskId, e)}
-      className={`p-2.5 rounded-2xl border flex gap-2 ml-8 mt-1 ${theme === 'light' ? 'bg-muted/40 border-border' : 'bg-card/5 border-white/10'
-        }`}
+      className="p-2.5 rounded-2xl border flex gap-2 ml-8 mt-1 bg-muted/40 border-border"
     >
       <Input
         id={`new-subtask-input-${parentTaskId}`}
@@ -39,10 +36,7 @@ export function SubtaskForm({
         placeholder={tTask('EnterSubtaskName')}
         value={newSubtaskName}
         onChange={(e) => setNewSubtaskName(e.target.value)}
-        className={`flex-1 px-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all ${theme === 'light'
-            ? 'bg-card border-border text-foreground placeholder-muted-foreground'
-            : 'bg-slate-950 text-white border-white/10 placeholder-muted-foreground'
-          }`}
+        className="flex-1 px-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all bg-card border-border text-foreground placeholder-muted-foreground"
       />
       <Button
         id={`submit-subtask-btn-${parentTaskId}`}

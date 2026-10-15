@@ -27,8 +27,8 @@ describe('Unit Tests: TimerDisplay', () => {
   });
 
   it('renders idle pill variant with neutral border', () => {
-    render(<TimerDisplay value="00:00:00" isRunning={false} variant="pill" theme="dark" />);
+    render(<TimerDisplay value="00:00:00" isRunning={false} variant="pill" />);
     const el = screen.getByText('00:00:00');
-    expect(el.className).toContain('border-white/10');
+    expect(el.className).toContain('border-border');
   });
 });

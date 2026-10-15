@@ -12,7 +12,7 @@ interface TaskCardProps {
   task: Task;
   subtasks: Task[];
   activeLog: TimeLog | null;
-  resolvedTheme: string | undefined;
+  resolvedTheme?: string | undefined;
   locale: Locale;
   customTranslations: any;
   onStartTimer: (taskId: string) => void;
@@ -24,7 +24,6 @@ export function TaskCard({
   task,
   subtasks,
   activeLog,
-  resolvedTheme,
   locale,
   customTranslations,
   onStartTimer,
@@ -54,12 +53,11 @@ export function TaskCard({
   return (
     <div
       data-testid={`compact-task-card-${task.id}`}
-      className={`p-2 rounded-xl transition-colors border ${resolvedTheme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-white/5 border-white/5'
-        }`}
+      className="p-2 rounded-xl transition-colors border bg-muted/40 border-border"
     >
       <div className="flex items-center justify-between gap-2">
         <span
-          className={`text-xs font-semibold truncate flex-1 ${task.completed ? 'line-through text-slate-500' : ''
+          className={`text-xs font-semibold truncate flex-1 ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
             }`}
         >
           {task.name}
@@ -86,7 +84,7 @@ export function TaskCard({
       </div>
 
       {subtasks.length > 0 && (
-        <div className="flex flex-col gap-1.5 pl-3.5 mt-1.5 border-l border-white/10">
+        <div className="flex flex-col gap-1.5 pl-3.5 mt-1.5 border-l border-border">
           {subtasks.map((sub) => (
             <SubtaskRow
               key={sub.id}

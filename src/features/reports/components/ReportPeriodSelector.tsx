@@ -8,7 +8,6 @@ interface ReportPeriodSelectorProps {
   setReportPeriod: (p: 'today' | 'week' | 'month' | 'all') => void;
   reportSort: 'date' | 'duration';
   setReportSort: (s: 'date' | 'duration') => void;
-  theme: string;
 }
 
 export default function ReportPeriodSelector({
@@ -16,14 +15,12 @@ export default function ReportPeriodSelector({
   setReportPeriod,
   reportSort,
   setReportSort,
-  theme,
 }: ReportPeriodSelectorProps) {
   const { t: tReport } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
 
   return (
-    <div className={`p-4 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${theme === 'light' ? 'bg-muted/40 border-border' : 'bg-black/25 border-white/10'
-      }`}>
+    <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-mono text-muted-foreground">{tCommon('Period')}</span>
         {(['today', 'week', 'month', 'all'] as const).map(p => (
@@ -33,10 +30,7 @@ export default function ReportPeriodSelector({
             variant={reportPeriod === p ? 'accent' : 'ghost'}
             size="xs"
             onClick={() => setReportPeriod(p)}
-            className={`px-3 py-1.5 h-auto rounded-xl text-xs font-semibold uppercase transition-all cursor-pointer ${reportPeriod === p
-              ? 'bg-orange-500 text-white'
-              : 'bg-card/5 hover:bg-card/10 text-muted-foreground'
-              }`}
+            className="px-3 py-1.5 h-auto rounded-xl text-xs font-semibold uppercase transition-all cursor-pointer"
           >
             {p === 'today' ? tCommon('Today') :
               p === 'week' ? tCommon('Week') :
@@ -54,8 +48,7 @@ export default function ReportPeriodSelector({
             onChange={(e) => {
               if (e.target.value) setReportSort(e.target.value as 'date' | 'duration');
             }}
-            className={`h-8 px-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all ${theme === 'light' ? 'bg-card text-foreground border-border' : 'bg-slate-900 border-white/10 text-white'
-              }`}
+            className="h-8 px-3 py-1.5 border border-border rounded-xl text-xs focus:outline-none transition-all bg-card text-foreground"
             aria-label={tReport('SortBy')}
           >
             <option value="duration">{tReport('DurationHighestFirst')}</option>

@@ -9,7 +9,7 @@ import { useSettings } from '@common/hooks/SettingsContext';
 export const AppLogo: React.FC = () => {
   const { dragRegionProps } = usePlatformCapabilities();
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme, layoutVariant } = useSettings();
+  const { layoutVariant } = useSettings();
 
   return (
     <div {...dragRegionProps} className="flex items-center gap-2 sm:gap-2.5 shrink-0">
@@ -17,18 +17,14 @@ export const AppLogo: React.FC = () => {
         <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
       </div>
       <div>
-        <h1 className={`font-sans font-bold text-sm sm:text-base tracking-tight leading-none flex items-center ${
-          resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
-        }`}>
+        <h1 className="font-sans font-bold text-sm sm:text-base tracking-tight leading-none flex items-center text-foreground">
           <span>OxyFlow</span>
           <span className="text-[9px] bg-orange-500/10 border border-orange-500/20 text-orange-400 px-1.5 py-0.2 rounded ml-1.5 font-bold font-mono">
             v{versionsData.subversions.front}
           </span>
         </h1>
         {layoutVariant === 'full' && (
-          <p className={`hidden sm:block text-[10px] font-sans mt-0.5 ${
-            resolvedTheme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
-          }`}>
+          <p className="hidden sm:block text-[10px] font-sans mt-0.5 text-muted-foreground">
             {translate(locale, 'app', 'Subtitle', customTranslations)}
           </p>
         )}

@@ -5,11 +5,9 @@ import CollapsibleCard from '@components/CollapsibleCard';
 import { Button } from '@components/ui/button';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { useSettings } from '@common/hooks/SettingsContext';
 
 export default function ManualTab() {
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme } = useSettings();
   const [currentOs, setCurrentOs] = useState<'windows' | 'macos' | 'linux'>('windows');
 
   const osButtons = (
@@ -34,12 +32,12 @@ export default function ManualTab() {
 
   return (
     <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
-      <div className={`border-b pb-3 ${resolvedTheme === 'light' ? 'border-border' : 'border-white/5'}`}>
-        <h2 className={`text-lg font-bold flex items-center gap-2 ${resolvedTheme === 'light' ? 'text-foreground' : 'text-white'}`}>
+      <div className="border-b border-border pb-3">
+        <h2 className="text-lg font-bold flex items-center gap-2 text-foreground">
           <BookOpen className="w-5 h-5 text-rose-500" />
           <span>{translate(locale, 'help', 'Title', customTranslations)}</span>
         </h2>
-        <p className={`text-xs ${resolvedTheme === 'light' ? 'text-muted-foreground' : 'text-slate-300'}`}>{translate(locale, 'help', 'Description', customTranslations)}</p>
+        <p className="text-xs text-muted-foreground">{translate(locale, 'help', 'Description', customTranslations)}</p>
       </div>
 
       <CollapsibleCard
@@ -49,23 +47,23 @@ export default function ManualTab() {
         defaultExpanded={true}
         headerRight={osButtons}
       >
-        <ol className={`list-decimal pl-4 flex flex-col gap-4 text-xs ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'} font-sans mt-2`}>
+        <ol className="list-decimal pl-4 flex flex-col gap-4 text-xs text-foreground font-sans mt-2">
           <li>
             {translate(locale, 'help', 'Step1', customTranslations)} <code className="text-orange-400 font-mono">npm</code>.
           </li>
           <li>
             {translate(locale, 'help', 'Step2', customTranslations)} (<code className="text-orange-400 font-mono">rustup</code>).
-            {currentOs === 'windows' && <span className={`block mt-1 p-2 rounded-lg border font-mono text-[10px] ${resolvedTheme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-black/40 border-white/5 text-zinc-400'}`}>C++ Build Tools for Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'.</span>}
-            {currentOs === 'linux' && <span className={`block mt-1 p-2 rounded-lg border font-mono text-[10px] ${resolvedTheme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-black/40 border-white/5 text-zinc-400'}`}>sudo apt update && sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev</span>}
-            {currentOs === 'macos' && <span className={`block mt-1 p-2 rounded-lg border font-mono text-[10px] ${resolvedTheme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-black/40 border-white/5 text-zinc-400'}`}>xcode-select --install (CLang compiler required for macOS bindings)</span>}
+            {currentOs === 'windows' && <span className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-muted-foreground">C++ Build Tools for Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'.</span>}
+            {currentOs === 'linux' && <span className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-muted-foreground">sudo apt update && sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev</span>}
+            {currentOs === 'macos' && <span className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-muted-foreground">xcode-select --install (CLang compiler required for macOS bindings)</span>}
           </li>
           <li>
             {translate(locale, 'help', 'Step3', customTranslations)}
-            <pre className={`p-2.5 rounded-lg border font-mono text-[10px] mt-1 select-all ${resolvedTheme === 'light' ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-black/40 border-white/10 text-zinc-400'}`}>npm install</pre>
+            <pre className="p-2.5 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-foreground mt-1 select-all">npm install</pre>
           </li>
           <li>
             {translate(locale, 'help', 'Step4', customTranslations)}
-            <pre className={`p-2.5 rounded-lg border font-mono text-[10px] text-orange-500 mt-1 select-all font-bold group hover:border-orange-500/30 transition-colors ${resolvedTheme === 'light' ? 'bg-slate-100 border-slate-200' : 'bg-black/40 border-white/10'}`}>npm run tauri build</pre>
+            <pre className="p-2.5 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-orange-500 mt-1 select-all font-bold group hover:border-orange-500/30 transition-colors">npm run tauri build</pre>
           </li>
           <li>
             {translate(locale, 'help', 'Step5', customTranslations)}
@@ -86,28 +84,28 @@ export default function ManualTab() {
           {translate(locale, 'help', 'ShortcutsDesc', customTranslations)}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-          <div className={`p-3 rounded-xl border flex items-center justify-between ${resolvedTheme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-black/30 border-white/5'}`}>
-            <span className={`text-xs font-bold ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'}`}>{translate(locale, 'help', 'ShortcutToggleInterface', customTranslations)}</span>
-            <kbd className={`text-[10px] font-mono px-2 py-1 rounded border ${resolvedTheme === 'light' ? 'bg-white text-slate-700 border-slate-300' : 'bg-white/10 text-white border-white/10'}`}>ESC / X</kbd>
+          <div className="p-3 rounded-xl border border-border bg-card flex items-center justify-between">
+            <span className="text-xs font-bold text-card-foreground">{translate(locale, 'help', 'ShortcutToggleInterface', customTranslations)}</span>
+            <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">ESC / X</kbd>
           </div>
-          <div className={`p-3 rounded-xl border flex items-center justify-between ${resolvedTheme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-black/30 border-white/5'}`}>
-            <span className={`text-xs font-bold ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'}`}>{translate(locale, 'help', 'ShortcutGlobalReturn', customTranslations)}</span>
-            <kbd className={`text-[10px] font-mono px-2 py-1 rounded border ${resolvedTheme === 'light' ? 'bg-white text-slate-700 border-slate-300' : 'bg-white/10 text-white border-white/10'}`}>CTRL + SHIFT + O</kbd>
+          <div className="p-3 rounded-xl border border-border bg-card flex items-center justify-between">
+            <span className="text-xs font-bold text-card-foreground">{translate(locale, 'help', 'ShortcutGlobalReturn', customTranslations)}</span>
+            <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">CTRL + SHIFT + O</kbd>
           </div>
-          <div className={`p-3 rounded-xl border flex items-center justify-between ${resolvedTheme === 'light' ? 'bg-rose-50 border-rose-200' : 'bg-black/30 border-white/5'}`}>
-            <span className={`text-xs font-bold ${resolvedTheme === 'light' ? 'text-rose-700' : 'text-rose-300'}`}>{translate(locale, 'help', 'ShortcutEmergencyStop', customTranslations)}</span>
-            <kbd className={`text-[10px] font-mono px-2 py-1 rounded border ${resolvedTheme === 'light' ? 'bg-rose-100 text-rose-700 border-rose-300' : 'bg-rose-500/20 text-rose-400 border-rose-500/20'}`}>CTRL + SHIFT + X</kbd>
+          <div className="p-3 rounded-xl border border-rose-500/20 bg-rose-500/5 flex items-center justify-between">
+            <span className="text-xs font-bold text-rose-500">{translate(locale, 'help', 'ShortcutEmergencyStop', customTranslations)}</span>
+            <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-rose-500/30 bg-rose-500/10 text-rose-400">CTRL + SHIFT + X</kbd>
           </div>
-          <div className={`p-3 rounded-xl border flex items-center justify-between ${resolvedTheme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-black/30 border-white/5'}`}>
-            <span className={`text-xs font-bold ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-slate-300'}`}>{translate(locale, 'help', 'ShortcutToggleTimer', customTranslations)}</span>
+          <div className="p-3 rounded-xl border border-border bg-card flex items-center justify-between">
+            <span className="text-xs font-bold text-card-foreground">{translate(locale, 'help', 'ShortcutToggleTimer', customTranslations)}</span>
             <div className="flex gap-1.5">
-              <kbd className={`text-[10px] font-mono px-2 py-1 rounded border ${resolvedTheme === 'light' ? 'bg-white text-slate-700 border-slate-300' : 'bg-white/10 text-white border-white/10'}`}>SPACE</kbd>
-              <kbd className={`text-[10px] font-mono px-2 py-1 rounded border ${resolvedTheme === 'light' ? 'bg-white text-slate-700 border-slate-300' : 'bg-white/10 text-white border-white/10'}`}>CTRL + SPACE</kbd>
+              <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">SPACE</kbd>
+              <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">CTRL + SPACE</kbd>
             </div>
           </div>
-          <div className={`p-3 rounded-xl border flex items-center justify-between ${resolvedTheme === 'light' ? 'bg-amber-50 border-amber-200' : 'bg-black/30 border-white/5'}`}>
-            <span className={`text-xs font-bold ${resolvedTheme === 'light' ? 'text-amber-700' : 'text-amber-300'}`}>{translate(locale, 'help', 'ShortcutSystemCli', customTranslations)}</span>
-            <code className={`text-[10px] font-mono ${resolvedTheme === 'light' ? 'text-amber-600' : 'text-amber-400'}`}>./oxytime start --task id</code>
+          <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 flex items-center justify-between">
+            <span className="text-xs font-bold text-amber-500">{translate(locale, 'help', 'ShortcutSystemCli', customTranslations)}</span>
+            <code className="text-[10px] font-mono text-amber-500">./oxytime start --task id</code>
           </div>
         </div>
       </CollapsibleCard>
