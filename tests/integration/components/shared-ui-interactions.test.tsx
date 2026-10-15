@@ -4,7 +4,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import CollapsibleCard from '@components/CollapsibleCard';
-import RestoreButton from '@components/RestoreButton';
+import RestoreButton from '@layouts/components/RestoreButton';
 import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
 describe('Integration Tests: Shared UI Component Interactions', () => {

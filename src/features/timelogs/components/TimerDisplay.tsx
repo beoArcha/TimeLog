@@ -14,7 +14,7 @@ export interface TimerDisplayProps {
 }
 
 /**
- * Standardized monospace timer display with design tokens and running state indicator.
+ * Monospace timer display with design tokens and active state indicator.
  */
 export function TimerDisplay({
   value,
@@ -37,7 +37,7 @@ export function TimerDisplay({
 
   const variantClasses = {
     plain: cn(
-      theme === 'light' ? 'text-[#2C2421]' : 'text-white',
+      theme === 'light' ? 'text-foreground' : 'text-foreground',
       isRunning && 'text-orange-500 dark:text-orange-400'
     ),
     pill: cn(
@@ -46,22 +46,25 @@ export function TimerDisplay({
         ? 'bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-300 font-bold'
         : theme === 'light'
           ? 'bg-[#EAE4DB] border-[#DFD7CB] text-[#7A6A61]'
-          : 'bg-[#FCFAF8]/5 border-white/10 text-slate-300'
+          : 'bg-muted border-border border-white/10 text-muted-foreground'
     ),
     highlight: cn(
       'px-2.5 py-1 rounded-full border transition-all inline-flex items-center justify-center font-bold',
-      theme === 'light'
-        ? 'bg-[#FCFAF8] border-[#DFD7CB] text-[#5A4A42]'
-        : theme === 'high-contrast'
-          ? 'bg-black border-white text-white'
-          : 'bg-[#FCFAF8]/5 border-white/10 text-[#9B8C83]'
+      theme === 'high-contrast'
+        ? 'bg-black border-white text-white'
+        : 'bg-card border-border text-foreground'
     ),
   }[variant];
 
   return (
     <span
       id={id}
-      className={cn('font-mono select-none', sizeClasses, variantClasses, className)}
+      className={cn(
+        'font-mono tabular-nums select-none inline-flex items-center',
+        sizeClasses,
+        variantClasses,
+        className
+      )}
     >
       {displayString}
     </span>

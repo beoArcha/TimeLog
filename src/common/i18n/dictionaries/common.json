@@ -28,7 +28,13 @@
     "All": "All",
     "ErrGeneric": "Error",
     "ErrSuccess": "Success",
-    "ErrWarning": "Warning"
+    "ErrWarning": "Warning",
+    "Search": "Search...",
+    "ClearSearch": "Clear search",
+    "NoData": "No data to display",
+    "TrendIncrease": "Increase",
+    "TrendDecrease": "Decrease",
+    "TrendNeutral": "Neutral"
   },
   "pl": {
     "Cancel": "Anuluj",
@@ -59,7 +65,13 @@
     "All": "Wszystko",
     "ErrGeneric": "Błąd",
     "ErrSuccess": "Sukces",
-    "ErrWarning": "Ostrzeżenie"
+    "ErrWarning": "Ostrzeżenie",
+    "Search": "Szukaj...",
+    "ClearSearch": "Wyczyść wyszukiwanie",
+    "NoData": "Brak danych do wyświetlenia",
+    "TrendIncrease": "Wzrost",
+    "TrendDecrease": "Spadek",
+    "TrendNeutral": "Poziom"
   },
   "de": {
     "Cancel": "Abbrechen",
@@ -90,7 +102,13 @@
     "All": "Alle",
     "ErrGeneric": "Fehler",
     "ErrSuccess": "Erfolg",
-    "ErrWarning": "Warnung"
+    "ErrWarning": "Warnung",
+    "Search": "Suchen...",
+    "ClearSearch": "Suche löschen",
+    "NoData": "Keine Daten zur Anzeige",
+    "TrendIncrease": "Anstieg",
+    "TrendDecrease": "Rückgang",
+    "TrendNeutral": "Neutral"
   },
   "es": {
     "Cancel": "Cancelar",
@@ -121,7 +139,13 @@
     "All": "Todo",
     "ErrGeneric": "Error",
     "ErrSuccess": "Éxito",
-    "ErrWarning": "Advertencia"
+    "ErrWarning": "Advertencia",
+    "Search": "Buscar...",
+    "ClearSearch": "Limpiar búsqueda",
+    "NoData": "No hay datos para mostrar",
+    "TrendIncrease": "Aumento",
+    "TrendDecrease": "Disminución",
+    "TrendNeutral": "Neutral"
   },
   "fr": {
     "Cancel": "Annuler",
@@ -152,7 +176,13 @@
     "All": "Tout",
     "ErrGeneric": "Erreur",
     "ErrSuccess": "Succès",
-    "ErrWarning": "Avertissement"
+    "ErrWarning": "Avertissement",
+    "Search": "Rechercher...",
+    "ClearSearch": "Effacer la recherche",
+    "NoData": "Aucune donnée à afficher",
+    "TrendIncrease": "Hausse",
+    "TrendDecrease": "Baisse",
+    "TrendNeutral": "Neutre"
   },
   "pt-br": {
     "Cancel": "Cancelar",
@@ -183,6 +213,12 @@
     "All": "Tudo",
     "ErrGeneric": "Erro",
     "ErrSuccess": "Sucesso",
-    "ErrWarning": "Aviso"
+    "ErrWarning": "Aviso",
+    "Search": "Pesquisar...",
+    "ClearSearch": "Limpar pesquisa",
+    "NoData": "Sem dados para exibir",
+    "TrendIncrease": "Aumento",
+    "TrendDecrease": "Diminuição",
+    "TrendNeutral": "Neutro"
   }
 }

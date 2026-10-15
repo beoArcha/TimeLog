@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
-import { ProjectBadge } from '@/src/components/ui/project-badge';
+import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
 
 describe('Unit Tests: ProjectBadge', () => {
   afterEach(() => {

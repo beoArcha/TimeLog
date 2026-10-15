@@ -141,6 +141,6 @@ describe('Unit Tests: CollapsibleCard', () => {
     );
 
     const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper.className).toContain('bg-[#FCFAF7]');
+    expect(wrapper.className).toContain('bg-card');
   });
 });

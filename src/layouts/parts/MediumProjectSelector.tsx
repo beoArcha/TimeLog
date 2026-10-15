@@ -3,7 +3,7 @@ import { GuiState } from '../hooks/useGuiLogic';
 import { PROJECT_COLORS } from './LayoutStyles';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
-import { ProjectBadge } from '@components/ui/project-badge';
+import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
 import { MediumHeaderActions } from './MediumHeaderActions';
 import {
   Folder,

@@ -87,3 +87,19 @@ export const useLocale = () => {
   if (!ctx) throw new ContextException('useLocale must be used within LocaleProvider', 'ERR_LOCALE_CONTEXT');
   return ctx;
 };
+
+/**
+ * Returns active locale or a safe English fallback when rendered outside LocaleProvider.
+ */
+export const useSafeLocale = () => {
+  const ctx = useContext(LocaleContext);
+  if (ctx) return ctx;
+  return {
+    locale: 'en' as Locale,
+    localePref: 'en' as Locale,
+    setLocale: () => {},
+    setLocalePref: () => {},
+    customTranslations: {},
+    setCustomTranslations: () => {},
+  };
+};

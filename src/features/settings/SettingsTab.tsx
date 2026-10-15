@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Settings, RefreshCw, AlertTriangle, CalendarDays, Info } from 'lucide-react';
-import EngineConfig from '@components/EngineConfig';
+import EngineConfig from './components/EngineConfig';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
 import { translate } from '@common/i18n/translator';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
-import PromptModal from '@components/PromptModal';
+import PromptDialog from '@components/PromptDialog';
 import versionsData from '@app/versions.json';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
@@ -14,7 +14,7 @@ import { useData } from '@common/hooks/DataContext';
 export default function SettingsTab() {
   const { customTranslations, locale } = useLocale();
   const { resolvedTheme } = useSettings();
-  const { setProjects, setTasks, setLogs } = useData();;
+  const { setProjects, setTasks, setLogs } = useData();
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   const handleConfirmReset = (response: string) => {
@@ -32,10 +32,13 @@ export default function SettingsTab() {
 
   return (
     <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
-      <PromptModal
-        isOpen={isResetModalOpen}
+      <PromptDialog
+        open={isResetModalOpen}
+        onOpenChange={setIsResetModalOpen}
         title={translate(locale, 'engine', 'DestructiveZone', customTranslations)}
-        message={translate(locale, 'cli', 'WarningResetApp', customTranslations)}
+        description={translate(locale, 'cli', 'WarningResetApp', customTranslations)}
+        confirmLabel="Zatwierdź"
+        cancelLabel="Anuluj"
         onConfirm={handleConfirmReset}
         onCancel={() => setIsResetModalOpen(false)}
       />

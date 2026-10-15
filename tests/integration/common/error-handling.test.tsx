@@ -4,7 +4,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ErrorHandler, ContextException, PersistenceException } from '@common/exceptions';
-import SystemNotification from '@components/SystemNotification';
+import SystemNotification from '@layouts/components/SystemNotification';
 import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
 describe('Integration Tests: Error Handling and Notifications', () => {

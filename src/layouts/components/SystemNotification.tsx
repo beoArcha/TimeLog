@@ -4,6 +4,9 @@ import { Bell, X } from 'lucide-react';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 
+/**
+ * System notification banner for displaying tray and engine state alerts.
+ */
 export default function SystemNotification() {
   const { resolvedTheme } = useSettings();
   const { trayNotification, setTrayNotification } = useWindowShell();
@@ -29,17 +32,25 @@ export default function SystemNotification() {
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold tracking-wider text-orange-500 uppercase">System Notification Tray</span>
-              <button 
+              <span className="text-xs font-mono font-bold tracking-wider text-orange-500 uppercase">
+                System Notification Tray
+              </span>
+              <button
                 onClick={() => setTrayNotification(null)}
-                className={`text-xs ${resolvedTheme === 'light' ? 'text-[#8A7A71] hover:text-slate-950' : 'text-[#9B8C83] hover:text-white'}`}
+                className={`text-xs ${
+                  resolvedTheme === 'light'
+                    ? 'text-[#8A7A71] hover:text-slate-950'
+                    : 'text-[#9B8C83] hover:text-white'
+                }`}
               >
                 <X className="w-4 h-4 cursor-pointer" />
               </button>
             </div>
-            <p className={`text-xs font-sans mt-1 leading-relaxed ${
-              resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-200'
-            }`}>
+            <p
+              className={`text-xs font-sans mt-1 leading-relaxed ${
+                resolvedTheme === 'light' ? 'text-[#5A4A42]' : 'text-slate-200'
+              }`}
+            >
               {trayNotification}
             </p>
           </div>

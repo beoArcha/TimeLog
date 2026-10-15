@@ -14,7 +14,7 @@ export interface ProjectBadgeProps {
 }
 
 /**
- * Reusable badge displaying a project color indicator (or icon) and project name.
+ * Reusable project badge displaying color indicator / icon and project name.
  */
 export function ProjectBadge({
   name,
@@ -26,11 +26,14 @@ export function ProjectBadge({
   dotClassName,
   textClassName,
 }: ProjectBadgeProps) {
-  const matchedColor = PROJECT_COLORS.find(c => c.name === color);
+  const matchedColor = PROJECT_COLORS.find((c) => c.name === color);
   const colorBg = matchedColor?.bg;
-  const inlineBg = !colorBg && color
-    ? (color.startsWith('#') || color.startsWith('rgb') ? color : `var(--tw-color-${color}-500, #f97316)`)
-    : undefined;
+  const inlineBg =
+    !colorBg && color
+      ? color.startsWith('#') || color.startsWith('rgb')
+        ? color
+        : `var(--tw-color-${color}-500, #f97316)`
+      : undefined;
 
   const dotSizeClasses = {
     xs: 'w-1.5 h-1.5',

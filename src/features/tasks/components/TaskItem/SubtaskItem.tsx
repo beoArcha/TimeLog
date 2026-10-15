@@ -5,7 +5,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { CheckSquare, Square as EmptySquare, Play, Square } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
-import { TimerDisplay } from '@/src/components/ui/timer-display';
+import { TimerDisplay } from '@/src/features/timelogs/components/TimerDisplay';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 

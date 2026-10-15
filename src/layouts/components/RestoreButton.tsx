@@ -3,13 +3,16 @@ import { AppWindow } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 
-interface RestoreButtonProps {
+export interface RestoreButtonProps {
   setIsMinimized: (val: boolean) => void;
   showToast: (msg: string) => void;
 }
 
+/**
+ * Floating button to restore minimized application view from tray mode.
+ */
 export default function RestoreButton({ setIsMinimized, showToast }: RestoreButtonProps) {
-  const { locale, customTranslations } = useLocale();;
+  const { locale, customTranslations } = useLocale();
 
   return (
     <div className="fixed bottom-6 right-6 z-[100] animate-bounce">

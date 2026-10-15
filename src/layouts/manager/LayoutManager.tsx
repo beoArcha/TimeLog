@@ -17,14 +17,14 @@ import BackupTab from '@features/settings/BackupTab';
 import TrayWidgetView from '@features/tray/TrayWidgetView';
 
 import GuiClosedAlert from '../components/GuiClosedAlert';
-import SystemNotification from '@components/SystemNotification';
+import SystemNotification from '../components/SystemNotification';
 import Header from '../components/Header';
 import DaemonStatusBar from '../components/DaemonStatusBar';
 import CreditsModal from '../components/CreditsModal';
-import BackgroundGradients from '@components/BackgroundGradients';
+import BackgroundGradients from '../components/BackgroundGradients';
 import TabBar from '../components/TabBar';
 import AppFooter from '../components/AppFooter';
-import RestoreButton from '@components/RestoreButton';
+import RestoreButton from '../components/RestoreButton';
 
 import CompactLayoutBuilder from '../builders/CompactLayoutBuilder';
 import MediumLayoutBuilder from '../builders/MediumLayoutBuilder';

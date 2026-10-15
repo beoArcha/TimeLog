@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
-import { TimerDisplay } from '@/src/components/ui/timer-display';
+import { TimerDisplay } from '@/src/features/timelogs/components/TimerDisplay';
 
 describe('Unit Tests: TimerDisplay', () => {
   afterEach(() => {

@@ -1,30 +1,7 @@
-import React, { useContext } from 'react';
-import { cn } from '@/lib/utils';
-import { SettingsContext } from '@common/hooks/SettingsContext';
+import { Skeleton } from './skeleton';
+export { Skeleton };
+export type { SkeletonProps } from './skeleton';
 
-interface SkeletonProps extends React.ComponentProps<'div'> {
-  className?: string;
-}
-
-export function Skeleton({ className, ...props }: SkeletonProps) {
-  const ctx = useContext(SettingsContext);
-  const resolvedTheme = ctx?.resolvedTheme || 'dark';
-  
-  return (
-    <div
-      className={cn(
-        "animate-pulse rounded-md",
-        resolvedTheme === 'light'
-          ? 'bg-[#EAE4DB]'
-          : resolvedTheme === 'high-contrast'
-          ? 'bg-black border border-white'
-          : 'bg-slate-800/80',
-        className
-      )}
-      {...props}
-    />
-  );
-}
 
 export function StatsSkeleton() {
   return (

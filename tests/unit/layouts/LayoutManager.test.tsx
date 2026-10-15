@@ -6,10 +6,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LayoutManager from '@layouts/manager/LayoutManager';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
-vi.mock('@components/BackgroundGradients', () => ({
+vi.mock('@layouts/components/BackgroundGradients', () => ({
   default: () => <div data-testid="bg-gradients">Gradients</div>
 }));
-vi.mock('@components/SystemNotification', () => ({
+vi.mock('@layouts/components/SystemNotification', () => ({
   default: () => <div data-testid="sys-notification">Notification</div>
 }));
 vi.mock('@layouts/components/CreditsModal', () => ({
@@ -27,7 +27,7 @@ vi.mock('@layouts/components/DaemonStatusBar', () => ({
 vi.mock('@layouts/components/AppFooter', () => ({
   default: () => <footer data-testid="app-footer">Footer</footer>
 }));
-vi.mock('@components/RestoreButton', () => ({
+vi.mock('@layouts/components/RestoreButton', () => ({
   default: ({ setIsMinimized }: any) => (
     <button data-testid="restore-btn" onClick={() => setIsMinimized(false)}>Restore</button>
   )

@@ -4,8 +4,8 @@ import { Clock, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translate } from '@common/i18n/translator';
 import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
-import { ProjectBadge } from '@/src/components/ui/project-badge';
-import { TimerDisplay } from '@/src/components/ui/timer-display';
+import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
+import { TimerDisplay } from '@/src/features/timelogs/components/TimerDisplay';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
