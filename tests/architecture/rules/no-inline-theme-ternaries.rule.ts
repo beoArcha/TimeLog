@@ -12,7 +12,6 @@ export interface NoInlineThemeTernariesOptions {
  */
 export const THEME_TERNARY_ALLOWLIST = new Set<string>([
   'features/settings/ManualTab.tsx',
-  'features/tasks/components/ProjectHeaderCard.tsx',
   'features/cli/CliInterface.tsx',
   'features/settings/BackupTab.tsx',
   'features/db-explorer/components/DbInspector.tsx',
@@ -20,24 +19,15 @@ export const THEME_TERNARY_ALLOWLIST = new Set<string>([
   'features/tray/TrayWidgetView.tsx',
   'features/settings/SettingsTab.tsx',
   'features/reports/components/ReportStatsCards.tsx',
-  'features/tasks/TaskListView.tsx',
   'features/db-explorer/components/PatchLogsTable.tsx',
   'features/reports/components/ReportLogList.tsx',
-  'features/tasks/components/TaskItem/TaskMetrics.tsx',
-  'features/tasks/components/TaskItem/SubtaskItem.tsx',
   'features/reports/ReportView.tsx',
-  'features/tasks/components/TaskItem/SubtaskForm.tsx',
   'features/db-explorer/components/ProjectsTable.tsx',
   'features/reports/components/ReportPeriodSelector.tsx',
   'features/db-explorer/components/TasksTable.tsx',
   'features/db-explorer/components/TimeLogsTable.tsx',
-  'features/tasks/components/TaskItem/TaskItem.tsx',
   'features/db-explorer/components/HolidaysLeavesTable.tsx',
   'features/settings/CreditsTab.tsx',
-  'features/tasks/components/TaskItem/TaskNameEditor.tsx',
-  'features/tasks/components/TaskEmptyState.tsx',
-  'features/tasks/components/TaskItem/SubtaskList.tsx',
-  'features/tasks/components/TaskItem/TaskHeader.tsx',
 ]);
 
 /**

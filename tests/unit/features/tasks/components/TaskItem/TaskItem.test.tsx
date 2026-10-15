@@ -37,7 +37,6 @@ describe('Unit Tests: TaskItem', () => {
         rootTask={task}
         state={mockState}
         isCondensed={false}
-        th={{}}
       />
     );
 

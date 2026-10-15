@@ -12,15 +12,13 @@ interface TaskItemProps {
   rootTask: Task;
   state: any;
   isCondensed: boolean;
-  th: any;
 }
 
-export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemProps) {
+export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps) {
   const {
     tasks,
     logs,
     nowIso,
-    theme,
     projectTasks,
     selectedProject,
     onToggleTaskComplete,
@@ -54,12 +52,8 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
     <div
       id={`root-task-card-${rootTask.id}`}
       className={`rounded-main padding-section border transition-all flex flex-col gap-section group/root relative overflow-hidden backdrop-blur-md ${isAnyRunning
-          ? theme === 'light'
-            ? 'bg-gradient-to-r from-orange-400/5 to-rose-500/5 border-orange-500/40 shadow-md text-[#2C2421]'
-            : 'bg-gradient-to-r from-orange-500/10 to-rose-500/10 border-orange-500/40 shadow-xl text-white'
-          : theme === 'light'
-            ? 'bg-[#F4EFEA] border-[#DFD7CB]/80 hover:border-orange-500/25 hover:bg-[#EAE4DB] text-[#2C2421]'
-            : 'bg-[#FCFAF8]/5 border-white/10 hover:border-orange-500/25 hover:bg-[#FCFAF8]/10 text-white'
+          ? 'bg-primary/5 border-primary/40 shadow-md text-foreground'
+          : 'bg-card border-border hover:border-primary/25 hover:bg-muted/50 text-foreground'
         }`}
     >
       {isAnyRunning && (
@@ -76,8 +70,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
           runningSubtask={runningSubtask}
           editingId={editingId}
           editName={editName}
-          theme={theme}
-          th={th}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
           onUpdateTask={onUpdateTask}
@@ -93,7 +85,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
           isAnyRunning={isAnyRunning}
           isCondensed={isCondensed}
           showSubtaskFormForId={showSubtaskFormForId}
-          theme={theme}
           onStartTimer={onStartTimer}
           setShowSubtaskFormForId={setShowSubtaskFormForId}
         />
@@ -104,7 +95,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
           <SubtaskForm
             parentTaskId={rootTask.id}
             newSubtaskName={newSubtaskName}
-            theme={theme}
             setNewSubtaskName={setNewSubtaskName}
             onSubmit={handleAddSubtaskSubmit}
           />
@@ -120,8 +110,6 @@ export default function TaskItem({ rootTask, state, isCondensed, th }: TaskItemP
         isCondensed={isCondensed}
         editingId={editingId}
         editName={editName}
-        theme={theme}
-        th={th}
         onToggleTaskComplete={onToggleTaskComplete}
         onRenameTask={onRenameTask}
         onUpdateTask={onUpdateTask}

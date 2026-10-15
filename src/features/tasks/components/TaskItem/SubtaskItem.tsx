@@ -26,8 +26,6 @@ interface SubtaskItemProps {
   metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
   editingId: string | null;
   editName: string;
-  theme: string;
-  th: any;
   onToggleTaskComplete: (id: string) => void;
   onRenameTask: ((id: string, name: string) => void) | undefined;
   onUpdateTask: ((
@@ -51,8 +49,6 @@ export function SubtaskItem({
   metrics,
   editingId,
   editName,
-  theme,
-  th,
   onToggleTaskComplete,
   onRenameTask,
   onUpdateTask,
@@ -77,9 +73,7 @@ export function SubtaskItem({
       id={`subtask-item-${subTask.id}`}
       className={`flex items-center justify-between gap-4 py-2 px-3 rounded-xl group/sub transition-all ${isSubRunning
         ? 'bg-orange-500/10 border border-orange-500/20'
-        : theme === 'light'
-          ? 'hover:bg-muted/80 border border-transparent text-foreground'
-          : 'hover:bg-card/5 border border-transparent'
+        : 'hover:bg-muted/80 border border-transparent text-foreground'
         }`}
     >
       <div className="flex items-start sm:items-center gap-2.5 flex-1 min-w-0">
@@ -91,7 +85,7 @@ export function SubtaskItem({
           aria-checked={subTask.completed}
           onClick={() => onToggleTaskComplete(subTask.id)}
           aria-label={`${subTask.completed ? tCommon('Edit') : tCommon('Confirm')} ${subTask.name}`}
-          className={`${th.textMuted} hover:text-orange-500 transition-colors cursor-pointer mt-0.5 sm:mt-0 shrink-0 p-0 h-auto`}
+          className="text-muted-foreground hover:text-orange-500 transition-colors cursor-pointer mt-0.5 sm:mt-0 shrink-0 p-0 h-auto"
         >
           {subTask.completed ? (
             <CheckSquare className="w-4 h-4 text-orange-500 fill-orange-500/10" />
@@ -107,7 +101,6 @@ export function SubtaskItem({
               taskName={subTask.name}
               editName={editName}
               isEditing={isEditing}
-              theme={theme}
               textSizeClass="font-semibold text-xs"
               onRenameTask={onRenameTask}
               setEditName={setEditName}
@@ -117,9 +110,7 @@ export function SubtaskItem({
             <span
               className={`text-xs font-semibold flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${subTask.completed
                 ? 'line-through text-muted-foreground font-normal'
-                : theme === 'light'
-                  ? 'text-foreground'
-                  : 'text-slate-200'
+                : 'text-foreground'
                 }`}
             >
               <span className="truncate block max-w-full" title={subTask.name}>
@@ -205,10 +196,7 @@ export function SubtaskItem({
             disabled={subTask.completed}
             title={tTimer('StartMeasurement')}
             aria-label={tTimer('StartMeasurement')}
-            className={`text-muted-foreground hover:text-white rounded-lg p-2 transition-all cursor-pointer shrink-0 ${theme === 'light'
-              ? 'bg-muted hover:bg-teal-500 group-hover/sub:bg-teal-500 text-foreground'
-              : 'bg-card/5 hover:bg-teal-500 group-hover/sub:bg-teal-500'
-              }`}
+            className="text-muted-foreground hover:text-white rounded-lg p-2 transition-all cursor-pointer shrink-0 bg-muted hover:bg-teal-500 group-hover/sub:bg-teal-500 text-foreground"
           >
             <Play className="w-3.5 h-3.5 fill-current shrink-0" />
           </Button>

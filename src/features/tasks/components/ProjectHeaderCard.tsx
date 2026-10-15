@@ -12,7 +12,7 @@ interface ProjectHeaderCardProps {
   selectedProject: Project;
   projectDurationSeconds: number;
   isCondensed: boolean;
-  theme: string;
+  theme?: string;
   stats: ProjectStatistics | null;
   loading: boolean;
   newTaskName: string;
@@ -24,7 +24,6 @@ export default function ProjectHeaderCard({
   selectedProject,
   projectDurationSeconds,
   isCondensed,
-  theme,
   stats,
   loading,
   newTaskName,
@@ -37,8 +36,7 @@ export default function ProjectHeaderCard({
 
   return (
     <div>
-      <div className={`flex flex-col ${isCondensed ? 'gap-2 items-start' : 'sm:flex-row sm:items-start justify-between gap-2'} border-b pb-3 mb-3 ${theme === 'light' ? 'border-border' : 'border-white/10'
-        }`}>
+      <div className={`flex flex-col ${isCondensed ? 'gap-2 items-start' : 'sm:flex-row sm:items-start justify-between gap-2'} border-b pb-3 mb-3 border-border`}>
         <div className={`flex-1 min-w-0 ${isCondensed ? 'w-full' : ''}`}>
           {!isCondensed && (
             <span className="text-main tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-2.5 py-0.5 rounded-full font-bold uppercase border border-orange-500/25 inline-block mb-1.5 whitespace-nowrap">
@@ -47,16 +45,16 @@ export default function ProjectHeaderCard({
           )}
 
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h2 className={`font-sans font-bold flex items-center gap-2 text-title ${theme === 'light' ? 'text-foreground' : 'text-white'}`}>
+            <h2 className="font-sans font-bold flex items-center gap-2 text-title text-foreground">
               <span className="w-3.5 h-3.5 rounded-full bg-[var(--project-color,orange)] shrink-0 shadow-md" style={{ backgroundColor: selectedProject.color ? `var(--tw-color-${selectedProject.color}-500)` : undefined }} />
               <span className="truncate" title={selectedProject.name}>{selectedProject.name}</span>
             </h2>
 
             {isCondensed && (
-              <div className={`font-mono text-xs border px-2.5 py-1 rounded-xl flex items-center gap-1.5 ${theme === 'light' ? 'bg-muted/40 border-border text-foreground' : 'bg-card/5 border-white/10 text-slate-300'}`}>
+              <div className="font-mono text-xs border border-border px-2.5 py-1 rounded-xl flex items-center gap-1.5 bg-muted/40 text-foreground">
                 <TrendingUp className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                 <span className="font-semibold">{tCommon('Total')}:</span>
-                <span className={`font-bold ${theme === 'light' ? 'text-foreground' : 'text-white'}`}>
+                <span className="font-bold text-foreground">
                   {formatSeconds(projectDurationSeconds)}
                 </span>
               </div>
@@ -65,17 +63,12 @@ export default function ProjectHeaderCard({
         </div>
 
         {!isCondensed && (
-          <div className={`text-left sm:text-right font-mono text-main border padding-section rounded-section flex flex-wrap items-center gap-2 transition-all w-fit ${theme === 'light'
-            ? 'bg-muted/40 border-border text-foreground'
-            : theme === 'high-contrast'
-              ? 'bg-black border-white text-white'
-              : 'bg-card/5 border-white/10 text-slate-300'
-            }`}>
+          <div className="text-left sm:text-right font-mono text-main border border-border padding-section rounded-section flex flex-wrap items-center gap-2 transition-all w-fit bg-muted/40 text-foreground">
             <div className="flex items-center gap-1.5">
-              <TrendingUp className={`icon-medium text-orange-400`} />
+              <TrendingUp className="icon-medium text-orange-400" />
               <span className="font-semibold">{tCommon('Total')}:</span>
             </div>
-            <span className={`font-bold ${theme === 'light' ? 'text-foreground' : 'text-white'}`}>
+            <span className="font-bold text-foreground">
               {formatSeconds(projectDurationSeconds)}
             </span>
           </div>
@@ -84,16 +77,13 @@ export default function ProjectHeaderCard({
 
       {loading && !isCondensed && (
         <div data-testid="stats-skeleton-grid" className="grid grid-cols-3 gap-2.5 sm:gap-3 mb-3">
-          <div className={`p-3 sm:p-3.5 rounded-xl border transition-all ${theme === 'light' ? 'bg-muted/40 border-border' : 'bg-card/5 border-white/10'
-            }`}>
+          <div className="p-3 sm:p-3.5 rounded-xl border border-border bg-muted/40 transition-all">
             <StatsSkeleton />
           </div>
-          <div className={`p-3 sm:p-3.5 rounded-xl border transition-all ${theme === 'light' ? 'bg-muted/40 border-border' : 'bg-card/5 border-white/10'
-            }`}>
+          <div className="p-3 sm:p-3.5 rounded-xl border border-border bg-muted/40 transition-all">
             <StatsSkeleton />
           </div>
-          <div className={`p-3 sm:p-3.5 rounded-xl border transition-all ${theme === 'light' ? 'bg-muted/40 border-border' : 'bg-card/5 border-white/10'
-            }`}>
+          <div className="p-3 sm:p-3.5 rounded-xl border border-border bg-muted/40 transition-all">
             <StatsSkeleton />
           </div>
         </div>
@@ -101,15 +91,10 @@ export default function ProjectHeaderCard({
 
       {stats && !loading && !isCondensed && (
         <div data-testid="stats-cards-grid" className="grid grid-cols-3 gap-2.5 sm:gap-3 mb-3">
-          <div className={`p-3 sm:p-3.5 rounded-xl border shadow-xs transition-all flex flex-col justify-between ${theme === 'light'
-            ? 'bg-card border-border text-foreground'
-            : theme === 'high-contrast'
-              ? 'bg-black border-2 border-white text-white'
-              : 'bg-card/35 border-white/15 text-slate-100'
-            }`}>
+          <div className="p-3 sm:p-3.5 rounded-xl border border-border shadow-xs transition-all flex flex-col justify-between bg-card text-card-foreground">
             <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
               <Clock className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-              <p className={`text-xs font-semibold uppercase tracking-wider truncate text-muted-foreground`}>
+              <p className="text-xs font-semibold uppercase tracking-wider truncate text-muted-foreground">
                 {tProject('TotalDuration')}
               </p>
             </div>
@@ -118,36 +103,26 @@ export default function ProjectHeaderCard({
             </p>
           </div>
 
-          <div className={`p-3 sm:p-3.5 rounded-xl border shadow-xs transition-all flex flex-col justify-between ${theme === 'light'
-            ? 'bg-card border-border text-foreground'
-            : theme === 'high-contrast'
-              ? 'bg-black border-2 border-white text-white'
-              : 'bg-card/35 border-white/15 text-slate-100'
-            }`}>
+          <div className="p-3 sm:p-3.5 rounded-xl border border-border shadow-xs transition-all flex flex-col justify-between bg-card text-card-foreground">
             <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
               <ListTodo className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-              <p className={`text-xs font-semibold uppercase tracking-wider truncate text-muted-foreground`}>
+              <p className="text-xs font-semibold uppercase tracking-wider truncate text-muted-foreground">
                 {tProject('TotalTasks')}
               </p>
             </div>
-            <p className={`text-lg sm:text-xl font-bold ${theme === 'light' ? 'text-foreground' : 'text-white'}`}>
+            <p className="text-lg sm:text-xl font-bold text-foreground">
               {stats.totalTasks}
             </p>
           </div>
 
-          <div className={`p-3 sm:p-3.5 rounded-xl border shadow-xs transition-all flex flex-col justify-between ${theme === 'light'
-            ? 'bg-card border-border text-foreground'
-            : theme === 'high-contrast'
-              ? 'bg-black border-2 border-white text-white'
-              : 'bg-card/35 border-white/15 text-slate-100'
-            }`}>
+          <div className="p-3 sm:p-3.5 rounded-xl border border-border shadow-xs transition-all flex flex-col justify-between bg-card text-card-foreground">
             <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <p className={`text-xs font-semibold uppercase tracking-wider truncate text-muted-foreground`}>
+              <p className="text-xs font-semibold uppercase tracking-wider truncate text-muted-foreground">
                 {tProject('CompletedTasks')}
               </p>
             </div>
-            <div className={`text-lg sm:text-xl font-bold flex items-center justify-between gap-1.5 ${theme === 'light' ? 'text-foreground' : 'text-white'}`}>
+            <div className="text-lg sm:text-xl font-bold flex items-center justify-between gap-1.5 text-foreground">
               <span>{stats.completedTasks}</span>
               {stats.totalTasks > 0 && (
                 <span className="text-xs px-2 py-0.5 rounded-full font-semibold font-mono bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
@@ -166,10 +141,7 @@ export default function ProjectHeaderCard({
           placeholder={tTask('EnterMainTaskName')}
           value={newTaskName}
           onChange={e => setNewTaskName(e.target.value)}
-          className={`flex-1 px-3 py-2 sm:py-2.5 min-h-[40px] border rounded-main text-main focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all ${theme === 'light'
-            ? 'bg-muted/40 border-border text-foreground placeholder-muted-foreground'
-            : 'bg-card/5 border-white/10 text-white placeholder-muted-foreground'
-            }`}
+          className="flex-1 px-3 py-2 sm:py-2.5 min-h-[40px] text-main"
         />
         <Button
           id="add-task-btn"
