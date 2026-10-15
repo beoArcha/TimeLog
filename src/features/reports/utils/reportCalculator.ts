@@ -12,6 +12,16 @@ export function calculateStartOfWeek(now: Date): number {
   return new Date(dWeek.setDate(diffToMonday)).setHours(0, 0, 0, 0);
 }
 
+export function calculateLogDurationSeconds(
+  startTime: string,
+  endTime: string | null | undefined,
+  referenceNowMs: number
+): number {
+  const start = new Date(startTime).getTime();
+  const end = endTime ? new Date(endTime).getTime() : referenceNowMs;
+  return Math.max(0, Math.floor((end - start) / 1000));
+}
+
 export function calculateReportStatistics({
   logs,
   patches,
@@ -41,8 +51,7 @@ export function calculateReportStatistics({
     let sum = logs.reduce((acc, log) => {
       const logStart = new Date(log.startTime).getTime();
       if (logStart >= timeLimitMs) {
-        const logEnd = log.endTime ? new Date(log.endTime).getTime() : nowMs;
-        return acc + Math.max(0, Math.floor((logEnd - logStart) / 1000));
+        return acc + calculateLogDurationSeconds(log.startTime, log.endTime, nowMs);
       }
       return acc;
     }, 0);
@@ -51,8 +60,7 @@ export function calculateReportStatistics({
       sum += patches.reduce((acc, p) => {
         const pStart = new Date(p.startTime).getTime();
         if (pStart >= timeLimitMs) {
-          const pEnd = p.endTime ? new Date(p.endTime).getTime() : nowMs;
-          return acc + Math.max(0, Math.floor((pEnd - pStart) / 1000));
+          return acc + calculateLogDurationSeconds(p.startTime, p.endTime, nowMs);
         }
         return acc;
       }, 0);
@@ -80,9 +88,7 @@ export function calculateReportStatistics({
     : filteredLogs;
 
   combinedLogs.forEach(log => {
-    const start = new Date(log.startTime).getTime();
-    const end = log.endTime ? new Date(log.endTime).getTime() : new Date(nowIso).getTime();
-    const duration = Math.max(0, Math.floor((end - start) / 1000));
+    const duration = calculateLogDurationSeconds(log.startTime, log.endTime, nowMs);
 
     if (!projectTimeData[log.projectId]) {
       projectTimeData[log.projectId] = { seconds: 0, tasks: {} };
@@ -124,9 +130,9 @@ export function calculateReportStatistics({
     displayLogs.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   } else {
     displayLogs.sort((a, b) => {
-      const endA = a.endTime ? new Date(a.endTime).getTime() : new Date(nowIso).getTime();
-      const endB = b.endTime ? new Date(b.endTime).getTime() : new Date(nowIso).getTime();
-      return endB - new Date(b.startTime).getTime() - (endA - new Date(a.startTime).getTime());
+      const durA = calculateLogDurationSeconds(a.startTime, a.endTime, nowMs);
+      const durB = calculateLogDurationSeconds(b.startTime, b.endTime, nowMs);
+      return durB - durA;
     });
   }
 

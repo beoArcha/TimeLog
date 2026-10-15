@@ -24,18 +24,13 @@ interface UseTaskItemResult {
 
 export function useTaskItem({
   rootTask,
-  tasks,
-  logs,
-  nowIso,
+  logs,  
   metrics,
   projectTasks,
 }: UseTaskItemParams): UseTaskItemResult {
   const subTasks = projectTasks.filter((t: Task) => t.parentTaskId === rootTask.id);
   const { elapsedSeconds: rootDuration, isRunning: isCurrentRunning } = useLiveTaskElapsed(rootTask.id, {
     metrics,
-    tasks,
-    logs,
-    nowIso,
   });
   const taskMetric = metrics?.tasks?.[rootTask.id];
 

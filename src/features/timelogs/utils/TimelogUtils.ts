@@ -1,31 +1,3 @@
-import { Task } from '@bindings/Task';
-import { TimeLog } from '@bindings/TimeLog';
-import { calculateTaskElapsed, calculateProjectElapsed } from '@/src/plugins/engine/elapsed';
-
-/**
- * @deprecated Legacy calculation helper. Use EngineRouter or useLiveTaskElapsed instead.
- */
-export function getTaskDurationSeconds(
-  taskId: string,
-  tasks: Task[],
-  logs: TimeLog[],
-  nowIso?: string
-): number {
-  return calculateTaskElapsed(taskId, tasks, logs, nowIso);
-}
-
-/**
- * @deprecated Legacy calculation helper. Use EngineRouter or useLiveProjectElapsed instead.
- */
-export function getProjectDurationSeconds(
-  projectId: string,
-  tasks: Task[],
-  logs: TimeLog[],
-  nowIso?: string
-): number {
-  return calculateProjectElapsed(projectId, tasks, logs, nowIso);
-}
-
 export function formatSeconds(totalSeconds: number): string {
   const hrs = Math.floor(totalSeconds / 3600);
   const mins = Math.floor((totalSeconds % 3600) / 60);

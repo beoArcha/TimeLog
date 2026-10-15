@@ -10,7 +10,7 @@ import { Button } from '@components/ui/button';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
-    tasks, logs, nowIso, activeLog, metrics, locale, customTranslations,
+    tasks, activeLog, metrics, locale, customTranslations,
     onStopTimer, projects
   } = state;
 
@@ -19,9 +19,6 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
   const { formattedElapsed } = useLiveTaskElapsed(activeTask?.id ?? '', {
     metrics,
     activeLog,
-    tasks,
-    logs,
-    nowIso,
   });
 
   return (
