@@ -1,13 +1,20 @@
-export const getThemeStyles = (theme: string) => ({
-  bgMuted: theme === 'light' ? 'bg-[#F4EFEA]' : 'bg-black/20',
-  bgCard: theme === 'light' ? 'bg-[#FCFAF8]' : 'bg-[#FCFAF8]/5',
-  textMain: theme === 'light' ? 'text-[#2C2421]' : 'text-white',
-  textMuted: theme === 'light' ? 'text-[#7A6A61]' : 'text-[#9B8C83]',
-  border: theme === 'light' ? 'border-[#DFD7CB]' : 'border-white/10',
-  borderHl: theme === 'light' ? 'border-[#D0C5B5]' : 'border-white/20',
-  shadow: theme === 'light' ? 'shadow-sm shadow-[#2C2421]/5' : 'shadow-lg shadow-black/50',
-  bgBadge: theme === 'light' ? 'bg-[#EAE4DB]' : 'bg-[#FCFAF8]/10'
+/**
+ * Layout theme styles adapter mapping to semantic design tokens.
+ *
+ * @param _theme Active theme name.
+ * @returns Object with semantic utility classes.
+ */
+export const getThemeStyles = (_theme?: string) => ({
+  bgMuted: 'bg-muted',
+  bgCard: 'bg-card',
+  textMain: 'text-foreground',
+  textMuted: 'text-muted-foreground',
+  border: 'border-border',
+  borderHl: 'border-ring/30',
+  shadow: 'shadow-md',
+  bgBadge: 'bg-muted'
 });
+
 
 export const PROJECT_COLORS = [
   { name: 'rose', bg: 'bg-rose-500', hex: '#f43f5e', text: 'text-rose-500' },
