@@ -10,7 +10,7 @@ import { useSettings } from '@common/hooks/SettingsContext';
 
 export default function Header() {
   const { dragRegionProps } = usePlatformCapabilities();
-  const { resolvedTheme, layoutVariant } = useSettings();
+  const { layoutVariant } = useSettings();
 
   const isMediumMode = layoutVariant === 'medium';
 
@@ -18,9 +18,7 @@ export default function Header() {
     <header
       {...dragRegionProps}
       data-testid="layout-header"
-      className={`shrink-0 sticky top-0 z-30 border-b transition-all duration-300 ${
-        resolvedTheme === 'light' ? 'bg-[#FCFAF8] border-[#DFD7CB]' : 'bg-slate-900/60 backdrop-blur-2xl border-white/5'
-      } py-2 px-3 sm:py-2.5 sm:px-4 flex ${
+      className={`shrink-0 sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-2xl transition-all duration-300 py-2 px-3 sm:py-2.5 sm:px-4 flex ${
         isMediumMode ? 'flex-col gap-2' : 'flex-col md:flex-row md:items-center'
       } justify-between md:gap-3`}
     >

@@ -28,7 +28,6 @@ export default function MediumProjectSelector({
   onToggleDock,
 }: MediumProjectSelectorProps) {
   const {
-    theme,
     projects = [],
     tasks = [],
     locale = 'en',
@@ -59,15 +58,7 @@ export default function MediumProjectSelector({
 
   return (
     <div className="relative mb-2.5 shrink-0">
-      <div
-        className={`p-2.5 sm:p-3 rounded-2xl border flex items-center justify-between gap-2 transition-all ${
-          theme === 'light'
-            ? 'bg-muted/40 border-border text-foreground'
-            : theme === 'high-contrast'
-              ? 'bg-black border-2 border-white text-white'
-              : 'bg-card/5 border-border/10 text-white'
-        }`}
-      >
+      <div className="p-2.5 sm:p-3 rounded-2xl border border-border bg-muted/40 text-foreground flex items-center justify-between gap-2 transition-all">
         <Button
           type="button"
           variant="ghost"
@@ -118,7 +109,6 @@ export default function MediumProjectSelector({
         </Button>
 
         <MediumHeaderActions
-          theme={theme}
           dockPosition={dockPosition}
           onToggleDock={onToggleDock}
           onOpenCreateProject={() => {
@@ -131,15 +121,7 @@ export default function MediumProjectSelector({
       </div>
 
       {isProjectDropdownOpen && (
-        <div
-          className={`absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${
-            theme === 'light'
-              ? 'bg-card border-border text-foreground'
-              : theme === 'high-contrast'
-                ? 'bg-black border-2 border-white text-white'
-                : 'bg-card border-border/20 text-white backdrop-blur-2xl'
-          }`}
-        >
+        <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl border border-border bg-card text-card-foreground shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-2xl">
           <div className="p-3 border-b border-inherit flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Folder className="w-4 h-4 text-orange-400" />
@@ -175,11 +157,7 @@ export default function MediumProjectSelector({
                 placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
                 autoFocus
                 required
-                className={`w-full mb-2 ${
-                  theme === 'light'
-                    ? 'bg-background border-border text-foreground'
-                    : 'bg-black/50 border-white/20 text-white'
-                }`}
+                className="w-full mb-2"
               />
               <div className="flex items-center gap-1.5 mb-3 flex-wrap">
                 {PROJECT_COLORS.map(c => (
@@ -248,7 +226,7 @@ export default function MediumProjectSelector({
                   }}
                   className={`w-full p-2.5 rounded-xl flex items-center justify-between gap-2 text-left cursor-pointer transition-colors h-auto ${
                     isSelected
-                      ? 'bg-orange-500/15 text-orange-600 dark:text-orange-300 font-bold'
+                      ? 'bg-orange-500/15 text-orange-500 font-bold'
                       : 'hover:bg-muted/50 text-foreground'
                   }`}
                 >

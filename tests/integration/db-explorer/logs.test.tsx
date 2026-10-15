@@ -1,7 +1,7 @@
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, screen, cleanup, waitFor } from '@testing-library/react';
+import { render, fireEvent, screen, cleanup, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
@@ -151,10 +151,10 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
     // Wait for edit mode to close before finding and clicking delete button
     await waitFor(() => {
-      expect(logsTableWrapper?.querySelector('input[placeholder="Reason"]')).toBeNull();
+      expect(within(logsTableWrapper as HTMLElement).queryByRole('button', { name: /save/i })).toBeNull();
     });
 
-    const deleteBtn = logsTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
+    const deleteBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /delete/i });
     fireEvent.click(deleteBtn);
 
     expect(confirmSpy).toHaveBeenCalled();

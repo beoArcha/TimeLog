@@ -9,7 +9,6 @@ export type MediumTabType = 'tasks' | 'reports' | 'settings';
 export interface MediumTabBarProps {
   currentTab: MediumTabType;
   onSelectTab: (tab: MediumTabType) => void;
-  theme?: string;
   locale?: Locale;
   customTranslations?: Partial<TranslationDictionary>;
 }
@@ -17,20 +16,13 @@ export interface MediumTabBarProps {
 export default function MediumTabBar({
   currentTab,
   onSelectTab,
-  theme,
   locale = 'en',
   customTranslations,
 }: MediumTabBarProps) {
   return (
     <nav
       id="medium-bottom-nav"
-      className={`shrink-0 mt-2 p-1.5 border-t rounded-2xl grid grid-cols-3 gap-2 z-30 transition-all ${
-        theme === 'light'
-          ? 'bg-card/95 border-border backdrop-blur-md text-foreground'
-          : theme === 'high-contrast'
-            ? 'bg-black border-2 border-white text-white'
-            : 'bg-card/95 border-white/10 backdrop-blur-md text-white'
-      }`}
+      className="shrink-0 mt-2 p-1.5 border-t border-border rounded-2xl grid grid-cols-3 gap-2 z-30 transition-all bg-card/95 backdrop-blur-md text-foreground"
     >
       <Button
         type="button"

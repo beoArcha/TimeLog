@@ -5,7 +5,7 @@ import { Button } from '@components/ui/button';
 
 interface TaskVisibilityToggleProps {
   isExpanded: boolean;
-  resolvedTheme: string | undefined;
+  resolvedTheme?: string | undefined;
   locale: Locale;
   customTranslations: any;
   onToggle: () => void;
@@ -13,7 +13,6 @@ interface TaskVisibilityToggleProps {
 
 export function TaskVisibilityToggle({
   isExpanded,
-  resolvedTheme,
   locale,
   customTranslations,
   onToggle,
@@ -29,10 +28,7 @@ export function TaskVisibilityToggle({
         size="xs"
         data-testid="compact-toggle-tasks-btn"
         onClick={onToggle}
-        className={`w-full py-1 h-auto rounded-xl transition-all font-mono text-[9px] uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer ${resolvedTheme === 'light'
-            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-            : 'bg-white/5 hover:bg-white/10 text-slate-300'
-          }`}
+        className="w-full py-1 h-auto rounded-xl transition-all font-mono text-[9px] uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer bg-secondary hover:bg-secondary/80 text-secondary-foreground"
       >
         <span>{label}</span>
         <div className="w-4 h-4 rounded-full bg-orange-500/10 flex items-center justify-center">

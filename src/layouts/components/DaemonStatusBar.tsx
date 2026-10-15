@@ -3,14 +3,12 @@ import { motion } from 'motion/react';
 import { RefreshCw, Minimize2 } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
 
 export default function DaemonStatusBar() {
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme } = useSettings();
   const { logs, engineState } = useData();
   const { handleMinimizeToTray } = useWindowShell();
 
@@ -38,13 +36,11 @@ export default function DaemonStatusBar() {
       id="engine-ready-status-bar"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`bg-emerald-500/5 border border-emerald-500/15 text-xs rounded-xl py-2 px-3 sm:py-2.5 sm:px-4 flex items-center justify-between gap-2.5 transition-all ${
-        resolvedTheme === 'light' ? 'text-slate-600' : 'text-slate-300'
-      }`}
+      className="bg-emerald-500/5 border border-emerald-500/15 text-xs rounded-xl py-2 px-3 sm:py-2.5 sm:px-4 flex items-center justify-between gap-2.5 transition-all text-muted-foreground"
     >
       <div className="flex items-center gap-2 text-left min-w-0">
         <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
-        <p className={`text-[11px] truncate leading-tight ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>
+        <p className="text-[11px] truncate leading-tight text-foreground">
           <span className="font-semibold text-emerald-600 dark:text-emerald-400">
             {translate(locale, 'engine', 'Connected', customTranslations)}
           </span>
@@ -58,11 +54,7 @@ export default function DaemonStatusBar() {
           variant="outline"
           size="xs"
           onClick={handleMinimizeToTray}
-          className={`text-[10px] flex items-center shrink-0 justify-center gap-1.5 transition-all cursor-pointer font-mono font-semibold ${
-            resolvedTheme === 'light'
-              ? 'bg-card hover:bg-muted text-foreground border-border'
-              : 'bg-card/5 hover:bg-card/10 text-slate-300 hover:text-white border-white/10'
-          }`}
+          className="text-[10px] flex items-center shrink-0 justify-center gap-1.5 transition-all cursor-pointer font-mono font-semibold bg-card hover:bg-muted text-foreground border-border"
           title={translate(locale, 'engine', 'MinimizeToTray', customTranslations)}
         >
           <Minimize2 className="w-3 h-3 text-orange-400" />

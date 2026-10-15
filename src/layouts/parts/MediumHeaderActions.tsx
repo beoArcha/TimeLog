@@ -16,7 +16,6 @@ export interface MediumHeaderActionsProps {
 }
 
 export const MediumHeaderActions: React.FC<MediumHeaderActionsProps> = ({
-  theme,
   dockPosition,
   onToggleDock,
   onOpenCreateProject,
@@ -52,11 +51,7 @@ export const MediumHeaderActions: React.FC<MediumHeaderActionsProps> = ({
         variant="outline"
         size="icon"
         onClick={onOpenCreateProject}
-        className={`rounded-xl transition-all cursor-pointer ${
-          theme === 'light'
-            ? 'bg-background border-border text-orange-600 hover:bg-orange-50'
-            : 'bg-white/10 border-white/10 text-orange-400 hover:bg-white/20'
-        }`}
+        className="rounded-xl border border-input bg-card text-orange-500 hover:bg-orange-500/10 transition-all cursor-pointer"
         title={newProjectLabel}
         aria-label={newProjectLabel}
       >
@@ -69,11 +64,7 @@ export const MediumHeaderActions: React.FC<MediumHeaderActionsProps> = ({
         size="icon"
         onClick={onToggleDock}
         aria-pressed={dockPosition === 'left'}
-        className={`hidden lg:flex rounded-xl transition-all cursor-pointer items-center justify-center ${
-          theme === 'light'
-            ? 'bg-background border-border text-foreground hover:bg-muted'
-            : 'bg-white/10 border-white/10 text-slate-300 hover:bg-white/20'
-        }`}
+        className="hidden lg:flex rounded-xl border border-input bg-card text-foreground hover:bg-muted transition-all cursor-pointer items-center justify-center"
         title={dockSwitchTitle}
         aria-label={dockAriaLabel}
       >

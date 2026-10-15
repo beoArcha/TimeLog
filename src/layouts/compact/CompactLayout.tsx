@@ -26,14 +26,9 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
     projects,
     tasks,
     activeLog,
-    theme,
     locale,
     customTranslations,
   } = state;
-
-  const resolvedTheme = theme;
-
-
 
   const { activeProj, projectRootTasks, handleStartTimer, handleStopTimer, handleRestoreWindow } =
     useCompactLayout({
@@ -59,16 +54,9 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
       className="w-full h-full flex flex-col p-1"
     >
       <div
-        className={`rounded-2xl border shadow-2xl p-3 flex flex-col gap-2.5 relative overflow-hidden transition-all duration-300 w-full h-full ${resolvedTheme === 'light'
-          ? 'bg-white border-slate-200 text-slate-800'
-          : resolvedTheme === 'high-contrast'
-            ? 'bg-black border-2 border-white text-white'
-            : 'bg-slate-950/95 backdrop-blur-xl border-white/10 text-white'
-          }`}
+        className="rounded-2xl border border-border shadow-2xl p-3 flex flex-col gap-2.5 relative overflow-hidden transition-all duration-300 w-full h-full bg-card/95 backdrop-blur-xl text-foreground"
       >
-        {resolvedTheme !== 'high-contrast' && (
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500" />
-        )}
+        <div className="ambient-gradients absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500" />
 
         <CompactLayoutHeader
           locale={locale}
@@ -84,7 +72,6 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
         {activeProj && (
           <ActiveProjectCard
             activeProj={activeProj}
-            resolvedTheme={resolvedTheme}
             locale={locale}
             customTranslations={customTranslations}
           />
@@ -92,7 +79,6 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
 
         <TaskVisibilityToggle
           isExpanded={isCompactExpanded}
-          resolvedTheme={resolvedTheme}
           locale={locale}
           customTranslations={customTranslations}
           onToggle={() => setIsCompactExpanded(!isCompactExpanded)}
@@ -113,7 +99,6 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
                 rootTasks={projectRootTasks}
                 allTasks={tasks}
                 activeLog={activeLog}
-                resolvedTheme={resolvedTheme}
                 locale={locale}
                 customTranslations={customTranslations}
                 onStartTimer={handleStartTimer}

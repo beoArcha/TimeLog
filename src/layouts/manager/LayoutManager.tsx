@@ -193,14 +193,9 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
       data-runtime={runtime}
       data-layout-variant={layoutVariant}
       data-text-size={textAndIconSize || 'medium'}
-      className={`h-[100dvh] max-h-screen overflow-hidden flex flex-col font-sans transition-all duration-500 relative p-1.5 sm:p-3 md:p-5 ${resolvedTheme === 'light'
-        ? 'bg-[#F4EFEA] text-[#2C2421] selection:bg-orange-500/20 selection:text-orange-950'
-        : resolvedTheme === 'high-contrast'
-          ? 'bg-black text-white selection:bg-yellow-500/30 selection:text-white'
-          : 'bg-[#0b0f19] text-slate-200 selection:bg-orange-500/30 selection:text-white'
-        }`}
+      className="h-[100dvh] max-h-screen overflow-hidden flex flex-col font-sans transition-all duration-500 relative p-1.5 sm:p-3 md:p-5 bg-background text-foreground selection:bg-orange-500/20 selection:text-orange-950"
     >
-      <BackgroundGradients theme={resolvedTheme} />
+      <BackgroundGradients />
 
       <SystemNotification />
 
@@ -230,7 +225,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
             exit={{ opacity: 0, scale: 0.98 }}
             className="flex-1 flex flex-col w-full min-h-0 overflow-hidden"
           >
-            <div className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex flex-col flex-1 min-h-0 border transition-all duration-300 ${
+            <div className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex flex-col flex-1 min-h-0 border border-border transition-all duration-300 bg-card/50 backdrop-blur-2xl ${
               layoutVariant === 'medium'
                 ? `w-full md:max-w-4xl lg:max-w-[500px] xl:max-w-[540px] ${
                     mediumDockPosition === 'left'
@@ -238,12 +233,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
                       : 'md:mx-auto lg:mr-4 lg:ml-auto xl:mr-8'
                   }`
                 : 'w-full'
-            } ${resolvedTheme === 'light'
-              ? 'bg-[#FCFAF7] border-[#DFD7CB]'
-              : resolvedTheme === 'high-contrast'
-                ? 'bg-black border-2 border-white'
-                : 'bg-slate-900/50 backdrop-blur-2xl border-white/10'
-              }`}>
+            }`}>
 
               <Header />
 
@@ -251,7 +241,6 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
                 <TabBar
                   locale={locale}
                   customTranslations={customTranslations}
-                  resolvedTheme={resolvedTheme}
                   activeLargeTab={activeLargeTab}
                   setActiveLargeTab={setActiveLargeTab}
                 />
