@@ -5,6 +5,7 @@ import { TextAndIconSize } from '@bindings/TextAndIconSize';
 import { Theme, ThemePreference } from '@common/types/ThemeTypes';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
+import { ThemeRegistry } from '@/src/styles/themeRegistry';
 import { toast } from 'sonner';
 
 export const useAppSettings = () => {
@@ -67,10 +68,7 @@ export const useAppSettings = () => {
   const setResolvedTheme = setSystemTheme;
 
   useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', resolvedTheme);
-      document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
-    }
+    ThemeRegistry.getInstance().applyTheme(resolvedTheme);
   }, [resolvedTheme]);
 
   if (layoutVariant !== 'compact' && layoutVariant !== lastNonCompactVariant) {

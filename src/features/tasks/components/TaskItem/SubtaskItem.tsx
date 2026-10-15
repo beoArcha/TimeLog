@@ -182,7 +182,6 @@ export function SubtaskItem({
           isRunning={isSubRunning}
           size="xs"
           variant="pill"
-          theme={theme}
         />
 
         {isSubRunning ? (

@@ -86,7 +86,6 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
                 value={formattedElapsed}
                 isRunning={true}
                 size="xl"
-                theme={theme}
               />
             </div>
             <Button
