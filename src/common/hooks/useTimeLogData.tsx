@@ -12,6 +12,9 @@ import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
 import { ApiPayload } from '../persistence/IPersistence';
 import { validateProjectName, validateTaskName, validateTaskHierarchy } from '@plugins/engine/validation';
+import { useHolidaysManager } from './data/useHolidaysManager';
+import { usePatchesManager } from './data/usePatchesManager';
+import { useMetricsManager } from './data/useMetricsManager';
 
 const repository = PersistenceRouter.getInstance();
 
@@ -22,11 +25,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const [tasks, setTasksState] = useState<Task[]>([]);
   const [logs, setLogsState] = useState<TimeLog[]>([]);
   const [activeLog, setActiveLogState] = useState<TimeLog | null>(null);
-  const [computedMetrics, setComputedMetrics] = useState<EngineComputedMetrics | null>(null);
-
-  const [holidays, setHolidaysState] = useState<HolidayLeave[]>([]);
-  const [patches, setPatchesState] = useState<PatchLog[]>([]);
-
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
@@ -35,25 +33,25 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const [engineState, setEngineState] = useState<'searching' | 'connected'>('connected');
 
   const isResetting = useRef(false);
-  const engine = EngineRouter.getInstance();
 
-  const fetchComputedMetrics = async (nowIso?: string) => {
-    try {
-      const metrics = await engine.getComputedMetrics(nowIso);
-      setComputedMetrics(prev => {
-        if (!prev) return metrics;
-        const tasksEqual = JSON.stringify(prev.tasks) === JSON.stringify(metrics.tasks);
-        const projectsEqual = JSON.stringify(prev.projects) === JSON.stringify(metrics.projects);
-        if (tasksEqual && projectsEqual && prev.snapshotNowIso === metrics.snapshotNowIso) {
-          return prev;
-        }
-        return metrics;
-      });
-      return metrics;
-    } catch {
-      return null;
-    }
-  };
+  const {
+    computedMetrics,
+    fetchComputedMetrics,
+  } = useMetricsManager();
+
+  const {
+    holidays,
+    setHolidaysState,
+    setHolidays,
+    handleAddHoliday,
+    handleDeleteHoliday,
+  } = useHolidaysManager({ onError: setRepositoryError });
+
+  const {
+    patches,
+    setPatchesState,
+    setPatches,
+  } = usePatchesManager({ onError: setRepositoryError });
 
   useEffect(() => {
     const loadState = async () => {
@@ -458,44 +456,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
-  const setHolidays = async (action: React.SetStateAction<HolidayLeave[]>) => {
-    try {
-      setRepositoryError(null);
-      const resolved = typeof action === 'function' ? action(holidays) : action;
-      await repository.holidays.save(resolved);
-      setHolidaysState(resolved);
-    } catch (err) {
-      ErrorHandler.handle(new RepositoryException('Failed to set holidays', err, 'ERR_REPOSITORY'));
-      setRepositoryError(err instanceof Error ? err.message : 'Failed to set holidays');
-    }
-  };
 
-  const setPatches = async (action: React.SetStateAction<PatchLog[]>) => {
-    try {
-      setRepositoryError(null);
-      const resolved = typeof action === 'function' ? action(patches) : action;
-      await repository.patches.save(resolved);
-      setPatchesState(resolved);
-    } catch (err) {
-      ErrorHandler.handle(new RepositoryException('Failed to set patches', err, 'ERR_REPOSITORY'));
-      setRepositoryError(err instanceof Error ? err.message : 'Failed to set patches');
-    }
-  };
-
-  const handleAddHoliday = async (date: string, type: 'holiday' | 'leave', name: string) => {
-    const nextHolidays = [...holidays, {
-      id: crypto.randomUUID(),
-      date,
-      type,
-      name
-    }];
-    await setHolidays(nextHolidays);
-  };
-
-  const handleDeleteHoliday = async (id: string) => {
-    const nextHolidays = holidays.filter(x => x.id !== id);
-    await setHolidays(nextHolidays);
-  };
 
   return {
     projects, setProjects,
@@ -529,4 +490,3 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     handleDeleteHoliday,
   };
 };
-
