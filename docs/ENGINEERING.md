@@ -301,6 +301,7 @@ React components should not calculate:
 * margins
 * typography
 * sizing
+* theme visual variants via inline branching
 
 Visual scaling belongs entirely to CSS Design Tokens.
 
@@ -316,7 +317,7 @@ layout-full
 text-medium
 ```
 
-Components consume only CSS variables.
+Components consume only CSS variables and semantic design tokens (`bg-card`, `border-border`, `text-card-foreground`, `text-foreground`).
 
 Example:
 
@@ -325,6 +326,15 @@ padding: var(--spacing-card);
 ```
 
 React should not contain conditional styling logic based on scale.
+
+### Theme DIP Architecture
+
+The application adopts the Dependency Inversion Principle (DIP) for theme styling:
+
+* **No Inline Theme Branching**: React components must not evaluate `resolvedTheme === 'light'` or `theme === 'high-contrast'`.
+* **ThemeRegistry**: The singleton `ThemeRegistry` (`src/styles/themeRegistry.ts`) holds built-in (`light`, `dark`, `high-contrast`) and extensible custom themes.
+* **Dynamic Application**: Applying a theme injects or toggles `data-theme` on `document.documentElement` and applies CSS variables dynamically.
+* **AST Architecture Verification**: Strict AST inspection in `tests/architecture/specs/no-inline-theme-ternaries.arch.test.ts` enforces zero inline theme conditionals across the entire codebase with an empty allowlist.
 
 ---
 

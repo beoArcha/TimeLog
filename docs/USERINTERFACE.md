@@ -135,6 +135,15 @@ Theme MUST NOT:
 - change spacing
 - affect structure
 
+#### Theme Dependency Inversion Principle (DIP)
+
+Themes are implemented via Dependency Inversion and CSS Custom Properties:
+
+1. **Passive Components**: React components never branch on theme identity (`resolvedTheme === 'light'`, `theme === 'high-contrast'`). They consume semantic tokens (`bg-card`, `border-border`, `text-card-foreground`, `text-foreground`).
+2. **Central Theme Registry**: `ThemeRegistry` (`src/styles/themeRegistry.ts`) manages active themes and registers built-in (`light`, `dark`, `high-contrast`) and custom themes.
+3. **DOM Injection**: When a theme is selected, `ThemeRegistry.applyTheme` sets the `data-theme` attribute and toggles the `dark` class on `document.documentElement`.
+4. **AST Enforcement**: Architectural rule `no-inline-theme-ternaries` prohibits any inline theme comparison outside `src/styles/` with zero exceptions allowed.
+
 ---
 
 ## Layout System
