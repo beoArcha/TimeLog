@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input, type InputProps } from '@components/ui/input';
+import { Button } from '@components/ui/button';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
 import { cn } from '@/lib/utils';
@@ -80,15 +81,17 @@ export function SearchInput({
         {...props}
       />
       {hasValue && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={handleClear}
           aria-label={resolvedClearLabel}
           title={resolvedClearLabel}
-          className="absolute right-2.5 p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="absolute right-1.5 size-7 p-0 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="w-3.5 h-3.5" aria-hidden="true" />
-        </button>
+        </Button>
       )}
     </div>
   );

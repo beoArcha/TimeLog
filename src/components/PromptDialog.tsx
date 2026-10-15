@@ -9,6 +9,7 @@ import {
 } from '@components/ui/dialog';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
+import { Label } from '@components/ui/label';
 import { HelpCircle, type LucideIcon } from 'lucide-react';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
@@ -107,9 +108,9 @@ function PromptDialogForm({
       </DialogHeader>
 
       <div className="flex flex-col gap-1.5 my-2">
-        <label htmlFor={inputId} className="sr-only">
+        <Label htmlFor={inputId} className="sr-only">
           {inputAriaLabel || (typeof title === 'string' ? title : resolvedConfirmLabel)}
-        </label>
+        </Label>
         <Input
           id={inputId}
           type="text"

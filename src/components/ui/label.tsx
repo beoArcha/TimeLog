@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Field } from "@base-ui/react/field";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +18,7 @@ const labelVariants = cva(
   }
 );
 
-export type LabelProps = React.ComponentProps<typeof Field.Label> &
+export type LabelProps = React.LabelHTMLAttributes<HTMLLabelElement> &
   VariantProps<typeof labelVariants>;
 
 /**
@@ -27,7 +26,7 @@ export type LabelProps = React.ComponentProps<typeof Field.Label> &
  */
 function Label({ className, variant, ...props }: LabelProps) {
   return (
-    <Field.Label
+    <label
       data-slot="label"
       className={cn(labelVariants({ variant, className }))}
       {...props}
