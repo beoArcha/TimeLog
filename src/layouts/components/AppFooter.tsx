@@ -18,28 +18,29 @@ export default function AppFooter({
   setShowCreditsModal,
 }: AppFooterProps) {
   return (
-    <footer className="mt-auto bg-black/50 border-t border-white/10 py-5 px-6 text-center text-[10px] text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
-      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-        <p>OxyFlowOS Environment — SQLite MicroORM</p>
-        <span className="text-white/20 select-none">•</span>
+    <footer className="mt-auto bg-black/40 backdrop-blur-md border-t border-border/40 py-1.5 px-3 sm:py-2 sm:px-6 text-[9px] sm:text-[10px] text-muted-foreground flex flex-row items-center justify-between gap-2 font-mono whitespace-nowrap overflow-x-auto select-none">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <span className="hidden sm:inline font-semibold">OxyFlowOS</span>
+        <span className="hidden sm:inline text-muted-foreground/60">Environment — SQLite MicroORM</span>
+        <span className="hidden sm:inline text-white/20 select-none">•</span>
         <Button
           id="trigger-credits-modal-btn"
           variant="link"
           size="xs"
           onClick={() => setShowCreditsModal(true)}
-          className="text-teal-400 hover:text-teal-300 font-bold underline transition-colors cursor-pointer p-0 h-auto"
+          className="text-teal-400 hover:text-teal-300 font-bold underline transition-colors cursor-pointer p-0 h-auto text-[9px] sm:text-[10px]"
         >
           {translate(locale, 'help', 'MplLicenseCreditsOxyFlow', customTranslations)}
         </Button>
       </div>
-      <div className="flex gap-4 items-center">
-        <span>{translate(locale, 'engine', 'Ready', customTranslations)}</span>
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        <span className="hidden sm:inline">{translate(locale, 'engine', 'Ready', customTranslations)}</span>
         <Button
           id="db-clean-force-btn"
           variant="link"
           size="xs"
           onClick={handleResetLocalStorage}
-          className="text-orange-500 hover:text-orange-400 font-bold transition-all cursor-pointer p-0 h-auto"
+          className="text-orange-500 hover:text-orange-400 font-bold transition-all cursor-pointer p-0 h-auto text-[9px] sm:text-[10px]"
         >
           {translate(locale, 'engine', 'SqlReset', customTranslations)}
         </Button>

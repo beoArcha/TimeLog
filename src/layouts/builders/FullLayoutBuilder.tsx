@@ -15,11 +15,11 @@ export default function FullLayoutBuilder({ state }: FullLayoutBuilderProps) {
   return (
     <div
       id="gui-container"
-      className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-foreground flex-1 gui-min-size"
+      className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-foreground flex-1 w-full max-w-full min-w-0 gui-min-size"
     >
       <Sidebar state={state} />
 
-      <div id="tasks-main" className={`lg:col-span-8 flex flex-col gap-6`}>
+      <div id="tasks-main" className={`lg:col-span-8 flex flex-col gap-6 min-w-0 w-full`}>
         <ActiveTimerBanner state={state} isCondensed={false} />
 
         {activeView === 'tasks' && <TaskListView state={state} isCondensed={false} />}

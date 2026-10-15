@@ -329,19 +329,24 @@
   }
 }
 
+[data-layout-variant="full"] {
+  --gui-min-width: 100%;
+  --gui-min-height: auto;
+}
+
 [data-layout-variant="full"][data-text-size="small"] {
-  --gui-min-width: 960px;
-  --gui-min-height: 960px;
+  --gui-min-width: 100%;
+  --gui-min-height: auto;
 }
 
 [data-layout-variant="full"][data-text-size="medium"] {
-  --gui-min-width: 1080px;
-  --gui-min-height: 1080px;
+  --gui-min-width: 100%;
+  --gui-min-height: auto;
 }
 
 [data-layout-variant="full"][data-text-size="large"] {
-  --gui-min-width: 1440px;
-  --gui-min-height: 1440px;
+  --gui-min-width: 100%;
+  --gui-min-height: auto;
 }
 
 @utility padding-main {
@@ -405,8 +410,9 @@
 }
 
 @utility gui-min-size {
-  min-width: var(--gui-min-width) !important;
-  min-height: var(--gui-min-height) !important;
+  min-width: min(100%, var(--gui-min-width, 100%)) !important;
+  max-width: 100% !important;
+  min-height: var(--gui-min-height, auto);
 }
 
 /* Runtime Polish: Desktop (Tauri) vs Browser */

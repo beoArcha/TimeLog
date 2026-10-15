@@ -87,7 +87,7 @@ export function SegmentedControl<T extends string = string>({
           return (
             <React.Fragment key={option.value}>
               <Tooltip>
-                <TooltipTrigger asChild>{itemContent}</TooltipTrigger>
+                <TooltipTrigger render={itemContent} />
                 <TooltipContent>{option.tooltip}</TooltipContent>
               </Tooltip>
             </React.Fragment>
