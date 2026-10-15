@@ -7,7 +7,6 @@ import { getNextId } from '@common/utils/idGenerator';
 import AddLogForm from './AddLogForm';
 import TimeLogTableRow from './TimeLogTableRow';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import {
@@ -21,19 +20,12 @@ import { Button } from '@components/ui/button';
 
 export default function TimeLogsTable() {
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme } = useSettings();
   const { tasks, projects, logs, setLogs, handleEditTimeLog } = useData();
   const { showToast } = useWindowShell();
 
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
   const [showAddLogForm, setShowAddLogForm] = useState(false);
-
-  const themeClasses = resolvedTheme === 'light'
-    ? { wrapper: 'bg-card border-border shadow-xs', tableHeader: 'border-border text-muted-foreground bg-muted/50' }
-    : resolvedTheme === 'high-contrast'
-      ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
-      : { wrapper: 'bg-card/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-muted-foreground bg-black/30' };
 
   const handleSaveEdit = async (id: string, startTime: string, endTime: string, note: string, reason: string) => {
     const existingLog = logs.find(l => l.id === id);
@@ -93,7 +85,7 @@ export default function TimeLogsTable() {
       iconColor="text-indigo-400"
       titleColor="text-indigo-400"
       defaultExpanded={true}
-      wrapperClassName={`p-6 rounded-3xl border shadow-xl ${themeClasses.wrapper}`}
+      wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
       headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-indigo-400 text-left"
       headerRight={
         <Button
@@ -122,7 +114,7 @@ export default function TimeLogsTable() {
       <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
         <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <TableHeader>
-            <TableRow className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
+            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
               <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
               <TableHead className="py-3 px-4">task_id</TableHead>
               <TableHead className="py-3 px-4">{translate(locale, 'database', 'StartStamp', customTranslations)}</TableHead>
@@ -132,7 +124,7 @@ export default function TimeLogsTable() {
               <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="dark:text-white">
+          <TableBody className="text-foreground">
             {logs.map(l => (
               <TimeLogTableRow
                 key={l.id}

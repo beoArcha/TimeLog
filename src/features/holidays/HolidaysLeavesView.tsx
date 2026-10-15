@@ -8,12 +8,10 @@ import { Label } from '@components/ui/label';
 import { NativeSelect } from '@components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@components/ui/table';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 
 export default function HolidaysLeavesView() {
   const { locale, customTranslations } = useLocale();
-  const { theme } = useSettings();
   const { holidays, handleAddHoliday, handleDeleteHoliday } = useData();
 
   const [newHolidayDate, setNewHolidayDate] = useState('2026-06-15');
@@ -28,16 +26,14 @@ export default function HolidaysLeavesView() {
   };
 
   return (
-    <div className={`p-6 rounded-[2rem] border shadow-2xl flex flex-col gap-6 transition-all duration-300 ${theme === 'light' ? 'bg-card border-border shadow-xs' : 'bg-card/50 border-white/10'
-      }`}>
+    <div className="p-6 rounded-[2rem] border border-border bg-card shadow-xs flex flex-col gap-6 transition-all duration-300">
       <div>
         <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
           {translate(locale, 'calendar', 'ResourceDatabaseTable', customTranslations)}
         </span>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1.5">
-          <h2 className={`font-sans font-bold text-2xl flex items-center gap-2 ${theme === 'light' ? 'text-foreground' : 'text-white'
-            }`}>
-          <Calendar className="w-6 h-6 text-orange-400" />
+          <h2 className="font-sans font-bold text-2xl flex items-center gap-2 text-foreground">
+            <Calendar className="w-6 h-6 text-orange-400" />
             {translate(locale, 'calendar', 'HolidaysVacations', customTranslations)}
           </h2>
         </div>
@@ -47,10 +43,9 @@ export default function HolidaysLeavesView() {
         title={translate(locale, 'calendar', 'RegisterNewDayOff', customTranslations)}
         icon={Plus}
         iconColor="text-orange-400"
-        titleColor={theme === 'light' ? 'text-foreground' : 'text-white'}
         defaultExpanded={true}
-        wrapperClassName={`p-6 rounded-3xl border ${theme === 'light' ? 'bg-muted/30 border-border' : 'bg-black/25 border-white/10'}`}
-        headerClassName={`text-xs font-bold font-mono tracking-wide ${theme === 'light' ? 'text-foreground' : 'text-white'}`}
+        wrapperClassName="p-6 rounded-3xl border border-border bg-muted/30"
+        headerClassName="text-xs font-bold font-mono tracking-wide text-foreground"
       >
         <form onSubmit={handleAddHolidaySubmit} className="mt-6 flex flex-col gap-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -82,13 +77,13 @@ export default function HolidaysLeavesView() {
         iconColor="text-muted-foreground"
         titleColor="text-muted-foreground"
         defaultExpanded={true}
-        wrapperClassName={`rounded-3xl border overflow-hidden ${theme === 'light' ? 'bg-card border-border' : 'bg-black/20 border-white/10'}`}
-        headerClassName={`px-5 py-3 border-b text-xs font-mono font-bold tracking-wider uppercase text-muted-foreground ${theme === 'light' ? 'bg-muted/50 border-border' : 'bg-card/5 border-white/10'}`}
+        wrapperClassName="rounded-3xl border border-border bg-card overflow-hidden shadow-xs"
+        headerClassName="px-5 py-3 border-b border-border text-xs font-mono font-bold tracking-wider uppercase text-muted-foreground bg-muted/50"
       >
         <div className="overflow-x-auto">
           <Table className="w-full text-sm font-sans text-left whitespace-nowrap">
             <TableHeader>
-              <TableRow className={`border-b text-xs font-bold font-mono tracking-wider uppercase ${theme === 'light' ? 'border-border text-muted-foreground bg-muted/30' : 'border-white/10 text-muted-foreground bg-black/40'}`}>
+              <TableRow className="border-b border-border text-xs font-bold font-mono tracking-wider uppercase text-muted-foreground bg-muted/30">
                 <TableHead className="py-2.5 px-4">{translate(locale, 'calendar', 'RecordName', customTranslations)}</TableHead>
                 <TableHead className="py-2.5 px-4">{translate(locale, 'calendar', 'ScheduledDate', customTranslations)}</TableHead>
                 <TableHead className="py-2.5 px-4">{translate(locale, 'calendar', 'Weekday', customTranslations)}</TableHead>
@@ -109,14 +104,14 @@ export default function HolidaysLeavesView() {
                   const weekdayStr = d.toLocaleDateString(locale, { weekday: 'short' });
 
                   return (
-                    <TableRow key={h.id} className={`border-b last:border-b-0 ${theme === 'light' ? 'border-border hover:bg-muted/40 text-foreground' : 'border-white/5 hover:bg-card/5 text-slate-300'}`}>
+                    <TableRow key={h.id} className="border-b border-border hover:bg-muted/40 text-foreground last:border-b-0">
                       <TableCell className="py-3 px-4 font-semibold">{h.name}</TableCell>
                       <TableCell className="py-3 px-4 font-mono text-xs">{h.date}</TableCell>
                       <TableCell className="py-3 px-4 font-mono text-xs text-muted-foreground">{weekdayStr}</TableCell>
                       <TableCell className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider ${h.type === 'holiday'
-                          ? theme === 'light' ? 'bg-orange-100 text-orange-600' : 'bg-orange-500/20 text-orange-300'
-                          : theme === 'light' ? 'bg-blue-100 text-blue-600' : 'bg-blue-500/20 text-blue-300'
+                        <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider border ${h.type === 'holiday'
+                          ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/20'
+                          : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20'
                           }`}>
                           {h.type === 'holiday' ? translate(locale, 'calendar', 'Holiday', customTranslations) : translate(locale, 'calendar', 'Vacation', customTranslations)}
                         </span>

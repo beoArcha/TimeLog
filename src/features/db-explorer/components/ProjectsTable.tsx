@@ -4,7 +4,6 @@ import { Project } from '@bindings/Project';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import {
   Table,
@@ -26,7 +25,6 @@ import { Button } from '@components/ui/button';
 
 export default function ProjectsTable() {
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme } = useSettings();
   const { projects, setProjects, setTasks, setLogs } = useData();
 
   const [editingProjId, setEditingProjId] = useState<string | null>(null);
@@ -34,12 +32,6 @@ export default function ProjectsTable() {
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
 
   const colors = ['rose', 'teal', 'amber', 'violet', 'indigo', 'emerald'];
-
-  const themeClasses = resolvedTheme === 'light' 
-    ? { wrapper: 'bg-card border-border shadow-xs', tableHeader: 'border-border text-muted-foreground bg-muted/50' }
-    : resolvedTheme === 'high-contrast'
-    ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
-    : { wrapper: 'bg-card/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-muted-foreground bg-black/30' };
 
   const startEditProj = (p: Project) => {
     setEditingProjId(p.id);
@@ -95,13 +87,13 @@ export default function ProjectsTable() {
       iconColor="text-orange-400"
       titleColor="text-orange-400"
       defaultExpanded={true}
-      wrapperClassName={`p-6 rounded-3xl border shadow-xl ${themeClasses.wrapper}`}
+      wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
       headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-orange-400"
     >
       <div className="overflow-x-auto w-full">
         <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <TableHeader>
-            <TableRow className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
+            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
               <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
               <TableHead className="py-3 px-4">name</TableHead>
               <TableHead className="py-3 px-4">color</TableHead>
@@ -109,14 +101,14 @@ export default function ProjectsTable() {
               <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'database', 'ActionsCrud', customTranslations)}</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="dark:text-white">
+          <TableBody className="text-foreground">
             {projects.map(p => {
               const isEditing = editingProjId === p.id;
               const hasHistory = !!(p.originalName || p.originalColor || p.editHistory);
 
               return (
                 <React.Fragment key={p.id}>
-                  <TableRow className="border-b border-white/5 hover:bg-white/5">
+                  <TableRow className="border-b border-border/50 hover:bg-muted/50">
                     <TableCell className="py-3.5 px-4 font-bold text-orange-500">{p.id}</TableCell>
                     <TableCell className="py-3.5 px-4">
                       {isEditing ? (
@@ -125,7 +117,7 @@ export default function ProjectsTable() {
                           value={projForm.name} 
                           onChange={e => setProjForm(prev => ({ ...prev, name: e.target.value }))}
                           aria-label={translate(locale, 'project', 'ProjectName', customTranslations)}
-                          className="bg-black/35 border border-white/20 px-2 py-1 h-7 rounded max-w-xs text-white"
+                          className="bg-background border border-border px-2 py-1 h-7 rounded max-w-xs text-foreground"
                         />
                       ) : (
                         <span className="font-semibold">{p.name}</span>
@@ -140,7 +132,7 @@ export default function ProjectsTable() {
                               if (val) setProjForm(prev => ({ ...prev, color: val }));
                             }}
                           >
-                            <SelectTrigger aria-label={translate(locale, 'common', 'Color', customTranslations)} className="h-7 text-xs bg-black border border-white/20">
+                            <SelectTrigger aria-label={translate(locale, 'common', 'Color', customTranslations)} className="h-7 text-xs bg-background border border-border">
                               <SelectValue>{projForm.color}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -190,7 +182,7 @@ export default function ProjectsTable() {
                                 aria-label={translate(locale, 'database', 'Reason', customTranslations)}
                                 value={projForm.reason} 
                                 onChange={e => setProjForm(prev => ({ ...prev, reason: e.target.value }))}
-                                className="text-[9px] bg-black/45 border border-white/10 px-1 py-0.5 h-6 rounded w-28 text-white"
+                                className="text-[9px] bg-background border border-border px-1 py-0.5 h-6 rounded w-28 text-foreground"
                               />
                             </div>
                             <Button
@@ -220,7 +212,7 @@ export default function ProjectsTable() {
                               variant="ghost"
                               size="icon-xs"
                               onClick={() => startEditProj(p)} 
-                              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 cursor-pointer" 
+                              className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground cursor-pointer" 
                               title={translate(locale, 'common', 'Edit', customTranslations)}
                               aria-label={translate(locale, 'common', 'Edit', customTranslations)}
                             >
@@ -244,7 +236,7 @@ export default function ProjectsTable() {
 
                   {showHistoryRecordId === p.id && p.editHistory && (
                     <TableRow>
-                      <TableCell colSpan={5} className="py-3 px-5 bg-black/20 border-b border-white/5 rounded-b-2xl">
+                      <TableCell colSpan={5} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
                         <div className="flex flex-col gap-1.5 border-l-2 border-teal-500 pl-4 py-1">
                           <p className="text-[10px] uppercase font-bold tracking-widest text-teal-400 flex items-center gap-1.5">
                             <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}

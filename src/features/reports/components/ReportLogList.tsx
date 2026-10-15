@@ -15,7 +15,6 @@ interface ReportLogListProps {
   projects: Project[];
   tasks: Task[];
   nowIso?: string;
-  theme: string;
 }
 
 export default function ReportLogList({
@@ -26,13 +25,12 @@ export default function ReportLogList({
   projects,
   tasks,
   nowIso,
-  theme,
 }: ReportLogListProps) {
   const { t } = useTranslation('report');
 
   if (filteredLogs.length === 0) {
     return (
-      <div className="text-center py-12 text-[#9B8C83] text-xs font-mono">
+      <div className="text-center py-12 text-muted-foreground text-xs font-mono">
         ⚠️ {t('NoDataSelectedRange')}
       </div>
     );
@@ -41,7 +39,7 @@ export default function ReportLogList({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase flex items-center gap-1.5">
+        <h4 className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
           📊 {t('GraphicalDistribution')}
         </h4>
         <div className="flex flex-col gap-4">
@@ -56,8 +54,7 @@ export default function ReportLogList({
                   </span>
                   <span className="font-mono text-orange-500">{formatSeconds(pc.seconds)}</span>
                 </div>
-                <div className={`w-full h-3 rounded-full overflow-hidden relative ${theme === 'light' ? 'bg-[#EAE4DB]' : 'bg-[#FCFAF8]/5'
-                  }`}>
+                <div className="w-full h-3 rounded-full overflow-hidden relative bg-muted">
                   <motion.div
                      initial={{ width: 0 }}
                      animate={{ width: `${widthPct}%` }}
@@ -66,9 +63,9 @@ export default function ReportLogList({
                   />
                 </div>
                 {pc.tasks.length > 0 && (
-                  <div className="flex flex-col gap-1 mt-1 pl-4 border-l-2 border-white/10 dark:border-white/5">
+                  <div className="flex flex-col gap-1 mt-1 pl-4 border-l-2 border-border/50">
                     {pc.tasks.map((tt) => (
-                      <div key={tt.task?.id || Math.random()} className="flex justify-between items-center text-[10px] text-[#8A7A71] dark:text-[#9B8C83]">
+                      <div key={tt.task?.id || Math.random()} className="flex justify-between items-center text-[10px] text-muted-foreground">
                         <span className="truncate">{tt.task?.name || 'N/A'}</span>
                         <span className="font-mono">{formatSeconds(tt.seconds)}</span>
                       </div>
@@ -82,11 +79,10 @@ export default function ReportLogList({
       </div>
 
       <div className="flex flex-col gap-3 mt-4">
-        <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
+        <h4 className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase">
           📋 {t('PlainDump')} ({displayLogs.length})
         </h4>
-        <div className={`rounded-[1.5rem] border max-h-[250px] overflow-y-auto p-4 flex flex-col gap-2 ${theme === 'light' ? 'bg-[#F4EFEA] border-[#DFD7CB] shadow-inner' : 'bg-black/20 border-white/5'
-          }`}>
+        <div className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto p-4 flex flex-col gap-2">
           {displayLogs.map(log => {
             const p = projects.find(x => x.id === log.projectId);
             const tObj = tasks.find(x => x.id === log.taskId);
@@ -97,13 +93,12 @@ export default function ReportLogList({
             return (
               <div
                 key={log.id}
-                className={`flex flex-col sm:flex-row justify-between sm:items-center gap-1 py-1.5 border-b last:border-0 text-xs ${theme === 'light' ? 'border-[#DFD7CB] text-[#5A4A42]' : 'border-white/5 text-slate-300'
-                  }`}
+                className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 py-1.5 border-b border-border/50 last:border-0 text-xs text-foreground"
               >
                 <span className="truncate flex items-center gap-1">
                   <span className="font-mono text-indigo-400 text-[10px] shrink-0 font-bold">[{new Date(log.startTime).toLocaleTimeString()}]</span>
-                  <strong className={`${theme === 'light' ? 'text-[#2C2421]' : 'text-slate-200'}`}>"{tObj?.name || 'N/A'}"</strong>
-                  <span className="text-[#9B8C83] text-[10px]">({p?.name})</span>
+                  <strong className="text-foreground">"{tObj?.name || 'N/A'}"</strong>
+                  <span className="text-muted-foreground text-[10px]">({p?.name})</span>
                 </span>
                 <span className="font-mono text-orange-400 shrink-0 self-end sm:self-auto font-bold">{formatSeconds(durSeconds)}</span>
               </div>

@@ -7,28 +7,9 @@ export interface NoInlineThemeTernariesOptions {
 }
 
 /**
- * Migration allowlist of views scheduled for refactoring in Phases 2-5.
- * Strictly reduced to empty in Phase 6.
+ * Migration allowlist of views scheduled for refactoring.
  */
-export const THEME_TERNARY_ALLOWLIST = new Set<string>([
-  'features/settings/ManualTab.tsx',
-  'features/cli/CliInterface.tsx',
-  'features/settings/BackupTab.tsx',
-  'features/db-explorer/components/DbInspector.tsx',
-  'features/holidays/HolidaysLeavesView.tsx',
-  'features/tray/TrayWidgetView.tsx',
-  'features/settings/SettingsTab.tsx',
-  'features/reports/components/ReportStatsCards.tsx',
-  'features/db-explorer/components/PatchLogsTable.tsx',
-  'features/reports/components/ReportLogList.tsx',
-  'features/reports/ReportView.tsx',
-  'features/db-explorer/components/ProjectsTable.tsx',
-  'features/reports/components/ReportPeriodSelector.tsx',
-  'features/db-explorer/components/TasksTable.tsx',
-  'features/db-explorer/components/TimeLogsTable.tsx',
-  'features/db-explorer/components/HolidaysLeavesTable.tsx',
-  'features/settings/CreditsTab.tsx',
-]);
+export const THEME_TERNARY_ALLOWLIST = new Set<string>([]);
 
 /**
  * Architectural Rule: Forbids inline theme checks in favor of CSS variables and Design Tokens.

@@ -4,7 +4,6 @@ import { Task } from '@bindings/Task';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
 import {
   Table,
@@ -20,18 +19,11 @@ import { Button } from '@components/ui/button';
 
 export default function TasksTable() {
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme } = useSettings();
   const { tasks, setTasks, setLogs } = useData();
 
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [taskForm, setTaskForm] = useState<{ name: string; completed: boolean; reason: string }>({ name: '', completed: false, reason: '' });
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
-
-  const themeClasses = resolvedTheme === 'light' 
-    ? { wrapper: 'bg-card border-border shadow-xs', tableHeader: 'border-border text-muted-foreground bg-muted/50' }
-    : resolvedTheme === 'high-contrast'
-    ? { wrapper: 'bg-black border-white border-2', tableHeader: 'border-white text-white' }
-    : { wrapper: 'bg-card/60 backdrop-blur-2xl border-white/10 shadow-slate-950/40', tableHeader: 'border-white/10 text-muted-foreground bg-black/30' };
 
   const startEditTask = (t: Task) => {
     setEditingTaskId(t.id);
@@ -86,13 +78,13 @@ export default function TasksTable() {
       iconColor="text-teal-400"
       titleColor="text-teal-400"
       defaultExpanded={true}
-      wrapperClassName={`p-6 rounded-3xl border shadow-xl ${themeClasses.wrapper}`}
+      wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
       headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-teal-400"
     >
       <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
         <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <TableHeader>
-            <TableRow className={`border-b ${themeClasses.tableHeader} uppercase text-[10px] tracking-wide`}>
+            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
               <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
               <TableHead className="py-3 px-4">project_id</TableHead>
               <TableHead className="py-3 px-4">name</TableHead>
@@ -101,14 +93,14 @@ export default function TasksTable() {
               <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="dark:text-white">
+          <TableBody className="text-foreground">
             {tasks.map(t => {
               const isEditing = editingTaskId === t.id;
               const hasHistory = !!(t.originalName || t.originalCompleted !== undefined || t.editHistory);
 
               return (
                 <React.Fragment key={t.id}>
-                  <TableRow className="border-b border-white/5 hover:bg-white/5">
+                  <TableRow className="border-b border-border/50 hover:bg-muted/50">
                     <TableCell className="py-3.5 px-4 font-bold text-teal-400">{t.id}</TableCell>
                     <TableCell className="py-3.5 px-4 text-muted-foreground">{t.projectId}</TableCell>
                     <TableCell className="py-3.5 px-4">
@@ -169,7 +161,7 @@ export default function TasksTable() {
                               aria-label={translate(locale, 'database', 'Reason', customTranslations)}
                               value={taskForm.reason} 
                               onChange={e => setTaskForm(prev => ({ ...prev, reason: e.target.value }))}
-                              className="text-[9px] bg-black/45 border border-white/10 px-1 py-0.5 h-6 rounded w-28 text-white mr-1"
+                              className="text-[9px] bg-background border border-border px-1 py-0.5 h-6 rounded w-28 text-foreground mr-1"
                             />
                             <Button 
                               variant="ghost"
@@ -198,7 +190,7 @@ export default function TasksTable() {
                               variant="ghost"
                               size="icon-xs"
                               onClick={() => startEditTask(t)} 
-                              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 cursor-pointer"
+                              className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground cursor-pointer"
                               title={translate(locale, 'common', 'Edit', customTranslations)}
                               aria-label={translate(locale, 'common', 'Edit', customTranslations)}
                             >
@@ -222,7 +214,7 @@ export default function TasksTable() {
 
                   {showHistoryRecordId === t.id && t.editHistory && (
                     <TableRow>
-                      <TableCell colSpan={6} className="py-3 px-5 bg-black/20 border-b border-white/5 rounded-b-2xl">
+                      <TableCell colSpan={6} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
                         <div className="flex flex-col gap-1.2 border-l-2 border-teal-500 pl-4 py-1">
                           <p className="text-[10px] uppercase font-bold tracking-widest text-teal-400 flex items-center gap-1.5">
                             <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}
