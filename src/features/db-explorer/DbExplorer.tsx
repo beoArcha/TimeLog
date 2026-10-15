@@ -1,23 +1,18 @@
-import React from 'react';
 import { Database } from 'lucide-react';
-
 import { translate } from '@common/i18n/translator';
-
 import ProjectsTable from './components/ProjectsTable';
 import TasksTable from './components/TasksTable';
 import TimeLogsTable from './components/TimeLogsTable';
 import HolidaysLeavesTable from './components/HolidaysLeavesTable';
 import PatchLogsTable from './components/PatchLogsTable';
-
 import { TableSkeleton } from '@components/ui/Skeletons';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { Button } from '@components/ui/button';
 
 export default function DbExplorer() {
   const { locale, customTranslations } = useLocale();
-  const { projects, tasks, logs, holidays, patches } = useData();
-  const { isLoading } = useEngine();;
+  const { projects, tasks, logs, holidays, patches, isLoading } = useData();
 
   const handleExportDatabase = () => {
     const data = { projects, tasks, logs, holidays, patches };
@@ -38,7 +33,7 @@ export default function DbExplorer() {
             <Database className="w-5.5 h-5.5 text-orange-500 animate-pulse" />
             <span>{translate(locale, 'database', 'DbTitle', customTranslations)}</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+          <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
             {translate(locale, 'database', 'DbDesc', customTranslations)}
           </p>
         </div>
@@ -46,13 +41,15 @@ export default function DbExplorer() {
           <span className="text-[10px] font-mono bg-orange-500/10 text-orange-400 border border-orange-500/20 px-3.5 py-1.5 rounded-xl uppercase font-bold self-start sm:self-auto tracking-wider">
             {translate(locale, 'database', 'TauriDriver', customTranslations)}
           </span>
-          <button
+          <Button
             data-testid="export-db-btn"
+            variant="outline"
+            size="xs"
             onClick={handleExportDatabase}
-            className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg border border-slate-600 transition-colors uppercase font-bold tracking-wider cursor-pointer"
+            className="text-[10px] uppercase font-bold tracking-wider cursor-pointer h-auto py-1.5 px-3"
           >
             {translate(locale, 'database', 'ExportDb', customTranslations)}
-          </button>
+          </Button>
         </div>
       </div>
 

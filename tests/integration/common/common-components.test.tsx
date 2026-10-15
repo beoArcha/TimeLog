@@ -5,7 +5,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import TrayWidgetView from '@features/tray/TrayWidgetView';
-import EngineConfig from '@components/EngineConfig';
+import EngineConfig from '@/src/features/settings/components/EngineConfig';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
 import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
 

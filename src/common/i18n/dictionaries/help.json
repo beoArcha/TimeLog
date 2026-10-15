@@ -82,7 +82,10 @@
     "GreatClose": "Great, close",
     "TabManual": "Manual",
     "TabCredits": "Credits & Thanks",
-    "TabRust": "Rust Source"
+    "TabRust": "Rust Source",
+    "CreditsBadge": "Credits • Acknowledgements • MPL-2.0 License",
+    "CreatorAppCreatedBy": "This application was engineered through vibe coding by LogTime by OxyFlow.",
+    "CreatorBio": "A passionate dancer of Brazilian Zouk, Kizomba, Bachata, and Salsa NY. With over 10+ years of active software developer experience, currently operating as a software architect and IT team lead."
   },
   "pl": {
     "HowToCompileTitle": "Pomoc Kompilacji i Asystent",
@@ -167,7 +170,10 @@
     "GreatClose": "Rozumiem",
     "TabManual": "Instrukcja",
     "TabCredits": "Podziękowania",
-    "TabRust": "Źródła RUST"
+    "TabRust": "Źródła RUST",
+    "CreditsBadge": "Podziękowania • Twórcy • Licencja MPL-2.0",
+    "CreatorAppCreatedBy": "Aplikacja stworzona przez vibe coding przez LogTime by OxyFlow.",
+    "CreatorBio": "Pasjonat tańca brazylijskiego Zouk, Kizomby, Bachaty oraz Salsy NY. Posiada ponad 10+ lat doświadczenia jako programista, pracując jako architekt oprogramowania i lider zespołu IT."
   },
   "de": {
     "HowToCompileTitle": "Kompilierung & Support (Tauri-Assistent)",
@@ -231,7 +237,10 @@
     "GreatClose": "Großartig, schließen",
     "TabManual": "Handbuch",
     "TabCredits": "Credits & Dank",
-    "TabRust": "Rust-Quellcode"
+    "TabRust": "Rust-Quellcode",
+    "CreditsBadge": "Credits • Danksagungen • MPL-2.0-Lizenz",
+    "CreatorAppCreatedBy": "Diese Anwendung wurde durch Vibe Coding von LogTime by OxyFlow entwickelt.",
+    "CreatorBio": "Ein leidenschaftlicher Tänzer von Zouk, Kizomba, Bachata und Salsa NY mit über 10 Jahren Erfahrung als Software-Architekt und IT-Teamleiter."
   },
   "es": {
     "HowToCompileTitle": "Compilación y Soporte",
@@ -295,7 +304,10 @@
     "GreatClose": "Cerrar",
     "TabManual": "Manual",
     "TabCredits": "Créditos",
-    "TabRust": "Rust Source"
+    "TabRust": "Rust Source",
+    "CreditsBadge": "Créditos • Agradecimientos • Licencia MPL-2.0",
+    "CreatorAppCreatedBy": "Esta aplicación fue diseñada mediante vibe coding por LogTime by OxyFlow.",
+    "CreatorBio": "Bailarín apasionado de Zouk, Kizomba, Bachata y Salsa NY con más de 10 años de experiencia como arquitecto de software y líder de TI."
   },
   "fr": {
     "HowToCompileTitle": "Compilation & Support",
@@ -359,7 +371,10 @@
     "GreatClose": "Fermer",
     "TabManual": "Manuel",
     "TabCredits": "Crédits",
-    "TabRust": "Rust Source"
+    "TabRust": "Rust Source",
+    "CreditsBadge": "Crédits • Remerciements • Licence MPL-2.0",
+    "CreatorAppCreatedBy": "Cette application a été conçue par vibe coding par LogTime by OxyFlow.",
+    "CreatorBio": "Danseur passionné de Zouk, Kizomba, Bachata et Salsa NY avec plus de 10 ans d'expérience en tant qu'architecte logiciel et responsable d'équipe IT."
   },
   "pt-br": {
     "HowToCompileTitle": "Compilação & Suporte",
@@ -423,6 +438,9 @@
     "GreatClose": "Fechar",
     "TabManual": "Manual",
     "TabCredits": "Créditos",
-    "TabRust": "Rust Source"
+    "TabRust": "Rust Source",
+    "CreditsBadge": "Créditos • Agradecimentos • Licença MPL-2.0",
+    "CreatorAppCreatedBy": "Este aplicativo foi desenvolvido através de vibe coding por LogTime by OxyFlow.",
+    "CreatorBio": "Dançarino apaixonado de Zouk, Kizomba, Bachata e Salsa NY com mais de 10 anos de experiência como arquiteto de software e líder de equipe de TI."
   }
 }

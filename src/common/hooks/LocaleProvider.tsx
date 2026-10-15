@@ -1,10 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ContextException } from '../exceptions';
-import { TranslationDictionary } from '@common/i18n/translator';
+import { TranslationDictionary } from '@common/i18n/types';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler } from '../exceptions';
-import { Locale } from '@/src/bindings/Locale';
+import { Locale } from '@bindings/Locale';
 
 interface LocaleContextProps {
   localePref: Locale;
@@ -86,4 +86,20 @@ export const useLocale = () => {
   const ctx = useContext(LocaleContext);
   if (!ctx) throw new ContextException('useLocale must be used within LocaleProvider', 'ERR_LOCALE_CONTEXT');
   return ctx;
+};
+
+/**
+ * Returns active locale or a safe English fallback when rendered outside LocaleProvider.
+ */
+export const useSafeLocale = () => {
+  const ctx = useContext(LocaleContext);
+  if (ctx) return ctx;
+  return {
+    locale: 'en' as Locale,
+    localePref: 'en' as Locale,
+    setLocale: () => {},
+    setLocalePref: () => {},
+    customTranslations: {},
+    setCustomTranslations: () => {},
+  };
 };

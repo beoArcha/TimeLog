@@ -1,9 +1,9 @@
-import { CliEngineContext, TerminalLine } from '../utils/Commands';
-import { getProjectDurationSeconds, formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { CliEngineContext, TerminalLine } from '../types';
+import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
 
 export const runProjectsCommand = (context: CliEngineContext, outputs: TerminalLine[]): void => {
-  const { projects, tasks, logs, metrics, nowIso, locale, customTranslations } = context;
+  const { projects, metrics, locale, customTranslations } = context;
   if (projects.length === 0) {
     outputs.push({ text: translate(locale, 'cli', 'ErrNoProjects', customTranslations), type: 'error' });
   } else {
@@ -11,7 +11,7 @@ export const runProjectsCommand = (context: CliEngineContext, outputs: TerminalL
     outputs.push({ text: translate(locale, 'cli', 'ProjHeader', customTranslations), type: 'info' });
     outputs.push({ text: '├──────┼────────────────────────────────┼────────────────────────┤', type: 'info' });
     projects.forEach(p => {
-      const totalSecs = metrics?.projects[p.id]?.totalElapsedSeconds ?? (nowIso ? getProjectDurationSeconds(p.id, tasks, logs, nowIso) : 0);
+      const totalSecs = metrics?.projects[p.id]?.totalElapsedSeconds ?? 0;
       const timeStr = formatSeconds(totalSecs);
       const idCol = p.id.padEnd(4);
       const nameCol = p.name.slice(0, 30).padEnd(30);

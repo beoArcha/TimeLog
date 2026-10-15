@@ -4,7 +4,8 @@ import { motion } from 'motion/react';
 import { useTranslation } from '@common/i18n/translator';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
+import { Button } from '@components/ui/button';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -15,7 +16,7 @@ interface TrayWidgetProps {
 export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps) {
   const { resolvedTheme } = useSettings();
   const { projects, tasks, logs, computedMetrics } = useData();
-  const { enginePID, nowIso } = useEngine();
+  const { nowIso } = useWindowShell();
 
   const { t: tEngine } = useTranslation('engine');
   const { t: tTimer } = useTranslation('timer');
@@ -66,7 +67,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
             ? 'bg-slate-100 border-slate-200 text-slate-700'
             : 'bg-white/5 border-white/10 text-slate-300'
             }`}>
-            {tEngine('DaemonEnginePid')} <strong className="text-orange-500 font-bold">{enginePID || 8421}</strong> {tEngine('SqliteThread')}
+            {tEngine('DaemonEnginePid')} <strong className="text-orange-500 font-bold">8421</strong> {tEngine('SqliteThread')}
           </div>
         </div>
 
@@ -118,27 +119,26 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <button
+          <Button
             id="tray-restore-btn"
             onClick={onRestore}
-            className="flex-1 bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold py-3 rounded-2xl text-sm transition-all shadow-lg shadow-orange-500/10 cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
+            className="flex-1 bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-semibold py-3 rounded-2xl text-sm transition-all shadow-lg shadow-orange-500/10 cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] h-auto"
           >
             <AppWindow className="w-4.5 h-4.5" />
             {tEngine('MaximizeAndRestore')}
-          </button>
-          <button
+          </Button>
+          <Button
             id="tray-kill-all-btn"
             onClick={onStopAll}
             disabled={activeRunningLogs.length === 0}
-            className={`py-3 px-6 rounded-2xl text-sm font-semibold border transition-all ${activeRunningLogs.length === 0
-              ? 'bg-transparent text-slate-400 border-slate-200/20 cursor-not-allowed opacity-40'
-              : resolvedTheme === 'light'
-                ? 'bg-slate-100 hover:bg-rose-50 text-rose-650 border-slate-200 cursor-pointer'
-                : 'bg-white/5 hover:bg-rose-550/15 text-rose-450 border-white/10 hover:border-rose-500/20 cursor-pointer'
+            variant="outline"
+            className={`py-3 px-6 rounded-2xl text-sm font-semibold transition-all h-auto ${activeRunningLogs.length === 0
+              ? 'opacity-40 cursor-not-allowed'
+              : 'hover:bg-rose-500/10 text-rose-500 border-rose-500/20 cursor-pointer'
               }`}
           >
             {tEngine('PauseAllProcesses')}
-          </button>
+          </Button>
         </div>
       </div>
     </motion.div>

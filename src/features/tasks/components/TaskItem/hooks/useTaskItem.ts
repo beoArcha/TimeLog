@@ -1,7 +1,7 @@
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { Locale } from '@bindings/Locale';
-import { getTaskDurationSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
 
 interface UseTaskItemParams {
   rootTask: Task;
@@ -31,15 +31,13 @@ export function useTaskItem({
   projectTasks,
 }: UseTaskItemParams): UseTaskItemResult {
   const subTasks = projectTasks.filter((t: Task) => t.parentTaskId === rootTask.id);
-
+  const { elapsedSeconds: rootDuration, isRunning: isCurrentRunning } = useLiveTaskElapsed(rootTask.id, {
+    metrics,
+    tasks,
+    logs,
+    nowIso,
+  });
   const taskMetric = metrics?.tasks?.[rootTask.id];
-  const rootDuration = taskMetric
-    ? taskMetric.elapsedSeconds
-    : (nowIso ? getTaskDurationSeconds(rootTask.id, tasks, logs, nowIso) : 0);
-
-  const isCurrentRunning = taskMetric
-    ? taskMetric.isRunning
-    : logs.some((l: TimeLog) => l.taskId === rootTask.id && l.endTime === null);
 
   const runningSubtask = subTasks.find((sub: Task) => {
     const subMetric = metrics?.tasks?.[sub.id];

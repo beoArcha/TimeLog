@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from '@common/i18n/translator';
-import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { TimeLog } from '@bindings/TimeLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
-import { ProjectChartItem } from '../hooks/useReportStatistics';
+import { ProjectChartItem } from '../types';
 
 interface ReportLogListProps {
   filteredLogs: TimeLog[];
@@ -40,7 +40,6 @@ export default function ReportLogList({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Graphical bars representation */}
       <div className="flex flex-col gap-3">
         <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase flex items-center gap-1.5">
           📊 {t('GraphicalDistribution')}
@@ -55,7 +54,7 @@ export default function ReportLogList({
                     <span className={`w-2.5 h-2.5 rounded-full bg-${pc.color}-500`} />
                     {pc.name}
                   </span>
-                  <span className="font-mono text-orange-450">{formatSeconds(pc.seconds)}</span>
+                  <span className="font-mono text-orange-500">{formatSeconds(pc.seconds)}</span>
                 </div>
                 <div className={`w-full h-3 rounded-full overflow-hidden relative ${theme === 'light' ? 'bg-[#EAE4DB]' : 'bg-[#FCFAF8]/5'
                   }`}>
@@ -82,7 +81,6 @@ export default function ReportLogList({
         </div>
       </div>
 
-      {/* Regular logs output */}
       <div className="flex flex-col gap-3 mt-4">
         <h4 className="text-xs font-mono font-bold tracking-wider text-[#9B8C83] uppercase">
           📋 {t('PlainDump')} ({displayLogs.length})

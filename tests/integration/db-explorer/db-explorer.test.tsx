@@ -98,8 +98,8 @@ describe('Integration Tests: DbExplorer Main Container', () => {
     setup();
     expect(screen.getByText(/projects table/i)).toBeDefined();
     expect(screen.getByText(/tasks table/i)).toBeDefined();
-    expect(screen.getByText(/time_logs table/i)).toBeDefined();
-    expect(screen.getByText(/holidays_leaves table/i)).toBeDefined();
-    expect(screen.getByText(/patch_logs table/i)).toBeDefined();
+    expect(screen.getByText(/(time_logs|Time Logs) Table/i)).toBeDefined();
+    expect(screen.getByText(/(holidays_leaves|Holidays and Leaves) Table/i)).toBeDefined();
+    expect(screen.getByText(/(patch_logs|Patch Logs) Table/i)).toBeDefined();
   });
 });

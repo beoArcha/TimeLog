@@ -3,7 +3,7 @@ import { PatchLog } from '@bindings/PatchLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { Settings } from '@bindings/Settings';
-import { ProjectChartItem, ReportStatisticsResult } from '../hooks/useReportStatistics';
+import { ProjectChartItem, ReportStatisticsResult } from '../types';
 
 export function calculateStartOfWeek(now: Date): number {
   const dWeek = new Date(now);

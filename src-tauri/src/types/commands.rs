@@ -52,7 +52,7 @@ pub enum CorePersistenceCommand {
 #[serde(rename_all = "snake_case")]
 pub enum ProjectsPersistenceCommand {
     Add,
-    Rename,
+    UpdateProject,
     ToggleArchive,
 }
 
@@ -61,7 +61,7 @@ pub enum ProjectsPersistenceCommand {
 #[serde(rename_all = "snake_case")]
 pub enum TasksPersistenceCommand {
     Create,
-    Update,
+    UpdateTask,
     Delete,
     ToggleComplete,
 }

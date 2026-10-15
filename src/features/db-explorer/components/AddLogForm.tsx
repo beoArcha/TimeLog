@@ -3,6 +3,16 @@ import { translate } from '@common/i18n/translator';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { Locale } from '@bindings/Locale';
+import { Label } from '@components/ui/label';
+import { Input } from '@components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@components/ui/select';
+import { Button } from '@components/ui/button';
 
 interface AddLogFormProps {
   tasks: Task[];
@@ -37,62 +47,78 @@ export default function AddLogForm({
     onSubmit(form.taskId, form.startTime, form.endTime, form.note);
   };
 
+  const selectedTask = tasks.find(t => t.id === form.taskId);
+  const selectedProject = selectedTask ? projects.find(p => p.id === selectedTask.projectId) : null;
+  const selectDisplay = selectedTask ? `${selectedProject?.name || ''} > ${selectedTask.name}` : translate(locale, 'task', 'SelectTaskPlaceholder', customTranslations);
+
   return (
     <form onSubmit={handleSubmit} className="mb-6 p-4 rounded-2xl bg-black/30 border border-white/5 flex flex-col gap-3">
       <p className="text-xs font-bold text-orange-400 uppercase tracking-wide">SQL Command: INSERT INTO time_logs</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
         <div>
-          <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'AssignToTask', customTranslations)}</label>
-          <select
+          <Label htmlFor="add-log-task" className="block text-muted-foreground mb-1">{translate(locale, 'database', 'AssignToTask', customTranslations)}</Label>
+          <Select
             value={form.taskId}
-            onChange={e => setForm(prev => ({ ...prev, taskId: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none"
-            required
+            onValueChange={val => {
+              if (val) setForm(prev => ({ ...prev, taskId: val }));
+            }}
           >
-            <option value="">{translate(locale, 'task', 'SelectTaskPlaceholder', customTranslations)}</option>
-            {tasks.map(t => (
-              <option key={t.id} value={t.id}>{projects.find(p => p.id === t.projectId)?.name} &gt; {t.name}</option>
-            ))}
-          </select>
+            <SelectTrigger id="add-log-task" aria-label={translate(locale, 'database', 'AssignToTask', customTranslations)} className="w-full bg-slate-900 border border-white/10 p-2 text-white">
+              <SelectValue>{selectDisplay}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {tasks.map(t => (
+                <SelectItem key={t.id} value={t.id}>
+                  {projects.find(p => p.id === t.projectId)?.name} &gt; {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
-          <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'StartTime', customTranslations)}</label>
-          <input
+          <Label htmlFor="add-log-start" className="block text-muted-foreground mb-1">{translate(locale, 'database', 'StartTime', customTranslations)}</Label>
+          <Input
+            id="add-log-start"
+            aria-label={translate(locale, 'database', 'StartTime', customTranslations)}
             type="text"
             value={form.startTime}
             onChange={e => setForm(prev => ({ ...prev, startTime: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none select-text"
+            className="w-full bg-slate-900 border border-white/10 p-2 text-white"
             required
           />
         </div>
         <div>
-          <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'EndTime', customTranslations)}</label>
-          <input
+          <Label htmlFor="add-log-end" className="block text-muted-foreground mb-1">{translate(locale, 'database', 'EndTime', customTranslations)}</Label>
+          <Input
+            id="add-log-end"
+            aria-label={translate(locale, 'database', 'EndTime', customTranslations)}
             type="text"
             value={form.endTime}
             onChange={e => setForm(prev => ({ ...prev, endTime: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none select-text"
-            placeholder="Wprowadź ISO lub pozostaw puste"
+            className="w-full bg-slate-900 border border-white/10 p-2 text-white"
+            placeholder="Enter ISO or leave blank"
           />
         </div>
         <div>
-          <label className="block text-slate-400 mb-1">{translate(locale, 'database', 'Note', customTranslations)}</label>
-          <input
+          <Label htmlFor="add-log-note" className="block text-muted-foreground mb-1">{translate(locale, 'database', 'Note', customTranslations)}</Label>
+          <Input
+            id="add-log-note"
+            aria-label={translate(locale, 'database', 'Note', customTranslations)}
             type="text"
             value={form.note}
             onChange={e => setForm(prev => ({ ...prev, note: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 rounded-xl text-white outline-none placeholder-slate-500"
-            placeholder="np. Dodane wstecznie za wtorek"
+            className="w-full bg-slate-900 border border-white/10 p-2 text-white placeholder-slate-500"
+            placeholder="e.g. Added retrospectively"
           />
         </div>
       </div>
       <div className="flex gap-2 justify-end mt-2">
-        <button type="submit" className="px-4 py-2 bg-emerald-500 hover:bg-emerald-650 text-white font-bold rounded-xl text-xs cursor-pointer">
-          Zatwierdź SQL INSERT
-        </button>
-        <button type="button" onClick={onCancel} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 cursor-pointer">
-          Anuluj
-        </button>
+        <Button type="submit" variant="accent" size="sm" aria-label={translate(locale, 'database', 'AddLogManually', customTranslations)}>
+          {translate(locale, 'database', 'AddLogManually', customTranslations)}
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={onCancel} aria-label={translate(locale, 'common', 'Cancel', customTranslations)}>
+          {translate(locale, 'common', 'Cancel', customTranslations)}
+        </Button>
       </div>
     </form>
   );

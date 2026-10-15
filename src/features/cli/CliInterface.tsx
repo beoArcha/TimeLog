@@ -2,16 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Terminal, Send, ShieldCheck } from 'lucide-react';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { useData } from '@common/hooks/DataContext';
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
 import { executeCliCommand, TerminalLine, CliEngineContext } from './utils/CliEngine';
-import versionsData from '../../versions.json';
+import versionsData from '@app/versions.json';
 import { translate } from '@common/i18n/translator';
 
 export default function CliInterface() {
   const { locale, customTranslations } = useLocale();
   const { resolvedTheme } = useSettings();
-  const { nowIso } = useEngine();
+  const { nowIso } = useWindowShell();
   const data = useData();
 
   const [input, setInput] = useState('');
@@ -32,12 +34,7 @@ export default function CliInterface() {
 
   if (prevLocale !== locale) {
     setPrevLocale(locale);
-    const msg = locale === 'pl' ? `Zmieniono język terminala na: Polski (PL)` :
-      locale === 'en' ? `Terminal locale switched to: English (EN)` :
-        locale === 'de' ? `Schnittstellensprache geändert zu: Deutsch (DE)` :
-          locale === 'es' ? `Idioma de terminal cambiado a: Español (ES)` :
-            locale === 'pt-br' ? `Idioma do terminal alterado para: Português (PT-BR)` :
-              `Terminal locale changed to: Custom translation dictionary!`;
+    const msg = translate(locale, 'cli', 'LocaleSwitched', customTranslations, { locale: locale.toUpperCase() });
     setTerminalHistory(prev => [
       ...prev,
       { text: `[SYSTEM_EVENT] ${msg}`, type: 'success' }
@@ -111,6 +108,9 @@ export default function CliInterface() {
 
       <div
         id="terminal-history"
+        role="log"
+        aria-live="polite"
+        aria-label="CLI terminal history"
         className={`rounded-2xl p-4 min-h-[380px] max-h-[480px] overflow-y-auto font-mono text-xs leading-relaxed flex flex-col gap-1.5 focus:outline-none border ${resolvedTheme === 'light'
           ? 'bg-slate-900 border-slate-300 text-slate-200 shadow-inner'
           : resolvedTheme === 'high-contrast'
@@ -135,7 +135,7 @@ export default function CliInterface() {
       </div>
 
       <form onSubmit={handleFormSubmit} className={`flex gap-2 p-1.5 rounded-2xl border transition-all ${resolvedTheme === 'light'
-        ? 'bg-slate-55 border-slate-200'
+        ? 'bg-slate-50 border-slate-200'
         : resolvedTheme === 'high-contrast'
           ? 'bg-black border-white'
           : 'bg-black/25 border-white/10'
@@ -143,23 +143,25 @@ export default function CliInterface() {
         <span className="text-orange-500 font-mono text-sm self-center pl-2 font-bold select-none">
           oxyflow&gt;
         </span>
-        <input
+        <Input
           id="cli-input-field"
           type="text"
-          className={`flex-1 bg-transparent font-mono text-xs border-none outline-none focus:ring-0 py-2 ${resolvedTheme === 'light' ? 'text-slate-800 placeholder-slate-400' : 'text-slate-100 placeholder-slate-500'
+          className={`flex-1 bg-transparent font-mono text-xs border-none outline-none focus-visible:ring-0 shadow-none py-2 h-auto ${resolvedTheme === 'light' ? 'text-slate-800 placeholder:text-slate-400' : 'text-slate-100 placeholder:text-slate-500'
             }`}
-          placeholder={locale === 'pl' ? 'Wpisz komendę, np. help, projects, start 1, stop...' : 'Enter command, e.g. help, projects, start 1, stop...'}
+          placeholder={translate(locale, 'cli', 'CommandInputPlaceholder', customTranslations)}
+          aria-label={translate(locale, 'cli', 'CommandInputPlaceholder', customTranslations)}
           value={input}
           onChange={e => setInput(e.target.value)}
           autoFocus
         />
-        <button
+        <Button
           id="cli-submit-btn"
           type="submit"
-          className="bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+          aria-label={translate(locale, 'common', 'Send', customTranslations)}
+          className="bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md h-auto"
         >
-          {locale === 'pl' ? 'Wyślij' : locale === 'en' ? 'Send' : locale === 'de' ? 'Senden' : locale === 'es' ? 'Enviar' : 'Enviar'} <Send className="w-3 h-3" />
-        </button>
+          {translate(locale, 'common', 'Send', customTranslations)} <Send className="w-3 h-3" />
+        </Button>
       </form>
 
       <div className={`border rounded-2xl p-3 flex flex-wrap items-center gap-2 text-[10px] font-mono transition-all ${resolvedTheme === 'light'
@@ -169,50 +171,58 @@ export default function CliInterface() {
           : 'bg-white/5 border-white/10 text-slate-400'
         }`}>
         <span className={`font-bold ${resolvedTheme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{translate(locale, 'help', 'QuickShortcuts', customTranslations)}</span>
-        <button
+        <Button
           id="cmd-project-list-btn"
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => executeCommand('projects')}
-          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
+          className={`px-2.5 py-1 rounded transition-all h-auto ${resolvedTheme === 'light'
             ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
             : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
             }`}
         >
           projects
-        </button>
-        <button
+        </Button>
+        <Button
           id="cmd-status-btn"
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => executeCommand('status')}
-          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
+          className={`px-2.5 py-1 rounded transition-all h-auto ${resolvedTheme === 'light'
             ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
             : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
             }`}
         >
           status
-        </button>
-        <button
+        </Button>
+        <Button
           id="cmd-logs-btn"
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => executeCommand('logs')}
-          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
+          className={`px-2.5 py-1 rounded transition-all h-auto ${resolvedTheme === 'light'
             ? 'bg-white hover:bg-slate-100 text-orange-600 border-slate-200'
             : 'bg-white/5 hover:bg-white/10 text-orange-400 border-white/10'
             }`}
         >
           logs
-        </button>
-        <button
+        </Button>
+        <Button
           id="cmd-stop-btn"
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => executeCommand('stop')}
-          className={`px-2.5 py-1 rounded border cursor-pointer transition-all ${resolvedTheme === 'light'
-            ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-150'
+          className={`px-2.5 py-1 rounded transition-all h-auto ${resolvedTheme === 'light'
+            ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200'
             : 'bg-white/5 hover:bg-rose-500/20 text-rose-300 border-white/10'
             }`}
         >
           stop
-        </button>
+        </Button>
       </div>
 
     </div>

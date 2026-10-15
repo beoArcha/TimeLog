@@ -58,4 +58,32 @@ export default [
             "no-empty": "warn",
         },
     },
+
+    {
+        files: ["src/**/*.tsx"],
+        ignores: ["src/components/ui/**", "**/*.test.tsx", "**/*.spec.tsx"],
+        rules: {
+            "no-restricted-syntax": [
+                "error",
+                {
+                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td)$/]",
+                    message: "Raw HTML element is forbidden. Use Design System primitives (@components/ui/*) or composite components (@components/*).",
+                },
+            ],
+        },
+    },
+
+    {
+        files: ["src/components/*.tsx"],
+        ignores: ["src/components/ui/**", "**/*.test.tsx", "**/*.spec.tsx"],
+        rules: {
+            "no-restricted-syntax": [
+                "error",
+                {
+                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td)$/]",
+                    message: "Raw HTML element is forbidden in composite components. Use Design System primitives (@components/ui/*).",
+                },
+            ],
+        },
+    },
 ];

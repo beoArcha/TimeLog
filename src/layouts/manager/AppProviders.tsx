@@ -2,7 +2,7 @@ import React from 'react';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
 import { SettingsProvider } from '@common/hooks/SettingsContext';
 import { DataProvider } from '@common/hooks/DataContext';
-import { EngineProvider } from '@common/hooks/EngineContext';
+import { WindowShellProvider } from '@common/contexts/WindowShellContext';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -13,9 +13,9 @@ export default function AppProviders({ children }: AppProvidersProps) {
     <LocaleProvider>
       <SettingsProvider>
         <DataProvider>
-          <EngineProvider>
+          <WindowShellProvider>
             {children}
-          </EngineProvider>
+          </WindowShellProvider>
         </DataProvider>
       </SettingsProvider>
     </LocaleProvider>

@@ -1,9 +1,8 @@
 import { Locale } from '@bindings/Locale';
 import { DomainKeys } from './keys';
 
-export interface TranslationDictionary {
-  [key: string]: string | TranslationDictionary;
-}
+export type { TranslationDictionary, DomainTranslations } from './types';
+import { TranslationDictionary, DomainTranslations } from './types';
 
 import common from './dictionaries/common.json';
 import app from './dictionaries/app.json';
@@ -33,7 +32,6 @@ export const dictionaries: Record<string, Record<string, Record<string, string>>
   help,
 };
 
-export type DomainTranslations = Record<string, Record<string, string>>;
 
 function isDevelopmentEnv(): boolean {
   return (

@@ -40,9 +40,10 @@ describe('Integration Tests: SettingsTab', () => {
     const resetBtn = screen.getByText('Reset database');
     fireEvent.click(resetBtn);
 
-    const input = document.querySelector('input[type="text"]')!;
+    const inputs = document.querySelectorAll('input[type="text"]');
+    const input = inputs[inputs.length - 1] as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'reset' } });
-    const confirmBtn = screen.getByText('Zatwierdź');
+    const confirmBtn = screen.getByRole('button', { name: /Confirm|Potwierdź|Zatwierdź/i });
     fireEvent.click(confirmBtn);
 
     expect(mockState.setProjects).toHaveBeenCalledWith([]);
@@ -67,9 +68,10 @@ describe('Integration Tests: SettingsTab', () => {
     const resetBtn = screen.getByText('Reset database');
     fireEvent.click(resetBtn);
 
-    const input = document.querySelector('input[type="text"]')!;
+    const cancelInputs = document.querySelectorAll('input[type="text"]');
+    const input = cancelInputs[cancelInputs.length - 1] as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'no' } });
-    const confirmBtn = screen.getByText('Zatwierdź');
+    const confirmBtn = screen.getByRole('button', { name: /Confirm|Potwierdź|Zatwierdź/i });
     fireEvent.click(confirmBtn);
 
     expect(mockState.setProjects).not.toHaveBeenCalled();

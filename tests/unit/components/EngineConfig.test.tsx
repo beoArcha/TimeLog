@@ -3,7 +3,7 @@ import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import EngineConfig from '@components/EngineConfig';
+import EngineConfig from '@/src/features/settings/components/EngineConfig';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: EngineConfig', () => {
@@ -24,7 +24,7 @@ describe('Unit Tests: EngineConfig', () => {
 
   it('Given EngineConfig rendered, When expanded, Then it should show all checkboxes', () => {
     const { getByTestId } = renderEngineConfig();
-    const header = getByTestId('collapsible-trigger-Konfiguracja Silnika');
+    const header = getByTestId('collapsible-trigger-engine-settings');
     fireEvent.click(header);
 
     const checkboxes = screen.getAllByRole('checkbox');
@@ -34,7 +34,7 @@ describe('Unit Tests: EngineConfig', () => {
   it('Given autoStart checkbox clicked, When onChange fires, Then it should call setSysSettings', () => {
     const setSysSettingsSpy = vi.fn();
     const { getByTestId } = renderEngineConfig({ setSysSettings: setSysSettingsSpy });
-    const header = getByTestId('collapsible-trigger-Konfiguracja Silnika');
+    const header = getByTestId('collapsible-trigger-engine-settings');
     fireEvent.click(header);
 
     const checkboxes = screen.getAllByRole('checkbox');
@@ -46,7 +46,7 @@ describe('Unit Tests: EngineConfig', () => {
   it('Given autoPauseOnSleep checkbox clicked, When onChange fires, Then it should call setSysSettings', () => {
     const setSysSettingsSpy = vi.fn();
     const { getByTestId } = renderEngineConfig({ setSysSettings: setSysSettingsSpy });
-    const header = getByTestId('collapsible-trigger-Konfiguracja Silnika');
+    const header = getByTestId('collapsible-trigger-engine-settings');
     fireEvent.click(header);
 
     const checkboxes = screen.getAllByRole('checkbox');
@@ -58,7 +58,7 @@ describe('Unit Tests: EngineConfig', () => {
   it('Given minimizeToTray checkbox clicked, When onChange fires, Then it should call setMinimizeToTray', () => {
     const setMinimizeToTraySpy = vi.fn();
     const { getByTestId } = renderEngineConfig({ setMinimizeToTray: setMinimizeToTraySpy });
-    const header = getByTestId('collapsible-trigger-Konfiguracja Silnika');
+    const header = getByTestId('collapsible-trigger-engine-settings');
     fireEvent.click(header);
 
     const checkboxes = screen.getAllByRole('checkbox');
@@ -70,7 +70,7 @@ describe('Unit Tests: EngineConfig', () => {
   it('Given alwaysOnTopSmall checkbox clicked, When onChange fires, Then it should call setAlwaysOnTopSmall', () => {
     const setAlwaysOnTopSmallSpy = vi.fn();
     const { getByTestId } = renderEngineConfig({ setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy });
-    const header = getByTestId('collapsible-trigger-Konfiguracja Silnika');
+    const header = getByTestId('collapsible-trigger-engine-settings');
     fireEvent.click(header);
 
     const checkboxes = screen.getAllByRole('checkbox');
@@ -82,7 +82,7 @@ describe('Unit Tests: EngineConfig', () => {
   it('Given alwaysOnTopMain checkbox clicked, When onChange fires, Then it should call setAlwaysOnTopMain', () => {
     const setAlwaysOnTopMainSpy = vi.fn();
     const { getByTestId } = renderEngineConfig({ setAlwaysOnTopMain: setAlwaysOnTopMainSpy });
-    const header = getByTestId('collapsible-trigger-Konfiguracja Silnika');
+    const header = getByTestId('collapsible-trigger-engine-settings');
     fireEvent.click(header);
 
     const checkboxes = screen.getAllByRole('checkbox');

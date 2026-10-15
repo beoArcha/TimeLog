@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from '@common/i18n/translator';
+import { Input } from '@components/ui/input';
 
 interface TaskNameEditorProps {
   taskId: string;
@@ -46,7 +47,7 @@ export function TaskNameEditor({
   }
 
   return (
-    <input
+    <Input
       autoFocus
       value={editName}
       onChange={(e) => setEditName(e.target.value)}
@@ -54,10 +55,10 @@ export function TaskNameEditor({
       onBlur={commitEdit}
       onKeyDown={handleKeyDown}
       aria-label={tCommon('EditName')}
-      className={`font-semibold ${textSizeClass} rounded px-1 outline-none w-full max-w-sm mr-2 ${theme === 'light'
-          ? 'bg-white text-[#2C2421] border-[#DFD7CB]'
+      className={`font-semibold ${textSizeClass} rounded px-1 outline-none w-full max-w-sm mr-2 h-7 ${theme === 'light'
+          ? 'bg-background text-foreground border-border'
           : 'bg-black text-white border-white/20'
-        } border`}
+        }`}
     />
   );
 }

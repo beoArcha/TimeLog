@@ -1,7 +1,7 @@
 {
   "name": "oxy-flow",
   "private": true,
-  "version": "1.7.6",
+  "version": "1.6.7",
   "license": "MPL-2.0",
   "type": "module",
   "scripts": {
@@ -18,6 +18,8 @@
     "format:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml",
     "format:rust:check": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
     "test": "vitest run",
+    "test:arch": "vitest run tests/architecture/specs",
+    "test:arch:all": "vitest run tests/architecture",
     "test:e2e": "playwright test --config=tests/e2e/config/playwright.config.ts",
     "test:e2e:ui": "playwright test --config=tests/e2e/config/playwright.config.ts --ui",
     "test:unit": "vitest run tests/unit",
@@ -31,7 +33,9 @@
     "build:all:debug": "npm run build:tauri:debug",
     "fix:all": "npm run lint:fix && npm run format:rust",
     "check:all": "npm run typecheck && npm run typecheck:rust && npm run format:rust:check && npm run lint && npm run lint:rust",
-    "test:all": "npm run test && npm run test:rust"
+    "test:all": "npm run test && npm run test:rust",
+    "check:frontend": "npm run typecheck && npm run lint && npm run test:arch && npm run test",
+    "check:backend": "npm run typecheck:rust && npm run format:rust:check && npm run lint:rust"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -57,6 +61,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.49.1",
     "@tauri-apps/cli": "^2.0.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
@@ -68,7 +73,7 @@
     "esbuild": "^0.25.0",
     "eslint": "^10.5.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
+    "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
     "nyc": "^18.0.0",
@@ -77,8 +82,8 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.61.1",
-    "@playwright/test": "^1.49.1",
     "vite": "^6.2.3",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.8"
   }
 }

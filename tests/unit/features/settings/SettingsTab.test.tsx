@@ -39,7 +39,7 @@ describe('Unit Tests: SettingsTab', () => {
     );
 
     // Expand the engine config panel
-    const trigger = screen.getByTestId('collapsible-trigger-Konfiguracja Silnika');
+    const trigger = screen.getByTestId('collapsible-trigger-engine-settings');
     fireEvent.click(trigger);
 
     const autoStartCheckbox = screen.getByLabelText(/Start on system boot/i) as HTMLInputElement;

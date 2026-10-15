@@ -58,7 +58,9 @@
     "ReportTimeHeader": "TIME DURATION REPORT",
     "ReportSysList": "--- PLAIN LIST OF SQLITE LOGS ---",
     "ReportGraph": "--- GRAPHICAL ACTIVE PROJECTS REPRESENTATION (ASCII) ---",
-    "TabCli": "CLI Console"
+    "TabCli": "CLI Console",
+    "CommandInputPlaceholder": "Enter command, e.g. help, projects, start 1, stop...",
+    "LocaleSwitched": "Terminal locale switched to: {locale}"
   },
   "pl": {
     "WelcomeHelp": "Wpisz \"help\" lub \"oxyhelp\", aby otworzyć listę dostępnych instrukcji.",
@@ -119,7 +121,9 @@
     "ReportTimeHeader": "RAPORT CZASOWY",
     "ReportSysList": "--- ZWYKŁY WYPIS LOGÓW SYSTEMOWYCH ---",
     "ReportGraph": "--- GRAFICZNY RAPORT PROJEKTÓW (ASCII CHART) ---",
-    "TabCli": "Konsola CLI"
+    "TabCli": "Konsola CLI",
+    "CommandInputPlaceholder": "Wpisz komendę, np. help, projects, start 1, stop...",
+    "LocaleSwitched": "Zmieniono język terminala na: {locale}"
   },
   "de": {
     "WelcomeHelp": "Geben Sie \"help\" oder \"oxyhelp\" ein, um die Liste der verfügbaren Befehle zu öffnen.",
@@ -180,7 +184,9 @@
     "ReportTimeHeader": "ZEITDAUERBERICHT",
     "ReportSysList": "--- EINFACHE LISTE DER SQLITE-PROTOKOLLE ---",
     "ReportGraph": "--- GRAFISCHE DARSTELLUNG DER AKTIVEN PROJEKTE (ASCII) ---",
-    "TabCli": "CLI-Konsole"
+    "TabCli": "CLI-Konsole",
+    "CommandInputPlaceholder": "Befehl eingeben, z.B. help, projects, start 1, stop...",
+    "LocaleSwitched": "Schnittstellensprache geändert zu: {locale}"
   },
   "es": {
     "WelcomeHelp": "Escriba \"help\" o \"oxyhelp\" para abrir la lista de comandos disponibles.",
@@ -241,7 +247,9 @@
     "ReportTimeHeader": "INFORME",
     "ReportSysList": "--- REGISTROS ---",
     "ReportGraph": "--- GRÁFICO ---",
-    "TabCli": "Consola CLI"
+    "TabCli": "Consola CLI",
+    "CommandInputPlaceholder": "Ingrese el comando, p.ej. help, projects, start 1, stop...",
+    "LocaleSwitched": "Idioma de terminal cambiado a: {locale}"
   },
   "fr": {
     "WelcomeHelp": "Tapez \"help\" ou \"oxyhelp\" pour ouvrir la liste des commandes disponibles.",
@@ -302,7 +310,9 @@
     "ReportTimeHeader": "RAPPORT",
     "ReportSysList": "--- LISTE DES JOURNAUX ---",
     "ReportGraph": "--- GRAPHIQUE ---",
-    "TabCli": "Console CLI"
+    "TabCli": "Console CLI",
+    "CommandInputPlaceholder": "Entrez une commande, ex. help, projects, start 1, stop...",
+    "LocaleSwitched": "Langue du terminal changée pour : {locale}"
   },
   "pt-br": {
     "WelcomeHelp": "Digite \"help\" ou \"oxyhelp\" para abrir a lista de comandos disponíveis.",
@@ -363,6 +373,8 @@
     "ReportTimeHeader": "RELATÓRIO DE TEMPO",
     "ReportSysList": "--- LOGS ---",
     "ReportGraph": "--- GRÁFICOS ---",
-    "TabCli": "Console CLI"
+    "TabCli": "Console CLI",
+    "CommandInputPlaceholder": "Digite um comando, ex. help, projects, start 1, stop...",
+    "LocaleSwitched": "Idioma do terminal alterado para: {locale}"
   }
 }

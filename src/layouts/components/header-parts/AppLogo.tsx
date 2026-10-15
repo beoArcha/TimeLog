@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import versionsData from '../../../versions.json';
+import versionsData from '@app/versions.json';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
@@ -9,25 +9,29 @@ import { useSettings } from '@common/hooks/SettingsContext';
 export const AppLogo: React.FC = () => {
   const { dragRegionProps } = usePlatformCapabilities();
   const { locale, customTranslations } = useLocale();
-  const { resolvedTheme } = useSettings();;
+  const { resolvedTheme, layoutVariant } = useSettings();
 
   return (
-    <div {...dragRegionProps} className="flex items-center gap-3">
-      <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-lg flex items-center justify-center text-white transform hover:rotate-3 transition-transform">
-        <Shield className="w-5 h-5 text-white" />
+    <div {...dragRegionProps} className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-md flex items-center justify-center text-white shrink-0">
+        <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
       </div>
       <div>
-        <h1 className={`font-sans font-bold text-base tracking-tight leading-none ${resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
-          }`}>
-          OxyFlow Client
-          <span className="text-[9px] bg-orange-500/10 border border-orange-500/20 text-orange-400 px-2 py-0.5 rounded ml-2 font-bold font-mono">
-            <v>{versionsData.subversions.front}</v>
+        <h1 className={`font-sans font-bold text-sm sm:text-base tracking-tight leading-none flex items-center ${
+          resolvedTheme === 'light' ? 'text-[#2C2421]' : 'text-white'
+        }`}>
+          <span>OxyFlow</span>
+          <span className="text-[9px] bg-orange-500/10 border border-orange-500/20 text-orange-400 px-1.5 py-0.2 rounded ml-1.5 font-bold font-mono">
+            v{versionsData.subversions.front}
           </span>
         </h1>
-        <p className={`text-[10px] font-sans mt-0.5 ${resolvedTheme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
+        {layoutVariant === 'full' && (
+          <p className={`hidden sm:block text-[10px] font-sans mt-0.5 ${
+            resolvedTheme === 'light' ? 'text-[#8A7A71]' : 'text-[#9B8C83]'
           }`}>
-          {translate(locale, 'app', 'Subtitle', customTranslations)}
-        </p>
+            {translate(locale, 'app', 'Subtitle', customTranslations)}
+          </p>
+        )}
       </div>
     </div>
   );

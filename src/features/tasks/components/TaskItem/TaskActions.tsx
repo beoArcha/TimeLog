@@ -1,5 +1,6 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
+import { Button } from '@components/ui/button';
 
 interface TaskActionsProps {
   taskId: string;
@@ -26,9 +27,11 @@ export function TaskActions({
 
   return (
     <div className="opacity-100 md:opacity-0 md:group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
-      <button
+      <Button
         id={`edit-task-btn-${taskId}`}
         type="button"
+        variant="ghost"
+        size="icon-xs"
         title={tCommon('EditName')}
         aria-label={tCommon('EditName')}
         onClick={(e) => {
@@ -36,23 +39,25 @@ export function TaskActions({
           setEditingId(taskId);
           setEditName(taskName);
         }}
-        className="p-1 rounded text-slate-500 hover:text-orange-500 hover:bg-orange-500/10"
+        className="p-1 rounded text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10"
       >
         <Pencil className={pencilSize} />
-      </button>
-      <button
+      </Button>
+      <Button
         id={`delete-task-btn-${taskId}`}
         type="button"
+        variant="ghost"
+        size="icon-xs"
         title={deleteTitle}
         aria-label={deleteTitle}
         onClick={(e) => {
           e.stopPropagation();
           if (onDeleteTask) onDeleteTask(taskId);
         }}
-        className="p-1 rounded text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 ml-0.5"
+        className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 ml-0.5"
       >
         <Trash2 className={trashSize} />
-      </button>
+      </Button>
     </div>
   );
 }

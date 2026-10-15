@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSettings } from '@common/hooks/SettingsContext';
-import { useEngine } from '@common/hooks/EngineContext';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
@@ -8,7 +8,6 @@ import { translate } from '@common/i18n/translator';
 import { motion, AnimatePresence } from 'motion/react';
 import AppProviders from './AppProviders';
 
-// Components
 import CliInterface from '@features/cli/CliInterface';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import ManualTab from '@features/settings/ManualTab';
@@ -17,23 +16,20 @@ import SettingsTab from '@features/settings/SettingsTab';
 import BackupTab from '@features/settings/BackupTab';
 import TrayWidgetView from '@features/tray/TrayWidgetView';
 
-// Layout Components
 import GuiClosedAlert from '../components/GuiClosedAlert';
-import SystemNotification from '@components/SystemNotification';
+import SystemNotification from '../components/SystemNotification';
 import Header from '../components/Header';
 import DaemonStatusBar from '../components/DaemonStatusBar';
 import CreditsModal from '../components/CreditsModal';
-import BackgroundGradients from '@components/BackgroundGradients';
+import BackgroundGradients from '../components/BackgroundGradients';
 import TabBar from '../components/TabBar';
 import AppFooter from '../components/AppFooter';
-import RestoreButton from '@components/RestoreButton';
+import RestoreButton from '../components/RestoreButton';
 
-// Builders
 import CompactLayoutBuilder from '../builders/CompactLayoutBuilder';
 import MediumLayoutBuilder from '../builders/MediumLayoutBuilder';
 import FullLayoutBuilder from '../builders/FullLayoutBuilder';
 
-// Types & Logics
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from '../hooks/useGuiLogic';
 
@@ -51,7 +47,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
     handleToggleTimer,
     handleResetLocalStorage,
     nowIso,
-  } = useEngine();
+  } = useWindowShell();
 
   const {
     layoutVariant,
@@ -157,6 +153,22 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
 
   const guiState = useGuiLogic(guiCommonProps);
 
+  const [mediumDockPosition, setMediumDockPosition] = useState<'right' | 'left'>(() => {
+    try {
+      return (localStorage.getItem('oxy_medium_dock_pos') as 'right' | 'left') || 'right';
+    } catch {
+      return 'right';
+    }
+  });
+
+  const handleToggleMediumDock = () => {
+    const next = mediumDockPosition === 'right' ? 'left' : 'right';
+    setMediumDockPosition(next);
+    try {
+      localStorage.setItem('oxy_medium_dock_pos', next);
+    } catch {}
+  };
+
   if (isGuiClosed) {
     return <GuiClosedAlert />;
   }
@@ -171,6 +183,8 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
     lastNonCompactVariant,
     alwaysOnTopSmall,
     setAlwaysOnTopSmall,
+    dockPosition: mediumDockPosition,
+    onToggleDock: handleToggleMediumDock,
   };
 
   return (
@@ -179,7 +193,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
       data-runtime={runtime}
       data-layout-variant={layoutVariant}
       data-text-size={textAndIconSize || 'medium'}
-      className={`min-h-screen flex flex-col font-sans transition-all duration-500 relative overflow-auto p-3 sm:p-6 ${resolvedTheme === 'light'
+      className={`h-[100dvh] max-h-screen overflow-hidden flex flex-col font-sans transition-all duration-500 relative p-1.5 sm:p-3 md:p-5 ${resolvedTheme === 'light'
         ? 'bg-[#F4EFEA] text-[#2C2421] selection:bg-orange-500/20 selection:text-orange-950'
         : resolvedTheme === 'high-contrast'
           ? 'bg-black text-white selection:bg-yellow-500/30 selection:text-white'
@@ -214,9 +228,17 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
-            className="flex-1 flex flex-col w-full"
+            className="flex-1 flex flex-col w-full min-h-0 overflow-hidden"
           >
-            <div className={`rounded-[2rem] shadow-3xl overflow-hidden flex flex-col flex-1 border transition-all duration-300 ${resolvedTheme === 'light'
+            <div className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex flex-col flex-1 min-h-0 border transition-all duration-300 ${
+              layoutVariant === 'medium'
+                ? `w-full md:max-w-4xl lg:max-w-[500px] xl:max-w-[540px] ${
+                    mediumDockPosition === 'left'
+                      ? 'md:mx-auto lg:ml-4 lg:mr-auto xl:ml-8'
+                      : 'md:mx-auto lg:mr-4 lg:ml-auto xl:mr-8'
+                  }`
+                : 'w-full'
+            } ${resolvedTheme === 'light'
               ? 'bg-[#FCFAF7] border-[#DFD7CB]'
               : resolvedTheme === 'high-contrast'
                 ? 'bg-black border-2 border-white'
@@ -235,11 +257,17 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
                 />
               )}
 
-              <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 z-10 flex flex-col gap-6">
+              <main className={`flex-1 min-h-0 w-full z-10 flex flex-col ${
+                layoutVariant === 'medium'
+                  ? 'p-2.5 sm:p-4 md:p-5 overflow-hidden'
+                  : 'max-w-7xl mx-auto px-4 sm:px-6 py-5 gap-5 overflow-y-auto'
+              }`}>
 
-                <DaemonStatusBar />
+                <div className="shrink-0 mb-1">
+                  <DaemonStatusBar />
+                </div>
 
-                <div id="tab-viewport" className="min-h-[480px]">
+                <div id="tab-viewport" className={layoutVariant === 'medium' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'min-h-[480px]'}>
                   {layoutVariant === 'medium' && (
                     <MediumLayoutBuilder
                       state={guiState}
@@ -328,12 +356,14 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
                 </div>
               </main>
 
-              <AppFooter
-                locale={locale}
-                customTranslations={customTranslations}
-                handleResetLocalStorage={handleResetLocalStorage!}
-                setShowCreditsModal={setShowCreditsModal!}
-              />
+              <div className={layoutVariant === 'medium' ? 'hidden sm:block shrink-0' : 'shrink-0'}>
+                <AppFooter
+                  locale={locale}
+                  customTranslations={customTranslations}
+                  handleResetLocalStorage={handleResetLocalStorage!}
+                  setShowCreditsModal={setShowCreditsModal!}
+                />
+              </div>
 
             </div>
           </motion.div>

@@ -103,9 +103,6 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const addBtn = screen.getByText(/add log manually/i);
     fireEvent.click(addBtn);
 
-    const taskSelect = screen.getByRole('combobox');
-    fireEvent.change(taskSelect, { target: { value: 'task_1' } });
-
     const textInputs = container.querySelectorAll('form input[type="text"]');
     const startInput = textInputs[0] as HTMLInputElement;
     const endInput = textInputs[1] as HTMLInputElement;
@@ -115,7 +112,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.change(endInput, { target: { value: '2026-06-20T11:00:00.000Z' } });
     fireEvent.change(noteInput, { target: { value: 'Manual log entry' } });
 
-    const submitBtn = screen.getByText(/Zatwierdź SQL INSERT/i);
+    const submitBtn = container.querySelector('form button[type="submit"]') as HTMLElement;
     fireEvent.click(submitBtn);
 
     expect(setLogs).toHaveBeenCalled();
@@ -123,13 +120,10 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
   it('should_alert_when_submitting_manual_log_without_selected_task', () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
-    const { container, setLogs } = setup();
+    const { container, setLogs } = setup({ tasks: [] });
 
     const addBtn = screen.getByText(/add log manually/i);
     fireEvent.click(addBtn);
-
-    const taskSelect = screen.getByRole('combobox');
-    fireEvent.change(taskSelect, { target: { value: '' } });
 
     const form = container.querySelector('form') as HTMLFormElement;
     fireEvent.submit(form);
@@ -142,7 +136,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const { setLogs, handleEditTimeLog } = setup();
 
-    const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
+    const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
 
     const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
     fireEvent.click(editBtn);
@@ -157,7 +151,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
     // Wait for edit mode to close before finding and clicking delete button
     await waitFor(() => {
-      expect(logsTableWrapper?.querySelector('input[placeholder="Uzasadnienie rzetelności"]')).toBeNull();
+      expect(logsTableWrapper?.querySelector('input[placeholder="Reason"]')).toBeNull();
     });
 
     const deleteBtn = logsTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
@@ -169,7 +163,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
   it('Given a log list, When editing is started and canceled, Then it should exit edit mode', () => {
     const { setLogs } = setup();
-    const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
+    const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
 
     const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
     fireEvent.click(editBtn);
@@ -182,7 +176,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
   it('Given a log list, When editing is started and saved with no changes, Then it should close editing without triggering setLogs', () => {
     const { handleEditTimeLog } = setup();
-    const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
+    const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
 
     const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
     fireEvent.click(editBtn);
@@ -217,30 +211,29 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     };
     setup(customValue);
 
-    const logsTableWrapper = screen.getByText(/time_logs table/i).closest('.border');
+    const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
     const historyBtn = logsTableWrapper?.querySelector('tbody tr button') as HTMLElement;
-    expect(screen.queryByText(/Oryginał i historia korekt/i)).toBeNull();
+    expect(screen.queryByText(/Adjusted start time/i)).toBeNull();
 
     fireEvent.click(historyBtn);
-    expect(screen.getByText(/Oryginał i historia korekt/i)).not.toBeNull();
-    expect(screen.getByText(/"Adjusted start time"/i)).not.toBeNull();
+    expect(screen.getByText(/Adjusted start time/i)).not.toBeNull();
 
     fireEvent.click(historyBtn);
-    expect(screen.queryByText(/Oryginał i historia korekt/i)).toBeNull();
+    expect(screen.queryByText(/Adjusted start time/i)).toBeNull();
   });
 
   it('Given the manual add form, When canceled, Then it should close the form', () => {
-    setup();
+    const { container } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
     fireEvent.click(addBtn);
 
-    expect(screen.getByText(/Zatwierdź SQL INSERT/i)).not.toBeNull();
+    expect(container.querySelector('form')).not.toBeNull();
 
-    const cancelBtn = screen.getByText(/Anuluj/i);
+    const cancelBtn = screen.getByRole('button', { name: /Cancel|Anuluj/i });
     fireEvent.click(cancelBtn);
 
-    expect(screen.queryByText(/Zatwierdź SQL INSERT/i)).toBeNull();
+    expect(container.querySelector('form')).toBeNull();
   });
 
   it('Given the manual add form, When submitted with empty end time and empty note, Then it should submit with defaults', () => {
@@ -248,9 +241,6 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
     const addBtn = screen.getByText(/add log manually/i);
     fireEvent.click(addBtn);
-
-    const taskSelect = screen.getByRole('combobox');
-    fireEvent.change(taskSelect, { target: { value: 'task_1' } });
 
     const textInputs = container.querySelectorAll('form input[type="text"]');
     const startInput = textInputs[0] as HTMLInputElement;
@@ -261,7 +251,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.change(endInput, { target: { value: '' } });
     fireEvent.change(noteInput, { target: { value: '' } });
 
-    const submitBtn = screen.getByText(/Zatwierdź SQL INSERT/i);
+    const submitBtn = container.querySelector('form button[type="submit"]') as HTMLElement;
     fireEvent.click(submitBtn);
 
     expect(setLogs).toHaveBeenCalled();

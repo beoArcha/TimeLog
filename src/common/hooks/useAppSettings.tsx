@@ -66,6 +66,12 @@ export const useAppSettings = () => {
   const resolvedTheme: Theme = theme === 'system' ? systemTheme : (theme as unknown as Theme);
   const setResolvedTheme = setSystemTheme;
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', resolvedTheme);
+      document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
+    }
+  }, [resolvedTheme]);
 
   if (layoutVariant !== 'compact' && layoutVariant !== lastNonCompactVariant) {
     setLastNonCompactVariant(layoutVariant);

@@ -11,6 +11,7 @@ import { ErrorHandler, RepositoryException } from '../exceptions';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
 import { ApiPayload } from '../persistence/IPersistence';
+import { validateProjectName, validateTaskName, validateTaskHierarchy } from '@plugins/engine/validation';
 
 const repository = PersistenceRouter.getInstance();
 
@@ -32,7 +33,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [repositoryError, setRepositoryError] = useState<string | null>(null);
   const [engineState, setEngineState] = useState<'searching' | 'connected'>('connected');
-  const [enginePID, setEnginePID] = useState<number>(() => Math.floor(2500 + Math.random() * 5000));
 
   const isResetting = useRef(false);
   const engine = EngineRouter.getInstance();
@@ -96,7 +96,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.addProject({ name, color, description, icon, tags });
+      validateProjectName(name, projects);
+      const nextState = await repository.projects.add({ name, color, description, icon, tags });
       setProjectsState(nextState.projects);
       await fetchComputedMetrics();
     } catch (err) {
@@ -111,7 +112,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.toggleProjectArchive(projectId);
+      const nextState = await repository.projects.toggleArchive(projectId);
       setProjectsState(nextState.projects);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -128,7 +129,9 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.addTask({ projectId, name, parentTaskId });
+      validateTaskName(name);
+      validateTaskHierarchy(null, parentTaskId, tasks);
+      const nextState = await repository.tasks.add({ projectId, name, parentTaskId });
       setTasksState(nextState.tasks);
       await fetchComputedMetrics();
     } catch (err) {
@@ -150,7 +153,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.updateProject(projectId, name, color, description, icon, tags);
+      validateProjectName(name, projects, projectId);
+      const nextState = await repository.projects.update(projectId, name, color, description, icon, tags);
       setProjectsState(nextState.projects);
       await fetchComputedMetrics();
     } catch (err) {
@@ -171,7 +175,11 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.updateTask(taskId, name, parentTaskId, status, completed);
+      if (name) {
+        validateTaskName(name);
+      }
+      validateTaskHierarchy(taskId, parentTaskId, tasks);
+      const nextState = await repository.tasks.update(taskId, name, parentTaskId, status, completed);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -188,7 +196,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.renameProject(projectId, newName);
+      validateProjectName(newName, projects, projectId);
+      const nextState = await repository.projects.rename(projectId, newName);
       setProjectsState(nextState.projects);
       await fetchComputedMetrics();
     } catch (err) {
@@ -203,7 +212,8 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.renameTask(taskId, newName);
+      validateTaskName(newName);
+      const nextState = await repository.tasks.rename(taskId, newName);
       setTasksState(nextState.tasks);
       await fetchComputedMetrics();
     } catch (err) {
@@ -218,7 +228,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.deleteTask(taskId);
+      const nextState = await repository.tasks.delete(taskId);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -235,7 +245,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     try {
       setIsLoading(true);
       setRepositoryError(null);
-      const nextState = await engine.toggleTaskComplete(taskId);
+      const nextState = await repository.tasks.toggleComplete(taskId);
       setTasksState(nextState.tasks);
       setLogsState(nextState.logs);
       setActiveLogState(nextState.activeLog);
@@ -249,45 +259,42 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
   };
 
 
+  const notifyActiveLogChanges = (prevLogs: TimeLog[], nextLogs: TimeLog[]) => {
+    const prevActive = prevLogs.filter(l => !l.endTime);
+    const nextActive = nextLogs.filter(l => !l.endTime);
+
+    for (const prev of prevActive) {
+      if (!nextActive.some(n => n.id === prev.id)) {
+        const stopped = nextLogs.find(l => l.id === prev.id) ?? {
+          ...prev,
+          endTime: new Date().toISOString(),
+        };
+        pushToApi({ event: 'TERMINATE', log: stopped }, `Terminating ${stopped.id}`);
+      }
+    }
+
+    for (const next of nextActive) {
+      if (!prevActive.some(p => p.id === next.id)) {
+        pushToApi({ event: 'START', log: next }, `Starting ${next.id}`);
+      }
+    }
+  };
+
   const handleStartTimer = async (taskId: string) => {
     try {
       setIsLoading(true);
       setRepositoryError(null);
 
-      const prevStateLogs = logs;
-      const prevActiveLogs = prevStateLogs.filter(l => l.endTime === null || l.endTime === undefined);
+      const prevLogs = logs;
 
       await EngineRouter.getInstance().startTimer(taskId);
       const nextState = await repository.core.load();
 
       if (nextState) {
-        const nextActiveLogs = nextState.logs.filter(l => l.endTime === null || l.endTime === undefined);
-        const events: ApiPayload[] = [];
-
-        prevActiveLogs.forEach(prev => {
-          const isStillActive = nextActiveLogs.some(n => n.id === prev.id);
-          if (!isStillActive) {
-            const stoppedLog = nextState.logs.find(l => l.id === prev.id);
-            if (stoppedLog) {
-              events.push({ event: 'TERMINATE', log: stoppedLog });
-            }
-          }
-        });
-
-        nextActiveLogs.forEach(next => {
-          const wasActive = prevActiveLogs.some(p => p.id === next.id);
-          if (!wasActive) {
-            events.push({ event: 'START', log: next });
-          }
-        });
-
         setLogsState(nextState.logs);
         setActiveLogState(nextState.activeLog);
         await fetchComputedMetrics();
-
-        events.forEach(evt => {
-          pushToApi(evt, evt.event === 'START' ? `Starting ${evt.log.id}` : `Terminating ${evt.log.id}`);
-        });
+        notifyActiveLogChanges(prevLogs, nextState.logs);
       }
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to start timer', err, 'ERR_REPOSITORY'));
@@ -302,33 +309,16 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
       setIsLoading(true);
       setRepositoryError(null);
 
-      const prevStateLogs = logs;
-      const prevActiveLogs = prevStateLogs.filter(l => l.endTime === null || l.endTime === undefined);
+      const prevLogs = logs;
 
       await EngineRouter.getInstance().stopTimer(specificProjectId);
       const nextState = await repository.core.load();
 
       if (nextState) {
-        const nextActiveLogs = nextState.logs.filter(l => l.endTime === null || l.endTime === undefined);
-        const events: ApiPayload[] = [];
-
-        prevActiveLogs.forEach(prev => {
-          const isStillActive = nextActiveLogs.some(n => n.id === prev.id);
-          if (!isStillActive) {
-            const stoppedLog = nextState.logs.find(l => l.id === prev.id);
-            if (stoppedLog) {
-              events.push({ event: 'TERMINATE', log: stoppedLog });
-            }
-          }
-        });
-
         setLogsState(nextState.logs);
         setActiveLogState(nextState.activeLog);
         await fetchComputedMetrics();
-
-        events.forEach(evt => {
-          pushToApi(evt, `Terminating ${evt.log.id}`);
-        });
+        notifyActiveLogChanges(prevLogs, nextState.logs);
       }
     } catch (err) {
       ErrorHandler.handle(new RepositoryException('Failed to stop timer', err, 'ERR_REPOSITORY'));
@@ -521,7 +511,6 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     isLoading,
     repositoryError,
     engineState, setEngineState,
-    enginePID, setEnginePID,
     handleAddProject,
     handleToggleProjectArchive,
     handleAddTask,

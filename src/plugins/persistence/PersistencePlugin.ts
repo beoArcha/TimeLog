@@ -10,6 +10,7 @@ import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { INIT_PROJECTS, INIT_TASKS, INIT_LOGS, DEFAULT_HOLIDAYS } from './InitialData';
 import { STORAGE_KEYS } from '@common/constants/storage-keys';
+import { validateTaskHierarchy } from '../engine/validation';
 
 const getDefaultState = (): TimerRepositoryState => ({
   projects: [],
@@ -96,18 +97,12 @@ export class PersistencePlugin implements IPersistence {
         const project = current.projects.find(p => p.id === projectId);
         if (project) {
           project.archived = !project.archived;
-          if (project.archived) {
-            const projectTaskIds = new Set(
-              current.tasks.filter(t => t.projectId === projectId).map(t => t.id)
+          if (project.archived && current.activeLog && current.activeLog.projectId === projectId) {
+            const now = new Date().toISOString();
+            current.logs = current.logs.map(log =>
+              log.id === current.activeLog?.id ? { ...log, endTime: now } : log
             );
-            if (current.activeLog && projectTaskIds.has(current.activeLog.taskId)) {
-              const now = new Date().toISOString();
-              current.activeLog.endTime = now;
-              current.logs = current.logs.map(l =>
-                l.id === current.activeLog?.id ? { ...l, endTime: now } : l
-              );
-              current.activeLog = null;
-            }
+            current.activeLog = null;
           }
         }
         return this.save(current);
@@ -145,15 +140,15 @@ export class PersistencePlugin implements IPersistence {
     this.tasks = {
       add: async (input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState> => {
         const current = (await this.core.load()) || getDefaultState();
-
-        // Hierarchy validation
-        if (input.parentTaskId) {
-          const parent = current.tasks.find(t => t.id === input.parentTaskId);
-          if (parent && parent.parentTaskId) {
-            throw new PersistenceException('Cannot nest tasks more than one level deep', undefined, 'ERR_PERSISTENCE_HIERARCHY');
-          }
+        try {
+          validateTaskHierarchy(null, input.parentTaskId, current.tasks);
+        } catch (err) {
+          throw new PersistenceException(
+            err instanceof Error ? err.message : String(err),
+            undefined,
+            'ERR_PERSISTENCE_HIERARCHY'
+          );
         }
-
         const now = new Date().toISOString();
         const newTask = {
           id: crypto.randomUUID(),
@@ -175,22 +170,15 @@ export class PersistencePlugin implements IPersistence {
         completed: boolean | null
       ): Promise<TimerRepositoryState> => {
         const current = (await this.core.load()) || getDefaultState();
-
-        // Hierarchy validation
-        if (parentTaskId) {
-          if (taskId === parentTaskId) {
-            throw new PersistenceException('Task cannot be its own parent', undefined, 'ERR_PERSISTENCE_HIERARCHY');
-          }
-          const parent = current.tasks.find(t => t.id === parentTaskId);
-          if (parent && parent.parentTaskId) {
-            throw new PersistenceException('Cannot nest tasks more than one level deep', undefined, 'ERR_PERSISTENCE_HIERARCHY');
-          }
-          const hasSubtasks = current.tasks.some(t => t.parentTaskId === taskId);
-          if (hasSubtasks) {
-            throw new PersistenceException('Cannot set a parent for a task that already has subtasks', undefined, 'ERR_PERSISTENCE_HIERARCHY');
-          }
+        try {
+          validateTaskHierarchy(taskId, parentTaskId, current.tasks);
+        } catch (err) {
+          throw new PersistenceException(
+            err instanceof Error ? err.message : String(err),
+            undefined,
+            'ERR_PERSISTENCE_HIERARCHY'
+          );
         }
-
         const task = current.tasks.find(t => t.id === taskId);
         if (task) {
           task.name = name;

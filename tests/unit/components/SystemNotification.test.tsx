@@ -3,8 +3,8 @@ import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import SystemNotification from '@components/SystemNotification';
-import RestoreButton from '@components/RestoreButton';
+import SystemNotification from '@layouts/components/SystemNotification';
+import RestoreButton from '@layouts/components/RestoreButton';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: SystemNotification & RestoreButton', () => {

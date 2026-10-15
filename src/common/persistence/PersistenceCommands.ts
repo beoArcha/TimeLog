@@ -11,7 +11,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
-import { PersistencePlugin } from '../../plugins/persistence/PersistencePlugin';
+import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 
 export class PersistenceCommands implements IPersistence {
   public core: ICorePersistence;
@@ -32,6 +32,9 @@ export class PersistenceCommands implements IPersistence {
         try {
           const cmd: CorePersistenceCommand = 'get_state';
           const state = await invoke<TimerRepositoryState>(cmd);
+          if (!state || !Array.isArray(state.projects) || !Array.isArray(state.tasks)) {
+            return null;
+          }
           if (state.projects.length === 0 && state.tasks.length === 0) {
             return null;
           }
@@ -89,7 +92,7 @@ export class PersistenceCommands implements IPersistence {
         icon: string | null,
         tags: string[] | null
       ): Promise<TimerRepositoryState> => {
-        const cmd = 'update_project';
+        const cmd: ProjectsPersistenceCommand = 'update_project';
         return invoke<TimerRepositoryState>(cmd, {
           projectId,
           name,
@@ -101,8 +104,16 @@ export class PersistenceCommands implements IPersistence {
       },
 
       rename: async (projectId: string, name: string): Promise<TimerRepositoryState> => {
-        const cmd: ProjectsPersistenceCommand = 'rename';
-        return invoke<TimerRepositoryState>(cmd, { projectId, name });
+        const state = await this.core.load();
+        const proj = state?.projects.find(p => p.id === projectId);
+        return this.projects.update(
+          projectId,
+          name,
+          proj?.color || '#F97316',
+          proj?.description ?? null,
+          proj?.icon ?? null,
+          proj?.tags ?? null
+        );
       }
     };
 
@@ -123,7 +134,7 @@ export class PersistenceCommands implements IPersistence {
         status: TaskStatus | null,
         completed: boolean | null
       ): Promise<TimerRepositoryState> => {
-        const cmd = 'update_task';
+        const cmd: TasksPersistenceCommand = 'update_task';
         return invoke<TimerRepositoryState>(cmd, {
           taskId,
           name,
@@ -134,8 +145,15 @@ export class PersistenceCommands implements IPersistence {
       },
 
       rename: async (taskId: string, name: string): Promise<TimerRepositoryState> => {
-        const cmd: TasksPersistenceCommand = 'update';
-        return invoke<TimerRepositoryState>(cmd, { taskId, name });
+        const state = await this.core.load();
+        const task = state?.tasks.find(t => t.id === taskId);
+        return this.tasks.update(
+          taskId,
+          name,
+          task?.parentTaskId ?? null,
+          task?.status ?? null,
+          task?.completed ?? null
+        );
       },
 
       delete: async (taskId: string): Promise<TimerRepositoryState> => {

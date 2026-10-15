@@ -31,7 +31,11 @@
     "ThemeSystemLabel": "System",
     "OxyFlowMinimizedToTray": "LogTime by OxyFlow minimized to tray. Engine keeps running.",
     "GuiClosedEngineKeepRunning": "GUI closed. LogTime by OxyFlow engine logs UI shutdown and keeps running.",
-    "TabMain": "GUI Interface"
+    "TabMain": "GUI Interface",
+    "DockPosition": "Dock Position",
+    "DockSwitchPosition": "Switch dock side",
+    "DockSwitchToLeft": "Switch dock to the left side",
+    "DockSwitchToRight": "Switch dock to the right side"
   },
   "pl": {
     "GuiClosedTitle": "LogTime by OxyFlow GUI Zakończone",
@@ -65,7 +69,11 @@
     "ThemeSystemLabel": "System",
     "OxyFlowMinimizedToTray": "LogTime by OxyFlow zminimalizowany do zasobnika (tray). Silnik nadal działa.",
     "GuiClosedEngineKeepRunning": "GUI zamknięte. Silnik LogTime by OxyFlow loguje zamknięcie UI i działa w terminalu.",
-    "TabMain": "Interfejs GUI"
+    "TabMain": "Interfejs GUI",
+    "DockPosition": "Pozycja dokowania",
+    "DockSwitchPosition": "Przełącz stronę dokowania",
+    "DockSwitchToLeft": "Przełącz pasek na lewą stronę",
+    "DockSwitchToRight": "Przełącz pasek na prawą stronę"
   },
   "de": {
     "GuiClosedTitle": "LogTime by OxyFlow GUI Geschlossen",
@@ -95,7 +103,11 @@
     "ThemeSystemLabel": "System",
     "OxyFlowMinimizedToTray": "LogTime by OxyFlow in die Taskleiste minimiert. Der Motor läuft weiter.",
     "GuiClosedEngineKeepRunning": "GUI geschlossen. Der LogTime by OxyFlow-Motor protokolliert das Herunterfahren der UI und läuft weiter.",
-    "TabMain": "GUI-Schnittstelle"
+    "TabMain": "GUI-Schnittstelle",
+    "DockPosition": "Dock-Position",
+    "DockSwitchPosition": "Dock-Seite umschalten",
+    "DockSwitchToLeft": "Dock auf die linke Seite umschalten",
+    "DockSwitchToRight": "Dock auf die rechte Seite umschalten"
   },
   "es": {
     "GuiClosedTitle": "Interfaz Cerrada",
@@ -129,7 +141,11 @@
     "ThemeSystemLabel": "Sistema",
     "OxyFlowMinimizedToTray": "Minimizado a la bandeja.",
     "GuiClosedEngineKeepRunning": "GUI cerrada.",
-    "TabMain": "Principal"
+    "TabMain": "Principal",
+    "DockPosition": "Posición del dock",
+    "DockSwitchPosition": "Cambiar lado del dock",
+    "DockSwitchToLeft": "Cambiar dock al lado izquierdo",
+    "DockSwitchToRight": "Cambiar dock al lado derecho"
   },
   "fr": {
     "GuiClosedTitle": "Interface Fermée",
@@ -163,7 +179,11 @@
     "ThemeSystemLabel": "Système",
     "OxyFlowMinimizedToTray": "Réduit dans la zone de notification.",
     "GuiClosedEngineKeepRunning": "Interface GUI fermée.",
-    "TabMain": "Principal"
+    "TabMain": "Principal",
+    "DockPosition": "Position du dock",
+    "DockSwitchPosition": "Basculer le côté du dock",
+    "DockSwitchToLeft": "Basculer le dock vers le côté gauche",
+    "DockSwitchToRight": "Basculer le dock vers le côté droit"
   },
   "pt-br": {
     "GuiClosedTitle": "Interface Fechada",
@@ -197,6 +217,10 @@
     "ThemeSystemLabel": "Sistema",
     "OxyFlowMinimizedToTray": "Minimizado.",
     "GuiClosedEngineKeepRunning": "GUI fechada.",
-    "TabMain": "Principal"
+    "TabMain": "Principal",
+    "DockPosition": "Posição do dock",
+    "DockSwitchPosition": "Mudar lado do dock",
+    "DockSwitchToLeft": "Mudar o dock para o lado esquerdo",
+    "DockSwitchToRight": "Mudar o dock para o lado direito"
   }
 }
