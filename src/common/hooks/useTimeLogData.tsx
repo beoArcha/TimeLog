@@ -1,12 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { TimeLog } from '@bindings/TimeLog';
-import { HolidayLeave } from '@bindings/HolidayLeave';
-import { PatchLog } from '@bindings/PatchLog';
-import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
-import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { ErrorHandler, RepositoryException } from '../exceptions';
 import { PersistenceRouter } from '../persistence/PersistenceRouter';
 import { EngineRouter } from '../engine/EngineRouter';
@@ -15,74 +11,67 @@ import { validateProjectName, validateTaskName, validateTaskHierarchy } from '@p
 import { useHolidaysManager } from './data/useHolidaysManager';
 import { usePatchesManager } from './data/usePatchesManager';
 import { useMetricsManager } from './data/useMetricsManager';
+import { useRepositoryState } from './data/useRepositoryState';
+import { useAsyncActionRunner } from './data/useAsyncActionRunner';
+import { useDataLifecycle } from './data/useDataLifecycle';
 
 const repository = PersistenceRouter.getInstance();
 
 export { type ApiPayload };
 
 export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) => void) => {
-  const [projects, setProjectsState] = useState<Project[]>([]);
-  const [tasks, setTasksState] = useState<Task[]>([]);
-  const [logs, setLogsState] = useState<TimeLog[]>([]);
-  const [activeLog, setActiveLogState] = useState<TimeLog | null>(null);
+  const repositoryState = useRepositoryState();
+  const {
+    projects, setProjectsState,
+    tasks, setTasksState,
+    logs, setLogsState,
+    activeLog, setActiveLogState,
+  } = repositoryState;
+
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [repositoryError, setRepositoryError] = useState<string | null>(null);
-  const [engineState, setEngineState] = useState<'searching' | 'connected'>('connected');
-
-  const isResetting = useRef(false);
+  const actionRunner = useAsyncActionRunner();
+  const {
+    isLoading,
+    setIsLoading,
+    repositoryError,
+    setRepositoryError,
+  } = actionRunner;
 
   const {
     computedMetrics,
     fetchComputedMetrics,
   } = useMetricsManager();
 
+  const holidaysManager = useHolidaysManager({ onError: setRepositoryError });
   const {
     holidays,
-    setHolidaysState,
     setHolidays,
     handleAddHoliday,
     handleDeleteHoliday,
-  } = useHolidaysManager({ onError: setRepositoryError });
+  } = holidaysManager;
 
+  const patchesManager = usePatchesManager({ onError: setRepositoryError });
   const {
     patches,
-    setPatchesState,
     setPatches,
-  } = usePatchesManager({ onError: setRepositoryError });
+  } = patchesManager;
 
-  useEffect(() => {
-    const loadState = async () => {
-      try {
-        setIsLoading(true);
-        const [state, loadedHolidays, loadedPatches] = await Promise.all([
-          repository.core.load(),
-          repository.holidays.getAll(),
-          repository.patches.getAll()
-        ]);
-
-        if (state !== null) {
-          setProjectsState(state.projects);
-          setTasksState(state.tasks);
-          setLogsState(state.logs);
-          setActiveLogState(state.activeLog);
-          setSelectedTaskId(state.tasks?.[0]?.id ?? null);
-        }
-        setHolidaysState(loadedHolidays);
-        setPatchesState(loadedPatches);
-        await fetchComputedMetrics();
-      } catch (err) {
-        ErrorHandler.handle(new RepositoryException('Failed to load repository state', err, 'ERR_REPOSITORY'));
-        setRepositoryError(err instanceof Error ? err.message : 'Failed to load repository state');
-      } finally {
-        setIsInitialized(true);
-        setIsLoading(false);
-      }
-    };
-    loadState();
-  }, []);
+  const {
+    isInitialized,
+    setIsInitialized,
+    engineState,
+    setEngineState,
+    handleResetLocalStorage,
+    handleRestoreState,
+  } = useDataLifecycle({
+    repositoryState,
+    holidaysManager,
+    patchesManager,
+    actionRunner,
+    refreshComputedMetrics: fetchComputedMetrics,
+    onTaskSelected: setSelectedTaskId,
+  });
 
   const handleAddProject = async (
     name: string,
@@ -326,20 +315,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
-  const handleResetLocalStorage = async () => {
-    try {
-      isResetting.current = true;
-      setIsLoading(true);
-      setRepositoryError(null);
-      await repository.core.reset();
-      window.location.reload();
-    } catch (err) {
-      ErrorHandler.handle(new RepositoryException('Failed to reset storage', err, 'ERR_REPOSITORY'));
-      setRepositoryError(err instanceof Error ? err.message : 'Failed to reset storage');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   const setProjects = async (action: React.SetStateAction<Project[]>) => {
     try {
@@ -422,39 +398,7 @@ export const useTimeLogData = (pushToApi: (payload: ApiPayload, logMsg: string) 
     }
   };
 
-  const handleRestoreState = async (data: {
-    projects?: Project[];
-    tasks?: Task[];
-    logs?: TimeLog[];
-    holidays?: HolidayLeave[];
-    patches?: PatchLog[];
-  }) => {
-    try {
-      setIsLoading(true);
-      setRepositoryError(null);
-      const payload: Partial<TimerRepositoryState> = {};
-      if (data.projects) payload.projects = data.projects;
-      if (data.tasks) payload.tasks = data.tasks;
-      if (data.logs) payload.logs = data.logs;
 
-      const nextState = await repository.core.overrideState(payload);
-
-      if (data.projects) setProjectsState(nextState.projects);
-      if (data.tasks) setTasksState(nextState.tasks);
-      if (data.logs) setLogsState(nextState.logs);
-      if (nextState.activeLog !== undefined) setActiveLogState(nextState.activeLog);
-
-      if (data.holidays) setHolidays(data.holidays);
-      if (data.patches) setPatches(data.patches);
-      await fetchComputedMetrics();
-    } catch (err) {
-      ErrorHandler.handle(new RepositoryException('Failed to restore database state', err, 'ERR_REPOSITORY_RESTORE'));
-      setRepositoryError(err instanceof Error ? err.message : 'Failed to restore database state');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
 
 
