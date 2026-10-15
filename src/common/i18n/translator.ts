@@ -119,6 +119,7 @@ export function translate<D extends keyof DomainKeys>(
   return interpolate(key, vars);
 }
 
+import { useCallback } from 'react';
 import { useLocale } from '@common/hooks/LocaleProvider';
 
 export function useTranslation<D extends keyof DomainKeys>(domain: D) {
@@ -131,10 +132,16 @@ export function useTranslation<D extends keyof DomainKeys>(domain: D) {
   } catch {
     // Fallback if rendered outside LocaleProvider (e.g. isolated unit tests)
   }
-  return {
-    t: (key: DomainKeys[D], vars?: Record<string, string | number>) => {
+
+  const t = useCallback(
+    (key: DomainKeys[D], vars?: Record<string, string | number>) => {
       return translate(locale, domain, key, customTranslations, vars);
     },
+    [locale, domain, customTranslations]
+  );
+
+  return {
+    t,
     locale,
   };
 }

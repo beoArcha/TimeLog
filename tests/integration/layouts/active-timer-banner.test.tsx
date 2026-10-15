@@ -20,6 +20,7 @@ describe('Integration Tests: ActiveTimerBanner', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     cleanup();
     vi.restoreAllMocks();
   });
@@ -37,6 +38,9 @@ describe('Integration Tests: ActiveTimerBanner', () => {
   });
 
   it('Given activeLog exists, When rendered, Then it should show active task/project names and click stop', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-15T10:05:00Z'));
+
     mockState.activeLog = {
       id: 'l1',
       projectId: 'proj_1',
