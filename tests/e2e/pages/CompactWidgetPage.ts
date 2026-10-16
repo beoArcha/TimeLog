@@ -18,8 +18,8 @@ export class CompactWidgetPage extends BasePage {
 
     this.headerTitle = page.locator('span', { hasText: /LogTime by OxyFlow/i });
     this.alwaysOnTopCheckbox = page.locator('label', { hasText: 'Top' }).locator('input[type="checkbox"]');
-    this.restoreFullGuiBtn = page.locator('button[title*="większy"], button[title*="Restore"], button[aria-label*="większy"], button[aria-label*="Restore"]');
-    this.closeToTrayBtn = page.locator('button[title*="Tray"], button[aria-label*="Tray"]');
+    this.restoreFullGuiBtn = page.locator('[data-testid="compact-restore-btn"]');
+    this.closeToTrayBtn = page.locator('[data-testid="compact-close-btn"]');
 
     this.activeProjectName = page.locator('h4', { hasText: /.+/ });
     this.toggleTasksBtn = page.locator('[data-testid="compact-toggle-tasks-btn"]');

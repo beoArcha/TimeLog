@@ -1,7 +1,8 @@
 import { test, expect } from '../fixtures/test-fixtures';
+import { createMockProject, createMockTask } from '../utils/state-seeder';
 
 test.describe('Compact Widget Layout Workflows (E2E)', () => {
-  const mockProject = {
+  const mockProject = createMockProject({
     id: 'proj-compact-101',
     name: 'Compact Mode Project',
     color: 'orange',
@@ -10,17 +11,16 @@ test.describe('Compact Widget Layout Workflows (E2E)', () => {
     description: 'Compact testing project',
     icon: '⚡',
     tags: ['compact', 'e2e'],
-  };
+  });
 
-  const mockTask = {
+  const mockTask = createMockTask({
     id: 'task-compact-201',
     projectId: 'proj-compact-101',
-    parentTaskId: undefined,
     name: 'Compact Task Alpha',
     createdAt: '2026-07-12T12:00:00Z',
     completed: false,
-    status: 'Todo' as const,
-  };
+    status: 'Todo',
+  });
 
   test.beforeEach(async ({ mainPage }) => {
     await mainPage.resetStorage();

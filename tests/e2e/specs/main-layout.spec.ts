@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures/test-fixtures';
+import { createMockProject, createMockTask } from '../utils/state-seeder';
 
 test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
   test.beforeEach(async ({ mainPage }) => {
@@ -45,7 +46,7 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
   });
 
   test('should correctly seed initial state and control active timer banner', async ({ mainPage }) => {
-    const mockProject = {
+    const mockProject = createMockProject({
       id: 'proj-999',
       name: 'Projekt Seedowany E2E',
       color: 'orange',
@@ -54,17 +55,16 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
       description: 'Opis projektu testowego',
       icon: '🚀',
       tags: ['test', 'e2e'],
-    };
+    });
 
-    const mockTask = {
+    const mockTask = createMockTask({
       id: 'task-888',
       projectId: 'proj-999',
-      parentTaskId: undefined,
       name: 'Zadanie Seedowane E2E',
       createdAt: '2026-07-12T12:00:00Z',
       completed: false,
-      status: 'Todo' as const,
-    };
+      status: 'Todo',
+    });
 
     await mainPage.seedStorage({
       projects: [mockProject],

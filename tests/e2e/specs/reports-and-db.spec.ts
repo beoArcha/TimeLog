@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures/test-fixtures';
+import { createMockProject, createMockTask, createMockTimeLog } from '../utils/state-seeder';
 
 test.describe('Reports and Database Explorer Navigation (E2E)', () => {
   test.beforeEach(async ({ reportsPage }) => {
@@ -6,32 +7,30 @@ test.describe('Reports and Database Explorer Navigation (E2E)', () => {
   });
 
   test('should navigate to reports tab and switch analytical period filters and sort options', async ({ reportsPage }) => {
-    const mockProject = {
+    const mockProject = createMockProject({
       id: 'proj-301',
       name: 'Analytics Project',
       color: 'violet',
       createdAt: '2026-07-12T12:00:00Z',
       archived: false,
-    };
+    });
 
-    const mockTask = {
+    const mockTask = createMockTask({
       id: 'task-401',
       projectId: 'proj-301',
-      parentTaskId: undefined,
       name: 'Analytics Task',
       createdAt: '2026-07-12T12:00:00Z',
       completed: false,
-      status: 'Todo' as const,
-    };
+      status: 'Todo',
+    });
 
-    const mockLog = {
+    const mockLog = createMockTimeLog({
       id: 'log-501',
       taskId: 'task-401',
       projectId: 'proj-301',
       startTime: '2026-07-12T10:00:00Z',
       endTime: '2026-07-12T11:30:00Z',
-      duration: 5400,
-    };
+    });
 
     await reportsPage.seedStorage({
       projects: [mockProject],
@@ -44,10 +43,10 @@ test.describe('Reports and Database Explorer Navigation (E2E)', () => {
     await expect(reportsPage.reportsPanel).toBeVisible();
 
     await reportsPage.selectPeriod('week');
-    await expect(reportsPage.periodWeekBtn).toHaveClass(/bg-orange-500/);
+    await expect(reportsPage.periodWeekBtn).toHaveAttribute('aria-pressed', 'true');
 
     await reportsPage.selectPeriod('month');
-    await expect(reportsPage.periodMonthBtn).toHaveClass(/bg-orange-500/);
+    await expect(reportsPage.periodMonthBtn).toHaveAttribute('aria-pressed', 'true');
 
     await reportsPage.selectSortOrder('date');
     await expect(reportsPage.reportSortSelect).toHaveValue('date');

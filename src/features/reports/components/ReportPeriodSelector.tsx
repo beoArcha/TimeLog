@@ -26,6 +26,7 @@ export default function ReportPeriodSelector({
         {(['today', 'week', 'month', 'all'] as const).map(p => (
           <Button
             data-testid={`period-btn-${p}`}
+            aria-pressed={reportPeriod === p}
             key={p}
             variant={reportPeriod === p ? 'accent' : 'ghost'}
             size="xs"
@@ -42,8 +43,9 @@ export default function ReportPeriodSelector({
 
       <div className="flex items-center gap-2">
         <span className="text-xs font-mono text-muted-foreground">{tReport('SortBy')}</span>
-        <div data-testid="report-sort-select">
+        <div>
           <NativeSelect
+            data-testid="report-sort-select"
             value={reportSort}
             onChange={(e) => {
               if (e.target.value) setReportSort(e.target.value as 'date' | 'duration');

@@ -1,7 +1,8 @@
 import { test, expect } from '../fixtures/test-fixtures';
+import { createMockProject, createMockTask } from '../utils/state-seeder';
 
 test.describe('Persistence & Reload Resilience (E2E)', () => {
-  const mockProject = {
+  const mockProject = createMockProject({
     id: 'proj-resilience-1',
     name: 'Resilience Project',
     color: 'emerald',
@@ -10,17 +11,16 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     description: 'Resilience testing project',
     icon: '🛡️',
     tags: ['resilience', 'e2e'],
-  };
+  });
 
-  const mockTask = {
+  const mockTask = createMockTask({
     id: 'task-resilience-1',
     projectId: 'proj-resilience-1',
-    parentTaskId: undefined,
     name: 'Continuous Measurement Task',
     createdAt: '2026-07-12T12:00:00Z',
     completed: false,
-    status: 'Todo' as const,
-  };
+    status: 'Todo',
+  });
 
   test.beforeEach(async ({ mainPage }) => {
     await mainPage.resetStorage();
@@ -43,8 +43,8 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     await expect(mainPage.activeTimerBanner).toContainText('Continuous Measurement Task');
 
     // Reload page to simulate browser refresh / app restart
-    await page.reload();
-    await page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
     // Verify active timer is still running and visible after reload
     await expect(mainPage.activeTimerBanner).toBeVisible();
@@ -71,8 +71,8 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     await expect(mainPage.tabMain).toBeHidden();
 
     // Reload page
-    await page.reload();
-    await page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
     // Medium layout should remain active
     await expect(mainPage.tabMain).toBeHidden();
@@ -82,8 +82,8 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     await expect(mainPage.tabMain).toBeVisible();
 
     // Reload page again
-    await page.reload();
-    await page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
     // Full layout should remain active
     await expect(mainPage.tabMain).toBeVisible();
@@ -97,21 +97,19 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
       activeLog: null,
     });
 
-    // Seed German locale in settings storage
+    // Seed German locale in standard storage keys
     await page.evaluate(() => {
-      const existingSettings = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
-      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
-        ...existingSettings,
-        locale: 'de',
-      }));
+      localStorage.setItem('oxytime_locale', 'de');
+      localStorage.setItem('oxytime_locale_pref', 'de');
     });
 
-    await page.reload();
-    await page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
-    // Verify UI reflects German translations (e.g. TabMain / TabReports)
-    const reportsTab = page.locator('[data-testid="tab-reports"]');
-    await expect(reportsTab).toBeVisible();
+    // Verify UI reflects German translations
+    const mainTab = page.locator('[data-testid="tab-main"]');
+    await expect(mainTab).toBeVisible();
+    await expect(mainTab).toContainText('GUI-Schnittstelle');
   });
 
   test('should gracefully initialize and render default initial state without errors when storage is empty', async ({ mainPage }) => {

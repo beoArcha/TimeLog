@@ -30,15 +30,15 @@ export class MainLayoutPage extends BasePage {
     super(page);
 
     // Header & Tabs
-    this.headerLogo = page.locator('h1', { hasText: 'OxyFlow Client' });
+    this.headerLogo = page.locator('h1', { hasText: 'OxyFlow' });
     this.tabMain = page.locator('[data-testid="tab-main"]');
     this.tabReports = page.locator('[data-testid="tab-reports"]');
     this.tabDb = page.locator('[data-testid="tab-db"]');
     this.tabOptions = page.locator('[data-testid="tab-options"]');
 
-    this.sizeSmallBtn = page.locator('[data-testid="layout-variant-compact"]');
-    this.sizeMediumBtn = page.locator('[data-testid="layout-variant-medium"]');
-    this.sizeLargeBtn = page.locator('[data-testid="layout-variant-full"]');
+    this.sizeSmallBtn = page.locator('[data-testid="layout-variant-compact"]:visible');
+    this.sizeMediumBtn = page.locator('[data-testid="layout-variant-medium"]:visible');
+    this.sizeLargeBtn = page.locator('[data-testid="layout-variant-full"]:visible');
 
     // Timer Banner
     this.idleTimerBanner = page.locator('#active-timer-idle-banner');

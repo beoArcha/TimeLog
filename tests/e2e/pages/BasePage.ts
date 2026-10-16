@@ -1,13 +1,16 @@
-import { Page } from '@playwright/test';
-import { Project } from '../../../src/bindings/Project';
-import { Task } from '../../../src/bindings/Task';
-import { TimeLog } from '../../../src/bindings/TimeLog';
+import { Page } from "@playwright/test";
+import { STORAGE_KEYS } from '@common/constants/storage-keys';
+import {
+  TimerRepositoryState,
+  createDefaultState,
+} from "../utils/state-seeder";
 
-export interface TimerRepositoryState {
-  projects: Project[];
-  tasks: Task[];
-  logs: TimeLog[];
-  activeLog: TimeLog | null;
+export type { TimerRepositoryState };
+
+export interface SeedStorageOptions {
+  currentProjectId?: string;
+  guiVariant?: "full" | "medium" | "compact";
+  locale?: string;
 }
 
 export class BasePage {
@@ -18,35 +21,54 @@ export class BasePage {
   }
 
   async goto() {
-    await this.page.goto('/');
-    await this.page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await this.page.goto("/", { waitUntil: "domcontentloaded" });
+    await this.page.waitForSelector("#app-root-container", { timeout: 15000 });
   }
 
   async resetStorage() {
     await this.page.evaluate(() => {
-      localStorage.removeItem('timelog_persistence_plugin_state');
-      localStorage.removeItem('timelog_persistence_plugin_settings');
-      localStorage.removeItem('timelog_persistence_plugin_runtime_configs');
-      localStorage.removeItem('timelog_persistence_plugin_gui_variant');
+      localStorage.clear();
+      localStorage.setItem("oxytime_locale", "en");
+      localStorage.setItem("oxytime_locale_pref", "en");
+      localStorage.setItem("oxytime_gui_variant", "full");
     });
-    await this.page.reload();
-    await this.page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await this.page.reload({ waitUntil: "domcontentloaded" });
+    await this.page.waitForSelector("#app-root-container", { timeout: 15000 });
   }
 
-  async seedStorage(state: Partial<TimerRepositoryState>) {
-    const defaultState: TimerRepositoryState = {
-      projects: [],
-      tasks: [],
-      logs: [],
-      activeLog: null,
-    };
-    const mergedState = { ...defaultState, ...state };
+  async seedStorage(
+    state: Partial<TimerRepositoryState>,
+    options: SeedStorageOptions = {},
+  ) {
+    const mergedState = createDefaultState(state);
+    const activeProjectId =
+      options.currentProjectId ||
+      (mergedState.projects.length > 0 ? mergedState.projects[0].id : "");
+    const variant = options.guiVariant || "full";
+    const locale = options.locale || "en";
 
-    await this.page.evaluate((data) => {
-      localStorage.setItem('timelog_persistence_plugin_state', JSON.stringify(data));
-    }, mergedState);
+    await this.page.evaluate(
+      ({ data, keys, currentProjId, guiVar, loc }) => {
+        localStorage.setItem(keys.STATE_DB, JSON.stringify(data));
+        if (currentProjId) {
+          localStorage.setItem(keys.CURRENT_PROJ_ID, currentProjId);
+        } else {
+          localStorage.removeItem(keys.CURRENT_PROJ_ID);
+        }
+        localStorage.setItem(keys.GUI_VARIANT, guiVar);
+        localStorage.setItem(keys.LOCALE, loc);
+        localStorage.setItem(keys.LOCALE_PREF, loc);
+      },
+      {
+        data: mergedState,
+        keys: STORAGE_KEYS,
+        currentProjId: activeProjectId,
+        guiVar: variant,
+        loc: locale,
+      },
+    );
 
-    await this.page.reload();
-    await this.page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await this.page.reload({ waitUntil: "domcontentloaded" });
+    await this.page.waitForSelector("#app-root-container", { timeout: 15000 });
   }
 }

@@ -192,6 +192,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
               return (
                 <div
                   id={`project-item-${p.id}`}
+                  data-archived={p.archived ? 'true' : 'false'}
                   key={p.id}
                   onClick={() => setSelectedProjectId(p.id)}
                   className={`text-left w-full padding-section rounded-section flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${isSelected
