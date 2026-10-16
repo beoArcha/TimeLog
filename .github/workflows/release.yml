@@ -169,7 +169,6 @@ jobs:
             windows-latest)
               copy "*/bundle/nsis/*.exe"
 
-              # Wersja przenośna (sam plik .exe, bez instalatora)
               EXE_PATH=$(find src-tauri/target -maxdepth 4 -type f \( -name "OxyFlow.exe" -o -name "oxy-flow.exe" \) | head -n 1)
               if [ -n "$EXE_PATH" ]; then
                 cp "$EXE_PATH" "$ARTIFACT_DIR/OxyFlow-Standalone-x64-v${APP_VERSION}.exe"
@@ -195,8 +194,7 @@ jobs:
           retention-days: 7
 
   # ──────────────────────────────────────────────
-  # Tag na release + GitHub Release
-  # Wykonuje się TYLKO gdy testy i wszystkie platformy przeszły.
+  # Tag on GitHub Release
   # ──────────────────────────────────────────────
   publish:
     name: Tag & GitHub Release
