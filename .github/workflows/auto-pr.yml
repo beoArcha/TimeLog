@@ -1,0 +1,56 @@
+name: Auto PR to main
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - release
+      - "backport-*"
+      - "dependabot/**"
+
+concurrency:
+  group: auto-pr-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-pr:
+    name: Open PR → main
+    if: github.event.deleted == false
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      BRANCH: ${{ github.ref_name }}
+      COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
+    steps:
+      - name: Create PR if missing
+        run: |
+          set -euo pipefail
+
+          EXISTING=$(gh pr list --head "$BRANCH" --base main --state open --json number --jq 'length')
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "PR for '$BRANCH' already exists – nothing to do."
+            exit 0
+          fi
+
+          AHEAD=$(gh api "repos/${GH_REPO}/compare/main...${BRANCH}" --jq '.ahead_by')
+          if [ "$AHEAD" -eq 0 ]; then
+            echo "'$BRANCH' has no commits ahead of main – skipping."
+            exit 0
+          fi
+
+          TITLE=$(printf '%s' "$COMMIT_MESSAGE" | head -n 1)
+          if [ -z "$TITLE" ]; then
+            TITLE="$BRANCH"
+          fi
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "$TITLE" \
+            --body "Automatically opened from branch \`$BRANCH\`."

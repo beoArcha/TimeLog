@@ -3,22 +3,20 @@ name: Tests
 on:
   push:
     branches: [main, release]
-    paths-ignore:
-      - "src/versions.json"
-      - "package.json"
-      - "package-lock.json"
-      - "src-tauri/tauri.conf.json"
 
   pull_request:
     branches: [main, release]
-    paths-ignore:
-      - "src/versions.json"
-      - "package.json"
-      - "package-lock.json"
-      - "src-tauri/tauri.conf.json"
+
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref or SHA to test (defaults to the triggering ref)"
+        type: string
+        required: false
+        default: ""
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: tests-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -38,6 +36,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -75,6 +75,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -97,6 +99,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -120,6 +124,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -155,6 +161,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -190,6 +198,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -246,6 +256,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -304,6 +316,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: actions/setup-node@v4
         with:

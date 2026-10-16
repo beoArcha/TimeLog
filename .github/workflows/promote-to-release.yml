@@ -1,11 +1,11 @@
 name: Promote to Release
 
 on:
-  workflow_run:
-    workflows: ["Tests"]
-    types:
-      - completed
-    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: promote-to-release
+  cancel-in-progress: false
 
 env:
   NODE_VERSION: 24
@@ -14,12 +14,12 @@ jobs:
   promote:
     name: Promote Main → Release
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Use Node.js ${{ env.NODE_VERSION }}
@@ -52,7 +52,7 @@ jobs:
       - name: Bump Main Branch Version
         run: |
           git checkout main
-          git pull origin main
+          git pull --ff-only origin main
 
           # Bump main version to even minor
           node scripts/bump_versions.js --main
@@ -69,7 +69,8 @@ jobs:
           echo "  Code has been merged to the 'release' branch"
           echo "  and versions have been bumped."
           echo ""
-          echo "  👉  To build & publish the release, go to:"
-          echo "      Actions → 'Release' → Run workflow"
+          echo "  👉  To test, build, tag & publish, run:"
+          echo "      gh workflow run release.yml --ref release"
+          echo "      (or Actions → 'Release' → Run workflow)"
           echo "=============================================="
           echo ""

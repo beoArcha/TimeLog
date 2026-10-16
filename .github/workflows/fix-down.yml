@@ -6,6 +6,10 @@ on:
     branches:
       - release
 
+concurrency:
+  group: fix-down-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
 jobs:
   backport:
     if: github.event.pull_request.merged == true && !contains(github.event.pull_request.title, 'chore(release)')
@@ -13,56 +17,84 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
+          token: ${{ secrets.AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-      - name: Create Backport Branch
-        id: create_branch
+      - name: Cherry-pick onto a backport branch
+        id: backport
         run: |
-          BRANCH_NAME="backport-${{ github.event.pull_request.number }}-${{ github.run_id }}"
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          
-          # Ensure we have the latest main
-          git checkout main
-          git pull origin main
-          
+          set -euo pipefail
+
+          BRANCH_NAME="backport-${PR_NUMBER}-${GITHUB_RUN_ID}"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
           git checkout -b "$BRANCH_NAME"
 
-      - name: Cherry Pick Merge Commit
-        run: |
-          # We use -m 1 because it's a merge commit
-          MERGE_SHA="${{ github.event.pull_request.merge_commit_sha }}"
-          git cherry-pick -m 1 "$MERGE_SHA" || true
-
-      - name: Restore Version Files from Main
-        run: |
-          # We don't want to backport version bumps from release to main
-          git checkout origin/main -- package.json package-lock.json src/versions.json src-tauri/tauri.conf.json src-tauri/Cargo.toml || echo "Some version files missing, ignoring"
-          
-          # If there are changes staged (due to checkout), amend the commit
-          if ! git diff --cached --quiet; then
-            git commit --amend --no-edit
+          # Merge commit ma 2 rodziców (-m 1), squash ma 1 rodzica (bez -m)
+          WORDS=$(git rev-list --parents -n 1 "$MERGE_SHA" | wc -w)
+          if [ "$WORDS" -gt 2 ]; then
+            PICK_ARGS="-m 1"
+          else
+            PICK_ARGS=""
           fi
 
+          # --no-commit: najpierw wycofamy pliki wersji, dopiero potem commit
+          if ! git cherry-pick --no-commit $PICK_ARGS "$MERGE_SHA"; then
+            gh pr comment "$PR_NUMBER" --body "⚠️ Automatic backport to \`main\` failed (conflict). Please cherry-pick \`$MERGE_SHA\` to \`main\` manually."
+            echo "::error::Cherry-pick of $MERGE_SHA onto main has conflicts – manual backport required."
+            exit 1
+          fi
+
+          # Pliki wersji zostają takie, jak na main (każdy plik osobno,
+          # żeby brak jednego nie blokował reszty)
+          for f in package.json package-lock.json src/versions.json src-tauri/tauri.conf.json src-tauri/Cargo.toml; do
+            if git cat-file -e "origin/main:$f" 2>/dev/null; then
+              git checkout origin/main -- "$f"
+            fi
+          done
+
+          if git diff --cached --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Nothing to backport (changes already on main or only version files)."
+            exit 0
+          fi
+
+          AUTHOR=$(git log -1 --format='%an <%ae>' "$MERGE_SHA")
+          git commit --author="$AUTHOR" \
+            -m "chore: backport hotfix #${PR_NUMBER} to main" \
+            -m "Backport of: ${PR_TITLE}"
+
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
       - name: Push Backport Branch
-        run: git push origin "${{ steps.create_branch.outputs.branch_name }}"
+        if: steps.backport.outputs.has_changes == 'true'
+        env:
+          BRANCH_NAME: ${{ steps.backport.outputs.branch_name }}
+        run: git push origin "$BRANCH_NAME"
 
       - name: Create Pull Request
+        if: steps.backport.outputs.has_changes == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ steps.backport.outputs.branch_name }}
         run: |
-          PR_TITLE="chore: backport hotfix #${{ github.event.pull_request.number }} to main"
-          PR_BODY="This is an automated backport of PR #${{ github.event.pull_request.number }}. Version files have been automatically excluded to preserve main's even minor version."
-          
           gh pr create \
-            --title "$PR_TITLE" \
-            --body "$PR_BODY" \
-            --head "${{ steps.create_branch.outputs.branch_name }}" \
+            --title "chore: backport hotfix #${PR_NUMBER} to main" \
+            --body "This is an automated backport of PR #${PR_NUMBER}. Version files have been automatically excluded to preserve main's even minor version." \
+            --head "$BRANCH_NAME" \
             --base main
