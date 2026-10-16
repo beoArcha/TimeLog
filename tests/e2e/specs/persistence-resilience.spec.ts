@@ -1,29 +1,26 @@
 import { test, expect } from '../fixtures/test-fixtures';
 import { createMockProject, createMockTask } from '../utils/state-seeder';
+import { TEST_IDS, TEST_NAMES, TEST_COLORS, TEST_DATES } from '../constants/test-constants';
 
 test.describe('Persistence & Reload Resilience (E2E)', () => {
   const mockProject = createMockProject({
-    id: 'proj-resilience-1',
-    name: 'Resilience Project',
-    color: 'emerald',
-    createdAt: '2026-07-12T12:00:00Z',
+    id: TEST_IDS.PROJECT_RESILIENCE,
+    name: TEST_NAMES.PROJECT_RESILIENCE,
+    color: TEST_COLORS.EMERALD,
+    createdAt: TEST_DATES.STATIC_TIMESTAMP,
     archived: false,
-    description: 'Resilience testing project',
+    description: TEST_NAMES.DESCRIPTION_DEFAULT,
     icon: '🛡️',
     tags: ['resilience', 'e2e'],
   });
 
   const mockTask = createMockTask({
-    id: 'task-resilience-1',
-    projectId: 'proj-resilience-1',
-    name: 'Continuous Measurement Task',
-    createdAt: '2026-07-12T12:00:00Z',
+    id: TEST_IDS.TASK_RESILIENCE,
+    projectId: TEST_IDS.PROJECT_RESILIENCE,
+    name: TEST_NAMES.TASK_RESILIENCE,
+    createdAt: TEST_DATES.STATIC_TIMESTAMP,
     completed: false,
     status: 'Todo',
-  });
-
-  test.beforeEach(async ({ mainPage }) => {
-    await mainPage.resetStorage();
   });
 
   test('should preserve active timer state and continue tracking across page reloads', async ({ mainPage, page }) => {
@@ -34,13 +31,13 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
       activeLog: null,
     });
 
-    await mainPage.selectProject('Resilience Project');
+    await mainPage.selectProject(TEST_NAMES.PROJECT_RESILIENCE);
     await expect(mainPage.idleTimerBanner).toBeVisible();
 
     // Start timer on task
-    await mainPage.startTimerForTask('task-resilience-1');
+    await mainPage.startTimerForTask(TEST_IDS.TASK_RESILIENCE);
     await expect(mainPage.activeTimerBanner).toBeVisible();
-    await expect(mainPage.activeTimerBanner).toContainText('Continuous Measurement Task');
+    await expect(mainPage.activeTimerBanner).toContainText(TEST_NAMES.TASK_RESILIENCE);
 
     // Reload page to simulate browser refresh / app restart
     await page.reload({ waitUntil: 'domcontentloaded' });
@@ -48,7 +45,7 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
 
     // Verify active timer is still running and visible after reload
     await expect(mainPage.activeTimerBanner).toBeVisible();
-    await expect(mainPage.activeTimerBanner).toContainText('Continuous Measurement Task');
+    await expect(mainPage.activeTimerBanner).toContainText(TEST_NAMES.TASK_RESILIENCE);
     await expect(mainPage.activeTimerDisplay).toBeVisible();
     await expect(mainPage.idleTimerBanner).toBeHidden();
 
@@ -118,7 +115,7 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     // Verify initial state is rendered with default projects
     await expect(mainPage.headerLogo).toBeVisible();
     await expect(mainPage.tabMain).toBeVisible();
-    await expect(mainPage.projectsListContainer).toContainText(/LogTime by OxyFlow Backend Engine|Zouk Flow/i);
+    await expect(mainPage.projectsListContainer).toContainText('LogTime by OxyFlow Backend Engine');
     await expect(mainPage.idleTimerBanner).toBeVisible();
   });
 });

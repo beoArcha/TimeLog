@@ -322,6 +322,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   {translate(locale, 'project', 'ProjectName', customTranslations)}
                 </Label>
                 <Input
+                  id="edit-project-name-input"
                   type="text"
                   value={editProjName}
                   onChange={e => setEditProjName(e.target.value)}
@@ -402,6 +403,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   {translate(locale, 'common', 'Cancel', customTranslations)}
                 </Button>
                 <Button
+                  id="save-edit-project-btn"
                   type="button"
                   variant="accent"
                   onClick={() => {

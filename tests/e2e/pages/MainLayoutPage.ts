@@ -58,25 +58,11 @@ export class MainLayoutPage extends BasePage {
   }
 
   async switchLayoutVariant(variant: 'compact' | 'medium' | 'full') {
-    if (variant === 'compact') {
-      await this.sizeSmallBtn.click();
-    } else if (variant === 'medium') {
-      await this.sizeMediumBtn.click();
-    } else if (variant === 'full') {
-      await this.sizeLargeBtn.click();
-    }
+    await this.page.locator(`[data-testid="layout-variant-${variant}"]:visible`).click();
   }
 
   async switchTab(tabId: 'main' | 'reports' | 'db' | 'options') {
-    if (tabId === 'main') {
-      await this.tabMain.click();
-    } else if (tabId === 'reports') {
-      await this.tabReports.click();
-    } else if (tabId === 'db') {
-      await this.tabDb.click();
-    } else if (tabId === 'options') {
-      await this.tabOptions.click();
-    }
+    await this.page.locator(`[data-testid="tab-${tabId}"]`).click();
   }
 
   async createProject(name: string, color?: string) {
@@ -146,13 +132,8 @@ export class MainLayoutPage extends BasePage {
 
   async editProjectName(projectId: string, newName: string) {
     await this.page.locator(`#edit-project-btn-${projectId}`).click();
-    const modalInput = this.page.locator('input[type="text"][placeholder*="Nazwa"], input[type="text"]:focus');
+    const modalInput = this.page.locator('#edit-project-name-input');
     await modalInput.fill(newName);
-    const saveBtn = this.page.locator('button', { hasText: /Zapisz|Save/i });
-    if (await saveBtn.isVisible()) {
-      await saveBtn.click();
-    } else {
-      await modalInput.press('Enter');
-    }
+    await this.page.locator('#save-edit-project-btn').click();
   }
 }

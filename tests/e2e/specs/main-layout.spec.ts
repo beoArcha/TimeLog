@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures/test-fixtures';
 import { createMockProject, createMockTask } from '../utils/state-seeder';
+import { TEST_IDS, TEST_NAMES, TEST_COLORS, TEST_DATES } from '../constants/test-constants';
 
 test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
   test.beforeEach(async ({ mainPage }) => {
@@ -20,8 +21,8 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
     await expect(mainPage.tabOptions).toBeVisible();
     await expect(mainPage.idleTimerBanner).toBeVisible();
     await expect(mainPage.activeTimerBanner).toBeHidden();
-    await expect(mainPage.projectsListContainer).toContainText(/Brak projektów|No projects/i);
-    await expect(page.locator('#app-root-container')).toContainText(/Zaznacz projekt w bocznym menu|Select project/i);
+    await expect(mainPage.projectsListContainer).toContainText('No projects');
+    await expect(page.locator('#app-root-container')).toContainText('Select project');
   });
 
   test('should switch layout variants in the header and toggle tab visibility', async ({ mainPage }) => {
@@ -33,35 +34,35 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
   });
 
   test('should allow a complete workflow of project and task creation', async ({ mainPage }) => {
-    await mainPage.createProject('Projekt Alpha E2E', 'violet');
+    await mainPage.createProject(TEST_NAMES.PROJECT_ALPHA, TEST_COLORS.VIOLET);
 
-    const projectCard = mainPage.projectsListContainer.locator('[id^="project-item-"]', { hasText: 'Projekt Alpha E2E' });
+    const projectCard = mainPage.projectsListContainer.locator('[id^="project-item-"]', { hasText: TEST_NAMES.PROJECT_ALPHA });
     await expect(projectCard).toBeVisible();
-    await mainPage.selectProject('Projekt Alpha E2E');
+    await mainPage.selectProject(TEST_NAMES.PROJECT_ALPHA);
     await expect(mainPage.newTaskInput).toBeVisible();
-    await mainPage.createTask('Zadanie Główne E2E');
+    await mainPage.createTask(TEST_NAMES.TASK_ALPHA);
 
-    const taskCard = mainPage.tasksTreeContainer.locator('[id^="root-task-card-"]', { hasText: 'Zadanie Główne E2E' });
+    const taskCard = mainPage.tasksTreeContainer.locator('[id^="root-task-card-"]', { hasText: TEST_NAMES.TASK_ALPHA });
     await expect(taskCard).toBeVisible();
   });
 
   test('should correctly seed initial state and control active timer banner', async ({ mainPage }) => {
     const mockProject = createMockProject({
-      id: 'proj-999',
-      name: 'Projekt Seedowany E2E',
-      color: 'orange',
-      createdAt: '2026-07-12T12:00:00Z',
+      id: TEST_IDS.PROJECT_SEEDED,
+      name: TEST_NAMES.PROJECT_SEEDED,
+      color: TEST_COLORS.ORANGE,
+      createdAt: TEST_DATES.STATIC_TIMESTAMP,
       archived: false,
-      description: 'Opis projektu testowego',
+      description: TEST_NAMES.DESCRIPTION_DEFAULT,
       icon: '🚀',
       tags: ['test', 'e2e'],
     });
 
     const mockTask = createMockTask({
-      id: 'task-888',
-      projectId: 'proj-999',
-      name: 'Zadanie Seedowane E2E',
-      createdAt: '2026-07-12T12:00:00Z',
+      id: TEST_IDS.TASK_SEEDED,
+      projectId: TEST_IDS.PROJECT_SEEDED,
+      name: TEST_NAMES.TASK_SEEDED,
+      createdAt: TEST_DATES.STATIC_TIMESTAMP,
       completed: false,
       status: 'Todo',
     });
@@ -73,17 +74,17 @@ test.describe('Main Layout and Project/Task Lifecycle (E2E)', () => {
       activeLog: null,
     });
 
-    await mainPage.selectProject('Projekt Seedowany E2E');
-    await expect(mainPage.tasksTreeContainer.locator('[id^="root-task-card-"]')).toContainText('Zadanie Seedowane E2E');
+    await mainPage.selectProject(TEST_NAMES.PROJECT_SEEDED);
+    await expect(mainPage.tasksTreeContainer.locator('[id^="root-task-card-"]')).toContainText(TEST_NAMES.TASK_SEEDED);
 
     await expect(mainPage.idleTimerBanner).toBeVisible();
     await expect(mainPage.activeTimerBanner).toBeHidden();
 
-    await mainPage.startTimerForTask('task-888');
+    await mainPage.startTimerForTask(TEST_IDS.TASK_SEEDED);
 
     await expect(mainPage.activeTimerBanner).toBeVisible();
     await expect(mainPage.idleTimerBanner).toBeHidden();
-    await expect(mainPage.activeTimerBanner).toContainText('Zadanie Seedowane E2E');
+    await expect(mainPage.activeTimerBanner).toContainText(TEST_NAMES.TASK_SEEDED);
     await expect(mainPage.activeTimerDisplay).toBeVisible();
 
     await mainPage.stopActiveTimer();

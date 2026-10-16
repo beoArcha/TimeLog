@@ -26,12 +26,12 @@ export class BasePage {
   }
 
   async resetStorage() {
-    await this.page.evaluate(() => {
+    await this.page.evaluate((keys) => {
       localStorage.clear();
-      localStorage.setItem("oxytime_locale", "en");
-      localStorage.setItem("oxytime_locale_pref", "en");
-      localStorage.setItem("oxytime_gui_variant", "full");
-    });
+      localStorage.setItem(keys.LOCALE, "en");
+      localStorage.setItem(keys.LOCALE_PREF, "en");
+      localStorage.setItem(keys.GUI_VARIANT, "full");
+    }, STORAGE_KEYS);
     await this.page.reload({ waitUntil: "domcontentloaded" });
     await this.page.waitForSelector("#app-root-container", { timeout: 15000 });
   }
@@ -49,11 +49,10 @@ export class BasePage {
 
     await this.page.evaluate(
       ({ data, keys, currentProjId, guiVar, loc }) => {
+        localStorage.clear();
         localStorage.setItem(keys.STATE_DB, JSON.stringify(data));
         if (currentProjId) {
           localStorage.setItem(keys.CURRENT_PROJ_ID, currentProjId);
-        } else {
-          localStorage.removeItem(keys.CURRENT_PROJ_ID);
         }
         localStorage.setItem(keys.GUI_VARIANT, guiVar);
         localStorage.setItem(keys.LOCALE, loc);
