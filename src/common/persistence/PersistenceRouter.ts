@@ -33,6 +33,11 @@ export class PersistenceRouter implements IPersistence {
     this.implementation = implementation;
   }
 
+  /** Resets the singleton router instance for test suite isolation. */
+  static resetForTesting(): void {
+    PersistenceRouter.instance = null;
+  }
+
   get core(): ICorePersistence {
     return this.implementation.core;
   }

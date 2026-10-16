@@ -52,6 +52,38 @@ export const useTimer = () => {
   };
 };
 
+export const useDataSafe = () => useContext(DataContext);
+
+export const useTasksSafe = () => {
+  const data = useDataSafe();
+  if (!data) return null;
+  return {
+    tasks: data.tasks,
+    setTasks: data.setTasks,
+    selectedTaskId: data.selectedTaskId,
+    setSelectedTaskId: data.setSelectedTaskId,
+    handleAddTask: data.handleAddTask,
+    handleUpdateTask: data.handleUpdateTask,
+    handleRenameTask: data.handleRenameTask,
+    handleDeleteTask: data.handleDeleteTask,
+    handleToggleTaskComplete: data.handleToggleTaskComplete,
+  };
+};
+
+export const useTimerSafe = () => {
+  const data = useDataSafe();
+  if (!data) return null;
+  return {
+    logs: data.logs,
+    setLogs: data.setLogs,
+    activeLog: data.activeLog,
+    setActiveLog: data.setActiveLog,
+    handleStartTimer: data.handleStartTimer,
+    handleStopTimer: data.handleStopTimer,
+    handleEditTimeLog: data.handleEditTimeLog,
+  };
+};
+
 export const useHolidays = () => {
   const data = useData();
   return {

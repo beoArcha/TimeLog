@@ -27,6 +27,54 @@ describe('Unit Tests: useAsyncActionRunner Hook', () => {
     expect(result.current.repositoryError).toBeNull();
   });
 
+  it('should set isLoading to true while action is in flight and reset to false when complete', async () => {
+    const { result } = renderHook(() => useAsyncActionRunner());
+    let resolveAction!: (val: string) => void;
+    const pendingPromise = new Promise<string>((resolve) => {
+      resolveAction = resolve;
+    });
+
+    let actionPromise: Promise<string | undefined>;
+    act(() => {
+      actionPromise = result.current.runAction('pending operation', () => pendingPromise);
+    });
+
+    // In-flight state: must be true to prevent mutant deletion of setIsLoading(true)
+    expect(result.current.isLoading).toBe(true);
+
+    // Complete the pending promise
+    await act(async () => {
+      resolveAction('done');
+      await actionPromise;
+    });
+
+    // Final state: must be false
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('should not set isLoading when withLoading option is false', async () => {
+    const { result } = renderHook(() => useAsyncActionRunner());
+    let resolveAction!: (val: string) => void;
+    const pendingPromise = new Promise<string>((resolve) => {
+      resolveAction = resolve;
+    });
+
+    let actionPromise: Promise<string | undefined>;
+    act(() => {
+      actionPromise = result.current.runAction('silent operation', () => pendingPromise, { withLoading: false });
+    });
+
+    // When withLoading is false, isLoading should remain false during flight
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      resolveAction('done');
+      await actionPromise;
+    });
+
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('should capture error, invoke ErrorHandler, and set repositoryError on failure', async () => {
     const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle').mockImplementation(() => {});
     const { result } = renderHook(() => useAsyncActionRunner());

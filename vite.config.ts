@@ -7,29 +7,7 @@ import { defineConfig } from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss(), tsconfigPaths()],
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              if (id.includes('react') || id.includes('scheduler')) {
-                return 'react-core';
-              }
-              if (id.includes('lucide-react')) {
-                return 'lucide';
-              }
-              if (id.includes('motion') || id.includes('framer-motion')) {
-                return 'motion';
-              }
-              if (id.includes('@google/genai')) {
-                return 'genai';
-              }
-              return 'vendor';
-            }
-          }
-        }
-      }
-    },
+
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {
@@ -43,7 +21,9 @@ export default defineConfig(() => {
         '**/dist/**',
         'tests/e2e/**',
         '**/.{idea,git,cache,output,temp}/**',
-        '**/{karma,rollup,webpack,vite,vitest}.config.*'
+        '**/{karma,rollup,webpack,vite,vitest}.config.*',
+        '**/.stryker-tmp/**',
+        '**/.stryker-sandbox/**'
       ],
       coverage: {
         provider: 'v8',

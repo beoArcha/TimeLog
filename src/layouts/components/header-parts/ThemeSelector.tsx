@@ -60,6 +60,7 @@ export const ThemeSelector: React.FC = () => {
             onClick={() => setTheme(th.id)}
             title={labelText}
             aria-label={labelText}
+            data-testid={`theme-btn-${th.id}`}
             className={`p-1 sm:px-2 sm:py-0.5 h-auto flex items-center gap-1.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
               isActive
                 ? 'bg-card text-orange-500 border border-border shadow-xs font-bold'

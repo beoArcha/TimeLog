@@ -11,7 +11,10 @@ export default [
             "coverage",
             "src-tauri",
             "node_modules",
-            "scripts"
+            "scripts",
+            ".stryker-sandbox",
+            ".stryker-tmp",
+            "reports"
         ],
     },
 

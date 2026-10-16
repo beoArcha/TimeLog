@@ -3,6 +3,27 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ThemeRegistry } from '@styles/themeRegistry';
 import { ThemeDefinition, ThemeColorTokens } from '@styles/themeContract';
 
+const createTestThemeTokens = (overrides?: Partial<ThemeColorTokens>): ThemeColorTokens => ({
+  background: '#704214',
+  foreground: '#fbf0d9',
+  card: '#5c3317',
+  cardForeground: '#fbf0d9',
+  muted: '#8b5a2b',
+  mutedForeground: '#d2b48c',
+  border: '#a0522d',
+  input: '#a0522d',
+  primary: '#fbf0d9',
+  primaryForeground: '#704214',
+  secondary: '#8b5a2b',
+  secondaryForeground: '#fbf0d9',
+  accent: '#8b5a2b',
+  accentForeground: '#fbf0d9',
+  destructive: '#ff4500',
+  destructiveForeground: '#ffffff',
+  ring: '#cd853f',
+  ...overrides,
+});
+
 describe('Unit Tests: ThemeRegistry and DIP Extensibility', () => {
   let registry: ThemeRegistry;
 
@@ -28,32 +49,12 @@ describe('Unit Tests: ThemeRegistry and DIP Extensibility', () => {
   });
 
   it('Given custom theme definition, When registered via DIP ThemeRegistry, Then it should be retrievable and listed in getAll', () => {
-    const sepiaTokens: ThemeColorTokens = {
-      background: '#704214',
-      foreground: '#fbf0d9',
-      card: '#5c3317',
-      cardForeground: '#fbf0d9',
-      muted: '#8b5a2b',
-      mutedForeground: '#d2b48c',
-      border: '#a0522d',
-      input: '#a0522d',
-      primary: '#fbf0d9',
-      primaryForeground: '#704214',
-      secondary: '#8b5a2b',
-      secondaryForeground: '#fbf0d9',
-      accent: '#8b5a2b',
-      accentForeground: '#fbf0d9',
-      destructive: '#ff4500',
-      destructiveForeground: '#ffffff',
-      ring: '#cd853f',
-    };
-
     const customSepiaTheme: ThemeDefinition = {
       id: 'sepia',
       displayName: 'Sepia Warm',
       iconName: 'Sun',
       isDark: true,
-      tokens: sepiaTokens,
+      tokens: createTestThemeTokens(),
       cssVariables: {
         '--color-background': '#704214',
         '--color-foreground': '#fbf0d9',
@@ -77,25 +78,7 @@ describe('Unit Tests: ThemeRegistry and DIP Extensibility', () => {
       id: 'sepia',
       displayName: 'Sepia Warm',
       isDark: true,
-      tokens: {
-        background: '#704214',
-        foreground: '#fbf0d9',
-        card: '#5c3317',
-        cardForeground: '#fbf0d9',
-        muted: '#8b5a2b',
-        mutedForeground: '#d2b48c',
-        border: '#a0522d',
-        input: '#a0522d',
-        primary: '#fbf0d9',
-        primaryForeground: '#704214',
-        secondary: '#8b5a2b',
-        secondaryForeground: '#fbf0d9',
-        accent: '#8b5a2b',
-        accentForeground: '#fbf0d9',
-        destructive: '#ff4500',
-        destructiveForeground: '#ffffff',
-        ring: '#cd853f',
-      },
+      tokens: createTestThemeTokens(),
       cssVariables: {
         '--color-background': '#704214',
         '--color-foreground': '#fbf0d9',

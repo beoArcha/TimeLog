@@ -11,17 +11,16 @@ describe('Unit Tests: SubtaskItem', () => {
   const setEditingIdMock = vi.fn();
   const setEditNameMock = vi.fn();
 
-  const mockProps = {
-    subTask: { id: 't2', projectId: 'p1', name: 'Subtask name', completed: false, createdAt: '2026-06-15T00:00:00Z', status: null, parentTaskId: 't1' },
-    tasks: [],
-    logs: [],
-    nowIso: '2026-06-15T12:00:00Z',
-    editingId: null,
-    editName: '',
-    theme: 'dark',
-    locale: 'en' as const,
-    customTranslations: {},
-    th: {},
+  const createMockProps = () => ({
+    subTask: {
+      id: 't2',
+      projectId: 'p1',
+      name: 'Subtask name',
+      completed: false,
+      createdAt: '2026-06-15T00:00:00Z',
+      status: null,
+      parentTaskId: 't1',
+    },
     onToggleTaskComplete: onToggleTaskCompleteMock,
     onRenameTask: vi.fn(),
     onUpdateTask: vi.fn(),
@@ -29,27 +28,56 @@ describe('Unit Tests: SubtaskItem', () => {
     onStartTimer: onStartTimerMock,
     setEditingId: setEditingIdMock,
     setEditName: setEditNameMock,
-  };
+  });
 
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
   });
 
-  it('should render subtask item name and trigger callbacks', () => {
-    const { container } = render(<SubtaskItem {...mockProps} />);
+  it('should render subtask item name and initial state', () => {
+    // Arrange
+    const props = createMockProps();
 
-    expect(screen.getByText(/Subtask name/i)).not.toBeNull();
+    // Act
+    const { container } = render(<SubtaskItem {...props} />);
 
-    // Trigger toggle complete using the correct ID check-subtask-t2
+    // Assert
+    expect(screen.getByText('Subtask name')).toBeTruthy();
+    const checkbox = container.querySelector('#check-subtask-t2');
+    expect(checkbox).not.toBeNull();
+    expect(checkbox?.getAttribute('aria-checked')).toBe('false');
+    const startBtn = container.querySelector('#start-subtask-btn-t2');
+    expect(startBtn).not.toBeNull();
+  });
+
+  it('should trigger onToggleTaskComplete with subtask id when completion checkbox is clicked', () => {
+    // Arrange
+    const props = createMockProps();
+    const { container } = render(<SubtaskItem {...props} />);
+
+    // Act
     const checkbox = container.querySelector('#check-subtask-t2');
     expect(checkbox).not.toBeNull();
     fireEvent.click(checkbox!);
-    expect(onToggleTaskCompleteMock).toHaveBeenCalledWith('t2');
 
-    // Trigger start timer using the correct ID start-subtask-btn-t2
+    // Assert
+    expect(onToggleTaskCompleteMock).toHaveBeenCalledTimes(1);
+    expect(onToggleTaskCompleteMock).toHaveBeenCalledWith('t2');
+  });
+
+  it('should trigger onStartTimer with subtask id when start button is clicked', () => {
+    // Arrange
+    const props = createMockProps();
+    const { container } = render(<SubtaskItem {...props} />);
+
+    // Act
     const startBtn = container.querySelector('#start-subtask-btn-t2');
     expect(startBtn).not.toBeNull();
     fireEvent.click(startBtn!);
+
+    // Assert
+    expect(onStartTimerMock).toHaveBeenCalledTimes(1);
     expect(onStartTimerMock).toHaveBeenCalledWith('t2');
   });
 });

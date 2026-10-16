@@ -97,6 +97,12 @@ describe('Unit Tests: LocalStorageDataManager', () => {
       const id = LocalStorageDataManager.getNextId(items, 'p');
       expect(id).toBe('p1');
     });
+
+    it('Given items with large gaps, Then it should calculate next sequential id from max value', () => {
+      const items = [{ id: '10' }, { id: '99' }];
+      const id = LocalStorageDataManager.getNextId(items, '');
+      expect(id).toBe('100');
+    });
   });
 
   describe('getNextId (instance)', () => {

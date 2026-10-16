@@ -13,25 +13,28 @@ import {
   SelectValue,
 } from '@components/ui/select';
 
-interface TaskHeaderProps {
+import { useTasksSafe } from '@common/hooks/DataContext';
+import { useTaskEditing } from '../../context/TaskEditingContext';
+
+export interface TaskHeaderProps {
   rootTask: Task;
   isCurrentRunning: boolean;
   isChildRunning: boolean;
   runningSubtask: Task | undefined;
-  editingId: string | null;
-  editName: string;
-  onToggleTaskComplete: (id: string) => void;
-  onRenameTask: ((id: string, name: string) => void) | undefined;
-  onUpdateTask: ((
+  editingId?: string | null;
+  editName?: string;
+  onToggleTaskComplete?: (id: string) => void;
+  onRenameTask?: ((id: string, name: string) => void) | undefined;
+  onUpdateTask?: ((
     taskId: string,
     name: string,
     parentTaskId: string | null,
     status: TaskStatus | null,
     completed: boolean | null
   ) => void) | undefined;
-  onDeleteTask: ((id: string) => void) | undefined;
-  setEditingId: (id: string | null) => void;
-  setEditName: (name: string) => void;
+  onDeleteTask?: ((id: string) => void) | undefined;
+  setEditingId?: (id: string | null) => void;
+  setEditName?: (name: string) => void;
 }
 
 export function TaskHeader({
@@ -39,15 +42,28 @@ export function TaskHeader({
   isCurrentRunning,
   isChildRunning,
   runningSubtask,
-  editingId,
-  editName,
-  onToggleTaskComplete,
-  onRenameTask,
-  onUpdateTask,
-  onDeleteTask,
-  setEditingId,
-  setEditName,
+  editingId: propEditingId,
+  editName: propEditName,
+  onToggleTaskComplete: propOnToggleTaskComplete,
+  onRenameTask: propOnRenameTask,
+  onUpdateTask: propOnUpdateTask,
+  onDeleteTask: propOnDeleteTask,
+  setEditingId: propSetEditingId,
+  setEditName: propSetEditName,
 }: TaskHeaderProps) {
+  const tasksCtx = useTasksSafe();
+  const editingCtx = useTaskEditing();
+
+  const onToggleTaskComplete = propOnToggleTaskComplete ?? tasksCtx?.handleToggleTaskComplete ?? (() => {});
+  const onRenameTask = propOnRenameTask ?? tasksCtx?.handleRenameTask;
+  const onUpdateTask = propOnUpdateTask ?? tasksCtx?.handleUpdateTask;
+  const onDeleteTask = propOnDeleteTask ?? tasksCtx?.handleDeleteTask;
+
+  const editingId = propEditingId ?? editingCtx?.editingId ?? null;
+  const editName = propEditName ?? editingCtx?.editName ?? '';
+  const setEditingId = propSetEditingId ?? editingCtx?.setEditingId ?? (() => {});
+  const setEditName = propSetEditName ?? editingCtx?.setEditName ?? (() => {});
+
   const isEditing = editingId === rootTask.id;
   const { t: tTask } = useTranslation('task');
 

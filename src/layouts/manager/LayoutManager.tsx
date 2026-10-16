@@ -251,14 +251,14 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
               <main className={`flex-1 min-h-0 w-full z-10 flex flex-col ${
                 layoutVariant === 'medium'
                   ? 'p-2.5 sm:p-4 md:p-5 overflow-hidden'
-                  : 'max-w-7xl mx-auto px-4 sm:px-6 py-5 gap-5 overflow-y-auto'
+                  : 'w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 gap-5 overflow-y-auto overflow-x-hidden'
               }`}>
 
                 <div className="shrink-0 mb-1">
                   <DaemonStatusBar />
                 </div>
 
-                <div id="tab-viewport" className={layoutVariant === 'medium' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'min-h-[480px]'}>
+                <div id="tab-viewport" className={layoutVariant === 'medium' ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'w-full min-w-0 min-h-[480px] flex-1 flex flex-col'}>
                   {layoutVariant === 'medium' && (
                     <MediumLayoutBuilder
                       state={guiState}
@@ -269,7 +269,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
                   {layoutVariant === 'full' && (
                     <AnimatePresence mode="wait">
                       {activeLargeTab === 'main' && (
-                        <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
                           <FullLayoutBuilder
                             state={guiState}
                             {...sharedProps}
@@ -278,7 +278,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
                       )}
 
                       {activeLargeTab === 'cli' && (
-                        <motion.div key="large-tab-cli" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div key="large-tab-cli" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0 flex-1 flex flex-col min-h-0">
                           <CliInterface
                             projects={projects}
                             tasks={tasks}
@@ -305,7 +305,7 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
                       )}
 
                       {activeLargeTab === 'reports' && (
-                        <motion.div key="large-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div key="large-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
                           <FullLayoutBuilder
                             state={guiState}
                             {...sharedProps}
@@ -314,31 +314,31 @@ function LayoutManagerContent({ runtime }: LayoutManagerContentProps) {
                       )}
 
                       {activeLargeTab === 'db' && (
-                        <motion.div key="large-tab-db" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div key="large-tab-db" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
                           <DbExplorer />
                         </motion.div>
                       )}
 
                       {activeLargeTab === 'backup' && (
-                        <motion.div key="large-tab-backup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div key="large-tab-backup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
                           <BackupTab />
                         </motion.div>
                       )}
 
                       {activeLargeTab === 'options' && (
-                        <motion.div key="large-tab-options" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div key="large-tab-options" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
                           <SettingsTab />
                         </motion.div>
                       )}
 
                       {activeLargeTab === 'manual' && (
-                        <motion.div key="large-tab-manual" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div key="large-tab-manual" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
                           <ManualTab />
                         </motion.div>
                       )}
 
                       {activeLargeTab === 'credits' && (
-                        <motion.div key="large-tab-credits" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div key="large-tab-credits" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
                           <CreditsTab />
                         </motion.div>
                       )}

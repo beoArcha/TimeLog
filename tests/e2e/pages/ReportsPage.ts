@@ -27,15 +27,7 @@ export class ReportsPage extends BasePage {
   }
 
   async selectPeriod(period: 'today' | 'week' | 'month' | 'all') {
-    if (period === 'today') {
-      await this.periodTodayBtn.click();
-    } else if (period === 'week') {
-      await this.periodWeekBtn.click();
-    } else if (period === 'month') {
-      await this.periodMonthBtn.click();
-    } else if (period === 'all') {
-      await this.periodAllBtn.click();
-    }
+    await this.page.locator(`[data-testid="period-btn-${period}"]`).click();
   }
 
   async selectSortOrder(sortOrder: 'date' | 'duration') {

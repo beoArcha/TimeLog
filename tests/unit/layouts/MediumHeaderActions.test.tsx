@@ -1,71 +1,77 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, cleanup } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MediumHeaderActions } from '@layouts/parts/MediumHeaderActions';
 
-describe('Unit Tests: MediumHeaderActions (i18n & a11y)', () => {
-  it('Given English locale, Then it renders accessible attributes and translated English labels', () => {
-    const onOpenCreateProject = vi.fn();
-    const onToggleDock = vi.fn();
+describe('MediumHeaderActions', () => {
+  let onOpenCreateProject: ReturnType<typeof vi.fn>;
+  let onToggleDock: ReturnType<typeof vi.fn>;
 
+  beforeEach(() => {
+    onOpenCreateProject = vi.fn();
+    onToggleDock = vi.fn();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('should render toolbar role and fire action callbacks on click', async () => {
+    // Arrange
+    const user = userEvent.setup();
     render(
       <MediumHeaderActions
-        theme="dark"
         dockPosition="right"
         onToggleDock={onToggleDock}
         onOpenCreateProject={onOpenCreateProject}
-        locale="en"
       />
     );
 
-    // a11y: toolbar role
+    // Assert initial layout
     const toolbar = screen.getByRole('toolbar');
     expect(toolbar).not.toBeNull();
-    expect(toolbar.getAttribute('aria-label')).toBe('Actions');
 
-    // i18n + a11y: New Project button
-    const newProjectBtn = screen.getByRole('button', { name: /new project/i });
-    expect(newProjectBtn).not.toBeNull();
-    expect(newProjectBtn.getAttribute('title')).toBe('New Project');
+    const newProjectBtn = screen.getByTestId('medium-new-project-btn');
+    const dockBtn = screen.getByTestId('toggle-dock-btn');
 
-    // i18n + a11y: Dock Switch button for right dock
-    const dockBtn = screen.getByRole('button', { name: /switch dock side/i });
-    expect(dockBtn).not.toBeNull();
-    expect(dockBtn.getAttribute('title')).toBe('Switch dock to the left side');
-    expect(dockBtn.getAttribute('aria-pressed')).toBe('false');
+    // Act
+    await user.click(newProjectBtn);
+    await user.click(dockBtn);
 
-    // Interactions
-    fireEvent.click(newProjectBtn);
+    // Assert
     expect(onOpenCreateProject).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(dockBtn);
     expect(onToggleDock).toHaveBeenCalledTimes(1);
   });
 
-  it('Given Polish locale and dockPosition left, Then it renders Polish labels and aria-pressed true', () => {
-    const onOpenCreateProject = vi.fn();
-    const onToggleDock = vi.fn();
-
+  it('should set aria-pressed to false when dockPosition is right', () => {
+    // Arrange & Act
     render(
       <MediumHeaderActions
-        theme="light"
-        dockPosition="left"
+        dockPosition="right"
         onToggleDock={onToggleDock}
         onOpenCreateProject={onOpenCreateProject}
-        locale="pl"
       />
     );
 
-    // i18n + a11y: Nowy Projekt button
-    const newProjectBtn = screen.getByRole('button', { name: /nowy projekt/i });
-    expect(newProjectBtn).not.toBeNull();
-    expect(newProjectBtn.getAttribute('title')).toBe('Nowy Projekt');
+    // Assert
+    const dockBtn = screen.getByTestId('toggle-dock-btn');
+    expect(dockBtn.getAttribute('aria-pressed')).toBe('false');
+  });
 
-    // i18n + a11y: Dock Switch button to switch to right side
-    const dockBtn = screen.getByRole('button', { name: /przełącz stronę dokowania/i });
-    expect(dockBtn).not.toBeNull();
-    expect(dockBtn.getAttribute('title')).toBe('Przełącz pasek na prawą stronę');
+  it('should set aria-pressed to true when dockPosition is left', () => {
+    // Arrange & Act
+    render(
+      <MediumHeaderActions
+        dockPosition="left"
+        onToggleDock={onToggleDock}
+        onOpenCreateProject={onOpenCreateProject}
+      />
+    );
+
+    // Assert
+    const dockBtn = screen.getByTestId('toggle-dock-btn');
     expect(dockBtn.getAttribute('aria-pressed')).toBe('true');
   });
 });

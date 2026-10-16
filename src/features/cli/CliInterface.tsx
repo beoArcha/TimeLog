@@ -22,10 +22,12 @@ export default function CliInterface() {
     { text: '', type: 'output' },
   ]);
 
-  const outputEndRef = useRef<HTMLDivElement>(null);
+  const terminalHistoryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    outputEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (terminalHistoryRef.current) {
+      terminalHistoryRef.current.scrollTop = terminalHistoryRef.current.scrollHeight;
+    }
   }, [terminalHistory]);
 
   const [prevLocale, setPrevLocale] = useState(locale);
@@ -75,7 +77,7 @@ export default function CliInterface() {
   };
 
   return (
-    <div id="cli-interface" className="flex flex-col gap-4 backdrop-blur-md rounded-3xl p-6 border border-border bg-card text-foreground shadow-2xl relative transition-all duration-300">
+    <div id="cli-interface" className="flex-1 min-h-0 flex flex-col gap-4 backdrop-blur-md rounded-3xl p-4 sm:p-6 border border-border bg-card text-foreground shadow-2xl relative transition-all duration-300">
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -101,10 +103,11 @@ export default function CliInterface() {
 
       <div
         id="terminal-history"
+        ref={terminalHistoryRef}
         role="log"
         aria-live="polite"
         aria-label="CLI terminal history"
-        className="rounded-2xl p-4 min-h-[380px] max-h-[480px] overflow-y-auto font-mono text-xs leading-relaxed flex flex-col gap-1.5 focus:outline-none border border-[var(--code-border)] bg-[var(--code-bg)] text-[var(--code-foreground)] shadow-inner"
+        className="rounded-2xl p-4 flex-1 min-h-[220px] overflow-y-auto font-mono text-xs leading-relaxed flex flex-col gap-1.5 focus:outline-none border border-[var(--code-border)] bg-[var(--code-bg)] text-[var(--code-foreground)] shadow-inner"
       >
         {terminalHistory.map((line, index) => {
           let colorClass = 'text-slate-300';
@@ -119,7 +122,6 @@ export default function CliInterface() {
             </div>
           );
         })}
-        <div ref={outputEndRef} />
       </div>
 
       <form onSubmit={handleFormSubmit} className="flex gap-2 p-1.5 rounded-2xl border border-border bg-muted/40 transition-all">

@@ -32,6 +32,7 @@ export const LanguageSelector: React.FC = () => {
           }}
         >
           <SelectTrigger
+            data-testid="lang-select-trigger"
             className="h-6 border-0 bg-transparent px-1.5 py-0.5 text-[9px] font-bold uppercase shadow-none focus-visible:ring-1"
             aria-label="Language selection"
           >
@@ -39,7 +40,7 @@ export const LanguageSelector: React.FC = () => {
           </SelectTrigger>
           <SelectContent>
             {SUPPORTED_LOCALES.map(l => (
-              <SelectItem key={l} value={l} className="text-xs uppercase">
+              <SelectItem key={l} value={l} data-testid={`lang-option-${l}`} className="text-xs uppercase">
                 {l.toUpperCase()}
               </SelectItem>
             ))}
@@ -57,6 +58,7 @@ export const LanguageSelector: React.FC = () => {
                 variant="ghost"
                 size="xs"
                 onClick={() => setLocalePref(l)}
+                data-testid={`lang-btn-${l}`}
                 className={`px-1.5 py-0.5 h-auto rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
                   isActive
                     ? 'bg-blue-500 text-white border border-blue-600 shadow-xs font-bold'

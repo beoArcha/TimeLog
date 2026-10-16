@@ -1,29 +1,29 @@
 import { test, expect } from '../fixtures/test-fixtures';
+import { createMockProject, createMockTask } from '../utils/state-seeder';
+import { TEST_IDS, TEST_NAMES, TEST_COLORS, TEST_DATES, TEST_LABELS } from '../constants/test-constants';
 
 test.describe('Compact Widget Layout Workflows (E2E)', () => {
-  const mockProject = {
-    id: 'proj-compact-101',
-    name: 'Compact Mode Project',
-    color: 'orange',
-    createdAt: '2026-07-12T12:00:00Z',
+  const mockProject = createMockProject({
+    id: TEST_IDS.PROJECT_COMPACT,
+    name: TEST_NAMES.PROJECT_COMPACT,
+    color: TEST_COLORS.ORANGE,
+    createdAt: TEST_DATES.STATIC_TIMESTAMP,
     archived: false,
-    description: 'Compact testing project',
+    description: TEST_NAMES.DESCRIPTION_DEFAULT,
     icon: '⚡',
     tags: ['compact', 'e2e'],
-  };
+  });
 
-  const mockTask = {
-    id: 'task-compact-201',
-    projectId: 'proj-compact-101',
-    parentTaskId: undefined,
-    name: 'Compact Task Alpha',
-    createdAt: '2026-07-12T12:00:00Z',
+  const mockTask = createMockTask({
+    id: TEST_IDS.TASK_COMPACT,
+    projectId: TEST_IDS.PROJECT_COMPACT,
+    name: TEST_NAMES.TASK_COMPACT,
+    createdAt: TEST_DATES.STATIC_TIMESTAMP,
     completed: false,
-    status: 'Todo' as const,
-  };
+    status: 'Todo',
+  });
 
   test.beforeEach(async ({ mainPage }) => {
-    await mainPage.resetStorage();
     await mainPage.seedStorage({
       projects: [mockProject],
       tasks: [mockTask],
@@ -57,7 +57,7 @@ test.describe('Compact Widget Layout Workflows (E2E)', () => {
 
     // Tasks list drawer is expanded by default
     await expect(compactPage.taskListContainer).toBeVisible();
-    await expect(compactPage.page.locator('span', { hasText: 'Compact Task Alpha' })).toBeVisible();
+    await expect(compactPage.page.locator('span', { hasText: TEST_NAMES.TASK_COMPACT })).toBeVisible();
 
     // Collapse tasks list
     await compactPage.toggleTaskList();
@@ -66,31 +66,31 @@ test.describe('Compact Widget Layout Workflows (E2E)', () => {
     // Expand tasks list again
     await compactPage.toggleTaskList();
     await expect(compactPage.taskListContainer).toBeVisible();
-    await expect(compactPage.page.locator('span', { hasText: 'Compact Task Alpha' })).toBeVisible();
+    await expect(compactPage.page.locator('span', { hasText: TEST_NAMES.TASK_COMPACT })).toBeVisible();
   });
 
   test('should start and stop timer directly from compact mode task card', async ({ mainPage, compactPage }) => {
     await mainPage.switchLayoutVariant('compact');
 
     // Verify task is visible in expanded compact drawer
-    const taskCard = compactPage.page.locator('[data-testid="compact-task-card-task-compact-201"]');
+    const taskCard = compactPage.page.locator(`[data-testid="compact-task-card-${TEST_IDS.TASK_COMPACT}"]`);
     await expect(taskCard).toBeVisible();
-    await expect(taskCard).toContainText('Compact Task Alpha');
+    await expect(taskCard).toContainText(TEST_NAMES.TASK_COMPACT);
 
-    const timerBtn = compactPage.page.locator('[data-testid="compact-timer-btn-task-compact-201"]');
+    const timerBtn = compactPage.page.locator(`[data-testid="compact-timer-btn-${TEST_IDS.TASK_COMPACT}"]`);
     await expect(timerBtn).toBeVisible();
 
     // Start timer on task in compact mode
-    await compactPage.startTaskTimer('task-compact-201');
+    await compactPage.startTaskTimer(TEST_IDS.TASK_COMPACT);
 
-    // Timer button should indicate stop state (has title/aria-label stop or rose color/svg)
-    await expect(timerBtn).toHaveAttribute('aria-label', /Zatrzymaj|Stop/i);
+    // Timer button should indicate stop state
+    await expect(timerBtn).toHaveAttribute('aria-label', TEST_LABELS.STOP_MEASUREMENT);
 
     // Stop timer
-    await compactPage.stopTaskTimer('task-compact-201');
+    await compactPage.stopTaskTimer(TEST_IDS.TASK_COMPACT);
 
-    // Timer button should indicate start state (has title/aria-label start or emerald color/svg)
-    await expect(timerBtn).toHaveAttribute('aria-label', /Rozpocznij|Start/i);
+    // Timer button should indicate start state
+    await expect(timerBtn).toHaveAttribute('aria-label', TEST_LABELS.START_MEASUREMENT);
   });
 
   test('should toggle Always on Top checkbox in compact mode', async ({ mainPage, compactPage }) => {

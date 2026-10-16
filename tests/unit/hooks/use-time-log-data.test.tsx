@@ -5,6 +5,7 @@ import { useTimeLogData } from '@common/hooks/useTimeLogData';
 import { STORAGE_KEYS } from '@common/constants';
 import { TEST_CONSTANTS } from '@tests/shared/test-constants';
 import { INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@plugins/persistence/InitialData';
+import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 
 const LOCAL_STORAGE_KEY = STORAGE_KEYS.STATE_DB;
 
@@ -22,6 +23,7 @@ describe('Unit Tests: useTimeLogData Hook', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    PersistenceRouter.resetForTesting();
     setupLocalStorageMock();
     saveMockDbState({
       projects: INIT_PROJECTS,

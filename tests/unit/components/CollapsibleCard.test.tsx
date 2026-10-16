@@ -130,17 +130,17 @@ describe('Unit Tests: CollapsibleCard', () => {
     expect(screen.getByText('Space Content')).toBeTruthy();
   });
 
-  it('Given light theme, When rendered, Then it should apply light background classes', () => {
-    const lightState = { ...mockState, resolvedTheme: 'light' as const };
+  it('Given CollapsibleCard rendered, Then it should consume semantic design tokens', () => {
     const { container } = render(
-      <MockProviders state={lightState}>
-        <CollapsibleCard title="Light Theme Card">
-          <div>Light Content</div>
+      <MockProviders state={mockState}>
+        <CollapsibleCard title="Semantic Card">
+          <div>Content</div>
         </CollapsibleCard>
       </MockProviders>
     );
 
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper.className).toContain('bg-card');
+    expect(wrapper.className).toContain('border-border');
   });
 });

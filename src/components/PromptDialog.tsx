@@ -113,6 +113,7 @@ function PromptDialogForm({
         </Label>
         <Input
           id={inputId}
+          data-testid="prompt-dialog-input"
           type="text"
           value={value}
           onChange={(e) => {
@@ -135,10 +136,22 @@ function PromptDialogForm({
       </div>
 
       <DialogFooter className="gap-2">
-        <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+        <Button
+          type="button"
+          data-testid="prompt-dialog-cancel-btn"
+          variant="outline"
+          onClick={handleCancel}
+          disabled={loading}
+        >
           {resolvedCancelLabel}
         </Button>
-        <Button type="submit" loading={loading} aria-busy={loading} onClick={handleSubmit}>
+        <Button
+          type="submit"
+          data-testid="prompt-dialog-confirm-btn"
+          loading={loading}
+          aria-busy={loading}
+          onClick={handleSubmit}
+        >
           {resolvedConfirmLabel}
         </Button>
       </DialogFooter>

@@ -1,48 +1,34 @@
 import { Task } from '@bindings/Task';
-import { TimeLog } from '@bindings/TimeLog';
-import { TaskStatus } from '@bindings/TaskStatus';
 import { SubtaskItem } from './SubtaskItem';
 
-interface SubtaskListProps {
+export interface SubtaskListProps {
   subTasks: Task[];
-  tasks: Task[];
-  logs: TimeLog[];
-  nowIso?: string;
-  metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
   isCondensed: boolean;
-  editingId: string | null;
-  editName: string;
-  onToggleTaskComplete: (id: string) => void;
-  onRenameTask: ((id: string, name: string) => void) | undefined;
-  onUpdateTask: ((
+  metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
+  onToggleTaskComplete?: (id: string) => void;
+  onRenameTask?: ((id: string, name: string) => void) | undefined;
+  onUpdateTask?: ((
     taskId: string,
     name: string,
     parentTaskId: string | null,
-    status: TaskStatus | null,
+    status: import('@bindings/TaskStatus').TaskStatus | null,
     completed: boolean | null
   ) => void) | undefined;
-  onDeleteTask: ((id: string) => void) | undefined;
-  onStartTimer: (id: string) => void;
-  setEditingId: (id: string | null) => void;
-  setEditName: (name: string) => void;
+  onDeleteTask?: ((id: string) => void) | undefined;
+  onStartTimer?: (id: string) => void;
+  onStopTimer?: (projectId?: string) => void;
 }
 
 export function SubtaskList({
   subTasks,
-  tasks,
-  logs,
-  nowIso,
-  metrics,
   isCondensed,
-  editingId,
-  editName,
+  metrics,
   onToggleTaskComplete,
   onRenameTask,
   onUpdateTask,
   onDeleteTask,
   onStartTimer,
-  setEditingId,
-  setEditName,
+  onStopTimer,
 }: SubtaskListProps) {
   if (subTasks.length === 0) {
     return null;
@@ -58,19 +44,13 @@ export function SubtaskList({
         <SubtaskItem
           key={subTask.id}
           subTask={subTask}
-          tasks={tasks}
-          logs={logs}
-          nowIso={nowIso}
           metrics={metrics}
-          editingId={editingId}
-          editName={editName}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
           onUpdateTask={onUpdateTask}
           onDeleteTask={onDeleteTask}
           onStartTimer={onStartTimer}
-          setEditingId={setEditingId}
-          setEditName={setEditName}
+          onStopTimer={onStopTimer}
         />
       ))}
     </div>

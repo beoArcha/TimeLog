@@ -1,31 +1,27 @@
 name: Promote to Release
 
 on:
-  workflow_run:
-    workflows: ["Tests"]
-    types:
-      - completed
-    branches: ["main"]
+  workflow_dispatch:
 
-env:
-  NODE_VERSION: 24
+concurrency:
+  group: promote-to-release
+  cancel-in-progress: false
+
 
 jobs:
   promote:
     name: Promote Main → Release
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Configure Git
         run: |
@@ -43,7 +39,7 @@ jobs:
           git merge origin/main --no-edit -X theirs
 
           # Bump release version to odd minor
-          node scripts/bump_versions.js --release
+          bun scripts/bump_versions.js --release
 
           # Commit the version bump on release
           git commit -am "chore(release): bump version to odd minor [skip ci]" || echo "No changes to commit on release"
@@ -52,10 +48,10 @@ jobs:
       - name: Bump Main Branch Version
         run: |
           git checkout main
-          git pull origin main
+          git pull --ff-only origin main
 
           # Bump main version to even minor
-          node scripts/bump_versions.js --main
+          bun scripts/bump_versions.js --main
 
           git commit -am "chore(version): bump main to next even minor [skip ci]" || echo "No changes to commit on main"
           git push origin main
@@ -69,7 +65,8 @@ jobs:
           echo "  Code has been merged to the 'release' branch"
           echo "  and versions have been bumped."
           echo ""
-          echo "  👉  To build & publish the release, go to:"
-          echo "      Actions → 'Release' → Run workflow"
+          echo "  👉  To test, build, tag & publish, run:"
+          echo "      gh workflow run release.yml --ref release"
+          echo "      (or Actions → 'Release' → Run workflow)"
           echo "=============================================="
           echo ""

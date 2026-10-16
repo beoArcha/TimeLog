@@ -1,6 +1,6 @@
 [package]
 name = "oxy-flow"
-version = "1.7.10"
+version = "1.6.11"
 edition = "2021"
 description = "Lightweight work-timer built with Tauri v2 speed, SQLite, and a background system tray daemon."
 license = "MPL-2.0"
@@ -9,7 +9,7 @@ license = "MPL-2.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 # Tauri integration (extremely lightweight webview frame + Rust backend commands)
-tauri = { version = "2.0.0", features = ["tray-icon"] }
+tauri = { version = "2.0.0", features = ["tray-icon", "devtools"] }
 
 chrono = { version = "0.4.38", features = ["serde"] }
 # Local SQLite MicroORM

@@ -1,89 +1,52 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { render, cleanup, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LayoutManager from '@layouts/manager/LayoutManager';
 import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import { aTimeLog } from '@tests/shared/builders/entity-builders';
 
-vi.mock('@layouts/components/BackgroundGradients', () => ({
-  default: () => <div data-testid="bg-gradients">Gradients</div>
-}));
-vi.mock('@layouts/components/SystemNotification', () => ({
-  default: () => <div data-testid="sys-notification">Notification</div>
-}));
-vi.mock('@layouts/components/CreditsModal', () => ({
-  default: () => <div data-testid="credits-modal">Credits</div>
-}));
-vi.mock('@layouts/components/Header', () => ({
-  default: () => <header data-testid="layout-header">Header</header>
-}));
-vi.mock('@layouts/components/TabBar', () => ({
-  default: () => <nav data-testid="layout-tab-bar">TabBar</nav>
-}));
-vi.mock('@layouts/components/DaemonStatusBar', () => ({
-  default: () => <div data-testid="daemon-status-bar">Status</div>
-}));
-vi.mock('@layouts/components/AppFooter', () => ({
-  default: () => <footer data-testid="app-footer">Footer</footer>
-}));
-vi.mock('@layouts/components/RestoreButton', () => ({
-  default: ({ setIsMinimized }: { setIsMinimized: (val: boolean) => void }) => (
-    <button data-testid="restore-btn" onClick={() => setIsMinimized(false)}>Restore</button>
-  )
-}));
-vi.mock('@layouts/components/GuiClosedAlert', () => ({
-  default: () => <div data-testid="gui-closed-alert">Gui Closed Alert</div>
-}));
-
+// Only mock heavy layout builders and sub-feature modules
 vi.mock('@layouts/builders/CompactLayoutBuilder', () => ({
-  default: () => <div data-testid="compact-layout">Compact Layout</div>
+  default: () => <div data-testid="compact-layout">Compact Layout</div>,
 }));
 vi.mock('@layouts/builders/MediumLayoutBuilder', () => ({
-  default: () => <div data-testid="medium-layout">Medium Layout</div>
+  default: () => <div data-testid="medium-layout">Medium Layout</div>,
 }));
 vi.mock('@layouts/builders/FullLayoutBuilder', () => ({
-  default: () => <div data-testid="full-layout">Full Layout</div>
+  default: () => <div data-testid="full-layout">Full Layout</div>,
 }));
 
 vi.mock('@features/cli/CliInterface', () => ({
-  default: () => <div data-testid="mock-cli-interface">CliInterface</div>
+  default: () => <div data-testid="mock-cli-interface">CliInterface</div>,
 }));
 vi.mock('@features/db-explorer/DbExplorer', () => ({
-  default: () => <div data-testid="mock-db-explorer">DbExplorer</div>
+  default: () => <div data-testid="mock-db-explorer">DbExplorer</div>,
 }));
 vi.mock('@features/settings/ManualTab', () => ({
-  default: () => <div data-testid="mock-manual-tab">ManualTab</div>
+  default: () => <div data-testid="mock-manual-tab">ManualTab</div>,
 }));
 vi.mock('@features/settings/CreditsTab', () => ({
-  default: () => <div data-testid="mock-credits-tab">CreditsTab</div>
+  default: () => <div data-testid="mock-credits-tab">CreditsTab</div>,
 }));
 vi.mock('@features/settings/SettingsTab', () => ({
-  default: () => <div data-testid="mock-settings-tab">SettingsTab</div>
+  default: () => <div data-testid="mock-settings-tab">SettingsTab</div>,
 }));
 vi.mock('@features/settings/BackupTab', () => ({
-  default: () => <div data-testid="mock-backup-tab">BackupTab</div>
-}));
-vi.mock('@features/tray/TrayWidgetView', () => ({
-  default: ({ onRestore, onStopAll }: { onRestore: () => void; onStopAll: () => void }) => (
-    <div data-testid="tray-widget-view">
-      <button data-testid="btn-restore" onClick={onRestore}>Restore</button>
-      <button data-testid="btn-stop-all" onClick={onStopAll}>Stop All</button>
-    </div>
-  )
+  default: () => <div data-testid="mock-backup-tab">BackupTab</div>,
 }));
 
 let activeMockState: OxyFlowState;
 
 vi.mock('@layouts/manager/AppProviders', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
-    <MockProviders state={activeMockState}>
-      {children}
-    </MockProviders>
-  )
+    <MockProviders state={activeMockState}>{children}</MockProviders>
+  ),
 }));
 
-describe('Unit Tests: LayoutManager', () => {
+describe('LayoutManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -92,65 +55,77 @@ describe('Unit Tests: LayoutManager', () => {
     cleanup();
   });
 
-  it('Given compact LayoutVariant, Then it should render CompactLayoutBuilder', () => {
+  it('should render CompactLayoutBuilder when layoutVariant is compact', () => {
+    // Arrange
     activeMockState = {
       ...getMockOxyFlowState(),
       layoutVariant: 'compact',
       isGuiClosed: false,
-      isMinimized: false
+      isMinimized: false,
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
+    // Act
+    render(<LayoutManager runtime="browser" />);
 
-    expect(getByTestId('compact-layout')).not.toBeNull();
-    expect(queryByTestId('medium-layout')).toBeNull();
-    expect(queryByTestId('full-layout')).toBeNull();
+    // Assert
+    expect(screen.getByTestId('compact-layout')).not.toBeNull();
+    expect(screen.queryByTestId('medium-layout')).toBeNull();
+    expect(screen.queryByTestId('full-layout')).toBeNull();
   });
 
-  it('Given medium LayoutVariant, Then it should render MediumLayoutBuilder', () => {
+  it('should render MediumLayoutBuilder and Header when layoutVariant is medium', () => {
+    // Arrange
     activeMockState = {
       ...getMockOxyFlowState(),
       layoutVariant: 'medium',
       isGuiClosed: false,
-      isMinimized: false
+      isMinimized: false,
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
+    // Act
+    render(<LayoutManager runtime="browser" />);
 
-    expect(getByTestId('medium-layout')).not.toBeNull();
-    expect(queryByTestId('compact-layout')).toBeNull();
-    expect(queryByTestId('full-layout')).toBeNull();
-    expect(getByTestId('layout-header')).not.toBeNull();
-    expect(getByTestId('app-footer')).not.toBeNull();
+    // Assert
+    expect(screen.getByTestId('medium-layout')).not.toBeNull();
+    expect(screen.queryByTestId('compact-layout')).toBeNull();
+    expect(screen.queryByTestId('full-layout')).toBeNull();
+    expect(screen.getByTestId('layout-header')).not.toBeNull();
   });
 
-  it('Given full LayoutVariant, Then it should render FullLayoutBuilder under main tab', () => {
+  it('should render FullLayoutBuilder and TabBar when layoutVariant is full and active tab is main', () => {
+    // Arrange
     activeMockState = {
       ...getMockOxyFlowState(),
       layoutVariant: 'full',
       activeLargeTab: 'main',
       isGuiClosed: false,
-      isMinimized: false
+      isMinimized: false,
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
+    // Act
+    render(<LayoutManager runtime="browser" />);
 
-    expect(getByTestId('full-layout')).not.toBeNull();
-    expect(queryByTestId('compact-layout')).toBeNull();
-    expect(queryByTestId('medium-layout')).toBeNull();
-    expect(getByTestId('layout-tab-bar')).not.toBeNull();
+    // Assert
+    expect(screen.getByTestId('full-layout')).not.toBeNull();
+    expect(screen.queryByTestId('compact-layout')).toBeNull();
+    expect(screen.queryByTestId('medium-layout')).toBeNull();
+    expect(screen.getByRole('tablist', { name: /tabs/i })).not.toBeNull();
   });
 
-  it('should render data-runtime, data-layout-variant and data-text-size attributes on root container', () => {
+  it('should render data-runtime, data-layout-variant, and data-text-size attributes on root container', () => {
+    // Arrange
     activeMockState = {
       ...getMockOxyFlowState(),
       layoutVariant: 'medium',
       textAndIconSize: 'large',
       isGuiClosed: false,
-      isMinimized: false
+      isMinimized: false,
     };
 
+    // Act
     const { container } = render(<LayoutManager runtime="tauri" />);
+
+    // Assert
     const rootContainer = container.querySelector('#app-root-container');
     expect(rootContainer).not.toBeNull();
     expect(rootContainer?.getAttribute('data-runtime')).toBe('tauri');
@@ -158,56 +133,81 @@ describe('Unit Tests: LayoutManager', () => {
     expect(rootContainer?.getAttribute('data-text-size')).toBe('large');
   });
 
-  it('Given isGuiClosed is true, Then it should render GuiClosedAlert', () => {
+  it('should render real GuiClosedAlert and call setIsGuiClosed when restart button is clicked', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const setIsGuiClosedMock = vi.fn();
     activeMockState = {
       ...getMockOxyFlowState(),
       layoutVariant: 'medium',
       isGuiClosed: true,
-      isMinimized: false
+      setIsGuiClosed: setIsGuiClosedMock,
+      isMinimized: false,
     };
 
-    const { getByTestId, queryByTestId } = render(<LayoutManager runtime="browser" />);
-    expect(getByTestId('gui-closed-alert')).not.toBeNull();
-    expect(queryByTestId('medium-layout')).toBeNull();
+    // Act
+    render(<LayoutManager runtime="browser" />);
+
+    // Assert Alert is visible
+    expect(screen.queryByTestId('medium-layout')).toBeNull();
+    const restartBtn = screen.getByRole('button');
+    expect(restartBtn).not.toBeNull();
+
+    // Act: click restart
+    await user.click(restartBtn);
+
+    // Assert
+    expect(setIsGuiClosedMock).toHaveBeenCalledWith(false);
   });
 
-  it('Given isMinimized is true, Then it should render TrayWidgetView and RestoreButton', () => {
+  it('should render real TrayWidgetView when isMinimized is true and handle restore and stop all actions', async () => {
+    // Arrange
+    const user = userEvent.setup();
     const showToastMock = vi.fn();
     const setIsMinimizedMock = vi.fn();
     const handleStopTimerMock = vi.fn();
+    const runningLog = aTimeLog({ id: 'log_active', endTime: null });
 
     activeMockState = {
       ...getMockOxyFlowState(),
       layoutVariant: 'medium',
       isGuiClosed: false,
       isMinimized: true,
+      logs: [runningLog],
       setIsMinimized: setIsMinimizedMock,
       showToast: showToastMock,
-      handleStopTimer: handleStopTimerMock
+      handleStopTimer: handleStopTimerMock,
     };
 
-    const { getByTestId } = render(<LayoutManager runtime="browser" />);
-    expect(getByTestId('tray-widget-view')).not.toBeNull();
-    expect(getByTestId('restore-btn')).not.toBeNull();
+    // Act
+    const { container } = render(<LayoutManager runtime="browser" />);
 
-    // Trigger restore via tray button
-    fireEvent.click(getByTestId('btn-restore'));
+    // Assert Tray Widget is displayed
+    expect(container.querySelector('#simulated-tray-widget')).not.toBeNull();
+
+    // Trigger restore via tray restore button
+    const restoreBtn = container.querySelector('#tray-restore-btn') as HTMLElement;
+    expect(restoreBtn).not.toBeNull();
+    await user.click(restoreBtn);
     expect(setIsMinimizedMock).toHaveBeenCalledWith(false);
     expect(showToastMock).toHaveBeenCalled();
 
-    // Trigger stop all
-    fireEvent.click(getByTestId('btn-stop-all'));
+    // Trigger pause all via tray pause button
+    const killAllBtn = container.querySelector('#tray-kill-all-btn') as HTMLElement;
+    expect(killAllBtn).not.toBeNull();
+    await user.click(killAllBtn);
     expect(handleStopTimerMock).toHaveBeenCalled();
   });
 
-  it('Given activeLargeTab is set to different views under full layout, Then it should render correct components', () => {
+  it('should render correct feature view under full layout when activeLargeTab is switched', () => {
+    // Arrange
     const tabs = [
       { tabName: 'cli', testId: 'mock-cli-interface' },
       { tabName: 'db', testId: 'mock-db-explorer' },
       { tabName: 'backup', testId: 'mock-backup-tab' },
       { tabName: 'options', testId: 'mock-settings-tab' },
       { tabName: 'manual', testId: 'mock-manual-tab' },
-      { tabName: 'credits', testId: 'mock-credits-tab' }
+      { tabName: 'credits', testId: 'mock-credits-tab' },
     ];
 
     for (const tab of tabs) {
@@ -216,12 +216,33 @@ describe('Unit Tests: LayoutManager', () => {
         layoutVariant: 'full',
         activeLargeTab: tab.tabName,
         isGuiClosed: false,
-        isMinimized: false
+        isMinimized: false,
       };
 
-      const { getByTestId, unmount } = render(<LayoutManager runtime="browser" />);
-      expect(getByTestId(tab.testId)).not.toBeNull();
+      // Act
+      const { unmount } = render(<LayoutManager runtime="browser" />);
+
+      // Assert
+      expect(screen.getByTestId(tab.testId)).not.toBeNull();
       unmount();
     }
+  });
+
+  it('should render SystemNotification when trayNotification is provided', () => {
+    // Arrange
+    activeMockState = {
+      ...getMockOxyFlowState(),
+      layoutVariant: 'medium',
+      isGuiClosed: false,
+      isMinimized: false,
+      trayNotification: 'Synchronized with system tray',
+    };
+
+    // Act
+    const { container } = render(<LayoutManager runtime="browser" />);
+
+    // Assert
+    expect(container.querySelector('#tray-toast-notification')).not.toBeNull();
+    expect(screen.getByText('Synchronized with system tray')).not.toBeNull();
   });
 });

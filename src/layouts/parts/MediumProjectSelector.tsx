@@ -62,6 +62,7 @@ export default function MediumProjectSelector({
         <Button
           type="button"
           variant="ghost"
+          data-testid="medium-project-dropdown-btn"
           onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
           className="flex items-center gap-2.5 min-w-0 flex-1 text-left cursor-pointer hover:opacity-85 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 rounded-xl p-1 h-auto justify-start"
           title={translate(locale, 'project', 'ChangeProject', customTranslations)}
@@ -152,6 +153,7 @@ export default function MediumProjectSelector({
               </p>
               <Input
                 type="text"
+                data-testid="medium-new-project-input"
                 value={newProjectName}
                 onChange={e => setNewProjectName(e.target.value)}
                 placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
@@ -190,6 +192,7 @@ export default function MediumProjectSelector({
                   type="submit"
                   variant="accent"
                   size="sm"
+                  data-testid="medium-save-new-project-btn"
                   disabled={!newProjectName.trim()}
                 >
                   {translate(locale, 'common', 'Save', customTranslations)}
@@ -201,6 +204,7 @@ export default function MediumProjectSelector({
               <Button
                 type="button"
                 variant="ghost"
+                data-testid="medium-open-add-project-btn"
                 onClick={() => setIsAddingProject(true)}
                 className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 transition-colors cursor-pointer h-auto"
               >
@@ -220,6 +224,7 @@ export default function MediumProjectSelector({
                   key={p.id}
                   type="button"
                   variant="ghost"
+                  data-testid={`medium-project-item-${p.id}`}
                   onClick={() => {
                     setSelectedProjectId?.(p.id);
                     setIsProjectDropdownOpen(false);

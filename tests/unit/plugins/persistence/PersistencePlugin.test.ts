@@ -28,8 +28,6 @@ describe('Unit Tests: PersistencePlugin', () => {
     vi.restoreAllMocks();
   });
 
-  // --- core ---
-
   it('should return default state when localstorage is empty', async () => {
     const state = await plugin.core.load();
     expect(state).toEqual({ projects: [], tasks: [], logs: [], activeLog: null });
@@ -65,8 +63,6 @@ describe('Unit Tests: PersistencePlugin', () => {
     expect(localStorage.getItem(SETTINGS_KEY)).toBeNull();
     expect(localStorage.getItem(RUN_CONFIGS_KEY)).toBeNull();
   });
-
-  // --- projects ---
 
   it('should add a project', async () => {
     const state = await plugin.projects.add({ name: 'New Project', color: '#FFF' });
@@ -122,8 +118,6 @@ describe('Unit Tests: PersistencePlugin', () => {
     expect(state.projects[0].icon).toBeUndefined();
     expect(state.projects[0].tags).toBeUndefined();
   });
-
-  // --- tasks ---
 
   it('should add a task', async () => {
     const state = await plugin.tasks.add({ projectId: 'p1', name: 'Task 1', parentTaskId: null });
@@ -342,8 +336,6 @@ describe('Unit Tests: PersistencePlugin', () => {
     expect(subtasks).toHaveLength(0);
   });
 
-  // --- settings ---
-
   it('Given settings.get with no stored data, Then it should return default settings', async () => {
     const settings = await plugin.settings.get();
     expect(settings.autoStart).toBe(false);
@@ -373,8 +365,6 @@ describe('Unit Tests: PersistencePlugin', () => {
     expect(stored.autoStart).toBe(true);
     expect(stored.autoPauseOnSleep).toBe(false);
   });
-
-  // --- runtimeConfigs ---
 
   it('Given runtimeConfigs.getAll with no stored data, Then it should return empty array', async () => {
     const configs = await plugin.runtimeConfigs.getAll();
@@ -407,8 +397,6 @@ describe('Unit Tests: PersistencePlugin', () => {
     const configs = await plugin.runtimeConfigs.getAll();
     expect(configs).toHaveLength(2);
   });
-
-  // --- timeLogs ---
 
   it('Given timeLogs.getForTask, Then it should return only logs matching taskId', async () => {
     await plugin.tasks.add({ projectId: 'p1', name: 'Task A', parentTaskId: null });

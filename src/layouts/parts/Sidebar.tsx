@@ -79,7 +79,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
   };
 
   return (
-    <div id="projects-sidebar" className="lg:col-span-4 flex flex-col gap-main">
+    <div id="projects-sidebar" className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
       <div className="backdrop-blur-md rounded-main padding-main border border-border bg-card text-card-foreground shadow-2xl transition-all duration-300">
         <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
           <h3 className="font-sans font-semibold text-title flex items-center gap-2 text-foreground">
@@ -192,6 +192,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
               return (
                 <div
                   id={`project-item-${p.id}`}
+                  data-archived={p.archived ? 'true' : 'false'}
                   key={p.id}
                   onClick={() => setSelectedProjectId(p.id)}
                   className={`text-left w-full padding-section rounded-section flex items-center justify-between transition-all duration-300 relative overflow-hidden cursor-pointer group ${isSelected
@@ -321,6 +322,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   {translate(locale, 'project', 'ProjectName', customTranslations)}
                 </Label>
                 <Input
+                  id="edit-project-name-input"
                   type="text"
                   value={editProjName}
                   onChange={e => setEditProjName(e.target.value)}
@@ -401,6 +403,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                   {translate(locale, 'common', 'Cancel', customTranslations)}
                 </Button>
                 <Button
+                  id="save-edit-project-btn"
                   type="button"
                   variant="accent"
                   onClick={() => {

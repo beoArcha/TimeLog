@@ -3,29 +3,25 @@ name: Tests
 on:
   push:
     branches: [main, release]
-    paths-ignore:
-      - "src/versions.json"
-      - "package.json"
-      - "package-lock.json"
-      - "src-tauri/tauri.conf.json"
 
   pull_request:
     branches: [main, release]
-    paths-ignore:
-      - "src/versions.json"
-      - "package.json"
-      - "package-lock.json"
-      - "src-tauri/tauri.conf.json"
+
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref or SHA to test (defaults to the triggering ref)"
+        type: string
+        required: false
+        default: ""
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: tests-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: 24
   RUST_WORKSPACE: "src-tauri -> target"
   CARGO_PROFILE_DEV_DEBUG: 0
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ──────────────────────────────────────────────
@@ -38,6 +34,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -75,17 +73,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          ref: ${{ inputs.ref }}
 
-      - name: Install Node.js Dependencies
-        run: npm ci
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Frontend Dependencies
+        run: bun install --frozen-lockfile
 
       - name: Typecheck
-        run: npm run typecheck
+        run: bun run typecheck
 
   # ──────────────────────────────────────────────
   # ESLint
@@ -97,17 +95,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          ref: ${{ inputs.ref }}
 
-      - name: Install Node.js Dependencies
-        run: npm ci
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Frontend Dependencies
+        run: bun install --frozen-lockfile
 
       - name: Run ESLint
-        run: npm run lint
+        run: bun run lint
 
   # ──────────────────────────────────────────────
   # Unit tests
@@ -120,18 +118,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          ref: ${{ inputs.ref }}
 
-      - name: Install Node.js Dependencies
-        run: npm ci
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Frontend Dependencies
+        run: bun install --frozen-lockfile
 
       - name: Run Unit Tests
         run: |
-          npx vitest run tests/unit \
+          bun x vitest run tests/unit \
             --coverage \
             --coverage.reporter=json \
             --coverage.reportsDirectory=coverage/unit
@@ -155,18 +153,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          ref: ${{ inputs.ref }}
 
-      - name: Install Node.js Dependencies
-        run: npm ci
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Frontend Dependencies
+        run: bun install --frozen-lockfile
 
       - name: Run Integration Tests
         run: |
-          npx vitest run tests/integration \
+          bun x vitest run tests/integration \
             --coverage \
             --coverage.reporter=json \
             --coverage.reportsDirectory=coverage/integration
@@ -190,6 +188,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -246,14 +246,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          ref: ${{ inputs.ref }}
 
-      - name: Install Node.js Dependencies
-        run: npm ci
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Frontend Dependencies
+        run: bun install --frozen-lockfile
 
       - name: Download Unit Coverage
         uses: actions/download-artifact@v4
@@ -269,18 +269,18 @@ jobs:
 
       - name: Merge Coverage
         run: |
-          npx nyc merge coverage-reports coverage-merged/coverage-final.json
+          bun x nyc merge coverage-reports coverage-merged/coverage-final.json
 
       - name: Generate Report
         run: |
-          npx nyc report \
+          bun x nyc report \
             --temp-dir coverage-merged \
             --reporter=text \
             --reporter=json-summary
 
       - name: Validate Thresholds
         run: |
-          npx nyc check-coverage \
+          bun x nyc check-coverage \
             --temp-dir coverage-merged \
             --lines 40 \
             --statements 40 \
@@ -304,14 +304,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          ref: ${{ inputs.ref }}
 
-      - name: Install Node.js Dependencies
-        run: npm ci
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Frontend Dependencies
+        run: bun install --frozen-lockfile
 
       - name: Build Application
-        run: npm run build
+        run: bun run build

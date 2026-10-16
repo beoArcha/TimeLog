@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EnginePlugin } from '@plugins/engine/EnginePlugin';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { IPersistence } from '@common/persistence/IPersistence';
@@ -98,6 +98,11 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
     mockImplementation = buildMockImplementation(mockState);
     PersistenceRouter.getInstance().setImplementationForTesting(mockImplementation);
     plugin = new EnginePlugin();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    PersistenceRouter.resetForTesting();
   });
 
   describe('startTimer', () => {

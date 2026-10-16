@@ -500,6 +500,46 @@ unless explicitly requested.
 
 ---
 
+## Unit & Integration Testing Standards
+
+### 1. Test Structure & AAA Pattern
+
+Every test must strictly follow the **Arrange - Act - Assert (AAA)** pattern:
+
+- **Arrange**: Set up fixtures, initial state, and test doubles using domain Test Data Builders.
+- **Act**: Execute the specific user interaction (`userEvent`, fireEvent, or direct function invocation).
+- **Assert**: Verify expected state changes, mock invocations, or DOM elements.
+
+Never mix actions and assertions into interleaved spaghetti sequences.
+
+### 2. Naming Conventions (BDD Style)
+
+- Language: English only for all test suite descriptions, test names, and test IDs.
+- `describe`: Name the unit or component under test exactly (e.g. `describe('TaskItem', () => { ... })`).
+- `it`: State expected behavior and conditions clearly:
+  - Format: `it('should <expected outcome> when <action or condition>')`
+  - Example: `it('should trigger onSaveEdit with updated title when Enter key is pressed', async () => { ... })`
+- Forbidden: Vague names like `it('works')`, `it('renders properly')`, or `it('test 1')`.
+
+### 3. Triple Decoupling
+
+- **Decoupled from Localization**: Tests verify component contracts and state transitions, not dictionary copywriting. Never assert hardcoded localized strings (e.g. Polish strings like `/Zatwierdź/i` or `/Usuń/i`). Query by accessibility roles (`getByRole`), `getByTestId`, or unique form element IDs.
+- **Decoupled from Theming & CSS**: Never assert CSS color classes, hex values, or active theme names (`theme === 'dark'`). Components are polymorphic consumers of design tokens.
+- **Decoupled from Native Side-Effects**: Never allow real Tauri invocations, disk operations, or network calls in unit tests. Always wrap components in `MockProviders` (`MockDataProvider`, `MockSettingsProvider`, `MockLocaleProvider`) and use mock IPC handlers (`tests/shared/mocks/tauri-ipc-mock.ts`).
+
+### 4. Test Data Builders
+
+- Never handcraft raw domain entity literals with arbitrary missing fields in test files.
+- Always use domain Test Data Builders from `tests/shared/builders/entity-builders.ts` (`aProject()`, `aTask()`, `aTimeLog()`, `aPatchLog()`).
+- Override only the specific fields relevant to the current test scenario (e.g. `aTask({ status: 'Done', isRunning: false })`).
+
+### 5. Interaction Testing over Shallow Rendering
+
+- Tests must verify meaningful user workflows: form submissions, keyboard shortcuts (`Enter`, `Escape`), confirmation dialogs, error states, and toggle controls.
+- Shallow snapshots or tests that merely mount a component without testing its event handlers or state mutations are strictly discouraged.
+
+---
+
 ## AI Workflow
 
 Every task follows the same sequence.
@@ -593,6 +633,18 @@ Never introduce abstraction without justification.
 
 ---
 
+## Toolchain & Package Management (Bun)
+
+oXyFlow standardizes on **Bun** as its exclusive JavaScript runtime and package manager:
+
+- Always use `bun install`, `bun add <pkg>`, `bun remove <pkg>`.
+- Always execute scripts via `bun run <script>` (e.g. `bun run dev`, `bun run tauri:dev`, `bun run tauri:build`, `bun run test`, `bun run check`).
+- For direct binary tool execution, use `bun x <binary>` (e.g. `bun x tauri`).
+- **Forbidden:** Never use `npm`, `npx`, `yarn`, or `pnpm`.
+- **Forbidden:** Never create or commit `package-lock.json`. `bun.lock` is the single source of truth for dependencies.
+
+---
+
 ## Definition of Done
 
 A task is complete only if:
@@ -602,12 +654,11 @@ A task is complete only if:
 - Zero raw HTML primitives outside `src/components/ui/`.
 - No `{translate(...) || 'Fallback'}` anti-patterns.
 - All interactive elements meet a11y standards (accessible names, roles, focus).
-- Tests pass (`npm run test`).
-- Architectural tests pass (`npm run test:arch`).
-- TypeScript passes (`npm run typecheck`).
-- Lint passes (`npm run lint`).
-- Combined check passes (`npm run check:frontend`).
-- Rust builds and passes check if backend touched.
+- Tests pass (`bun run test`, includes unit, integration, and architecture tests).
+- TypeScript passes (`bun run typecheck`).
+- Lint passes (`bun run lint`).
+- Combined static check passes (`bun run check`).
+- Rust builds and passes check if backend touched (`bun run test:rust`, `bun run fmt:rust:check`, `bun run lint:rust`).
 - Documentation is updated (`docs/`, `AGENT.md`).
 - Runtime independence is preserved.
 - Layout independence is preserved.

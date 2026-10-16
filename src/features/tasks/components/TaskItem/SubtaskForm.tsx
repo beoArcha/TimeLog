@@ -4,21 +4,27 @@ import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 
-interface SubtaskFormProps {
+import { useTaskEditing } from '../../context/TaskEditingContext';
+
+export interface SubtaskFormProps {
   parentTaskId: string;
-  newSubtaskName: string;
-  setNewSubtaskName: (name: string) => void;
+  newSubtaskName?: string;
+  setNewSubtaskName?: (name: string) => void;
   onSubmit: (parentTaskId: string, e: React.FormEvent) => void;
 }
 
 export function SubtaskForm({
   parentTaskId,
-  newSubtaskName,
-  setNewSubtaskName,
+  newSubtaskName: propNewSubtaskName,
+  setNewSubtaskName: propSetNewSubtaskName,
   onSubmit,
 }: SubtaskFormProps) {
   const { t: tTask } = useTranslation('task');
   const { t: tCommon } = useTranslation('common');
+
+  const editingCtx = useTaskEditing();
+  const newSubtaskName = propNewSubtaskName ?? editingCtx?.newSubtaskName ?? '';
+  const setNewSubtaskName = propSetNewSubtaskName ?? editingCtx?.setNewSubtaskName ?? (() => {});
 
   return (
     <motion.form

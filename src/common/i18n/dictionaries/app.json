@@ -1,5 +1,7 @@
 {
   "en": {
+    "AppCrashTitle": "Application Error",
+    "AppCrashDesc": "An unexpected error occurred while rendering the interface.",
     "GuiClosedTitle": "LogTime by OxyFlow GUI Closed",
     "GuiClosedDesc": "Rust & SQLite engine is still running in the background (~8MB RAM).",
     "RestartGui": "Restart GUI Client",
@@ -38,6 +40,8 @@
     "DockSwitchToRight": "Switch dock to the right side"
   },
   "pl": {
+    "AppCrashTitle": "Błąd Aplikacji",
+    "AppCrashDesc": "Wystąpił nieoczekiwany błąd podczas renderowania interfejsu.",
     "GuiClosedTitle": "LogTime by OxyFlow GUI Zakończone",
     "GuiClosedDesc": "Silnik Rust & SQLite nadal pracuje w tle (~8MB RAM).",
     "RestartGui": "Restart GUI Client",
@@ -76,6 +80,8 @@
     "DockSwitchToRight": "Przełącz pasek na prawą stronę"
   },
   "de": {
+    "AppCrashTitle": "Anwendungsfehler",
+    "AppCrashDesc": "Beim Rendern der Benutzeroberfläche ist ein unerwarteter Fehler aufgetreten.",
     "GuiClosedTitle": "LogTime by OxyFlow GUI Geschlossen",
     "GuiClosedDesc": "Die Rust- & SQLite-Engine läuft weiterhin im Hintergrund (~8MB RAM).",
     "RestartGui": "GUI-Client neu starten",
@@ -110,6 +116,8 @@
     "DockSwitchToRight": "Dock auf die rechte Seite umschalten"
   },
   "es": {
+    "AppCrashTitle": "Error de la Aplicación",
+    "AppCrashDesc": "Ocurrió un error inesperado al renderizar la interfaz.",
     "GuiClosedTitle": "Interfaz Cerrada",
     "GuiClosedDesc": "El motor sigue ejecutándose en segundo plano (~8MB).",
     "RestartGui": "Reiniciar Cliente",
@@ -148,6 +156,8 @@
     "DockSwitchToRight": "Cambiar dock al lado derecho"
   },
   "fr": {
+    "AppCrashTitle": "Erreur de l'Application",
+    "AppCrashDesc": "Une erreur inattendue est survenue lors du rendu de l'interface.",
     "GuiClosedTitle": "Interface Fermée",
     "GuiClosedDesc": "Le moteur continue de fonctionner en arrière-plan (~8Mo RAM).",
     "RestartGui": "Redémarrer le Client",
@@ -186,6 +196,8 @@
     "DockSwitchToRight": "Basculer le dock vers le côté droit"
   },
   "pt-br": {
+    "AppCrashTitle": "Erro do Aplicativo",
+    "AppCrashDesc": "Ocorreu um erro inesperado ao renderizar a interface.",
     "GuiClosedTitle": "Interface Fechada",
     "GuiClosedDesc": "O motor Rust & SQLite continua rodando no fundo (~8MB RAM).",
     "RestartGui": "Reiniciar Cliente Visual",

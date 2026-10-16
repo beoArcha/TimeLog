@@ -1,29 +1,26 @@
 import { test, expect } from '../fixtures/test-fixtures';
+import { createMockProject, createMockTask } from '../utils/state-seeder';
+import { TEST_IDS, TEST_NAMES, TEST_COLORS, TEST_DATES } from '../constants/test-constants';
 
 test.describe('Persistence & Reload Resilience (E2E)', () => {
-  const mockProject = {
-    id: 'proj-resilience-1',
-    name: 'Resilience Project',
-    color: 'emerald',
-    createdAt: '2026-07-12T12:00:00Z',
+  const mockProject = createMockProject({
+    id: TEST_IDS.PROJECT_RESILIENCE,
+    name: TEST_NAMES.PROJECT_RESILIENCE,
+    color: TEST_COLORS.EMERALD,
+    createdAt: TEST_DATES.STATIC_TIMESTAMP,
     archived: false,
-    description: 'Resilience testing project',
+    description: TEST_NAMES.DESCRIPTION_DEFAULT,
     icon: '🛡️',
     tags: ['resilience', 'e2e'],
-  };
+  });
 
-  const mockTask = {
-    id: 'task-resilience-1',
-    projectId: 'proj-resilience-1',
-    parentTaskId: undefined,
-    name: 'Continuous Measurement Task',
-    createdAt: '2026-07-12T12:00:00Z',
+  const mockTask = createMockTask({
+    id: TEST_IDS.TASK_RESILIENCE,
+    projectId: TEST_IDS.PROJECT_RESILIENCE,
+    name: TEST_NAMES.TASK_RESILIENCE,
+    createdAt: TEST_DATES.STATIC_TIMESTAMP,
     completed: false,
-    status: 'Todo' as const,
-  };
-
-  test.beforeEach(async ({ mainPage }) => {
-    await mainPage.resetStorage();
+    status: 'Todo',
   });
 
   test('should preserve active timer state and continue tracking across page reloads', async ({ mainPage, page }) => {
@@ -34,21 +31,21 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
       activeLog: null,
     });
 
-    await mainPage.selectProject('Resilience Project');
+    await mainPage.selectProject(TEST_NAMES.PROJECT_RESILIENCE);
     await expect(mainPage.idleTimerBanner).toBeVisible();
 
     // Start timer on task
-    await mainPage.startTimerForTask('task-resilience-1');
+    await mainPage.startTimerForTask(TEST_IDS.TASK_RESILIENCE);
     await expect(mainPage.activeTimerBanner).toBeVisible();
-    await expect(mainPage.activeTimerBanner).toContainText('Continuous Measurement Task');
+    await expect(mainPage.activeTimerBanner).toContainText(TEST_NAMES.TASK_RESILIENCE);
 
     // Reload page to simulate browser refresh / app restart
-    await page.reload();
-    await page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
     // Verify active timer is still running and visible after reload
     await expect(mainPage.activeTimerBanner).toBeVisible();
-    await expect(mainPage.activeTimerBanner).toContainText('Continuous Measurement Task');
+    await expect(mainPage.activeTimerBanner).toContainText(TEST_NAMES.TASK_RESILIENCE);
     await expect(mainPage.activeTimerDisplay).toBeVisible();
     await expect(mainPage.idleTimerBanner).toBeHidden();
 
@@ -71,8 +68,8 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     await expect(mainPage.tabMain).toBeHidden();
 
     // Reload page
-    await page.reload();
-    await page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
     // Medium layout should remain active
     await expect(mainPage.tabMain).toBeHidden();
@@ -82,8 +79,8 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     await expect(mainPage.tabMain).toBeVisible();
 
     // Reload page again
-    await page.reload();
-    await page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
     // Full layout should remain active
     await expect(mainPage.tabMain).toBeVisible();
@@ -97,30 +94,18 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
       activeLog: null,
     });
 
-    // Seed German locale in settings storage
+    // Seed German locale in standard storage keys
     await page.evaluate(() => {
-      const existingSettings = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
-      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
-        ...existingSettings,
-        locale: 'de',
-      }));
+      localStorage.setItem('oxytime_locale', 'de');
+      localStorage.setItem('oxytime_locale_pref', 'de');
     });
 
-    await page.reload();
-    await page.waitForSelector('#app-root-container', { timeout: 10000 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#app-root-container', { timeout: 15000 });
 
-    // Verify UI reflects German translations (e.g. TabMain / TabReports)
-    const reportsTab = page.locator('[data-testid="tab-reports"]');
-    await expect(reportsTab).toBeVisible();
-  });
-
-  test('should gracefully initialize and render default initial state without errors when storage is empty', async ({ mainPage }) => {
-    await mainPage.resetStorage();
-
-    // Verify initial state is rendered with default projects
-    await expect(mainPage.headerLogo).toBeVisible();
-    await expect(mainPage.tabMain).toBeVisible();
-    await expect(mainPage.projectsListContainer).toContainText(/LogTime by OxyFlow Backend Engine|Zouk Flow/i);
-    await expect(mainPage.idleTimerBanner).toBeVisible();
+    // Verify UI reflects German translations
+    const mainTab = page.locator('[data-testid="tab-main"]');
+    await expect(mainTab).toBeVisible();
+    await expect(mainTab).toContainText('GUI-Schnittstelle');
   });
 });

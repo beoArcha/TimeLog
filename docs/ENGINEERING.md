@@ -552,16 +552,25 @@ AI must never skip steps.
 
 ---
 
+## Toolchain & Runtime (Bun)
+
+The project standardizes exclusively on **Bun** for frontend package management, script execution, and tooling:
+
+* **Single Lockfile**: Dependencies are locked solely via `bun.lock`. Never generate or commit `package-lock.json`.
+* **Execution**: All scripts are executed via `bun run <script>` (e.g. `bun run dev`, `bun run check`, `bun run test`).
+* **Tool Invocation**: External binaries are called via `bun x <binary>`.
+* **No Mixed Toolchains**: `npm`, `npx`, `yarn`, and `pnpm` are strictly prohibited.
+
+---
+
 ## Definition of Done
 
 A task is complete only when:
 
 * architecture remains consistent
-* documentation is updated
-* tests pass
-* typecheck passes
-* lint passes
-* formatting passes
+* documentation is updated (`docs/`, `AGENT.md`, `README.md`)
+* tests pass (`bun run test`)
+* static verification passes (`bun run check`, covering TypeScript, ESLint, Clippy, rustfmt)
 * both runtimes behave consistently
 * new code follows engineering rules
 

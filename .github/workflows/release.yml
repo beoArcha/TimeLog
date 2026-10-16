@@ -4,11 +4,13 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 env:
-  NODE_VERSION: 24
   RUST_WORKSPACE: "src-tauri"
   CARGO_PROFILE_DEV_DEBUG: 0
 
@@ -23,119 +25,64 @@ env:
 
 jobs:
   # ──────────────────────────────────────────────
-  # Unit tests
+  # Checking commit
   # ──────────────────────────────────────────────
-  test-unit:
+  prepare:
+    name: Resolve release commit
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          ref: release
 
-      - name: Install Node.js Dependencies
-        run: npm ci
-
-      - name: Run Unit Tests
+      - name: Read version and validate
+        id: meta
         run: |
-          npx vitest run tests/unit \
-            --coverage \
-            --coverage.reporter=json \
-            --coverage.reportsDirectory=coverage/unit
+          SHA=$(git rev-parse HEAD)
+          VERSION=$(jq -r .version package.json)
+          TAG="app-v${VERSION}"
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
 
-          mv coverage/unit/coverage-final.json coverage/unit/coverage-unit.json
+          # release ma nieparzysty minor, main parzysty
+          if [ $((MINOR % 2)) -eq 0 ]; then
+            echo "::error::Branch 'release' has version ${VERSION} (even minor). Run 'Promote to Release' first."
+            exit 1
+          fi
 
-      - name: Upload Unit Coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-unit
-          path: coverage/unit/coverage-unit.json
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" > /dev/null 2>&1; then
+            echo "::error::Tag ${TAG} already exists. Run 'Promote to Release' to bump the version first."
+            exit 1
+          fi
 
-  # ──────────────────────────────────────────────
-  # Integration tests
-  # ──────────────────────────────────────────────
+          {
+            echo "sha=${SHA}"
+            echo "version=${VERSION}"
+            echo "tag=${TAG}"
+          } >> "$GITHUB_OUTPUT"
 
-  test-integration:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - name: Install Node.js Dependencies
-        run: npm ci
-
-      - name: Run Integration Tests
-        run: |
-          npx vitest run tests/integration \
-            --coverage \
-            --coverage.reporter=json \
-            --coverage.reportsDirectory=coverage/integration
-
-          mv coverage/integration/coverage-final.json coverage/integration/coverage-integration.json
-
-      - name: Upload Integration Coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-integration
-          path: coverage/integration/coverage-integration.json
+          echo "Releasing ${TAG} from ${SHA}"
 
   # ──────────────────────────────────────────────
-  # Rust tests + coverage
+  # Testing
   # ──────────────────────────────────────────────
-
-  test-rust:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Restore Rust Cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: ${{ env.RUST_WORKSPACE }}
-
-      - name: Install cargo-tarpaulin
-        uses: taiki-e/install-action@cargo-tarpaulin
-
-      - name: Install Linux Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ env.UBUNTU_PACKAGES_LLD }}
-
-      - name: Run Rust Tests
-        env:
-          RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
-
-        run: cargo tarpaulin --out Xml --output-dir coverage/rust --manifest-path src-tauri/Cargo.toml
-
-      - name: Upload Rust Coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-rust
-          path: coverage/rust
+  tests:
+    name: Tests
+    needs: prepare
+    uses: ./.github/workflows/test.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
 
   # ──────────────────────────────────────────────
   # Build for Windows, macOS, Linux
   # ──────────────────────────────────────────────
   build-tauri:
-    name: Build Tauri Artifacts
-    needs: [test-unit, test-integration, test-rust]
-    permissions:
-      contents: write
+    name: Build (${{ matrix.platform }})
+    needs: [prepare, tests]
     strategy:
       fail-fast: false
       matrix:
@@ -153,16 +100,16 @@ jobs:
             args: ""
 
     runs-on: ${{ matrix.platform }}
+    env:
+      APP_VERSION: ${{ needs.prepare.outputs.version }}
+
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: release
+          ref: ${{ needs.prepare.outputs.sha }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -181,35 +128,12 @@ jobs:
           workspaces: ${{ env.RUST_WORKSPACE }}
 
       - name: Install Frontend Dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build Tauri Artifacts
-        id: tauri_build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUSTFLAGS: ${{ matrix.platform == 'ubuntu-22.04' && '-C link-arg=-fuse-ld=lld' || '' }}
-        run: npx tauri build ${{ matrix.args }} --bundles ${{ matrix.bundles }}
-
-      - name: Upload Windows Standalone Executable
-        if: matrix.platform == 'windows-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          # Pobranie wersji bezpośrednio z package.json
-          APP_VERSION=$(node -p "require('./package.json').version")
-          echo "Wykryta wersja aplikacji: $APP_VERSION"
-          
-          EXE_PATH=$(find src-tauri/target -maxdepth 4 -name "OxyFlow.exe" -o -name "oxy-flow.exe" | head -n 1)
-          if [ -f "$EXE_PATH" ]; then
-            STANDALONE_NAME="OxyFlow-Standalone-x64-v${APP_VERSION}.exe"            
-            
-            cp "$EXE_PATH" "src-tauri/target/$STANDALONE_NAME"
-            
-            gh release upload "app-v${APP_VERSION}" "src-tauri/target/$STANDALONE_NAME" --clobber || true
-          else
-            echo "Warning: Could not find compiled Windows executable for standalone upload"
-          fi
+        run: bun x tauri build ${{ matrix.args }} --bundles ${{ matrix.bundles }}
 
       - name: List Built Artifacts (debug)
         if: failure()
@@ -225,38 +149,89 @@ jobs:
           ls -R src-tauri/target/release/bundle || true
           echo "::endgroup::"
 
-      - name: Collect artifact paths
-        id: collect
+      - name: Collect artifacts
         shell: bash
         run: |
           ARTIFACT_DIR="artifacts-upload"
           mkdir -p "$ARTIFACT_DIR"
 
           copy() {
-            find src-tauri/target -path "$1" -exec cp {} "$ARTIFACT_DIR/" \;
+            find src-tauri/target -type f -path "$1" -exec cp {} "$ARTIFACT_DIR/" \;
           }
 
-          # Find all relevant bundle files and copy them to a flat directory
-          if [ "${{ matrix.platform }}" == "ubuntu-22.04" ]; then
-            copy "*/bundle/deb/*.deb"
-            copy "*/bundle/rpm/*.rpm"
-            copy "*/bundle/appimage/*.AppImage"
-            copy "*/bundle/appimage/*.AppImage.tar.gz"
-          elif [ "${{ matrix.platform }}" == "windows-latest" ]; then
-            copy "*/bundle/msi/*.msi"
-            copy "*/bundle/nsis/*.exe"
-            cp "src-tauri/target/OxyFlow-Standalone-x64-v${APP_VERSION}.exe" "$ARTIFACT_DIR/" || true
-          elif [ "${{ matrix.platform }}" == "macos-latest" ]; then
-            copy "*/bundle/dmg/*.dmg"
-            copy "*/bundle/macos/*.app"
-          fi
+          case "${{ matrix.platform }}" in
+            ubuntu-22.04)
+              copy "*/bundle/deb/*.deb"
+              copy "*/bundle/rpm/*.rpm"
+              copy "*/bundle/appimage/*.AppImage"
+              copy "*/bundle/appimage/*.AppImage.tar.gz"
+              ;;
+            windows-latest)
+              copy "*/bundle/nsis/*.exe"
+
+              EXE_PATH=$(find src-tauri/target -maxdepth 4 -type f \( -name "OxyFlow.exe" -o -name "oxy-flow.exe" \) | head -n 1)
+              if [ -n "$EXE_PATH" ]; then
+                cp "$EXE_PATH" "$ARTIFACT_DIR/OxyFlow-Standalone-x64-v${APP_VERSION}.exe"
+              else
+                echo "::warning::Standalone Windows executable not found"
+              fi
+              ;;
+            macos-latest)
+              copy "*/bundle/dmg/*.dmg"
+              ;;
+          esac
 
           echo "=== Collected artifacts ==="
-          ls -la "$ARTIFACT_DIR/" || echo "No artifacts collected"
+          ls -la "$ARTIFACT_DIR"
+          [ -n "$(ls -A "$ARTIFACT_DIR")" ] || { echo "::error::No artifacts collected"; exit 1; }
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-artifacts-${{ matrix.platform }}
           path: artifacts-upload/
-          if-no-files-found: warn
+          if-no-files-found: error
+          retention-days: 7
+
+  # ──────────────────────────────────────────────
+  # Tag on GitHub Release
+  # ──────────────────────────────────────────────
+  publish:
+    name: Tag & GitHub Release
+    needs: [prepare, build-tauri]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      SHA: ${{ needs.prepare.outputs.sha }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: tauri-artifacts-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Verify assets
+        run: |
+          ls -la release-assets
+          [ -n "$(ls -A release-assets)" ] || { echo "::error::No assets to publish"; exit 1; }
+
+      - name: Create tag and GitHub Release
+        run: |
+          # --target z pełnym SHA tworzy tag dokładnie na zbudowanym commicie z release
+          gh release create "$TAG" release-assets/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$SHA" \
+            --title "OxyFlow v${VERSION}" \
+            --generate-notes
+
+          {
+            echo "### Released ${TAG}"
+            echo ""
+            echo "Commit: \`${SHA}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -17,45 +17,66 @@ import {
   SelectValue,
 } from '@components/ui/select';
 
-interface SubtaskItemProps {
+import { useTasksSafe, useTimerSafe } from '@common/hooks/DataContext';
+import { useTaskEditing } from '../../context/TaskEditingContext';
+
+export interface SubtaskItemProps {
   key?: React.Key;
   subTask: Task;
-  tasks: Task[];
-  logs: TimeLog[];
+  tasks?: Task[];
+  logs?: TimeLog[];
   nowIso?: string;
   metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
-  editingId: string | null;
-  editName: string;
-  onToggleTaskComplete: (id: string) => void;
-  onRenameTask: ((id: string, name: string) => void) | undefined;
-  onUpdateTask: ((
+  editingId?: string | null;
+  editName?: string;
+  onToggleTaskComplete?: (id: string) => void;
+  onRenameTask?: ((id: string, name: string) => void) | undefined;
+  onUpdateTask?: ((
     taskId: string,
     name: string,
     parentTaskId: string | null,
     status: TaskStatus | null,
     completed: boolean | null
   ) => void) | undefined;
-  onDeleteTask: ((id: string) => void) | undefined;
-  onStartTimer: (id: string) => void;
-  setEditingId: (id: string | null) => void;
-  setEditName: (name: string) => void;
+  onDeleteTask?: ((id: string) => void) | undefined;
+  onStartTimer?: (id: string) => void;
+  onStopTimer?: (projectId?: string) => void;
+  setEditingId?: (id: string | null) => void;
+  setEditName?: (name: string) => void;
 }
 
 export function SubtaskItem({
   subTask,
   metrics,
-  editingId,
-  editName,
-  onToggleTaskComplete,
-  onRenameTask,
-  onUpdateTask,
-  onDeleteTask,
-  onStartTimer,
-  setEditingId,
-  setEditName,
+  editingId: propEditingId,
+  editName: propEditName,
+  onToggleTaskComplete: propOnToggleTaskComplete,
+  onRenameTask: propOnRenameTask,
+  onUpdateTask: propOnUpdateTask,
+  onDeleteTask: propOnDeleteTask,
+  onStartTimer: propOnStartTimer,
+  onStopTimer: propOnStopTimer,
+  setEditingId: propSetEditingId,
+  setEditName: propSetEditName,
 }: SubtaskItemProps) {
   const { t: tCommon } = useTranslation('common');
   const { t: tTimer } = useTranslation('timer');
+
+  const tasksCtx = useTasksSafe();
+  const timerCtx = useTimerSafe();
+  const editingCtx = useTaskEditing();
+
+  const onToggleTaskComplete = propOnToggleTaskComplete ?? tasksCtx?.handleToggleTaskComplete ?? (() => {});
+  const onRenameTask = propOnRenameTask ?? tasksCtx?.handleRenameTask;
+  const onUpdateTask = propOnUpdateTask ?? tasksCtx?.handleUpdateTask;
+  const onDeleteTask = propOnDeleteTask ?? tasksCtx?.handleDeleteTask;
+  const onStartTimer = propOnStartTimer ?? timerCtx?.handleStartTimer ?? (() => {});
+  const onStopTimer = propOnStopTimer ?? timerCtx?.handleStopTimer;
+
+  const editingId = propEditingId ?? editingCtx?.editingId ?? null;
+  const editName = propEditName ?? editingCtx?.editName ?? '';
+  const setEditingId = propSetEditingId ?? editingCtx?.setEditingId ?? (() => {});
+  const setEditName = propSetEditName ?? editingCtx?.setEditName ?? (() => {});
 
   const { isRunning: isSubRunning, formattedElapsed: subFormattedElapsed } = useLiveTaskElapsed(subTask.id, {
     metrics,
@@ -174,7 +195,7 @@ export function SubtaskItem({
             id={`stop-subtask-btn-${subTask.id}`}
             variant="destructive"
             size="icon-xs"
-            onClick={() => onStartTimer(subTask.id)}
+            onClick={() => onStopTimer ? onStopTimer() : onStartTimer(subTask.id)}
             title={tTimer('StopMeasurement')}
             aria-label={tTimer('StopMeasurement')}
             className="p-2 transition-colors cursor-pointer animate-pulse shrink-0"

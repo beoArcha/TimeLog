@@ -118,6 +118,7 @@ describe('Unit Tests: EnginePlugin Compliance with Desktop Runtime', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    PersistenceRouter.resetForTesting();
   });
 
   const getNormalizedState = (state: TimerRepositoryState | null) => {

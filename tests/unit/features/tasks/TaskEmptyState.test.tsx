@@ -9,19 +9,18 @@ describe('Unit Tests: TaskEmptyState', () => {
     cleanup();
   });
 
-  it('Given TaskEmptyState rendered, When locale is en, Then it should show English text', () => {
-    render(
-      <TaskEmptyState theme="dark" />
-    );
+  it('should render empty state message and hint', () => {
+    render(<TaskEmptyState />);
 
     expect(screen.getByText(/Create a main project task/i)).toBeTruthy();
   });
 
-  it('Given TaskEmptyState rendered, When theme is light, Then it should render with light theme styling classes', () => {
-    render(
-      <TaskEmptyState theme="light" />
-    );
+  it('should apply polymorphic semantic design tokens', () => {
+    const { container } = render(<TaskEmptyState />);
 
-    expect(screen.getByText(/Create a main project task/i)).toBeTruthy();
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.className).toContain('border-border');
+    expect(root.className).toContain('text-muted-foreground');
+    expect(root.className).toContain('bg-muted/30');
   });
 });
