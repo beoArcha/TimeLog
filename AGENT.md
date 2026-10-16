@@ -598,8 +598,8 @@ Never introduce abstraction without justification.
 oXyFlow standardizes on **Bun** as its exclusive JavaScript runtime and package manager:
 
 - Always use `bun install`, `bun add <pkg>`, `bun remove <pkg>`.
-- Always execute scripts via `bun run <script>` (e.g. `bun run dev`, `bun run test`, `bun run check`).
-- For binaries/tool execution, use `bun x <binary>` (e.g. `bun x tauri build`).
+- Always execute scripts via `bun run <script>` (e.g. `bun run dev`, `bun run tauri:dev`, `bun run tauri:build`, `bun run test`, `bun run check`).
+- For direct binary tool execution, use `bun x <binary>` (e.g. `bun x tauri`).
 - **Forbidden:** Never use `npm`, `npx`, `yarn`, or `pnpm`.
 - **Forbidden:** Never create or commit `package-lock.json`. `bun.lock` is the single source of truth for dependencies.
 

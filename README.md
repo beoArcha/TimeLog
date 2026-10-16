@@ -103,10 +103,16 @@ Run the application in Browser (Web Runtime):
 bun run dev
 ```
 
-Run the application (Desktop Runtime via Tauri):
+Run the application in Development mode (Desktop Runtime with hot-reload):
 
 ```bash
-bun run tauri dev
+bun run tauri:dev
+```
+
+Build standalone production desktop application:
+
+```bash
+bun run tauri:build
 ```
 
 Verify code quality (TypeScript, ESLint, Rust Clippy & fmt):
