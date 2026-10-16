@@ -3,18 +3,15 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import AddLogForm from '@features/db-explorer/components/AddLogForm';
+import { aProject, aTask } from '@tests/shared/builders/entity-builders';
 
 describe('Unit Tests: AddLogForm', () => {
   const onSubmitMock = vi.fn();
   const onCancelMock = vi.fn();
 
   const mockProps = {
-    projects: [
-      { id: 'p1', name: 'Proj 1', color: 'red', createdAt: '2026', archived: false, description: null, icon: null, tags: null }
-    ],
-    tasks: [
-      { id: 't1', projectId: 'p1', name: 'Task 1', completed: false, createdAt: '2026', status: null, parentTaskId: null }
-    ],
+    projects: [aProject({ id: 'p1', name: 'Project Alpha' })],
+    tasks: [aTask({ id: 't1', projectId: 'p1', name: 'Task Alpha' })],
     locale: 'en' as const,
     customTranslations: {},
     onSubmit: onSubmitMock,
@@ -23,21 +20,65 @@ describe('Unit Tests: AddLogForm', () => {
 
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should render the log form input fields', () => {
+    // Arrange & Act
     render(<AddLogForm {...mockProps} />);
-    expect(screen.getByText(/Assign to task/i)).not.toBeNull();
-    expect(screen.getByText(/Start \(startTime\):/i)).not.toBeNull();
+
+    // Assert
+    expect(screen.getByLabelText(/Assign to task/i)).toBeTruthy();
+    expect(screen.getByLabelText(/Start/i)).toBeTruthy();
+    expect(screen.getByLabelText(/End/i)).toBeTruthy();
+    expect(screen.getByLabelText(/Note/i)).toBeTruthy();
   });
 
-  it('should trigger onSubmit on submit button click', () => {
-    const { container } = render(<AddLogForm {...mockProps} />);
+  it('should trigger onSubmit with form values on submit button click', () => {
+    // Arrange
+    render(<AddLogForm {...mockProps} />);
 
-    const submitBtn = container.querySelector('button[type="submit"]') as HTMLButtonElement;
-    expect(submitBtn).not.toBeNull();
+    // Act
+    const noteInput = screen.getByLabelText(/Note/i);
+    fireEvent.change(noteInput, { target: { value: 'Working on feature unit tests' } });
+
+    const submitBtn = screen.getByRole('button', { name: /AddLogManually|Add Log/i });
     fireEvent.click(submitBtn);
 
-    expect(onSubmitMock).toHaveBeenCalled();
+    // Assert
+    expect(onSubmitMock).toHaveBeenCalledWith(
+      't1',
+      expect.any(String),
+      expect.any(String),
+      'Working on feature unit tests'
+    );
+  });
+
+  it('should trigger onCancel when cancel button is clicked', () => {
+    // Arrange
+    render(<AddLogForm {...mockProps} />);
+
+    // Act
+    const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    // Assert
+    expect(onCancelMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should alert and prevent submission when taskId is empty', () => {
+    // Arrange
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    render(<AddLogForm {...mockProps} tasks={[]} />);
+
+    // Act
+    const submitBtn = screen.getByRole('button', { name: /AddLogManually|Add Log/i });
+    fireEvent.click(submitBtn);
+
+    // Assert
+    expect(alertSpy).toHaveBeenCalled();
+    expect(onSubmitMock).not.toHaveBeenCalled();
   });
 });
+
