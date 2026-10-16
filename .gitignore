@@ -13,3 +13,6 @@ playwright-video/
 .aistudio/
 .vscode/
 .agents/
+.stryker-tmp/
+.stryker-sandbox/
+reports/mutation/
