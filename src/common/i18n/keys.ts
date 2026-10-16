@@ -1,4 +1,6 @@
 export type AppKey =
+  | 'AppCrashDesc'
+  | 'AppCrashTitle'
   | 'CloseToTray'
   | 'DefaultRestored'
   | 'DockPosition'
