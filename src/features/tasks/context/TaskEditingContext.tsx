@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 
 export interface ITaskEditingContext {
   editingId: string | null;
@@ -48,68 +48,76 @@ export function TaskEditingProvider({
   const [internalShowSubtaskFormForId, setInternalShowSubtaskFormForId] = useState<string | null>(initialShowSubtaskFormForId ?? null);
   const [internalNewSubtaskName, setInternalNewSubtaskName] = useState<string>(initialNewSubtaskName ?? '');
 
-  React.useEffect(() => {
-    if (initialEditingId !== undefined) setInternalEditingId(initialEditingId);
-  }, [initialEditingId]);
+  const [prevInitialEditingId, setPrevInitialEditingId] = useState(initialEditingId);
+  if (initialEditingId !== undefined && initialEditingId !== prevInitialEditingId) {
+    setPrevInitialEditingId(initialEditingId);
+    setInternalEditingId(initialEditingId);
+  }
 
-  React.useEffect(() => {
-    if (initialEditName !== undefined) setInternalEditName(initialEditName);
-  }, [initialEditName]);
+  const [prevInitialEditName, setPrevInitialEditName] = useState(initialEditName);
+  if (initialEditName !== undefined && initialEditName !== prevInitialEditName) {
+    setPrevInitialEditName(initialEditName);
+    setInternalEditName(initialEditName);
+  }
 
-  React.useEffect(() => {
-    if (initialShowSubtaskFormForId !== undefined) setInternalShowSubtaskFormForId(initialShowSubtaskFormForId);
-  }, [initialShowSubtaskFormForId]);
+  const [prevInitialShowSubtaskFormForId, setPrevInitialShowSubtaskFormForId] = useState(initialShowSubtaskFormForId);
+  if (initialShowSubtaskFormForId !== undefined && initialShowSubtaskFormForId !== prevInitialShowSubtaskFormForId) {
+    setPrevInitialShowSubtaskFormForId(initialShowSubtaskFormForId);
+    setInternalShowSubtaskFormForId(initialShowSubtaskFormForId);
+  }
 
-  React.useEffect(() => {
-    if (initialNewSubtaskName !== undefined) setInternalNewSubtaskName(initialNewSubtaskName);
-  }, [initialNewSubtaskName]);
+  const [prevInitialNewSubtaskName, setPrevInitialNewSubtaskName] = useState(initialNewSubtaskName);
+  if (initialNewSubtaskName !== undefined && initialNewSubtaskName !== prevInitialNewSubtaskName) {
+    setPrevInitialNewSubtaskName(initialNewSubtaskName);
+    setInternalNewSubtaskName(initialNewSubtaskName);
+  }
 
   const editingId = internalEditingId;
   const editName = internalEditName;
   const showSubtaskFormForId = internalShowSubtaskFormForId;
   const newSubtaskName = internalNewSubtaskName;
 
-  const setEditingId: React.Dispatch<React.SetStateAction<string | null>> = (action) => {
+  const setEditingId: React.Dispatch<React.SetStateAction<string | null>> = useCallback((action) => {
     setInternalEditingId((prev) => {
       const next = typeof action === 'function' ? action(prev) : action;
       onSetEditingId?.(next);
       return next;
     });
-  };
+  }, [onSetEditingId]);
 
-  const setEditName: React.Dispatch<React.SetStateAction<string>> = (action) => {
+  const setEditName: React.Dispatch<React.SetStateAction<string>> = useCallback((action) => {
     setInternalEditName((prev) => {
       const next = typeof action === 'function' ? action(prev) : action;
       onSetEditName?.(next);
       return next;
     });
-  };
+  }, [onSetEditName]);
 
-  const setShowSubtaskFormForId: React.Dispatch<React.SetStateAction<string | null>> = (action) => {
+  const setShowSubtaskFormForId: React.Dispatch<React.SetStateAction<string | null>> = useCallback((action) => {
     setInternalShowSubtaskFormForId((prev) => {
       const next = typeof action === 'function' ? action(prev) : action;
       onSetShowSubtaskFormForId?.(next);
       return next;
     });
-  };
+  }, [onSetShowSubtaskFormForId]);
 
-  const setNewSubtaskName: React.Dispatch<React.SetStateAction<string>> = (action) => {
+  const setNewSubtaskName: React.Dispatch<React.SetStateAction<string>> = useCallback((action) => {
     setInternalNewSubtaskName((prev) => {
       const next = typeof action === 'function' ? action(prev) : action;
       onSetNewSubtaskName?.(next);
       return next;
     });
-  };
+  }, [onSetNewSubtaskName]);
 
-  const startEditing = (taskId: string, currentName: string) => {
+  const startEditing = useCallback((taskId: string, currentName: string) => {
     setEditingId(taskId);
     setEditName(currentName);
-  };
+  }, [setEditingId, setEditName]);
 
-  const cancelEditing = () => {
+  const cancelEditing = useCallback(() => {
     setEditingId(null);
     setEditName('');
-  };
+  }, [setEditingId, setEditName]);
 
   const value = useMemo(
     () => ({
@@ -124,7 +132,18 @@ export function TaskEditingProvider({
       startEditing,
       cancelEditing,
     }),
-    [editingId, editName, showSubtaskFormForId, newSubtaskName]
+    [
+      editingId,
+      setEditingId,
+      editName,
+      setEditName,
+      showSubtaskFormForId,
+      setShowSubtaskFormForId,
+      newSubtaskName,
+      setNewSubtaskName,
+      startEditing,
+      cancelEditing,
+    ]
   );
 
   return (
