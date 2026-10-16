@@ -1,19 +1,21 @@
 import { Task } from '@bindings/Task';
 import { Plus, Play, Square } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
+import { useTimerSafe } from '@common/hooks/DataContext';
+import { useTaskEditing } from '../../context/TaskEditingContext';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { Button } from '@components/ui/button';
 
-interface TaskMetricsProps {
+export interface TaskMetricsProps {
   rootTask: Task;
   rootDuration: number;
   isCurrentRunning: boolean;
   isAnyRunning: boolean;
   isCondensed: boolean;
-  showSubtaskFormForId: string | null;
-  onStartTimer: (id: string) => void;
+  showSubtaskFormForId?: string | null;
+  setShowSubtaskFormForId?: (id: string | null) => void;
+  onStartTimer?: (id: string) => void;
   onStopTimer?: (projectId?: string) => void;
-  setShowSubtaskFormForId: (id: string | null) => void;
 }
 
 export function TaskMetrics({
@@ -22,13 +24,25 @@ export function TaskMetrics({
   isCurrentRunning,
   isAnyRunning,
   isCondensed,
-  showSubtaskFormForId,
-  onStartTimer,
-  onStopTimer,
-  setShowSubtaskFormForId,
+  showSubtaskFormForId: propShowSubtaskFormForId,
+  setShowSubtaskFormForId: propSetShowSubtaskFormForId,
+  onStartTimer: propOnStartTimer,
+  onStopTimer: propOnStopTimer,
 }: TaskMetricsProps) {
   const { t: tTask } = useTranslation('task');
   const { t: tTimer } = useTranslation('timer');
+
+  const timer = useTimerSafe();
+  const editing = useTaskEditing();
+
+  const onStartTimer = propOnStartTimer ?? timer?.handleStartTimer ?? (() => {});
+  const onStopTimer = propOnStopTimer ?? timer?.handleStopTimer ?? (() => {});
+  const showSubtaskFormForId = propShowSubtaskFormForId ?? editing?.showSubtaskFormForId ?? null;
+  const setShowSubtaskFormForId =
+    propSetShowSubtaskFormForId ??
+    editing?.setShowSubtaskFormForId ??
+    (() => {});
+
 
   return (
     <div

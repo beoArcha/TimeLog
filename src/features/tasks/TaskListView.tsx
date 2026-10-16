@@ -9,6 +9,7 @@ import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import ProjectHeaderCard from './components/ProjectHeaderCard';
 import TaskEmptyState from './components/TaskEmptyState';
 import { useProjectStatistics } from './hooks/useProjectStatistics';
+import { TaskEditingProvider } from './context/TaskEditingContext';
 
 import { TaskStatus } from '@bindings/TaskStatus';
 
@@ -186,20 +187,22 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         onAddTaskSubmit={handleAddTaskSubmit}
       />
 
-      <div id="tasks-tree-container" className={`flex flex-col gap-main ${isCondensed ? 'overflow-visible' : 'overflow-y-auto flex-1 min-h-0'} pr-1`}>
-        {rootTasks.length === 0 ? (
-          <TaskEmptyState />
-        ) : (
-          rootTasks.map((rootTask: Task) => (
-            <TaskItem
-              key={rootTask.id}
-              rootTask={rootTask}
-              state={taskItemState}
-              isCondensed={isCondensed}
-            />
-          ))
-        )}
-      </div>
+      <TaskEditingProvider>
+        <div id="tasks-tree-container" className={`flex flex-col gap-main ${isCondensed ? 'overflow-visible' : 'overflow-y-auto flex-1 min-h-0'} pr-1`}>
+          {rootTasks.length === 0 ? (
+            <TaskEmptyState />
+          ) : (
+            rootTasks.map((rootTask: Task) => (
+              <TaskItem
+                key={rootTask.id}
+                rootTask={rootTask}
+                state={taskItemState}
+                isCondensed={isCondensed}
+              />
+            ))
+          )}
+        </div>
+      </TaskEditingProvider>
     </div>
   );
 }

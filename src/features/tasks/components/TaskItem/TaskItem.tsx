@@ -12,14 +12,17 @@ import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 
 import { TaskStatus } from '@bindings/TaskStatus';
 
+import { useTasksSafe } from '@common/hooks/DataContext';
+import { useTaskEditing } from '../../context/TaskEditingContext';
+
 export interface TaskItemState {
   tasks: Task[];
   logs: TimeLog[];
   nowIso?: string;
   projectTasks: Task[];
   selectedProject: Project | null;
-  onToggleTaskComplete: (taskId: string) => void;
-  onRenameTask: (taskId: string, newName: string) => void;
+  onToggleTaskComplete?: (taskId: string) => void;
+  onRenameTask?: (taskId: string, newName: string) => void;
   onUpdateTask?: (
     taskId: string,
     name: string,
@@ -27,10 +30,10 @@ export interface TaskItemState {
     status: TaskStatus | null,
     completed: boolean | null
   ) => void;
-  onDeleteTask: (taskId: string) => void;
-  onStartTimer: (taskId: string) => void;
+  onDeleteTask?: (taskId: string) => void;
+  onStartTimer?: (taskId: string) => void;
   onStopTimer?: (projectId?: string) => void;
-  onAddTask: (projectId: string, name: string, parentId: string | null) => void;
+  onAddTask?: (projectId: string, name: string, parentId: string | null) => void;
   showSubtaskFormForId?: string | null;
   setShowSubtaskFormForId?: (val: string | null) => void;
   newSubtaskName?: string;
@@ -56,32 +59,31 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
     nowIso,
     projectTasks,
     selectedProject,
-    onToggleTaskComplete,
-    onRenameTask,
-    onUpdateTask,
-    onDeleteTask,
-    onStartTimer,
-    onStopTimer,
-    onAddTask,
-    showSubtaskFormForId,
-    setShowSubtaskFormForId,
-    newSubtaskName,
-    setNewSubtaskName,
-    editingId,
-    setEditingId,
-    editName,
-    setEditName,
   } = state;
+
+  const editing = useTaskEditing();
+  const tasksCtx = useTasksSafe();
 
   const { subTasks, rootDuration, runningSubtask, isCurrentRunning, isChildRunning, isAnyRunning } =
     useTaskItem({ rootTask, tasks, logs, nowIso, metrics: state.metrics, projectTasks });
 
+  const showSubtaskForm =
+    (editing?.showSubtaskFormForId ?? state.showSubtaskFormForId) === rootTask.id;
+
   const handleAddSubtaskSubmit = (parentTaskId: string, e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSubtaskName.trim() || !selectedProject?.id) return;
-    onAddTask(selectedProject.id, newSubtaskName.trim(), parentTaskId);
-    setNewSubtaskName('');
-    setShowSubtaskFormForId(null);
+    const subtaskName = (editing?.newSubtaskName ?? state.newSubtaskName ?? '').trim();
+    if (!subtaskName || !selectedProject?.id) return;
+    const addFn = state.onAddTask ?? tasksCtx?.handleAddTask;
+    addFn?.(selectedProject.id, subtaskName, parentTaskId);
+
+    if (editing) {
+      editing.setNewSubtaskName('');
+      editing.setShowSubtaskFormForId(null);
+    } else {
+      state.setNewSubtaskName?.('');
+      state.setShowSubtaskFormForId?.(null);
+    }
   };
 
   return (
@@ -104,14 +106,6 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
           isCurrentRunning={isCurrentRunning}
           isChildRunning={isChildRunning}
           runningSubtask={runningSubtask}
-          editingId={editingId}
-          editName={editName}
-          onToggleTaskComplete={onToggleTaskComplete}
-          onRenameTask={onRenameTask}
-          onUpdateTask={onUpdateTask}
-          onDeleteTask={onDeleteTask}
-          setEditingId={setEditingId}
-          setEditName={setEditName}
         />
 
         <TaskMetrics
@@ -120,19 +114,13 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
           isCurrentRunning={isCurrentRunning}
           isAnyRunning={isAnyRunning}
           isCondensed={isCondensed}
-          showSubtaskFormForId={showSubtaskFormForId}
-          onStartTimer={onStartTimer}
-          onStopTimer={onStopTimer}
-          setShowSubtaskFormForId={setShowSubtaskFormForId}
         />
       </div>
 
       <AnimatePresence>
-        {showSubtaskFormForId === rootTask.id && (
+        {showSubtaskForm && (
           <SubtaskForm
             parentTaskId={rootTask.id}
-            newSubtaskName={newSubtaskName}
-            setNewSubtaskName={setNewSubtaskName}
             onSubmit={handleAddSubtaskSubmit}
           />
         )}
@@ -140,21 +128,8 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
 
       <SubtaskList
         subTasks={subTasks}
-        tasks={tasks}
-        logs={logs}
-        nowIso={nowIso}
         metrics={state.metrics}
         isCondensed={isCondensed}
-        editingId={editingId}
-        editName={editName}
-        onToggleTaskComplete={onToggleTaskComplete}
-        onRenameTask={onRenameTask}
-        onUpdateTask={onUpdateTask}
-        onDeleteTask={onDeleteTask}
-        onStartTimer={onStartTimer}
-        onStopTimer={onStopTimer}
-        setEditingId={setEditingId}
-        setEditName={setEditName}
       />
     </div>
   );
