@@ -1,457 +1,132 @@
 # MASTERMAP.md
 
-## oXyFlow Master Map
+## oXyFlow — Architecture & Product Roadmap
 
 ### 🎯 Vision
 
-Build a lightweight, native-first productivity suite focused on flow, correctness, maintainability and long-term sustainability.
+Build a lightweight, native-first productivity suite focused on flow, correctness, maintainability, and long-term sustainability.
 
-The project is built around a single business model with multiple runtime implementations.
+oXyFlow is built around a **single business domain model** with **multiple runtime implementations** (Native Desktop via Tauri/Rust and Web Browser). Every architectural layer is independently replaceable while exposing a single, consistent contract to the rest of the application.
 
-Every architectural layer must remain independently replaceable while exposing a single, consistent API to the rest of the application.
-
----
-
-## Core Principles
-
-### Engineering
-
-* Correctness over cleverness
-* Simplicity over unnecessary abstractions
-* SOLID where it improves maintainability
-* KISS whenever possible
-* DRY without over-generalization
-* YAGNI until a requirement exists
+> For strict coding standards and layer rules, see [`ENGINEERING.md`](./ENGINEERING.md).  
+> For UI spatial logic and design tokens, see [`USERINTERFACE.md`](./USERINTERFACE.md).  
+> For UX principles, see [`USEREXPERIENCE.md`](./USEREXPERIENCE.md).  
+> For AI operational guardrails, see [`../AGENT.md`](../AGENT.md).
 
 ---
 
-### Architecture
-
-* Business logic is runtime independent.
-* Runtime-specific code is always isolated.
-* Storage is an implementation detail.
-* UI never communicates directly with persistence.
-* Every layer has a single responsibility.
-* Rust remains the reference implementation of the business engine.
-* Every runtime should be replaceable without affecting the remaining architecture.
-
----
-
-## Architecture (v3)
+## 🏛 System Architecture (v3)
 
 ```text
-                     React Frontend
-                            │
-             ┌──────────────┴──────────────┐
-             │                             │
-      EngineRouter                PersistenceRouter
-             │                             │
-             └──────────────┬──────────────┘
-                            │
-                     Runtime Boundary
-                            │
-        ┌───────────────────┴───────────────────┐
-        │                                       │
- Desktop Runtime                         Browser Runtime
-        │                                       │
-    Tauri App                             Browser App
-        │                                       │
-        └───────────────────┬───────────────────┘
-                            │
-                     LayoutManager
-                            │
-      ┌─────────────┬─────────────┬─────────────┐
-      │             │             │
-  FullBuilder   HalfBuilder   CompactBuilder
-                            │
-                    Shared Components
+                         React Frontend (Views & Hooks)
+                                       │
+                        ┌──────────────┴──────────────┐
+                        ▼                             ▼
+                   EngineRouter               PersistenceRouter
+                        │                             │
+      ══════════════════╪═════════════════════════════╪══════════════════  Runtime Boundary
+                        │                             │
+           ┌────────────┴────────────┐   ┌────────────┴────────────┐
+           ▼                         ▼   ▼                         ▼
+    EngineCommands             EnginePlugin             PersistenceCommands   PersistencePlugin
+   (Tauri IPC → Rust)        (Browser In-Memory)       (Tauri IPC → SQLite*) (Browser LocalStorage)
+           │                         │                             │                  │
+           └────────────┬────────────┘                             └────────┬─────────┘
+                        ▼                                                   ▼
+             Rust Reference Engine                                SQLite / CSV Sinks
+        (Timers, Metrics, Validation)                             (Repositories & Cache)
+```
+
+*\*Note: Selected auxiliary domains (`holidays`, `patches`, `uiState`, `externalApi`, `locale`) currently fallback to `PersistencePlugin` in Desktop mode and are scheduled for full SQLite migration in Phase 6.*
+
+### Frontend Spatial Composition
+
+The UI is a deterministic function of four orthogonal dimensions: **`UI = f(runtime, layout, size, theme)`**
+
+```text
+                    App Entry (App.tsx)
+                             │
+              ┌──────────────┴──────────────┐
+              ▼                             ▼
+          AppTauri                      AppBrowser
+   (PlatformCapabilities)        (PlatformCapabilities)
+              │                             │
+              └──────────────┬──────────────┘
+                             ▼
+                       LayoutManager
+        (AppProviders + Root State Classes + ThemeRegistry)
+                             │
+       ┌─────────────────────┼─────────────────────┐
+       ▼                     ▼                     ▼
+FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
+       │                     │                     │
+       └─────────────────────┼─────────────────────┘
+                             ▼
+            Composites (@components/*) & Views (@features/*)
+                             │
+                             ▼
+               UI Primitives (@components/ui/*)
 ```
 
 ---
 
-## Frontend Architecture
+## 🗺 Development Roadmap & Status
 
-The frontend is composed of three completely independent dimensions.
+### Phase 1 — Foundation ✅ (Completed)
 
-### Runtime
+- Dual-runtime abstraction (`EngineRouter`, `PersistenceRouter`)
+- Rust reference engine & SQLite repository foundation
+- TypeScript bindings generation via `ts-rs` (`src/bindings/`)
+- Vitest unit/integration suite & GitHub Actions CI pipeline
 
-Defines where the application executes.
+### Phase 2 — Frontend Spatial Modernization ✅ (Completed)
 
-Examples:
+- Separation of `AppTauri` and `AppBrowser` entry points with `PlatformCapabilitiesProvider`
+- `LayoutManager` orchestration with `FullLayoutBuilder`, `MediumLayoutBuilder`, and `CompactLayoutBuilder`
+- Decoupled visual scaling (`TextAndIconSize`: `small`, `medium`, `large`) driven purely by CSS Design Tokens
 
-* Browser
-* Tauri
+### Phase 3 — Runtime Contracts & Core Parity ✅ (Completed)
 
-Future runtimes may include:
+- Contract separation between business logic (`IEngine`) and data storage (`IPersistence`)
+- Cross-runtime parity test suite (`CrossRuntimeParity.test.ts`) verifying Rust Engine vs Browser `EnginePlugin`
+- CSV Sink implementation (`src-tauri/src/sinks/csv/`) and Native CLI module (`src-tauri/src/cli/`)
 
-* Electron
-* Mobile
-* Embedded
+### Phase 4 — State Decomposition & Live Metrics ✅ (Completed)
 
-Runtime is responsible only for:
+- Context splitting by domain (ISP): `WindowShellContext`, `DataContext`, `SettingsContext`, `LocaleProvider`
+- Hook decomposition (`useProjectsManager`, `useTasksManager`, `useTimerManager`, `useDataLifecycle`, `useAsyncActionRunner`)
+- Zero-overhead live timer calculation hooks (`useLiveTaskElapsed`, `useLiveProjectElapsed`) reconciling engine snapshots with active ticks
 
-* environment integration
-* window integration
-* runtime-specific wrappers
-* runtime-specific styling
+### Phase 5 — Design System, AST Guardrails, a11y & i18n ✅ (Completed)
 
-Runtime never changes:
-
-* application structure
-* layout composition
-* business logic
-
----
-
-### LayoutVariant
-
-Defines the composition of the application.
-
-Examples:
-
-* Full
-* Half
-* Compact
-
-LayoutVariant determines:
-
-* page composition
-* number of columns
-* placement of major UI regions
-* overall screen organization
-
-Each LayoutVariant has its own Builder.
-
-Builders are responsible only for composing views.
-
-They never modify styling.
+- Atomic UI Primitives (`src/components/ui/`) & Composite components (`src/components/`)
+- Custom AST Architecture test suite (`tests/architecture/`) enforcing 8 structural rules (zero raw HTML primitives, zero inline theme ternaries, circular dependency detection, engine/persistence boundaries, timer calculation rules)
+- Theme Dependency Inversion via `ThemeRegistry` (`light`, `dark`, `high-contrast`)
+- Full localization across 6 languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) with strongly typed keys (`keys.ts`)
+- Playwright E2E test suite with Page Object Model (`tests/e2e/`) and Stryker mutation testing setup
 
 ---
 
-### TextAndIconSize
-
-Defines the visual scale.
-
-Responsible only for:
-
-* typography
-* icon sizes
-* spacing
-* paddings
-* border radius
-* design tokens
-
-It never changes application composition.
-
----
-
-## CSS Architecture
-
-CSS is responsible for visual scaling.
-
-React components should never calculate spacing or sizing.
-
-The root application exposes only state.
-
-Example:
-
-```text
-runtime-tauri
-
-layout-full
-
-text-medium
-```
-
-CSS resolves those states using Design Tokens.
-
-Components consume only CSS variables.
-
-This keeps components completely independent from visual scaling.
-
----
-
-## Responsibilities
-
-### React
-
-* Rendering
-* User interaction
-* View state
-
-Contains no business logic.
-
----
-
-### EngineRouter
-
-* Responsible only for selecting the active Engine implementation.
-* Contains no business logic.
-
----
-
-### PersistenceRouter
-
-* Responsible only for selecting the active Persistence implementation.
-* Contains no business logic.
-
----
-
-### LayoutManager
-
-Responsible for composing the selected LayoutVariant inside the active Runtime.
-
-Responsibilities:
-
-* host application layout
-* compose builders
-* provide shared application shell
-
-LayoutManager does NOT decide:
-
-* runtime
-* layout variant
-* visual scale
-
-Those values come from application configuration.
-
----
-
-### Layout Builders
-
-Responsible only for composing UI.
-
-Examples:
-
-* FullBuilder
-* HalfBuilder
-* CompactBuilder
-
-Builders contain no runtime logic.
-
-Builders contain no sizing logic.
-
----
-
-### Runtime integration
-
-Responsible only for platform integration.
-
-Examples:
-
-Desktop Runtime
-
-* Tauri
-* Drag region
-* Native window
-* Tray
-* Native integrations
-
-Browser Runtime
-
-* Browser wrapper
-* Responsive container
-* Browser integrations
-
----
-
-### Rust Engine
-
-Reference implementation.
-
-Responsible for:
-
-* timer calculations
-* validation
-* workflows
-* business rules
-* aggregates
-
----
-
-### Persistence
-
-Responsible only for storing and retrieving data.
-
-Possible implementations:
-
-* SQLite
-* LocalStorage
-* CSV
-* Cloud
-
----
-
-## Current Development Roadmap
-
-### Phase 1 — Foundation ✅
-
-Completed:
-
-* Runtime abstraction
-* EngineRouter
-* PersistenceRouter
-* Browser plugins
-* Rust engine
-* Shared contracts
-* TypeScript strict mode
-* CI
-* Testing
-
----
-
-### Phase 2 — Frontend Architecture Modernization
-
-Goal:
-
-Create a modular frontend architecture mirroring Engine and Persistence.
-
-#### Phase 2A ✅
-
-* Rename GuiSize → LayoutVariant
-
-#### Phase 2B ✅
-
-* Introduce Runtime applications
-* app-browser
-* app-tauri
-
-#### Phase 2C ✅
-
-* Introduce LayoutManager
-
-#### Phase 2D ✅
-
-* Introduce Layout Builders
-
-#### Phase 2E ✅
-
-* Move sizing entirely to CSS Design Tokens
-
-#### Phase 2F ✅
-
-* Desktop polish
-* Browser polish
-
----
-
-### Phase 3 — Runtime Completion ✅
-
-Goal:
-
-Feature parity and clean contract separation.
-
-* Browser Engine (`EnginePlugin`) & Rust parity
-* Browser Persistence (`PersistencePlugin`) & SQLite parity
-* Clean contract separation (`IEngine` for timers/metrics vs `PersistenceRouter` for CRUD)
-* TypeScript generated bindings synchronization (`UpdateProject`, `UpdateTask`)
-
----
-
-### Phase 4 — Frontend Code Review & Clean Refactoring ✅
-
-* Unified live calculation hooks (`useLiveTaskElapsed`, `useLiveProjectElapsed`) eliminating duplicate time logic
-* Context decomposition adhering to ISP/SRP (`WindowShellContext` separated from `EngineContext` and `DataContext`)
-* Medium Layout Builder decomposition (`MediumProjectSelector`, `MediumTabBar`)
-* Reusable atomic UI controls (`ProjectBadge`, `TimerDisplay`)
-* Clean code comment audit (removal of decorative ASCII dividers, trivial comments)
-* 100% test coverage preserved across 100 test files (570 tests)
-
----
-
-### Phase 5 — Unified Design System, Architectural Guardrails, a11y & i18n ✅
-
-* **Primitive & Composite UI Layers**: Complete design system implementation (`src/components/ui/` primitives and `src/components/` composites).
-* **Automated Architectural Enforcement**: Vitest AST scanner (`no-raw-html-primitives.rule.ts`) and ESLint rules enforcing zero raw HTML elements outside `src/components/ui/` with zero allowlist exceptions.
-* **WCAG Accessibility (a11y)**: Modal dialog traps, accessible names for all interactive controls, `<Label>` association, ARIA Live terminal regions.
-* **Universal Internationalization (i18n)**: Fully typed keys in `keys.ts` across 6 locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) with automatic English dictionary fallback (zero `{translate(...) || '...'}` anti-patterns).
-* **Semantic Theme Tokens**: Elimination of hardcoded hex values in favor of adaptive CSS variables (`light`, `dark`, `high-contrast`).
-* **Complete Test Suite**: 100% green across 128 test files (673 tests) verified via `bun run check` and `bun run test`.
-
----
-
-### Phase 6 — Data Reliability & Hardening
-
----
-
-### Phase 6 — Data Reliability
-
-* Backup
-* Restore
-* Import
-* Export
-* Migration
-
----
-
-### Phase 7 — Native Desktop
-
-* Window polish
-* Tray
-* Notifications
-* IPC optimization
-
----
-
-### Phase 8 — Productivity Platform
-
-* Dashboard
-* Reports
-* Analytics
-* Automation
-* Plugins
-
----
-
-## Continuous Engineering
-
-Every contribution should improve at least one of:
-
-* correctness
-* maintainability
-* readability
-* testability
-* performance
-* developer experience
-
-Development workflow:
-
-```text
-Architecture
-        ↓
-Documentation
-        ↓
-Contracts
-        ↓
-Implementation
-        ↓
-Tests
-        ↓
-Refactoring
-        ↓
-Optimization
-        ↓
-Release
-```
-
----
-
-## Long-Term Architecture
-
-```text
-Foundation
-        ↓
-Frontend Architecture
-        ↓
-Runtime Parity
-        ↓
-Complete Backend
-        ↓
-Stable MVP
-        ↓
-Reliable Data
-        ↓
-Native Desktop
-        ↓
-Productivity Platform
-```
+### Phase 6 — Data Reliability & Backend Unification 🚧 (Current Focus)
+
+- [x] JSON Backup & Restore UI (`BackupTab.tsx`)
+- [x] Database Explorer & Audit Trail UI (`DbExplorer.tsx` with revision history)
+- [ ] **Full SQLite Migration**: Move `holidays`, `patches`, `externalApi`, `uiState`, and `locale` from `PersistencePlugin` fallback into native Rust SQLite tables (`PersistenceCommands.ts`)
+- [ ] **Backend State Override**: Implement native `override_state` / transactional import command in Rust so JSON backup restore works natively in Tauri
+- [ ] **Validation Boundary Cleanup**: Move remaining frontend validation calls (`validateProjectName`, `validateTaskName`, `validateTaskHierarchy` in data hooks) behind `EngineRouter`
+- [ ] **Bindings Deduplication**: Consolidate `src-tauri/bindings/` and `src/bindings/` into a single export target
+
+### Phase 7 — Native Desktop Hardening 🔄 (In Progress)
+
+- [x] System tray menu, localization, and event handlers (`src-tauri/src/tray/`)
+- [x] Window management commands (always-on-top per layout, minimize-to-tray, dynamic resizing)
+- [x] Global keyboard shortcuts (`useGlobalShortcuts.ts`)
+- [ ] IPC payload optimization: Replace full-state `core.load()` calls inside granular `PersistenceCommands` (`rename`, `getProjectId`, `getSubtasks`) with targeted Rust queries
+- [ ] System sleep / wake auto-pause daemon verification across OS targets (Windows, Linux, macOS)
+
+### Phase 8 — Productivity Platform & Ecosystem ⏳ (Planned)
+
+- [x] Periodical reports (`ReportView.tsx`) & interactive CLI emulator (`CliInterface.tsx`)
+- [x] External Webhook / API push integration (`useExternalApiSync.tsx`)
+- [ ] Advanced analytics & graphical time distribution charts
+- [ ] Automated workflow triggers & extensible plugin architecture
