@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { SubtaskForm } from '@features/tasks/components/TaskItem/SubtaskForm';
 
 describe('Unit Tests: SubtaskForm', () => {
@@ -18,18 +17,46 @@ describe('Unit Tests: SubtaskForm', () => {
     onSubmit: onSubmitMock,
   };
 
-  it('should render form input fields and handle submit', () => {
-    render(<SubtaskForm {...mockProps} />);
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
 
-    const input = screen.getByPlaceholderText(/Enter subtask name/i) as HTMLInputElement;
+  it('should render input field with current subtask name', () => {
+    // Arrange & Act
+    const { container } = render(<SubtaskForm {...mockProps} />);
+
+    // Assert
+    const input = container.querySelector('#new-subtask-input-t1') as HTMLInputElement;
+    expect(input).not.toBeNull();
     expect(input.value).toBe('Draft subtask');
+  });
 
+  it('should call setNewSubtaskName when input value changes', () => {
+    // Arrange
+    const { container } = render(<SubtaskForm {...mockProps} />);
+    const input = container.querySelector('#new-subtask-input-t1') as HTMLInputElement;
+    expect(input).not.toBeNull();
+
+    // Act
     fireEvent.change(input, { target: { value: 'New Subtask Title' } });
-    expect(setNewSubtaskNameMock).toHaveBeenCalledWith('New Subtask Title');
 
-    const form = input.closest('form');
+    // Assert
+    expect(setNewSubtaskNameMock).toHaveBeenCalledTimes(1);
+    expect(setNewSubtaskNameMock).toHaveBeenCalledWith('New Subtask Title');
+  });
+
+  it('should call onSubmit with parentTaskId and form event when submitted', () => {
+    // Arrange
+    const { container } = render(<SubtaskForm {...mockProps} />);
+    const form = container.querySelector('form');
+    expect(form).not.toBeNull();
+
+    // Act
     fireEvent.submit(form!);
 
+    // Assert
+    expect(onSubmitMock).toHaveBeenCalledTimes(1);
     expect(onSubmitMock).toHaveBeenCalledWith('t1', expect.any(Object));
   });
 });

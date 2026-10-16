@@ -36,6 +36,11 @@ export class EngineRouter implements IEngine {
     this.implementation = impl;
   }
 
+  /** Resets the singleton router instance for test suite isolation. */
+  static resetForTesting(): void {
+    EngineRouter.instance = null;
+  }
+
   async startTimer(taskId: string): Promise<void> {
     return this.implementation.startTimer(taskId);
   }

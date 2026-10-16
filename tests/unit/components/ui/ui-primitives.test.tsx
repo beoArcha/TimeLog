@@ -1,4 +1,3 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
@@ -13,7 +12,6 @@ import { Separator } from '@components/ui/separator';
 import { Heading, Text } from '@components/ui/typography';
 import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@components/ui/table';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: UI Primitives', () => {
   afterEach(() => {
@@ -56,17 +54,35 @@ describe('Unit Tests: UI Primitives', () => {
   });
 
   describe('Skeletons', () => {
-    it('should render Skeleton components', () => {
-      const mockState = getMockOxyFlowState();
-      render(
-        <MockProviders state={mockState}>
-          <Skeleton className="custom-class" />
-          <StatsSkeleton />
-          <TableSkeleton rows={2} />
-        </MockProviders>
-      );
-      const skeleton = document.querySelector('.custom-class');
-      expect(skeleton).toBeTruthy();
+    it('should render Skeleton primitive with custom classes', () => {
+      // Arrange & Act
+      const { container } = render(<Skeleton className="custom-test-class h-8 w-24" />);
+
+      // Assert
+      const skeleton = container.querySelector('.custom-test-class');
+      expect(skeleton).not.toBeNull();
+      expect(skeleton?.className).toContain('animate-pulse');
+    });
+
+    it('should render StatsSkeleton with animated pulse container and placeholders', () => {
+      // Arrange & Act
+      const { container } = render(<StatsSkeleton />);
+
+      // Assert
+      const wrapper = container.firstChild as HTMLElement;
+      expect(wrapper).not.toBeNull();
+      expect(wrapper.className).toContain('animate-pulse');
+      expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should render TableSkeleton with header and requested number of rows', () => {
+      // Arrange & Act
+      const { container } = render(<TableSkeleton rows={3} />);
+
+      // Assert
+      // 1 header row + 3 content rows = 4 rows
+      const rowContainers = container.querySelectorAll('.flex.gap-4');
+      expect(rowContainers.length).toBe(4);
     });
   });
 

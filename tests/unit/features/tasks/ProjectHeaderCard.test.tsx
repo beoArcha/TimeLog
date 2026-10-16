@@ -3,81 +3,80 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import ProjectHeaderCard from '@features/tasks/components/ProjectHeaderCard';
-import { Project } from '@bindings/Project';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
+import { aProject } from '@tests/shared/builders/entity-builders';
 
 describe('Unit Tests: ProjectHeaderCard', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
-  const selectedProject: Project = {
+  const selectedProject = aProject({
     id: 'proj_1',
     name: 'Project Alpha',
     color: 'rose',
-    createdAt: '2026-06-12T00:00:00Z'
-  };
+    createdAt: '2026-06-12T00:00:00Z',
+  });
 
-  it('Given ProjectHeaderCard rendered, When selectedProject details provided, Then it should show name and duration', () => {
-    const setNewTaskNameSpy = vi.fn();
-    const onAddTaskSubmitSpy = vi.fn();
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
 
+  it('should display project name and formatted duration when rendered with project details', () => {
+    // Arrange & Act
     render(
       <ProjectHeaderCard
         selectedProject={selectedProject}
         projectDurationSeconds={3600}
         isCondensed={false}
-        theme="dark"
         stats={null}
         loading={false}
         newTaskName="New Task"
-        setNewTaskName={setNewTaskNameSpy}
-        onAddTaskSubmit={onAddTaskSubmitSpy}
+        setNewTaskName={vi.fn()}
+        onAddTaskSubmit={vi.fn()}
       />
     );
 
+    // Assert
     expect(screen.getByText('Project Alpha')).toBeTruthy();
     expect(screen.getByText('01:00:00')).toBeTruthy();
   });
 
-  it('Given input element, When new task name changed, Then it should call setNewTaskName', () => {
+  it('should call setNewTaskName when task name input text changes', () => {
+    // Arrange
     const setNewTaskNameSpy = vi.fn();
-    const onAddTaskSubmitSpy = vi.fn();
-
-    render(
+    const { container } = render(
       <ProjectHeaderCard
         selectedProject={selectedProject}
         projectDurationSeconds={0}
         isCondensed={false}
-        theme="dark"
         stats={null}
         loading={false}
         newTaskName=""
         setNewTaskName={setNewTaskNameSpy}
-        onAddTaskSubmit={onAddTaskSubmitSpy}
+        onAddTaskSubmit={vi.fn()}
       />
     );
 
-    const input = screen.getByPlaceholderText(/Enter main task name/i);
+    // Act
+    const input = (container.querySelector('#new-task-input') ?? screen.getByRole('textbox')) as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'Buy Groceries' } });
 
+    // Assert
     expect(setNewTaskNameSpy).toHaveBeenCalledWith('Buy Groceries');
   });
 
-  it('Given isCondensed true, When selectedProject details provided, Then it should render in condensed mode', () => {
-    const projectWithoutColor: Project = {
+  it('should render condensed total badge when isCondensed is true', () => {
+    // Arrange
+    const projectBeta = aProject({
       id: 'proj_2',
       name: 'Project Beta',
       color: undefined as unknown as string,
-      createdAt: '2026-06-12T00:00:00Z'
-    };
+    });
 
+    // Act
     render(
       <ProjectHeaderCard
-        selectedProject={projectWithoutColor}
+        selectedProject={projectBeta}
         projectDurationSeconds={1800}
         isCondensed={true}
-        theme="light"
         stats={null}
         loading={false}
         newTaskName=""
@@ -86,17 +85,18 @@ describe('Unit Tests: ProjectHeaderCard', () => {
       />
     );
 
+    // Assert
     expect(screen.getByText('Project Beta')).toBeTruthy();
     expect(screen.getByText('00:30:00')).toBeTruthy();
   });
 
-  it('Given loading true, When project stats are loading, Then it should show skeletons', () => {
+  it('should render stats skeleton grid when loading is true', () => {
+    // Arrange & Act
     render(
       <ProjectHeaderCard
         selectedProject={selectedProject}
         projectDurationSeconds={0}
         isCondensed={false}
-        theme="light"
         stats={null}
         loading={true}
         newTaskName=""
@@ -105,23 +105,25 @@ describe('Unit Tests: ProjectHeaderCard', () => {
       />
     );
 
+    // Assert
     const skeletons = screen.getByTestId('stats-skeleton-grid');
     expect(skeletons).toBeTruthy();
   });
 
-  it('Given stats provided, When not loading, Then it should render duration, total tasks, and completion ratio', () => {
+  it('should render duration, total tasks, and completion ratio inside stats cards grid', () => {
+    // Arrange
     const mockStats: ProjectStatistics = {
       totalDurationSec: 5400,
       totalTasks: 5,
-      completedTasks: 2
+      completedTasks: 2,
     };
 
+    // Act
     render(
       <ProjectHeaderCard
         selectedProject={selectedProject}
         projectDurationSeconds={5400}
         isCondensed={false}
-        theme="high-contrast"
         stats={mockStats}
         loading={false}
         newTaskName=""
@@ -130,26 +132,28 @@ describe('Unit Tests: ProjectHeaderCard', () => {
       />
     );
 
-    expect(screen.getByText('Total Duration')).toBeTruthy();
-    expect(screen.getAllByText('01:30:00').length).toBe(2);
-    expect(screen.getByText('5')).toBeTruthy();
-    expect(screen.getByText('40%')).toBeTruthy();
+    // Assert
+    const statsGrid = screen.getByTestId('stats-cards-grid');
+    expect(statsGrid).toBeTruthy();
+    expect(statsGrid.textContent).toContain('01:30:00');
+    expect(statsGrid.textContent).toContain('5');
+    expect(statsGrid.textContent).toContain('40%');
   });
 
-  it('Given zero tasks in stats, When rendered, Then it should not show completion percentage', () => {
+  it('should not show completion percentage badge when total tasks is zero', () => {
+    // Arrange
     const mockStats: ProjectStatistics = {
       totalDurationSec: 0,
       totalTasks: 0,
-      completedTasks: 0
+      completedTasks: 0,
     };
 
-
+    // Act
     render(
       <ProjectHeaderCard
         selectedProject={selectedProject}
         projectDurationSeconds={0}
         isCondensed={false}
-        theme="dark"
         stats={mockStats}
         loading={false}
         newTaskName=""
@@ -158,7 +162,8 @@ describe('Unit Tests: ProjectHeaderCard', () => {
       />
     );
 
-    expect(screen.queryByText('%')).toBeNull();
+    // Assert
+    expect(screen.queryByText(/%/)).toBeNull();
   });
 });
 

@@ -10,3 +10,4 @@ export * from './mocks/browser-mocks';
 export * from './mocks/backend-handlers';
 export * from './mocks/tauri-ipc-mock';
 export * from './mocks/oxy-state-mock';
+export * from './builders/entity-builders';
