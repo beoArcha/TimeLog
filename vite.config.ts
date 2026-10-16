@@ -21,7 +21,9 @@ export default defineConfig(() => {
         '**/dist/**',
         'tests/e2e/**',
         '**/.{idea,git,cache,output,temp}/**',
-        '**/{karma,rollup,webpack,vite,vitest}.config.*'
+        '**/{karma,rollup,webpack,vite,vitest}.config.*',
+        '**/.stryker-tmp/**',
+        '**/.stryker-sandbox/**'
       ],
       coverage: {
         provider: 'v8',
