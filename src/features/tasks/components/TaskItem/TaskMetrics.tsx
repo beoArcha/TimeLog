@@ -12,6 +12,7 @@ interface TaskMetricsProps {
   isCondensed: boolean;
   showSubtaskFormForId: string | null;
   onStartTimer: (id: string) => void;
+  onStopTimer?: (projectId?: string) => void;
   setShowSubtaskFormForId: (id: string | null) => void;
 }
 
@@ -23,6 +24,7 @@ export function TaskMetrics({
   isCondensed,
   showSubtaskFormForId,
   onStartTimer,
+  onStopTimer,
   setShowSubtaskFormForId,
 }: TaskMetricsProps) {
   const { t: tTask } = useTranslation('task');
@@ -50,7 +52,7 @@ export function TaskMetrics({
             id={`stop-btn-${rootTask.id}`}
             variant="destructive"
             size="icon-xs"
-            onClick={() => onStartTimer(rootTask.id)}
+            onClick={() => onStopTimer ? onStopTimer(rootTask.projectId) : onStartTimer(rootTask.id)}
             className="rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer"
             title={tTimer('StopMeasurement')}
             aria-label={tTimer('StopMeasurement')}

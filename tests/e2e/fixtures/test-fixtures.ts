@@ -15,22 +15,30 @@ type MyFixtures = {
 export const test = base.extend<MyFixtures>({
   mainPage: async ({ page }, use) => {
     const mainPage = new MainLayoutPage(page);
-    await mainPage.goto();
+    if (page.url() === 'about:blank') {
+      await mainPage.goto();
+    }
     await use(mainPage);
   },
   reportsPage: async ({ page }, use) => {
     const reportsPage = new ReportsPage(page);
-    await reportsPage.goto();
+    if (page.url() === 'about:blank') {
+      await reportsPage.goto();
+    }
     await use(reportsPage);
   },
   settingsPage: async ({ page }, use) => {
     const settingsPage = new SettingsPage(page);
-    await settingsPage.goto();
+    if (page.url() === 'about:blank') {
+      await settingsPage.goto();
+    }
     await use(settingsPage);
   },
   compactPage: async ({ page }, use) => {
     const compactPage = new CompactWidgetPage(page);
-    await compactPage.goto();
+    if (page.url() === 'about:blank') {
+      await compactPage.goto();
+    }
     await use(compactPage);
   },
 });

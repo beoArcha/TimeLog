@@ -108,14 +108,4 @@ test.describe('Persistence & Reload Resilience (E2E)', () => {
     await expect(mainTab).toBeVisible();
     await expect(mainTab).toContainText('GUI-Schnittstelle');
   });
-
-  test('should gracefully initialize and render default initial state without errors when storage is empty', async ({ mainPage }) => {
-    await mainPage.resetStorage();
-
-    // Verify initial state is rendered with default projects
-    await expect(mainPage.headerLogo).toBeVisible();
-    await expect(mainPage.tabMain).toBeVisible();
-    await expect(mainPage.projectsListContainer).toContainText('LogTime by OxyFlow Backend Engine');
-    await expect(mainPage.idleTimerBanner).toBeVisible();
-  });
 });

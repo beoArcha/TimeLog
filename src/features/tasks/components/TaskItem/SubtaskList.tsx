@@ -23,6 +23,7 @@ interface SubtaskListProps {
   ) => void) | undefined;
   onDeleteTask: ((id: string) => void) | undefined;
   onStartTimer: (id: string) => void;
+  onStopTimer?: (projectId?: string) => void;
   setEditingId: (id: string | null) => void;
   setEditName: (name: string) => void;
 }
@@ -41,6 +42,7 @@ export function SubtaskList({
   onUpdateTask,
   onDeleteTask,
   onStartTimer,
+  onStopTimer,
   setEditingId,
   setEditName,
 }: SubtaskListProps) {
@@ -69,6 +71,7 @@ export function SubtaskList({
           onUpdateTask={onUpdateTask}
           onDeleteTask={onDeleteTask}
           onStartTimer={onStartTimer}
+          onStopTimer={onStopTimer}
           setEditingId={setEditingId}
           setEditName={setEditName}
         />

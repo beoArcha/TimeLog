@@ -68,3 +68,29 @@ export const TEST_LABELS = {
   STOP_MEASUREMENT: 'Stop measurement',
 } as const;
 
+export const TEST_THEMES = {
+  DARK: 'dark',
+  LIGHT: 'light',
+  HIGH_CONTRAST: 'high-contrast',
+  SYSTEM: 'system',
+} as const;
+
+export const TEST_LOCALES = {
+  EN: 'en',
+  PL: 'pl',
+  DE: 'de',
+  ES: 'es',
+  FR: 'fr',
+  PT_BR: 'pt-br',
+} as const;
+
+export const LOCALE_REPORTS_LABELS: Record<string, string> = {
+  en: 'Reports',
+  pl: 'Raporty',
+  de: 'Berichte',
+  es: 'Informes',
+  fr: 'Rapports',
+  'pt-br': 'Relatórios',
+} as const;
+
+

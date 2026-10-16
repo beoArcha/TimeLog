@@ -30,6 +30,7 @@ export interface TaskListViewState {
   ) => void;
   onDeleteTask?: (taskId: string) => void;
   onStartTimer?: (taskId: string) => void;
+  onStopTimer?: (projectId?: string) => void;
   projectTasks?: Task[];
   metrics?: EngineComputedMetrics | null;
   newTaskName?: string;
@@ -119,6 +120,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     onUpdateTask: state.onUpdateTask,
     onDeleteTask: state.onDeleteTask ?? (() => {}),
     onStartTimer: state.onStartTimer ?? (() => {}),
+    onStopTimer: state.onStopTimer ?? (() => {}),
     onAddTask,
     showSubtaskFormForId,
     setShowSubtaskFormForId,
@@ -140,6 +142,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     state.onUpdateTask,
     state.onDeleteTask,
     state.onStartTimer,
+    state.onStopTimer,
     onAddTask,
     showSubtaskFormForId,
     setShowSubtaskFormForId,

@@ -37,6 +37,7 @@ interface SubtaskItemProps {
   ) => void) | undefined;
   onDeleteTask: ((id: string) => void) | undefined;
   onStartTimer: (id: string) => void;
+  onStopTimer?: (projectId?: string) => void;
   setEditingId: (id: string | null) => void;
   setEditName: (name: string) => void;
 }
@@ -51,6 +52,7 @@ export function SubtaskItem({
   onUpdateTask,
   onDeleteTask,
   onStartTimer,
+  onStopTimer,
   setEditingId,
   setEditName,
 }: SubtaskItemProps) {
@@ -174,7 +176,7 @@ export function SubtaskItem({
             id={`stop-subtask-btn-${subTask.id}`}
             variant="destructive"
             size="icon-xs"
-            onClick={() => onStartTimer(subTask.id)}
+            onClick={() => onStopTimer ? onStopTimer() : onStartTimer(subTask.id)}
             title={tTimer('StopMeasurement')}
             aria-label={tTimer('StopMeasurement')}
             className="p-2 transition-colors cursor-pointer animate-pulse shrink-0"

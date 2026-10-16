@@ -29,6 +29,7 @@ export interface TaskItemState {
   ) => void;
   onDeleteTask: (taskId: string) => void;
   onStartTimer: (taskId: string) => void;
+  onStopTimer?: (projectId?: string) => void;
   onAddTask: (projectId: string, name: string, parentId: string | null) => void;
   showSubtaskFormForId?: string | null;
   setShowSubtaskFormForId?: (val: string | null) => void;
@@ -60,6 +61,7 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
     onUpdateTask,
     onDeleteTask,
     onStartTimer,
+    onStopTimer,
     onAddTask,
     showSubtaskFormForId,
     setShowSubtaskFormForId,
@@ -120,6 +122,7 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
           isCondensed={isCondensed}
           showSubtaskFormForId={showSubtaskFormForId}
           onStartTimer={onStartTimer}
+          onStopTimer={onStopTimer}
           setShowSubtaskFormForId={setShowSubtaskFormForId}
         />
       </div>
@@ -149,6 +152,7 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
         onUpdateTask={onUpdateTask}
         onDeleteTask={onDeleteTask}
         onStartTimer={onStartTimer}
+        onStopTimer={onStopTimer}
         setEditingId={setEditingId}
         setEditName={setEditName}
       />
