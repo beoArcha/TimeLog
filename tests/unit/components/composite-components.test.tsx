@@ -10,6 +10,7 @@ import { SearchInput } from '@components/SearchInput';
 import { EmptyState } from '@components/EmptyState';
 import { DataTable } from '@components/DataTable';
 import { Activity, Clock } from 'lucide-react';
+import { translate } from '@common/i18n/translator';
 
 describe('Unit Tests: Composite Components', () => {
   afterEach(() => {
@@ -261,7 +262,8 @@ describe('Unit Tests: Composite Components', () => {
           trend={{ value: '5%', direction: 'up' }}
         />
       );
-      expect(screen.getByLabelText(/Increase: 5%|Wzrost: 5%/i)).toBeTruthy();
+      const expectedTrendLabel = `${translate('en', 'common', 'TrendIncrease')}: 5%`;
+      expect(screen.getByLabelText(expectedTrendLabel)).toBeTruthy();
     });
   });
 });

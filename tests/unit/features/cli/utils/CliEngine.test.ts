@@ -45,7 +45,7 @@ describe('Unit Tests: CliEngine', () => {
 
   it('should return error output for unknown commands', () => {
     const res = executeCliCommand('unknowncmd', mockContext);
-    expect(res.some(line => line.type === 'error' && line.text.includes('Nieznane polecenie'))).toBe(true);
+    expect(res.some(line => line.type === 'error' && line.text.includes('unknowncmd'))).toBe(true);
   });
 
   it('should parse double and single quoted arguments correctly', () => {

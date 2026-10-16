@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { translate } from '@common/i18n/translator';
 import {
   runProjectsCommand,
   runTasksCommand,
@@ -113,7 +114,10 @@ describe('Unit Tests: Commands', () => {
     const context = getMockContext();
     const outputs: TerminalLine[] = [];
     runStatusCommand(context, outputs);
-    expect(outputs[0].text.includes('Idle') || outputs[0].text.includes('bezczynności')).toBe(true);
+    expect(outputs[0]).toEqual({
+      text: translate(context.locale, 'cli', 'StateIdle'),
+      type: 'info'
+    });
 
     const outputsActive: TerminalLine[] = [];
     context.activeLog = { id: 'l2', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T13:00:00Z', endTime: null, note: null, editHistory: null };
@@ -125,7 +129,10 @@ describe('Unit Tests: Commands', () => {
     const context = getMockContext();
     const outputsList: TerminalLine[] = [];
     runHolidaysCommand([], context, outputsList);
-    expect(outputsList[0].text.includes('holidays and leaves table is empty') || outputsList[0].text.includes('NoHolidays')).toBe(true);
+    expect(outputsList[0]).toEqual({
+      text: translate(context.locale, 'cli', 'NoHolidays'),
+      type: 'info'
+    });
 
     const outputsAdd: TerminalLine[] = [];
     runHolidaysCommand(['add', 'holiday', '2026-07-20', 'Test Holiday'], context, outputsAdd);

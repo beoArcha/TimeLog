@@ -40,13 +40,11 @@ describe('Unit Tests: SubtaskItem', () => {
 
     expect(screen.getByText(/Subtask name/i)).not.toBeNull();
 
-    // Trigger toggle complete using the correct ID check-subtask-t2
     const checkbox = container.querySelector('#check-subtask-t2');
     expect(checkbox).not.toBeNull();
     fireEvent.click(checkbox!);
     expect(onToggleTaskCompleteMock).toHaveBeenCalledWith('t2');
 
-    // Trigger start timer using the correct ID start-subtask-btn-t2
     const startBtn = container.querySelector('#start-subtask-btn-t2');
     expect(startBtn).not.toBeNull();
     fireEvent.click(startBtn!);
