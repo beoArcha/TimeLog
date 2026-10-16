@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { TaskNameEditor } from '@features/tasks/components/TaskItem/TaskNameEditor';
 
@@ -14,10 +14,7 @@ describe('Unit Tests: TaskNameEditor', () => {
     taskName: 'Initial Task Name',
     editName: 'New Task Name',
     isEditing: true,
-    theme: 'dark',
     textSizeClass: 'text-xs',
-    locale: 'en' as const,
-    customTranslations: {},
     onRenameTask: onRenameTaskMock,
     setEditName: setEditNameMock,
     setEditingId: setEditingIdMock,
@@ -25,18 +22,93 @@ describe('Unit Tests: TaskNameEditor', () => {
 
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
-  it('should render editing input and handle blur/keys', () => {
-    const { container } = render(<TaskNameEditor {...mockProps} />);
+  it('should render editing input and handle blur to commit change', () => {
+    // Arrange
+    render(<TaskNameEditor {...mockProps} />);
 
-    const input = container.querySelector('input') as HTMLInputElement;
-    expect(input).not.toBeNull();
-    expect(input.value).toBe('New Task Name');
-
-    // Trigger blur to save
+    // Act
+    const input = screen.getByDisplayValue('New Task Name');
     fireEvent.blur(input);
+
+    // Assert
     expect(onRenameTaskMock).toHaveBeenCalledWith('t1', 'New Task Name');
     expect(setEditingIdMock).toHaveBeenCalledWith(null);
   });
+
+  it('should commit edit on Enter key press when name changed', () => {
+    // Arrange
+    render(<TaskNameEditor {...mockProps} />);
+
+    // Act
+    const input = screen.getByDisplayValue('New Task Name');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    // Assert
+    expect(onRenameTaskMock).toHaveBeenCalledWith('t1', 'New Task Name');
+    expect(setEditingIdMock).toHaveBeenCalledWith(null);
+  });
+
+  it('should cancel editing on Escape key press without renaming', () => {
+    // Arrange
+    render(<TaskNameEditor {...mockProps} />);
+
+    // Act
+    const input = screen.getByDisplayValue('New Task Name');
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    // Assert
+    expect(onRenameTaskMock).not.toHaveBeenCalled();
+    expect(setEditingIdMock).toHaveBeenCalledWith(null);
+  });
+
+  it('should not call onRenameTask when editName is identical to original taskName', () => {
+    // Arrange
+    render(<TaskNameEditor {...mockProps} editName="Initial Task Name" />);
+
+    // Act
+    const input = screen.getByDisplayValue('Initial Task Name');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    // Assert
+    expect(onRenameTaskMock).not.toHaveBeenCalled();
+    expect(setEditingIdMock).toHaveBeenCalledWith(null);
+  });
+
+  it('should not call onRenameTask when editName consists only of whitespace', () => {
+    // Arrange
+    render(<TaskNameEditor {...mockProps} editName="   " />);
+
+    // Act
+    const input = screen.getByLabelText(/Edit name/i);
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    // Assert
+    expect(onRenameTaskMock).not.toHaveBeenCalled();
+    expect(setEditingIdMock).toHaveBeenCalledWith(null);
+  });
+
+  it('should return null when isEditing is false', () => {
+    // Arrange & Act
+    const { container } = render(<TaskNameEditor {...mockProps} isEditing={false} />);
+
+    // Assert
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('should reset editingId without error when onRenameTask is undefined', () => {
+    // Arrange
+    render(<TaskNameEditor {...mockProps} onRenameTask={undefined} />);
+
+    // Act
+    const input = screen.getByDisplayValue('New Task Name');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    // Assert
+    expect(setEditingIdMock).toHaveBeenCalledWith(null);
+  });
 });
+
