@@ -11,7 +11,6 @@ permissions:
   contents: read
 
 env:
-  NODE_VERSION: 24
   RUST_WORKSPACE: "src-tauri"
   CARGO_PROFILE_DEV_DEBUG: 0
 
@@ -109,11 +108,8 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.sha }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -132,12 +128,12 @@ jobs:
           workspaces: ${{ env.RUST_WORKSPACE }}
 
       - name: Install Frontend Dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build Tauri Artifacts
         env:
           RUSTFLAGS: ${{ matrix.platform == 'ubuntu-22.04' && '-C link-arg=-fuse-ld=lld' || '' }}
-        run: npx tauri build ${{ matrix.args }} --bundles ${{ matrix.bundles }}
+        run: bun x tauri build ${{ matrix.args }} --bundles ${{ matrix.bundles }}
 
       - name: List Built Artifacts (debug)
         if: failure()

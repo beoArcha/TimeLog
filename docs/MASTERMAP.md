@@ -366,7 +366,7 @@ Feature parity and clean contract separation.
 * **WCAG Accessibility (a11y)**: Modal dialog traps, accessible names for all interactive controls, `<Label>` association, ARIA Live terminal regions.
 * **Universal Internationalization (i18n)**: Fully typed keys in `keys.ts` across 6 locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) with automatic English dictionary fallback (zero `{translate(...) || '...'}` anti-patterns).
 * **Semantic Theme Tokens**: Elimination of hardcoded hex values in favor of adaptive CSS variables (`light`, `dark`, `high-contrast`).
-* **Complete Test Suite**: 100% green across 113 test files (628 tests) verified via `npm run check:frontend`.
+* **Complete Test Suite**: 100% green across 128 test files (673 tests) verified via `bun run check` and `bun run test`.
 
 ---
 

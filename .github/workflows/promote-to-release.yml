@@ -7,8 +7,6 @@ concurrency:
   group: promote-to-release
   cancel-in-progress: false
 
-env:
-  NODE_VERSION: 24
 
 jobs:
   promote:
@@ -22,10 +20,8 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Configure Git
         run: |
@@ -43,7 +39,7 @@ jobs:
           git merge origin/main --no-edit -X theirs
 
           # Bump release version to odd minor
-          node scripts/bump_versions.js --release
+          bun scripts/bump_versions.js --release
 
           # Commit the version bump on release
           git commit -am "chore(release): bump version to odd minor [skip ci]" || echo "No changes to commit on release"
@@ -55,7 +51,7 @@ jobs:
           git pull --ff-only origin main
 
           # Bump main version to even minor
-          node scripts/bump_versions.js --main
+          bun scripts/bump_versions.js --main
 
           git commit -am "chore(version): bump main to next even minor [skip ci]" || echo "No changes to commit on main"
           git push origin main

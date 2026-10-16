@@ -63,7 +63,7 @@ jobs:
 
           # Pliki wersji zostają takie, jak na main (każdy plik osobno,
           # żeby brak jednego nie blokował reszty)
-          for f in package.json package-lock.json src/versions.json src-tauri/tauri.conf.json src-tauri/Cargo.toml; do
+          for f in package.json bun.lock src/versions.json src-tauri/tauri.conf.json src-tauri/Cargo.toml; do
             if git cat-file -e "origin/main:$f" 2>/dev/null; then
               git checkout origin/main -- "$f"
             fi

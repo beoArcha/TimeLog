@@ -17,8 +17,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test --config=tests/e2e/config/playwright.config.ts",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
-    "check": "npm run typecheck && npm run lint && npm run lint:rust && npm run fmt:rust:check",
-    "fix": "eslint --fix . && npm run fmt:rust"
+    "check": "bun run typecheck && bun run lint && bun run lint:rust && bun run fmt:rust:check",
+    "fix": "eslint --fix . && bun run fmt:rust"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

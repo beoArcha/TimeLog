@@ -84,6 +84,7 @@ To understand how oXyFlow is built and maintained, please review our core manife
 
 **Backend:** Rust, Tauri, SQLite
 **Frontend:** React, TypeScript, Vite, Motion, Tailwind CSS v4, Base-UI / Radix
+**Runtime & Toolchain:** Bun
 **Quality:** Vitest, Playwright (e2e), AST Architecture Rules, Cargo Test, ESLint, strict TypeScript
 
 ---
@@ -93,26 +94,38 @@ To understand how oXyFlow is built and maintained, please review our core manife
 Install dependencies:
 
 ```bash
-npm install
+bun install
 ```
 
-Run the application (Desktop Runtime):
+Run the application in Browser (Web Runtime):
 
 ```bash
-npm run tauri dev
+bun run dev
 ```
 
-Verify code quality (automated frontend suite):
+Run the application (Desktop Runtime via Tauri):
 
 ```bash
-npm run check:frontend
+bun run tauri dev
 ```
 
-Verify backend:
+Verify code quality (TypeScript, ESLint, Rust Clippy & fmt):
 
 ```bash
-cargo fmt --check
-cargo test
+bun run check
+```
+
+Run test suite (Unit, Integration & Architecture tests):
+
+```bash
+bun run test
+```
+
+Verify backend independently:
+
+```bash
+bun run fmt:rust:check
+bun run test:rust
 ```
 
 ---
