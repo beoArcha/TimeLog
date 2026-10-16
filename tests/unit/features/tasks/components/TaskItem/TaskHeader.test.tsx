@@ -7,6 +7,7 @@ import { TaskHeader } from "@features/tasks/components/TaskItem/TaskHeader";
 import { aTask } from "@tests/shared/builders/entity-builders";
 import { TaskEditingProvider } from "@features/tasks/context/TaskEditingContext";
 import { MockDataProvider } from "@tests/shared/mocks/MockProviders";
+import type { DataState } from "@common/hooks/DataContext";
 
 describe("Unit Tests: TaskHeader", () => {
   const onToggleTaskCompleteMock = vi.fn();
@@ -124,7 +125,7 @@ describe("Unit Tests: TaskHeader", () => {
 
     render(
       <MockDataProvider
-        value={{ handleToggleTaskComplete, handleUpdateTask } as any}
+        value={{ handleToggleTaskComplete, handleUpdateTask } as unknown as Partial<DataState>}
       >
         <TaskEditingProvider>
           <TaskHeader

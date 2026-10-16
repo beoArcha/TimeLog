@@ -6,6 +6,7 @@ import { TaskMetrics } from "@features/tasks/components/TaskItem/TaskMetrics";
 import { aTask } from "@tests/shared/builders/entity-builders";
 import { TaskEditingProvider } from "@features/tasks/context/TaskEditingContext";
 import { MockDataProvider } from "@tests/shared/mocks/MockProviders";
+import type { DataState } from "@common/hooks/DataContext";
 
 describe("Unit Tests: TaskMetrics", () => {
   const onStartTimerMock = vi.fn();
@@ -127,7 +128,7 @@ describe("Unit Tests: TaskMetrics", () => {
     const handleStopTimer = vi.fn();
 
     render(
-      <MockDataProvider value={{ handleStartTimer, handleStopTimer } as any}>
+      <MockDataProvider value={{ handleStartTimer, handleStopTimer } as unknown as Partial<DataState>}>
         <TaskEditingProvider>
           <TaskMetrics
             rootTask={mockProps.rootTask}
