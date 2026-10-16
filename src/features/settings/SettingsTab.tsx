@@ -65,11 +65,13 @@ export default function SettingsTab() {
           iconColor="text-rose-500"
           titleColor="text-rose-500"
           defaultExpanded={false}
+          headerTestId="destructive-zone-card"
           wrapperClassName="p-6 rounded-3xl border border-rose-500/30 bg-rose-500/5 flex flex-col gap-4"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
             <p className="text-xs max-w-sm text-muted-foreground">{translate(locale, 'engine', 'HardResetDesc', customTranslations)}</p>
             <Button
+              data-testid="hard-reset-btn"
               variant="destructive"
               onClick={() => setIsResetModalOpen(true)}
               className="bg-rose-500 hover:bg-rose-600 px-6 py-3 rounded-2xl text-white text-xs font-bold uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer whitespace-nowrap h-auto"

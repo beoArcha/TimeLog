@@ -50,6 +50,7 @@ export const MediumHeaderActions: React.FC<MediumHeaderActionsProps> = ({
         type="button"
         variant="outline"
         size="icon"
+        data-testid="medium-new-project-btn"
         onClick={onOpenCreateProject}
         className="rounded-xl border border-input bg-card text-orange-500 hover:bg-orange-500/10 transition-all cursor-pointer"
         title={newProjectLabel}
@@ -62,6 +63,7 @@ export const MediumHeaderActions: React.FC<MediumHeaderActionsProps> = ({
         type="button"
         variant="outline"
         size="icon"
+        data-testid="toggle-dock-btn"
         onClick={onToggleDock}
         aria-pressed={dockPosition === 'left'}
         className="hidden lg:flex rounded-xl border border-input bg-card text-foreground hover:bg-muted transition-all cursor-pointer items-center justify-center"

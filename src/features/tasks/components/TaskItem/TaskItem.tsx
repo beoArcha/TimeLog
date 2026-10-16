@@ -106,6 +106,10 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
           isCurrentRunning={isCurrentRunning}
           isChildRunning={isChildRunning}
           runningSubtask={runningSubtask}
+          onToggleTaskComplete={state.onToggleTaskComplete}
+          onRenameTask={state.onRenameTask}
+          onUpdateTask={state.onUpdateTask}
+          onDeleteTask={state.onDeleteTask}
         />
 
         <TaskMetrics
@@ -114,6 +118,8 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
           isCurrentRunning={isCurrentRunning}
           isAnyRunning={isAnyRunning}
           isCondensed={isCondensed}
+          onStartTimer={state.onStartTimer}
+          onStopTimer={state.onStopTimer}
         />
       </div>
 
@@ -130,6 +136,12 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
         subTasks={subTasks}
         metrics={state.metrics}
         isCondensed={isCondensed}
+        onToggleTaskComplete={state.onToggleTaskComplete}
+        onRenameTask={state.onRenameTask}
+        onUpdateTask={state.onUpdateTask}
+        onDeleteTask={state.onDeleteTask}
+        onStartTimer={state.onStartTimer}
+        onStopTimer={state.onStopTimer}
       />
     </div>
   );

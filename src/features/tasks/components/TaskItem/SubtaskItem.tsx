@@ -71,7 +71,7 @@ export function SubtaskItem({
   const onUpdateTask = propOnUpdateTask ?? tasksCtx?.handleUpdateTask;
   const onDeleteTask = propOnDeleteTask ?? tasksCtx?.handleDeleteTask;
   const onStartTimer = propOnStartTimer ?? timerCtx?.handleStartTimer ?? (() => {});
-  const onStopTimer = propOnStopTimer ?? timerCtx?.handleStopTimer ?? (() => {});
+  const onStopTimer = propOnStopTimer ?? timerCtx?.handleStopTimer;
 
   const editingId = propEditingId ?? editingCtx?.editingId ?? null;
   const editName = propEditName ?? editingCtx?.editName ?? '';

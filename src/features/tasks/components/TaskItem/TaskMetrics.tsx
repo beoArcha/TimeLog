@@ -36,7 +36,7 @@ export function TaskMetrics({
   const editing = useTaskEditing();
 
   const onStartTimer = propOnStartTimer ?? timer?.handleStartTimer ?? (() => {});
-  const onStopTimer = propOnStopTimer ?? timer?.handleStopTimer ?? (() => {});
+  const onStopTimer = propOnStopTimer ?? timer?.handleStopTimer;
   const showSubtaskFormForId = propShowSubtaskFormForId ?? editing?.showSubtaskFormForId ?? null;
   const setShowSubtaskFormForId =
     propSetShowSubtaskFormForId ??

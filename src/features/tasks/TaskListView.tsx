@@ -121,7 +121,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     onUpdateTask: state.onUpdateTask,
     onDeleteTask: state.onDeleteTask ?? (() => {}),
     onStartTimer: state.onStartTimer ?? (() => {}),
-    onStopTimer: state.onStopTimer ?? (() => {}),
+    onStopTimer: state.onStopTimer,
     onAddTask,
     showSubtaskFormForId,
     setShowSubtaskFormForId,
@@ -187,7 +187,16 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         onAddTaskSubmit={handleAddTaskSubmit}
       />
 
-      <TaskEditingProvider>
+      <TaskEditingProvider
+        initialEditingId={state.editingId}
+        onSetEditingId={state.setEditingId}
+        initialEditName={state.editName}
+        onSetEditName={state.setEditName}
+        initialShowSubtaskFormForId={state.showSubtaskFormForId}
+        onSetShowSubtaskFormForId={state.setShowSubtaskFormForId}
+        initialNewSubtaskName={state.newSubtaskName}
+        onSetNewSubtaskName={state.setNewSubtaskName}
+      >
         <div id="tasks-tree-container" className={`flex flex-col gap-main ${isCondensed ? 'overflow-visible' : 'overflow-y-auto flex-1 min-h-0'} pr-1`}>
           {rootTasks.length === 0 ? (
             <TaskEmptyState />
