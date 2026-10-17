@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Database, Trash2, Plus, X } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { ConfirmDialog } from '@components/ConfirmDialog';
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
 import { motion, AnimatePresence } from 'motion/react';
@@ -26,6 +27,14 @@ export default function PatchLogsTable() {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [patchNote, setPatchNote] = useState('');
+  const [deleteTargetPatchId, setDeleteTargetPatchId] = useState<string | null>(null);
+
+  const handleConfirmDelete = () => {
+    if (!deleteTargetPatchId) return;
+    const id = deleteTargetPatchId;
+    setDeleteTargetPatchId(null);
+    setPatches(curr => curr.filter(x => x.id !== id));
+  };
 
   const handleOpenModal = () => {
     setStartTime(new Date().toISOString());
@@ -182,11 +191,7 @@ export default function PatchLogsTable() {
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      onClick={() => {
-                        if (confirm(translate(locale, 'database', 'DeleteConfirmPatch', customTranslations))) {
-                          setPatches(curr => curr.filter(x => x.id !== p.id));
-                        }
-                      }}
+                      onClick={() => setDeleteTargetPatchId(p.id)}
                       className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
                       title={translate(locale, 'common', 'Delete', customTranslations)}
                       aria-label={translate(locale, 'common', 'Delete', customTranslations)}
@@ -205,6 +210,16 @@ export default function PatchLogsTable() {
           </Table>
         </div>
       </CollapsibleCard>
+
+      <ConfirmDialog
+        open={deleteTargetPatchId !== null}
+        onOpenChange={(open) => !open && setDeleteTargetPatchId(null)}
+        title={translate(locale, 'database', 'DeleteConfirmPatch', customTranslations)}
+        variant="destructive"
+        confirmLabel={translate(locale, 'common', 'Delete', customTranslations)}
+        cancelLabel={translate(locale, 'common', 'Cancel', customTranslations)}
+        onConfirm={handleConfirmDelete}
+      />
     </>
   );
 }

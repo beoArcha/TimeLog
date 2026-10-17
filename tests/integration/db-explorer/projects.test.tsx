@@ -1,7 +1,7 @@
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, screen, cleanup } from '@testing-library/react';
+import { render, fireEvent, screen, cleanup, within, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
@@ -143,17 +143,22 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
     expect(setProjects).not.toHaveBeenCalled();
   });
 
-  it('should_delete_project_and_related_tasks_and_logs_when_project_deletion_is_confirmed', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('should_delete_project_and_related_tasks_and_logs_when_project_deletion_is_confirmed', async () => {
     const { setProjects, setTasks, setLogs } = setup();
 
     const deleteBtns = screen.getAllByRole('button', { name: /Delete|Usuń|Wycofaj/i });
     fireEvent.click(deleteBtns[0]); // first project delete
 
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setProjects).toHaveBeenCalled();
-    expect(setTasks).toHaveBeenCalled();
-    expect(setLogs).toHaveBeenCalled();
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(setProjects).toHaveBeenCalled();
+      expect(setTasks).toHaveBeenCalled();
+      expect(setLogs).toHaveBeenCalled();
+    });
   });
 
   it('should_show_and_toggle_edit_history_panel_when_project_has_history_and_history_button_is_clicked', () => {

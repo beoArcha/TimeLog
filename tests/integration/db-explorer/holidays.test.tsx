@@ -1,7 +1,7 @@
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, screen, cleanup } from '@testing-library/react';
+import { render, fireEvent, screen, cleanup, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
@@ -130,6 +130,11 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     const deleteBtn = holidaysTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
     expect(setHolidays).toHaveBeenCalled();
   });
 
@@ -161,7 +166,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
 
     const select = holidaysTableWrapper?.querySelector('select') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'leave' } });
-    const reasonInput = holidaysTableWrapper?.querySelector('input[placeholder="Powód zmiany"]') as HTMLInputElement;
+    const reasonInput = screen.getByLabelText(/Reason for modification/i);
     fireEvent.change(reasonInput, { target: { value: 'Custom reason text' } });
 
     const saveBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
@@ -197,13 +202,13 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
 
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
     const historyBtn = holidaysTableWrapper?.querySelector('tbody tr button') as HTMLElement;
-    expect(screen.queryByText(/Audit historii/i)).toBeNull();
+    expect(screen.queryByText(/Audit Trail/i)).toBeNull();
 
     fireEvent.click(historyBtn);
-    expect(screen.getByText(/Audit historii/i)).not.toBeNull();
+    expect(screen.getByText(/Audit Trail/i)).not.toBeNull();
     expect(screen.getByText(/"Initial Correction"/i)).not.toBeNull();
 
     fireEvent.click(historyBtn);
-    expect(screen.queryByText(/Audit historii/i)).toBeNull();
+    expect(screen.queryByText(/Audit Trail/i)).toBeNull();
   });
 });

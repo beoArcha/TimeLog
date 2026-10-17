@@ -9,20 +9,14 @@ import { TableSkeleton } from '@components/ui/Skeletons';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { Button } from '@components/ui/button';
+import { exportDatabaseAsJson } from '@common/utils/databaseExport';
 
 export default function DbExplorer() {
   const { locale, customTranslations } = useLocale();
   const { projects, tasks, logs, holidays, patches, isLoading } = useData();
 
   const handleExportDatabase = () => {
-    const data = { projects, tasks, logs, holidays, patches };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `OxyFlow_Backup_${new Date().toISOString().substring(0,10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    exportDatabaseAsJson({ projects, tasks, logs, holidays, patches });
   };
 
   return (

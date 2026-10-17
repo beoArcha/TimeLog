@@ -9,6 +9,9 @@ import { Checkbox } from '@components/ui/checkbox';
 import { Label } from '@components/ui/label';
 import { NativeSelect } from '@components/ui/select';
 import { Textarea } from '@components/ui/textarea';
+import { validateBackupPayload } from '@common/utils/backupValidator';
+import { exportDatabaseAsJson } from '@common/utils/databaseExport';
+import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useData } from '@common/hooks/DataContext';
@@ -17,17 +20,11 @@ export default function BackupTab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { locale, customTranslations } = useLocale();
   const { logToApi, setLogToApi, apiToken, setApiToken, apiUrl, setApiUrl, apiMethod, setApiMethod, apiHeaders, setApiHeaders } = useSettings();
-  const { projects, setProjects, tasks, setTasks, logs, setLogs, holidays, setHolidays, patches, setPatches, handleRestoreState } = useData();
+  const { projects, tasks, logs, holidays, patches, handleRestoreState } = useData();
+  const { showToast } = useWindowShell();
 
   const handleExportDatabase = () => {
-    const data = { projects, tasks, logs, holidays, patches };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `OxyFlow_Backup_${new Date().toISOString().substring(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    exportDatabaseAsJson({ projects, tasks, logs, holidays, patches });
   };
 
   const handleImportDatabase = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,28 +35,17 @@ export default function BackupTab() {
     reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;
-        const data = JSON.parse(text);
+        const parsed = JSON.parse(text);
+        const data = validateBackupPayload(parsed);
 
         if (handleRestoreState) {
           await handleRestoreState(data);
         }
 
-        // Trigger test spy functions if running inside Vitest mock environment
-        const isMock = (fn: unknown): boolean =>
-          typeof fn === 'function' &&
-          ('_isMockFunction' in fn || 'mock' in fn || fn.name === 'mockConstructor');
-        if (isMock(setProjects)) {
-          if (data.projects) setProjects(data.projects);
-          if (data.tasks) setTasks(data.tasks);
-          if (data.logs) setLogs(data.logs);
-          if (data.holidays) setHolidays(data.holidays);
-          if (data.patches) setPatches(data.patches);
-        }
-
-        alert(translate(locale, 'settings', 'RestoreSuccess', customTranslations));
+        showToast?.(translate(locale, 'settings', 'RestoreSuccess', customTranslations));
       } catch (err) {
         ErrorHandler.handle(new PersistenceException('Failed to restore backup from file', err, 'ERR_BACKUP_RESTORE'));
-        alert(translate(locale, 'settings', 'InvalidBackup', customTranslations));
+        showToast?.(translate(locale, 'settings', 'InvalidBackup', customTranslations));
       }
     };
     reader.readAsText(file);

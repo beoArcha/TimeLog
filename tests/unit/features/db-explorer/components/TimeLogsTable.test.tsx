@@ -6,6 +6,7 @@ import {
   cleanup,
   fireEvent,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import TimeLogsTable from "@features/db-explorer/components/TimeLogsTable";
@@ -17,6 +18,7 @@ import {
 } from "@tests/shared/builders/entity-builders";
 import { getMockOxyFlowState, OxyFlowState } from "@tests/shared/test-helpers";
 import { TimeLog } from "@bindings/TimeLog";
+import { PersistenceRouter } from "@common/persistence/PersistenceRouter";
 
 describe("Unit Tests: TimeLogsTable", () => {
   afterEach(() => {
@@ -178,9 +180,8 @@ describe("Unit Tests: TimeLogsTable", () => {
     });
   });
 
-  it("should delete log when confirmed by user", () => {
+  it("should delete log when confirmed by user", async () => {
     // Arrange
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const setLogs = vi.fn();
     const state = createMockState(undefined, { setLogs });
 
@@ -194,9 +195,15 @@ describe("Unit Tests: TimeLogsTable", () => {
     const deleteBtn = screen.getByRole("button", { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole("button", { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
     // Assert
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setLogs).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(setLogs).toHaveBeenCalled();
+    });
     const updateFn = setLogs.mock.calls[0][0];
     const initialLogs = [aTimeLog({ id: "l1" }), aTimeLog({ id: "l2" })];
     const filtered = updateFn(initialLogs);
@@ -206,7 +213,6 @@ describe("Unit Tests: TimeLogsTable", () => {
 
   it("should not delete log when confirmation is cancelled", () => {
     // Arrange
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     const setLogs = vi.fn();
     const state = createMockState(undefined, { setLogs });
 
@@ -220,13 +226,20 @@ describe("Unit Tests: TimeLogsTable", () => {
     const deleteBtn = screen.getByRole("button", { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const cancelBtn = within(dialog as HTMLElement).getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
     // Assert
-    expect(confirmSpy).toHaveBeenCalled();
     expect(setLogs).not.toHaveBeenCalled();
   });
 
-  it("should add manual log and close form on form submit", () => {
+  it("should add manual log and close form on form submit", async () => {
     // Arrange
+    const insertSpy = vi
+      .spyOn(PersistenceRouter.getInstance().timeLogs, "insert")
+      .mockResolvedValue(undefined);
     const setLogs = vi.fn();
     const state = createMockState(undefined, { setLogs });
     const { container } = render(
@@ -252,7 +265,14 @@ describe("Unit Tests: TimeLogsTable", () => {
     fireEvent.submit(form!);
 
     // Assert
-    expect(setLogs).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(insertSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/^log_man_/),
+        "t1",
+        expect.any(String),
+      );
+      expect(setLogs).toHaveBeenCalled();
+    });
     const updater = setLogs.mock.calls[0][0];
     const updated = updater([]);
     expect(updated).toHaveLength(1);

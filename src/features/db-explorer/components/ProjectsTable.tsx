@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Project } from '@bindings/Project';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { ConfirmDialog } from '@components/ConfirmDialog';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
@@ -25,11 +26,12 @@ import { Button } from '@components/ui/button';
 
 export default function ProjectsTable() {
   const { locale, customTranslations } = useLocale();
-  const { projects, setProjects, setTasks, setLogs } = useData();
+  const { projects, setProjects, setTasks, setLogs, handleToggleProjectArchive } = useData();
 
   const [editingProjId, setEditingProjId] = useState<string | null>(null);
   const [projForm, setProjForm] = useState<{ name: string; color: string; reason: string }>({ name: '', color: 'violet', reason: '' });
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
+  const [deleteTargetProjId, setDeleteTargetProjId] = useState<string | null>(null);
 
   const colors = ['rose', 'teal', 'amber', 'violet', 'indigo', 'emerald'];
 
@@ -72,16 +74,21 @@ export default function ProjectsTable() {
     setEditingProjId(null);
   };
 
-  const deleteProj = (id: string) => {
-    if (confirm(translate(locale, 'database', 'DeleteConfirmProject', customTranslations))) {
-      setProjects(curr => curr.filter(p => p.id !== id));
-      setTasks(curr => curr.filter(t => t.projectId !== id));
-      setLogs(curr => curr.filter(l => l.projectId !== id));
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetProjId) return;
+    const id = deleteTargetProjId;
+    setDeleteTargetProjId(null);
+    if (handleToggleProjectArchive) {
+      await handleToggleProjectArchive(id);
     }
+    setProjects(curr => curr.filter(p => p.id !== id));
+    setTasks(curr => curr.filter(t => t.projectId !== id));
+    setLogs(curr => curr.filter(l => l.projectId !== id));
   };
 
   return (
-    <CollapsibleCard
+    <>
+      <CollapsibleCard
       title={`${translate(locale, 'database', 'ProjectsTableTitle', customTranslations)} (${projects.length} ${translate(locale, 'database', 'Records', customTranslations)})`}
       icon={Database}
       iconColor="text-orange-400"
@@ -221,7 +228,7 @@ export default function ProjectsTable() {
                             <Button 
                               variant="ghost"
                               size="icon-xs"
-                              onClick={() => deleteProj(p.id)} 
+                              onClick={() => setDeleteTargetProjId(p.id)} 
                               className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer" 
                               title={translate(locale, 'common', 'Delete', customTranslations)}
                               aria-label={translate(locale, 'common', 'Delete', customTranslations)}
@@ -259,5 +266,16 @@ export default function ProjectsTable() {
         </Table>
       </div>
     </CollapsibleCard>
+
+    <ConfirmDialog
+      open={deleteTargetProjId !== null}
+      onOpenChange={(open) => !open && setDeleteTargetProjId(null)}
+      title={translate(locale, 'database', 'DeleteConfirmProject', customTranslations)}
+      variant="destructive"
+      confirmLabel={translate(locale, 'common', 'Delete', customTranslations)}
+      cancelLabel={translate(locale, 'common', 'Cancel', customTranslations)}
+      onConfirm={handleConfirmDelete}
+    />
+  </>
   );
 }

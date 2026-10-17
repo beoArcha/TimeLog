@@ -5,9 +5,12 @@ import { render, fireEvent, screen, cleanup, waitFor, within } from '@testing-li
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
+import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 
 describe('Integration Tests: DbExplorer Logs Table', () => {
   beforeEach(() => {
+    vi.spyOn(PersistenceRouter.getInstance().timeLogs, 'insert').mockResolvedValue(undefined);
+    vi.spyOn(PersistenceRouter.getInstance().timeLogs, 'delete').mockResolvedValue(undefined);
     vi.spyOn(window, 'confirm').mockImplementation(() => true);
     vi.spyOn(window, 'alert').mockImplementation(() => { });
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
@@ -97,7 +100,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     };
   };
 
-  it('should_show_manual_add_form_and_submit_log_when_adding_manually', () => {
+  it('should_show_manual_add_form_and_submit_log_when_adding_manually', async () => {
     const { container, setLogs } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
@@ -115,7 +118,9 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const submitBtn = container.querySelector('form button[type="submit"]') as HTMLElement;
     fireEvent.click(submitBtn);
 
-    expect(setLogs).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(setLogs).toHaveBeenCalled();
+    });
   });
 
   it('should_alert_when_submitting_manual_log_without_selected_task', () => {
@@ -133,7 +138,6 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
   });
 
   it('should_handle_editing_and_deleting_logs_when_modified_in_logs_table', async () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const { setLogs, handleEditTimeLog } = setup();
 
     const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
@@ -157,8 +161,14 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const deleteBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /delete/i });
     fireEvent.click(deleteBtn);
 
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setLogs).toHaveBeenCalled();
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /delete/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(setLogs).toHaveBeenCalled();
+    });
   });
 
   it('Given a log list, When editing is started and canceled, Then it should exit edit mode', () => {
@@ -236,7 +246,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     expect(container.querySelector('form')).toBeNull();
   });
 
-  it('Given the manual add form, When submitted with empty end time and empty note, Then it should submit with defaults', () => {
+  it('Given the manual add form, When submitted with empty end time and empty note, Then it should submit with defaults', async () => {
     const { container, setLogs } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
@@ -254,6 +264,8 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const submitBtn = container.querySelector('form button[type="submit"]') as HTMLElement;
     fireEvent.click(submitBtn);
 
-    expect(setLogs).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(setLogs).toHaveBeenCalled();
+    });
   });
 });

@@ -121,8 +121,9 @@ describe('Unit Tests: BackupTab', () => {
   });
 
   it('should trigger restore state when valid JSON is imported', async () => {
+    const showToastMock = vi.fn();
     render(
-      <MockProviders state={mockState}>
+      <MockProviders state={{ ...mockState, showToast: showToastMock }}>
         <BackupTab />
       </MockProviders>
     );
@@ -131,31 +132,30 @@ describe('Unit Tests: BackupTab', () => {
     const backupData = {
       projects: [{ id: 'p1', name: 'Project 1', color: '#ff0000', archived: false }],
       tasks: [{ id: 't1', projectId: 'p1', name: 'Task 1', status: 'todo' }],
-      logs: [],
+      logs: [{ id: 'l1', taskId: 't1', startTime: '2026-06-15T10:00:00Z' }],
       holidays: [],
       patches: [],
     };
     const file = new File([JSON.stringify(backupData)], 'backup.json', { type: 'application/json' });
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(handleRestoreStateMock).toHaveBeenCalledWith(backupData);
-      expect(setProjectsMock).toHaveBeenCalledWith(backupData.projects);
-      expect(setTasksMock).toHaveBeenCalledWith(backupData.tasks);
-      expect(alertSpy).toHaveBeenCalled();
+      expect(handleRestoreStateMock).toHaveBeenCalledWith(expect.objectContaining({
+        projects: expect.any(Array),
+        tasks: expect.any(Array),
+        logs: expect.any(Array),
+      }));
+      expect(showToastMock).toHaveBeenCalled();
     });
-
-    alertSpy.mockRestore();
   });
 
-  it('should handle invalid JSON import gracefully via ErrorHandler and alert', async () => {
+  it('should handle invalid JSON import gracefully via ErrorHandler and showToast', async () => {
     const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle').mockImplementation(() => {});
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const showToastMock = vi.fn();
 
     render(
-      <MockProviders state={mockState}>
+      <MockProviders state={{ ...mockState, showToast: showToastMock }}>
         <BackupTab />
       </MockProviders>
     );
@@ -167,11 +167,10 @@ describe('Unit Tests: BackupTab', () => {
 
     await waitFor(() => {
       expect(errorHandlerSpy).toHaveBeenCalled();
-      expect(alertSpy).toHaveBeenCalled();
+      expect(showToastMock).toHaveBeenCalled();
     });
 
     errorHandlerSpy.mockRestore();
-    alertSpy.mockRestore();
   });
 
   it('should toggle API push logging and expand webhook configuration fields', () => {

@@ -37,7 +37,6 @@ describe('Integration Tests: BackupTab', () => {
   });
 
   it('Given BackupTab rendered, When import file is selected, Then it should parse json and set appropriate states', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
     const mockState = getMockOxyFlowState();
 
     render(
@@ -49,9 +48,9 @@ describe('Integration Tests: BackupTab', () => {
     const file = new File(
       [
         JSON.stringify({
-          projects: [{ id: 'p2' }],
-          tasks: [{ id: 't2' }],
-          logs: [{ id: 'l2' }],
+          projects: [{ id: 'p2', name: 'Proj 2', color: 'blue' }],
+          tasks: [{ id: 't2', projectId: 'p2', name: 'Task 2' }],
+          logs: [{ id: 'l2', taskId: 't2', startTime: '2026-06-15T12:00:00Z' }],
           holidays: [],
           patches: [],
         }),
@@ -65,15 +64,16 @@ describe('Integration Tests: BackupTab', () => {
     fireEvent.change(input);
 
     await waitFor(() => {
-      expect(mockState.setProjects).toHaveBeenCalledWith(expect.any(Array));
-      expect(mockState.setTasks).toHaveBeenCalledWith(expect.any(Array));
-      expect(mockState.setLogs).toHaveBeenCalledWith(expect.any(Array));
-      expect(alertSpy).toHaveBeenCalled();
+      expect(mockState.handleRestoreState).toHaveBeenCalledWith(expect.objectContaining({
+        projects: expect.any(Array),
+        tasks: expect.any(Array),
+        logs: expect.any(Array),
+      }));
+      expect(mockState.showToast).toHaveBeenCalled();
     });
   });
 
   it('Given BackupTab rendered, When invalid JSON file is imported, Then it should show failure alert dialog and not update states', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
     const mockState = getMockOxyFlowState();
 
     render(
@@ -93,8 +93,8 @@ describe('Integration Tests: BackupTab', () => {
     fireEvent.change(input);
 
     await waitFor(() => {
-      expect(mockState.setProjects).not.toHaveBeenCalled();
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid'));
+      expect(mockState.handleRestoreState).not.toHaveBeenCalled();
+      expect(mockState.showToast).toHaveBeenCalled();
     });
   });
 

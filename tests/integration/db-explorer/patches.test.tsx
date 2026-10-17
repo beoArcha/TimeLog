@@ -1,7 +1,7 @@
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, screen, cleanup } from '@testing-library/react';
+import { render, fireEvent, screen, cleanup, within, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
@@ -86,9 +86,7 @@ describe('Integration Tests: DbExplorer Patches Table', () => {
     };
   };
 
-  it('should_add_and_delete_patch_manually_when_patch_table_actions_are_triggered', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-
+  it('should_add_and_delete_patch_manually_when_patch_table_actions_are_triggered', async () => {
     const { setPatches } = setup();
 
     const addPatchBtn = screen.getByText(/add manual patch/i);
@@ -108,7 +106,13 @@ describe('Integration Tests: DbExplorer Patches Table', () => {
     const patchDeleteBtn = deleteBtns[deleteBtns.length - 1];
     fireEvent.click(patchDeleteBtn);
 
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setPatches).toHaveBeenCalledTimes(2);
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(setPatches).toHaveBeenCalledTimes(2);
+    });
   });
 });

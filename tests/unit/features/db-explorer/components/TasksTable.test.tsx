@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from "react";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, within, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import TasksTable from "@features/db-explorer/components/TasksTable";
 import { MockProviders } from "@tests/shared/mocks/MockProviders";
@@ -138,9 +138,8 @@ describe("Unit Tests: TasksTable", () => {
     expect(screen.getByRole("button", { name: /Edit/i })).toBeTruthy();
   });
 
-  it("should delete task and associated logs when confirmed by user", () => {
+  it("should delete task and associated logs when confirmed by user", async () => {
     // Arrange
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const setTasks = vi.fn();
     const setLogs = vi.fn();
     const task = aTask({ id: "t1" });
@@ -156,10 +155,16 @@ describe("Unit Tests: TasksTable", () => {
     const deleteBtn = screen.getByRole("button", { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole("button", { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
     // Assert
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setTasks).toHaveBeenCalled();
-    expect(setLogs).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(setTasks).toHaveBeenCalled();
+      expect(setLogs).toHaveBeenCalled();
+    });
 
     const taskFilter = setTasks.mock.calls[0][0];
     expect(taskFilter([task])).toHaveLength(0);
@@ -172,7 +177,6 @@ describe("Unit Tests: TasksTable", () => {
 
   it("should not delete task when user cancels confirmation", () => {
     // Arrange
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     const setTasks = vi.fn();
     const task = aTask({ id: "t1" });
     const state = createMockState([task], { setTasks });
@@ -187,8 +191,12 @@ describe("Unit Tests: TasksTable", () => {
     const deleteBtn = screen.getByRole("button", { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const cancelBtn = within(dialog as HTMLElement).getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
     // Assert
-    expect(confirmSpy).toHaveBeenCalled();
     expect(setTasks).not.toHaveBeenCalled();
   });
 

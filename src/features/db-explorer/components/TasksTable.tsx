@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Task } from '@bindings/Task';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { ConfirmDialog } from '@components/ConfirmDialog';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
@@ -19,11 +20,12 @@ import { Button } from '@components/ui/button';
 
 export default function TasksTable() {
   const { locale, customTranslations } = useLocale();
-  const { tasks, setTasks, setLogs } = useData();
+  const { tasks, setTasks, setLogs, handleDeleteTask } = useData();
 
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [taskForm, setTaskForm] = useState<{ name: string; completed: boolean; reason: string }>({ name: '', completed: false, reason: '' });
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
+  const [deleteTargetTaskId, setDeleteTargetTaskId] = useState<string | null>(null);
 
   const startEditTask = (t: Task) => {
     setEditingTaskId(t.id);
@@ -64,15 +66,20 @@ export default function TasksTable() {
     setEditingTaskId(null);
   };
 
-  const deleteTask = (id: string) => {
-    if (confirm(translate(locale, 'database', 'DeleteConfirmTask', customTranslations))) {
-      setTasks(curr => curr.filter(t => t.id !== id));
-      setLogs(curr => curr.filter(l => l.taskId !== id));
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetTaskId) return;
+    const id = deleteTargetTaskId;
+    setDeleteTargetTaskId(null);
+    if (handleDeleteTask) {
+      await handleDeleteTask(id);
     }
+    setTasks(curr => curr.filter(t => t.id !== id));
+    setLogs(curr => curr.filter(l => l.taskId !== id));
   };
 
   return (
-    <CollapsibleCard
+    <>
+      <CollapsibleCard
       title={`${translate(locale, 'database', 'TasksTableTitle', customTranslations)} (${tasks.length} ${translate(locale, 'database', 'RecordsPlural', customTranslations)})`}
       icon={Database}
       iconColor="text-teal-400"
@@ -199,7 +206,7 @@ export default function TasksTable() {
                             <Button 
                               variant="ghost"
                               size="icon-xs"
-                              onClick={() => deleteTask(t.id)} 
+                              onClick={() => setDeleteTargetTaskId(t.id)} 
                               className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
                               title={translate(locale, 'common', 'Delete', customTranslations)}
                               aria-label={translate(locale, 'common', 'Delete', customTranslations)}
@@ -237,5 +244,16 @@ export default function TasksTable() {
         </Table>
       </div>
     </CollapsibleCard>
+
+    <ConfirmDialog
+      open={deleteTargetTaskId !== null}
+      onOpenChange={(open) => !open && setDeleteTargetTaskId(null)}
+      title={translate(locale, 'database', 'DeleteConfirmTask', customTranslations)}
+      variant="destructive"
+      confirmLabel={translate(locale, 'common', 'Delete', customTranslations)}
+      cancelLabel={translate(locale, 'common', 'Cancel', customTranslations)}
+      onConfirm={handleConfirmDelete}
+    />
+  </>
   );
 }

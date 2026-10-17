@@ -1,7 +1,7 @@
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, screen, cleanup } from '@testing-library/react';
+import { render, fireEvent, screen, cleanup, within, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
@@ -117,16 +117,21 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
     expect(setTasks).toHaveBeenCalled();
   });
 
-  it('should_delete_task_when_task_deletion_is_confirmed', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('should_delete_task_when_task_deletion_is_confirmed', async () => {
     const { setTasks, setLogs } = setup();
 
     const tasksTableWrapper = screen.getByText(/tasks table/i).closest('.border');
     const deleteBtn = tasksTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
     fireEvent.click(deleteBtn);
 
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setTasks).toHaveBeenCalled();
-    expect(setLogs).toHaveBeenCalled();
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(setTasks).toHaveBeenCalled();
+      expect(setLogs).toHaveBeenCalled();
+    });
   });
 });

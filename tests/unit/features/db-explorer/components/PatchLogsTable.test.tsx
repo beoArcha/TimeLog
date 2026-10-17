@@ -6,6 +6,7 @@ import {
   cleanup,
   fireEvent,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import PatchLogsTable from "@features/db-explorer/components/PatchLogsTable";
@@ -201,9 +202,8 @@ describe("Unit Tests: PatchLogsTable", () => {
     expect(setPatches).not.toHaveBeenCalled();
   });
 
-  it("should delete patch when user confirms", () => {
+  it("should delete patch when user confirms", async () => {
     // Arrange
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const setPatches = vi.fn();
     const patch = aPatchLog({ id: "pat_to_delete" });
     const state = createMockState([patch], { setPatches });
@@ -218,9 +218,15 @@ describe("Unit Tests: PatchLogsTable", () => {
     const deleteBtn = screen.getByRole("button", { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole("button", { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
     // Assert
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setPatches).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(setPatches).toHaveBeenCalled();
+    });
     const updater = setPatches.mock.calls[0][0];
     const filtered = updater([patch]);
     expect(filtered).toHaveLength(0);
@@ -228,7 +234,6 @@ describe("Unit Tests: PatchLogsTable", () => {
 
   it("should not delete patch when user cancels confirmation", () => {
     // Arrange
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     const setPatches = vi.fn();
     const patch = aPatchLog({ id: "pat_stay" });
     const state = createMockState([patch], { setPatches });
@@ -243,8 +248,12 @@ describe("Unit Tests: PatchLogsTable", () => {
     const deleteBtn = screen.getByRole("button", { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const cancelBtn = within(dialog as HTMLElement).getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
     // Assert
-    expect(confirmSpy).toHaveBeenCalled();
     expect(setPatches).not.toHaveBeenCalled();
   });
 });
