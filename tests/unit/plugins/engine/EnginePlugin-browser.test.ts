@@ -55,6 +55,7 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
         insert: vi.fn().mockResolvedValue(undefined),
         queryActive: vi.fn().mockResolvedValue([]),
         getAll: vi.fn().mockResolvedValue([]),
+        delete: vi.fn().mockResolvedValue(undefined),
       },
       holidays: {
         getAll: vi.fn().mockResolvedValue([]),

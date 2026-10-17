@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockInvoke } from '@tests/shared/test-helpers';
 import { PersistenceCommands } from '@common/persistence/PersistenceCommands';
 import { ErrorHandler } from '@common/exceptions';
+import { aHolidayLeave, aPatchLog, aTimeLog } from '@tests/shared/builders/entity-builders';
 
 describe('Unit Tests: PersistenceCommands', () => {
   let commands: PersistenceCommands;
@@ -320,10 +321,10 @@ describe('Unit Tests: PersistenceCommands', () => {
   });
 
   describe('timeLogs persistence', () => {
-    it('should invoke all timeLogs persistence commands', async () => {
+    it('should invoke all timeLogs persistence commands when called', async () => {
       // Arrange
-      const mockLogs = [{ id: 'l1', taskId: 't1', startTime: '2026-01-01T00:00:00Z' }];
-      mockInvoke.mockResolvedValue(mockLogs);
+      const mockLog = aTimeLog({ id: 'l1', taskId: 't1' });
+      mockInvoke.mockResolvedValue([mockLog]);
 
       // Act
       const forTask = await commands.timeLogs.getForTask('t1');
@@ -332,7 +333,7 @@ describe('Unit Tests: PersistenceCommands', () => {
       await commands.timeLogs.insert('l2', 't1', '2026-01-01T02:00:00Z');
       mockInvoke.mockResolvedValue(['l1']);
       const activeIds = await commands.timeLogs.queryActive();
-      mockInvoke.mockResolvedValue(mockLogs);
+      mockInvoke.mockResolvedValue([mockLog]);
       const allLogs = await commands.timeLogs.getAll();
 
       // Assert
@@ -352,8 +353,273 @@ describe('Unit Tests: PersistenceCommands', () => {
       expect(mockInvoke).toHaveBeenCalledWith('query_active');
       expect(activeIds).toEqual(['l1']);
       expect(mockInvoke).toHaveBeenCalledWith('get_all');
-      expect(allLogs).toEqual(mockLogs);
-      expect(forTask).toEqual(mockLogs);
+      expect(allLogs).toEqual([mockLog]);
+      expect(forTask).toEqual([mockLog]);
+    });
+
+    it('should invoke delete_time_log when delete is called', async () => {
+      // Arrange
+      mockInvoke.mockResolvedValue(undefined);
+
+      // Act
+      await commands.timeLogs.delete('log_del_1');
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('delete_time_log', { logId: 'log_del_1' });
+    });
+
+    it('should report exception and rethrow when delete fails', async () => {
+      // Arrange
+      mockInvoke.mockRejectedValue(new Error('Tauri delete log error'));
+
+      // Act & Assert
+      await expect(commands.timeLogs.delete('log_del_fail')).rejects.toThrow('Tauri delete log error');
+      expect(ErrorHandler.handle).toHaveBeenCalled();
+    });
+  });
+
+  describe('holidays persistence', () => {
+    it('should invoke get_holidays and return list when getAll is called', async () => {
+      // Arrange
+      const mockHolidays = [aHolidayLeave({ id: 'hol_1', name: 'Test Holiday' })];
+      mockInvoke.mockResolvedValue(mockHolidays);
+
+      // Act
+      const result = await commands.holidays.getAll();
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_holidays');
+      expect(result).toEqual(mockHolidays);
+    });
+
+    it('should invoke save_holidays with payload when save is called', async () => {
+      // Arrange
+      const mockHolidays = [aHolidayLeave({ id: 'hol_1' })];
+      mockInvoke.mockResolvedValue(undefined);
+
+      // Act
+      await commands.holidays.save(mockHolidays);
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('save_holidays', { holidays: mockHolidays });
+    });
+
+    it('should report exception and rethrow when holidays invocation fails', async () => {
+      // Arrange
+      mockInvoke.mockRejectedValue(new Error('Holidays error'));
+
+      // Act & Assert
+      await expect(commands.holidays.getAll()).rejects.toThrow('Holidays error');
+      await expect(commands.holidays.save([])).rejects.toThrow('Holidays error');
+      expect(ErrorHandler.handle).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('patches persistence', () => {
+    it('should invoke get_patches and return list when getAll is called', async () => {
+      // Arrange
+      const mockPatches = [aPatchLog({ id: 'pat_1' })];
+      mockInvoke.mockResolvedValue(mockPatches);
+
+      // Act
+      const result = await commands.patches.getAll();
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_patches');
+      expect(result).toEqual(mockPatches);
+    });
+
+    it('should invoke save_patches with payload when save is called', async () => {
+      // Arrange
+      const mockPatches = [aPatchLog({ id: 'pat_1' })];
+      mockInvoke.mockResolvedValue(undefined);
+
+      // Act
+      await commands.patches.save(mockPatches);
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('save_patches', { patches: mockPatches });
+    });
+
+    it('should report exception and rethrow when patches invocation fails', async () => {
+      // Arrange
+      mockInvoke.mockRejectedValue(new Error('Patches error'));
+
+      // Act & Assert
+      await expect(commands.patches.getAll()).rejects.toThrow('Patches error');
+      await expect(commands.patches.save([])).rejects.toThrow('Patches error');
+      expect(ErrorHandler.handle).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('uiState persistence', () => {
+    it('should invoke get_current_project_id and save_current_project_id correctly', async () => {
+      // Arrange
+      mockInvoke.mockResolvedValueOnce('proj_1');
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      // Act
+      const id = await commands.uiState.getCurrentProjectId();
+      await commands.uiState.saveCurrentProjectId('proj_2');
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_current_project_id');
+      expect(id).toBe('proj_1');
+      expect(mockInvoke).toHaveBeenCalledWith('save_current_project_id', { id: 'proj_2' });
+    });
+
+    it('should invoke last_non_compact_variant commands correctly', async () => {
+      // Arrange
+      mockInvoke.mockResolvedValueOnce('mini');
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      // Act
+      const variant = await commands.uiState.getLastNonCompactVariant();
+      await commands.uiState.saveLastNonCompactVariant('full');
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_last_non_compact_variant');
+      expect(variant).toBe('mini');
+      expect(mockInvoke).toHaveBeenCalledWith('save_last_non_compact_variant', { variant: 'full' });
+    });
+
+    it('should fallback to default variant when get_last_non_compact_variant returns empty string', async () => {
+      // Arrange
+      mockInvoke.mockResolvedValueOnce('');
+
+      // Act
+      const variant = await commands.uiState.getLastNonCompactVariant();
+
+      // Assert
+      expect(variant).toBe('full');
+    });
+
+    it('should report exception and rethrow when uiState invocation fails', async () => {
+      // Arrange
+      mockInvoke.mockRejectedValue(new Error('UI state error'));
+
+      // Act & Assert
+      await expect(commands.uiState.getCurrentProjectId()).rejects.toThrow('UI state error');
+      await expect(commands.uiState.saveCurrentProjectId('p1')).rejects.toThrow('UI state error');
+      await expect(commands.uiState.getLastNonCompactVariant()).rejects.toThrow('UI state error');
+      await expect(commands.uiState.saveLastNonCompactVariant('full')).rejects.toThrow('UI state error');
+      expect(ErrorHandler.handle).toHaveBeenCalledTimes(4);
+    });
+  });
+
+  describe('externalApi persistence', () => {
+    it('should invoke get_external_api_settings and return settings', async () => {
+      // Arrange
+      const mockSettings = {
+        logToApi: true,
+        apiToken: 'tok_123',
+        apiUrl: 'https://api.test',
+        apiMethod: 'POST' as const,
+        apiHeaders: '',
+      };
+      mockInvoke.mockResolvedValue(mockSettings);
+
+      // Act
+      const result = await commands.externalApi.getSettings();
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_external_api_settings');
+      expect(result).toEqual(mockSettings);
+    });
+
+    it('should invoke save_external_api_settings with settings payload', async () => {
+      // Arrange
+      const mockSettings = {
+        logToApi: false,
+        apiToken: '',
+        apiUrl: '',
+        apiMethod: 'POST' as const,
+        apiHeaders: '',
+      };
+      mockInvoke.mockResolvedValue(undefined);
+
+      // Act
+      await commands.externalApi.saveSettings(mockSettings);
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('save_external_api_settings', { settings: mockSettings });
+    });
+
+    it('should report exception and rethrow when externalApi invocation fails', async () => {
+      // Arrange
+      mockInvoke.mockRejectedValue(new Error('API settings error'));
+
+      // Act & Assert
+      await expect(commands.externalApi.getSettings()).rejects.toThrow('API settings error');
+      await expect(commands.externalApi.saveSettings({} as never)).rejects.toThrow('API settings error');
+      expect(ErrorHandler.handle).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('locale persistence', () => {
+    it('should invoke locale and preference commands correctly', async () => {
+      // Arrange
+      mockInvoke.mockResolvedValueOnce('pl');
+      mockInvoke.mockResolvedValueOnce(undefined);
+      mockInvoke.mockResolvedValueOnce('pl-PL');
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      // Act
+      const pref = await commands.locale.getLocalePref();
+      await commands.locale.saveLocalePref('en');
+      const loc = await commands.locale.getLocale();
+      await commands.locale.saveLocale('en-US');
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_locale_pref');
+      expect(pref).toBe('pl');
+      expect(mockInvoke).toHaveBeenCalledWith('save_locale_pref', { pref: 'en' });
+      expect(mockInvoke).toHaveBeenCalledWith('get_locale');
+      expect(loc).toBe('pl-PL');
+      expect(mockInvoke).toHaveBeenCalledWith('save_locale', { locale: 'en-US' });
+    });
+
+    it('should parse and serialize custom translations correctly', async () => {
+      // Arrange
+      const translationsObj = { pl: { hello: 'cześć' } };
+      mockInvoke.mockResolvedValueOnce(JSON.stringify(translationsObj));
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      // Act
+      const fetched = await commands.locale.getCustomTranslations();
+      await commands.locale.saveCustomTranslations(translationsObj);
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_custom_translations');
+      expect(fetched).toEqual(translationsObj);
+      expect(mockInvoke).toHaveBeenCalledWith('save_custom_translations', {
+        translations: JSON.stringify(translationsObj),
+      });
+    });
+
+    it('should return empty object when custom translations is empty or null', async () => {
+      // Arrange
+      mockInvoke.mockResolvedValueOnce('');
+
+      // Act
+      const fetched = await commands.locale.getCustomTranslations();
+
+      // Assert
+      expect(fetched).toEqual({});
+    });
+
+    it('should report exception and rethrow when locale invocation fails', async () => {
+      // Arrange
+      mockInvoke.mockRejectedValue(new Error('Locale error'));
+
+      // Act & Assert
+      await expect(commands.locale.getLocalePref()).rejects.toThrow('Locale error');
+      await expect(commands.locale.saveLocalePref('pl')).rejects.toThrow('Locale error');
+      await expect(commands.locale.getLocale()).rejects.toThrow('Locale error');
+      await expect(commands.locale.saveLocale('pl')).rejects.toThrow('Locale error');
+      await expect(commands.locale.getCustomTranslations()).rejects.toThrow('Locale error');
+      await expect(commands.locale.saveCustomTranslations({})).rejects.toThrow('Locale error');
+      expect(ErrorHandler.handle).toHaveBeenCalledTimes(6);
     });
   });
 });
