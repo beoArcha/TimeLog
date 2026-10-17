@@ -95,46 +95,38 @@ Every layer has exactly one responsibility.
 
 ## Backend Architecture
 
-### EngineRouter
+### EngineRouter & PersistenceRouter (`IRouter<T>`)
 
-Responsible only for selecting the active Engine implementation.
+Responsible exclusively for selecting and routing to the active runtime implementation (Tauri IPC vs Browser In-Memory / LocalStorage).
 
-Never contains business logic.
-
----
-
-### PersistenceRouter
-
-Responsible only for selecting the active Persistence implementation.
-
-Never contains business logic.
+- Implement generic lifecycle interface `IRouter<T>` providing `setImplementationForTesting(implementation: T): void`.
+- Expose domain sub-interfaces via polymorphic getters (`timer`, `metrics`, `timeLogs`, `validation`).
+- Never contain business logic, transformation, or fallback heuristics.
 
 ---
 
-### Engine
+### Engine (`IEngine`)
 
-Business logic and calculations belong exclusively to Engine (`IEngine`).
+Business logic and calculations belong exclusively to Engine (`IEngine`), decomposed according to ISP into segregated domain sub-engines:
 
-Responsibilities include:
+* `timer: ITimerEngine`: timer lifecycle (`startTimer`, `stopTimer`, `resumeTimer`, `getActiveLogs`)
+* `metrics: IMetricsEngine`: snapshot metrics and elapsed calculations (`getComputedMetrics`, `getTaskElapsed`, `getProjectElapsed`, `getElapsedRange`, `getProjectStatistics`)
+* `timeLogs: ITimeLogsEngine`: interval edits, corrections, and audit history (`editTimeLog`)
+* `validation: IValidationEngine`: domain entity validations (`validateProjectName`, `validateTaskName`, `validateTaskHierarchy`)
 
-* timer lifecycle (`start_timer`, `stop_timer`)
-* elapsed calculations and aggregates (`recalculate_metrics`)
-* metric aggregation (snapshot metrics for tasks and projects)
-* log interval validation (`validate_time_log`)
-* parity between Rust core and Browser `EnginePlugin`
-
-Rust remains the reference implementation.
+Rust remains the reference implementation; Browser `EnginePlugin` guarantees behavioral parity.
 
 ---
 
-### Persistence
+### Persistence (`IPersistence`)
 
 Persistence (`IPersistence` / `PersistenceRouter`) is responsible only for storing, retrieving, and mutating entity state.
 
 Responsibilities:
 
-* read state (`load_all`)
-* entity CRUD (`add_project`, `update_project`, `archive_project`, `add_task`, `update_task`, `delete_task`, `add_time_log`, `edit_time_log`, `delete_time_log`)
+* read state (`load`, `overrideState`, `reset`)
+* entity CRUD (`projects`, `tasks`, `timeLogs`, `holidays`, `patches`)
+* configurations and settings (`settings`, `runtimeConfigs`, `uiState`, `externalApi`, `locale`)
 * backup and export operations
 * parity between SQLite backend (Tauri) and LocalStorage `PersistencePlugin` (Browser)
 

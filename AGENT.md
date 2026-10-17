@@ -74,33 +74,32 @@ Every layer owns exactly one responsibility.
 
 ## Backend Architecture
 
-### EngineRouter
+### EngineRouter & PersistenceRouter (`IRouter<T>`)
 
-Selects the active Engine implementation.
+Selects the active runtime implementation (Tauri IPC vs Browser In-Memory / LocalStorage).
 
-Never contains business logic.
-
----
-
-### PersistenceRouter
-
-Selects the active Persistence implementation.
-
-Never contains business logic.
+- Both implement generic `IRouter<T>` providing `setImplementationForTesting(implementation: T): void`.
+- Expose segregated domain sub-interfaces via direct getters (`timer`, `metrics`, `timeLogs`, `validation`).
+- Never contain business logic, transformation, or flat facade duplication.
 
 ---
 
-### Engine
+### Engine (`IEngine`)
 
-Contains every business rule.
+All business logic and time calculations belong exclusively to `IEngine`, segregated by responsibility:
 
-Rust is the reference implementation.
+- `timer: ITimerEngine`: timer start, stop, resume, active logs query.
+- `metrics: IMetricsEngine`: snapshot metrics, task/project elapsed calculations, range filters, and project statistics.
+- `timeLogs: ITimeLogsEngine`: interval edits, note changes, and audit trail reason tracking.
+- `validation: IValidationEngine`: project name, task name, and hierarchy validations.
+
+Rust is the reference implementation; Browser `EnginePlugin` guarantees behavioral parity.
 
 ---
 
-### Persistence
+### Persistence (`IPersistence`)
 
-Stores and retrieves data records (CRUD: projects, tasks, timelogs).
+Stores and retrieves data records (CRUD: projects, tasks, timelogs, holidays, patches, settings).
 
 Never validates business intervals or computes timer metrics.
 

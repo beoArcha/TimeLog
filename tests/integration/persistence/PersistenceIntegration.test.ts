@@ -2,8 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockInvoke } from '@tests/shared/test-helpers';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
-
 import { PersistenceCommands } from '@common/persistence/PersistenceCommands';
+import {
+  aProject,
+  aTask,
+  aTimeLog,
+  aHolidayLeave,
+  aPatchLog,
+} from '@tests/shared/builders/entity-builders';
 
 describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
   beforeEach(() => {
@@ -14,10 +20,10 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
     );
   });
 
-  it('should flow load call from Router to mock Tauri and return correct state', async () => {
+  it('should flow load call from Router to mock Tauri and return correct state when loading core state', async () => {
     const mockState: TimerRepositoryState = {
-      projects: [{ id: 'p1', name: 'Integration Project', color: '#ff0000', archived: false, createdAt: '2026' }],
-      tasks: [{ id: 't1', projectId: 'p1', name: 'Integration Task', completed: false, createdAt: '2026' }],
+      projects: [aProject({ id: 'p1', name: 'Integration Project' })],
+      tasks: [aTask({ id: 't1', projectId: 'p1', name: 'Integration Task' })],
       logs: [],
       activeLog: null,
     };
@@ -31,9 +37,24 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
     expect(result).toEqual(mockState);
   });
 
-  it('should flow addProject from Router to mock Tauri and propagate correct args', async () => {
+  it('should flow overrideState from Router to mock Tauri and invoke override_state command when overriding state', async () => {
+    mockInvoke.mockResolvedValue(undefined);
     const mockState: TimerRepositoryState = {
-      projects: [{ id: 'p1', name: 'New Project', color: '#00ff00', archived: false, createdAt: '2026' }],
+      projects: [aProject({ id: 'p_override', name: 'Overridden Project' })],
+      tasks: [aTask({ id: 't_override', projectId: 'p_override', name: 'Overridden Task' })],
+      logs: [aTimeLog({ id: 'l_override', projectId: 'p_override', taskId: 't_override' })],
+      activeLog: null,
+    };
+
+    const router = PersistenceRouter.getInstance();
+    await router.core.overrideState(mockState);
+
+    expect(mockInvoke).toHaveBeenCalledWith('override_state', { state: mockState });
+  });
+
+  it('should flow addProject from Router to mock Tauri and propagate correct args when adding project', async () => {
+    const mockState: TimerRepositoryState = {
+      projects: [aProject({ id: 'p1', name: 'New Project', color: '#00ff00' })],
       tasks: [],
       logs: [],
       activeLog: null,
@@ -54,7 +75,7 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
     expect(result).toEqual(mockState);
   });
 
-  it('should flow delete time log from Router to mock Tauri and invoke delete_time_log', async () => {
+  it('should flow delete time log from Router to mock Tauri and invoke delete_time_log when deleting log', async () => {
     // Arrange
     mockInvoke.mockResolvedValue(undefined);
     const router = PersistenceRouter.getInstance();
@@ -66,10 +87,10 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
     expect(mockInvoke).toHaveBeenCalledWith('delete_time_log', { logId: 'log_int_1' });
   });
 
-  it('should flow holidays and patches from Router to mock Tauri', async () => {
+  it('should flow holidays and patches from Router to mock Tauri when querying and saving', async () => {
     // Arrange
-    const mockHolidays = [{ id: 'h1', date: '2026-01-01', type: 'holiday' as const, name: 'New Year' }];
-    const mockPatches = [{ id: 'pt1', projectId: 'p1', startTime: '10:00', endTime: '11:00', patchNote: 'Note' }];
+    const mockHolidays = [aHolidayLeave({ id: 'h1', date: '2026-01-01', name: 'New Year' })];
+    const mockPatches = [aPatchLog({ id: 'pt1', projectId: 'p1', patchNote: 'Note' })];
     mockInvoke.mockResolvedValueOnce(mockHolidays);
     mockInvoke.mockResolvedValueOnce(undefined);
     mockInvoke.mockResolvedValueOnce(mockPatches);
@@ -91,7 +112,7 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
     expect(mockInvoke).toHaveBeenCalledWith('save_patches', { patches: mockPatches });
   });
 
-  it('should flow uiState, externalApi, and locale configurations from Router to mock Tauri', async () => {
+  it('should flow uiState, externalApi, and locale configurations from Router to mock Tauri when saving settings', async () => {
     // Arrange
     mockInvoke.mockResolvedValueOnce('p_saved');
     mockInvoke.mockResolvedValueOnce(undefined);

@@ -1,14 +1,14 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup, within, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import { aProject, aTask } from '@tests/shared/builders/entity-builders';
 
 describe('Integration Tests: DbExplorer Tasks Table', () => {
   beforeEach(() => {
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     vi.spyOn(window, 'alert').mockImplementation(() => {});
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -27,12 +27,12 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
 
     const defaultState = {
       projects: [
-        { id: 'proj_1', name: 'Project Alpha', color: 'rose', createdAt: '2026-06-12T00:00:00Z' },
+        aProject({ id: 'proj_1', name: 'Project Alpha' }),
       ],
       setProjects,
       tasks: [
-        { id: 'task_1', projectId: 'proj_1', parentTaskId: null, name: 'Task One', createdAt: '2026-06-12T00:00:00Z', completed: false },
-        { id: 'task_2', projectId: 'proj_1', parentTaskId: null, name: 'Task Two', createdAt: '2026-06-12T00:00:00Z', completed: true },
+        aTask({ id: 'task_1', projectId: 'proj_1', name: 'Task One', completed: false }),
+        aTask({ id: 'task_2', projectId: 'proj_1', name: 'Task Two', completed: true }),
       ],
       setTasks,
       logs: [],
@@ -94,7 +94,7 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
     };
   };
 
-  it('should_handle_editing_and_saving_task_changes_when_editing_task', () => {
+  it('should handle editing and saving task changes when editing task', () => {
     const { setTasks } = setup();
 
     const tasksTableWrapper = screen.getByText(/tasks table/i).closest('.border');
@@ -104,11 +104,10 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
     const nameInput = tasksTableWrapper?.querySelector('input[type="text"]') as HTMLInputElement;
     fireEvent.change(nameInput, { target: { value: 'Task One Edited' } });
 
-    const completedCheckbox = tasksTableWrapper?.querySelector('input[type="checkbox"]') as HTMLInputElement;
-    fireEvent.click(completedCheckbox); // toggle completion
+    const completedCheckbox = screen.getByRole('checkbox', { name: /Completed/i });
+    fireEvent.click(completedCheckbox);
 
-    const reasonInput = (tasksTableWrapper?.querySelector('input[placeholder*="Reason"], input[placeholder*="Powód"]') ||
-      tasksTableWrapper?.querySelectorAll('input[type="text"]')[1]) as HTMLInputElement;
+    const reasonInput = screen.getByRole('textbox', { name: /Reason/i });
     fireEvent.change(reasonInput, { target: { value: 'Done with task' } });
 
     const saveBtn = tasksTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
@@ -117,7 +116,7 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
     expect(setTasks).toHaveBeenCalled();
   });
 
-  it('should_delete_task_when_task_deletion_is_confirmed', async () => {
+  it('should delete task and associated logs when task deletion is confirmed in dialog', async () => {
     const { setTasks, setLogs } = setup();
 
     const tasksTableWrapper = screen.getByText(/tasks table/i).closest('.border');

@@ -107,13 +107,15 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ---
 
-### Phase 6 — Data Reliability & Backend Unification 🚧 (Current Focus)
+### Phase 6 — Data Reliability, Engine ISP & Backend Unification ✅ (Completed)
 
-- [x] JSON Backup & Restore UI (`BackupTab.tsx`)
-- [x] Database Explorer & Audit Trail UI (`DbExplorer.tsx` with revision history)
-- [ ] **Full SQLite Migration**: Move `holidays`, `patches`, `externalApi`, `uiState`, and `locale` from `PersistencePlugin` fallback into native Rust SQLite tables (`PersistenceCommands.ts`)
-- [ ] **Backend State Override**: Implement native `override_state` / transactional import command in Rust so JSON backup restore works natively in Tauri
-- [ ] **Validation Boundary Cleanup**: Move remaining frontend validation calls (`validateProjectName`, `validateTaskName`, `validateTaskHierarchy` in data hooks) behind `EngineRouter`
+- [x] JSON Backup & Restore UI (`BackupTab.tsx`) with schema validation and toast feedback
+- [x] Database Explorer & Audit Trail UI (`DbExplorer.tsx` with `ConfirmDialog` and revision history)
+- [x] Full SQLite Migration: `holidays`, `patches`, `config` in native Rust SQLite tables (`src-tauri/`) and frontend persistence commands
+- [x] Backend State Override: native `override_state` transactional import command in Rust and `delete_time_log` command
+- [x] Engine ISP Decomposition: `IEngine` decomposed into `timer`, `metrics`, `timeLogs`, `validation`, and `IRouter<T>` lifecycle router
+- [x] Temporal Edge-Case Calculations: 72h multi-day logs, 48h active logs, 2024 leap year boundary, and 2025/2026 New Year boundary in TypeScript and Rust
+- [x] Integration Quality Audit & Refactoring: Triple Decoupling, Test Data Builders (`entity-builders.ts`), BDD naming, E2E backup/restore in Playwright
 
 ### Phase 7 — Native Desktop Hardening 🔄 (In Progress)
 

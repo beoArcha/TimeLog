@@ -1,14 +1,14 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup, within, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import { aProject, aPatchLog } from '@tests/shared/builders/entity-builders';
 
 describe('Integration Tests: DbExplorer Patches Table', () => {
   beforeEach(() => {
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     vi.spyOn(window, 'alert').mockImplementation(() => {});
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -25,13 +25,13 @@ describe('Integration Tests: DbExplorer Patches Table', () => {
 
     const defaultState = {
       projects: [
-        { id: 'proj_1', name: 'Project Alpha', color: 'rose', createdAt: '2026-06-12T00:00:00Z' },
+        aProject({ id: 'proj_1', name: 'Project Alpha' }),
       ],
       tasks: [],
       logs: [],
       holidays: [],
       patches: [
-        { id: 'patch_1', projectId: 'proj_1', startTime: '2026-06-12T05:00:00Z', endTime: '2026-06-12T06:00:00Z', patchNote: 'Patch one' },
+        aPatchLog({ id: 'patch_1', projectId: 'proj_1', startTime: '2026-06-12T05:00:00Z', endTime: '2026-06-12T06:00:00Z', patchNote: 'Patch one' }),
       ],
       setPatches,
       localePref: 'system',
@@ -86,7 +86,7 @@ describe('Integration Tests: DbExplorer Patches Table', () => {
     };
   };
 
-  it('should_add_and_delete_patch_manually_when_patch_table_actions_are_triggered', async () => {
+  it('should add and delete patch manually when patch table actions are triggered', async () => {
     const { setPatches } = setup();
 
     const addPatchBtn = screen.getByText(/add manual patch/i);
@@ -97,12 +97,12 @@ describe('Integration Tests: DbExplorer Patches Table', () => {
     fireEvent.change(inputs[1], { target: { value: '2026-06-12T06:00:00Z' } });
     fireEvent.change(inputs[2], { target: { value: 'Test patch note' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /Save|Zapisz/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Save/i }));
 
     expect(setPatches).toHaveBeenCalled();
 
     // Test delete patch
-    const deleteBtns = screen.getAllByRole('button', { name: /Delete|Usuń/i });
+    const deleteBtns = screen.getAllByRole('button', { name: /Delete/i });
     const patchDeleteBtn = deleteBtns[deleteBtns.length - 1];
     fireEvent.click(patchDeleteBtn);
 

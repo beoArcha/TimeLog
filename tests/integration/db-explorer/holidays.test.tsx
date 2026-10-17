@@ -1,14 +1,14 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import { aHolidayLeave } from '@tests/shared/builders/entity-builders';
 
 describe('Integration Tests: DbExplorer Holidays Table', () => {
   beforeEach(() => {
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     vi.spyOn(window, 'alert').mockImplementation(() => { });
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -28,7 +28,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
       tasks: [],
       logs: [],
       holidays: [
-        { id: 'leave_1', date: '2026-12-25', type: 'holiday', name: 'Christmas' },
+        aHolidayLeave({ id: 'leave_1', date: '2026-12-25', type: 'holiday', name: 'Christmas' }),
       ],
       setHolidays,
       patches: [],
@@ -85,7 +85,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     };
   };
 
-  it('should_add_new_holiday_entry_when_add_leave_is_clicked', () => {
+  it('should add new holiday entry when add leave button is clicked', () => {
     const { setHolidays } = setup();
 
     const addLeaveBtn = screen.getByText(/\+ Add Leave/i);
@@ -94,7 +94,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     expect(setHolidays).toHaveBeenCalled();
   });
 
-  it('should_edit_holiday_entries_when_saved_in_holidays_table', () => {
+  it('should update holiday entry when saved in holidays table', () => {
     const { setHolidays } = setup();
 
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
@@ -111,7 +111,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     expect(setHolidays).toHaveBeenCalled();
   });
 
-  it('should_cancel_editing_when_anuluj_is_clicked', () => {
+  it('should cancel editing when cancel button is clicked', () => {
     const { setHolidays } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
@@ -123,7 +123,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     expect(setHolidays).not.toHaveBeenCalled();
   });
 
-  it('should_delete_holiday_when_wycofaj_is_clicked', () => {
+  it('should delete holiday when delete button is clicked and confirmed in dialog', () => {
     const { setHolidays } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
@@ -138,7 +138,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     expect(setHolidays).toHaveBeenCalled();
   });
 
-  it('Given a holiday list, When editing is started and no changes are made and saved, Then it should close editing without updating holidays', () => {
+  it('should close editing without updating holidays when no changes are made and saved', () => {
     const { setHolidays } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
@@ -151,13 +151,13 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     expect(setHolidays).toHaveBeenCalled();
     const updateFn = setHolidays.mock.calls[0][0];
     const initialHolidays = [
-      { id: 'leave_1', date: '2026-12-25', type: 'holiday', name: 'Christmas' }
+      aHolidayLeave({ id: 'leave_1', date: '2026-12-25', type: 'holiday', name: 'Christmas' })
     ];
     const updatedHolidays = updateFn(initialHolidays);
     expect(updatedHolidays[0]).toBe(initialHolidays[0]);
   });
 
-  it('Given a holiday list, When type is changed and custom reason is entered and saved, Then it should trigger setHolidays with update and new history entry', () => {
+  it('should trigger setHolidays with update and new history entry when type is changed and reason is entered', () => {
     const { setHolidays } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
@@ -175,10 +175,10 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     expect(setHolidays).toHaveBeenCalled();
   });
 
-  it('Given a holiday with history, When clicking history button, Then it should toggle the history details view', () => {
+  it('should toggle history details view when clicking history button', () => {
     const customValue = {
       holidays: [
-        {
+        aHolidayLeave({
           id: 'leave_1',
           date: '2026-12-25',
           type: 'holiday',
@@ -195,7 +195,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
               reason: 'Initial Correction'
             }
           ]
-        },
+        }),
       ]
     };
     setup(customValue);

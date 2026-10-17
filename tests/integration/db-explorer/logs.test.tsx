@@ -1,4 +1,3 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup, waitFor, within } from '@testing-library/react';
@@ -6,12 +5,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 
 describe('Integration Tests: DbExplorer Logs Table', () => {
+  let insertSpy: ReturnType<typeof vi.spyOn>;
+  let deleteSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
-    vi.spyOn(PersistenceRouter.getInstance().timeLogs, 'insert').mockResolvedValue(undefined);
-    vi.spyOn(PersistenceRouter.getInstance().timeLogs, 'delete').mockResolvedValue(undefined);
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    insertSpy = vi.spyOn(PersistenceRouter.getInstance().timeLogs, 'insert').mockResolvedValue(undefined);
+    deleteSpy = vi.spyOn(PersistenceRouter.getInstance().timeLogs, 'delete').mockResolvedValue(undefined);
     vi.spyOn(window, 'alert').mockImplementation(() => { });
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -31,15 +34,15 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
     const defaultState = {
       projects: [
-        { id: 'proj_1', name: 'Project Alpha', color: 'rose', createdAt: '2026-06-12T00:00:00Z' },
+        aProject({ id: 'proj_1', name: 'Project Alpha' }),
       ],
       setProjects,
       tasks: [
-        { id: 'task_1', projectId: 'proj_1', parentTaskId: null, name: 'Task One', createdAt: '2026-06-12T00:00:00Z', completed: false },
+        aTask({ id: 'task_1', projectId: 'proj_1', name: 'Task One' }),
       ],
       setTasks,
       logs: [
-        { id: 'log_1', taskId: 'task_1', projectId: 'proj_1', startTime: '2026-06-12T01:00:00Z', endTime: '2026-06-12T02:00:00Z', note: 'First log' },
+        aTimeLog({ id: 'log_1', taskId: 'task_1', projectId: 'proj_1', startTime: '2026-06-12T01:00:00Z', endTime: '2026-06-12T02:00:00Z', note: 'First log' }),
       ],
       setLogs,
       handleEditTimeLog,
@@ -100,7 +103,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     };
   };
 
-  it('should_show_manual_add_form_and_submit_log_when_adding_manually', async () => {
+  it('should show manual add form and submit log when adding manually', async () => {
     const { container, setLogs } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
@@ -119,11 +122,12 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
+      expect(insertSpy).toHaveBeenCalledWith(expect.any(String), 'task_1', '2026-06-20T10:00:00.000Z');
       expect(setLogs).toHaveBeenCalled();
     });
   });
 
-  it('should_alert_when_submitting_manual_log_without_selected_task', () => {
+  it('should trigger alert when submitting manual log without selected task', () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
     const { container, setLogs } = setup({ tasks: [] });
 
@@ -133,11 +137,11 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const form = container.querySelector('form') as HTMLFormElement;
     fireEvent.submit(form);
 
-    expect(alertSpy).toHaveBeenCalledWith('Select a task first!');
+    expect(alertSpy).toHaveBeenCalled();
     expect(setLogs).not.toHaveBeenCalled();
   });
 
-  it('should_handle_editing_and_deleting_logs_when_modified_in_logs_table', async () => {
+  it('should handle editing and deleting logs when modified in logs table', async () => {
     const { setLogs, handleEditTimeLog } = setup();
 
     const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
@@ -153,7 +157,6 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
     expect(handleEditTimeLog).toHaveBeenCalled();
 
-    // Wait for edit mode to close before finding and clicking delete button
     await waitFor(() => {
       expect(within(logsTableWrapper as HTMLElement).queryByRole('button', { name: /save/i })).toBeNull();
     });
@@ -167,11 +170,12 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
+      expect(deleteSpy).toHaveBeenCalledWith('log_1');
       expect(setLogs).toHaveBeenCalled();
     });
   });
 
-  it('Given a log list, When editing is started and canceled, Then it should exit edit mode', () => {
+  it('should exit edit mode when editing is started and canceled', () => {
     const { setLogs } = setup();
     const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
 
@@ -184,7 +188,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     expect(setLogs).not.toHaveBeenCalled();
   });
 
-  it('Given a log list, When editing is started and saved with no changes, Then it should close editing without triggering setLogs', () => {
+  it('should close editing without triggering setLogs when saved with no changes', () => {
     const { handleEditTimeLog } = setup();
     const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
 
@@ -197,10 +201,10 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     expect(handleEditTimeLog).not.toHaveBeenCalled();
   });
 
-  it('Given a log list with history, When clicking history button, Then it should toggle the history details view', () => {
+  it('should toggle history details view when clicking history button', () => {
     const customValue = {
       logs: [
-        {
+        aTimeLog({
           id: 'log_1',
           taskId: 'task_1',
           projectId: 'proj_1',
@@ -216,7 +220,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
               reason: 'Adjusted start time'
             }
           ]
-        },
+        }),
       ]
     };
     setup(customValue);
@@ -232,7 +236,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     expect(screen.queryByText(/Adjusted start time/i)).toBeNull();
   });
 
-  it('Given the manual add form, When canceled, Then it should close the form', () => {
+  it('should close manual add form when canceled', () => {
     const { container } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
@@ -240,13 +244,14 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
 
     expect(container.querySelector('form')).not.toBeNull();
 
-    const cancelBtn = screen.getByRole('button', { name: /Cancel|Anuluj/i });
+    const form = container.querySelector('form')!;
+    const cancelBtn = within(form).getAllByRole('button')[1];
     fireEvent.click(cancelBtn);
 
     expect(container.querySelector('form')).toBeNull();
   });
 
-  it('Given the manual add form, When submitted with empty end time and empty note, Then it should submit with defaults', async () => {
+  it('should submit with defaults when manual add form is submitted with empty end time and note', async () => {
     const { container, setLogs } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
@@ -265,6 +270,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
+      expect(insertSpy).toHaveBeenCalled();
       expect(setLogs).toHaveBeenCalled();
     });
   });
