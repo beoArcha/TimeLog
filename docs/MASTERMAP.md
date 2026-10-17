@@ -114,7 +114,6 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [ ] **Full SQLite Migration**: Move `holidays`, `patches`, `externalApi`, `uiState`, and `locale` from `PersistencePlugin` fallback into native Rust SQLite tables (`PersistenceCommands.ts`)
 - [ ] **Backend State Override**: Implement native `override_state` / transactional import command in Rust so JSON backup restore works natively in Tauri
 - [ ] **Validation Boundary Cleanup**: Move remaining frontend validation calls (`validateProjectName`, `validateTaskName`, `validateTaskHierarchy` in data hooks) behind `EngineRouter`
-- [ ] **Bindings Deduplication**: Consolidate `src-tauri/bindings/` and `src/bindings/` into a single export target
 
 ### Phase 7 — Native Desktop Hardening 🔄 (In Progress)
 
