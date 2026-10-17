@@ -22,7 +22,7 @@ describe('Unit Tests: useMetricsManager Hook', () => {
       tasks: {},
       snapshotNowIso: '2026-10-15T12:00:00Z',
     };
-    vi.spyOn(engine, 'getComputedMetrics').mockResolvedValue(mockMetrics);
+    vi.spyOn(engine.metrics, 'getComputedMetrics').mockResolvedValue(mockMetrics);
 
     const { result } = renderHook(() => useMetricsManager());
 
@@ -40,7 +40,7 @@ describe('Unit Tests: useMetricsManager Hook', () => {
       tasks: { t1: { taskId: 't1', elapsedSeconds: 100, selfElapsedSeconds: 100, isRunning: false, hasRunningChild: false } },
       snapshotNowIso: '2026-10-15T12:00:00Z',
     };
-    vi.spyOn(engine, 'getComputedMetrics').mockResolvedValue(mockMetrics);
+    vi.spyOn(engine.metrics, 'getComputedMetrics').mockResolvedValue(mockMetrics);
 
     const { result } = renderHook(() => useMetricsManager());
 
@@ -55,7 +55,7 @@ describe('Unit Tests: useMetricsManager Hook', () => {
       tasks: { t1: { taskId: 't1', elapsedSeconds: 100, selfElapsedSeconds: 100, isRunning: false, hasRunningChild: false } },
       snapshotNowIso: '2026-10-15T12:00:00Z',
     };
-    vi.spyOn(engine, 'getComputedMetrics').mockResolvedValue(identicalMetrics);
+    vi.spyOn(engine.metrics, 'getComputedMetrics').mockResolvedValue(identicalMetrics);
 
     await act(async () => {
       await result.current.fetchComputedMetrics();
@@ -65,7 +65,7 @@ describe('Unit Tests: useMetricsManager Hook', () => {
   });
 
   it('should return null and not throw if engine fails to fetch metrics', async () => {
-    vi.spyOn(engine, 'getComputedMetrics').mockRejectedValue(new Error('Engine unavailable'));
+    vi.spyOn(engine.metrics, 'getComputedMetrics').mockRejectedValue(new Error('Engine unavailable'));
 
     const { result } = renderHook(() => useMetricsManager());
 
