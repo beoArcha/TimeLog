@@ -36,4 +36,5 @@ fn export_bindings() {
     TaskComputedMetrics::export().unwrap();
     ProjectComputedMetrics::export().unwrap();
     EngineComputedMetrics::export().unwrap();
+    ExternalApiSettings::export().unwrap();
 }

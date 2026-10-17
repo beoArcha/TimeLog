@@ -92,4 +92,10 @@ impl TimeLogsPersistence {
         self.shared.cache.clear();
         Ok(())
     }
+
+    pub fn delete(&self, id: &str) -> PersistenceResult<()> {
+        self.shared.business_repo.delete_time_log(id)?;
+        self.shared.cache.clear();
+        Ok(())
+    }
 }

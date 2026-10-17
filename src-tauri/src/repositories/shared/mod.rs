@@ -43,6 +43,8 @@ pub fn initialize_database(conn: &Connection) -> Result<()> {
     let _ = conn.execute(constants::ALTER_PROJECTS_ADD_TAGS, []);
     let _ = conn.execute(constants::ALTER_TASKS_ADD_STATUS, []);
     conn.execute(constants::CREATE_RUNTIME_CONFIGS_TABLE, [])?;
+    conn.execute(constants::CREATE_HOLIDAYS_TABLE, [])?;
+    conn.execute(constants::CREATE_PATCHES_TABLE, [])?;
 
     Ok(())
 }

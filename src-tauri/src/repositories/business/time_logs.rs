@@ -127,4 +127,9 @@ impl BusinessRepository {
         tx.commit()?;
         Ok(())
     }
+
+    pub fn delete_time_log(&self, id: &str) -> Result<usize> {
+        let conn = self.connect()?;
+        Ok(conn.execute(constants::DELETE_TIME_LOG_BY_ID, params![id])?)
+    }
 }

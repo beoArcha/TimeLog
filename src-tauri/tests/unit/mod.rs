@@ -1,4 +1,5 @@
 pub mod app_state_test;
+pub mod auxiliary_repository_test;
 pub mod business_repository_test;
 pub mod cache_test;
 pub mod cli_shared_test;
@@ -8,7 +9,9 @@ pub mod csv_sink_test;
 pub mod db_test;
 pub mod engine_test;
 pub mod errors_test;
+pub mod holidays_patches_repository_test;
 pub mod locale_test;
+pub mod override_state_test;
 pub mod runtime_config_test;
 pub mod timer_engine_test;
 pub mod tray_ids_test;

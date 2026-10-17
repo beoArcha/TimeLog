@@ -158,6 +158,11 @@ pub const INSERT_TIME_LOG: &str = "
     VALUES (?, ?, ?, NULL)
 ";
 
+pub const INSERT_FULL_TIME_LOG: &str = "
+    INSERT OR REPLACE INTO time_logs (id, task_id, start_time, end_time, note)
+    VALUES (?1, ?2, ?3, ?4, ?5)
+";
+
 pub const SELECT_ACTIVE_TASK_IDS: &str = "
     SELECT task_id FROM time_logs WHERE end_time IS NULL
 ";
@@ -203,3 +208,32 @@ pub const SELECT_ALL_TIME_LOGS: &str = "
 ";
 
 pub const DELETE_ALL_TIME_LOGS: &str = "DELETE FROM time_logs";
+pub const DELETE_TIME_LOG_BY_ID: &str = "DELETE FROM time_logs WHERE id = ?1";
+
+pub const SELECT_ALL_HOLIDAYS: &str = "
+    SELECT id, date, type, name, note, original_name, original_date, original_type, edit_history
+    FROM holidays
+    ORDER BY date ASC
+";
+
+pub const INSERT_OR_REPLACE_HOLIDAY: &str = "
+    INSERT OR REPLACE INTO holidays (
+        id, date, type, name, note, original_name, original_date, original_type, edit_history
+    ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+";
+
+pub const DELETE_ALL_HOLIDAYS: &str = "DELETE FROM holidays";
+
+pub const SELECT_ALL_PATCHES: &str = "
+    SELECT id, project_id, task_id, start_time, end_time, patch_note, is_system_event
+    FROM patches
+    ORDER BY start_time ASC
+";
+
+pub const INSERT_OR_REPLACE_PATCH: &str = "
+    INSERT OR REPLACE INTO patches (
+        id, project_id, task_id, start_time, end_time, patch_note, is_system_event
+    ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+";
+
+pub const DELETE_ALL_PATCHES: &str = "DELETE FROM patches";

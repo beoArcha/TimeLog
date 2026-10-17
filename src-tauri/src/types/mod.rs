@@ -3,6 +3,7 @@
 #![allow(unused_imports)]
 
 pub mod commands;
+pub mod external_api;
 pub mod frontend_event;
 pub mod gui;
 pub mod holiday;
@@ -17,6 +18,7 @@ pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,
     SettingsPersistenceCommand, TasksPersistenceCommand, WindowCommand,
 };
+pub use external_api::ExternalApiSettings;
 pub use frontend_event::FrontendEvent;
 pub use gui::{AlwaysOnTopConfig, LayoutVariant, TextAndIconSize, WindowDimensions};
 pub use holiday::{HolidayLeave, HolidayLeaveEditHistory, HolidayType};

@@ -16,4 +16,17 @@ impl CorePersistence {
         self.shared.cache.clear();
         Ok(())
     }
+
+    pub fn override_state(
+        &self,
+        projects: Option<Vec<crate::types::Project>>,
+        tasks: Option<Vec<crate::types::Task>>,
+        logs: Option<Vec<crate::types::TimeLog>>,
+    ) -> PersistenceResult<()> {
+        self.shared
+            .business_repo
+            .override_state(projects, tasks, logs)?;
+        self.shared.cache.clear();
+        Ok(())
+    }
 }

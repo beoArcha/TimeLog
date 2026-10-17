@@ -1,3 +1,4 @@
+pub mod auxiliary;
 pub mod constants;
 pub mod runtime_config;
 pub mod settings;
