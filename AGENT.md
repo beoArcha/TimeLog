@@ -617,6 +617,18 @@ Always:
 
 ---
 
+## Code Commenting Standards
+
+Always for mandatory project-wide commenting rules.:
+
+- Code self-documents "WHAT" and "HOW"; comments exist solely to explain the non-obvious "WHY" (business rules, platform quirks, non-obvious algorithms).
+- Never write declarative compliance comments ("adheres to SRP...", "compliant with Clean Architecture...").
+- Comments signaling or justifying SRP, ISP, or OCP violations are strictly forbidden — refactor the code instead.
+- No decorative banners (`===`, `***`), ASCII borders, dead commented-out code, or author/timestamp metadata.
+- Temporary technical notes must use `TODO:` with context and reason for deferral.
+
+---
+
 ## AI Decision Rules
 
 When uncertain:
