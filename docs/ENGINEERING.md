@@ -12,14 +12,14 @@ It is the authoritative engineering reference for contributors, reviewers, and A
 
 Every engineering decision should improve at least one of the following without unnecessarily harming the others.
 
-* Simplicity
-* Maintainability
-* Correctness
-* Predictability
-* Testability
-* Runtime Independence
-* Native User Experience
-* Long-Term Sustainability
+- Simplicity
+- Maintainability
+- Correctness
+- Predictability
+- Testability
+- Runtime Independence
+- Native User Experience
+- Long-Term Sustainability
 
 ---
 
@@ -65,10 +65,10 @@ The entire application is based on composition.
 
 Systems are assembled from:
 
-* Routers
-* Managers
-* Builders
-* Runtime implementations
+- Routers
+- Managers
+- Builders
+- Runtime implementations
 
 Avoid deep inheritance hierarchies.
 
@@ -97,7 +97,7 @@ Every layer has exactly one responsibility.
 
 ### EngineRouter & PersistenceRouter (`IRouter<T>`)
 
-Responsible exclusively for selecting and routing to the active runtime implementation (Tauri IPC vs Browser In-Memory / LocalStorage).
+Responsible exclusively for selecting and routing to the active runtime implementation (Tauri IPC vs Browser In-Memory / LocalStorage):
 
 - Implement generic lifecycle interface `IRouter<T>` providing `setImplementationForTesting(implementation: T): void`.
 - Expose domain sub-interfaces via polymorphic getters (`timer`, `metrics`, `timeLogs`, `validation`).
@@ -109,10 +109,10 @@ Responsible exclusively for selecting and routing to the active runtime implemen
 
 Business logic and calculations belong exclusively to Engine (`IEngine`), decomposed according to ISP into segregated domain sub-engines:
 
-* `timer: ITimerEngine`: timer lifecycle (`startTimer`, `stopTimer`, `resumeTimer`, `getActiveLogs`)
-* `metrics: IMetricsEngine`: snapshot metrics and elapsed calculations (`getComputedMetrics`, `getTaskElapsed`, `getProjectElapsed`, `getElapsedRange`, `getProjectStatistics`)
-* `timeLogs: ITimeLogsEngine`: interval edits, corrections, and audit history (`editTimeLog`)
-* `validation: IValidationEngine`: domain entity validations (`validateProjectName`, `validateTaskName`, `validateTaskHierarchy`)
+- `timer: ITimerEngine`: timer lifecycle (`startTimer`, `stopTimer`, `resumeTimer`, `getActiveLogs`)
+- `metrics: IMetricsEngine`: snapshot metrics and elapsed calculations (`getComputedMetrics`, `getTaskElapsed`, `getProjectElapsed`, `getElapsedRange`, `getProjectStatistics`)
+- `timeLogs: ITimeLogsEngine`: interval edits, corrections, and audit history (`editTimeLog`)
+- `validation: IValidationEngine`: domain entity validations (`validateProjectName`, `validateTaskName`, `validateTaskHierarchy`)
 
 Rust remains the reference implementation; Browser `EnginePlugin` guarantees behavioral parity.
 
@@ -124,17 +124,17 @@ Persistence (`IPersistence` / `PersistenceRouter`) is responsible only for stori
 
 Responsibilities:
 
-* read state (`load`, `overrideState`, `reset`)
-* entity CRUD (`projects`, `tasks`, `timeLogs`, `holidays`, `patches`)
-* configurations and settings (`settings`, `runtimeConfigs`, `uiState`, `externalApi`, `locale`)
-* backup and export operations
-* parity between SQLite backend (Tauri) and LocalStorage `PersistencePlugin` (Browser)
+- read state (`load`, `overrideState`, `reset`)
+- entity CRUD (`projects`, `tasks`, `timeLogs`, `holidays`, `patches`)
+- configurations and settings (`settings`, `runtimeConfigs`, `uiState`, `externalApi`, `locale`)
+- backup and export operations
+- parity between SQLite backend (Tauri) and LocalStorage `PersistencePlugin` (Browser)
 
 Persistence never:
 
-* validates business time overlap rules (Engine responsibility)
-* calculates metric statistics
-* orchestrates active timer ticks
+- validates business time overlap rules (Engine responsibility)
+- calculates metric statistics
+- orchestrates active timer ticks
 
 ---
 
@@ -154,29 +154,29 @@ A Runtime represents the execution environment.
 
 Current runtimes:
 
-* Browser
-* Tauri
+- Browser
+- Tauri
 
 Future runtimes may include:
 
-* Electron
-* Mobile
-* Embedded
-* WebView
+- Electron
+- Mobile
+- Embedded
+- WebView
 
 Runtime is responsible only for:
 
-* environment integration
-* native APIs
-* window management
-* runtime wrappers
-* runtime styling
+- environment integration
+- native APIs
+- window management
+- runtime wrappers
+- runtime styling
 
 Runtime never changes:
 
-* business logic
-* layout composition
-* component hierarchy
+- business logic
+- layout composition
+- component hierarchy
 
 ---
 
@@ -196,10 +196,10 @@ Both expose exactly the same frontend architecture.
 
 Differences should remain limited to:
 
-* runtime integration
-* window behavior
-* runtime CSS
-* native APIs
+- runtime integration
+- window behavior
+- runtime CSS
+- native APIs
 
 ---
 
@@ -209,16 +209,16 @@ LayoutManager composes the application inside the current runtime.
 
 Responsibilities:
 
-* host application shell
-* compose LayoutVariant
-* provide shared application structure
-* host common providers
+- host application shell
+- compose LayoutVariant
+- provide shared application structure
+- host common providers
 
 LayoutManager never decides:
 
-* runtime
-* layout variant
-* visual scale
+- runtime
+- layout variant
+- visual scale
 
 Those values come from application configuration.
 
@@ -230,16 +230,16 @@ LayoutVariant defines application composition.
 
 Examples:
 
-* Full
-* Half
-* Compact
+- Full
+- Half
+- Compact
 
 LayoutVariant determines:
 
-* page composition
-* column layout
-* navigation placement
-* major screen regions
+- page composition
+- column layout
+- navigation placement
+- major screen regions
 
 Each LayoutVariant has its own Builder.
 
@@ -251,15 +251,15 @@ Builders compose layouts.
 
 Examples:
 
-* FullBuilder
-* HalfBuilder
-* CompactBuilder
+- FullBuilder
+- HalfBuilder
+- CompactBuilder
 
 Builders never:
 
-* calculate sizes
-* detect runtime
-* modify business logic
+- calculate sizes
+- detect runtime
+- modify business logic
 
 Builders only compose views.
 
@@ -271,12 +271,12 @@ TextAndIconSize defines visual scale.
 
 It controls only:
 
-* typography
-* icon sizes
-* spacing
-* paddings
-* border radius
-* CSS Design Tokens
+- typography
+- icon sizes
+- spacing
+- paddings
+- border radius
+- CSS Design Tokens
 
 It never changes layout composition.
 
@@ -288,12 +288,12 @@ CSS is responsible for presentation.
 
 React components should not calculate:
 
-* spacing
-* paddings
-* margins
-* typography
-* sizing
-* theme visual variants via inline branching
+- spacing
+- paddings
+- margins
+- typography
+- sizing
+- theme visual variants via inline branching
 
 Visual scaling belongs entirely to CSS Design Tokens.
 
@@ -323,10 +323,10 @@ React should not contain conditional styling logic based on scale.
 
 The application adopts the Dependency Inversion Principle (DIP) for theme styling:
 
-* **No Inline Theme Branching**: React components must not evaluate `resolvedTheme === 'light'` or `theme === 'high-contrast'`.
-* **ThemeRegistry**: The singleton `ThemeRegistry` (`src/styles/themeRegistry.ts`) holds built-in (`light`, `dark`, `high-contrast`) and extensible custom themes.
-* **Dynamic Application**: Applying a theme injects or toggles `data-theme` on `document.documentElement` and applies CSS variables dynamically.
-* **AST Architecture Verification**: Strict AST inspection in `tests/architecture/specs/no-inline-theme-ternaries.arch.test.ts` enforces zero inline theme conditionals across the entire codebase with an empty allowlist.
+- **No Inline Theme Branching**: React components must not evaluate `resolvedTheme === 'light'` or `theme === 'high-contrast'`.
+- **ThemeRegistry**: The singleton `ThemeRegistry` (`src/styles/themeRegistry.ts`) holds built-in (`light`, `dark`, `high-contrast`) and extensible custom themes.
+- **Dynamic Application**: Applying a theme injects or toggles `data-theme` on `document.documentElement` and applies CSS variables dynamically.
+- **AST Architecture Verification**: Strict AST inspection in `tests/architecture/specs/no-inline-theme-ternaries.arch.test.ts` enforces zero inline theme conditionals across the entire codebase with an empty allowlist.
 
 ---
 
@@ -334,17 +334,17 @@ The application adopts the Dependency Inversion Principle (DIP) for theme stylin
 
 React is responsible only for:
 
-* rendering
-* user interaction
-* local UI state
-* view composition
+- rendering
+- user interaction
+- local UI state
+- view composition
 
 React must never contain:
 
-* business calculations
-* persistence logic
-* runtime selection
-* platform-specific workflows
+- business calculations
+- persistence logic
+- runtime selection
+- platform-specific workflows
 
 ---
 
@@ -352,10 +352,10 @@ React must never contain:
 
 Components should:
 
-* be small
-* have a single responsibility
-* remain reusable
-* avoid unnecessary state
+- be small
+- have a single responsibility
+- remain reusable
+- avoid unnecessary state
 
 Prefer composition.
 
@@ -369,16 +369,16 @@ Hooks orchestrate UI behavior.
 
 Hooks must not:
 
-* implement business logic
-* access persistence directly
-* duplicate Engine behavior
+- implement business logic
+- access persistence directly
+- duplicate Engine behavior
 
 ### Live Calculation Hooks
 
 Time elapsed calculations must never be duplicated across components or layouts.
 
-* `useLiveTaskElapsed(taskId, options)`: Single source of truth for task elapsed time. Reconciles cached snapshot metrics (`EngineComputedMetrics`) with the live delta from the active timer tick.
-* `useLiveProjectElapsed(projectId, options)`: Computes aggregate live elapsed time for entire projects.
+- `useLiveTaskElapsed(taskId, options)`: Single source of truth for task elapsed time. Reconciles cached snapshot metrics (`EngineComputedMetrics`) with the live delta from the active timer tick.
+- `useLiveProjectElapsed(projectId, options)`: Computes aggregate live elapsed time for entire projects.
 
 Ad-hoc ticker intervals (`setInterval` / `useTimeTicker`) in individual components are strictly forbidden.
 
@@ -404,9 +404,9 @@ Repositories only access storage.
 
 Never:
 
-* validate
-* calculate
-* orchestrate workflows
+- validate
+- calculate
+- orchestrate workflows
 
 ---
 
@@ -416,8 +416,8 @@ Runtime-specific code must remain isolated.
 
 No shared component should know whether it runs inside:
 
-* Browser
-* Tauri
+- Browser
+- Tauri
 
 Runtime differences belong only to runtime implementations.
 
@@ -435,39 +435,39 @@ Builders never define runtime behavior.
 
 ### Architectural Tests
 
-* AST scanning for raw HTML primitives (`no-raw-html-primitives.rule.ts` with zero exceptions)
-* Runtime isolation and boundary checks
-* Circular dependency detection
-* Persistence boundary enforcement
+- AST scanning for raw HTML primitives (`no-raw-html-primitives.rule.ts` with zero exceptions)
+- Runtime isolation and boundary checks
+- Circular dependency detection
+- Persistence boundary enforcement
 
 ---
 
 ### Unit Tests
 
-* utilities
-* plugins
-* repositories
-* builders
-* design system primitives and composites
+- utilities
+- plugins
+- repositories
+- builders
+- design system primitives and composites
 
 ---
 
 ### Integration Tests
 
-* routers
-* runtime communication
-* tauri commands
-* persistence
-* composite dialogs and view workflows
+- routers
+- runtime communication
+- tauri commands
+- persistence
+- composite dialogs and view workflows
 
 ---
 
 ### End-to-End
 
-* timer workflow
-* project workflow
-* task workflow
-* configuration
+- timer workflow
+- project workflow
+- task workflow
+- configuration
 
 ---
 
@@ -546,12 +546,12 @@ AI must never skip steps.
 
 ## Toolchain & Runtime (Bun)
 
-The project standardizes exclusively on **Bun** for frontend package management, script execution, and tooling:
+The project standardizes exclusively on **Bun*- for frontend package management, script execution, and tooling:
 
-* **Single Lockfile**: Dependencies are locked solely via `bun.lock`. Never generate or commit `package-lock.json`.
-* **Execution**: All scripts are executed via `bun run <script>` (e.g. `bun run dev`, `bun run check`, `bun run test`).
-* **Tool Invocation**: External binaries are called via `bun x <binary>`.
-* **No Mixed Toolchains**: `npm`, `npx`, `yarn`, and `pnpm` are strictly prohibited.
+- **Single Lockfile**: Dependencies are locked solely via `bun.lock`. Never generate or commit `package-lock.json`.
+- **Execution**: All scripts are executed via `bun run <script>` (e.g. `bun run dev`, `bun run check`, `bun run test`).
+- **Tool Invocation**: External binaries are called via `bun x <binary>`.
+- **No Mixed Toolchains**: `npm`, `npx`, `yarn`, and `pnpm` are strictly prohibited.
 
 ---
 
@@ -559,12 +559,12 @@ The project standardizes exclusively on **Bun** for frontend package management,
 
 A task is complete only when:
 
-* architecture remains consistent
-* documentation is updated (`docs/`, `AGENT.md`, `README.md`)
-* tests pass (`bun run test`)
-* static verification passes (`bun run check`, covering TypeScript, ESLint, Clippy, rustfmt)
-* both runtimes behave consistently
-* new code follows engineering rules
+- architecture remains consistent
+- documentation is updated (`docs/`, `AGENT.md`, `README.md`)
+- tests pass (`bun run test`)
+- static verification passes (`bun run check`, covering TypeScript, ESLint, Clippy, rustfmt)
+- both runtimes behave consistently
+- new code follows engineering rules
 
 ---
 
@@ -572,20 +572,20 @@ A task is complete only when:
 
 ### Never
 
-* Put business logic into React.
-* Bypass EngineRouter.
-* Bypass PersistenceRouter.
-* Couple UI to storage.
-* Detect runtime inside shared components.
-* Calculate UI scale inside React components.
-* Mix layout composition with visual scaling.
+- Put business logic into React.
+- Bypass EngineRouter.
+- Bypass PersistenceRouter.
+- Couple UI to storage.
+- Detect runtime inside shared components.
+- Calculate UI scale inside React components.
+- Mix layout composition with visual scaling.
 
 ### Always
 
-* Keep responsibilities focused.
-* Prefer composition.
-* Isolate runtimes.
-* Keep LayoutVariant independent from TextAndIconSize.
-* Keep CSS responsible for presentation.
-* Keep components simple.
-* Leave the project cleaner than you found it.
+- Keep responsibilities focused.
+- Prefer composition.
+- Isolate runtimes.
+- Keep LayoutVariant independent from TextAndIconSize.
+- Keep CSS responsible for presentation.
+- Keep components simple.
+- Leave the project cleaner than you found it.

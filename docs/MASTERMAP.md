@@ -132,3 +132,14 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] External Webhook / API push integration (`useExternalApiSync.tsx`)
 - [ ] Advanced analytics & graphical time distribution charts
 - [ ] Automated workflow triggers & extensible plugin architecture
+
+### Phase 9 — Comprehensive Test Quality, Methodology Standardization & Debt Elimination ⏳ (Planned)
+
+- [ ] **Methodology Standardization**: Unify AAA for Unit, BDD/BDT for Integration, and User Journeys for E2E in `frontend_engineering_standards.md`
+- [ ] **AST Test Governance**: Implement architectural test forbidding snake_case test names and raw `document.getElementById` DOM access
+- [ ] **Legacy Integration Modernization**: Refactor 9 legacy suites (`tasks-view`, `reports-view`, `credits-modal`, `active-timer-banner`, `gui-events`, etc.) to builders and Triple Decoupling
+- [ ] **Cross-Runtime CLI Parity**: Create parity test validating identical syntax, status codes, and outputs between Frontend `CliEngine` and Rust `oxy_flow::cli`
+- [ ] **Rust Test Data Builders**: Implement `ProjectBuilder`, `TaskBuilder`, `TimeLogBuilder` in `src-tauri/tests/shared/builders/` and eliminate boilerplate struct literals
+- [ ] **Native CLI Subprocess Tests**: Add automated test exercising compiled binary CLI execution against real SQLite database
+- [ ] **E2E Terminal Journey**: Add `cli-terminal-workflow.spec.ts` in Playwright and eliminate copywriting locators across all specs
+- [ ] **CI Quality Gate**: Establish unified `bun run test:quality` validating zero test warnings, 100% Vitest pass, and 100% Cargo test pass

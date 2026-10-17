@@ -25,8 +25,8 @@ If a user intuitively assumes a button, setting, or command belongs in a specifi
 
 This applies equally to:
 
-* Graphical User Interface (GUI)
-* Command Line Interface (CLI)
+- Graphical User Interface (GUI)
+- Command Line Interface (CLI)
 
 No hunting for features. No nested mazes. No guessing.
 The design must map perfectly to the user's mental model.
@@ -37,9 +37,9 @@ The design must map perfectly to the user's mental model.
 
 Actions must require the absolute minimum number of interactions.
 
-* Starting a timer requires one click.
-* Stopping a timer requires one click.
-* Creating a task must not interrupt the current timer.
+- Starting a timer requires one click.
+- Stopping a timer requires one click.
+- Creating a task must not interrupt the current timer.
 
 Every additional click is a failure of design.
 
@@ -50,8 +50,8 @@ Every additional click is a failure of design.
 The application must react the same way every single time.
 Behavior must remain consistent across:
 
-* Browser Runtime
-* Desktop Runtime
+- Browser Runtime
+- Desktop Runtime
 
 A button that looks the same must act the same, regardless of the active `LayoutVariant`.
 
@@ -61,9 +61,9 @@ A button that looks the same must act the same, regardless of the active `Layout
 
 Speed is a feature.
 
-* Actions must feel instantaneous.
-* UI must never stutter.
-* Background synchronization or persistence must never block the UI thread.
+- Actions must feel instantaneous.
+- UI must never stutter.
+- Background synchronization or persistence must never block the UI thread.
 
 Waiting for the interface to catch up is considered a critical UX bug.
 
@@ -75,10 +75,10 @@ When running as a desktop application, oXyFlow must behave like a first-class ci
 
 Required native behaviors:
 
-* System-wide keyboard shortcuts
-* System tray integration
-* Native window controls
-* Predictable focus management
+- System-wide keyboard shortcuts
+- System tray integration
+- Native window controls
+- Predictable focus management
 
 ---
 
@@ -96,10 +96,10 @@ Components must gracefully handle long texts and missing data without breaking t
 
 Accessibility is an essential aspect of UX, ensuring effortless control for every user:
 
-* Every interactive element has an accessible name (`aria-label`, `title`) so screen readers and assistive devices can operate seamlessly.
-* Full keyboard navigation without requiring mouse interaction: Tab loops, Enter activation, and Escape cancellation.
-* Focus management and modal dialog traps: opening a modal keeps focus inside, closing it restores focus to the trigger.
-* Live status reporting: CLI logs and background daemon updates announce changes politely (`aria-live="polite"`).
+- Every interactive element has an accessible name (`aria-label`, `title`) so screen readers and assistive devices can operate seamlessly.
+- Full keyboard navigation without requiring mouse interaction: Tab loops, Enter activation, and Escape cancellation.
+- Focus management and modal dialog traps: opening a modal keeps focus inside, closing it restores focus to the trigger.
+- Live status reporting: CLI logs and background daemon updates announce changes politely (`aria-live="polite"`).
 
 ---
 
@@ -107,9 +107,9 @@ Accessibility is an essential aspect of UX, ensuring effortless control for ever
 
 Localization must be instantaneous, robust, and zero-distraction:
 
-* Real-time locale switching across 6 supported languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) without application reloads.
-* Automatic fallback: If a user translation is missing, the interface falls back to standard dictionaries seamlessly without layout jumping or placeholder breakage.
-* Consistent domain terminology across the Graphical User Interface (GUI), Command Line Interface (CLI), and system tray.
+- Real-time locale switching across 6 supported languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) without application reloads.
+- Automatic fallback: If a user translation is missing, the interface falls back to standard dictionaries seamlessly without layout jumping or placeholder breakage.
+- Consistent domain terminology across the Graphical User Interface (GUI), Command Line Interface (CLI), and system tray.
 
 ---
 
@@ -117,14 +117,14 @@ Localization must be instantaneous, robust, and zero-distraction:
 
 Any of the following must be treated as a bug, equivalent to a system crash:
 
-* The user has to click more than twice for a core action.
-* The user cannot intuitively find a feature within 2 seconds.
-* An interactive element cannot be navigated or triggered via keyboard.
-* An icon button lacks an accessible name or tooltip.
-* Text overflows or breaks layout due to language length differences.
-* The UI freezes or drops frames.
-* The application steals focus aggressively.
-* A CLI command feels unnatural or contradicts GUI behavior.
+- The user has to click more than twice for a core action.
+- The user cannot intuitively find a feature within 2 seconds.
+- An interactive element cannot be navigated or triggered via keyboard.
+- An icon button lacks an accessible name or tooltip.
+- Text overflows or breaks layout due to language length differences.
+- The UI freezes or drops frames.
+- The application steals focus aggressively.
+- A CLI command feels unnatural or contradicts GUI behavior.
 
 ---
 
