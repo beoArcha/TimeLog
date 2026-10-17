@@ -37,25 +37,24 @@ describe('LocalStorageTasksPersistence', () => {
     expect(result.tasks[0].status).toBe('Todo');
   });
 
-  it('should throw exception when updating task with circular reference or depth > 1', async () => {
+  it('should update task attributes in storage when update is called', async () => {
     // Arrange
-    const parent = aTask({ id: 'parent-1', parentTaskId: 'grandparent-1' });
-    const task = aTask({ id: 'task-1', parentTaskId: null });
+    const task = aTask({ id: 'task-1', name: 'Original', parentTaskId: null, status: 'Todo' });
     vi.mocked(storeMock.getStateOrDefault).mockResolvedValue({
       projects: [],
-      tasks: [parent, task],
+      tasks: [task],
       logs: [],
       activeLog: null,
     });
 
-    // Act & Assert
-    await expect(
-      tasksPersistence.update('task-1', 'Self Parent', 'task-1', null, null)
-    ).rejects.toThrow();
+    // Act
+    const result = await tasksPersistence.update('task-1', 'Updated Name', 'parent-1', 'InProgress', null);
 
-    await expect(
-      tasksPersistence.update('task-1', 'Deep Parent', 'parent-1', null, null)
-    ).rejects.toThrow();
+    // Assert
+    expect(result.tasks[0].name).toBe('Updated Name');
+    expect(result.tasks[0].parentTaskId).toBe('parent-1');
+    expect(result.tasks[0].status).toBe('InProgress');
+    expect(storeMock.save).toHaveBeenCalledTimes(1);
   });
 
   it('should cascade delete subtasks and related time logs', async () => {

@@ -1,7 +1,7 @@
 import { type SetStateAction } from 'react';
 import { Project } from '@bindings/Project';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { validateProjectName } from '@plugins/engine/validation';
+import { EngineRouter } from '@common/engine/EngineRouter';
 import { RepositoryStateHook } from './useRepositoryState';
 import { AsyncActionRunnerHook } from './useAsyncActionRunner';
 
@@ -24,7 +24,7 @@ export const useProjectsManager = ({
     tags: string[] | null = null
   ) => {
     await actionRunner.runAction('Failed to add project', async () => {
-      validateProjectName(name, repositoryState.projects);
+      await EngineRouter.getInstance().validation.validateProjectName(name, repositoryState.projects);
       const nextState = await PersistenceRouter.getInstance().projects.add({ name, color, description, icon, tags });
       repositoryState.setProjectsState(nextState.projects);
       await refreshComputedMetrics();
@@ -50,7 +50,7 @@ export const useProjectsManager = ({
     tags: string[] | null
   ) => {
     await actionRunner.runAction('Failed to update project', async () => {
-      validateProjectName(name, repositoryState.projects, projectId);
+      await EngineRouter.getInstance().validation.validateProjectName(name, repositoryState.projects, projectId);
       const nextState = await PersistenceRouter.getInstance().projects.update(projectId, name, color, description, icon, tags);
       repositoryState.setProjectsState(nextState.projects);
       await refreshComputedMetrics();
@@ -59,7 +59,7 @@ export const useProjectsManager = ({
 
   const handleRenameProject = async (projectId: string, newName: string) => {
     await actionRunner.runAction('Failed to rename project', async () => {
-      validateProjectName(newName, repositoryState.projects, projectId);
+      await EngineRouter.getInstance().validation.validateProjectName(newName, repositoryState.projects, projectId);
       const nextState = await PersistenceRouter.getInstance().projects.rename(projectId, newName);
       repositoryState.setProjectsState(nextState.projects);
       await refreshComputedMetrics();

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { setupLocalStorageMock, mockInvoke } from '@tests/shared/test-helpers';
 import { EngineCommands } from '@common/engine/EngineCommands';
 import { EnginePlugin } from '@plugins/engine/EnginePlugin';
+import { IMetricsEngine } from '@common/engine/IEngine';
 import { STORAGE_KEYS } from '@common/constants';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
@@ -244,5 +245,22 @@ describe('Unit Tests: EnginePlugin Compliance with Desktop Runtime', () => {
     await runComparison(initialState, async (engine) => {
       await engine.stopTimer('p1');
     });
+  });
+
+  it('should allow custom service injection via constructor', () => {
+    // Arrange
+    const customMetrics = {
+      getComputedMetrics: vi.fn(),
+      getTaskElapsed: vi.fn(),
+      getProjectElapsed: vi.fn(),
+      getElapsedRange: vi.fn(),
+      getProjectStatistics: vi.fn(),
+    };
+
+    // Act
+    const plugin = new EnginePlugin({ metrics: customMetrics as unknown as IMetricsEngine });
+
+    // Assert
+    expect(plugin.metrics).toBe(customMetrics);
   });
 });

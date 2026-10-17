@@ -1,16 +1,19 @@
 import { isDesktopEnvironment } from '../utils/environment';
-import { IEngine } from './IEngine';
+import {
+  IEngine,
+  ITimerEngine,
+  IMetricsEngine,
+  ITimeLogsEngine,
+  IValidationEngine,
+  EngineComputedMetrics,
+  ElapsedRangeFilter,
+} from './IEngine';
 import { EngineCommands } from './EngineCommands';
 import { EnginePlugin } from '@plugins/engine/EnginePlugin';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
-import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
-import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';
+import { Project } from '@bindings/Project';
+import { Task } from '@bindings/Task';
 
-/**
- * Unified dispatch router for the timer engine.
- * Automatically delegates to Tauri IPC commands in desktop mode
- * or to the local in-memory engine plugin in browser mode.
- */
 export class EngineRouter implements IEngine {
   private static instance: EngineRouter | null = null;
   private implementation: IEngine;
@@ -23,7 +26,6 @@ export class EngineRouter implements IEngine {
     }
   }
 
-  /** Returns the singleton router instance. */
   static getInstance(): EngineRouter {
     if (!this.instance) {
       this.instance = new EngineRouter();
@@ -31,68 +33,84 @@ export class EngineRouter implements IEngine {
     return this.instance;
   }
 
-  /** Overrides the underlying engine implementation for test suites. */
   setImplementationForTesting(impl: IEngine): void {
     this.implementation = impl;
   }
 
-  /** Resets the singleton router instance for test suite isolation. */
   static resetForTesting(): void {
     EngineRouter.instance = null;
   }
 
-  async startTimer(taskId: string): Promise<void> {
-    return this.implementation.startTimer(taskId);
-  }
-
-  async stopTimer(projectId?: string): Promise<void> {
-    return this.implementation.stopTimer(projectId);
-  }
-
-  async resumeTimer(taskId: string): Promise<void> {
-    if (this.implementation.resumeTimer) {
-      return this.implementation.resumeTimer(taskId);
-    }
-    return this.implementation.startTimer(taskId);
-  }
-
-  async getActiveLogs(): Promise<string[]> {
-    if (this.implementation.getActiveLogs) {
-      return this.implementation.getActiveLogs();
-    }
-    return [];
-  }
-
-  async getComputedMetrics(nowIso?: string): Promise<EngineComputedMetrics> {
-    if (this.implementation.getComputedMetrics) {
-      return this.implementation.getComputedMetrics(nowIso);
-    }
+  get timer(): ITimerEngine {
     return {
-      snapshotNowIso: nowIso || new Date().toISOString(),
-      tasks: {},
-      projects: {},
+      startTimer: (taskId: string) => this.startTimer(taskId),
+      stopTimer: (projectId?: string) => this.stopTimer(projectId),
+      resumeTimer: (taskId: string) => this.resumeTimer(taskId),
+      getActiveLogs: () => this.getActiveLogs(),
     };
   }
 
+  get metrics(): IMetricsEngine {
+    return {
+      getComputedMetrics: (nowIso?: string) => this.getComputedMetrics(nowIso),
+      getTaskElapsed: (taskId: string, nowIso?: string) => this.getTaskElapsed(taskId, nowIso),
+      getProjectElapsed: (projectId: string, nowIso?: string) => this.getProjectElapsed(projectId, nowIso),
+      getElapsedRange: (range: ElapsedRangeFilter, nowIso?: string) => this.getElapsedRange(range, nowIso),
+      getProjectStatistics: (projectId: string) => this.getProjectStatistics(projectId),
+    };
+  }
+
+  get timeLogs(): ITimeLogsEngine {
+    return {
+      editTimeLog: (id, taskId, startTime, endTime, note, reason) =>
+        this.editTimeLog(id, taskId, startTime, endTime, note, reason),
+    };
+  }
+
+  get validation(): IValidationEngine {
+    return {
+      validateProjectName: (name, existingProjects, excludeProjectId) =>
+        this.validateProjectName(name, existingProjects, excludeProjectId),
+      validateTaskName: (name) => this.validateTaskName(name),
+      validateTaskHierarchy: (taskId, parentTaskId, tasks) =>
+        this.validateTaskHierarchy(taskId, parentTaskId, tasks),
+    };
+  }
+
+  async startTimer(taskId: string): Promise<void> {
+    return this.implementation.timer.startTimer(taskId);
+  }
+
+  async stopTimer(projectId?: string): Promise<void> {
+    return this.implementation.timer.stopTimer(projectId);
+  }
+
+  async resumeTimer(taskId: string): Promise<void> {
+    return this.implementation.timer.resumeTimer(taskId);
+  }
+
+  async getActiveLogs(): Promise<string[]> {
+    return this.implementation.timer.getActiveLogs();
+  }
+
+  async getComputedMetrics(nowIso?: string): Promise<EngineComputedMetrics> {
+    return this.implementation.metrics.getComputedMetrics(nowIso);
+  }
+
   async getTaskElapsed(taskId: string, nowIso?: string): Promise<number> {
-    if (this.implementation.getTaskElapsed) {
-      return this.implementation.getTaskElapsed(taskId, nowIso);
-    }
-    return 0;
+    return this.implementation.metrics.getTaskElapsed(taskId, nowIso);
   }
 
   async getProjectElapsed(projectId: string, nowIso?: string): Promise<number> {
-    if (this.implementation.getProjectElapsed) {
-      return this.implementation.getProjectElapsed(projectId, nowIso);
-    }
-    return 0;
+    return this.implementation.metrics.getProjectElapsed(projectId, nowIso);
   }
 
   async getElapsedRange(range: ElapsedRangeFilter, nowIso?: string): Promise<number> {
-    if (this.implementation.getElapsedRange) {
-      return this.implementation.getElapsedRange(range, nowIso);
-    }
-    return 0;
+    return this.implementation.metrics.getElapsedRange(range, nowIso);
+  }
+
+  async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
+    return this.implementation.metrics.getProjectStatistics(projectId);
   }
 
   async editTimeLog(
@@ -103,10 +121,26 @@ export class EngineRouter implements IEngine {
     note: string | null,
     reason: string | null
   ): Promise<void> {
-    return this.implementation.editTimeLog(id, taskId, startTime, endTime, note, reason);
+    return this.implementation.timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason);
   }
 
-  async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
-    return this.implementation.getProjectStatistics(projectId);
+  async validateProjectName(
+    name: string,
+    existingProjects: Project[],
+    excludeProjectId?: string
+  ): Promise<void> {
+    return this.implementation.validation.validateProjectName(name, existingProjects, excludeProjectId);
+  }
+
+  async validateTaskName(name: string): Promise<void> {
+    return this.implementation.validation.validateTaskName(name);
+  }
+
+  async validateTaskHierarchy(
+    taskId: string | null | undefined,
+    parentTaskId: string | null | undefined,
+    tasks: Task[]
+  ): Promise<void> {
+    return this.implementation.validation.validateTaskHierarchy(taskId, parentTaskId, tasks);
   }
 }

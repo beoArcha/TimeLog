@@ -2,7 +2,7 @@ import { useState, type SetStateAction } from 'react';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { validateTaskName, validateTaskHierarchy } from '@plugins/engine/validation';
+import { EngineRouter } from '@common/engine/EngineRouter';
 import { RepositoryStateHook } from './useRepositoryState';
 import { AsyncActionRunnerHook } from './useAsyncActionRunner';
 
@@ -21,8 +21,8 @@ export const useTasksManager = ({
 
   const handleAddTask = async (projectId: string, name: string, parentTaskId: string | null) => {
     await actionRunner.runAction('Failed to add task', async () => {
-      validateTaskName(name);
-      validateTaskHierarchy(null, parentTaskId, repositoryState.tasks);
+      await EngineRouter.getInstance().validation.validateTaskName(name);
+      await EngineRouter.getInstance().validation.validateTaskHierarchy(null, parentTaskId, repositoryState.tasks);
       const nextState = await PersistenceRouter.getInstance().tasks.add({ projectId, name, parentTaskId });
       repositoryState.setTasksState(nextState.tasks);
       await refreshComputedMetrics();
@@ -38,9 +38,9 @@ export const useTasksManager = ({
   ) => {
     await actionRunner.runAction('Failed to update task', async () => {
       if (name) {
-        validateTaskName(name);
+        await EngineRouter.getInstance().validation.validateTaskName(name);
       }
-      validateTaskHierarchy(taskId, parentTaskId, repositoryState.tasks);
+      await EngineRouter.getInstance().validation.validateTaskHierarchy(taskId, parentTaskId, repositoryState.tasks);
       const nextState = await PersistenceRouter.getInstance().tasks.update(taskId, name, parentTaskId, status, completed);
       repositoryState.setTasksState(nextState.tasks);
       repositoryState.setLogsState(nextState.logs);
@@ -51,7 +51,7 @@ export const useTasksManager = ({
 
   const handleRenameTask = async (taskId: string, newName: string) => {
     await actionRunner.runAction('Failed to rename task', async () => {
-      validateTaskName(newName);
+      await EngineRouter.getInstance().validation.validateTaskName(newName);
       const nextState = await PersistenceRouter.getInstance().tasks.rename(taskId, newName);
       repositoryState.setTasksState(nextState.tasks);
       await refreshComputedMetrics();

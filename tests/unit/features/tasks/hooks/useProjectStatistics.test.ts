@@ -8,10 +8,27 @@ import { IEngine } from '@common/engine/IEngine';
 describe('Unit Tests: useProjectStatistics', () => {
   const mockGetProjectStatistics = vi.fn();
   const mockImpl: IEngine = {
-    startTimer: vi.fn(),
-    stopTimer: vi.fn(),
-    editTimeLog: vi.fn(),
-    getProjectStatistics: mockGetProjectStatistics,
+    timer: {
+      startTimer: vi.fn(),
+      stopTimer: vi.fn(),
+      resumeTimer: vi.fn(),
+      getActiveLogs: vi.fn(),
+    },
+    metrics: {
+      getComputedMetrics: vi.fn(),
+      getTaskElapsed: vi.fn(),
+      getProjectElapsed: vi.fn(),
+      getElapsedRange: vi.fn(),
+      getProjectStatistics: mockGetProjectStatistics,
+    },
+    timeLogs: {
+      editTimeLog: vi.fn(),
+    },
+    validation: {
+      validateProjectName: vi.fn(),
+      validateTaskName: vi.fn(),
+      validateTaskHierarchy: vi.fn(),
+    },
   };
 
   beforeEach(() => {

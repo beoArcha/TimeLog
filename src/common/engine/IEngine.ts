@@ -3,6 +3,8 @@ import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { TaskComputedMetrics } from '@bindings/TaskComputedMetrics';
 import { ProjectComputedMetrics } from '@bindings/ProjectComputedMetrics';
 import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';
+import { Project } from '@bindings/Project';
+import { Task } from '@bindings/Task';
 
 export {
   type EngineComputedMetrics,
@@ -11,18 +13,22 @@ export {
   type ElapsedRangeFilter,
 };
 
-export interface IEngine {
+export interface ITimerEngine {
   startTimer(taskId: string): Promise<void>;
   stopTimer(projectId?: string): Promise<void>;
-  resumeTimer?(taskId: string): Promise<void>;
-  getActiveLogs?(): Promise<string[]>;
+  resumeTimer(taskId: string): Promise<void>;
+  getActiveLogs(): Promise<string[]>;
+}
 
-  getComputedMetrics?(nowIso?: string): Promise<EngineComputedMetrics>;
-  getTaskElapsed?(taskId: string, nowIso?: string): Promise<number>;
-  getProjectElapsed?(projectId: string, nowIso?: string): Promise<number>;
-  getElapsedRange?(range: ElapsedRangeFilter, nowIso?: string): Promise<number>;
+export interface IMetricsEngine {
+  getComputedMetrics(nowIso?: string): Promise<EngineComputedMetrics>;
+  getTaskElapsed(taskId: string, nowIso?: string): Promise<number>;
+  getProjectElapsed(projectId: string, nowIso?: string): Promise<number>;
+  getElapsedRange(range: ElapsedRangeFilter, nowIso?: string): Promise<number>;
   getProjectStatistics(projectId: string): Promise<ProjectStatistics>;
+}
 
+export interface ITimeLogsEngine {
   editTimeLog(
     id: string,
     taskId: string,
@@ -31,4 +37,25 @@ export interface IEngine {
     note: string | null,
     reason: string | null
   ): Promise<void>;
+}
+
+export interface IValidationEngine {
+  validateProjectName(
+    name: string,
+    existingProjects: Project[],
+    excludeProjectId?: string
+  ): Promise<void>;
+  validateTaskName(name: string): Promise<void>;
+  validateTaskHierarchy(
+    taskId: string | null | undefined,
+    parentTaskId: string | null | undefined,
+    tasks: Task[]
+  ): Promise<void>;
+}
+
+export interface IEngine {
+  readonly timer: ITimerEngine;
+  readonly metrics: IMetricsEngine;
+  readonly timeLogs: ITimeLogsEngine;
+  readonly validation: IValidationEngine;
 }
