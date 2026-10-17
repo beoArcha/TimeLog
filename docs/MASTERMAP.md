@@ -122,6 +122,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] Global keyboard shortcuts (`useGlobalShortcuts.ts`)
 - [ ] IPC payload optimization: Replace full-state `core.load()` calls inside granular `PersistenceCommands` (`rename`, `getProjectId`, `getSubtasks`) with targeted Rust queries
 - [ ] System sleep / wake auto-pause daemon verification across OS targets (Windows, Linux, macOS)
+- [ ] **Bindings Deduplication**: Check needs for duplication, if not necessary, consolidate `src-tauri/bindings/` and `src/bindings/` into a single export target
 
 ### Phase 8 — Productivity Platform & Ecosystem ⏳ (Planned)
 
