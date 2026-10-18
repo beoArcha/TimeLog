@@ -158,4 +158,59 @@ describe('Integration Tests: PersistenceRouter & PersistenceCommands', () => {
       translations: JSON.stringify({ pl: { a: 'b' } }),
     });
   });
+
+  it('Given PersistenceRouter, When renameProject is called, Then it should flow rename_project command directly to Tauri IPC', async () => {
+    // Arrange
+    const mockState: TimerRepositoryState = {
+      projects: [aProject({ id: 'p1', name: 'Renamed Name' })],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    };
+    mockInvoke.mockResolvedValueOnce(mockState);
+    const router = PersistenceRouter.getInstance();
+
+    // Act
+    const result = await router.projects.rename('p1', 'Renamed Name');
+
+    // Assert
+    expect(mockInvoke).toHaveBeenCalledWith('rename_project', {
+      projectId: 'p1',
+      name: 'Renamed Name',
+    });
+    expect(result).toEqual(mockState);
+  });
+
+  it('Given PersistenceRouter, When renameTask, getProjectId, and getSubtasks are called, Then it should flow granular task commands to Tauri IPC', async () => {
+    // Arrange
+    const mockState: TimerRepositoryState = {
+      projects: [],
+      tasks: [aTask({ id: 't1', name: 'Renamed Task' })],
+      logs: [],
+      activeLog: null,
+    };
+    const mockSubtasks = [aTask({ id: 'st1', parentTaskId: 't1' })];
+    mockInvoke
+      .mockResolvedValueOnce(mockState)
+      .mockResolvedValueOnce('p1')
+      .mockResolvedValueOnce(mockSubtasks);
+    const router = PersistenceRouter.getInstance();
+
+    // Act
+    const renameResult = await router.tasks.rename('t1', 'Renamed Task');
+    const projectId = await router.tasks.getProjectId('t1');
+    const subtasks = await router.tasks.getSubtasks('t1');
+
+    // Assert
+    expect(mockInvoke).toHaveBeenCalledWith('rename_task', {
+      taskId: 't1',
+      name: 'Renamed Task',
+    });
+    expect(renameResult).toEqual(mockState);
+    expect(mockInvoke).toHaveBeenCalledWith('get_task_project_id', { taskId: 't1' });
+    expect(projectId).toBe('p1');
+    expect(mockInvoke).toHaveBeenCalledWith('get_subtasks', { taskId: 't1' });
+    expect(subtasks).toEqual(mockSubtasks);
+  });
 });
+

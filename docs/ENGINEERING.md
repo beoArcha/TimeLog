@@ -129,12 +129,14 @@ Responsibilities:
 - configurations and settings (`settings`, `runtimeConfigs`, `uiState`, `externalApi`, `locale`)
 - backup and export operations
 - parity between SQLite backend (Tauri) and LocalStorage `PersistencePlugin` (Browser)
+- domain persistence services (`projects`, `tasks`, etc.) are decoupled from `core.load()` and execute targeted, granular queries or IPC calls directly
 
 Persistence never:
 
 - validates business time overlap rules (Engine responsibility)
 - calculates metric statistics
 - orchestrates active timer ticks
+- invokes full-state `core.load()` downloads for granular single-entity mutations (e.g. `rename`, `getProjectId`, `getSubtasks`)
 
 ---
 

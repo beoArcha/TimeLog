@@ -117,14 +117,14 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] Temporal Edge-Case Calculations: 72h multi-day logs, 48h active logs, 2024 leap year boundary, and 2025/2026 New Year boundary in TypeScript and Rust
 - [x] Integration Quality Audit & Refactoring: Triple Decoupling, Test Data Builders (`entity-builders.ts`), BDD naming, E2E backup/restore in Playwright
 
-### Phase 7 — Native Desktop Hardening 🔄 (In Progress)
+### Phase 7 — Native Desktop Hardening ✅ (Completed)
 
 - [x] System tray menu, localization, and event handlers (`src-tauri/src/tray/`)
 - [x] Window management commands (always-on-top per layout, minimize-to-tray, dynamic resizing)
 - [x] Global keyboard shortcuts (`useGlobalShortcuts.ts`)
-- [ ] IPC payload optimization: Replace full-state `core.load()` calls inside granular `PersistenceCommands` (`rename`, `getProjectId`, `getSubtasks`) with targeted Rust queries
-- [ ] System sleep / wake auto-pause daemon verification across OS targets (Windows, Linux, macOS)
-- [ ] **Bindings Deduplication**: Check needs for duplication, if not necessary, consolidate `src-tauri/bindings/` and `src/bindings/` into a single export target
+- [x] IPC payload optimization: Replace full-state `core.load()` calls inside granular `PersistenceCommands` (`rename`, `getProjectId`, `getSubtasks`) with targeted Rust queries
+- [x] System sleep / wake auto-pause: Deprecated and removed per KISS/YAGNI point-in-time calculation model
+- [x] **Bindings Deduplication**: Consolidated `src-tauri/bindings/` and `src/bindings/` into a single export target (`src/bindings/`) configured via `.cargo/config.toml`
 
 ### Phase 8 — Productivity Platform & Ecosystem ⏳ (Planned)
 
