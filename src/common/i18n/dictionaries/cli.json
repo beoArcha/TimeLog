@@ -60,7 +60,13 @@
     "ReportGraph": "--- GRAPHICAL ACTIVE PROJECTS REPRESENTATION (ASCII) ---",
     "TabCli": "CLI Console",
     "CommandInputPlaceholder": "Enter command, e.g. help, projects, start 1, stop...",
-    "LocaleSwitched": "Terminal locale switched to: {locale}"
+    "LocaleSwitched": "Terminal locale switched to: {locale}",
+    "RenameProjectDesc": "Renames an existing project",
+    "RenameTaskDesc": "Renames an existing task",
+    "ErrUsageRenameProject": "Error: Usage: renameproject <proj_id> \"<name>\".",
+    "ErrUsageRenameTask": "Error: Usage: renametask <task_id> \"<name>\".",
+    "SuccessRenamedProject": "Success: Renamed project",
+    "SuccessRenamedTask": "Success: Renamed task"
   },
   "pl": {
     "WelcomeHelp": "Wpisz \"help\" lub \"oxyhelp\", aby otworzyć listę dostępnych instrukcji.",
@@ -123,7 +129,13 @@
     "ReportGraph": "--- GRAFICZNY RAPORT PROJEKTÓW (ASCII CHART) ---",
     "TabCli": "Konsola CLI",
     "CommandInputPlaceholder": "Wpisz komendę, np. help, projects, start 1, stop...",
-    "LocaleSwitched": "Zmieniono język terminala na: {locale}"
+    "LocaleSwitched": "Zmieniono język terminala na: {locale}",
+    "RenameProjectDesc": "Zmienia nazwę istniejącego projektu",
+    "RenameTaskDesc": "Zmienia nazwę istniejącego zadania",
+    "ErrUsageRenameProject": "Błąd: Użycie: renameproject <id_projektu> \"<nazwa>\".",
+    "ErrUsageRenameTask": "Błąd: Użycie: renametask <id_zadania> \"<nazwa>\".",
+    "SuccessRenamedProject": "Sukces: Zmieniono nazwę projektu",
+    "SuccessRenamedTask": "Sukces: Zmieniono nazwę zadania"
   },
   "de": {
     "WelcomeHelp": "Geben Sie \"help\" oder \"oxyhelp\" ein, um die Liste der verfügbaren Befehle zu öffnen.",
@@ -186,7 +198,13 @@
     "ReportGraph": "--- GRAFISCHE DARSTELLUNG DER AKTIVEN PROJEKTE (ASCII) ---",
     "TabCli": "CLI-Konsole",
     "CommandInputPlaceholder": "Befehl eingeben, z.B. help, projects, start 1, stop...",
-    "LocaleSwitched": "Schnittstellensprache geändert zu: {locale}"
+    "LocaleSwitched": "Schnittstellensprache geändert zu: {locale}",
+    "RenameProjectDesc": "Benennt ein bestehendes Projekt um",
+    "RenameTaskDesc": "Benennt eine bestehende Aufgabe um",
+    "ErrUsageRenameProject": "Fehler: Verwendung: renameproject <proj_id> \"<name>\".",
+    "ErrUsageRenameTask": "Fehler: Verwendung: renametask <task_id> \"<name>\".",
+    "SuccessRenamedProject": "Erfolg: Projekt umbenannt",
+    "SuccessRenamedTask": "Erfolg: Aufgabe umbenannt"
   },
   "es": {
     "WelcomeHelp": "Escriba \"help\" o \"oxyhelp\" para abrir la lista de comandos disponibles.",
@@ -249,7 +267,13 @@
     "ReportGraph": "--- GRÁFICO ---",
     "TabCli": "Consola CLI",
     "CommandInputPlaceholder": "Ingrese el comando, p.ej. help, projects, start 1, stop...",
-    "LocaleSwitched": "Idioma de terminal cambiado a: {locale}"
+    "LocaleSwitched": "Idioma de terminal cambiado a: {locale}",
+    "RenameProjectDesc": "Cambia el nombre de un proyecto existente",
+    "RenameTaskDesc": "Cambia el nombre de una tarea existente",
+    "ErrUsageRenameProject": "Error: Uso: renameproject <id_proyecto> \"<nombre>\".",
+    "ErrUsageRenameTask": "Error: Uso: renametask <id_tarea> \"<nombre>\".",
+    "SuccessRenamedProject": "Éxito: Proyecto renombrado",
+    "SuccessRenamedTask": "Éxito: Tarea renombrada"
   },
   "fr": {
     "WelcomeHelp": "Tapez \"help\" ou \"oxyhelp\" pour ouvrir la liste des commandes disponibles.",
@@ -312,7 +336,13 @@
     "ReportGraph": "--- GRAPHIQUE ---",
     "TabCli": "Console CLI",
     "CommandInputPlaceholder": "Entrez une commande, ex. help, projects, start 1, stop...",
-    "LocaleSwitched": "Langue du terminal changée pour : {locale}"
+    "LocaleSwitched": "Langue du terminal changée pour : {locale}",
+    "RenameProjectDesc": "Renomme un projet existant",
+    "RenameTaskDesc": "Renomme une tâche existante",
+    "ErrUsageRenameProject": "Erreur: Utilisation: renameproject <id_projet> \"<nom>\".",
+    "ErrUsageRenameTask": "Erreur: Utilisation: renametask <id_tâche> \"<nom>\".",
+    "SuccessRenamedProject": "Succès: Projet renommé",
+    "SuccessRenamedTask": "Succès: Tâche renommée"
   },
   "pt-br": {
     "WelcomeHelp": "Digite \"help\" ou \"oxyhelp\" para abrir a lista de comandos disponíveis.",
@@ -375,6 +405,12 @@
     "ReportGraph": "--- GRÁFICOS ---",
     "TabCli": "Console CLI",
     "CommandInputPlaceholder": "Digite um comando, ex. help, projects, start 1, stop...",
-    "LocaleSwitched": "Idioma do terminal alterado para: {locale}"
+    "LocaleSwitched": "Idioma do terminal alterado para: {locale}",
+    "RenameProjectDesc": "Renomeia um projeto existente",
+    "RenameTaskDesc": "Renomeia uma tarefa existente",
+    "ErrUsageRenameProject": "Erro: Uso: renameproject <id_projeto> \"<nome>\".",
+    "ErrUsageRenameTask": "Erro: Uso: renametask <id_tarefa> \"<nome>\".",
+    "SuccessRenamedProject": "Sucesso: Projeto renomeado",
+    "SuccessRenamedTask": "Sucesso: Tarefa renomeada"
   }
 }

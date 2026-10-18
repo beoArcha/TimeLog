@@ -44,8 +44,8 @@ export class PersistenceCommands implements IPersistence {
 
   constructor(services?: Partial<IPersistence>) {
     this.core = services?.core ?? new TauriCorePersistence();
-    this.projects = services?.projects ?? new TauriProjectsPersistence(this.core);
-    this.tasks = services?.tasks ?? new TauriTasksPersistence(this.core);
+    this.projects = services?.projects ?? new TauriProjectsPersistence();
+    this.tasks = services?.tasks ?? new TauriTasksPersistence();
     this.settings = services?.settings ?? new TauriSettingsPersistence();
     this.runtimeConfigs = services?.runtimeConfigs ?? new TauriRuntimeConfigsPersistence();
     this.timeLogs = services?.timeLogs ?? new TauriTimeLogsPersistence();

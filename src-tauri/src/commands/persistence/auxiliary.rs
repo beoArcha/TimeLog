@@ -71,7 +71,9 @@ pub fn get_locale(state: State<'_, AppState>) -> Result<String, AppError> {
 
 #[tauri::command]
 pub fn save_locale(locale: String, state: State<'_, AppState>) -> Result<(), AppError> {
-    state.persistence.auxiliary.save_locale(locale)?;
+    state.persistence.auxiliary.save_locale(locale.clone())?;
+    let parsed_locale = crate::types::Locale::from_sys_lang(&locale);
+    let _ = crate::tray::menu::update_tray_menu_locale(&state, parsed_locale);
     Ok(())
 }
 

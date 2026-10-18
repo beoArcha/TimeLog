@@ -17,6 +17,9 @@ pub enum SubtaskCommand {
         #[arg(short, long)]
         task_id: String,
     },
+    List {
+        task_id: String,
+    },
 }
 
 pub fn handle(cmd: SubtaskCommand, persistence: &Persistence) -> Result<CliOutput, String> {
@@ -53,6 +56,29 @@ pub fn handle(cmd: SubtaskCommand, persistence: &Persistence) -> Result<CliOutpu
                 .archive_subtask(id.clone(), task_id)
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_SUBTASK_ARCHIVED.replace("{}", &id)))
+        }
+        SubtaskCommand::List { task_id } => {
+            let subtasks = persistence
+                .tasks
+                .get_subtasks(&task_id)
+                .map_err(|e| e.to_string())?;
+            if subtasks.is_empty() {
+                Ok(CliOutput::Success(format!(
+                    "No subtasks found for task {}",
+                    task_id
+                )))
+            } else {
+                let mut lines = vec![format!("Subtasks for task {}:", task_id)];
+                for st in subtasks {
+                    lines.push(format!(
+                        "• [{}] {} ({})",
+                        if st.completed { "x" } else { " " },
+                        st.name,
+                        st.id
+                    ));
+                }
+                Ok(CliOutput::Success(lines.join("\n")))
+            }
         }
     }
 }

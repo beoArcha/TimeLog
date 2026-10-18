@@ -1,5 +1,6 @@
 use crate::shared::test_db::setup_persistence_test;
 use oxy_flow::cli::manage::project::ProjectCommand;
+use oxy_flow::cli::manage::subtask::SubtaskCommand;
 use oxy_flow::cli::manage::task::TaskCommand;
 use oxy_flow::cli::manage::ManageCommand;
 use oxy_flow::cli::shared::parser::CliCommands;
@@ -231,4 +232,91 @@ fn test_cli_manage_task_create_and_archive() {
         &engine,
     );
     assert!(archive_res.is_ok());
+}
+
+#[test]
+fn test_cli_manage_project_rename() {
+    let (persistence, conn, _temp) = setup("test_cli_manage_project_rename");
+    let engine = Engine::new(&persistence);
+    let result = handle_cli(
+        CliArgs {
+            command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Rename {
+                id: "p1".into(),
+                name: "RenamedProj".into(),
+            })),
+        },
+        &persistence,
+        &engine,
+    );
+    assert!(result.is_ok(), "rename should succeed");
+    if let CliOutput::Success(msg) = result.unwrap() {
+        assert!(msg.contains("Renamed project: p1"));
+    } else {
+        panic!("Expected Success output");
+    }
+
+    let name: String = conn
+        .query_row("SELECT name FROM projects WHERE id = 'p1'", [], |r| {
+            r.get(0)
+        })
+        .unwrap();
+    assert_eq!(name, "RenamedProj");
+}
+
+#[test]
+fn test_cli_manage_task_rename() {
+    let (persistence, conn, _temp) = setup("test_cli_manage_task_rename");
+    let engine = Engine::new(&persistence);
+    let result = handle_cli(
+        CliArgs {
+            command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Rename {
+                id: "t1".into(),
+                name: "RenamedTask".into(),
+            })),
+        },
+        &persistence,
+        &engine,
+    );
+    assert!(result.is_ok(), "rename task should succeed");
+    if let CliOutput::Success(msg) = result.unwrap() {
+        assert!(msg.contains("Renamed task: t1"));
+    } else {
+        panic!("Expected Success output");
+    }
+
+    let name: String = conn
+        .query_row("SELECT name FROM tasks WHERE id = 't1'", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(name, "RenamedTask");
+}
+
+#[test]
+fn test_cli_manage_subtask_list() {
+    let (persistence, conn, _temp) = setup("test_cli_manage_subtask_list");
+    let engine = Engine::new(&persistence);
+
+    let now = chrono::Utc::now().to_rfc3339();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, parent_task_id, name, created_at) VALUES ('st1', 'p1', 't1', 'Sub1', ?)",
+        [&now],
+    )
+    .unwrap();
+
+    let result = handle_cli(
+        CliArgs {
+            command: CliCommands::Manage(ManageCommand::Subtask(SubtaskCommand::List {
+                task_id: "t1".into(),
+            })),
+        },
+        &persistence,
+        &engine,
+    );
+    assert!(result.is_ok(), "subtask list should succeed");
+    if let CliOutput::Success(msg) = result.unwrap() {
+        assert!(msg.contains("Subtasks for task t1:"));
+        assert!(msg.contains("Sub1"));
+        assert!(msg.contains("st1"));
+    } else {
+        panic!("Expected Success output");
+    }
 }

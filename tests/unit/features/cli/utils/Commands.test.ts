@@ -4,8 +4,10 @@ import {
   runProjectsCommand,
   runTasksCommand,
   runAddProjectCommand,
+  runRenameProjectCommand,
   runAddTaskCommand,
   runAddSubtaskCommand,
+  runRenameTaskCommand,
   runStartCommand,
   runStopCommand,
   runStatusCommand,
@@ -28,7 +30,9 @@ describe('Unit Tests: Commands', () => {
     ],
     activeLog: null,
     onAddProject: vi.fn(),
+    onRenameProject: vi.fn(),
     onAddTask: vi.fn(),
+    onRenameTask: vi.fn(),
     onToggleTaskComplete: vi.fn(),
     onStartTimer: vi.fn(),
     onStopTimer: vi.fn(),
@@ -139,4 +143,55 @@ describe('Unit Tests: Commands', () => {
     expect(context.setHolidays).toHaveBeenCalled();
     expect(outputsAdd[0].type).toBe('success');
   });
+
+  it('runRenameProjectCommand should rename project when it exists', () => {
+    // Arrange
+    const context = getMockContext();
+    const outputs: TerminalLine[] = [];
+
+    // Act
+    runRenameProjectCommand(['p1', 'Renamed Project'], context, outputs);
+
+    // Assert
+    expect(context.onRenameProject).toHaveBeenCalledWith('p1', 'Renamed Project');
+    expect(outputs.some(o => o.type === 'success')).toBe(true);
+  });
+
+  it('runRenameProjectCommand should report error when arguments are missing', () => {
+    // Arrange
+    const context = getMockContext();
+    const outputs: TerminalLine[] = [];
+
+    // Act
+    runRenameProjectCommand([], context, outputs);
+
+    // Assert
+    expect(outputs.some(o => o.type === 'error')).toBe(true);
+  });
+
+  it('runRenameTaskCommand should rename task when it exists', () => {
+    // Arrange
+    const context = getMockContext();
+    const outputs: TerminalLine[] = [];
+
+    // Act
+    runRenameTaskCommand(['t1', 'Renamed Task'], context, outputs);
+
+    // Assert
+    expect(context.onRenameTask).toHaveBeenCalledWith('t1', 'Renamed Task');
+    expect(outputs.some(o => o.type === 'success')).toBe(true);
+  });
+
+  it('runRenameTaskCommand should report error when arguments are missing', () => {
+    // Arrange
+    const context = getMockContext();
+    const outputs: TerminalLine[] = [];
+
+    // Act
+    runRenameTaskCommand([], context, outputs);
+
+    // Assert
+    expect(outputs.some(o => o.type === 'error')).toBe(true);
+  });
 });
+

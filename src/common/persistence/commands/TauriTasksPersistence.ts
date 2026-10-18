@@ -1,12 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
-import { ICorePersistence, ITasksPersistence } from '../IPersistence';
+import { ITasksPersistence } from '../IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { TasksPersistenceCommand } from '@bindings/TasksPersistenceCommand';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 
 export class TauriTasksPersistence implements ITasksPersistence {
-  constructor(private readonly core: ICorePersistence) {}
+  constructor() {}
 
   async add(input: {
     projectId: string;
@@ -39,15 +39,8 @@ export class TauriTasksPersistence implements ITasksPersistence {
   }
 
   async rename(taskId: string, name: string): Promise<TimerRepositoryState> {
-    const state = await this.core.load();
-    const task = state?.tasks.find((t) => t.id === taskId);
-    return this.update(
-      taskId,
-      name,
-      task?.parentTaskId ?? null,
-      task?.status ?? null,
-      task?.completed ?? null
-    );
+    const cmd: TasksPersistenceCommand = 'rename_task';
+    return invoke<TimerRepositoryState>(cmd, { taskId, name });
   }
 
   async delete(taskId: string): Promise<TimerRepositoryState> {
@@ -61,14 +54,12 @@ export class TauriTasksPersistence implements ITasksPersistence {
   }
 
   async getProjectId(taskId: string): Promise<string> {
-    const state = await this.core.load();
-    const task = state?.tasks.find((t) => t.id === taskId);
-    if (!task) throw new Error(`Task ${taskId} not found`);
-    return task.projectId;
+    const cmd: TasksPersistenceCommand = 'get_task_project_id';
+    return invoke<string>(cmd, { taskId });
   }
 
   async getSubtasks(taskId: string): Promise<Task[]> {
-    const state = await this.core.load();
-    return state?.tasks.filter((t) => t.parentTaskId === taskId) || [];
+    const cmd: TasksPersistenceCommand = 'get_subtasks';
+    return invoke<Task[]>(cmd, { taskId });
   }
 }

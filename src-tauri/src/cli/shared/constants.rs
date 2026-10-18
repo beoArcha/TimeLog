@@ -8,6 +8,10 @@ pub const MSG_SUBTASK_CREATED: &str = "Created subtask with ID: {}";
 pub const MSG_SUBTASK_ARCHIVED: &str = "Archived subtask: {}";
 pub const MSG_LIST_NOT_IMPLEMENTED: &str = "List projects not implemented";
 pub const MSG_ID_EMPTY: &str = "ID cannot be empty";
+pub const MSG_PROJECT_RENAMED: &str = "Renamed project: {}";
+pub const MSG_PROJECT_NOT_FOUND: &str = "Project not found: {}";
+pub const MSG_TASK_RENAMED: &str = "Renamed task: {}";
+pub const MSG_TASK_NOT_FOUND: &str = "Task not found: {}";
 
 pub const OUT_STARTED: &str = "▶️ Started tracking task: {}";
 pub const OUT_STOPPED: &str = "⏹️ Stopped all active projects timer tracking threads.";

@@ -1,21 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockInvoke } from '@tests/shared/test-helpers';
 import { TauriProjectsPersistence } from '@common/persistence/commands/TauriProjectsPersistence';
-import { ICorePersistence } from '@common/persistence/IPersistence';
-import { aProject } from '@tests/shared/builders/entity-builders';
 
 describe('TauriProjectsPersistence', () => {
-  let coreMock: ICorePersistence;
   let projectsPersistence: TauriProjectsPersistence;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    coreMock = {
-      load: vi.fn(),
-      overrideState: vi.fn(),
-      reset: vi.fn(),
-    };
-    projectsPersistence = new TauriProjectsPersistence(coreMock);
+    projectsPersistence = new TauriProjectsPersistence();
   });
 
   it('should invoke add command with normalized inputs when adding project', async () => {
@@ -77,36 +69,17 @@ describe('TauriProjectsPersistence', () => {
     });
   });
 
-  it('should preserve existing project attributes when renaming project', async () => {
+  it('should invoke rename_project command when renaming project', async () => {
     // Arrange
-    vi.mocked(coreMock.load).mockResolvedValueOnce({
-      projects: [
-        aProject({
-          id: 'proj-123',
-          name: 'Original Name',
-          color: '#123456',
-          description: 'Desc',
-          icon: 'icon-tag',
-          tags: ['t1'],
-        }),
-      ],
-      tasks: [],
-      logs: [],
-      activeLog: null,
-    });
     mockInvoke.mockResolvedValueOnce({ projects: [], tasks: [], logs: [], activeLog: null });
 
     // Act
     await projectsPersistence.rename('proj-123', 'Renamed Project');
 
     // Assert
-    expect(mockInvoke).toHaveBeenCalledWith('update_project', {
+    expect(mockInvoke).toHaveBeenCalledWith('rename_project', {
       projectId: 'proj-123',
       name: 'Renamed Project',
-      color: '#123456',
-      description: 'Desc',
-      icon: 'icon-tag',
-      tags: ['t1'],
     });
   });
 });

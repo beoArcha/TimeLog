@@ -96,3 +96,21 @@ export const runCompleteCommand = (args: string[], context: CliEngineContext, ou
     }
   }
 };
+
+export const runRenameTaskCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {
+  const { tasks, onRenameTask, locale, customTranslations } = context;
+  const tId = args[0];
+  const newName = args[1];
+  if (!tId || !newName) {
+    outputs.push({ text: translate(locale, 'cli', 'ErrUsageRenameTask', customTranslations), type: 'error' });
+  } else {
+    const taskExists = tasks.some(t => t.id === tId);
+    if (!taskExists) {
+      outputs.push({ text: `${translate(locale, 'cli', 'ErrTaskNotExist', customTranslations)} ${tId}`, type: 'error' });
+    } else {
+      onRenameTask(tId, newName);
+      outputs.push({ text: `${translate(locale, 'cli', 'SuccessRenamedTask', customTranslations)}: ${newName}`, type: 'success' });
+    }
+  }
+};
+

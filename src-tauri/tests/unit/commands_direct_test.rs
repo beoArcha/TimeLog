@@ -149,3 +149,92 @@ fn test_persistence_and_engine_command_flows() {
     assert_eq!(persistence.tasks.get_all().unwrap().len(), 0);
     assert_eq!(persistence.time_logs.get_all().unwrap().len(), 0);
 }
+
+#[test]
+fn test_granular_project_and_task_operations() {
+    let (_conn, config, _temp_dir) = setup_persistence_test("granular_commands_flow");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    // Arrange: Create initial project and hierarchy of tasks
+    let project = Project {
+        id: "proj_granular".to_string(),
+        name: "Initial Name".to_string(),
+        color: "teal".to_string(),
+        created_at: "2026-01-01T00:00:00Z".to_string(),
+        archived: Some(false),
+        original_name: None,
+        original_color: None,
+        edit_history: None,
+        description: None,
+        icon: None,
+        tags: None,
+    };
+    persistence.projects.create(project).unwrap();
+
+    let parent_task = Task {
+        id: "task_parent".to_string(),
+        project_id: "proj_granular".to_string(),
+        parent_task_id: None,
+        name: "Old Parent Task".to_string(),
+        created_at: "2026-01-01T00:00:00Z".to_string(),
+        completed: false,
+        status: Some(oxy_flow::types::TaskStatus::Todo),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+    };
+    persistence.tasks.create(parent_task).unwrap();
+
+    let subtask = Task {
+        id: "task_sub_1".to_string(),
+        project_id: "proj_granular".to_string(),
+        parent_task_id: Some("task_parent".to_string()),
+        name: "Subtask 1".to_string(),
+        created_at: "2026-01-01T00:00:00Z".to_string(),
+        completed: false,
+        status: Some(oxy_flow::types::TaskStatus::Todo),
+        original_name: None,
+        original_completed: None,
+        edit_history: None,
+        archived: Some(false),
+    };
+    persistence.tasks.create_subtask(subtask).unwrap();
+
+    // Act 1: Granular project rename
+    let mut proj = persistence.projects.get("proj_granular").unwrap().unwrap();
+    proj.name = "Renamed Project".to_string();
+    persistence.projects.patch(proj).unwrap();
+    let state_after_proj_rename = engine.get_state().unwrap();
+
+    // Assert 1: Verify renamed project reflected in engine state
+    assert_eq!(state_after_proj_rename.projects[0].name, "Renamed Project");
+
+    // Act 2: Granular task rename
+    let mut t = persistence.tasks.get("task_parent").unwrap().unwrap();
+    t.name = "New Parent Task Name".to_string();
+    persistence.tasks.patch(t).unwrap();
+    let state_after_task_rename = engine.get_state().unwrap();
+
+    // Assert 2: Verify renamed task reflected in engine state
+    let updated_parent = state_after_task_rename
+        .tasks
+        .iter()
+        .find(|task| task.id == "task_parent")
+        .unwrap();
+    assert_eq!(updated_parent.name, "New Parent Task Name");
+
+    // Act 3 & Assert 3: Query task project id and subtasks list
+    let fetched_project_id = persistence
+        .tasks
+        .get("task_sub_1")
+        .unwrap()
+        .map(|task| task.project_id);
+    assert_eq!(fetched_project_id, Some("proj_granular".to_string()));
+
+    let subtasks = persistence.tasks.get_subtasks("task_parent").unwrap();
+    assert_eq!(subtasks.len(), 1);
+    assert_eq!(subtasks[0].id, "task_sub_1");
+    assert_eq!(subtasks[0].name, "Subtask 1");
+}

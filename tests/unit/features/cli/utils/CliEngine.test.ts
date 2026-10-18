@@ -5,7 +5,9 @@ import { CliEngineContext } from '@features/cli/utils/Commands';
 describe('Unit Tests: CliEngine', () => {
   let mockContext: CliEngineContext;
   const onAddProjectMock = vi.fn();
+  const onRenameProjectMock = vi.fn();
   const onAddTaskMock = vi.fn();
+  const onRenameTaskMock = vi.fn();
   const onToggleTaskCompleteMock = vi.fn();
   const onStartTimerMock = vi.fn();
   const onStopTimerMock = vi.fn();
@@ -26,7 +28,9 @@ describe('Unit Tests: CliEngine', () => {
       ],
       activeLog: { id: 'l2', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T11:00:00Z', endTime: null, note: null },
       onAddProject: onAddProjectMock,
+      onRenameProject: onRenameProjectMock,
       onAddTask: onAddTaskMock,
+      onRenameTask: onRenameTaskMock,
       onToggleTaskComplete: onToggleTaskCompleteMock,
       onStartTimer: onStartTimerMock,
       onStopTimer: onStopTimerMock,
@@ -136,4 +140,29 @@ describe('Unit Tests: CliEngine', () => {
     const res = executeCliCommand('time task t1 today', mockContext);
     expect(res.length).toBeGreaterThan(1);
   });
+
+  it('should dispatch renameproject command and invoke onRenameProject', () => {
+    // Arrange
+    const cmd = 'renameproject p1 "New Project Name"';
+
+    // Act
+    const res = executeCliCommand(cmd, mockContext);
+
+    // Assert
+    expect(onRenameProjectMock).toHaveBeenCalledWith('p1', 'New Project Name');
+    expect(res.some(l => l.type === 'success')).toBe(true);
+  });
+
+  it('should dispatch renametask command and invoke onRenameTask', () => {
+    // Arrange
+    const cmd = 'renametask t1 "New Task Name"';
+
+    // Act
+    const res = executeCliCommand(cmd, mockContext);
+
+    // Assert
+    expect(onRenameTaskMock).toHaveBeenCalledWith('t1', 'New Task Name');
+    expect(res.some(l => l.type === 'success')).toBe(true);
+  });
 });
+

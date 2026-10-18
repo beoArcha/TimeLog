@@ -32,3 +32,21 @@ export const runAddProjectCommand = (args: string[], context: CliEngineContext, 
     outputs.push({ text: `${translate(locale, 'cli', 'SuccessCreatedProj', customTranslations)}: ${name}`, type: 'success' });
   }
 };
+
+export const runRenameProjectCommand = (args: string[], context: CliEngineContext, outputs: TerminalLine[]): void => {
+  const { projects, onRenameProject, locale, customTranslations } = context;
+  const pId = args[0];
+  const newName = args[1];
+  if (!pId || !newName) {
+    outputs.push({ text: translate(locale, 'cli', 'ErrUsageRenameProject', customTranslations), type: 'error' });
+  } else {
+    const projExists = projects.some(p => p.id === pId);
+    if (!projExists) {
+      outputs.push({ text: `${translate(locale, 'cli', 'ProjNotExist', customTranslations)} ${pId}`, type: 'error' });
+    } else {
+      onRenameProject(pId, newName);
+      outputs.push({ text: `${translate(locale, 'cli', 'SuccessRenamedProject', customTranslations)}: ${newName}`, type: 'success' });
+    }
+  }
+};
+

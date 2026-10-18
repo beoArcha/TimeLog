@@ -5,8 +5,10 @@ import {
   runProjectsCommand,
   runTasksCommand,
   runAddProjectCommand,
+  runRenameProjectCommand,
   runAddTaskCommand,
   runAddSubtaskCommand,
+  runRenameTaskCommand,
   runStartCommand,
   runStopCommand,
   runStatusCommand,
@@ -46,7 +48,9 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
         { text: `  projects                      - ${translate(context.locale, 'cli', 'ProjectsDesc', context.customTranslations)}`, type: 'output' },
         { text: `  tasks <id_projektu/proj_id>   - ${translate(context.locale, 'cli', 'TasksDesc', context.customTranslations)}`, type: 'output' },
         { text: `  addproject "<nazwa/name>"     - ${translate(context.locale, 'cli', 'AddProjectDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  renameproject <pId> "<name>"  - ${translate(context.locale, 'cli', 'RenameProjectDesc', context.customTranslations)}`, type: 'output' },
         { text: `  addtask <pId> "<nazwa/name>"  - ${translate(context.locale, 'cli', 'AddTaskDesc', context.customTranslations)}`, type: 'output' },
+        { text: `  renametask <tId> "<name>"     - ${translate(context.locale, 'cli', 'RenameTaskDesc', context.customTranslations)}`, type: 'output' },
         { text: `  addsubtask <parent_id> "<n>"  - ${translate(context.locale, 'cli', 'AddSubtaskDesc', context.customTranslations)}`, type: 'output' },
         { text: `  start [task_id]               - ${translate(context.locale, 'cli', 'StartDesc', context.customTranslations)}`, type: 'output' },
         { text: `  stop [all]                    - ${translate(context.locale, 'cli', 'StopDesc', context.customTranslations)}`, type: 'output' },
@@ -75,8 +79,16 @@ export const executeCliCommand = (cmdText: string, context: CliEngineContext): T
       runAddProjectCommand(args, context, outputs);
       break;
 
+    case 'renameproject':
+      runRenameProjectCommand(args, context, outputs);
+      break;
+
     case 'addtask':
       runAddTaskCommand(args, context, outputs);
+      break;
+
+    case 'renametask':
+      runRenameTaskCommand(args, context, outputs);
       break;
 
     case 'addsubtask':

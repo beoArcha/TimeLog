@@ -66,3 +66,17 @@ pub fn update_project(
     let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)
 }
+
+#[tauri::command]
+pub fn rename_project(
+    project_id: String,
+    name: String,
+    state: State<'_, AppState>,
+) -> Result<TimerRepositoryState, AppError> {
+    if let Some(mut project) = state.persistence.projects.get(&project_id)? {
+        project.name = name;
+        state.persistence.projects.patch(project)?;
+    }
+    let engine = Engine::new(&state.persistence);
+    Ok(engine.get_state()?)
+}

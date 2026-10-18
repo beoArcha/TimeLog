@@ -1,10 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
-import { ICorePersistence, IProjectsPersistence } from '../IPersistence';
+import { IProjectsPersistence } from '../IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ProjectsPersistenceCommand } from '@bindings/ProjectsPersistenceCommand';
 
 export class TauriProjectsPersistence implements IProjectsPersistence {
-  constructor(private readonly core: ICorePersistence) {}
+  constructor() {}
 
   async add(input: {
     name: string;
@@ -48,15 +48,7 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
   }
 
   async rename(projectId: string, name: string): Promise<TimerRepositoryState> {
-    const state = await this.core.load();
-    const project = state?.projects.find((p) => p.id === projectId);
-    return this.update(
-      projectId,
-      name,
-      project?.color ?? '',
-      project?.description ?? null,
-      project?.icon ?? null,
-      project?.tags ?? null
-    );
+    const cmd: ProjectsPersistenceCommand = 'rename_project';
+    return invoke<TimerRepositoryState>(cmd, { projectId, name });
   }
 }

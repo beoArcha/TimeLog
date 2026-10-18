@@ -32,10 +32,14 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             project::add,
             project::toggle_archive,
             project::update_project,
+            project::rename_project,
             task::create,
             task::update_task,
             task::delete,
             task::toggle_complete,
+            task::rename_task,
+            task::get_task_project_id,
+            task::get_subtasks,
             settings::get,
             settings::save,
             settings::get_runtime_configs,
@@ -105,11 +109,19 @@ fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
         initial_settings.always_on_top_main.unwrap_or(false)
     };
 
+    let initial_locale = persistence
+        .auxiliary
+        .get_locale()
+        .ok()
+        .filter(|loc_str| !loc_str.is_empty())
+        .map(|loc_str| crate::types::Locale::from_sys_lang(&loc_str));
+
     let (tray_menu, tray_handles) = tray::build_tray_menu(
         app,
         initial_gui_variant,
         initial_always_on_top,
         initial_minimize_to_tray,
+        initial_locale,
     )?;
 
     app.manage(AppState {

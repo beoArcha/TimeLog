@@ -123,3 +123,37 @@ pub fn toggle_complete(
     }
     Ok(engine.get_state()?)
 }
+
+#[tauri::command]
+pub fn rename_task(
+    task_id: String,
+    name: String,
+    state: State<'_, AppState>,
+) -> Result<TimerRepositoryState, AppError> {
+    if let Some(mut task) = state.persistence.tasks.get(&task_id)? {
+        task.name = name;
+        state.persistence.tasks.patch(task)?;
+    }
+    let engine = Engine::new(&state.persistence);
+    Ok(engine.get_state()?)
+}
+
+#[tauri::command]
+pub fn get_task_project_id(
+    task_id: String,
+    state: State<'_, AppState>,
+) -> Result<String, AppError> {
+    if let Some(task) = state.persistence.tasks.get(&task_id)? {
+        Ok(task.project_id)
+    } else {
+        Err(AppError::Generic(format!("Task {} not found", task_id)))
+    }
+}
+
+#[tauri::command]
+pub fn get_subtasks(
+    task_id: String,
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::types::Task>, AppError> {
+    Ok(state.persistence.tasks.get_subtasks(&task_id)?)
+}

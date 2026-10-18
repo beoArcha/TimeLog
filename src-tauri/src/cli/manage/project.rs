@@ -1,5 +1,6 @@
 use crate::cli::shared::constants::{
     DEFAULT_COLOR, MSG_LIST_NOT_IMPLEMENTED, MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED,
+    MSG_PROJECT_NOT_FOUND, MSG_PROJECT_RENAMED,
 };
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
@@ -17,6 +18,10 @@ pub enum ProjectCommand {
     List,
     Archive {
         id: String,
+    },
+    Rename {
+        id: String,
+        name: String,
     },
 }
 
@@ -51,6 +56,18 @@ pub fn handle(cmd: ProjectCommand, persistence: &Persistence) -> Result<CliOutpu
                 .archive(id.clone())
                 .map_err(|e| e.to_string())?;
             Ok(CliOutput::Success(MSG_PROJECT_ARCHIVED.replace("{}", &id)))
+        }
+        ProjectCommand::Rename { id, name } => {
+            if let Some(mut project) = persistence.projects.get(&id).map_err(|e| e.to_string())? {
+                project.name = name;
+                persistence
+                    .projects
+                    .patch(project)
+                    .map_err(|e| e.to_string())?;
+                Ok(CliOutput::Success(MSG_PROJECT_RENAMED.replace("{}", &id)))
+            } else {
+                Err(MSG_PROJECT_NOT_FOUND.replace("{}", &id))
+            }
         }
     }
 }

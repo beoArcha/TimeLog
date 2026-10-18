@@ -149,13 +149,9 @@ describe('Unit Tests: PersistenceCommands', () => {
         icon: null,
         tags: null,
       });
-      expect(mockInvoke).toHaveBeenCalledWith('update_project', {
+      expect(mockInvoke).toHaveBeenCalledWith('rename_project', {
         projectId: 'p1',
         name: 'Renamed',
-        color: '#ff0000',
-        description: null,
-        icon: null,
-        tags: null,
       });
     });
   });
@@ -176,17 +172,9 @@ describe('Unit Tests: PersistenceCommands', () => {
       });
     });
 
-    it('should call update_task when updating and renaming', async () => {
+    it('should call update_task when updating and rename_task when renaming', async () => {
       // Arrange
-      const mockState = {
-        projects: [],
-        tasks: [
-          { id: 't1', name: 'Old Task', projectId: 'p1', parentTaskId: null, status: null, completed: false },
-        ],
-        logs: [],
-        activeLog: null,
-      };
-      mockInvoke.mockResolvedValue(mockState);
+      mockInvoke.mockResolvedValue({});
 
       // Act
       await commands.tasks.update('t1', 'New Task', null, 'Todo', false);
@@ -200,12 +188,9 @@ describe('Unit Tests: PersistenceCommands', () => {
         status: 'Todo',
         completed: false,
       });
-      expect(mockInvoke).toHaveBeenCalledWith('update_task', {
+      expect(mockInvoke).toHaveBeenCalledWith('rename_task', {
         taskId: 't1',
         name: 'Renamed Task',
-        parentTaskId: null,
-        status: null,
-        completed: false,
       });
     });
 
@@ -222,24 +207,21 @@ describe('Unit Tests: PersistenceCommands', () => {
       expect(mockInvoke).toHaveBeenCalledWith('toggle_complete', { taskId: 't1' });
     });
 
-    it('should getProjectId and getSubtasks correctly', async () => {
+    it('should getProjectId and getSubtasks correctly via direct IPC calls', async () => {
       // Arrange
-      const mockState = {
-        projects: [],
-        tasks: [
-          { id: 't1', name: 'Parent', projectId: 'p1', parentTaskId: null },
+      mockInvoke
+        .mockResolvedValueOnce('p1')
+        .mockResolvedValueOnce([
           { id: 'sub-1', name: 'Subtask', projectId: 'p1', parentTaskId: 't1' },
-        ],
-        logs: [],
-        activeLog: null,
-      };
-      mockInvoke.mockResolvedValue(mockState);
+        ]);
 
       // Act
       const projectId = await commands.tasks.getProjectId('t1');
       const subtasks = await commands.tasks.getSubtasks('t1');
 
       // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_task_project_id', { taskId: 't1' });
+      expect(mockInvoke).toHaveBeenCalledWith('get_subtasks', { taskId: 't1' });
       expect(projectId).toBe('p1');
       expect(subtasks).toHaveLength(1);
       expect(subtasks[0].id).toBe('sub-1');
@@ -247,7 +229,7 @@ describe('Unit Tests: PersistenceCommands', () => {
 
     it('should throw error when getProjectId is called for non-existent task', async () => {
       // Arrange
-      mockInvoke.mockResolvedValue({ projects: [], tasks: [], logs: [], activeLog: null });
+      mockInvoke.mockRejectedValueOnce(new Error('Task unknown-task not found'));
 
       // Act & Assert
       await expect(commands.tasks.getProjectId('unknown-task')).rejects.toThrow(

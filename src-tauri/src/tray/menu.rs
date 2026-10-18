@@ -1,4 +1,4 @@
-use crate::app::state::TrayCheckHandles;
+use crate::app::state::{AppState, TrayCheckHandles};
 use crate::tray::ids::TrayMenuId;
 use crate::types::{LayoutVariant, Locale};
 use tauri::{
@@ -16,8 +16,9 @@ pub fn build_tray_menu(
     initial_variant: LayoutVariant,
     initial_always_on_top: bool,
     initial_minimize_to_tray: bool,
+    initial_locale: Option<Locale>,
 ) -> tauri::Result<(Menu<tauri::Wry>, TrayCheckHandles)> {
-    let locale = get_system_locale();
+    let locale = initial_locale.unwrap_or_else(get_system_locale);
 
     let toggle_item = MenuItem::with_id(
         app,
@@ -102,12 +103,45 @@ pub fn build_tray_menu(
     )?;
 
     let handles = TrayCheckHandles {
+        toggle_visibility: toggle_item,
         gui_compact,
         gui_medium,
         gui_full,
         toggle_on_top,
         toggle_minimize_to_tray,
+        stop_all,
+        quit_app: quit_item,
     };
 
     Ok((tray_menu, handles))
+}
+
+pub fn update_tray_menu_locale(state: &AppState, locale: Locale) -> tauri::Result<()> {
+    if let Some(ref handles) = state.tray_handles {
+        handles
+            .toggle_visibility
+            .set_text(TrayMenuId::ToggleVisibility.get_text(locale))?;
+        handles
+            .gui_compact
+            .set_text(TrayMenuId::GuiCompact.get_text(locale))?;
+        handles
+            .gui_medium
+            .set_text(TrayMenuId::GuiMedium.get_text(locale))?;
+        handles
+            .gui_full
+            .set_text(TrayMenuId::GuiFull.get_text(locale))?;
+        handles
+            .toggle_on_top
+            .set_text(TrayMenuId::ToggleOnTop.get_text(locale))?;
+        handles
+            .toggle_minimize_to_tray
+            .set_text(TrayMenuId::ToggleMinimizeToTray.get_text(locale))?;
+        handles
+            .stop_all
+            .set_text(TrayMenuId::StopAllTimers.get_text(locale))?;
+        handles
+            .quit_app
+            .set_text(TrayMenuId::QuitApp.get_text(locale))?;
+    }
+    Ok(())
 }

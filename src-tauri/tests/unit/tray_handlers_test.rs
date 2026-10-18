@@ -24,3 +24,18 @@ fn test_update_tray_state_handles_none() {
     update_tray_always_on_top(&state, true);
     update_tray_always_on_top(&state, false);
 }
+
+#[test]
+fn test_update_tray_menu_locale_handles_none() {
+    let (_conn, config, _temp_dir) = setup_persistence_test("tray_locale_test");
+    let persistence = Arc::new(Persistence::new(&config).unwrap());
+    let state = AppState {
+        persistence,
+        was_maximized: AtomicBool::new(false),
+        minimize_to_tray: AtomicBool::new(true),
+        tray_handles: None,
+    };
+
+    let res = oxy_flow::tray::menu::update_tray_menu_locale(&state, oxy_flow::types::Locale::Pl);
+    assert!(res.is_ok());
+}

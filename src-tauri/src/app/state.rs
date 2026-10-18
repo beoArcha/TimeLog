@@ -2,15 +2,18 @@ use crate::common::constants::*;
 use crate::persistence::Persistence;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tauri::menu::CheckMenuItem;
+use tauri::menu::{CheckMenuItem, MenuItem};
 
 #[derive(Clone)]
 pub struct TrayCheckHandles {
+    pub toggle_visibility: MenuItem<tauri::Wry>,
     pub gui_compact: CheckMenuItem<tauri::Wry>,
     pub gui_medium: CheckMenuItem<tauri::Wry>,
     pub gui_full: CheckMenuItem<tauri::Wry>,
     pub toggle_on_top: CheckMenuItem<tauri::Wry>,
     pub toggle_minimize_to_tray: CheckMenuItem<tauri::Wry>,
+    pub stop_all: MenuItem<tauri::Wry>,
+    pub quit_app: MenuItem<tauri::Wry>,
 }
 
 pub struct AppState {

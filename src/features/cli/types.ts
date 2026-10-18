@@ -18,7 +18,9 @@ export interface CliEngineContext {
   activeLog: TimeLog | null;
   metrics?: EngineComputedMetrics | null;
   onAddProject: (name: string, color: string) => void;
+  onRenameProject: (projectId: string, name: string) => void;
   onAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
+  onRenameTask: (taskId: string, name: string) => void;
   onToggleTaskComplete: (taskId: string) => void;
   onStartTimer: (taskId: string) => void;
   onStopTimer: (projectId?: string) => void;
