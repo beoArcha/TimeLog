@@ -12,6 +12,36 @@ pub const SELECT_ALL_RUNTIME_CONFIGS: &str = "
     SELECT id, runtime, config, created_at FROM runtime_configs
 ";
 
+pub const INSERT_OR_REPLACE_WEBHOOK_QUEUE_ITEM: &str = "
+    INSERT OR REPLACE INTO webhook_queue (id, url, method, headers, payload, status, retry_count, next_retry_at, last_error, created_at)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+";
+
+pub const SELECT_PENDING_WEBHOOKS: &str = "
+    SELECT id, url, method, headers, payload, status, retry_count, next_retry_at, last_error, created_at
+    FROM webhook_queue
+    WHERE status = 'pending'
+    ORDER BY created_at ASC
+";
+
+pub const UPDATE_WEBHOOK_STATUS: &str = "
+    UPDATE webhook_queue
+    SET status = ?2, retry_count = ?3, next_retry_at = ?4, last_error = ?5
+    WHERE id = ?1
+";
+
+pub const DELETE_WEBHOOK_BY_ID: &str = "DELETE FROM webhook_queue WHERE id = ?1";
+
+pub const CLEAR_WEBHOOK_QUEUE: &str = "DELETE FROM webhook_queue";
+
+pub const SELECT_WEBHOOK_QUEUE_STATS: &str = "
+    SELECT
+        COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0),
+        COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0),
+        COALESCE(SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END), 0)
+    FROM webhook_queue
+";
+
 // Configuration keys for auxiliary UI, API, and locale settings
 pub const KEY_CURRENT_PROJECT_ID: &str = "ui_current_project_id";
 pub const KEY_LAST_NON_COMPACT_VARIANT: &str = "ui_last_non_compact_variant";

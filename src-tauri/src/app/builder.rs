@@ -1,7 +1,9 @@
 use crate::app::state::AppState;
 use crate::commands::{
     app as app_cmds, engine,
-    persistence::{auxiliary, core, holidays, patches, project, settings, task, time_log},
+    persistence::{
+        auxiliary, core, holidays, patches, project, settings, task, time_log, webhook_queue,
+    },
     window,
 };
 use crate::common::constants::*;
@@ -68,6 +70,12 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             auxiliary::save_locale,
             auxiliary::get_custom_translations,
             auxiliary::save_custom_translations,
+            webhook_queue::enqueue_webhook,
+            webhook_queue::get_pending_webhooks,
+            webhook_queue::update_webhook_status,
+            webhook_queue::delete_webhook,
+            webhook_queue::clear_webhook_queue,
+            webhook_queue::get_webhook_queue_stats,
             window::set_layout_variant,
             window::resize,
             window::set_always_on_top,

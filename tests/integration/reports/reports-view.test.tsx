@@ -49,7 +49,7 @@ describe('Integration Tests: ReportView', () => {
 
     expect(screen.getByText(/Time Summaries & Reports/i)).toBeTruthy();
     expect(screen.getAllByText(/01:00:00/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Project Alpha')).toBeTruthy();
+    expect(screen.getAllByText('Project Alpha').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Task One')).toBeTruthy();
   });
 

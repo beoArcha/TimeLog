@@ -22,4 +22,5 @@ export const STORAGE_KEYS = {
   SETTINGS_KEY: 'timelog_persistence_plugin_settings',
   RUN_CONFIGS_KEY: 'timelog_persistence_plugin_runtime_configs',
   HOLIDAYS_KEY: 'timelog_persistence_plugin_holidays',
+  WEBHOOK_QUEUE: 'timelog_persistence_plugin_webhook_queue',
 } as const;

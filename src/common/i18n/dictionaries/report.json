@@ -35,7 +35,15 @@
     "Share": "Share",
     "ClearFilter": "Clear filter",
     "DailyActivity": "Daily Activity",
-    "ProjectShare": "Project Share"
+    "ProjectShare": "Project Share",
+    "Export": "Export",
+    "ExportReport": "Export Report",
+    "ExportReportDesc": "Download or copy aggregated time log data in standard formats.",
+    "SelectFormat": "Select Format",
+    "DownloadFile": "Download File",
+    "CopyToClipboard": "Copy to Clipboard",
+    "ExportEntriesCount": "entries",
+    "Close": "Close"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -73,7 +81,15 @@
     "Share": "Udział",
     "ClearFilter": "Wyczyść filtr",
     "DailyActivity": "Aktywność dzienna",
-    "ProjectShare": "Udział projektów"
+    "ProjectShare": "Udział projektów",
+    "Export": "Eksportuj",
+    "ExportReport": "Eksportuj raport",
+    "ExportReportDesc": "Pobierz lub skopiuj zagregowane dane rejestru czasu w popularnych formatach.",
+    "SelectFormat": "Wybierz format",
+    "DownloadFile": "Pobierz plik",
+    "CopyToClipboard": "Kopiuj do schowka",
+    "ExportEntriesCount": "wpisów",
+    "Close": "Zamknij"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -111,7 +127,15 @@
     "Share": "Anteil",
     "ClearFilter": "Filter löschen",
     "DailyActivity": "Tägliche Aktivität",
-    "ProjectShare": "Projektanteil"
+    "ProjectShare": "Projektanteil",
+    "Export": "Exportieren",
+    "ExportReport": "Bericht exportieren",
+    "ExportReportDesc": "Laden Sie aggregierte Zeiterfassungsdaten in Standardformaten herunter oder kopieren Sie sie.",
+    "SelectFormat": "Format auswählen",
+    "DownloadFile": "Datei herunterladen",
+    "CopyToClipboard": "In die Zwischenablage kopieren",
+    "ExportEntriesCount": "Einträge",
+    "Close": "Schließen"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -149,7 +173,15 @@
     "Share": "Participación",
     "ClearFilter": "Limpiar filtro",
     "DailyActivity": "Actividad diaria",
-    "ProjectShare": "Participación por proyecto"
+    "ProjectShare": "Participación por proyecto",
+    "Export": "Exportar",
+    "ExportReport": "Exportar informe",
+    "ExportReportDesc": "Descargue o copie datos agregados de registro de tiempo en formatos estándar.",
+    "SelectFormat": "Seleccionar formato",
+    "DownloadFile": "Descargar archivo",
+    "CopyToClipboard": "Copiar al portapapeles",
+    "ExportEntriesCount": "entradas",
+    "Close": "Cerrar"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -187,7 +219,15 @@
     "Share": "Part",
     "ClearFilter": "Effacer le filtre",
     "DailyActivity": "Activité quotidienne",
-    "ProjectShare": "Part des projets"
+    "ProjectShare": "Part des projets",
+    "Export": "Exporter",
+    "ExportReport": "Exporter le rapport",
+    "ExportReportDesc": "Téléchargez ou copiez les données agrégées du journal de temps dans des formats standard.",
+    "SelectFormat": "Sélectionner le format",
+    "DownloadFile": "Télécharger le fichier",
+    "CopyToClipboard": "Copier dans le presse-papiers",
+    "ExportEntriesCount": "entrées",
+    "Close": "Fermer"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -225,6 +265,14 @@
     "Share": "Participação",
     "ClearFilter": "Limpar filtro",
     "DailyActivity": "Atividade diária",
-    "ProjectShare": "Participação dos projetos"
+    "ProjectShare": "Participação dos projetos",
+    "Export": "Exportar",
+    "ExportReport": "Exportar relatório",
+    "ExportReportDesc": "Baixe ou copie dados agregados de registro de tempo em formatos padrão.",
+    "SelectFormat": "Selecionar formato",
+    "DownloadFile": "Baixar arquivo",
+    "CopyToClipboard": "Copiar para área de transferência",
+    "ExportEntriesCount": "entradas",
+    "Close": "Fechar"
   }
 }

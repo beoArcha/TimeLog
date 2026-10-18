@@ -10,3 +10,4 @@ export * from './LocalStoragePatchesPersistence';
 export * from './LocalStorageUiStatePersistence';
 export * from './LocalStorageExternalApiPersistence';
 export * from './LocalStorageLocalePersistence';
+export * from './LocalStorageWebhookQueuePersistence';

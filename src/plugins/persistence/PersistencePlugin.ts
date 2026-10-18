@@ -10,7 +10,8 @@ import {
   IPatchesPersistence,
   IUiStatePersistence,
   IExternalApiPersistence,
-  ILocalePersistence
+  ILocalePersistence,
+  IWebhookQueuePersistence
 } from '@common/persistence/IPersistence';
 import {
   ILocalStorageStateStore,
@@ -25,7 +26,8 @@ import {
   LocalStoragePatchesPersistence,
   LocalStorageUiStatePersistence,
   LocalStorageExternalApiPersistence,
-  LocalStorageLocalePersistence
+  LocalStorageLocalePersistence,
+  LocalStorageWebhookQueuePersistence
 } from './services';
 
 /**
@@ -43,6 +45,7 @@ export class PersistencePlugin implements IPersistence {
   public readonly uiState: IUiStatePersistence;
   public readonly externalApi: IExternalApiPersistence;
   public readonly locale: ILocalePersistence;
+  public readonly webhookQueue: IWebhookQueuePersistence;
 
   constructor(services?: Partial<IPersistence>, customStore?: ILocalStorageStateStore) {
     const store = customStore ?? new LocalStorageStateStore();
@@ -58,5 +61,6 @@ export class PersistencePlugin implements IPersistence {
     this.uiState = services?.uiState ?? new LocalStorageUiStatePersistence();
     this.externalApi = services?.externalApi ?? new LocalStorageExternalApiPersistence();
     this.locale = services?.locale ?? new LocalStorageLocalePersistence();
+    this.webhookQueue = services?.webhookQueue ?? new LocalStorageWebhookQueuePersistence();
   }
 }

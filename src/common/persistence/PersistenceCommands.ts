@@ -10,7 +10,8 @@ import {
   IPatchesPersistence,
   IUiStatePersistence,
   IExternalApiPersistence,
-  ILocalePersistence
+  ILocalePersistence,
+  IWebhookQueuePersistence
 } from './IPersistence';
 import {
   TauriCorePersistence,
@@ -23,7 +24,8 @@ import {
   TauriPatchesPersistence,
   TauriUiStatePersistence,
   TauriExternalApiPersistence,
-  TauriLocalePersistence
+  TauriLocalePersistence,
+  TauriWebhookQueuePersistence
 } from './commands';
 
 /**
@@ -41,6 +43,7 @@ export class PersistenceCommands implements IPersistence {
   public readonly uiState: IUiStatePersistence;
   public readonly externalApi: IExternalApiPersistence;
   public readonly locale: ILocalePersistence;
+  public readonly webhookQueue: IWebhookQueuePersistence;
 
   constructor(services?: Partial<IPersistence>) {
     this.core = services?.core ?? new TauriCorePersistence();
@@ -54,5 +57,6 @@ export class PersistenceCommands implements IPersistence {
     this.uiState = services?.uiState ?? new TauriUiStatePersistence();
     this.externalApi = services?.externalApi ?? new TauriExternalApiPersistence();
     this.locale = services?.locale ?? new TauriLocalePersistence();
+    this.webhookQueue = services?.webhookQueue ?? new TauriWebhookQueuePersistence();
   }
 }

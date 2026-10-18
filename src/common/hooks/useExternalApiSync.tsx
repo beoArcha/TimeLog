@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { ErrorHandler, NetworkException, PersistenceException } from '../exceptions';
+import { ErrorHandler, NetworkException } from '../exceptions';
+import { WebhookDispatcher, WebhookSyncStatus } from '@common/sinks/WebhookDispatcher';
 
 export const useExternalApiSync = () => {
   const [logToApi, setLogToApi] = useState<boolean>(false);
@@ -9,6 +10,14 @@ export const useExternalApiSync = () => {
   const [apiMethod, setApiMethod] = useState<'POST' | 'PUT'>('POST');
   const [apiHeaders, setApiHeaders] = useState<string>('');
   const [loaded, setLoaded] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<WebhookSyncStatus>(
+    WebhookDispatcher.getInstance().getStatus()
+  );
+
+  useEffect(() => {
+    const unsubscribe = WebhookDispatcher.getInstance().subscribe(setSyncStatus);
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     PersistenceRouter.getInstance().externalApi.getSettings().then(settings => {
@@ -28,26 +37,19 @@ export const useExternalApiSync = () => {
     }).catch(ErrorHandler.handle);
   }, [logToApi, apiToken, apiUrl, apiMethod, apiHeaders, loaded]);
 
-  const pushToApi = (payload: unknown, logMsg: string) => {
-    if (logToApi && apiUrl) {
-      let headersObj: Record<string, string> = {};
-      try {
-        if (apiHeaders) headersObj = JSON.parse(apiHeaders);
-      } catch (err) {
-        ErrorHandler.handle(new PersistenceException('Failed parse headers json', err, 'ERR_PARSE_HEADERS'));
-      }
-      fetch(apiUrl, {
-        method: apiMethod || 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiToken}`,
-          ...headersObj,
-        },
-        body: JSON.stringify(payload),
-      }).catch(err => ErrorHandler.handle(new NetworkException('Failed API call', err, 'ERR_NETWORK_API')));
-    } else {
+  const pushToApi = async (payload: unknown, logMsg: string) => {
+    if (!logToApi || !apiUrl) {
       console.log(`[FILE APPEND logs.txt] ${logMsg}`);
     }
+    try {
+      await WebhookDispatcher.getInstance().enqueue(payload, logMsg);
+    } catch (err) {
+      ErrorHandler.handle(new NetworkException('Failed API call dispatch', err, 'ERR_NETWORK_API'));
+    }
+  };
+
+  const retryNow = () => {
+    WebhookDispatcher.getInstance().retryNow().catch(ErrorHandler.handle);
   };
 
   return {
@@ -57,5 +59,7 @@ export const useExternalApiSync = () => {
     apiMethod, setApiMethod,
     apiHeaders, setApiHeaders,
     pushToApi,
+    syncStatus,
+    retryNow,
   };
 };

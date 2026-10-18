@@ -9,3 +9,4 @@ export * from './TauriPatchesPersistence';
 export * from './TauriUiStatePersistence';
 export * from './TauriExternalApiPersistence';
 export * from './TauriLocalePersistence';
+export * from './TauriWebhookQueuePersistence';

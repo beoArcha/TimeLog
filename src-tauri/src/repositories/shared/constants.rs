@@ -110,3 +110,18 @@ pub const CREATE_PATCHES_TABLE: &str = "
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 ";
+
+pub const CREATE_WEBHOOK_QUEUE_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS webhook_queue (
+        id TEXT PRIMARY KEY,
+        url TEXT NOT NULL,
+        method TEXT NOT NULL,
+        headers TEXT,
+        payload TEXT NOT NULL,
+        status TEXT NOT NULL,
+        retry_count INTEGER DEFAULT 0,
+        next_retry_at TEXT,
+        last_error TEXT,
+        created_at TEXT NOT NULL
+    )
+";

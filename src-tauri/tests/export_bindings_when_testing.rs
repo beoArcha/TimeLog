@@ -41,4 +41,6 @@ fn export_bindings() {
     ProjectComputedMetrics::export_all_to(BINDINGS_DIR).unwrap();
     EngineComputedMetrics::export_all_to(BINDINGS_DIR).unwrap();
     ExternalApiSettings::export_all_to(BINDINGS_DIR).unwrap();
+    WebhookQueueItem::export_all_to(BINDINGS_DIR).unwrap();
+    WebhookQueueStats::export_all_to(BINDINGS_DIR).unwrap();
 }

@@ -1,5 +1,19 @@
 import { isDesktopEnvironment } from '../utils/environment';
-import { IPersistence, ICorePersistence, IProjectsPersistence, ITasksPersistence, ISettingsPersistence, IRuntimeConfigPersistence, ITimeLogsPersistence, IHolidaysPersistence, IPatchesPersistence, IUiStatePersistence, IExternalApiPersistence, ILocalePersistence } from './IPersistence';
+import {
+  IPersistence,
+  ICorePersistence,
+  IProjectsPersistence,
+  ITasksPersistence,
+  ISettingsPersistence,
+  IRuntimeConfigPersistence,
+  ITimeLogsPersistence,
+  IHolidaysPersistence,
+  IPatchesPersistence,
+  IUiStatePersistence,
+  IExternalApiPersistence,
+  ILocalePersistence,
+  IWebhookQueuePersistence
+} from './IPersistence';
 import { PersistenceCommands } from './PersistenceCommands';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 import { IRouter } from '../types/routing';
@@ -81,5 +95,9 @@ export class PersistenceRouter implements IPersistence, IRouter<IPersistence> {
 
   get locale(): ILocalePersistence {
     return this.implementation.locale;
+  }
+
+  get webhookQueue(): IWebhookQueuePersistence {
+    return this.implementation.webhookQueue;
   }
 }

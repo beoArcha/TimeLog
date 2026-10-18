@@ -7,11 +7,28 @@ import { RuntimeConfig } from '@bindings/RuntimeConfig';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { ExternalApiSettings } from '@bindings/ExternalApiSettings';
+import { WebhookQueueItem } from '@bindings/WebhookQueueItem';
+import { WebhookQueueStats } from '@bindings/WebhookQueueStats';
 
 export type ApiPayload = {
   event: string;
   log: TimeLog | (TimeLog & { endTime: string });
 };
+
+export interface IWebhookQueuePersistence {
+  enqueue(item: WebhookQueueItem): Promise<void>;
+  getPending(): Promise<WebhookQueueItem[]>;
+  updateStatus(
+    id: string,
+    status: string,
+    retryCount: number | bigint,
+    nextRetryAt: string | null,
+    lastError: string | null
+  ): Promise<void>;
+  delete(id: string): Promise<void>;
+  clear(): Promise<void>;
+  getStats(): Promise<WebhookQueueStats>;
+}
 
 export interface ICorePersistence {
   load(): Promise<TimerRepositoryState | null>;
@@ -118,5 +135,6 @@ export interface IPersistence {
   uiState: IUiStatePersistence;
   externalApi: IExternalApiPersistence;
   locale: ILocalePersistence;
+  webhookQueue: IWebhookQueuePersistence;
 }
 

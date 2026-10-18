@@ -35,7 +35,12 @@
     "ResetSuccess": "Database reset successfully. All data cleared.",
     "ResetCancel": "Reset cancelled. No changes were made.",
     "DestructiveZone": "Destructive Zone (Dangerous)",
-    "EngineConfigLabel": "Engine Settings"
+    "EngineConfigLabel": "Engine Settings",
+    "SyncStatusOk": "Synced",
+    "SyncStatusSyncing": "Syncing...",
+    "SyncStatusQueued": "Queued",
+    "SyncStatusError": "Sync Error",
+    "RetryNow": "Retry now"
   },
   "pl": {
     "ConfigTitle": "Opcje Silnika i Daemony",
@@ -73,7 +78,12 @@
     "ResetSuccess": "Baza danych zresetowana. Wszystkie dane usunięte.",
     "ResetCancel": "Anulowano reset. Żadne zmiany nie zostały wprowadzone.",
     "DestructiveZone": "Strefa destrukcji",
-    "EngineConfigLabel": "Ustawienia silnika"
+    "EngineConfigLabel": "Ustawienia silnika",
+    "SyncStatusOk": "Zsynchronizowano",
+    "SyncStatusSyncing": "Synchronizacja...",
+    "SyncStatusQueued": "W kolejce",
+    "SyncStatusError": "Błąd synchronizacji",
+    "RetryNow": "Ponów teraz"
   },
   "de": {
     "ConfigTitle": "Motor-Optionen & Dämons",
@@ -111,7 +121,12 @@
     "ResetSuccess": "Datenbank erfolgreich zurückgesetzt. Alle Daten wurden gelöscht.",
     "ResetCancel": "Zurücksetzen abgebrochen. Keine Änderungen vorgenommen.",
     "DestructiveZone": "Zerstörerische Zone (Gefährlich)",
-    "EngineConfigLabel": "Motoreinstellungen"
+    "EngineConfigLabel": "Motoreinstellungen",
+    "SyncStatusOk": "Synchronisiert",
+    "SyncStatusSyncing": "Synchronisieren...",
+    "SyncStatusQueued": "In Warteschlange",
+    "SyncStatusError": "Synchronisationsfehler",
+    "RetryNow": "Jetzt wiederholen"
   },
   "es": {
     "ConfigTitle": "Opciones del Motor y Daemons",
@@ -149,7 +164,12 @@
     "ResetSuccess": "Base de datos restablecida. Todos los datos eliminados.",
     "ResetCancel": "Restablecimiento cancelado. No se realizaron cambios.",
     "DestructiveZone": "Zona destructiva",
-    "EngineConfigLabel": "Configuración del motor"
+    "EngineConfigLabel": "Configuración del motor",
+    "SyncStatusOk": "Sincronizado",
+    "SyncStatusSyncing": "Sincronizando...",
+    "SyncStatusQueued": "En cola",
+    "SyncStatusError": "Error de sincronización",
+    "RetryNow": "Reintentar ahora"
   },
   "fr": {
     "ConfigTitle": "Options du Moteur & Démons",
@@ -187,7 +207,12 @@
     "ResetSuccess": "Base de données réinitialisée. Toutes les données effacées.",
     "ResetCancel": "Réinitialisation annulée. Aucun changement effectué.",
     "DestructiveZone": "Zone destructrice",
-    "EngineConfigLabel": "Configuration du moteur"
+    "EngineConfigLabel": "Configuration du moteur",
+    "SyncStatusOk": "Synchronisé",
+    "SyncStatusSyncing": "Synchronisation...",
+    "SyncStatusQueued": "En attente",
+    "SyncStatusError": "Erreur de synchronisation",
+    "RetryNow": "Réessayer maintenant"
   },
   "pt-br": {
     "ConfigTitle": "Opções do Motor e Daemons",
@@ -225,6 +250,11 @@
     "ResetSuccess": "Banco de dados redefinido. Todos os dados removidos.",
     "ResetCancel": "Redefinição cancelada. Nenhuma alteração foi feita.",
     "DestructiveZone": "Zona Destrutiva",
-    "EngineConfigLabel": "Configuração do Motor"
+    "EngineConfigLabel": "Configuração do Motor",
+    "SyncStatusOk": "Sincronizado",
+    "SyncStatusSyncing": "Sincronizando...",
+    "SyncStatusQueued": "Na fila",
+    "SyncStatusError": "Erro de sincronização",
+    "RetryNow": "Repetir agora"
   }
 }

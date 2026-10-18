@@ -82,6 +82,14 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
         getCustomTranslations: vi.fn().mockResolvedValue({}),
         saveCustomTranslations: vi.fn().mockResolvedValue(undefined),
       },
+      webhookQueue: {
+        enqueue: vi.fn().mockResolvedValue(undefined),
+        getPending: vi.fn().mockResolvedValue([]),
+        updateStatus: vi.fn().mockResolvedValue(undefined),
+        delete: vi.fn().mockResolvedValue(undefined),
+        clear: vi.fn().mockResolvedValue(undefined),
+        getStats: vi.fn().mockResolvedValue({ pending: 0n, failed: 0n, delivered: 0n }),
+      },
     };
   };
 

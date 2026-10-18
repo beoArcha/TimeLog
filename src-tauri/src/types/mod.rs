@@ -13,6 +13,7 @@ pub mod project;
 pub mod settings;
 pub mod sinks;
 pub mod timelog;
+pub mod webhook_queue;
 
 pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,
@@ -32,3 +33,4 @@ pub use timelog::{
     RangeMetricsResult, Task, TaskComputedMetrics, TaskEditHistory, TaskStatus, TimeLog,
     TimeLogEditHistory, TimerRepositoryState,
 };
+pub use webhook_queue::{WebhookQueueItem, WebhookQueueStats};
