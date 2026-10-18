@@ -11,6 +11,7 @@ oXyFlow is built around a **single business domain model** with **multiple runti
 > For strict coding standards and layer rules, see [`ENGINEERING.md`](./ENGINEERING.md).  
 > For UI spatial logic and design tokens, see [`USERINTERFACE.md`](./USERINTERFACE.md).  
 > For UX principles, see [`USEREXPERIENCE.md`](./USEREXPERIENCE.md).  
+> For CLI architecture, modular engine contracts, and persona operations, see [`CLI.md`](./CLI.md).  
 > For AI operational guardrails, see [`../AGENT.md`](../AGENT.md).
 
 ---
@@ -143,3 +144,13 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [ ] **Native CLI Subprocess Tests**: Add automated test exercising compiled binary CLI execution against real SQLite database
 - [ ] **E2E Terminal Journey**: Add `cli-terminal-workflow.spec.ts` in Playwright and eliminate copywriting locators across all specs
 - [ ] **CI Quality Gate**: Establish unified `bun run test:quality` validating zero test warnings, 100% Vitest pass, and 100% Cargo test pass
+
+### Phase 10 — Decoupled Native CLI & Modular Subsystems ⏳ (Planned)
+
+- [ ] **CLI Architectural Decoupling**: Isolate `src-tauri/src/cli/` behind a strict module boundary with zero Tauri GUI dependencies, directly consuming `Engine` and `Persistence` contracts in preparation for future crate extraction (`crates/oxy-cli`).
+- [ ] **Dual-Layer Error Architecture**: Implement namespaced semantic error codes (`CLI_SYNTAX_*`, `DOM_ENTITY_*`, etc.), immutable technical English envelopes on `stderr`, localized human messages, and semantic POSIX exit codes (`1`..`5`).
+- [ ] **Machine & Automated Mode**: Enforce deterministic English JSON serialization via `--machine`, `--json`, and `cli_machine_locale` SQLite config key, guaranteeing silent operation and pipe compatibility (`stdout` streaming).
+- [ ] **Power User Reporting Engine**: Implement hierarchical Unicode report tree (`--tree`) and multi-format report exports (**HTML, JSON, XML, CSV, ODS, XLSX**).
+- [ ] **Beginner Interactive Guidance**: Integrate Levenshtein typo detection ("Did you mean?"), missing-argument interactive prompts in TTY mode, and friendly daily summary cards (`oxy summary`).
+- [ ] **Sinks & Action Masks Subsystem**: Add CLI sink configuration (`oxy sink set csv|webhook`, `oxy sink test`) and persistent parameterized action masks/macros (`oxy mask set`).
+- [ ] **Dedicated CLI Test Suites**: Separate CLI testing into dedicated directories (`src-tauri/tests/unit/cli/`, `src-tauri/tests/integration/cli/`, `tests/unit/cli/`, `tests/integration/cli/`) validating cross-runtime parity and error contracts.
