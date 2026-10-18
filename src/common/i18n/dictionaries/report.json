@@ -32,7 +32,10 @@
     "SelectedPeriodTotalDesc": "Total time in selected period",
     "MultiDaySegmentBadge": "Segment",
     "PatchBadge": "Adjustment",
-    "Share": "Share"
+    "Share": "Share",
+    "ClearFilter": "Clear filter",
+    "DailyActivity": "Daily Activity",
+    "ProjectShare": "Project Share"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -67,7 +70,10 @@
     "SelectedPeriodTotalDesc": "Całkowity czas w wybranym okresie",
     "MultiDaySegmentBadge": "Segment",
     "PatchBadge": "Korekta",
-    "Share": "Udział"
+    "Share": "Udział",
+    "ClearFilter": "Wyczyść filtr",
+    "DailyActivity": "Aktywność dzienna",
+    "ProjectShare": "Udział projektów"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -102,7 +108,10 @@
     "SelectedPeriodTotalDesc": "Gesamtzeit im gewählten Zeitraum",
     "MultiDaySegmentBadge": "Segment",
     "PatchBadge": "Korrektur",
-    "Share": "Anteil"
+    "Share": "Anteil",
+    "ClearFilter": "Filter löschen",
+    "DailyActivity": "Tägliche Aktivität",
+    "ProjectShare": "Projektanteil"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -137,7 +146,10 @@
     "SelectedPeriodTotalDesc": "Tiempo total en el período",
     "MultiDaySegmentBadge": "Segmento",
     "PatchBadge": "Ajuste",
-    "Share": "Participación"
+    "Share": "Participación",
+    "ClearFilter": "Limpiar filtro",
+    "DailyActivity": "Actividad diaria",
+    "ProjectShare": "Participación por proyecto"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -172,7 +184,10 @@
     "SelectedPeriodTotalDesc": "Temps total sur la période",
     "MultiDaySegmentBadge": "Segment",
     "PatchBadge": "Ajustement",
-    "Share": "Part"
+    "Share": "Part",
+    "ClearFilter": "Effacer le filtre",
+    "DailyActivity": "Activité quotidienne",
+    "ProjectShare": "Part des projets"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -207,6 +222,9 @@
     "SelectedPeriodTotalDesc": "Tempo total no período selecionado",
     "MultiDaySegmentBadge": "Segmento",
     "PatchBadge": "Ajuste",
-    "Share": "Participação"
+    "Share": "Participação",
+    "ClearFilter": "Limpar filtro",
+    "DailyActivity": "Atividade diária",
+    "ProjectShare": "Participação dos projetos"
   }
 }

@@ -59,4 +59,13 @@ describe('Unit Tests: ReportView', () => {
     const items = screen.getAllByText(/Task 1/i);
     expect(items.length).toBeGreaterThan(0);
   });
+
+  it('should render both stacked bar activity chart and project donut chart', () => {
+    // Arrange & Act
+    render(<ReportView state={mockGuiState} />);
+
+    // Assert
+    expect(screen.getByTestId('stacked-bar-activity-chart')).not.toBeNull();
+    expect(screen.getByTestId('project-donut-chart')).not.toBeNull();
+  });
 });

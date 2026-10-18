@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { BarChart3 } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import ReportStatsCards from './components/ReportStatsCards';
 import ReportPeriodSelector from './components/ReportPeriodSelector';
+import StackedBarActivityChart from './components/StackedBarActivityChart';
+import ProjectDonutChart from './components/ProjectDonutChart';
 import ReportLogList from './components/ReportLogList';
 import { useReportStatistics } from './hooks/useReportStatistics';
 
@@ -15,16 +17,23 @@ export default function ReportView({ state }: { state: GuiState }) {
     sysSettings, patches
   } = state;
 
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+
   const { t } = useTranslation('report');
   const {
     todaySec, weekSec, monthSec,
     periodTotalSec, dailyAverageSec, topProject,
-    filteredLogs, projectChart, maxSec, displayLogs
+    filteredLogs, projectChart, maxSec, displayLogs, clampedLogs
   } = useReportStatistics({
     logs, patches, projects, tasks, nowIso,
     reportPeriod, reportSort, sysSettings,
     customFrom, customTo
   });
+
+  const effectiveDisplayLogs = useMemo(() => {
+    if (!selectedProjectId) return displayLogs;
+    return displayLogs.filter((log) => log.projectId === selectedProjectId);
+  }, [displayLogs, selectedProjectId]);
 
   return (
     <div id="reports-panel" className="backdrop-blur-md rounded-[2.5rem] p-8 border border-border bg-card text-foreground shadow-2xl flex flex-col gap-6 transition-all duration-300">
@@ -58,11 +67,24 @@ export default function ReportView({ state }: { state: GuiState }) {
         setCustomTo={setCustomTo}
       />
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <StackedBarActivityChart
+          clampedLogs={clampedLogs}
+          projects={projects}
+          tasks={tasks}
+        />
+        <ProjectDonutChart
+          projectChart={projectChart}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={setSelectedProjectId}
+        />
+      </div>
+
       <ReportLogList
         filteredLogs={filteredLogs}
         projectChart={projectChart}
         maxSec={maxSec}
-        displayLogs={displayLogs}
+        displayLogs={effectiveDisplayLogs}
         projects={projects}
         tasks={tasks}
         nowIso={nowIso}

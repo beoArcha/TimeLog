@@ -387,7 +387,9 @@ export type ProjectKey =
 
 export type ReportKey =
   | 'AccumulatedMonthSeconds'
+  | 'ClearFilter'
   | 'CustomRange'
+  | 'DailyActivity'
   | 'DailyAverage'
   | 'DailyAverageDesc'
   | 'DateChronological'
@@ -407,6 +409,7 @@ export type ReportKey =
   | 'PeriodReport'
   | 'PeriodTotal'
   | 'PlainDump'
+  | 'ProjectShare'
   | 'SelectedPeriodTotalDesc'
   | 'Share'
   | 'SortBy'
