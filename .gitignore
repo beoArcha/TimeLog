@@ -16,3 +16,4 @@ playwright-video/
 .stryker-tmp/
 .stryker-sandbox/
 reports/mutation/
+src-tauri/bindings/
