@@ -452,6 +452,9 @@ Builders never define runtime behavior.
 - builders
 - design system primitives and composites
 
+use AAA design pattern in tests
+use descriptive name of tests  ( Arrange Act Assert)
+
 ---
 
 ### Integration Tests
@@ -461,6 +464,8 @@ Builders never define runtime behavior.
 - tauri commands
 - persistence
 - composite dialogs and view workflows
+
+use BDT design pattern ( Behavior - Description - Outcome)
 
 ---
 
