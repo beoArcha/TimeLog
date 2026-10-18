@@ -112,6 +112,7 @@ fn test_metrics_empty_and_range_calculations() {
         project_id: Some("p_dummy".to_string()),
         from: Some("2025-01-01T00:00:00Z".to_string()),
         to: Some("2025-01-02T00:00:00Z".to_string()),
+        include_patches: None,
     };
     let range_specific = engine.calculate_elapsed_range(&filter_specific).unwrap();
     assert_eq!(range_specific.as_secs(), 0);

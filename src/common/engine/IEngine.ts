@@ -3,6 +3,8 @@ import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { TaskComputedMetrics } from '@bindings/TaskComputedMetrics';
 import { ProjectComputedMetrics } from '@bindings/ProjectComputedMetrics';
 import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';
+import { RangeMetricsResult } from '@bindings/RangeMetricsResult';
+import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 
@@ -11,6 +13,8 @@ export {
   type TaskComputedMetrics,
   type ProjectComputedMetrics,
   type ElapsedRangeFilter,
+  type RangeMetricsResult,
+  type ClampedTimeLog,
 };
 
 export interface ITimerEngine {
@@ -25,6 +29,7 @@ export interface IMetricsEngine {
   getTaskElapsed(taskId: string, nowIso?: string): Promise<number>;
   getProjectElapsed(projectId: string, nowIso?: string): Promise<number>;
   getElapsedRange(range: ElapsedRangeFilter, nowIso?: string): Promise<number>;
+  getRangeMetrics(range: ElapsedRangeFilter, nowIso?: string): Promise<RangeMetricsResult>;
   getProjectStatistics(projectId: string): Promise<ProjectStatistics>;
 }
 

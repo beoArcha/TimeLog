@@ -19,6 +19,7 @@ describe('Unit Tests: useProjectStatistics', () => {
       getTaskElapsed: vi.fn(),
       getProjectElapsed: vi.fn(),
       getElapsedRange: vi.fn(),
+      getRangeMetrics: vi.fn(),
       getProjectStatistics: mockGetProjectStatistics,
     },
     timeLogs: {

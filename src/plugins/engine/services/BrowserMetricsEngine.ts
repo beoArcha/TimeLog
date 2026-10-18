@@ -2,6 +2,7 @@ import {
   IMetricsEngine,
   EngineComputedMetrics,
   ElapsedRangeFilter,
+  RangeMetricsResult,
 } from '@common/engine/IEngine';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
@@ -9,6 +10,7 @@ import {
   calculateProjectElapsed,
   calculateTaskElapsed,
   calculateElapsedRange,
+  calculateRangeMetrics,
   computeAllMetrics,
 } from '../elapsed';
 
@@ -53,6 +55,20 @@ export class BrowserMetricsEngine implements IMetricsEngine {
       return 0;
     }
     return calculateElapsedRange(range, state.tasks, state.logs, nowIso);
+  }
+
+  async getRangeMetrics(range: ElapsedRangeFilter, nowIso?: string): Promise<RangeMetricsResult> {
+    const state = await this.persistence.core.load();
+    if (!state) {
+      return {
+        totalSeconds: 0,
+        projectElapsed: {},
+        taskElapsed: {},
+        clampedLogs: [],
+      };
+    }
+    const patches = range.includePatches ? await this.persistence.patches.getAll() : [];
+    return calculateRangeMetrics(range, state.tasks, state.logs, nowIso, patches);
   }
 
   async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {

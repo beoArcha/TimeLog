@@ -67,6 +67,26 @@ describe('TauriMetricsEngine', () => {
     expect(result).toBe(1800);
   });
 
+  it('should invoke get_range_metrics when getRangeMetrics is called', async () => {
+    // Arrange
+    const mockRangeResult = {
+      totalSeconds: 3600,
+      projectElapsed: { 'proj-1': 3600 },
+      taskElapsed: { 'task-1': 3600 },
+      clampedLogs: [],
+    };
+    vi.mocked(invoke).mockResolvedValueOnce(mockRangeResult);
+
+    const filter = { from: '2026-06-15T00:00:00Z', to: '2026-06-15T23:59:59Z' };
+
+    // Act
+    const result = await engine.getRangeMetrics(filter, '2026-06-15T12:00:00Z');
+
+    // Assert
+    expect(invoke).toHaveBeenCalledWith('get_range_metrics', { range: filter, nowIso: '2026-06-15T12:00:00Z' });
+    expect(result).toEqual(mockRangeResult);
+  });
+
   it('should invoke get_project_statistics when getProjectStatistics is called', async () => {
     // Arrange
     const stats = { totalDurationSec: 500, totalTasks: 4, completedTasks: 2 };

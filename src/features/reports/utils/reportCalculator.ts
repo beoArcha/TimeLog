@@ -3,25 +3,26 @@ import { PatchLog } from '@bindings/PatchLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { Settings } from '@bindings/Settings';
-import { ProjectChartItem, ReportStatisticsResult } from '../types';
+import { calculateRangeMetrics } from '@plugins/engine/elapsed';
+import { ReportStatisticsResult } from '../types';
+import { getRangeFilterForPeriod } from './periodRanges';
+import { calculateTopProject, buildProjectChart } from './projectDistribution';
 
-export function calculateStartOfWeek(now: Date): number {
-  const dWeek = new Date(now);
-  const wDay = dWeek.getDay();
-  const diffToMonday = dWeek.getDate() - wDay + (wDay === 0 ? -6 : 1);
-  return new Date(dWeek.setDate(diffToMonday)).setHours(0, 0, 0, 0);
-}
+export {
+  calculateStartOfWeek,
+  calculateLogDurationSeconds,
+  getRangeFilterForPeriod,
+} from './periodRanges';
 
-export function calculateLogDurationSeconds(
-  startTime: string,
-  endTime: string | null | undefined,
-  referenceNowMs: number
-): number {
-  const start = new Date(startTime).getTime();
-  const end = endTime ? new Date(endTime).getTime() : referenceNowMs;
-  return Math.max(0, Math.floor((end - start) / 1000));
-}
+export {
+  calculateTopProject,
+  buildProjectChart,
+} from './projectDistribution';
 
+/**
+ * ViewModel adapter: Coordinates engine range metrics and presentation models for reports.
+ * Delegates all temporal duration and segment clamping calculations exclusively to the engine.
+ */
 export function calculateReportStatistics({
   logs,
   patches,
@@ -31,6 +32,8 @@ export function calculateReportStatistics({
   reportPeriod,
   reportSort,
   sysSettings,
+  customFrom,
+  customTo,
 }: {
   logs: TimeLog[];
   patches: PatchLog[];
@@ -40,109 +43,66 @@ export function calculateReportStatistics({
   reportPeriod: string;
   reportSort: string;
   sysSettings?: Settings | null;
+  customFrom?: string;
+  customTo?: string;
 }): ReportStatisticsResult {
   const now = nowIso ? new Date(nowIso) : new Date();
-  const nowMs = now.getTime();
-  const startOfToday = new Date(now).setHours(0, 0, 0, 0);
-  const startOfWeek = calculateStartOfWeek(now);
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const includePatches = !!sysSettings?.includePatchesInReports;
 
-  const getSumSeconds = (timeLimitMs: number) => {
-    let sum = logs.reduce((acc, log) => {
-      const logStart = new Date(log.startTime).getTime();
-      if (logStart >= timeLimitMs) {
-        return acc + calculateLogDurationSeconds(log.startTime, log.endTime, nowMs);
-      }
-      return acc;
-    }, 0);
+  // 1. Delegate baseline overview metrics (today, week, month) to engine
+  const todayRange = getRangeFilterForPeriod('today', now, undefined, undefined, includePatches);
+  const weekRange = getRangeFilterForPeriod('week', now, undefined, undefined, includePatches);
+  const monthRange = getRangeFilterForPeriod('month', now, undefined, undefined, includePatches);
 
-    if (sysSettings?.includePatchesInReports) {
-      sum += patches.reduce((acc, p) => {
-        const pStart = new Date(p.startTime).getTime();
-        if (pStart >= timeLimitMs) {
-          return acc + calculateLogDurationSeconds(p.startTime, p.endTime, nowMs);
-        }
-        return acc;
-      }, 0);
-    }
-    return sum;
-  };
+  const todayResult = calculateRangeMetrics(todayRange.filter, tasks, logs, nowIso, includePatches ? patches : []);
+  const weekResult = calculateRangeMetrics(weekRange.filter, tasks, logs, nowIso, includePatches ? patches : []);
+  const monthResult = calculateRangeMetrics(monthRange.filter, tasks, logs, nowIso, includePatches ? patches : []);
 
-  const todaySec = getSumSeconds(startOfToday);
-  const weekSec = getSumSeconds(startOfWeek);
-  const monthSec = getSumSeconds(startOfMonth);
+  const todaySec = todayResult.totalSeconds;
+  const weekSec = weekResult.totalSeconds;
+  const monthSec = monthResult.totalSeconds;
 
-  let limitMs = 0;
-  if (reportPeriod === 'today') {
-    limitMs = startOfToday;
-  } else if (reportPeriod === 'week') {
-    limitMs = startOfWeek;
-  } else if (reportPeriod === 'month') {
-    limitMs = startOfMonth;
-  }
+  // 2. Delegate active period metrics to engine
+  const activeRange = getRangeFilterForPeriod(reportPeriod, now, customFrom, customTo, includePatches);
+  const activeResult = calculateRangeMetrics(activeRange.filter, tasks, logs, nowIso, includePatches ? patches : []);
 
-  const filteredLogs = logs.filter(log => new Date(log.startTime).getTime() >= limitMs);
-  const projectTimeData: Record<string, { seconds: number; tasks: Record<string, number> }> = {};
-  const combinedLogs = sysSettings?.includePatchesInReports
-    ? [...filteredLogs, ...patches.filter(p => new Date(p.startTime).getTime() >= limitMs)]
-    : filteredLogs;
+  const periodTotalSec = activeResult.totalSeconds;
+  const daysInPeriod = activeRange.days;
+  const dailyAverageSec = Math.round(periodTotalSec / daysInPeriod);
 
-  combinedLogs.forEach(log => {
-    const duration = calculateLogDurationSeconds(log.startTime, log.endTime, nowMs);
+  // 3. Evaluate leading project for the active period
+  const topProject = calculateTopProject(activeResult.projectElapsed, periodTotalSec, projects);
 
-    if (!projectTimeData[log.projectId]) {
-      projectTimeData[log.projectId] = { seconds: 0, tasks: {} };
-    }
-    projectTimeData[log.projectId].seconds += duration;
+  // 4. Construct project distribution breakdown
+  const { projectChart, maxSec } = buildProjectChart(
+    activeResult.projectElapsed,
+    activeResult.clampedLogs,
+    projects,
+    tasks,
+    reportSort
+  );
 
-    if (log.taskId) {
-      projectTimeData[log.projectId].tasks[log.taskId] =
-        (projectTimeData[log.projectId].tasks[log.taskId] || 0) + duration;
-    }
-  });
-
-  const projectChart: ProjectChartItem[] = Object.entries(projectTimeData).map(([pId, data]) => {
-    const p = projects.find(x => x.id === pId);
-    const taskBreakdown = Object.entries(data.tasks)
-      .map(([tId, sec]) => {
-        return { task: tasks.find(t => t.id === tId), seconds: sec };
-      })
-      .filter(t => t.task)
-      .sort((a, b) => b.seconds - a.seconds);
-    return {
-      id: pId,
-      name: p?.name || `Project ${pId}`,
-      color: p?.color || 'violet',
-      seconds: data.seconds,
-      tasks: taskBreakdown,
-    };
-  });
-
-  if (reportSort === 'duration') {
-    projectChart.sort((a, b) => b.seconds - a.seconds);
-  } else {
-    projectChart.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  const maxSec = Math.max(...projectChart.map(x => x.seconds), 1);
-  const displayLogs = [...filteredLogs];
+  // 5. Clamped segments list and backward-compatible filtered logs
+  const clampedLogs = [...activeResult.clampedLogs];
   if (reportSort === 'date') {
-    displayLogs.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    clampedLogs.sort((a, b) => new Date(a.clampedStartTime).getTime() - new Date(b.clampedStartTime).getTime());
   } else {
-    displayLogs.sort((a, b) => {
-      const durA = calculateLogDurationSeconds(a.startTime, a.endTime, nowMs);
-      const durB = calculateLogDurationSeconds(b.startTime, b.endTime, nowMs);
-      return durB - durA;
-    });
+    clampedLogs.sort((a, b) => b.clampedDurationSeconds - a.clampedDurationSeconds);
   }
+
+  const filteredLogs = logs.filter(log => activeResult.clampedLogs.some(cl => cl.id === log.id));
 
   return {
     todaySec,
     weekSec,
     monthSec,
+    periodTotalSec,
+    dailyAverageSec,
+    topProject,
     filteredLogs,
     projectChart,
     maxSec,
-    displayLogs,
+    displayLogs: clampedLogs,
+    clampedLogs,
   };
 }

@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { IMetricsEngine, EngineComputedMetrics, ElapsedRangeFilter } from '../IEngine';
+import { IMetricsEngine, EngineComputedMetrics, ElapsedRangeFilter, RangeMetricsResult } from '../IEngine';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { ErrorHandler, TauriInteropException } from '@common/exceptions';
 
@@ -36,6 +36,15 @@ export class TauriMetricsEngine implements IMetricsEngine {
       return await invoke<number>('get_elapsed_range', { range, nowIso });
     } catch (err) {
       ErrorHandler.handle(new TauriInteropException('Failed to get elapsed range via Tauri', err, 'ERR_TAURI_ENGINE_RANGE_ELAPSED'));
+      throw err;
+    }
+  }
+
+  async getRangeMetrics(range: ElapsedRangeFilter, nowIso?: string): Promise<RangeMetricsResult> {
+    try {
+      return await invoke<RangeMetricsResult>('get_range_metrics', { range, nowIso });
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to get range metrics via Tauri', err, 'ERR_TAURI_ENGINE_RANGE_METRICS'));
       throw err;
     }
   }

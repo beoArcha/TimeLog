@@ -23,6 +23,7 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             engine::get_task_elapsed,
             engine::get_project_elapsed,
             engine::get_elapsed_range,
+            engine::get_range_metrics,
             engine::edit_time_log,
             engine::get_project_statistics,
             engine::get_computed_metrics,

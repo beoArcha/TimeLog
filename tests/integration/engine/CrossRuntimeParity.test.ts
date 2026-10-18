@@ -27,6 +27,7 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       expect(typeof plugin.metrics.getTaskElapsed).toBe('function');
       expect(typeof plugin.metrics.getProjectElapsed).toBe('function');
       expect(typeof plugin.metrics.getElapsedRange).toBe('function');
+      expect(typeof plugin.metrics.getRangeMetrics).toBe('function');
       expect(typeof plugin.metrics.getProjectStatistics).toBe('function');
 
       expect(typeof plugin.timeLogs.editTimeLog).toBe('function');
@@ -48,6 +49,7 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       expect(typeof commands.metrics.getTaskElapsed).toBe('function');
       expect(typeof commands.metrics.getProjectElapsed).toBe('function');
       expect(typeof commands.metrics.getElapsedRange).toBe('function');
+      expect(typeof commands.metrics.getRangeMetrics).toBe('function');
       expect(typeof commands.metrics.getProjectStatistics).toBe('function');
 
       expect(typeof commands.timeLogs.editTimeLog).toBe('function');
@@ -290,6 +292,26 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
         nowIso: undefined,
       });
       expect(res).toBe(2700);
+    });
+
+    it('Given Desktop Tauri Engine, When getRangeMetrics is called, Then it should invoke get_range_metrics with range payload', async () => {
+      const commands = new EngineCommands();
+      const mockResult = {
+        totalSeconds: 3600,
+        projectElapsed: { 'proj-1': 3600 },
+        taskElapsed: { 'task-1': 3600 },
+        clampedLogs: [],
+      };
+      mockInvoke.mockResolvedValue(mockResult);
+
+      const filter = { from: '2026-06-15T10:00:00Z', to: '2026-06-15T11:00:00Z' };
+      const res = await commands.metrics.getRangeMetrics(filter, '2026-06-15T12:00:00Z');
+
+      expect(mockInvoke).toHaveBeenCalledWith('get_range_metrics', {
+        range: filter,
+        nowIso: '2026-06-15T12:00:00Z',
+      });
+      expect(res).toEqual(mockResult);
     });
 
     it('Given Desktop Tauri Engine, When editTimeLog is called, Then it should invoke edit_time_log command', async () => {

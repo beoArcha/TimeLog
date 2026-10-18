@@ -1,6 +1,7 @@
 import { TimeLog } from '@bindings/TimeLog';
 import { MockCommandArgs, MockDatabaseState } from '../types';
 import { getMockDbState, saveMockDbState } from '../state';
+import { calculateRangeMetrics, ElapsedRangeFilter } from '@plugins/engine/elapsed';
 
 export const editTimeLogHandler = async (args: MockCommandArgs): Promise<MockDatabaseState> => {
   const state = getMockDbState();
@@ -29,6 +30,30 @@ export const editTimeLogHandler = async (args: MockCommandArgs): Promise<MockDat
 
 export const TIMELOG_HANDLERS: Record<string, (args: MockCommandArgs) => Promise<unknown>> = {
   edit_time_log: editTimeLogHandler,
+  get_range_metrics: async (args) => {
+    const state = getMockDbState();
+    const patchesRaw = localStorage.getItem('mock_patches');
+    const patches = patchesRaw ? JSON.parse(patchesRaw) : [];
+    return calculateRangeMetrics(
+      (args.range ?? {}) as ElapsedRangeFilter,
+      state.tasks,
+      state.logs,
+      args.nowIso as string | undefined,
+      patches
+    );
+  },
+  get_elapsed_range: async (args) => {
+    const state = getMockDbState();
+    const patchesRaw = localStorage.getItem('mock_patches');
+    const patches = patchesRaw ? JSON.parse(patchesRaw) : [];
+    return calculateRangeMetrics(
+      (args.range ?? {}) as ElapsedRangeFilter,
+      state.tasks,
+      state.logs,
+      args.nowIso as string | undefined,
+      patches
+    ).totalSeconds;
+  },
   get_for_task: async (args) => {
     return getMockDbState().logs.filter((l) => l.taskId === args.taskId);
   },

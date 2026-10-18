@@ -1,6 +1,8 @@
 use crate::common::AppError;
 use crate::engine::Engine;
-use crate::types::{ElapsedRangeFilter, EngineComputedMetrics, ProjectStatistics};
+use crate::types::{
+    ElapsedRangeFilter, EngineComputedMetrics, ProjectStatistics, RangeMetricsResult,
+};
 use crate::AppState;
 use tauri::State;
 
@@ -63,6 +65,17 @@ pub fn get_elapsed_range(
     let engine = Engine::new(&state.persistence);
     let duration = engine.calculate_elapsed_range(&range)?;
     Ok(duration.as_secs())
+}
+
+#[tauri::command]
+pub fn get_range_metrics(
+    range: ElapsedRangeFilter,
+    now_iso: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<RangeMetricsResult, AppError> {
+    let engine = Engine::new(&state.persistence);
+    let metrics = engine.calculate_range_metrics(&range, now_iso.as_deref())?;
+    Ok(metrics)
 }
 
 #[tauri::command]

@@ -115,6 +115,44 @@ pub struct ElapsedRangeFilter {
     pub from: Option<String>,
     #[ts(optional)]
     pub to: Option<String>,
+    #[ts(optional)]
+    pub include_patches: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct ClampedTimeLog {
+    pub id: String,
+    pub project_id: String,
+    pub task_id: String,
+    pub start_time: String,
+    #[ts(optional)]
+    pub end_time: Option<String>,
+    #[ts(type = "number")]
+    pub original_duration_seconds: u64,
+    #[ts(type = "number")]
+    pub clamped_duration_seconds: u64,
+    pub is_multi_day_segment: bool,
+    pub clamped_start_time: String,
+    pub clamped_end_time: String,
+    #[ts(optional)]
+    pub note: Option<String>,
+    #[ts(optional)]
+    pub is_patch: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct RangeMetricsResult {
+    #[ts(type = "number")]
+    pub total_seconds: u64,
+    #[ts(type = "Record<string, number>")]
+    pub project_elapsed: std::collections::HashMap<String, u64>,
+    #[ts(type = "Record<string, number>")]
+    pub task_elapsed: std::collections::HashMap<String, u64>,
+    pub clamped_logs: Vec<ClampedTimeLog>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]

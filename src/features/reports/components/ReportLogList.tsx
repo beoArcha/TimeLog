@@ -3,15 +3,17 @@ import { motion } from 'motion/react';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { TimeLog } from '@bindings/TimeLog';
+import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
+import { Badge } from '@components/ui/badge';
 import { ProjectChartItem } from '../types';
 
-interface ReportLogListProps {
+export interface ReportLogListProps {
   filteredLogs: TimeLog[];
   projectChart: ProjectChartItem[];
   maxSec: number;
-  displayLogs: TimeLog[];
+  displayLogs: Array<ClampedTimeLog | TimeLog>;
   projects: Project[];
   tasks: Task[];
   nowIso?: string;
@@ -28,7 +30,7 @@ export default function ReportLogList({
 }: ReportLogListProps) {
   const { t } = useTranslation('report');
 
-  if (filteredLogs.length === 0) {
+  if (filteredLogs.length === 0 && displayLogs.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground text-xs font-mono">
         ⚠️ {t('NoDataSelectedRange')}
@@ -84,23 +86,65 @@ export default function ReportLogList({
         </h4>
         <div className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto p-4 flex flex-col gap-2">
           {displayLogs.map(log => {
+            const isClamped = 'clampedDurationSeconds' in log;
             const p = projects.find(x => x.id === log.projectId);
             const tObj = tasks.find(x => x.id === log.taskId);
-            const start = new Date(log.startTime).getTime();
-            const end = log.endTime ? new Date(log.endTime).getTime() : (nowIso ? new Date(nowIso).getTime() : start);
-            const durSeconds = Math.max(0, Math.floor((end - start) / 1000));
+
+            let durSeconds: number;
+            let isMultiDay = false;
+            let isPatch = false;
+            let originalDurationSeconds = 0;
+            let displayTime = log.startTime;
+
+            if (isClamped) {
+              const clamped = log as ClampedTimeLog;
+              durSeconds = clamped.clampedDurationSeconds;
+              isMultiDay = clamped.isMultiDaySegment;
+              isPatch = !!clamped.isPatch;
+              originalDurationSeconds = clamped.originalDurationSeconds;
+              displayTime = clamped.clampedStartTime || clamped.startTime;
+            } else {
+              const start = new Date(log.startTime).getTime();
+              const end = log.endTime ? new Date(log.endTime).getTime() : (nowIso ? new Date(nowIso).getTime() : start);
+              durSeconds = Math.max(0, Math.floor((end - start) / 1000));
+            }
 
             return (
               <div
                 key={log.id}
-                className="flex flex-col sm:flex-row justify-between sm:items-center gap-1 py-1.5 border-b border-border/50 last:border-0 text-xs text-foreground"
+                className="flex flex-col sm:flex-row justify-between sm:items-center gap-1.5 py-1.5 border-b border-border/50 last:border-0 text-xs text-foreground"
               >
-                <span className="truncate flex items-center gap-1">
-                  <span className="font-mono text-indigo-400 text-[10px] shrink-0 font-bold">[{new Date(log.startTime).toLocaleTimeString()}]</span>
+                <div className="truncate flex items-center gap-1.5 flex-wrap">
+                  <span className="font-mono text-indigo-400 text-[10px] shrink-0 font-bold">
+                    [{new Date(displayTime).toLocaleTimeString()}]
+                  </span>
                   <strong className="text-foreground">"{tObj?.name || 'N/A'}"</strong>
                   <span className="text-muted-foreground text-[10px]">({p?.name})</span>
+
+                  {isMultiDay && (
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      className="font-mono text-[9px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 shrink-0"
+                    >
+                      {t('MultiDaySegmentBadge')}: {formatSeconds(durSeconds)} / {formatSeconds(originalDurationSeconds)}
+                    </Badge>
+                  )}
+
+                  {isPatch && (
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      className="font-mono text-[9px] bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30 shrink-0"
+                    >
+                      {t('PatchBadge')}
+                    </Badge>
+                  )}
+                </div>
+
+                <span className="font-mono text-orange-400 shrink-0 self-end sm:self-auto font-bold">
+                  {formatSeconds(durSeconds)}
                 </span>
-                <span className="font-mono text-orange-400 shrink-0 self-end sm:self-auto font-bold">{formatSeconds(durSeconds)}</span>
               </div>
             );
           })}

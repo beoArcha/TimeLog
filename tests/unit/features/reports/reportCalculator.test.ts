@@ -410,5 +410,76 @@ describe('Unit Tests: reportCalculator', () => {
       const alphaProject = result.projectChart.find(p => p.id === 'p1');
       expect(alphaProject?.seconds).toBe(5400);
     });
+
+    it('should accurately clamp multi-day overnight logs to the active today window', () => {
+      // Overnight log: starts 2026-07-14 at 22:00, ends 2026-07-15 at 02:00 (4 hours = 14400s)
+      const logs: TimeLog[] = [
+        aTimeLog({
+          id: 'log-overnight',
+          projectId: 'p1',
+          taskId: 't1',
+          startTime: '2026-07-14T22:00:00.000Z',
+          endTime: '2026-07-15T02:00:00.000Z',
+        }),
+      ];
+
+      const result = calculateReportStatistics({
+        logs,
+        patches: [],
+        projects,
+        tasks,
+        nowIso: '2026-07-15T12:00:00.000Z',
+        reportPeriod: 'today',
+        reportSort: 'duration',
+      });
+
+      // For today (2026-07-15), only 00:00 to 02:00 belongs to today (2 hours = 7200s)
+      expect(result.todaySec).toBe(7200);
+      expect(result.periodTotalSec).toBe(7200);
+      expect(result.clampedLogs).toHaveLength(1);
+      expect(result.clampedLogs[0].clampedDurationSeconds).toBe(7200);
+      expect(result.clampedLogs[0].originalDurationSeconds).toBe(14400);
+      expect(result.clampedLogs[0].isMultiDaySegment).toBe(true);
+    });
+
+    it('should compute periodTotalSec, dailyAverageSec, and topProject for custom range', () => {
+      const logs: TimeLog[] = [
+        aTimeLog({
+          id: 'log-1',
+          projectId: 'p1',
+          taskId: 't1',
+          startTime: '2026-07-01T10:00:00.000Z',
+          endTime: '2026-07-01T12:00:00.000Z', // 7200s
+        }),
+        aTimeLog({
+          id: 'log-2',
+          projectId: 'p2',
+          taskId: 't2',
+          startTime: '2026-07-02T10:00:00.000Z',
+          endTime: '2026-07-02T11:00:00.000Z', // 3600s
+        }),
+      ];
+
+      const result = calculateReportStatistics({
+        logs,
+        patches: [],
+        projects,
+        tasks,
+        nowIso: '2026-07-05T12:00:00.000Z',
+        reportPeriod: 'custom',
+        customFrom: '2026-07-01',
+        customTo: '2026-07-03',
+        reportSort: 'duration',
+      });
+
+      // Total = 7200 + 3600 = 10800s. Days from 2026-07-01 to 2026-07-03 = 3 days. Average = 3600s.
+      expect(result.periodTotalSec).toBe(10800);
+      expect(result.dailyAverageSec).toBe(3600);
+      expect(result.topProject).not.toBeNull();
+      expect(result.topProject?.id).toBe('p1');
+      expect(result.topProject?.name).toBe('Alpha Project');
+      expect(result.topProject?.seconds).toBe(7200);
+      expect(Math.round(result.topProject?.percentage || 0)).toBe(67);
+    });
   });
 });

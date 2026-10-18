@@ -17,6 +17,7 @@ describe('Unit Tests: EngineRouter', () => {
         getTaskElapsed: vi.fn().mockResolvedValue(100),
         getProjectElapsed: vi.fn().mockResolvedValue(200),
         getElapsedRange: vi.fn().mockResolvedValue(300),
+        getRangeMetrics: vi.fn().mockResolvedValue({ totalSeconds: 300, projectElapsed: {}, taskElapsed: {}, clampedLogs: [] }),
         getProjectStatistics: vi.fn().mockResolvedValue({ totalDurationSec: 0, totalTasks: 0, completedTasks: 0 }),
         getComputedMetrics: vi.fn().mockResolvedValue({ snapshotNowIso: '2026-06-15T12:00:00Z', tasks: {}, projects: {} }),
       },

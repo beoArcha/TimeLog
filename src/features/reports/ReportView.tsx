@@ -5,19 +5,25 @@ import { useTranslation } from '@common/i18n/translator';
 import ReportStatsCards from './components/ReportStatsCards';
 import ReportPeriodSelector from './components/ReportPeriodSelector';
 import ReportLogList from './components/ReportLogList';
-
 import { useReportStatistics } from './hooks/useReportStatistics';
 
 export default function ReportView({ state }: { state: GuiState }) {
   const {
     projects, tasks, logs, nowIso,
     reportPeriod, setReportPeriod, reportSort, setReportSort,
+    customFrom, setCustomFrom, customTo, setCustomTo,
     sysSettings, patches
   } = state;
 
   const { t } = useTranslation('report');
-  const { todaySec, weekSec, monthSec, filteredLogs, projectChart, maxSec, displayLogs } = useReportStatistics({
-    logs, patches, projects, tasks, nowIso, reportPeriod, reportSort, sysSettings
+  const {
+    todaySec, weekSec, monthSec,
+    periodTotalSec, dailyAverageSec, topProject,
+    filteredLogs, projectChart, maxSec, displayLogs
+  } = useReportStatistics({
+    logs, patches, projects, tasks, nowIso,
+    reportPeriod, reportSort, sysSettings,
+    customFrom, customTo
   });
 
   return (
@@ -36,6 +42,9 @@ export default function ReportView({ state }: { state: GuiState }) {
         todaySec={todaySec}
         weekSec={weekSec}
         monthSec={monthSec}
+        periodTotalSec={periodTotalSec}
+        dailyAverageSec={dailyAverageSec}
+        topProject={topProject}
       />
 
       <ReportPeriodSelector
@@ -43,6 +52,10 @@ export default function ReportView({ state }: { state: GuiState }) {
         setReportPeriod={setReportPeriod}
         reportSort={reportSort}
         setReportSort={setReportSort}
+        customFrom={customFrom}
+        setCustomFrom={setCustomFrom}
+        customTo={customTo}
+        setCustomTo={setCustomTo}
       />
 
       <ReportLogList

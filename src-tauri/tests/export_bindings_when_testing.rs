@@ -35,6 +35,8 @@ fn export_bindings() {
     RuntimeConfig::export_all_to(BINDINGS_DIR).unwrap();
     TaskStatus::export_all_to(BINDINGS_DIR).unwrap();
     ElapsedRangeFilter::export_all_to(BINDINGS_DIR).unwrap();
+    ClampedTimeLog::export_all_to(BINDINGS_DIR).unwrap();
+    RangeMetricsResult::export_all_to(BINDINGS_DIR).unwrap();
     TaskComputedMetrics::export_all_to(BINDINGS_DIR).unwrap();
     ProjectComputedMetrics::export_all_to(BINDINGS_DIR).unwrap();
     EngineComputedMetrics::export_all_to(BINDINGS_DIR).unwrap();

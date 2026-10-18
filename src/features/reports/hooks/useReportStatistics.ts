@@ -15,6 +15,8 @@ export function useReportStatistics(props: UseReportStatisticsProps): ReportStat
     reportPeriod,
     reportSort,
     sysSettings,
+    customFrom,
+    customTo,
   } = props;
 
   return useMemo(
@@ -28,6 +30,8 @@ export function useReportStatistics(props: UseReportStatisticsProps): ReportStat
         reportPeriod,
         reportSort,
         sysSettings,
+        customFrom,
+        customTo,
       }),
     [
       logs,
@@ -38,6 +42,8 @@ export function useReportStatistics(props: UseReportStatisticsProps): ReportStat
       reportPeriod,
       reportSort,
       sysSettings,
+      customFrom,
+      customTo,
     ]
   );
 }

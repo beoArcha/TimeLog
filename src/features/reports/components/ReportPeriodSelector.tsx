@@ -2,12 +2,18 @@ import React from 'react';
 import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { NativeSelect } from '@components/ui/select';
+import { Input } from '@components/ui/input';
+import { ReportPeriodType } from '../types';
 
-interface ReportPeriodSelectorProps {
-  reportPeriod: 'today' | 'week' | 'month' | 'all';
-  setReportPeriod: (p: 'today' | 'week' | 'month' | 'all') => void;
+export interface ReportPeriodSelectorProps {
+  reportPeriod: ReportPeriodType;
+  setReportPeriod: (p: ReportPeriodType) => void;
   reportSort: 'date' | 'duration';
   setReportSort: (s: 'date' | 'duration') => void;
+  customFrom?: string;
+  setCustomFrom?: (v: string) => void;
+  customTo?: string;
+  setCustomTo?: (v: string) => void;
 }
 
 export default function ReportPeriodSelector({
@@ -15,49 +21,92 @@ export default function ReportPeriodSelector({
   setReportPeriod,
   reportSort,
   setReportSort,
+  customFrom,
+  setCustomFrom,
+  customTo,
+  setCustomTo,
 }: ReportPeriodSelectorProps) {
   const { t: tReport } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
 
-  return (
-    <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-mono text-muted-foreground">{tCommon('Period')}</span>
-        {(['today', 'week', 'month', 'all'] as const).map(p => (
-          <Button
-            data-testid={`period-btn-${p}`}
-            aria-pressed={reportPeriod === p}
-            key={p}
-            variant={reportPeriod === p ? 'accent' : 'ghost'}
-            size="xs"
-            onClick={() => setReportPeriod(p)}
-            className="px-3 py-1.5 h-auto rounded-xl text-xs font-semibold uppercase transition-all cursor-pointer"
-          >
-            {p === 'today' ? tCommon('Today') :
-              p === 'week' ? tCommon('Week') :
-                p === 'month' ? tCommon('Month') :
-                  tCommon('All')}
-          </Button>
-        ))}
-      </div>
+  const presets: Array<{ id: ReportPeriodType; label: string }> = [
+    { id: 'today', label: tCommon('Today') },
+    { id: 'yesterday', label: tReport('Yesterday') },
+    { id: 'week', label: tCommon('Week') },
+    { id: 'lastWeek', label: tReport('LastWeek') },
+    { id: 'month', label: tCommon('Month') },
+    { id: 'lastMonth', label: tReport('LastMonth') },
+    { id: 'last30Days', label: tReport('Last30Days') },
+    { id: 'year', label: tReport('ThisYear') },
+    { id: 'all', label: tCommon('All') },
+    { id: 'custom', label: tReport('CustomRange') },
+  ];
 
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-mono text-muted-foreground">{tReport('SortBy')}</span>
-        <div>
-          <NativeSelect
-            data-testid="report-sort-select"
-            value={reportSort}
-            onChange={(e) => {
-              if (e.target.value) setReportSort(e.target.value as 'date' | 'duration');
-            }}
-            className="h-8 px-3 py-1.5 border border-border rounded-xl text-xs focus:outline-none transition-all bg-card text-foreground"
-            aria-label={tReport('SortBy')}
-          >
-            <option value="duration">{tReport('DurationHighestFirst')}</option>
-            <option value="date">{tReport('DateChronological')}</option>
-          </NativeSelect>
+  return (
+    <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-mono text-muted-foreground mr-1">{tCommon('Period')}</span>
+          {presets.map(p => (
+            <Button
+              data-testid={`period-btn-${p.id}`}
+              aria-pressed={reportPeriod === p.id}
+              key={p.id}
+              variant={reportPeriod === p.id ? 'accent' : 'ghost'}
+              size="xs"
+              onClick={() => setReportPeriod(p.id)}
+              className="px-2.5 py-1.5 h-auto rounded-xl text-xs font-semibold uppercase transition-all cursor-pointer"
+            >
+              {p.label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs font-mono text-muted-foreground">{tReport('SortBy')}</span>
+          <div>
+            <NativeSelect
+              data-testid="report-sort-select"
+              value={reportSort}
+              onChange={(e) => {
+                if (e.target.value) setReportSort(e.target.value as 'date' | 'duration');
+              }}
+              className="h-8 px-3 py-1.5 border border-border rounded-xl text-xs focus:outline-none transition-all bg-card text-foreground"
+              aria-label={tReport('SortBy')}
+            >
+              <option value="duration">{tReport('DurationHighestFirst')}</option>
+              <option value="date">{tReport('DateChronological')}</option>
+            </NativeSelect>
+          </div>
         </div>
       </div>
+
+      {reportPeriod === 'custom' && (
+        <div data-testid="custom-date-range-panel" className="flex flex-wrap items-center gap-4 pt-3 border-t border-border/50 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-muted-foreground">{tReport('DateFrom')}:</span>
+            <Input
+              data-testid="custom-from-input"
+              type="date"
+              value={customFrom ?? ''}
+              onChange={(e) => setCustomFrom?.(e.target.value)}
+              className="w-36 h-8 text-xs bg-card"
+              aria-label={tReport('DateFrom')}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-muted-foreground">{tReport('DateTo')}:</span>
+            <Input
+              data-testid="custom-to-input"
+              type="date"
+              value={customTo ?? ''}
+              onChange={(e) => setCustomTo?.(e.target.value)}
+              className="w-36 h-8 text-xs bg-card"
+              aria-label={tReport('DateTo')}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
