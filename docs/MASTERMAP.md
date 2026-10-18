@@ -171,4 +171,4 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [ ] **UI Ergonomics & Keyboard Accessibility**: Audit keyboard focus trapping, accessible landmarks, and smooth layout resizing across Compact, Medium, and Full modes.
 - [ ] **Input Sanitization & Boundary Hardening**: Sanitize extreme inputs (whitespace-only, strings $>255$ characters, special characters) and debounce rapid action invocations.
 - [ ] **Temporal Calculation Invariants**: Validate multi-day logs and daylight saving shifts against monotonic UTC points-in-time.
-- [ ] **Official v1.0 GA Signed Open-Source Release**: Complete end-to-end verification, generate official release notes, tag `v1.0.0`, and publish signed packages under MPL-2.0.
+- [ ] **Official v1.8 GA Signed Open-Source Release**: Complete end-to-end verification, generate official release notes, tag `v1.8.0`, and publish signed packages under MPL-2.0.
