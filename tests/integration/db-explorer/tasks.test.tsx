@@ -51,7 +51,7 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
       setResolvedTheme: vi.fn(),
       customTranslations: {},
       setCustomTranslations: vi.fn(),
-      sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false },
+      sysSettings: { autoStart: false, includePatchesInReports: false },
       setSysSettings: vi.fn(),
       activeLog: null,
       setActiveLog: vi.fn(),

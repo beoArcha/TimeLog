@@ -66,7 +66,7 @@ describe('Integration Tests: PersistenceRouter with PersistencePlugin (LocalStor
     it('Given persistent states exist, When reset is called, Then it should clear storage and return default empty state', async () => {
       const router = PersistenceRouter.getInstance();
       await router.projects.add({ name: 'Project to Clear', color: 'red' });
-      await router.settings.save({ autoStart: true, autoPauseOnSleep: true, includePatchesInReports: false, activeSinks: [] });
+      await router.settings.save({ autoStart: true, includePatchesInReports: false, activeSinks: [] });
 
       const resetState = await router.core.reset();
       expect(resetState.projects).toHaveLength(0);
@@ -207,7 +207,6 @@ describe('Integration Tests: PersistenceRouter with PersistencePlugin (LocalStor
     it('Given default settings, When get is called, Then it should return default settings object', async () => {
       const router = PersistenceRouter.getInstance();
       const settings = await router.settings.get();
-      expect(settings.autoPauseOnSleep).toBe(true);
       expect(settings.minimizeToTray).toBe(true);
     });
 
@@ -215,7 +214,6 @@ describe('Integration Tests: PersistenceRouter with PersistencePlugin (LocalStor
       const router = PersistenceRouter.getInstance();
       const custom: Settings = {
         autoStart: true,
-        autoPauseOnSleep: false,
         includePatchesInReports: false,
         activeSinks: ['Csv'],
         theme: 'dark',

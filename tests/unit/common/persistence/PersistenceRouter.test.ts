@@ -15,7 +15,6 @@ describe('Unit Tests: PersistenceRouter', () => {
 
     const mockSettings: Settings = {
       autoStart: false,
-      autoPauseOnSleep: true,
       includePatchesInReports: true,
       activeSinks: ['Csv'],
     };

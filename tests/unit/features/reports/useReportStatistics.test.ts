@@ -59,7 +59,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
-        sysSettings: { includePatchesInReports: false, autoStart: false, autoPauseOnSleep: true, activeSinks: [] }
+        sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] }
       })
     );
 
@@ -82,7 +82,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
-        sysSettings: { includePatchesInReports: true, autoStart: false, autoPauseOnSleep: true, activeSinks: [] }
+        sysSettings: { includePatchesInReports: true, autoStart: false, activeSinks: [] }
       })
     );
 
@@ -101,7 +101,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'today',
         reportSort: 'duration',
-        sysSettings: { includePatchesInReports: false, autoStart: false, autoPauseOnSleep: true, activeSinks: [] }
+        sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] }
       })
     );
 
@@ -119,7 +119,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'month',
         reportSort: 'date',
-        sysSettings: { includePatchesInReports: false, autoStart: false, autoPauseOnSleep: true, activeSinks: [] }
+        sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] }
       })
     );
 
@@ -141,7 +141,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'all',
         reportSort: 'duration',
-        sysSettings: { includePatchesInReports: false, autoStart: false, autoPauseOnSleep: true, activeSinks: [] }
+        sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] }
       })
     );
 

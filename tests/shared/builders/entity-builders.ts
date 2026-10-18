@@ -60,7 +60,6 @@ export const aHolidayLeave = (overrides?: Partial<HolidayLeave>): HolidayLeave =
 
 export const aSettings = (overrides?: Partial<Settings>): Settings => ({
   autoStart: false,
-  autoPauseOnSleep: true,
   includePatchesInReports: true,
   activeSinks: [],
   theme: 'system',

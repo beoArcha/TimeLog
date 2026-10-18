@@ -31,7 +31,7 @@ describe('EngineConfig', () => {
 
     // Assert
     const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes.length).toBe(6);
+    expect(checkboxes.length).toBe(5);
   });
 
   it('should trigger setSysSettings when autoStart checkbox is toggled', () => {
@@ -48,20 +48,6 @@ describe('EngineConfig', () => {
     expect(setSysSettingsSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should trigger setSysSettings when autoPauseOnSleep checkbox is toggled', () => {
-    // Arrange
-    const setSysSettingsSpy = vi.fn();
-    const { getByTestId } = renderEngineConfig({ setSysSettings: setSysSettingsSpy });
-    fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
-
-    // Act
-    const autoPauseCheckbox = screen.getAllByRole('checkbox')[1];
-    fireEvent.click(autoPauseCheckbox);
-
-    // Assert
-    expect(setSysSettingsSpy).toHaveBeenCalledTimes(1);
-  });
-
   it('should trigger setSysSettings when includePatchesInReports checkbox is toggled', () => {
     // Arrange
     const setSysSettingsSpy = vi.fn();
@@ -69,7 +55,7 @@ describe('EngineConfig', () => {
     fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
 
     // Act
-    const patchesCheckbox = screen.getAllByRole('checkbox')[2];
+    const patchesCheckbox = screen.getAllByRole('checkbox')[1];
     fireEvent.click(patchesCheckbox);
 
     // Assert
@@ -83,7 +69,7 @@ describe('EngineConfig', () => {
     fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
 
     // Act
-    const minimizeCheckbox = screen.getAllByRole('checkbox')[3];
+    const minimizeCheckbox = screen.getAllByRole('checkbox')[2];
     fireEvent.click(minimizeCheckbox);
 
     // Assert
@@ -97,7 +83,7 @@ describe('EngineConfig', () => {
     fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
 
     // Act
-    const smallCheckbox = screen.getAllByRole('checkbox')[4];
+    const smallCheckbox = screen.getAllByRole('checkbox')[3];
     fireEvent.click(smallCheckbox);
 
     // Assert
@@ -111,7 +97,7 @@ describe('EngineConfig', () => {
     fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
 
     // Act
-    const mainCheckbox = screen.getAllByRole('checkbox')[5];
+    const mainCheckbox = screen.getAllByRole('checkbox')[4];
     fireEvent.click(mainCheckbox);
 
     // Assert

@@ -14,7 +14,6 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
   const buildMockImplementation = (state: TimerRepositoryState): IPersistence => {
     const mockSettings: Settings = {
       autoStart: false,
-      autoPauseOnSleep: true,
       includePatchesInReports: false,
       activeSinks: [],
     };

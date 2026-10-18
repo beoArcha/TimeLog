@@ -17,14 +17,12 @@ export const SETTINGS_HANDLERS: Record<string, (args: MockCommandArgs) => Promis
     const alwaysOnTopMain = localStorage.getItem('oxytime_always_on_top_main') === 'true';
     const minimizeToTray = localStorage.getItem('oxytime_min_to_tray') !== 'false';
     let autoStart = false;
-    let autoPauseOnSleep = true;
     let includePatchesInReports = true;
     const sysSaved = localStorage.getItem('oxytime_sys_settings');
     if (sysSaved) {
       try {
         const parsed = JSON.parse(sysSaved) as Record<string, boolean>;
         autoStart = parsed.autoStart ?? false;
-        autoPauseOnSleep = parsed.autoPauseOnSleep ?? true;
         includePatchesInReports = parsed.includePatchesInReports ?? true;
       } catch {
         // Ignore parsing error
@@ -32,7 +30,6 @@ export const SETTINGS_HANDLERS: Record<string, (args: MockCommandArgs) => Promis
     }
     return {
       autoStart,
-      autoPauseOnSleep,
       includePatchesInReports,
       activeSinks: ['Csv'],
       theme,

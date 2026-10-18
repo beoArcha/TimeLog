@@ -230,7 +230,6 @@ export type EngineKey =
   | 'ActiveMeasuringThreads'
   | 'AlwaysOnTopMain'
   | 'AlwaysOnTopSmall'
-  | 'AutoPauseOnSleep'
   | 'AutoStart'
   | 'ClearDatabaseConfirm'
   | 'ConfigDesc'

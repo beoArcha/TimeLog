@@ -28,7 +28,7 @@ describe('Unit Tests: SettingsTab', () => {
       locale: 'en',
       customTranslations: {},
       resolvedTheme: 'dark',
-      sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false, activeSinks: [] },
+      sysSettings: { autoStart: false, includePatchesInReports: false, activeSinks: [] },
       setSysSettings: setSysSettingsMock,
       setProjects: setProjectsMock,
       setTasks: setTasksMock,

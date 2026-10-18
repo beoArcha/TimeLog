@@ -5,7 +5,6 @@ import { STORAGE_KEYS } from '@common/constants/storage-keys';
 
 const DEFAULT_SETTINGS: Settings = {
   autoStart: false,
-  autoPauseOnSleep: true,
   includePatchesInReports: true,
   activeSinks: ['Csv'],
   theme: 'system',

@@ -402,7 +402,6 @@ describe('Unit Tests: reportCalculator', () => {
         sysSettings: {
           includePatchesInReports: true,
           autoStart: false,
-          autoPauseOnSleep: false,
           activeSinks: [],
         },
       });

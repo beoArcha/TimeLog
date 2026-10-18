@@ -17,7 +17,6 @@ fn test_config_repository_self_healing_missing_keys() {
 
     let defaults = Settings::default();
     assert_eq!(config.auto_start, defaults.auto_start);
-    assert_eq!(config.auto_pause_on_sleep, defaults.auto_pause_on_sleep);
     assert_eq!(
         config.include_patches_in_reports,
         defaults.include_patches_in_reports
@@ -45,18 +44,12 @@ fn test_config_repository_retains_valid_keys() {
             params!["auto_start", "true"],
         )
         .unwrap();
-        conn.execute(
-            "INSERT OR REPLACE INTO config (key, value) VALUES (?1, ?2)",
-            params!["auto_pause_on_sleep", "false"],
-        )
-        .unwrap();
     }
 
     let config = repo
         .get_config()
         .expect("get_config should self-heal missing key");
     assert!(config.auto_start);
-    assert!(!config.auto_pause_on_sleep);
     assert_eq!(
         config.include_patches_in_reports,
         Settings::default().include_patches_in_reports
@@ -81,18 +74,12 @@ fn test_config_repository_self_healing_corrupted_keys() {
             params!["auto_start", "not-a-boolean"],
         )
         .unwrap();
-        conn.execute(
-            "INSERT OR REPLACE INTO config (key, value) VALUES (?1, ?2)",
-            params!["auto_pause_on_sleep", "false"],
-        )
-        .unwrap();
     }
 
     let config = repo
         .get_config()
         .expect("get_config should self-heal corrupted key");
     assert!(!config.auto_start);
-    assert!(!config.auto_pause_on_sleep);
 
     let _ = std::fs::remove_file(&db_path);
 }

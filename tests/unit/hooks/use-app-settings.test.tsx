@@ -15,7 +15,6 @@ describe('Unit Tests: useAppSettings Hook', () => {
       guiVariant: 'medium',
       textAndIconSize: 'medium',
       autoStart: false,
-      autoPauseOnSleep: true,
       includePatchesInReports: true,
       activeSinks: ['Csv'],
       alwaysOnTopSmall: false,

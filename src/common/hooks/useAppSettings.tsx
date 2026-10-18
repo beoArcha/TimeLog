@@ -15,7 +15,7 @@ export const useAppSettings = () => {
   const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(false);
   const [alwaysOnTopMain, setAlwaysOnTopMain] = useState<boolean>(false);
   const [minimizeToTray, setMinimizeToTray] = useState<boolean>(true);
-  const [sysSettings, setSysSettings] = useState<AppSettings>({ autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true });
+  const [sysSettings, setSysSettings] = useState<AppSettings>({ autoStart: false, includePatchesInReports: true, activeSinks: ['Csv'] });
 
 
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -38,7 +38,6 @@ export const useAppSettings = () => {
       setMinimizeToTray(loaded.minimizeToTray ?? true);
       setSysSettings({
         autoStart: loaded.autoStart ?? false,
-        autoPauseOnSleep: loaded.autoPauseOnSleep ?? true,
         includePatchesInReports: loaded.includePatchesInReports ?? true,
         activeSinks: loaded.activeSinks ?? ['Csv'],
       });
@@ -86,7 +85,6 @@ export const useAppSettings = () => {
     const saveSettings = async () => {
       const payload: AppSettings = {
         autoStart: sysSettings.autoStart,
-        autoPauseOnSleep: sysSettings.autoPauseOnSleep,
         includePatchesInReports: sysSettings.includePatchesInReports,
         activeSinks: sysSettings.activeSinks || ['Csv'],
         theme: theme,

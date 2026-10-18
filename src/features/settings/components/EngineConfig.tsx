@@ -53,16 +53,6 @@ export default function EngineConfig() {
 
           <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
             <Checkbox
-              checked={sysSettings?.autoPauseOnSleep}
-              onCheckedChange={(checked) => updateSetting('autoPauseOnSleep', !!checked)}
-            />
-            <span className="text-xs font-semibold text-foreground">
-              {translate(locale, 'engine', 'AutoPauseOnSleep', customTranslations)}
-            </span>
-          </Label>
-
-          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
-            <Checkbox
               checked={sysSettings?.includePatchesInReports}
               onCheckedChange={(checked) => updateSetting('includePatchesInReports', !!checked)}
             />

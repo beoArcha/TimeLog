@@ -56,7 +56,7 @@ describe('Unit Tests: PersistencePlugin', () => {
 
   it('should reset state and clear all keys', async () => {
     await plugin.projects.add({ name: 'Project', color: '#000' });
-    await plugin.settings.save({ autoStart: true, autoPauseOnSleep: false, includePatchesInReports: false, activeSinks: [] });
+    await plugin.settings.save({ autoStart: true, includePatchesInReports: false, activeSinks: [] });
     const state = await plugin.core.reset();
     expect(state.projects).toHaveLength(0);
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
@@ -339,7 +339,6 @@ describe('Unit Tests: PersistencePlugin', () => {
   it('Given settings.get with no stored data, Then it should return default settings', async () => {
     const settings = await plugin.settings.get();
     expect(settings.autoStart).toBe(false);
-    expect(settings.autoPauseOnSleep).toBe(true);
     expect(settings.includePatchesInReports).toBe(true);
     expect(settings.theme).toBe('system');
     expect(settings.textAndIconSize).toBe('medium');
@@ -349,7 +348,6 @@ describe('Unit Tests: PersistencePlugin', () => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ autoStart: true }));
     const settings = await plugin.settings.get();
     expect(settings.autoStart).toBe(true);
-    expect(settings.autoPauseOnSleep).toBe(true);
   });
 
   it('Given settings.get with invalid JSON, Then it should return defaults', async () => {
@@ -359,11 +357,10 @@ describe('Unit Tests: PersistencePlugin', () => {
   });
 
   it('Given settings.save, Then it should persist settings to localStorage', async () => {
-    const newSettings = { autoStart: true, autoPauseOnSleep: false, includePatchesInReports: false, activeSinks: [] as string[] };
+    const newSettings = { autoStart: true, includePatchesInReports: false, activeSinks: [] as string[] };
     await plugin.settings.save(newSettings as Parameters<typeof plugin.settings.save>[0]);
     const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
     expect(stored.autoStart).toBe(true);
-    expect(stored.autoPauseOnSleep).toBe(false);
   });
 
   it('Given runtimeConfigs.getAll with no stored data, Then it should return empty array', async () => {

@@ -23,7 +23,7 @@ describe('Unit Tests: DbInspector', () => {
     activeLog: null,
     holidays: [],
     setHolidays: vi.fn(),
-    sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false, activeSinks: [] },
+    sysSettings: { autoStart: false, includePatchesInReports: false, activeSinks: [] },
     selectedTaskId: null,
     setSelectedTaskId: vi.fn(),
     onAddProject: vi.fn(),

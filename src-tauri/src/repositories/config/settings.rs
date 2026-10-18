@@ -37,17 +37,6 @@ impl ConfigRepository {
             }
         };
 
-        let auto_pause_on_sleep = match self.get_value(&conn, "auto_pause_on_sleep")? {
-            Some(v) => v.parse::<bool>().unwrap_or_else(|_| {
-                keys_changed = true;
-                default_settings.auto_pause_on_sleep
-            }),
-            None => {
-                keys_changed = true;
-                default_settings.auto_pause_on_sleep
-            }
-        };
-
         let include_patches_in_reports =
             match self.get_value(&conn, "include_patches_in_reports")? {
                 Some(v) => v.parse::<bool>().unwrap_or_else(|_| {
@@ -90,7 +79,6 @@ impl ConfigRepository {
 
         let settings = Settings {
             auto_start,
-            auto_pause_on_sleep,
             include_patches_in_reports,
             active_sinks,
             theme,
@@ -115,11 +103,6 @@ impl ConfigRepository {
 
     fn save_config_with_conn(&self, conn: &Connection, settings: &Settings) -> Result<()> {
         self.set_value(conn, "auto_start", &settings.auto_start.to_string())?;
-        self.set_value(
-            conn,
-            "auto_pause_on_sleep",
-            &settings.auto_pause_on_sleep.to_string(),
-        )?;
         self.set_value(
             conn,
             "include_patches_in_reports",
