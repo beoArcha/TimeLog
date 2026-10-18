@@ -154,3 +154,21 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [ ] **Beginner Interactive Guidance**: Integrate Levenshtein typo detection ("Did you mean?"), missing-argument interactive prompts in TTY mode, and friendly daily summary cards (`oxy summary`).
 - [ ] **Sinks & Action Masks Subsystem**: Add CLI sink configuration (`oxy sink set csv|webhook`, `oxy sink test`) and persistent parameterized action masks/macros (`oxy mask set`).
 - [ ] **Dedicated CLI Test Suites**: Separate CLI testing into dedicated directories (`src-tauri/tests/unit/cli/`, `src-tauri/tests/integration/cli/`, `tests/unit/cli/`, `tests/integration/cli/`) validating cross-runtime parity and error contracts.
+
+### Phase 11 — Multi-Platform Packaging, Distribution & Documentation Infrastructure ⏳ (Planned)
+
+- [ ] **End-User Documentation**: Deliver comprehensive illustrated handbook (`docs/USER_GUIDE.md`) covering project/task creation, active timer shortcuts, backup/restore, themes, and CLI quick-start.
+- [ ] **Installation & Trust Guide**: Create `docs/INSTALLATION.md` detailing multi-platform steps for Windows (NSIS & Portable), macOS (Universal DMG & Gatekeeper bypass notes), and Linux (AppImage FUSE, DEB, RPM dependencies).
+- [ ] **Showcase Landing & Release Wiki**: Implement static product showcase in `docs/wiki/` (GitHub Pages compatible) featuring screenshots, architecture highlights, and direct release download buttons.
+- [ ] **Cross-Platform Local Build Scripts**: Provide robust, error-checked build scripts (`scripts/build-release.ps1` and `scripts/build-release.sh`) with automated pre-flight quality checks (typecheck, lint, test).
+- [ ] **Windows CLI Console Attachment**: Fix Windows GUI subsystem console detachment in `src-tauri/src/main.rs` via `AttachConsole(ATTACH_PARENT_PROCESS)`, enabling unified desktop and terminal operation from a single binary.
+- [ ] **Cryptographic Verification & Checksums**: Automate `SHA256SUMS.txt` generation across all release packages in `.github/workflows/release.yml`.
+
+### Phase 12 — Production Hardening, UX/UI Ergonomics, Defect Remediation & v1.0 GA Release ⏳ (Planned)
+
+- [ ] **First-Time User Experience (FTUX)**: Implement welcoming empty state in the project sidebar (`ProjectEmptyState.tsx`) with guided one-click project template generation.
+- [ ] **Active Timer Concurrency Safeguard**: Enforce atomic cascade stopping and committing active timer logs before project or task archiving/deletion in `useProjectsManager` and `useTasksManager`.
+- [ ] **UI Ergonomics & Keyboard Accessibility**: Audit keyboard focus trapping, accessible landmarks, and smooth layout resizing across Compact, Medium, and Full modes.
+- [ ] **Input Sanitization & Boundary Hardening**: Sanitize extreme inputs (whitespace-only, strings $>255$ characters, special characters) and debounce rapid action invocations.
+- [ ] **Temporal Calculation Invariants**: Validate multi-day logs and daylight saving shifts against monotonic UTC points-in-time.
+- [ ] **Official v1.0 GA Signed Open-Source Release**: Complete end-to-end verification, generate official release notes, tag `v1.0.0`, and publish signed packages under MPL-2.0.
