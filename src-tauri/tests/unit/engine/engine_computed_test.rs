@@ -82,21 +82,21 @@ fn test_engine_computed_metrics() {
     let t1 = metrics.tasks.get("t_comp").unwrap();
     assert_eq!(t1.elapsed_seconds, 5400);
     assert_eq!(t1.self_elapsed_seconds, 1800);
-    assert_eq!(t1.is_running, false);
-    assert_eq!(t1.has_running_child, true);
+    assert!(!t1.is_running);
+    assert!(t1.has_running_child);
 
     let t_sub = metrics.tasks.get("t_comp_sub").unwrap();
     assert_eq!(t_sub.elapsed_seconds, 3600);
     assert_eq!(t_sub.self_elapsed_seconds, 3600);
-    assert_eq!(t_sub.is_running, true);
-    assert_eq!(t_sub.has_running_child, false);
+    assert!(t_sub.is_running);
+    assert!(!t_sub.has_running_child);
 
     let p = metrics.projects.get("p_comp").unwrap();
     assert_eq!(p.total_elapsed_seconds, 5400);
     assert_eq!(p.today_elapsed_seconds, 5400);
     assert_eq!(p.active_task_count, 2);
     assert_eq!(p.completed_task_count, 0);
-    assert_eq!(p.is_running, true);
+    assert!(p.is_running);
 }
 
 #[test]
@@ -277,12 +277,12 @@ fn test_engine_metrics_multi_day_active_log() {
 
     let t = metrics.tasks.get("t_act").unwrap();
     assert_eq!(t.elapsed_seconds, 172800);
-    assert_eq!(t.is_running, true);
+    assert!(t.is_running);
 
     let p = metrics.projects.get("p_act").unwrap();
     assert_eq!(p.total_elapsed_seconds, 172800);
     // Saturday 00:00 to 10:00 = 10h = 36,000s
     assert_eq!(p.today_elapsed_seconds, 36000);
     assert_eq!(p.this_week_elapsed_seconds, 172800);
-    assert_eq!(p.is_running, true);
+    assert!(p.is_running);
 }

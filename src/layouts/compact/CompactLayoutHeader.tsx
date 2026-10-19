@@ -43,7 +43,10 @@ export function CompactLayoutHeader({
         <div className="w-5 h-5 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500 border border-orange-500/30">
           <Clock className="w-3 h-3 text-orange-400 animate-pulse" />
         </div>
-        <span className="font-sans font-bold text-[10px] tracking-tight text-foreground">
+        <span
+          data-testid="compact-header-title"
+          className="font-sans font-bold text-[10px] tracking-tight text-foreground"
+        >
           LogTime by OxyFlow v{versionsData.major}.{versionsData.minor}.{versionsData.release}
         </span>
       </div>
@@ -51,6 +54,8 @@ export function CompactLayoutHeader({
       <div className="flex items-center gap-1.5">
         <Label className="flex items-center gap-1 font-mono text-[10px] mr-1 text-muted-foreground hover:text-orange-400 cursor-pointer select-none">
           <Checkbox
+            id="compact-always-on-top-checkbox"
+            data-testid="compact-always-on-top-checkbox"
             checked={alwaysOnTopSmall}
             onCheckedChange={(checked) => {
               const isChecked = Boolean(checked);

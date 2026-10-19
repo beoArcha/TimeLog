@@ -25,9 +25,8 @@ describe('Unit Tests: CliDrawerHeader Component (Strict AAA)', () => {
     // Act
     const heading = screen.getByText('OxyFlow CLI Terminal');
     const badge = screen.getByText('[LIVE ENGINE]');
-    const closeBtn = document.getElementById('cli-drawer-close-btn');
-    expect(closeBtn).not.toBeNull();
-    fireEvent.click(closeBtn!);
+    const closeBtn = screen.getByRole('button', { name: 'Close' });
+    fireEvent.click(closeBtn);
 
     // Assert
     expect(heading).not.toBeNull();

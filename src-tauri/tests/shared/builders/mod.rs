@@ -192,16 +192,9 @@ impl TimeLogBuilder {
 }
 
 /// Test Data Builder for `WorkflowConfig`.
+#[derive(Default)]
 pub struct WorkflowConfigBuilder {
     config: WorkflowConfig,
-}
-
-impl Default for WorkflowConfigBuilder {
-    fn default() -> Self {
-        Self {
-            config: WorkflowConfig::default(),
-        }
-    }
 }
 
 impl WorkflowConfigBuilder {

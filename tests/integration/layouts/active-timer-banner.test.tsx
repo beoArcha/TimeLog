@@ -5,18 +5,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ActiveTimerBanner from '@layouts/parts/ActiveTimerBanner';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 
-describe('Integration Tests: ActiveTimerBanner', () => {
+describe('Given ActiveTimerBanner component', () => {
   let mockState: ReturnType<typeof getMockOxyFlowState>;
 
   beforeEach(() => {
     mockState = getMockOxyFlowState();
-    mockState.tasks = [
-      { id: 'task_1', projectId: 'proj_1', parentTaskId: null, name: 'Active Task', createdAt: '2026-06-12T00:00:00Z', completed: false }
-    ];
-    mockState.projects = [
-      { id: 'proj_1', name: 'Active Project', color: 'rose', createdAt: '2026-06-12T00:00:00Z' }
-    ];
+    const task = aTask({ id: 'task_1', projectId: 'proj_1', parentTaskId: null, name: 'Active Task', completed: false });
+    const project = aProject({ id: 'proj_1', name: 'Active Project', color: 'rose' });
+    mockState.tasks = [task];
+    mockState.projects = [project];
   });
 
   afterEach(() => {
@@ -25,48 +24,57 @@ describe('Integration Tests: ActiveTimerBanner', () => {
     vi.restoreAllMocks();
   });
 
-  it('Given activeLog is null, When rendered, Then it should show idle banner message', () => {
-    mockState.activeLog = null;
-    const stateProp = {
-      ...mockState,
-      onStopTimer: mockState.handleStopTimer,
-    } as unknown as GuiState;
+  describe('When activeLog is null', () => {
+    it('Then it should display the idle banner status', () => {
+      // Given
+      mockState.activeLog = null;
+      const stateProp = {
+        ...mockState,
+        onStopTimer: mockState.handleStopTimer,
+      } as unknown as GuiState;
 
-    render(<ActiveTimerBanner state={stateProp} isCondensed={false} />);
+      // When
+      render(<ActiveTimerBanner state={stateProp} isCondensed={false} />);
 
-    expect(screen.getByText(/All trackers stopped/i)).toBeTruthy();
+      // Then
+      expect(screen.getByText(/All trackers stopped/i)).toBeTruthy();
+    });
   });
 
-  it('Given activeLog exists, When rendered, Then it should show active task/project names and click stop', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-06-15T10:05:00Z'));
+  describe('When an active timer is running', () => {
+    it('Then it should display active project, task names, elapsed counter and stop trigger', () => {
+      // Given
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-06-15T10:05:00Z'));
 
-    mockState.activeLog = {
-      id: 'l1',
-      projectId: 'proj_1',
-      taskId: 'task_1',
-      startTime: '2026-06-15T10:00:00Z',
-      endTime: undefined,
-      note: undefined,
-      editHistory: undefined
-    };
-    mockState.logs = [mockState.activeLog];
-    mockState.nowIso = '2026-06-15T10:05:00Z';
+      const activeLog = aTimeLog({
+        id: 'l1',
+        projectId: 'proj_1',
+        taskId: 'task_1',
+        startTime: '2026-06-15T10:00:00Z',
+        endTime: null,
+      });
+      mockState.activeLog = activeLog;
+      mockState.logs = [activeLog];
+      mockState.nowIso = '2026-06-15T10:05:00Z';
 
-    const stopSpy = vi.fn();
-    const stateProp = {
-      ...mockState,
-      onStopTimer: stopSpy,
-    } as unknown as GuiState;
+      const stopSpy = vi.fn();
+      const stateProp = {
+        ...mockState,
+        onStopTimer: stopSpy,
+      } as unknown as GuiState;
 
-    render(<ActiveTimerBanner state={stateProp} isCondensed={false} />);
+      // When
+      render(<ActiveTimerBanner state={stateProp} isCondensed={false} />);
 
-    expect(screen.getByText('Active Project')).toBeTruthy();
-    expect(screen.getByText('Active Task')).toBeTruthy();
-    expect(screen.getByText('00:05:00')).toBeTruthy();
+      // Then
+      expect(screen.getByText('Active Project')).toBeTruthy();
+      expect(screen.getByText('Active Task')).toBeTruthy();
+      expect(screen.getByText('00:05:00')).toBeTruthy();
 
-    const stopBtn = screen.getByRole('button');
-    fireEvent.click(stopBtn);
-    expect(stopSpy).toHaveBeenCalled();
+      const stopBtn = screen.getByRole('button');
+      fireEvent.click(stopBtn);
+      expect(stopSpy).toHaveBeenCalled();
+    });
   });
 });

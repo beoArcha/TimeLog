@@ -56,10 +56,9 @@ describe('Given CliSessionContext with live business data', () => {
       // Then
       await waitFor(() => {
         expect(startTimerMock).toHaveBeenCalledWith('t101');
+        const interfaceTerminal = container.querySelector('#cli-interface #terminal-history');
+        expect(interfaceTerminal?.textContent).toContain('start t101');
       });
-
-      const interfaceTerminal = container.querySelector('#cli-interface #terminal-history');
-      expect(interfaceTerminal?.textContent).toContain('start t101');
     });
   });
 });

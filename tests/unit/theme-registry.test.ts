@@ -32,7 +32,7 @@ describe('Unit Tests: ThemeRegistry and DIP Extensibility', () => {
     registry.reset();
     document.documentElement.removeAttribute('data-theme');
     document.documentElement.className = '';
-    const styleEl = document.getElementById('oxyflow-custom-theme-style');
+    const styleEl = document.querySelector('#oxyflow-custom-theme-style');
     if (styleEl) styleEl.remove();
   });
 
@@ -92,7 +92,7 @@ describe('Unit Tests: ThemeRegistry and DIP Extensibility', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('sepia');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
 
-    const injectedStyle = document.getElementById('oxyflow-custom-theme-style');
+    const injectedStyle = document.querySelector('#oxyflow-custom-theme-style');
     expect(injectedStyle).not.toBeNull();
     expect(injectedStyle?.textContent).toContain('[data-theme="sepia"]');
     expect(injectedStyle?.textContent).toContain('--color-background: #704214');

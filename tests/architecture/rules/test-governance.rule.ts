@@ -6,18 +6,7 @@ export interface TestGovernanceOptions {
   allowlist?: Set<string> | string[];
 }
 
-export const TEST_GOVERNANCE_ALLOWLIST = new Set<string>([
-  'tests/integration/providers/locale-provider.test.tsx',
-  'tests/integration/tauri/gui-events.test.tsx',
-  'tests/unit/hooks/use-time-log-data.test.tsx',
-  'tests/unit/hooks/use-external-api-sync.test.tsx',
-  'tests/unit/hooks/use-app-settings.test.tsx',
-  'tests/unit/hooks/use-global-shortcuts.test.ts',
-  'tests/integration/layouts/credits-modal.test.tsx',
-  'tests/integration/tasks/tasks-view.test.tsx',
-  'tests/unit/features/cli/components/CliDrawerHeader.test.tsx',
-  'tests/unit/theme-registry.test.ts',
-]);
+export const TEST_GOVERNANCE_ALLOWLIST = new Set<string>([]);
 
 /**
  * Strategy interface for detecting specific AST anti-patterns in test files.

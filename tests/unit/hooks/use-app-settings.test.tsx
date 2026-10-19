@@ -9,7 +9,8 @@ describe('Unit Tests: useAppSettings Hook', () => {
     setupMatchMediaMock(false);
   });
 
-  it('should_load_saved_settings_when_initialized', async () => {
+  it('should load saved settings when initialized', async () => {
+    // Arrange
     localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
       theme: 'light',
       guiVariant: 'medium',
@@ -22,41 +23,48 @@ describe('Unit Tests: useAppSettings Hook', () => {
       minimizeToTray: true,
     }));
 
+    // Act
     const { result } = renderHook(() => useAppSettings());
 
+    // Assert
     await waitFor(() => {
       expect(result.current.theme).toBe('light');
     });
     expect(result.current.layoutVariant).toBe('medium');
   });
 
-  it('should_update_localStorage_when_textAndIconSize_changes', async () => {
+  it('should update localStorage when textAndIconSize changes', async () => {
+    // Arrange
     const { result } = renderHook(() => useAppSettings());
 
     await waitFor(() => {
       expect(result.current.textAndIconSize).toBeTruthy();
     });
 
+    // Act
     await act(async () => {
       result.current.setTextAndIconSize('large');
     });
 
+    // Assert
     expect(result.current.textAndIconSize).toBe('large');
   });
 
-  it('should_resolve_theme_correctly_when_system_theme_is_queried', async () => {
+  it('should resolve theme correctly when system theme is queried', async () => {
+    // Arrange
     setupMatchMediaMock(true);
-
     const { result } = renderHook(() => useAppSettings());
 
     await waitFor(() => {
       expect(result.current.resolvedTheme).toBeTruthy();
     });
 
+    // Act
     await act(async () => {
       result.current.setTheme('system');
     });
 
+    // Assert
     expect(result.current.resolvedTheme).toBe('light');
   });
 });

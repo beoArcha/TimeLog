@@ -13,7 +13,9 @@ fn test_cli_subprocess_help_flag() {
     let combined = format!("{}\n{}", stdout, stderr);
 
     assert!(
-        combined.contains("Usage") || combined.contains("manage") || combined.contains("oxytime-cli"),
+        combined.contains("Usage")
+            || combined.contains("manage")
+            || combined.contains("oxytime-cli"),
         "Expected clap help text in CLI output, got: {}",
         combined
     );

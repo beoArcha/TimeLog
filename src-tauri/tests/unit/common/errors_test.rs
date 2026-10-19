@@ -19,10 +19,8 @@ fn test_app_error_conversions() {
     let repo_db: AppError = RepositoryError::Database(rusqlite::Error::QueryReturnedNoRows).into();
     assert!(matches!(repo_db, AppError::Database(_)));
 
-    let repo_ser: AppError = RepositoryError::Serialization(serde_json::Error::io(
-        std::io::Error::new(std::io::ErrorKind::Other, "io"),
-    ))
-    .into();
+    let repo_ser: AppError =
+        RepositoryError::Serialization(serde_json::Error::io(std::io::Error::other("io"))).into();
     assert!(matches!(repo_ser, AppError::Generic(_)));
 
     let repo_val: AppError = RepositoryError::Validation("invalid value".to_string()).into();
@@ -49,10 +47,8 @@ fn test_app_error_conversions() {
     let p_str: PersistenceError = "string error".to_string().into();
     assert!(matches!(p_str, PersistenceError::Validation(_)));
 
-    let p_repo_ser: PersistenceError = RepositoryError::Serialization(serde_json::Error::io(
-        std::io::Error::new(std::io::ErrorKind::Other, "io"),
-    ))
-    .into();
+    let p_repo_ser: PersistenceError =
+        RepositoryError::Serialization(serde_json::Error::io(std::io::Error::other("io"))).into();
     assert!(matches!(p_repo_ser, PersistenceError::Validation(_)));
 
     let p_repo_val: PersistenceError =

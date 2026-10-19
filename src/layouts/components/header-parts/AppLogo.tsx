@@ -17,7 +17,10 @@ export const AppLogo: React.FC = () => {
         <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
       </div>
       <div>
-        <h1 className="font-sans font-bold text-sm sm:text-base tracking-tight leading-none flex items-center text-foreground">
+        <h1
+          data-testid="app-header-logo"
+          className="font-sans font-bold text-sm sm:text-base tracking-tight leading-none flex items-center text-foreground"
+        >
           <span>OxyFlow</span>
           <span className="text-[9px] bg-orange-500/10 border border-orange-500/20 text-orange-400 px-1.5 py-0.2 rounded ml-1.5 font-bold font-mono">
             v{versionsData.subversions.front}

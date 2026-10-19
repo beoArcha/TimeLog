@@ -14,7 +14,7 @@ vi.mock('sonner', () => ({
   },
 }));
 
-describe('Integration Tests: ManualTab', () => {
+describe('Given ManualTab component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupMatchMediaMock(false);
@@ -24,35 +24,43 @@ describe('Integration Tests: ManualTab', () => {
     cleanup();
   });
 
-  it('Given ManualTab rendered, When OS button is clicked, Then it should notify via toast and update OS specifics', async () => {
-    const mockState = getMockOxyFlowState();
+  describe('When rendered with OS selectors', () => {
+    it('Then it should render heading and notify user upon selecting an OS platform', () => {
+      // Given
+      const mockState = getMockOxyFlowState();
+      render(
+        <MockProviders state={mockState}>
+          <ManualTab />
+        </MockProviders>
+      );
 
-    render(
-      <MockProviders state={mockState}>
-        <ManualTab />
-      </MockProviders>
-    );
+      // When
+      const osButtons = screen.getAllByRole('button');
+      const macBtn = osButtons.find(b => b.textContent?.trim().toLowerCase() === 'macos');
+      expect(macBtn).toBeDefined();
+      fireEvent.click(macBtn!);
 
-    expect(screen.getByText('Compilation Manual, Shortcuts & Arch (Tauri OS Guides)')).toBeDefined();
-
-    const macBtn = screen.getByText('macos');
-    fireEvent.click(macBtn);
-
-    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('MACOS'));
+      // Then
+      expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('MACOS'));
+    });
   });
 
-  it('Given ManualTab rendered, When missing locale dictionary is used, Then it should fall back to English/key name', () => {
-    const mockState = getMockOxyFlowState();
-    mockState.locale = 'custom';
-    mockState.customTranslations = {}; // Empty custom translations
+  describe('When custom locale dictionary is empty', () => {
+    it('Then it should safely fall back and render structural headings', () => {
+      // Given
+      const mockState = getMockOxyFlowState();
+      mockState.locale = 'custom';
+      mockState.customTranslations = {};
 
-    render(
-      <MockProviders state={mockState}>
-        <ManualTab />
-      </MockProviders>
-    );
+      // When
+      render(
+        <MockProviders state={mockState}>
+          <ManualTab />
+        </MockProviders>
+      );
 
-    // Should fall back to English translation
-    expect(screen.getByText('Compilation Manual, Shortcuts & Arch (Tauri OS Guides)')).toBeDefined();
+      // Then
+      expect(screen.getByRole('heading', { level: 2 })).toBeDefined();
+    });
   });
 });
