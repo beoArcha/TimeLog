@@ -66,7 +66,18 @@
     "ErrUsageRenameProject": "Error: Usage: renameproject <proj_id> \"<name>\".",
     "ErrUsageRenameTask": "Error: Usage: renametask <task_id> \"<name>\".",
     "SuccessRenamedProject": "Success: Renamed project",
-    "SuccessRenamedTask": "Success: Renamed task"
+    "SuccessRenamedTask": "Success: Renamed task",
+    "SwitchDesc": "Atomically stops active timer and starts tracking specified task (id or name)",
+    "SandboxDesc": "Controls in-memory learning sandbox emulator (on/off/status/reset)",
+    "ErrUnknownCmdHelp": "Unknown command: \"{command}\". Type 'help' to see available commands or 'switch' to change active task.",
+    "ErrNoTaskSelectedHelp": "No task selected. Select a task in the interface or specify Task ID (e.g. 'start 101').",
+    "ErrTaskAlreadyCompleted": "Task \"{name}\" is already marked as completed.",
+    "SwitchSuccess": "Switched tracking: stopped previous timer and started task \"{name}\" [ID: {taskId}].",
+    "StoppedAllSessions": "Stopped all ({count}) active tracking sessions across all projects.",
+    "SandboxModeEnabled": "[SANDBOX] In-memory learning emulator enabled. Changes will NOT be persisted to SQLite.",
+    "SandboxModeDisabled": "[SANDBOX] Switched back to LIVE business engine. Changes are persisted to SQLite.",
+    "SandboxModeStatus": "[SANDBOX] Emulator status: {status}.",
+    "SandboxResetDone": "[SANDBOX] In-memory demonstration data has been reset to defaults."
   },
   "pl": {
     "WelcomeHelp": "Wpisz \"help\" lub \"oxyhelp\", aby otworzyć listę dostępnych instrukcji.",
@@ -135,7 +146,18 @@
     "ErrUsageRenameProject": "Błąd: Użycie: renameproject <id_projektu> \"<nazwa>\".",
     "ErrUsageRenameTask": "Błąd: Użycie: renametask <id_zadania> \"<nazwa>\".",
     "SuccessRenamedProject": "Sukces: Zmieniono nazwę projektu",
-    "SuccessRenamedTask": "Sukces: Zmieniono nazwę zadania"
+    "SuccessRenamedTask": "Sukces: Zmieniono nazwę zadania",
+    "SwitchDesc": "Atomowo zatrzymuje aktywny stoper i rozpoczyna mierzenie nowego zadania (id lub nazwa)",
+    "SandboxDesc": "Zarządza emulatorem edukacyjnym sandbox w pamięci (on/off/status/reset)",
+    "ErrUnknownCmdHelp": "Nieznane polecenie: \"{command}\". Wpisz 'help', aby zobaczyć listę komend, lub 'switch', aby przełączyć zadanie.",
+    "ErrNoTaskSelectedHelp": "Brak wybranego zadania. Wybierz zadanie w interfejsie lub podaj ID (np. 'start 101').",
+    "ErrTaskAlreadyCompleted": "Zadanie \"{name}\" jest już oznaczone jako ukończone.",
+    "SwitchSuccess": "Przełączono śledzenie: zatrzymano poprzedni stoper i uruchomiono zadanie \"{name}\" [ID: {taskId}].",
+    "StoppedAllSessions": "Zatrzymano wszystkie aktywne sesje pomiarowe ({count}) we wszystkich projektach.",
+    "SandboxModeEnabled": "[SANDBOX] Włączono emulator edukacyjny w pamięci. Zmiany NIE zostaną zapisane w bazie SQLite.",
+    "SandboxModeDisabled": "[SANDBOX] Przywrócono tryb BIZNESOWY. Zmiany są trwale zapisywane w SQLite.",
+    "SandboxModeStatus": "[SANDBOX] Status emulatora: {status}.",
+    "SandboxResetDone": "[SANDBOX] Dane demonstracyjne w pamięci emulatora zostały zresetowane."
   },
   "de": {
     "WelcomeHelp": "Geben Sie \"help\" oder \"oxyhelp\" ein, um die Liste der verfügbaren Befehle zu öffnen.",
@@ -204,7 +226,18 @@
     "ErrUsageRenameProject": "Fehler: Verwendung: renameproject <proj_id> \"<name>\".",
     "ErrUsageRenameTask": "Fehler: Verwendung: renametask <task_id> \"<name>\".",
     "SuccessRenamedProject": "Erfolg: Projekt umbenannt",
-    "SuccessRenamedTask": "Erfolg: Aufgabe umbenannt"
+    "SuccessRenamedTask": "Erfolg: Aufgabe umbenannt",
+    "SwitchDesc": "Stoppt den aktiven Timer atomar und startet die Zeiterfassung einer neuen Aufgabe (ID oder Name)",
+    "SandboxDesc": "Steuert den Lern-Sandbox-Emulator im Speicher (on/off/status/reset)",
+    "ErrUnknownCmdHelp": "Unbekannter Befehl: \"{command}\". Geben Sie 'help' ein, um Befehle anzuzeigen, oder 'switch', um die Aufgabe zu wechseln.",
+    "ErrNoTaskSelectedHelp": "Keine Aufgabe ausgewählt. Wählen Sie eine Aufgabe in der Oberfläche oder geben Sie eine ID an (z. B. 'start 101').",
+    "ErrTaskAlreadyCompleted": "Die Aufgabe \"{name}\" ist bereits als abgeschlossen markiert.",
+    "SwitchSuccess": "Erfassung gewechselt: vorherigen Timer gestoppt und Aufgabe \"{name}\" gestartet [ID: {taskId}].",
+    "StoppedAllSessions": "Alle aktiven Erfassungssitzungen ({count}) in allen Projekten gestoppt.",
+    "SandboxModeEnabled": "[SANDBOX] Lern-Emulator im Speicher aktiviert. Änderungen werden NICHT in SQLite gespeichert.",
+    "SandboxModeDisabled": "[SANDBOX] Zurück zum LIVE-Modus gewechselt. Änderungen werden in SQLite gespeichert.",
+    "SandboxModeStatus": "[SANDBOX] Emulator-Status: {status}.",
+    "SandboxResetDone": "[SANDBOX] Demonstrationsdaten im Speicher wurden zurückgesetzt."
   },
   "es": {
     "WelcomeHelp": "Escriba \"help\" o \"oxyhelp\" para abrir la lista de comandos disponibles.",
@@ -273,7 +306,18 @@
     "ErrUsageRenameProject": "Error: Uso: renameproject <id_proyecto> \"<nombre>\".",
     "ErrUsageRenameTask": "Error: Uso: renametask <id_tarea> \"<nombre>\".",
     "SuccessRenamedProject": "Éxito: Proyecto renombrado",
-    "SuccessRenamedTask": "Éxito: Tarea renombrada"
+    "SuccessRenamedTask": "Éxito: Tarea renombrada",
+    "SwitchDesc": "Detiene atómicamente el temporizador activo e inicia el seguimiento de una nueva tarea (ID o nombre)",
+    "SandboxDesc": "Controla el emulador de pruebas en memoria sandbox (on/off/status/reset)",
+    "ErrUnknownCmdHelp": "Comando desconocido: \"{command}\". Escriba 'help' para ver los comandos o 'switch' para cambiar de tarea.",
+    "ErrNoTaskSelectedHelp": "Ninguna tarea seleccionada. Seleccione una tarea en la interfaz o especifique su ID (ej. 'start 101').",
+    "ErrTaskAlreadyCompleted": "La tarea \"{name}\" ya está marcada como completada.",
+    "SwitchSuccess": "Seguimiento cambiado: temporizador anterior detenido e iniciada la tarea \"{name}\" [ID: {taskId}].",
+    "StoppedAllSessions": "Se detuvieron todas las sesiones activas ({count}) en todos los proyectos.",
+    "SandboxModeEnabled": "[SANDBOX] Emulador en memoria activado. Los cambios NO se guardarán en SQLite.",
+    "SandboxModeDisabled": "[SANDBOX] Regreso al modo EN VIVO. Los cambios se guardan en SQLite.",
+    "SandboxModeStatus": "[SANDBOX] Estado del emulador: {status}.",
+    "SandboxResetDone": "[SANDBOX] Los datos de demostración en memoria se han restablecido."
   },
   "fr": {
     "WelcomeHelp": "Tapez \"help\" ou \"oxyhelp\" pour ouvrir la liste des commandes disponibles.",
@@ -342,7 +386,18 @@
     "ErrUsageRenameProject": "Erreur: Utilisation: renameproject <id_projet> \"<nom>\".",
     "ErrUsageRenameTask": "Erreur: Utilisation: renametask <id_tâche> \"<nom>\".",
     "SuccessRenamedProject": "Succès: Projet renommé",
-    "SuccessRenamedTask": "Succès: Tâche renommée"
+    "SuccessRenamedTask": "Succès: Tâche renommée",
+    "SwitchDesc": "Arrête atomiquement le minuteur actif et démarre le suivi d'une nouvelle tâche (ID ou nom)",
+    "SandboxDesc": "Contrôle l'émulateur d'apprentissage sandbox en mémoire (on/off/status/reset)",
+    "ErrUnknownCmdHelp": "Commande inconnue: \"{command}\". Tapez 'help' pour voir les commandes ou 'switch' pour changer de tâche.",
+    "ErrNoTaskSelectedHelp": "Aucune tâche sélectionnée. Sélectionnez une tâche dans l'interface ou indiquez un ID (ex. 'start 101').",
+    "ErrTaskAlreadyCompleted": "La tâche \"{name}\" est déjà marquée comme terminée.",
+    "SwitchSuccess": "Suivi basculé: minuteur précédent arrêté et tâche \"{name}\" démarrée [ID: {taskId}].",
+    "StoppedAllSessions": "Arrêt de toutes les sessions actives ({count}) sur l'ensemble des projets.",
+    "SandboxModeEnabled": "[SANDBOX] Émulateur d'apprentissage activé. Les modifications ne seront PAS enregistrées dans SQLite.",
+    "SandboxModeDisabled": "[SANDBOX] Retour au moteur de production EN DIRECT. Les modifications sont enregistrées dans SQLite.",
+    "SandboxModeStatus": "[SANDBOX] Statut de l'émulateur: {status}.",
+    "SandboxResetDone": "[SANDBOX] Les données de démonstration en mémoire ont été réinitialisées."
   },
   "pt-br": {
     "WelcomeHelp": "Digite \"help\" ou \"oxyhelp\" para abrir a lista de comandos disponíveis.",
@@ -411,6 +466,17 @@
     "ErrUsageRenameProject": "Erro: Uso: renameproject <id_projeto> \"<nome>\".",
     "ErrUsageRenameTask": "Erro: Uso: renametask <id_tarefa> \"<nome>\".",
     "SuccessRenamedProject": "Sucesso: Projeto renomeado",
-    "SuccessRenamedTask": "Sucesso: Tarefa renomeada"
+    "SuccessRenamedTask": "Sucesso: Tarefa renomeada",
+    "SwitchDesc": "Para atomicamente o cronômetro ativo e inicia o rastreamento de uma nova tarefa (ID ou nome)",
+    "SandboxDesc": "Controla o emulador de aprendizado sandbox em memória (on/off/status/reset)",
+    "ErrUnknownCmdHelp": "Comando desconhecido: \"{command}\". Digite 'help' para ver os comandos ou 'switch' para trocar de tarefa.",
+    "ErrNoTaskSelectedHelp": "Nenhuma tarefa selecionada. Selecione uma tarefa na interface ou informe o ID (ex.: 'start 101').",
+    "ErrTaskAlreadyCompleted": "A tarefa \"{name}\" já está marcada como concluída.",
+    "SwitchSuccess": "Rastreamento alternado: cronômetro anterior parado e tarefa \"{name}\" iniciada [ID: {taskId}].",
+    "StoppedAllSessions": "Todas as sessões de rastreamento ativas ({count}) foram paradas em todos os projetos.",
+    "SandboxModeEnabled": "[SANDBOX] Emulador em memória ativado. As alterações NÃO serão salvas no SQLite.",
+    "SandboxModeDisabled": "[SANDBOX] Retornado ao modo de produção AO VIVO. As alterações são salvas no SQLite.",
+    "SandboxModeStatus": "[SANDBOX] Status do emulador: {status}.",
+    "SandboxResetDone": "[SANDBOX] Os dados de demonstração em memória foram redefinidos."
   }
 }

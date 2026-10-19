@@ -14,7 +14,7 @@ import {
   runHolidaysCommand,
   TerminalLine,
   CliEngineContext
-} from '@features/cli/utils/Commands';
+} from '@features/cli/utils/commands';
 
 describe('Unit Tests: Commands', () => {
   const getMockContext = (): CliEngineContext => ({
