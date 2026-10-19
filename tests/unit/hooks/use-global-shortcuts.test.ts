@@ -83,4 +83,23 @@ describe('Unit Tests: useGlobalShortcuts Hook', () => {
 
     expect(onEscape).not.toHaveBeenCalled();
   });
+
+  it('should_call_onToggleCliDrawer_when_Ctrl_Backquote_is_pressed', () => {
+    // Arrange
+    const onToggleCliDrawer = vi.fn();
+    renderHook(() => useGlobalShortcuts({ onToggleTimer, onToggleCliDrawer }));
+
+    // Act
+    const event = new KeyboardEvent(TEST_CONSTANTS.EVENT_KEYDOWN, {
+      code: 'Backquote',
+      key: '`',
+      ctrlKey: true,
+      cancelable: true,
+    });
+    Object.defineProperty(event, 'target', { value: document.createElement('div') });
+    window.dispatchEvent(event);
+
+    // Assert
+    expect(onToggleCliDrawer).toHaveBeenCalled();
+  });
 });

@@ -9,6 +9,7 @@ export interface CliCommandInputProps {
   onSubmit: (e: React.FormEvent) => void;
   placeholder: string;
   submitLabel: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
 export const CliCommandInput: React.FC<CliCommandInputProps> = ({
@@ -17,6 +18,7 @@ export const CliCommandInput: React.FC<CliCommandInputProps> = ({
   onSubmit,
   placeholder,
   submitLabel,
+  onKeyDown,
 }) => {
   return (
     <form onSubmit={onSubmit} className="flex gap-2 p-1.5 rounded-2xl border border-border bg-muted/40 transition-all">
@@ -31,6 +33,7 @@ export const CliCommandInput: React.FC<CliCommandInputProps> = ({
         aria-label={placeholder}
         value={input}
         onChange={e => setInput(e.target.value)}
+        onKeyDown={onKeyDown}
         autoFocus
       />
       <Button

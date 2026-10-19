@@ -77,7 +77,11 @@
     "SandboxModeEnabled": "[SANDBOX] In-memory learning emulator enabled. Changes will NOT be persisted to SQLite.",
     "SandboxModeDisabled": "[SANDBOX] Switched back to LIVE business engine. Changes are persisted to SQLite.",
     "SandboxModeStatus": "[SANDBOX] Emulator status: {status}.",
-    "SandboxResetDone": "[SANDBOX] In-memory demonstration data has been reset to defaults."
+    "SandboxResetDone": "[SANDBOX] In-memory demonstration data has been reset to defaults.",
+    "CloseDrawer": "Close CLI Drawer (Esc)",
+    "CliDrawerTitle": "OxyFlow Interactive Terminal",
+    "LiveEngineBadge": "LIVE ENGINE",
+    "SandboxBadge": "SANDBOX EMULATOR"
   },
   "pl": {
     "WelcomeHelp": "Wpisz \"help\" lub \"oxyhelp\", aby otworzyć listę dostępnych instrukcji.",
@@ -157,7 +161,11 @@
     "SandboxModeEnabled": "[SANDBOX] Włączono emulator edukacyjny w pamięci. Zmiany NIE zostaną zapisane w bazie SQLite.",
     "SandboxModeDisabled": "[SANDBOX] Przywrócono tryb BIZNESOWY. Zmiany są trwale zapisywane w SQLite.",
     "SandboxModeStatus": "[SANDBOX] Status emulatora: {status}.",
-    "SandboxResetDone": "[SANDBOX] Dane demonstracyjne w pamięci emulatora zostały zresetowane."
+    "SandboxResetDone": "[SANDBOX] Dane demonstracyjne w pamięci emulatora zostały zresetowane.",
+    "CloseDrawer": "Zamknij szufladę CLI (Esc)",
+    "CliDrawerTitle": "Interaktywny terminal OxyFlow",
+    "LiveEngineBadge": "SILNIK PRODUKCYJNY",
+    "SandboxBadge": "EMULATOR SANDBOX"
   },
   "de": {
     "WelcomeHelp": "Geben Sie \"help\" oder \"oxyhelp\" ein, um die Liste der verfügbaren Befehle zu öffnen.",
@@ -237,7 +245,11 @@
     "SandboxModeEnabled": "[SANDBOX] Lern-Emulator im Speicher aktiviert. Änderungen werden NICHT in SQLite gespeichert.",
     "SandboxModeDisabled": "[SANDBOX] Zurück zum LIVE-Modus gewechselt. Änderungen werden in SQLite gespeichert.",
     "SandboxModeStatus": "[SANDBOX] Emulator-Status: {status}.",
-    "SandboxResetDone": "[SANDBOX] Demonstrationsdaten im Speicher wurden zurückgesetzt."
+    "SandboxResetDone": "[SANDBOX] Demonstrationsdaten im Speicher wurden zurückgesetzt.",
+    "CloseDrawer": "CLI-Schublade schließen (Esc)",
+    "CliDrawerTitle": "Interaktives OxyFlow-Terminal",
+    "LiveEngineBadge": "LIVE-ENGINE",
+    "SandboxBadge": "SANDBOX-EMULATOR"
   },
   "es": {
     "WelcomeHelp": "Escriba \"help\" o \"oxyhelp\" para abrir la lista de comandos disponibles.",
@@ -317,7 +329,11 @@
     "SandboxModeEnabled": "[SANDBOX] Emulador en memoria activado. Los cambios NO se guardarán en SQLite.",
     "SandboxModeDisabled": "[SANDBOX] Regreso al modo EN VIVO. Los cambios se guardan en SQLite.",
     "SandboxModeStatus": "[SANDBOX] Estado del emulador: {status}.",
-    "SandboxResetDone": "[SANDBOX] Los datos de demostración en memoria se han restablecido."
+    "SandboxResetDone": "[SANDBOX] Los datos de demostración en memoria se han restablecido.",
+    "CloseDrawer": "Cerrar consola CLI (Esc)",
+    "CliDrawerTitle": "Terminal interactivo OxyFlow",
+    "LiveEngineBadge": "MOTOR EN VIVO",
+    "SandboxBadge": "EMULADOR SANDBOX"
   },
   "fr": {
     "WelcomeHelp": "Tapez \"help\" ou \"oxyhelp\" pour ouvrir la liste des commandes disponibles.",
@@ -397,7 +413,11 @@
     "SandboxModeEnabled": "[SANDBOX] Émulateur d'apprentissage activé. Les modifications ne seront PAS enregistrées dans SQLite.",
     "SandboxModeDisabled": "[SANDBOX] Retour au moteur de production EN DIRECT. Les modifications sont enregistrées dans SQLite.",
     "SandboxModeStatus": "[SANDBOX] Statut de l'émulateur: {status}.",
-    "SandboxResetDone": "[SANDBOX] Les données de démonstration en mémoire ont été réinitialisées."
+    "SandboxResetDone": "[SANDBOX] Les données de démonstration en mémoire ont été réinitialisées.",
+    "CloseDrawer": "Fermer le tiroir CLI (Esc)",
+    "CliDrawerTitle": "Terminal interactif OxyFlow",
+    "LiveEngineBadge": "MOTEUR EN DIRECT",
+    "SandboxBadge": "ÉMULATEUR SANDBOX"
   },
   "pt-br": {
     "WelcomeHelp": "Digite \"help\" ou \"oxyhelp\" para abrir a lista de comandos disponíveis.",
@@ -477,6 +497,10 @@
     "SandboxModeEnabled": "[SANDBOX] Emulador em memória ativado. As alterações NÃO serão salvas no SQLite.",
     "SandboxModeDisabled": "[SANDBOX] Retornado ao modo de produção AO VIVO. As alterações são salvas no SQLite.",
     "SandboxModeStatus": "[SANDBOX] Status do emulador: {status}.",
-    "SandboxResetDone": "[SANDBOX] Os dados de demonstração em memória foram redefinidos."
+    "SandboxResetDone": "[SANDBOX] Os dados de demonstração em memória foram redefinidos.",
+    "CloseDrawer": "Fechar console CLI (Esc)",
+    "CliDrawerTitle": "Terminal interativo OxyFlow",
+    "LiveEngineBadge": "MOTOR AO VIVO",
+    "SandboxBadge": "EMULADOR SANDBOX"
   }
 }

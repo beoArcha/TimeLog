@@ -7,8 +7,10 @@ import versionsData from '@app/versions.json';
 import { executeCliCommand } from '../utils/cliEngine';
 import { SandboxEmulatorStore } from '../sandbox/sandboxEmulatorStore';
 import { TerminalLine, CliEngineContext } from '../types';
+import { useCliSessionSafe } from '../context/CliSessionContext';
 
 export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
+  const session = useCliSessionSafe();
   const { locale: ambientLocale, customTranslations: ambientCustomTranslations } = useLocale();
   const { nowIso: ambientNowIso } = useWindowShell();
   const ambientData = useDataSafe();
@@ -17,12 +19,12 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
   const customTranslations = props?.customTranslations ?? ambientCustomTranslations;
   const nowIso = props?.nowIso ?? ambientNowIso;
 
-  const [isSandboxMode, setIsSandboxMode] = useState<boolean>(
+  const [localSandboxMode, setLocalSandboxMode] = useState<boolean>(
     props?.isSandbox ?? SandboxEmulatorStore.getInstance().isActive()
   );
 
   const [input, setInput] = useState('');
-  const [terminalHistory, setTerminalHistory] = useState<TerminalLine[]>([
+  const [localHistory, setLocalHistory] = useState<TerminalLine[]>([
     { text: `LogTime by OxyFlow CLI Engine [Version ${versionsData.major}.${versionsData.minor}.${versionsData.release}]`, type: 'info' },
     { text: "Type 'help' to see available commands.", type: 'info' },
     { text: "Connected to local SQLite database in memory.", type: 'success' },
@@ -30,6 +32,15 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
   ]);
 
   const terminalHistoryRef = useRef<HTMLDivElement>(null);
+
+  // If session is available and no props overrides, use session history and sandbox
+  const isSandboxMode = props?.isSandbox !== undefined
+    ? props.isSandbox
+    : (session ? session.isSandbox : localSandboxMode);
+
+  const terminalHistory = session && !props?.projects
+    ? session.terminalHistory
+    : localHistory;
 
   useEffect(() => {
     if (terminalHistoryRef.current) {
@@ -42,24 +53,37 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
   if (prevLocale !== locale) {
     setPrevLocale(locale);
     const msg = translate(locale, 'cli', 'LocaleSwitched', customTranslations, { locale: locale.toUpperCase() });
-    setTerminalHistory(prev => [
-      ...prev,
-      { text: `[SYSTEM_EVENT] ${msg}`, type: 'success' }
-    ]);
+    if (session && !props?.projects) {
+      // Session handles locale change via its own useEffect
+    } else {
+      setLocalHistory(prev => [
+        ...prev,
+        { text: `[SYSTEM_EVENT] ${msg}`, type: 'success' }
+      ]);
+    }
   }
 
   const handleToggleSandbox = useCallback((enabled?: boolean) => {
     const nextState = enabled !== undefined ? enabled : !isSandboxMode;
-    setIsSandboxMode(nextState);
-    if (nextState) {
-      SandboxEmulatorStore.getInstance().enable();
+    if (session && !props?.isSandbox) {
+      session.setSandboxMode(nextState);
     } else {
-      SandboxEmulatorStore.getInstance().disable();
+      setLocalSandboxMode(nextState);
+      if (nextState) {
+        SandboxEmulatorStore.getInstance().enable();
+      } else {
+        SandboxEmulatorStore.getInstance().disable();
+      }
     }
     props?.onToggleSandbox?.(nextState);
-  }, [isSandboxMode, props]);
+  }, [isSandboxMode, props, session]);
 
   const executeCommand = useCallback(async (cmdText: string) => {
+    if (session && !props?.projects) {
+      await session.executeCommand(cmdText);
+      return;
+    }
+
     const cliContext: CliEngineContext = {
       projects: props?.projects ?? ambientData?.projects ?? [],
       tasks: props?.tasks ?? ambientData?.tasks ?? [],
@@ -87,11 +111,25 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
 
     const outputs = await executeCliCommand(cmdText, cliContext);
     if (outputs.length === 1 && outputs[0].text === '__CLEAR__') {
-      setTerminalHistory([]);
+      setLocalHistory([]);
       return;
     }
-    setTerminalHistory(prev => [...prev, ...outputs]);
-  }, [ambientData, customTranslations, handleToggleSandbox, isSandboxMode, locale, nowIso, props]);
+    setLocalHistory(prev => [...prev, ...outputs]);
+  }, [ambientData, customTranslations, handleToggleSandbox, isSandboxMode, locale, nowIso, props, session]);
+
+  const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (session) {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = session.navigateHistory('up', input);
+        setInput(prev);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = session.navigateHistory('down', input);
+        setInput(next);
+      }
+    }
+  }, [input, session]);
 
   const handleFormSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +149,7 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
     historyRef: terminalHistoryRef,
     executeCommand,
     handleFormSubmit,
+    handleInputKeyDown,
     placeholder,
     submitLabel,
     quickShortcutsTitle,

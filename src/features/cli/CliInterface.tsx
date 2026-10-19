@@ -14,6 +14,7 @@ export default function CliInterface(props?: Partial<CliEngineContext>) {
     historyRef,
     executeCommand,
     handleFormSubmit,
+    handleInputKeyDown,
     placeholder,
     submitLabel,
     quickShortcutsTitle,
@@ -36,6 +37,7 @@ export default function CliInterface(props?: Partial<CliEngineContext>) {
         input={input}
         setInput={setInput}
         onSubmit={handleFormSubmit}
+        onKeyDown={handleInputKeyDown}
         placeholder={placeholder}
         submitLabel={submitLabel}
       />

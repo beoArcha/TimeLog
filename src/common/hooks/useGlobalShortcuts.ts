@@ -4,17 +4,25 @@ interface GlobalShortcutsConfig {
   onToggleTimer: () => void;
   onSwitchTab?: (index: number) => void;
   onEscape?: () => void;
+  onToggleCliDrawer?: () => void;
 }
 
 export function useGlobalShortcuts({
   onToggleTimer,
   onSwitchTab,
   onEscape,
+  onToggleCliDrawer,
 }: GlobalShortcutsConfig) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.isContentEditable;
+
+      if (e.ctrlKey && (e.code === 'Backquote' || e.key === '`')) {
+        e.preventDefault();
+        onToggleCliDrawer?.();
+        return;
+      }
 
       if (e.code === 'Space' && !isInput) {
         e.preventDefault();
@@ -42,5 +50,5 @@ export function useGlobalShortcuts({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onToggleTimer, onSwitchTab, onEscape]);
+  }, [onToggleTimer, onSwitchTab, onEscape, onToggleCliDrawer]);
 }
