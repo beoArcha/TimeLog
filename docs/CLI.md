@@ -194,6 +194,45 @@ In interactive human terminal mode, encountering `DOM_ENTITY_NOT_FOUND` or `CLI_
 
 ---
 
+## 🪟 In-App Global CLI Drawer & Session Synchronization
+
+### 1. CliDrawer Architecture (`Ctrl+`` /`Esc`)
+
+The in-app CLI is accessible everywhere across all application layouts (Compact, Medium, Full) via the global `CliDrawer` component (`src/features/cli/CliDrawer.tsx`):
+
+- **Slide-Down Presentation**: Animated top sheet (`motion.div`) with polymorphic design tokens (`bg-card/95`, `backdrop-blur-xl`, `border-border`, `text-foreground`).
+- **Global Keybinding**: Toggled instantaneously via `Ctrl+`` (`Backquote`), registered via` useGlobalShortcuts`.
+- **Keyboard Trapping & Dismissal**: Automatically closes on `Escape` or clicking the backdrop overlay/close button, restoring focus to the primary UI.
+- **Responsive Layout Adaptation**: When toggled in `CompactLayout`, `CliSessionProvider` automatically expands the window into `MediumLayout` so the terminal console has sufficient viewport space without clipping.
+
+### 2. CliSessionContext & State Synchronization
+
+Terminal history, execution state, and command buffers are orchestrated by `CliSessionContext` (`src/features/cli/context/CliSessionContext.ts` and `CliSessionProvider.tsx`):
+
+- **Shared Session**: Commands executed in `CliDrawer` immediately reflect in `CliInterface.tsx` and vice-versa.
+- **Command History Navigation**: Preserves arrow up/down history traversal with synchronous cursor management (`historyIndexRef` + state) to prevent race conditions during input editing.
+- **Polymorphic Execution**: Commands run through `executeCliCommand(cmd, context)`, supporting both live business operations (`DataContext`) and safe sandbox emulation.
+
+### 3. Business Mode vs Sandbox Emulator Mode
+
+The CLI supports a dedicated in-memory sandbox emulator (`src/features/cli/sandbox/`):
+
+- **Live Engine Mode**: Active by default (indicated by `[LIVE ENGINE]` emerald badge). Commands write directly to the persistent SQLite database / DataContext.
+- **Sandbox Emulator Mode**: Toggled via `sandbox on` / `sandbox off` / `sandbox reset` (indicated by `[SANDBOX EMULATOR]` amber badge).
+  - All operations (`addproject`, `addtask`, `start`, `stop`, `switch`) execute in memory inside `SandboxEmulatorStore`.
+  - Zero persistence side-effects: Production SQLite / LocalStorage data remains completely untouched.
+  - Realistic Demo Fixtures: Pre-populated with realistic tasks, subtasks, and logs from `sandboxDemoData.ts`.
+  - Realistic Metrics: Calculated via `sandboxMetricsCalculator.ts`.
+
+### 4. Atomic `switch` Command & Language Disciplines
+
+- **Atomic Task Switching**: `switch <target-task-id>` stops any currently active timer and starts the new timer in a single transaction, eliminating race conditions or manual multi-step stop/start actions.
+- **Language Disciplines**:
+  - Command outputs (`stdout` / success logs / tabular summaries) are **strictly English** to ensure deterministic parsing, copy-pasting, and scripting.
+  - Interactive help (`help`), usage tips, error diagnoses, and remediation advice adapt to the active user locale dictionary (`en`, `pl`, `de`, `es`, `fr`, `pt-br`).
+
+---
+
 ## 🧪 Testing Architecture & Segregation
 
 To maintain clean module boundaries and prevent regressions, test suites are strictly segregated:

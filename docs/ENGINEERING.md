@@ -395,8 +395,16 @@ Contexts are decomposed by domain responsibility to prevent unnecessary componen
 3. **`EngineContext`**: Manages metrics calculations, background sync, and daemon status.
 4. **`SettingsContext`**: Manages user preferences (layout variant, theme, visual scale).
 5. **`LocaleProvider`**: Manages current locale and dictionary translations.
+6. **`CliSessionContext`**: Manages interactive terminal session state, shared history buffers, command history traversal cursors, global `CliDrawer` presentation state, and polymorphic context routing between live business data and isolated `SandboxEmulatorStore`.
 
-No component should import an Engine context simply to minimize a window or trigger a toast notification.
+### CLI Engine & Metrics Integration
+
+The CLI subsystem (`src/features/cli/`) is integrated directly with core domain services:
+
+- **`EngineRouter.metrics` Consumption**: CLI report commands (`report today`, `report week`, `report month`) delegate elapsed duration calculations to `IMetricsEngine.getComputedMetrics()` and `IMetricsEngine.getElapsedRange()`. This guarantees that multi-day logs, midnight boundary crossings, and active timers are calculated with point-in-time correctness, identical to the graphical UI.
+- **Fluent Terminal Output**: Structured terminal emissions use `TerminalOutput` builder (`src/features/cli/utils/terminalOutput.ts`), ensuring consistent styling, spacing, table borders, and typed line envelopes (`info`, `success`, `error`, `output`).
+- **Atomic Workflows**: High-velocity operator workflows (such as atomic task switching `switch <task-id>`) coordinate timer stops and starts atomically without interim idle states.
+- **Error Handling**: Domain exceptions (`ContextException` with code `ERR_CLI_SESSION_CONTEXT`, `EngineException`, `PersistenceException`) are caught and translated into structured envelopes without unhandled runtime rejections.
 
 ---
 
