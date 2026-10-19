@@ -14,6 +14,8 @@ pub enum FrontendEvent {
     NativeWindowRestored,
     NativeWindowMinimized,
     NativeWindowResized,
+    WorkflowAutoStopped,
+    WorkflowWarning,
 }
 
 impl FrontendEvent {
@@ -28,6 +30,8 @@ impl FrontendEvent {
             FrontendEvent::NativeWindowRestored => "native-window-restored",
             FrontendEvent::NativeWindowMinimized => "native-window-minimized",
             FrontendEvent::NativeWindowResized => "native-window-resized",
+            FrontendEvent::WorkflowAutoStopped => "workflow-auto-stopped",
+            FrontendEvent::WorkflowWarning => "workflow-warning",
         }
     }
 }

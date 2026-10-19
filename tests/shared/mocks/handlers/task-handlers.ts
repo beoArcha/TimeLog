@@ -36,6 +36,17 @@ export const updateTaskHandler = async (args: MockCommandArgs): Promise<MockData
     if (args.parentTaskId !== undefined) task.parentTaskId = args.parentTaskId ?? null;
     if (args.status !== undefined) task.status = (args.status as Task['status']) ?? null;
     if (args.completed !== undefined) task.completed = args.completed ?? false;
+    if (task.completed || task.status === 'Done') {
+      const targetId = args.taskId || args.id;
+      state.logs = state.logs.map((l) =>
+        l.taskId === targetId && !l.endTime
+          ? { ...l, endTime: new Date().toISOString() }
+          : l
+      );
+      if (state.activeLog?.taskId === targetId) {
+        state.activeLog = null;
+      }
+    }
   }
   saveMockDbState(state);
   return state;

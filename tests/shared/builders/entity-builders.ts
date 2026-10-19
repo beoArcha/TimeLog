@@ -82,3 +82,13 @@ export const aClampedTimeLog = (overrides?: Partial<import('@bindings/ClampedTim
   isPatch: false,
   ...overrides,
 });
+
+export const aWorkflowConfig = (overrides?: Partial<import('@bindings/WorkflowConfig').WorkflowConfig>): import('@bindings/WorkflowConfig').WorkflowConfig => ({
+  autoStopHoursLimitEnabled: false,
+  autoStopHoursLimit: 8,
+  autoStopDailyBoundaryEnabled: false,
+  autoStopDailyBoundaryTime: '19:00',
+  autoStopOnTaskComplete: false,
+  warningNotificationEnabled: true,
+  ...overrides,
+});

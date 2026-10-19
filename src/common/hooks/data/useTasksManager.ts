@@ -3,6 +3,9 @@ import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { EngineRouter } from '@common/engine/EngineRouter';
+import { WorkflowRouter } from '@common/workflows/WorkflowRouter';
+import { ErrorHandler } from '@common/exceptions/ErrorHandler';
+import { WorkflowException } from '@common/exceptions/AppExceptions';
 import { RepositoryStateHook } from './useRepositoryState';
 import { AsyncActionRunnerHook } from './useAsyncActionRunner';
 
@@ -37,6 +40,25 @@ export const useTasksManager = ({
     completed: boolean | null
   ) => {
     await actionRunner.runAction('Failed to update task', async () => {
+      const isCompleting = completed === true || status === 'Done';
+      if (isCompleting && repositoryState.activeLog?.taskId === taskId) {
+        try {
+          const config = await WorkflowRouter.getInstance().getConfig();
+          if (config.autoStopOnTaskComplete) {
+            await EngineRouter.getInstance().timer.stopTimer();
+          }
+        } catch (error) {
+          ErrorHandler.handle(
+            new WorkflowException(
+              'Failed checking workflow auto-stop on task update',
+              error,
+              'WARN_WORKFLOW_TASK_COMPLETE',
+              'WARN'
+            )
+          );
+        }
+      }
+
       if (name) {
         await EngineRouter.getInstance().validation.validateTaskName(name);
       }
@@ -70,6 +92,27 @@ export const useTasksManager = ({
 
   const handleToggleTaskComplete = async (taskId: string) => {
     await actionRunner.runAction('Failed to toggle task complete', async () => {
+      const task = repositoryState.tasks.find((t) => t.id === taskId);
+      const isCompleting = task ? !task.completed : false;
+
+      if (isCompleting && repositoryState.activeLog?.taskId === taskId) {
+        try {
+          const config = await WorkflowRouter.getInstance().getConfig();
+          if (config.autoStopOnTaskComplete) {
+            await EngineRouter.getInstance().timer.stopTimer();
+          }
+        } catch (error) {
+          ErrorHandler.handle(
+            new WorkflowException(
+              'Failed checking workflow auto-stop on task completion toggle',
+              error,
+              'WARN_WORKFLOW_TASK_COMPLETE',
+              'WARN'
+            )
+          );
+        }
+      }
+
       const nextState = await PersistenceRouter.getInstance().tasks.toggleComplete(taskId);
       repositoryState.setTasksState(nextState.tasks);
       repositoryState.setLogsState(nextState.logs);

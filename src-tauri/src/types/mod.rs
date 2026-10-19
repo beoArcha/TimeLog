@@ -14,6 +14,7 @@ pub mod settings;
 pub mod sinks;
 pub mod timelog;
 pub mod webhook_queue;
+pub mod workflow;
 
 pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,
@@ -34,3 +35,11 @@ pub use timelog::{
     TimeLogEditHistory, TimerRepositoryState,
 };
 pub use webhook_queue::{WebhookQueueItem, WebhookQueueStats};
+pub use workflow::{
+    WorkflowCheckResult, WorkflowConfig, WorkflowStatus, DEFAULT_AUTO_STOP_DAILY_BOUNDARY_ENABLED,
+    DEFAULT_AUTO_STOP_DAILY_BOUNDARY_TIME, DEFAULT_AUTO_STOP_HOURS_LIMIT,
+    DEFAULT_AUTO_STOP_HOURS_LIMIT_ENABLED, DEFAULT_AUTO_STOP_ON_TASK_COMPLETE,
+    DEFAULT_WARNING_NOTIFICATION_ENABLED, REASON_DAILY_BOUNDARY, REASON_HOURS_LIMIT,
+    REASON_TASK_COMPLETE, REASON_TASK_COMPLETED, TIME_FORMAT_HM, WARNING_LEAD_SECONDS,
+    WARNING_LEAD_SECONDS_U32,
+};

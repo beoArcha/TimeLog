@@ -5,7 +5,7 @@ use crate::types::ExternalApiSettings;
 use rusqlite::{params, Connection};
 
 impl ConfigRepository {
-    fn query_config_value(conn: &Connection, key: &str) -> Result<Option<String>> {
+    pub(crate) fn query_config_value(conn: &Connection, key: &str) -> Result<Option<String>> {
         let mut stmt = conn.prepare(constants::SELECT_CONFIG_VALUE)?;
         let mut rows = stmt.query(params![key])?;
         if let Some(row) = rows.next()? {
@@ -16,7 +16,7 @@ impl ConfigRepository {
         }
     }
 
-    fn store_config_value(conn: &Connection, key: &str, value: &str) -> Result<()> {
+    pub(crate) fn store_config_value(conn: &Connection, key: &str, value: &str) -> Result<()> {
         conn.execute(constants::INSERT_OR_REPLACE_CONFIG, params![key, value])?;
         Ok(())
     }

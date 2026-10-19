@@ -55,6 +55,7 @@ pub const KEY_API_HEADERS: &str = "api_headers";
 pub const KEY_LOCALE_PREF: &str = "locale_pref";
 pub const KEY_LOCALE: &str = "locale";
 pub const KEY_CUSTOM_TRANSLATIONS: &str = "custom_translations";
+pub const KEY_WORKFLOW_CONFIG: &str = "workflow_config";
 
 // Default configuration values
 pub const DEFAULT_NON_COMPACT_VARIANT: &str = "full";

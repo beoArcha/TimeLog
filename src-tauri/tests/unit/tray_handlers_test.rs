@@ -15,6 +15,7 @@ fn test_update_tray_state_handles_none() {
         was_maximized: AtomicBool::new(false),
         minimize_to_tray: AtomicBool::new(true),
         tray_handles: None,
+        workflow_daemon: Arc::new(oxy_flow::workflows::WorkflowDaemon::new()),
     };
 
     // Should not panic when tray_handles is None
@@ -34,6 +35,7 @@ fn test_update_tray_menu_locale_handles_none() {
         was_maximized: AtomicBool::new(false),
         minimize_to_tray: AtomicBool::new(true),
         tray_handles: None,
+        workflow_daemon: Arc::new(oxy_flow::workflows::WorkflowDaemon::new()),
     };
 
     let res = oxy_flow::tray::menu::update_tray_menu_locale(&state, oxy_flow::types::Locale::Pl);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Settings, RefreshCw, AlertTriangle, CalendarDays, Info } from 'lucide-react';
 import EngineConfig from './components/EngineConfig';
+import AutomationSettings from './components/AutomationSettings';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
 import { translate } from '@common/i18n/translator';
 import { toast } from 'sonner';
@@ -53,6 +54,7 @@ export default function SettingsTab() {
 
       <div className="flex flex-col gap-6">
         <EngineConfig />
+        <AutomationSettings />
 
         <div className="mt-2">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400" /> {translate(locale, 'settings', 'HolidaysTitle', customTranslations)}</h3>

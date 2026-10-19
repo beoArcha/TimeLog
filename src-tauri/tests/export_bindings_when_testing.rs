@@ -43,4 +43,7 @@ fn export_bindings() {
     ExternalApiSettings::export_all_to(BINDINGS_DIR).unwrap();
     WebhookQueueItem::export_all_to(BINDINGS_DIR).unwrap();
     WebhookQueueStats::export_all_to(BINDINGS_DIR).unwrap();
+    WorkflowConfig::export_all_to(BINDINGS_DIR).unwrap();
+    WorkflowStatus::export_all_to(BINDINGS_DIR).unwrap();
+    WorkflowCheckResult::export_all_to(BINDINGS_DIR).unwrap();
 }

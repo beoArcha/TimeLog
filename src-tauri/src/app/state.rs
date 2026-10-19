@@ -1,5 +1,6 @@
 use crate::common::constants::*;
 use crate::persistence::Persistence;
+use crate::workflows::WorkflowDaemon;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tauri::menu::{CheckMenuItem, MenuItem};
@@ -21,6 +22,7 @@ pub struct AppState {
     pub was_maximized: std::sync::atomic::AtomicBool,
     pub minimize_to_tray: std::sync::atomic::AtomicBool,
     pub tray_handles: Option<TrayCheckHandles>,
+    pub workflow_daemon: Arc<WorkflowDaemon>,
 }
 
 pub fn get_cli_db_path() -> PathBuf {

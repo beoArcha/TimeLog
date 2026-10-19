@@ -8,5 +8,6 @@ pub mod repositories;
 pub mod sinks;
 pub mod tray;
 pub mod types;
+pub mod workflows;
 
 pub use app::AppState;

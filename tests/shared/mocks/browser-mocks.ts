@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { tauriInvokeBridge } from './tauri-ipc-mock';
 
 declare global {
   interface Window {
@@ -8,7 +9,10 @@ declare global {
 
 export const setTauriDesktopEnvironment = (active = true): void => {
   if (active) {
-    window.__TAURI_INTERNALS__ = {};
+    window.__TAURI_INTERNALS__ = {
+      ...window.__TAURI_INTERNALS__,
+      invoke: tauriInvokeBridge,
+    };
   } else {
     delete window.__TAURI_INTERNALS__;
   }

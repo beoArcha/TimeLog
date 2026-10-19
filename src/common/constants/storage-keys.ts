@@ -23,4 +23,5 @@ export const STORAGE_KEYS = {
   RUN_CONFIGS_KEY: 'timelog_persistence_plugin_runtime_configs',
   HOLIDAYS_KEY: 'timelog_persistence_plugin_holidays',
   WEBHOOK_QUEUE: 'timelog_persistence_plugin_webhook_queue',
+  WORKFLOW_CONFIG: 'oxytime_workflow_config',
 } as const;

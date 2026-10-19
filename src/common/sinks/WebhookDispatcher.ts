@@ -1,6 +1,8 @@
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PluginRegistry } from '@plugins/PluginRegistry';
 import { WebhookQueueItem } from '@bindings/WebhookQueueItem';
+import { ErrorHandler } from '@common/exceptions/ErrorHandler';
+import { PersistenceException } from '@common/exceptions/AppExceptions';
 
 export interface WebhookSyncStatus {
   state: 'idle' | 'syncing' | 'queued' | 'error';
@@ -62,7 +64,7 @@ export class WebhookDispatcher {
       try {
         listener(status);
       } catch (err) {
-        console.error('[WebhookDispatcher] Error in status listener:', err);
+        ErrorHandler.handle(err);
       }
     });
   }
@@ -136,8 +138,15 @@ export class WebhookDispatcher {
         if (item.headers) {
           try {
             headersObj = { ...headersObj, ...JSON.parse(item.headers) };
-          } catch {
-            // Invalid custom headers are ignored to maintain dispatch attempts
+          } catch (parseError) {
+            ErrorHandler.handle(
+              new PersistenceException(
+                'Invalid custom headers in webhook queue item, continuing with default headers',
+                parseError,
+                'WARN_WEBHOOK_HEADERS_PARSE',
+                'WARN'
+              )
+            );
           }
         }
 

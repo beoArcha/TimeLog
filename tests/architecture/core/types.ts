@@ -1,6 +1,5 @@
 /**
  * Core interfaces and types for the Architecture Testing Subsystem.
- * Adheres to Clean Code and SOLID principles (ISP & DIP).
  */
 
 export interface ImportDeclarationInfo {

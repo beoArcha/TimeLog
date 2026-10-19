@@ -3,8 +3,6 @@ import { CycleResult } from './types';
 /**
  * Pure, generic cycle detector for directed graphs using depth-first search (DFS)
  * with 3-color marking (White/Gray/Black).
- *
- * Adheres to SRP: Performs graph cycle analysis independently of filesystem or AST.
  */
 export class CycleDetector {
   /**

@@ -60,3 +60,9 @@ export class BackupValidationException extends AbstractException {
     super(message, 'ERROR', code, cause);
   }
 }
+
+export class WorkflowException extends AbstractException {
+  constructor(message: string, cause?: unknown, code: string = 'ERR_WORKFLOW', level: ErrorLevel = 'ERROR') {
+    super(message, level, code, cause);
+  }
+}

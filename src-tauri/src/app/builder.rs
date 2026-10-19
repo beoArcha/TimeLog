@@ -4,11 +4,12 @@ use crate::commands::{
     persistence::{
         auxiliary, core, holidays, patches, project, settings, task, time_log, webhook_queue,
     },
-    window,
+    window, workflow as workflow_cmds,
 };
 use crate::common::constants::*;
 use crate::tray;
 use crate::types::{FrontendEvent, LayoutVariant};
+use crate::workflows::WorkflowDaemon;
 
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -85,7 +86,13 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             window::show,
             window::set_resizable,
             app_cmds::exit_app,
-            app_cmds::set_minimize_to_tray
+            app_cmds::set_minimize_to_tray,
+            workflow_cmds::workflow_get_config,
+            workflow_cmds::workflow_save_config,
+            workflow_cmds::workflow_get_status,
+            workflow_cmds::workflow_check_rules,
+            workflow_cmds::workflow_start_daemon,
+            workflow_cmds::workflow_stop_daemon
         ])
         .setup(setup_app)
         .on_window_event(handle_window_event)
@@ -133,11 +140,20 @@ fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
         initial_locale,
     )?;
 
+    let app_handle = app.handle().clone();
+    let workflow_daemon = std::sync::Arc::new(WorkflowDaemon::new(Some(std::sync::Arc::new(
+        move |event, payload| {
+            let _ = app_handle.emit(event, payload);
+        },
+    ))));
+    workflow_daemon.start(persistence.clone());
+
     app.manage(AppState {
         persistence,
         was_maximized: std::sync::atomic::AtomicBool::new(false),
         minimize_to_tray: std::sync::atomic::AtomicBool::new(initial_minimize_to_tray),
         tray_handles: Some(tray_handles),
+        workflow_daemon,
     });
 
     let _tray = TrayIconBuilder::with_id("main_tray")

@@ -11,6 +11,7 @@ pub mod shared;
 pub mod tasks;
 pub mod time_logs;
 pub mod webhook_queue;
+pub mod workflow;
 
 use auxiliary::AuxiliaryPersistence;
 use core::CorePersistence;
@@ -23,6 +24,7 @@ use std::sync::Arc;
 use tasks::TasksPersistence;
 use time_logs::TimeLogsPersistence;
 use webhook_queue::WebhookQueuePersistence;
+use workflow::WorkflowPersistence;
 
 pub use config::PersistenceConfig;
 pub use error::{PersistenceError, PersistenceResult};
@@ -37,6 +39,7 @@ pub struct Persistence {
     pub patches: PatchesPersistence,
     pub auxiliary: AuxiliaryPersistence,
     pub webhook_queue: WebhookQueuePersistence,
+    pub workflow: WorkflowPersistence,
 }
 
 impl Persistence {
@@ -54,7 +57,8 @@ impl Persistence {
             holidays: HolidaysPersistence::new(shared.clone()),
             patches: PatchesPersistence::new(shared.clone()),
             auxiliary: AuxiliaryPersistence::new(shared.clone()),
-            webhook_queue: WebhookQueuePersistence::new(shared),
+            webhook_queue: WebhookQueuePersistence::new(shared.clone()),
+            workflow: WorkflowPersistence::new(shared),
         })
     }
 }

@@ -101,6 +101,11 @@ fn test_frontend_events_as_str() {
         FrontendEvent::NativeWindowResized.as_str(),
         "native-window-resized"
     );
+    assert_eq!(
+        FrontendEvent::WorkflowAutoStopped.as_str(),
+        "workflow-auto-stopped"
+    );
+    assert_eq!(FrontendEvent::WorkflowWarning.as_str(), "workflow-warning");
 }
 
 #[test]

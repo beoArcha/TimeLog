@@ -6,8 +6,6 @@ import { PathResolver } from './path-resolver';
 
 /**
  * Builds a ModuleGraph representing the file-level dependencies of a codebase.
- *
- * Adheres to SRP: Aggregates file scanning, AST import parsing, and path resolution.
  */
 export class DependencyGraphBuilder {
   private static cachedGraph: ModuleGraph | null = null;
