@@ -559,6 +559,41 @@ AI must never skip steps.
 
 ---
 
+## Quality Assurance & Testing Standards
+
+Testing across oXyFlow follows a strict 3-tier hierarchy and unified methodology:
+
+### 1. Unit Testing (Strict AAA)
+
+- Single isolated units (algorithms, formatters, utilities, isolated hooks, design primitives).
+- Follows strict **Arrange - Act - Assert (AAA)** pattern with zero interleaving.
+- All dependencies mocked/faked; uses domain Test Data Builders (`tests/shared/builders/entity-builders.ts` and `src-tauri/tests/shared/builders/`).
+
+### 2. Integration Testing (Strict BDT)
+
+- Cross-module boundaries (routers, persistence commands, IPC handlers, composite views).
+- Follows strict **Behavior-Driven Testing (BDT)**: `describe('Given...') -> describe('When...') -> it('Then...')` with pure markers `// Given`, `// When`, `// Then`.
+- Adheres to **Triple Decoupling**: independent of localized strings, CSS theme classes, and native side-effects.
+
+### 3. End-to-End User Journeys (Playwright)
+
+- High-level user workflows executed in headless browser via Page Object Model (`tests/e2e/pages/`).
+- Triple Decoupling in E2E: locators strictly target `data-testid` or stable element IDs; zero copywriting text locators.
+- Isolated and deterministic storage seeding per test lifecycle (`seedStorage` / `resetStorage`).
+
+### 4. Cross-Runtime CLI Parity
+
+- Verified via shared test fixture matrix (`tests/shared/fixtures/cli-parity-cases.json`).
+- Executed by both Vitest (`cli-cross-runtime-parity.test.ts`) and Cargo test (`cli_parity_test.rs`).
+- Native binary subprocess tests exercise compiled CLI against physical SQLite databases in temp directories.
+
+### 5. AST Test Governance
+
+- Enforced automatically by `tests/architecture/specs/test-governance.arch.test.ts`.
+- Zero tolerance for `snake_case` test titles without spaces and raw `document.getElementById` queries.
+
+---
+
 ## Toolchain & Runtime (Bun)
 
 The project standardizes exclusively on **Bun*- for frontend package management, script execution, and tooling:

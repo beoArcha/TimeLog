@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { executeCliCommand, CliEngineContext } from '@features/cli/utils/cliEngine';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 import { SandboxEmulatorStore } from '@features/cli/sandbox/sandboxEmulatorStore';
+import parityCases from '@tests/shared/fixtures/cli-parity-cases.json';
 
 describe('Given CLI Cross-Runtime Parity Suite', () => {
   beforeEach(() => {
@@ -37,6 +38,46 @@ describe('Given CLI Cross-Runtime Parity Suite', () => {
       ...overrides,
     };
   };
+
+  describe('When validating commands from shared JSON test vectors matrix', () => {
+    parityCases.forEach((testCase) => {
+      it(`Then it should satisfy contract expectations for ${testCase.id} (${testCase.description})`, async () => {
+        // Given
+        const activeLog = testCase.initialActiveTaskId
+          ? aTimeLog({
+              id: 'l_active',
+              projectId: 'p1',
+              taskId: testCase.initialActiveTaskId,
+              startTime: '2026-06-15T09:30:00Z',
+              endTime: undefined,
+            })
+          : null;
+        const context = createTestContext({
+          activeLog,
+          logs: activeLog ? [activeLog] : [],
+        });
+
+        // When
+        const output = await executeCliCommand(testCase.commandFrontend, context);
+
+        // Then
+        expect(output.length).toBeGreaterThan(0);
+        const combinedText = output.map(l => l.text).join('\n').toLowerCase();
+
+        if (testCase.expectSuccess) {
+          const hasError = output.some(l => l.type === 'error');
+          expect(hasError).toBe(false);
+          const matchesAnyExpected = testCase.expectedPatterns.some(pat =>
+            combinedText.includes(pat.toLowerCase())
+          );
+          expect(matchesAnyExpected).toBe(true);
+        } else {
+          const hasError = output.some(l => l.type === 'error');
+          expect(hasError).toBe(true);
+        }
+      });
+    });
+  });
 
   describe('When executing status command with no running timer', () => {
     it('Then it should return clean status indicating idle state', async () => {

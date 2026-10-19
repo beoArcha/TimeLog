@@ -1,5 +1,6 @@
+use crate::shared::builders::ProjectBuilder;
 use oxy_flow::repositories::business::BusinessRepository;
-use oxy_flow::types::{HolidayLeave, HolidayType, PatchLog, Project};
+use oxy_flow::types::{HolidayLeave, HolidayType, PatchLog};
 
 #[test]
 fn test_holidays_repository_crud() {
@@ -77,19 +78,12 @@ fn test_patches_repository_crud() {
 
     let repo = BusinessRepository::new(&db_path).unwrap();
 
-    let project = Project {
-        id: "p_patch".to_string(),
-        name: "Patch Project".to_string(),
-        color: "green".to_string(),
-        created_at: "2026-06-22T20:00:00Z".to_string(),
-        archived: Some(false),
-        original_name: None,
-        original_color: None,
-        edit_history: None,
-        description: None,
-        icon: None,
-        tags: None,
-    };
+    let project = ProjectBuilder::new()
+        .with_id("p_patch")
+        .with_name("Patch Project")
+        .with_color("green")
+        .with_created_at("2026-06-22T20:00:00Z")
+        .build();
     repo.create_project(&project).unwrap();
 
     let initial = repo.get_all_patches().unwrap();
