@@ -5,6 +5,7 @@ import { useDataSafe } from '@common/hooks/DataContext';
 import { translate } from '@common/i18n/translator';
 import versionsData from '@app/versions.json';
 import { executeCliCommand } from '../utils/cliEngine';
+import { SandboxEmulatorStore } from '../sandbox/sandboxEmulatorStore';
 import { TerminalLine, CliEngineContext } from '../types';
 
 export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
@@ -15,6 +16,10 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
   const locale = props?.locale ?? ambientLocale;
   const customTranslations = props?.customTranslations ?? ambientCustomTranslations;
   const nowIso = props?.nowIso ?? ambientNowIso;
+
+  const [isSandboxMode, setIsSandboxMode] = useState<boolean>(
+    props?.isSandbox ?? SandboxEmulatorStore.getInstance().isActive()
+  );
 
   const [input, setInput] = useState('');
   const [terminalHistory, setTerminalHistory] = useState<TerminalLine[]>([
@@ -43,6 +48,17 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
     ]);
   }
 
+  const handleToggleSandbox = useCallback((enabled?: boolean) => {
+    const nextState = enabled !== undefined ? enabled : !isSandboxMode;
+    setIsSandboxMode(nextState);
+    if (nextState) {
+      SandboxEmulatorStore.getInstance().enable();
+    } else {
+      SandboxEmulatorStore.getInstance().disable();
+    }
+    props?.onToggleSandbox?.(nextState);
+  }, [isSandboxMode, props]);
+
   const executeCommand = useCallback(async (cmdText: string) => {
     const cliContext: CliEngineContext = {
       projects: props?.projects ?? ambientData?.projects ?? [],
@@ -64,8 +80,8 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
       onToggleTaskComplete: props?.onToggleTaskComplete ?? ambientData?.handleToggleTaskComplete ?? (() => {}),
       onStartTimer: props?.onStartTimer ?? ambientData?.handleStartTimer ?? (() => {}),
       onStopTimer: props?.onStopTimer ?? ambientData?.handleStopTimer ?? (() => {}),
-      isSandbox: props?.isSandbox,
-      onToggleSandbox: props?.onToggleSandbox,
+      isSandbox: isSandboxMode,
+      onToggleSandbox: handleToggleSandbox,
       onSwitchTask: props?.onSwitchTask,
     };
 
@@ -75,7 +91,7 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
       return;
     }
     setTerminalHistory(prev => [...prev, ...outputs]);
-  }, [ambientData, customTranslations, locale, nowIso, props]);
+  }, [ambientData, customTranslations, handleToggleSandbox, isSandboxMode, locale, nowIso, props]);
 
   const handleFormSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +114,7 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
     placeholder,
     submitLabel,
     quickShortcutsTitle,
-    isSandbox: props?.isSandbox ?? false,
+    isSandbox: isSandboxMode,
+    toggleSandbox: handleToggleSandbox,
   };
 };

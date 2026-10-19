@@ -5,4 +5,6 @@ export { runTasksCommand, runAddTaskCommand, runAddSubtaskCommand, runCompleteCo
 export { runStartCommand, runStopCommand, runStatusCommand, runSwitchCommand } from '../commands/timerCommands';
 export { runHolidaysCommand } from '../commands/holidayCommands';
 export { runLogsCommand, runReportCommand, runTimeCommand } from './reportCommands';
+export { runSandboxCommand } from '../commands/sandboxCommand';
+export { SandboxEmulatorStore } from '../sandbox/sandboxEmulatorStore';
 export { TerminalOutput } from './terminalOutput';

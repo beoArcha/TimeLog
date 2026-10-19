@@ -18,7 +18,9 @@ import {
   runLogsCommand,
   runHolidaysCommand,
   runReportCommand,
-  runTimeCommand
+  runTimeCommand,
+  runSandboxCommand,
+  SandboxEmulatorStore,
 } from './commands';
 
 export type { TerminalLine, CliEngineContext };
@@ -41,105 +43,118 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
   const args = matches.slice(1);
   const output = new TerminalOutput();
 
-  output.input(`user@logtime-by-oxyflow:~$ ${trimmed}`);
+  const sandboxStore = SandboxEmulatorStore.getInstance();
+  const isSandboxActive = context.isSandbox || sandboxStore.isActive();
+  const effectiveContext = isSandboxActive
+    ? sandboxStore.toCliContext(context)
+    : context;
+
+  const promptPrefix = isSandboxActive
+    ? 'sandbox@oxyflow-simulator:~$ '
+    : 'user@logtime-by-oxyflow:~$ ';
+  output.input(`${promptPrefix}${trimmed}`);
 
   switch (commandName) {
     case 'help':
     case 'oxyhelp': {
-      output.info(translate(context.locale, 'cli', 'HelpTitle', context.customTranslations));
-      output.output(`  projects                      - ${translate(context.locale, 'cli', 'ProjectsDesc', context.customTranslations)}`);
-      output.output(`  tasks <id_projektu/proj_id>   - ${translate(context.locale, 'cli', 'TasksDesc', context.customTranslations)}`);
-      output.output(`  addproject "<nazwa/name>"     - ${translate(context.locale, 'cli', 'AddProjectDesc', context.customTranslations)}`);
-      output.output(`  renameproject <pId> "<name>"  - ${translate(context.locale, 'cli', 'RenameProjectDesc', context.customTranslations)}`);
-      output.output(`  addtask <pId> "<nazwa/name>"  - ${translate(context.locale, 'cli', 'AddTaskDesc', context.customTranslations)}`);
-      output.output(`  renametask <tId> "<name>"     - ${translate(context.locale, 'cli', 'RenameTaskDesc', context.customTranslations)}`);
-      output.output(`  addsubtask <parent_id> "<n>"  - ${translate(context.locale, 'cli', 'AddSubtaskDesc', context.customTranslations)}`);
-      output.output(`  start [task_id]               - ${translate(context.locale, 'cli', 'StartDesc', context.customTranslations)}`);
-      output.output(`  stop [all]                    - ${translate(context.locale, 'cli', 'StopDesc', context.customTranslations)}`);
-      output.output(`  switch <id/name>              - ${translate(context.locale, 'cli', 'SwitchDesc', context.customTranslations)}`);
-      output.output(`  status                        - ${translate(context.locale, 'cli', 'StatusDesc', context.customTranslations)}`);
-      output.output(`  complete <task_id>            - ${translate(context.locale, 'cli', 'CompleteDesc', context.customTranslations)}`);
-      output.output(`  logs                          - ${translate(context.locale, 'cli', 'LogsDesc', context.customTranslations)}`);
-      output.output(`  time <subtask/task/profile> <id> [today/week/month/all] - ${translate(context.locale, 'cli', 'TimeCmdDesc', context.customTranslations)}`);
-      output.output(`  holidays [add type Y-M-D "N"] - ${translate(context.locale, 'cli', 'HolidaysDesc', context.customTranslations)}`);
-      output.output(`  report [today/week/month/all] - ${translate(context.locale, 'cli', 'ReportDesc', context.customTranslations)}`);
-      output.output(`  sandbox [on/off/status/reset] - ${translate(context.locale, 'cli', 'SandboxDesc', context.customTranslations)}`);
-      output.output(`  clear                         - ${translate(context.locale, 'cli', 'ClearDesc', context.customTranslations)}`);
+      output.info(translate(effectiveContext.locale, 'cli', 'HelpTitle', effectiveContext.customTranslations));
+      output.output(`  projects                      - ${translate(effectiveContext.locale, 'cli', 'ProjectsDesc', effectiveContext.customTranslations)}`);
+      output.output(`  tasks <id_projektu/proj_id>   - ${translate(effectiveContext.locale, 'cli', 'TasksDesc', effectiveContext.customTranslations)}`);
+      output.output(`  addproject "<nazwa/name>"     - ${translate(effectiveContext.locale, 'cli', 'AddProjectDesc', effectiveContext.customTranslations)}`);
+      output.output(`  renameproject <pId> "<name>"  - ${translate(effectiveContext.locale, 'cli', 'RenameProjectDesc', effectiveContext.customTranslations)}`);
+      output.output(`  addtask <pId> "<nazwa/name>"  - ${translate(effectiveContext.locale, 'cli', 'AddTaskDesc', effectiveContext.customTranslations)}`);
+      output.output(`  renametask <tId> "<name>"     - ${translate(effectiveContext.locale, 'cli', 'RenameTaskDesc', effectiveContext.customTranslations)}`);
+      output.output(`  addsubtask <parent_id> "<n>"  - ${translate(effectiveContext.locale, 'cli', 'AddSubtaskDesc', effectiveContext.customTranslations)}`);
+      output.output(`  start [task_id]               - ${translate(effectiveContext.locale, 'cli', 'StartDesc', effectiveContext.customTranslations)}`);
+      output.output(`  stop [all]                    - ${translate(effectiveContext.locale, 'cli', 'StopDesc', effectiveContext.customTranslations)}`);
+      output.output(`  switch <id/name>              - ${translate(effectiveContext.locale, 'cli', 'SwitchDesc', effectiveContext.customTranslations)}`);
+      output.output(`  status                        - ${translate(effectiveContext.locale, 'cli', 'StatusDesc', effectiveContext.customTranslations)}`);
+      output.output(`  complete <task_id>            - ${translate(effectiveContext.locale, 'cli', 'CompleteDesc', effectiveContext.customTranslations)}`);
+      output.output(`  logs                          - ${translate(effectiveContext.locale, 'cli', 'LogsDesc', effectiveContext.customTranslations)}`);
+      output.output(`  time <subtask/task/profile> <id> [today/week/month/all] - ${translate(effectiveContext.locale, 'cli', 'TimeCmdDesc', effectiveContext.customTranslations)}`);
+      output.output(`  holidays [add type Y-M-D "N"] - ${translate(effectiveContext.locale, 'cli', 'HolidaysDesc', effectiveContext.customTranslations)}`);
+      output.output(`  report [today/week/month/all] - ${translate(effectiveContext.locale, 'cli', 'ReportDesc', effectiveContext.customTranslations)}`);
+      output.output(`  sandbox [on/off/status/reset] - ${translate(effectiveContext.locale, 'cli', 'SandboxDesc', effectiveContext.customTranslations)}`);
+      output.output(`  clear                         - ${translate(effectiveContext.locale, 'cli', 'ClearDesc', effectiveContext.customTranslations)}`);
       output.divider();
       break;
     }
 
     case 'projects':
     case 'projlist':
-      runProjectsCommand(context, output);
+      runProjectsCommand(effectiveContext, output);
       break;
 
     case 'tasks':
-      runTasksCommand(args, context, output);
+      runTasksCommand(args, effectiveContext, output);
       break;
 
     case 'addproject':
-      runAddProjectCommand(args, context, output);
+      runAddProjectCommand(args, effectiveContext, output);
       break;
 
     case 'renameproject':
-      runRenameProjectCommand(args, context, output);
+      runRenameProjectCommand(args, effectiveContext, output);
       break;
 
     case 'addtask':
-      runAddTaskCommand(args, context, output);
+      runAddTaskCommand(args, effectiveContext, output);
       break;
 
     case 'renametask':
-      runRenameTaskCommand(args, context, output);
+      runRenameTaskCommand(args, effectiveContext, output);
       break;
 
     case 'addsubtask':
-      runAddSubtaskCommand(args, context, output);
+      runAddSubtaskCommand(args, effectiveContext, output);
       break;
 
     case 'start':
-      runStartCommand(args, context, output);
+      runStartCommand(args, effectiveContext, output);
       break;
 
     case 'stop':
-      runStopCommand(args, context, output);
+      runStopCommand(args, effectiveContext, output);
       break;
 
     case 'switch':
-      runSwitchCommand(args, context, output);
+      runSwitchCommand(args, effectiveContext, output);
       break;
 
     case 'status':
-      runStatusCommand(context, output);
+      runStatusCommand(effectiveContext, output);
       break;
 
     case 'complete':
-      runCompleteCommand(args, context, output);
+      runCompleteCommand(args, effectiveContext, output);
       break;
 
     case 'logs':
-      runLogsCommand(args, context, output);
+      runLogsCommand(args, effectiveContext, output);
       break;
 
     case 'holidays':
     case 'holiday':
-      runHolidaysCommand(args, context, output);
+      runHolidaysCommand(args, effectiveContext, output);
       break;
 
     case 'report':
-      await runReportCommand(args, context, output);
+      await runReportCommand(args, effectiveContext, output);
       break;
 
     case 'time':
-      await runTimeCommand(args, context, output);
+      await runTimeCommand(args, effectiveContext, output);
+      break;
+
+    case 'sandbox':
+      runSandboxCommand(args, effectiveContext, output);
       break;
 
     case 'clear':
       return [{ text: '__CLEAR__', type: 'info' }];
 
     default: {
-      const helpTip = translate(context.locale, 'cli', 'ErrUnknownCmdHelp', context.customTranslations, { command: commandName });
+      const helpTip = translate(effectiveContext.locale, 'cli', 'ErrUnknownCmdHelp', effectiveContext.customTranslations, { command: commandName });
       output.error(`Error: Unknown command "${commandName}". ${helpTip}`);
     }
   }

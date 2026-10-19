@@ -367,4 +367,47 @@ describe('Unit Tests: CliEngine', () => {
     expect(onRenameTaskMock).toHaveBeenCalledWith('t1', 'New Task Name');
     expect(res.some(l => l.type === 'success')).toBe(true);
   });
+
+  it('should handle sandbox on and off commands', async () => {
+    // Arrange
+    const onToggleSandboxMock = vi.fn();
+    const contextWithSandbox: CliEngineContext = {
+      ...mockContext,
+      onToggleSandbox: onToggleSandboxMock,
+    };
+
+    // Act
+    const onRes = await executeCliCommand('sandbox on', contextWithSandbox);
+
+    // Assert
+    expect(onToggleSandboxMock).toHaveBeenCalledWith(true);
+    expect(onRes.some(l => l.type === 'success' && l.text.includes('SANDBOX'))).toBe(true);
+
+    // Act
+    const offRes = await executeCliCommand('sandbox off', contextWithSandbox);
+
+    // Assert
+    expect(onToggleSandboxMock).toHaveBeenCalledWith(false);
+    expect(offRes.some(l => l.type === 'info' && l.text.includes('SANDBOX'))).toBe(true);
+  });
+
+  it('should handle sandbox status and reset commands', async () => {
+    // Arrange
+    const context: CliEngineContext = {
+      ...mockContext,
+      isSandbox: true,
+    };
+
+    // Act
+    const statusRes = await executeCliCommand('sandbox status', context);
+
+    // Assert
+    expect(statusRes.some(l => l.text.includes('ACTIVE'))).toBe(true);
+
+    // Act
+    const resetRes = await executeCliCommand('sandbox reset', context);
+
+    // Assert
+    expect(resetRes.some(l => l.type === 'success' && l.text.includes('SANDBOX'))).toBe(true);
+  });
 });
