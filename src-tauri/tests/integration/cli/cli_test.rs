@@ -1,3 +1,4 @@
+use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use oxy_flow::cli::manage::project::ProjectCommand;
 use oxy_flow::cli::manage::subtask::SubtaskCommand;
@@ -14,34 +15,38 @@ fn setup(db_name: &str) -> (Persistence, Connection, crate::shared::test_db::Tem
     let (conn, config, temp_dir) = setup_persistence_test(db_name);
     let persistence = Persistence::new(&config).expect("failed to create persistence layer");
 
-    let now = chrono::Utc::now().to_rfc3339();
-    conn.execute(
-        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'CliProj', 'blue', ?)",
-        [&now],
-    )
-    .unwrap();
-    conn.execute(
-        "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'CliTask', ?)",
-        [&now],
-    )
-    .unwrap();
+    let project = ProjectBuilder::new()
+        .with_id("p1")
+        .with_name("CliProj")
+        .with_color("blue")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t1")
+        .with_project_id("p1")
+        .with_name("CliTask")
+        .build();
+
+    persistence.projects.create(project).unwrap();
+    persistence.tasks.create(task).unwrap();
 
     (persistence, conn, temp_dir)
 }
 
 #[test]
-fn test_cli_start_returns_started_output() {
+fn test_given_existing_task_when_timer_start_invoked_via_cli_then_returns_started_output() {
+    // Given
     let (persistence, _conn, _temp) = setup("test_cli_start_returns_started_output");
     let engine = Engine::new(&persistence);
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Timer(TimerCommand::Start {
-                task_id: "t1".to_string(),
-            }),
-        },
-        &persistence,
-        &engine,
-    );
+    let args = CliArgs {
+        command: CliCommands::Timer(TimerCommand::Start {
+            task_id: "t1".to_string(),
+        }),
+    };
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok(), "start should succeed");
     let output = result.unwrap();
     assert!(
@@ -51,26 +56,32 @@ fn test_cli_start_returns_started_output() {
 }
 
 #[test]
-fn test_cli_start_output_displays_correctly() {
+fn test_given_started_output_when_formatted_as_display_then_contains_task_and_icon() {
+    // Given
     let output = CliOutput::Started("t1".to_string());
+
+    // When
     let text = format!("{}", output);
+
+    // Then
     assert!(text.contains("t1"));
     assert!(text.contains("▶️"));
 }
 
 #[test]
-fn test_cli_status_returns_active_tasks() {
+fn test_given_running_timer_when_status_invoked_via_cli_then_returns_active_task_list() {
+    // Given
     let (persistence, _conn, _temp) = setup("test_cli_status_returns_active_tasks");
     let engine = Engine::new(&persistence);
     engine.start_timer("t1").expect("start failed");
+    let args = CliArgs {
+        command: CliCommands::Timer(TimerCommand::Status),
+    };
 
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Timer(TimerCommand::Status),
-        },
-        &persistence,
-        &engine,
-    );
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok());
     match result.unwrap() {
         CliOutput::Status(active) => {
@@ -82,16 +93,18 @@ fn test_cli_status_returns_active_tasks() {
 }
 
 #[test]
-fn test_cli_status_empty_when_no_timer_running() {
+fn test_given_idle_system_when_status_invoked_via_cli_then_returns_empty_active_list() {
+    // Given
     let (persistence, _conn, _temp) = setup("test_cli_status_empty_when_no_timer_running");
     let engine = Engine::new(&persistence);
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Timer(TimerCommand::Status),
-        },
-        &persistence,
-        &engine,
-    );
+    let args = CliArgs {
+        command: CliCommands::Timer(TimerCommand::Status),
+    };
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok());
     match result.unwrap() {
         CliOutput::Status(active) => assert_eq!(active.len(), 0),
@@ -100,18 +113,20 @@ fn test_cli_status_empty_when_no_timer_running() {
 }
 
 #[test]
-fn test_cli_stop_returns_stopped_output() {
+fn test_given_running_timer_when_stop_invoked_via_cli_then_returns_stopped_output_and_clears_active(
+) {
+    // Given
     let (persistence, _conn, _temp) = setup("test_cli_stop_returns_stopped_output");
     let engine = Engine::new(&persistence);
     engine.start_timer("t1").expect("start failed");
+    let args = CliArgs {
+        command: CliCommands::Timer(TimerCommand::Stop),
+    };
 
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Timer(TimerCommand::Stop),
-        },
-        &persistence,
-        &engine,
-    );
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok());
     assert!(matches!(result.unwrap(), CliOutput::Stopped));
 
@@ -120,16 +135,18 @@ fn test_cli_stop_returns_stopped_output() {
 }
 
 #[test]
-fn test_cli_stop_when_nothing_running_is_ok() {
+fn test_given_idle_system_when_stop_invoked_via_cli_then_succeeds_gracefully() {
+    // Given
     let (persistence, _conn, _temp) = setup("test_cli_stop_when_nothing_running_is_ok");
     let engine = Engine::new(&persistence);
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Timer(TimerCommand::Stop),
-        },
-        &persistence,
-        &engine,
-    );
+    let args = CliArgs {
+        command: CliCommands::Timer(TimerCommand::Stop),
+    };
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(
         result.is_ok(),
         "Stop with no running timer should not error"
@@ -137,117 +154,150 @@ fn test_cli_stop_when_nothing_running_is_ok() {
 }
 
 #[test]
-fn test_cli_nonexistent_task_fails() {
+fn test_given_nonexistent_task_when_timer_start_invoked_via_cli_then_returns_error() {
+    // Given
     let (persistence, _conn, _temp) = setup("test_cli_nonexistent_task_fails");
     let engine = Engine::new(&persistence);
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Timer(TimerCommand::Start {
-                task_id: "nonexistent".to_string(),
-            }),
-        },
-        &persistence,
-        &engine,
-    );
+    let args = CliArgs {
+        command: CliCommands::Timer(TimerCommand::Start {
+            task_id: "nonexistent".to_string(),
+        }),
+    };
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_err(), "Starting nonexistent task should fail");
 }
 
 #[test]
-fn test_cli_output_stopped_displays_correctly() {
-    let text = format!("{}", CliOutput::Stopped);
+fn test_given_stopped_output_when_formatted_as_display_then_contains_stop_icon() {
+    // Given
+    let output = CliOutput::Stopped;
+
+    // When
+    let text = format!("{}", output);
+
+    // Then
     assert!(text.contains("⏹️"));
 }
 
 #[test]
-fn test_cli_output_status_displays_correctly() {
+fn test_given_status_output_when_formatted_as_display_then_contains_count_and_task_ids() {
+    // Given
     let output = CliOutput::Status(vec!["t1".to_string(), "t2".to_string()]);
+
+    // When
     let text = format!("{}", output);
+
+    // Then
     assert!(text.contains("2"));
     assert!(text.contains("t1"));
     assert!(text.contains("t2"));
 }
 
 #[test]
-fn test_cli_manage_project_create_and_archive() {
-    let (persistence, _conn, _temp) = setup("test_cli_manage_project_create_and_archive");
+fn test_given_persistence_when_creating_project_via_cli_then_project_is_created() {
+    // Given
+    let (persistence, _conn, _temp) = setup("test_cli_manage_project_create");
     let engine = Engine::new(&persistence);
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Create {
-                name: "NewProj".into(),
-                color: Some("red".into()),
-            })),
-        },
-        &persistence,
-        &engine,
-    );
+    let args = CliArgs {
+        command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Create {
+            name: "NewProj".into(),
+            color: Some("red".into()),
+        })),
+    };
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok());
     if let CliOutput::Success(msg) = result.unwrap() {
         assert!(msg.contains("Created project"));
     } else {
         panic!("Expected Success output");
     }
+}
 
-    let archive_res = handle_cli(
-        CliArgs {
-            command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Archive {
-                id: "p1".into(),
-            })),
-        },
-        &persistence,
-        &engine,
-    );
+#[test]
+fn test_given_existing_project_when_archiving_via_cli_then_archive_succeeds() {
+    // Given
+    let (persistence, _conn, _temp) = setup("test_cli_manage_project_archive");
+    let engine = Engine::new(&persistence);
+    let args = CliArgs {
+        command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Archive {
+            id: "p1".into(),
+        })),
+    };
+
+    // When
+    let archive_res = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(archive_res.is_ok());
 }
 
 #[test]
-fn test_cli_manage_task_create_and_archive() {
-    let (persistence, _conn, _temp) = setup("test_cli_manage_task_create_and_archive");
+fn test_given_existing_project_when_creating_task_via_cli_then_task_is_created() {
+    // Given
+    let (persistence, _conn, _temp) = setup("test_cli_manage_task_create");
     let engine = Engine::new(&persistence);
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Create {
-                project_id: "p1".into(),
-                name: "NewTask".into(),
-            })),
-        },
-        &persistence,
-        &engine,
-    );
+    let args = CliArgs {
+        command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Create {
+            project_id: "p1".into(),
+            name: "NewTask".into(),
+        })),
+    };
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok());
     if let CliOutput::Success(msg) = result.unwrap() {
         assert!(msg.contains("Created task"));
     } else {
         panic!("Expected Success output");
     }
+}
 
-    let archive_res = handle_cli(
-        CliArgs {
-            command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Archive {
-                id: "t1".into(),
-                project_id: "p1".into(),
-            })),
-        },
-        &persistence,
-        &engine,
-    );
+#[test]
+fn test_given_existing_task_when_archiving_via_cli_then_archive_succeeds() {
+    // Given
+    let (persistence, _conn, _temp) = setup("test_cli_manage_task_archive");
+    let engine = Engine::new(&persistence);
+    let args = CliArgs {
+        command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Archive {
+            id: "t1".into(),
+            project_id: "p1".into(),
+        })),
+    };
+
+    // When
+    let archive_res = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(archive_res.is_ok());
 }
 
 #[test]
-fn test_cli_manage_project_rename() {
+fn test_given_existing_project_when_renaming_via_cli_then_database_reflects_new_name() {
+    // Given
     let (persistence, conn, _temp) = setup("test_cli_manage_project_rename");
     let engine = Engine::new(&persistence);
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Rename {
-                id: "p1".into(),
-                name: "RenamedProj".into(),
-            })),
-        },
-        &persistence,
-        &engine,
-    );
+    let args = CliArgs {
+        command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Rename {
+            id: "p1".into(),
+            name: "RenamedProj".into(),
+        })),
+    };
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok(), "rename should succeed");
     if let CliOutput::Success(msg) = result.unwrap() {
         assert!(msg.contains("Renamed project: p1"));
@@ -264,19 +314,21 @@ fn test_cli_manage_project_rename() {
 }
 
 #[test]
-fn test_cli_manage_task_rename() {
+fn test_given_existing_task_when_renaming_via_cli_then_database_reflects_new_name() {
+    // Given
     let (persistence, conn, _temp) = setup("test_cli_manage_task_rename");
     let engine = Engine::new(&persistence);
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Rename {
-                id: "t1".into(),
-                name: "RenamedTask".into(),
-            })),
-        },
-        &persistence,
-        &engine,
-    );
+    let args = CliArgs {
+        command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Rename {
+            id: "t1".into(),
+            name: "RenamedTask".into(),
+        })),
+    };
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok(), "rename task should succeed");
     if let CliOutput::Success(msg) = result.unwrap() {
         assert!(msg.contains("Renamed task: t1"));
@@ -291,26 +343,28 @@ fn test_cli_manage_task_rename() {
 }
 
 #[test]
-fn test_cli_manage_subtask_list() {
-    let (persistence, conn, _temp) = setup("test_cli_manage_subtask_list");
+fn test_given_task_with_subtask_when_listing_subtasks_via_cli_then_outputs_subtask_details() {
+    // Given
+    let (persistence, _conn, _temp) = setup("test_cli_manage_subtask_list");
     let engine = Engine::new(&persistence);
+    let subtask = TaskBuilder::new()
+        .with_id("st1")
+        .with_project_id("p1")
+        .with_parent("t1")
+        .with_name("Sub1")
+        .build();
+    persistence.tasks.create(subtask).unwrap();
 
-    let now = chrono::Utc::now().to_rfc3339();
-    conn.execute(
-        "INSERT INTO tasks (id, project_id, parent_task_id, name, created_at) VALUES ('st1', 'p1', 't1', 'Sub1', ?)",
-        [&now],
-    )
-    .unwrap();
+    let args = CliArgs {
+        command: CliCommands::Manage(ManageCommand::Subtask(SubtaskCommand::List {
+            task_id: "t1".into(),
+        })),
+    };
 
-    let result = handle_cli(
-        CliArgs {
-            command: CliCommands::Manage(ManageCommand::Subtask(SubtaskCommand::List {
-                task_id: "t1".into(),
-            })),
-        },
-        &persistence,
-        &engine,
-    );
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
     assert!(result.is_ok(), "subtask list should succeed");
     if let CliOutput::Success(msg) = result.unwrap() {
         assert!(msg.contains("Subtasks for task t1:"));

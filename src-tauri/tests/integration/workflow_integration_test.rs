@@ -1,114 +1,80 @@
-use crate::shared::test_db::setup_persistence_test;
+use std::sync::{Arc, Mutex};
+
 use chrono::{Duration, Local, TimeZone, Utc};
 use oxy_flow::engine::Engine;
 use oxy_flow::persistence::Persistence;
-use oxy_flow::types::{
-    Project, Task, TaskStatus, WorkflowCheckResult, WorkflowConfig, REASON_DAILY_BOUNDARY,
-    REASON_HOURS_LIMIT,
-};
+use oxy_flow::types::{TaskStatus, WorkflowCheckResult, REASON_DAILY_BOUNDARY, REASON_HOURS_LIMIT};
 use oxy_flow::workflows::WorkflowDaemon;
-use std::sync::{Arc, Mutex};
+
+use crate::shared::builders::{ProjectBuilder, TaskBuilder, WorkflowConfigBuilder};
+use crate::shared::test_db::setup_persistence_test;
 
 #[test]
-fn test_workflow_hours_limit_automatically_stops_active_timer() {
-    // Arrange
+fn test_given_active_timer_and_hours_limit_when_rules_checked_after_limit_then_timer_is_stopped() {
+    // Given
     let (_conn, config, _temp_dir) = setup_persistence_test("workflow_int_hours_limit");
     let persistence = Persistence::new(&config).unwrap();
     let engine = Engine::new(&persistence);
 
-    let project = Project {
-        id: "proj_wf_1".to_string(),
-        name: "WorkflowProj".to_string(),
-        color: "blue".to_string(),
-        created_at: Utc::now().to_rfc3339(),
-        archived: Some(false),
-        original_name: None,
-        original_color: None,
-        edit_history: None,
-        description: None,
-        icon: None,
-        tags: None,
-    };
+    let project = ProjectBuilder::new()
+        .with_id("proj_wf_1")
+        .with_name("WorkflowProj")
+        .with_color("blue")
+        .build();
     persistence.projects.create(project).unwrap();
 
-    let task = Task {
-        id: "task_wf_1".to_string(),
-        project_id: "proj_wf_1".to_string(),
-        parent_task_id: None,
-        name: "WorkflowTask".to_string(),
-        created_at: Utc::now().to_rfc3339(),
-        completed: false,
-        status: Some(TaskStatus::Todo),
-        original_name: None,
-        original_completed: None,
-        edit_history: None,
-        archived: Some(false),
-    };
+    let task = TaskBuilder::new()
+        .with_id("task_wf_1")
+        .with_project_id("proj_wf_1")
+        .with_name("WorkflowTask")
+        .with_status(TaskStatus::Todo)
+        .build();
     persistence.tasks.create(task).unwrap();
 
-    // Start timer for task
     engine.start_timer("task_wf_1").unwrap();
     let state_running = engine.get_state().unwrap();
     assert!(state_running.active_log.is_some());
 
-    // Configure 2-hour limit
-    let wf_config = WorkflowConfig {
-        auto_stop_hours_limit_enabled: true,
-        auto_stop_hours_limit: 2.0,
-        ..Default::default()
-    };
+    let wf_config = WorkflowConfigBuilder::new()
+        .with_hours_limit(true, 2.0)
+        .build();
     persistence.workflow.save_config(&wf_config).unwrap();
 
     let daemon = WorkflowDaemon::new(None);
     let check_time_exceeded = Utc::now() + Duration::hours(3);
 
-    // Act
+    // When
     let check_res = daemon.check_rules_now(&persistence, &wf_config, Some(check_time_exceeded));
 
-    // Assert
+    // Then
     assert!(check_res.stopped);
     assert_eq!(check_res.reason.as_deref(), Some(REASON_HOURS_LIMIT));
 
-    // Verify Engine state: timer must now be stopped
     let state_stopped = engine.get_state().unwrap();
     assert!(state_stopped.active_log.is_none());
 }
 
 #[test]
-fn test_workflow_daemon_event_sink_emits_autostop_event() {
-    // Arrange
+fn test_given_configured_daemon_with_event_sink_when_hours_limit_exceeded_then_daemon_status_tracks_stop_reason(
+) {
+    // Given
     let (_conn, config, _temp_dir) = setup_persistence_test("workflow_int_event_sink");
     let persistence = Persistence::new(&config).unwrap();
     let engine = Engine::new(&persistence);
 
-    let project = Project {
-        id: "proj_wf_sink".to_string(),
-        name: "WorkflowSinkProj".to_string(),
-        color: "indigo".to_string(),
-        created_at: Utc::now().to_rfc3339(),
-        archived: Some(false),
-        original_name: None,
-        original_color: None,
-        edit_history: None,
-        description: None,
-        icon: None,
-        tags: None,
-    };
+    let project = ProjectBuilder::new()
+        .with_id("proj_wf_sink")
+        .with_name("WorkflowSinkProj")
+        .with_color("indigo")
+        .build();
     persistence.projects.create(project).unwrap();
 
-    let task = Task {
-        id: "task_wf_sink".to_string(),
-        project_id: "proj_wf_sink".to_string(),
-        parent_task_id: None,
-        name: "WorkflowSinkTask".to_string(),
-        created_at: Utc::now().to_rfc3339(),
-        completed: false,
-        status: Some(TaskStatus::Todo),
-        original_name: None,
-        original_completed: None,
-        edit_history: None,
-        archived: Some(false),
-    };
+    let task = TaskBuilder::new()
+        .with_id("task_wf_sink")
+        .with_project_id("proj_wf_sink")
+        .with_name("WorkflowSinkTask")
+        .with_status(TaskStatus::Todo)
+        .build();
     persistence.tasks.create(task).unwrap();
     engine.start_timer("task_wf_sink").unwrap();
 
@@ -124,23 +90,18 @@ fn test_workflow_daemon_event_sink_emits_autostop_event() {
     });
 
     let daemon = WorkflowDaemon::new(Some(event_sink));
-    let wf_config = WorkflowConfig {
-        auto_stop_hours_limit_enabled: true,
-        auto_stop_hours_limit: 1.0,
-        ..Default::default()
-    };
+    let wf_config = WorkflowConfigBuilder::new()
+        .with_hours_limit(true, 1.0)
+        .build();
     let simulated_future_time = Utc::now() + Duration::minutes(70);
 
-    // Act
+    // When
     let check_res = daemon.check_rules_now(&persistence, &wf_config, Some(simulated_future_time));
 
-    // Assert
+    // Then
     assert!(check_res.stopped);
     assert_eq!(check_res.reason.as_deref(), Some(REASON_HOURS_LIMIT));
 
-    let _events = emitted_events.lock().unwrap();
-    // check_rules_now does not trigger event_sink directly (event_sink is used by background daemon loop),
-    // but verify daemon status tracks the stop reason and time
     let daemon_status = daemon.get_status();
     assert_eq!(
         daemon_status.last_auto_stop_reason.as_deref(),
@@ -150,40 +111,25 @@ fn test_workflow_daemon_event_sink_emits_autostop_event() {
 }
 
 #[test]
-fn test_workflow_daily_boundary_integration_flow() {
-    // Arrange
+fn test_given_active_log_crossing_daily_boundary_when_rules_checked_then_timer_is_stopped() {
+    // Given
     let (_conn, config, _temp_dir) = setup_persistence_test("workflow_int_daily_boundary");
     let persistence = Persistence::new(&config).unwrap();
     let engine = Engine::new(&persistence);
 
-    let project = Project {
-        id: "proj_boundary".to_string(),
-        name: "BoundaryProj".to_string(),
-        color: "green".to_string(),
-        created_at: Utc::now().to_rfc3339(),
-        archived: Some(false),
-        original_name: None,
-        original_color: None,
-        edit_history: None,
-        description: None,
-        icon: None,
-        tags: None,
-    };
+    let project = ProjectBuilder::new()
+        .with_id("proj_boundary")
+        .with_name("BoundaryProj")
+        .with_color("green")
+        .build();
     persistence.projects.create(project).unwrap();
 
-    let task = Task {
-        id: "task_boundary".to_string(),
-        project_id: "proj_boundary".to_string(),
-        parent_task_id: None,
-        name: "BoundaryTask".to_string(),
-        created_at: Utc::now().to_rfc3339(),
-        completed: false,
-        status: Some(TaskStatus::Todo),
-        original_name: None,
-        original_completed: None,
-        edit_history: None,
-        archived: Some(false),
-    };
+    let task = TaskBuilder::new()
+        .with_id("task_boundary")
+        .with_project_id("proj_boundary")
+        .with_name("BoundaryTask")
+        .with_status(TaskStatus::Todo)
+        .build();
     persistence.tasks.create(task).unwrap();
 
     let now_date = Local::now().date_naive();
@@ -192,7 +138,6 @@ fn test_workflow_daily_boundary_integration_flow() {
         .unwrap()
         .with_timezone(&Utc);
 
-    // Insert active time log starting at 14:00
     persistence
         .time_logs
         .insert(
@@ -202,11 +147,9 @@ fn test_workflow_daily_boundary_integration_flow() {
         )
         .unwrap();
 
-    let wf_config = WorkflowConfig {
-        auto_stop_daily_boundary_enabled: true,
-        auto_stop_daily_boundary_time: "18:00".to_string(),
-        ..Default::default()
-    };
+    let wf_config = WorkflowConfigBuilder::new()
+        .with_daily_boundary(true, "18:00")
+        .build();
     persistence.workflow.save_config(&wf_config).unwrap();
 
     let daemon = WorkflowDaemon::new(None);
@@ -215,10 +158,10 @@ fn test_workflow_daily_boundary_integration_flow() {
         .unwrap()
         .with_timezone(&Utc);
 
-    // Act
+    // When
     let check_res = daemon.check_rules_now(&persistence, &wf_config, Some(now_18_30_utc));
 
-    // Assert
+    // Then
     assert!(check_res.stopped);
     assert_eq!(check_res.reason.as_deref(), Some(REASON_DAILY_BOUNDARY));
 
