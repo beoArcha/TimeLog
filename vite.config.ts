@@ -1,14 +1,20 @@
 /// <reference types="vitest" />
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import { resolveDevServerConfig } from './config/devServer.ts';
 
 export default defineConfig(() => {
+  const devConfig = resolveDevServerConfig();
+
   return {
     plugins: [react(), tailwindcss(), tsconfigPaths()],
 
     server: {
+      host: devConfig.host,
+      port: devConfig.port,
+      strictPort: true,
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {
         ignored: ['**/src-tauri/**']

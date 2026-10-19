@@ -1,4 +1,5 @@
 pub mod builder;
+pub mod guard;
 pub mod state;
 
 pub use builder::run_tauri;

@@ -12,6 +12,7 @@ pub mod engine_elapsed_test;
 pub mod engine_lifecycle_test;
 pub mod engine_range_test;
 pub mod errors_test;
+pub mod guard_test;
 pub mod holidays_patches_repository_test;
 pub mod locale_test;
 pub mod override_state_test;

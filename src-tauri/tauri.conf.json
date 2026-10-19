@@ -6,11 +6,12 @@
     "beforeBuildCommand": "bun run build",
     "beforeDevCommand": "bun run dev",
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:3000"
+    "devUrl": "http://127.0.0.1:3000"
   },
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "OxyFlow",
         "width": 800,
         "height": 600,
