@@ -1,23 +1,48 @@
 use oxy_flow::types::Locale;
 
 #[test]
-fn test_locale_from_to_sys_lang() {
-    assert_eq!(Locale::from_sys_lang("pl-PL"), Locale::Pl);
-    assert_eq!(Locale::from_sys_lang("PL"), Locale::Pl);
-    assert_eq!(Locale::from_sys_lang("de-DE"), Locale::De);
-    assert_eq!(Locale::from_sys_lang("es-ES"), Locale::Es);
-    assert_eq!(Locale::from_sys_lang("fr-FR"), Locale::Fr);
-    assert_eq!(Locale::from_sys_lang("pt-BR"), Locale::PtBr);
-    assert_eq!(Locale::from_sys_lang("pt-PT"), Locale::PtBr);
-    assert_eq!(Locale::from_sys_lang("en-US"), Locale::En);
-    assert_eq!(Locale::from_sys_lang("invalid"), Locale::En);
+fn test_locale_from_sys_lang_resolves_all_locales_and_falls_back_to_en() {
+    // Arrange
+    let test_cases = [
+        ("pl-PL", Locale::Pl),
+        ("PL", Locale::Pl),
+        ("de-DE", Locale::De),
+        ("es-ES", Locale::Es),
+        ("fr-FR", Locale::Fr),
+        ("pt-BR", Locale::PtBr),
+        ("pt-PT", Locale::PtBr),
+        ("en-US", Locale::En),
+        ("invalid", Locale::En),
+    ];
 
-    assert_eq!(Locale::Pl.to_sys_lang(), "pl");
-    assert_eq!(Locale::De.to_sys_lang(), "de");
-    assert_eq!(Locale::Es.to_sys_lang(), "es");
-    assert_eq!(Locale::Fr.to_sys_lang(), "fr");
-    assert_eq!(Locale::PtBr.to_sys_lang(), "pt");
-    assert_eq!(Locale::En.to_sys_lang(), "en");
-    assert_eq!(Locale::System.to_sys_lang(), "en");
-    assert_eq!(Locale::Custom.to_sys_lang(), "en");
+    for (input, expected) in test_cases {
+        // Act
+        let resolved = Locale::from_sys_lang(input);
+
+        // Assert
+        assert_eq!(resolved, expected, "Failed resolving locale for: {}", input);
+    }
+}
+
+#[test]
+fn test_locale_to_sys_lang_converts_all_enum_variants_correctly() {
+    // Arrange
+    let test_cases = [
+        (Locale::Pl, "pl"),
+        (Locale::De, "de"),
+        (Locale::Es, "es"),
+        (Locale::Fr, "fr"),
+        (Locale::PtBr, "pt"),
+        (Locale::En, "en"),
+        (Locale::System, "en"),
+        (Locale::Custom, "en"),
+    ];
+
+    for (locale, expected) in test_cases {
+        // Act
+        let code = locale.to_sys_lang();
+
+        // Assert
+        assert_eq!(code, expected, "Failed converting locale {:?}", locale);
+    }
 }

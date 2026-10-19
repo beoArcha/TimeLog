@@ -1,10 +1,12 @@
+use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use oxy_flow::sinks::csv::CsvSink;
-use oxy_flow::types::{PersistenceEvent, Project, Task};
+use oxy_flow::types::PersistenceEvent;
 use std::fs::File;
 use std::io::Read;
 
 #[test]
 fn test_csv_sink_emits_all_event_types() {
+    // Arrange
     let temp_dir = std::env::current_dir()
         .unwrap()
         .join("test_csv_sink_events");
@@ -15,36 +17,33 @@ fn test_csv_sink_emits_all_event_types() {
 
     let sink = CsvSink::new(&temp_dir);
 
-    let proj = Project {
-        id: "p_csv".to_string(),
-        name: "CsvProj".to_string(),
-        color: "red".to_string(),
-        created_at: "2025-01-01T00:00:00Z".to_string(),
-        archived: Some(false),
-        original_name: None,
-        original_color: None,
-        edit_history: None,
-        description: None,
-        icon: None,
-        tags: None,
-    };
+    let proj = ProjectBuilder::new()
+        .with_id("p_csv")
+        .with_name("CsvProj")
+        .with_color("red")
+        .with_created_at("2025-01-01T00:00:00Z")
+        .build();
+
+    let task = TaskBuilder::new()
+        .with_id("t_csv")
+        .with_project_id("p_csv")
+        .with_name("CsvTask")
+        .with_created_at("2025-01-01T00:00:00Z")
+        .build();
+
+    let subtask = TaskBuilder::new()
+        .with_id("st_csv")
+        .with_project_id("p_csv")
+        .with_parent("t_csv")
+        .with_name("CsvSubtask")
+        .with_created_at("2025-01-01T00:00:00Z")
+        .build();
+
+    // Act
     sink.emit(&PersistenceEvent::CreateProject(proj.clone()));
     sink.emit(&PersistenceEvent::PatchProject(proj));
     sink.emit(&PersistenceEvent::ArchiveProject("p_csv".to_string()));
 
-    let task = Task {
-        id: "t_csv".to_string(),
-        project_id: "p_csv".to_string(),
-        parent_task_id: None,
-        name: "CsvTask".to_string(),
-        created_at: "2025-01-01T00:00:00Z".to_string(),
-        completed: false,
-        status: None,
-        original_name: None,
-        original_completed: None,
-        edit_history: None,
-        archived: Some(false),
-    };
     sink.emit(&PersistenceEvent::CreateTask(task.clone()));
     sink.emit(&PersistenceEvent::PatchTask(task));
     sink.emit(&PersistenceEvent::ArchiveTask {
@@ -52,19 +51,6 @@ fn test_csv_sink_emits_all_event_types() {
         task_id: "t_csv".to_string(),
     });
 
-    let subtask = Task {
-        id: "st_csv".to_string(),
-        project_id: "p_csv".to_string(),
-        parent_task_id: Some("t_csv".to_string()),
-        name: "CsvSubtask".to_string(),
-        created_at: "2025-01-01T00:00:00Z".to_string(),
-        completed: false,
-        status: None,
-        original_name: None,
-        original_completed: None,
-        edit_history: None,
-        archived: Some(false),
-    };
     sink.emit(&PersistenceEvent::CreateSubtask(subtask.clone()));
     sink.emit(&PersistenceEvent::PatchSubtask(subtask));
     sink.emit(&PersistenceEvent::ArchiveSubtask {
@@ -72,6 +58,7 @@ fn test_csv_sink_emits_all_event_types() {
         subtask_id: "st_csv".to_string(),
     });
 
+    // Assert
     let csv_file_path = temp_dir.join("timelog_p_csv.csv");
     assert!(csv_file_path.exists());
 

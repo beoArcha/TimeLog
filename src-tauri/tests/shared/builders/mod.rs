@@ -47,6 +47,26 @@ impl ProjectBuilder {
         self
     }
 
+    pub fn with_created_at(mut self, created_at: impl Into<String>) -> Self {
+        self.project.created_at = created_at.into();
+        self
+    }
+
+    pub fn with_description(mut self, description: impl Into<String>) -> Self {
+        self.project.description = Some(description.into());
+        self
+    }
+
+    pub fn with_icon(mut self, icon: impl Into<String>) -> Self {
+        self.project.icon = Some(icon.into());
+        self
+    }
+
+    pub fn with_tags(mut self, tags: Vec<String>) -> Self {
+        self.project.tags = Some(tags);
+        self
+    }
+
     pub fn archived(mut self, is_archived: bool) -> Self {
         self.project.archived = Some(is_archived);
         self
@@ -109,6 +129,11 @@ impl TaskBuilder {
 
     pub fn with_status(mut self, status: TaskStatus) -> Self {
         self.task.status = Some(status);
+        self
+    }
+
+    pub fn with_created_at(mut self, created_at: impl Into<String>) -> Self {
+        self.task.created_at = created_at.into();
         self
     }
 
@@ -183,6 +208,11 @@ impl TimeLogBuilder {
 
     pub fn with_note(mut self, note: impl Into<String>) -> Self {
         self.log.note = Some(note.into());
+        self
+    }
+
+    pub fn with_edit_history(mut self, history: Vec<oxy_flow::types::TimeLogEditHistory>) -> Self {
+        self.log.edit_history = Some(history);
         self
     }
 

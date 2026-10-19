@@ -17,11 +17,11 @@
     "fmt:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml",
     "fmt:rust:check": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
     "test": "vitest run",
-    "test:smoke": "vitest run tests/smoke/ && cargo test --manifest-path src-tauri/Cargo.toml --test smoke_test",
+    "test:smoke": "vitest run tests/smoke/; cargo test --manifest-path src-tauri/Cargo.toml --test smoke_test",
     "test:e2e": "playwright test --config=tests/e2e/config/playwright.config.ts",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
     "test:mutation": "stryker run",
-    "test:quality": "bun run test:smoke && bun run check && bun run test:rust && bun run test",
+    "test:quality": "bun run test:smoke; bun run check; bun run test:rust; bun run test",
     "check": "bun run typecheck; bun run lint; bun run lint:rust; bun run fmt:rust:check",
     "fix": "eslint --fix .; bun run fmt:rust"
   },
