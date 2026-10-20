@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 /// Ensures the enclosing directory is created if not already present.
 pub fn get_default_db_path() -> PathBuf {
     let base_dir = std::env::var(APPDATA)
+        .or_else(|_| std::env::var("AppData"))
         .map(PathBuf::from)
         .or_else(|_| std::env::var(HOME).map(|h| PathBuf::from(h).join(CONFIG)))
         .unwrap_or_else(|_| PathBuf::from("."));

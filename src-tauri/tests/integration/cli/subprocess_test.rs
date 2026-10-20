@@ -1,4 +1,4 @@
-use oxy_flow::common::constants::{APP_NAME, DEFAULT_DB_NAME};
+use oxy_flow::common::constants::{APP_NAME, CONFIG, DEFAULT_DB_NAME};
 use rusqlite::Connection;
 use std::process::Command;
 
@@ -53,6 +53,7 @@ fn test_given_compiled_binary_when_executing_crud_against_sqlite_then_persists_r
     // When - Create project via CLI subprocess
     let proj_output = Command::new(bin_path)
         .env("APPDATA", &temp_root)
+        .env("AppData", &temp_root)
         .env("HOME", &temp_root)
         .arg("manage")
         .arg("project")
@@ -73,7 +74,14 @@ fn test_given_compiled_binary_when_executing_crud_against_sqlite_then_persists_r
     );
 
     // Then - Verify SQLite database was physically written to disk and has project record
-    let db_path = temp_root.join(APP_NAME).join(DEFAULT_DB_NAME);
+    let db_candidates = [
+        temp_root.join(APP_NAME).join(DEFAULT_DB_NAME),
+        temp_root.join(CONFIG).join(APP_NAME).join(DEFAULT_DB_NAME),
+    ];
+    let db_path = db_candidates
+        .into_iter()
+        .find(|p| p.exists())
+        .unwrap_or_else(|| temp_root.join(APP_NAME).join(DEFAULT_DB_NAME));
     assert!(
         db_path.exists(),
         "Expected SQLite database to exist at {:?}",
