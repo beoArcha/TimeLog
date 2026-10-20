@@ -15,11 +15,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         };
 
-        let db_path = app::get_cli_db_path();
-        let csv_directory = db_path
-            .parent()
-            .ok_or("Invalid DB path parent")?
-            .join("csv");
+        let db_path = oxy_flow::common::paths::get_default_db_path();
+        let csv_directory = oxy_flow::common::paths::get_default_csv_dir(&db_path);
         let persistence_config = oxy_flow::persistence::PersistenceConfig {
             db_path,
             csv_directory,

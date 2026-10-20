@@ -30,7 +30,8 @@ fn test_given_types_module_when_checked_then_acts_as_pure_leaf_without_higher_la
 }
 
 #[test]
-fn test_given_repositories_module_when_checked_then_does_not_import_business_or_orchestration_layers() {
+fn test_given_repositories_module_when_checked_then_does_not_import_business_or_orchestration_layers(
+) {
     // Given
     let src_dir = get_src_path();
     let graph = ModuleGraph::build_from_src(&src_dir);
@@ -39,7 +40,15 @@ fn test_given_repositories_module_when_checked_then_does_not_import_business_or_
     // When & Then: repositories cannot import persistence, engine, cli, commands, or app
     arch.assert_does_not_depend_on(
         "repositories",
-        &["persistence", "engine", "cli", "commands", "app", "tray", "workflows"],
+        &[
+            "persistence",
+            "engine",
+            "cli",
+            "commands",
+            "app",
+            "tray",
+            "workflows",
+        ],
     );
 }
 

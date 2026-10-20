@@ -1,4 +1,3 @@
-use crate::common::constants::*;
 use crate::persistence::Persistence;
 use crate::workflows::WorkflowDaemon;
 use std::path::PathBuf;
@@ -26,12 +25,5 @@ pub struct AppState {
 }
 
 pub fn get_cli_db_path() -> PathBuf {
-    let base_dir = std::env::var(APPDATA)
-        .map(PathBuf::from)
-        .or_else(|_| std::env::var(HOME).map(|h| PathBuf::from(h).join(CONFIG)))
-        .unwrap_or_else(|_| PathBuf::from("."));
-
-    let app_dir = base_dir.join(APP_NAME);
-    let _ = std::fs::create_dir_all(&app_dir);
-    app_dir.join(DEFAULT_DB_NAME)
+    crate::common::paths::get_default_db_path()
 }

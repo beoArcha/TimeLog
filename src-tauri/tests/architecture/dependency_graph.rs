@@ -43,7 +43,10 @@ impl ModuleGraph {
                         // Look for `use crate::<module>::...` or direct `crate::<module>::...`
                         if trimmed.starts_with("use crate::") || trimmed.starts_with("crate::") {
                             if let Some(target_mod) = Self::extract_target_module(trimmed) {
-                                if target_mod != source_mod && target_mod != "main" && target_mod != "lib" {
+                                if target_mod != source_mod
+                                    && target_mod != "main"
+                                    && target_mod != "lib"
+                                {
                                     graph
                                         .adj
                                         .entry(source_mod.clone())
@@ -76,7 +79,11 @@ impl ModuleGraph {
         let mut rec_stack = Vec::new();
 
         let target_modules: Vec<&String> = match modules_to_check {
-            Some(filter) => self.modules.iter().filter(|m| filter.contains(*m)).collect(),
+            Some(filter) => self
+                .modules
+                .iter()
+                .filter(|m| filter.contains(*m))
+                .collect(),
             None => self.modules.iter().collect(),
         };
 
@@ -171,16 +178,11 @@ impl ModuleGraph {
         // "use crate::AppState;" -> "app" (handled via root type mapping or skipped)
         let after_prefix = if let Some(stripped) = line.strip_prefix("use crate::") {
             stripped
-        } else if let Some(stripped) = line.strip_prefix("crate::") {
-            stripped
         } else {
-            return None;
+            line.strip_prefix("crate::")?
         };
 
-        let target_part = after_prefix
-            .split(&[':', ';', '{', ' '][..])
-            .next()?
-            .trim();
+        let target_part = after_prefix.split(&[':', ';', '{', ' '][..]).next()?.trim();
 
         if target_part.is_empty() {
             None

@@ -38,7 +38,9 @@ impl<'a> ArchRule<'a> {
 
         let mut violations = Vec::new();
         for dep in &self.graph.details {
-            if dep.source_module == source_module && forbidden_set.contains(dep.target_module.as_str()) {
+            if dep.source_module == source_module
+                && forbidden_set.contains(dep.target_module.as_str())
+            {
                 violations.push(format!(
                     "  - [{}:{}] '{}' imports forbidden module '{}' via '{}'",
                     dep.source_file.display(),
@@ -75,7 +77,10 @@ impl<'a> ArchRule<'a> {
                         for (idx, line) in content.lines().enumerate() {
                             let trimmed = line.trim();
                             // Skip comments
-                            if trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.starts_with('*') {
+                            if trimmed.starts_with("//")
+                                || trimmed.starts_with("/*")
+                                || trimmed.starts_with('*')
+                            {
                                 continue;
                             }
                             if trimmed.contains("use tauri::")
@@ -117,7 +122,11 @@ impl<'a> ArchRule<'a> {
         Self::collect_files(&self.src_dir, &mut files);
 
         let sql_keywords = [
-            "SELECT ", "INSERT INTO ", "UPDATE ", "DELETE FROM ", "CREATE TABLE IF NOT EXISTS ",
+            "SELECT ",
+            "INSERT INTO ",
+            "UPDATE ",
+            "DELETE FROM ",
+            "CREATE TABLE IF NOT EXISTS ",
         ];
 
         for file in files {
@@ -128,12 +137,17 @@ impl<'a> ArchRule<'a> {
                             let upper = line.to_uppercase();
                             let trimmed = line.trim();
                             // Skip comments
-                            if trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.starts_with('*') {
+                            if trimmed.starts_with("//")
+                                || trimmed.starts_with("/*")
+                                || trimmed.starts_with('*')
+                            {
                                 continue;
                             }
 
                             for kw in &sql_keywords {
-                                if upper.contains(kw) && (trimmed.contains('"') || trimmed.contains('`')) {
+                                if upper.contains(kw)
+                                    && (trimmed.contains('"') || trimmed.contains('`'))
+                                {
                                     violations.push(format!(
                                         "  - [{}:{}] Raw SQL keyword '{}' found outside '{}': '{}'",
                                         file.display(),
