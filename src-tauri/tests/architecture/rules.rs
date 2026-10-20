@@ -175,6 +175,80 @@ impl<'a> ArchRule<'a> {
         }
     }
 
+    /// Verifies that all functions and type definitions across native modules return
+    /// strongly-typed custom domain errors, strictly forbidding generic standard errors:
+    /// - `Result<_, String>` or `Result<_, &str>` (Stringly-typed anti-pattern)
+    /// - `Result<_, Box<dyn Error>>` or `Result<_, Box<dyn std::error::Error>>` (Generic dynamic boxed error)
+    /// - `Result<_, anyhow::Error>` (Unstructured error)
+    /// - `Result<_, ()>` (Empty unit error)
+    pub fn assert_zero_generic_errors(&self, allowlist: &[&str]) {
+        let allow_set: HashSet<&str> = allowlist.iter().copied().collect();
+        let mut violations = Vec::new();
+        let mut files = Vec::new();
+        Self::collect_files(&self.src_dir, &mut files);
+
+        for file in files {
+            let rel_path = file
+                .strip_prefix(&self.src_dir)
+                .ok()
+                .and_then(|p| p.to_str())
+                .unwrap_or("")
+                .replace('\\', "/");
+
+            if allow_set.contains(rel_path.as_str()) {
+                continue;
+            }
+
+            if let Ok(content) = fs::read_to_string(&file) {
+                for (idx, line) in content.lines().enumerate() {
+                    let trimmed = line.trim();
+                    // Skip comments
+                    if trimmed.starts_with("//")
+                        || trimmed.starts_with("/*")
+                        || trimmed.starts_with('*')
+                    {
+                        continue;
+                    }
+
+                    // Look for return types or type aliases containing Result
+                    if trimmed.contains("-> Result<")
+                        || trimmed.contains("-> std::result::Result<")
+                        || trimmed.contains("type Result<")
+                    {
+                        let forbidden = [
+                            ", String>",
+                            ", &str>",
+                            ", Box<dyn Error>",
+                            ", Box<dyn std::error::Error>",
+                            ", anyhow::Error>",
+                            ", ()>",
+                        ];
+
+                        for pat in &forbidden {
+                            if trimmed.contains(pat) {
+                                violations.push(format!(
+                                    "  - [{}:{}] Forbidden generic error pattern '{}' in: '{}'",
+                                    file.display(),
+                                    idx + 1,
+                                    pat.trim_start_matches(", ").trim_end_matches('>'),
+                                    trimmed
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if !violations.is_empty() {
+            panic!(
+                "Architecture Violation: Native modules must NEVER return generic standard errors (String, &str, Box<dyn Error>, anyhow, ()). All functions must use custom domain errors.\nFound {} violation(s):\n{}",
+                violations.len(),
+                violations.join("\n")
+            );
+        }
+    }
+
     fn collect_files(dir: &Path, list: &mut Vec<PathBuf>) {
         if let Ok(entries) = fs::read_dir(dir) {
             for entry in entries.flatten() {

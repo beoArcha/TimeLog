@@ -94,11 +94,21 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             workflow_cmds::workflow_start_daemon,
             workflow_cmds::workflow_stop_daemon
         ])
-        .setup(setup_app)
+        .setup(|app| setup_app(app).map_err(Into::into))
         .on_window_event(handle_window_event)
 }
 
-fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error::Error>> {
+#[derive(Debug, thiserror::Error)]
+pub enum AppSetupError {
+    #[error("I/O error during app setup: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Tauri framework error: {0}")]
+    Tauri(#[from] tauri::Error),
+    #[error("Persistence initialization error: {0}")]
+    Persistence(#[from] crate::repositories::shared::errors::RepositoryError),
+}
+
+fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
     let app_data_dir = app.path().app_data_dir()?;
     std::fs::create_dir_all(&app_data_dir)?;
     let db_path = app_data_dir.join(DEFAULT_DB_NAME);

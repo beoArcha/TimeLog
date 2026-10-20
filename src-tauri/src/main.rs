@@ -2,9 +2,9 @@
 
 use clap::Parser;
 use oxy_flow::{app, cli};
-use std::error::Error;
+use std::process::ExitCode;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() > 1 {
@@ -21,13 +21,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             db_path,
             csv_directory,
         };
-        let persistence = oxy_flow::persistence::Persistence::new(&persistence_config)?;
+        let persistence = match oxy_flow::persistence::Persistence::new(&persistence_config) {
+            Ok(p) => p,
+            Err(e) => {
+                eprintln!("Error initializing storage: {e}");
+                return ExitCode::from(oxy_flow::cli::shared::constants::EXIT_CODE_STORAGE_ERROR);
+            }
+        };
         let engine = oxy_flow::engine::Engine::new(&persistence);
-        let output = cli::handle_cli(cli_args, &persistence, &engine)?;
-        println!("{}", output);
-        return Ok(());
+        return cli::run(cli_args, &persistence, &engine);
     }
 
     app::run_tauri();
-    Ok(())
+    ExitCode::SUCCESS
 }
