@@ -45,7 +45,7 @@ oXyFlow is built around a single business model with multiple runtime implementa
                      LayoutManager
                             │
                     Layout Builders 
-               (Full / Half / Compact)
+              (Full / Medium / Compact)
 ```
 
 **Key Architectural Pillars:**
@@ -71,12 +71,14 @@ We build for the tired user.
 
 To understand how oXyFlow is built and maintained, please review our core manifests:
 
-| Document                | Purpose                                                                       |
-| ----------------------- | ----------------------------------------------------------------------------- |
-| `MASTERMAP.md`          | Project roadmap, long-term vision, and core architecture diagram              |
-| `ENGINEERING.md`        | Strict engineering principles, layer responsibilities, and coding standards   |
-| `USEREXPERIENCE.md`     | The UX philosophy: protecting user focus, zero friction, and predictability   |
-| `AGENT.md`              | Operational guidelines and mandatory rules for AI assistants                  |
+| Document                                           | Purpose                                                                    |
+| -------------------------------------------------- | -------------------------------------------------------------------------- |
+| [`docs/MASTERMAP.md`](docs/MASTERMAP.md)           | Project roadmap, long-term vision, and core architecture diagram           |
+| [`docs/ENGINEERING.md`](docs/ENGINEERING.md)       | Architecture, layer responsibilities, and engineering principles           |
+| [`docs/CLI.md`](docs/CLI.md)                       | CLI architecture, commands, error codes, and exit codes                    |
+| [`docs/USERINTERFACE.md`](docs/USERINTERFACE.md)   | UI dimensions, design system, and design tokens                            |
+| [`docs/USEREXPERIENCE.md`](docs/USEREXPERIENCE.md) | UX philosophy: protecting user focus, zero friction, predictability        |
+| [`AGENTS.md`](AGENTS.md)                           | Mandatory rules for contributors and AI assistants (with `.agents/rules/`) |
 
 ---
 

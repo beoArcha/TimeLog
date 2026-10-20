@@ -73,7 +73,7 @@ graph TD
     Identify -->|Guidance, Help, Simple| Maya["3. Beginner User (Maya)"]
     Identify -->|Macros, Aliases, Batch| Masks["4. Action Masks & Macros"]
 
-    Alex --> AlexActions["• Atomic 'switch'<br>• Unicode Tree (--tree)<br>• 6-Format Exports<br>• Unix Pipes (stdout | jq)"]
+    Alex --> AlexActions["• Atomic 'switch'<br>• Unicode Tree (--tree)<br>• HTML / JSON / CSV Exports<br>• Unix Pipes (stdout | jq)"]
     Daemon --> DaemonActions["• Strict English (--lang en)<br>• Structured JSON to stderr<br>• POSIX Exit Codes (0..5)<br>• Idempotent Execution"]
     Maya --> MayaActions["• 'Did you mean?' Typo Catch<br>• Interactive Parameter Prompts<br>• Visual Summary Cards<br>• Interactive Self-Healing"]
     Masks --> MaskActions["• Shorthand Aliases (mask set)<br>• Dynamic Tokens ($1, $LAST)<br>• Built-in Compound Actions"]
@@ -81,8 +81,8 @@ graph TD
 
 ### 1. The Power User (Alex — Keyboard Maestro)
 
-- **Primary Goal:** Sub-second time tracking without touching the mouse, terminal reports with Unicode trees, instant export for invoices/clients in HTML, JSON, XML, CSV, ODS, XLSX.
-- **Key Commands:** `oxy switch <id>`, `oxy report --tree --week`, `oxy report export -f ods -o ./rep.ods`, `oxy report -f json | jq .`.
+- **Primary Goal:** Sub-second time tracking without touching the mouse, terminal reports with Unicode trees, instant export for invoices/clients in HTML, JSON and CSV (XML, ODS and XLSX are planned).
+- **Key Commands:** `oxy switch <id>`, `oxy report --tree --week`, `oxy report export -f html -o ./rep.html`, `oxy report -f json | jq .`.
 
 ### 2. The Automated System / Daemon (Machine / CI / Git Hooks)
 
@@ -105,7 +105,9 @@ graph TD
 
 ## 📋 Typical Actions Lifecycle Matrix
 
-All commands follow the unified canonical hierarchy: `oxy <domain> <action> [args] [flags]`, with top-level shortcuts for primary daily tasks (`switch`, `summary`, `status`, `wrap-up`).
+All commands follow the unified canonical hierarchy: `oxy <domain> <action> [args] [flags]`, with top-level shortcuts for primary daily tasks (`start`, `stop`, `switch`, `status`, `today` / `summary`). The `wrap-up` compound action is planned.
+
+> The matrix below describes the target command design. The authoritative list of implemented commands and flags is the clap parser in `src-tauri/src/cli/parser/` (`oxy --help`).
 
 | Domain | Action | Command Syntax | Power User / Machine Flag | Beginner Interactive Behavior |
 | :--- | :--- | :--- | :--- | :--- |
@@ -125,7 +127,7 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Timer** | Status | `oxy status` | Single-line or JSON status | Visual card with live running timer |
 | **Report** | Tree | `oxy report --tree [--today\|--week\|--month]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
-| **Report** | Export | `oxy report export -f <format> -o <path>` | Supports **HTML, JSON, XML, CSV, ODS, XLSX** | Interactive format selector |
+| **Report** | Export | `oxy report export -f <format> -o <path>` | Supports **HTML, JSON, CSV**; `xml`, `ods`, `xlsx` are accepted by the parser but rejected with exit code `2` until implemented | Interactive format selector |
 | **Report** | Stream | `oxy report -f json \| jq .` | Raw unescaped JSON to `stdout` | N/A (interactive terminal) |
 | **Sink** | Set CSV | `oxy sink set csv --dir <path>` | Configures local CSV audit log | Prompts for directory path |
 | **Sink** | Set API | `oxy sink set webhook --url <url> -t <token>` | Updates external webhook target | Tests connectivity and saves |
@@ -145,48 +147,63 @@ The CLI enforces a **Dual-Layer Response Architecture**:
 ├────────────────────────────────────────────────────────────────────────┤
 │  TECHNICAL LAYER (ALWAYS ENGLISH — GUARANTEED STABLE):                 │
 │    • code: "DOM_ENTITY_NOT_FOUND"                                      │
-│    • category: "Domain"                                                │
-│    • message: "Task with ID '104' was not found in active project."    │
-│    • exit_code: 1                                                      │
+│    • category: "entity"                                                │
+│    • technical: "Task with ID '104' was not found in active project."  │
+│    • exit_code: 4                                                      │
 │    • timestamp: "2026-10-18T11:42:01.402Z"                             │
 ├────────────────────────────────────────────────────────────────────────┤
 │  USER INFORMATION LAYER (CHOSEN LANGUAGE — e.g. POLISH 'pl'):          │
 │    • locale: "pl"                                                      │
-│    • title: "Nie znaleziono zadania"                                   │
 │    • message: "Zadanie o numerze '104' nie istnieje w projekcie."      │
-│    • suggestion: "Czy chodziło Ci o zadanie #105 'OAuth2 Auth'?"     │
-│    • remediation: "Użyj 'oxy tasks core', aby wyświetlić listę zadań." │
-│    • help_command: "oxy help task"                                     │
+│    • suggestion: "Czy chodziło Ci o zadanie #105 'OAuth2 Auth'?"       │
+│    • remediation: "Użyj 'oxy task list', aby wyświetlić listę zadań."  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Semantic Error Codes & Exit Statuses
+The envelope is `CliErrorEnvelope` in `src-tauri/src/cli/error/envelope.rs`; the user layer (`LocalizedUserMessage`) is optional and omitted in `--machine` mode.
+
+### Exit Codes
+
+Defined in `src-tauri/src/cli/shared/constants.rs` and mapped by `CliError::exit_code()`:
+
+| Exit Code | Meaning |
+| :--- | :--- |
+| `0` | Success |
+| `1` | Business rule violation |
+| `2` | Invalid syntax or arguments |
+| `3` | Storage (SQLite) failure |
+| `4` | Entity not found, ambiguous or did-you-mean |
+| `5` | Engine / timer lifecycle conflict |
+
+### Semantic Error Codes
+
+Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* exist in the enum but no code path produces them yet.
 
 | Category | Semantic Code | Exit Code | Description (Always English) |
 | :--- | :--- | :--- | :--- |
-| **Syntax** | `CLI_SYNTAX_UNKNOWN_CMD` | `2` | Unknown command verb or subcommand |
-| **Syntax** | `CLI_SYNTAX_MISSING_ARG` | `2` | Required argument missing in non-interactive invocation |
-| **Syntax** | `CLI_SYNTAX_INVALID_FLAG` | `2` | Flag not recognized for command |
-| **Domain** | `DOM_ENTITY_NOT_FOUND` | `1` | Target project, task, or subtask ID not found |
-| **Domain** | `DOM_ENTITY_ARCHIVED` | `1` | Action rejected because target entity is archived |
-| **Domain** | `DOM_ENTITY_DUPLICATE_NAME` | `1` | Duplicate entity name in identical parent scope |
-| **Engine** | `ENG_TIMER_ALREADY_ACTIVE` | `4` | Timer is already active on target task |
-| **Engine** | `ENG_TIMER_NONE_ACTIVE` | `4` | `stop` called but no timers are active |
-| **Engine** | `ENG_TIMER_OVERLAP_CONFLICT` | `4` | Retroactive log collides with existing time window |
-| **Storage** | `STO_SQLITE_BUSY_LOCKED` | `3` | SQLite database file locked by another process |
-| **Storage** | `STO_SQLITE_CORRUPT` | `3` | SQLite file failed integrity check |
-| **Storage** | `STO_SQLITE_DISK_FULL` | `3` | Disk write failed due to lack of space |
-| **Sinks** | `SNK_IO_DIR_NOT_WRITABLE` | `5` | CSV or report output path is not writable |
-| **Sinks** | `SNK_EXPORT_UNSUPPORTED_FMT` | `2` | Requested export format is not supported |
-| **Sinks** | `SNK_WEBHOOK_HTTP_FAILURE` | `5` | External API webhook returned HTTP 4xx or 5xx |
-| **Sinks** | `SNK_WEBHOOK_TIMEOUT` | `5` | Webhook request timed out |
-| **Masks** | `MSK_ALIAS_NOT_FOUND` | `2` | Specified action mask is not registered |
-| **Masks** | `MSK_ALIAS_RECURSION_LOOP` | `2` | Action mask contains cyclic self-reference |
-| **Masks** | `MSK_ALIAS_ARG_MISMATCH` | `2` | Mask expects parameters that were not provided |
+| `syntax` | `CLI_SYNTAX_INVALID_ARGS` | `2` | Invalid arguments |
+| `syntax` | `CLI_SYNTAX_INVALID_DURATION` | `2` | Duration could not be parsed |
+| `syntax` | `CLI_SYNTAX_EMPTY_ID` | `2` | Empty entity ID |
+| `syntax` | `CLI_SYNTAX_MISSING_TARGET` | — | Required target missing (*not yet emitted*) |
+| `syntax` | `CLI_SYNTAX_UNKNOWN_COMMAND` | — | Unknown command (*not yet emitted*) |
+| `entity` | `DOM_ENTITY_NOT_FOUND` | `4` | Target project, task or subtask not found |
+| `entity` | `DOM_ENTITY_AMBIGUOUS` | `4` | Query matches more than one entity |
+| `entity` | `DOM_ENTITY_DID_YOU_MEAN` | `4` | No exact match; close matches suggested |
+| `storage` | `STO_SQLITE_INIT` | `3` | Database initialization failed |
+| `storage` | `STO_SQLITE_QUERY` | `3` | Query failed |
+| `storage` | `STO_SQLITE_CONSTRAINT` | — | Constraint violation (*not yet emitted*) |
+| `engine` | `ENG_TIMER_CONFLICT` | `5` | Timer lifecycle conflict (currently used for every engine error) |
+| `engine` | `ENG_TIMER_ACTIVE` | — | Timer already active (*not yet emitted*) |
+| `engine` | `ENG_TIMER_INACTIVE` | — | No active timer (*not yet emitted*) |
+| `business` | `DOM_BUSINESS_VIOLATION` | `1` | Business rule violated |
+| `business` | `DOM_BUSINESS_NO_PROJECTS` | `1` | Operation requires at least one project |
+| `sink` | `SNK_EXTERNAL_IO` | — | Sink I/O failure (*not yet emitted*) |
+| `mask` | `MSK_ALIAS_NOT_FOUND` | — | Action mask not registered (*not yet emitted*) |
+| `mask` | `MSK_ALIAS_SYNTAX` | — | Invalid mask template (*not yet emitted*) |
 
 ### Interactive Self-Healing in TTY
 
-In interactive human terminal mode, encountering `DOM_ENTITY_NOT_FOUND` or `CLI_SYNTAX_MISSING_ARG` does not abort the shell. Instead, the prompter:
+In interactive human terminal mode, encountering an unknown entity or a missing required argument does not abort the shell. Instead, the prompter:
 
 1. Calculates Levenshtein distances ($\le 2$) against known entity names/commands.
 2. Displays the nearest matches in the user's localized language.
@@ -196,12 +213,12 @@ In interactive human terminal mode, encountering `DOM_ENTITY_NOT_FOUND` or `CLI_
 
 ## 🪟 In-App Global CLI Drawer & Session Synchronization
 
-### 1. CliDrawer Architecture (`Ctrl+`` /`Esc`)
+### 1. CliDrawer Architecture (``Ctrl+` `` / `Esc`)
 
 The in-app CLI is accessible everywhere across all application layouts (Compact, Medium, Full) via the global `CliDrawer` component (`src/features/cli/CliDrawer.tsx`):
 
 - **Slide-Down Presentation**: Animated top sheet (`motion.div`) with polymorphic design tokens (`bg-card/95`, `backdrop-blur-xl`, `border-border`, `text-foreground`).
-- **Global Keybinding**: Toggled instantaneously via `Ctrl+`` (`Backquote`), registered via` useGlobalShortcuts`.
+- **Global Keybinding**: Toggled instantaneously via ``Ctrl+` `` (`Backquote`), registered via `useGlobalShortcuts`.
 - **Keyboard Trapping & Dismissal**: Automatically closes on `Escape` or clicking the backdrop overlay/close button, restoring focus to the primary UI.
 - **Responsive Layout Adaptation**: When toggled in `CompactLayout`, `CliSessionProvider` automatically expands the window into `MediumLayout` so the terminal console has sufficient viewport space without clipping.
 
@@ -235,32 +252,34 @@ The CLI supports a dedicated in-memory sandbox emulator (`src/features/cli/sandb
 
 ## 🧪 Testing Architecture & Segregation
 
-To maintain clean module boundaries and prevent regressions, test suites are strictly segregated:
+CLI tests are kept in dedicated directories (structure and naming rules: [`testing_standards.md`](../.agents/rules/testing_standards.md)):
 
 ```text
 TimeLog/
 ├── src-tauri/tests/
-│   ├── unit/
-│   │   └── cli/                         # Rust CLI Unit Tests
-│   │       ├── parser_test.rs           # Command-line syntax & flag parsing
-│   │       ├── error_test.rs            # Technical English error envelopes & exit codes
-│   │       ├── tree_renderer_test.rs    # Unicode tree formatting
-│   │       └── mask_expansion_test.rs   # Macro alias parameter substitution
-│   └── integration/
-│       └── cli/                         # Rust CLI Integration Tests
-│           ├── cli_lifecycle_test.rs    # Real SQLite execution of project/task/timer actions
-│           ├── sinks_integration_test.rs# Real CSV emission & webhook mocking
-│           └── export_formats_test.rs   # File format validation (HTML, XML, CSV, ODS, XLSX)
+│   ├── unit/cli/                        # Rust CLI unit tests
+│   │   ├── parser_test.rs               # Syntax and flag parsing
+│   │   ├── duration_parser_test.rs      # Duration parsing
+│   │   ├── error_test.rs                # Error envelopes and exit codes
+│   │   ├── levenshtein_test.rs          # Typo distance
+│   │   ├── resolver_test.rs             # Entity resolution
+│   │   ├── prompter_test.rs             # Interactive prompts
+│   │   ├── tree_renderer_test.rs        # Unicode tree formatting
+│   │   ├── exporter_test.rs             # HTML / CSV / JSON exports
+│   │   └── dashboard_test.rs            # Summary output
+│   └── integration/cli/                 # Rust CLI integration tests (real SQLite in temp dirs)
+│       ├── cli_test.rs, cli_subtask_test.rs, cli_settings_test.rs
+│       ├── ergonomic_flow_test.rs, interactive_flow_test.rs, subsystem_flow_test.rs
+│       ├── report_integration_test.rs, error_envelope_test.rs
+│       ├── cli_parity_test.rs           # Shared parity fixtures (Rust side)
+│       └── subprocess_test.rs           # Compiled binary execution
 └── tests/
-    ├── unit/
-    │   └── cli/                         # TypeScript CliEngine Unit Tests
-    │       ├── CliErrorFactory.test.ts  # Dual-layer envelope generation & i18n keys
-    │       ├── FuzzyMatcher.test.ts     # Levenshtein distance typo tests
-    │       └── InteractivePrompter.test.ts # Missing argument prompter
-    └── integration/
-        └── cli/                         # Cross-Runtime Parity Tests
-            ├── cross_runtime_cli_parity.test.ts # Verifies identical syntax & JSON outputs
-            └── cli_terminal_workflow.test.ts    # In-app terminal emulator lifecycle
+    ├── unit/features/cli/               # In-app CLI unit tests (CliDrawer, CliInterface, context, sandbox, utils)
+    ├── integration/cli/
+    │   ├── cli-cross-runtime-parity.test.ts   # Shared parity fixtures (TS side)
+    │   ├── cli-drawer-integration.test.tsx
+    │   └── cli-interface.test.tsx
+    └── shared/fixtures/cli-parity-cases.json  # Parity matrix used by both runtimes
 ```
 
 ---

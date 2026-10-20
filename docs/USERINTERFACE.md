@@ -237,26 +237,11 @@ Raw HTML form and table tags are strictly forbidden outside `src/components/ui/`
 
 ---
 
-### Accessibility (a11y) & WCAG Guidelines
+### Accessibility and Internationalization
 
-All interactive elements must guarantee accessible operation:
+The interface is fully keyboard-operable and localized in 6 languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`). Translations are resolved by `translate(locale, domain, key, customTranslations)` / `useTranslation`; dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/`, each containing all 6 locales, with keys typed in `src/common/i18n/keys.ts`.
 
-- **Accessible Names**: All icon buttons and interactive controls must have an `aria-label` or `title`.
-- **Form Association**: Every `<Input>` must have an associated `<Label htmlFor="...">` or explicit `aria-label`.
-- **Modal Dialogs**: Modals must declare `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` referencing the modal title.
-- **Dynamic Content**: Terminal and daemon logging areas must declare `role="log"` and `aria-live="polite"`.
-- **Keyboard Navigation**: All interactive elements must support keyboard focus (`tabIndex`, Enter/Space activation, Escape to close/cancel).
-
----
-
-### Internationalization (i18n) Standards
-
-The interface is completely localized across 6 languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`):
-
-- **Universal Translation Pipeline**: All text, titles, placeholders, and accessible labels must use `translate(locale, domain, key, customTranslations)` or `useTranslation`.
-- **Automatic Fallback (No Anti-Patterns)**: Never use manual fallback operators in JSX templates (`{translate(...) || 'Fallback'}`). The `translator.ts` engine automatically defaults to the `en` dictionary if a key is missing.
-- **Type Safety**: All translation domains and keys are strongly typed in `src/common/i18n/keys.ts`.
-- **Completeness**: Any new translation key introduced must be added to all 6 dictionary files (`cli.json`, `common.json`, `database.json`, `help.json`, `project.json`, `settings.json`, `task.json`, `timer.json`).
+The mandatory a11y and i18n rules are in [`frontend_engineering_standards.md`](../.agents/rules/frontend_engineering_standards.md) (sections 7 and 8).
 
 ---
 

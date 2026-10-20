@@ -2,15 +2,15 @@
 
 ## Engineering Guide
 
-This document defines the engineering principles, architectural rules, development standards, and frontend/backend responsibilities for oXyFlow.
+This document describes the architecture, layer responsibilities and engineering principles of oXyFlow. It is the reference for contributors and reviewers.
 
-It is the authoritative engineering reference for contributors, reviewers, and AI assistants.
+Mandatory rules for day-to-day work (AI assistants and humans alike) are in [`../AGENTS.md`](../AGENTS.md) and the topic files in [`../.agents/rules/`](../.agents/rules/). This document explains the architecture those rules protect and does not repeat them.
 
 ---
 
 ## Engineering Goals
 
-Every engineering decision should improve at least one of the following without unnecessarily harming the others.
+Every engineering decision should improve at least one of the following without unnecessarily harming the others:
 
 - Simplicity
 - Maintainability
@@ -21,56 +21,17 @@ Every engineering decision should improve at least one of the following without 
 - Native User Experience
 - Long-Term Sustainability
 
----
-
-## Core Engineering Principles
-
-### KISS
-
-Prefer the simplest solution that satisfies the current requirements.
-
-Avoid unnecessary abstraction.
-
-Avoid architecture created only for possible future scenarios.
+When goals conflict, prefer in this order: correctness, maintainability, readability, performance. Never sacrifice architecture for hypothetical optimizations.
 
 ---
 
-### SOLID
+## Core Principles
 
-Apply SOLID only when it genuinely improves maintainability.
-
-Avoid interfaces, inheritance or indirection that provide no practical value.
-
----
-
-### DRY
-
-Business logic must never be duplicated.
-
-Platform-specific implementations may differ when doing so improves readability or runtime isolation.
-
----
-
-### YAGNI
-
-Never implement features for hypothetical future needs.
-
-Extension points should exist only when they already solve a real problem.
-
----
-
-### Composition over Inheritance
-
-The entire application is based on composition.
-
-Systems are assembled from:
-
-- Routers
-- Managers
-- Builders
-- Runtime implementations
-
-Avoid deep inheritance hierarchies.
+- **KISS**: prefer the simplest solution that satisfies the current requirements. Avoid architecture created only for possible future scenarios.
+- **SOLID, pragmatically**: apply it when it genuinely improves maintainability. Avoid interfaces, inheritance or indirection without practical value.
+- **DRY for business logic**: business logic is never duplicated within a runtime. The browser and Rust engines are deliberate parallel implementations kept equal by parity tests.
+- **YAGNI**: no features for hypothetical needs; extension points exist only when they solve a real problem.
+- **Composition over inheritance**: the application is assembled from routers, managers, builders and runtime implementations.
 
 ---
 
@@ -80,10 +41,10 @@ Avoid deep inheritance hierarchies.
 React UI
         │
         ▼
-Application Routers
+Application Routers (EngineRouter, PersistenceRouter)
         │
         ▼
-Runtime Implementations
+Runtime Implementations (Tauri IPC | Browser plugins)
         │
         ▼
 Business Engine / Persistence
@@ -97,524 +58,160 @@ Every layer has exactly one responsibility.
 
 ### EngineRouter & PersistenceRouter (`IRouter<T>`)
 
-Responsible exclusively for selecting and routing to the active runtime implementation (Tauri IPC vs Browser In-Memory / LocalStorage):
+Select and route to the active runtime implementation (Tauri IPC vs browser in-memory / LocalStorage):
 
-- Implement generic lifecycle interface `IRouter<T>` providing `setImplementationForTesting(implementation: T): void`.
-- Expose domain sub-interfaces via polymorphic getters (`timer`, `metrics`, `timeLogs`, `validation`).
-- Never contain business logic, transformation, or fallback heuristics.
-
----
+- Implement `IRouter<T>`, which provides `setImplementationForTesting(implementation: T): void`.
+- Expose domain sub-interfaces through getters (`timer`, `metrics`, `timeLogs`, `validation`).
+- Contain no business logic, transformation or fallback heuristics.
 
 ### Engine (`IEngine`)
 
-Business logic and calculations belong exclusively to Engine (`IEngine`), decomposed according to ISP into segregated domain sub-engines:
+All business logic and calculations belong to the Engine, split into sub-engines:
 
 - `timer: ITimerEngine`: timer lifecycle (`startTimer`, `stopTimer`, `resumeTimer`, `getActiveLogs`)
 - `metrics: IMetricsEngine`: snapshot metrics and elapsed calculations (`getComputedMetrics`, `getTaskElapsed`, `getProjectElapsed`, `getElapsedRange`, `getProjectStatistics`)
-- `timeLogs: ITimeLogsEngine`: interval edits, corrections, and audit history (`editTimeLog`)
-- `validation: IValidationEngine`: domain entity validations (`validateProjectName`, `validateTaskName`, `validateTaskHierarchy`)
+- `timeLogs: ITimeLogsEngine`: interval edits, corrections and audit history (`editTimeLog`)
+- `validation: IValidationEngine`: entity validation (`validateProjectName`, `validateTaskName`, `validateTaskHierarchy`)
 
-Rust remains the reference implementation; Browser `EnginePlugin` guarantees behavioral parity.
-
----
+Rust is the reference implementation; the browser `EnginePlugin` must behave identically, verified by `tests/integration/engine/CrossRuntimeParity.test.ts`.
 
 ### Persistence (`IPersistence`)
 
-Persistence (`IPersistence` / `PersistenceRouter`) is responsible only for storing, retrieving, and mutating entity state.
+Persistence stores, retrieves and mutates entity state:
 
-Responsibilities:
-
-- read state (`load`, `overrideState`, `reset`)
+- state operations (`load`, `overrideState`, `reset`)
 - entity CRUD (`projects`, `tasks`, `timeLogs`, `holidays`, `patches`)
-- configurations and settings (`settings`, `runtimeConfigs`, `uiState`, `externalApi`, `locale`)
-- backup and export operations
-- parity between SQLite backend (Tauri) and LocalStorage `PersistencePlugin` (Browser)
-- domain persistence services (`projects`, `tasks`, etc.) are decoupled from `core.load()` and execute targeted, granular queries or IPC calls directly
+- configuration (`settings`, `runtimeConfigs`, `uiState`, `externalApi`, `locale`)
+- backup and export
+- parity between SQLite (Tauri) and the LocalStorage `PersistencePlugin` (browser)
 
-Persistence never:
+Domain persistence services execute targeted queries or IPC calls; granular mutations (`rename`, `getProjectId`, `getSubtasks`) never download the full state via `core.load()`.
 
-- validates business time overlap rules (Engine responsibility)
-- calculates metric statistics
-- orchestrates active timer ticks
-- invokes full-state `core.load()` downloads for granular single-entity mutations (e.g. `rename`, `getProjectId`, `getSubtasks`)
+Persistence never validates time-overlap rules, calculates statistics or orchestrates active timers. Repositories access storage only.
+
+### Native Modules (`src-tauri/src/`)
+
+| Module | Responsibility |
+| --- | --- |
+| `engine/` | Reference engine: timers, metrics, validation |
+| `persistence/`, `repositories/` | SQLite storage; raw SQL only in `repositories/` |
+| `commands/` | Tauri IPC commands |
+| `cli/` | Headless native CLI (binary `oxy`), see [`CLI.md`](./CLI.md) |
+| `sinks/` | CSV and webhook output |
+| `workflows/` | Automated triggers (auto-stop, day boundary) |
+| `tray/` | System tray |
+| `types/` | Shared domain types, exported to `src/bindings/` via `ts-rs` |
+
+Boundaries between these modules are enforced by the Rust architecture tests in `src-tauri/tests/architecture/`.
 
 ---
 
 ## Frontend Architecture
 
-The frontend follows the same architectural philosophy as the backend.
-
-Business logic remains outside React.
-
-Frontend is divided into independent responsibilities.
-
----
+Business logic stays outside React. The frontend is split into independent responsibilities.
 
 ### Runtime
 
-A Runtime represents the execution environment.
+A runtime is the execution environment: currently **Browser** and **Tauri**.
 
-Current runtimes:
+A runtime is responsible only for environment integration, native APIs, window management, runtime wrappers and runtime styling. It never changes business logic, layout composition or component hierarchy.
 
-- Browser
-- Tauri
-
-Future runtimes may include:
-
-- Electron
-- Mobile
-- Embedded
-- WebView
-
-Runtime is responsible only for:
-
-- environment integration
-- native APIs
-- window management
-- runtime wrappers
-- runtime styling
-
-Runtime never changes:
-
-- business logic
-- layout composition
-- component hierarchy
-
----
-
-### Runtime Applications
-
-Each runtime owns its application entry point.
-
-Examples:
-
-```text
-app-browser/
-
-app-tauri/
-```
-
-Both expose exactly the same frontend architecture.
-
-Differences should remain limited to:
-
-- runtime integration
-- window behavior
-- runtime CSS
-- native APIs
-
----
+Each runtime has its own application entry point (`src/app-browser/AppBrowser.tsx`, `src/app-tauri/AppTauri.tsx`) with its own `PlatformCapabilities`. Both expose the same frontend architecture; only runtime integration, window behavior, runtime CSS and native APIs differ.
 
 ### LayoutManager
 
-LayoutManager composes the application inside the current runtime.
+`LayoutManager` (`src/layouts/manager/`) composes the application inside the current runtime: it hosts the application shell, shared providers, root state classes and `ThemeRegistry`, and renders the selected LayoutVariant.
 
-Responsibilities:
+It never decides the runtime, the layout variant or the visual scale; those come from configuration.
 
-- host application shell
-- compose LayoutVariant
-- provide shared application structure
-- host common providers
+### LayoutVariant and Builders
 
-LayoutManager never decides:
+LayoutVariant defines application composition: page composition, column layout, navigation placement and major screen regions.
 
-- runtime
-- layout variant
-- visual scale
+| Variant | Builder |
+| --- | --- |
+| Full | `FullLayoutBuilder` |
+| Medium | `MediumLayoutBuilder` |
+| Compact | `CompactLayoutBuilder` |
 
-Those values come from application configuration.
-
----
-
-### LayoutVariant
-
-LayoutVariant defines application composition.
-
-Examples:
-
-- Full
-- Half
-- Compact
-
-LayoutVariant determines:
-
-- page composition
-- column layout
-- navigation placement
-- major screen regions
-
-Each LayoutVariant has its own Builder.
-
----
-
-### Layout Builders
-
-Builders compose layouts.
-
-Examples:
-
-- FullBuilder
-- HalfBuilder
-- CompactBuilder
-
-Builders never:
-
-- calculate sizes
-- detect runtime
-- modify business logic
-
-Builders only compose views.
-
----
+Builders (`src/layouts/builders/`) only compose views. They never calculate sizes, detect the runtime or contain business logic. A new layout means a new builder registered in `LayoutManager`; runtimes stay unchanged.
 
 ### TextAndIconSize
 
-TextAndIconSize defines visual scale.
+TextAndIconSize (`small`, `medium`, `large`) defines visual scale: typography, icon sizes, spacing, paddings, border radius. It is implemented purely as CSS design tokens and never changes layout composition. A new scale means new token values; components stay unchanged.
 
-It controls only:
+### CSS and Theming
 
-- typography
-- icon sizes
-- spacing
-- paddings
-- border radius
-- CSS Design Tokens
-
-It never changes layout composition.
-
----
-
-## CSS Architecture
-
-CSS is responsible for presentation.
-
-React components should not calculate:
-
-- spacing
-- paddings
-- margins
-- typography
-- sizing
-- theme visual variants via inline branching
-
-Visual scaling belongs entirely to CSS Design Tokens.
-
-Application state is exposed through root classes.
-
-Example:
-
-```text
-runtime-tauri
-
-layout-full
-
-text-medium
-```
-
-Components consume only CSS variables and semantic design tokens (`bg-card`, `border-border`, `text-card-foreground`, `text-foreground`).
-
-Example:
+CSS owns presentation. `LayoutManager` exposes application state as data attributes on its root element (`data-runtime`, `data-layout-variant`, `data-text-size`), CSS selects on them, and components consume CSS variables and semantic tokens (`bg-card`, `border-border`, `text-foreground`):
 
 ```css
 padding: var(--spacing-card);
 ```
 
-React should not contain conditional styling logic based on scale.
+Themes follow dependency inversion: components never know the active theme. `ThemeRegistry` (`src/styles/themeRegistry.ts`) holds the built-in themes (`light`, `dark`, `high-contrast`) and custom ones, and applies a theme by setting `data-theme` on `document.documentElement`.
 
-### Theme DIP Architecture
+### Contexts
 
-The application adopts the Dependency Inversion Principle (DIP) for theme styling:
+Contexts are split by domain to avoid unnecessary re-renders:
 
-- **No Inline Theme Branching**: React components must not evaluate `resolvedTheme === 'light'` or `theme === 'high-contrast'`.
-- **ThemeRegistry**: The singleton `ThemeRegistry` (`src/styles/themeRegistry.ts`) holds built-in (`light`, `dark`, `high-contrast`) and extensible custom themes.
-- **Dynamic Application**: Applying a theme injects or toggles `data-theme` on `document.documentElement` and applies CSS variables dynamically.
-- **AST Architecture Verification**: Strict AST inspection in `tests/architecture/specs/no-inline-theme-ternaries.arch.test.ts` enforces zero inline theme conditionals across the entire codebase with an empty allowlist.
+| Context | Responsibility |
+| --- | --- |
+| `WindowShellContext` | Window lifecycle, tray minimization, toasts, shell alerts |
+| `PlatformCapabilitiesContext` | Capabilities of the current runtime |
+| `DataContext` | Projects, tasks, time logs, selections, CRUD and the metrics snapshot (`useMetricsManager`) |
+| `SettingsContext` | Preferences: layout variant, theme, visual scale |
+| `LocaleProvider` | Current locale and dictionaries |
+| `CliSessionContext` | Terminal session, history, `CliDrawer` state, live vs sandbox mode |
 
----
+### Live Elapsed Time
 
-## React Responsibilities
+Elapsed-time display is centralized:
 
-React is responsible only for:
+- `useLiveTaskElapsed(taskId, options)`: reconciles the engine metrics snapshot (`EngineComputedMetrics`) with the live delta of the active timer.
+- `useLiveProjectElapsed(projectId, options)`: aggregate live elapsed time for a project.
 
-- rendering
-- user interaction
-- local UI state
-- view composition
+### CLI Integration
 
-React must never contain:
+The in-app CLI (`src/features/cli/`) uses the same domain services as the GUI:
 
-- business calculations
-- persistence logic
-- runtime selection
-- platform-specific workflows
-
----
-
-## Component Rules
-
-Components should:
-
-- be small
-- have a single responsibility
-- remain reusable
-- avoid unnecessary state
-
-Prefer composition.
-
-Avoid monolithic components.
+- Report commands delegate durations to `IMetricsEngine.getComputedMetrics()` and `getElapsedRange()`, so multi-day logs, midnight crossings and active timers are calculated exactly as in the GUI.
+- Terminal output is built with `TerminalOutput` (`src/features/cli/utils/terminalOutput.ts`) using typed line envelopes (`info`, `success`, `error`, `output`).
+- `switch <task-id>` stops and starts timers atomically.
+- Domain exceptions are translated into structured terminal envelopes, never unhandled rejections.
 
 ---
 
-## Hooks
+## Quality Strategy
 
-Hooks orchestrate UI behavior.
+| Tier | What it covers |
+| --- | --- |
+| Unit | Utilities, plugins, rules, builders, design-system primitives and composites |
+| Integration | Routers, runtime communication, Tauri commands, persistence, composite views, CLI flows |
+| Architecture | AST and module-boundary rules (TS: `tests/architecture/`, Rust: `src-tauri/tests/architecture/`) |
+| E2E | Timer, project, task, configuration and CLI journeys (Playwright) |
+| Parity | Engine and CLI behavior identical across Rust and browser |
+| Mutation | Stryker on core logic |
 
-Hooks must not:
+Test structure, naming and isolation rules: [`testing_standards.md`](../.agents/rules/testing_standards.md).
 
-- implement business logic
-- access persistence directly
-- duplicate Engine behavior
+Architecture tests (TypeScript):
 
-### Live Calculation Hooks
-
-Time elapsed calculations must never be duplicated across components or layouts.
-
-- `useLiveTaskElapsed(taskId, options)`: Single source of truth for task elapsed time. Reconciles cached snapshot metrics (`EngineComputedMetrics`) with the live delta from the active timer tick.
-- `useLiveProjectElapsed(projectId, options)`: Computes aggregate live elapsed time for entire projects.
-
-Ad-hoc ticker intervals (`setInterval` / `useTimeTicker`) in individual components are strictly forbidden.
-
----
-
-## Context Architecture (ISP & SRP)
-
-Contexts are decomposed by domain responsibility to prevent unnecessary component re-renders:
-
-1. **`WindowShellContext`**: Controls window lifecycle, tray minimization, toasts, and shell alerts.
-2. **`DataContext`**: Manages entity records (projects, tasks, timelogs), selections, and CRUD operations.
-3. **`EngineContext`**: Manages metrics calculations, background sync, and daemon status.
-4. **`SettingsContext`**: Manages user preferences (layout variant, theme, visual scale).
-5. **`LocaleProvider`**: Manages current locale and dictionary translations.
-6. **`CliSessionContext`**: Manages interactive terminal session state, shared history buffers, command history traversal cursors, global `CliDrawer` presentation state, and polymorphic context routing between live business data and isolated `SandboxEmulatorStore`.
-
-### CLI Engine & Metrics Integration
-
-The CLI subsystem (`src/features/cli/`) is integrated directly with core domain services:
-
-- **`EngineRouter.metrics` Consumption**: CLI report commands (`report today`, `report week`, `report month`) delegate elapsed duration calculations to `IMetricsEngine.getComputedMetrics()` and `IMetricsEngine.getElapsedRange()`. This guarantees that multi-day logs, midnight boundary crossings, and active timers are calculated with point-in-time correctness, identical to the graphical UI.
-- **Fluent Terminal Output**: Structured terminal emissions use `TerminalOutput` builder (`src/features/cli/utils/terminalOutput.ts`), ensuring consistent styling, spacing, table borders, and typed line envelopes (`info`, `success`, `error`, `output`).
-- **Atomic Workflows**: High-velocity operator workflows (such as atomic task switching `switch <task-id>`) coordinate timer stops and starts atomically without interim idle states.
-- **Error Handling**: Domain exceptions (`ContextException` with code `ERR_CLI_SESSION_CONTEXT`, `EngineException`, `PersistenceException`) are caught and translated into structured envelopes without unhandled runtime rejections.
+| Spec | Protects |
+| --- | --- |
+| `no-raw-html-primitives` | Design-system primitives only in `src/components/ui/` |
+| `no-inline-theme-ternaries` | Theme dependency inversion |
+| `runtime-isolation` | Shared code does not detect the runtime |
+| `engine-boundary`, `persistence-boundary` | Layer boundaries |
+| `circular-dependencies` | No import cycles |
+| `timer-live-calculation` | No ad-hoc elapsed tickers |
+| `root-folder-aliases` | Import alias conventions |
+| `test-governance` | Test naming and DOM-access rules |
 
 ---
 
-## Repository Rules
+## Toolchain
 
-Repositories only access storage.
-
-Never:
-
-- validate
-- calculate
-- orchestrate workflows
-
----
-
-## Runtime Rules
-
-Runtime-specific code must remain isolated.
-
-No shared component should know whether it runs inside:
-
-- Browser
-- Tauri
-
-Runtime differences belong only to runtime implementations.
-
----
-
-## Builder Rules
-
-Builders define structure.
-
-Builders never define scale.
-
-Builders never define runtime behavior.
-
----
-
-### Architectural Tests
-
-- AST scanning for raw HTML primitives (`no-raw-html-primitives.rule.ts` with zero exceptions)
-- Runtime isolation and boundary checks
-- Circular dependency detection
-- Persistence boundary enforcement
-
----
-
-### Unit Tests
-
-- utilities
-- plugins
-- repositories
-- builders
-- design system primitives and composites
-
-use AAA design pattern in tests
-use descriptive name of tests  ( Arrange Act Assert)
-
----
-
-### Integration Tests
-
-- routers
-- runtime communication
-- tauri commands
-- persistence
-- composite dialogs and view workflows
-
-use BDT design pattern ( Behavior - Description - Outcome)
-
----
-
-### End-to-End
-
-- timer workflow
-- project workflow
-- task workflow
-- configuration
-
----
-
-## Design System, a11y & i18n Standards
-
-### 1. Primitive UI Layer
-
-All atomic interactive elements belong exclusively in `src/components/ui/`. Writing raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>` anywhere else is an architectural violation enforced by tests and linter.
-
-### 2. Internationalization (i18n)
-
-All user-facing strings, labels, and placeholders must use `translate(...)` or `useTranslation`. Never use manual fallback operators in JSX (`{translate(...) || 'Fallback'}`); fallback to `en` dictionary is handled by the translation engine.
-
-### 3. Accessibility (a11y)
-
-All buttons, inputs, modals, and tables must meet WCAG standards with proper ARIA attributes (`aria-label`, `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, `role="log"`).
-
-### 4. Code Comments & Clean Code
-
-Comments must explain technical or business rationale only. Never write declarative claims ("adhering to WCAG..."), decorative dividers (`===`, `***`), or Polish comments. Use concise technical English.
-
----
-
-## Performance
-
-Always prioritize:
-
-1. Correctness
-2. Maintainability
-3. Readability
-4. Performance
-
-Never sacrifice architecture for hypothetical optimizations.
-
----
-
-## AI Development Workflow
-
-Every architectural change follows the same sequence.
-
-```text
-Architecture
-
-↓
-
-Documentation
-
-↓
-
-Contracts
-
-↓
-
-Implementation
-
-↓
-
-Tests
-
-↓
-
-Refactoring
-
-↓
-
-Optimization
-
-↓
-
-Release
-```
-
-AI must never skip steps.
-
----
-
-## Quality Assurance & Testing Standards
-
-Testing across oXyFlow follows a strict 3-tier hierarchy and unified methodology:
-
-### 1. Unit Testing (Strict AAA)
-
-- Single isolated units (algorithms, formatters, utilities, isolated hooks, design primitives).
-- Follows strict **Arrange - Act - Assert (AAA)** pattern with zero interleaving.
-- All dependencies mocked/faked; uses domain Test Data Builders (`tests/shared/builders/entity-builders.ts` and `src-tauri/tests/shared/builders/`).
-
-### 2. Integration Testing (Strict BDT)
-
-- Cross-module boundaries (routers, persistence commands, IPC handlers, composite views).
-- Follows strict **Behavior-Driven Testing (BDT)**: `describe('Given...') -> describe('When...') -> it('Then...')` with pure markers `// Given`, `// When`, `// Then`.
-- Adheres to **Triple Decoupling**: independent of localized strings, CSS theme classes, and native side-effects.
-
-### 3. End-to-End User Journeys (Playwright)
-
-- High-level user workflows executed in headless browser via Page Object Model (`tests/e2e/pages/`).
-- Triple Decoupling in E2E: locators strictly target `data-testid` or stable element IDs; zero copywriting text locators.
-- Isolated and deterministic storage seeding per test lifecycle (`seedStorage` / `resetStorage`).
-
-### 4. Cross-Runtime CLI Parity
-
-- Verified via shared test fixture matrix (`tests/shared/fixtures/cli-parity-cases.json`).
-- Executed by both Vitest (`cli-cross-runtime-parity.test.ts`) and Cargo test (`cli_parity_test.rs`).
-- Native binary subprocess tests exercise compiled CLI against physical SQLite databases in temp directories.
-
-### 5. AST Test Governance
-
-- Enforced automatically by `tests/architecture/specs/test-governance.arch.test.ts`.
-- Zero tolerance for `snake_case` test titles without spaces and raw `document.getElementById` queries.
-
----
-
-## Toolchain & Runtime (Bun)
-
-The project standardizes exclusively on **Bun*- for frontend package management, script execution, and tooling:
-
-- **Single Lockfile**: Dependencies are locked solely via `bun.lock`. Never generate or commit `package-lock.json`.
-- **Execution**: All scripts are executed via `bun run <script>` (e.g. `bun run dev`, `bun run check`, `bun run test`).
-- **Tool Invocation**: External binaries are called via `bun x <binary>`.
-- **No Mixed Toolchains**: `npm`, `npx`, `yarn`, and `pnpm` are strictly prohibited.
-
----
-
-## Definition of Done
-
-A task is complete only when:
-
-- architecture remains consistent
-- documentation is updated (`docs/`, `AGENT.md`, `README.md`)
-- tests pass (`bun run test`)
-- static verification passes (`bun run check`, covering TypeScript, ESLint, Clippy, rustfmt)
-- both runtimes behave consistently
-- new code follows engineering rules
+Bun is the only JavaScript package manager and script runner (`bun install`, `bun run <script>`, `bun x <binary>`); `bun.lock` is the only lockfile. Commands are listed in [`../AGENTS.md`](../AGENTS.md#commands).
 
 ---
 
@@ -623,19 +220,16 @@ A task is complete only when:
 ### Never
 
 - Put business logic into React.
-- Bypass EngineRouter.
-- Bypass PersistenceRouter.
+- Bypass EngineRouter or PersistenceRouter.
 - Couple UI to storage.
-- Detect runtime inside shared components.
+- Detect the runtime inside shared components.
 - Calculate UI scale inside React components.
 - Mix layout composition with visual scaling.
 
 ### Always
 
-- Keep responsibilities focused.
-- Prefer composition.
+- Keep responsibilities focused and prefer composition.
 - Isolate runtimes.
 - Keep LayoutVariant independent from TextAndIconSize.
 - Keep CSS responsible for presentation.
-- Keep components simple.
-- Leave the project cleaner than you found it.
+- Leave touched code cleaner than you found it, within the refactoring scope defined in `AGENTS.md`.
