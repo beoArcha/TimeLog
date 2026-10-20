@@ -7,3 +7,4 @@ pub mod error_envelope_test;
 pub mod interactive_flow_test;
 pub mod report_integration_test;
 pub mod subprocess_test;
+pub mod subsystem_flow_test;

@@ -62,3 +62,35 @@ pub const DEFAULT_NON_COMPACT_VARIANT: &str = "full";
 pub const DEFAULT_API_METHOD: &str = "POST";
 pub const DEFAULT_LOCALE: &str = "system";
 pub const DEFAULT_CUSTOM_TRANSLATIONS: &str = "{}";
+
+pub const SELECT_ALL_CONFIG_ENTRIES: &str = "SELECT key, value FROM config ORDER BY key ASC";
+
+pub const INSERT_OR_REPLACE_CLI_ALIAS: &str = "
+    INSERT OR REPLACE INTO cli_aliases (name, template, created_at)
+    VALUES (?1, ?2, ?3)
+";
+
+pub const SELECT_ALL_CLI_ALIASES: &str = "
+    SELECT name, template, created_at FROM cli_aliases ORDER BY name ASC
+";
+
+pub const SELECT_CLI_ALIAS_BY_NAME: &str = "
+    SELECT name, template, created_at FROM cli_aliases WHERE name = ?1
+";
+
+pub const DELETE_CLI_ALIAS_BY_NAME: &str = "DELETE FROM cli_aliases WHERE name = ?1";
+
+pub const INSERT_OR_REPLACE_CLI_SINK: &str = "
+    INSERT OR REPLACE INTO cli_sinks (name, sink_type, target, config, enabled, created_at)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+";
+
+pub const SELECT_ALL_CLI_SINKS: &str = "
+    SELECT name, sink_type, target, config, enabled, created_at FROM cli_sinks ORDER BY name ASC
+";
+
+pub const SELECT_CLI_SINK_BY_NAME: &str = "
+    SELECT name, sink_type, target, config, enabled, created_at FROM cli_sinks WHERE name = ?1
+";
+
+pub const DELETE_CLI_SINK_BY_NAME: &str = "DELETE FROM cli_sinks WHERE name = ?1";

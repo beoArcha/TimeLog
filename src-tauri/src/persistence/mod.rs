@@ -1,5 +1,6 @@
 pub mod auxiliary;
 pub mod cache;
+pub mod cli;
 pub mod config;
 pub mod core;
 pub mod error;
@@ -14,6 +15,7 @@ pub mod webhook_queue;
 pub mod workflow;
 
 use auxiliary::AuxiliaryPersistence;
+use cli::CliPersistence;
 use core::CorePersistence;
 use holidays::HolidaysPersistence;
 use patches::PatchesPersistence;
@@ -40,6 +42,7 @@ pub struct Persistence {
     pub auxiliary: AuxiliaryPersistence,
     pub webhook_queue: WebhookQueuePersistence,
     pub workflow: WorkflowPersistence,
+    pub cli: CliPersistence,
 }
 
 impl Persistence {
@@ -58,7 +61,8 @@ impl Persistence {
             patches: PatchesPersistence::new(shared.clone()),
             auxiliary: AuxiliaryPersistence::new(shared.clone()),
             webhook_queue: WebhookQueuePersistence::new(shared.clone()),
-            workflow: WorkflowPersistence::new(shared),
+            workflow: WorkflowPersistence::new(shared.clone()),
+            cli: CliPersistence::new(shared),
         })
     }
 }

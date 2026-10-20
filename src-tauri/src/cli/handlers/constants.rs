@@ -27,12 +27,39 @@ pub const MSG_NO_TARGET_SPECIFIED: &str = "No target task specified. Usage: oxy 
 pub const MSG_NO_TODAY_LOGS: &str =
     "No time recorded today yet. Use 'oxy start <task>' to begin.\n";
 
-pub const MSG_STUB_CONFIG: &str =
-    "Not implemented yet: Configuration management will be implemented in Phase 10.6.";
-pub const MSG_STUB_MASK: &str =
-    "Not implemented yet: Action masks and command aliases will be implemented in Phase 10.6.";
-pub const MSG_STUB_SINK: &str =
-    "Not implemented yet: External CSV and webhook sinks will be implemented in Phase 10.6.";
+pub const MSG_NO_SINKS_CONFIGURED: &str =
+    "No external sinks configured. Use 'oxy sink set-csv' or 'oxy sink set-webhook'.";
+pub const HEADER_SINKS: &str =
+    "📡 Configured Sinks:\n──────────────────────────────────────────────────\n";
+pub const FORMAT_SINK_LIST_ITEM: &str = " • [{}] {} ➔ {} ({})\n";
+pub const MSG_SINK_CSV_CONFIGURED: &str = "Configured CSV audit sink directory: {}";
+pub const MSG_SINK_WEBHOOK_CONFIGURED: &str = "Configured webhook sink URL: {}";
+pub const MSG_SINK_TEST_HEADER: &str =
+    "🧪 Testing Configured Sinks:\n──────────────────────────────────────────────────\n";
+pub const FORMAT_SINK_TEST_RESULT: &str = " {} [{}] {}: {}\n";
+pub const ERR_SINK_INVALID_URL: &str = "Invalid webhook URL: must start with http:// or https://";
+pub const ERR_SINK_INVALID_DIR: &str = "Invalid CSV directory: path is empty";
+
+pub const MSG_NO_MASKS_CONFIGURED: &str =
+    "No action masks configured. Use 'oxy mask set <name> <template>'.";
+pub const HEADER_MASKS: &str =
+    "🎭 Registered Action Masks:\n──────────────────────────────────────────────────\n";
+pub const FORMAT_MASK_LIST_ITEM: &str = " • {} ➔ \"{}\"\n";
+pub const MSG_MASK_CONFIGURED: &str = "Registered action mask '{}' ➔ \"{}\"";
+pub const MSG_MASK_REMOVED: &str = "Removed action mask: {}";
+pub const ERR_MASK_NOT_FOUND: &str = "Action mask '{}' not found.";
+pub const ERR_MASK_EMPTY_NAME: &str = "Action mask name cannot be empty.";
+pub const ERR_MASK_EMPTY_TEMPLATE: &str = "Action mask template cannot be empty.";
+pub const ERR_MASK_SELF_REFERENCE: &str =
+    "Action mask template cannot reference itself recursively.";
+
+pub const MSG_NO_CONFIG_ENTRIES: &str = "No configuration entries found.";
+pub const HEADER_CONFIG: &str =
+    "⚙️  Configuration Settings:\n──────────────────────────────────────────────────\n";
+pub const FORMAT_CONFIG_LIST_ITEM: &str = " • {} = \"{}\"\n";
+pub const MSG_CONFIG_SET: &str = "Set configuration '{}' = \"{}\"";
+pub const ERR_CONFIG_KEY_NOT_FOUND: &str = "Configuration key '{}' not found.";
+pub const ERR_CONFIG_EMPTY_KEY: &str = "Configuration key cannot be empty.";
 
 pub const HEADER_PROJECTS: &str =
     "📂 Projects:\n──────────────────────────────────────────────────\n";

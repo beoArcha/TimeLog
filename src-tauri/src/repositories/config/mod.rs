@@ -1,4 +1,6 @@
 pub mod auxiliary;
+pub mod cli_aliases;
+pub mod cli_sinks;
 pub mod constants;
 pub mod runtime_config;
 pub mod settings;

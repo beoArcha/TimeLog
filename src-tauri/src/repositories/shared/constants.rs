@@ -125,3 +125,22 @@ pub const CREATE_WEBHOOK_QUEUE_TABLE: &str = "
         created_at TEXT NOT NULL
     )
 ";
+
+pub const CREATE_CLI_ALIASES_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS cli_aliases (
+        name TEXT PRIMARY KEY,
+        template TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )
+";
+
+pub const CREATE_CLI_SINKS_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS cli_sinks (
+        name TEXT PRIMARY KEY,
+        sink_type TEXT NOT NULL,
+        target TEXT NOT NULL,
+        config TEXT,
+        enabled INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL
+    )
+";
