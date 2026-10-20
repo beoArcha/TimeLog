@@ -1,4 +1,5 @@
 // Domain submodules (>= 2 test files)
+pub mod cli;
 pub mod commands;
 pub mod common;
 pub mod engine;

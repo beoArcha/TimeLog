@@ -2,7 +2,7 @@ use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use oxy_flow::engine::Engine;
 use oxy_flow::persistence::Persistence;
-use oxy_flow::types::{ElapsedRangeFilter, Settings};
+use oxy_flow::types::{AuditSource, ElapsedRangeFilter, Settings};
 
 #[test]
 fn test_settings_lifecycle_save_and_retrieve() {
@@ -140,7 +140,7 @@ fn test_engine_timer_stop_and_log_editing() {
             "2025-01-01T10:00:00Z",
             Some("2025-01-01T11:00:00Z"),
             Some("Edited Note"),
-            Some("Test Reason"),
+            Some(AuditSource::ManualAdjustment),
         )
         .unwrap();
     let edited = persistence.time_logs.get_by_id(log_id).unwrap();

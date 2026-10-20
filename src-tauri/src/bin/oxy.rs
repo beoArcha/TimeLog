@@ -1,4 +1,5 @@
 use clap::Parser;
+use oxy_flow::cli::shared::constants::{ERR_STORAGE_INIT, EXIT_CODE_STORAGE_ERROR};
 use oxy_flow::cli::{self, CliArgs};
 use oxy_flow::common::paths::{get_default_csv_dir, get_default_db_path};
 use oxy_flow::engine::Engine;
@@ -23,21 +24,11 @@ fn main() -> ExitCode {
     let persistence = match Persistence::new(&persistence_config) {
         Ok(p) => p,
         Err(e) => {
-            eprintln!("Storage Initialization Error: {e}");
-            return ExitCode::from(3);
+            eprintln!("{}", ERR_STORAGE_INIT.replace("{}", &e.to_string()));
+            return ExitCode::from(EXIT_CODE_STORAGE_ERROR);
         }
     };
 
     let engine = Engine::new(&persistence);
-
-    match cli::handle_cli(cli_args, &persistence, &engine) {
-        Ok(output) => {
-            println!("{}", output);
-            ExitCode::SUCCESS
-        }
-        Err(err) => {
-            eprintln!("Error: {}", err);
-            ExitCode::from(1)
-        }
-    }
+    cli::run(cli_args, &persistence, &engine)
 }

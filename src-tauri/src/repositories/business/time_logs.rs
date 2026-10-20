@@ -60,6 +60,20 @@ impl BusinessRepository {
         )?)
     }
 
+    pub fn insert_full_time_log(&self, entry: &crate::types::NewTimeLog) -> Result<usize> {
+        let conn = self.connect()?;
+        Ok(conn.execute(
+            constants::INSERT_FULL_TIME_LOG,
+            params![
+                entry.id,
+                entry.task_id,
+                entry.start_time,
+                entry.end_time,
+                entry.note
+            ],
+        )?)
+    }
+
     pub fn query_active_logs(&self) -> Result<Vec<String>> {
         let conn = self.connect()?;
         let mut stmt = conn.prepare(constants::SELECT_ACTIVE_TASK_IDS)?;
@@ -88,39 +102,36 @@ impl BusinessRepository {
         Ok(stmt.query_row(params![log_id], Self::map_time_log_row)?)
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn update_time_log_with_history(
         &self,
-        id: &str,
-        task_id: &str,
-        start_time: &str,
-        end_time: Option<&str>,
-        note: Option<&str>,
-        history_id: &str,
-        edited_at: &str,
-        prev_start_time: Option<&str>,
-        prev_end_time: Option<&str>,
-        prev_note: Option<&str>,
-        reason: Option<&str>,
+        entry: &crate::types::TimeLogUpdateHistory,
     ) -> Result<()> {
         let mut conn = self.connect()?;
         let tx = conn.transaction()?;
 
         tx.execute(
             constants::UPDATE_TIME_LOG,
-            params![id, task_id, start_time, end_time, note],
+            params![
+                entry.id,
+                entry.task_id,
+                entry.start_time,
+                entry.end_time,
+                entry.note
+            ],
         )?;
+
+        let reason_str = entry.reason.map(|r| r.as_str());
 
         tx.execute(
             constants::INSERT_TIME_LOG_HISTORY,
             params![
-                history_id,
-                id,
-                edited_at,
-                prev_start_time,
-                prev_end_time,
-                prev_note,
-                reason
+                entry.history_id,
+                entry.id,
+                entry.edited_at,
+                entry.prev_start_time,
+                entry.prev_end_time,
+                entry.prev_note,
+                reason_str
             ],
         )?;
 

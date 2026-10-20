@@ -78,6 +78,58 @@ pub struct TimeLog {
     pub edit_history: Option<Vec<TimeLogEditHistory>>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct NewTimeLog {
+    pub id: String,
+    pub task_id: String,
+    pub start_time: String,
+    #[ts(optional)]
+    pub end_time: Option<String>,
+    #[ts(optional)]
+    pub note: Option<String>,
+}
+
+pub const AUDIT_SOURCE_CLI_EDIT: &str = "CLI Edit";
+pub const AUDIT_SOURCE_GUI_EDIT: &str = "GUI Edit";
+pub const AUDIT_SOURCE_SYSTEM_PATCH: &str = "System Patch";
+pub const AUDIT_SOURCE_MANUAL_ADJUSTMENT: &str = "Manual Adjustment";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AuditSource {
+    CliEdit,
+    GuiEdit,
+    SystemPatch,
+    ManualAdjustment,
+}
+
+impl AuditSource {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            AuditSource::CliEdit => AUDIT_SOURCE_CLI_EDIT,
+            AuditSource::GuiEdit => AUDIT_SOURCE_GUI_EDIT,
+            AuditSource::SystemPatch => AUDIT_SOURCE_SYSTEM_PATCH,
+            AuditSource::ManualAdjustment => AUDIT_SOURCE_MANUAL_ADJUSTMENT,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TimeLogUpdateHistory<'a> {
+    pub id: &'a str,
+    pub task_id: &'a str,
+    pub start_time: &'a str,
+    pub end_time: Option<&'a str>,
+    pub note: Option<&'a str>,
+    pub history_id: &'a str,
+    pub edited_at: &'a str,
+    pub prev_start_time: Option<&'a str>,
+    pub prev_end_time: Option<&'a str>,
+    pub prev_note: Option<&'a str>,
+    pub reason: Option<AuditSource>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]

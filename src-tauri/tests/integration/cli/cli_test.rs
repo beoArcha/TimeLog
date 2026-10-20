@@ -4,9 +4,8 @@ use oxy_flow::cli::manage::project::ProjectCommand;
 use oxy_flow::cli::manage::subtask::SubtaskCommand;
 use oxy_flow::cli::manage::task::TaskCommand;
 use oxy_flow::cli::manage::ManageCommand;
-use oxy_flow::cli::shared::parser::CliCommands;
 use oxy_flow::cli::timer::TimerCommand;
-use oxy_flow::cli::{handle_cli, CliArgs, CliOutput};
+use oxy_flow::cli::{handle_cli, CliArgs, CliCommand, CliOutput};
 use oxy_flow::engine::Engine;
 use oxy_flow::persistence::Persistence;
 use rusqlite::Connection;
@@ -38,9 +37,10 @@ fn test_given_existing_task_when_timer_start_invoked_via_cli_then_returns_starte
     let (persistence, _conn, _temp) = setup("test_cli_start_returns_started_output");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Timer(TimerCommand::Start {
+        command: Some(CliCommand::Timer(TimerCommand::Start {
             task_id: "t1".to_string(),
-        }),
+        })),
+        ..Default::default()
     };
 
     // When
@@ -75,7 +75,8 @@ fn test_given_running_timer_when_status_invoked_via_cli_then_returns_active_task
     let engine = Engine::new(&persistence);
     engine.start_timer("t1").expect("start failed");
     let args = CliArgs {
-        command: CliCommands::Timer(TimerCommand::Status),
+        command: Some(CliCommand::Timer(TimerCommand::Status)),
+        ..Default::default()
     };
 
     // When
@@ -98,7 +99,8 @@ fn test_given_idle_system_when_status_invoked_via_cli_then_returns_empty_active_
     let (persistence, _conn, _temp) = setup("test_cli_status_empty_when_no_timer_running");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Timer(TimerCommand::Status),
+        command: Some(CliCommand::Timer(TimerCommand::Status)),
+        ..Default::default()
     };
 
     // When
@@ -120,7 +122,8 @@ fn test_given_running_timer_when_stop_invoked_via_cli_then_returns_stopped_outpu
     let engine = Engine::new(&persistence);
     engine.start_timer("t1").expect("start failed");
     let args = CliArgs {
-        command: CliCommands::Timer(TimerCommand::Stop),
+        command: Some(CliCommand::Timer(TimerCommand::Stop)),
+        ..Default::default()
     };
 
     // When
@@ -140,7 +143,8 @@ fn test_given_idle_system_when_stop_invoked_via_cli_then_succeeds_gracefully() {
     let (persistence, _conn, _temp) = setup("test_cli_stop_when_nothing_running_is_ok");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Timer(TimerCommand::Stop),
+        command: Some(CliCommand::Timer(TimerCommand::Stop)),
+        ..Default::default()
     };
 
     // When
@@ -159,9 +163,10 @@ fn test_given_nonexistent_task_when_timer_start_invoked_via_cli_then_returns_err
     let (persistence, _conn, _temp) = setup("test_cli_nonexistent_task_fails");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Timer(TimerCommand::Start {
+        command: Some(CliCommand::Timer(TimerCommand::Start {
             task_id: "nonexistent".to_string(),
-        }),
+        })),
+        ..Default::default()
     };
 
     // When
@@ -203,10 +208,13 @@ fn test_given_persistence_when_creating_project_via_cli_then_project_is_created(
     let (persistence, _conn, _temp) = setup("test_cli_manage_project_create");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Create {
-            name: "NewProj".into(),
-            color: Some("red".into()),
-        })),
+        command: Some(CliCommand::Manage(ManageCommand::Project(
+            ProjectCommand::Create {
+                name: "NewProj".into(),
+                color: Some("red".into()),
+            },
+        ))),
+        ..Default::default()
     };
 
     // When
@@ -227,9 +235,10 @@ fn test_given_existing_project_when_archiving_via_cli_then_archive_succeeds() {
     let (persistence, _conn, _temp) = setup("test_cli_manage_project_archive");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Archive {
-            id: "p1".into(),
-        })),
+        command: Some(CliCommand::Manage(ManageCommand::Project(
+            ProjectCommand::Archive { id: "p1".into() },
+        ))),
+        ..Default::default()
     };
 
     // When
@@ -245,10 +254,13 @@ fn test_given_existing_project_when_creating_task_via_cli_then_task_is_created()
     let (persistence, _conn, _temp) = setup("test_cli_manage_task_create");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Create {
-            project_id: "p1".into(),
-            name: "NewTask".into(),
-        })),
+        command: Some(CliCommand::Manage(ManageCommand::Task(
+            TaskCommand::Create {
+                project_id: "p1".into(),
+                name: "NewTask".into(),
+            },
+        ))),
+        ..Default::default()
     };
 
     // When
@@ -269,10 +281,13 @@ fn test_given_existing_task_when_archiving_via_cli_then_archive_succeeds() {
     let (persistence, _conn, _temp) = setup("test_cli_manage_task_archive");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Archive {
-            id: "t1".into(),
-            project_id: "p1".into(),
-        })),
+        command: Some(CliCommand::Manage(ManageCommand::Task(
+            TaskCommand::Archive {
+                id: "t1".into(),
+                project_id: "p1".into(),
+            },
+        ))),
+        ..Default::default()
     };
 
     // When
@@ -288,10 +303,13 @@ fn test_given_existing_project_when_renaming_via_cli_then_database_reflects_new_
     let (persistence, conn, _temp) = setup("test_cli_manage_project_rename");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Manage(ManageCommand::Project(ProjectCommand::Rename {
-            id: "p1".into(),
-            name: "RenamedProj".into(),
-        })),
+        command: Some(CliCommand::Manage(ManageCommand::Project(
+            ProjectCommand::Rename {
+                id: "p1".into(),
+                name: "RenamedProj".into(),
+            },
+        ))),
+        ..Default::default()
     };
 
     // When
@@ -319,10 +337,13 @@ fn test_given_existing_task_when_renaming_via_cli_then_database_reflects_new_nam
     let (persistence, conn, _temp) = setup("test_cli_manage_task_rename");
     let engine = Engine::new(&persistence);
     let args = CliArgs {
-        command: CliCommands::Manage(ManageCommand::Task(TaskCommand::Rename {
-            id: "t1".into(),
-            name: "RenamedTask".into(),
-        })),
+        command: Some(CliCommand::Manage(ManageCommand::Task(
+            TaskCommand::Rename {
+                id: "t1".into(),
+                name: "RenamedTask".into(),
+            },
+        ))),
+        ..Default::default()
     };
 
     // When
@@ -356,9 +377,12 @@ fn test_given_task_with_subtask_when_listing_subtasks_via_cli_then_outputs_subta
     persistence.tasks.create(subtask).unwrap();
 
     let args = CliArgs {
-        command: CliCommands::Manage(ManageCommand::Subtask(SubtaskCommand::List {
-            task_id: "t1".into(),
-        })),
+        command: Some(CliCommand::Manage(ManageCommand::Subtask(
+            SubtaskCommand::List {
+                task_id: "t1".into(),
+            },
+        ))),
+        ..Default::default()
     };
 
     // When
@@ -372,5 +396,56 @@ fn test_given_task_with_subtask_when_listing_subtasks_via_cli_then_outputs_subta
         assert!(msg.contains("st1"));
     } else {
         panic!("Expected Success output");
+    }
+}
+
+#[test]
+fn test_given_cli_error_variants_when_mapped_to_exit_code_then_returns_semantic_posix_codes() {
+    // Given
+    use oxy_flow::cli::resolver::{EntityType, ResolveError};
+    use oxy_flow::cli::shared::constants::{
+        EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENGINE_ERROR, EXIT_CODE_ENTITY_ERROR,
+        EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR,
+    };
+    use oxy_flow::cli::CliError;
+
+    let syntax_err = CliError::Syntax("invalid arg".into());
+    let entity_err = CliError::Entity(ResolveError::NotFound {
+        target: "missing".into(),
+        entity_type: EntityType::Task,
+    });
+    let storage_err = CliError::Storage("io error".into());
+    let engine_err = CliError::Engine("engine error".into());
+    let business_err = CliError::Business("business rule".into());
+
+    // When & Then
+    assert_eq!(syntax_err.exit_code(), EXIT_CODE_CLI_SYNTAX);
+    assert_eq!(entity_err.exit_code(), EXIT_CODE_ENTITY_ERROR);
+    assert_eq!(storage_err.exit_code(), EXIT_CODE_STORAGE_ERROR);
+    assert_eq!(engine_err.exit_code(), EXIT_CODE_ENGINE_ERROR);
+    assert_eq!(business_err.exit_code(), EXIT_CODE_GENERIC_FAILURE);
+}
+
+#[test]
+fn test_given_export_format_when_parsing_valid_format_then_parses_typed_enum() {
+    // Given
+    use clap::Parser;
+    use oxy_flow::cli::parser::ReportSubcommand;
+    use oxy_flow::cli::ExportFormat;
+
+    // When
+    let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "csv", "-o", "out.csv"])
+        .expect("should parse valid export format");
+
+    // Then
+    if let Some(CliCommand::Report(rep_args)) = args.command {
+        if let Some(ReportSubcommand::Export { format, output }) = rep_args.command {
+            assert_eq!(format, ExportFormat::Csv);
+            assert_eq!(output, "out.csv");
+        } else {
+            panic!("Expected Export subcommand");
+        }
+    } else {
+        panic!("Expected Report command");
     }
 }

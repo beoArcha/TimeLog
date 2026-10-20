@@ -30,9 +30,11 @@ pub use project::{Project, ProjectEditHistory, ProjectStatistics};
 pub use settings::{RuntimeConfig, Settings};
 pub use sinks::SinkType;
 pub use timelog::{
-    ClampedTimeLog, ElapsedRangeFilter, EngineComputedMetrics, PatchLog, ProjectComputedMetrics,
-    RangeMetricsResult, Task, TaskComputedMetrics, TaskEditHistory, TaskStatus, TimeLog,
-    TimeLogEditHistory, TimerRepositoryState,
+    AuditSource, ClampedTimeLog, ElapsedRangeFilter, EngineComputedMetrics, NewTimeLog, PatchLog,
+    ProjectComputedMetrics, RangeMetricsResult, Task, TaskComputedMetrics, TaskEditHistory,
+    TaskStatus, TimeLog, TimeLogEditHistory, TimeLogUpdateHistory, TimerRepositoryState,
+    AUDIT_SOURCE_CLI_EDIT, AUDIT_SOURCE_GUI_EDIT, AUDIT_SOURCE_MANUAL_ADJUSTMENT,
+    AUDIT_SOURCE_SYSTEM_PATCH,
 };
 pub use webhook_queue::{WebhookQueueItem, WebhookQueueStats};
 pub use workflow::{

@@ -49,7 +49,7 @@ impl<'a> Engine<'a> {
         new_start_time: &str,
         new_end_time: Option<&str>,
         new_note: Option<&str>,
-        reason: Option<&str>,
+        reason: Option<crate::types::AuditSource>,
     ) -> Result<(), EngineError> {
         let current_log = self.persistence.time_logs.get_by_id(log_id)?;
 
@@ -74,19 +74,21 @@ impl<'a> Engine<'a> {
         let history_id = format!("history_{}", Utc::now().timestamp_millis());
         let edited_at = Utc::now().to_rfc3339();
 
-        self.persistence.time_logs.update_with_history(
-            log_id,
-            new_task_id,
-            new_start_time,
-            new_end_time,
-            new_note,
-            &history_id,
-            &edited_at,
-            prev_start,
-            prev_end,
+        let entry = crate::types::TimeLogUpdateHistory {
+            id: log_id,
+            task_id: new_task_id,
+            start_time: new_start_time,
+            end_time: new_end_time,
+            note: new_note,
+            history_id: &history_id,
+            edited_at: &edited_at,
+            prev_start_time: prev_start,
+            prev_end_time: prev_end,
             prev_note,
             reason,
-        )?;
+        };
+
+        self.persistence.time_logs.update_with_history(&entry)?;
 
         Ok(())
     }

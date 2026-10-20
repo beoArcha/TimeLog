@@ -1,6 +1,6 @@
 use super::error::PersistenceResult;
 use super::shared::PersistenceShared;
-use crate::types::TimeLog;
+use crate::types::{NewTimeLog, TimeLog, TimeLogUpdateHistory};
 use std::sync::Arc;
 
 pub struct TimeLogsPersistence {
@@ -49,6 +49,12 @@ impl TimeLogsPersistence {
         Ok(())
     }
 
+    pub fn insert_full(&self, entry: &NewTimeLog) -> PersistenceResult<()> {
+        self.shared.business_repo.insert_full_time_log(entry)?;
+        self.shared.cache.clear();
+        Ok(())
+    }
+
     pub fn query_active(&self) -> PersistenceResult<Vec<String>> {
         Ok(self.shared.business_repo.query_active_logs()?)
     }
@@ -61,34 +67,10 @@ impl TimeLogsPersistence {
         Ok(self.shared.business_repo.get_time_log_by_id(log_id)?)
     }
 
-    #[allow(clippy::too_many_arguments)]
-    pub fn update_with_history(
-        &self,
-        id: &str,
-        task_id: &str,
-        start_time: &str,
-        end_time: Option<&str>,
-        note: Option<&str>,
-        history_id: &str,
-        edited_at: &str,
-        prev_start_time: Option<&str>,
-        prev_end_time: Option<&str>,
-        prev_note: Option<&str>,
-        reason: Option<&str>,
-    ) -> PersistenceResult<()> {
-        self.shared.business_repo.update_time_log_with_history(
-            id,
-            task_id,
-            start_time,
-            end_time,
-            note,
-            history_id,
-            edited_at,
-            prev_start_time,
-            prev_end_time,
-            prev_note,
-            reason,
-        )?;
+    pub fn update_with_history(&self, entry: &TimeLogUpdateHistory) -> PersistenceResult<()> {
+        self.shared
+            .business_repo
+            .update_time_log_with_history(entry)?;
         self.shared.cache.clear();
         Ok(())
     }
