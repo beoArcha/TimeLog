@@ -3,7 +3,7 @@ use crate::cli::shared::constants::{
     FORMAT_SUBTASK_ITEM, MSG_NO_SUBTASKS_FOUND, MSG_SUBTASKS_HEADER, MSG_SUBTASK_ARCHIVED,
     MSG_SUBTASK_CREATED, SYMBOL_SUBTASK_CHECKED, SYMBOL_SUBTASK_UNCHECKED,
 };
-use crate::cli::shared::error::CliError;
+use crate::cli::error::CliError;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
 use crate::persistence::Persistence;

@@ -1,6 +1,6 @@
 use crate::cli::resolver::{EntityType, ResolveError};
 use crate::cli::shared::constants::{MSG_TASK_ARCHIVED, MSG_TASK_CREATED, MSG_TASK_RENAMED};
-use crate::cli::shared::error::CliError;
+use crate::cli::error::CliError;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
 use crate::persistence::Persistence;

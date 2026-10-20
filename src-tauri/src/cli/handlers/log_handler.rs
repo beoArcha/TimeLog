@@ -5,7 +5,7 @@ use crate::cli::shared::constants::{
     HEADER_TIME_LOGS, LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION, LABEL_UNKNOWN_TASK,
     MSG_LOG_DELETED, MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
 };
-use crate::cli::shared::error::CliError;
+use crate::cli::error::CliError;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id, parse_duration_seconds};
 use crate::persistence::Persistence;

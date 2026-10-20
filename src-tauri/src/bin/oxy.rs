@@ -1,6 +1,5 @@
 use clap::Parser;
-use oxy_flow::cli::shared::constants::{ERR_STORAGE_INIT, EXIT_CODE_STORAGE_ERROR};
-use oxy_flow::cli::{self, CliArgs};
+use oxy_flow::cli::{self, CliArgs, CliError};
 use oxy_flow::common::paths::{get_default_csv_dir, get_default_db_path};
 use oxy_flow::engine::Engine;
 use oxy_flow::persistence::{Persistence, PersistenceConfig};
@@ -14,6 +13,7 @@ fn main() -> ExitCode {
         }
     };
 
+    let is_machine = cli_args.machine || cli_args.json;
     let db_path = get_default_db_path();
     let csv_directory = get_default_csv_dir(&db_path);
     let persistence_config = PersistenceConfig {
@@ -24,8 +24,10 @@ fn main() -> ExitCode {
     let persistence = match Persistence::new(&persistence_config) {
         Ok(p) => p,
         Err(e) => {
-            eprintln!("{}", ERR_STORAGE_INIT.replace("{}", &e.to_string()));
-            return ExitCode::from(EXIT_CODE_STORAGE_ERROR);
+            let err = CliError::Storage(e.to_string());
+            let envelope = err.to_envelope(None);
+            envelope.render_stderr(is_machine);
+            return envelope.to_exit_code();
         }
     };
 

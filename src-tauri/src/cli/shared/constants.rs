@@ -109,6 +109,20 @@ pub const ERR_DURATION_UNRECOGNIZED_CHAR: &str = "Unrecognized character '{}' in
 pub const ERR_DURATION_INVALID_SEGMENT: &str = "Invalid duration segment in '{}'";
 pub const ERR_DURATION_PARSE_FAILED: &str = "Could not parse duration '{}'";
 
+pub const FORMAT_ERROR_BANNER: &str = "Error [{}]: {}";
+pub const FORMAT_ERROR_SUGGESTION: &str = "Suggestion: {}";
+pub const FORMAT_ERROR_REMEDIATION: &str = "Remediation: {}";
+
+pub const MSG_ERR_REMEDIATION_HELP: &str =
+    "Run 'oxy --help' or 'oxy <command> --help' for syntax instructions.";
+pub const MSG_ERR_REMEDIATION_ENTITY: &str =
+    "Verify the target entity using 'oxy task ls' or 'oxy project ls'.";
+pub const MSG_ERR_REMEDIATION_STORAGE: &str =
+    "Check file system permissions and disk capacity for the SQLite database.";
+pub const MSG_ERR_REMEDIATION_ENGINE: &str =
+    "Inspect active timers using 'oxy status' or stop them with 'oxy stop'.";
+pub const FORMAT_REMEDIATION_DID_YOU_MEAN: &str = "Run command using candidate ID '{}'";
+
 pub const EXIT_CODE_SUCCESS: u8 = 0;
 pub const EXIT_CODE_GENERIC_FAILURE: u8 = 1;
 pub const EXIT_CODE_CLI_SYNTAX: u8 = 2;

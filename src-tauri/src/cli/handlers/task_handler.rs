@@ -6,7 +6,7 @@ use crate::cli::shared::constants::{
     MSG_TASK_ARCHIVED, MSG_TASK_COMPLETED, MSG_TASK_CREATED, MSG_TASK_RENAMED, SYMBOL_TASK_DONE,
     SYMBOL_TASK_TODO,
 };
-use crate::cli::shared::error::CliError;
+use crate::cli::error::CliError;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
 use crate::persistence::Persistence;

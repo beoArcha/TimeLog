@@ -7,7 +7,7 @@ use crate::cli::parser::{CliCommand, ConfigArgs, MaskArgs, ReportArgs, SinkArgs}
 use crate::cli::shared::constants::{
     MSG_STUB_CONFIG, MSG_STUB_MASK, MSG_STUB_REPORT, MSG_STUB_SINK,
 };
-use crate::cli::shared::error::CliError;
+use crate::cli::error::CliError;
 use crate::cli::shared::output::CliOutput;
 use crate::engine::Engine;
 use crate::persistence::Persistence;

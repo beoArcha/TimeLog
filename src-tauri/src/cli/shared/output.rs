@@ -3,6 +3,7 @@ use crate::cli::shared::constants::{
 };
 use std::fmt;
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum CliOutput {
     Started(String),
     Stopped,

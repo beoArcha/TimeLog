@@ -1,4 +1,4 @@
-use crate::cli::shared::error::CliError;
+use crate::cli::error::CliError;
 use crate::cli::shared::output::CliOutput;
 use crate::persistence::Persistence;
 use clap::Subcommand;

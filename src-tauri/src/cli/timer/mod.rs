@@ -1,7 +1,7 @@
 #[allow(clippy::module_inception)]
 mod timer;
 
-use crate::cli::shared::error::CliError;
+use crate::cli::error::CliError;
 use crate::cli::shared::output::CliOutput;
 use crate::engine::Engine;
 use clap::Subcommand;

@@ -6,7 +6,7 @@ use crate::cli::shared::constants::{
     LABEL_UNKNOWN_TASK, MSG_NO_TARGET_SPECIFIED, MSG_NO_TODAY_LOGS, STATUS_ACTIVE_NOTICE,
     STATUS_IDLE_NOTICE, STATUS_IDLE_TIP,
 };
-use crate::cli::shared::error::CliError;
+use crate::cli::error::CliError;
 use crate::cli::shared::output::CliOutput;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
