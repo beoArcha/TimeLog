@@ -70,25 +70,19 @@ impl CliErrorCode {
             | Self::CliSyntaxEmptyId
             | Self::CliSyntaxUnknownCommand => "syntax",
 
-            Self::DomEntityNotFound
-            | Self::DomEntityAmbiguous
-            | Self::DomEntityDidYouMean => "entity",
+            Self::DomEntityNotFound | Self::DomEntityAmbiguous | Self::DomEntityDidYouMean => {
+                "entity"
+            }
 
-            Self::StoSqliteInit
-            | Self::StoSqliteQuery
-            | Self::StoSqliteConstraint => "storage",
+            Self::StoSqliteInit | Self::StoSqliteQuery | Self::StoSqliteConstraint => "storage",
 
-            Self::EngTimerActive
-            | Self::EngTimerInactive
-            | Self::EngTimerConflict => "engine",
+            Self::EngTimerActive | Self::EngTimerInactive | Self::EngTimerConflict => "engine",
 
-            Self::DomBusinessViolation
-            | Self::DomBusinessNoProjects => "business",
+            Self::DomBusinessViolation | Self::DomBusinessNoProjects => "business",
 
             Self::SnkExternalIo => "sink",
 
-            Self::MskAliasNotFound
-            | Self::MskAliasSyntax => "mask",
+            Self::MskAliasNotFound | Self::MskAliasSyntax => "mask",
         }
     }
 }

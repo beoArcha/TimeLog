@@ -1,4 +1,10 @@
+use super::constants::{
+    ERR_RESOLVE_AMBIGUOUS, ERR_RESOLVE_DID_YOU_MEAN, ERR_RESOLVE_NOT_FOUND, ERR_RESOLVE_STORAGE,
+    FORMAT_CANDIDATE_MATCH, LABEL_ENTITY_PROJECT, LABEL_ENTITY_TASK, PROMPT_AMBIGUOUS_MATCHES,
+    PROMPT_CHOOSE_INPUT, PROMPT_OPTION_ROW,
+};
 use super::levenshtein::levenshtein_distance;
+use super::prompter::{Prompter, TerminalPrompter};
 use crate::persistence::Persistence;
 use crate::types::{Project, Task};
 use std::fmt;
@@ -8,11 +14,6 @@ pub enum EntityType {
     Project,
     Task,
 }
-
-use crate::cli::shared::constants::{
-    ERR_RESOLVE_AMBIGUOUS, ERR_RESOLVE_DID_YOU_MEAN, ERR_RESOLVE_NOT_FOUND, ERR_RESOLVE_STORAGE,
-    FORMAT_CANDIDATE_MATCH, LABEL_ENTITY_PROJECT, LABEL_ENTITY_TASK,
-};
 
 impl fmt::Display for EntityType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -50,27 +51,21 @@ impl fmt::Display for ResolveError {
                 target,
                 entity_type,
             } => {
-                write!(
-                    f,
-                    "{}",
-                    ERR_RESOLVE_NOT_FOUND
-                        .replacen("{}", &entity_type.to_string(), 1)
-                        .replacen("{}", target, 1)
-                )
+                let msg = ERR_RESOLVE_NOT_FOUND
+                    .replacen("{}", &entity_type.to_string(), 1)
+                    .replacen("{}", target, 1);
+                write!(f, "{}", msg)
             }
             ResolveError::AmbiguousMatch {
                 target,
                 entity_type,
                 candidates,
             } => {
-                write!(
-                    f,
-                    "{}",
-                    ERR_RESOLVE_AMBIGUOUS
-                        .replacen("{}", &entity_type.to_string(), 1)
-                        .replacen("{}", target, 1)
-                        .replacen("{}", &candidates.join(", "), 1)
-                )
+                let msg = ERR_RESOLVE_AMBIGUOUS
+                    .replacen("{}", &entity_type.to_string(), 1)
+                    .replacen("{}", target, 1)
+                    .replacen("{}", &candidates.join(", "), 1);
+                write!(f, "{}", msg)
             }
             ResolveError::DidYouMean {
                 target,
@@ -78,14 +73,11 @@ impl fmt::Display for ResolveError {
                 suggestion,
                 ..
             } => {
-                write!(
-                    f,
-                    "{}",
-                    ERR_RESOLVE_DID_YOU_MEAN
-                        .replacen("{}", &entity_type.to_string(), 1)
-                        .replacen("{}", target, 1)
-                        .replacen("{}", suggestion, 1)
-                )
+                let msg = ERR_RESOLVE_DID_YOU_MEAN
+                    .replacen("{}", &entity_type.to_string(), 1)
+                    .replacen("{}", target, 1)
+                    .replacen("{}", suggestion, 1);
+                write!(f, "{}", msg)
             }
             ResolveError::StorageError(msg) => {
                 write!(f, "{}", ERR_RESOLVE_STORAGE.replace("{}", msg))
@@ -104,16 +96,39 @@ impl<'a> EntityResolver<'a> {
     }
 
     pub fn resolve_task(&self, target: &str) -> Result<Task, ResolveError> {
+        self.resolve_task_interactive(target, &TerminalPrompter)
+    }
+
+    pub fn resolve_task_interactive(
+        &self,
+        target: &str,
+        prompter: &dyn Prompter,
+    ) -> Result<Task, ResolveError> {
         let tasks = self
             .persistence
             .tasks
             .get_all()
             .map_err(|e| ResolveError::StorageError(e.to_string()))?;
 
-        resolve_from_slice(&tasks, target, EntityType::Task, |t| &t.id, |t| &t.name)
+        resolve_from_slice(
+            &tasks,
+            target,
+            EntityType::Task,
+            prompter,
+            |t| &t.id,
+            |t| &t.name,
+        )
     }
 
     pub fn resolve_project(&self, target: &str) -> Result<Project, ResolveError> {
+        self.resolve_project_interactive(target, &TerminalPrompter)
+    }
+
+    pub fn resolve_project_interactive(
+        &self,
+        target: &str,
+        prompter: &dyn Prompter,
+    ) -> Result<Project, ResolveError> {
         let projects = self
             .persistence
             .projects
@@ -124,6 +139,7 @@ impl<'a> EntityResolver<'a> {
             &projects,
             target,
             EntityType::Project,
+            prompter,
             |p| &p.id,
             |p| &p.name,
         )
@@ -132,7 +148,7 @@ impl<'a> EntityResolver<'a> {
 
 enum MatchOutcome<T> {
     Unique(T),
-    Ambiguous(Vec<String>),
+    Ambiguous(Vec<T>),
     None,
 }
 
@@ -140,6 +156,7 @@ fn resolve_from_slice<T: Clone>(
     entities: &[T],
     target: &str,
     entity_type: EntityType,
+    prompter: &dyn Prompter,
     id_fn: impl Fn(&T) -> &str,
     name_fn: impl Fn(&T) -> &str,
 ) -> Result<T, ResolveError> {
@@ -161,7 +178,18 @@ fn resolve_from_slice<T: Clone>(
 
     match find_substring_matches(entities, trimmed, &name_fn, &id_fn) {
         MatchOutcome::Unique(entity) => return Ok(entity),
-        MatchOutcome::Ambiguous(candidates) => {
+        MatchOutcome::Ambiguous(matched_items) => {
+            if let Some(selected) = prompt_ambiguous_selection(
+                &matched_items,
+                trimmed,
+                entity_type,
+                prompter,
+                &id_fn,
+                &name_fn,
+            ) {
+                return Ok(selected);
+            }
+            let candidates = format_ambiguous_candidates(&matched_items, &id_fn, &name_fn);
             return Err(ResolveError::AmbiguousMatch {
                 target: target.to_string(),
                 entity_type,
@@ -187,6 +215,57 @@ fn resolve_from_slice<T: Clone>(
     })
 }
 
+fn prompt_ambiguous_selection<T: Clone>(
+    matched_items: &[T],
+    trimmed: &str,
+    entity_type: EntityType,
+    prompter: &dyn Prompter,
+    id_fn: &impl Fn(&T) -> &str,
+    name_fn: &impl Fn(&T) -> &str,
+) -> Option<T> {
+    if !prompter.is_terminal() {
+        return None;
+    }
+
+    let header = PROMPT_AMBIGUOUS_MATCHES
+        .replacen("{}", &entity_type.to_string(), 1)
+        .replacen("{}", trimmed, 1);
+
+    let rows: String = matched_items
+        .iter()
+        .enumerate()
+        .map(|(idx, item)| {
+            PROMPT_OPTION_ROW
+                .replacen("{}", &(idx + 1).to_string(), 1)
+                .replacen("{}", name_fn(item), 1)
+                .replacen("{}", id_fn(item), 1)
+        })
+        .collect();
+
+    let query = PROMPT_CHOOSE_INPUT
+        .replacen("{}", &entity_type.to_string(), 1)
+        .replacen("{}", &matched_items.len().to_string(), 1);
+
+    let prompt_text = format!("{}{}{}", header, rows, query);
+    let selected_idx = prompter.prompt_selection(&prompt_text, matched_items.len())?;
+    matched_items.get(selected_idx).cloned()
+}
+
+fn format_ambiguous_candidates<T>(
+    matched_items: &[T],
+    id_fn: &impl Fn(&T) -> &str,
+    name_fn: &impl Fn(&T) -> &str,
+) -> Vec<String> {
+    matched_items
+        .iter()
+        .map(|e| {
+            FORMAT_CANDIDATE_MATCH
+                .replacen("{}", name_fn(e), 1)
+                .replacen("{}", id_fn(e), 1)
+        })
+        .collect()
+}
+
 fn find_exact_id<T: Clone>(entities: &[T], target: &str, id_fn: &impl Fn(&T) -> &str) -> Option<T> {
     entities.iter().find(|e| id_fn(e) == target).cloned()
 }
@@ -197,18 +276,15 @@ fn find_prefix_id<T: Clone>(
     id_fn: &impl Fn(&T) -> &str,
 ) -> Option<T> {
     let clean = target.trim_start_matches('#');
-    let matches: Vec<_> = entities
-        .iter()
-        .filter(|e| {
-            let id = id_fn(e);
-            id.starts_with(clean) || id.ends_with(clean)
-        })
-        .collect();
+    let mut matches = entities.iter().filter(|e| {
+        let id = id_fn(e);
+        id.starts_with(clean) || id.ends_with(clean)
+    });
 
-    if matches.len() == 1 {
-        Some(matches[0].clone())
-    } else {
-        None
+    let first = matches.next()?.clone();
+    match matches.next() {
+        Some(_) => None,
+        None => Some(first),
     }
 }
 
@@ -224,22 +300,13 @@ fn find_substring_matches<T: Clone>(
         .filter(|e| {
             name_fn(e).to_lowercase().contains(&lower) || id_fn(e).to_lowercase().contains(&lower)
         })
+        .cloned()
         .collect();
 
     match matches.len() {
-        1 => MatchOutcome::Unique(matches[0].clone()),
-        n if n > 1 => {
-            let candidates = matches
-                .into_iter()
-                .map(|e| {
-                    FORMAT_CANDIDATE_MATCH
-                        .replacen("{}", name_fn(e), 1)
-                        .replacen("{}", id_fn(e), 1)
-                })
-                .collect();
-            MatchOutcome::Ambiguous(candidates)
-        }
-        _ => MatchOutcome::None,
+        0 => MatchOutcome::None,
+        1 => MatchOutcome::Unique(matches.into_iter().next().unwrap()),
+        _ => MatchOutcome::Ambiguous(matches),
     }
 }
 
@@ -254,18 +321,23 @@ fn find_nearest_typo<T>(
 
     for entity in entities {
         let dist = levenshtein_distance(&lower, name_fn(entity));
-        if dist <= 2 {
-            match best {
-                Some((_, best_dist)) if dist < best_dist => {
-                    best = Some((entity, dist));
-                }
-                None => {
-                    best = Some((entity, dist));
-                }
-                _ => {}
+        if dist > 2 {
+            continue;
+        }
+
+        match best {
+            Some((_, best_dist)) if dist < best_dist => {
+                best = Some((entity, dist));
             }
+            None => {
+                best = Some((entity, dist));
+            }
+            _ => {}
         }
     }
 
-    best.map(|(e, _)| (name_fn(e).to_string(), id_fn(e).to_string()))
+    let (entity, _) = best?;
+    let suggestion = name_fn(entity).to_string();
+    let id = id_fn(entity).to_string();
+    Some((suggestion, id))
 }

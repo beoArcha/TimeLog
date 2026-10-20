@@ -1,4 +1,6 @@
 pub mod error;
+pub mod exporters;
+pub mod formatters;
 pub mod handlers;
 pub mod manage;
 pub mod parser;
@@ -8,6 +10,8 @@ pub mod shared;
 pub mod timer;
 
 pub use error::{CliError, CliErrorCode, CliErrorEnvelope, LocalizedUserMessage};
+pub use exporters::export_to_file;
+pub use formatters::{format_duration, render_tree_string, ReportTreeDto};
 pub use parser::{CliArgs, CliCommand, CliCommands, ExportFormat};
 pub use shared::output::CliOutput;
 
@@ -21,7 +25,7 @@ pub fn handle_cli(
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
-    handlers::dispatch_command(args.command, persistence, engine)
+    handlers::dispatch_command(args, persistence, engine)
 }
 
 pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCode {

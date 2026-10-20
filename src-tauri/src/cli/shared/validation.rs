@@ -1,5 +1,5 @@
-use crate::cli::shared::constants::MSG_ID_EMPTY;
 use crate::cli::error::CliError;
+use crate::cli::shared::constants::MSG_ID_EMPTY;
 
 pub fn validate_id(id: &str) -> Result<String, CliError> {
     if id.trim().is_empty() {

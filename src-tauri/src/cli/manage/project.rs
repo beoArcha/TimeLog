@@ -1,9 +1,7 @@
-use crate::cli::resolver::{EntityType, ResolveError};
-use crate::cli::shared::constants::{
-    DEFAULT_COLOR, MSG_LIST_NOT_IMPLEMENTED, MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED,
-    MSG_PROJECT_RENAMED,
-};
+use super::constants::{MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED, MSG_PROJECT_RENAMED};
 use crate::cli::error::CliError;
+use crate::cli::resolver::{EntityType, ResolveError};
+use crate::cli::shared::constants::{DEFAULT_COLOR, MSG_LIST_NOT_IMPLEMENTED};
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
 use crate::persistence::Persistence;

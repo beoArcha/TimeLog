@@ -174,8 +174,7 @@ fn test_given_envelope_when_serialized_to_json_then_produces_deterministic_machi
 
     // Act
     let json_str = serde_json::to_string(&envelope).expect("serialization failed");
-    let parsed: CliErrorEnvelope =
-        serde_json::from_str(&json_str).expect("deserialization failed");
+    let parsed: CliErrorEnvelope = serde_json::from_str(&json_str).expect("deserialization failed");
 
     // Assert
     assert_eq!(parsed.code, "CLI_SYNTAX_INVALID_ARGS");

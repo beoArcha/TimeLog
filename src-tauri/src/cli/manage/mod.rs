@@ -3,6 +3,7 @@ use crate::cli::shared::output::CliOutput;
 use crate::persistence::Persistence;
 use clap::Subcommand;
 
+pub mod constants;
 pub mod project;
 pub mod subtask;
 pub mod task;

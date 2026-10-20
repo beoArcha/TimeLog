@@ -1,18 +1,23 @@
-use crate::cli::parser::tier2_entities::{ProjectArgs, ProjectSubcommand};
-use crate::cli::resolver::EntityResolver;
-use crate::cli::shared::constants::{
-    DEFAULT_COLOR, FORMAT_PROJECT_ROW, HEADER_PROJECTS, LABEL_ARCHIVED_BADGE,
-    MSG_NO_PROJECTS_FOUND, MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED, MSG_PROJECT_RENAMED,
+use super::constants::{
+    FORMAT_PROJECT_ROW, HEADER_PROJECTS, LABEL_ARCHIVED_BADGE, MSG_NO_PROJECTS_FOUND,
+    MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED, MSG_PROJECT_RENAMED,
 };
 use crate::cli::error::CliError;
+use crate::cli::parser::tier2_entities::{ProjectArgs, ProjectSubcommand};
+use crate::cli::resolver::EntityResolver;
+use crate::cli::shared::constants::DEFAULT_COLOR;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
 use crate::persistence::Persistence;
-use crate::types::Project;
+use crate::types::{Project, Task};
 
-pub fn handle(args: ProjectArgs, persistence: &Persistence) -> Result<CliOutput, CliError> {
+pub fn handle(
+    args: ProjectArgs,
+    is_machine: bool,
+    persistence: &Persistence,
+) -> Result<CliOutput, CliError> {
     match args.command {
-        ProjectSubcommand::List { all } => list_projects(persistence, all),
+        ProjectSubcommand::List { all } => list_projects(persistence, all, is_machine),
         ProjectSubcommand::Add { name, color } => add_project(persistence, name, color),
         ProjectSubcommand::Rename { target, new_name } => {
             rename_project(persistence, &target, new_name)
@@ -21,7 +26,11 @@ pub fn handle(args: ProjectArgs, persistence: &Persistence) -> Result<CliOutput,
     }
 }
 
-fn list_projects(persistence: &Persistence, all: bool) -> Result<CliOutput, CliError> {
+fn list_projects(
+    persistence: &Persistence,
+    all: bool,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
     let projects = persistence
         .projects
         .get_all()
@@ -33,6 +42,11 @@ fn list_projects(persistence: &Persistence, all: bool) -> Result<CliOutput, CliE
         .filter(|p| all || p.archived != Some(true))
         .collect();
 
+    if is_machine {
+        let json = serde_json::to_string_pretty(&filtered).unwrap_or_else(|_| "[]".to_string());
+        return Ok(CliOutput::Json(json));
+    }
+
     if filtered.is_empty() {
         return Ok(CliOutput::Success(MSG_NO_PROJECTS_FOUND.to_string()));
     }
@@ -40,25 +54,28 @@ fn list_projects(persistence: &Persistence, all: bool) -> Result<CliOutput, CliE
     Ok(CliOutput::Success(format_project_list(&filtered, &tasks)))
 }
 
-fn format_project_list(projects: &[Project], tasks: &[crate::types::Task]) -> String {
-    let mut out = String::from(HEADER_PROJECTS);
-    for p in projects {
-        let task_count = tasks.iter().filter(|t| t.project_id == p.id).count();
-        let archived_badge = if p.archived == Some(true) {
-            LABEL_ARCHIVED_BADGE
-        } else {
-            ""
-        };
-        out.push_str(
-            &FORMAT_PROJECT_ROW
-                .replacen("{}", &p.name, 1)
-                .replacen("{}", &p.id, 1)
-                .replacen("{}", &p.color, 1)
-                .replacen("{}", &task_count.to_string(), 1)
-                .replacen("{}", archived_badge, 1),
-        );
-    }
-    out
+fn format_project_list(projects: &[Project], tasks: &[Task]) -> String {
+    let rows: String = projects
+        .iter()
+        .map(|p| format_project_row(p, tasks))
+        .collect();
+    format!("{}{}", HEADER_PROJECTS, rows)
+}
+
+fn format_project_row(project: &Project, tasks: &[Task]) -> String {
+    let task_count = tasks.iter().filter(|t| t.project_id == project.id).count();
+    let archived_badge = project
+        .archived
+        .filter(|&is_archived| is_archived)
+        .map(|_| LABEL_ARCHIVED_BADGE)
+        .unwrap_or("");
+
+    FORMAT_PROJECT_ROW
+        .replacen("{}", &project.name, 1)
+        .replacen("{}", &project.id, 1)
+        .replacen("{}", &project.color, 1)
+        .replacen("{}", &task_count.to_string(), 1)
+        .replacen("{}", archived_badge, 1)
 }
 
 fn add_project(

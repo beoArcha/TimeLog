@@ -1,12 +1,12 @@
-use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
-use crate::cli::resolver::EntityResolver;
-use crate::cli::shared::constants::{
+use super::constants::{
     FORMAT_TASK_ORPHAN_ROW, FORMAT_TASK_ROOT_ROW, FORMAT_TASK_SUBTASK_ROW, HEADER_TASKS,
     LABEL_SUBTASK_BADGE, LABEL_UNKNOWN_PROJECT, MSG_NO_PROJECTS_EXIST, MSG_NO_TASKS_FOUND,
     MSG_TASK_ARCHIVED, MSG_TASK_COMPLETED, MSG_TASK_CREATED, MSG_TASK_RENAMED, SYMBOL_TASK_DONE,
     SYMBOL_TASK_TODO,
 };
 use crate::cli::error::CliError;
+use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
+use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{current_timestamp, generate_id};
 use crate::persistence::Persistence;

@@ -104,9 +104,11 @@ impl CliError {
                     locale: target_locale,
                     message: technical.clone(),
                     suggestion: Some(suggestion.clone()),
-                    remediation: Some(
-                        FORMAT_REMEDIATION_DID_YOU_MEAN.replacen("{}", candidate_id, 1),
-                    ),
+                    remediation: Some(FORMAT_REMEDIATION_DID_YOU_MEAN.replacen(
+                        "{}",
+                        candidate_id,
+                        1,
+                    )),
                 }),
                 ResolveError::StorageError(_) => Some(LocalizedUserMessage {
                     locale: target_locale,

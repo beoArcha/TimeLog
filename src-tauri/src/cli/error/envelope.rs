@@ -52,9 +52,11 @@ impl CliErrorEnvelope {
             let json = serde_json::to_string(self).unwrap_or_else(|_| "{}".to_string());
             eprintln!("{}", json);
         } else {
-            let banner = FORMAT_ERROR_BANNER
-                .replacen("{}", &self.code, 1)
-                .replacen("{}", &self.technical, 1);
+            let banner = FORMAT_ERROR_BANNER.replacen("{}", &self.code, 1).replacen(
+                "{}",
+                &self.technical,
+                1,
+            );
             eprintln!("{}", banner);
 
             if let Some(ref u) = self.user {
