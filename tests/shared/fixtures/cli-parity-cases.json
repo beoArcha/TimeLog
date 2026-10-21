@@ -3,7 +3,7 @@
     "id": "status-idle",
     "description": "Status query when no active timers are running",
     "commandFrontend": "status",
-    "commandRust": ["timer", "status"],
+    "commandRust": ["status"],
     "initialActiveTaskId": null,
     "expectSuccess": true,
     "expectedPatterns": ["status", "idle", "0", "no active", "stopped"]
@@ -12,7 +12,7 @@
     "id": "status-active",
     "description": "Status query with an active running task",
     "commandFrontend": "status",
-    "commandRust": ["timer", "status"],
+    "commandRust": ["status"],
     "initialActiveTaskId": "t1",
     "expectSuccess": true,
     "expectedPatterns": ["status", "t1", "parity task", "1"]
@@ -21,7 +21,7 @@
     "id": "start-valid",
     "description": "Start timer on valid existing task",
     "commandFrontend": "start t1",
-    "commandRust": ["timer", "start", "t1"],
+    "commandRust": ["start", "t1"],
     "initialActiveTaskId": null,
     "expectSuccess": true,
     "expectedPatterns": ["start", "t1"]
@@ -30,10 +30,19 @@
     "id": "stop-active",
     "description": "Stop active running timer",
     "commandFrontend": "stop",
-    "commandRust": ["timer", "stop"],
+    "commandRust": ["stop"],
     "initialActiveTaskId": "t1",
     "expectSuccess": true,
     "expectedPatterns": ["stop"]
+  },
+  {
+    "id": "switch-valid",
+    "description": "Switch active timer to task",
+    "commandFrontend": "switch t1",
+    "commandRust": ["switch", "t1"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedPatterns": ["t1"]
   },
   {
     "id": "unknown-command",

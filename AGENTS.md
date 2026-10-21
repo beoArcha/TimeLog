@@ -42,7 +42,7 @@ src-tauri/
   src/commands/               Tauri IPC commands
   src/cli/                    Headless native CLI (binary `oxy`)
   src/tray/                   System tray
-  tests/{unit,integration,architecture}/   Rust test tiers
+  tests/{unit,integration,architecture,e2e}/   Rust test tiers
 tests/
   unit/, integration/, architecture/, e2e/, smoke/   Frontend test tiers
   shared/builders/entity-builders.ts   Test Data Builders

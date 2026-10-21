@@ -102,6 +102,8 @@ fn test_given_ambiguous_target_when_start_invoked_then_returns_ambiguous_envelop
     let envelope = err.to_envelope(None);
     assert_eq!(envelope.code, "DOM_ENTITY_AMBIGUOUS");
     assert_eq!(envelope.exit_code, EXIT_CODE_ENTITY_ERROR);
+    let user_msg = envelope.user.expect("expected user message in envelope");
+    assert!(user_msg.message.contains("Ambiguous"));
 }
 
 #[test]

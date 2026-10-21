@@ -46,7 +46,7 @@ fn setup_parity_persistence(
 #[test]
 fn test_given_shared_cli_parity_matrix_when_executed_in_rust_then_satisfies_cross_runtime_parity() {
     // Given
-    let fixture_str = include_str!("../../../../tests/shared/fixtures/cli-parity-cases.json");
+    let fixture_str = include_str!("../../../../../tests/shared/fixtures/cli-parity-cases.json");
     let cases: Vec<ParityCase> =
         serde_json::from_str(fixture_str).expect("Failed to parse parity matrix JSON");
 

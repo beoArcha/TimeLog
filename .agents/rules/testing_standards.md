@@ -72,11 +72,20 @@ describe('Given a running timer on task A', () => {
 
 Rust has no nested `describe`, so the scenario goes into the function name: `test_given_<state>_when_<action>_then_<outcome>` (the prevailing convention in `src-tauri/tests/`). Section markers follow the tier: AAA in unit tests, Given/When/Then in integration and architecture tests.
 
-## 4. E2E Tests (Playwright)
+## 4. E2E Tests
+
+- Ensure all E2E tests adhere to the User Journey pattern.
+
+### 4.1 Playwright
 
 - Specs in `tests/e2e/specs/` interact only through Page Objects in `tests/e2e/pages/`. Specs never define ad-hoc selectors.
 - Locators target `data-testid` or stable element IDs, never visible text or localized labels.
 - Every spec seeds or resets state in `test.beforeEach` (`mainPage.seedStorage(...)`, `mainPage.resetStorage()`) and never depends on another spec.
+
+### 4.2 Tauri rust tests
+
+- Located in `tests/e2e'
+- Focused on CLI tests
 
 ## 5. Triple Decoupling
 

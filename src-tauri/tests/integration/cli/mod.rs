@@ -1,10 +1,5 @@
-pub mod cli_parity_test;
-pub mod cli_settings_test;
-pub mod cli_subtask_test;
-pub mod cli_test;
-pub mod ergonomic_flow_test;
-pub mod error_envelope_test;
-pub mod interactive_flow_test;
-pub mod report_integration_test;
-pub mod subprocess_test;
-pub mod subsystem_flow_test;
+pub mod entities;
+pub mod error;
+pub mod flow;
+pub mod parity;
+pub mod subsystems;
