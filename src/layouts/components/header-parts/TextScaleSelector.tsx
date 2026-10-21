@@ -17,7 +17,7 @@ export const TextScaleSelector: React.FC = () => {
     label: <span className={`font-serif leading-none font-bold ${TEXT_SIZE_CLASS_MAP[scale]}`}>A</span>,
     testId: `text-scale-${scale}`,
     ariaLabel: scale,
-    className: 'min-w-[32px] px-2.5',
+    className: 'min-w-[26px] px-1.5',
   }));
 
   return (

@@ -14,7 +14,7 @@ export default function SettingsTab() {
   const { customTranslations, locale } = useLocale();
 
   return (
-    <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
+    <div className="text-left flex flex-col gap-6 pb-10">
       <div className="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <Heading level={2} className="text-lg font-bold text-foreground">

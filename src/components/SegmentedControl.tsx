@@ -64,10 +64,12 @@ export function SegmentedControl<T extends string = string>({
           }
         }
       }}
+      variant="ghost"
+      size={size}
       id={id}
       aria-label={groupAriaLabel}
       className={cn(
-        'inline-flex p-0.5 rounded-lg border border-border bg-muted/60 transition-colors',
+        'inline-flex items-center p-0.5 rounded-lg border border-border bg-muted/40 transition-colors',
         className
       )}
     >
@@ -93,8 +95,8 @@ export function SegmentedControl<T extends string = string>({
               'rounded-md font-medium uppercase tracking-wider transition-all select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer',
               sizeClasses,
               isSelected
-                ? 'bg-card text-foreground shadow-xs font-bold border border-border'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-card text-foreground shadow-xs font-bold border border-border/80 data-[pressed]:bg-card data-[pressed]:text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 border border-transparent shadow-none bg-transparent data-[pressed]:bg-transparent',
               optionClassName,
               option.className
             )}

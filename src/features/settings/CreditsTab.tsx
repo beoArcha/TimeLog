@@ -13,7 +13,7 @@ export default function CreditsTab() {
   const { locale, customTranslations } = useLocale();
 
   return (
-    <div className="text-left flex flex-col gap-6 overflow-y-auto pr-1 pb-10">
+    <div className="text-left flex flex-col gap-6 pb-10">
       <div className="border-b border-border pb-4">
         <HStack gap="md">
           <Heart className="w-6 h-6 text-rose-500 animate-pulse drop-shadow-sm" />

@@ -29,7 +29,7 @@ export const LanguageSelector: React.FC = () => {
 
   return (
     <div className="flex items-center p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-xs font-sans">
-      <Languages className="w-3.5 h-3.5 mx-1 sm:mx-1.5 text-primary" />
+      <Languages className="w-3.5 h-3.5 mx-1 sm:mx-1.5 text-muted-foreground shrink-0" />
 
       <div className={showExpanded ? 'lg:hidden' : ''}>
         <Select

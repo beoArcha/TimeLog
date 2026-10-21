@@ -198,7 +198,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         initialNewSubtaskName={state.newSubtaskName}
         onSetNewSubtaskName={state.setNewSubtaskName}
       >
-        <div id="tasks-tree-container" className={`flex flex-col gap-main ${isCondensed ? 'overflow-visible' : 'overflow-y-auto flex-1 min-h-0'} pr-1`}>
+        <div id="tasks-tree-container" className="flex flex-col gap-main overflow-visible pr-1">
           {rootTasks.length === 0 ? (
             <TaskEmptyState />
           ) : (

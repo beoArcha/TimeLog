@@ -217,6 +217,31 @@
   display: none !important;
 }
 
+[data-theme="high-contrast"] [data-slot="toggle-group"] {
+  border-color: #FFFFFF !important;
+  background-color: #000000 !important;
+}
+
+[data-theme="high-contrast"] [data-slot="toggle-group-item"][aria-pressed="true"],
+[data-theme="high-contrast"] [data-slot="toggle-group-item"][aria-checked="true"],
+[data-theme="high-contrast"] [data-slot="toggle-group-item"][data-pressed] {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border-color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="high-contrast"] [data-slot="toggle-group-item"]:not([aria-pressed="true"]):not([aria-checked="true"]):not([data-pressed]) {
+  background-color: transparent !important;
+  color: #FFFFFF !important;
+  border-color: transparent !important;
+}
+
+[data-theme="high-contrast"] [data-slot="toggle-group-item"]:not([aria-pressed="true"]):not([aria-checked="true"]):not([data-pressed]):hover {
+  background-color: #27272A !important;
+  color: #FFFFFF !important;
+}
+
 @layer base {
   * {
     border-color: var(--border);
