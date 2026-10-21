@@ -3,13 +3,19 @@ import { type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { alertVariants } from "./alert-variants";
 
+export type AlertProps = React.ComponentProps<"div"> &
+  VariantProps<typeof alertVariants> & {
+    as?: "div" | "section" | "aside";
+  };
+
 function Alert({
   className,
   variant,
+  as: Component = "div",
   ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
+}: AlertProps) {
   return (
-    <div
+    <Component
       data-slot="alert"
       role="alert"
       className={cn(alertVariants({ variant }), className)}
@@ -18,12 +24,17 @@ function Alert({
   );
 }
 
+export type AlertTitleProps = React.ComponentProps<"h5"> & {
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "div";
+};
+
 function AlertTitle({
   className,
+  as: Component = "h5",
   ...props
-}: React.ComponentProps<"h5">) {
+}: AlertTitleProps) {
   return (
-    <h5
+    <Component
       data-slot="alert-title"
       className={cn("mb-1 font-bold leading-none tracking-tight", className)}
       {...props}
@@ -31,12 +42,17 @@ function AlertTitle({
   );
 }
 
+export type AlertDescriptionProps = React.ComponentProps<"div"> & {
+  as?: "div" | "p";
+};
+
 function AlertDescription({
   className,
+  as: Component = "div",
   ...props
-}: React.ComponentProps<"div">) {
+}: AlertDescriptionProps) {
   return (
-    <div
+    <Component
       data-slot="alert-description"
       className={cn("text-xs leading-relaxed opacity-90", className)}
       {...props}

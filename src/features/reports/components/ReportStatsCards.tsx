@@ -1,10 +1,10 @@
 import React from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Clock, BarChart3, Award, Calendar } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { StatCard } from '@components/StatCard';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ReportTopProject } from '../types';
-import ReportMetricCard, { ReportMetricCardProps } from './ReportMetricCard';
 
 export interface ReportStatsCardsProps {
   todaySec?: number;
@@ -27,51 +27,51 @@ export default function ReportStatsCards({
 
   const showActivePeriodStats = periodTotalSec !== undefined;
 
-  const activePeriodMetrics: ReportMetricCardProps[] = [
+  const activePeriodMetrics = [
     {
       testId: 'report-stat-total',
-      label: t('PeriodTotal'),
+      title: t('PeriodTotal'),
       value: formatSeconds(periodTotalSec ?? 0),
       description: t('SelectedPeriodTotalDesc'),
-      valueClassName: 'font-mono text-orange-600 dark:text-orange-400',
+      icon: Clock,
     },
     {
       testId: 'report-stat-avg',
-      label: t('DailyAverage'),
+      title: t('DailyAverage'),
       value: formatSeconds(dailyAverageSec ?? 0),
       description: t('DailyAverageDesc'),
-      valueClassName: 'font-mono text-emerald-600 dark:text-emerald-400',
+      icon: BarChart3,
     },
     {
       testId: 'report-stat-top',
-      label: t('TopProject'),
+      title: t('TopProject'),
       value: topProject ? `${topProject.name} (${topProject.percentage.toFixed(0)}%)` : '-',
-      description: topProject ? formatSeconds(topProject.seconds) : '',
-      valueClassName: 'font-sans truncate text-foreground',
+      description: topProject ? formatSeconds(topProject.seconds) : undefined,
+      icon: Award,
     },
   ];
 
-  const baselineMetrics: ReportMetricCardProps[] = [
+  const baselineMetrics = [
     {
       testId: 'report-stat-today',
-      label: t('TodayTotal'),
+      title: t('TodayTotal'),
       value: formatSeconds(todaySec),
       description: t('LogsSumToday'),
-      valueClassName: 'font-mono text-emerald-600 dark:text-emerald-400',
+      icon: Clock,
     },
     {
       testId: 'report-stat-week',
-      label: t('WeekTotal'),
+      title: t('WeekTotal'),
       value: formatSeconds(weekSec),
       description: t('FromMondayUntilNow'),
-      valueClassName: 'font-mono text-orange-600 dark:text-orange-400',
+      icon: Calendar,
     },
     {
       testId: 'report-stat-month',
-      label: t('MonthTotal'),
+      title: t('MonthTotal'),
       value: formatSeconds(monthSec),
       description: t('AccumulatedMonthSeconds'),
-      valueClassName: 'font-mono text-rose-600 dark:text-rose-450',
+      icon: Calendar,
     },
   ];
 
@@ -87,13 +87,13 @@ export default function ReportStatsCards({
       {showActivePeriodStats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {activePeriodMetrics.map((metric) => (
-            <ReportMetricCard
+            <StatCard
               key={metric.testId}
               testId={metric.testId}
-              label={metric.label}
+              title={metric.title}
               value={metric.value}
               description={metric.description}
-              valueClassName={metric.valueClassName}
+              icon={metric.icon}
             />
           ))}
         </div>
@@ -101,16 +101,17 @@ export default function ReportStatsCards({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {baselineMetrics.map((metric) => (
-          <ReportMetricCard
+          <StatCard
             key={metric.testId}
             testId={metric.testId}
-            label={metric.label}
+            title={metric.title}
             value={metric.value}
             description={metric.description}
-            valueClassName={metric.valueClassName}
+            icon={metric.icon}
           />
         ))}
       </div>
     </CollapsibleCard>
   );
 }
+
