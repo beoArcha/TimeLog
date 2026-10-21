@@ -58,7 +58,7 @@ export default function MediumLayoutBuilder({
           onToggleDock={toggleDock}
         />
 
-        <div id="tasks-main" className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pr-0.5">
+        <main id="tasks-main" role="main" aria-label="Main content" className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pr-0.5">
           {mediumTab === 'tasks' && (
             <>
               <ActiveTimerBanner state={state} isCondensed={true} />
@@ -74,7 +74,7 @@ export default function MediumLayoutBuilder({
               <DbInspector state={state} isCondensed={true} />
             </div>
           )}
-        </div>
+        </main>
 
         <MediumTabBar
           currentTab={mediumTab}

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Database, Trash2, Plus, X } from 'lucide-react';
+import { Database, Trash2, Plus } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
-import { motion, AnimatePresence } from 'motion/react';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import {
@@ -18,6 +17,13 @@ import {
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 import { Button } from '@components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@components/ui/dialog';
 
 export default function PatchLogsTable() {
   const { locale, customTranslations } = useLocale();
@@ -59,89 +65,73 @@ export default function PatchLogsTable() {
 
   return (
     <>
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="patch-modal-title"
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="w-full max-w-lg rounded-3xl border border-border bg-card text-card-foreground shadow-2xl p-6 flex flex-col gap-4 relative"
-            >
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle id="patch-modal-title">
+              {translate(locale, 'database', 'AddManualPatch', customTranslations)}
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleAddPatch} className="flex flex-col gap-3 my-2">
+            <div>
+              <Label htmlFor="patch-start-time" className="text-xs font-mono text-muted-foreground block mb-1">
+                {translate(locale, 'database', 'StartTimeIso', customTranslations)}
+              </Label>
+              <Input
+                id="patch-start-time"
+                type="text"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                aria-label={translate(locale, 'database', 'StartTimeIso', customTranslations)}
+                className="w-full text-xs font-mono"
+              />
+            </div>
+            <div>
+              <Label htmlFor="patch-end-time" className="text-xs font-mono text-muted-foreground block mb-1">
+                {translate(locale, 'database', 'EndTimeIso', customTranslations)}
+              </Label>
+              <Input
+                id="patch-end-time"
+                type="text"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                aria-label={translate(locale, 'database', 'EndTimeIso', customTranslations)}
+                className="w-full text-xs font-mono"
+              />
+            </div>
+            <div>
+              <Label htmlFor="patch-note-reason" className="text-xs font-mono text-muted-foreground block mb-1">
+                {translate(locale, 'database', 'PatchNoteReason', customTranslations)}
+              </Label>
+              <Input
+                id="patch-note-reason"
+                type="text"
+                value={patchNote}
+                onChange={(e) => setPatchNote(e.target.value)}
+                aria-label={translate(locale, 'database', 'PatchNoteReason', customTranslations)}
+                className="w-full text-xs font-mono"
+              />
+            </div>
+
+            <DialogFooter className="mt-4">
               <Button
-                variant="ghost"
-                size="icon-xs"
+                type="button"
+                variant="outline"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-5 right-5 text-muted-foreground"
-                title={translate(locale, 'common', 'Close', customTranslations)}
-                aria-label={translate(locale, 'common', 'Close', customTranslations)}
               >
-                <X className="w-5 h-5" />
+                {translate(locale, 'common', 'Cancel', customTranslations)}
               </Button>
-
-              <h3 id="patch-modal-title" className="font-bold text-lg">{translate(locale, 'database', 'AddManualPatch', customTranslations)}</h3>
-
-              <form onSubmit={handleAddPatch} className="flex flex-col gap-3">
-                <div>
-                  <Label className="text-xs font-mono text-muted-foreground block mb-1">
-                    {translate(locale, 'database', 'StartTimeIso', customTranslations)}
-                  </Label>
-                  <Input
-                    type="text"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    aria-label={translate(locale, 'database', 'StartTimeIso', customTranslations)}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs font-mono text-muted-foreground block mb-1">
-                    {translate(locale, 'database', 'EndTimeIso', customTranslations)}
-                  </Label>
-                  <Input
-                    type="text"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    aria-label={translate(locale, 'database', 'EndTimeIso', customTranslations)}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs font-mono text-muted-foreground block mb-1">
-                    {translate(locale, 'database', 'PatchNoteReason', customTranslations)}
-                  </Label>
-                  <Input
-                    type="text"
-                    value={patchNote}
-                    onChange={(e) => setPatchNote(e.target.value)}
-                    aria-label={translate(locale, 'database', 'PatchNoteReason', customTranslations)}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 mt-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    {translate(locale, 'common', 'Cancel', customTranslations)}
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="accent"
-                  >
-                    {translate(locale, 'common', 'Save', customTranslations)}
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              <Button
+                type="submit"
+                variant="accent"
+              >
+                {translate(locale, 'common', 'Save', customTranslations)}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <CollapsibleCard
         title={`${translate(locale, 'database', 'PatchLogsTableTitle', customTranslations)} (${patches?.length || 0} ${translate(locale, 'database', 'Records', customTranslations)})`}

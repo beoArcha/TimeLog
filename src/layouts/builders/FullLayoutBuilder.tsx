@@ -19,14 +19,14 @@ export default function FullLayoutBuilder({ state }: FullLayoutBuilderProps) {
     >
       <Sidebar state={state} />
 
-      <div id="tasks-main" className={`lg:col-span-8 flex flex-col gap-6 min-w-0 w-full`}>
+      <main id="tasks-main" role="main" aria-label="Main content" className="lg:col-span-8 flex flex-col gap-6 min-w-0 w-full">
         <ActiveTimerBanner state={state} isCondensed={false} />
 
         {activeView === 'tasks' && <TaskListView state={state} isCondensed={false} />}
         {activeView === 'reports' && <ReportView state={state} />}
 
         <DbInspector state={state} isCondensed={false} />
-      </div>
+      </main>
     </div>
   );
 }

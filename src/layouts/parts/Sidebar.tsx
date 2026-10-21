@@ -7,7 +7,8 @@ import { PROJECT_COLORS } from './LayoutStyles';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
-import { Label } from '@components/ui/label';
+import { EditProjectDialog } from './EditProjectDialog';
+import { Project } from '@bindings/Project';
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
@@ -52,13 +53,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
   const [newProjectIcon, setNewProjectIcon] = React.useState('');
   const [newProjectTags, setNewProjectTags] = React.useState('');
 
-  const [showEditModal, setShowEditModal] = React.useState(false);
-  const [editProjId, setEditProjId] = React.useState('');
-  const [editProjName, setEditProjName] = React.useState('');
-  const [editProjColor, setEditProjColor] = React.useState('');
-  const [editProjDesc, setEditProjDesc] = React.useState('');
-  const [editProjIcon, setEditProjIcon] = React.useState('');
-  const [editProjTags, setEditProjTags] = React.useState('');
+  const [editingProject, setEditingProject] = React.useState<Project | null>(null);
 
   const handleAddProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +74,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
   };
 
   return (
-    <div id="projects-sidebar" className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
+    <aside id="projects-sidebar" aria-label={translate(locale, 'project', 'ProjectsLabel', customTranslations)} className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
       <div className="backdrop-blur-md rounded-main padding-main border border-border bg-card text-card-foreground shadow-2xl transition-all duration-300">
         <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
           <h3 className="font-sans font-semibold text-title flex items-center gap-2 text-foreground">
@@ -267,13 +262,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                             title={translate(locale, 'common', 'EditName', customTranslations)}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setEditProjId(p.id);
-                              setEditProjName(p.name);
-                              setEditProjColor(p.color);
-                              setEditProjDesc(p.description || '');
-                              setEditProjIcon(p.icon || '');
-                              setEditProjTags(p.tags ? p.tags.join(', ') : '');
-                              setShowEditModal(true);
+                              setEditingProject(p);
                             }}
                             className="opacity-0 group-hover:opacity-100 transition duration-200 text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10"
                           >
@@ -309,127 +298,18 @@ export default function Sidebar({ state }: { state: GuiState }) {
         </div>
       </div>
 
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md p-6 rounded-3xl border border-border bg-card text-card-foreground shadow-2xl transition-all duration-300">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-orange-500" />
-              {translate(locale, 'project', 'EditProjectTitle', customTranslations)}
-            </h3>
-
-            <div className="flex flex-col gap-4">
-              <div>
-                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                  {translate(locale, 'project', 'ProjectName', customTranslations)}
-                </Label>
-                <Input
-                  id="edit-project-name-input"
-                  type="text"
-                  value={editProjName}
-                  onChange={e => setEditProjName(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                    {translate(locale, 'project', 'EmojiIcon', customTranslations)}
-                  </Label>
-                  <Input
-                    type="text"
-                    placeholder="🚀"
-                    maxLength={2}
-                    value={editProjIcon}
-                    onChange={e => setEditProjIcon(e.target.value)}
-                    className="w-full text-center text-xl"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                    {translate(locale, 'project', 'ColorTheme', customTranslations)}
-                  </Label>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {PROJECT_COLORS.map(col => (
-                      <Button
-                        key={col.name}
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => setEditProjColor(col.name)}
-                        className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${editProjColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
-                          }`}
-                      >
-                        {editProjColor === col.name && (
-                          <span className="w-1 h-1 bg-card rounded-full"></span>
-                        )}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                  {translate(locale, 'project', 'Description', customTranslations)}
-                </Label>
-                <Textarea
-                  placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
-                  value={editProjDesc}
-                  onChange={e => setEditProjDesc(e.target.value)}
-                  className="w-full h-16 resize-none"
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                  {translate(locale, 'project', 'Tags', customTranslations)}
-                </Label>
-                <Input
-                  type="text"
-                  placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
-                  value={editProjTags}
-                  onChange={e => setEditProjTags(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowEditModal(false)}
-                >
-                  {translate(locale, 'common', 'Cancel', customTranslations)}
-                </Button>
-                <Button
-                  id="save-edit-project-btn"
-                  type="button"
-                  variant="accent"
-                  onClick={() => {
-                    if (onUpdateProject && editProjName.trim()) {
-                      const tagsArr = editProjTags.split(',').map(t => t.trim()).filter(Boolean);
-                      onUpdateProject(
-                        editProjId,
-                        editProjName.trim(),
-                        editProjColor,
-                        editProjDesc.trim() || null,
-                        editProjIcon.trim() || null,
-                        tagsArr.length > 0 ? tagsArr : null
-                      );
-                    }
-                    setShowEditModal(false);
-                  }}
-                >
-                  {translate(locale, 'common', 'Save', customTranslations)}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
+      <EditProjectDialog
+        open={editingProject !== null}
+        onOpenChange={(open) => !open && setEditingProject(null)}
+        project={editingProject}
+        onSave={(id, name, color, desc, icon, tags) => {
+          if (onUpdateProject) {
+            onUpdateProject(id, name, color, desc, icon, tags);
+          }
+        }}
+        locale={locale}
+        customTranslations={customTranslations}
+      />
+    </aside>
   );
 }
