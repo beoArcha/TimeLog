@@ -22,8 +22,6 @@ concurrency:
 env:
   RUST_WORKSPACE: "src-tauri -> target"
   CARGO_PROFILE_DEV_DEBUG: 0
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: "node24"
 
 jobs:
   # ──────────────────────────────────────────────
@@ -31,11 +29,11 @@ jobs:
   # ──────────────────────────────────────────────
 
   lint-rust:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -70,11 +68,11 @@ jobs:
   # ──────────────────────────────────────────────
 
   typecheck:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -92,11 +90,11 @@ jobs:
   # ──────────────────────────────────────────────
 
   lint:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -114,12 +112,12 @@ jobs:
   # ──────────────────────────────────────────────
 
   test-unit:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     needs: [typecheck, lint]
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -149,12 +147,12 @@ jobs:
   # ──────────────────────────────────────────────
 
   test-integration:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     needs: [typecheck, lint]
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -184,12 +182,12 @@ jobs:
   # ──────────────────────────────────────────────
 
   test-rust:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     needs: [lint-rust]
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -239,7 +237,7 @@ jobs:
   # ──────────────────────────────────────────────
 
   coverage:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     needs:
       - test-unit
       - test-integration
@@ -247,7 +245,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
@@ -294,7 +292,7 @@ jobs:
   # ──────────────────────────────────────────────
 
   build:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
 
     needs:
       - test-unit
@@ -305,7 +303,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
 
