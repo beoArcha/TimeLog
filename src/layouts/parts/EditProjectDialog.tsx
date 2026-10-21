@@ -83,7 +83,7 @@ function EditProjectDialogForm({
     <div onKeyDown={handleKeyDown}>
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
-          <Pencil className="w-5 h-5 text-orange-500" />
+          <Pencil className="w-5 h-5 text-primary" />
           {translate(locale, 'project', 'EditProjectTitle', customTranslations)}
         </DialogTitle>
       </DialogHeader>
@@ -132,7 +132,7 @@ function EditProjectDialogForm({
                   onClick={() => setColor(col.name)}
                   aria-label={col.name}
                   className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${
-                    color === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
+                    color === col.name ? 'ring-2 ring-primary ring-offset-2 scale-105' : 'opacity-85'
                   }`}
                 >
                   {color === col.name && (

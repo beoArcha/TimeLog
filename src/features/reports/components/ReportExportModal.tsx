@@ -97,7 +97,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
       >
         <DialogHeader>
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
-            <Download className="w-5 h-5 text-orange-400" />
+            <Download className="w-5 h-5 text-primary" />
             {t("ExportReport")}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
@@ -205,11 +205,11 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
             </Button>
             <Button
               type="button"
-              variant="default"
+              variant="accent"
               size="sm"
               data-testid="export-download-button"
               onClick={handleDownload}
-              className="gap-2 text-xs font-semibold bg-orange-600 hover:bg-orange-500 text-white"
+              className="gap-2 text-xs font-semibold"
             >
               <Download className="w-4 h-4" />
               {t("DownloadFile")}

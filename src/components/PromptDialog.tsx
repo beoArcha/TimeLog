@@ -94,7 +94,7 @@ function PromptDialogForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
       <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
         <div
-          className="p-2.5 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 shrink-0"
+          className="p-2.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary shrink-0"
           aria-hidden="true"
         >
           <Icon className="w-5 h-5" />
@@ -150,7 +150,6 @@ function PromptDialogForm({
           data-testid="prompt-dialog-confirm-btn"
           loading={loading}
           aria-busy={loading}
-          onClick={handleSubmit}
         >
           {resolvedConfirmLabel}
         </Button>
