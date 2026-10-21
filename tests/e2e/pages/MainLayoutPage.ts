@@ -30,7 +30,7 @@ export class MainLayoutPage extends BasePage {
     super(page);
 
     // Header & Tabs
-    this.headerLogo = page.locator('h1', { hasText: 'OxyFlow' });
+    this.headerLogo = page.locator('[data-testid="app-header-logo"]');
     this.tabMain = page.locator('[data-testid="tab-main"]');
     this.tabReports = page.locator('[data-testid="tab-reports"]');
     this.tabDb = page.locator('[data-testid="tab-db"]');

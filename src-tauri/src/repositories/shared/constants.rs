@@ -83,3 +83,64 @@ pub const CREATE_RUNTIME_CONFIGS_TABLE: &str = "
         created_at TEXT NOT NULL
     )
 ";
+
+pub const CREATE_HOLIDAYS_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS holidays (
+        id TEXT PRIMARY KEY,
+        date TEXT NOT NULL,
+        type TEXT NOT NULL,
+        name TEXT NOT NULL,
+        note TEXT,
+        original_name TEXT,
+        original_date TEXT,
+        original_type TEXT,
+        edit_history TEXT
+    )
+";
+
+pub const CREATE_PATCHES_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS patches (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        task_id TEXT,
+        start_time TEXT NOT NULL,
+        end_time TEXT NOT NULL,
+        patch_note TEXT NOT NULL,
+        is_system_event INTEGER DEFAULT 0,
+        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )
+";
+
+pub const CREATE_WEBHOOK_QUEUE_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS webhook_queue (
+        id TEXT PRIMARY KEY,
+        url TEXT NOT NULL,
+        method TEXT NOT NULL,
+        headers TEXT,
+        payload TEXT NOT NULL,
+        status TEXT NOT NULL,
+        retry_count INTEGER DEFAULT 0,
+        next_retry_at TEXT,
+        last_error TEXT,
+        created_at TEXT NOT NULL
+    )
+";
+
+pub const CREATE_CLI_ALIASES_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS cli_aliases (
+        name TEXT PRIMARY KEY,
+        template TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )
+";
+
+pub const CREATE_CLI_SINKS_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS cli_sinks (
+        name TEXT PRIMARY KEY,
+        sink_type TEXT NOT NULL,
+        target TEXT NOT NULL,
+        config TEXT,
+        enabled INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL
+    )
+";

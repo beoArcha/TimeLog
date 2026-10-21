@@ -4,15 +4,69 @@ import { ContextException } from '../exceptions';
 
 export type DataState = ReturnType<typeof useTimeLogData>;
 
+export interface ProjectsState {
+  projects: DataState['projects'];
+  setProjects: DataState['setProjects'];
+  handleAddProject: DataState['handleAddProject'];
+  handleToggleProjectArchive: DataState['handleToggleProjectArchive'];
+  handleUpdateProject: DataState['handleUpdateProject'];
+  handleRenameProject: DataState['handleRenameProject'];
+}
+
+export interface TasksState {
+  tasks: DataState['tasks'];
+  setTasks: DataState['setTasks'];
+  selectedTaskId: DataState['selectedTaskId'];
+  setSelectedTaskId: DataState['setSelectedTaskId'];
+  handleAddTask: DataState['handleAddTask'];
+  handleUpdateTask: DataState['handleUpdateTask'];
+  handleRenameTask: DataState['handleRenameTask'];
+  handleDeleteTask: DataState['handleDeleteTask'];
+  handleToggleTaskComplete: DataState['handleToggleTaskComplete'];
+}
+
+export interface TimerState {
+  logs: DataState['logs'];
+  setLogs: DataState['setLogs'];
+  activeLog: DataState['activeLog'];
+  setActiveLog: DataState['setActiveLog'];
+  handleStartTimer: DataState['handleStartTimer'];
+  handleStopTimer: DataState['handleStopTimer'];
+  handleEditTimeLog: DataState['handleEditTimeLog'];
+}
+
+export interface HolidaysState {
+  holidays: DataState['holidays'];
+  setHolidays: DataState['setHolidays'];
+  handleAddHoliday: DataState['handleAddHoliday'];
+  handleDeleteHoliday: DataState['handleDeleteHoliday'];
+}
+
+export interface PatchesState {
+  patches: DataState['patches'];
+  setPatches: DataState['setPatches'];
+}
+
+export interface DataLifecycleState {
+  isInitialized: DataState['isInitialized'];
+  setIsInitialized: DataState['setIsInitialized'];
+  isLoading: DataState['isLoading'];
+  repositoryError: DataState['repositoryError'];
+  engineState: DataState['engineState'];
+  setEngineState: DataState['setEngineState'];
+  handleResetLocalStorage: DataState['handleResetLocalStorage'];
+  handleRestoreState: DataState['handleRestoreState'];
+}
+
 export const DataContext = createContext<DataState | undefined>(undefined);
 
-export const useData = () => {
+export const useData = (): DataState => {
   const ctx = useContext(DataContext);
   if (!ctx) throw new ContextException('useData must be used within DataProvider', 'ERR_DATA_CONTEXT');
   return ctx;
 };
 
-export const useProjects = () => {
+export const useProjects = (): ProjectsState => {
   const data = useData();
   return {
     projects: data.projects,
@@ -24,7 +78,7 @@ export const useProjects = () => {
   };
 };
 
-export const useTasks = () => {
+export const useTasks = (): TasksState => {
   const data = useData();
   return {
     tasks: data.tasks,
@@ -39,7 +93,7 @@ export const useTasks = () => {
   };
 };
 
-export const useTimer = () => {
+export const useTimer = (): TimerState => {
   const data = useData();
   return {
     logs: data.logs,
@@ -52,9 +106,9 @@ export const useTimer = () => {
   };
 };
 
-export const useDataSafe = () => useContext(DataContext);
+export const useDataSafe = (): DataState | null => useContext(DataContext) ?? null;
 
-export const useTasksSafe = () => {
+export const useTasksSafe = (): TasksState | null => {
   const data = useDataSafe();
   if (!data) return null;
   return {
@@ -70,7 +124,7 @@ export const useTasksSafe = () => {
   };
 };
 
-export const useTimerSafe = () => {
+export const useTimerSafe = (): TimerState | null => {
   const data = useDataSafe();
   if (!data) return null;
   return {
@@ -84,7 +138,7 @@ export const useTimerSafe = () => {
   };
 };
 
-export const useHolidays = () => {
+export const useHolidays = (): HolidaysState => {
   const data = useData();
   return {
     holidays: data.holidays,
@@ -94,7 +148,7 @@ export const useHolidays = () => {
   };
 };
 
-export const usePatches = () => {
+export const usePatches = (): PatchesState => {
   const data = useData();
   return {
     patches: data.patches,
@@ -102,7 +156,7 @@ export const usePatches = () => {
   };
 };
 
-export const useDataLifecycleState = () => {
+export const useDataLifecycleState = (): DataLifecycleState => {
   const data = useData();
   return {
     isInitialized: data.isInitialized,

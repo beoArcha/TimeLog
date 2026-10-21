@@ -6,6 +6,7 @@ import { translate } from '@common/i18n/translator';
 import { TranslationDictionary } from '@common/i18n/types';
 import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
+import { Caption } from '@components/ui/typography';
 
 interface SubtaskRowProps {
   key?: React.Key;
@@ -49,12 +50,14 @@ export function SubtaskRow({
 
   return (
     <div className="flex items-center justify-between gap-2 py-0.5">
-      <span
-        className={`text-[11px] truncate flex-1 ${subtask.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+      <Caption
+        as="span"
+        size="xs"
+        className={`truncate flex-1 ${subtask.completed ? 'line-through text-muted-foreground' : 'text-foreground'
           }`}
       >
         ↳ {subtask.name}
-      </span>
+      </Caption>
 
       <Button
         variant="ghost"

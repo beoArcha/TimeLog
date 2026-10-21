@@ -38,7 +38,7 @@ export function SegmentedControl<T extends string = string>({
   id,
 }: SegmentedControlProps<T>) {
   const sizeClasses = {
-    sm: 'text-[10px] h-7 px-2 py-0.5 gap-1.5',
+    sm: 'text-xs h-7 px-2 py-0.5 gap-1.5',
     md: 'text-xs h-8 px-2.5 py-1 gap-2',
     lg: 'text-sm h-9 px-3 py-1.5 gap-2.5',
   }[size];

@@ -28,7 +28,7 @@ export function TaskVisibilityToggle({
         size="xs"
         data-testid="compact-toggle-tasks-btn"
         onClick={onToggle}
-        className="w-full py-1 h-auto rounded-xl transition-all font-mono text-[9px] uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer bg-secondary hover:bg-secondary/80 text-secondary-foreground"
+        className="w-full py-1 h-auto rounded-xl transition-all font-mono uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer bg-secondary hover:bg-secondary/80 text-secondary-foreground"
       >
         <span>{label}</span>
         <div className="w-4 h-4 rounded-full bg-orange-500/10 flex items-center justify-center">

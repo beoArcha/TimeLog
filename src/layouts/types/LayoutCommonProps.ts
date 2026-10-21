@@ -62,6 +62,7 @@ export interface LayoutCommonProps {
 
   activeLargeTab?: string;
   activeView?: string;
+  isLoading?: boolean;
 }
 
 export interface LayoutRouterProps {

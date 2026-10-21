@@ -1,81 +1,67 @@
-import { invoke } from '@tauri-apps/api/core';
-import { IEngine } from './IEngine';
-import { ErrorHandler, TauriInteropException } from '../exceptions';
+import {
+  IEngine,
+  ITimerEngine,
+  IMetricsEngine,
+  ITimeLogsEngine,
+  IValidationEngine,
+  EngineComputedMetrics,
+  ElapsedRangeFilter,
+} from './IEngine';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
-import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
-import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';
+import { Project } from '@bindings/Project';
+import { Task } from '@bindings/Task';
+import { TauriTimerEngine } from './commands/TauriTimerEngine';
+import { TauriMetricsEngine } from './commands/TauriMetricsEngine';
+import { TauriTimeLogsEngine } from './commands/TauriTimeLogsEngine';
+import { TauriValidationEngine } from './commands/TauriValidationEngine';
 
 export class EngineCommands implements IEngine {
+  readonly timer: ITimerEngine;
+  readonly metrics: IMetricsEngine;
+  readonly timeLogs: ITimeLogsEngine;
+  readonly validation: IValidationEngine;
+
+  constructor(services?: Partial<IEngine>) {
+    this.timer = services?.timer ?? new TauriTimerEngine();
+    this.metrics = services?.metrics ?? new TauriMetricsEngine();
+    this.timeLogs = services?.timeLogs ?? new TauriTimeLogsEngine();
+    this.validation = services?.validation ?? new TauriValidationEngine();
+  }
+
   async startTimer(taskId: string): Promise<void> {
-    try {
-      await invoke('start_timer', { taskId });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to start timer via Tauri', err, 'ERR_TAURI_ENGINE_START'));
-      throw err;
-    }
+    return this.timer.startTimer(taskId);
   }
 
   async stopTimer(projectId?: string): Promise<void> {
-    try {
-      await invoke('stop_timer', { projectId });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to stop timer via Tauri', err, 'ERR_TAURI_ENGINE_STOP'));
-      throw err;
-    }
+    return this.timer.stopTimer(projectId);
   }
 
   async resumeTimer(taskId: string): Promise<void> {
-    try {
-      await invoke('resume_timer', { taskId });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to resume timer via Tauri', err, 'ERR_TAURI_ENGINE_RESUME'));
-      throw err;
-    }
+    return this.timer.resumeTimer(taskId);
   }
 
   async getActiveLogs(): Promise<string[]> {
-    try {
-      return await invoke<string[]>('get_active_logs');
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to get active logs via Tauri', err, 'ERR_TAURI_ENGINE_ACTIVE_LOGS'));
-      throw err;
-    }
+    return this.timer.getActiveLogs();
   }
 
   async getComputedMetrics(nowIso?: string): Promise<EngineComputedMetrics> {
-    try {
-      return await invoke<EngineComputedMetrics>('get_computed_metrics', { nowIso });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to get computed metrics via Tauri', err, 'ERR_TAURI_ENGINE_COMPUTED_METRICS'));
-      throw err;
-    }
+    return this.metrics.getComputedMetrics(nowIso);
   }
 
   async getTaskElapsed(taskId: string, nowIso?: string): Promise<number> {
-    try {
-      return await invoke<number>('get_task_elapsed', { taskId, nowIso });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to get task elapsed via Tauri', err, 'ERR_TAURI_ENGINE_TASK_ELAPSED'));
-      throw err;
-    }
+    return this.metrics.getTaskElapsed(taskId, nowIso);
   }
 
   async getProjectElapsed(projectId: string, nowIso?: string): Promise<number> {
-    try {
-      return await invoke<number>('get_project_elapsed', { projectId, nowIso });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to get project elapsed via Tauri', err, 'ERR_TAURI_ENGINE_PROJ_ELAPSED'));
-      throw err;
-    }
+    return this.metrics.getProjectElapsed(projectId, nowIso);
   }
 
   async getElapsedRange(range: ElapsedRangeFilter, nowIso?: string): Promise<number> {
-    try {
-      return await invoke<number>('get_elapsed_range', { range, nowIso });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to get elapsed range via Tauri', err, 'ERR_TAURI_ENGINE_RANGE_ELAPSED'));
-      throw err;
-    }
+    return this.metrics.getElapsedRange(range, nowIso);
+  }
+
+  async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
+    return this.metrics.getProjectStatistics(projectId);
   }
 
   async editTimeLog(
@@ -86,20 +72,26 @@ export class EngineCommands implements IEngine {
     note: string | null,
     reason: string | null
   ): Promise<void> {
-    try {
-      await invoke('edit_time_log', { id, taskId, startTime, endTime, note, reason });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to edit time log via Tauri', err, 'ERR_TAURI_ENGINE_EDIT'));
-      throw err;
-    }
+    return this.timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason);
   }
 
-  async getProjectStatistics(projectId: string): Promise<ProjectStatistics> {
-    try {
-      return await invoke<ProjectStatistics>('get_project_statistics', { projectId });
-    } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to get project statistics via Tauri', err, 'ERR_TAURI_ENGINE_STATS'));
-      throw err;
-    }
+  async validateProjectName(
+    name: string,
+    existingProjects: Project[],
+    excludeProjectId?: string
+  ): Promise<void> {
+    return this.validation.validateProjectName(name, existingProjects, excludeProjectId);
+  }
+
+  async validateTaskName(name: string): Promise<void> {
+    return this.validation.validateTaskName(name);
+  }
+
+  async validateTaskHierarchy(
+    taskId: string | null | undefined,
+    parentTaskId: string | null | undefined,
+    tasks: Task[]
+  ): Promise<void> {
+    return this.validation.validateTaskHierarchy(taskId, parentTaskId, tasks);
   }
 }

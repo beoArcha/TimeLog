@@ -10,4 +10,4 @@ const defaultCapabilities: PlatformCapabilities = {
 
 export const PlatformCapabilitiesContext = createContext<PlatformCapabilities>(defaultCapabilities);
 
-export const usePlatformCapabilities = () => useContext(PlatformCapabilitiesContext);
+export const usePlatformCapabilities = (): PlatformCapabilities => useContext(PlatformCapabilitiesContext);

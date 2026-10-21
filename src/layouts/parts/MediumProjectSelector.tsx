@@ -3,10 +3,11 @@ import { GuiState } from '../hooks/useGuiLogic';
 import { PROJECT_COLORS } from './LayoutStyles';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
-import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
+import { ProjectBadge } from '@features/projects/components/ProjectBadge';
 import { MediumHeaderActions } from './MediumHeaderActions';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
+import { MonoText, Caption } from '@components/ui/typography';
 import {
   Folder,
   Plus,
@@ -35,6 +36,7 @@ export default function MediumProjectSelector({
     selectedProjectId,
     setSelectedProjectId,
     onAddProject,
+    isLoading,
   } = state;
 
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
@@ -92,7 +94,7 @@ export default function MediumProjectSelector({
               />
             </div>
             {selectedProject && (
-              <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
                 <span className="flex items-center gap-1 text-orange-500 font-semibold">
                   <Clock className="w-3 h-3" aria-hidden="true" />
                   {formatSeconds(
@@ -148,9 +150,9 @@ export default function MediumProjectSelector({
 
           {isAddingProject ? (
             <form onSubmit={handleCreateProject} className="p-3 border-b border-inherit bg-orange-500/5">
-              <p className="text-xs font-semibold mb-2 text-orange-500">
+              <Caption weight="semibold" className="mb-2 text-orange-500 block">
                 {translate(locale, 'project', 'NewProject', customTranslations)}
-              </p>
+              </Caption>
               <Input
                 type="text"
                 data-testid="medium-new-project-input"
@@ -193,7 +195,7 @@ export default function MediumProjectSelector({
                   variant="accent"
                   size="sm"
                   data-testid="medium-save-new-project-btn"
-                  disabled={!newProjectName.trim()}
+                  disabled={!newProjectName.trim() || isLoading}
                 >
                   {translate(locale, 'common', 'Save', customTranslations)}
                 </Button>
@@ -242,9 +244,9 @@ export default function MediumProjectSelector({
                     size="sm"
                     className="flex-1"
                   />
-                  <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-2 shrink-0 font-mono text-xs text-muted-foreground">
                     <span>{formatSeconds(dur)}</span>
-                    <span className="text-[10px]">({pTasks.length})</span>
+                    <MonoText as="span">({pTasks.length})</MonoText>
                     {isSelected && <Check className="w-3.5 h-3.5 text-orange-500 ml-1 shrink-0" />}
                   </div>
                 </Button>

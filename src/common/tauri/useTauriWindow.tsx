@@ -48,6 +48,19 @@ interface TauriWindowProps {
   customTranslations: Record<string, unknown>;
 }
 
+export interface TauriWindowHandle {
+  isMinimized: boolean;
+  setIsMinimized: React.Dispatch<React.SetStateAction<boolean>>;
+  isGuiClosed: boolean;
+  setIsGuiClosed: React.Dispatch<React.SetStateAction<boolean>>;
+  trayNotification: string | null;
+  setTrayNotification: React.Dispatch<React.SetStateAction<string | null>>;
+  showToast: (msg: string) => void;
+  handleMinimizeToTray: () => Promise<void>;
+  handleCloseWindow: () => Promise<void>;
+  handleMinimizeWindow: () => Promise<void>;
+}
+
 export const useTauriWindow = ({
   layoutVariant, setLayoutVariant,
   textAndIconSize,
@@ -57,7 +70,7 @@ export const useTauriWindow = ({
   lastNonCompactVariant: _lastNonCompactVariant, setLastNonCompactVariant,
   handleStopTimer,
   locale, customTranslations
-}: TauriWindowProps) => {
+}: TauriWindowProps): TauriWindowHandle => {
   const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const [isGuiClosed, setIsGuiClosed] = useState<boolean>(false);
   const [trayNotification, setTrayNotification] = useState<string | null>(null);
@@ -154,11 +167,13 @@ export const useTauriWindow = ({
             await handleSetLayoutVariant(payload, stateRef.current.textAndIconSize);
             const flag = payload === 'compact' ? stateRef.current.alwaysOnTopSmall : stateRef.current.alwaysOnTopMain;
             await handleWindowAlwaysOnTop(flag);
-            const sizeLabel = payload === 'compact'
-              ? translate(stateRef.current.locale, 'app', 'SizeSmall', stateRef.current.customTranslations)
-              : payload === 'medium'
-                ? translate(stateRef.current.locale, 'app', 'SizeMedium', stateRef.current.customTranslations)
-                : translate(stateRef.current.locale, 'app', 'SizeLarge', stateRef.current.customTranslations);
+            const sizeKeyMap: Record<string, 'SizeSmall' | 'SizeMedium' | 'SizeLarge'> = {
+              compact: 'SizeSmall',
+              medium: 'SizeMedium',
+              full: 'SizeLarge',
+            };
+            const sizeKey = sizeKeyMap[payload] ?? 'SizeLarge';
+            const sizeLabel = translate(stateRef.current.locale, 'app', sizeKey, stateRef.current.customTranslations);
             const prefix = translate(stateRef.current.locale, 'app', 'SizeChanged', stateRef.current.customTranslations);
             stateRef.current.showToast(`${prefix} ${sizeLabel}`);
           }

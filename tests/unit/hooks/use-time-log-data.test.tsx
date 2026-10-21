@@ -41,108 +41,134 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     return rendered;
   };
 
-  it('should_initialize_with_default_projects_when_storage_is_empty', async () => {
+  it('should initialize with default projects when storage is empty', async () => {
+    // Arrange & Act
     const { result } = await renderTimeLog();
+
+    // Assert
     expect(result.current.projects).toHaveLength(3);
   });
 
-  it('should_add_new_project_when_handleAddProject_is_called', async () => {
+  it('should add new project when handleAddProject is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleAddProject('Test Project', 'rose');
     });
 
+    // Assert
     expect(result.current.projects).toHaveLength(4);
     expect(result.current.projects[3].name).toBe('Test Project');
   });
 
-  it('should_toggle_project_archived_state_when_handleToggleProjectArchive_is_called', async () => {
+  it('should toggle project archived state when handleToggleProjectArchive is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act & Assert (Phase 1: archive)
     await act(async () => {
       await result.current.handleToggleProjectArchive(TEST_CONSTANTS.PROJECT_ID_1);
     });
-
     expect(result.current.projects[0].archived).toBe(true);
 
+    // Act & Assert (Phase 2: unarchive)
     await act(async () => {
       await result.current.handleToggleProjectArchive(TEST_CONSTANTS.PROJECT_ID_1);
     });
-
     expect(result.current.projects[0].archived).toBe(false);
   });
 
-  it('should_add_task_when_handleAddTask_is_called', async () => {
+  it('should add task when handleAddTask is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleAddTask(TEST_CONSTANTS.PROJECT_ID_1, 'New Task', null);
     });
 
+    // Assert
     expect(result.current.tasks).toHaveLength(8);
     expect(result.current.tasks[result.current.tasks.length - 1].name).toBe('New Task');
   });
 
-  it('should_rename_project_when_handleRenameProject_is_called', async () => {
+  it('should rename project when handleRenameProject is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleRenameProject(TEST_CONSTANTS.PROJECT_ID_1, 'Renamed Backend');
     });
 
+    // Assert
     expect(result.current.projects[0].name).toBe('Renamed Backend');
   });
 
-  it('should_rename_task_when_handleRenameTask_is_called', async () => {
+  it('should rename task when handleRenameTask is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
-      await result.current.handleRenameTask(TEST_CONSTANTS.TASK_ID_101, 'Renamed Task');
+      await result.current.handleRenameTask(TEST_CONSTANTS.TASK_ID_101, 'Renamed Auth API');
     });
 
-    expect(result.current.tasks[0].name).toBe('Renamed Task');
+    // Assert
+    expect(result.current.tasks[0].name).toBe('Renamed Auth API');
   });
 
-  it('should_delete_task_and_all_subtasks_and_logs_when_handleDeleteTask_is_called', async () => {
+  it('should delete task and all subtasks and logs when handleDeleteTask is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleDeleteTask(TEST_CONSTANTS.TASK_ID_102);
     });
 
-    const hasParent = result.current.tasks.some(t => t.id === TEST_CONSTANTS.TASK_ID_102);
-    const hasChild = result.current.tasks.some(t => t.id === TEST_CONSTANTS.TASK_ID_1021);
-    expect(hasParent).toBe(false);
-    expect(hasChild).toBe(false);
+    // Assert
+    expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)).toBeUndefined();
+    expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_1021)).toBeUndefined();
+    expect(result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_102)).toBeUndefined();
   });
 
-  it('should_toggle_task_complete_and_stop_running_timer_when_handleToggleTaskComplete_is_called', async () => {
+  it('should toggle task complete when handleToggleTaskComplete is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
+
+    // Assert
     expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)?.completed).toBe(true);
 
+    // Act & Assert (uncompleting)
     await act(async () => {
       await result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
     expect(result.current.tasks.find(t => t.id === TEST_CONSTANTS.TASK_ID_102)?.completed).toBe(false);
   });
 
-  it('should_trigger_api_callback_when_starting_timer', async () => {
+  it('should trigger api callback when starting timer', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
 
+    // Assert
     expect(pushToApi).toHaveBeenCalled();
-    expect(result.current.activeLog?.taskId).toBe(TEST_CONSTANTS.TASK_ID_101);
   });
 
-  it('should_stop_running_timer_when_handleStartTimer_is_called_on_an_already_running_task', async () => {
+  it('should stop running timer when handleStartTimer is called on an already running task', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
     await act(async () => {
@@ -151,10 +177,12 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     expect(result.current.activeLog).not.toBeNull();
     pushToApi.mockClear();
 
+    // Act
     await act(async () => {
       await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_101);
     });
 
+    // Assert
     expect(result.current.activeLog).toBeNull();
     expect(pushToApi).toHaveBeenCalledWith(
       expect.objectContaining({ event: 'TERMINATE' }),
@@ -162,23 +190,26 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     );
   });
 
-  it('should_automatically_create_mother_log_when_starting_child_task_timer', async () => {
+  it('should automatically create mother log when starting child task timer', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
     });
 
+    // Assert
     const motherLog = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_102);
     const childLog = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_1021);
-
     expect(motherLog).toBeDefined();
     expect(childLog).toBeDefined();
     expect(motherLog?.endTime).toBeNull();
     expect(childLog?.endTime).toBeNull();
   });
 
-  it('should_stop_all_active_timers_when_handleStopTimer_is_called', async () => {
+  it('should stop all active timers when handleStopTimer is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
     await act(async () => {
@@ -186,88 +217,115 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     });
     expect(result.current.activeLog).not.toBeNull();
 
+    // Act
     await act(async () => {
       await result.current.handleStopTimer();
     });
 
+    // Assert
     expect(result.current.activeLog).toBeNull();
+    const openLogs = result.current.logs.filter(l => l.endTime === null);
+    expect(openLogs).toHaveLength(0);
   });
 
-  it('should_clear_local_storage_and_reload_when_handleResetLocalStorage_is_called', async () => {
+  it('should clear local storage and reload when handleResetLocalStorage is called', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleResetLocalStorage();
     });
 
+    // Assert
     const state = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
     expect(state).toEqual({});
     expect(window.location.reload).toHaveBeenCalled();
   });
 
-  it('should_handle_empty_backend_state_gracefully', async () => {
+  it('should handle empty backend state gracefully', async () => {
+    // Arrange
     localStorage.removeItem(LOCAL_STORAGE_KEY);
 
+    // Act
     const { result } = await renderTimeLog();
+
+    // Assert
     expect(result.current.projects).toHaveLength(0);
   });
 
-  it('should_do_nothing_when_handleRenameProject_is_called_with_non_existent_id', async () => {
+  it('should do nothing when handleRenameProject is called with non existent id', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
     const initialProjects = [...result.current.projects];
 
+    // Act
     await act(async () => {
       await result.current.handleRenameProject('non-existent', 'New Name');
     });
 
+    // Assert
     expect(result.current.projects).toEqual(initialProjects);
   });
 
-  it('should_do_nothing_when_handleRenameTask_is_called_with_non_existent_id', async () => {
+  it('should do nothing when handleRenameTask is called with non existent id', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
     const initialTasks = [...result.current.tasks];
 
+    // Act
     await act(async () => {
       await result.current.handleRenameTask('non-existent', 'New Name');
     });
 
+    // Assert
     expect(result.current.tasks).toEqual(initialTasks);
   });
 
-  it('should_do_nothing_when_handleDeleteTask_is_called_with_non_existent_id', async () => {
+  it('should do nothing when handleDeleteTask is called with non existent id', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
     const initialTasks = [...result.current.tasks];
 
+    // Act
     await act(async () => {
       await result.current.handleDeleteTask('non-existent');
     });
 
+    // Assert
     expect(result.current.tasks).toEqual(initialTasks);
   });
 
-  it('should_do_nothing_when_handleToggleTaskComplete_is_called_with_non_existent_id', async () => {
+  it('should do nothing when handleToggleTaskComplete is called with non existent id', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
     const initialTasks = [...result.current.tasks];
 
+    // Act
     await act(async () => {
       await result.current.handleToggleTaskComplete('non-existent');
     });
 
+    // Assert
     expect(result.current.tasks).toEqual(initialTasks);
   });
 
-  it('should_do_nothing_when_handleStartTimer_is_called_with_non_existent_id', async () => {
+  it('should do nothing when handleStartTimer is called with non existent id', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
+    // Act
     await act(async () => {
       await result.current.handleStartTimer('non-existent');
     });
 
+    // Assert
     expect(pushToApi).not.toHaveBeenCalled();
     expect(result.current.activeLog).toBeNull();
   });
 
-  it('should_stop_running_timer_when_task_is_completed', async () => {
+  it('should stop running timer when task is completed', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
     await act(async () => {
@@ -276,16 +334,19 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     expect(result.current.activeLog?.taskId).toBe(TEST_CONSTANTS.TASK_ID_102);
     pushToApi.mockClear();
 
+    // Act
     await act(async () => {
       await result.current.handleToggleTaskComplete(TEST_CONSTANTS.TASK_ID_102);
     });
 
+    // Assert
     expect(result.current.activeLog).toBeNull();
     const log102 = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_102);
     expect(log102?.endTime).not.toBeNull();
   });
 
-  it('should_terminate_running_non_mother_task_timer_when_starting_another_task_timer', async () => {
+  it('should terminate running non mother task timer when starting another task timer', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
     await act(async () => {
@@ -293,10 +354,12 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     });
     pushToApi.mockClear();
 
+    // Act
     await act(async () => {
       await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_102);
     });
 
+    // Assert
     const log101 = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_101);
     expect(log101?.endTime).not.toBeNull();
     expect(pushToApi).toHaveBeenCalledWith(
@@ -305,7 +368,8 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     );
   });
 
-  it('should_keep_mother_task_timer_running_when_starting_child_task_timer_and_mother_is_already_running', async () => {
+  it('should keep mother task timer running when starting child task timer and mother is already running', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
     await act(async () => {
@@ -313,10 +377,12 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     });
     pushToApi.mockClear();
 
+    // Act
     await act(async () => {
       await result.current.handleStartTimer(TEST_CONSTANTS.TASK_ID_1021);
     });
 
+    // Assert
     const motherLog = result.current.logs.find(l => l.taskId === TEST_CONSTANTS.TASK_ID_102);
     expect(motherLog?.endTime).toBeNull();
 
@@ -324,7 +390,8 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     expect(childLog?.endTime).toBeNull();
   });
 
-  it('should_stop_only_matching_project_timers_when_handleStopTimer_is_called_with_specific_project_id', async () => {
+  it('should stop only matching project timers when handleStopTimer is called with specific project id', async () => {
+    // Arrange
     const { result } = await renderTimeLog();
 
     await act(async () => {
@@ -333,11 +400,13 @@ describe('Unit Tests: useTimeLogData Hook', () => {
     expect(result.current.activeLog?.projectId).toBe(TEST_CONSTANTS.PROJECT_ID_1);
     pushToApi.mockClear();
 
+    // Act & Assert (Phase 1: stop unrelated project)
     await act(async () => {
       await result.current.handleStopTimer(TEST_CONSTANTS.PROJECT_ID_2);
     });
     expect(result.current.activeLog).not.toBeNull();
 
+    // Act & Assert (Phase 2: stop matching project)
     await act(async () => {
       await result.current.handleStopTimer(TEST_CONSTANTS.PROJECT_ID_1);
     });

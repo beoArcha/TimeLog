@@ -38,6 +38,31 @@ pub struct Project {
     pub tags: Option<Vec<String>>,
 }
 
+impl Project {
+    pub fn new(
+        id: String,
+        name: String,
+        color: String,
+        description: Option<String>,
+        icon: Option<String>,
+        tags: Option<Vec<String>>,
+    ) -> Self {
+        Self {
+            id,
+            name,
+            color,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            archived: Some(false),
+            original_name: None,
+            original_color: None,
+            edit_history: None,
+            description,
+            icon,
+            tags,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]

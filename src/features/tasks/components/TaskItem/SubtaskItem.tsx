@@ -9,6 +9,7 @@ import { TimerDisplay } from '@/src/features/timelogs/components/TimerDisplay';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 import { Button } from '@components/ui/button';
+import { HStack } from '@components/ui/stack';
 import {
   Select,
   SelectContent,
@@ -19,6 +20,13 @@ import {
 
 import { useTasksSafe, useTimerSafe } from '@common/hooks/DataContext';
 import { useTaskEditing } from '../../context/TaskEditingContext';
+
+const STATUS_BADGE_STYLE_MAP: Record<string, string> = {
+  Done: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+  InProgress: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+  Blocked: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
+  Todo: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
+};
 
 export interface SubtaskItemProps {
   key?: React.Key;
@@ -84,14 +92,16 @@ export function SubtaskItem({
   const isEditing = editingId === subTask.id;
 
   return (
-    <div
+    <HStack
       id={`subtask-item-${subTask.id}`}
-      className={`flex items-center justify-between gap-4 py-2 px-3 rounded-xl group/sub transition-all ${isSubRunning
+      justify="between"
+      gap="lg"
+      className={`py-2 px-3 rounded-xl group/sub transition-all ${isSubRunning
         ? 'bg-orange-500/10 border border-orange-500/20'
         : 'hover:bg-muted/80 border border-transparent text-foreground'
         }`}
     >
-      <div className="flex items-start sm:items-center gap-2.5 flex-1 min-w-0">
+      <HStack gap="xs" align="start" className="sm:items-center flex-1 min-w-0">
         <Button
           id={`check-subtask-${subTask.id}`}
           role="checkbox"
@@ -141,14 +151,9 @@ export function SubtaskItem({
                   }}
                 >
                   <SelectTrigger
-                    className={`h-5 text-[9px] font-bold px-1.5 py-0.5 rounded border font-mono shrink-0 transition-all ${subTask.status === 'Done'
-                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                        : subTask.status === 'InProgress'
-                          ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                          : subTask.status === 'Blocked'
-                            ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                            : 'bg-slate-500/10 text-slate-500 border-slate-500/20'
-                      }`}
+                    className={`h-5 text-xs font-bold px-1.5 py-0.5 rounded border font-mono shrink-0 transition-all ${
+                      STATUS_BADGE_STYLE_MAP[subTask.status || 'Todo'] ?? STATUS_BADGE_STYLE_MAP.Todo
+                    }`}
                     aria-label="Subtask status"
                   >
                     <SelectValue>{subTask.status || 'Todo'}</SelectValue>
@@ -180,9 +185,9 @@ export function SubtaskItem({
             />
           )}
         </div>
-      </div>
+      </HStack>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <HStack gap="md" className="shrink-0">
         <TimerDisplay
           value={subFormattedElapsed}
           isRunning={isSubRunning}
@@ -216,7 +221,7 @@ export function SubtaskItem({
             <Play className="w-3.5 h-3.5 fill-current shrink-0" />
           </Button>
         )}
-      </div>
-    </div>
+      </HStack>
+    </HStack>
   );
 }

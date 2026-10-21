@@ -4,7 +4,8 @@ import { Project } from '@bindings/Project';
 import { translate } from '@common/i18n/translator';
 import { TranslationDictionary } from '@common/i18n/types';
 import { TaskCard } from './TaskCard';
-import { Locale } from '@/src/bindings/Locale';
+import { Locale } from '@bindings/Locale';
+import { Caption } from '@components/ui/typography';
 
 interface TaskListProps {
   activeProj: Project | undefined;
@@ -31,17 +32,17 @@ export function TaskList({
 }: TaskListProps) {
   if (!activeProj) {
     return (
-      <p className="text-xs italic text-muted-foreground text-center py-4">
+      <Caption variant="muted" className="italic text-center py-4 block">
         {translate(locale, 'project', 'NoProjects', customTranslations)}
-      </p>
+      </Caption>
     );
   }
 
   if (rootTasks.length === 0) {
     return (
-      <p className="text-xs italic text-muted-foreground text-center py-4">
+      <Caption variant="muted" className="italic text-center py-4 block">
         {translate(locale, 'task', 'NoTasksInProfile', customTranslations)}
-      </p>
+      </Caption>
     );
   }
 

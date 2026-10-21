@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Task } from '@bindings/Task';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { ConfirmDialog } from '@components/ConfirmDialog';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
@@ -16,14 +17,17 @@ import {
 import { Input } from '@components/ui/input';
 import { Checkbox } from '@components/ui/checkbox';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Caption, Overline } from '@components/ui/typography';
 
 export default function TasksTable() {
   const { locale, customTranslations } = useLocale();
-  const { tasks, setTasks, setLogs } = useData();
+  const { tasks, setTasks, setLogs, handleDeleteTask } = useData();
 
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [taskForm, setTaskForm] = useState<{ name: string; completed: boolean; reason: string }>({ name: '', completed: false, reason: '' });
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
+  const [deleteTargetTaskId, setDeleteTargetTaskId] = useState<string | null>(null);
 
   const startEditTask = (t: Task) => {
     setEditingTaskId(t.id);
@@ -64,15 +68,20 @@ export default function TasksTable() {
     setEditingTaskId(null);
   };
 
-  const deleteTask = (id: string) => {
-    if (confirm(translate(locale, 'database', 'DeleteConfirmTask', customTranslations))) {
-      setTasks(curr => curr.filter(t => t.id !== id));
-      setLogs(curr => curr.filter(l => l.taskId !== id));
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetTaskId) return;
+    const id = deleteTargetTaskId;
+    setDeleteTargetTaskId(null);
+    if (handleDeleteTask) {
+      await handleDeleteTask(id);
     }
+    setTasks(curr => curr.filter(t => t.id !== id));
+    setLogs(curr => curr.filter(l => l.taskId !== id));
   };
 
   return (
-    <CollapsibleCard
+    <>
+      <CollapsibleCard
       title={`${translate(locale, 'database', 'TasksTableTitle', customTranslations)} (${tasks.length} ${translate(locale, 'database', 'RecordsPlural', customTranslations)})`}
       icon={Database}
       iconColor="text-teal-400"
@@ -84,7 +93,7 @@ export default function TasksTable() {
       <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
         <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <TableHeader>
-            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
+            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
               <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
               <TableHead className="py-3 px-4">project_id</TableHead>
               <TableHead className="py-3 px-4">name</TableHead>
@@ -125,18 +134,18 @@ export default function TasksTable() {
                           className="w-4 h-4 rounded"
                         />
                       ) : (
-                        <span className={`px-2 py-0.5 rounded font-bold text-[9px] ${t.completed ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-450 border border-rose-500/20'}`}>
+                        <Badge variant={t.completed ? 'emerald' : 'rose'} size="xs" as="span">
                           {t.completed ? 'TRUE' : 'FALSE'}
-                        </span>
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="py-3.5 px-4">
                       {hasHistory ? (
-                        <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-md font-bold">
+                        <Badge variant="amber" size="sm" as="span">
                           {translate(locale, 'database', 'OriginalLabel', customTranslations)}: {t.originalName || t.name} ({t.originalCompleted ? translate(locale, 'common', 'Yes', customTranslations) : translate(locale, 'common', 'No', customTranslations)})
-                        </span>
+                        </Badge>
                       ) : (
-                        <span className="text-muted-foreground text-[10px]">{translate(locale, 'database', 'NoPatches', customTranslations)}</span>
+                        <Caption as="span">{translate(locale, 'database', 'NoPatches', customTranslations)}</Caption>
                       )}
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-right">
@@ -161,7 +170,7 @@ export default function TasksTable() {
                               aria-label={translate(locale, 'database', 'Reason', customTranslations)}
                               value={taskForm.reason} 
                               onChange={e => setTaskForm(prev => ({ ...prev, reason: e.target.value }))}
-                              className="text-[9px] bg-background border border-border px-1 py-0.5 h-6 rounded w-28 text-foreground mr-1"
+                              className="text-xs bg-background border border-border px-1.5 py-0.5 h-6 rounded w-28 text-foreground mr-1"
                             />
                             <Button 
                               variant="ghost"
@@ -199,7 +208,7 @@ export default function TasksTable() {
                             <Button 
                               variant="ghost"
                               size="icon-xs"
-                              onClick={() => deleteTask(t.id)} 
+                              onClick={() => setDeleteTargetTaskId(t.id)} 
                               className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
                               title={translate(locale, 'common', 'Delete', customTranslations)}
                               aria-label={translate(locale, 'common', 'Delete', customTranslations)}
@@ -216,15 +225,15 @@ export default function TasksTable() {
                     <TableRow>
                       <TableCell colSpan={6} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
                         <div className="flex flex-col gap-1.2 border-l-2 border-teal-500 pl-4 py-1">
-                          <p className="text-[10px] uppercase font-bold tracking-widest text-teal-400 flex items-center gap-1.5">
+                          <Overline className="text-teal-400 flex items-center gap-1.5">
                             <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}
-                          </p>
+                          </Overline>
                           {t.editHistory.map((h, hIdx) => (
-                            <div key={hIdx} className="text-[11px] text-muted-foreground mt-1">
+                            <Caption key={hIdx} size="xs" className="text-muted-foreground mt-1 block">
                               <span>[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
                               {translate(locale, 'database', 'OriginalPrevName', customTranslations)} <strong className="text-foreground">"{h.prevName}"</strong> ({translate(locale, 'database', 'Completed', customTranslations)} {h.prevCompleted ? translate(locale, 'common', 'Yes', customTranslations) : translate(locale, 'common', 'No', customTranslations)}) &rarr;{' '}
                               {translate(locale, 'database', 'ReasonForCorrection', customTranslations)} <em className="text-teal-300">"{h.reason}"</em>
-                            </div>
+                            </Caption>
                           ))}
                         </div>
                       </TableCell>
@@ -237,5 +246,16 @@ export default function TasksTable() {
         </Table>
       </div>
     </CollapsibleCard>
+
+    <ConfirmDialog
+      open={deleteTargetTaskId !== null}
+      onOpenChange={(open) => !open && setDeleteTargetTaskId(null)}
+      title={translate(locale, 'database', 'DeleteConfirmTask', customTranslations)}
+      variant="destructive"
+      confirmLabel={translate(locale, 'common', 'Delete', customTranslations)}
+      cancelLabel={translate(locale, 'common', 'Cancel', customTranslations)}
+      onConfirm={handleConfirmDelete}
+    />
+  </>
   );
 }

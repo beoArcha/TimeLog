@@ -22,6 +22,20 @@ export const mockInvoke = vi.fn().mockImplementation((cmd: string, args?: MockCo
   return Promise.resolve(undefined);
 });
 
+export const tauriInvokeBridge = (cmd: string, args?: unknown) => {
+  if (args !== undefined && typeof args === 'object' && args !== null && Object.keys(args).length > 0) {
+    return mockInvoke(cmd, args as MockCommandArgs);
+  }
+  return mockInvoke(cmd);
+};
+
+if (typeof window !== 'undefined') {
+  window.__TAURI_INTERNALS__ = {
+    ...window.__TAURI_INTERNALS__,
+    invoke: tauriInvokeBridge,
+  };
+}
+
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: (cmd: string, args?: unknown) => {
     if (args !== undefined) return mockInvoke(cmd, args as MockCommandArgs);

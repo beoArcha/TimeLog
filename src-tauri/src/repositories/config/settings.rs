@@ -37,17 +37,6 @@ impl ConfigRepository {
             }
         };
 
-        let auto_pause_on_sleep = match self.get_value(&conn, "auto_pause_on_sleep")? {
-            Some(v) => v.parse::<bool>().unwrap_or_else(|_| {
-                keys_changed = true;
-                default_settings.auto_pause_on_sleep
-            }),
-            None => {
-                keys_changed = true;
-                default_settings.auto_pause_on_sleep
-            }
-        };
-
         let include_patches_in_reports =
             match self.get_value(&conn, "include_patches_in_reports")? {
                 Some(v) => v.parse::<bool>().unwrap_or_else(|_| {
@@ -90,7 +79,6 @@ impl ConfigRepository {
 
         let settings = Settings {
             auto_start,
-            auto_pause_on_sleep,
             include_patches_in_reports,
             active_sinks,
             theme,
@@ -115,11 +103,6 @@ impl ConfigRepository {
 
     fn save_config_with_conn(&self, conn: &Connection, settings: &Settings) -> Result<()> {
         self.set_value(conn, "auto_start", &settings.auto_start.to_string())?;
-        self.set_value(
-            conn,
-            "auto_pause_on_sleep",
-            &settings.auto_pause_on_sleep.to_string(),
-        )?;
         self.set_value(
             conn,
             "include_patches_in_reports",
@@ -148,5 +131,31 @@ impl ConfigRepository {
         }
 
         Ok(())
+    }
+
+    pub fn get_all_config_entries(&self) -> Result<Vec<(String, String)>> {
+        let conn = self.connect()?;
+        let mut stmt = conn.prepare(constants::SELECT_ALL_CONFIG_ENTRIES)?;
+        let rows = stmt.query_map([], |row| {
+            let key: String = row.get(0)?;
+            let value: String = row.get(1)?;
+            Ok((key, value))
+        })?;
+
+        let mut entries = Vec::new();
+        for item in rows {
+            entries.push(item?);
+        }
+        Ok(entries)
+    }
+
+    pub fn get_config_value(&self, key: &str) -> Result<Option<String>> {
+        let conn = self.connect()?;
+        self.get_value(&conn, key)
+    }
+
+    pub fn set_config_value(&self, key: &str, value: &str) -> Result<()> {
+        let conn = self.connect()?;
+        self.set_value(&conn, key, value)
     }
 }

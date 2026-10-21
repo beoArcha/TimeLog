@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-pub const APPDATA: &str = "AppData";
+pub const APPDATA: &str = "APPDATA";
 pub const CONFIG: &str = "Config";
 pub const LOCAL: &str = "Local";
 pub const HOME: &str = "HOME";

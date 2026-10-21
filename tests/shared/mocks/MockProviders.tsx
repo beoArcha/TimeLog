@@ -5,6 +5,8 @@ import { DataContext, DataState } from '@common/hooks/DataContext';
 import { WindowShellContext, WindowShellState } from '@common/contexts/WindowShellContext';
 import { OxyFlowState, getMockOxyFlowState } from './oxy-state-mock';
 
+import { CliSessionProvider } from '@features/cli/context/CliSessionProvider';
+
 type LocaleContextType = React.ContextType<typeof LocaleContext>;
 
 export interface MockProvidersProps {
@@ -59,7 +61,9 @@ export const MockProviders: React.FC<MockProvidersProps> = ({
       <SettingsContext.Provider value={effectiveSettings as unknown as SettingsState}>
         <DataContext.Provider value={effectiveData as unknown as DataState}>
           <WindowShellContext.Provider value={effectiveWindow as unknown as WindowShellState}>
-            {children}
+            <CliSessionProvider>
+              {children}
+            </CliSessionProvider>
           </WindowShellContext.Provider>
         </DataContext.Provider>
       </SettingsContext.Provider>

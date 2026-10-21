@@ -9,8 +9,6 @@ export interface PathResolverConfig {
 /**
  * Resolves module import specifiers (both relative and path aliases)
  * and determines top-level boundary crossings within src/.
- *
- * Adheres to SRP: Exclusively handles path mapping, alias expansion, and boundary checks.
  */
 export class PathResolver {
   private readonly srcDir: string;

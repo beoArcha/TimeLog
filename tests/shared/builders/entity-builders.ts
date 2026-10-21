@@ -60,10 +60,35 @@ export const aHolidayLeave = (overrides?: Partial<HolidayLeave>): HolidayLeave =
 
 export const aSettings = (overrides?: Partial<Settings>): Settings => ({
   autoStart: false,
-  autoPauseOnSleep: true,
   includePatchesInReports: true,
   activeSinks: [],
   theme: 'system',
   textAndIconSize: 'medium',
+  ...overrides,
+});
+
+export const aClampedTimeLog = (overrides?: Partial<import('@bindings/ClampedTimeLog').ClampedTimeLog>): import('@bindings/ClampedTimeLog').ClampedTimeLog => ({
+  id: 'cl1',
+  projectId: 'p1',
+  taskId: 't1',
+  startTime: '2026-06-15T12:00:00Z',
+  endTime: '2026-06-15T13:00:00Z',
+  originalDurationSeconds: 3600,
+  clampedDurationSeconds: 3600,
+  isMultiDaySegment: false,
+  clampedStartTime: '2026-06-15T12:00:00.000Z',
+  clampedEndTime: '2026-06-15T13:00:00.000Z',
+  note: undefined,
+  isPatch: false,
+  ...overrides,
+});
+
+export const aWorkflowConfig = (overrides?: Partial<import('@bindings/WorkflowConfig').WorkflowConfig>): import('@bindings/WorkflowConfig').WorkflowConfig => ({
+  autoStopHoursLimitEnabled: false,
+  autoStopHoursLimit: 8,
+  autoStopDailyBoundaryEnabled: false,
+  autoStopDailyBoundaryTime: '19:00',
+  autoStopOnTaskComplete: false,
+  warningNotificationEnabled: true,
   ...overrides,
 });

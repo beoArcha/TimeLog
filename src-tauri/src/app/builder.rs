@@ -1,12 +1,15 @@
 use crate::app::state::AppState;
 use crate::commands::{
     app as app_cmds, engine,
-    persistence::{core, project, settings, task, time_log},
-    window,
+    persistence::{
+        auxiliary, core, holidays, patches, project, settings, task, time_log, webhook_queue,
+    },
+    window, workflow as workflow_cmds,
 };
 use crate::common::constants::*;
 use crate::tray;
 use crate::types::{FrontendEvent, LayoutVariant};
+use crate::workflows::WorkflowDaemon;
 
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -23,18 +26,24 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             engine::get_task_elapsed,
             engine::get_project_elapsed,
             engine::get_elapsed_range,
+            engine::get_range_metrics,
             engine::edit_time_log,
             engine::get_project_statistics,
             engine::get_computed_metrics,
             core::get_state,
+            core::override_state,
             core::reset,
             project::add,
             project::toggle_archive,
             project::update_project,
+            project::rename_project,
             task::create,
             task::update_task,
             task::delete,
             task::toggle_complete,
+            task::rename_task,
+            task::get_task_project_id,
+            task::get_subtasks,
             settings::get,
             settings::save,
             settings::get_runtime_configs,
@@ -45,6 +54,29 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             time_log::insert,
             time_log::query_active,
             time_log::get_all,
+            time_log::delete_time_log,
+            holidays::get_holidays,
+            holidays::save_holidays,
+            patches::get_patches,
+            patches::save_patches,
+            auxiliary::get_current_project_id,
+            auxiliary::save_current_project_id,
+            auxiliary::get_last_non_compact_variant,
+            auxiliary::save_last_non_compact_variant,
+            auxiliary::get_external_api_settings,
+            auxiliary::save_external_api_settings,
+            auxiliary::get_locale_pref,
+            auxiliary::save_locale_pref,
+            auxiliary::get_locale,
+            auxiliary::save_locale,
+            auxiliary::get_custom_translations,
+            auxiliary::save_custom_translations,
+            webhook_queue::enqueue_webhook,
+            webhook_queue::get_pending_webhooks,
+            webhook_queue::update_webhook_status,
+            webhook_queue::delete_webhook,
+            webhook_queue::clear_webhook_queue,
+            webhook_queue::get_webhook_queue_stats,
             window::set_layout_variant,
             window::resize,
             window::set_always_on_top,
@@ -54,13 +86,29 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             window::show,
             window::set_resizable,
             app_cmds::exit_app,
-            app_cmds::set_minimize_to_tray
+            app_cmds::set_minimize_to_tray,
+            workflow_cmds::workflow_get_config,
+            workflow_cmds::workflow_save_config,
+            workflow_cmds::workflow_get_status,
+            workflow_cmds::workflow_check_rules,
+            workflow_cmds::workflow_start_daemon,
+            workflow_cmds::workflow_stop_daemon
         ])
-        .setup(setup_app)
+        .setup(|app| setup_app(app).map_err(Into::into))
         .on_window_event(handle_window_event)
 }
 
-fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error::Error>> {
+#[derive(Debug, thiserror::Error)]
+pub enum AppSetupError {
+    #[error("I/O error during app setup: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Tauri framework error: {0}")]
+    Tauri(#[from] tauri::Error),
+    #[error("Persistence initialization error: {0}")]
+    Persistence(#[from] crate::repositories::shared::errors::RepositoryError),
+}
+
+fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
     let app_data_dir = app.path().app_data_dir()?;
     std::fs::create_dir_all(&app_data_dir)?;
     let db_path = app_data_dir.join(DEFAULT_DB_NAME);
@@ -87,18 +135,35 @@ fn setup_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error
         initial_settings.always_on_top_main.unwrap_or(false)
     };
 
+    let initial_locale = persistence
+        .auxiliary
+        .get_locale()
+        .ok()
+        .filter(|loc_str| !loc_str.is_empty())
+        .map(|loc_str| crate::types::Locale::from_sys_lang(&loc_str));
+
     let (tray_menu, tray_handles) = tray::build_tray_menu(
         app,
         initial_gui_variant,
         initial_always_on_top,
         initial_minimize_to_tray,
+        initial_locale,
     )?;
+
+    let app_handle = app.handle().clone();
+    let workflow_daemon = std::sync::Arc::new(WorkflowDaemon::new(Some(std::sync::Arc::new(
+        move |event, payload| {
+            let _ = app_handle.emit(event, payload);
+        },
+    ))));
+    workflow_daemon.start(persistence.clone());
 
     app.manage(AppState {
         persistence,
         was_maximized: std::sync::atomic::AtomicBool::new(false),
         minimize_to_tray: std::sync::atomic::AtomicBool::new(initial_minimize_to_tray),
         tray_handles: Some(tray_handles),
+        workflow_daemon,
     });
 
     let _tray = TrayIconBuilder::with_id("main_tray")

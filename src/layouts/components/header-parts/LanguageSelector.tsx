@@ -21,7 +21,7 @@ export const LanguageSelector: React.FC = () => {
   const showExpanded = layoutVariant === 'full';
 
   return (
-    <div className="flex items-center p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-[10px] font-sans">
+    <div className="flex items-center p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-xs font-sans">
       <Languages className="w-3.5 h-3.5 mx-1 sm:mx-1.5 text-blue-500" />
 
       <div className={showExpanded ? 'lg:hidden' : ''}>
@@ -33,7 +33,7 @@ export const LanguageSelector: React.FC = () => {
         >
           <SelectTrigger
             data-testid="lang-select-trigger"
-            className="h-6 border-0 bg-transparent px-1.5 py-0.5 text-[9px] font-bold uppercase shadow-none focus-visible:ring-1"
+            className="h-6 border-0 bg-transparent px-1.5 py-0.5 font-bold uppercase shadow-none focus-visible:ring-1"
             aria-label="Language selection"
           >
             <SelectValue>{localePref.toUpperCase()}</SelectValue>
@@ -59,7 +59,7 @@ export const LanguageSelector: React.FC = () => {
                 size="xs"
                 onClick={() => setLocalePref(l)}
                 data-testid={`lang-btn-${l}`}
-                className={`px-1.5 py-0.5 h-auto rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                className={`px-1.5 py-0.5 h-auto rounded-md font-bold uppercase transition-all cursor-pointer ${
                   isActive
                     ? 'bg-blue-500 text-white border border-blue-600 shadow-xs font-bold'
                     : 'text-muted-foreground hover:text-foreground'

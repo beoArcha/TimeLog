@@ -33,7 +33,8 @@ describe('Unit Tests: CliInterface', () => {
     expect(screen.getByText(/LogTime by OxyFlow CLI/i)).not.toBeNull();
   });
 
-  it('should handle terminal command input submission', () => {
+  it('should handle terminal command input submission', async () => {
+    // Arrange
     render(
       <MockProviders state={mockState}>
         <CliInterface />
@@ -43,13 +44,18 @@ describe('Unit Tests: CliInterface', () => {
     const inputField = screen.getByPlaceholderText(/Enter command/i) as HTMLInputElement;
     const submitBtn = screen.getByRole('button', { name: /Send/i });
 
+    // Act
     fireEvent.change(inputField, { target: { value: 'help' } });
     fireEvent.click(submitBtn);
 
-    expect(screen.getByText(/user@logtime-by-oxyflow:~\$ help/i)).not.toBeNull();
+    // Assert
+    await vi.waitFor(() => {
+      expect(screen.getByText(/user@logtime-by-oxyflow:~\$ help/i)).not.toBeNull();
+    });
   });
 
-  it('should execute quick shortcut buttons', () => {
+  it('should execute quick shortcut buttons', async () => {
+    // Arrange
     render(
       <MockProviders state={mockState}>
         <CliInterface />
@@ -57,8 +63,13 @@ describe('Unit Tests: CliInterface', () => {
     );
 
     const prjBtn = screen.getByRole('button', { name: 'projects' });
+
+    // Act
     fireEvent.click(prjBtn);
 
-    expect(screen.getByText(/user@logtime-by-oxyflow:~\$ projects/i)).not.toBeNull();
+    // Assert
+    await vi.waitFor(() => {
+      expect(screen.getByText(/user@logtime-by-oxyflow:~\$ projects/i)).not.toBeNull();
+    });
   });
 });

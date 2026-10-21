@@ -1,6 +1,8 @@
 use crate::common::AppError;
 use crate::engine::Engine;
-use crate::types::{ElapsedRangeFilter, EngineComputedMetrics, ProjectStatistics};
+use crate::types::{
+    ElapsedRangeFilter, EngineComputedMetrics, ProjectStatistics, RangeMetricsResult,
+};
 use crate::AppState;
 use tauri::State;
 
@@ -66,13 +68,24 @@ pub fn get_elapsed_range(
 }
 
 #[tauri::command]
+pub fn get_range_metrics(
+    range: ElapsedRangeFilter,
+    now_iso: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<RangeMetricsResult, AppError> {
+    let engine = Engine::new(&state.persistence);
+    let metrics = engine.calculate_range_metrics(&range, now_iso.as_deref())?;
+    Ok(metrics)
+}
+
+#[tauri::command]
 pub fn edit_time_log(
     id: String,
     task_id: String,
     start_time: String,
     end_time: Option<String>,
     note: Option<String>,
-    reason: Option<String>,
+    _reason: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<(), AppError> {
     let engine = Engine::new(&state.persistence);
@@ -82,7 +95,7 @@ pub fn edit_time_log(
         &start_time,
         end_time.as_deref(),
         note.as_deref(),
-        reason.as_deref(),
+        Some(crate::types::AuditSource::GuiEdit),
     )?;
     Ok(())
 }

@@ -1,68 +1,106 @@
 import { type SetStateAction } from 'react';
 import { Project } from '@bindings/Project';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { validateProjectName } from '@plugins/engine/validation';
+import { EngineRouter } from '@common/engine/EngineRouter';
 import { RepositoryStateHook } from './useRepositoryState';
 import { AsyncActionRunnerHook } from './useAsyncActionRunner';
+
+export interface ProjectInputData {
+  name: string;
+  color: string;
+  description?: string | null;
+  icon?: string | null;
+  tags?: string[] | null;
+}
 
 export interface UseProjectsManagerOptions {
   repositoryState: RepositoryStateHook;
   actionRunner: AsyncActionRunnerHook;
   refreshComputedMetrics: (nowIso?: string) => Promise<unknown>;
+  engineRouter?: EngineRouter;
+  persistenceRouter?: PersistenceRouter;
 }
 
 export const useProjectsManager = ({
   repositoryState,
   actionRunner,
   refreshComputedMetrics,
+  engineRouter = EngineRouter.getInstance(),
+  persistenceRouter = PersistenceRouter.getInstance(),
 }: UseProjectsManagerOptions) => {
+  const syncState = async (nextState: TimerRepositoryState) => {
+    repositoryState.syncRepositoryState(nextState);
+    await refreshComputedMetrics();
+  };
+
+  const shouldCascadeStopTimer = (projectId: string): boolean => {
+    const project = repositoryState.projects.find((p) => p.id === projectId);
+    const willArchive = project ? !project.archived : false;
+    return willArchive && repositoryState.activeLog?.projectId === projectId;
+  };
+
   const handleAddProject = async (
-    name: string,
-    color: string,
+    nameOrInput: string | ProjectInputData,
+    color = 'indigo',
     description: string | null = null,
     icon: string | null = null,
     tags: string[] | null = null
   ) => {
+    const input: ProjectInputData =
+      typeof nameOrInput === 'object'
+        ? nameOrInput
+        : { name: nameOrInput, color, description, icon, tags };
+
     await actionRunner.runAction('Failed to add project', async () => {
-      validateProjectName(name, repositoryState.projects);
-      const nextState = await PersistenceRouter.getInstance().projects.add({ name, color, description, icon, tags });
-      repositoryState.setProjectsState(nextState.projects);
-      await refreshComputedMetrics();
+      await engineRouter.validation.validateProjectName(input.name, repositoryState.projects);
+      const nextState = await persistenceRouter.projects.add(input);
+      await syncState(nextState);
     });
   };
 
   const handleToggleProjectArchive = async (projectId: string) => {
     await actionRunner.runAction('Failed to toggle project archive', async () => {
-      const nextState = await PersistenceRouter.getInstance().projects.toggleArchive(projectId);
-      repositoryState.setProjectsState(nextState.projects);
-      repositoryState.setLogsState(nextState.logs);
-      repositoryState.setActiveLogState(nextState.activeLog);
-      await refreshComputedMetrics();
+      if (shouldCascadeStopTimer(projectId)) {
+        await engineRouter.timer.stopTimer(projectId);
+      }
+      const nextState = await persistenceRouter.projects.toggleArchive(projectId);
+      await syncState(nextState);
     });
   };
 
   const handleUpdateProject = async (
     projectId: string,
-    name: string,
-    color: string,
-    description: string | null,
-    icon: string | null,
-    tags: string[] | null
+    nameOrInput: string | (Omit<ProjectInputData, 'name'> & { name: string }),
+    color?: string,
+    description: string | null = null,
+    icon: string | null = null,
+    tags: string[] | null = null
   ) => {
+    const input: ProjectInputData =
+      typeof nameOrInput === 'object'
+        ? nameOrInput
+        : { name: nameOrInput, color: color ?? 'indigo', description, icon, tags };
+
     await actionRunner.runAction('Failed to update project', async () => {
-      validateProjectName(name, repositoryState.projects, projectId);
-      const nextState = await PersistenceRouter.getInstance().projects.update(projectId, name, color, description, icon, tags);
-      repositoryState.setProjectsState(nextState.projects);
-      await refreshComputedMetrics();
+      await engineRouter.validation.validateProjectName(input.name, repositoryState.projects, projectId);
+      const nextState = await persistenceRouter.projects.update(
+        projectId,
+        input.name,
+        input.color,
+        input.description ?? null,
+        input.icon ?? null,
+        input.tags ?? null
+      );
+      await syncState(nextState);
     });
   };
 
   const handleRenameProject = async (projectId: string, newName: string) => {
     await actionRunner.runAction('Failed to rename project', async () => {
-      validateProjectName(newName, repositoryState.projects, projectId);
-      const nextState = await PersistenceRouter.getInstance().projects.rename(projectId, newName);
-      repositoryState.setProjectsState(nextState.projects);
-      await refreshComputedMetrics();
+      await engineRouter.validation.validateProjectName(newName, repositoryState.projects, projectId);
+      const nextState = await persistenceRouter.projects.rename(projectId, newName);
+      await syncState(nextState);
     });
   };
 
@@ -71,9 +109,8 @@ export const useProjectsManager = ({
       'Failed to set projects',
       async () => {
         const resolved = typeof action === 'function' ? action(repositoryState.projects) : action;
-        const nextState = await PersistenceRouter.getInstance().core.overrideState({ projects: resolved });
-        repositoryState.setProjectsState(nextState.projects);
-        await refreshComputedMetrics();
+        const nextState = await persistenceRouter.core.overrideState({ projects: resolved });
+        await syncState(nextState);
       },
       { withLoading: false }
     );

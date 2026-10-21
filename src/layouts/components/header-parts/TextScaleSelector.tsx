@@ -2,14 +2,20 @@ import React from 'react';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { Button } from '@components/ui/button';
 
+const TEXT_SIZE_CLASS_MAP = {
+  small: 'text-xs',
+  medium: 'text-sm',
+  large: 'text-base',
+} as const;
+
 export const TextScaleSelector: React.FC = () => {
   const { textAndIconSize, setTextAndIconSize } = useSettings();
 
   return (
-    <div className="flex p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-[10px] font-sans">
+    <div className="flex p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-xs font-sans">
       {(['small', 'medium', 'large'] as const).map(scale => {
         const isActive = textAndIconSize === scale;
-        const textSize = scale === 'small' ? 'text-[9px]' : scale === 'medium' ? 'text-[11px]' : 'text-[13px]';
+        const textSize = TEXT_SIZE_CLASS_MAP[scale];
         return (
           <Button
             key={scale}

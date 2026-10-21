@@ -73,12 +73,11 @@ export function ConfirmDialog({
     }
   };
 
-  const iconColor =
-    variant === 'destructive'
-      ? 'text-destructive bg-destructive/10 border-destructive/20'
-      : variant === 'warning'
-      ? 'text-amber-500 bg-amber-500/10 border-amber-500/20'
-      : 'text-primary bg-primary/10 border-primary/20';
+  const iconColorMap: Record<string, string> = {
+    destructive: 'text-destructive bg-destructive/10 border-destructive/20',
+    warning: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+  };
+  const iconColor = iconColorMap[variant] ?? 'text-primary bg-primary/10 border-primary/20';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

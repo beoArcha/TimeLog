@@ -23,7 +23,7 @@ describe('Unit Tests: ReportView', () => {
     activeLog: null,
     holidays: [],
     setHolidays: vi.fn(),
-    sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false, activeSinks: [] },
+    sysSettings: { autoStart: false, includePatchesInReports: false, activeSinks: [] },
     selectedTaskId: null,
     setSelectedTaskId: vi.fn(),
     onAddProject: vi.fn(),
@@ -58,5 +58,14 @@ describe('Unit Tests: ReportView', () => {
     // There are multiple instances of Task 1 text rendered in ReportView, verify we get them
     const items = screen.getAllByText(/Task 1/i);
     expect(items.length).toBeGreaterThan(0);
+  });
+
+  it('should render both stacked bar activity chart and project donut chart', () => {
+    // Arrange & Act
+    render(<ReportView state={mockGuiState} />);
+
+    // Assert
+    expect(screen.getByTestId('stacked-bar-activity-chart')).not.toBeNull();
+    expect(screen.getByTestId('project-donut-chart')).not.toBeNull();
   });
 });

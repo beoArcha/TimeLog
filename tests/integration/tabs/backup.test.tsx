@@ -1,10 +1,11 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import BackupTab from '@features/settings/BackupTab';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 
 describe('Integration Tests: BackupTab', () => {
   beforeEach(() => {
@@ -18,7 +19,7 @@ describe('Integration Tests: BackupTab', () => {
     cleanup();
   });
 
-  it('Given BackupTab rendered, When export button is clicked, Then it should trigger json blob link creation and download', () => {
+  it('should trigger json blob link creation and download when export button is clicked', () => {
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => { });
     const mockState = getMockOxyFlowState();
 
@@ -36,8 +37,7 @@ describe('Integration Tests: BackupTab', () => {
     expect(window.URL.revokeObjectURL).toHaveBeenCalled();
   });
 
-  it('Given BackupTab rendered, When import file is selected, Then it should parse json and set appropriate states', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
+  it('should parse json and restore state when valid backup file is imported', async () => {
     const mockState = getMockOxyFlowState();
 
     render(
@@ -46,12 +46,17 @@ describe('Integration Tests: BackupTab', () => {
       </MockProviders>
     );
 
+    const testProject = aProject({ id: 'p2', name: 'Proj 2', color: 'blue' });
+    const testTask = aTask({ id: 't2', projectId: 'p2', name: 'Task 2' });
+    const testLog = aTimeLog({ id: 'l2', projectId: 'p2', taskId: 't2', startTime: '2026-06-15T12:00:00Z' });
+
     const file = new File(
       [
         JSON.stringify({
-          projects: [{ id: 'p2' }],
-          tasks: [{ id: 't2' }],
-          logs: [{ id: 'l2' }],
+          version: 1,
+          projects: [testProject],
+          tasks: [testTask],
+          logs: [testLog],
           holidays: [],
           patches: [],
         }),
@@ -65,15 +70,16 @@ describe('Integration Tests: BackupTab', () => {
     fireEvent.change(input);
 
     await waitFor(() => {
-      expect(mockState.setProjects).toHaveBeenCalledWith(expect.any(Array));
-      expect(mockState.setTasks).toHaveBeenCalledWith(expect.any(Array));
-      expect(mockState.setLogs).toHaveBeenCalledWith(expect.any(Array));
-      expect(alertSpy).toHaveBeenCalled();
+      expect(mockState.handleRestoreState).toHaveBeenCalledWith(expect.objectContaining({
+        projects: expect.arrayContaining([expect.objectContaining({ id: 'p2' })]),
+        tasks: expect.arrayContaining([expect.objectContaining({ id: 't2' })]),
+        logs: expect.arrayContaining([expect.objectContaining({ id: 'l2' })]),
+      }));
+      expect(mockState.showToast).toHaveBeenCalled();
     });
   });
 
-  it('Given BackupTab rendered, When invalid JSON file is imported, Then it should show failure alert dialog and not update states', async () => {
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
+  it('should show toast error and not update state when malformed JSON file is imported', async () => {
     const mockState = getMockOxyFlowState();
 
     render(
@@ -93,12 +99,12 @@ describe('Integration Tests: BackupTab', () => {
     fireEvent.change(input);
 
     await waitFor(() => {
-      expect(mockState.setProjects).not.toHaveBeenCalled();
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid'));
+      expect(mockState.handleRestoreState).not.toHaveBeenCalled();
+      expect(mockState.showToast).toHaveBeenCalled();
     });
   });
 
-  it('Given BackupTab rendered, When API integration checkbox is toggled, Then it should expand the webhook input fields', () => {
+  it('should show toast error and reject import when JSON fails schema validation', async () => {
     const mockState = getMockOxyFlowState();
 
     render(
@@ -107,14 +113,42 @@ describe('Integration Tests: BackupTab', () => {
       </MockProviders>
     );
 
-    // Webhook inputs should not be visible when logToApi is false
+    // Invalid schema: missing tasks array
+    const file = new File(
+      [
+        JSON.stringify({
+          version: 1,
+          projects: [aProject()],
+        }),
+      ],
+      'backup.json',
+      { type: 'application/json' }
+    );
+
+    const input = screen.getByTestId('import-backup-input');
+    Object.defineProperty(input, 'files', { value: [file] });
+    fireEvent.change(input);
+
+    await waitFor(() => {
+      expect(mockState.handleRestoreState).not.toHaveBeenCalled();
+      expect(mockState.showToast).toHaveBeenCalled();
+    });
+  });
+
+  it('should expand webhook fields when API integration checkbox is toggled', () => {
+    const mockState = getMockOxyFlowState();
+
+    render(
+      <MockProviders state={mockState}>
+        <BackupTab />
+      </MockProviders>
+    );
+
     expect(screen.queryByTestId('api-url-input')).toBeNull();
 
-    // Expand the API integration collapsible card first
     const expandHeader = screen.getByTestId('api-push-collapse-header');
     fireEvent.click(expandHeader);
 
-    // Click to toggle API push integration
     const toggle = screen.getByTestId('api-push-toggle');
     fireEvent.click(toggle);
 

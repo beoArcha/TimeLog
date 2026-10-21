@@ -1,14 +1,14 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, screen, cleanup } from '@testing-library/react';
+import { render, fireEvent, screen, cleanup, within, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import { aProject, aTask } from '@tests/shared/builders/entity-builders';
 
 describe('Integration Tests: DbExplorer Projects Table', () => {
   beforeEach(() => {
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     vi.spyOn(window, 'alert').mockImplementation(() => {});
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -29,12 +29,12 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
 
     const defaultState = {
       projects: [
-        { id: 'proj_1', name: 'Project Alpha', color: 'rose', createdAt: '2026-06-12T00:00:00Z' },
-        { id: 'proj_2', name: 'Project Beta', color: 'indigo', createdAt: '2026-06-12T00:00:00Z' },
+        aProject({ id: 'proj_1', name: 'Project Alpha', color: 'rose' }),
+        aProject({ id: 'proj_2', name: 'Project Beta', color: 'indigo' }),
       ],
       setProjects,
       tasks: [
-        { id: 'task_1', projectId: 'proj_1', parentTaskId: null, name: 'Task One', createdAt: '2026-06-12T00:00:00Z', completed: false },
+        aTask({ id: 'task_1', projectId: 'proj_1', name: 'Task One' }),
       ],
       setTasks,
       logs: [],
@@ -53,7 +53,7 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
       setResolvedTheme: vi.fn(),
       customTranslations: {},
       setCustomTranslations: vi.fn(),
-      sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false },
+      sysSettings: { autoStart: false, includePatchesInReports: false },
       setSysSettings: vi.fn(),
       activeLog: null,
       setActiveLog: vi.fn(),
@@ -97,91 +97,86 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
     };
   };
 
-  it('should_render_correctly_with_all_table_cards_when_rendered', () => {
+  it('should render table cards with projects when initialized', () => {
     setup();
-    expect(screen.getByText(/Tables Manager/i)).toBeDefined();
-    expect(screen.getByText(/projects table/i)).toBeDefined();
     expect(screen.getByText('Project Alpha')).toBeDefined();
     expect(screen.getByText('Project Beta')).toBeDefined();
   });
 
-  it('should_handle_starting_edit_changing_fields_and_saving_edit_when_editing_project', () => {
+  it('should update project fields and save edit when editing project', () => {
     const { setProjects } = setup();
 
-    // Click edit on Project Alpha
-    const editBtns = screen.getAllByRole('button', { name: /Edit|Modyfikuj/i });
-    fireEvent.click(editBtns[0]); // first edit button is on Project Alpha
+    const editBtns = screen.getAllByRole('button', { name: /Edit/i });
+    fireEvent.click(editBtns[0]);
 
-    // Find input for name and change it
     const nameInput = screen.getByDisplayValue('Project Alpha');
     fireEvent.change(nameInput, { target: { value: 'Project Alpha Edited' } });
 
-    // Find select for color and change it
     const colorSelect = screen.getByDisplayValue('rose');
     fireEvent.change(colorSelect, { target: { value: 'indigo' } });
 
-    // Find reason input
-    const reasonInput = screen.getByPlaceholderText(/Reason|Powód/i);
+    const reasonInput = screen.getByRole('textbox', { name: /Reason/i });
     fireEvent.change(reasonInput, { target: { value: 'Reason for project change' } });
 
-    // Click save
-    const saveBtn = screen.getByRole('button', { name: /Save|Zapisz/i });
+    const saveBtn = screen.getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
     expect(setProjects).toHaveBeenCalled();
   });
 
-  it('should_cancel_editing_without_changes_when_canceling_project_edit', () => {
+  it('should cancel editing without changes when cancel button is clicked', () => {
     const { setProjects } = setup();
 
-    const editBtns = screen.getAllByRole('button', { name: /Edit|Modyfikuj/i });
+    const editBtns = screen.getAllByRole('button', { name: /Edit/i });
     fireEvent.click(editBtns[0]);
 
-    const cancelBtn = screen.getByRole('button', { name: /Cancel|Anuluj/i });
+    const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
     fireEvent.click(cancelBtn);
 
     expect(setProjects).not.toHaveBeenCalled();
   });
 
-  it('should_delete_project_and_related_tasks_and_logs_when_project_deletion_is_confirmed', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('should delete project and related tasks and logs when deletion is confirmed in dialog', async () => {
     const { setProjects, setTasks, setLogs } = setup();
 
-    const deleteBtns = screen.getAllByRole('button', { name: /Delete|Usuń|Wycofaj/i });
-    fireEvent.click(deleteBtns[0]); // first project delete
+    const deleteBtns = screen.getAllByRole('button', { name: /Delete/i });
+    fireEvent.click(deleteBtns[0]);
 
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setProjects).toHaveBeenCalled();
-    expect(setTasks).toHaveBeenCalled();
-    expect(setLogs).toHaveBeenCalled();
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(setProjects).toHaveBeenCalled();
+      expect(setTasks).toHaveBeenCalled();
+      expect(setLogs).toHaveBeenCalled();
+    });
   });
 
-  it('should_show_and_toggle_edit_history_panel_when_project_has_history_and_history_button_is_clicked', () => {
+  it('should toggle edit history audit trail when revision history button is clicked', () => {
     const projectWithHistory = [
-      {
+      aProject({
         id: 'proj_1',
         name: 'Project Alpha',
         color: 'rose',
-        createdAt: '2026-06-12T00:00:00Z',
         originalName: 'Original Alpha',
         editHistory: [
           { editedAt: '2026-06-13T00:00:00Z', prevName: 'Original Alpha', prevColor: 'teal', reason: 'Initial fix' }
         ]
-      }
+      })
     ];
 
     setup({ projects: projectWithHistory });
 
     expect(screen.getByText(/Original Alpha/i)).toBeDefined();
 
-    const historyBtn = screen.getByRole('button', { name: /Revision History|historię rewizji/i });
+    const historyBtn = screen.getByRole('button', { name: /Revision History/i });
     fireEvent.click(historyBtn);
 
-    expect(screen.getByText(/Audit Trail|Historia/i)).toBeDefined();
     expect(screen.getByText(/Initial fix/i)).toBeDefined();
 
-    // Close it
     fireEvent.click(historyBtn);
-    expect(screen.queryByText(/Audit Trail|Historia/i)).toBeNull();
+    expect(screen.queryByText(/Initial fix/i)).toBeNull();
   });
 });

@@ -1,0 +1,17 @@
+pub mod dependency_graph;
+pub mod rules;
+
+#[cfg(test)]
+mod cyclic_dependencies_test;
+#[cfg(test)]
+mod error_handling_test;
+#[cfg(test)]
+mod layer_boundaries_test;
+#[cfg(test)]
+mod max_nested_ifs_test;
+#[cfg(test)]
+mod sql_isolation_test;
+#[cfg(test)]
+mod tauri_isolation_test;
+#[cfg(test)]
+mod unit;

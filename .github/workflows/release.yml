@@ -221,6 +221,27 @@ jobs:
           ls -la release-assets
           [ -n "$(ls -A release-assets)" ] || { echo "::error::No assets to publish"; exit 1; }
 
+      - name: Generate SHA256 Checksums
+        run: |
+          cd release-assets
+          for f in *; do
+            if [ -f "$f" ] && [ "$f" != "SHA256SUMS.txt" ]; then
+              sha256sum "$f"
+            fi
+          done > SHA256SUMS.txt
+          echo "=== SHA256SUMS.txt ==="
+          cat SHA256SUMS.txt
+          cd ..
+
+          {
+            echo "### Cryptographic Checksums (SHA-256)"
+            echo ""
+            echo "| File | SHA-256 Checksum |"
+            echo "| :--- | :--- |"
+            awk '{print "| `" $2 "` | `" $1 "` |"}' release-assets/SHA256SUMS.txt
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Create tag and GitHub Release
         run: |
           # --target z pełnym SHA tworzy tag dokładnie na zbudowanym commicie z release
@@ -234,4 +255,5 @@ jobs:
             echo "### Released ${TAG}"
             echo ""
             echo "Commit: \`${SHA}\`"
+            echo "All release artifacts and \`SHA256SUMS.txt\` published successfully."
           } >> "$GITHUB_STEP_SUMMARY"

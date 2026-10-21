@@ -3,7 +3,6 @@
     "ConfigTitle": "Engine Options & Daemons",
     "ConfigDesc": "Advanced LogTime by OxyFlow microORM engine settings.",
     "AutoStart": "Start on system boot",
-    "AutoPauseOnSleep": "Auto pause running timers on sleep",
     "MinimizeToTrayDefault": "Minimize to tray on window close",
     "IncludePatchesInReports": "Include time patches in summaries",
     "AlwaysOnTopSmall": "Always on top (Small view)",
@@ -36,13 +35,17 @@
     "ResetSuccess": "Database reset successfully. All data cleared.",
     "ResetCancel": "Reset cancelled. No changes were made.",
     "DestructiveZone": "Destructive Zone (Dangerous)",
-    "EngineConfigLabel": "Engine Settings"
+    "EngineConfigLabel": "Engine Settings",
+    "SyncStatusOk": "Synced",
+    "SyncStatusSyncing": "Syncing...",
+    "SyncStatusQueued": "Queued",
+    "SyncStatusError": "Sync Error",
+    "RetryNow": "Retry now"
   },
   "pl": {
     "ConfigTitle": "Opcje Silnika i Daemony",
     "ConfigDesc": "Zaawansowane ustawienia silnika microORM LogTime by OxyFlow.",
     "AutoStart": "Uruchom przy starcie systemu",
-    "AutoPauseOnSleep": "Automatycznie wstrzymaj liczniki podczas uśpienia",
     "MinimizeToTrayDefault": "Minimalizuj do zasobnika po zamknięciu okna",
     "IncludePatchesInReports": "Uwzględniaj łatki czasowe w podsumowaniach",
     "AlwaysOnTopSmall": "Zawsze na wierzchu (Mały widok)",
@@ -75,13 +78,17 @@
     "ResetSuccess": "Baza danych zresetowana. Wszystkie dane usunięte.",
     "ResetCancel": "Anulowano reset. Żadne zmiany nie zostały wprowadzone.",
     "DestructiveZone": "Strefa destrukcji",
-    "EngineConfigLabel": "Ustawienia silnika"
+    "EngineConfigLabel": "Ustawienia silnika",
+    "SyncStatusOk": "Zsynchronizowano",
+    "SyncStatusSyncing": "Synchronizacja...",
+    "SyncStatusQueued": "W kolejce",
+    "SyncStatusError": "Błąd synchronizacji",
+    "RetryNow": "Ponów teraz"
   },
   "de": {
     "ConfigTitle": "Motor-Optionen & Dämons",
     "ConfigDesc": "Erweiterte LogTime by OxyFlow microORM Motor-Einstellungen.",
     "AutoStart": "Beim Systemstart ausführen",
-    "AutoPauseOnSleep": "Aktive Timer bei Ruhezustand automatisch anhalten",
     "MinimizeToTrayDefault": "Beim Schließen des Fensters in die Taskleiste minimieren",
     "IncludePatchesInReports": "Zeit-Patches in Zusammenfassungen einbeziehen",
     "AlwaysOnTopSmall": "Immer im Vordergrund (Kleine Ansicht)",
@@ -114,13 +121,17 @@
     "ResetSuccess": "Datenbank erfolgreich zurückgesetzt. Alle Daten wurden gelöscht.",
     "ResetCancel": "Zurücksetzen abgebrochen. Keine Änderungen vorgenommen.",
     "DestructiveZone": "Zerstörerische Zone (Gefährlich)",
-    "EngineConfigLabel": "Motoreinstellungen"
+    "EngineConfigLabel": "Motoreinstellungen",
+    "SyncStatusOk": "Synchronisiert",
+    "SyncStatusSyncing": "Synchronisieren...",
+    "SyncStatusQueued": "In Warteschlange",
+    "SyncStatusError": "Synchronisationsfehler",
+    "RetryNow": "Jetzt wiederholen"
   },
   "es": {
     "ConfigTitle": "Opciones del Motor y Daemons",
     "ConfigDesc": "Configuraciones avanzadas del motor microORM LogTime by OxyFlow.",
     "AutoStart": "Iniciar al arrancar el sistema",
-    "AutoPauseOnSleep": "Pausar automáticamente con la suspensión",
     "MinimizeToTrayDefault": "Minimizar a la bandeja al cerrar",
     "IncludePatchesInReports": "Incluir parches de tiempo en resúmenes",
     "AlwaysOnTopSmall": "Siempre encima (Vista pequeña)",
@@ -153,13 +164,17 @@
     "ResetSuccess": "Base de datos restablecida. Todos los datos eliminados.",
     "ResetCancel": "Restablecimiento cancelado. No se realizaron cambios.",
     "DestructiveZone": "Zona destructiva",
-    "EngineConfigLabel": "Configuración del motor"
+    "EngineConfigLabel": "Configuración del motor",
+    "SyncStatusOk": "Sincronizado",
+    "SyncStatusSyncing": "Sincronizando...",
+    "SyncStatusQueued": "En cola",
+    "SyncStatusError": "Error de sincronización",
+    "RetryNow": "Reintentar ahora"
   },
   "fr": {
     "ConfigTitle": "Options du Moteur & Démons",
     "ConfigDesc": "Paramètres avancés du moteur microORM.",
     "AutoStart": "Démarrer avec le système",
-    "AutoPauseOnSleep": "Mettre en pause avec la mise en veille",
     "MinimizeToTrayDefault": "Minimiser dans la barre en fermant",
     "IncludePatchesInReports": "Inclure les correctifs dans les résumés",
     "AlwaysOnTopSmall": "Toujours au premier plan (Petite vue)",
@@ -192,13 +207,17 @@
     "ResetSuccess": "Base de données réinitialisée. Toutes les données effacées.",
     "ResetCancel": "Réinitialisation annulée. Aucun changement effectué.",
     "DestructiveZone": "Zone destructrice",
-    "EngineConfigLabel": "Configuration du moteur"
+    "EngineConfigLabel": "Configuration du moteur",
+    "SyncStatusOk": "Synchronisé",
+    "SyncStatusSyncing": "Synchronisation...",
+    "SyncStatusQueued": "En attente",
+    "SyncStatusError": "Erreur de synchronisation",
+    "RetryNow": "Réessayer maintenant"
   },
   "pt-br": {
     "ConfigTitle": "Opções do Motor e Daemons",
     "ConfigDesc": "Configurações avançadas do motor microORM.",
     "AutoStart": "Iniciar ao iniciar o sistema",
-    "AutoPauseOnSleep": "Pausar rastreadores na suspensão",
     "MinimizeToTrayDefault": "Minimizar para a bandeja ao fechar",
     "IncludePatchesInReports": "Incluir correções de tempo nos relatórios",
     "AlwaysOnTopSmall": "Sempre no topo (Visão pequena)",
@@ -231,6 +250,11 @@
     "ResetSuccess": "Banco de dados redefinido. Todos os dados removidos.",
     "ResetCancel": "Redefinição cancelada. Nenhuma alteração foi feita.",
     "DestructiveZone": "Zona Destrutiva",
-    "EngineConfigLabel": "Configuração do Motor"
+    "EngineConfigLabel": "Configuração do Motor",
+    "SyncStatusOk": "Sincronizado",
+    "SyncStatusSyncing": "Sincronizando...",
+    "SyncStatusQueued": "Na fila",
+    "SyncStatusError": "Erro de sincronização",
+    "RetryNow": "Repetir agora"
   }
 }

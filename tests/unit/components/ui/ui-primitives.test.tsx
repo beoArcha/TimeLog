@@ -9,8 +9,8 @@ import { Skeleton, StatsSkeleton, TableSkeleton } from '@components/ui/Skeletons
 import { Checkbox } from '@components/ui/checkbox';
 import { Badge } from '@components/ui/badge';
 import { Separator } from '@components/ui/separator';
-import { Heading, Text } from '@components/ui/typography';
 import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert';
+import { Heading, Text, Caption, Overline, MonoText, MetricText } from '@components/ui/typography';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@components/ui/table';
 
 describe('Unit Tests: UI Primitives', () => {
@@ -108,15 +108,102 @@ describe('Unit Tests: UI Primitives', () => {
   });
 
   describe('Typography Primitives', () => {
-    it('should render Heading and Text', () => {
+    it('should render Heading with appropriate level and role', () => {
+      // Arrange & Act
       render(
         <div>
-          <Heading level={1}>Main Header</Heading>
-          <Text variant="muted">Subtext detail</Text>
+          <Heading level={1}>Heading 1</Heading>
+          <Heading level={2}>Heading 2</Heading>
+          <Heading level={3}>Heading 3</Heading>
+          <Heading level={4}>Heading 4</Heading>
         </div>
       );
-      expect(screen.getByRole('heading', { level: 1, name: /main header/i })).toBeTruthy();
-      expect(screen.getByText('Subtext detail')).toBeTruthy();
+
+      // Assert
+      expect(screen.getByRole('heading', { level: 1, name: /heading 1/i })).toBeTruthy();
+      expect(screen.getByRole('heading', { level: 2, name: /heading 2/i })).toBeTruthy();
+      expect(screen.getByRole('heading', { level: 3, name: /heading 3/i })).toBeTruthy();
+      expect(screen.getByRole('heading', { level: 4, name: /heading 4/i })).toBeTruthy();
+    });
+
+    it('should render Caption with default subtext classes', () => {
+      // Arrange & Act
+      const { container } = render(<Caption>Helper explanation</Caption>);
+
+      // Assert
+      const p = container.querySelector('p');
+      expect(p).toBeTruthy();
+      expect(p?.className).toContain('text-[10px]');
+      expect(p?.className).toContain('text-muted-foreground');
+      expect(screen.getByText('Helper explanation')).toBeTruthy();
+    });
+
+    it('should render Text with body variant by default', () => {
+      // Arrange & Act
+      const { container } = render(<Text>Default body paragraph</Text>);
+
+      // Assert
+      const p = container.querySelector('p');
+      expect(p).toBeTruthy();
+      expect(p?.className).toContain('text-sm');
+      expect(screen.getByText('Default body paragraph')).toBeTruthy();
+    });
+
+    it('should render Overline with uppercase and tracking classes', () => {
+      // Arrange & Act
+      const { container } = render(<Overline>Column Title</Overline>);
+
+      // Assert
+      const span = container.querySelector('span');
+      expect(span).toBeTruthy();
+      expect(span?.className).toContain('uppercase');
+      expect(span?.className).toContain('tracking-wider');
+      expect(screen.getByText('Column Title')).toBeTruthy();
+    });
+
+    it('should render MonoText with font-mono and muted color', () => {
+      // Arrange & Act
+      const { container } = render(<MonoText>#dev-tag</MonoText>);
+
+      // Assert
+      const span = container.querySelector('span');
+      expect(span).toBeTruthy();
+      expect(span?.className).toContain('font-mono');
+      expect(screen.getByText('#dev-tag')).toBeTruthy();
+    });
+
+    it('should render MetricText with font-mono and font-bold', () => {
+      // Arrange & Act
+      const { container } = render(<MetricText>02:45:10</MetricText>);
+
+      // Assert
+      const span = container.querySelector('span');
+      expect(span).toBeTruthy();
+      expect(span?.className).toContain('font-mono');
+      expect(span?.className).toContain('font-bold');
+      expect(screen.getByText('02:45:10')).toBeTruthy();
+    });
+  });
+
+  describe('Badge Primitive', () => {
+    it('should render badge with semantic status variants and custom element', () => {
+      // Arrange & Act
+      const { container } = render(
+        <div>
+          <Badge variant="amber" size="sm" as="span">Amber Pill</Badge>
+          <Badge variant="emerald" size="xs">Emerald Tag</Badge>
+          <Badge variant="orange">Orange Status</Badge>
+        </div>
+      );
+
+      // Assert
+      const spanBadge = container.querySelector('span[data-slot="badge"]');
+      expect(spanBadge).toBeTruthy();
+      expect(spanBadge?.className).toContain('text-amber-500');
+      expect(spanBadge?.className).toContain('text-[10px]');
+      expect(screen.getByText('Amber Pill')).toBeTruthy();
+      expect(screen.getByText('Emerald Tag')).toBeTruthy();
+      expect(screen.getByText('Orange Status')).toBeTruthy();
     });
   });
 

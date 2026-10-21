@@ -2,18 +2,23 @@ import React from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { Folder, Clock, Pencil, Plus } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from './LayoutStyles';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
-import { Label } from '@components/ui/label';
+import { EditProjectDialog } from './EditProjectDialog';
+import { ProjectEmptyState } from './ProjectEmptyState';
+import { Heading, Caption, Text } from '@components/ui/typography';
+import { Badge } from '@components/ui/badge';
+import { StarterTemplate, resolveStarterTemplate } from '@common/templates/starterTemplates';
+import { Project } from '@bindings/Project';
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
     projects, metrics, locale, customTranslations,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
-    onRenameProject, onToggleProjectArchive
+    onRenameProject, onToggleProjectArchive, isLoading
   } = state;
 
   const [newProjectName, setNewProjectNameLocal] = React.useState(() => state.newProjectName ?? '');
@@ -52,13 +57,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
   const [newProjectIcon, setNewProjectIcon] = React.useState('');
   const [newProjectTags, setNewProjectTags] = React.useState('');
 
-  const [showEditModal, setShowEditModal] = React.useState(false);
-  const [editProjId, setEditProjId] = React.useState('');
-  const [editProjName, setEditProjName] = React.useState('');
-  const [editProjColor, setEditProjColor] = React.useState('');
-  const [editProjDesc, setEditProjDesc] = React.useState('');
-  const [editProjIcon, setEditProjIcon] = React.useState('');
-  const [editProjTags, setEditProjTags] = React.useState('');
+  const [editingProject, setEditingProject] = React.useState<Project | null>(null);
 
   const handleAddProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,17 +77,28 @@ export default function Sidebar({ state }: { state: GuiState }) {
     setShowAddAdvanced(false);
   };
 
+  const handleApplyTemplate = (template: StarterTemplate) => {
+    const resolved = resolveStarterTemplate(template, locale, customTranslations);
+    onAddProject(
+      resolved.name,
+      resolved.color,
+      resolved.description,
+      resolved.icon,
+      resolved.tags
+    );
+  };
+
   return (
-    <div id="projects-sidebar" className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
+    <aside id="projects-sidebar" aria-label={translate(locale, 'project', 'ProjectsLabel', customTranslations)} className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
       <div className="backdrop-blur-md rounded-main padding-main border border-border bg-card text-card-foreground shadow-2xl transition-all duration-300">
         <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-          <h3 className="font-sans font-semibold text-title flex items-center gap-2 text-foreground">
+          <Heading level={3} className="text-title flex items-center gap-2">
             <Folder className="icon-medium text-orange-400" />
             {translate(locale, 'project', 'ProjectsLabel', customTranslations)} ({projects.length})
-          </h3>
-          <span className="text-main bg-orange-500/20 border border-orange-500/30 text-orange-600 px-2 py-1 rounded-full font-mono font-bold uppercase tracking-wider">
+          </Heading>
+          <Badge variant="orange" size="sm" as="span" className="text-orange-600 dark:text-orange-300 uppercase tracking-wider font-mono font-bold">
             MicroORM Tables
-          </span>
+          </Badge>
         </div>
 
         <form onSubmit={handleAddProjectSubmit} className="mb-6 padding-section rounded-section border border-border bg-muted/40 transition-all">
@@ -108,7 +118,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 variant="ghost"
                 size="xs"
                 onClick={() => setShowAddAdvanced(!showAddAdvanced)}
-                className="text-[10px] font-mono text-muted-foreground hover:text-orange-500 transition-colors uppercase tracking-wider h-auto p-0"
+                className="font-mono text-muted-foreground hover:text-orange-500 transition-colors uppercase tracking-wider h-auto p-0"
               >
                 {translate(locale, 'project', showAddAdvanced ? 'HideOptions' : 'MoreOptions', customTranslations)}
               </Button>
@@ -170,6 +180,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 id="add-project-btn"
                 type="submit"
                 variant="accent"
+                disabled={isLoading}
                 className="rounded-xl px-4 py-1 text-main font-bold shadow-md cursor-pointer flex items-center gap-1.5 h-auto"
               >
                 <Plus className="icon-small" /> {translate(locale, 'common', 'Save', customTranslations)}
@@ -180,9 +191,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
 
         <div id="projects-list-container" className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto pr-1">
           {projects.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-xs font-sans">
-              {translate(locale, 'project', 'NoProjectsYet', customTranslations)}
-            </div>
+            <ProjectEmptyState
+              onApplyTemplate={handleApplyTemplate}
+              locale={locale}
+              customTranslations={customTranslations}
+            />
           ) : (
             projects.map(p => {
               const projColor = PROJECT_COLORS.find(c => c.name === p.color) || PROJECT_COLORS[0];
@@ -235,26 +248,26 @@ export default function Sidebar({ state }: { state: GuiState }) {
                           className="font-semibold text-main rounded px-1 outline-none h-7 bg-background text-foreground border border-input"
                         />
                       ) : (
-                        <p className="font-semibold text-main truncate text-foreground">{p.archived && <span className="text-main bg-destructive text-destructive-foreground px-1 py-0.5 rounded mr-1 leading-none uppercase">{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</p>
+                        <Text weight="semibold" className="text-main truncate text-foreground">{p.archived && <span className="text-main bg-destructive text-destructive-foreground px-1 py-0.5 rounded mr-1 leading-none uppercase">{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</Text>
                       )}
 
                       {p.description && (
-                        <p className="text-[10px] leading-tight mt-0.5 truncate text-muted-foreground">
+                        <Caption className="mt-0.5 truncate">
                           {p.description}
-                        </p>
+                        </Caption>
                       )}
 
                       {p.tags && p.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {p.tags.map(t => (
-                            <span key={t} className="text-[9px] px-1 py-0.5 rounded bg-orange-500/10 text-orange-500 border border-orange-500/15 font-sans leading-none">
+                            <Badge key={t} variant="orange" size="xs" as="span" className="font-sans leading-none">
                               {t}
-                            </span>
+                            </Badge>
                           ))}
                         </div>
                       )}
 
-                      <p className="text-main opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5 text-muted-foreground">
+                      <Caption variant="muted" className="text-main opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5">
                         {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
 
                         {editingId !== p.id && (
@@ -266,13 +279,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                             title={translate(locale, 'common', 'EditName', customTranslations)}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setEditProjId(p.id);
-                              setEditProjName(p.name);
-                              setEditProjColor(p.color);
-                              setEditProjDesc(p.description || '');
-                              setEditProjIcon(p.icon || '');
-                              setEditProjTags(p.tags ? p.tags.join(', ') : '');
-                              setShowEditModal(true);
+                              setEditingProject(p);
                             }}
                             className="opacity-0 group-hover:opacity-100 transition duration-200 text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10"
                           >
@@ -289,11 +296,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
                             e.stopPropagation();
                             if (onToggleProjectArchive) onToggleProjectArchive(p.id);
                           }}
-                          className="opacity-0 group-hover:opacity-100 transition duration-200 px-1.5 py-0.5 h-auto rounded text-[9px] uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground"
+                          className="opacity-0 group-hover:opacity-100 transition duration-200 px-1.5 py-0.5 h-auto rounded uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground"
                         >
                           {p.archived ? translate(locale, 'common', 'Unarchive', customTranslations) : translate(locale, 'common', 'Archive', customTranslations)}
                         </Button>
-                      </p>
+                      </Caption>
                     </div>
                   </div>
 
@@ -308,127 +315,18 @@ export default function Sidebar({ state }: { state: GuiState }) {
         </div>
       </div>
 
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md p-6 rounded-3xl border border-border bg-card text-card-foreground shadow-2xl transition-all duration-300">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-orange-500" />
-              {translate(locale, 'project', 'EditProjectTitle', customTranslations)}
-            </h3>
-
-            <div className="flex flex-col gap-4">
-              <div>
-                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                  {translate(locale, 'project', 'ProjectName', customTranslations)}
-                </Label>
-                <Input
-                  id="edit-project-name-input"
-                  type="text"
-                  value={editProjName}
-                  onChange={e => setEditProjName(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                    {translate(locale, 'project', 'EmojiIcon', customTranslations)}
-                  </Label>
-                  <Input
-                    type="text"
-                    placeholder="🚀"
-                    maxLength={2}
-                    value={editProjIcon}
-                    onChange={e => setEditProjIcon(e.target.value)}
-                    className="w-full text-center text-xl"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                    {translate(locale, 'project', 'ColorTheme', customTranslations)}
-                  </Label>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {PROJECT_COLORS.map(col => (
-                      <Button
-                        key={col.name}
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => setEditProjColor(col.name)}
-                        className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${editProjColor === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
-                          }`}
-                      >
-                        {editProjColor === col.name && (
-                          <span className="w-1 h-1 bg-card rounded-full"></span>
-                        )}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                  {translate(locale, 'project', 'Description', customTranslations)}
-                </Label>
-                <Textarea
-                  placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
-                  value={editProjDesc}
-                  onChange={e => setEditProjDesc(e.target.value)}
-                  className="w-full h-16 resize-none"
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                  {translate(locale, 'project', 'Tags', customTranslations)}
-                </Label>
-                <Input
-                  type="text"
-                  placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
-                  value={editProjTags}
-                  onChange={e => setEditProjTags(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowEditModal(false)}
-                >
-                  {translate(locale, 'common', 'Cancel', customTranslations)}
-                </Button>
-                <Button
-                  id="save-edit-project-btn"
-                  type="button"
-                  variant="accent"
-                  onClick={() => {
-                    if (onUpdateProject && editProjName.trim()) {
-                      const tagsArr = editProjTags.split(',').map(t => t.trim()).filter(Boolean);
-                      onUpdateProject(
-                        editProjId,
-                        editProjName.trim(),
-                        editProjColor,
-                        editProjDesc.trim() || null,
-                        editProjIcon.trim() || null,
-                        tagsArr.length > 0 ? tagsArr : null
-                      );
-                    }
-                    setShowEditModal(false);
-                  }}
-                >
-                  {translate(locale, 'common', 'Save', customTranslations)}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
+      <EditProjectDialog
+        open={editingProject !== null}
+        onOpenChange={(open) => !open && setEditingProject(null)}
+        project={editingProject}
+        onSave={(id, name, color, desc, icon, tags) => {
+          if (onUpdateProject) {
+            onUpdateProject(id, name, color, desc, icon, tags);
+          }
+        }}
+        locale={locale}
+        customTranslations={customTranslations}
+      />
+    </aside>
   );
 }

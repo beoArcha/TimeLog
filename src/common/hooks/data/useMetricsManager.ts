@@ -8,7 +8,7 @@ export const useMetricsManager = () => {
 
   const fetchComputedMetrics = async (nowIso?: string): Promise<EngineComputedMetrics | null> => {
     try {
-      const metrics = await engine.getComputedMetrics(nowIso);
+      const metrics = await engine.metrics.getComputedMetrics(nowIso);
       setComputedMetrics(prev => {
         if (!prev) return metrics;
         const tasksEqual = JSON.stringify(prev.tasks) === JSON.stringify(metrics.tasks);

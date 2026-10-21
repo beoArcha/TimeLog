@@ -45,7 +45,7 @@ export const ThemeSelector: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-[10px] font-sans">
+    <div className="flex p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-xs font-sans">
       {options.map(th => {
         const isActive = currentThemeId === th.id;
         const labelText = th.labelKey
@@ -61,7 +61,7 @@ export const ThemeSelector: React.FC = () => {
             title={labelText}
             aria-label={labelText}
             data-testid={`theme-btn-${th.id}`}
-            className={`p-1 sm:px-2 sm:py-0.5 h-auto flex items-center gap-1.5 rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+            className={`p-1 sm:px-2 sm:py-0.5 h-auto flex items-center gap-1.5 rounded-md font-bold uppercase transition-all cursor-pointer ${
               isActive
                 ? 'bg-card text-orange-500 border border-border shadow-xs font-bold'
                 : 'text-muted-foreground hover:text-foreground'

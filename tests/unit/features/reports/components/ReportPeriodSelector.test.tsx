@@ -129,4 +129,38 @@ describe('Unit Tests: ReportPeriodSelector', () => {
     fireEvent.change(select, { target: { value: '' } });
     expect(setReportSortMock).not.toHaveBeenCalled();
   });
+
+  it('should render custom date inputs and trigger callbacks when reportPeriod is custom', () => {
+    // Arrange
+    const setCustomFromMock = vi.fn();
+    const setCustomToMock = vi.fn();
+
+    render(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="custom"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+          customFrom="2026-06-01"
+          setCustomFrom={setCustomFromMock}
+          customTo="2026-06-15"
+          setCustomTo={setCustomToMock}
+        />
+      </MockProviders>
+    );
+
+    // Assert
+    expect(screen.getByTestId('custom-date-range-panel')).not.toBeNull();
+    const fromInput = screen.getByTestId('custom-from-input');
+    const toInput = screen.getByTestId('custom-to-input');
+
+    // Act
+    fireEvent.change(fromInput, { target: { value: '2026-06-05' } });
+    fireEvent.change(toInput, { target: { value: '2026-06-20' } });
+
+    // Assert
+    expect(setCustomFromMock).toHaveBeenCalledWith('2026-06-05');
+    expect(setCustomToMock).toHaveBeenCalledWith('2026-06-20');
+  });
 });

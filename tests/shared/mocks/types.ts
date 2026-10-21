@@ -28,6 +28,14 @@ export interface MockCommandArgs {
   tags?: string[] | null;
   status?: Task['status'] | null;
   completed?: boolean | null;
+  logId?: string;
+  holidays?: unknown[];
+  patches?: unknown[];
+  variant?: string;
+  pref?: string;
+  locale?: string;
+  translations?: string;
+  [key: string]: unknown;
 }
 
 export type CommandHandlerFunc = (args: MockCommandArgs) => Promise<unknown>;

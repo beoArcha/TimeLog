@@ -5,7 +5,9 @@ import versionsData from '@app/versions.json';
 import { Locale } from '@bindings/Locale';
 import { Button } from '@components/ui/button';
 import { Checkbox } from '@components/ui/checkbox';
+import { MonoText } from '@components/ui/typography';
 import { Label } from '@components/ui/label';
+import { HStack } from '@components/ui/stack';
 
 interface CompactLayoutHeaderProps {
   locale: Locale;
@@ -38,19 +40,24 @@ export function CompactLayoutHeader({
     translate(locale, 'app', 'CloseToTray', customTranslations);
 
   return (
-    <div className="flex items-center justify-between border-b pb-2 border-border select-none">
-      <div className="flex items-center gap-1.5">
+    <HStack justify="between" className="border-b pb-2 border-border select-none">
+      <HStack gap="xs">
         <div className="w-5 h-5 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500 border border-orange-500/30">
           <Clock className="w-3 h-3 text-orange-400 animate-pulse" />
         </div>
-        <span className="font-sans font-bold text-[10px] tracking-tight text-foreground">
+        <MonoText
+          data-testid="compact-header-title"
+          className="font-sans font-bold tracking-tight text-foreground"
+        >
           LogTime by OxyFlow v{versionsData.major}.{versionsData.minor}.{versionsData.release}
-        </span>
-      </div>
+        </MonoText>
+      </HStack>
 
-      <div className="flex items-center gap-1.5">
-        <Label className="flex items-center gap-1 font-mono text-[10px] mr-1 text-muted-foreground hover:text-orange-400 cursor-pointer select-none">
+      <HStack gap="xs">
+        <Label className="flex items-center gap-1 font-mono text-xs mr-1 text-muted-foreground hover:text-orange-400 cursor-pointer select-none">
           <Checkbox
+            id="compact-always-on-top-checkbox"
+            data-testid="compact-always-on-top-checkbox"
             checked={alwaysOnTopSmall}
             onCheckedChange={(checked) => {
               const isChecked = Boolean(checked);
@@ -87,7 +94,7 @@ export function CompactLayoutHeader({
         >
           <X className="w-3.5 h-3.5" />
         </Button>
-      </div>
-    </div>
+      </HStack>
+    </HStack>
   );
 }

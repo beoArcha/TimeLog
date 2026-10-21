@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Database, Edit3, Trash2, Check, X, History } from 'lucide-react';
 import { Project } from '@bindings/Project';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { ConfirmDialog } from '@components/ConfirmDialog';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
@@ -22,14 +23,17 @@ import {
   SelectValue,
 } from '@components/ui/select';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Caption, Overline } from '@components/ui/typography';
 
 export default function ProjectsTable() {
   const { locale, customTranslations } = useLocale();
-  const { projects, setProjects, setTasks, setLogs } = useData();
+  const { projects, setProjects, setTasks, setLogs, handleToggleProjectArchive } = useData();
 
   const [editingProjId, setEditingProjId] = useState<string | null>(null);
   const [projForm, setProjForm] = useState<{ name: string; color: string; reason: string }>({ name: '', color: 'violet', reason: '' });
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
+  const [deleteTargetProjId, setDeleteTargetProjId] = useState<string | null>(null);
 
   const colors = ['rose', 'teal', 'amber', 'violet', 'indigo', 'emerald'];
 
@@ -72,16 +76,21 @@ export default function ProjectsTable() {
     setEditingProjId(null);
   };
 
-  const deleteProj = (id: string) => {
-    if (confirm(translate(locale, 'database', 'DeleteConfirmProject', customTranslations))) {
-      setProjects(curr => curr.filter(p => p.id !== id));
-      setTasks(curr => curr.filter(t => t.projectId !== id));
-      setLogs(curr => curr.filter(l => l.projectId !== id));
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetProjId) return;
+    const id = deleteTargetProjId;
+    setDeleteTargetProjId(null);
+    if (handleToggleProjectArchive) {
+      await handleToggleProjectArchive(id);
     }
+    setProjects(curr => curr.filter(p => p.id !== id));
+    setTasks(curr => curr.filter(t => t.projectId !== id));
+    setLogs(curr => curr.filter(l => l.projectId !== id));
   };
 
   return (
-    <CollapsibleCard
+    <>
+      <CollapsibleCard
       title={`${translate(locale, 'database', 'ProjectsTableTitle', customTranslations)} (${projects.length} ${translate(locale, 'database', 'Records', customTranslations)})`}
       icon={Database}
       iconColor="text-orange-400"
@@ -93,7 +102,7 @@ export default function ProjectsTable() {
       <div className="overflow-x-auto w-full">
         <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <TableHeader>
-            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
+            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
               <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
               <TableHead className="py-3 px-4">name</TableHead>
               <TableHead className="py-3 px-4">color</TableHead>
@@ -151,12 +160,12 @@ export default function ProjectsTable() {
                     </TableCell>
                     <TableCell className="py-3.5 px-4">
                       {hasHistory ? (
-                        <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-md font-bold flex items-center gap-1.5 w-max">
+                        <Badge variant="amber" size="sm" as="span" className="flex items-center gap-1.5 w-max">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
                           {translate(locale, 'database', 'OriginalLabel', customTranslations)}: {p.originalName || p.name}
-                        </span>
+                        </Badge>
                       ) : (
-                        <span className="text-muted-foreground text-[10px]">{translate(locale, 'database', 'NoPatches', customTranslations)}</span>
+                        <Caption as="span">{translate(locale, 'database', 'NoPatches', customTranslations)}</Caption>
                       )}
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-right">
@@ -182,7 +191,7 @@ export default function ProjectsTable() {
                                 aria-label={translate(locale, 'database', 'Reason', customTranslations)}
                                 value={projForm.reason} 
                                 onChange={e => setProjForm(prev => ({ ...prev, reason: e.target.value }))}
-                                className="text-[9px] bg-background border border-border px-1 py-0.5 h-6 rounded w-28 text-foreground"
+                                className="text-xs bg-background border border-border px-1.5 py-0.5 h-6 rounded w-28 text-foreground"
                               />
                             </div>
                             <Button
@@ -221,7 +230,7 @@ export default function ProjectsTable() {
                             <Button 
                               variant="ghost"
                               size="icon-xs"
-                              onClick={() => deleteProj(p.id)} 
+                              onClick={() => setDeleteTargetProjId(p.id)} 
                               className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer" 
                               title={translate(locale, 'common', 'Delete', customTranslations)}
                               aria-label={translate(locale, 'common', 'Delete', customTranslations)}
@@ -238,15 +247,15 @@ export default function ProjectsTable() {
                     <TableRow>
                       <TableCell colSpan={5} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
                         <div className="flex flex-col gap-1.5 border-l-2 border-teal-500 pl-4 py-1">
-                          <p className="text-[10px] uppercase font-bold tracking-widest text-teal-400 flex items-center gap-1.5">
+                          <Overline className="text-teal-400 flex items-center gap-1.5">
                             <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}
-                          </p>
+                          </Overline>
                           {p.editHistory.map((h, hIdx) => (
-                            <div key={hIdx} className="text-[11px] text-muted-foreground mt-1">
+                            <Caption key={hIdx} size="xs" className="text-muted-foreground mt-1 block">
                               <span>[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
                               {translate(locale, 'database', 'ChangeFromName', customTranslations)} <strong className="text-foreground">"{h.prevName}"</strong> ({translate(locale, 'common', 'Color', customTranslations)} {h.prevColor}) &rarr;{' '}
                               {translate(locale, 'database', 'Reason', customTranslations)} <em className="text-teal-300">"{h.reason}"</em>
-                            </div>
+                            </Caption>
                           ))}
                         </div>
                       </TableCell>
@@ -259,5 +268,16 @@ export default function ProjectsTable() {
         </Table>
       </div>
     </CollapsibleCard>
+
+    <ConfirmDialog
+      open={deleteTargetProjId !== null}
+      onOpenChange={(open) => !open && setDeleteTargetProjId(null)}
+      title={translate(locale, 'database', 'DeleteConfirmProject', customTranslations)}
+      variant="destructive"
+      confirmLabel={translate(locale, 'common', 'Delete', customTranslations)}
+      cancelLabel={translate(locale, 'common', 'Cancel', customTranslations)}
+      onConfirm={handleConfirmDelete}
+    />
+  </>
   );
 }

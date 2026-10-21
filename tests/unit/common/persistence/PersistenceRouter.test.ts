@@ -15,7 +15,6 @@ describe('Unit Tests: PersistenceRouter', () => {
 
     const mockSettings: Settings = {
       autoStart: false,
-      autoPauseOnSleep: true,
       includePatchesInReports: true,
       activeSinks: ['Csv'],
     };
@@ -56,6 +55,7 @@ describe('Unit Tests: PersistenceRouter', () => {
         insert: vi.fn().mockResolvedValue(undefined),
         queryActive: vi.fn().mockResolvedValue([]),
         getAll: vi.fn().mockResolvedValue([]),
+        delete: vi.fn().mockResolvedValue(undefined),
       },
       holidays: {
         getAll: vi.fn().mockResolvedValue([]),
@@ -82,6 +82,14 @@ describe('Unit Tests: PersistenceRouter', () => {
         saveLocale: vi.fn().mockResolvedValue(undefined),
         getCustomTranslations: vi.fn().mockResolvedValue({}),
         saveCustomTranslations: vi.fn().mockResolvedValue(undefined),
+      },
+      webhookQueue: {
+        enqueue: vi.fn().mockResolvedValue(undefined),
+        getPending: vi.fn().mockResolvedValue([]),
+        updateStatus: vi.fn().mockResolvedValue(undefined),
+        delete: vi.fn().mockResolvedValue(undefined),
+        clear: vi.fn().mockResolvedValue(undefined),
+        getStats: vi.fn().mockResolvedValue({ pending: 0n, failed: 0n, delivered: 0n }),
       },
     };
 

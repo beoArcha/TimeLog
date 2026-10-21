@@ -1,4 +1,3 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
@@ -6,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import SettingsTab from '@features/settings/SettingsTab';
 import { toast } from 'sonner';
 import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -14,7 +14,7 @@ vi.mock('sonner', () => ({
   },
 }));
 
-describe('Integration Tests: SettingsTab', () => {
+describe('Given SettingsTab component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupMatchMediaMock(false);
@@ -24,76 +24,83 @@ describe('Integration Tests: SettingsTab', () => {
     cleanup();
   });
 
-  it('Given SettingsTab rendered, When hard reset database button is clicked and confirmed, Then it should clear all local state and remove database storage', () => {
-    const mockState = getMockOxyFlowState();
+  describe('When hard reset is confirmed with valid keyword', () => {
+    it('Then it should reset all local state arrays and display success notification', () => {
+      // Given
+      const mockState = getMockOxyFlowState();
+      render(
+        <MockProviders state={mockState}>
+          <SettingsTab />
+        </MockProviders>
+      );
 
-    render(
-      <MockProviders state={mockState}>
-        <SettingsTab />
-      </MockProviders>
-    );
+      // When
+      const destructiveHeader = screen.getByTestId('destructive-zone-card');
+      fireEvent.click(destructiveHeader);
 
-    // Expand the Destructive Zone collapsible card
-    const destructiveHeader = screen.getByText('Destructive Zone (Dangerous)');
-    fireEvent.click(destructiveHeader);
+      const resetBtn = screen.getByTestId('hard-reset-btn');
+      fireEvent.click(resetBtn);
 
-    const resetBtn = screen.getByText('Reset database');
-    fireEvent.click(resetBtn);
+      const input = screen.getByTestId('prompt-dialog-input');
+      fireEvent.change(input, { target: { value: 'reset' } });
+      const confirmBtn = screen.getByTestId('prompt-dialog-confirm-btn');
+      fireEvent.click(confirmBtn);
 
-    const inputs = document.querySelectorAll('input[type="text"]');
-    const input = inputs[inputs.length - 1] as HTMLInputElement;
-    fireEvent.change(input, { target: { value: 'reset' } });
-    const confirmBtn = screen.getByRole('button', { name: /Confirm|Potwierdź|Zatwierdź/i });
-    fireEvent.click(confirmBtn);
-
-    expect(mockState.setProjects).toHaveBeenCalledWith([]);
-    expect(mockState.setTasks).toHaveBeenCalledWith([]);
-    expect(mockState.setLogs).toHaveBeenCalledWith([]);
-    expect(toast.success).toHaveBeenCalled();
+      // Then
+      expect(mockState.setProjects).toHaveBeenCalledWith([]);
+      expect(mockState.setTasks).toHaveBeenCalledWith([]);
+      expect(mockState.setLogs).toHaveBeenCalledWith([]);
+      expect(toast.success).toHaveBeenCalled();
+    });
   });
 
-  it('Given SettingsTab rendered, When hard reset database button is clicked and cancelled, Then it should not clear states and show cancel error toast', () => {
-    const mockState = getMockOxyFlowState();
+  describe('When hard reset is cancelled or keyword does not match', () => {
+    it('Then it should preserve all state and display error notification', () => {
+      // Given
+      const mockState = getMockOxyFlowState();
+      render(
+        <MockProviders state={mockState}>
+          <SettingsTab />
+        </MockProviders>
+      );
 
-    render(
-      <MockProviders state={mockState}>
-        <SettingsTab />
-      </MockProviders>
-    );
+      // When
+      const destructiveHeader = screen.getByTestId('destructive-zone-card');
+      fireEvent.click(destructiveHeader);
 
-    // Expand the Destructive Zone collapsible card
-    const destructiveHeader = screen.getByText('Destructive Zone (Dangerous)');
-    fireEvent.click(destructiveHeader);
+      const resetBtn = screen.getByTestId('hard-reset-btn');
+      fireEvent.click(resetBtn);
 
-    const resetBtn = screen.getByText('Reset database');
-    fireEvent.click(resetBtn);
+      const input = screen.getByTestId('prompt-dialog-input');
+      fireEvent.change(input, { target: { value: 'no' } });
+      const confirmBtn = screen.getByTestId('prompt-dialog-confirm-btn');
+      fireEvent.click(confirmBtn);
 
-    const cancelInputs = document.querySelectorAll('input[type="text"]');
-    const input = cancelInputs[cancelInputs.length - 1] as HTMLInputElement;
-    fireEvent.change(input, { target: { value: 'no' } });
-    const confirmBtn = screen.getByRole('button', { name: /Confirm|Potwierdź|Zatwierdź/i });
-    fireEvent.click(confirmBtn);
-
-    expect(mockState.setProjects).not.toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalled();
+      // Then
+      expect(mockState.setProjects).not.toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalled();
+    });
   });
 
-  it('Given SettingsTab rendered, When auto start setting is toggled, Then it should update the system settings', () => {
-    const mockState = getMockOxyFlowState();
+  describe('When auto-start setting is toggled', () => {
+    it('Then it should persist updated configuration via state coordinator', () => {
+      // Given
+      const mockState = getMockOxyFlowState();
+      render(
+        <MockProviders state={mockState}>
+          <SettingsTab />
+        </MockProviders>
+      );
 
-    render(
-      <MockProviders state={mockState}>
-        <SettingsTab />
-      </MockProviders>
-    );
+      // When
+      const engineHeader = screen.getByTestId('collapsible-trigger-engine-settings');
+      fireEvent.click(engineHeader);
 
-    // Expand Engine Settings
-    const engineHeader = screen.getByText('Engine Options & Daemons');
-    fireEvent.click(engineHeader);
+      const checkboxes = screen.getAllByRole('checkbox');
+      fireEvent.click(checkboxes[0]);
 
-    const autoStartCheckbox = screen.getByLabelText('Start on system boot');
-    fireEvent.click(autoStartCheckbox);
-
-    expect(mockState.setSysSettings).toHaveBeenCalled();
+      // Then
+      expect(mockState.setSysSettings).toHaveBeenCalled();
+    });
   });
 });

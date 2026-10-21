@@ -3,6 +3,7 @@ import { Cpu } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Checkbox } from '@components/ui/checkbox';
 import { Label } from '@components/ui/label';
+import { Caption } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
@@ -36,9 +37,9 @@ export default function EngineConfig() {
       headerTestId="collapsible-trigger-engine-settings"
     >
       <div className="flex flex-col gap-4">
-        <p className="text-xs leading-relaxed text-muted-foreground">
+        <Caption variant="muted" className="leading-relaxed">
           {translate(locale, 'engine', 'ConfigDesc', customTranslations)}
-        </p>
+        </Caption>
 
         <div className="flex flex-col gap-4">
           <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
@@ -48,16 +49,6 @@ export default function EngineConfig() {
             />
             <span className="text-xs font-semibold text-foreground">
               {translate(locale, 'engine', 'AutoStart', customTranslations)}
-            </span>
-          </Label>
-
-          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
-            <Checkbox
-              checked={sysSettings?.autoPauseOnSleep}
-              onCheckedChange={(checked) => updateSetting('autoPauseOnSleep', !!checked)}
-            />
-            <span className="text-xs font-semibold text-foreground">
-              {translate(locale, 'engine', 'AutoPauseOnSleep', customTranslations)}
             </span>
           </Label>
 

@@ -7,7 +7,7 @@ export type SettingsState = ReturnType<typeof useAppSettings> & ReturnType<typeo
 
 export const SettingsContext = createContext<SettingsState | undefined>(undefined);
 
-export const useSettings = () => {
+export const useSettings = (): SettingsState => {
   const ctx = useContext(SettingsContext);
   if (!ctx) throw new ContextException('useSettings must be used within SettingsProvider', 'ERR_SETTINGS_CONTEXT');
   return ctx;

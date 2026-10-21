@@ -3,6 +3,14 @@ use chrono::Utc;
 use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 
+#[derive(Debug, thiserror::Error)]
+pub enum CsvSinkError {
+    #[error("I/O error in CsvSink: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("CSV serialization error: {0}")]
+    Csv(#[from] csv::Error),
+}
+
 pub struct CsvSink {
     directory: PathBuf,
 }
@@ -20,7 +28,7 @@ impl CsvSink {
         }
     }
 
-    fn try_emit(&self, event: &PersistenceEvent) -> Result<(), Box<dyn std::error::Error>> {
+    fn try_emit(&self, event: &PersistenceEvent) -> Result<(), CsvSinkError> {
         std::fs::create_dir_all(&self.directory)?;
 
         let project_id = match event {

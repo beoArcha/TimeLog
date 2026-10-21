@@ -1,24 +1,27 @@
 import React from 'react';
-import { useWindowShell } from '@common/contexts/WindowShellContext';
+import { useDataLifecycleState } from '@common/hooks/DataContext';
+import { Badge } from '@components/ui/badge';
+import { HStack } from '@components/ui/stack';
 
 export const StatusIndicator: React.FC = () => {
-  const { engineState } = useWindowShell();
+  const { engineState } = useDataLifecycleState();
 
   return (
-    <div className="flex items-center gap-1.5" title={engineState === 'searching' ? 'CONNECTING' : 'DAEMON RUNNING'}>
+    <HStack gap="xs" title={engineState === 'searching' ? 'CONNECTING' : 'DAEMON RUNNING'}>
       <div className="sm:hidden flex items-center justify-center p-1">
         <span className={`w-2 h-2 rounded-full ${
           engineState === 'searching' ? 'bg-amber-500 animate-ping' : 'bg-emerald-500 ring-2 ring-emerald-500/30'
         }`} />
       </div>
 
-      <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold hidden sm:inline whitespace-nowrap ${
-        engineState === 'searching'
-          ? 'bg-amber-500/20 text-amber-500 animate-pulse border border-amber-500/20'
-          : 'bg-success/15 text-success border border-success/30'
-      }`}>
+      <Badge
+        variant={engineState === 'searching' ? 'amber' : 'emerald'}
+        size="xs"
+        as="span"
+        className="hidden sm:inline-flex whitespace-nowrap"
+      >
         {engineState === 'searching' ? 'CONNECTING' : 'DAEMON RUNNING'}
-      </span>
-    </div>
+      </Badge>
+    </HStack>
   );
 };

@@ -1,4 +1,7 @@
 pub mod constants;
+pub mod holidays;
+pub mod override_state;
+pub mod patches;
 pub mod projects;
 pub mod tasks;
 pub mod time_logs;

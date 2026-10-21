@@ -43,7 +43,7 @@ export const useTimerManager = ({
   const handleStartTimer = async (taskId: string) => {
     await actionRunner.runAction('Failed to start timer', async () => {
       const prevLogs = repositoryState.logs;
-      await EngineRouter.getInstance().startTimer(taskId);
+      await EngineRouter.getInstance().timer.startTimer(taskId);
       const nextState = await PersistenceRouter.getInstance().core.load();
 
       if (nextState) {
@@ -58,7 +58,7 @@ export const useTimerManager = ({
   const handleStopTimer = async (specificProjectId?: string) => {
     await actionRunner.runAction('Failed to stop timer', async () => {
       const prevLogs = repositoryState.logs;
-      await EngineRouter.getInstance().stopTimer(specificProjectId);
+      await EngineRouter.getInstance().timer.stopTimer(specificProjectId);
       const nextState = await PersistenceRouter.getInstance().core.load();
 
       if (nextState) {
@@ -81,7 +81,7 @@ export const useTimerManager = ({
     await actionRunner.runAction(
       'Failed to edit time log',
       async () => {
-        await EngineRouter.getInstance().editTimeLog(id, taskId, startTime, endTime, note, reason);
+        await EngineRouter.getInstance().timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason);
         const nextState = await PersistenceRouter.getInstance().core.load();
         if (nextState) {
           repositoryState.setLogsState(nextState.logs);

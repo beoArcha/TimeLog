@@ -54,3 +54,15 @@ export type EngineError = EngineException;
 
 export const EngineValidationError = EngineValidationException;
 export type EngineValidationError = EngineValidationException;
+
+export class BackupValidationException extends AbstractException {
+  constructor(message: string, cause?: unknown, code: string = 'ERR_BACKUP_VALIDATION') {
+    super(message, 'ERROR', code, cause);
+  }
+}
+
+export class WorkflowException extends AbstractException {
+  constructor(message: string, cause?: unknown, code: string = 'ERR_WORKFLOW', level: ErrorLevel = 'ERROR') {
+    super(message, level, code, cause);
+  }
+}

@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@components/ui/select';
 import { Button } from '@components/ui/button';
+import { Caption } from '@components/ui/typography';
 
 interface AddLogFormProps {
   tasks: Task[];
@@ -53,7 +54,7 @@ export default function AddLogForm({
 
   return (
     <form onSubmit={handleSubmit} className="mb-6 p-4 rounded-2xl bg-black/30 border border-white/5 flex flex-col gap-3">
-      <p className="text-xs font-bold text-orange-400 uppercase tracking-wide">SQL Command: INSERT INTO time_logs</p>
+      <Caption weight="bold" className="text-orange-400 uppercase tracking-wide">SQL Command: INSERT INTO time_logs</Caption>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
         <div>
           <Label htmlFor="add-log-task" className="block text-muted-foreground mb-1">{translate(locale, 'database', 'AssignToTask', customTranslations)}</Label>

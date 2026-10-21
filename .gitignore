@@ -12,7 +12,10 @@ playwright-report/
 playwright-video/
 .aistudio/
 .vscode/
-.agents/
+.agents/*
+!.agents/rules/
 .stryker-tmp/
 .stryker-sandbox/
 reports/mutation/
+src-tauri/bindings/
+.gemini/*

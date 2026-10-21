@@ -5,8 +5,6 @@ import { ImportDeclarationInfo } from './types';
 /**
  * Extracts import and export-from declarations from TypeScript/JavaScript files
  * using the official TypeScript Compiler API AST parser.
- *
- * Adheres to SRP: Exclusively parses source code into structured ImportDeclarationInfo records.
  */
 export class ImportScanner {
   /**

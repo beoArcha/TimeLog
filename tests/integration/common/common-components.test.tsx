@@ -8,8 +8,9 @@ import TrayWidgetView from '@features/tray/TrayWidgetView';
 import EngineConfig from '@/src/features/settings/components/EngineConfig';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
 import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { aTimeLog } from '@tests/shared/builders/entity-builders';
 
-describe('Integration Tests: Common Components', () => {
+describe('Given common application components and widgets', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupMatchMediaMock(false);
@@ -19,8 +20,9 @@ describe('Integration Tests: Common Components', () => {
     cleanup();
   });
 
-  describe('TrayWidgetView', () => {
-    it('Given TrayWidgetView rendered, When restore button clicked, Then it should call onRestore', () => {
+  describe('When TrayWidgetView is rendered and user triggers restore', () => {
+    it('Then it should invoke onRestore callback', () => {
+      // Given
       const mockState = getMockOxyFlowState();
       const onRestoreSpy = vi.fn();
       const onStopAllSpy = vi.fn();
@@ -31,15 +33,21 @@ describe('Integration Tests: Common Components', () => {
         </MockProviders>
       );
 
-      const restoreBtn = screen.getByText(/Maximize and Restore/i);
+      // When
+      const restoreBtn = screen.getByRole('button', { name: /maximize|restore/i });
       fireEvent.click(restoreBtn);
+
+      // Then
       expect(onRestoreSpy).toHaveBeenCalled();
     });
+  });
 
-    it('Given TrayWidgetView rendered with running logs, When pause all clicked, Then it should call onStopAll', () => {
+  describe('When TrayWidgetView is rendered with active running logs and user pauses all', () => {
+    it('Then it should invoke onStopAll callback', () => {
+      // Given
       const mockState = getMockOxyFlowState();
       mockState.logs = [
-        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T12:00:00Z', endTime: null }
+        aTimeLog({ id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T12:00:00Z', endTime: null })
       ];
       const onRestoreSpy = vi.fn();
       const onStopAllSpy = vi.fn();
@@ -50,14 +58,18 @@ describe('Integration Tests: Common Components', () => {
         </MockProviders>
       );
 
-      const pauseBtn = screen.getByText(/Suspend all processes/i);
+      // When
+      const pauseBtn = screen.getByRole('button', { name: /pause|suspend/i });
       fireEvent.click(pauseBtn);
+
+      // Then
       expect(onStopAllSpy).toHaveBeenCalled();
     });
   });
 
-  describe('EngineConfig', () => {
-    it('Given EngineConfig rendered, When autoStart checkbox toggled, Then it should call setSysSettings', () => {
+  describe('When EngineConfig options card is expanded and autoStart is toggled', () => {
+    it('Then it should invoke setSysSettings with updated configuration', () => {
+      // Given
       const mockState = getMockOxyFlowState();
       render(
         <MockProviders state={mockState}>
@@ -65,30 +77,37 @@ describe('Integration Tests: Common Components', () => {
         </MockProviders>
       );
 
-      const header = screen.getByText('Engine Options & Daemons');
+      // When
+      const header = screen.getByTestId('collapsible-trigger-engine-settings');
       fireEvent.click(header);
 
-      const checkbox = screen.getByLabelText('Start on system boot');
-      fireEvent.click(checkbox);
+      const checkboxes = screen.getAllByRole('checkbox');
+      fireEvent.click(checkboxes[0]);
+
+      // Then
       expect(mockState.setSysSettings).toHaveBeenCalled();
     });
   });
 
-  describe('HolidaysLeavesView', () => {
-    it('Given HolidaysLeavesView rendered, When form submitted, Then it should call setHolidays', () => {
+  describe('When HolidaysLeavesView registration form is filled and submitted', () => {
+    it('Then it should delegate holiday creation to state coordinator', () => {
+      // Given
       const mockState = getMockOxyFlowState();
-      render(
+      const { container } = render(
         <MockProviders state={mockState}>
           <HolidaysLeavesView />
         </MockProviders>
       );
 
-      const nameInput = screen.getByPlaceholderText(/e.g. Vibe dancing leave.../i);
-      fireEvent.change(nameInput, { target: { value: 'My Holiday' } });
+      // When
+      const textInputs = screen.getAllByRole('textbox');
+      fireEvent.change(textInputs[0], { target: { value: 'My Holiday' } });
 
-      const saveBtn = screen.getByText(/Save/i);
-      fireEvent.click(saveBtn);
+      const submitBtn = container.querySelector('button[type="submit"]');
+      expect(submitBtn).toBeTruthy();
+      fireEvent.click(submitBtn!);
 
+      // Then
       expect(mockState.handleAddHoliday).toHaveBeenCalledWith('2026-06-15', 'leave', 'My Holiday');
     });
   });

@@ -1,13 +1,16 @@
 import { useState, useMemo } from 'react';
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
+import { ReportPeriodType } from '@features/reports/types';
 
 export function useGuiLogic(props: LayoutCommonProps) {
   const { projects, tasks } = props;
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(projects[0]?.id || null);
 
-  const [reportPeriod, setReportPeriod] = useState<'today' | 'week' | 'month' | 'all'>('all');
+  const [reportPeriod, setReportPeriod] = useState<ReportPeriodType>('all');
   const [reportSort, setReportSort] = useState<'date' | 'duration'>('duration');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
 
   const [showDbInspector, setShowDbInspector] = useState(false);
 
@@ -30,6 +33,10 @@ export function useGuiLogic(props: LayoutCommonProps) {
     setReportPeriod,
     reportSort,
     setReportSort,
+    customFrom,
+    setCustomFrom,
+    customTo,
+    setCustomTo,
     showDbInspector,
     setShowDbInspector,
 

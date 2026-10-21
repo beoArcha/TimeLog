@@ -3,6 +3,16 @@ import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { TimeLog } from '@bindings/TimeLog';
 
+function resolveStartTickMs(snapshotNowIso?: string | null, activeStartTime?: string | null): number {
+  if (snapshotNowIso) {
+    return new Date(snapshotNowIso).getTime();
+  }
+  if (activeStartTime) {
+    return new Date(activeStartTime).getTime();
+  }
+  return Date.now();
+}
+
 export interface UseLiveTaskElapsedOptions {
   /**
    * Frequency of timer ticks when the task is active in milliseconds.
@@ -47,9 +57,7 @@ export function useLiveTaskElapsed(
 
   const getElapsedDelta = () => {
     if (!isRunning) return 0;
-    const startTickMs = metrics?.snapshotNowIso
-      ? new Date(metrics.snapshotNowIso).getTime()
-      : (activeLog?.startTime ? new Date(activeLog.startTime).getTime() : Date.now());
+    const startTickMs = resolveStartTickMs(metrics?.snapshotNowIso, activeLog?.startTime);
     return Math.max(0, Math.floor((Date.now() - startTickMs) / 1000));
   };
 
@@ -66,9 +74,7 @@ export function useLiveTaskElapsed(
       return;
     }
 
-    const startTickMs = metrics?.snapshotNowIso
-      ? new Date(metrics.snapshotNowIso).getTime()
-      : (activeLog?.startTime ? new Date(activeLog.startTime).getTime() : Date.now());
+    const startTickMs = resolveStartTickMs(metrics?.snapshotNowIso, activeLog?.startTime);
 
     const update = () => {
       const now = Date.now();
@@ -130,9 +136,7 @@ export function useLiveProjectElapsed(
 
   const getElapsedDelta = () => {
     if (!isRunning) return 0;
-    const startTickMs = metrics?.snapshotNowIso
-      ? new Date(metrics.snapshotNowIso).getTime()
-      : (activeLog?.startTime ? new Date(activeLog.startTime).getTime() : Date.now());
+    const startTickMs = resolveStartTickMs(metrics?.snapshotNowIso, activeLog?.startTime);
     return Math.max(0, Math.floor((Date.now() - startTickMs) / 1000));
   };
 
@@ -149,9 +153,7 @@ export function useLiveProjectElapsed(
       return;
     }
 
-    const startTickMs = metrics?.snapshotNowIso
-      ? new Date(metrics.snapshotNowIso).getTime()
-      : (activeLog?.startTime ? new Date(activeLog.startTime).getTime() : Date.now());
+    const startTickMs = resolveStartTickMs(metrics?.snapshotNowIso, activeLog?.startTime);
 
     const update = () => {
       const now = Date.now();

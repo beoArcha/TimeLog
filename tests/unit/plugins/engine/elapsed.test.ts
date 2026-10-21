@@ -91,6 +91,178 @@ describe('Unit Tests: Browser Engine Pure Elapsed Module (plugins/engine/elapsed
     });
   });
 
+  it('should calculate accurate multi-day elapsed and isolate today slice when log spans 72 hours across days', () => {
+    // Arrange: 72 hours from Wednesday 2026-06-10T10:00:00Z to Saturday 2026-06-13T10:00:00Z
+    const multiDayTask: Task = {
+      id: 't-multi',
+      projectId: 'p-multi',
+      name: 'Long Task',
+      completed: false,
+      createdAt: '2026-06-10T00:00:00Z',
+      status: null,
+      parentTaskId: null,
+    };
+    const multiDayProject = {
+      id: 'p-multi',
+      name: 'Long Project',
+      color: 'teal',
+      description: null,
+      icon: null,
+      tags: null,
+      createdAt: '2026-06-10T00:00:00Z',
+      archived: false,
+    };
+    const multiDayLog: TimeLog = {
+      id: 'l-multi',
+      taskId: 't-multi',
+      projectId: 'p-multi',
+      startTime: '2026-06-10T10:00:00Z',
+      endTime: '2026-06-13T10:00:00Z',
+      note: null,
+      editHistory: null,
+    };
+    const nowIso = '2026-06-13T12:00:00Z'; // Saturday
+
+    // Act
+    const metrics = computeAllMetrics([multiDayTask], [multiDayLog], [multiDayProject], nowIso);
+
+    // Assert
+    // Total 72 hours = 259,200s
+    expect(metrics.tasks['t-multi'].elapsedSeconds).toBe(259200);
+    expect(metrics.projects['p-multi'].totalElapsedSeconds).toBe(259200);
+    // Saturday slice: 2026-06-13 00:00:00 to 10:00:00 = 10 hours = 36,000s
+    expect(metrics.projects['p-multi'].todayElapsedSeconds).toBe(36000);
+    // Monday 2026-06-08 was the start of the week, so entire 72h falls within this week
+    expect(metrics.projects['p-multi'].thisWeekElapsedSeconds).toBe(259200);
+  });
+
+  it('should calculate accurate ongoing duration and today overlap when active log runs for 48 hours', () => {
+    // Arrange: Started Thursday 2026-06-11T10:00:00Z, active at Saturday 2026-06-13T10:00:00Z
+    const activeTask: Task = {
+      id: 't-act',
+      projectId: 'p-act',
+      name: 'Active Long Task',
+      completed: false,
+      createdAt: '2026-06-11T00:00:00Z',
+      status: null,
+      parentTaskId: null,
+    };
+    const activeProject = {
+      id: 'p-act',
+      name: 'Active Project',
+      color: 'indigo',
+      description: null,
+      icon: null,
+      tags: null,
+      createdAt: '2026-06-11T00:00:00Z',
+      archived: false,
+    };
+    const activeLog: TimeLog = {
+      id: 'l-act',
+      taskId: 't-act',
+      projectId: 'p-act',
+      startTime: '2026-06-11T10:00:00Z',
+      endTime: null,
+      note: null,
+      editHistory: null,
+    };
+    const nowIso = '2026-06-13T10:00:00Z'; // Saturday
+
+    // Act
+    const metrics = computeAllMetrics([activeTask], [activeLog], [activeProject], nowIso);
+
+    // Assert
+    // 48 hours = 172,800s
+    expect(metrics.tasks['t-act'].elapsedSeconds).toBe(172800);
+    expect(metrics.tasks['t-act'].isRunning).toBe(true);
+    expect(metrics.projects['p-act'].totalElapsedSeconds).toBe(172800);
+    expect(metrics.projects['p-act'].isRunning).toBe(true);
+    // Saturday 00:00 to 10:00 = 10 hours = 36,000s
+    expect(metrics.projects['p-act'].todayElapsedSeconds).toBe(36000);
+    expect(metrics.projects['p-act'].thisWeekElapsedSeconds).toBe(172800);
+  });
+
+  it('should calculate full 30 hours and cover 24 hours of leap day when log crosses February 29 leap boundary', () => {
+    // Arrange: 2024-02-28T22:00:00Z to 2024-03-01T04:00:00Z (2h + 24h + 4h = 30h)
+    const leapTask: Task = {
+      id: 't-leap',
+      projectId: 'p-leap',
+      name: 'Leap Task',
+      completed: false,
+      createdAt: '2024-02-28T00:00:00Z',
+      status: null,
+      parentTaskId: null,
+    };
+    const leapLog: TimeLog = {
+      id: 'l-leap',
+      taskId: 't-leap',
+      projectId: 'p-leap',
+      startTime: '2024-02-28T22:00:00Z',
+      endTime: '2024-03-01T04:00:00Z',
+      note: null,
+      editHistory: null,
+    };
+    const evalNow = '2024-03-01T12:00:00Z';
+
+    // Act - total elapsed
+    const elapsed = calculateTaskElapsed('t-leap', [leapTask], [leapLog], evalNow);
+    // Act - range for entire Leap Day: 2024-02-29T00:00:00Z to 2024-03-01T00:00:00Z
+    const leapDayRange = calculateElapsedRange(
+      { from: '2024-02-29T00:00:00Z', to: '2024-03-01T00:00:00Z' },
+      [leapTask],
+      [leapLog],
+      evalNow
+    );
+
+    // Assert: 30 hours = 108,000s; full 24 hours on 2024-02-29 = 86,400s
+    expect(elapsed).toBe(108000);
+    expect(leapDayRange).toBe(86400);
+  });
+
+  it('should isolate 8 hours today and track full week spanning December 2025 into January 2026 when crossing new year boundary', () => {
+    // Arrange: 2025-12-31T20:00:00Z (Wednesday) to 2026-01-01T08:00:00Z (Thursday) = 12h = 43,200s
+    const newYearTask: Task = {
+      id: 't-ny',
+      projectId: 'p-ny',
+      name: 'New Year Task',
+      completed: false,
+      createdAt: '2025-12-31T00:00:00Z',
+      status: null,
+      parentTaskId: null,
+    };
+    const newYearProject = {
+      id: 'p-ny',
+      name: 'New Year Project',
+      color: 'amber',
+      description: null,
+      icon: null,
+      tags: null,
+      createdAt: '2025-12-31T00:00:00Z',
+      archived: false,
+    };
+    const newYearLog: TimeLog = {
+      id: 'l-ny',
+      taskId: 't-ny',
+      projectId: 'p-ny',
+      startTime: '2025-12-31T20:00:00Z',
+      endTime: '2026-01-01T08:00:00Z',
+      note: null,
+      editHistory: null,
+    };
+    const nowIso = '2026-01-01T12:00:00Z'; // Thursday
+
+    // Act
+    const metrics = computeAllMetrics([newYearTask], [newYearLog], [newYearProject], nowIso);
+
+    // Assert
+    // Total: 12h = 43,200s
+    expect(metrics.projects['p-ny'].totalElapsedSeconds).toBe(43200);
+    // Today (2026-01-01 00:00 to 08:00): 8h = 28,800s
+    expect(metrics.projects['p-ny'].todayElapsedSeconds).toBe(28800);
+    // Week started Monday 2025-12-29, so all 43,200s is within this week
+    expect(metrics.projects['p-ny'].thisWeekElapsedSeconds).toBe(43200);
+  });
+
   it('should return 0 when no logs exist for task or project', () => {
     expect(calculateTaskElapsed('nonexistent', sampleTasks, sampleLogs)).toBe(0);
     expect(calculateProjectElapsed('nonexistent', sampleTasks, sampleLogs)).toBe(0);

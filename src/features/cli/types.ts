@@ -1,32 +1,18 @@
-import React from 'react';
-import { Project } from '@bindings/Project';
-import { Task } from '@bindings/Task';
-import { TimeLog } from '@bindings/TimeLog';
-import { HolidayLeave } from '@bindings/HolidayLeave';
-import { Locale } from '@bindings/Locale';
-import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
+import { LayoutCommonProps } from '@layouts/types/LayoutCommonProps';
 
 export interface TerminalLine {
   text: string;
   type: 'input' | 'output' | 'error' | 'success' | 'info';
 }
 
-export interface CliEngineContext {
-  projects: Project[];
-  tasks: Task[];
-  logs: TimeLog[];
-  activeLog: TimeLog | null;
-  metrics?: EngineComputedMetrics | null;
-  onAddProject: (name: string, color: string) => void;
-  onAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
-  onToggleTaskComplete: (taskId: string) => void;
-  onStartTimer: (taskId: string) => void;
-  onStopTimer: (projectId?: string) => void;
-  nowIso?: string;
-  locale: Locale;
-  customTranslations?: Record<string, unknown>;
-  holidays: HolidayLeave[];
-  setHolidays: React.Dispatch<React.SetStateAction<HolidayLeave[]>>;
-  selectedTaskId: string | null;
-  setSelectedTaskId: (id: string | null) => void;
+export interface CliDomainHandlers {
+  isSandbox?: boolean;
+  onToggleSandbox?: (enabled?: boolean) => void;
+  onSwitchTask?: (targetTaskIdOrName: string) => Promise<void> | void;
 }
+
+/**
+ * Domain context for CLI commands.
+ * Directly extends application domain LayoutCommonProps (DRY) and attaches CLI domain handlers.
+ */
+export type CliEngineContext = LayoutCommonProps & CliDomainHandlers;

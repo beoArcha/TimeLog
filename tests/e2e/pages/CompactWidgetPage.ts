@@ -16,8 +16,8 @@ export class CompactWidgetPage extends BasePage {
   constructor(page: Page) {
     super(page);
 
-    this.headerTitle = page.locator('span', { hasText: /LogTime by OxyFlow/i });
-    this.alwaysOnTopCheckbox = page.locator('label', { hasText: 'Top' }).locator('input[type="checkbox"]');
+    this.headerTitle = page.locator('[data-testid="compact-header-title"]');
+    this.alwaysOnTopCheckbox = page.locator('[data-testid="compact-always-on-top-checkbox"]');
     this.restoreFullGuiBtn = page.locator('[data-testid="compact-restore-btn"]');
     this.closeToTrayBtn = page.locator('[data-testid="compact-close-btn"]');
 

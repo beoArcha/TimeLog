@@ -6,11 +6,29 @@ import { TaskStatus } from '@bindings/TaskStatus';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
+import { ExternalApiSettings } from '@bindings/ExternalApiSettings';
+import { WebhookQueueItem } from '@bindings/WebhookQueueItem';
+import { WebhookQueueStats } from '@bindings/WebhookQueueStats';
 
 export type ApiPayload = {
   event: string;
   log: TimeLog | (TimeLog & { endTime: string });
 };
+
+export interface IWebhookQueuePersistence {
+  enqueue(item: WebhookQueueItem): Promise<void>;
+  getPending(): Promise<WebhookQueueItem[]>;
+  updateStatus(
+    id: string,
+    status: string,
+    retryCount: number | bigint,
+    nextRetryAt: string | null,
+    lastError: string | null
+  ): Promise<void>;
+  delete(id: string): Promise<void>;
+  clear(): Promise<void>;
+  getStats(): Promise<WebhookQueueStats>;
+}
 
 export interface ICorePersistence {
   load(): Promise<TimerRepositoryState | null>;
@@ -76,14 +94,14 @@ export interface IPatchesPersistence {
 
 export interface IUiStatePersistence {
   getCurrentProjectId(): Promise<string | null>;
-  saveCurrentProjectId(id: string): Promise<void>;
+  saveCurrentProjectId(id: string | null): Promise<void>;
   getLastNonCompactVariant(): Promise<string>;
   saveLastNonCompactVariant(variant: string): Promise<void>;
 }
 
 export interface IExternalApiPersistence {
-  getSettings(): Promise<{ logToApi: boolean; apiToken: string; apiUrl: string; apiMethod: 'POST' | 'PUT'; apiHeaders: string }>;
-  saveSettings(settings: { logToApi: boolean; apiToken: string; apiUrl: string; apiMethod: 'POST' | 'PUT'; apiHeaders: string }): Promise<void>;
+  getSettings(): Promise<ExternalApiSettings>;
+  saveSettings(settings: ExternalApiSettings): Promise<void>;
 }
 
 export interface ILocalePersistence {
@@ -102,6 +120,7 @@ export interface ITimeLogsPersistence {
   insert(logId: string, taskId: string, startTime: string): Promise<void>;
   queryActive(): Promise<string[]>;
   getAll(): Promise<TimeLog[]>;
+  delete(logId: string): Promise<void>;
 }
 
 export interface IPersistence {
@@ -116,5 +135,6 @@ export interface IPersistence {
   uiState: IUiStatePersistence;
   externalApi: IExternalApiPersistence;
   locale: ILocalePersistence;
+  webhookQueue: IWebhookQueuePersistence;
 }
 

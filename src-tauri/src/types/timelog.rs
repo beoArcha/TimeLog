@@ -47,6 +47,29 @@ pub struct Task {
     pub archived: Option<bool>,
 }
 
+impl Task {
+    pub fn new(
+        id: String,
+        project_id: String,
+        parent_task_id: Option<String>,
+        name: String,
+    ) -> Self {
+        Self {
+            id,
+            project_id,
+            parent_task_id,
+            name,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            completed: false,
+            status: Some(TaskStatus::Todo),
+            original_name: None,
+            original_completed: None,
+            edit_history: None,
+            archived: Some(false),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
@@ -76,6 +99,58 @@ pub struct TimeLog {
     pub note: Option<String>,
     #[ts(optional)]
     pub edit_history: Option<Vec<TimeLogEditHistory>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct NewTimeLog {
+    pub id: String,
+    pub task_id: String,
+    pub start_time: String,
+    #[ts(optional)]
+    pub end_time: Option<String>,
+    #[ts(optional)]
+    pub note: Option<String>,
+}
+
+pub const AUDIT_SOURCE_CLI_EDIT: &str = "CLI Edit";
+pub const AUDIT_SOURCE_GUI_EDIT: &str = "GUI Edit";
+pub const AUDIT_SOURCE_SYSTEM_PATCH: &str = "System Patch";
+pub const AUDIT_SOURCE_MANUAL_ADJUSTMENT: &str = "Manual Adjustment";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AuditSource {
+    CliEdit,
+    GuiEdit,
+    SystemPatch,
+    ManualAdjustment,
+}
+
+impl AuditSource {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            AuditSource::CliEdit => AUDIT_SOURCE_CLI_EDIT,
+            AuditSource::GuiEdit => AUDIT_SOURCE_GUI_EDIT,
+            AuditSource::SystemPatch => AUDIT_SOURCE_SYSTEM_PATCH,
+            AuditSource::ManualAdjustment => AUDIT_SOURCE_MANUAL_ADJUSTMENT,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TimeLogUpdateHistory<'a> {
+    pub id: &'a str,
+    pub task_id: &'a str,
+    pub start_time: &'a str,
+    pub end_time: Option<&'a str>,
+    pub note: Option<&'a str>,
+    pub history_id: &'a str,
+    pub edited_at: &'a str,
+    pub prev_start_time: Option<&'a str>,
+    pub prev_end_time: Option<&'a str>,
+    pub prev_note: Option<&'a str>,
+    pub reason: Option<AuditSource>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -115,6 +190,44 @@ pub struct ElapsedRangeFilter {
     pub from: Option<String>,
     #[ts(optional)]
     pub to: Option<String>,
+    #[ts(optional)]
+    pub include_patches: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct ClampedTimeLog {
+    pub id: String,
+    pub project_id: String,
+    pub task_id: String,
+    pub start_time: String,
+    #[ts(optional)]
+    pub end_time: Option<String>,
+    #[ts(type = "number")]
+    pub original_duration_seconds: u64,
+    #[ts(type = "number")]
+    pub clamped_duration_seconds: u64,
+    pub is_multi_day_segment: bool,
+    pub clamped_start_time: String,
+    pub clamped_end_time: String,
+    #[ts(optional)]
+    pub note: Option<String>,
+    #[ts(optional)]
+    pub is_patch: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct RangeMetricsResult {
+    #[ts(type = "number")]
+    pub total_seconds: u64,
+    #[ts(type = "Record<string, number>")]
+    pub project_elapsed: std::collections::HashMap<String, u64>,
+    #[ts(type = "Record<string, number>")]
+    pub task_elapsed: std::collections::HashMap<String, u64>,
+    pub clamped_logs: Vec<ClampedTimeLog>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq, Eq)]

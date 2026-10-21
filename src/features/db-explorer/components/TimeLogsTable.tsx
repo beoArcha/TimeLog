@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Database, Plus } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { ConfirmDialog } from '@components/ConfirmDialog';
+import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
 import AddLogForm from './AddLogForm';
@@ -17,6 +19,7 @@ import {
   TableRow,
 } from '@components/ui/table';
 import { Button } from '@components/ui/button';
+import { Caption } from '@components/ui/typography';
 
 export default function TimeLogsTable() {
   const { locale, customTranslations } = useLocale();
@@ -26,6 +29,7 @@ export default function TimeLogsTable() {
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
   const [showAddLogForm, setShowAddLogForm] = useState(false);
+  const [deleteTargetLogId, setDeleteTargetLogId] = useState<string | null>(null);
 
   const handleSaveEdit = async (id: string, startTime: string, endTime: string, note: string, reason: string) => {
     const existingLog = logs.find(l => l.id === id);
@@ -53,20 +57,29 @@ export default function TimeLogsTable() {
     }
   };
 
-  const handleDeleteLog = (id: string) => {
-    if (confirm('Are you sure you want to permanently delete this time log?')) {
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetLogId) return;
+    const id = deleteTargetLogId;
+    setDeleteTargetLogId(null);
+    try {
+      await PersistenceRouter.getInstance().timeLogs.delete(id);
       setLogs(curr => curr.filter(l => l.id !== id));
+    } catch (err) {
+      if (showToast) {
+        showToast(err instanceof Error ? err.message : 'Error while deleting time log');
+      }
     }
   };
 
-  const handleManualAddLog = (taskId: string, startTime: string, endTime: string, note: string) => {
+  const handleManualAddLog = async (taskId: string, startTime: string, endTime: string, note: string) => {
     const selectedTask = tasks.find(t => t.id === taskId);
     if (!selectedTask) return;
 
     const finalEndTime = endTime.trim() === '' ? null : endTime;
+    const newLogId = getNextId(logs, 'log_man_');
 
     const newLog: TimeLog = {
-      id: getNextId(logs, 'log_man_'),
+      id: newLogId,
       taskId,
       projectId: selectedTask.projectId,
       startTime,
@@ -74,12 +87,20 @@ export default function TimeLogsTable() {
       note: note || 'Manual time registration'
     };
 
-    setLogs(curr => [...curr, newLog]);
-    setShowAddLogForm(false);
+    try {
+      await PersistenceRouter.getInstance().timeLogs.insert(newLogId, taskId, startTime);
+      setLogs(curr => [...curr, newLog]);
+      setShowAddLogForm(false);
+    } catch (err) {
+      if (showToast) {
+        showToast(err instanceof Error ? err.message : 'Error inserting time log');
+      }
+    }
   };
 
   return (
-    <CollapsibleCard
+    <>
+      <CollapsibleCard
       title={`time_logs table (${logs.length} ${translate(locale, 'database', 'Records', customTranslations)})`}
       icon={Database}
       iconColor="text-indigo-400"
@@ -98,7 +119,7 @@ export default function TimeLogsTable() {
         </Button>
       }
     >
-      <p className="text-[11px] text-muted-foreground mb-4 mt-0.5">{translate(locale, 'database', 'EntriesCrucialLabel', customTranslations)}</p>
+      <Caption size="xs" className="mb-4 mt-0.5 block">{translate(locale, 'database', 'EntriesCrucialLabel', customTranslations)}</Caption>
 
       {showAddLogForm && (
         <AddLogForm
@@ -114,7 +135,7 @@ export default function TimeLogsTable() {
       <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
         <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <TableHeader>
-            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
+            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
               <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
               <TableHead className="py-3 px-4">task_id</TableHead>
               <TableHead className="py-3 px-4">{translate(locale, 'database', 'StartStamp', customTranslations)}</TableHead>
@@ -133,7 +154,7 @@ export default function TimeLogsTable() {
                 onStartEdit={() => setEditingLogId(l.id)}
                 onSaveEdit={(startTime, endTime, note, reason) => handleSaveEdit(l.id, startTime, endTime, note, reason)}
                 onCancelEdit={() => setEditingLogId(null)}
-                onDelete={() => handleDeleteLog(l.id)}
+                onDelete={() => setDeleteTargetLogId(l.id)}
                 locale={locale}
                 customTranslations={customTranslations}
                 showHistory={showHistoryRecordId === l.id}
@@ -144,5 +165,16 @@ export default function TimeLogsTable() {
         </Table>
       </div>
     </CollapsibleCard>
+
+    <ConfirmDialog
+      open={deleteTargetLogId !== null}
+      onOpenChange={(open) => !open && setDeleteTargetLogId(null)}
+      title={translate(locale, 'database', 'DeleteConfirmLog', customTranslations)}
+      variant="destructive"
+      confirmLabel={translate(locale, 'common', 'Delete', customTranslations)}
+      cancelLabel={translate(locale, 'common', 'Cancel', customTranslations)}
+      onConfirm={handleConfirmDelete}
+    />
+  </>
   );
 }

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from "react";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, within, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import ProjectsTable from "@features/db-explorer/components/ProjectsTable";
 import { MockProviders } from "@tests/shared/mocks/MockProviders";
@@ -152,9 +152,8 @@ describe("Unit Tests: ProjectsTable", () => {
     expect(screen.getByRole("button", { name: /Edit/i })).toBeTruthy();
   });
 
-  it("should delete project, tasks, and logs when confirmed by user", () => {
+  it("should delete project, tasks, and logs when confirmed by user", async () => {
     // Arrange
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const setProjects = vi.fn();
     const setTasks = vi.fn();
     const setLogs = vi.fn();
@@ -175,11 +174,17 @@ describe("Unit Tests: ProjectsTable", () => {
     const deleteBtn = screen.getByRole("button", { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const confirmBtn = within(dialog as HTMLElement).getByRole("button", { name: /Delete/i });
+    fireEvent.click(confirmBtn);
+
     // Assert
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(setProjects).toHaveBeenCalled();
-    expect(setTasks).toHaveBeenCalled();
-    expect(setLogs).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(setProjects).toHaveBeenCalled();
+      expect(setTasks).toHaveBeenCalled();
+      expect(setLogs).toHaveBeenCalled();
+    });
 
     // Verify filter logic
     const projectFilter = setProjects.mock.calls[0][0];
@@ -198,7 +203,6 @@ describe("Unit Tests: ProjectsTable", () => {
 
   it("should not delete project when user cancels confirmation", () => {
     // Arrange
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     const setProjects = vi.fn();
     const project = aProject({ id: "p1" });
     const state = createMockState([project], { setProjects });
@@ -213,8 +217,12 @@ describe("Unit Tests: ProjectsTable", () => {
     const deleteBtn = screen.getByRole("button", { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
+    const dialog = document.querySelector('[role="alertdialog"]')!;
+    expect(dialog).not.toBeNull();
+    const cancelBtn = within(dialog as HTMLElement).getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
     // Assert
-    expect(confirmSpy).toHaveBeenCalled();
     expect(setProjects).not.toHaveBeenCalled();
   });
 

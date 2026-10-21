@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, X } from 'lucide-react';
 import { Button } from '@components/ui/button';
+import { Caption } from '@components/ui/typography';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 
 /**
@@ -38,9 +39,9 @@ export default function SystemNotification() {
                 <X className="w-4 h-4 cursor-pointer" />
               </Button>
             </div>
-            <p className="text-xs font-sans mt-1 leading-relaxed text-muted-foreground">
+            <Caption variant="muted" className="mt-1 leading-relaxed">
               {trayNotification}
-            </p>
+            </Caption>
           </div>
         </motion.div>
       )}

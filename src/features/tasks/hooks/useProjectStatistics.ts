@@ -51,7 +51,7 @@ export function useProjectStatistics({
     let isMounted = true;
     const fetchStats = async () => {
       try {
-        const data = await EngineRouter.getInstance().getProjectStatistics(projectId);
+        const data = await EngineRouter.getInstance().metrics.getProjectStatistics(projectId);
         if (isMounted) {
           setAsyncState({
             projectId,

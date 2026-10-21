@@ -3,8 +3,35 @@ import { Project } from '@bindings/Project';
 import { TimeLog } from '@bindings/TimeLog';
 import { EngineValidationError } from '@common/exceptions';
 
+export const MAX_NAME_LENGTH = 1000;
+export const MAX_TAG_LENGTH = 100;
+export const MAX_DESCRIPTION_LENGTH = 10000;
+
 /**
- * Validates project name for non-emptiness and uniqueness.
+ * Strips non-printable ASCII control characters (0-31 and 127).
+ * If allowNewlinesAndTabs is true, keeps '\n', '\r', and '\t'.
+ */
+export function sanitizeText(val: string, allowNewlinesAndTabs = false): string {
+  if (!val) return '';
+  let result = '';
+  for (let i = 0; i < val.length; i++) {
+    const code = val.charCodeAt(i);
+    if (code === 127) {
+      continue;
+    }
+    if (code < 32) {
+      if (allowNewlinesAndTabs && (code === 9 || code === 10 || code === 13)) {
+        result += val[i];
+      }
+      continue;
+    }
+    result += val[i];
+  }
+  return result;
+}
+
+/**
+ * Validates project name for non-emptiness, length boundary (<=1000 chars), and uniqueness.
  * Internal to EnginePlugin (Browser runtime).
  */
 export function validateProjectName(
@@ -12,9 +39,22 @@ export function validateProjectName(
   existingProjects: Project[],
   excludeProjectId?: string
 ): void {
-  const trimmed = name?.trim();
+  if (typeof name !== 'string') {
+    throw new EngineValidationError('Project name must be a string', undefined, 'ERR_ENGINE_VALIDATION');
+  }
+
+  const sanitized = sanitizeText(name);
+  const trimmed = sanitized.trim();
   if (!trimmed) {
     throw new EngineValidationError('Project name cannot be empty', undefined, 'ERR_ENGINE_VALIDATION');
+  }
+
+  if (trimmed.length > MAX_NAME_LENGTH) {
+    throw new EngineValidationError(
+      `Project name exceeds maximum length of ${MAX_NAME_LENGTH} characters`,
+      undefined,
+      'ERR_ENGINE_VALIDATION'
+    );
   }
 
   const duplicate = existingProjects.find(
@@ -30,14 +70,70 @@ export function validateProjectName(
 }
 
 /**
- * Validates task name for non-emptiness.
+ * Validates task name for non-emptiness and length boundary (<=1000 chars).
  * Internal to EnginePlugin (Browser runtime).
  */
 export function validateTaskName(name: string): void {
-  const trimmed = name?.trim();
+  if (typeof name !== 'string') {
+    throw new EngineValidationError('Task name must be a string', undefined, 'ERR_ENGINE_VALIDATION');
+  }
+
+  const sanitized = sanitizeText(name);
+  const trimmed = sanitized.trim();
   if (!trimmed) {
     throw new EngineValidationError('Task name cannot be empty', undefined, 'ERR_ENGINE_VALIDATION');
   }
+
+  if (trimmed.length > MAX_NAME_LENGTH) {
+    throw new EngineValidationError(
+      `Task name exceeds maximum length of ${MAX_NAME_LENGTH} characters`,
+      undefined,
+      'ERR_ENGINE_VALIDATION'
+    );
+  }
+}
+
+/**
+ * Validates tag string for non-emptiness and length boundary (<=100 chars).
+ */
+export function validateTag(tag: string): string {
+  if (typeof tag !== 'string') {
+    throw new EngineValidationError('Tag must be a string', undefined, 'ERR_ENGINE_VALIDATION');
+  }
+  const sanitized = sanitizeText(tag);
+  const trimmed = sanitized.trim();
+  if (!trimmed) {
+    throw new EngineValidationError('Tag cannot be empty', undefined, 'ERR_ENGINE_VALIDATION');
+  }
+  if (trimmed.length > MAX_TAG_LENGTH) {
+    throw new EngineValidationError(
+      `Tag exceeds maximum length of ${MAX_TAG_LENGTH} characters`,
+      undefined,
+      'ERR_ENGINE_VALIDATION'
+    );
+  }
+  return trimmed;
+}
+
+/**
+ * Validates optional description/note for length boundary (<=10000 chars).
+ */
+export function validateDescription(desc: string | null | undefined): string | null {
+  if (desc === null || desc === undefined) return null;
+  if (typeof desc !== 'string') {
+    throw new EngineValidationError('Description must be a string', undefined, 'ERR_ENGINE_VALIDATION');
+  }
+  const sanitized = sanitizeText(desc, true);
+  const trimmed = sanitized.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > MAX_DESCRIPTION_LENGTH) {
+    throw new EngineValidationError(
+      `Description exceeds maximum length of ${MAX_DESCRIPTION_LENGTH} characters`,
+      undefined,
+      'ERR_ENGINE_VALIDATION'
+    );
+  }
+  return trimmed;
 }
 
 /**

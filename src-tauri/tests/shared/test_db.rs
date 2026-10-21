@@ -2,6 +2,7 @@ use oxy_flow::repositories::shared::initialize_database;
 use rusqlite::Connection;
 use std::path::PathBuf;
 
+#[allow(dead_code)]
 pub struct TempCsvDir {
     pub path: PathBuf,
 }
@@ -14,6 +15,7 @@ impl Drop for TempCsvDir {
     }
 }
 
+#[allow(dead_code)]
 pub fn setup_persistence_test(
     db_name: &str,
 ) -> (

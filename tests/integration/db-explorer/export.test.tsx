@@ -1,14 +1,13 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 
 describe('Integration Tests: DbExplorer Export Database', () => {
   beforeEach(() => {
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     vi.spyOn(window, 'alert').mockImplementation(() => {});
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -38,7 +37,7 @@ describe('Integration Tests: DbExplorer Export Database', () => {
       setResolvedTheme: vi.fn(),
       customTranslations: {},
       setCustomTranslations: vi.fn(),
-      sysSettings: { autoStart: false, autoPauseOnSleep: true, includePatchesInReports: false },
+      sysSettings: { autoStart: false, includePatchesInReports: false },
       setSysSettings: vi.fn(),
       activeLog: null,
       setActiveLog: vi.fn(),
@@ -77,12 +76,11 @@ describe('Integration Tests: DbExplorer Export Database', () => {
     return utils;
   };
 
-  it('should_simulate_download_when_export_database_is_clicked', () => {
+  it('should simulate download when export database is clicked', () => {
     setup();
 
     const exportBtn = screen.getByText(/export database/i);
     
-    // Spy on link creation and click inside document
     const clickSpy = vi.fn();
     const mockLink = {
       href: '',

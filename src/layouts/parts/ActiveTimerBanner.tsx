@@ -7,6 +7,9 @@ import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
 import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
 import { TimerDisplay } from '@/src/features/timelogs/components/TimerDisplay';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Heading, Caption, Overline } from '@components/ui/typography';
+import { HStack, InlineCluster } from '@components/ui/stack';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -26,31 +29,27 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
       {activeLog ? (
         <motion.div
           id="active-timer-banner"
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.2 }}
-          className={`padding-section rounded-main border border-orange-500/30 bg-gradient-to-r from-orange-500/10 via-rose-500/10 to-orange-500/10 shadow-xl flex flex-col ${isCondensed ? 'items-start' : 'sm:flex-row items-center justify-between'} gap-section relative overflow-hidden backdrop-blur-md transition-all`}
+          key="active"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className={`relative backdrop-blur-md rounded-main padding-section border border-border bg-card text-card-foreground shadow-2xl flex flex-col ${isCondensed ? 'gap-section' : 'sm:flex-row sm:items-center justify-between gap-section'} overflow-hidden transition-all duration-300`}
         >
-          <div className="absolute inset-0 opacity-15 pointer-events-none">
-            <div className="absolute top-0 left-0 w-16 h-16 bg-orange-500 rounded-full filter blur-md animate-pulse"></div>
-          </div>
+          <div className="absolute top-0 left-0 w-16 h-16 bg-orange-500 rounded-full filter blur-md animate-pulse pointer-events-none opacity-20"></div>
 
-          <div className={`flex items-center gap-section z-10 ${isCondensed ? 'w-full' : 'sm:w-auto w-full'}`}>
-            <div className="relative">
-              <div className="icon-medium shrink-0 rounded-xl flex items-center justify-center border border-border bg-card shadow-md text-orange-500">
-                <Clock className="w-3/5 h-3/5 animate-pulse text-orange-500" />
-              </div>
+          <div className="flex items-center gap-section z-10 min-w-0">
+            <div className="icon-medium border border-border rounded-section flex items-center justify-center shrink-0 bg-muted/40 relative">
+              <Clock className="w-3/5 h-3/5 text-orange-400 animate-spin-slow" />
               <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
               </span>
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[9px] bg-orange-500/20 border border-orange-500/30 text-orange-500 font-bold px-1.5 py-0.2 rounded-full font-mono uppercase whitespace-nowrap">
+              <InlineCluster gap="xs">
+                <Badge variant="orange" size="xs" as="span" className="whitespace-nowrap uppercase">
                   {translate(locale, 'timer', 'ActiveTracker', customTranslations)}
-                </span>
+                </Badge>
                 {activeProject && (
                   <ProjectBadge
                     name={activeProject.name}
@@ -60,18 +59,22 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
                     textClassName="text-foreground"
                   />
                 )}
-              </div>
-              <h4 className="font-sans font-extrabold text-title mt-0.5 leading-snug truncate text-foreground" title={activeTask?.name?.length && activeTask.name.length > 512 ? activeTask.name.slice(0, 512) + '...' : activeTask?.name}>
+              </InlineCluster>
+              <Heading
+                level={4}
+                className="font-extrabold text-title mt-0.5 leading-snug truncate text-foreground"
+                title={activeTask?.name?.length && activeTask.name.length > 512 ? activeTask.name.slice(0, 512) + '...' : activeTask?.name}
+              >
                 {activeTask?.name}
-              </h4>
+              </Heading>
             </div>
           </div>
 
           <div className={`flex items-center gap-section z-10 w-full ${isCondensed ? 'justify-between pt-2 border-t' : 'sm:w-auto justify-between sm:justify-end border-t sm:border-0 pt-2 sm:pt-0'} border-border`}>
             <div className="text-right">
-              <p className="text-[9px] font-semibold tracking-wider font-mono uppercase text-muted-foreground">
+              <Overline size="3xs" as="p" className="font-mono font-semibold">
                 {translate(locale, 'timer', 'RegisteredToday', customTranslations)}
-              </p>
+              </Overline>
               <TimerDisplay
                 id="active-timer-display"
                 value={formattedElapsed}
@@ -94,23 +97,23 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
         </motion.div>
       ) : (
         <div id="active-timer-idle-banner" className={`backdrop-blur-md rounded-main padding-section border border-border bg-card/60 text-card-foreground shadow-xs flex flex-col ${isCondensed ? 'gap-section' : 'md:flex-row items-center justify-between gap-section'} transition-all duration-300`}>
-          <div className="flex items-center gap-section">
+          <HStack gap="section">
             <div className="icon-medium border border-border rounded-section flex items-center justify-center shrink-0 bg-muted/40">
               <Clock className="w-3/5 h-3/5 text-orange-400" />
             </div>
             <div>
-              <h4 className="font-semibold text-title leading-tight text-foreground">
+              <Heading level={4} className="font-semibold text-title leading-tight text-foreground">
                 {translate(locale, 'timer', 'AllTrackersStopped', customTranslations)}
-              </h4>
-              <p className="text-xs mt-0.5 text-muted-foreground">
+              </Heading>
+              <Caption size="xs" className="mt-0.5">
                 {translate(locale, 'timer', 'SelectTaskToPlay', customTranslations)}
-              </p>
+              </Caption>
             </div>
-          </div>
+          </HStack>
           <div className={isCondensed ? 'w-full pt-2 border-t border-border text-center' : 'text-right'}>
-            <span className="text-xs border border-border px-2.5 py-1 rounded-full font-mono font-medium whitespace-nowrap inline-block bg-muted/40 text-foreground">
+            <Badge variant="outline" size="sm" as="span" className="font-mono font-medium whitespace-nowrap bg-muted/40 text-foreground">
               {translate(locale, 'engine', 'IdleSqlReady', customTranslations)}
-            </span>
+            </Badge>
           </div>
         </div>
       )}

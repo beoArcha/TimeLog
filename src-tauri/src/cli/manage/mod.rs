@@ -1,12 +1,14 @@
-﻿use crate::cli::shared::output::CliOutput;
+use crate::cli::error::CliError;
+use crate::cli::shared::output::CliOutput;
 use crate::persistence::Persistence;
 use clap::Subcommand;
 
+pub mod constants;
 pub mod project;
 pub mod subtask;
 pub mod task;
 
-#[derive(Subcommand)]
+#[derive(Debug, Clone, Subcommand)]
 pub enum ManageCommand {
     #[command(subcommand)]
     Project(project::ProjectCommand),
@@ -16,7 +18,7 @@ pub enum ManageCommand {
     Subtask(subtask::SubtaskCommand),
 }
 
-pub fn handle(cmd: ManageCommand, persistence: &Persistence) -> Result<CliOutput, String> {
+pub fn handle(cmd: ManageCommand, persistence: &Persistence) -> Result<CliOutput, CliError> {
     match cmd {
         ManageCommand::Project(c) => project::handle(c, persistence),
         ManageCommand::Task(c) => task::handle(c, persistence),

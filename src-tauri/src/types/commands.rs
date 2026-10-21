@@ -54,6 +54,7 @@ pub enum ProjectsPersistenceCommand {
     Add,
     UpdateProject,
     ToggleArchive,
+    RenameProject,
 }
 
 #[derive(TS, Serialize)]
@@ -64,6 +65,9 @@ pub enum TasksPersistenceCommand {
     UpdateTask,
     Delete,
     ToggleComplete,
+    RenameTask,
+    GetTaskProjectId,
+    GetSubtasks,
 }
 
 #[derive(TS, Serialize)]

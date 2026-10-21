@@ -43,13 +43,17 @@ export function StatCard({
 }: StatCardProps) {
   const { locale, customTranslations } = useSafeLocale();
 
-  const trendDirectionLabel = trend
-    ? trend.direction === 'up'
-      ? translate(locale, 'common', 'TrendIncrease', customTranslations)
-      : trend.direction === 'down'
-      ? translate(locale, 'common', 'TrendDecrease', customTranslations)
-      : translate(locale, 'common', 'TrendNeutral', customTranslations)
-    : '';
+  const resolveTrendLabel = () => {
+    if (!trend) return '';
+    const trendKeyMap: Record<string, 'TrendIncrease' | 'TrendDecrease' | 'TrendNeutral'> = {
+      up: 'TrendIncrease',
+      down: 'TrendDecrease',
+      neutral: 'TrendNeutral',
+    };
+    const key = trendKeyMap[trend.direction] ?? 'TrendNeutral';
+    return translate(locale, 'common', key, customTranslations);
+  };
+  const trendDirectionLabel = resolveTrendLabel();
 
   const trendAria = trend
     ? trend.label || `${trendDirectionLabel}: ${trend.value}`

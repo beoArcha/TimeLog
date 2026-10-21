@@ -50,3 +50,9 @@ pub fn query_active(state: State<'_, AppState>) -> Result<Vec<String>, AppError>
 pub fn get_all(state: State<'_, AppState>) -> Result<Vec<TimeLog>, AppError> {
     Ok(state.persistence.time_logs.get_all()?)
 }
+
+#[tauri::command]
+pub fn delete_time_log(log_id: String, state: State<'_, AppState>) -> Result<(), AppError> {
+    state.persistence.time_logs.delete(&log_id)?;
+    Ok(())
+}

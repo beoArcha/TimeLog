@@ -1,0 +1,75 @@
+use crate::shared::test_db::setup_persistence_test;
+use clap::Parser;
+use oxy_flow::cli::{handle_cli, CliArgs};
+use oxy_flow::engine::Engine;
+use oxy_flow::persistence::Persistence;
+use std::fs;
+
+#[test]
+fn test_given_configured_persistence_when_setting_csv_sink_then_persists_and_emits_records() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_sinks_csv");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let temp_csv_dir =
+        std::env::temp_dir().join(format!("test_csv_sink_dir_{}", uuid::Uuid::new_v4()));
+    let temp_csv_str = temp_csv_dir.to_str().unwrap();
+
+    let set_args =
+        CliArgs::try_parse_from(["oxy", "sink", "set-csv", "--dir", temp_csv_str]).unwrap();
+
+    // When
+    let set_result = handle_cli(set_args, &persistence, &engine);
+
+    // Then
+    assert!(set_result.is_ok(), "Setting CSV sink should succeed");
+    assert!(temp_csv_dir.exists(), "CSV sink directory must be created");
+
+    let list_args = CliArgs::try_parse_from(["oxy", "sink", "ls"]).unwrap();
+    let list_result = handle_cli(list_args, &persistence, &engine).unwrap();
+    let output_str = format!("{}", list_result);
+    assert!(output_str.contains("csv"));
+    assert!(output_str.contains(temp_csv_str));
+
+    let _ = fs::remove_dir_all(&temp_csv_dir);
+}
+
+#[test]
+fn test_given_configured_persistence_when_setting_webhook_sink_and_testing_then_verifies_health() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_sinks_webhook");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let set_args = CliArgs::try_parse_from([
+        "oxy",
+        "sink",
+        "set-webhook",
+        "--url",
+        "https://webhook.site/integration-test",
+        "--token",
+        "bearer-test-token-123",
+    ])
+    .unwrap();
+
+    // When
+    let set_result = handle_cli(set_args, &persistence, &engine);
+
+    // Then
+    assert!(set_result.is_ok(), "Setting webhook sink should succeed");
+
+    let test_args = CliArgs::try_parse_from(["oxy", "sink", "test"]).unwrap();
+    let test_result = handle_cli(test_args, &persistence, &engine).unwrap();
+    let output_str = format!("{}", test_result);
+    assert!(output_str.contains("webhook"));
+    assert!(output_str.contains("healthy"));
+
+    let sink = persistence
+        .cli
+        .get_sink("webhook")
+        .unwrap()
+        .expect("Webhook sink must be persisted");
+    assert_eq!(sink.target, "https://webhook.site/integration-test");
+    assert!(sink.config.unwrap().contains("bearer-test-token-123"));
+}

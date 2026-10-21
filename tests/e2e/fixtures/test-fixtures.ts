@@ -6,6 +6,7 @@ import { SettingsPage } from "../pages/SettingsPage";
 import { CompactWidgetPage } from "../pages/CompactWidgetPage";
 import { DbExplorerPage } from "../pages/DbExplorerPage";
 import { MediumLayoutPage } from "../pages/MediumLayoutPage";
+import { CliDrawerPage } from "../pages/CliDrawerPage";
 
 type MyFixtures = {
   mainPage: MainLayoutPage;
@@ -14,6 +15,7 @@ type MyFixtures = {
   compactPage: CompactWidgetPage;
   dbExplorerPage: DbExplorerPage;
   mediumPage: MediumLayoutPage;
+  cliDrawerPage: CliDrawerPage;
 };
 
 type PageConstructor<T extends BasePage> = new (page: Page) => T;
@@ -42,6 +44,7 @@ export const test = base.extend<MyFixtures>({
   compactPage: createPageFixture(CompactWidgetPage),
   dbExplorerPage: createPageFixture(DbExplorerPage),
   mediumPage: createPageFixture(MediumLayoutPage),
+  cliDrawerPage: createPageFixture(CliDrawerPage),
 });
 
 export { expect } from "@playwright/test";

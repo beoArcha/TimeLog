@@ -26,7 +26,7 @@ describe('Unit Tests: useTimerManager Hook', () => {
   });
 
   it('should start timer, reload state, refresh metrics and emit API start event', async () => {
-    const startSpy = vi.spyOn(engine, 'startTimer').mockResolvedValue();
+    const startSpy = vi.spyOn(engine.timer, 'startTimer').mockResolvedValue();
     const nextLogs = [
       { id: 'log2', taskId: 't2', projectId: 'p1', startTime: '2026-01-01T11:00:00Z', endTime: null, note: null, editHistory: null },
     ];
@@ -60,7 +60,7 @@ describe('Unit Tests: useTimerManager Hook', () => {
   });
 
   it('should stop timer and notify termination to pushToApi', async () => {
-    const stopSpy = vi.spyOn(engine, 'stopTimer').mockResolvedValue();
+    const stopSpy = vi.spyOn(engine.timer, 'stopTimer').mockResolvedValue();
     const stoppedLogs = [
       { id: 'log1', taskId: 't1', projectId: 'p1', startTime: '2026-01-01T10:00:00Z', endTime: '2026-01-01T11:00:00Z', note: null, editHistory: null },
     ];
@@ -92,7 +92,7 @@ describe('Unit Tests: useTimerManager Hook', () => {
   });
 
   it('should edit time log via engine and reload repository state', async () => {
-    const editSpy = vi.spyOn(engine, 'editTimeLog').mockResolvedValue();
+    const editSpy = vi.spyOn(engine.timeLogs, 'editTimeLog').mockResolvedValue();
     vi.spyOn(router.core, 'load').mockResolvedValue({
       projects: [],
       tasks: [],

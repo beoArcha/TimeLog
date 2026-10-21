@@ -74,7 +74,7 @@ export function CleanComponent() {
     <div className="container">
       <span className="text">Text</span>
       <section>
-        <p>Paragraph</p>
+        <article>Content</article>
         <Button>Click</Button>
         <Input placeholder="Enter" />
         <DataTable columns={[]} data={[]} />
@@ -85,6 +85,22 @@ export function CleanComponent() {
 `;
     const violations = rule.scanAst(code, 'features/example/CleanComponent.tsx');
     expect(violations).toHaveLength(0);
+  });
+
+  it('should flag raw <p> tags and suggest typography components', () => {
+    const code = `
+export function ParagraphComponent() {
+  return (
+    <div>
+      <p>Raw text</p>
+    </div>
+  );
+}
+`;
+    const violations = rule.scanAst(code, 'features/example/ParagraphComponent.tsx');
+    expect(violations).toHaveLength(1);
+    expect(violations[0].target).toBe('p');
+    expect(violations[0].message).toContain('Use <Text> or <Caption> from @components/ui/typography');
   });
 
   it('should respect allowlist when checking graph nodes', () => {

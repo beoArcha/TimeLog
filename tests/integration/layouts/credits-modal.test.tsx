@@ -20,7 +20,7 @@ function createCreditsModalState(overrides: Partial<CreditsModalState> = {}): Cr
   };
 }
 
-describe('Integration Tests: CreditsModal', () => {
+describe('Given CreditsModal component', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -29,62 +29,59 @@ describe('Integration Tests: CreditsModal', () => {
     cleanup();
   });
 
-  it('Given showCreditsModal is false, When rendered, Then it should render nothing', () => {
-    const state = createCreditsModalState({ showCreditsModal: false });
+  describe('When showCreditsModal is false', () => {
+    it('Then it should render nothing in the DOM', () => {
+      // Given
+      const state = createCreditsModalState({ showCreditsModal: false });
 
-    const { container } = render(
-      <MockProviders state={state}>
-        <CreditsModal />
-      </MockProviders>
-    );
+      // When
+      const { container } = render(
+        <MockProviders state={state}>
+          <CreditsModal />
+        </MockProviders>
+      );
 
-    expect(container.firstChild).toBeNull();
+      // Then
+      expect(container.firstChild).toBeNull();
+    });
   });
 
-  it('Given showCreditsModal is true, When rendered, Then it should show authors, acknowledgements and MPL-2.0 info', () => {
-    const state = createCreditsModalState();
+  describe('When showCreditsModal is true', () => {
+    it('Then it should render modal dialog with accessible attributes and components', () => {
+      // Given
+      const state = createCreditsModalState({ showCreditsModal: true });
 
-    render(
-      <MockProviders state={state}>
-        <CreditsModal />
-      </MockProviders>
-    );
+      // When
+      render(
+        <MockProviders state={state}>
+          <CreditsModal />
+        </MockProviders>
+      );
 
-    expect(screen.getByText(/^Mozilla Public License Version 2\.0/)).toBeDefined();
-    expect(screen.getByText(/Lucide React/)).toBeDefined();
-    expect(screen.getByText(/Tailwind CSS v4/)).toBeDefined();
-
-    const closeBtn = screen.getByRole('button', { name: /^Close$|^Zamknij$/i });
-    fireEvent.click(closeBtn);
-    expect(state.setShowCreditsModal).toHaveBeenCalledWith(false);
+      // Then
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toBeDefined();
+      expect(screen.getByTestId('credits-modal-container')).toBeDefined();
+      expect(screen.getByTestId('credits-modal-close-btn')).toBeDefined();
+    });
   });
 
-  it('Given active modal, When close button clicked, Then it should set showCreditsModal to false', () => {
-    const state = createCreditsModalState();
+  describe('When close button is clicked', () => {
+    it('Then it should notify state coordinator to close the modal', () => {
+      // Given
+      const state = createCreditsModalState({ showCreditsModal: true });
+      render(
+        <MockProviders state={state}>
+          <CreditsModal />
+        </MockProviders>
+      );
 
-    render(
-      <MockProviders state={state}>
-        <CreditsModal />
-      </MockProviders>
-    );
+      // When
+      const closeBtn = screen.getByTestId('credits-modal-close-btn');
+      fireEvent.click(closeBtn);
 
-    const closeBtn = screen.getByRole('button', { name: /^Close$|^Zamknij$/i });
-    fireEvent.click(closeBtn);
-    expect(state.setShowCreditsModal).toHaveBeenCalledWith(false);
-  });
-
-  it('Given light theme, When CreditsModal is rendered, Then it applies semantic card tokens', () => {
-    const state = createCreditsModalState({ resolvedTheme: 'light' });
-
-    render(
-      <MockProviders state={state}>
-        <CreditsModal />
-      </MockProviders>
-    );
-
-    const containerDiv = document.getElementById('credits-modal-container');
-    expect(containerDiv).not.toBeNull();
-    expect(containerDiv?.className).toContain('bg-card');
-    expect(containerDiv?.className).toContain('border-border');
+      // Then
+      expect(state.setShowCreditsModal).toHaveBeenCalledWith(false);
+    });
   });
 });

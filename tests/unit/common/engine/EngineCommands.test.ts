@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockInvoke } from '@tests/shared/test-helpers';
 import { EngineCommands } from '@common/engine/EngineCommands';
+import { ITimerEngine } from '@common/engine/IEngine';
 import { ErrorHandler } from '@common/exceptions';
 
 describe('Unit Tests: EngineCommands', () => {
@@ -170,5 +171,21 @@ describe('Unit Tests: EngineCommands', () => {
     mockInvoke.mockRejectedValue(new Error('Statistics error'));
     await expect(commands.getProjectStatistics('proj-1')).rejects.toThrow('Statistics error');
     expect(ErrorHandler.handle).toHaveBeenCalled();
+  });
+
+  it('should allow custom service injection via constructor', () => {
+    // Arrange
+    const customTimer = {
+      startTimer: vi.fn(),
+      stopTimer: vi.fn(),
+      resumeTimer: vi.fn(),
+      getActiveLogs: vi.fn(),
+    };
+
+    // Act
+    const customCommands = new EngineCommands({ timer: customTimer as unknown as ITimerEngine });
+
+    // Assert
+    expect(customCommands.timer).toBe(customTimer);
   });
 });

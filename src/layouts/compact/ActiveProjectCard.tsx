@@ -2,6 +2,7 @@ import { Project } from '@bindings/Project';
 import { translate } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
 import { TranslationDictionary } from '@common/i18n/types';
+import { Overline, Heading } from '@components/ui/typography';
 
 interface ActiveProjectCardProps {
   activeProj: Project;
@@ -21,15 +22,16 @@ export function ActiveProjectCard({
           className={`w-3 h-3 rounded-full bg-${activeProj.color || 'rose'}-500 shrink-0 shadow-sm`}
         />
         <div className="text-left">
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest leading-none">
+          <Overline as="p" className="font-mono leading-none">
             {translate(locale, 'timer', 'AppProfile', customTranslations)}
-          </p>
-          <h4
+          </Overline>
+          <Heading
+            level={4}
             className="text-xs font-bold font-sans mt-0.5 truncate max-w-[220px] text-foreground"
             title={activeProj.name}
           >
             {activeProj.name}
-          </h4>
+          </Heading>
         </div>
       </div>
     </div>

@@ -15,9 +15,22 @@ export const badgeVariants = cva(
         success:
           "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono",
         muted: "border-transparent bg-muted text-muted-foreground",
+        amber:
+          "border-amber-500/25 bg-amber-500/10 text-amber-500 font-bold font-mono",
+        emerald:
+          "border-emerald-500/30 bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 font-bold font-mono",
+        orange:
+          "border-orange-500/30 bg-orange-500/20 text-orange-500 font-bold font-mono",
+        violet:
+          "border-violet-500/30 bg-violet-500/20 text-violet-400 font-bold font-mono",
+        teal:
+          "border-teal-500/30 bg-teal-500/20 text-teal-400 font-bold font-mono",
+        rose:
+          "border-rose-500/30 bg-rose-500/20 text-rose-500 font-bold font-mono",
       },
       size: {
-        sm: "px-2 py-0.2 text-[10px]",
+        xs: "px-1.5 py-0.2 text-[9px]",
+        sm: "px-2 py-0.5 text-[10px]",
         default: "px-2.5 py-0.5 text-xs",
         lg: "px-3 py-1 text-sm",
       },

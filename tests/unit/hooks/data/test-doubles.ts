@@ -3,21 +3,37 @@ import type { RepositoryStateHook } from '@common/hooks/data/useRepositoryState'
 import type { AsyncActionRunnerHook } from '@common/hooks/data/useAsyncActionRunner';
 import type { useHolidaysManager } from '@common/hooks/data/useHolidaysManager';
 import type { usePatchesManager } from '@common/hooks/data/usePatchesManager';
+import type { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 
 export const createMockRepositoryState = (
   overrides?: Partial<RepositoryStateHook>
-): RepositoryStateHook => ({
-  projects: [],
-  setProjectsState: vi.fn(),
-  tasks: [],
-  setTasksState: vi.fn(),
-  logs: [],
-  setLogsState: vi.fn(),
-  activeLog: null,
-  setActiveLogState: vi.fn(),
-  syncRepositoryState: vi.fn(),
-  ...overrides,
-});
+): RepositoryStateHook => {
+  const setProjectsState = overrides?.setProjectsState ?? vi.fn();
+  const setTasksState = overrides?.setTasksState ?? vi.fn();
+  const setLogsState = overrides?.setLogsState ?? vi.fn();
+  const setActiveLogState = overrides?.setActiveLogState ?? vi.fn();
+  const syncRepositoryState =
+    overrides?.syncRepositoryState ??
+    vi.fn((nextState: Partial<TimerRepositoryState>) => {
+      if (nextState.projects !== undefined) setProjectsState(nextState.projects);
+      if (nextState.tasks !== undefined) setTasksState(nextState.tasks);
+      if (nextState.logs !== undefined) setLogsState(nextState.logs);
+      if (nextState.activeLog !== undefined) setActiveLogState(nextState.activeLog);
+    });
+
+  return {
+    projects: [],
+    setProjectsState,
+    tasks: [],
+    setTasksState,
+    logs: [],
+    setLogsState,
+    activeLog: null,
+    setActiveLogState,
+    syncRepositoryState,
+    ...overrides,
+  };
+};
 
 export const createMockActionRunner = (
   overrides?: Partial<AsyncActionRunnerHook>

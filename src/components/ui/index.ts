@@ -21,3 +21,6 @@ export * from './card';
 export * from './tabs';
 export * from './typography';
 export * from './sonner';
+export * from './chart';
+export * from './stack';
+export * from './stack-variants';

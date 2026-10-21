@@ -6,20 +6,21 @@ import { Theme, ThemePreference } from '@common/types/ThemeTypes';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { ThemeRegistry } from '@/src/styles/themeRegistry';
+import { LAYOUT_VARIANTS, isCompactLayout } from '@common/constants/layoutVariants';
 import { toast } from 'sonner';
 
 export const useAppSettings = () => {
   const [theme, setTheme] = useState<ThemePreference>('system');
   const [textAndIconSize, setTextAndIconSize] = useState<TextAndIconSize>('medium');
-  const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>('full');
+  const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>(LAYOUT_VARIANTS.FULL);
   const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(false);
   const [alwaysOnTopMain, setAlwaysOnTopMain] = useState<boolean>(false);
   const [minimizeToTray, setMinimizeToTray] = useState<boolean>(true);
-  const [sysSettings, setSysSettings] = useState<AppSettings>({ autoStart: false, autoPauseOnSleep: true, includePatchesInReports: true });
+  const [sysSettings, setSysSettings] = useState<AppSettings>({ autoStart: false, includePatchesInReports: true, activeSinks: ['Csv'] });
 
 
   const [settingsLoaded, setSettingsLoaded] = useState(false);
-  const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>('full');
+  const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(LAYOUT_VARIANTS.FULL);
   const [activeLargeTab, setActiveLargeTab] = useState<'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits'>('main');
   const [isCompactExpanded, setIsCompactExpanded] = useState<boolean>(true);
   const [currentProjectId, setCurrentProjectId] = useState<string>('1');
@@ -32,13 +33,12 @@ export const useAppSettings = () => {
     ]).then(([loaded, currentProj, lastNonCompact]) => {
       setTheme((loaded.theme as ThemePreference) || 'system');
       setTextAndIconSize((loaded.textAndIconSize as TextAndIconSize) || 'medium');
-      setLayoutVariant((loaded.guiVariant as LayoutVariant) || 'full');
+      setLayoutVariant((loaded.guiVariant as LayoutVariant) || LAYOUT_VARIANTS.FULL);
       setAlwaysOnTopSmall(loaded.alwaysOnTopSmall ?? false);
       setAlwaysOnTopMain(loaded.alwaysOnTopMain ?? false);
       setMinimizeToTray(loaded.minimizeToTray ?? true);
       setSysSettings({
         autoStart: loaded.autoStart ?? false,
-        autoPauseOnSleep: loaded.autoPauseOnSleep ?? true,
         includePatchesInReports: loaded.includePatchesInReports ?? true,
         activeSinks: loaded.activeSinks ?? ['Csv'],
       });
@@ -71,12 +71,12 @@ export const useAppSettings = () => {
     ThemeRegistry.getInstance().applyTheme(resolvedTheme);
   }, [resolvedTheme]);
 
-  if (layoutVariant !== 'compact' && layoutVariant !== lastNonCompactVariant) {
+  if (!isCompactLayout(layoutVariant) && layoutVariant !== lastNonCompactVariant) {
     setLastNonCompactVariant(layoutVariant);
   }
 
   useEffect(() => {
-    if (settingsLoaded && lastNonCompactVariant !== 'compact') {
+    if (settingsLoaded) {
       PersistenceRouter.getInstance().uiState.saveLastNonCompactVariant(lastNonCompactVariant).catch(ErrorHandler.handle);
     }
   }, [lastNonCompactVariant, settingsLoaded]);
@@ -86,7 +86,6 @@ export const useAppSettings = () => {
     const saveSettings = async () => {
       const payload: AppSettings = {
         autoStart: sysSettings.autoStart,
-        autoPauseOnSleep: sysSettings.autoPauseOnSleep,
         includePatchesInReports: sysSettings.includePatchesInReports,
         activeSinks: sysSettings.activeSinks || ['Csv'],
         theme: theme,

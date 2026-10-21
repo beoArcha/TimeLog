@@ -45,66 +45,68 @@ fn emit_to_main<R: tauri::Runtime, S: serde::Serialize + Clone>(
 
 pub fn handle_menu_event<R: tauri::Runtime>(app: &AppHandle<R>, event: MenuEvent) {
     let id = event.id().as_ref();
-    if let Some(menu_id) = TrayMenuId::from_str(id) {
-        let state = app.state::<AppState>();
-        match menu_id {
-            TrayMenuId::ToggleVisibility => {
-                if let Some(window) = app.get_webview_window("main") {
-                    if window.is_visible().unwrap_or(false) {
-                        let _ = window.hide();
-                    } else {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
+    let Some(menu_id) = TrayMenuId::from_str(id) else {
+        return;
+    };
+
+    let state = app.state::<AppState>();
+    match menu_id {
+        TrayMenuId::ToggleVisibility => {
+            if let Some(window) = app.get_webview_window("main") {
+                if window.is_visible().unwrap_or(false) {
+                    let _ = window.hide();
+                } else {
+                    let _ = window.show();
+                    let _ = window.set_focus();
                 }
             }
-            TrayMenuId::GuiCompact => {
-                update_tray_gui_variant(&state, LayoutVariant::Compact);
-                emit_to_main(
-                    app,
-                    FrontendEvent::TraySetGuiVariant,
-                    LayoutVariant::Compact,
-                    true,
-                );
-            }
-            TrayMenuId::GuiMedium => {
-                update_tray_gui_variant(&state, LayoutVariant::Medium);
-                emit_to_main(
-                    app,
-                    FrontendEvent::TraySetGuiVariant,
-                    LayoutVariant::Medium,
-                    true,
-                );
-            }
-            TrayMenuId::GuiFull => {
-                update_tray_gui_variant(&state, LayoutVariant::Full);
-                emit_to_main(
-                    app,
-                    FrontendEvent::TraySetGuiVariant,
-                    LayoutVariant::Full,
-                    true,
-                );
-            }
-            TrayMenuId::ToggleOnTop => {
-                emit_to_main(app, FrontendEvent::TrayToggleOnTop, (), true);
-            }
-            TrayMenuId::ToggleMinimizeToTray => {
-                let current = state
-                    .minimize_to_tray
-                    .load(std::sync::atomic::Ordering::Relaxed);
-                let next = !current;
-                state
-                    .minimize_to_tray
-                    .store(next, std::sync::atomic::Ordering::Relaxed);
-                update_tray_minimize_to_tray(&state, next);
-                emit_to_main(app, FrontendEvent::TrayToggleMinimizeToTray, next, false);
-            }
-            TrayMenuId::StopAllTimers => {
-                emit_to_main(app, FrontendEvent::TrayStopAllTimers, (), false);
-            }
-            TrayMenuId::QuitApp => {
-                app.exit(0);
-            }
+        }
+        TrayMenuId::GuiCompact => {
+            update_tray_gui_variant(&state, LayoutVariant::Compact);
+            emit_to_main(
+                app,
+                FrontendEvent::TraySetGuiVariant,
+                LayoutVariant::Compact,
+                true,
+            );
+        }
+        TrayMenuId::GuiMedium => {
+            update_tray_gui_variant(&state, LayoutVariant::Medium);
+            emit_to_main(
+                app,
+                FrontendEvent::TraySetGuiVariant,
+                LayoutVariant::Medium,
+                true,
+            );
+        }
+        TrayMenuId::GuiFull => {
+            update_tray_gui_variant(&state, LayoutVariant::Full);
+            emit_to_main(
+                app,
+                FrontendEvent::TraySetGuiVariant,
+                LayoutVariant::Full,
+                true,
+            );
+        }
+        TrayMenuId::ToggleOnTop => {
+            emit_to_main(app, FrontendEvent::TrayToggleOnTop, (), true);
+        }
+        TrayMenuId::ToggleMinimizeToTray => {
+            let current = state
+                .minimize_to_tray
+                .load(std::sync::atomic::Ordering::Relaxed);
+            let next = !current;
+            state
+                .minimize_to_tray
+                .store(next, std::sync::atomic::Ordering::Relaxed);
+            update_tray_minimize_to_tray(&state, next);
+            emit_to_main(app, FrontendEvent::TrayToggleMinimizeToTray, next, false);
+        }
+        TrayMenuId::StopAllTimers => {
+            emit_to_main(app, FrontendEvent::TrayStopAllTimers, (), false);
+        }
+        TrayMenuId::QuitApp => {
+            app.exit(0);
         }
     }
 }

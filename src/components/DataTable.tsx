@@ -38,6 +38,17 @@ export interface DataTableProps<T> {
   containerClassName?: string;
 }
 
+function renderCellContent<T>(col: DataTableColumn<T>, item: T, index: number): React.ReactNode {
+  if (col.render) {
+    return col.render(item, index);
+  }
+  const rawValue = (item as Record<string, unknown>)[col.key];
+  if (rawValue != null) {
+    return String(rawValue);
+  }
+  return null;
+}
+
 /**
  * Data table with column mapping, empty state fallback, and scrollable container.
  */
@@ -122,11 +133,7 @@ export function DataTable<T>({
                           col.className
                         )}
                       >
-                        {col.render
-                          ? col.render(item, index)
-                          : (item as Record<string, unknown>)[col.key] != null
-                          ? String((item as Record<string, unknown>)[col.key])
-                          : null}
+                        {renderCellContent(col, item, index)}
                       </TableCell>
                     ))}
                   </TableRow>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Heading } from '@components/ui/typography';
 
 export interface CollapsibleCardProps {
   title?: React.ReactNode;
@@ -73,7 +74,7 @@ export default function CollapsibleCard({
           {titleNode ? (
             titleNode
           ) : (
-            <h3 className={headerClassName || defaultHeader}>{title}</h3>
+            <Heading level={3} className={headerClassName || defaultHeader}>{title}</Heading>
           )}
         </div>
         <div className="flex items-center gap-3">

@@ -20,7 +20,7 @@ export function CodeBlock({
     return (
       <code
         className={cn(
-          'bg-code-bg border border-code-border text-code-foreground font-mono text-[11px] px-1.5 py-0.5 rounded select-all',
+          'bg-code-bg border border-code-border text-code-foreground font-mono text-xs px-1.5 py-0.5 rounded select-all',
           className
         )}
         {...props}

@@ -140,4 +140,59 @@ test.describe('Database Explorer & Inspector Deep E2E Suite', () => {
     const tasksCount = await page.locator('[id^="task-item-"]').count();
     expect(tasksCount).toBe(0);
   });
+
+  test('should expand and verify audit trail history row in logs table', async ({
+    dbExplorerPage,
+    page,
+  }) => {
+    const stateWithHistory = createDefaultState({
+      projects: [
+        createMockProject({
+          id: TEST_IDS.PROJECT_DB_EXPLORER,
+          name: TEST_NAMES.PROJECT_DB_EXPLORER,
+          color: TEST_COLORS.EMERALD,
+        }),
+      ],
+      tasks: [
+        createMockTask({
+          id: TEST_IDS.TASK_DB_EXPLORER,
+          projectId: TEST_IDS.PROJECT_DB_EXPLORER,
+          name: TEST_NAMES.TASK_DB_EXPLORER,
+        }),
+      ],
+      logs: [
+        createMockTimeLog({
+          id: TEST_IDS.LOG_ANALYTICS,
+          taskId: TEST_IDS.TASK_DB_EXPLORER,
+          projectId: TEST_IDS.PROJECT_DB_EXPLORER,
+          startTime: TEST_DATES.LOG_START,
+          endTime: TEST_DATES.LOG_END,
+          note: 'Original Note',
+          editHistory: [
+            {
+              editedAt: '2026-06-15T12:05:00Z',
+              prevStartTime: '2026-06-15T10:00:00Z',
+              prevEndTime: '2026-06-15T11:00:00Z',
+              prevNote: 'Pre-edit Note',
+              reason: 'Time correction audit test',
+            },
+          ],
+        }),
+      ],
+    });
+
+    await dbExplorerPage.seedStorage(stateWithHistory);
+    await page.reload();
+    await dbExplorerPage.openDbExplorer();
+
+    const historyBtn = page.locator('button[aria-label="Revision History"], button[title="Revision History"]').first();
+    await expect(historyBtn).toBeVisible();
+
+    await historyBtn.click();
+    await expect(page.locator('text=Time correction audit test')).toBeVisible();
+
+    await historyBtn.click();
+    await expect(page.locator('text=Time correction audit test')).not.toBeVisible();
+  });
 });
+

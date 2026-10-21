@@ -28,7 +28,7 @@
     "Title": "Compilation Manual, Shortcuts & Arch (Tauri OS Guides)",
     "Description": "Step-by-step guide to building production binaries and an overview of shortcuts and daemons.",
     "CompilationTitle": "I. Building the App Installer (Tauri CLI compilation)",
-    "Step1": "Make sure you have Node.js installed with the package manager",
+    "Step1": "Make sure you have Bun installed with the package manager",
     "Step2": "Install Rust compilation tools",
     "Step3": "Enter the root folder (where your package.json is) and install packages:",
     "Step4": "Start the production build. Tauri will compile the JS framework and then the Rust binary:",
@@ -85,7 +85,9 @@
     "TabRust": "Rust Source",
     "CreditsBadge": "Credits • Acknowledgements • MPL-2.0 License",
     "CreatorAppCreatedBy": "This application was engineered through vibe coding by LogTime by OxyFlow.",
-    "CreatorBio": "A passionate dancer of Brazilian Zouk, Kizomba, Bachata, and Salsa NY. With over 10+ years of active software developer experience, currently operating as a software architect and IT team lead."
+    "CreatorBio": "A passionate dancer of Brazilian Zouk, Kizomba, Bachata, and Salsa NY. With over 10+ years of active software developer experience, currently operating as a software architect and IT team lead.",
+    "PoweredByPassionCaffeine": "Powered by passion & caffeine",
+    "Step2WinBuildTools": "C++ Build Tools for Visual Studio 2022. Components: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
   },
   "pl": {
     "HowToCompileTitle": "Pomoc Kompilacji i Asystent",
@@ -116,7 +118,7 @@
     "Title": "Instrukcja Kompilacji, Skróty & Architektura (Tauri OS Guides)",
     "Description": "Przewodnik krok-po-kroku budowania gotowych binarek produktywnych oraz zestaw skrótów i daemonów.",
     "CompilationTitle": "I. Kompilowanie instalatora aplikacji (Tauri CLI compilation)",
-    "Step1": "Upewnij się, że posiadasz Node.js z menedżerem",
+    "Step1": "Upewnij się, że posiadasz zainstalowane środowisko Bun",
     "Step2": "Zainstaluj narzędzia kompilacji Rust",
     "Step3": "Wejdź do folderu głównego (tam gdzie package.json) i wykonaj pobranie paczek:",
     "Step4": "Rozpocznij kompilację wynikową. Tauri zbuduje framework JS, a następnie binarkę Rust:",
@@ -173,7 +175,9 @@
     "TabRust": "Źródła RUST",
     "CreditsBadge": "Podziękowania • Twórcy • Licencja MPL-2.0",
     "CreatorAppCreatedBy": "Aplikacja stworzona przez vibe coding przez LogTime by OxyFlow.",
-    "CreatorBio": "Pasjonat tańca brazylijskiego Zouk, Kizomby, Bachaty oraz Salsy NY. Posiada ponad 10+ lat doświadczenia jako programista, pracując jako architekt oprogramowania i lider zespołu IT."
+    "CreatorBio": "Pasjonat tańca brazylijskiego Zouk, Kizomby, Bachaty oraz Salsy NY. Posiada ponad 10+ lat doświadczenia jako programista, pracując jako architekt oprogramowania i lider zespołu IT.",
+    "PoweredByPassionCaffeine": "Napędzane pasją i kofeiną",
+    "Step2WinBuildTools": "C++ Build Tools dla Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
   },
   "de": {
     "HowToCompileTitle": "Kompilierung & Support (Tauri-Assistent)",
@@ -183,7 +187,7 @@
     "Title": "Kompilierungshandbuch, Verknüpfungen & Arch (Tauri OS Guides)",
     "Description": "Schritt-für-Schritt-Anleitung zur Erstellung von Produktions-Binärdateien und Überblick über Verknüpfungen und Daemons.",
     "CompilationTitle": "I. Erstellen des App-Installers (Tauri CLI Kompilierung)",
-    "Step1": "Stellen Sie sicher, dass Node.js mit dem Paketmanager installiert ist",
+    "Step1": "Stellen Sie sicher, dass Bun installiert ist",
     "Step2": "Installieren Sie Rust-Kompilierungswerkzeuge",
     "Step3": "Gehen Sie in den Stammordner (wo sich Ihre package.json befindet) und installieren Sie die Pakete:",
     "Step4": "Starten Sie den Produktions-Build. Tauri kompiliert das JS-Framework und dann die Rust-Binärdatei:",
@@ -240,7 +244,9 @@
     "TabRust": "Rust-Quellcode",
     "CreditsBadge": "Credits • Danksagungen • MPL-2.0-Lizenz",
     "CreatorAppCreatedBy": "Diese Anwendung wurde durch Vibe Coding von LogTime by OxyFlow entwickelt.",
-    "CreatorBio": "Ein leidenschaftlicher Tänzer von Zouk, Kizomba, Bachata und Salsa NY mit über 10 Jahren Erfahrung als Software-Architekt und IT-Teamleiter."
+    "CreatorBio": "Ein leidenschaftlicher Tänzer von Zouk, Kizomba, Bachata und Salsa NY mit über 10 Jahren Erfahrung als Software-Architekt und IT-Teamleiter.",
+    "PoweredByPassionCaffeine": "Angetrieben von Leidenschaft & Koffein",
+    "Step2WinBuildTools": "C++ Build Tools für Visual Studio 2022. Komponenten: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
   },
   "es": {
     "HowToCompileTitle": "Compilación y Soporte",
@@ -250,7 +256,7 @@
     "Title": "Manual de Compilación, Atajos y Arq.",
     "Description": "Guía para compilar binarios y resumen de atajos y daemons.",
     "CompilationTitle": "I. Compilar el Instalador (CLI Tauri)",
-    "Step1": "Asegúrate de instalar Node.js y el gestor de paquetes",
+    "Step1": "Asegúrate de tener instalado Bun",
     "Step2": "Instala las herramientas de compilación de Rust",
     "Step3": "Ingresa a la carpeta principal e instala los paquetes:",
     "Step4": "Inicia el proceso de producción. Tauri compilará el JS y luego el binario Rust:",
@@ -307,7 +313,9 @@
     "TabRust": "Rust Source",
     "CreditsBadge": "Créditos • Agradecimientos • Licencia MPL-2.0",
     "CreatorAppCreatedBy": "Esta aplicación fue diseñada mediante vibe coding por LogTime by OxyFlow.",
-    "CreatorBio": "Bailarín apasionado de Zouk, Kizomba, Bachata y Salsa NY con más de 10 años de experiencia como arquitecto de software y líder de TI."
+    "CreatorBio": "Bailarín apasionado de Zouk, Kizomba, Bachata y Salsa NY con más de 10 años de experiencia como arquitecto de software y líder de TI.",
+    "PoweredByPassionCaffeine": "Impulsado por pasión y cafeína",
+    "Step2WinBuildTools": "Herramientas de compilación de C++ para Visual Studio 2022. Componentes: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
   },
   "fr": {
     "HowToCompileTitle": "Compilation & Support",
@@ -317,7 +325,7 @@
     "Title": "Manuel de Compilation et Raccourcis",
     "Description": "Guide pour compiler les binaires et raccourcis du démon.",
     "CompilationTitle": "I. Construire l'Installateur (Tauri CLI)",
-    "Step1": "Assurez-vous d'installer Node.js",
+    "Step1": "Assurez-vous d'avoir installé Bun",
     "Step2": "Installez les outils de compilation Rust",
     "Step3": "Allez dans le répertoire racine et installez les paquets :",
     "Step4": "Démarrez la compilation. Tauri compilera le framework JS et le binaire :",
@@ -374,7 +382,9 @@
     "TabRust": "Rust Source",
     "CreditsBadge": "Crédits • Remerciements • Licence MPL-2.0",
     "CreatorAppCreatedBy": "Cette application a été conçue par vibe coding par LogTime by OxyFlow.",
-    "CreatorBio": "Danseur passionné de Zouk, Kizomba, Bachata et Salsa NY avec plus de 10 ans d'expérience en tant qu'architecte logiciel et responsable d'équipe IT."
+    "CreatorBio": "Danseur passionné de Zouk, Kizomba, Bachata et Salsa NY avec plus de 10 ans d'expérience en tant qu'architecte logiciel et responsable d'équipe IT.",
+    "PoweredByPassionCaffeine": "Propulsé par la passion et la caféine",
+    "Step2WinBuildTools": "Outils de build C++ pour Visual Studio 2022. Composants: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
   },
   "pt-br": {
     "HowToCompileTitle": "Compilação & Suporte",
@@ -384,7 +394,7 @@
     "Title": "Manual de Compilação e Atalhos",
     "Description": "Guia para compilar os binários e resumo de atalhos e daemons.",
     "CompilationTitle": "I. Compilar o Instalador (Tauri CLI)",
-    "Step1": "Certifique-se de instalar o Node.js e o gerenciador de pacotes",
+    "Step1": "Certifique-se de ter o Bun instalado",
     "Step2": "Instale as ferramentas de compilação do Rust",
     "Step3": "Vá para a pasta raiz e instale os pacotes:",
     "Step4": "Inicie a compilação. Tauri vai compilar o JS e o binário:",
@@ -441,6 +451,8 @@
     "TabRust": "Rust Source",
     "CreditsBadge": "Créditos • Agradecimentos • Licença MPL-2.0",
     "CreatorAppCreatedBy": "Este aplicativo foi desenvolvido através de vibe coding por LogTime by OxyFlow.",
-    "CreatorBio": "Dançarino apaixonado de Zouk, Kizomba, Bachata e Salsa NY com mais de 10 anos de experiência como arquiteto de software e líder de equipe de TI."
+    "CreatorBio": "Dançarino apaixonado de Zouk, Kizomba, Bachata e Salsa NY com mais de 10 anos de experiência como arquiteto de software e líder de equipe de TI.",
+    "PoweredByPassionCaffeine": "Movido a paixão e cafeína",
+    "Step2WinBuildTools": "Ferramentas de build C++ para Visual Studio 2022. Componentes: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
   }
 }

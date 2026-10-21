@@ -5,6 +5,8 @@ import { useTranslation } from '@common/i18n/translator';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Heading, Overline, Text, Caption } from '@components/ui/typography';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -44,28 +46,28 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
         </div>
 
         <div>
-          <h1 className="font-heading font-extrabold text-2xl tracking-tight flex items-center gap-2 justify-center text-foreground">
+          <Heading level={1} className="font-heading font-extrabold text-2xl tracking-tight flex items-center gap-2 justify-center text-foreground">
             OxyFlow Engine
-            <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wider uppercase">
+            <Badge variant="emerald" size="sm" className="font-mono tracking-wider uppercase">
               {tEngine('EngineRunningBackground')}
-            </span>
-          </h1>
-          <p className="text-sm mt-2 max-w-md font-sans text-muted-foreground">
+            </Badge>
+          </Heading>
+          <Text size="sm" variant="muted" className="mt-2 max-w-md font-sans">
             {tEngine('TrayDescription')}
-          </p>
+          </Text>
           <div className="text-xs px-4 py-2 rounded-xl font-mono inline-block mt-4 border border-border bg-muted/40 text-foreground">
             {tEngine('DaemonEnginePid')} <strong className="text-orange-500 font-bold">8421</strong> {tEngine('SqliteThread')}
           </div>
         </div>
 
         <div className="w-full rounded-2xl p-4 text-left border border-border bg-muted/20 max-h-[180px] overflow-y-auto">
-          <p className="text-[10px] font-mono uppercase tracking-widest mb-3 border-b border-border pb-1.5 text-muted-foreground">
+          <Overline className="mb-3 border-b border-border pb-1.5 block">
             {tEngine('ActiveMeasuringThreads')} ({activeRunningLogs.length})
-          </p>
+          </Overline>
           {activeRunningLogs.length === 0 ? (
-            <p className="text-xs italic text-center py-2 text-muted-foreground">
+            <Caption variant="muted" className="italic text-center py-2">
               {tTimer('NoActiveTimers')}
-            </p>
+            </Caption>
           ) : (
             <div className="flex flex-col gap-2">
               {activeRunningLogs.map(l => {
@@ -73,7 +75,8 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
                 const taskObj = tasks.find(t => t.id === l.taskId);
                 const start = new Date(l.startTime).getTime();
                 const taskMetric = computedMetrics?.tasks?.[l.taskId];
-                const elapsed = taskMetric ? taskMetric.selfElapsedSeconds : (nowIso ? Math.max(0, Math.floor((new Date(nowIso).getTime() - start) / 1000)) : 0);
+                const fallbackElapsed = nowIso ? Math.max(0, Math.floor((new Date(nowIso).getTime() - start) / 1000)) : 0;
+                const elapsed = taskMetric ? taskMetric.selfElapsedSeconds : fallbackElapsed;
 
                 const hrs = Math.floor(elapsed / 3600);
                 const mins = Math.floor((elapsed % 3600) / 60);

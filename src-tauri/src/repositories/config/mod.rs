@@ -1,6 +1,11 @@
+pub mod auxiliary;
+pub mod cli_aliases;
+pub mod cli_sinks;
 pub mod constants;
 pub mod runtime_config;
 pub mod settings;
+pub mod webhook_queue;
+pub mod workflow;
 
 use crate::repositories::shared::errors::Result;
 use crate::repositories::shared::{establish_connection, initialize_database};

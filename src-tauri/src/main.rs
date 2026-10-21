@@ -1,31 +1,39 @@
-﻿#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use clap::Parser;
 use oxy_flow::{app, cli};
-use std::error::Error;
+use std::process::ExitCode;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() > 1 {
-        let db_path = app::get_cli_db_path();
-        let csv_directory = db_path
-            .parent()
-            .ok_or("Invalid DB path parent")?
-            .join("csv");
+        oxy_flow::common::attach_parent_console();
+
+        let cli_args = match cli::CliArgs::try_parse() {
+            Ok(parsed) => parsed,
+            Err(err) => {
+                err.exit();
+            }
+        };
+
+        let db_path = oxy_flow::common::paths::get_default_db_path();
+        let csv_directory = oxy_flow::common::paths::get_default_csv_dir(&db_path);
         let persistence_config = oxy_flow::persistence::PersistenceConfig {
             db_path,
             csv_directory,
         };
-        let persistence = oxy_flow::persistence::Persistence::new(&persistence_config)?;
+        let persistence = match oxy_flow::persistence::Persistence::new(&persistence_config) {
+            Ok(p) => p,
+            Err(e) => {
+                eprintln!("Error initializing storage: {e}");
+                return ExitCode::from(oxy_flow::cli::shared::constants::EXIT_CODE_STORAGE_ERROR);
+            }
+        };
         let engine = oxy_flow::engine::Engine::new(&persistence);
-        if let Ok(cli_args) = cli::CliArgs::try_parse() {
-            let output = cli::handle_cli(cli_args, &persistence, &engine)?;
-            println!("{}", output);
-            return Ok(());
-        }
+        return cli::run(cli_args, &persistence, &engine);
     }
 
     app::run_tauri();
-    Ok(())
+    ExitCode::SUCCESS
 }

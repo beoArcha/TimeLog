@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { LayoutVariant } from '@bindings/LayoutVariant';
-import { TranslationDictionary } from '@common/i18n/translator';
-import { Locale } from '@/src/bindings/Locale';
+import { translate, TranslationDictionary } from '@common/i18n/translator';
+import { Locale } from '@bindings/Locale';
 
 interface UseCompactLayoutParams {
   projects: Project[];
@@ -30,6 +30,7 @@ export function useCompactLayout({
   projects,
   tasks,
   locale,
+  customTranslations,
   currentProjectId,
   showToast,
   onStartTimer,
@@ -58,19 +59,10 @@ export function useCompactLayout({
   const handleRestoreWindow = () => {
     const target = lastNonCompactVariant ?? 'full';
     setLayoutVariant(target);
-    const sizeLabel =
-      target === 'medium'
-        ? locale === 'pl'
-          ? 'ŚREDNI'
-          : 'MEDIUM'
-        : locale === 'pl'
-          ? 'PEŁNY'
-          : 'FULL';
-    showToast(
-      locale === 'pl'
-        ? `Rozmiar zmieniony na ${sizeLabel}`
-        : `Size changed to ${sizeLabel}`,
-    );
+    const sizeKey = target === 'medium' ? 'SizeMedium' : 'SizeLarge';
+    const sizeLabel = translate(locale, 'app', sizeKey, customTranslations);
+    const prefix = translate(locale, 'app', 'SizeChanged', customTranslations);
+    showToast(`${prefix} ${sizeLabel}`);
   };
 
   return {
