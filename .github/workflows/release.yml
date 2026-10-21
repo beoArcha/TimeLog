@@ -13,8 +13,6 @@ permissions:
 env:
   RUST_WORKSPACE: "src-tauri"
   CARGO_PROFILE_DEV_DEBUG: 0
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: "node24"
 
   UBUNTU_PACKAGES_LLD: >-
     pkg-config
@@ -31,14 +29,14 @@ jobs:
   # ──────────────────────────────────────────────
   prepare:
     name: Resolve release commit
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.meta.outputs.sha }}
       version: ${{ steps.meta.outputs.version }}
       tag: ${{ steps.meta.outputs.tag }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: release
 
@@ -106,7 +104,7 @@ jobs:
       APP_VERSION: ${{ needs.prepare.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.prepare.outputs.sha }}
 
@@ -201,7 +199,7 @@ jobs:
   publish:
     name: Tag & GitHub Release
     needs: [prepare, build-tauri]
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     env:

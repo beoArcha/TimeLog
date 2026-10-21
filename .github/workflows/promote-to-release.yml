@@ -11,13 +11,11 @@ concurrency:
 jobs:
   promote:
     name: Promote Main → Release
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
