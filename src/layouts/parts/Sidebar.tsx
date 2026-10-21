@@ -8,6 +8,8 @@ import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
 import { EditProjectDialog } from './EditProjectDialog';
+import { ProjectEmptyState } from './ProjectEmptyState';
+import { StarterTemplate, resolveStarterTemplate } from '@common/templates/starterTemplates';
 import { Project } from '@bindings/Project';
 
 export default function Sidebar({ state }: { state: GuiState }) {
@@ -71,6 +73,17 @@ export default function Sidebar({ state }: { state: GuiState }) {
     setNewProjectIcon('');
     setNewProjectTags('');
     setShowAddAdvanced(false);
+  };
+
+  const handleApplyTemplate = (template: StarterTemplate) => {
+    const resolved = resolveStarterTemplate(template, locale, customTranslations);
+    onAddProject(
+      resolved.name,
+      resolved.color,
+      resolved.description,
+      resolved.icon,
+      resolved.tags
+    );
   };
 
   return (
@@ -176,9 +189,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
 
         <div id="projects-list-container" className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto pr-1">
           {projects.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-xs font-sans">
-              {translate(locale, 'project', 'NoProjectsYet', customTranslations)}
-            </div>
+            <ProjectEmptyState
+              onApplyTemplate={handleApplyTemplate}
+              locale={locale}
+              customTranslations={customTranslations}
+            />
           ) : (
             projects.map(p => {
               const projColor = PROJECT_COLORS.find(c => c.name === p.color) || PROJECT_COLORS[0];

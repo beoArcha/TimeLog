@@ -24,7 +24,17 @@
     "EmojiIcon": "Emoji Icon",
     "ColorTheme": "Color Theme",
     "Description": "Description",
-    "Tags": "Tags (comma-separated)"
+    "Tags": "Tags (comma-separated)",
+    "StarterTemplatesHeading": "Quick Starter Templates",
+    "StarterTemplatesSubheading": "Launch your workflow with one click:",
+    "TemplateSoftwareDevName": "Software Engineering",
+    "TemplateSoftwareDevDesc": "Track features, code reviews, debugging and testing",
+    "TemplateConsultingName": "Client Consulting",
+    "TemplateConsultingDesc": "Billable client hours, meetings and deliverables",
+    "TemplateLearningName": "Learning & Research",
+    "TemplateLearningDesc": "Documentation study, skill practice and courses",
+    "TemplateCreativeName": "Content & Design",
+    "TemplateCreativeDesc": "Writing articles, media design and publishing"
   },
   "pl": {
     "NewProject": "Nowy Projekt",
@@ -51,7 +61,17 @@
     "EmojiIcon": "Ikona Emoji",
     "ColorTheme": "Motyw koloru",
     "Description": "Opis",
-    "Tags": "Tagi (oddzielone przecinkami)"
+    "Tags": "Tagi (oddzielone przecinkami)",
+    "StarterTemplatesHeading": "Szybkie szablony startowe",
+    "StarterTemplatesSubheading": "Rozpocznij pracę jednym kliknięciem:",
+    "TemplateSoftwareDevName": "Inżynieria Oprogramowania",
+    "TemplateSoftwareDevDesc": "Śledzenie funkcji, code review, debugowania i testów",
+    "TemplateConsultingName": "Konsultacje dla Klienta",
+    "TemplateConsultingDesc": "Rozliczane godziny dla klientów, spotkania i rezultaty",
+    "TemplateLearningName": "Nauka i Badania",
+    "TemplateLearningDesc": "Studiowanie dokumentacji, ćwiczenie umiejętności i kursy",
+    "TemplateCreativeName": "Treści i Design",
+    "TemplateCreativeDesc": "Pisanie artykułów, tworzenie multimediów i publikacja"
   },
   "de": {
     "NewProject": "Neues Projekt",
@@ -78,7 +98,17 @@
     "EmojiIcon": "Emoji-Symbol",
     "ColorTheme": "Farbthema",
     "Description": "Beschreibung",
-    "Tags": "Tags (durch Komma getrennt)"
+    "Tags": "Tags (durch Komma getrennt)",
+    "StarterTemplatesHeading": "Schnellstart-Vorlagen",
+    "StarterTemplatesSubheading": "Starten Sie Ihren Workflow mit einem Klick:",
+    "TemplateSoftwareDevName": "Softwareentwicklung",
+    "TemplateSoftwareDevDesc": "Features, Code-Reviews, Debugging und Tests erfassen",
+    "TemplateConsultingName": "Kundenberatung",
+    "TemplateConsultingDesc": "Abrechenbare Kundenstunden, Meetings und Ergebnisse",
+    "TemplateLearningName": "Lernen & Forschung",
+    "TemplateLearningDesc": "Dokumentationsstudium, Übungen und Kurse",
+    "TemplateCreativeName": "Inhalt & Design",
+    "TemplateCreativeDesc": "Artikel schreiben, Mediendesign und Veröffentlichung"
   },
   "es": {
     "NewProject": "Nuevo Proyecto",
@@ -105,7 +135,17 @@
     "EmojiIcon": "Icono Emoji",
     "ColorTheme": "Tema de Color",
     "Description": "Descripción",
-    "Tags": "Etiquetas (separadas por comas)"
+    "Tags": "Etiquetas (separadas por comas)",
+    "StarterTemplatesHeading": "Plantillas de inicio rápido",
+    "StarterTemplatesSubheading": "Inicie su flujo de trabajo con un solo clic:",
+    "TemplateSoftwareDevName": "Ingeniería de Software",
+    "TemplateSoftwareDevDesc": "Seguimiento de funciones, revisiones de código, depuración y pruebas",
+    "TemplateConsultingName": "Consultoría de Clientes",
+    "TemplateConsultingDesc": "Horas facturables de clientes, reuniones y entregables",
+    "TemplateLearningName": "Aprendizaje e Investigación",
+    "TemplateLearningDesc": "Estudio de documentación, práctica de habilidades y cursos",
+    "TemplateCreativeName": "Contenido y Diseño",
+    "TemplateCreativeDesc": "Redacción de artículos, diseño de medios y publicación"
   },
   "fr": {
     "NewProject": "Nouveau Projet",
@@ -132,7 +172,17 @@
     "EmojiIcon": "Icône Emoji",
     "ColorTheme": "Thème de couleur",
     "Description": "Description",
-    "Tags": "Balises (séparées par des virgules)"
+    "Tags": "Balises (séparées par des virgules)",
+    "StarterTemplatesHeading": "Modèles de démarrage rapide",
+    "StarterTemplatesSubheading": "Lancez votre flux de travail en un clic :",
+    "TemplateSoftwareDevName": "Génie logiciel",
+    "TemplateSoftwareDevDesc": "Suivi des fonctionnalités, revues de code, débogage et tests",
+    "TemplateConsultingName": "Conseil client",
+    "TemplateConsultingDesc": "Heures facturables pour les clients, réunions et livrables",
+    "TemplateLearningName": "Apprentissage & Recherche",
+    "TemplateLearningDesc": "Étude de la documentation, pratique des compétences et cours",
+    "TemplateCreativeName": "Contenu & Design",
+    "TemplateCreativeDesc": "Rédaction d'articles, conception de médias et publication"
   },
   "pt-br": {
     "NewProject": "Novo Projeto",
@@ -159,6 +209,16 @@
     "EmojiIcon": "Ícone Emoji",
     "ColorTheme": "Tema de Cor",
     "Description": "Descrição",
-    "Tags": "Tags (separadas por vírgulas)"
+    "Tags": "Tags (separadas por vírgulas)",
+    "StarterTemplatesHeading": "Modelos de início rápido",
+    "StarterTemplatesSubheading": "Inicie seu fluxo de trabalho com um clique:",
+    "TemplateSoftwareDevName": "Engenharia de Software",
+    "TemplateSoftwareDevDesc": "Acompanhe recursos, revisões de código, depuração e testes",
+    "TemplateConsultingName": "Consultoria de Clientes",
+    "TemplateConsultingDesc": "Horas faturáveis de clientes, reuniões e entregas",
+    "TemplateLearningName": "Aprendizado & Pesquisa",
+    "TemplateLearningDesc": "Estudo de documentação, prática de habilidades e cursos",
+    "TemplateCreativeName": "Conteúdo & Design",
+    "TemplateCreativeDesc": "Redação de artigos, design de mídia e publicação"
   }
 }

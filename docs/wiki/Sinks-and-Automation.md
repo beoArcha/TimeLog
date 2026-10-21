@@ -62,7 +62,7 @@ oxy sink test
   "event": "time_log.created",
   "timestamp": "2026-10-21T09:30:00Z",
   "source": "oxy-flow.desktop",
-  "version": "1.6.12",
+  "version": "1.8.0",
   "payload": {
     "logId": "019460a8-b51c-7f52-823a-f111e3b62450",
     "projectId": "p1",

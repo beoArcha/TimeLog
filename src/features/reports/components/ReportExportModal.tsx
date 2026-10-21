@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,15 +6,22 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@components/ui/dialog';
-import { Button } from '@components/ui/button';
-import { Badge } from '@components/ui/badge';
-import { useTranslation } from '@common/i18n/translator';
-import { PluginRegistry } from '@plugins/PluginRegistry';
-import { registerDefaultExporters } from '@plugins/exporters';
-import { ExportPayload } from '@plugins/contracts/IExporterPlugin';
-import { MarkdownClipboardExporterPlugin } from '@plugins/exporters/MarkdownClipboardExporterPlugin';
-import { Download, Copy, Check, FileSpreadsheet, FileCode, FileText } from 'lucide-react';
+} from "@components/ui/dialog";
+import { Button } from "@components/ui/button";
+import { Badge } from "@components/ui/badge";
+import { useTranslation } from "@common/i18n/translator";
+import { PluginRegistry } from "@plugins/PluginRegistry";
+import { registerDefaultExporters } from "@plugins/exporters";
+import { ExportPayload } from "@plugins/contracts/IExporterPlugin";
+import { MarkdownClipboardExporterPlugin } from "@plugins/exporters/MarkdownClipboardExporterPlugin";
+import {
+  Download,
+  Copy,
+  Check,
+  FileSpreadsheet,
+  FileCode,
+  FileText,
+} from "lucide-react";
 
 interface ReportExportModalProps {
   isOpen: boolean;
@@ -27,17 +34,17 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
   onClose,
   payload,
 }) => {
-  const { t } = useTranslation('report');
+  const { t } = useTranslation("report");
   const exporters = useMemo(() => {
     registerDefaultExporters();
     return PluginRegistry.getInstance().getExporters();
   }, []);
-  const [selectedId, setSelectedId] = useState<string>('csv-exporter');
+  const [selectedId, setSelectedId] = useState<string>("csv-exporter");
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const activeSelectedId = exporters.some((e) => e.id === selectedId)
     ? selectedId
-    : (exporters[0]?.id ?? 'csv-exporter');
+    : (exporters[0]?.id ?? "csv-exporter");
 
   const handleDownload = async () => {
     const exporter = PluginRegistry.getInstance().getExporter(activeSelectedId);
@@ -50,10 +57,10 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
         : new Blob([result], { type: exporter.mimeType });
 
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    const sanitizedTitle = payload.title.replace(/[^a-zA-Z0-9_-]/g, '_');
-    link.download = `${sanitizedTitle || 'report'}_${new Date().toISOString().split('T')[0]}.${exporter.fileExtension}`;
+    const sanitizedTitle = payload.title.replace(/[^a-zA-Z0-9_-]/g, "_");
+    link.download = `${sanitizedTitle || "report"}_${new Date().toISOString().split("T")[0]}.${exporter.fileExtension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -70,11 +77,14 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
   };
 
   const selectedExporter = exporters.find((e) => e.id === activeSelectedId);
-  const isMarkdown = selectedExporter instanceof MarkdownClipboardExporterPlugin;
+  const isMarkdown =
+    selectedExporter instanceof MarkdownClipboardExporterPlugin;
 
   const getFormatIcon = (id: string) => {
-    if (id.includes('csv')) return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
-    if (id.includes('json')) return <FileCode className="w-5 h-5 text-amber-500" />;
+    if (id.includes("csv"))
+      return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
+    if (id.includes("json"))
+      return <FileCode className="w-5 h-5 text-amber-500" />;
     return <FileText className="w-5 h-5 text-sky-500" />;
   };
 
@@ -87,26 +97,26 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
         <DialogHeader>
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
             <Download className="w-5 h-5 text-orange-400" />
-            {t('ExportReport')}
+            {t("ExportReport")}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            {t('ExportReportDesc')}
+            {t("ExportReportDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-3">
           <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 flex items-center justify-between text-xs">
             <div>
-              <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider">
+              <span className="text-muted-foreground font-medium uppercase  tracking-wider">
                 {payload.period}
               </span>
               <p className="font-bold text-foreground font-mono mt-0.5">
-                {payload.rows.length} {t('ExportEntriesCount')}
+                {payload.rows.length} {t("ExportEntriesCount")}
               </p>
             </div>
             <div className="text-right">
               <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider">
-                {t('PeriodTotal')}
+                {t("PeriodTotal")}
               </span>
               <p className="font-extrabold text-foreground font-mono mt-0.5">
                 {payload.formattedTotalDuration}
@@ -116,7 +126,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
 
           <div className="flex flex-col gap-2">
             <span className="text-xs font-semibold text-foreground">
-              {t('SelectFormat')}
+              {t("SelectFormat")}
             </span>
             <div className="grid grid-cols-1 gap-2">
               {exporters.map((exp) => {
@@ -125,7 +135,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                   <Button
                     key={exp.id}
                     type="button"
-                    variant={isSelected ? 'default' : 'outline'}
+                    variant={isSelected ? "default" : "outline"}
                     data-testid={`export-format-${exp.id}`}
                     onClick={() => setSelectedId(exp.id)}
                     className="w-full justify-between h-auto py-2.5 px-3.5 rounded-xl border transition-all text-left"
@@ -140,7 +150,10 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                       </div>
                     </div>
                     {isSelected && (
-                      <Badge variant="secondary" className="text-[10px] font-mono">
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] font-mono"
+                      >
                         Active
                       </Badge>
                     )}
@@ -164,12 +177,12 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
               {isCopied ? (
                 <>
                   <Check className="w-4 h-4 text-emerald-500" />
-                  {t('CopyToClipboard')}
+                  {t("CopyToClipboard")}
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4 text-muted-foreground" />
-                  {t('CopyToClipboard')}
+                  {t("CopyToClipboard")}
                 </>
               )}
             </Button>
@@ -186,7 +199,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
               onClick={onClose}
               className="text-xs"
             >
-              {t('Close')}
+              {t("Close")}
             </Button>
             <Button
               type="button"
@@ -197,7 +210,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
               className="gap-2 text-xs font-semibold bg-orange-600 hover:bg-orange-500 text-white"
             >
               <Download className="w-4 h-4" />
-              {t('DownloadFile')}
+              {t("DownloadFile")}
             </Button>
           </div>
         </DialogFooter>

@@ -399,8 +399,18 @@ export type ProjectKey =
   | 'ProjectsLabel'
   | 'SelectProject'
   | 'SelectProjectPlaceholder'
+  | 'StarterTemplatesHeading'
+  | 'StarterTemplatesSubheading'
   | 'Tags'
   | 'TagsPlaceholder'
+  | 'TemplateConsultingDesc'
+  | 'TemplateConsultingName'
+  | 'TemplateCreativeDesc'
+  | 'TemplateCreativeName'
+  | 'TemplateLearningDesc'
+  | 'TemplateLearningName'
+  | 'TemplateSoftwareDevDesc'
+  | 'TemplateSoftwareDevName'
   | 'TotalDuration'
   | 'TotalTasks';
 
