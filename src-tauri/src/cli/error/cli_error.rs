@@ -169,3 +169,19 @@ impl From<DurationParseError> for CliError {
         CliError::Syntax(err.to_string())
     }
 }
+
+impl From<crate::persistence::PersistenceError> for CliError {
+    fn from(err: crate::persistence::PersistenceError) -> Self {
+        CliError::Storage(err.to_string())
+    }
+}
+
+impl From<crate::engine::EngineError> for CliError {
+    fn from(err: crate::engine::EngineError) -> Self {
+        match err {
+            crate::engine::EngineError::Persistence(p) => CliError::Storage(p.to_string()),
+            crate::engine::EngineError::Validation(v) => CliError::Business(v),
+            crate::engine::EngineError::ParseTime(t) => CliError::Syntax(t),
+        }
+    }
+}

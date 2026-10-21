@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use super::constants::{
     FORMAT_TASK_ORPHAN_ROW, FORMAT_TASK_ROOT_ROW, FORMAT_TASK_SUBTASK_ROW, HEADER_TASKS,
     LABEL_SUBTASK_BADGE, LABEL_UNKNOWN_PROJECT, MSG_NO_PROJECTS_EXIST, MSG_NO_TASKS_FOUND,
@@ -8,9 +10,10 @@ use crate::cli::error::CliError;
 use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
-use crate::cli::shared::utils::{current_timestamp, generate_id};
+use crate::cli::shared::utils::generate_id;
+use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{Task, TaskStatus};
+use crate::types::{Project, Task, TaskStatus};
 
 pub fn handle(args: TaskArgs, persistence: &Persistence) -> Result<CliOutput, CliError> {
     match args.command {
@@ -32,10 +35,7 @@ fn list_tasks(
     all: bool,
 ) -> Result<CliOutput, CliError> {
     let filter_project_id = resolve_project_filter(persistence, project)?;
-    let all_tasks = persistence
-        .tasks
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let all_tasks = persistence.tasks.get_all()?;
     let projects = persistence.projects.get_all().unwrap_or_default();
 
     let filtered = filter_tasks(&all_tasks, filter_project_id.as_deref(), all);
@@ -83,76 +83,107 @@ fn filter_tasks<'a>(
         .collect()
 }
 
-fn render_task_hierarchy(tasks: &[&Task], projects: &[crate::types::Project]) -> String {
-    let mut out = String::from(HEADER_TASKS);
-    let root_tasks: Vec<_> = tasks
+struct TaskHierarchy<'a> {
+    roots: Vec<&'a Task>,
+    subtasks_by_parent: HashMap<&'a str, Vec<&'a Task>>,
+    orphans: Vec<&'a Task>,
+}
+
+impl<'a> TaskHierarchy<'a> {
+    fn partition(tasks: &[&'a Task]) -> Self {
+        let task_ids: HashSet<&str> = tasks.iter().map(|t| t.id.as_str()).collect();
+        let mut roots = Vec::new();
+        let mut subtasks_by_parent: HashMap<&str, Vec<&Task>> = HashMap::new();
+        let mut orphans = Vec::new();
+
+        for task in tasks {
+            match task.parent_task_id.as_deref() {
+                None => roots.push(*task),
+                Some(parent_id) => {
+                    if task_ids.contains(parent_id) {
+                        subtasks_by_parent.entry(parent_id).or_default().push(*task);
+                    } else {
+                        orphans.push(*task);
+                    }
+                }
+            }
+        }
+
+        Self {
+            roots,
+            subtasks_by_parent,
+            orphans,
+        }
+    }
+}
+
+fn render_task_hierarchy(tasks: &[&Task], projects: &[Project]) -> String {
+    let hierarchy = TaskHierarchy::partition(tasks);
+    let project_names: HashMap<&str, &str> = projects
         .iter()
-        .filter(|t| t.parent_task_id.is_none())
+        .map(|p| (p.id.as_str(), p.name.as_str()))
         .collect();
 
-    for root in root_tasks {
-        let status_icon = if root.completed {
-            SYMBOL_TASK_DONE
-        } else {
-            SYMBOL_TASK_TODO
-        };
-        let proj_name = projects
-            .iter()
-            .find(|p| p.id == root.project_id)
-            .map(|p| p.name.as_str())
+    let mut out = String::from(HEADER_TASKS);
+
+    for root in hierarchy.roots {
+        let proj_name = project_names
+            .get(root.project_id.as_str())
+            .copied()
             .unwrap_or(LABEL_UNKNOWN_PROJECT);
 
-        out.push_str(
-            &FORMAT_TASK_ROOT_ROW
-                .replacen("{}", status_icon, 1)
-                .replacen("{}", &root.name, 1)
-                .replacen("{}", &root.id, 1)
-                .replacen("{}", proj_name, 1),
-        );
+        out.push_str(&format_root_row(root, proj_name));
 
-        let subtasks = tasks
-            .iter()
-            .filter(|t| t.parent_task_id.as_deref() == Some(&root.id));
-
-        for sub in subtasks {
-            let sub_icon = if sub.completed {
-                SYMBOL_TASK_DONE
-            } else {
-                SYMBOL_TASK_TODO
-            };
-            out.push_str(
-                &FORMAT_TASK_SUBTASK_ROW
-                    .replacen("{}", sub_icon, 1)
-                    .replacen("{}", &sub.name, 1)
-                    .replacen("{}", &sub.id, 1),
-            );
+        if let Some(subtasks) = hierarchy.subtasks_by_parent.get(root.id.as_str()) {
+            for sub in subtasks {
+                out.push_str(&format_subtask_row(sub));
+            }
         }
     }
 
-    let orphan_subtasks = tasks.iter().filter(|t| {
-        if let Some(ref parent_id) = t.parent_task_id {
-            !tasks.iter().any(|r| r.id == *parent_id)
-        } else {
-            false
-        }
-    });
-
-    for orphan in orphan_subtasks {
-        let icon = if orphan.completed {
-            SYMBOL_TASK_DONE
-        } else {
-            SYMBOL_TASK_TODO
-        };
-        out.push_str(
-            &FORMAT_TASK_ORPHAN_ROW
-                .replacen("{}", icon, 1)
-                .replacen("{}", &orphan.name, 1)
-                .replacen("{}", &orphan.id, 1)
-                .replacen("{}", LABEL_SUBTASK_BADGE, 1),
-        );
+    for orphan in hierarchy.orphans {
+        out.push_str(&format_orphan_row(orphan));
     }
 
     out
+}
+
+fn format_root_row(task: &Task, proj_name: &str) -> String {
+    let status_icon = if task.completed {
+        SYMBOL_TASK_DONE
+    } else {
+        SYMBOL_TASK_TODO
+    };
+    FORMAT_TASK_ROOT_ROW
+        .replacen("{}", status_icon, 1)
+        .replacen("{}", &task.name, 1)
+        .replacen("{}", &task.id, 1)
+        .replacen("{}", proj_name, 1)
+}
+
+fn format_subtask_row(sub: &Task) -> String {
+    let sub_icon = if sub.completed {
+        SYMBOL_TASK_DONE
+    } else {
+        SYMBOL_TASK_TODO
+    };
+    FORMAT_TASK_SUBTASK_ROW
+        .replacen("{}", sub_icon, 1)
+        .replacen("{}", &sub.name, 1)
+        .replacen("{}", &sub.id, 1)
+}
+
+fn format_orphan_row(orphan: &Task) -> String {
+    let icon = if orphan.completed {
+        SYMBOL_TASK_DONE
+    } else {
+        SYMBOL_TASK_TODO
+    };
+    FORMAT_TASK_ORPHAN_ROW
+        .replacen("{}", icon, 1)
+        .replacen("{}", &orphan.name, 1)
+        .replacen("{}", &orphan.id, 1)
+        .replacen("{}", LABEL_SUBTASK_BADGE, 1)
 }
 
 fn add_task(
@@ -161,75 +192,53 @@ fn add_task(
     project: Option<String>,
     parent: Option<String>,
 ) -> Result<CliOutput, CliError> {
-    let project_id = resolve_target_project_id(persistence, project)?;
-    let parent_task_id = resolve_parent_task_id(persistence, parent)?;
-    let id = generate_id();
-    let task = build_task(id.clone(), project_id, parent_task_id, name);
+    let engine = Engine::new(persistence);
+    let valid_name = engine.validate_task_name(&name)?;
 
-    persistence
-        .tasks
-        .create(task)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let parent_task = match parent {
+        Some(target) => {
+            let resolver = EntityResolver::new(persistence);
+            let p_task = resolver.resolve_task(&target)?;
+            engine.validate_task_hierarchy(None, Some(&p_task.id))?;
+            Some(p_task)
+        }
+        None => None,
+    };
+
+    let project_id = match project {
+        Some(target) => {
+            let resolver = EntityResolver::new(persistence);
+            let p = resolver.resolve_project(&target)?;
+            if let Some(ref p_task) = parent_task {
+                if p_task.project_id != p.id {
+                    return Err(CliError::Business(
+                        "Parent task belongs to a different project".to_string(),
+                    ));
+                }
+            }
+            p.id
+        }
+        None => match parent_task {
+            Some(ref p_task) => p_task.project_id.clone(),
+            None => resolve_default_project_id(persistence)?,
+        },
+    };
+
+    let parent_task_id = parent_task.map(|p| p.id);
+    let id = generate_id();
+    let task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
+
+    persistence.tasks.create(task)?;
     Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
 }
 
-fn resolve_target_project_id(
-    persistence: &Persistence,
-    project: Option<String>,
-) -> Result<String, CliError> {
-    let resolver = EntityResolver::new(persistence);
-    match project {
-        Some(target) => {
-            let p = resolver.resolve_project(&target)?;
-            Ok(p.id)
-        }
-        None => {
-            let all_projects = persistence
-                .projects
-                .get_all()
-                .map_err(|e| CliError::Storage(e.to_string()))?;
-            let first = all_projects
-                .into_iter()
-                .find(|p| p.archived != Some(true))
-                .ok_or_else(|| CliError::Business(MSG_NO_PROJECTS_EXIST.to_string()))?;
-            Ok(first.id)
-        }
-    }
-}
-
-fn resolve_parent_task_id(
-    persistence: &Persistence,
-    parent: Option<String>,
-) -> Result<Option<String>, CliError> {
-    match parent {
-        Some(target) => {
-            let resolver = EntityResolver::new(persistence);
-            let parent_task = resolver.resolve_task(&target)?;
-            Ok(Some(parent_task.id))
-        }
-        None => Ok(None),
-    }
-}
-
-fn build_task(
-    id: String,
-    project_id: String,
-    parent_task_id: Option<String>,
-    name: String,
-) -> Task {
-    Task {
-        id,
-        project_id,
-        parent_task_id,
-        name: name.clone(),
-        created_at: current_timestamp(),
-        completed: false,
-        original_name: Some(name),
-        original_completed: Some(false),
-        edit_history: Some(vec![]),
-        archived: Some(false),
-        status: Some(TaskStatus::Todo),
-    }
+fn resolve_default_project_id(persistence: &Persistence) -> Result<String, CliError> {
+    let all_projects = persistence.projects.get_all()?;
+    let first = all_projects
+        .into_iter()
+        .find(|p| p.archived != Some(true))
+        .ok_or_else(|| CliError::Business(MSG_NO_PROJECTS_EXIST.to_string()))?;
+    Ok(first.id)
 }
 
 fn complete_task(persistence: &Persistence, target: &str) -> Result<CliOutput, CliError> {
@@ -237,10 +246,7 @@ fn complete_task(persistence: &Persistence, target: &str) -> Result<CliOutput, C
     let mut task = resolver.resolve_task(target)?;
     task.completed = true;
     task.status = Some(TaskStatus::Done);
-    persistence
-        .tasks
-        .patch(task.clone())
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.tasks.patch(task.clone())?;
     Ok(CliOutput::Success(
         MSG_TASK_COMPLETED
             .replacen("{}", &task.name, 1)
@@ -255,11 +261,9 @@ fn rename_task(
 ) -> Result<CliOutput, CliError> {
     let resolver = EntityResolver::new(persistence);
     let mut task = resolver.resolve_task(target)?;
-    task.name = new_name;
-    persistence
-        .tasks
-        .patch(task.clone())
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let engine = Engine::new(persistence);
+    task.name = engine.validate_task_name(&new_name)?;
+    persistence.tasks.patch(task.clone())?;
     Ok(CliOutput::Success(MSG_TASK_RENAMED.replace("{}", &task.id)))
 }
 
@@ -268,8 +272,7 @@ fn archive_task(persistence: &Persistence, target: &str) -> Result<CliOutput, Cl
     let task = resolver.resolve_task(target)?;
     persistence
         .tasks
-        .archive(task.id.clone(), task.project_id)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+        .archive(task.id.clone(), task.project_id)?;
     Ok(CliOutput::Success(
         MSG_TASK_ARCHIVED.replace("{}", &task.id),
     ))

@@ -7,7 +7,8 @@ use crate::cli::parser::tier2_entities::{ProjectArgs, ProjectSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::constants::DEFAULT_COLOR;
 use crate::cli::shared::output::CliOutput;
-use crate::cli::shared::utils::{current_timestamp, generate_id};
+use crate::cli::shared::utils::generate_id;
+use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::{Project, Task};
 
@@ -31,10 +32,7 @@ fn list_projects(
     all: bool,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
-    let projects = persistence
-        .projects
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let projects = persistence.projects.get_all()?;
     let tasks = persistence.tasks.get_all().unwrap_or_default();
 
     let filtered: Vec<_> = projects
@@ -83,24 +81,18 @@ fn add_project(
     name: String,
     color: Option<String>,
 ) -> Result<CliOutput, CliError> {
+    let engine = Engine::new(persistence);
+    let valid_name = engine.validate_project_name(&name, None)?;
     let id = generate_id();
-    let project = Project {
-        id: id.clone(),
-        name: name.clone(),
-        color: color.unwrap_or_else(|| DEFAULT_COLOR.to_string()),
-        created_at: current_timestamp(),
-        archived: Some(false),
-        original_name: Some(name),
-        original_color: None,
-        edit_history: Some(vec![]),
-        description: None,
-        icon: None,
-        tags: None,
-    };
-    persistence
-        .projects
-        .create(project)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let project = Project::new(
+        id.clone(),
+        valid_name,
+        color.unwrap_or_else(|| DEFAULT_COLOR.to_string()),
+        None,
+        None,
+        None,
+    );
+    persistence.projects.create(project)?;
     Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))
 }
 
@@ -111,11 +103,9 @@ fn rename_project(
 ) -> Result<CliOutput, CliError> {
     let resolver = EntityResolver::new(persistence);
     let mut project = resolver.resolve_project(target)?;
-    project.name = new_name;
-    persistence
-        .projects
-        .patch(project.clone())
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let engine = Engine::new(persistence);
+    project.name = engine.validate_project_name(&new_name, Some(&project.id))?;
+    persistence.projects.patch(project.clone())?;
     Ok(CliOutput::Success(
         MSG_PROJECT_RENAMED.replace("{}", &project.id),
     ))
@@ -124,10 +114,7 @@ fn rename_project(
 fn archive_project(persistence: &Persistence, target: &str) -> Result<CliOutput, CliError> {
     let resolver = EntityResolver::new(persistence);
     let project = resolver.resolve_project(target)?;
-    persistence
-        .projects
-        .archive(project.id.clone())
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.projects.archive(project.id.clone())?;
     Ok(CliOutput::Success(
         MSG_PROJECT_ARCHIVED.replace("{}", &project.id),
     ))

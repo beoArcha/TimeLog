@@ -35,6 +35,7 @@ export default function MediumProjectSelector({
     selectedProjectId,
     setSelectedProjectId,
     onAddProject,
+    isLoading,
   } = state;
 
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
@@ -193,7 +194,7 @@ export default function MediumProjectSelector({
                   variant="accent"
                   size="sm"
                   data-testid="medium-save-new-project-btn"
-                  disabled={!newProjectName.trim()}
+                  disabled={!newProjectName.trim() || isLoading}
                 >
                   {translate(locale, 'common', 'Save', customTranslations)}
                 </Button>

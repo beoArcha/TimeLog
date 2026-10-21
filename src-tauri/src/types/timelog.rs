@@ -47,6 +47,29 @@ pub struct Task {
     pub archived: Option<bool>,
 }
 
+impl Task {
+    pub fn new(
+        id: String,
+        project_id: String,
+        parent_task_id: Option<String>,
+        name: String,
+    ) -> Self {
+        Self {
+            id,
+            project_id,
+            parent_task_id,
+            name,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            completed: false,
+            status: Some(TaskStatus::Todo),
+            original_name: None,
+            original_completed: None,
+            edit_history: None,
+            archived: Some(false),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]

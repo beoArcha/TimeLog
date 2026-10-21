@@ -12,6 +12,7 @@ pub fn create(
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     let engine = Engine::new(&state.persistence);
+    let valid_name = engine.validate_task_name(&name)?;
     if parent_task_id.is_some() {
         engine.validate_task_hierarchy(None, parent_task_id.as_deref())?;
     }
@@ -20,7 +21,7 @@ pub fn create(
         id: format!("task_{}", chrono::Utc::now().timestamp_millis()),
         project_id,
         parent_task_id,
-        name,
+        name: valid_name,
         created_at: chrono::Utc::now().to_rfc3339(),
         completed: false,
         original_name: None,
@@ -53,7 +54,8 @@ pub fn update_task(
             task.parent_task_id = parent_task_id;
         }
 
-        task.name = name;
+        let valid_name = engine.validate_task_name(&name)?;
+        task.name = valid_name;
 
         if let Some(comp) = completed {
             task.completed = comp;
@@ -75,7 +77,6 @@ pub fn update_task(
                 }
             }
         }
-
         state.persistence.tasks.patch(task)?;
     }
     Ok(engine.get_state()?)
@@ -130,11 +131,12 @@ pub fn rename_task(
     name: String,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
+    let engine = Engine::new(&state.persistence);
+    let valid_name = engine.validate_task_name(&name)?;
     if let Some(mut task) = state.persistence.tasks.get(&task_id)? {
-        task.name = name;
+        task.name = valid_name;
         state.persistence.tasks.patch(task)?;
     }
-    let engine = Engine::new(&state.persistence);
     Ok(engine.get_state()?)
 }
 

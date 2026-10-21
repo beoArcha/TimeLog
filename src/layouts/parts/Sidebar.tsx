@@ -13,7 +13,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
   const {
     projects, metrics, locale, customTranslations,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
-    onRenameProject, onToggleProjectArchive
+    onRenameProject, onToggleProjectArchive, isLoading
   } = state;
 
   const [newProjectName, setNewProjectNameLocal] = React.useState(() => state.newProjectName ?? '');
@@ -170,6 +170,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 id="add-project-btn"
                 type="submit"
                 variant="accent"
+                disabled={isLoading}
                 className="rounded-xl px-4 py-1 text-main font-bold shadow-md cursor-pointer flex items-center gap-1.5 h-auto"
               >
                 <Plus className="icon-small" /> {translate(locale, 'common', 'Save', customTranslations)}
