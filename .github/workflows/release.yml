@@ -130,6 +130,17 @@ jobs:
       - name: Install Frontend Dependencies
         run: bun install --frozen-lockfile
 
+      - name: Pre-build Universal CLI Binary (macOS)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          cargo build --release --target aarch64-apple-darwin --bin oxy --manifest-path src-tauri/Cargo.toml
+          cargo build --release --target x86_64-apple-darwin --bin oxy --manifest-path src-tauri/Cargo.toml
+          mkdir -p src-tauri/target/universal-apple-darwin/release
+          lipo -create -output src-tauri/target/universal-apple-darwin/release/oxy \
+            src-tauri/target/aarch64-apple-darwin/release/oxy \
+            src-tauri/target/x86_64-apple-darwin/release/oxy
+          chmod +x src-tauri/target/universal-apple-darwin/release/oxy
+
       - name: Build Tauri Artifacts
         env:
           RUSTFLAGS: ${{ matrix.platform == 'ubuntu-22.04' && '-C link-arg=-fuse-ld=lld' || '' }}
