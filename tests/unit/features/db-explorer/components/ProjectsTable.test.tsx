@@ -63,13 +63,13 @@ describe("Unit Tests: ProjectsTable", () => {
 
   it("should open edit form, update project name, and handle save with history tracking", () => {
     // Arrange
-    const setProjects = vi.fn();
     const project = aProject({
       id: "p1",
       name: "Initial Name",
       color: "violet",
     });
-    const state = createMockState([project], { setProjects });
+    const handleUpdateProject = vi.fn().mockResolvedValue(undefined);
+    const state = createMockState([project], { handleUpdateProject });
 
     render(
       <MockProviders state={state}>
@@ -88,24 +88,18 @@ describe("Unit Tests: ProjectsTable", () => {
     fireEvent.click(saveBtn);
 
     // Assert
-    expect(setProjects).toHaveBeenCalled();
-    const updater = setProjects.mock.calls[0][0];
-    const updated = updater([project]);
-    expect(updated[0].name).toBe("Renamed Titan");
-    expect(updated[0].originalName).toBe("Initial Name");
-    expect(updated[0].editHistory).toHaveLength(1);
-    expect(updated[0].editHistory![0].prevName).toBe("Initial Name");
+    expect(handleUpdateProject).toHaveBeenCalledWith("p1", "Renamed Titan", "violet");
   });
 
   it("should not update project or editHistory when saving without modifications", () => {
     // Arrange
-    const setProjects = vi.fn();
+    const handleUpdateProject = vi.fn().mockResolvedValue(undefined);
     const project = aProject({
       id: "p1",
       name: "Static Name",
       color: "violet",
     });
-    const state = createMockState([project], { setProjects });
+    const state = createMockState([project], { handleUpdateProject });
 
     render(
       <MockProviders state={state}>
@@ -121,11 +115,7 @@ describe("Unit Tests: ProjectsTable", () => {
     fireEvent.click(saveBtn);
 
     // Assert
-    expect(setProjects).toHaveBeenCalled();
-    const updater = setProjects.mock.calls[0][0];
-    const updated = updater([project]);
-    expect(updated[0].name).toBe("Static Name");
-    expect(updated[0].editHistory).toBeUndefined();
+    expect(handleUpdateProject).not.toHaveBeenCalled();
   });
 
   it("should exit editing mode when cancel button is clicked", () => {
@@ -154,14 +144,10 @@ describe("Unit Tests: ProjectsTable", () => {
 
   it("should delete project, tasks, and logs when confirmed by user", async () => {
     // Arrange
-    const setProjects = vi.fn();
-    const setTasks = vi.fn();
-    const setLogs = vi.fn();
+    const handleToggleProjectArchive = vi.fn().mockResolvedValue(undefined);
     const project = aProject({ id: "p1" });
     const state = createMockState([project], {
-      setProjects,
-      setTasks,
-      setLogs,
+      handleToggleProjectArchive,
     });
 
     render(
@@ -181,24 +167,8 @@ describe("Unit Tests: ProjectsTable", () => {
 
     // Assert
     await waitFor(() => {
-      expect(setProjects).toHaveBeenCalled();
-      expect(setTasks).toHaveBeenCalled();
-      expect(setLogs).toHaveBeenCalled();
+      expect(handleToggleProjectArchive).toHaveBeenCalledWith("p1");
     });
-
-    // Verify filter logic
-    const projectFilter = setProjects.mock.calls[0][0];
-    expect(projectFilter([project])).toHaveLength(0);
-
-    const taskFilter = setTasks.mock.calls[0][0];
-    expect(
-      taskFilter([aTask({ projectId: "p1" }), aTask({ projectId: "p2" })]),
-    ).toHaveLength(1);
-
-    const logFilter = setLogs.mock.calls[0][0];
-    expect(
-      logFilter([aTimeLog({ projectId: "p1" }), aTimeLog({ projectId: "p2" })]),
-    ).toHaveLength(1);
   });
 
   it("should not delete project when user cancels confirmation", () => {

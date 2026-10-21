@@ -22,6 +22,9 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
 
   const setup = (customValue = {}) => {
     const setHolidays = vi.fn();
+    const handleAddHoliday = vi.fn().mockResolvedValue(undefined);
+    const handleUpdateHoliday = vi.fn().mockResolvedValue(undefined);
+    const handleDeleteHoliday = vi.fn().mockResolvedValue(undefined);
 
     const defaultState = {
       projects: [],
@@ -31,6 +34,9 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
         aHolidayLeave({ id: 'leave_1', date: '2026-12-25', type: 'holiday', name: 'Christmas' }),
       ],
       setHolidays,
+      handleAddHoliday,
+      handleUpdateHoliday,
+      handleDeleteHoliday,
       patches: [],
       setPatches: vi.fn(),
       localePref: 'system',
@@ -82,52 +88,65 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     return {
       ...utils,
       setHolidays,
+      handleAddHoliday: value.handleAddHoliday,
+      handleUpdateHoliday: value.handleUpdateHoliday,
+      handleDeleteHoliday: value.handleDeleteHoliday,
     };
   };
 
   it('should add new holiday entry when add leave button is clicked', () => {
-    const { setHolidays } = setup();
+    const { handleAddHoliday } = setup();
 
     const addLeaveBtn = screen.getByText(/\+ Add Leave/i);
     fireEvent.click(addLeaveBtn);
 
-    expect(setHolidays).toHaveBeenCalled();
+    expect(handleAddHoliday).toHaveBeenCalledWith(
+      expect.any(String),
+      'holiday',
+      expect.any(String)
+    );
   });
 
   it('should update holiday entry when saved in holidays table', () => {
-    const { setHolidays } = setup();
+    const { handleUpdateHoliday } = setup();
 
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
-    const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const editBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Edit/i });
     fireEvent.click(editBtn);
 
-    const nameInput = holidaysTableWrapper?.querySelector('input[value="Christmas"]') as HTMLInputElement;
+    const nameInput = within(holidaysTableWrapper as HTMLElement).getByDisplayValue('Christmas');
     fireEvent.change(nameInput, { target: { value: 'Christmas Holiday' } });
 
-    const saveBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const saveBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
-    expect(setHolidays).toHaveBeenCalled();
+    expect(handleUpdateHoliday).toHaveBeenCalledWith(
+      'leave_1',
+      '2026-12-25',
+      'holiday',
+      'Christmas Holiday',
+      expect.any(String)
+    );
   });
 
   it('should cancel editing when cancel button is clicked', () => {
-    const { setHolidays } = setup();
+    const { handleUpdateHoliday } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
-    const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const editBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Edit/i });
     fireEvent.click(editBtn);
-    const cancelBtn = holidaysTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
+    const cancelBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Cancel/i });
     fireEvent.click(cancelBtn);
 
-    expect(setHolidays).not.toHaveBeenCalled();
+    expect(handleUpdateHoliday).not.toHaveBeenCalled();
   });
 
   it('should delete holiday when delete button is clicked and confirmed in dialog', () => {
-    const { setHolidays } = setup();
+    const { handleDeleteHoliday } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
-    const deleteBtn = holidaysTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
+    const deleteBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
     const dialog = document.querySelector('[role="alertdialog"]')!;
@@ -135,33 +154,27 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /Delete/i });
     fireEvent.click(confirmBtn);
 
-    expect(setHolidays).toHaveBeenCalled();
+    expect(handleDeleteHoliday).toHaveBeenCalledWith('leave_1');
   });
 
   it('should close editing without updating holidays when no changes are made and saved', () => {
-    const { setHolidays } = setup();
+    const { handleUpdateHoliday } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
-    const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const editBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Edit/i });
     fireEvent.click(editBtn);
 
-    const saveBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const saveBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
-    expect(setHolidays).toHaveBeenCalled();
-    const updateFn = setHolidays.mock.calls[0][0];
-    const initialHolidays = [
-      aHolidayLeave({ id: 'leave_1', date: '2026-12-25', type: 'holiday', name: 'Christmas' })
-    ];
-    const updatedHolidays = updateFn(initialHolidays);
-    expect(updatedHolidays[0]).toBe(initialHolidays[0]);
+    expect(handleUpdateHoliday).not.toHaveBeenCalled();
   });
 
-  it('should trigger setHolidays with update and new history entry when type is changed and reason is entered', () => {
-    const { setHolidays } = setup();
+  it('should trigger update when type is changed and reason is entered', () => {
+    const { handleUpdateHoliday } = setup();
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
 
-    const editBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const editBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Edit/i });
     fireEvent.click(editBtn);
 
     const select = holidaysTableWrapper?.querySelector('select') as HTMLSelectElement;
@@ -169,10 +182,16 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     const reasonInput = screen.getByLabelText(/Reason for modification/i);
     fireEvent.change(reasonInput, { target: { value: 'Custom reason text' } });
 
-    const saveBtn = holidaysTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const saveBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
-    expect(setHolidays).toHaveBeenCalled();
+    expect(handleUpdateHoliday).toHaveBeenCalledWith(
+      'leave_1',
+      '2026-12-25',
+      'leave',
+      'Christmas',
+      'Custom reason text'
+    );
   });
 
   it('should toggle history details view when clicking history button', () => {
@@ -201,7 +220,7 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     setup(customValue);
 
     const holidaysTableWrapper = screen.getByText(/holidays_leaves table/i).closest('.border');
-    const historyBtn = holidaysTableWrapper?.querySelector('tbody tr button') as HTMLElement;
+    const historyBtn = within(holidaysTableWrapper as HTMLElement).getByRole('button', { name: /Revision History/i });
     expect(screen.queryByText(/Audit Trail/i)).toBeNull();
 
     fireEvent.click(historyBtn);
@@ -212,3 +231,4 @@ describe('Integration Tests: DbExplorer Holidays Table', () => {
     expect(screen.queryByText(/Audit Trail/i)).toBeNull();
   });
 });
+

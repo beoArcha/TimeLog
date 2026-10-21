@@ -53,6 +53,7 @@ export const createMockHolidaysManager = (
   setHolidaysState: vi.fn(),
   setHolidays: vi.fn(),
   handleAddHoliday: vi.fn(),
+  handleUpdateHoliday: vi.fn(),
   handleDeleteHoliday: vi.fn(),
   ...overrides,
 });

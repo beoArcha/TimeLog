@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Plus, Trash2, Database } from 'lucide-react';
+import { Calendar, Plus } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Button } from '@components/ui/button';
@@ -8,14 +8,14 @@ import { Overline } from '@components/ui/typography';
 import { ViewHeader } from '@components/ViewHeader';
 import { Input } from '@components/ui/input';
 import { NativeSelect } from '@components/ui/select';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@components/ui/table';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { HolidayType } from '@bindings/HolidayType';
+import HolidaysLeavesTable from '@features/db-explorer/components/HolidaysLeavesTable';
 
 export default function HolidaysLeavesView() {
   const { locale, customTranslations } = useLocale();
-  const { holidays, handleAddHoliday, handleDeleteHoliday } = useData();
+  const { handleAddHoliday } = useData();
 
   const [newHolidayDate, setNewHolidayDate] = useState('2026-06-15');
   const [newHolidayType, setNewHolidayType] = useState<HolidayType>('leave');
@@ -78,71 +78,11 @@ export default function HolidaysLeavesView() {
         </form>
       </CollapsibleCard>
 
-      <CollapsibleCard
-        title={`📋 ${translate(locale, 'calendar', 'SqliteHolidaysTableRows', customTranslations)} (${holidays.length})`}
-        icon={Database}
-        iconColor="text-muted-foreground"
-        titleColor="text-muted-foreground"
-        defaultExpanded={true}
+      <HolidaysLeavesTable
+        requireConfirm={false}
+        hideAddButton={true}
         wrapperClassName="rounded-3xl border border-border bg-card overflow-hidden shadow-xs"
-        headerClassName="px-5 py-3 border-b border-border text-xs font-mono font-bold tracking-wider uppercase text-muted-foreground bg-muted/50"
-      >
-        <div className="overflow-x-auto">
-          <Table className="w-full text-sm font-sans text-left whitespace-nowrap">
-            <TableHeader>
-              <TableRow className="border-b border-border text-xs font-bold font-mono tracking-wider uppercase text-muted-foreground bg-muted/30">
-                <TableHead className="py-2.5 px-4">{translate(locale, 'calendar', 'RecordName', customTranslations)}</TableHead>
-                <TableHead className="py-2.5 px-4">{translate(locale, 'calendar', 'ScheduledDate', customTranslations)}</TableHead>
-                <TableHead className="py-2.5 px-4">{translate(locale, 'calendar', 'Weekday', customTranslations)}</TableHead>
-                <TableHead className="py-2.5 px-4">{translate(locale, 'common', 'Type', customTranslations)}</TableHead>
-                <TableHead className="py-2.5 px-4 text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {holidays.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground text-xs font-mono">
-                    {translate(locale, 'calendar', 'NoEntriesFound', customTranslations)}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                holidays.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(h => {
-                  const d = new Date(h.date);
-                  const weekdayStr = d.toLocaleDateString(locale, { weekday: 'short' });
-
-                  return (
-                    <TableRow key={h.id} className="border-b border-border hover:bg-muted/40 text-foreground last:border-b-0">
-                      <TableCell className="py-3 px-4 font-semibold">{h.name}</TableCell>
-                      <TableCell className="py-3 px-4 font-mono text-xs">{h.date}</TableCell>
-                      <TableCell className="py-3 px-4 font-mono text-xs text-muted-foreground">{weekdayStr}</TableCell>
-                      <TableCell className="py-3 px-4">
-                        <Badge
-                          variant={h.type === 'holiday' ? 'orange' : 'outline'}
-                          size="xs"
-                          className="font-bold uppercase tracking-wider"
-                        >
-                          {h.type === 'holiday' ? translate(locale, 'calendar', 'Holiday', customTranslations) : translate(locale, 'calendar', 'Vacation', customTranslations)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-3 px-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteHoliday(h.id)}
-                          className="h-7 w-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition-colors"
-                          title={translate(locale, 'calendar', 'DeleteSqlDelete', customTranslations)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CollapsibleCard>
+      />
     </div>
   );
 }

@@ -3,7 +3,6 @@ import { Database, Plus } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
-import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
 import AddLogForm from './AddLogForm';
@@ -11,19 +10,13 @@ import TimeLogTableRow from './TimeLogTableRow';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@components/ui/table';
+import { DataTable, type DataTableColumn } from '@components/DataTable';
 import { Button } from '@components/ui/button';
 import { Caption } from '@components/ui/typography';
 
 export default function TimeLogsTable() {
   const { locale, customTranslations } = useLocale();
-  const { tasks, projects, logs, setLogs, handleEditTimeLog } = useData();
+  const { tasks, projects, logs, handleEditTimeLog, handleDeleteTimeLog, handleInsertTimeLog } = useData();
   const { showToast } = useWindowShell();
 
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
@@ -62,8 +55,7 @@ export default function TimeLogsTable() {
     const id = deleteTargetLogId;
     setDeleteTargetLogId(null);
     try {
-      await PersistenceRouter.getInstance().timeLogs.delete(id);
-      setLogs(curr => curr.filter(l => l.id !== id));
+      await handleDeleteTimeLog(id);
     } catch (err) {
       if (showToast) {
         showToast(err instanceof Error ? err.message : 'Error while deleting time log');
@@ -78,18 +70,8 @@ export default function TimeLogsTable() {
     const finalEndTime = endTime.trim() === '' ? null : endTime;
     const newLogId = getNextId(logs, 'log_man_');
 
-    const newLog: TimeLog = {
-      id: newLogId,
-      taskId,
-      projectId: selectedTask.projectId,
-      startTime,
-      endTime: finalEndTime,
-      note: note || 'Manual time registration'
-    };
-
     try {
-      await PersistenceRouter.getInstance().timeLogs.insert(newLogId, taskId, startTime);
-      setLogs(curr => [...curr, newLog]);
+      await handleInsertTimeLog(newLogId, taskId, startTime, finalEndTime, note || 'Manual time registration');
       setShowAddLogForm(false);
     } catch (err) {
       if (showToast) {
@@ -97,6 +79,16 @@ export default function TimeLogsTable() {
       }
     }
   };
+
+  const columns: DataTableColumn<TimeLog>[] = [
+    { key: 'id', header: 'id' },
+    { key: 'taskId', header: 'task_id' },
+    { key: 'startTime', header: translate(locale, 'database', 'StartStamp', customTranslations) },
+    { key: 'endTime', header: translate(locale, 'database', 'EndStamp', customTranslations) },
+    { key: 'note', header: 'note' },
+    { key: 'originalStamps', header: translate(locale, 'database', 'OriginalStamps', customTranslations) },
+    { key: 'actions', header: translate(locale, 'common', 'Actions', customTranslations), align: 'right' },
+  ];
 
   return (
     <>
@@ -132,38 +124,28 @@ export default function TimeLogsTable() {
         />
       )}
 
-      <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
-        <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
-          <TableHeader>
-            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
-              <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
-              <TableHead className="py-3 px-4">task_id</TableHead>
-              <TableHead className="py-3 px-4">{translate(locale, 'database', 'StartStamp', customTranslations)}</TableHead>
-              <TableHead className="py-3 px-4">{translate(locale, 'database', 'EndStamp', customTranslations)}</TableHead>
-              <TableHead className="py-3 px-4">note</TableHead>
-              <TableHead className="py-3 px-4">{translate(locale, 'database', 'OriginalStamps', customTranslations)}</TableHead>
-              <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="text-foreground">
-            {logs.map(l => (
-              <TimeLogTableRow
-                key={l.id}
-                l={l}
-                isEditing={editingLogId === l.id}
-                onStartEdit={() => setEditingLogId(l.id)}
-                onSaveEdit={(startTime, endTime, note, reason) => handleSaveEdit(l.id, startTime, endTime, note, reason)}
-                onCancelEdit={() => setEditingLogId(null)}
-                onDelete={() => setDeleteTargetLogId(l.id)}
-                locale={locale}
-                customTranslations={customTranslations}
-                showHistory={showHistoryRecordId === l.id}
-                onToggleHistory={() => setShowHistoryRecordId(showHistoryRecordId === l.id ? null : l.id)}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable<TimeLog>
+        columns={columns}
+        data={logs}
+        keyExtractor={(l) => l.id}
+        maxHeight="400px"
+        className="text-xs font-mono"
+        renderRow={(l) => (
+          <TimeLogTableRow
+            key={l.id}
+            l={l}
+            isEditing={editingLogId === l.id}
+            onStartEdit={() => setEditingLogId(l.id)}
+            onSaveEdit={(startTime, endTime, note, reason) => handleSaveEdit(l.id, startTime, endTime, note, reason)}
+            onCancelEdit={() => setEditingLogId(null)}
+            onDelete={() => setDeleteTargetLogId(l.id)}
+            locale={locale}
+            customTranslations={customTranslations}
+            showHistory={showHistoryRecordId === l.id}
+            onToggleHistory={() => setShowHistoryRecordId(showHistoryRecordId === l.id ? null : l.id)}
+          />
+        )}
+      />
     </CollapsibleCard>
 
     <ConfirmDialog

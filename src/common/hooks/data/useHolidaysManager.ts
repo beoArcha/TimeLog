@@ -38,11 +38,46 @@ export const useHolidaysManager = (options?: UseHolidaysManagerOptions) => {
     await setHolidays(nextHolidays);
   };
 
+  const handleUpdateHoliday = async (
+    id: string,
+    date: string,
+    type: HolidayType,
+    name: string,
+    reason?: string
+  ) => {
+    const nextHolidays = holidays.map(h => {
+      if (h.id !== id) return h;
+      const originalName = h.originalName || h.name;
+      const originalDate = h.originalDate || h.date;
+      const originalType = h.originalType || h.type;
+      const newHistoryItem = {
+        editedAt: new Date().toISOString(),
+        prevName: h.name,
+        prevDate: h.date,
+        prevType: h.type,
+        reason: reason || 'CalendarAdjustment'
+      };
+      const updatedHistory = h.editHistory ? [...h.editHistory, newHistoryItem] : [newHistoryItem];
+      return {
+        ...h,
+        name,
+        date,
+        type,
+        originalName,
+        originalDate,
+        originalType,
+        editHistory: updatedHistory
+      };
+    });
+    await setHolidays(nextHolidays);
+  };
+
   return {
     holidays,
     setHolidaysState,
     setHolidays,
     handleAddHoliday,
+    handleUpdateHoliday,
     handleDeleteHoliday,
   };
 };

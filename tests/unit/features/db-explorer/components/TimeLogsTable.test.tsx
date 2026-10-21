@@ -18,7 +18,6 @@ import {
 } from "@tests/shared/builders/entity-builders";
 import { getMockOxyFlowState, OxyFlowState } from "@tests/shared/test-helpers";
 import { TimeLog } from "@bindings/TimeLog";
-import { PersistenceRouter } from "@common/persistence/PersistenceRouter";
 
 describe("Unit Tests: TimeLogsTable", () => {
   afterEach(() => {
@@ -182,8 +181,8 @@ describe("Unit Tests: TimeLogsTable", () => {
 
   it("should delete log when confirmed by user", async () => {
     // Arrange
-    const setLogs = vi.fn();
-    const state = createMockState(undefined, { setLogs });
+    const handleDeleteTimeLog = vi.fn().mockResolvedValue(undefined);
+    const state = createMockState(undefined, { handleDeleteTimeLog });
 
     render(
       <MockProviders state={state}>
@@ -202,19 +201,14 @@ describe("Unit Tests: TimeLogsTable", () => {
 
     // Assert
     await waitFor(() => {
-      expect(setLogs).toHaveBeenCalled();
+      expect(handleDeleteTimeLog).toHaveBeenCalledWith("l1");
     });
-    const updateFn = setLogs.mock.calls[0][0];
-    const initialLogs = [aTimeLog({ id: "l1" }), aTimeLog({ id: "l2" })];
-    const filtered = updateFn(initialLogs);
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].id).toBe("l2");
   });
 
   it("should not delete log when confirmation is cancelled", () => {
     // Arrange
-    const setLogs = vi.fn();
-    const state = createMockState(undefined, { setLogs });
+    const handleDeleteTimeLog = vi.fn();
+    const state = createMockState(undefined, { handleDeleteTimeLog });
 
     render(
       <MockProviders state={state}>
@@ -232,16 +226,13 @@ describe("Unit Tests: TimeLogsTable", () => {
     fireEvent.click(cancelBtn);
 
     // Assert
-    expect(setLogs).not.toHaveBeenCalled();
+    expect(handleDeleteTimeLog).not.toHaveBeenCalled();
   });
 
   it("should add manual log and close form on form submit", async () => {
     // Arrange
-    const insertSpy = vi
-      .spyOn(PersistenceRouter.getInstance().timeLogs, "insert")
-      .mockResolvedValue(undefined);
-    const setLogs = vi.fn();
-    const state = createMockState(undefined, { setLogs });
+    const handleInsertTimeLog = vi.fn().mockResolvedValue(undefined);
+    const state = createMockState(undefined, { handleInsertTimeLog });
     const { container } = render(
       <MockProviders state={state}>
         <TimeLogsTable />
@@ -254,7 +245,7 @@ describe("Unit Tests: TimeLogsTable", () => {
 
     // Fill note and submit
     const noteInput = container.querySelector(
-      'input[placeholder="What were you working on?"]',
+      '#add-log-note',
     ) as HTMLInputElement;
     if (noteInput) {
       fireEvent.change(noteInput, { target: { value: "Manual work entry" } });
@@ -266,17 +257,13 @@ describe("Unit Tests: TimeLogsTable", () => {
 
     // Assert
     await waitFor(() => {
-      expect(insertSpy).toHaveBeenCalledWith(
+      expect(handleInsertTimeLog).toHaveBeenCalledWith(
         expect.stringMatching(/^log_man_/),
         "t1",
         expect.any(String),
+        expect.any(String),
+        "Manual work entry",
       );
-      expect(setLogs).toHaveBeenCalled();
     });
-    const updater = setLogs.mock.calls[0][0];
-    const updated = updater([]);
-    expect(updated).toHaveLength(1);
-    expect(updated[0].taskId).toBe("t1");
-    expect(updated[0].id).toMatch(/^log_man_/);
   });
 });

@@ -4,17 +4,11 @@ import { render, fireEvent, screen, cleanup, waitFor, within } from '@testing-li
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
-import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 
 describe('Integration Tests: DbExplorer Logs Table', () => {
-  let insertSpy: ReturnType<typeof vi.spyOn>;
-  let deleteSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
-    insertSpy = vi.spyOn(PersistenceRouter.getInstance().timeLogs, 'insert').mockResolvedValue(undefined);
-    deleteSpy = vi.spyOn(PersistenceRouter.getInstance().timeLogs, 'delete').mockResolvedValue(undefined);
     vi.spyOn(window, 'alert').mockImplementation(() => { });
     vi.spyOn(window, 'prompt').mockImplementation(() => 'Mock Prompt Val');
     window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
@@ -30,7 +24,9 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     const setProjects = vi.fn();
     const setTasks = vi.fn();
     const setLogs = vi.fn();
-    const handleEditTimeLog = vi.fn();
+    const handleEditTimeLog = vi.fn().mockResolvedValue(undefined);
+    const handleDeleteTimeLog = vi.fn().mockResolvedValue(undefined);
+    const handleInsertTimeLog = vi.fn().mockResolvedValue(undefined);
 
     const defaultState = {
       projects: [
@@ -46,6 +42,8 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
       ],
       setLogs,
       handleEditTimeLog,
+      handleDeleteTimeLog,
+      handleInsertTimeLog,
       holidays: [],
       setHolidays: vi.fn(),
       patches: [],
@@ -99,12 +97,14 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     return {
       ...utils,
       setLogs,
-      handleEditTimeLog,
+      handleEditTimeLog: value.handleEditTimeLog,
+      handleDeleteTimeLog: value.handleDeleteTimeLog,
+      handleInsertTimeLog: value.handleInsertTimeLog,
     };
   };
 
   it('should show manual add form and submit log when adding manually', async () => {
-    const { container, setLogs } = setup();
+    const { container, handleInsertTimeLog } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
     fireEvent.click(addBtn);
@@ -122,14 +122,19 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(insertSpy).toHaveBeenCalledWith(expect.any(String), 'task_1', '2026-06-20T10:00:00.000Z');
-      expect(setLogs).toHaveBeenCalled();
+      expect(handleInsertTimeLog).toHaveBeenCalledWith(
+        expect.any(String),
+        'task_1',
+        '2026-06-20T10:00:00.000Z',
+        '2026-06-20T11:00:00.000Z',
+        'Manual log entry'
+      );
     });
   });
 
   it('should trigger alert when submitting manual log without selected task', () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => { });
-    const { container, setLogs } = setup({ tasks: [] });
+    const { container, handleInsertTimeLog } = setup({ tasks: [] });
 
     const addBtn = screen.getByText(/add log manually/i);
     fireEvent.click(addBtn);
@@ -138,64 +143,63 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.submit(form);
 
     expect(alertSpy).toHaveBeenCalled();
-    expect(setLogs).not.toHaveBeenCalled();
+    expect(handleInsertTimeLog).not.toHaveBeenCalled();
   });
 
   it('should handle editing and deleting logs when modified in logs table', async () => {
-    const { setLogs, handleEditTimeLog } = setup();
+    const { handleEditTimeLog, handleDeleteTimeLog } = setup();
 
     const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
 
-    const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const editBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /Edit/i });
     fireEvent.click(editBtn);
 
-    const noteInput = logsTableWrapper?.querySelector('input[value="First log"]') as HTMLInputElement;
+    const noteInput = within(logsTableWrapper as HTMLElement).getByDisplayValue('First log');
     fireEvent.change(noteInput, { target: { value: 'Updated note' } });
 
-    const saveBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const saveBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
     expect(handleEditTimeLog).toHaveBeenCalled();
 
     await waitFor(() => {
-      expect(within(logsTableWrapper as HTMLElement).queryByRole('button', { name: /save/i })).toBeNull();
+      expect(within(logsTableWrapper as HTMLElement).queryByRole('button', { name: /Save/i })).toBeNull();
     });
 
-    const deleteBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /delete/i });
+    const deleteBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /Delete/i });
     fireEvent.click(deleteBtn);
 
     const dialog = document.querySelector('[role="alertdialog"]')!;
     expect(dialog).not.toBeNull();
-    const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /delete/i });
+    const confirmBtn = within(dialog as HTMLElement).getByRole('button', { name: /Delete/i });
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(deleteSpy).toHaveBeenCalledWith('log_1');
-      expect(setLogs).toHaveBeenCalled();
+      expect(handleDeleteTimeLog).toHaveBeenCalledWith('log_1');
     });
   });
 
   it('should exit edit mode when editing is started and canceled', () => {
-    const { setLogs } = setup();
-    const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
-
-    const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
-    fireEvent.click(editBtn);
-
-    const cancelBtn = logsTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
-    fireEvent.click(cancelBtn);
-
-    expect(setLogs).not.toHaveBeenCalled();
-  });
-
-  it('should close editing without triggering setLogs when saved with no changes', () => {
     const { handleEditTimeLog } = setup();
     const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
 
-    const editBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const editBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /Edit/i });
     fireEvent.click(editBtn);
 
-    const saveBtn = logsTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const cancelBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    expect(handleEditTimeLog).not.toHaveBeenCalled();
+  });
+
+  it('should close editing without triggering handleEditTimeLog when saved with no changes', () => {
+    const { handleEditTimeLog } = setup();
+    const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
+
+    const editBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /Edit/i });
+    fireEvent.click(editBtn);
+
+    const saveBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
     expect(handleEditTimeLog).not.toHaveBeenCalled();
@@ -226,7 +230,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     setup(customValue);
 
     const logsTableWrapper = screen.getByText(/(time_logs|Time Logs) Table/i).closest('.border');
-    const historyBtn = logsTableWrapper?.querySelector('tbody tr button') as HTMLElement;
+    const historyBtn = within(logsTableWrapper as HTMLElement).getByRole('button', { name: /Revision History/i });
     expect(screen.queryByText(/Adjusted start time/i)).toBeNull();
 
     fireEvent.click(historyBtn);
@@ -252,7 +256,7 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
   });
 
   it('should submit with defaults when manual add form is submitted with empty end time and note', async () => {
-    const { container, setLogs } = setup();
+    const { container, handleInsertTimeLog } = setup();
 
     const addBtn = screen.getByText(/add log manually/i);
     fireEvent.click(addBtn);
@@ -270,8 +274,14 @@ describe('Integration Tests: DbExplorer Logs Table', () => {
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(insertSpy).toHaveBeenCalled();
-      expect(setLogs).toHaveBeenCalled();
+      expect(handleInsertTimeLog).toHaveBeenCalledWith(
+        expect.any(String),
+        'task_1',
+        '2026-06-20T10:00:00.000Z',
+        null,
+        'Manual time registration'
+      );
     });
   });
 });
+

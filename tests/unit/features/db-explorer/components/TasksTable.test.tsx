@@ -57,9 +57,9 @@ describe("Unit Tests: TasksTable", () => {
 
   it("should open edit form, modify task name, and save with audit history", () => {
     // Arrange
-    const setTasks = vi.fn();
+    const handleUpdateTask = vi.fn().mockResolvedValue(undefined);
     const task = aTask({ id: "t1", name: "Task Initial", completed: false });
-    const state = createMockState([task], { setTasks });
+    const state = createMockState([task], { handleUpdateTask });
 
     render(
       <MockProviders state={state}>
@@ -78,20 +78,17 @@ describe("Unit Tests: TasksTable", () => {
     fireEvent.click(saveBtn);
 
     // Assert
-    expect(setTasks).toHaveBeenCalled();
-    const updater = setTasks.mock.calls[0][0];
-    const updated = updater([task]);
-    expect(updated[0].name).toBe("Task Completed Now");
-    expect(updated[0].originalName).toBe("Task Initial");
-    expect(updated[0].editHistory).toHaveLength(1);
-    expect(updated[0].editHistory![0].prevName).toBe("Task Initial");
+    expect(handleUpdateTask).toHaveBeenCalledWith("t1", {
+      name: "Task Completed Now",
+      completed: false,
+    });
   });
 
   it("should not update task or editHistory when saving without modifications", () => {
     // Arrange
-    const setTasks = vi.fn();
+    const handleUpdateTask = vi.fn().mockResolvedValue(undefined);
     const task = aTask({ id: "t1", name: "Unchanged Task", completed: false });
-    const state = createMockState([task], { setTasks });
+    const state = createMockState([task], { handleUpdateTask });
 
     render(
       <MockProviders state={state}>
@@ -107,11 +104,7 @@ describe("Unit Tests: TasksTable", () => {
     fireEvent.click(saveBtn);
 
     // Assert
-    expect(setTasks).toHaveBeenCalled();
-    const updater = setTasks.mock.calls[0][0];
-    const updated = updater([task]);
-    expect(updated[0].name).toBe("Unchanged Task");
-    expect(updated[0].editHistory).toBeUndefined();
+    expect(handleUpdateTask).not.toHaveBeenCalled();
   });
 
   it("should exit editing mode when cancel button is clicked", () => {
@@ -140,10 +133,9 @@ describe("Unit Tests: TasksTable", () => {
 
   it("should delete task and associated logs when confirmed by user", async () => {
     // Arrange
-    const setTasks = vi.fn();
-    const setLogs = vi.fn();
+    const handleDeleteTask = vi.fn().mockResolvedValue(undefined);
     const task = aTask({ id: "t1" });
-    const state = createMockState([task], { setTasks, setLogs });
+    const state = createMockState([task], { handleDeleteTask });
 
     render(
       <MockProviders state={state}>
@@ -162,17 +154,8 @@ describe("Unit Tests: TasksTable", () => {
 
     // Assert
     await waitFor(() => {
-      expect(setTasks).toHaveBeenCalled();
-      expect(setLogs).toHaveBeenCalled();
+      expect(handleDeleteTask).toHaveBeenCalledWith("t1");
     });
-
-    const taskFilter = setTasks.mock.calls[0][0];
-    expect(taskFilter([task])).toHaveLength(0);
-
-    const logFilter = setLogs.mock.calls[0][0];
-    expect(
-      logFilter([aTimeLog({ taskId: "t1" }), aTimeLog({ taskId: "t2" })]),
-    ).toHaveLength(1);
   });
 
   it("should not delete task when user cancels confirmation", () => {
@@ -253,7 +236,6 @@ describe("Unit Tests: TasksTable", () => {
     // Assert
     expect(screen.getByText("id")).toBeTruthy();
     expect(screen.getByText("name")).toBeTruthy();
-    const rows = container.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(0);
+    expect(container.querySelector('[data-slot="empty-state"]')).toBeTruthy();
   });
 });

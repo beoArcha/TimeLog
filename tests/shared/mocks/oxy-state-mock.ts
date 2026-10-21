@@ -83,8 +83,11 @@ export interface OxyFlowState {
   handleStartTimer?: Mock | ((projectId: string, taskId: string) => Promise<unknown>);
   handleStopTimer?: Mock | (() => Promise<unknown>);
   handleEditTimeLog?: Mock | ((id: string, startTime: string, endTime: string | null, note: string | null) => Promise<unknown>);
+  handleDeleteTimeLog?: Mock | ((id: string) => Promise<unknown>);
+  handleInsertTimeLog?: Mock | ((id: string, taskId: string, startTime: string, endTime?: string | null, note?: string | null) => Promise<unknown>);
   handleRestoreState?: Mock | ((payload: unknown) => Promise<unknown>);
   handleAddHoliday?: Mock | ((date: string, type: string, name: string) => Promise<unknown>);
+  handleUpdateHoliday?: Mock | ((id: string, date: string, type: 'holiday' | 'leave', name: string, reason?: string) => Promise<unknown>);
   handleDeleteHoliday?: Mock | ((id: string) => Promise<unknown>);
   handleMinimizeToTray?: Mock | (() => Promise<void> | void);
   isMinimized?: boolean;
@@ -166,8 +169,11 @@ export const getMockOxyFlowState = (): OxyFlowState => ({
   handleStartTimer: vi.fn(),
   handleStopTimer: vi.fn(),
   handleEditTimeLog: vi.fn(),
+  handleDeleteTimeLog: vi.fn(),
+  handleInsertTimeLog: vi.fn(),
   handleRestoreState: vi.fn(),
   handleAddHoliday: vi.fn(),
+  handleUpdateHoliday: vi.fn(),
   handleDeleteHoliday: vi.fn(),
   showToast: vi.fn(),
 });

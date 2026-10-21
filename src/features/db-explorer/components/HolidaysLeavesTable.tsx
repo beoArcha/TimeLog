@@ -4,17 +4,10 @@ import { HolidayLeave } from '@bindings/HolidayLeave';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { translate } from '@common/i18n/translator';
-import { getNextId } from '@common/utils/idGenerator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@components/ui/table';
+import { DataTable, type DataTableColumn } from '@components/DataTable';
+import { TableRow, TableCell } from '@components/ui/table';
 import { Input } from '@components/ui/input';
 import { NativeSelect } from '@components/ui/select';
 import { Button } from '@components/ui/button';
@@ -22,9 +15,19 @@ import { Badge } from '@components/ui/badge';
 import { Caption, Overline } from '@components/ui/typography';
 import { HolidayType } from '@bindings/HolidayType';
 
-export default function HolidaysLeavesTable() {
+export interface HolidaysLeavesTableProps {
+  requireConfirm?: boolean;
+  hideAddButton?: boolean;
+  wrapperClassName?: string;
+}
+
+export default function HolidaysLeavesTable({
+  requireConfirm = true,
+  hideAddButton = false,
+  wrapperClassName = 'p-6 rounded-3xl border border-border bg-card shadow-xl',
+}: HolidaysLeavesTableProps = {}) {
   const { locale, customTranslations } = useLocale();
-  const { holidays, setHolidays } = useData();
+  const { holidays, handleAddHoliday, handleUpdateHoliday, handleDeleteHoliday } = useData();
 
   const [editingHolidayId, setEditingHolidayId] = useState<string | null>(null);
   const [holidayForm, setHolidayForm] = useState<{ name: string; date: string; type: HolidayType; reason: string }>({ name: '', date: '', type: 'holiday', reason: '' });
@@ -41,51 +44,37 @@ export default function HolidaysLeavesTable() {
     });
   };
 
-  const saveEditHoliday = (id: string) => {
-    setHolidays(curr => curr.map(h => {
-      if (h.id === id) {
-        const hasChanged = h.name !== holidayForm.name || h.date !== holidayForm.date || h.type !== holidayForm.type;
-        if (!hasChanged) {
-          setEditingHolidayId(null);
-          return h;
-        }
-
-        const originalName = h.originalName || h.name;
-        const originalDate = h.originalDate || h.date;
-        const originalType = h.originalType || h.type;
-
-        const newHistoryItem = {
-          editedAt: new Date().toISOString(),
-          prevName: h.name,
-          prevDate: h.date,
-          prevType: h.type,
-          reason: holidayForm.reason || translate(locale, 'database', 'CalendarAdjustment', customTranslations)
-        };
-
-        const updatedHistory = h.editHistory ? [...h.editHistory, newHistoryItem] : [newHistoryItem];
-
-        return {
-          ...h,
-          name: holidayForm.name,
-          date: holidayForm.date,
-          type: holidayForm.type,
-          originalName,
-          originalDate,
-          originalType,
-          editHistory: updatedHistory
-        };
-      }
-      return h;
-    }));
+  const saveEditHoliday = async (id: string) => {
+    const h = holidays.find(item => item.id === id);
+    if (!h) return;
+    const hasChanged = h.name !== holidayForm.name || h.date !== holidayForm.date || h.type !== holidayForm.type;
+    if (!hasChanged) {
+      setEditingHolidayId(null);
+      return;
+    }
+    if (handleUpdateHoliday) {
+      await handleUpdateHoliday(id, holidayForm.date, holidayForm.type, holidayForm.name, holidayForm.reason);
+    }
     setEditingHolidayId(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTargetId) return;
     const id = deleteTargetId;
     setDeleteTargetId(null);
-    setHolidays(prev => prev.filter(x => x.id !== id));
+    if (handleDeleteHoliday) {
+      await handleDeleteHoliday(id);
+    }
   };
+
+  const columns: DataTableColumn<HolidayLeave>[] = [
+    { key: 'id', header: 'id' },
+    { key: 'date', header: 'date' },
+    { key: 'type', header: 'type' },
+    { key: 'name', header: 'name' },
+    { key: 'originalValue', header: translate(locale, 'database', 'OriginalValue', customTranslations) },
+    { key: 'actions', header: translate(locale, 'common', 'Actions', customTranslations), align: 'right' },
+  ];
 
   return (
     <>
@@ -95,45 +84,40 @@ export default function HolidaysLeavesTable() {
         iconColor="text-rose-400"
         titleColor="text-rose-400"
         defaultExpanded={true}
-        wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
+        wrapperClassName={wrapperClassName}
         headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-rose-400"
         headerRight={
-          <Button
-            variant="outline"
-            size="xs"
-            onClick={() => {
-              const newEntity: HolidayLeave = {
-                id: getNextId(holidays, 'e'),
-                date: new Date().toISOString().slice(0, 10),
-                type: 'holiday',
-                name: translate(locale, 'database', 'NewHolidayDefaultName', customTranslations)
-              };
-              setHolidays(prev => [...prev, newEntity]);
-            }}
-            className="rounded-xl font-bold transition-all cursor-pointer h-auto py-1.5 px-3"
-          >
-            {translate(locale, 'calendar', 'AddLeave', customTranslations)}
-          </Button>
+          hideAddButton ? null : (
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={() => {
+                if (handleAddHoliday) {
+                  handleAddHoliday(
+                    new Date().toISOString().slice(0, 10),
+                    'holiday',
+                    translate(locale, 'database', 'NewHolidayDefaultName', customTranslations)
+                  );
+                }
+              }}
+              className="rounded-xl font-bold transition-all cursor-pointer h-auto py-1.5 px-3"
+            >
+              {translate(locale, 'calendar', 'AddLeave', customTranslations)}
+            </Button>
+          )
         }
       >
-        <div className="overflow-x-auto w-full max-h-[300px] overflow-y-auto">
-          <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
-            <TableHeader>
-              <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
-                <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
-                <TableHead className="py-3 px-4">date</TableHead>
-                <TableHead className="py-3 px-4">type</TableHead>
-                <TableHead className="py-3 px-4">name</TableHead>
-                <TableHead className="py-3 px-4">{translate(locale, 'database', 'OriginalValue', customTranslations)}</TableHead>
-                <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="text-foreground">
-              {holidays.map(h => {
-                const isEditing = editingHolidayId === h.id;
-                const hasHistory = !!(h.originalName || h.originalDate || h.originalType || h.editHistory);
+        <DataTable<HolidayLeave>
+          columns={columns}
+          data={holidays}
+          keyExtractor={(h) => h.id}
+          maxHeight="300px"
+          className="text-xs font-mono"
+          renderRow={(h) => {
+            const isEditing = editingHolidayId === h.id;
+            const hasHistory = !!(h.originalName || h.originalDate || h.originalType || h.editHistory);
 
-                return (
+            return (
                   <React.Fragment key={h.id}>
                     <TableRow className="border-b border-border/50 hover:bg-muted/50">
                       <TableCell className="py-3.5 px-4 font-bold text-muted-foreground">{h.id}</TableCell>
@@ -246,12 +230,18 @@ export default function HolidaysLeavesTable() {
                               <Button
                                 variant="ghost"
                                 size="icon-xs"
-                                onClick={() => setDeleteTargetId(h.id)}
+                                onClick={() => {
+                                  if (requireConfirm) {
+                                    setDeleteTargetId(h.id);
+                                  } else if (handleDeleteHoliday) {
+                                    handleDeleteHoliday(h.id);
+                                  }
+                                }}
                                 className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
                                 title={translate(locale, 'common', 'Delete', customTranslations)}
                                 aria-label={translate(locale, 'common', 'Delete', customTranslations)}
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3.5 h-3.5 lucide-trash2" />
                               </Button>
                             </>
                           )}
@@ -279,11 +269,9 @@ export default function HolidaysLeavesTable() {
                     )}
                   </React.Fragment>
                 );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </CollapsibleCard>
+              }}
+            />
+          </CollapsibleCard>
 
       <ConfirmDialog
         open={deleteTargetId !== null}

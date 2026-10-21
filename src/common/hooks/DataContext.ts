@@ -33,12 +33,15 @@ export interface TimerState {
   handleStartTimer: DataState['handleStartTimer'];
   handleStopTimer: DataState['handleStopTimer'];
   handleEditTimeLog: DataState['handleEditTimeLog'];
+  handleDeleteTimeLog: DataState['handleDeleteTimeLog'];
+  handleInsertTimeLog: DataState['handleInsertTimeLog'];
 }
 
 export interface HolidaysState {
   holidays: DataState['holidays'];
   setHolidays: DataState['setHolidays'];
   handleAddHoliday: DataState['handleAddHoliday'];
+  handleUpdateHoliday: DataState['handleUpdateHoliday'];
   handleDeleteHoliday: DataState['handleDeleteHoliday'];
 }
 
@@ -103,6 +106,8 @@ export const useTimer = (): TimerState => {
     handleStartTimer: data.handleStartTimer,
     handleStopTimer: data.handleStopTimer,
     handleEditTimeLog: data.handleEditTimeLog,
+    handleDeleteTimeLog: data.handleDeleteTimeLog,
+    handleInsertTimeLog: data.handleInsertTimeLog,
   };
 };
 
@@ -135,6 +140,8 @@ export const useTimerSafe = (): TimerState | null => {
     handleStartTimer: data.handleStartTimer,
     handleStopTimer: data.handleStopTimer,
     handleEditTimeLog: data.handleEditTimeLog,
+    handleDeleteTimeLog: data.handleDeleteTimeLog,
+    handleInsertTimeLog: data.handleInsertTimeLog,
   };
 };
 
@@ -144,6 +151,7 @@ export const useHolidays = (): HolidaysState => {
     holidays: data.holidays,
     setHolidays: data.setHolidays,
     handleAddHoliday: data.handleAddHoliday,
+    handleUpdateHoliday: data.handleUpdateHoliday,
     handleDeleteHoliday: data.handleDeleteHoliday,
   };
 };

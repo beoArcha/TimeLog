@@ -10,7 +10,7 @@ export class PersistenceBoundaryRule implements ArchitectureRule {
   public readonly description =
     "Forbids presentation components from directly importing PersistencePlugin or storage managers.";
 
-  private readonly presentationDirs = new Set(["components", "layouts"]);
+  private readonly presentationDirs = new Set(["components", "layouts", "features"]);
 
   public check(graph: ModuleGraph): RuleViolation[] {
     const violations: RuleViolation[] = [];
@@ -22,7 +22,8 @@ export class PersistenceBoundaryRule implements ArchitectureRule {
           if (
             specifier.includes("persistenceplugin") ||
             specifier.includes("datamanager") ||
-            specifier.includes("persistencecommands")
+            specifier.includes("persistencecommands") ||
+            specifier.includes("persistencerouter")
           ) {
             violations.push({
               rule: this.name,
