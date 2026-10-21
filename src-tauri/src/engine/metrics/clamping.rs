@@ -2,6 +2,7 @@ use crate::engine::EngineError;
 use crate::types::ClampedTimeLog;
 use chrono::{DateTime, Utc};
 
+#[derive(Debug, Clone, Copy)]
 pub struct IntervalInput<'a> {
     pub id: &'a str,
     pub project_id: &'a str,
