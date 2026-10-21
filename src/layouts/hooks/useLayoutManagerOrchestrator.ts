@@ -7,6 +7,7 @@ import { useCliSession } from '@features/cli/context/CliSessionContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { translate } from '@common/i18n/translator';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
+import { isFullLayout } from '@common/constants/layoutVariants';
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from './useGuiLogic';
 
@@ -98,7 +99,7 @@ export const useLayoutManagerOrchestrator = () => {
   useGlobalShortcuts({
     onToggleTimer: handleToggleTimer,
     onSwitchTab: (index) => {
-      if (layoutVariant === 'full' && index < LARGE_TAB_IDS.length) {
+      if (isFullLayout(layoutVariant) && index < LARGE_TAB_IDS.length) {
         setActiveLargeTab(LARGE_TAB_IDS[index]);
       }
     },
