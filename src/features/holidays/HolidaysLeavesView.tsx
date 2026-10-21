@@ -4,7 +4,8 @@ import { translate } from '@common/i18n/translator';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
-import { Heading, Overline } from '@components/ui/typography';
+import { Overline } from '@components/ui/typography';
+import { ViewHeader } from '@components/ViewHeader';
 import { Input } from '@components/ui/input';
 import { NativeSelect } from '@components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@components/ui/table';
@@ -29,22 +30,21 @@ export default function HolidaysLeavesView() {
 
   return (
     <div className="p-6 rounded-[2rem] border border-border bg-card shadow-xs flex flex-col gap-6 transition-all duration-300">
-      <div>
-        <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
-          {translate(locale, 'calendar', 'ResourceDatabaseTable', customTranslations)}
-        </Badge>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1.5">
-          <Heading level={2} className="font-sans font-bold text-2xl flex items-center gap-2 text-foreground">
-            <Calendar className="w-6 h-6 text-orange-400" />
-            {translate(locale, 'calendar', 'HolidaysVacations', customTranslations)}
-          </Heading>
-        </div>
-      </div>
+      <ViewHeader
+        badge={
+          <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
+            {translate(locale, 'calendar', 'ResourceDatabaseTable', customTranslations)}
+          </Badge>
+        }
+        title={translate(locale, 'calendar', 'HolidaysVacations', customTranslations)}
+        icon={Calendar}
+        iconColor="text-primary"
+      />
 
       <CollapsibleCard
         title={translate(locale, 'calendar', 'RegisterNewDayOff', customTranslations)}
         icon={Plus}
-        iconColor="text-orange-400"
+        iconColor="text-primary"
         defaultExpanded={true}
         wrapperClassName="p-6 rounded-3xl border border-border bg-muted/30"
         headerClassName="text-xs font-bold font-mono tracking-wide text-foreground"
@@ -67,7 +67,12 @@ export default function HolidaysLeavesView() {
               <Input type="text" value={newHolidayName} onChange={e => setNewHolidayName(e.target.value)} placeholder={translate(locale, 'calendar', 'EGVibeDancingLeave', customTranslations)} required className="w-full font-sans" />
             </div>
           </div>
-          <Button type="submit" className="mt-4 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-500/20 transition-all w-full md:w-auto h-auto">
+          <Button
+            type="submit"
+            variant="accent"
+            size="sm"
+            className="mt-4 gap-2 w-full md:w-auto"
+          >
             <Plus className="w-4 h-4" /> {translate(locale, 'common', 'Save', customTranslations)}
           </Button>
         </form>

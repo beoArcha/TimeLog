@@ -8,3 +8,5 @@ export * from './EmptyState';
 export * from './DataTable';
 export * from './RootErrorBoundary';
 export * from './AnimatedCard';
+export * from './ViewHeader';
+export * from './FilterBar';

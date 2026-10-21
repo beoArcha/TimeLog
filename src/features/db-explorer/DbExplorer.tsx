@@ -10,7 +10,7 @@ import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
-import { Heading, Text } from '@components/ui/typography';
+import { ViewHeader } from '@components/ViewHeader';
 import { exportDatabaseAsJson } from '@common/utils/databaseExport';
 
 export default function DbExplorer() {
@@ -23,31 +23,29 @@ export default function DbExplorer() {
 
   return (
     <div id="db-explorer-panel" className="text-left flex flex-col gap-8 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 border-white/5">
-        <div>
-          <Heading level={2} className="flex items-center gap-2 dark:text-white">
-            <Database className="w-5.5 h-5.5 text-orange-500 animate-pulse" />
-            <span>{translate(locale, 'database', 'DbTitle', customTranslations)}</span>
-          </Heading>
-          <Text size="sm" variant="muted" className="mt-1 max-w-2xl leading-relaxed">
-            {translate(locale, 'database', 'DbDesc', customTranslations)}
-          </Text>
-        </div>
-        <div className="flex flex-col sm:items-end gap-2 shrink-0">
-          <Badge variant="orange" size="sm" className="font-mono uppercase tracking-wider self-start sm:self-auto">
-            {translate(locale, 'database', 'TauriDriver', customTranslations)}
-          </Badge>
-          <Button
-            data-testid="export-db-btn"
-            variant="outline"
-            size="xs"
-            onClick={handleExportDatabase}
-            className="text-xs uppercase font-bold tracking-wider cursor-pointer h-auto py-1.5 px-3"
-          >
-            {translate(locale, 'database', 'ExportDb', customTranslations)}
-          </Button>
-        </div>
-      </div>
+      <ViewHeader
+        className="border-b pb-4 border-border/40"
+        title={translate(locale, 'database', 'DbTitle', customTranslations)}
+        icon={Database}
+        iconColor="text-primary animate-pulse"
+        description={translate(locale, 'database', 'DbDesc', customTranslations)}
+        actions={
+          <div className="flex flex-col sm:items-end gap-2 shrink-0">
+            <Badge variant="orange" size="sm" className="font-mono uppercase tracking-wider self-start sm:self-auto">
+              {translate(locale, 'database', 'TauriDriver', customTranslations)}
+            </Badge>
+            <Button
+              data-testid="export-db-btn"
+              variant="outline"
+              size="xs"
+              onClick={handleExportDatabase}
+              className="text-xs uppercase font-bold tracking-wider cursor-pointer h-auto py-1.5 px-3"
+            >
+              {translate(locale, 'database', 'ExportDb', customTranslations)}
+            </Button>
+          </div>
+        }
+      />
 
       <div className="flex flex-col gap-8">
         {isLoading ? (

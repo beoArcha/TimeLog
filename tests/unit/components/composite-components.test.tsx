@@ -9,6 +9,9 @@ import { SegmentedControl } from '@components/SegmentedControl';
 import { SearchInput } from '@components/SearchInput';
 import { EmptyState } from '@components/EmptyState';
 import { DataTable } from '@components/DataTable';
+import { ViewHeader } from '@components/ViewHeader';
+import { FilterBar } from '@components/FilterBar';
+import { Button } from '@components/ui/button';
 import { Activity, Clock } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 
@@ -269,6 +272,54 @@ describe('Unit Tests: Composite Components', () => {
       expect(screen.getByText('Alice')).toBeTruthy();
       expect(screen.getByText('Bob')).toBeTruthy();
       expect(screen.getByText('2')).toBeTruthy();
+    });
+  });
+
+  describe('ViewHeader', () => {
+    it('should render title, description, badge, and action buttons', () => {
+      // Arrange
+      render(
+        <ViewHeader
+          title="Overview Analytics"
+          description="Detailed breakdown of active time"
+          badge={<span>Active Badge</span>}
+          actions={<Button variant="outline" size="sm">Refresh</Button>}
+          testId="view-header-test"
+        />
+      );
+
+      // Act & Assert
+      expect(screen.getByTestId('view-header-test')).toBeTruthy();
+      expect(screen.getByText('Overview Analytics')).toBeTruthy();
+      expect(screen.getByText('Detailed breakdown of active time')).toBeTruthy();
+      expect(screen.getByText('Active Badge')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Refresh' })).toBeTruthy();
+    });
+  });
+
+  describe('FilterBar', () => {
+    it('should render search input, children elements, and right actions', () => {
+      // Arrange
+      const onSearchChange = vi.fn();
+      render(
+        <FilterBar
+          search={{
+            value: 'filter-text',
+            onChange: onSearchChange,
+            placeholder: 'Search items...',
+          }}
+          rightActions={<span>Right Action</span>}
+          testId="filter-bar-test"
+        >
+          <span>Middle Filter</span>
+        </FilterBar>
+      );
+
+      // Act & Assert
+      expect(screen.getByTestId('filter-bar-test')).toBeTruthy();
+      expect(screen.getByDisplayValue('filter-text')).toBeTruthy();
+      expect(screen.getByText('Middle Filter')).toBeTruthy();
+      expect(screen.getByText('Right Action')).toBeTruthy();
     });
   });
 
