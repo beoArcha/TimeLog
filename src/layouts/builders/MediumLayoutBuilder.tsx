@@ -8,6 +8,7 @@ import TaskListView from '@features/tasks/TaskListView';
 import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
 import SettingsTab from '@features/settings/SettingsTab';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 
 type MediumLayoutBuilderProps = Partial<Omit<LayoutRouterProps, 'variant' | 'commonProps'>> & {
   state: GuiState;
@@ -25,7 +26,8 @@ export default function MediumLayoutBuilder({
   const [internalDockPos, setInternalDockPos] = useState<'right' | 'left'>(() => {
     try {
       return (localStorage.getItem('oxy_medium_dock_pos') as 'right' | 'left') || 'right';
-    } catch {
+    } catch (err) {
+      ErrorHandler.handle(new PersistenceException('Failed to read medium dock position from localStorage', err, 'WARN_STORAGE_READ', 'WARN'));
       return 'right';
     }
   });
@@ -40,8 +42,8 @@ export default function MediumLayoutBuilder({
       setInternalDockPos(next);
       try {
         localStorage.setItem('oxy_medium_dock_pos', next);
-      } catch (_err) {
-        // Storage access may fail in quota-restricted or sandboxed environments
+      } catch (err) {
+        ErrorHandler.handle(new PersistenceException('Failed to save medium dock position to localStorage', err, 'WARN_STORAGE_WRITE', 'WARN'));
       }
     }
   };

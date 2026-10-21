@@ -12,6 +12,7 @@ import { Heading, Caption } from '@components/ui/typography';
 import versionsData from '@app/versions.json';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 
 export default function SettingsTab() {
   const { customTranslations, locale } = useLocale();
@@ -26,8 +27,8 @@ export default function SettingsTab() {
       setLogs([]);
       try {
         localStorage.removeItem('oxytime_state_db_6');
-      } catch {
-        // Safe fallback for environments without localStorage
+      } catch (err) {
+        ErrorHandler.handle(new PersistenceException('Failed to remove state DB from localStorage during reset', err, 'ERR_SETTINGS_RESET'));
       }
       toast.success(translate(locale, 'engine', 'ResetSuccess', customTranslations));
     } else {

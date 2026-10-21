@@ -6,6 +6,7 @@ import { useData } from '@common/hooks/DataContext';
 import { useCliSession } from '@features/cli/context/CliSessionContext';
 import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { translate } from '@common/i18n/translator';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from './useGuiLogic';
 
@@ -76,7 +77,8 @@ export const useLayoutManagerOrchestrator = () => {
   const [mediumDockPosition, setMediumDockPosition] = useState<'right' | 'left'>(() => {
     try {
       return (localStorage.getItem('oxy_medium_dock_pos') as 'right' | 'left') || 'right';
-    } catch {
+    } catch (err) {
+      ErrorHandler.handle(new PersistenceException('Failed to read medium dock position from localStorage', err, 'WARN_STORAGE_READ', 'WARN'));
       return 'right';
     }
   });
@@ -86,8 +88,8 @@ export const useLayoutManagerOrchestrator = () => {
       const next = prev === 'right' ? 'left' : 'right';
       try {
         localStorage.setItem('oxy_medium_dock_pos', next);
-      } catch (_err) {
-        // Storage access may fail in quota-restricted or sandboxed environments
+      } catch (err) {
+        ErrorHandler.handle(new PersistenceException('Failed to save medium dock position to localStorage', err, 'WARN_STORAGE_WRITE', 'WARN'));
       }
       return next;
     });
