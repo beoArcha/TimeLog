@@ -98,7 +98,7 @@ describe('Unit Tests: PersistencePlugin - Projects', () => {
     expect(state.projects[0].tags).toBeUndefined();
   });
 
-  it('should close active log when archiving a project', async () => {
+  it('should toggle archived without mutating active log directly in persistence', async () => {
     // Arrange
     await plugin.projects.add({ name: 'Active Proj', color: '#ff0000' });
     let state = await plugin.core.load();
@@ -117,7 +117,6 @@ describe('Unit Tests: PersistencePlugin - Projects', () => {
 
     // Assert
     expect(state.projects[0].archived).toBe(true);
-    expect(state.activeLog).toBeNull();
-    expect(state.logs[0].endTime).toBeDefined();
+    expect(state.activeLog).not.toBeNull();
   });
 });

@@ -1,9 +1,33 @@
 import { IProjectsPersistence } from '@common/persistence/IPersistence';
+import { Project } from '@bindings/Project';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { PersistenceException } from '@common/exceptions';
 import { ILocalStorageStateStore } from './LocalStorageStateStore';
 
 export class LocalStorageProjectsPersistence implements IProjectsPersistence {
   constructor(private readonly store: ILocalStorageStateStore) {}
+
+  private findProjectOrThrow(projects: readonly Project[], id: string): Project {
+    const project = projects.find((p) => p.id === id);
+    if (!project) {
+      throw new PersistenceException(
+        `Project with ID '${id}' not found`,
+        undefined,
+        'ERR_PERSISTENCE_PROJECT_NOT_FOUND'
+      );
+    }
+    return project;
+  }
+
+  private async mutateProject(
+    projectId: string,
+    mutator: (project: Project) => void
+  ): Promise<TimerRepositoryState> {
+    const current = await this.store.getStateOrDefault();
+    const project = this.findProjectOrThrow(current.projects, projectId);
+    mutator(project);
+    return this.store.save(current);
+  }
 
   async add(input: {
     name: string;
@@ -13,35 +37,24 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     tags?: string[] | null;
   }): Promise<TimerRepositoryState> {
     const current = await this.store.getStateOrDefault();
-    const now = new Date().toISOString();
-    const newProject = {
+    const newProject: Project = {
       id: crypto.randomUUID(),
       name: input.name,
       color: input.color,
-      createdAt: now,
+      createdAt: new Date().toISOString(),
       archived: false,
-      description: input.description || undefined,
-      icon: input.icon || undefined,
-      tags: input.tags || undefined,
+      description: input.description ?? undefined,
+      icon: input.icon ?? undefined,
+      tags: input.tags ?? undefined,
     };
     current.projects.push(newProject);
     return this.store.save(current);
   }
 
   async toggleArchive(projectId: string): Promise<TimerRepositoryState> {
-    const current = await this.store.getStateOrDefault();
-    const project = current.projects.find((p) => p.id === projectId);
-    if (project) {
+    return this.mutateProject(projectId, (project) => {
       project.archived = !project.archived;
-      if (project.archived && current.activeLog && current.activeLog.projectId === projectId) {
-        const now = new Date().toISOString();
-        current.logs = current.logs.map((log) =>
-          log.id === current.activeLog?.id ? { ...log, endTime: now } : log
-        );
-        current.activeLog = null;
-      }
-    }
-    return this.store.save(current);
+    });
   }
 
   async update(
@@ -52,24 +65,18 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     icon: string | null,
     tags: string[] | null
   ): Promise<TimerRepositoryState> {
-    const current = await this.store.getStateOrDefault();
-    const project = current.projects.find((p) => p.id === projectId);
-    if (project) {
+    return this.mutateProject(projectId, (project) => {
       project.name = name;
       project.color = color;
-      project.description = description || undefined;
-      project.icon = icon || undefined;
-      project.tags = tags || undefined;
-    }
-    return this.store.save(current);
+      project.description = description ?? undefined;
+      project.icon = icon ?? undefined;
+      project.tags = tags ?? undefined;
+    });
   }
 
   async rename(projectId: string, name: string): Promise<TimerRepositoryState> {
-    const current = await this.store.getStateOrDefault();
-    const project = current.projects.find((p) => p.id === projectId);
-    if (project) {
+    return this.mutateProject(projectId, (project) => {
       project.name = name;
-    }
-    return this.store.save(current);
+    });
   }
 }

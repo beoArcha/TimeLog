@@ -57,7 +57,7 @@ describe('LocalStorageProjectsPersistence', () => {
     expect(storeMock.save).toHaveBeenCalledTimes(1);
   });
 
-  it('should close active log when archiving its project', async () => {
+  it('should not mutate logs or active log when toggling archive in persistence', async () => {
     // Arrange
     const project = aProject({ id: 'p-1', archived: false });
     const activeLog = aTimeLog({ id: 'l-active', projectId: 'p-1', endTime: null });
@@ -72,8 +72,9 @@ describe('LocalStorageProjectsPersistence', () => {
     const result = await projectsPersistence.toggleArchive('p-1');
 
     // Assert
-    expect(result.activeLog).toBeNull();
-    expect(result.logs[0].endTime).toBeDefined();
+    expect(result.projects[0].archived).toBe(true);
+    expect(result.activeLog).toEqual(activeLog);
+    expect(result.logs[0].endTime).toBeNull();
   });
 
   it('should update project fields when update is called', async () => {
@@ -117,5 +118,50 @@ describe('LocalStorageProjectsPersistence', () => {
 
     // Assert
     expect(result.projects[0].name).toBe('After Rename');
+  });
+
+  it('should throw PersistenceException when toggleArchive is called on non-existent project', async () => {
+    // Arrange
+    vi.mocked(storeMock.getStateOrDefault).mockResolvedValueOnce({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+
+    // Act & Assert
+    await expect(projectsPersistence.toggleArchive('missing-id')).rejects.toThrow(
+      "Project with ID 'missing-id' not found"
+    );
+  });
+
+  it('should throw PersistenceException when update is called on non-existent project', async () => {
+    // Arrange
+    vi.mocked(storeMock.getStateOrDefault).mockResolvedValueOnce({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+
+    // Act & Assert
+    await expect(
+      projectsPersistence.update('missing-id', 'Name', '#fff', null, null, null)
+    ).rejects.toThrow("Project with ID 'missing-id' not found");
+  });
+
+  it('should throw PersistenceException when rename is called on non-existent project', async () => {
+    // Arrange
+    vi.mocked(storeMock.getStateOrDefault).mockResolvedValueOnce({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+
+    // Act & Assert
+    await expect(projectsPersistence.rename('missing-id', 'New Name')).rejects.toThrow(
+      "Project with ID 'missing-id' not found"
+    );
   });
 });
