@@ -78,24 +78,13 @@ impl WorkflowDaemon {
 
                 if !active_logs.is_empty() {
                     let result = evaluate_rules(&config, &active_logs, now);
-
-                    if result.stopped {
-                        let engine = Engine::new(&persistence_ref);
-                        let _ = engine.stop_timer(None);
-
-                        if let Ok(mut st) = status_ref.lock() {
-                            st.last_auto_stop_reason = result.reason.clone();
-                            st.last_auto_stop_time_iso = Some(now.to_rfc3339());
-                        }
-
-                        if let Some(ref sink) = event_sink_opt {
-                            sink(FrontendEvent::WorkflowAutoStopped.as_str(), &result);
-                        }
-                    } else if result.warning {
-                        if let Some(ref sink) = event_sink_opt {
-                            sink(FrontendEvent::WorkflowWarning.as_str(), &result);
-                        }
-                    }
+                    dispatch_workflow_result(
+                        &result,
+                        now,
+                        &persistence_ref,
+                        &status_ref,
+                        &event_sink_opt,
+                    );
                 }
 
                 if let Ok(mut st) = status_ref.lock() {
@@ -153,5 +142,31 @@ impl WorkflowDaemon {
 impl Drop for WorkflowDaemon {
     fn drop(&mut self) {
         self.stop();
+    }
+}
+
+fn dispatch_workflow_result(
+    result: &WorkflowCheckResult,
+    now: DateTime<Utc>,
+    persistence: &Persistence,
+    status_ref: &Arc<Mutex<WorkflowStatus>>,
+    event_sink_opt: &Option<WorkflowEventSink>,
+) {
+    if result.stopped {
+        let engine = Engine::new(persistence);
+        let _ = engine.stop_timer(None);
+
+        if let Ok(mut st) = status_ref.lock() {
+            st.last_auto_stop_reason = result.reason.clone();
+            st.last_auto_stop_time_iso = Some(now.to_rfc3339());
+        }
+
+        if let Some(ref sink) = event_sink_opt {
+            sink(FrontendEvent::WorkflowAutoStopped.as_str(), result);
+        }
+    } else if result.warning {
+        if let Some(ref sink) = event_sink_opt {
+            sink(FrontendEvent::WorkflowWarning.as_str(), result);
+        }
     }
 }

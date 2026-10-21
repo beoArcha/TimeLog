@@ -90,10 +90,11 @@ fn filter_and_sort_logs(
                 return false;
             }
             if week {
-                if let Ok(st) = DateTime::parse_from_rfc3339(&l.start_time) {
-                    if st < week_start {
-                        return false;
-                    }
+                let is_before_week = DateTime::parse_from_rfc3339(&l.start_time)
+                    .map(|st| st < week_start)
+                    .unwrap_or(false);
+                if is_before_week {
+                    return false;
                 }
             }
             true

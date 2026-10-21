@@ -142,28 +142,30 @@ impl<'a> Engine<'a> {
         task_id: Option<&str>,
         parent_task_id: Option<&str>,
     ) -> Result<(), EngineError> {
-        if let Some(p_id) = parent_task_id {
-            if let Some(t_id) = task_id {
-                if t_id == p_id {
-                    return Err(EngineError::Validation(
-                        "Task cannot be its own parent".to_string(),
-                    ));
-                }
+        let Some(p_id) = parent_task_id else {
+            return Ok(());
+        };
+
+        if let Some(t_id) = task_id {
+            if t_id == p_id {
+                return Err(EngineError::Validation(
+                    "Task cannot be its own parent".to_string(),
+                ));
             }
-            if let Some(parent) = self.persistence.tasks.get(p_id)? {
-                if parent.parent_task_id.is_some() {
-                    return Err(EngineError::Validation(
-                        "Cannot nest tasks more than one level deep".to_string(),
-                    ));
-                }
+        }
+        if let Some(parent) = self.persistence.tasks.get(p_id)? {
+            if parent.parent_task_id.is_some() {
+                return Err(EngineError::Validation(
+                    "Cannot nest tasks more than one level deep".to_string(),
+                ));
             }
-            if let Some(t_id) = task_id {
-                let subtasks = self.persistence.tasks.get_subtasks(t_id)?;
-                if !subtasks.is_empty() {
-                    return Err(EngineError::Validation(
-                        "Cannot set a parent for a task that already has subtasks".to_string(),
-                    ));
-                }
+        }
+        if let Some(t_id) = task_id {
+            let subtasks = self.persistence.tasks.get_subtasks(t_id)?;
+            if !subtasks.is_empty() {
+                return Err(EngineError::Validation(
+                    "Cannot set a parent for a task that already has subtasks".to_string(),
+                ));
             }
         }
         Ok(())

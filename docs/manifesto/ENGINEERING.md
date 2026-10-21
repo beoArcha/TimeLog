@@ -194,10 +194,11 @@ The in-app CLI (`src/features/cli/`) uses the same domain services as the GUI:
 
 Test structure, naming and isolation rules: [`testing_standards.md`](../.agents/rules/testing_standards.md).
 
-Architecture tests (TypeScript):
+Architecture tests (TypeScript: `tests/architecture/`):
 
 | Spec | Protects |
 | --- | --- |
+| `max-nested-ifs` | Cyclomatic complexity; Rule of 3 Ifs (depth >= 3 triggers failure) |
 | `no-raw-html-primitives` | Design-system primitives only in `src/components/ui/` |
 | `no-inline-theme-ternaries` | Theme dependency inversion |
 | `runtime-isolation` | Shared code does not detect the runtime |
@@ -206,6 +207,17 @@ Architecture tests (TypeScript):
 | `timer-live-calculation` | No ad-hoc elapsed tickers |
 | `root-folder-aliases` | Import alias conventions |
 | `test-governance` | Test naming and DOM-access rules |
+
+Architecture tests (Rust: `src-tauri/tests/architecture/`):
+
+| Suite | Protects |
+| --- | --- |
+| `max_nested_ifs_test` | Cyclomatic complexity; Rule of 3 Ifs (depth >= 3 triggers failure) |
+| `cyclic_dependencies_test` | Zero circular dependencies across core crates |
+| `layer_boundaries_test` | Strict layer isolation (CLI, Engine, Repositories, Types) |
+| `error_handling_test` | Strictly typed domain errors; zero generic errors |
+| `sql_isolation_test` | Raw SQL statements isolated exclusively to `repositories` |
+| `tauri_isolation_test` | Zero Tauri GUI coupling in headless modules |
 
 ---
 

@@ -18,11 +18,21 @@ export const runTimeCommand = async (
   const targetId = args[1];
   const period = args[2] || 'all';
 
-  if (!type || !targetId) {
-    terminalOut.error('Error: Usage: time <subtask/task/profile> <id> [today/week/month/all]');
+  const flushOutputs = () => {
     if (!(outputs instanceof TerminalOutput)) {
       terminalOut.mergeInto(outputs);
     }
+  };
+
+  if (!type || !targetId) {
+    terminalOut.error('Error: Usage: time <subtask/task/profile> <id> [today/week/month/all]');
+    flushOutputs();
+    return;
+  }
+
+  if (type !== 'profile' && type !== 'task' && type !== 'subtask') {
+    terminalOut.error('Error: Type must be subtask, task, or profile.');
+    flushOutputs();
     return;
   }
 
@@ -34,15 +44,9 @@ export const runTimeCommand = async (
     if (type === 'profile') {
       dur = metrics?.projects[targetId]?.totalElapsedSeconds ?? await metricsEngine.getProjectElapsed(targetId, nowIso);
       pName = projects.find(p => p.id === targetId)?.name || targetId;
-    } else if (type === 'task' || type === 'subtask') {
+    } else {
       dur = metrics?.tasks[targetId]?.elapsedSeconds ?? await metricsEngine.getTaskElapsed(targetId, nowIso);
       pName = tasks.find(t => t.id === targetId)?.name || targetId;
-    } else {
-      terminalOut.error('Error: Type must be subtask, task, or profile.');
-      if (!(outputs instanceof TerminalOutput)) {
-        terminalOut.mergeInto(outputs);
-      }
-      return;
     }
   } else {
     const refDate = nowIso ? new Date(nowIso) : new Date();
@@ -52,21 +56,12 @@ export const runTimeCommand = async (
     if (type === 'profile') {
       dur = rangeMetrics.projectElapsed[targetId] ?? 0;
       pName = projects.find(p => p.id === targetId)?.name || targetId;
-    } else if (type === 'task' || type === 'subtask') {
+    } else {
       dur = rangeMetrics.taskElapsed[targetId] ?? 0;
       pName = tasks.find(t => t.id === targetId)?.name || targetId;
-    } else {
-      terminalOut.error('Error: Type must be subtask, task, or profile.');
-      if (!(outputs instanceof TerminalOutput)) {
-        terminalOut.mergeInto(outputs);
-      }
-      return;
     }
   }
 
   terminalOut.success(`[${period.toUpperCase()}] Time elapsed for ${type.toUpperCase()} "${pName}": ${formatSeconds(dur)}`);
-
-  if (!(outputs instanceof TerminalOutput)) {
-    terminalOut.mergeInto(outputs);
-  }
+  flushOutputs();
 };

@@ -19,21 +19,23 @@ export const runHolidaysCommand = (
     const name = args[3];
     if (!type || !date || !name || (type !== 'holiday' && type !== 'leave')) {
       terminalOut.error('Error: Usage: holidays add <holiday|leave> <YYYY-MM-DD> "<name>".');
-    } else {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateRegex.test(date)) {
-        terminalOut.error(translate(locale, 'cli', 'ErrInvalidDateFormat', customTranslations));
-      } else {
-        const newHoliday: HolidayLeave = {
-          id: getNextId(holidays, 'hol_'),
-          date,
-          type: type as 'holiday' | 'leave',
-          name,
-        };
-        setHolidays(prev => [...prev, newHoliday]);
-        terminalOut.success(`Success: Saved ${type === 'holiday' ? 'holiday' : 'leave'} "${name}" [${date}] in SQLite table.`);
-      }
+      return;
     }
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      terminalOut.error(translate(locale, 'cli', 'ErrInvalidDateFormat', customTranslations));
+      return;
+    }
+
+    const newHoliday: HolidayLeave = {
+      id: getNextId(holidays, 'hol_'),
+      date,
+      type: type as 'holiday' | 'leave',
+      name,
+    };
+    setHolidays(prev => [...prev, newHoliday]);
+    terminalOut.success(`Success: Saved ${type === 'holiday' ? 'holiday' : 'leave'} "${name}" [${date}] in SQLite table.`);
   } else {
     if (holidays.length === 0) {
       terminalOut.info(translate(locale, 'cli', 'NoHolidays', customTranslations));

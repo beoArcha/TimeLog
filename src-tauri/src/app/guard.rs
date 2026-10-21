@@ -4,15 +4,16 @@ use tauri::Url;
 pub const DEFAULT_DEV_URL: &str = "http://127.0.0.1:3000/";
 
 pub fn resolve_authorized_dev_origin(config_path: Option<&Path>) -> String {
-    if let Ok(env_url) = std::env::var("DEV_URL") {
-        let trimmed = env_url.trim();
-        if !trimmed.is_empty() {
-            return if trimmed.ends_with('/') {
-                trimmed.to_string()
-            } else {
-                format!("{}/", trimmed)
-            };
+    if let Some(dev_url) = std::env::var("DEV_URL")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+    {
+        let trimmed = dev_url.trim();
+        let mut url = trimmed.to_string();
+        if !url.ends_with('/') {
+            url.push('/');
         }
+        return url;
     }
 
     let default_path = Path::new("../dev.config.json");

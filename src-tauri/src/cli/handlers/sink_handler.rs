@@ -181,21 +181,6 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
 }
 
 fn test_single_sink(sink: &CliSink) -> (bool, String) {
-    if sink.sink_type == "csv" {
-        let path = Path::new(&sink.target);
-        if !path.exists() {
-            if let Err(e) = std::fs::create_dir_all(path) {
-                return (false, format!("directory cannot be created: {}", e));
-            }
-        }
-        let test_file = path.join(".oxy_sink_test");
-        if let Err(e) = std::fs::write(&test_file, b"test") {
-            return (false, format!("directory not writable: {}", e));
-        }
-        let _ = std::fs::remove_file(&test_file);
-        return (true, "write permission verified".to_string());
-    }
-
     if sink.sink_type == "webhook" {
         if sink.target.starts_with("http://") || sink.target.starts_with("https://") {
             return (true, "URL endpoint syntax verified".to_string());
@@ -203,5 +188,20 @@ fn test_single_sink(sink: &CliSink) -> (bool, String) {
         return (false, "invalid protocol scheme".to_string());
     }
 
-    (false, format!("unknown sink type: {}", sink.sink_type))
+    if sink.sink_type != "csv" {
+        return (false, format!("unknown sink type: {}", sink.sink_type));
+    }
+
+    let path = Path::new(&sink.target);
+    if !path.exists() {
+        if let Err(e) = std::fs::create_dir_all(path) {
+            return (false, format!("directory cannot be created: {}", e));
+        }
+    }
+    let test_file = path.join(".oxy_sink_test");
+    if let Err(e) = std::fs::write(&test_file, b"test") {
+        return (false, format!("directory not writable: {}", e));
+    }
+    let _ = std::fs::remove_file(&test_file);
+    (true, "write permission verified".to_string())
 }

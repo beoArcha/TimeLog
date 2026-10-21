@@ -18,47 +18,39 @@ export const runStartCommand = (
     customTranslations,
   } = context;
   const tId = args[0];
+  const targetTaskId =
+    tId || selectedTaskId || (tasks && tasks.length > 0 ? tasks[0].id : null);
 
-  if (!tId) {
-    const currentTaskId =
-      selectedTaskId || (tasks && tasks.length > 0 ? tasks[0].id : null);
-    if (!currentTaskId) {
-      terminalOut.error(`Error: No task is currently selected. ${translate(locale, "cli", "ErrNoTaskSelectedHelp", customTranslations)}`);
-    } else {
-      const taskObj = tasks.find((t) => t.id === currentTaskId);
-      if (!taskObj) {
-        terminalOut.error(`${translate(locale, "cli", "ErrTaskNotExist", customTranslations)} ${currentTaskId}`);
-      } else if (taskObj.completed) {
-        terminalOut.error(translate(
-          locale,
-          "cli",
-          "ErrTaskAlreadyCompleted",
-          customTranslations,
-          { name: taskObj.name },
-        ));
-      } else {
-        onStartTimer(currentTaskId);
-        terminalOut.success(`▶️ ${translate(locale, "cli", "TimerStarted", customTranslations)}: "${taskObj.name}" [ID: ${currentTaskId}]`);
-      }
-    }
-  } else {
-    const taskObj = tasks.find((t) => t.id === tId);
-    if (!taskObj) {
-      terminalOut.error(`${translate(locale, "cli", "ErrTaskNotExist", customTranslations)} ${tId}`);
-    } else if (taskObj.completed) {
-      terminalOut.error(translate(
-        locale,
-        "cli",
-        "ErrTaskAlreadyCompleted",
-        customTranslations,
-        { name: taskObj.name },
-      ));
-    } else {
-      setSelectedTaskId(tId);
-      onStartTimer(tId);
-      terminalOut.success(`▶️ ${translate(locale, "cli", "TimerStarted", customTranslations)}: "${taskObj.name}" [ID: ${tId}]`);
-    }
+  if (!targetTaskId) {
+    terminalOut.error(`Error: No task is currently selected. ${translate(locale, "cli", "ErrNoTaskSelectedHelp", customTranslations)}`);
+    if (!(outputs instanceof TerminalOutput)) terminalOut.mergeInto(outputs);
+    return;
   }
+
+  const taskObj = tasks.find((t) => t.id === targetTaskId);
+  if (!taskObj) {
+    terminalOut.error(`${translate(locale, "cli", "ErrTaskNotExist", customTranslations)} ${targetTaskId}`);
+    if (!(outputs instanceof TerminalOutput)) terminalOut.mergeInto(outputs);
+    return;
+  }
+
+  if (taskObj.completed) {
+    terminalOut.error(translate(
+      locale,
+      "cli",
+      "ErrTaskAlreadyCompleted",
+      customTranslations,
+      { name: taskObj.name },
+    ));
+    if (!(outputs instanceof TerminalOutput)) terminalOut.mergeInto(outputs);
+    return;
+  }
+
+  if (tId) {
+    setSelectedTaskId(tId);
+  }
+  onStartTimer(targetTaskId);
+  terminalOut.success(`▶️ ${translate(locale, "cli", "TimerStarted", customTranslations)}: "${taskObj.name}" [ID: ${targetTaskId}]`);
 
   if (!(outputs instanceof TerminalOutput)) {
     terminalOut.mergeInto(outputs);

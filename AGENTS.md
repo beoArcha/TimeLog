@@ -105,6 +105,7 @@ Rules marked *(enforced)* fail the build automatically; the test name points to 
 9. TypeScript: no `any`, no `@ts-ignore` / `@ts-expect-error` to silence errors, no duplicated types (reuse `src/bindings/`).
 10. Rust: no `String`, `Box<dyn Error>`, `()` or `anyhow` error types; use `thiserror` domain enums. *(enforced: `error_handling_test.rs`)*
 11. Code, comments, test names and test IDs are in English.
+12. Maximum nested `if` depth is 2. 3 or more nested `if` statements are forbidden across both TypeScript and Rust (Rule of 3 Ifs: depth >= 3 triggers failure). *(enforced: `max-nested-ifs` arch tests, Rust `max_nested_ifs_test`)*
 
 ---
 

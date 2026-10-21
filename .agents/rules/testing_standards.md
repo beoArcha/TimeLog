@@ -12,9 +12,14 @@ This file is the single source of truth for test structure, naming and isolation
 | :--- | :--- | :--- | :--- | :--- |
 | **Unit** | `tests/unit/`, `src-tauri/tests/unit/` | Utilities, rules, algorithms, isolated hooks, UI primitives | **AAA** | None. Mocks and fakes only; no I/O, disk or real IPC |
 | **Integration** | `tests/integration/`, `src-tauri/tests/integration/` | Routers, persistence, IPC bridge, composite views, daemons, CLI flows | **BDT** | In-memory DB, temp-dir SQLite, mock IPC handlers |
-| **Architecture** | `tests/architecture/`, `src-tauri/tests/architecture/` | AST scanning, boundaries, cycles, design-system rules | Rule assertions | File-system parsing only |
+| **Architecture** | `tests/architecture/`, `src-tauri/tests/architecture/` | AST scanning, boundaries, cycles, max nested ifs, design-system rules | Rule assertions | File-system parsing only |
 | **E2E** | `tests/e2e/` | Complete user journeys in the browser runtime | Page Object Model | Seeded browser storage |
 | **Smoke** | `tests/smoke/`, `src-tauri/tests/smoke_test.rs` | App boots, core wiring works | Minimal | As integration |
+
+Architecture tests are organized into decoupled submodules:
+- **Rules**: `tests/architecture/rules/` (TS) and `src-tauri/tests/architecture/rules/` (Rust). Rules themselves must adhere to architecture rules (e.g. modular functions, max nested if depth $\le 2$).
+- **Rule Unit Tests**: `tests/architecture/unit/` (TS) and `src-tauri/tests/architecture/unit/` (Rust).
+- **Codebase Specs**: `tests/architecture/specs/` (TS) and `src-tauri/tests/architecture/*_test.rs` (Rust).
 
 Rust tests live in the tier directories above, not in ad-hoc `#[cfg(test)]` modules inside production handler files.
 

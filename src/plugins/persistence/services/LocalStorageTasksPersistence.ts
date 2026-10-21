@@ -56,22 +56,21 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
       );
     }
     const task = current.tasks.find((t) => t.id === taskId);
-    if (task) {
-      task.name = name;
-      task.parentTaskId = parentTaskId || undefined;
-
-      if (completed !== null) {
-        task.completed = completed;
-        if (completed) {
-          task.status = 'Done';
-        } else if (task.status === 'Done') {
-          task.status = 'Todo';
-        }
-      } else if (status !== null) {
-        task.status = status;
-        task.completed = status === 'Done';
-      }
+    if (!task) {
+      return this.store.save(current);
     }
+
+    task.name = name;
+    task.parentTaskId = parentTaskId || undefined;
+
+    if (completed !== null) {
+      task.completed = completed;
+      task.status = completed ? 'Done' : (task.status === 'Done' ? 'Todo' : task.status);
+    } else if (status !== null) {
+      task.status = status;
+      task.completed = status === 'Done';
+    }
+
     return this.store.save(current);
   }
 

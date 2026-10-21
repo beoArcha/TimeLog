@@ -77,10 +77,8 @@ export function calculateRangeMetrics(
       if (filter.projectId && patch.projectId !== filter.projectId) {
         continue;
       }
-      if (relevantTaskIds) {
-        if (!patch.taskId || !relevantTaskIds.has(patch.taskId)) {
-          continue;
-        }
+      if (relevantTaskIds && (!patch.taskId || !relevantTaskIds.has(patch.taskId))) {
+        continue;
       }
 
       const taskIdStr = patch.taskId ?? '';
@@ -99,14 +97,16 @@ export function calculateRangeMetrics(
         currentNow
       );
 
-      if (clamped) {
-        totalSeconds += clamped.clampedDurationSeconds;
-        projectElapsed[clamped.projectId] = (projectElapsed[clamped.projectId] || 0) + clamped.clampedDurationSeconds;
-        if (clamped.taskId) {
-          taskElapsed[clamped.taskId] = (taskElapsed[clamped.taskId] || 0) + clamped.clampedDurationSeconds;
-        }
-        clampedLogs.push(clamped);
+      if (!clamped) {
+        continue;
       }
+
+      totalSeconds += clamped.clampedDurationSeconds;
+      projectElapsed[clamped.projectId] = (projectElapsed[clamped.projectId] || 0) + clamped.clampedDurationSeconds;
+      if (clamped.taskId) {
+        taskElapsed[clamped.taskId] = (taskElapsed[clamped.taskId] || 0) + clamped.clampedDurationSeconds;
+      }
+      clampedLogs.push(clamped);
     }
   }
 
