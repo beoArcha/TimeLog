@@ -1,72 +1,59 @@
 # ❓ Często Zadawane Pytania (FAQ)
 
-🌐 **Język / Language**: [English](../FAQ.md) | **Polski** | [Deutsch](../de/FAQ.md) | [Español](../es/FAQ.md) | [Français](../fr/FAQ.md) | [Português (Brasil)](../pt-br/FAQ.md)
+> 🌐 **Język / Language**: [English](/en/faq.md) | **Polski** | [Deutsch](/de/FAQ.md) | [Español](/es/FAQ.md) | [Français](/fr/FAQ.md) | [Português](/pt-br/FAQ.md)
 
 ---
 
-Oto proste i konkretne odpowiedzi na najczęstsze pytania dotyczące oXyFlow.
+## 1. Gdzie zapisywane są moje dane i wpisy czasu?
+
+Wszystkie wpisy czasu, projekty, zadania i konfiguracja zapisywane są w lokalnym pliku SQLite o nazwie `timelog.db`.
+
+| System Operacyjny | Ścieżka do Bazy Danych |
+| :--- | :--- |
+| **Windows** | `%APPDATA%\com.oxytime.oxyflow\timelog.db` |
+| **Linux** | `~/.local/share/com.oxytime.oxyflow/timelog.db` |
+| **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/timelog.db` |
 
 ---
 
-## 1. Gdzie zapisywane są moje dane i przepracowane godziny?
+## 2. Czy oXyFlow wymaga połączenia z internetem?
 
-**W 100% na Twoim własnym komputerze.**  
-Wszystkie projekty, zadania i zmierzony czas trafiają do lokalnego pliku bazy danych na Twoim dysku:
-
-- **Windows**: `%APPDATA%\com.oxytime.oxyflow\timelog.db`
-- **Linux**: `~/.local/share/com.oxytime.oxyflow/timelog.db`
-- **macOS**: `~/Library/Application Support/com.oxytime.oxyflow/timelog.db`
-
-Żadne informacje nie są wysyłane na zewnętrzne serwery. Nikt poza Tobą nie ma wglądu w nazwy Twoich klientów czy czas pracy.
+**Nie.** oXyFlow działa w 100% lokalnie (offline-first). Brak zależności chmurowych, zewnętrznych systemów logowania czy telemetrii w tle. Obliczenia czasu, zapytania bazodanowe i generowanie raportów wykonuje wbudowany silnik Rust.
 
 ---
 
-## 2. Czy program działa bez dostępu do internetu?
+## 3. Dlaczego Windows SmartScreen wyświetla ostrzeżenie przy instalacji?
 
-**Tak, całkowicie.**  
-oXyFlow nie wymaga połączenia z siecią. Możesz bez przeszkód mierzyć czas w podróży, w samolocie, pociągu czy w kawiarni bez Wi-Fi.
+System Windows Defender SmartScreen wyświetla ostrzeżenie dla aplikacji, które nie posiadają drogiego komercyjnego certyfikatu korporacyjnego (EV). oXyFlow to darmowy projekt open-source na licencji Mozilla Public License 2.0 (MPL-2.0).
 
----
+Aby uruchomić aplikację:
 
-## 3. Dlaczego Windows wyświetla niebieski komunikat "SmartScreen" podczas instalacji?
-
-System Windows Defender SmartScreen wyświetla ostrzeżenie dla nowo pobranych programów, które nie posiadają bardzo drogiego, komercyjnego certyfikatu korporacyjnego. oXyFlow to darmowy projekt open-source tworzony przez społeczność.
-
-**Jak bezpiecznie uruchomić:**
-
-1. Kliknij napis **"Więcej informacji"** na niebieskim oknie.
-2. Kliknij przycisk **"Uruchom mimo to"**.  
-System zapamięta Twój wybór i nie będzie pytać ponownie.
+1. Kliknij **"Więcej informacji"** w oknie SmartScreen.
+2. Kliknij przycisk **"Uruchom mimo to"**.
+3. Autentyczność pliku możesz sprawdzić porównując sumę ze skrótem w `SHA256SUMS.txt` na GitHubie.
 
 ---
 
-## 4. Co się stanie, jeśli zapomnę wyłączyć stoper na noc?
+## 4. Co się stanie, jeśli zapomnę wyłączyć stoper po zakończeniu pracy?
 
-oXyFlow posiada wbudowane reguły bezpieczeństwa!
+Aktywny wpis czasu mierzy czas do momentu ręcznego zatrzymania, zapauzowania lub zmiany zadania.
 
-- Program automatycznie wykrywa przekroczenie północy lub przekroczenie ustalonego limitu godzin (np. 10 godzin).
-- Stoper zostanie bezpiecznie zatrzymany, dzięki czemu rano nie zobaczysz nierealistycznej 24-godzinnej doby pracy.
-
----
-
-## 5. Jak przenieść przepracowane godziny do Excela lub wystawić rachunek?
-
-1. Przejdź do zakładki **Raporty**.
-2. Wybierz zakres dat (np. *Ten Tydzień* lub *Ten Miesiąc*).
-3. Kliknij **"Eksportuj CSV"**, aby otworzyć dane w Microsoft Excel, Arkuszach Google lub LibreOffice.
-4. Możesz też kliknąć **"Eksportuj HTML"**, aby otrzymać gotowe, eleganckie zestawienie do druku lub zapisania jako PDF dla klienta.
+- Możesz ręcznie skorygować czas rozpoczęcia lub zakończenia dowolnego wpisu w tabeli **Wpisy czasu** lub w widoku **Raporty**.
+- Nakładające się wpisy czasu w obrębie jednego projektu są blokowane przez silnik walidacji (`ERR_ENGINE_OVERLAP`) w celu zachowania spójności audytowej.
 
 ---
 
-## 6. Jak przenieść dane na nowy komputer?
+## 5. Jak wykonać i przywrócić kopię zapasową bazy danych?
 
-1. Otwórz **Ustawienia $\to$ Baza danych**.
-2. Kliknij **"Utwórz kopię zapasową"** i zapisz plik `.sqlite` np. na pendrive.
-3. Na nowym komputerze zainstaluj oXyFlow, wejdź w **Ustawienia $\to$ Baza danych** i kliknij **"Przywróć bazę danych"**. Cała Twoja historia pojawi się natychmiast!
+- **Automatyczne kopie**: oXyFlow oferuje mechanizm kopii zapasowych w zakładce **Opcje → Baza danych i kopie**.
+- **Kopia ręczna**: Możesz skopiować plik `timelog.db` z katalogu danych przy wyłączonej aplikacji lub użyć polecenia SQLite:
+
+  ```bash
+  sqlite3 timelog.db ".backup 'timelog-backup.db'"
+  ```
 
 ---
 
-## 7. Jak zmienić język lub kolorystykę programu?
+## 6. W jaki sposób synchronizowany jest stan między oknem GUI a CLI (`oxy`)?
 
-- **Język**: Wejdź w **Ustawienia $\to$ Język** i wybierz język z listy.
-- **Kolory**: Wejdź w **Ustawienia $\to$ Wygląd** i wybierz jeden z 12 gotowych motywów.
+Plik wykonywalny CLI (`oxy`) odczytuje i modyfikuje dokładnie ten sam lokalny plik bazy danych (`timelog.db`). Każda operacja z poziomu terminala jest natychmiast widoczna w aplikacji okienkowej przy najbliższym odświeżeniu lub przełączeniu okna.

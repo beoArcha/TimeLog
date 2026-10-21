@@ -1,81 +1,46 @@
-# 💻 Podstawowe Polecenia w Terminalu (CLI)
+# 💻 Podstawowe CLI (`oxy`)
 
-🌐 **Język / Language**: [English](../Basic-Cli.md) | **Polski** | [Deutsch](../de/Basis-CLI.md) | [Español](../es/CLI-Basico.md) | [Français](../fr/CLI-de-Base.md) | [Português (Brasil)](../pt-br/CLI-Basico.md)
-
----
-
-Wolisz korzystać z klawiatury? Do oXyFlow dołączone jest szybkie narzędzie wiersza poleceń o nazwie **`oxy`**. Możesz uruchamiać i zatrzymywać stoper bezpośrednio z PowerShell, CMD lub terminala Linux/macOS bez sięgania po myszkę!
+> 🌐 **Język / Language**: [English](/en/cli.md) | **Polski** | [Deutsch](/de/Basis-CLI.md) | [Español](/es/CLI-Basico.md) | [Français](/fr/CLI-de-Base.md) | [Português](/pt-br/CLI-Basico.md)
 
 ---
 
-## 5 Podstawowych Poleceń
+oXyFlow zawiera natywny program wiersza poleceń `oxy`, komunikujący się bezpośrednio z lokalną bazą danych SQLite.
 
-W codziennej pracy wystarczy zapamiętać 5 prostych komend:
+---
 
-### 1. Rozpoczęcie Pracy nad Zadaniem
+## Podstawowe Polecenia
 
 ```bash
-oxy start "Projekt Makiety Głównej"
-```
-
-Natychmiast uruchamia stoper dla danego zadania.
-
-- **Odporne na literówki**: Jeśli wpiszesz `oxy start Makiet`, program sam podpowie: *"Czy chodziło o 'Projekt Makiety Głównej'?"*.
-- **Wybór z listy**: Jeśli masz kilka zadań o podobnej nazwie, `oxy` wyświetli ponumerowaną listę i poprosi o naciśnięcie `1` lub `2`.
-
----
-
-### 2. Zatrzymanie Stopera
-
-```bash
-oxy stop
-```
-
-Zatrzymuje aktualnie biegnące zadanie i zapisuje czas w historii.
-
----
-
-### 3. Sprawdzenie Co Teraz Robisz
-
-```bash
+# Sprawdź stan aktywnego stopera
 oxy status
-```
 
-Wyświetla aktualny stan:
+# Uruchom pomiar czasu na zadaniu (według nazwy lub ID)
+oxy start "Implementacja API"
 
-```text
-● Aktywne: [Nowa Strona WWW] Projekt Makiety Głównej (01h 12m)
-```
+# Zatrzymaj lub zapauzuj stoper
+oxy stop
 
-Jeśli żaden stoper nie jest włączony, otrzymasz komunikat o braku aktywnych zadań.
+# Wyświetl listę projektów i zadań
+oxy list
+oxy list --tasks
 
----
-
-### 4. Podsumowanie Dzisiejszego Dnia
-
-```bash
+# Wygeneruj podsumowanie bieżącego dnia
 oxy today
 ```
 
-Wyświetla czytelną tabelę z wszystkimi zadaniami, nad którymi pracowałeś dzisiaj, oraz łączną liczbę przepracowanych godzin.
-
 ---
 
-### 5. Szybkie Dodawanie Projektów i Zadań
+## Kody Wyjścia Procesu
 
-```bash
-# Dodanie nowego projektu
-oxy project add "Aplikacja Mobilna"
+CLI zwraca precyzyjne kody wyjścia:
 
-# Dodanie zadania w tym projekcie
-oxy task add "Logowanie Użytkowników" --project "Aplikacja Mobilna"
-```
+| Kod | Znaczenie |
+| :--- | :--- |
+| `0` | Sukces |
+| `1` | Błąd biznesowy / naruszenie reguły |
+| `2` | Błędna składnia polecenia |
+| `3` | Błąd bazy danych SQLite |
+| `4` | Nie znaleziono encji / wieloznaczność |
+| `5` | Konflikt cyklu życia stopera |
 
----
-
-## Przydatne Skróty
-
-Możesz stosować skrócone formy:
-
-- `oxy s` $\to$ skrót od `oxy status`
-- `oxy today` $\to$ skrót od `oxy summary`
+Zaawansowane scenariusze skryptowe opisano w sekcji **[Zaawansowane CLI](zaawansowane-cli.md)**.

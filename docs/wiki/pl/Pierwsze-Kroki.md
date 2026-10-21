@@ -1,57 +1,43 @@
-# 🚀 Pierwsze Kroki w oXyFlow
+# 🚀 Pierwsze Kroki
 
-🌐 **Język / Language**: [English](../Getting-Started.md) | **Polski** | [Deutsch](../de/Erste-Schritte.md) | [Español](../es/Primeros-Pasos.md) | [Français](../fr/Premiers-Pas.md) | [Português (Brasil)](../pt-br/Primeiros-Passos.md)
-
----
-
-Witaj w oXyFlow! Ten krótki przewodnik pokaże Ci, jak zainstalować program i zacząć mierzyć czas pierwszego zadania w mniej niż 5 minut.
+> 🌐 **Język / Language**: [English](/en/getting-started.md) | **Polski** | [Deutsch](/de/Erste-Schritte.md) | [Español](/es/Primeros-Pasos.md) | [Français](/fr/Premiers-Pas.md) | [Português](/pt-br/Primeiros-Passos.md)
 
 ---
 
-## Krok 1: Pobranie i Uruchomienie
-
-1. Otwórz stronę **[Najnowszego Wydania](https://github.com/beoArcha/TimeLog/releases/latest)**.
-2. Pobierz plik odpowiedni dla Twojego komputera:
-   - **Windows**: Pobierz `OxyFlow-Setup-x64.exe` i uruchom instalator.
-   - **macOS**: Pobierz `OxyFlow-Universal.dmg`, otwórz go i przeciągnij ikonę **OxyFlow** do folderu **Aplikacje**.
-   - **Linux**: Pobierz `OxyFlow-x86_64.AppImage`, nadaj prawa do uruchomienia (`chmod +x OxyFlow-x86_64.AppImage`) i kliknij dwukrotnie.
-
-> **Wskazówka Windows**: Jeśli system wyświetli niebieskie okno *"System Windows ochronił ten komputer"*, nie martw się! To standardowe ostrzeżenie dla darmowego oprogramowania bez drogich korporacyjnych certyfikatów. Wystarczy kliknąć **"Więcej informacji"**, a następnie **"Uruchom mimo to"**.
+Ten poradnik przeprowadzi Cię przez instalację oXyFlow i rejestrację pierwszego wpisu czasu.
 
 ---
 
-## Krok 2: Tworzenie Pierwszego Projektu
+## 1. Instalacja
 
-Projekty to Twoje główne kategorie pracy — np. nazwa klienta, zlecenia lub własnego hobby.
+Pobierz paczkę odpowiednią dla Twojego systemu operacyjnego ze [strony wydań GitHub](https://github.com/beoArcha/TimeLog/releases/latest):
+
+- **Windows**: Uruchom instalator `OxyFlow-Setup-x64.exe` lub pobierz wersję bezinstalacyjną `OxyFlow-Standalone-x64.exe`.
+- **macOS**: Otwórz obraz dysku `OxyFlow-Universal.dmg` i przeciągnij `OxyFlow.app` do folderu `/Applications`.
+- **Linux**: Nadaj uprawnienia wykonywania dla `OxyFlow-x86_64.AppImage` (`chmod +x OxyFlow-x86_64.AppImage`) lub zainstaluj paczkę `oxyflow_amd64.deb` / `oxyflow.x86_64.rpm`.
+
+---
+
+## 2. Tworzenie Projektu i Zadania
 
 1. Uruchom **oXyFlow**.
-2. W lewym panelu kliknij przycisk **"+ Nowy Projekt"**.
-3. Wpisz nazwę, na przykład: `Strona WWW dla Klienta`.
-4. Wybierz kolor (np. `Szmaragdowy` lub `Indygo`), aby łatwo odróżniać projekty.
-5. Kliknij **Zapisz**.
+2. Kliknij przycisk **"+ Nowy Projekt"** na pasku bocznym.
+3. Wpisz nazwę projektu (np. `Projekt Klienta A`) i wybierz kolor etykiety. Kliknij **Zapisz**.
+4. W sekcji nowo utworzonego projektu kliknij **"+ Dodaj zadanie"**. Wpisz nazwę (np. `Projekt bazy danych`) i naciśnij **Enter**.
 
 ---
 
-## Krok 3: Dodanie Zadania
+## 3. Pomiar Czasu
 
-Zadania to konkretne czynności, które wykonujesz danego dnia.
-
-1. Najedź kursorem na swój nowy projekt i kliknij **"+ Dodaj Zadanie"**.
-2. Wpisz nazwę czynności, na przykład: `Projekt Makiety Głównej`.
-3. Naciśnij **Enter** lub kliknij **Dodaj**.
-
----
-
-## Krok 4: Włącz Stoper!
-
-1. Kliknij zielony przycisk **Odtwarzaj (▶)** obok zadania `Projekt Makiety Głównej`.
-   - Górny pasek natychmiast się podświetli i zacznie odliczać sekundy.
-2. Gdy skończysz pracę lub chcesz zrobić przerwę, kliknij czerwony przycisk **Stop (■)** lub **Wstrzymaj**.
+- Kliknij zielony przycisk **Start (▶)** obok zadania, aby rozpocząć pomiar.
+- Górny pasek statusu podświetla aktywne zadanie i prezentuje upływający czas na żywo.
+- Kliknij **Pauza (⏸)** lub **Stop (■)**, aby zakończyć sesję.
+- Uruchomienie innego zadania automatycznie zatrzymuje poprzednie w jednej transakcji bazodanowej.
 
 ---
 
-## Co dalej?
-- Przeczytaj **[Podstawy Timera](Podstawy-Timera.md)**, aby dowiedzieć się, jak wygodnie przełączać zadania i sprawdzać podsumowanie dnia.
-- Zobacz **[Interfejs i Motywy](Interfejs-i-Motywy.md)**, by dopasować kolory i wielkość czcionki.
-- Sprawdź **[Podstawowe CLI](Podstawowe-CLI.md)**, jeśli lubisz pracować w terminalu.
-- Zajrzyj do **[FAQ](FAQ.md)** w razie jakichkolwiek pytań.
+## Dalsze Kroki
+
+- **[Podstawy Timera](podstawy-timera.md)**: Zasady edycji wpisów i rozliczanie dnia.
+- **[Podstawowe CLI (`oxy`)](podstawowe-cli.md)**: Obsługa z wiersza poleceń PowerShell/Bash.
+- **[Interfejs i Motywy](interfejs-i-motywy.md)**: Personalizacja układu i kolorystyki.
