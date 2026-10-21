@@ -1,17 +1,17 @@
-# 🛠️ Building from Source
+# Building from Source
 
-> 🌐 **Language / Język**: **English** | [Polski](/pl/kompilacja-ze-zrodel.md)
-
----
-
-Instructions for compiling, testing, and developing oXyFlow locally on Windows, macOS, or Linux.
+> Language / Język: **English** | [Polski](/pl/developer-build.md) | [Deutsch](/de/developer-build.md) | [Español](/es/developer-build.md) | [Français](/fr/developer-build.md) | [Português](/pt-br/developer-build.md)
 
 ---
 
-## 1. Prerequisites
+Instructions for compiling, testing, and developing oXyFlow locally across Windows, macOS, and Linux.
 
-- **Bun**: Modern JavaScript runtime and toolchain (version $\ge$ 1.1).
-- **Rust & Cargo**: Stable toolchain (version $\ge$ 1.80) with `clippy` and `rustfmt`.
+---
+
+## Prerequisites
+
+- **Bun**: Modern JavaScript runtime and toolchain (version $\ge$ 1.1). Never use npm, npx, yarn, or pnpm.
+- **Rust and Cargo**: Stable toolchain (version $\ge$ 1.80) with `clippy` and `rustfmt`.
 - **System Dependencies (Linux only)**:
 
   ```bash
@@ -20,7 +20,7 @@ Instructions for compiling, testing, and developing oXyFlow locally on Windows, 
 
 ---
 
-## 2. Local Development
+## Local Development Workflow
 
 ```bash
 # Clone the repository
@@ -30,27 +30,26 @@ cd TimeLog
 # Install frontend dependencies
 bun install
 
-# Run the browser preview (mocked in-memory persistence)
+# Run the browser runtime (uses browser plugin with LocalStorage)
 bun run dev
 
-# Run native desktop app with hot-reloading
+# Run native desktop app with hot-reloading (Tauri + Rust engine)
 bun run tauri:dev
 ```
 
 ---
 
-## 3. Running Automated Test Suites
+## Verification and Testing Commands
 
-```bash
-# Frontend Vitest suite (AAA unit, BDT integration, and architecture tests)
-bun run test
+Run the automated test tiers before committing changes:
 
-# Rust test suites
-bun run test:rust
-
-# Architecture rules enforcement
-bun run test:arch:rust
-
-# Complete pre-flight verification
-bun run check
-```
+| Purpose | Command |
+| :--- | :--- |
+| All Vitest tests (unit, integration, architecture) | `bun run test` |
+| Run a specific test file | `bun x vitest run tests/unit/path/to/file.test.ts` |
+| TypeScript type check and ESLint | `bun run typecheck` and `bun run lint` |
+| Rust unit, integration, and parity tests | `bun run test:rust` |
+| Rust Clippy and formatting checks | `bun run lint:rust` and `bun run fmt:rust:check` |
+| Rust architecture tests | `bun run test:arch:rust` |
+| End-to-End tests (Playwright) | `bun run test:e2e` |
+| Regenerate TypeScript bindings from Rust types | `cargo test --manifest-path src-tauri/Cargo.toml --test export_bindings_when_testing` |

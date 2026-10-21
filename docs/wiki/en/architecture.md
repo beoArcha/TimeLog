@@ -1,14 +1,14 @@
-# 🏛️ System Architecture & Engineering
+# System Architecture and Engineering
 
-> 🌐 **Language / Język**: **English** | [Polski](/pl/architektura.md)
-
----
-
-oXyFlow implements a **Clean Architecture** with strict layer isolation enforced by automated AST-scanning architecture test suites on both the TypeScript frontend (`tests/architecture/`) and Rust native backend (`src-tauri/tests/architecture/`).
+> Language / Język: **English** | [Polski](/pl/architecture.md) | [Deutsch](/de/architecture.md) | [Español](/es/architecture.md) | [Français](/fr/architecture.md) | [Português](/pt-br/architecture.md)
 
 ---
 
-## 1. High-Level Architectural Diagram
+oXyFlow implements a Clean Architecture with strict layer isolation enforced by automated AST-scanning architecture test suites on both the TypeScript frontend (`tests/architecture/`) and Rust native backend (`src-tauri/tests/architecture/`).
+
+---
+
+## High-Level Architectural Topology
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -34,31 +34,39 @@ oXyFlow implements a **Clean Architecture** with strict layer isolation enforced
 │    Rust Reference Engine    │
 │  - Timer Lifecycle State    │
 │  - Range & Elapsed Metrics  │
-│  - Hierarchy & Invariants   │
+│  - Temporal Invariants      │
 └──────────┬──────────────────┘
            ▼
 ┌─────────────────────────────┐
 │ SQLite Persistence Layer    │
-│  - Rusqlite MicroORM        │
-│  - Memory Cache & Journal   │
+│  - Rusqlite Repositories    │
+│  - WAL Mode & Transactions  │
 └─────────────────────────────┘
 ```
 
 ---
 
-## 2. Core Architectural Principles
+## Core Architectural Invariants
 
-### 2.1 The Triple Decoupling Rule
+### 1. The Triple Decoupling Rule
 
-1. **Decoupled from Localization**: Components never assert or branch on localized copy. UI queries rely exclusively on semantic `data-testid` or role attributes.
-2. **Decoupled from Theming & CSS**: Theme variables are applied via semantic tokens (`bg-card`, `text-foreground`). Components never branch on `resolvedTheme === 'dark'` or inject inline styles.
-3. **Decoupled from Native Runtime Side-Effects**: React components and hooks never directly check `window.__TAURI__` or issue raw IPC commands. All communication flows through polymorphic routers (`EngineRouter`, `PersistenceRouter`).
+1. **Decoupled from Localization**: Components never assert or branch on localized copy. UI tests and queries rely exclusively on `data-testid` or ARIA accessibility roles.
+2. **Decoupled from Theming and CSS**: Visual styling uses semantic tokens (`bg-card`, `text-foreground`). Components never branch on `resolvedTheme === 'dark'` or inject hardcoded hex color values.
+3. **Decoupled from Native Runtime Side-Effects**: Shared React components and hooks never check `window.__TAURI__` or issue raw IPC calls. All operations pass through polymorphic routers (`EngineRouter`, `PersistenceRouter`).
 
-### 2.2 Cross-Runtime Engine Parity
+### 2. Cross-Runtime Engine Parity
 
-The core business logic (timer state transitions, elapsed time calculations across date boundaries, and validation rules) exists in two mirroring implementations:
+Core business rules (timer state transitions, elapsed time calculations across date boundaries, and validation rules) exist in two mirroring implementations:
 
-- **Rust Reference Engine** (`src-tauri/src/engine/`): Native compiled performance for desktop targets.
+- **Rust Reference Engine** (`src-tauri/src/engine/`): Compiled native performance for desktop targets.
 - **Browser Engine Plugin** (`src/plugins/engine/`): Pure TypeScript fallback ensuring 100% feature fidelity in web preview and development modes.
 
 A shared parity test suite (`CrossRuntimeParity.test.ts`) executes identical test matrices against both engines to prevent behavioral drift.
+
+### 3. Rule of 3 Ifs (Cyclomatic Complexity Limit)
+
+Across both TypeScript and Rust modules, the maximum allowed nested `if` depth is 2. Three or more nested `if` statements are forbidden and automatically fail architecture test suites (`max-nested-ifs.arch.test.ts` and `max_nested_ifs_test.rs`). Complex logic must be decomposed into guard clauses, match expressions, or dedicated domain strategies.
+
+### 4. Headless CLI Isolation
+
+The native CLI binary (`src-tauri/src/cli/`) communicates directly with `Engine` and `Persistence` contracts. It is strictly prohibited from importing any Tauri GUI types (`AppState`, `tauri::AppHandle`, window controllers, or tray components).

@@ -1,36 +1,57 @@
-# 🔌 Sinks & Automations
+# Sinks and Automation
 
-> 🌐 **Language / Język**: **English** | [Polski](/pl/automatyzacja.md)
-
----
-
-oXyFlow includes a persistent **Sinks Subsystem** that dispatches events in real time whenever timer entries are created, updated, or finalized.
+> Language / Język: **English** | [Polski](/pl/automation.md) | [Deutsch](/de/automation.md) | [Español](/es/automation.md) | [Français](/fr/automation.md) | [Português](/pt-br/automation.md)
 
 ---
 
-## 1. Supported Sink Destinations
-
-- **CSV Sink**: Appends structured rows immediately to a specified file upon every session stop.
-- **Webhook Sink**: Dispatches an HTTP `POST` JSON payload to an endpoint (e.g. n8n, Zapier, custom backend API) whenever an active timer stops.
+oXyFlow includes a persistent **Sinks Subsystem** that records and dispatches time tracking events in real time whenever timer entries are recorded or stopped.
 
 ---
 
-## 2. Configuration via CLI
+## Supported Sink Destinations
+
+1. **Local CSV Audit Sink**: Automatically appends structured session entries to CSV files in a specified directory.
+2. **Outbound Webhook Sink**: Dispatches an HTTP `POST` JSON payload with optional Bearer token authorization to external automation services (e.g. n8n, Zapier, custom REST APIs).
+
+---
+
+## Configuration via CLI
+
+The `oxy sink` command group configures and verifies destinations directly in the local SQLite storage:
 
 ```bash
-# Configure CSV sink target
-oxy sink set csv --path "$HOME/Documents/timelogs.csv"
+# List all configured sinks and their active status
+oxy sink ls
 
-# Configure HTTP Webhook sink target
-oxy sink set webhook --url "https://api.example.com/v1/timelogs"
+# Configure a local directory for CSV audit trails
+oxy sink set-csv --dir "$HOME/Documents/timelogs"
 
-# Dispatch test payload to verify sink connectivity
-oxy sink test webhook
+# Configure an HTTP/HTTPS webhook endpoint with an optional authorization token
+oxy sink set-webhook --url "https://api.example.com/v1/timelogs" --token "secret-token-xyz"
+
+# Dispatch a synthetic ping test to all configured sinks to verify connectivity
+oxy sink test
 ```
 
 ---
 
-## 3. Webhook Payload Schema
+## Machine Output for Sink Operations
+
+Appending `--json` or `--machine` outputs structured JSON confirmations:
+
+```bash
+# Test sinks in machine mode
+oxy sink test --json
+
+# List sinks in JSON format
+oxy sink ls --json
+```
+
+---
+
+## Webhook Payload Schema
+
+When a timer session is finalized or tested, the webhook sink transmits the following JSON payload structure:
 
 ```json
 {
@@ -40,7 +61,7 @@ oxy sink test webhook
     "id": "e6a0d24f-95ec-4467-bc5b-419b4e348981",
     "project_id": "proj-1",
     "task_id": "task-42",
-    "project_name": "Client Redesign",
+    "project_name": "Client Portal",
     "task_title": "Database Optimization",
     "start_time": "2026-10-21T17:00:00Z",
     "end_time": "2026-10-21T18:30:00Z",
@@ -48,3 +69,5 @@ oxy sink test webhook
   }
 }
 ```
+
+If the remote webhook endpoint is temporarily unreachable, failed deliveries are buffered in the internal SQLite retry queue (`webhook_queue`) and retried with exponential backoff.

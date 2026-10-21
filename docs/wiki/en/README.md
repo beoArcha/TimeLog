@@ -1,14 +1,14 @@
-# ⏱️ oXyFlow Technical Documentation
+# oXyFlow Documentation
 
-> 🌐 **Language / Język**: **English** | [Polski](/pl/README.md) | [Deutsch](/de/README.md) | [Español](/es/README.md) | [Français](/fr/README.md) | [Português (Brasil)](/pt-br/README.md)
-
----
-
-**oXyFlow** is a desktop work timer and task tracker built on Tauri v2, Rust, and an embedded SQLite database. It provides an offline-first, local-only architecture with an accompanying headless CLI binary (`oxy`) for terminal automation and developer workflows.
+> **Language**: **English** | [Polski](/pl/README.md) | [Deutsch](/de/README.md) | [Español](/es/README.md) | [Français](/fr/README.md) | [Português](/pt-br/README.md)
 
 ---
 
-## 🏛️ System Architecture Highlights
+oXyFlow is a desktop work timer and task tracker built with Tauri v2, Rust, and an embedded SQLite database. It runs locally and offline-first, accompanied by a headless native CLI executable (`oxy`) for terminal automation and shell integration.
+
+---
+
+## System Architecture Overview
 
 ```text
 ┌────────────────────────────────────────────────────────┐
@@ -17,44 +17,43 @@
 └───────────────────────────┬────────────────────────────┘
                             │ Tauri IPC (Commands)
 ┌───────────────────────────▼────────────────────────────┐
-│                    Rust Micro-Engine                   │
+│                    Rust Reference Engine               │
 │  - Timer Lifecycle & Overlap Invariants (engine/)      │
-│  - SQLite MicroORM Persistence (repositories/)         │
-│  - Real-time Sinks (CSV append, HTTP webhooks)         │
+│  - SQLite Repositories & Migrations (repositories/)    │
+│  - Real-Time Sinks (CSV append, HTTP webhooks)         │
 └───────────────────────────┬────────────────────────────┘
                             │ CLI Bridge
 ┌───────────────────────────▼────────────────────────────┐
-│                  Native CLI Binary (`oxy`)              │
+│                  Native CLI Binary (`oxy`)             │
 └────────────────────────────────────────────────────────┘
 ```
 
-- **Local-First Storage**: All records persist in an embedded SQLite database (`timelog.db`). No telemetry, analytics, or mandatory cloud connectivity.
-- **Triple Decoupling**: Complete architectural isolation between UI presentation, domain engine rules, and native storage drivers.
-- **Micro-Engine**: Sub-40 MB memory baseline, instant cold startup, zero webview background drain when idle.
+- **Local Storage**: All records persist in a local SQLite database (`oxytime.db`). No telemetry, analytics, or mandatory network connectivity.
+- **Layer Decoupling**: Separation between UI presentation, domain engine rules, and native storage drivers.
 - **Dual Runtime Interfaces**: Desktop GUI with customizable visual density (Compact, Medium, Full) and a synchronized terminal CLI (`oxy`).
 
 ---
 
-## 📚 Documentation Structure
+## Documentation Structure
 
 ### User Guide
 
-- **[Getting Started](getting-started.md)**: Installation, initial configuration, and creating your first project and task.
-- **[Timer & Tracking](timer.md)**: Operating the timer, switching active tasks, editing logs, and viewing daily totals.
+- **[Getting Started](getting-started.md)**: Installation, initial configuration, and creating projects and tasks.
+- **[Timer & Tracking](timer.md)**: Operating the timer, switching active tasks, adjusting logs, and viewing totals.
 - **[CLI Companion (`oxy`)](cli.md)**: Terminal syntax for starting, pausing, listing, and switching tasks directly from PowerShell or Bash.
-- **[Interface & Themes](interface.md)**: Customizing layout density, 12 semantic color palettes, and accessibility configurations.
-- **[Frequently Asked Questions](faq.md)**: Technical details on database paths, data backup, and offline integrity.
+- **[Interface & Themes](interface.md)**: Customizing layout density, core color themes, and accessibility settings.
+- **[Frequently Asked Questions](faq.md)**: Details on database paths, backups, and offline integrity.
 
 ### Technical & Developer Reference
 
-- **[Advanced CLI Scripting](advanced-cli.md)**: JSON output pipelines, scripting automation, and CI integration.
+- **[Advanced CLI Scripting](advanced-cli.md)**: JSON output pipelines, scripting automation, and shell prompt integration.
 - **[System Architecture](architecture.md)**: Rust engine lifecycle, SQLite schema migrations, and event dispatchers.
 - **[Sinks & Automations](automation.md)**: Configuring real-time CSV audit trails and webhook payloads.
 - **[Building from Source](developer-build.md)**: Prerequisites, Bun toolchain setup, and Cargo build commands.
 
 ---
 
-## 📥 Official Packages
+## Official Packages
 
 | Operating System | Package Type | Target Architecture |
 | :--- | :--- | :--- |
