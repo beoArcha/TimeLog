@@ -73,6 +73,9 @@ To understand how oXyFlow is built and maintained, please review our core manife
 
 | Document                                           | Purpose                                                                    |
 | -------------------------------------------------- | -------------------------------------------------------------------------- |
+| [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)         | Comprehensive end-user handbook: GUI workflows, timer tracking, and CLI    |
+| [`docs/INSTALLATION.md`](docs/INSTALLATION.md)     | Multi-platform installation steps, platform trust, and SHA-256 validation  |
+| [`docs/wiki/`](docs/wiki/Home.md)                  | Multilingual product showcase & release wiki (6 languages + FAQ)           |
 | [`docs/MASTERMAP.md`](docs/MASTERMAP.md)           | Project roadmap, long-term vision, and core architecture diagram           |
 | [`docs/ENGINEERING.md`](docs/ENGINEERING.md)       | Architecture, layer responsibilities, and engineering principles           |
 | [`docs/CLI.md`](docs/CLI.md)                       | CLI architecture, commands, error codes, and exit codes                    |
