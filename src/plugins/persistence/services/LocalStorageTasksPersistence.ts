@@ -6,6 +6,16 @@ import { PersistenceException } from '@common/exceptions';
 import { validateTaskHierarchy } from '../../engine/validation';
 import { ILocalStorageStateStore } from './LocalStorageStateStore';
 
+function resolveStatusAfterCompletionToggle(completed: boolean, currentStatus: TaskStatus): TaskStatus {
+  if (completed) {
+    return 'Done';
+  }
+  if (currentStatus === 'Done') {
+    return 'Todo';
+  }
+  return currentStatus;
+}
+
 export class LocalStorageTasksPersistence implements ITasksPersistence {
   constructor(private readonly store: ILocalStorageStateStore) {}
 
@@ -65,7 +75,7 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
 
     if (completed !== null) {
       task.completed = completed;
-      task.status = completed ? 'Done' : (task.status === 'Done' ? 'Todo' : task.status);
+      task.status = resolveStatusAfterCompletionToggle(completed, task.status);
     } else if (status !== null) {
       task.status = status;
       task.completed = status === 'Done';

@@ -106,7 +106,8 @@ export default function ReportLogList({
               displayTime = clamped.clampedStartTime || clamped.startTime;
             } else {
               const start = new Date(log.startTime).getTime();
-              const end = log.endTime ? new Date(log.endTime).getTime() : (nowIso ? new Date(nowIso).getTime() : start);
+              const fallbackEnd = nowIso ? new Date(nowIso).getTime() : start;
+              const end = log.endTime ? new Date(log.endTime).getTime() : fallbackEnd;
               durSeconds = Math.max(0, Math.floor((end - start) / 1000));
             }
 

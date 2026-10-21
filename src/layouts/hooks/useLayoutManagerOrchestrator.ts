@@ -19,7 +19,6 @@ export const useLayoutManagerOrchestrator = () => {
     showToast,
     handleMinimizeToTray,
     handleToggleTimer,
-    handleResetLocalStorage,
     nowIso,
   } = useWindowShell();
 
@@ -65,6 +64,7 @@ export const useLayoutManagerOrchestrator = () => {
     setHolidays,
     selectedTaskId,
     setSelectedTaskId,
+    handleResetLocalStorage,
   } = useData();
 
   const {

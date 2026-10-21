@@ -64,25 +64,27 @@ export default function BackupTab() {
           <UploadCloud className="w-6 h-6 text-emerald-400" />
           {translate(locale, 'settings', 'TabBackup', customTranslations)}
         </Heading>
-        <p className="text-xs mt-2 text-muted-foreground">
-          {translate(locale, 'settings', 'SendLogsToApi', customTranslations)}
-        </p>
+        <Caption variant="muted" className="mt-2">
+          {translate(locale, 'settings', 'BackupTabSubtitle', customTranslations)}
+        </Caption>
       </div>
 
       <CollapsibleCard
-        title="JSON / SQLite Backup"
+        title={translate(locale, 'settings', 'BackupCardTitle', customTranslations)}
         icon={Database}
         iconColor="text-orange-500"
         defaultExpanded={true}
       >
-        <p className="text-xs text-muted-foreground">
+        <Caption variant="muted">
           {translate(locale, 'settings', 'BackupDesc', customTranslations)}
-        </p>
+        </Caption>
         <div className="flex gap-4 mt-2">
           <Button
             onClick={handleExportDatabase}
             data-testid="export-backup-btn"
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2 h-auto"
+            variant="default"
+            size="sm"
+            className="w-fit flex items-center gap-2 mt-2 h-auto"
           >
             <UploadCloud className="w-4 h-4" />
             {translate(locale, 'settings', 'BackupJson', customTranslations)}
@@ -91,7 +93,9 @@ export default function BackupTab() {
           <Button
             onClick={() => fileInputRef.current?.click()}
             data-testid="import-backup-btn"
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm px-5 py-3 w-fit flex items-center gap-2 transition-all mt-2 h-auto"
+            variant="secondary"
+            size="sm"
+            className="w-fit flex items-center gap-2 mt-2 h-auto"
           >
             <DownloadCloud className="w-4 h-4" />
             {translate(locale, 'settings', 'RestoreImportJson', customTranslations)}
@@ -114,9 +118,9 @@ export default function BackupTab() {
         defaultExpanded={false}
         headerTestId="api-push-collapse-header"
       >
-        <p className="text-xs text-muted-foreground">
+        <Caption variant="muted">
           {translate(locale, 'settings', 'WebhookDesc', customTranslations)}
-        </p>
+        </Caption>
 
         <Label className="flex items-center gap-2 cursor-pointer w-fit mt-2 font-normal">
           <Checkbox

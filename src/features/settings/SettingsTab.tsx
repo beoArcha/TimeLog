@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
 import PromptDialog from '@components/PromptDialog';
 import { Button } from '@components/ui/button';
-import { Heading } from '@components/ui/typography';
+import { Heading, Caption } from '@components/ui/typography';
 import versionsData from '@app/versions.json';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
@@ -24,7 +24,11 @@ export default function SettingsTab() {
       setProjects([]);
       setTasks([]);
       setLogs([]);
-      localStorage.removeItem('oxytime_state_db_6');
+      try {
+        localStorage.removeItem('oxytime_state_db_6');
+      } catch {
+        // Safe fallback for environments without localStorage
+      }
       toast.success(translate(locale, 'engine', 'ResetSuccess', customTranslations));
     } else {
       toast.error(translate(locale, 'engine', 'ResetCancel', customTranslations));
@@ -49,7 +53,7 @@ export default function SettingsTab() {
             <Settings className="w-5 h-5 text-amber-500 animate-spin-slow" />
             <span>{translate(locale, 'settings', 'Title', customTranslations)}</span>
           </Heading>
-          <p className="text-xs text-muted-foreground">{translate(locale, 'settings', 'Description', customTranslations)}</p>
+          <Caption variant="muted">{translate(locale, 'settings', 'Description', customTranslations)}</Caption>
         </div>
       </div>
 
@@ -74,7 +78,7 @@ export default function SettingsTab() {
           wrapperClassName="p-6 rounded-3xl border border-rose-500/30 bg-rose-500/5 flex flex-col gap-4"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
-            <p className="text-xs max-w-sm text-muted-foreground">{translate(locale, 'engine', 'HardResetDesc', customTranslations)}</p>
+            <Caption variant="muted" className="max-w-sm">{translate(locale, 'engine', 'HardResetDesc', customTranslations)}</Caption>
             <Button
               data-testid="hard-reset-btn"
               variant="destructive"
@@ -87,7 +91,7 @@ export default function SettingsTab() {
         </CollapsibleCard>
 
         <CollapsibleCard
-          title="OxyFlow Versions"
+          title={translate(locale, 'settings', 'VersionsTitle', customTranslations)}
           icon={Info}
           iconColor="text-blue-500"
           titleColor="text-blue-500"
@@ -96,24 +100,24 @@ export default function SettingsTab() {
         >
           <div className="flex flex-col gap-3 mt-2 text-sm">
             <div className="flex justify-between items-center pb-2 border-b border-border">
-              <span className="font-medium">App Release</span>
+              <span className="font-medium">{translate(locale, 'settings', 'AppRelease', customTranslations)}</span>
               <span className="font-bold font-mono text-blue-500">v{versionsData.major}.{versionsData.minor}.{versionsData.release}</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs mt-2">
               <div className="p-3 rounded-xl border bg-muted/30 border-border">
-                <div className="opacity-70 mb-1">Engine</div>
+                <div className="opacity-70 mb-1">{translate(locale, 'settings', 'EngineComponent', customTranslations)}</div>
                 <div className="font-bold font-mono">v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.engine}</div>
               </div>
               <div className="p-3 rounded-xl border bg-muted/30 border-border">
-                <div className="opacity-70 mb-1">Front</div>
+                <div className="opacity-70 mb-1">{translate(locale, 'settings', 'FrontComponent', customTranslations)}</div>
                 <div className="font-bold font-mono">v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.front}</div>
               </div>
               <div className="p-3 rounded-xl border bg-muted/30 border-border">
-                <div className="opacity-70 mb-1">Components</div>
+                <div className="opacity-70 mb-1">{translate(locale, 'settings', 'ComponentsLibrary', customTranslations)}</div>
                 <div className="font-bold font-mono">v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.components}</div>
               </div>
               <div className="p-3 rounded-xl border bg-muted/30 border-border">
-                <div className="opacity-70 mb-1">Translations</div>
+                <div className="opacity-70 mb-1">{translate(locale, 'settings', 'TranslationsPack', customTranslations)}</div>
                 <div className="font-bold font-mono">v{versionsData.major}.{versionsData.minor}.{versionsData.subversions.translations}</div>
               </div>
             </div>

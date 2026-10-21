@@ -10,7 +10,7 @@ import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
-import { Heading } from '@components/ui/typography';
+import { Heading, Text } from '@components/ui/typography';
 import { exportDatabaseAsJson } from '@common/utils/databaseExport';
 
 export default function DbExplorer() {
@@ -29,9 +29,9 @@ export default function DbExplorer() {
             <Database className="w-5.5 h-5.5 text-orange-500 animate-pulse" />
             <span>{translate(locale, 'database', 'DbTitle', customTranslations)}</span>
           </Heading>
-          <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
+          <Text size="sm" variant="muted" className="mt-1 max-w-2xl leading-relaxed">
             {translate(locale, 'database', 'DbDesc', customTranslations)}
-          </p>
+          </Text>
         </div>
         <div className="flex flex-col sm:items-end gap-2 shrink-0">
           <Badge variant="orange" size="sm" className="font-mono uppercase tracking-wider self-start sm:self-auto">

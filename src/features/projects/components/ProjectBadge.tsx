@@ -28,12 +28,14 @@ export function ProjectBadge({
 }: ProjectBadgeProps) {
   const matchedColor = PROJECT_COLORS.find((c) => c.name === color);
   const colorBg = matchedColor?.bg;
-  const inlineBg =
-    !colorBg && color
-      ? color.startsWith('#') || color.startsWith('rgb')
-        ? color
-        : `var(--tw-color-${color}-500, #f97316)`
-      : undefined;
+  const resolveInlineBg = (col: string | undefined): string | undefined => {
+    if (!col) return undefined;
+    if (col.startsWith('#') || col.startsWith('rgb')) {
+      return col;
+    }
+    return `var(--tw-color-${col}-500, #f97316)`;
+  };
+  const inlineBg = !colorBg ? resolveInlineBg(color) : undefined;
 
   const dotSizeClasses = {
     xs: 'w-1.5 h-1.5',

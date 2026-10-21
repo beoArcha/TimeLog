@@ -6,7 +6,7 @@ import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
-import { Heading, Overline } from '@components/ui/typography';
+import { Heading, Overline, Text, Caption } from '@components/ui/typography';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -52,9 +52,9 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
               {tEngine('EngineRunningBackground')}
             </Badge>
           </Heading>
-          <p className="text-sm mt-2 max-w-md font-sans text-muted-foreground">
+          <Text size="sm" variant="muted" className="mt-2 max-w-md font-sans">
             {tEngine('TrayDescription')}
-          </p>
+          </Text>
           <div className="text-xs px-4 py-2 rounded-xl font-mono inline-block mt-4 border border-border bg-muted/40 text-foreground">
             {tEngine('DaemonEnginePid')} <strong className="text-orange-500 font-bold">8421</strong> {tEngine('SqliteThread')}
           </div>
@@ -65,9 +65,9 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
             {tEngine('ActiveMeasuringThreads')} ({activeRunningLogs.length})
           </Overline>
           {activeRunningLogs.length === 0 ? (
-            <p className="text-xs italic text-center py-2 text-muted-foreground">
+            <Caption variant="muted" className="italic text-center py-2">
               {tTimer('NoActiveTimers')}
-            </p>
+            </Caption>
           ) : (
             <div className="flex flex-col gap-2">
               {activeRunningLogs.map(l => {
@@ -75,7 +75,8 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
                 const taskObj = tasks.find(t => t.id === l.taskId);
                 const start = new Date(l.startTime).getTime();
                 const taskMetric = computedMetrics?.tasks?.[l.taskId];
-                const elapsed = taskMetric ? taskMetric.selfElapsedSeconds : (nowIso ? Math.max(0, Math.floor((new Date(nowIso).getTime() - start) / 1000)) : 0);
+                const fallbackElapsed = nowIso ? Math.max(0, Math.floor((new Date(nowIso).getTime() - start) / 1000)) : 0;
+                const elapsed = taskMetric ? taskMetric.selfElapsedSeconds : fallbackElapsed;
 
                 const hrs = Math.floor(elapsed / 3600);
                 const mins = Math.floor((elapsed % 3600) / 60);

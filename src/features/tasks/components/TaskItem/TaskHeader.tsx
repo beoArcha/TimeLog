@@ -18,6 +18,13 @@ import {
 import { useTasksSafe } from '@common/hooks/DataContext';
 import { useTaskEditing } from '../../context/TaskEditingContext';
 
+const STATUS_BADGE_STYLE_MAP: Record<string, string> = {
+  Done: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+  InProgress: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+  Blocked: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
+  Todo: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
+};
+
 export interface TaskHeaderProps {
   rootTask: Task;
   isCurrentRunning: boolean;
@@ -120,14 +127,9 @@ export function TaskHeader({
                   }}
                 >
                   <SelectTrigger
-                    className={`h-6 text-xs font-bold px-2 py-0.5 rounded border font-mono shrink-0 transition-all ${rootTask.status === 'Done'
-                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                        : rootTask.status === 'InProgress'
-                          ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                          : rootTask.status === 'Blocked'
-                            ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                            : 'bg-slate-500/10 text-slate-500 border-slate-500/20'
-                      }`}
+                    className={`h-6 text-xs font-bold px-2 py-0.5 rounded border font-mono shrink-0 transition-all ${
+                      STATUS_BADGE_STYLE_MAP[rootTask.status || 'Todo'] ?? STATUS_BADGE_STYLE_MAP.Todo
+                    }`}
                     aria-label="Task status"
                   >
                     <SelectValue>{rootTask.status || 'Todo'}</SelectValue>

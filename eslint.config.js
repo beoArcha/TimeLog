@@ -15,7 +15,8 @@ export default [
             ".stryker-sandbox",
             ".stryker-tmp",
             "reports",
-            ".gemini"
+            ".gemini",
+            "scratch"
         ],
     },
 
@@ -70,7 +71,7 @@ export default [
             "no-restricted-syntax": [
                 "error",
                 {
-                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td)$/]",
+                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td|p)$/]",
                     message: "Raw HTML element is forbidden. Use Design System primitives (@components/ui/*) or composite components (@components/*).",
                 },
             ],
@@ -84,7 +85,7 @@ export default [
             "no-restricted-syntax": [
                 "error",
                 {
-                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td)$/]",
+                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td|p)$/]",
                     message: "Raw HTML element is forbidden in composite components. Use Design System primitives (@components/ui/*).",
                 },
             ],

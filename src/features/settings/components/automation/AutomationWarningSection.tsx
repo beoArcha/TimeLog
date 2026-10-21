@@ -1,6 +1,7 @@
 import React from 'react';
 import { Checkbox } from '@components/ui/checkbox';
 import { Label } from '@components/ui/label';
+import { Caption } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 
@@ -27,9 +28,9 @@ export const AutomationWarningSection: React.FC<AutomationWarningSectionProps> =
           {translate(locale, 'settings', 'WarningNotification', customTranslations)}
         </span>
       </Label>
-      <p className="text-xs text-muted-foreground pl-6">
+      <Caption variant="muted" className="pl-6">
         {translate(locale, 'settings', 'WarningNotificationDesc', customTranslations)}
-      </p>
+      </Caption>
     </div>
   );
 };

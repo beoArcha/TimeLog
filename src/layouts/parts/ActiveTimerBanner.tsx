@@ -9,6 +9,7 @@ import { TimerDisplay } from '@/src/features/timelogs/components/TimerDisplay';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Heading, Caption, Overline } from '@components/ui/typography';
+import { HStack, InlineCluster } from '@components/ui/stack';
 
 export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -45,7 +46,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
               </span>
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-1.5">
+              <InlineCluster gap="xs">
                 <Badge variant="orange" size="xs" as="span" className="whitespace-nowrap uppercase">
                   {translate(locale, 'timer', 'ActiveTracker', customTranslations)}
                 </Badge>
@@ -58,7 +59,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
                     textClassName="text-foreground"
                   />
                 )}
-              </div>
+              </InlineCluster>
               <Heading
                 level={4}
                 className="font-extrabold text-title mt-0.5 leading-snug truncate text-foreground"
@@ -96,7 +97,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
         </motion.div>
       ) : (
         <div id="active-timer-idle-banner" className={`backdrop-blur-md rounded-main padding-section border border-border bg-card/60 text-card-foreground shadow-xs flex flex-col ${isCondensed ? 'gap-section' : 'md:flex-row items-center justify-between gap-section'} transition-all duration-300`}>
-          <div className="flex items-center gap-section">
+          <HStack gap="section">
             <div className="icon-medium border border-border rounded-section flex items-center justify-center shrink-0 bg-muted/40">
               <Clock className="w-3/5 h-3/5 text-orange-400" />
             </div>
@@ -108,7 +109,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
                 {translate(locale, 'timer', 'SelectTaskToPlay', customTranslations)}
               </Caption>
             </div>
-          </div>
+          </HStack>
           <div className={isCondensed ? 'w-full pt-2 border-t border-border text-center' : 'text-right'}>
             <Badge variant="outline" size="sm" as="span" className="font-mono font-medium whitespace-nowrap bg-muted/40 text-foreground">
               {translate(locale, 'engine', 'IdleSqlReady', customTranslations)}

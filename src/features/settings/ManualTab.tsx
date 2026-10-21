@@ -51,21 +51,21 @@ export default function ManualTab() {
       >
         <List ordered className="pl-4 flex flex-col gap-4 text-xs font-sans mt-2">
           <ListItem>
-            {translate(locale, 'help', 'Step1', customTranslations)} <CodeBlock inline className="text-orange-400">npm</CodeBlock>.
+            {translate(locale, 'help', 'Step1', customTranslations)} <CodeBlock inline className="text-orange-400">bun</CodeBlock>.
           </ListItem>
           <ListItem>
             {translate(locale, 'help', 'Step2', customTranslations)} (<CodeBlock inline className="text-orange-400">rustup</CodeBlock>).
-            {currentOs === 'windows' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">C++ Build Tools for Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'.</MonoText>}
+            {currentOs === 'windows' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">{translate(locale, 'help', 'Step2WinBuildTools', customTranslations)}</MonoText>}
             {currentOs === 'linux' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">sudo apt update && sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev</MonoText>}
             {currentOs === 'macos' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">xcode-select --install (CLang compiler required for macOS bindings)</MonoText>}
           </ListItem>
           <ListItem>
             {translate(locale, 'help', 'Step3', customTranslations)}
-            <CodeBlock className="mt-1">npm install</CodeBlock>
+            <CodeBlock className="mt-1">bun install</CodeBlock>
           </ListItem>
           <ListItem>
             {translate(locale, 'help', 'Step4', customTranslations)}
-            <CodeBlock className="mt-1 text-orange-500 font-bold group hover:border-orange-500/30 transition-colors">npm run tauri build</CodeBlock>
+            <CodeBlock className="mt-1 text-orange-500 font-bold group hover:border-orange-500/30 transition-colors">bun run tauri:dev</CodeBlock>
           </ListItem>
           <ListItem>
             {translate(locale, 'help', 'Step5', customTranslations)}
@@ -107,7 +107,7 @@ export default function ManualTab() {
           </div>
           <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 flex items-center justify-between">
             <span className="text-xs font-bold text-amber-500">{translate(locale, 'help', 'ShortcutSystemCli', customTranslations)}</span>
-            <MonoText size="2xs" className="text-amber-500">./oxytime start --task id</MonoText>
+            <MonoText size="2xs" className="text-amber-500">oxy timer start --task &lt;id&gt;</MonoText>
           </div>
         </div>
       </CollapsibleCard>

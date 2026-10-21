@@ -6,7 +6,7 @@ import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler } from '../exceptions';
 import { Locale } from '@bindings/Locale';
 
-interface LocaleContextProps {
+export interface LocaleContextProps {
   localePref: Locale;
   setLocalePref: React.Dispatch<React.SetStateAction<Locale>>;
   locale: Locale;
@@ -40,7 +40,8 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const setLocale: React.Dispatch<React.SetStateAction<Locale>> = (value) => {
     setLocaleOverride((prev) => {
-      const current = prev !== null && prev[0] === localePref ? prev[1] : (localePref === 'system' ? resolveSystemLocale() : localePref);
+      const fallback = localePref === 'system' ? resolveSystemLocale() : localePref;
+      const current = prev !== null && prev[0] === localePref ? prev[1] : fallback;
       const next = typeof value === 'function' ? (value as (p: Locale) => Locale)(current) : value;
       return [localePref, next];
     });
@@ -82,7 +83,7 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 };
 
-export const useLocale = () => {
+export const useLocale = (): LocaleContextProps => {
   const ctx = useContext(LocaleContext);
   if (!ctx) throw new ContextException('useLocale must be used within LocaleProvider', 'ERR_LOCALE_CONTEXT');
   return ctx;
@@ -91,7 +92,7 @@ export const useLocale = () => {
 /**
  * Returns active locale or a safe English fallback when rendered outside LocaleProvider.
  */
-export const useSafeLocale = () => {
+export const useSafeLocale = (): LocaleContextProps => {
   const ctx = useContext(LocaleContext);
   if (ctx) return ctx;
   return {

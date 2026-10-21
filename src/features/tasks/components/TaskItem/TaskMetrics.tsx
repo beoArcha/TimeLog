@@ -5,6 +5,7 @@ import { useTimerSafe } from '@common/hooks/DataContext';
 import { useTaskEditing } from '../../context/TaskEditingContext';
 import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
 import { Button } from '@components/ui/button';
+import { HStack } from '@components/ui/stack';
 
 export interface TaskMetricsProps {
   rootTask: Task;
@@ -45,11 +46,9 @@ export function TaskMetrics({
 
 
   return (
-    <div
-      className={`flex items-center gap-3 ${isCondensed
-        ? 'w-full justify-between pt-3 border-t border-border'
-        : ''
-        }`}
+    <HStack
+      gap="md"
+      className={isCondensed ? 'w-full justify-between pt-3 border-t border-border' : ''}
     >
       <span
         className={`text-xs font-mono font-extrabold px-3 py-1.5 rounded-full border transition-all ${isAnyRunning
@@ -60,7 +59,7 @@ export function TaskMetrics({
         {tTask('CounterLabel')}: {formatSeconds(rootDuration)}
       </span>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <HStack gap="sm" className="shrink-0">
         {isCurrentRunning ? (
           <Button
             id={`stop-btn-${rootTask.id}`}
@@ -107,7 +106,7 @@ export function TaskMetrics({
             {tTask('SubtaskLabel')}
           </span>
         </Button>
-      </div>
-    </div>
+      </HStack>
+    </HStack>
   );
 }

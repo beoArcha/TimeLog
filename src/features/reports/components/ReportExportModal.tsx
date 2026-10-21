@@ -144,7 +144,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                     <div className="flex items-center gap-3">
                       {getFormatIcon(exp.id)}
                       <div>
-                        <p className="text-xs font-semibold">{exp.name}</p>
+                        <Caption weight="semibold">{exp.name}</Caption>
                         <Caption size="2xs" className="opacity-75 font-mono">
                           .{exp.fileExtension}
                         </Caption>

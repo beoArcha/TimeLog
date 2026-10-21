@@ -3,6 +3,7 @@ import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { NativeSelect } from '@components/ui/select';
 import { Input } from '@components/ui/input';
+import { HStack, InlineCluster } from '@components/ui/stack';
 import { ReportPeriodType } from '../types';
 
 export interface ReportPeriodSelectorProps {
@@ -45,7 +46,7 @@ export default function ReportPeriodSelector({
   return (
     <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col gap-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-1.5">
+        <InlineCluster gap="xs">
           <span className="text-xs font-mono text-muted-foreground mr-1">{tCommon('Period')}</span>
           {presets.map(p => (
             <Button
@@ -60,9 +61,9 @@ export default function ReportPeriodSelector({
               {p.label}
             </Button>
           ))}
-        </div>
+        </InlineCluster>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <HStack gap="sm" className="shrink-0">
           <span className="text-xs font-mono text-muted-foreground">{tReport('SortBy')}</span>
           <div>
             <NativeSelect
@@ -78,12 +79,12 @@ export default function ReportPeriodSelector({
               <option value="date">{tReport('DateChronological')}</option>
             </NativeSelect>
           </div>
-        </div>
+        </HStack>
       </div>
 
       {reportPeriod === 'custom' && (
-        <div data-testid="custom-date-range-panel" className="flex flex-wrap items-center gap-4 pt-3 border-t border-border/50 text-xs">
-          <div className="flex items-center gap-2">
+        <InlineCluster data-testid="custom-date-range-panel" gap="lg" className="pt-3 border-t border-border/50 text-xs">
+          <HStack gap="sm">
             <span className="font-mono text-muted-foreground">{tReport('DateFrom')}:</span>
             <Input
               data-testid="custom-from-input"
@@ -93,8 +94,8 @@ export default function ReportPeriodSelector({
               className="w-36 h-8 text-xs bg-card"
               aria-label={tReport('DateFrom')}
             />
-          </div>
-          <div className="flex items-center gap-2">
+          </HStack>
+          <HStack gap="sm">
             <span className="font-mono text-muted-foreground">{tReport('DateTo')}:</span>
             <Input
               data-testid="custom-to-input"
@@ -104,8 +105,8 @@ export default function ReportPeriodSelector({
               className="w-36 h-8 text-xs bg-card"
               aria-label={tReport('DateTo')}
             />
-          </div>
-        </div>
+          </HStack>
+        </InlineCluster>
       )}
     </div>
   );

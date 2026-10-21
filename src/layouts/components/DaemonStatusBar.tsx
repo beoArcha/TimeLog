@@ -8,6 +8,7 @@ import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Caption } from '@components/ui/typography';
+import { HStack } from '@components/ui/stack';
 import { WebhookDispatcher, WebhookSyncStatus } from '@common/sinks/WebhookDispatcher';
 
 export default function DaemonStatusBar() {
@@ -49,7 +50,7 @@ export default function DaemonStatusBar() {
       animate={{ opacity: 1, scale: 1 }}
       className="bg-emerald-500/5 border border-emerald-500/15 text-xs rounded-xl py-2 px-3 sm:py-2.5 sm:px-4 flex items-center justify-between gap-2.5 transition-all text-muted-foreground"
     >
-      <div className="flex items-center gap-2 text-left min-w-0 flex-wrap">
+      <HStack gap="sm" wrap className="text-left min-w-0">
         <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
         <Caption as="p" size="xs" className="truncate leading-tight text-foreground">
           <span className="font-semibold text-emerald-600 dark:text-emerald-400">
@@ -66,19 +67,19 @@ export default function DaemonStatusBar() {
           className="flex items-center gap-1.5 font-mono bg-card/60 font-normal"
         >
           {syncStatus.state === 'idle' && (
-            <span className="flex items-center gap-1 text-muted-foreground">
+            <HStack as="span" gap="2xs" className="text-muted-foreground">
               <CheckCircle2 className="w-3 h-3 text-emerald-500" />
               <span>{translate(locale, 'engine', 'SyncStatusOk', customTranslations)}</span>
-            </span>
+            </HStack>
           )}
           {syncStatus.state === 'syncing' && (
-            <span className="flex items-center gap-1 text-sky-500">
+            <HStack as="span" gap="2xs" className="text-sky-500">
               <RefreshCw className="w-3 h-3 animate-spin" />
               <span>{translate(locale, 'engine', 'SyncStatusSyncing', customTranslations)}</span>
-            </span>
+            </HStack>
           )}
           {syncStatus.state === 'queued' && (
-            <span className="flex items-center gap-1.5 text-amber-500">
+            <HStack as="span" gap="xs" className="text-amber-500">
               <CloudUpload className="w-3 h-3 animate-pulse" />
               <span>
                 {syncStatus.pendingCount} {translate(locale, 'engine', 'SyncStatusQueued', customTranslations)}
@@ -92,10 +93,10 @@ export default function DaemonStatusBar() {
               >
                 {translate(locale, 'engine', 'RetryNow', customTranslations)}
               </Button>
-            </span>
+            </HStack>
           )}
           {syncStatus.state === 'error' && (
-            <span className="flex items-center gap-1.5 text-rose-500">
+            <HStack as="span" gap="xs" className="text-rose-500">
               <AlertCircle className="w-3 h-3" />
               <span>
                 {syncStatus.failedCount} {translate(locale, 'engine', 'SyncStatusError', customTranslations)}
@@ -109,10 +110,10 @@ export default function DaemonStatusBar() {
               >
                 {translate(locale, 'engine', 'RetryNow', customTranslations)}
               </Button>
-            </span>
+            </HStack>
           )}
         </Badge>
-      </div>
+      </HStack>
 
       {handleMinimizeToTray && (
         <Button

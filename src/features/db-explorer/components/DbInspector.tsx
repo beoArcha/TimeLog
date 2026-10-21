@@ -12,7 +12,8 @@ import {
 } from '@components/ui/table';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
-import { MonoText } from '@components/ui/typography';
+import { MonoText, Text } from '@components/ui/typography';
+import { HStack } from '@components/ui/stack';
 
 export default function DbInspector({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -22,11 +23,12 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
 
   return (
     <div className="mt-2 flex flex-col rounded-3xl border border-border bg-card text-card-foreground shadow-xs transition-all duration-300 overflow-hidden">
-      <div
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+      <HStack
+        justify="between"
+        className="p-4 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         onClick={() => setShowDbInspector(!showDbInspector)}
       >
-        <div className="flex items-center gap-3">
+        <HStack gap="md">
           <div className="p-2.5 rounded-2xl bg-orange-500/10 text-orange-500 border border-orange-500/20">
             <Database className="w-5 h-5" />
           </div>
@@ -34,9 +36,9 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
             <span className="font-bold text-sm text-foreground">oxytime.db • SQLite Client</span>
             <MonoText size="2xs">Simulated microORM State</MonoText>
           </div>
-        </div>
+        </HStack>
 
-        <div className="flex items-center gap-3">
+        <HStack gap="md">
           {showDbInspector && (
             <Badge variant="orange" size="sm" as="span" className="hidden sm:inline-block">
               ONLINE
@@ -54,8 +56,8 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
           >
             {showDbInspector ? translate(locale, 'database', 'HideSqlitePreview', customTranslations) : translate(locale, 'database', 'ExploreStructure', customTranslations)}
           </Button>
-        </div>
-      </div>
+        </HStack>
+      </HStack>
 
       <AnimatePresence>
         {showDbInspector && (
@@ -70,7 +72,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
             <div className="p-4 pt-4 md:p-6 md:pt-4 border-t border-border/50 font-mono text-xs gap-4 flex flex-col">
               <div className={`flex flex-col gap-4 pb-2 ${!isCondensed ? 'md:grid md:grid-cols-2' : ''}`}>
                 <div className="flex-1 p-3 rounded-xl border border-border bg-muted/30 flex flex-col">
-                  <p className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE projects</p>
+                  <Text className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE projects</Text>
                   <div className="overflow-auto scroller-hide max-h-[200px] w-full">
                     <Table className="w-full text-left whitespace-nowrap">
                       <TableHeader>
@@ -94,7 +96,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                 </div>
 
                 <div className="flex-1 p-3 rounded-xl border border-border bg-muted/30 flex flex-col">
-                  <p className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE tasks</p>
+                  <Text className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE tasks</Text>
                   <div className="overflow-auto scroller-hide max-h-[200px] w-full">
                     <Table className="w-full text-left whitespace-nowrap">
                       <TableHeader>
@@ -127,7 +129,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                 </div>
 
                 <div className={`flex-1 w-full p-3 rounded-xl border border-border bg-muted/30 flex flex-col ${!isCondensed ? 'md:col-span-2' : ''}`}>
-                  <p className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE time_logs</p>
+                  <Text className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE time_logs</Text>
                   <div className="overflow-auto scroller-hide max-h-[250px] w-full">
                     <Table className="w-full text-left whitespace-nowrap">
                       <TableHeader>

@@ -5,6 +5,18 @@ import { useSettings } from '@common/hooks/SettingsContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
 
+const LAYOUT_KEY_MAP = {
+  compact: 'SizeSmall',
+  medium: 'SizeMedium',
+  full: 'SizeLarge',
+} as const;
+
+const LAYOUT_SHORT_LABEL_MAP = {
+  compact: 'S',
+  medium: 'M',
+  full: 'L',
+} as const;
+
 export const LayoutSelector: React.FC = () => {
   const { locale, customTranslations } = useLocale();
   const { layoutVariant, setLayoutVariant } = useSettings();
@@ -14,11 +26,7 @@ export const LayoutSelector: React.FC = () => {
     <div className="flex p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-xs font-sans">
       {(['compact', 'medium', 'full'] as const).map(sz => {
         const isActive = layoutVariant === sz;
-        const fullLabel = sz === 'compact'
-          ? translate(locale, 'app', 'SizeSmall', customTranslations)
-          : sz === 'medium'
-            ? translate(locale, 'app', 'SizeMedium', customTranslations)
-            : translate(locale, 'app', 'SizeLarge', customTranslations);
+        const fullLabel = translate(locale, 'app', LAYOUT_KEY_MAP[sz], customTranslations);
         return (
           <Button
             key={sz}
@@ -39,7 +47,7 @@ export const LayoutSelector: React.FC = () => {
             }`}
           >
             <span className={layoutVariant === 'full' ? 'hidden sm:inline' : 'hidden'}>{fullLabel}</span>
-            <span className={layoutVariant === 'full' ? 'sm:hidden' : ''}>{sz === 'compact' ? 'S' : sz === 'medium' ? 'M' : 'L'}</span>
+            <span className={layoutVariant === 'full' ? 'sm:hidden' : ''}>{LAYOUT_SHORT_LABEL_MAP[sz]}</span>
           </Button>
         );
       })}

@@ -2,14 +2,14 @@ import React from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { Folder, Clock, Pencil, Plus } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
-import { formatSeconds } from '@/src/features/timelogs/utils/TimelogUtils';
+import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from './LayoutStyles';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
 import { EditProjectDialog } from './EditProjectDialog';
 import { ProjectEmptyState } from './ProjectEmptyState';
-import { Heading, Caption } from '@components/ui/typography';
+import { Heading, Caption, Text } from '@components/ui/typography';
 import { Badge } from '@components/ui/badge';
 import { StarterTemplate, resolveStarterTemplate } from '@common/templates/starterTemplates';
 import { Project } from '@bindings/Project';
@@ -248,7 +248,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                           className="font-semibold text-main rounded px-1 outline-none h-7 bg-background text-foreground border border-input"
                         />
                       ) : (
-                        <p className="font-semibold text-main truncate text-foreground">{p.archived && <span className="text-main bg-destructive text-destructive-foreground px-1 py-0.5 rounded mr-1 leading-none uppercase">{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</p>
+                        <Text weight="semibold" className="text-main truncate text-foreground">{p.archived && <span className="text-main bg-destructive text-destructive-foreground px-1 py-0.5 rounded mr-1 leading-none uppercase">{translate(locale, 'common', 'ArchiveNoun', customTranslations)}</span>}{p.name}</Text>
                       )}
 
                       {p.description && (
@@ -267,7 +267,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                         </div>
                       )}
 
-                      <p className="text-main opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5 text-muted-foreground">
+                      <Caption variant="muted" className="text-main opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5">
                         {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(p.createdAt).toLocaleDateString()}
 
                         {editingId !== p.id && (
@@ -300,7 +300,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                         >
                           {p.archived ? translate(locale, 'common', 'Unarchive', customTranslations) : translate(locale, 'common', 'Archive', customTranslations)}
                         </Button>
-                      </p>
+                      </Caption>
                     </div>
                   </div>
 

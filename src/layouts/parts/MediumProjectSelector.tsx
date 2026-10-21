@@ -3,11 +3,11 @@ import { GuiState } from '../hooks/useGuiLogic';
 import { PROJECT_COLORS } from './LayoutStyles';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
-import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
+import { ProjectBadge } from '@features/projects/components/ProjectBadge';
 import { MediumHeaderActions } from './MediumHeaderActions';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
-import { MonoText } from '@components/ui/typography';
+import { MonoText, Caption } from '@components/ui/typography';
 import {
   Folder,
   Plus,
@@ -150,9 +150,9 @@ export default function MediumProjectSelector({
 
           {isAddingProject ? (
             <form onSubmit={handleCreateProject} className="p-3 border-b border-inherit bg-orange-500/5">
-              <p className="text-xs font-semibold mb-2 text-orange-500">
+              <Caption weight="semibold" className="mb-2 text-orange-500 block">
                 {translate(locale, 'project', 'NewProject', customTranslations)}
-              </p>
+              </Caption>
               <Input
                 type="text"
                 data-testid="medium-new-project-input"

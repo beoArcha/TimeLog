@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Zap } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { Caption } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { WorkflowRouter } from '@common/workflows/WorkflowRouter';
@@ -81,9 +82,9 @@ export default function AutomationSettings() {
       headerTestId="collapsible-trigger-automation-settings"
     >
       <div className="flex flex-col gap-5 text-sm">
-        <p className="text-xs leading-relaxed text-muted-foreground">
+        <Caption variant="muted" className="leading-relaxed">
           {translate(locale, 'settings', 'AutomationDesc', customTranslations)}
-        </p>
+        </Caption>
 
         <AutomationDaemonStatusRow
           isDaemonRunning={!!status?.isDaemonRunning}

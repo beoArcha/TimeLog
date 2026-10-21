@@ -7,6 +7,7 @@ import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { Badge } from '@components/ui/badge';
 import { Caption, Heading } from '@components/ui/typography';
+import { HStack } from '@components/ui/stack';
 
 export const AppLogo: React.FC = () => {
   const { dragRegionProps } = usePlatformCapabilities();
@@ -14,7 +15,7 @@ export const AppLogo: React.FC = () => {
   const { layoutVariant } = useSettings();
 
   return (
-    <div {...dragRegionProps} className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+    <HStack gap="sm" className="sm:gap-2.5 shrink-0" {...dragRegionProps}>
       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-orange-400 to-rose-500 shadow-md flex items-center justify-center text-white shrink-0">
         <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
       </div>
@@ -35,6 +36,6 @@ export const AppLogo: React.FC = () => {
           </Caption>
         )}
       </div>
-    </div>
+    </HStack>
   );
 };

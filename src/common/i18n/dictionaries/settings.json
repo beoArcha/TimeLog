@@ -45,7 +45,15 @@
     "DaemonStatusIdle": "Background Daemon Idle",
     "CheckRulesNow": "Check Rules Now",
     "AutoStopTriggered": "Workflow auto-stopped timer",
-    "WarningLimitApproaching": "Working limit approaching in 15 minutes"
+    "WarningLimitApproaching": "Working limit approaching in 15 minutes",
+    "VersionsTitle": "OxyFlow Versions",
+    "AppRelease": "App Release",
+    "EngineComponent": "Engine",
+    "FrontComponent": "Front",
+    "ComponentsLibrary": "Components",
+    "TranslationsPack": "Translations",
+    "BackupCardTitle": "JSON / SQLite Backup",
+    "BackupTabSubtitle": "Export and restore your database state"
   },
   "pl": {
     "Title": "Ustawienia Interfejsu i Aplikacji",
@@ -93,7 +101,15 @@
     "DaemonStatusIdle": "Demon w tle: bezczynny",
     "CheckRulesNow": "Sprawdź reguły teraz",
     "AutoStopTriggered": "Automatyzacja zatrzymała stoper",
-    "WarningLimitApproaching": "Zbliża się limit czasu pracy (za 15 minut)"
+    "WarningLimitApproaching": "Zbliża się limit czasu pracy (za 15 minut)",
+    "VersionsTitle": "Wersje OxyFlow",
+    "AppRelease": "Wydanie aplikacji",
+    "EngineComponent": "Silnik",
+    "FrontComponent": "Front",
+    "ComponentsLibrary": "Komponenty",
+    "TranslationsPack": "Tłumaczenia",
+    "BackupCardTitle": "Kopia zapasowa JSON / SQLite",
+    "BackupTabSubtitle": "Eksportuj i przywracaj stan bazy danych"
   },
   "de": {
     "Title": "Schnittstellen- & Anwendungseinstellungen",
@@ -141,7 +157,15 @@
     "DaemonStatusIdle": "Hintergrund-Daemon inaktiv",
     "CheckRulesNow": "Regeln jetzt prüfen",
     "AutoStopTriggered": "Automatisierung hat den Timer gestoppt",
-    "WarningLimitApproaching": "Arbeitszeitlimit nähert sich in 15 Minuten"
+    "WarningLimitApproaching": "Arbeitszeitlimit nähert sich in 15 Minuten",
+    "VersionsTitle": "OxyFlow-Versionen",
+    "AppRelease": "App-Release",
+    "EngineComponent": "Engine",
+    "FrontComponent": "Front",
+    "ComponentsLibrary": "Komponenten",
+    "TranslationsPack": "Übersetzungen",
+    "BackupCardTitle": "JSON / SQLite Datensicherung",
+    "BackupTabSubtitle": "Datenbankzustand exportieren und wiederherstellen"
   },
   "es": {
     "Title": "Configuración de Interfaz y Aplicación",
@@ -189,7 +213,15 @@
     "DaemonStatusIdle": "Demonio en segundo plano inactivo",
     "CheckRulesNow": "Comprobar reglas ahora",
     "AutoStopTriggered": "El flujo automático detuvo el temporizador",
-    "WarningLimitApproaching": "Límite de trabajo próximo en 15 minutos"
+    "WarningLimitApproaching": "Límite de trabajo próximo en 15 minutos",
+    "VersionsTitle": "Versiones de OxyFlow",
+    "AppRelease": "Versión de la aplicación",
+    "EngineComponent": "Motor",
+    "FrontComponent": "Interfaz",
+    "ComponentsLibrary": "Componentes",
+    "TranslationsPack": "Traducciones",
+    "BackupCardTitle": "Copia de seguridad JSON / SQLite",
+    "BackupTabSubtitle": "Exportar y restaurar el estado de la base de datos"
   },
   "fr": {
     "Title": "Paramètres de l'Interface et de l'Application",
@@ -237,7 +269,15 @@
     "DaemonStatusIdle": "Démon d'arrière-plan inactif",
     "CheckRulesNow": "Vérifier les règles maintenant",
     "AutoStopTriggered": "L'automatisation a arrêté le minuteur",
-    "WarningLimitApproaching": "Limite de travail approchant dans 15 minutes"
+    "WarningLimitApproaching": "Limite de travail approchant dans 15 minutes",
+    "VersionsTitle": "Versions d'OxyFlow",
+    "AppRelease": "Version de l'application",
+    "EngineComponent": "Moteur",
+    "FrontComponent": "Front",
+    "ComponentsLibrary": "Composants",
+    "TranslationsPack": "Traductions",
+    "BackupCardTitle": "Sauvegarde JSON / SQLite",
+    "BackupTabSubtitle": "Exporter et restaurer l'état de la base de données"
   },
   "pt-br": {
     "Title": "Configurações de Interface e Aplicativo",
@@ -285,6 +325,14 @@
     "DaemonStatusIdle": "Daemon em segundo plano ocioso",
     "CheckRulesNow": "Verificar regras agora",
     "AutoStopTriggered": "Automação parou o cronômetro",
-    "WarningLimitApproaching": "Limite de trabalho se aproximando em 15 minutos"
+    "WarningLimitApproaching": "Limite de trabalho se aproximando em 15 minutos",
+    "VersionsTitle": "Versões do OxyFlow",
+    "AppRelease": "Versão do aplicativo",
+    "EngineComponent": "Motor",
+    "FrontComponent": "Front",
+    "ComponentsLibrary": "Componentes",
+    "TranslationsPack": "Traduções",
+    "BackupCardTitle": "Backup JSON / SQLite",
+    "BackupTabSubtitle": "Exporte e restaure o estado do banco de dados"
   }
 }

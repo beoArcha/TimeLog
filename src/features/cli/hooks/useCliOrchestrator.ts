@@ -34,9 +34,8 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
   const terminalHistoryRef = useRef<HTMLDivElement>(null);
 
   // If session is available and no props overrides, use session history and sandbox
-  const isSandboxMode = props?.isSandbox !== undefined
-    ? props.isSandbox
-    : (session ? session.isSandbox : localSandboxMode);
+  const defaultSandbox = session?.isSandbox ?? localSandboxMode;
+  const isSandboxMode = props?.isSandbox !== undefined ? props.isSandbox : defaultSandbox;
 
   const terminalHistory = session && !props?.projects
     ? session.terminalHistory

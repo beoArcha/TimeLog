@@ -9,7 +9,7 @@ import {
 } from '@components/ui/dialog';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
-import { Overline, List, ListItem } from '@components/ui/typography';
+import { Overline, List, ListItem, Text, Caption, MonoText } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
@@ -62,12 +62,12 @@ export default function CreditsModal() {
             🕺 {translate(locale, 'help', 'AboutCreatorVibeCodingVibe', customTranslations)}
           </Overline>
           <div className="p-5 rounded-3xl border border-border bg-muted/40 text-foreground transition-all">
-            <p className="font-sans text-sm leading-relaxed mb-3">
+            <Text size="sm" className="font-sans leading-relaxed mb-3">
               {translate(locale, 'help', 'CreatorAppCreatedBy', customTranslations)}
-            </p>
-            <p className="font-sans text-xs leading-relaxed text-muted-foreground">
+            </Text>
+            <Caption variant="muted" className="font-sans leading-relaxed">
               {translate(locale, 'help', 'CreatorBio', customTranslations)}
-            </p>
+            </Caption>
           </div>
         </div>
 
@@ -101,13 +101,13 @@ export default function CreditsModal() {
               📄 {translate(locale, 'help', 'MplLicense', customTranslations)}
             </Overline>
             <div className="p-4 rounded-3xl border border-border text-xs font-mono leading-relaxed h-[120px] overflow-y-auto bg-muted/60 text-muted-foreground">
-              <p className="font-bold mb-1">Mozilla Public License Version 2.0 (MPL-2.0)</p>
-              <p className="mb-2">Copyright (c) 2026 LogTime by OxyFlow</p>
-              <p className="mb-2">
+              <MonoText weight="bold" size="xs" className="mb-1 block">Mozilla Public License Version 2.0 (MPL-2.0)</MonoText>
+              <MonoText size="xs" className="mb-2 block">Copyright (c) 2026 LogTime by OxyFlow</MonoText>
+              <MonoText size="xs" className="mb-2 block">
                 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
                 If a copy of the MPL was not distributed with this file, You can obtain one at
                 https://mozilla.org/MPL/2.0/.
-              </p>
+              </MonoText>
             </div>
           </div>
         </div>

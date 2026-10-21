@@ -61,7 +61,8 @@ export default function ReportView({ state }: { state: GuiState }) {
         end = clamped.clampedEndTime || clamped.endTime || 'Running';
       } else {
         const s = new Date(log.startTime).getTime();
-        const e = log.endTime ? new Date(log.endTime).getTime() : (nowIso ? new Date(nowIso).getTime() : s);
+        const fallbackEnd = nowIso ? new Date(nowIso).getTime() : s;
+        const e = log.endTime ? new Date(log.endTime).getTime() : fallbackEnd;
         durationSeconds = Math.max(0, Math.floor((e - s) / 1000));
       }
       const date = start.substring(0, 10);
