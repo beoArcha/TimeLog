@@ -1,0 +1,48 @@
+name: Setup Rust Environment
+description: Installs Rust toolchain, caching, and Linux system dependencies
+
+inputs:
+  components:
+    description: Rustup components (e.g. rustfmt, clippy)
+    required: false
+    default: ""
+  targets:
+    description: Rust compilation targets
+    required: false
+    default: ""
+  install-linux-deps:
+    description: Whether to install GTK3/WebKit2GTK/lld Linux libraries
+    required: false
+    default: "false"
+  workspaces:
+    description: Workspaces for Swatinem/rust-cache
+    required: false
+    default: "src-tauri -> target"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Rust Toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: ${{ inputs.components }}
+        targets: ${{ inputs.targets }}
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: ${{ inputs.workspaces }}
+
+    - name: Install Linux Dependencies
+      if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          pkg-config \
+          libgtk-3-dev \
+          libwebkit2gtk-4.1-dev \
+          libappindicator3-dev \
+          librsvg2-dev \
+          patchelf \
+          lld

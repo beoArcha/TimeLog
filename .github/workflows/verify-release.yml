@@ -1,0 +1,55 @@
+name: Release Pre-Flight Verification
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref or SHA to verify"
+        type: string
+        required: true
+
+jobs:
+  verify-frontend:
+    name: Verify Frontend Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: ./.github/actions/setup-frontend
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Build Frontend
+        run: bun run build
+
+  verify-backend:
+    name: Verify Rust & Engine
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: ./.github/actions/setup-frontend
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          install-linux-deps: "true"
+
+      - name: Check TypeScript Bindings Parity
+        run: cargo test --manifest-path src-tauri/Cargo.toml --test export_bindings_when_testing
+
+      - name: Run Rust Tests (Fast, No Coverage)
+        env:
+          RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Run Smoke Tests
+        run: bun run test:smoke
