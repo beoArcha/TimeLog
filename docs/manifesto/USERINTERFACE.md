@@ -201,6 +201,15 @@ The UI is strictly organized into two distinct layers of reusable components:
 Atomic, domain-agnostic headless primitives built on top of Radix / Base-UI and styled with Tailwind CSS design tokens:
 
 - `Button`: Interactive button with size (`default`, `sm`, `lg`, `icon`, `icon-xs`) and variant (`default`, `accent`, `destructive`, `outline`, `ghost`, `link`) tokens.
+- `Badge`: Semantic status and count badge with variants (`default`, `secondary`, `outline`, `destructive`, `amber`, `emerald`, `orange`, `violet`, `teal`, `rose`), sizes (`xs`, `sm`, `default`), and polymorphic `as="div" | "span"`.
+- `Typography Primitives`: Standardized text and heading components enforcing design tokens and eliminating arbitrary pixel sizes:
+  - `Heading`: Semantic headings with levels 1 through 6 (`as="h1"..."h6"`), tokenized sizes, and accessible heading roles.
+  - `Text`: Polymorphic text primitive (`as="p" | "span" | "div" | ...`) with size tokens (`3xs`, `2xs`, `xs`, `sm`, `base`, `lg`, `xl`).
+  - `Caption`: Subtext primitive defaulting to `size="2xs"` (10px) with `text-muted-foreground`.
+  - `Overline`: Section/category label primitive defaulting to `size="2xs"` uppercase with tracking-wider.
+  - `MonoText`: Monospace code, tag, and hash text primitive.
+  - `MetricText`: High-contrast KPI duration and numeric counter primitive.
+  - `List` & `ListItem`: Accessible ordered and unordered list primitives (`ordered?: boolean`).
 - `Input`: Accessible input control with focus rings and tokenized padding.
 - `Label`: Accessible label component built on Radix Label primitives.
 - `Select`: Accessible dropdown selector (`Select`, `SelectTrigger`, `SelectContent`, `SelectItem`, `SelectValue`).
