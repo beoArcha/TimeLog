@@ -132,4 +132,4 @@ Sample terminal output:
 
 ## 5. Further Reading
 
-For full subcommand syntax, argument permutations, and parity test fixtures, refer to [`docs/CLI.md`](file:///c:/Users/Krzysiu/Source/TimeLog/docs/CLI.md).
+For full subcommand syntax, argument permutations, and parity test fixtures, refer to [`docs/manifesto/CLI.md`](file:///c:/Users/Krzysiu/Source/TimeLog/docs/manifesto/CLI.md).

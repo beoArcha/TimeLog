@@ -14,7 +14,7 @@ fn test_given_headless_subsystems_when_scanned_then_zero_tauri_gui_coupling() {
     let arch = ArchRule::new(&graph, src_dir);
 
     // When & Then
-    // Invariant from docs/CLI.md:
+    // Invariant from docs/manifesto/CLI.md:
     // "The Rust CLI module (src-tauri/src/cli/) must NEVER import AppState, tauri::AppHandle,
     // tauri::WebviewWindow, tauri::Manager, or UI tray controllers."
     let headless_modules = [

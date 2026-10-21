@@ -6,7 +6,7 @@
 
 **oXyFlow** is a modern, ultra-lightweight desktop timer and task tracker designed for freelancers, developers, and focused professionals. It keeps track of your daily work with zero distractions, zero cloud tracking, and instant startup speed.
 
-```
+```text
    ┌─────────────────────────────────────────────────────────────┐
    │  ● Active: [Website Redesign] Client Homepage (01h 35m)     │
    │  [ Pause ]   [ Switch Task ]   [ Reports ]   [ Settings ]   │
@@ -39,13 +39,14 @@ Download the latest package for your computer from the **[GitHub Releases Page](
 | **Linux (Debian/Ubuntu)** | `oxyflow_amd64.deb` | Native package for Ubuntu, Debian, Linux Mint, and Pop!_OS |
 | **Linux (Fedora/RHEL)** | `oxyflow.x86_64.rpm` | Native package for Fedora, Red Hat, and openSUSE |
 
-Need help installing or bypassing Windows SmartScreen? Check our step-by-step **[Getting Started Guide](Getting-Started.md)** or the **[Installation Guide](https://github.com/beoArcha/TimeLog/blob/main/docs/INSTALLATION.md)**.
+Need help installing or bypassing Windows SmartScreen? Check our step-by-step **[Getting Started Guide](Getting-Started.md)** or the **[Installation Guide](https://github.com/beoArcha/TimeLog/blob/main/docs/manifesto/INSTALLATION.md)**.
 
 ---
 
 ## 🧭 Explore the Wiki
 
 ### 👤 For Everyday Users (Jargon-Free)
+
 - **[Getting Started](Getting-Started.md)**: First 5 minutes walkthrough.
 - **[Basic Timer](Basic-Timer.md)**: Starting, stopping, and switching tasks.
 - **[Basic CLI](Basic-Cli.md)**: Control your timer with 5 simple terminal commands.
@@ -53,6 +54,7 @@ Need help installing or bypassing Windows SmartScreen? Check our step-by-step **
 - **[Frequently Asked Questions (FAQ)](FAQ.md)**: Reassuring answers about data privacy, offline usage, and tips.
 
 ### ⚙️ For Developers & Power Users
+
 - **[Advanced CLI Scripting](Advanced-Cli.md)**: JSON outputs, action macros, and automation pipelines.
 - **[System Architecture](Architecture.md)**: Tauri v2 micro-engine, triple decoupling, and SQLite internals.
 - **[Sinks & Automation](Sinks-and-Automation.md)**: Real-time CSV logging, Webhook dispatches, and idle rules.

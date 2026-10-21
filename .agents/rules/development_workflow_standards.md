@@ -63,7 +63,7 @@ After the last phase, run the complete suite and report results honestly:
 
 ### 2.6. Sign-off
 
-- Update `docs/MASTERMAP.md` and other affected documentation.
+- Update `docs/manifesto/MASTERMAP.md` and other affected documentation.
 - Present the final summary, including anything skipped or failing.
 
 ## 3. Refactoring Scope

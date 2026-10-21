@@ -82,4 +82,4 @@ The SQLite schema utilizes strict foreign keys, foreign-key cascades, and indice
 - `time_logs`: Immutable logged work intervals (`start_time`, `end_time`, `note`, `manually_entered`). Active sessions have `end_time = NULL`.
 - `cli_settings`: Key-value storage for terminal configuration, action masks, and sink endpoints.
 
-For low-level contracts and repository methods, see [`docs/ENGINEERING.md`](file:///c:/Users/Krzysiu/Source/TimeLog/docs/ENGINEERING.md).
+For low-level contracts and repository methods, see [`docs/manifesto/ENGINEERING.md`](file:///c:/Users/Krzysiu/Source/TimeLog/docs/manifesto/ENGINEERING.md).

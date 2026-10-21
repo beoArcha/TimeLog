@@ -71,17 +71,17 @@ We build for the tired user.
 
 To understand how oXyFlow is built and maintained, please review our core manifests:
 
-| Document                                           | Purpose                                                                    |
-| -------------------------------------------------- | -------------------------------------------------------------------------- |
-| [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)         | Comprehensive end-user handbook: GUI workflows, timer tracking, and CLI    |
-| [`docs/INSTALLATION.md`](docs/INSTALLATION.md)     | Multi-platform installation steps, platform trust, and SHA-256 validation  |
-| [`docs/wiki/`](docs/wiki/Home.md)                  | Multilingual product showcase & release wiki (6 languages + FAQ)           |
-| [`docs/MASTERMAP.md`](docs/MASTERMAP.md)           | Project roadmap, long-term vision, and core architecture diagram           |
-| [`docs/ENGINEERING.md`](docs/ENGINEERING.md)       | Architecture, layer responsibilities, and engineering principles           |
-| [`docs/CLI.md`](docs/CLI.md)                       | CLI architecture, commands, error codes, and exit codes                    |
-| [`docs/USERINTERFACE.md`](docs/USERINTERFACE.md)   | UI dimensions, design system, and design tokens                            |
-| [`docs/USEREXPERIENCE.md`](docs/USEREXPERIENCE.md) | UX philosophy: protecting user focus, zero friction, predictability        |
-| [`AGENTS.md`](AGENTS.md)                           | Mandatory rules for contributors and AI assistants (with `.agents/rules/`) |
+| Document                                                               | Purpose                                                                    |
+| -------------------------------------------------- --------------------| -------------------------------------------------------------------------- |
+| [`docs/manifesto/USER_GUIDE.md`](docs/manifesto/USER_GUIDE.md)         | Comprehensive end-user handbook: GUI workflows, timer tracking, and CLI    |
+| [`docs/manifesto/INSTALLATION.md`](docs/manifesto/INSTALLATION.md)     | Multi-platform installation steps, platform trust, and SHA-256 validation  |
+| [`docs/wiki/`](docs/wiki/Home.md)                                      | Multilingual product showcase & release wiki (6 languages + FAQ)           |
+| [`docs/manifesto/MASTERMAP.md`](docs/manifesto/MASTERMAP.md)           | Project roadmap, long-term vision, and core architecture diagram           |
+| [`docs/manifesto/ENGINEERING.md`](docs/manifesto/ENGINEERING.md)       | Architecture, layer responsibilities, and engineering principles           |
+| [`docs/manifesto/CLI.md`](docs/manifesto/CLI.md)                       | CLI architecture, commands, error codes, and exit codes                    |
+| [`docs/manifesto/USERINTERFACE.md`](docs/manifesto/USERINTERFACE.md)   | UI dimensions, design system, and design tokens                            |
+| [`docs/manifesto/USEREXPERIENCE.md`](docs/manifesto/USEREXPERIENCE.md) | UX philosophy: protecting user focus, zero friction, predictability        |
+| [`AGENTS.md`](AGENTS.md)                                               | Mandatory rules for contributors and AI assistants (with `.agents/rules/`) |
 
 ---
 

@@ -12,9 +12,9 @@ This file is the single entry point. Detailed, topic-specific rules live in `.ag
 | [`.agents/rules/testing_standards.md`](.agents/rules/testing_standards.md) | Test tiers, naming, AAA / BDT, builders, decoupling, timeouts |
 | [`.agents/rules/code_commenting_standards.md`](.agents/rules/code_commenting_standards.md) | When and how to write comments |
 
-Architecture background for humans and agents: [`docs/ENGINEERING.md`](docs/ENGINEERING.md). Roadmap and status: [`docs/MASTERMAP.md`](docs/MASTERMAP.md). CLI contract: [`docs/CLI.md`](docs/CLI.md). UI and UX principles: [`docs/USERINTERFACE.md`](docs/USERINTERFACE.md), [`docs/USEREXPERIENCE.md`](docs/USEREXPERIENCE.md).
+Architecture background for humans and agents: [`docs/manifesto/ENGINEERING.md`](docs/manifesto/ENGINEERING.md). Roadmap and status: [`docs/manifesto/MASTERMAP.md`](docs/manifesto/MASTERMAP.md). CLI contract: [`docs/manifesto/CLI.md`](docs/manifesto/CLI.md). UI and UX principles: [`docs/manifesto/USERINTERFACE.md`](docs/manifesto/USERINTERFACE.md), [`docs/manifesto/USEREXPERIENCE.md`](docs/manifesto/USEREXPERIENCE.md).
 
-When two documents disagree, this precedence applies: `AGENTS.md` → `.agents/rules/*` → `docs/ENGINEERING.md` → other docs. Report the conflict to the user instead of silently picking one.
+When two documents disagree, this precedence applies: `AGENTS.md` → `.agents/rules/*` → `docs/manifesto/ENGINEERING.md` → other docs. Report the conflict to the user instead of silently picking one.
 
 ---
 
@@ -137,11 +137,11 @@ Update documentation in the same change when you:
 
 | Change | Update |
 | --- | --- |
-| Architecture, layers, contracts | `docs/ENGINEERING.md`, and `AGENTS.md` if a rule changes |
-| Roadmap item completed or started | `docs/MASTERMAP.md` |
-| CLI command, flag, error code or exit code | `docs/CLI.md` |
+| Architecture, layers, contracts | `docs/manifesto/ENGINEERING.md`, and `AGENTS.md` if a rule changes |
+| Roadmap item completed or started | `docs/manifesto/MASTERMAP.md` |
+| CLI command, flag, error code or exit code | `docs/manifesto/CLI.md` |
 | Setup, scripts, features list | `README.md` |
-| UI dimensions, tokens, design system | `docs/USERINTERFACE.md` |
+| UI dimensions, tokens, design system | `docs/manifesto/USERINTERFACE.md` |
 
 Documentation describes what the code does now. Mark planned behavior explicitly as planned.
 

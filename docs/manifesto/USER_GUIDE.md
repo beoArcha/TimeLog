@@ -171,7 +171,7 @@ oxy task add "API Authentication" --project "Mobile App"
 ```
 
 > **Looking for advanced scripting?**  
-> Check out the [Advanced CLI Guide](file:///c:/Users/Krzysiu/Source/TimeLog/docs/CLI.md) for machine `--json` outputs, action macros (`oxy mask`), and automated shell pipelines.
+> Check out the [Advanced CLI Guide](file:///c:/Users/Krzysiu/Source/TimeLog/docs/manifesto/CLI.md) for machine `--json` outputs, action macros (`oxy mask`), and automated shell pipelines.
 
 ---
 
@@ -225,7 +225,7 @@ Yes. Open **Settings** and toggle **"Launch at Startup"**. On Windows, you can a
 
 ## Related Documentation
 
-- [Installation & Security Guide](file:///c:/Users/Krzysiu/Source/TimeLog/docs/INSTALLATION.md)
-- [Headless CLI Contract & Reference](file:///c:/Users/Krzysiu/Source/TimeLog/docs/CLI.md)
-- [System Architecture & Engineering](file:///c:/Users/Krzysiu/Source/TimeLog/docs/ENGINEERING.md)
-- [UI Principles & Design Tokens](file:///c:/Users/Krzysiu/Source/TimeLog/docs/USERINTERFACE.md)
+- [Installation & Security Guide](file:///c:/Users/Krzysiu/Source/TimeLog/docs/manifesto/INSTALLATION.md)
+- [Headless CLI Contract & Reference](file:///c:/Users/Krzysiu/Source/TimeLog/docs/manifesto/CLI.md)
+- [System Architecture & Engineering](file:///c:/Users/Krzysiu/Source/TimeLog/docs/manifesto/ENGINEERING.md)
+- [UI Principles & Design Tokens](file:///c:/Users/Krzysiu/Source/TimeLog/docs/manifesto/USERINTERFACE.md)
