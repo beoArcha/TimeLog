@@ -13,7 +13,7 @@ import { getMockOxyFlowState } from '@tests/shared/test-helpers';
  * Smoke Harness: Mounts TabBar and ActiveTimerBanner to verify fundamental navigation and timer rendering.
  */
 function SmokeHarness({
-  initialTab = 'main',
+  initialTab = 'tasks',
   hasActiveTimer = false,
   onStopSpy = vi.fn(),
 }: {
@@ -69,20 +69,20 @@ describe('Given Application Smoke Suite', () => {
       const onStop = vi.fn();
 
       // When
-      render(<SmokeHarness initialTab="main" hasActiveTimer={false} onStopSpy={onStop} />);
+      render(<SmokeHarness initialTab="tasks" hasActiveTimer={false} onStopSpy={onStop} />);
 
       // Then
       expect(screen.getByRole('tablist', { name: /navigation tabs/i })).toBeTruthy();
-      expect(screen.getByTestId('tab-main').getAttribute('aria-selected')).toBe('true');
+      expect(screen.getByTestId('tab-tasks').getAttribute('aria-selected')).toBe('true');
       expect(screen.getByTestId('tab-reports').getAttribute('aria-selected')).toBe('false');
-      expect(screen.getByTestId('active-tab-indicator').textContent).toBe('main');
+      expect(screen.getByTestId('active-tab-indicator').textContent).toBe('tasks');
     });
   });
 
   describe('When navigating between tabs in the navigation bar', () => {
     it('Then it should update the active tab selection on user click', () => {
       // Given
-      render(<SmokeHarness initialTab="main" hasActiveTimer={false} />);
+      render(<SmokeHarness initialTab="tasks" hasActiveTimer={false} />);
       const reportsTab = screen.getByTestId('tab-reports');
 
       // When
@@ -90,7 +90,7 @@ describe('Given Application Smoke Suite', () => {
 
       // Then
       expect(screen.getByTestId('tab-reports').getAttribute('aria-selected')).toBe('true');
-      expect(screen.getByTestId('tab-main').getAttribute('aria-selected')).toBe('false');
+      expect(screen.getByTestId('tab-tasks').getAttribute('aria-selected')).toBe('false');
       expect(screen.getByTestId('active-tab-indicator').textContent).toBe('reports');
     });
   });
@@ -101,7 +101,7 @@ describe('Given Application Smoke Suite', () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date('2026-06-15T10:05:00Z'));
       const stopSpy = vi.fn();
-      render(<SmokeHarness initialTab="main" hasActiveTimer={true} onStopSpy={stopSpy} />);
+      render(<SmokeHarness initialTab="tasks" hasActiveTimer={true} onStopSpy={stopSpy} />);
 
       // When
       const stopButton = screen.getByRole('button', { name: /stop/i });

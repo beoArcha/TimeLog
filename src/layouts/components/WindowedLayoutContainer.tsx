@@ -7,14 +7,15 @@ import AppFooter from './AppFooter';
 import MediumLayoutBuilder from '../builders/MediumLayoutBuilder';
 import { FullTabSwitchView } from './FullTabSwitchView';
 import { GuiState } from '../hooks/useGuiLogic';
+import { AppTabId } from '@common/types/navigation';
 import { LayoutVariant } from '@bindings/LayoutVariant';
 import { isMediumLayout, isFullLayout } from '@common/constants/layoutVariants';
 
 export interface WindowedLayoutContainerProps {
   layoutVariant: LayoutVariant;
   mediumDockPosition: 'right' | 'left';
-  activeLargeTab: 'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits';
-  setActiveLargeTab: (tab: 'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits') => void;
+  activeLargeTab: AppTabId;
+  setActiveLargeTab: (tab: AppTabId) => void;
   locale: string;
   customTranslations?: Record<string, unknown>;
   handleResetLocalStorage: () => void;

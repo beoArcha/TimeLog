@@ -7,10 +7,11 @@ import BackupTab from '@features/settings/BackupTab';
 import SettingsTab from '@features/settings/SettingsTab';
 import ManualTab from '@features/settings/ManualTab';
 import CreditsTab from '@features/settings/CreditsTab';
+import { AppTabId } from '@common/types/navigation';
 import { GuiState } from '../hooks/useGuiLogic';
 
 export interface FullTabSwitchViewProps {
-  activeLargeTab: 'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits';
+  activeLargeTab: AppTabId;
   guiState: GuiState;
   sharedProps: {
     isCompactExpanded: boolean;
@@ -34,8 +35,8 @@ export const FullTabSwitchView: React.FC<FullTabSwitchViewProps> = ({
 }) => {
   return (
     <AnimatePresence mode="wait">
-      {activeLargeTab === 'main' && (
-        <motion.div key="large-tab-main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+      {activeLargeTab === 'tasks' && (
+        <motion.div key="large-tab-tasks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
           <FullLayoutBuilder
             state={guiState}
             {...sharedProps}
@@ -70,8 +71,8 @@ export const FullTabSwitchView: React.FC<FullTabSwitchViewProps> = ({
         </motion.div>
       )}
 
-      {activeLargeTab === 'options' && (
-        <motion.div key="large-tab-options" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+      {activeLargeTab === 'settings' && (
+        <motion.div key="large-tab-settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
           <SettingsTab />
         </motion.div>
       )}

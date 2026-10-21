@@ -5,21 +5,15 @@ import { TranslationDictionary } from '@common/i18n/types';
 import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
 
-export type LargeTabId =
-  | 'main'
-  | 'reports'
-  | 'db'
-  | 'options'
-  | 'backup'
-  | 'cli'
-  | 'manual'
-  | 'credits';
+import { AppTabId } from '@common/types/navigation';
+
+export type LargeTabId = AppTabId;
 
 interface TabBarProps {
   locale: Locale;
   customTranslations?: Partial<TranslationDictionary>;
-  activeLargeTab: string;
-  setActiveLargeTab: (tab: LargeTabId) => void;
+  activeLargeTab: AppTabId;
+  setActiveLargeTab: (tab: AppTabId) => void;
 }
 
 export default function TabBar({
@@ -29,15 +23,15 @@ export default function TabBar({
   setActiveLargeTab,
 }: TabBarProps) {
   const tabs: Array<{
-    id: LargeTabId;
+    id: AppTabId;
     icon: React.ComponentType<{ className?: string }>;
     iconColor: string;
     label: string;
   }> = [
-    { id: 'main', icon: Clock, iconColor: 'text-orange-400', label: translate(locale, 'app', 'TabMain', customTranslations) },
+    { id: 'tasks', icon: Clock, iconColor: 'text-orange-400', label: translate(locale, 'app', 'TabMain', customTranslations) },
     { id: 'reports', icon: BarChart, iconColor: 'text-teal-400', label: translate(locale, 'report', 'TabReports', customTranslations) },
     { id: 'db', icon: Database, iconColor: 'text-indigo-400', label: translate(locale, 'database', 'TabDb', customTranslations) },
-    { id: 'options', icon: Settings, iconColor: 'text-yellow-400', label: translate(locale, 'settings', 'TabOptions', customTranslations) },
+    { id: 'settings', icon: Settings, iconColor: 'text-yellow-400', label: translate(locale, 'settings', 'TabOptions', customTranslations) },
     { id: 'backup', icon: UploadCloud, iconColor: 'text-emerald-400', label: translate(locale, 'settings', 'TabBackup', customTranslations) },
     { id: 'cli', icon: Terminal, iconColor: 'text-muted-foreground', label: translate(locale, 'cli', 'TabCli', customTranslations) },
     { id: 'manual', icon: BookOpen, iconColor: 'text-rose-400', label: translate(locale, 'help', 'TabManual', customTranslations) },

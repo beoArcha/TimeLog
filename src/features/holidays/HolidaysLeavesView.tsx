@@ -10,13 +10,14 @@ import { NativeSelect } from '@components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@components/ui/table';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
+import { HolidayType } from '@bindings/HolidayType';
 
 export default function HolidaysLeavesView() {
   const { locale, customTranslations } = useLocale();
   const { holidays, handleAddHoliday, handleDeleteHoliday } = useData();
 
   const [newHolidayDate, setNewHolidayDate] = useState('2026-06-15');
-  const [newHolidayType, setNewHolidayType] = useState<'holiday' | 'leave'>('leave');
+  const [newHolidayType, setNewHolidayType] = useState<HolidayType>('leave');
   const [newHolidayName, setNewHolidayName] = useState('');
 
   const handleAddHolidaySubmit = (e: React.FormEvent) => {

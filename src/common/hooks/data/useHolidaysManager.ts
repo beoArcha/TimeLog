@@ -1,5 +1,6 @@
 import { useState, type SetStateAction } from 'react';
 import { HolidayLeave } from '@bindings/HolidayLeave';
+import { HolidayType } from '@bindings/HolidayType';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler, RepositoryException } from '@common/exceptions';
 
@@ -22,7 +23,7 @@ export const useHolidaysManager = (options?: UseHolidaysManagerOptions) => {
     }
   };
 
-  const handleAddHoliday = async (date: string, type: 'holiday' | 'leave', name: string) => {
+  const handleAddHoliday = async (date: string, type: HolidayType, name: string) => {
     const nextHolidays = [...holidays, {
       id: crypto.randomUUID(),
       date,

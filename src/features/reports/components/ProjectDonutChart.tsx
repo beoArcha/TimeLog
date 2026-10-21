@@ -15,7 +15,7 @@ import { Badge } from '@components/ui/badge';
 import { Text } from '@components/ui/typography';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { PROJECT_COLORS } from '@/src/layouts/parts/LayoutStyles';
+import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { ProjectChartItem } from '../types';
 
 export interface ProjectDonutChartProps {

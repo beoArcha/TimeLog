@@ -20,13 +20,14 @@ import { NativeSelect } from '@components/ui/select';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Caption, Overline } from '@components/ui/typography';
+import { HolidayType } from '@bindings/HolidayType';
 
 export default function HolidaysLeavesTable() {
   const { locale, customTranslations } = useLocale();
   const { holidays, setHolidays } = useData();
 
   const [editingHolidayId, setEditingHolidayId] = useState<string | null>(null);
-  const [holidayForm, setHolidayForm] = useState<{ name: string; date: string; type: 'holiday' | 'leave'; reason: string }>({ name: '', date: '', type: 'holiday', reason: '' });
+  const [holidayForm, setHolidayForm] = useState<{ name: string; date: string; type: HolidayType; reason: string }>({ name: '', date: '', type: 'holiday', reason: '' });
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 

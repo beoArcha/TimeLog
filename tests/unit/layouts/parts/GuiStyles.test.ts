@@ -1,20 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { getThemeStyles, PROJECT_COLORS } from '@layouts/parts/LayoutStyles';
+import { PROJECT_COLORS } from '@common/constants/projectColors';
 
-describe('Unit Tests: GuiStyles', () => {
-  it('should return semantic theme styles when theme is light', () => {
-    const styles = getThemeStyles('light');
-    expect(styles.bgMuted).toBe('bg-muted');
-    expect(styles.textMain).toBe('text-foreground');
-  });
-
-  it('should return semantic theme styles when theme is dark or other', () => {
-    const styles = getThemeStyles('dark');
-    expect(styles.bgMuted).toBe('bg-muted');
-    expect(styles.textMain).toBe('text-foreground');
-  });
-
+describe('Unit Tests: ProjectColors', () => {
   it('should return correct layout definitions for project colors', () => {
+    // Arrange & Act & Assert
     expect(PROJECT_COLORS.length).toBeGreaterThan(0);
+    for (const color of PROJECT_COLORS) {
+      expect(color.name).toBeDefined();
+      expect(color.bg).toMatch(/^bg-/);
+      expect(color.hex).toMatch(/^#/);
+      expect(color.text).toMatch(/^text-/);
+    }
   });
 });

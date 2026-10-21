@@ -7,6 +7,7 @@ import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { ThemeRegistry } from '@/src/styles/themeRegistry';
 import { LAYOUT_VARIANTS, isCompactLayout } from '@common/constants/layoutVariants';
+import { AppTabId } from '@common/types/navigation';
 import { toast } from 'sonner';
 
 export const useAppSettings = () => {
@@ -21,7 +22,7 @@ export const useAppSettings = () => {
 
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(LAYOUT_VARIANTS.FULL);
-  const [activeLargeTab, setActiveLargeTab] = useState<'main' | 'reports' | 'db' | 'options' | 'backup' | 'cli' | 'manual' | 'credits'>('main');
+  const [activeLargeTab, setActiveLargeTab] = useState<AppTabId>('tasks');
   const [isCompactExpanded, setIsCompactExpanded] = useState<boolean>(true);
   const [currentProjectId, setCurrentProjectId] = useState<string>('1');
 

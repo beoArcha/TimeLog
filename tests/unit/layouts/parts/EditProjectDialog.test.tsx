@@ -71,14 +71,14 @@ describe('Unit Tests: EditProjectDialog', () => {
     fireEvent.click(saveBtn);
 
     // Assert
-    expect(onSave).toHaveBeenCalledWith(
-      'p-100',
-      'Project Alpha',
-      'teal',
-      'Alpha description',
-      '⚡',
-      ['core', 'v1'],
-    );
+    expect(onSave).toHaveBeenCalledWith({
+      id: 'p-100',
+      name: 'Project Alpha',
+      color: 'teal',
+      description: 'Alpha description',
+      icon: '⚡',
+      tags: ['core', 'v1'],
+    });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
@@ -115,14 +115,14 @@ describe('Unit Tests: EditProjectDialog', () => {
     fireEvent.click(saveBtn);
 
     // Assert
-    expect(onSave).toHaveBeenCalledWith(
-      'p-100',
-      'Renamed Project',
-      'rose',
-      'New description',
-      '⚡',
-      ['frontend', 'ui'],
-    );
+    expect(onSave).toHaveBeenCalledWith({
+      id: 'p-100',
+      name: 'Renamed Project',
+      color: 'rose',
+      description: 'New description',
+      icon: '⚡',
+      tags: ['frontend', 'ui'],
+    });
   });
 
   it('should close dialog when Cancel button is clicked', () => {

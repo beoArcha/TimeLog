@@ -13,29 +13,25 @@ import { Textarea } from '@components/ui/textarea';
 import { Label } from '@components/ui/label';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
-import { PROJECT_COLORS } from './LayoutStyles';
+import type { Project } from '@bindings/Project';
+import { PROJECT_COLORS } from '@common/constants/projectColors';
 
-export interface ProjectToEdit {
+export type ProjectToEdit = Pick<Project, 'id' | 'name' | 'color' | 'description' | 'icon' | 'tags'>;
+
+export interface EditProjectSavePayload {
   id: string;
   name: string;
   color: string;
-  description?: string | null;
-  icon?: string | null;
-  tags?: string[] | null;
+  description: string | null;
+  icon: string | null;
+  tags: string[] | null;
 }
 
 export interface EditProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   project: ProjectToEdit | null;
-  onSave: (
-    id: string,
-    name: string,
-    color: string,
-    description: string | null,
-    icon: string | null,
-    tags: string[] | null,
-  ) => void;
+  onSave: (payload: EditProjectSavePayload) => void;
   locale?: Locale;
   customTranslations?: Partial<TranslationDictionary>;
 }
@@ -65,14 +61,14 @@ function EditProjectDialogForm({
   const handleSave = () => {
     if (!name.trim()) return;
     const tagsArr = tags.split(',').map(t => t.trim()).filter(Boolean);
-    onSave(
-      project.id,
-      name.trim(),
+    onSave({
+      id: project.id,
+      name: name.trim(),
       color,
-      description.trim() || null,
-      icon.trim() || null,
-      tagsArr.length > 0 ? tagsArr : null,
-    );
+      description: description.trim() || null,
+      icon: icon.trim() || null,
+      tags: tagsArr.length > 0 ? tagsArr : null,
+    });
     onOpenChange(false);
   };
 

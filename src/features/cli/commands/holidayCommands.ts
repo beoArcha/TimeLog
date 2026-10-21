@@ -1,5 +1,6 @@
 import { CliEngineContext, TerminalLine } from '../types';
 import { HolidayLeave } from '@bindings/HolidayLeave';
+import { HolidayType } from '@bindings/HolidayType';
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
 import { TerminalOutput } from '../utils/terminalOutput';
@@ -31,7 +32,7 @@ export const runHolidaysCommand = (
     const newHoliday: HolidayLeave = {
       id: getNextId(holidays, 'hol_'),
       date,
-      type: type as 'holiday' | 'leave',
+      type: type as HolidayType,
       name,
     };
     setHolidays(prev => [...prev, newHoliday]);

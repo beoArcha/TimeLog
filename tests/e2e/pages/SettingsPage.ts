@@ -9,7 +9,7 @@ export class SettingsPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.tabOptionsBtn = page.locator('[data-testid="tab-options"]');
+    this.tabOptionsBtn = page.locator('[data-testid="tab-settings"], [data-testid="tab-options"]');
     this.tabDbBtn = page.locator('[data-testid="tab-db"]');
     this.dbExplorerPanel = page.locator('#db-explorer-panel');
     this.exportDbBtn = page.locator('[data-testid="export-db-btn"]');

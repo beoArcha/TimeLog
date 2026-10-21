@@ -5,11 +5,14 @@ import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
 import { Caption } from '@components/ui/typography';
 
-export type MediumTabType = 'tasks' | 'reports' | 'settings';
+import { MediumTabId } from '@common/types/navigation';
+
+export type MediumTabType = MediumTabId;
+export type { MediumTabId };
 
 export interface MediumTabBarProps {
-  currentTab: MediumTabType;
-  onSelectTab: (tab: MediumTabType) => void;
+  currentTab: MediumTabId;
+  onSelectTab: (tab: MediumTabId) => void;
   locale?: Locale;
   customTranslations?: Partial<TranslationDictionary>;
 }
