@@ -10,23 +10,9 @@ import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 import { Button } from '@components/ui/button';
 import { HStack } from '@components/ui/stack';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@components/ui/select';
-
 import { useTasksSafe, useTimerSafe } from '@common/hooks/DataContext';
 import { useTaskEditing } from '../../context/TaskEditingContext';
-
-const STATUS_BADGE_STYLE_MAP: Record<string, string> = {
-  Done: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-  InProgress: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  Blocked: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
-  Todo: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
-};
+import { TaskStatusSelect } from '../TaskStatusSelect';
 
 export interface SubtaskItemProps {
   key?: React.Key;
@@ -141,31 +127,16 @@ export function SubtaskItem({
               <span className="truncate block max-w-full" title={subTask.name}>
                 {subTask.name}
               </span>
-              <div onClick={(e) => e.stopPropagation()}>
-                <Select
-                  value={subTask.status || 'Todo'}
-                  onValueChange={(val) => {
-                    if (val && onUpdateTask) {
-                      onUpdateTask(subTask.id, subTask.name, subTask.parentTaskId || null, val as TaskStatus, null);
-                    }
-                  }}
-                >
-                  <SelectTrigger
-                    className={`h-5 text-xs font-bold px-1.5 py-0.5 rounded border font-mono shrink-0 transition-all ${
-                      STATUS_BADGE_STYLE_MAP[subTask.status || 'Todo'] ?? STATUS_BADGE_STYLE_MAP.Todo
-                    }`}
-                    aria-label="Subtask status"
-                  >
-                    <SelectValue>{subTask.status || 'Todo'}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Todo" className="text-xs">TODO</SelectItem>
-                    <SelectItem value="InProgress" className="text-xs text-blue-400">In Progress</SelectItem>
-                    <SelectItem value="Done" className="text-xs text-emerald-400">Done</SelectItem>
-                    <SelectItem value="Blocked" className="text-xs text-rose-450">Blocked</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <TaskStatusSelect
+                status={subTask.status}
+                onStatusChange={(status) => {
+                  if (onUpdateTask) {
+                    onUpdateTask(subTask.id, subTask.name, subTask.parentTaskId || null, status, null);
+                  }
+                }}
+                ariaLabel="Subtask status"
+                size="xs"
+              />
               {isSubRunning && (
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
               )}

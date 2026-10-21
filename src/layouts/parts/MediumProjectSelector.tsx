@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
-import { PROJECT_COLORS } from './LayoutStyles';
+import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
 import { ProjectBadge } from '@features/projects/components/ProjectBadge';

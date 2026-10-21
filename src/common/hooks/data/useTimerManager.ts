@@ -119,6 +119,46 @@ export const useTimerManager = ({
     );
   };
 
+  const handleDeleteTimeLog = async (id: string): Promise<void> => {
+    await actionRunner.runAction('Failed to delete time log', async () => {
+      await PersistenceRouter.getInstance().timeLogs.delete(id);
+      const nextState = await PersistenceRouter.getInstance().core.load();
+      if (nextState) {
+        repositoryState.setLogsState(nextState.logs);
+        repositoryState.setActiveLogState(nextState.activeLog);
+        await refreshComputedMetrics();
+      }
+    });
+  };
+
+  const handleInsertTimeLog = async (
+    id: string,
+    taskId: string,
+    startTime: string,
+    endTime?: string | null,
+    note?: string | null
+  ): Promise<void> => {
+    await actionRunner.runAction('Failed to insert time log', async () => {
+      await PersistenceRouter.getInstance().timeLogs.insert(id, taskId, startTime);
+      if (endTime || note) {
+        await EngineRouter.getInstance().timeLogs.editTimeLog(
+          id,
+          taskId,
+          startTime,
+          endTime ?? null,
+          note || null,
+          'Manual insertion'
+        );
+      }
+      const nextState = await PersistenceRouter.getInstance().core.load();
+      if (nextState) {
+        repositoryState.setLogsState(nextState.logs);
+        repositoryState.setActiveLogState(nextState.activeLog);
+        await refreshComputedMetrics();
+      }
+    });
+  };
+
   return {
     logs: repositoryState.logs,
     activeLog: repositoryState.activeLog,
@@ -127,6 +167,8 @@ export const useTimerManager = ({
     handleStartTimer,
     handleStopTimer,
     handleEditTimeLog,
+    handleDeleteTimeLog,
+    handleInsertTimeLog,
     notifyActiveLogChanges,
   };
 };

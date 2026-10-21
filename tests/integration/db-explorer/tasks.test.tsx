@@ -25,6 +25,9 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
     const setTasks = vi.fn();
     const setLogs = vi.fn();
 
+    const handleUpdateTask = vi.fn().mockResolvedValue(undefined);
+    const handleDeleteTask = vi.fn().mockResolvedValue(undefined);
+
     const defaultState = {
       projects: [
         aProject({ id: 'proj_1', name: 'Project Alpha' }),
@@ -35,6 +38,8 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
         aTask({ id: 'task_2', projectId: 'proj_1', name: 'Task Two', completed: true }),
       ],
       setTasks,
+      handleUpdateTask,
+      handleDeleteTask,
       logs: [],
       setLogs,
       holidays: [],
@@ -91,17 +96,19 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
       ...utils,
       setTasks,
       setLogs,
+      handleUpdateTask: value.handleUpdateTask,
+      handleDeleteTask: value.handleDeleteTask,
     };
   };
 
   it('should handle editing and saving task changes when editing task', () => {
-    const { setTasks } = setup();
+    const { handleUpdateTask } = setup();
 
     const tasksTableWrapper = screen.getByText(/tasks table/i).closest('.border');
-    const editBtn = tasksTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
-    fireEvent.click(editBtn);
+    const editBtns = within(tasksTableWrapper as HTMLElement).getAllByRole('button', { name: /Edit/i });
+    fireEvent.click(editBtns[0]);
 
-    const nameInput = tasksTableWrapper?.querySelector('input[type="text"]') as HTMLInputElement;
+    const nameInput = within(tasksTableWrapper as HTMLElement).getByDisplayValue('Task One');
     fireEvent.change(nameInput, { target: { value: 'Task One Edited' } });
 
     const completedCheckbox = screen.getByRole('checkbox', { name: /Completed/i });
@@ -110,18 +117,21 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
     const reasonInput = screen.getByRole('textbox', { name: /Reason/i });
     fireEvent.change(reasonInput, { target: { value: 'Done with task' } });
 
-    const saveBtn = tasksTableWrapper?.querySelector('tbody tr button:nth-last-child(2)') as HTMLElement;
+    const saveBtn = within(tasksTableWrapper as HTMLElement).getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
-    expect(setTasks).toHaveBeenCalled();
+    expect(handleUpdateTask).toHaveBeenCalledWith('task_1', {
+      name: 'Task One Edited',
+      completed: true,
+    });
   });
 
   it('should delete task and associated logs when task deletion is confirmed in dialog', async () => {
-    const { setTasks, setLogs } = setup();
+    const { handleDeleteTask } = setup();
 
     const tasksTableWrapper = screen.getByText(/tasks table/i).closest('.border');
-    const deleteBtn = tasksTableWrapper?.querySelector('tbody tr button:last-child') as HTMLElement;
-    fireEvent.click(deleteBtn);
+    const deleteBtns = within(tasksTableWrapper as HTMLElement).getAllByRole('button', { name: /Delete/i });
+    fireEvent.click(deleteBtns[0]);
 
     const dialog = document.querySelector('[role="alertdialog"]')!;
     expect(dialog).not.toBeNull();
@@ -129,8 +139,7 @@ describe('Integration Tests: DbExplorer Tasks Table', () => {
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(setTasks).toHaveBeenCalled();
-      expect(setLogs).toHaveBeenCalled();
+      expect(handleDeleteTask).toHaveBeenCalledWith('task_1');
     });
   });
 });

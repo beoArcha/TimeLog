@@ -35,11 +35,6 @@ export const WindowShellProvider: React.FC<{ children: React.ReactNode }> = ({ c
     customTranslations
   });
 
-  const [activeTab, setActiveTab] = React.useState<'gui' | 'cli' | 'rust'>('gui');
-  const [isMediumHeaderOpen, setIsMediumHeaderOpen] = React.useState<boolean>(false);
-  const [editingTranslationKey, setEditingTranslationKey] = React.useState<string | null>(null);
-  const [editingTranslationValue, setEditingTranslationValue] = React.useState<string>('');
-
   const getAlwaysOnTopConfig = (): AlwaysOnTopConfig => {
     return {
       small: alwaysOnTopSmall,
@@ -69,10 +64,6 @@ export const WindowShellProvider: React.FC<{ children: React.ReactNode }> = ({ c
     handleToggleTimer,
     handleCopyText,
     alwaysOnTopConfig: getAlwaysOnTopConfig(),
-    activeTab, setActiveTab,
-    isMediumHeaderOpen, setIsMediumHeaderOpen,
-    editingTranslationKey, setEditingTranslationKey,
-    editingTranslationValue, setEditingTranslationValue,
   };
 
   return <WindowShellContext.Provider value={state}>{children}</WindowShellContext.Provider>;

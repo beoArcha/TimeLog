@@ -9,6 +9,9 @@ import { SegmentedControl } from '@components/SegmentedControl';
 import { SearchInput } from '@components/SearchInput';
 import { EmptyState } from '@components/EmptyState';
 import { DataTable } from '@components/DataTable';
+import { ViewHeader } from '@components/ViewHeader';
+import { FilterBar } from '@components/FilterBar';
+import { Button } from '@components/ui/button';
 import { Activity, Clock } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 
@@ -43,6 +46,7 @@ describe('Unit Tests: Composite Components', () => {
 
   describe('ConfirmDialog', () => {
     it('should render title, description, and handle confirm click', () => {
+      // Arrange
       const onConfirm = vi.fn();
       const onCancel = vi.fn();
       render(
@@ -55,16 +59,69 @@ describe('Unit Tests: Composite Components', () => {
           onCancel={onCancel}
         />
       );
+
+      // Act
+      fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+      // Assert
       expect(screen.getByText('Delete Item?')).toBeTruthy();
       expect(screen.getByText('This action cannot be undone.')).toBeTruthy();
-
-      fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
       expect(onConfirm).toHaveBeenCalled();
+    });
+
+    it('should call onCancel and onOpenChange when cancel button is clicked', () => {
+      // Arrange
+      const onCancel = vi.fn();
+      const onOpenChange = vi.fn();
+      render(
+        <ConfirmDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Cancel Action"
+          onConfirm={vi.fn()}
+          onCancel={onCancel}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+
+      // Assert
+      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('should show loading spinner when onConfirm returns a promise', async () => {
+      // Arrange
+      let resolvePromise: () => void = () => {};
+      const pendingPromise = new Promise<void>((resolve) => {
+        resolvePromise = resolve;
+      });
+      const onConfirm = vi.fn().mockReturnValue(pendingPromise);
+
+      render(
+        <ConfirmDialog
+          open={true}
+          title="Async Confirmation"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+
+      // Assert
+      const confirmBtn = screen.getByRole('button', { name: /confirm/i });
+      expect(confirmBtn.getAttribute('aria-busy')).toBe('true');
+
+      // Cleanup
+      resolvePromise();
     });
   });
 
   describe('PromptDialog', () => {
     it('should render prompt and submit typed value', () => {
+      // Arrange
       const onConfirm = vi.fn();
       render(
         <PromptDialog
@@ -76,11 +133,65 @@ describe('Unit Tests: Composite Components', () => {
         />
       );
       const input = screen.getByRole('textbox') as HTMLInputElement;
-      expect(input.value).toBe('Alpha');
 
+      // Act
       fireEvent.change(input, { target: { value: 'Beta' } });
       fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(input.value).toBe('Beta');
       expect(onConfirm).toHaveBeenCalledWith('Beta');
+    });
+
+    it('should call onCancel and onOpenChange when cancel button is clicked', () => {
+      // Arrange
+      const onCancel = vi.fn();
+      const onOpenChange = vi.fn();
+      render(
+        <PromptDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Enter Name"
+          onConfirm={vi.fn()}
+          onCancel={onCancel}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('prompt-dialog-cancel-btn'));
+
+      // Assert
+      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('should display validation error and block submit when validation fails', () => {
+      // Arrange
+      const onConfirm = vi.fn();
+      render(
+        <PromptDialog
+          open={true}
+          title="Project Code"
+          validate={(val) => (val.length < 3 ? 'Code too short' : null)}
+          onConfirm={onConfirm}
+        />
+      );
+      const input = screen.getByRole('textbox');
+
+      // Act - enter invalid value
+      fireEvent.change(input, { target: { value: 'ab' } });
+      fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+
+      // Assert
+      expect(onConfirm).not.toHaveBeenCalled();
+      expect(screen.getByRole('alert')).toBeTruthy();
+      expect(screen.getByText('Code too short')).toBeTruthy();
+
+      // Act - fix input
+      fireEvent.change(input, { target: { value: 'abcd' } });
+
+      // Assert error cleared
+      expect(screen.queryByRole('alert')).toBeNull();
     });
   });
 
@@ -161,6 +272,54 @@ describe('Unit Tests: Composite Components', () => {
       expect(screen.getByText('Alice')).toBeTruthy();
       expect(screen.getByText('Bob')).toBeTruthy();
       expect(screen.getByText('2')).toBeTruthy();
+    });
+  });
+
+  describe('ViewHeader', () => {
+    it('should render title, description, badge, and action buttons', () => {
+      // Arrange
+      render(
+        <ViewHeader
+          title="Overview Analytics"
+          description="Detailed breakdown of active time"
+          badge={<span>Active Badge</span>}
+          actions={<Button variant="outline" size="sm">Refresh</Button>}
+          testId="view-header-test"
+        />
+      );
+
+      // Act & Assert
+      expect(screen.getByTestId('view-header-test')).toBeTruthy();
+      expect(screen.getByText('Overview Analytics')).toBeTruthy();
+      expect(screen.getByText('Detailed breakdown of active time')).toBeTruthy();
+      expect(screen.getByText('Active Badge')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Refresh' })).toBeTruthy();
+    });
+  });
+
+  describe('FilterBar', () => {
+    it('should render search input, children elements, and right actions', () => {
+      // Arrange
+      const onSearchChange = vi.fn();
+      render(
+        <FilterBar
+          search={{
+            value: 'filter-text',
+            onChange: onSearchChange,
+            placeholder: 'Search items...',
+          }}
+          rightActions={<span>Right Action</span>}
+          testId="filter-bar-test"
+        >
+          <span>Middle Filter</span>
+        </FilterBar>
+      );
+
+      // Act & Assert
+      expect(screen.getByTestId('filter-bar-test')).toBeTruthy();
+      expect(screen.getByDisplayValue('filter-text')).toBeTruthy();
+      expect(screen.getByText('Middle Filter')).toBeTruthy();
+      expect(screen.getByText('Right Action')).toBeTruthy();
     });
   });
 

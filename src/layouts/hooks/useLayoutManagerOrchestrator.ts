@@ -8,10 +8,9 @@ import { useGlobalShortcuts } from '@common/hooks/useGlobalShortcuts';
 import { translate } from '@common/i18n/translator';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { isFullLayout } from '@common/constants/layoutVariants';
+import { APP_TAB_IDS } from '@common/types/navigation';
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { useGuiLogic } from './useGuiLogic';
-
-const LARGE_TAB_IDS = ['main', 'reports', 'db', 'options', 'backup', 'cli', 'manual', 'credits'] as const;
 
 export const useLayoutManagerOrchestrator = () => {
   const {
@@ -99,8 +98,8 @@ export const useLayoutManagerOrchestrator = () => {
   useGlobalShortcuts({
     onToggleTimer: handleToggleTimer,
     onSwitchTab: (index) => {
-      if (isFullLayout(layoutVariant) && index < LARGE_TAB_IDS.length) {
-        setActiveLargeTab(LARGE_TAB_IDS[index]);
+      if (isFullLayout(layoutVariant) && index < APP_TAB_IDS.length) {
+        setActiveLargeTab(APP_TAB_IDS[index]);
       }
     },
     onEscape: () => {

@@ -7,23 +7,9 @@ import { TaskActions } from './TaskActions';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Caption } from '@components/ui/typography';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@components/ui/select';
-
 import { useTasksSafe } from '@common/hooks/DataContext';
 import { useTaskEditing } from '../../context/TaskEditingContext';
-
-const STATUS_BADGE_STYLE_MAP: Record<string, string> = {
-  Done: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-  InProgress: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  Blocked: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
-  Todo: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
-};
+import { TaskStatusSelect } from '../TaskStatusSelect';
 
 export interface TaskHeaderProps {
   rootTask: Task;
@@ -117,31 +103,16 @@ export function TaskHeader({
               <span className="truncate block max-w-full" title={rootTask.name}>
                 {rootTask.name}
               </span>
-              <div onClick={(e) => e.stopPropagation()}>
-                <Select
-                  value={rootTask.status || 'Todo'}
-                  onValueChange={(val) => {
-                    if (val && onUpdateTask) {
-                      onUpdateTask(rootTask.id, rootTask.name, rootTask.parentTaskId || null, val as TaskStatus, null);
-                    }
-                  }}
-                >
-                  <SelectTrigger
-                    className={`h-6 text-xs font-bold px-2 py-0.5 rounded border font-mono shrink-0 transition-all ${
-                      STATUS_BADGE_STYLE_MAP[rootTask.status || 'Todo'] ?? STATUS_BADGE_STYLE_MAP.Todo
-                    }`}
-                    aria-label="Task status"
-                  >
-                    <SelectValue>{rootTask.status || 'Todo'}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Todo" className="text-xs">TODO</SelectItem>
-                    <SelectItem value="InProgress" className="text-xs text-blue-400">In Progress</SelectItem>
-                    <SelectItem value="Done" className="text-xs text-emerald-400">Done</SelectItem>
-                    <SelectItem value="Blocked" className="text-xs text-rose-450">Blocked</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <TaskStatusSelect
+                status={rootTask.status}
+                onStatusChange={(status) => {
+                  if (onUpdateTask) {
+                    onUpdateTask(rootTask.id, rootTask.name, rootTask.parentTaskId || null, status, null);
+                  }
+                }}
+                ariaLabel="Task status"
+                size="sm"
+              />
               {isChildRunning && runningSubtask && (
                 <Badge variant="amber" size="sm" as="span" className="font-mono animate-pulse shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />

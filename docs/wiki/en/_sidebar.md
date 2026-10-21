@@ -1,0 +1,21 @@
+- **User Guide**
+  - [Overview](/en/README.md)
+  - [Getting Started](/en/getting-started.md)
+  - [Timer & Tracking](/en/timer.md)
+  - [CLI Companion (`oxy`)](/en/cli.md)
+  - [Interface & Themes](/en/interface.md)
+  - [Frequently Asked Questions](/en/faq.md)
+
+- **Technical & Architecture**
+  - [Advanced CLI Scripting](/en/advanced-cli.md)
+  - [System Architecture](/en/architecture.md)
+  - [Sinks & Automations](/en/automation.md)
+  - [Building from Source](/en/developer-build.md)
+
+- **Languages**
+  - [🇬🇧 English](/en/README.md)
+  - [🇵🇱 Polski](/pl/README.md)
+  - [🇩🇪 Deutsch](/de/README.md)
+  - [🇪🇸 Español](/es/README.md)
+  - [🇫🇷 Français](/fr/README.md)
+  - [🇧🇷 Português (BR)](/pt-br/README.md)

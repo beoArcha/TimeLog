@@ -52,7 +52,7 @@ export default function CreditsModal() {
             id="credits-modal-title"
             className="font-sans font-bold text-2xl mt-2 flex items-center gap-2 text-foreground"
           >
-            <Sparkles className="w-6 h-6 text-orange-400 animate-pulse" />
+            <Sparkles className="w-6 h-6 text-primary animate-pulse" />
             {translate(locale, 'help', 'AboutFlowCreditsMpl', customTranslations)}
           </DialogTitle>
         </DialogHeader>
@@ -78,19 +78,19 @@ export default function CreditsModal() {
             </Overline>
             <List className="p-4 rounded-3xl border border-border pl-5 text-xs flex flex-col gap-1.5 leading-relaxed bg-muted/40 text-foreground">
               <ListItem>
-                <strong className="text-orange-400">Lucide React</strong>:{' '}
+                <strong className="text-primary">Lucide React</strong>:{' '}
                 {translate(locale, 'help', 'ForGorgeousConsistentVectorIco', customTranslations)}
               </ListItem>
               <ListItem>
-                <strong className="text-orange-400">Motion / Framer Motion</strong>:{' '}
+                <strong className="text-primary">Motion / Framer Motion</strong>:{' '}
                 {translate(locale, 'help', 'ForCinematicReactiveStateTrans', customTranslations)}
               </ListItem>
               <ListItem>
-                <strong className="text-orange-400">Tailwind CSS v4</strong>:{' '}
+                <strong className="text-primary">Tailwind CSS v4</strong>:{' '}
                 {translate(locale, 'help', 'ForRapidElegantResponsiveUtili', customTranslations)}
               </ListItem>
               <ListItem>
-                <strong className="text-orange-400">Vite & React 18</strong>:{' '}
+                <strong className="text-primary">Vite & React 18</strong>:{' '}
                 {translate(locale, 'help', 'ForImmediateDevIterationsAndSo', customTranslations)}
               </ListItem>
             </List>
@@ -115,8 +115,8 @@ export default function CreditsModal() {
         <DialogFooter className="border-t pt-4 border-border mt-2">
           <Button
             id="close-credits-overlay-btn"
+            variant="accent"
             onClick={() => setShowCreditsModal(false)}
-            className="bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600 text-white font-bold text-xs rounded-xl px-5 py-2.5 shadow-md cursor-pointer transition-all"
             aria-label={translate(locale, 'help', 'GreatClose', customTranslations)}
           >
             {translate(locale, 'help', 'GreatClose', customTranslations)}

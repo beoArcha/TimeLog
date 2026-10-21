@@ -1,0 +1,21 @@
+- **Guia do Usuário**
+  - [Introdução](/pt-br/README.md)
+  - [Primeiros Passos](/pt-br/getting-started.md)
+  - [Uso do Temporizador](/pt-br/timer.md)
+  - [CLI Básico (`oxy`)](/pt-br/cli.md)
+  - [Interface e Temas](/pt-br/interface.md)
+  - [Perguntas Frequentes (FAQ)](/pt-br/faq.md)
+
+- **Documentação Técnica**
+  - [Scripting CLI Avançado](/pt-br/advanced-cli.md)
+  - [Arquitetura do Sistema](/pt-br/architecture.md)
+  - [Automação e Sinks](/pt-br/automation.md)
+  - [Compilação a partir do Código-Fonte](/pt-br/developer-build.md)
+
+- **Idiomas**
+  - [🇬🇧 English](/en/README.md)
+  - [🇵🇱 Polski](/pl/README.md)
+  - [🇩🇪 Deutsch](/de/README.md)
+  - [🇪🇸 Español](/es/README.md)
+  - [🇫🇷 Français](/fr/README.md)
+  - [🇧🇷 Português (BR)](/pt-br/README.md)

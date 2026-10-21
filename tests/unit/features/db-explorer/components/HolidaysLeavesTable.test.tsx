@@ -88,11 +88,11 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
   });
 
   it("should add a new holiday entity on clicking add button", () => {
-    const setHolidaysMock = vi.fn();
+    const handleAddHolidayMock = vi.fn();
     const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
-      setHolidays: setHolidaysMock,
+      handleAddHoliday: handleAddHolidayMock,
     };
 
     const { container } = render(
@@ -107,19 +107,20 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
     const realAddButton = addButtons.find((b) => b.tagName === "BUTTON")!;
     fireEvent.click(realAddButton);
 
-    expect(setHolidaysMock).toHaveBeenCalledTimes(1);
-    const updateFn = setHolidaysMock.mock.calls[0][0];
-    const newHolidays = updateFn(getMockHolidays());
-    expect(newHolidays).toHaveLength(3);
-    expect(newHolidays[2].name).toBe("New Holiday / Day Off");
+    expect(handleAddHolidayMock).toHaveBeenCalledTimes(1);
+    expect(handleAddHolidayMock).toHaveBeenCalledWith(
+      expect.any(String),
+      "holiday",
+      "New Holiday / Day Off",
+    );
   });
 
   it("should start editing, modify values, and save holiday with audit history update", () => {
-    const setHolidaysMock = vi.fn();
+    const handleUpdateHolidayMock = vi.fn();
     const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
-      setHolidays: setHolidaysMock,
+      handleUpdateHoliday: handleUpdateHolidayMock,
     };
 
     const { container } = render(
@@ -161,14 +162,14 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
     expect(checkBtn).not.toBeNull();
     if (checkBtn) fireEvent.click(checkBtn);
 
-    expect(setHolidaysMock).toHaveBeenCalledTimes(1);
-    const updateFn = setHolidaysMock.mock.calls[0][0];
-    const updated = updateFn(getMockHolidays());
-    expect(updated[0].name).toBe("Updated Holiday");
-    expect(updated[0].date).toBe("2026-07-21");
-    expect(updated[0].type).toBe("leave");
-    expect(updated[0].editHistory).toBeDefined();
-    expect(updated[0].editHistory[0].reason).toBe("Shifted date");
+    expect(handleUpdateHolidayMock).toHaveBeenCalledTimes(1);
+    expect(handleUpdateHolidayMock).toHaveBeenCalledWith(
+      "hol_1",
+      "2026-07-21",
+      "leave",
+      "Updated Holiday",
+      "Shifted date",
+    );
   });
 
   it("should cancel edit on clicking cancel (X) button", () => {
@@ -203,11 +204,11 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
   });
 
   it("should close editing without modifying if no changes made when saving", () => {
-    const setHolidaysMock = vi.fn();
+    const handleUpdateHolidayMock = vi.fn();
     const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
-      setHolidays: setHolidaysMock,
+      handleUpdateHoliday: handleUpdateHolidayMock,
     };
 
     const { container } = render(
@@ -226,18 +227,15 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
       ?.closest("button");
     if (checkBtn) fireEvent.click(checkBtn);
 
-    expect(setHolidaysMock).toHaveBeenCalledTimes(1);
-    const updateFn = setHolidaysMock.mock.calls[0][0];
-    const updated = updateFn(getMockHolidays());
-    expect(updated[0]).toEqual(getMockHolidays()[0]);
+    expect(handleUpdateHolidayMock).not.toHaveBeenCalled();
   });
 
   it("should append to existing edit history when editing a record that already has history", () => {
-    const setHolidaysMock = vi.fn();
+    const handleUpdateHolidayMock = vi.fn();
     const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
-      setHolidays: setHolidaysMock,
+      handleUpdateHoliday: handleUpdateHolidayMock,
     };
 
     const { container } = render(
@@ -272,19 +270,22 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
     expect(checkBtn).not.toBeNull();
     if (checkBtn) fireEvent.click(checkBtn);
 
-    expect(setHolidaysMock).toHaveBeenCalledTimes(1);
-    const updateFn = setHolidaysMock.mock.calls[0][0];
-    const updated = updateFn(getMockHolidays());
-    expect(updated[1].editHistory).toHaveLength(2);
-    expect(updated[1].editHistory![1].reason).toBe("Calendar adjustment");
+    expect(handleUpdateHolidayMock).toHaveBeenCalledTimes(1);
+    expect(handleUpdateHolidayMock).toHaveBeenCalledWith(
+      "hol_2",
+      "2026-08-15",
+      "leave",
+      "New Vacation Leave",
+      "Calendar adjustment",
+    );
   });
 
   it("should delete a holiday when clicking delete button and confirming in dialog", () => {
-    const setHolidaysMock = vi.fn();
+    const handleDeleteHolidayMock = vi.fn();
     const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
-      setHolidays: setHolidaysMock,
+      handleDeleteHoliday: handleDeleteHolidayMock,
     };
 
     const { container } = render(
@@ -305,11 +306,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
     });
     fireEvent.click(confirmBtn);
 
-    expect(setHolidaysMock).toHaveBeenCalledTimes(1);
-    const updateFn = setHolidaysMock.mock.calls[0][0];
-    const updated = updateFn(getMockHolidays());
-    expect(updated).toHaveLength(1);
-    expect(updated[0].id).toBe("hol_2");
+    expect(handleDeleteHolidayMock).toHaveBeenCalledTimes(1);
+    expect(handleDeleteHolidayMock).toHaveBeenCalledWith("hol_1");
   });
 
   it("should toggle history details row when clicking history icon button", () => {
@@ -337,11 +335,11 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
   });
 
   it("should save edit with default reason when reason input is cleared to empty string", () => {
-    const setHolidaysMock = vi.fn();
+    const handleUpdateHolidayMock = vi.fn();
     const mockState: OxyFlowState = {
       ...getMockOxyFlowState(),
       holidays: getMockHolidays(),
-      setHolidays: setHolidaysMock,
+      handleUpdateHoliday: handleUpdateHolidayMock,
     };
 
     const { container } = render(
@@ -370,10 +368,14 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
       ?.closest("button");
     if (checkBtn) fireEvent.click(checkBtn);
 
-    expect(setHolidaysMock).toHaveBeenCalledTimes(1);
-    const updateFn = setHolidaysMock.mock.calls[0][0];
-    const updated = updateFn(getMockHolidays());
-    expect(updated[0].editHistory![0].reason).toBe("Calendar adjustment");
+    expect(handleUpdateHolidayMock).toHaveBeenCalledTimes(1);
+    expect(handleUpdateHolidayMock).toHaveBeenCalledWith(
+      "hol_1",
+      "2026-07-20",
+      "holiday",
+      "Changed Holiday Name",
+      "",
+    );
   });
 
   it("should render original name fallback when originalName is missing but originalDate exists", () => {

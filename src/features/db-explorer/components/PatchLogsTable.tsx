@@ -1,19 +1,13 @@
 import React, { useState } from 'react';
 import { Database, Trash2, Plus } from 'lucide-react';
+import { PatchLog } from '@bindings/PatchLog';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
+import { DataTable, type DataTableColumn } from '@components/DataTable';
 import { translate } from '@common/i18n/translator';
 import { getNextId } from '@common/utils/idGenerator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@components/ui/table';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 import { Button } from '@components/ui/button';
@@ -63,6 +57,65 @@ export default function PatchLogsTable() {
       setIsModalOpen(false);
     }
   };
+
+  const columns: DataTableColumn<PatchLog>[] = [
+    {
+      key: 'id',
+      header: 'id',
+      className: 'font-bold text-emerald-400',
+      render: (p) => p.id,
+    },
+    {
+      key: 'projectId',
+      header: 'project_id',
+      render: (p) => p.projectId,
+    },
+    {
+      key: 'taskId',
+      header: 'task_id (opt)',
+      className: 'text-muted-foreground',
+      render: (p) => p.taskId || 'NULL',
+    },
+    {
+      key: 'startTime',
+      header: 'start_time',
+      className: 'border-l border-border/50',
+      render: (p) => new Date(p.startTime).toLocaleString(),
+    },
+    {
+      key: 'endTime',
+      header: 'end_time',
+      render: (p) => new Date(p.endTime).toLocaleString(),
+    },
+    {
+      key: 'patchNote',
+      header: translate(locale, 'database', 'PatchNoteReason', customTranslations),
+      className: 'italic text-muted-foreground',
+      render: (p) => (
+        <>
+          {p.patchNote}{' '}
+          {p.isSystemEvent && <span className="text-emerald-500 font-bold ml-1">[SYSTEM]</span>}
+        </>
+      ),
+    },
+    {
+      key: 'actions',
+      header: translate(locale, 'common', 'Actions', customTranslations),
+      align: 'right',
+      render: (p) => (
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          onClick={() => setDeleteTargetPatchId(p.id)}
+          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
+          title={translate(locale, 'common', 'Delete', customTranslations)}
+          aria-label={translate(locale, 'common', 'Delete', customTranslations)}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -156,50 +209,14 @@ export default function PatchLogsTable() {
       >
         <Caption size="xs" className="mb-4 mt-0.5 block">{translate(locale, 'database', 'PatchTableAllows', customTranslations)}</Caption>
 
-        <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
-          <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
-            <TableHeader>
-              <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
-                <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
-                <TableHead className="py-3 px-4">project_id</TableHead>
-                <TableHead className="py-3 px-4">task_id (opt)</TableHead>
-                <TableHead className="py-3 px-4">start_time</TableHead>
-                <TableHead className="py-3 px-4">end_time</TableHead>
-                <TableHead className="py-3 px-4">{translate(locale, 'database', 'PatchNoteReason', customTranslations)}</TableHead>
-                <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'common', 'Actions', customTranslations)}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="text-foreground">
-              {(patches || []).map(p => (
-                <TableRow key={p.id} className="border-b border-border/50 hover:bg-muted/50">
-                  <TableCell className="py-3.5 px-4 font-bold text-emerald-400">{p.id}</TableCell>
-                  <TableCell className="py-3.5 px-4">{p.projectId}</TableCell>
-                  <TableCell className="py-3.5 px-4 text-muted-foreground">{p.taskId || 'NULL'}</TableCell>
-                  <TableCell className="py-3.5 px-4 border-l border-border/50">{new Date(p.startTime).toLocaleString()}</TableCell>
-                  <TableCell className="py-3.5 px-4">{new Date(p.endTime).toLocaleString()}</TableCell>
-                  <TableCell className="py-3.5 px-4 italic text-muted-foreground">{p.patchNote} {p.isSystemEvent && <span className="text-emerald-500 font-bold ml-1">[SYSTEM]</span>}</TableCell>
-                  <TableCell className="py-3.5 px-4 text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      onClick={() => setDeleteTargetPatchId(p.id)}
-                      className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
-                      title={translate(locale, 'common', 'Delete', customTranslations)}
-                      aria-label={translate(locale, 'common', 'Delete', customTranslations)}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(patches || []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="py-6 text-center text-muted-foreground italic">{translate(locale, 'database', 'NoPatchesStandardMode', customTranslations)}</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable<PatchLog>
+          columns={columns}
+          data={patches || []}
+          keyExtractor={(p) => p.id}
+          maxHeight="400px"
+          className="text-xs font-mono whitespace-nowrap"
+          emptyTitle={translate(locale, 'database', 'NoPatchesStandardMode', customTranslations)}
+        />
       </CollapsibleCard>
 
       <ConfirmDialog

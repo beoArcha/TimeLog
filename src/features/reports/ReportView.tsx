@@ -4,7 +4,7 @@ import { BarChart3, Download } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
-import { Heading } from '@components/ui/typography';
+import { ViewHeader } from '@components/ViewHeader';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import { ExportPayload, ExportDataRow } from '@plugins/contracts/IExporterPlugin';
@@ -97,28 +97,29 @@ export default function ReportView({ state }: { state: GuiState }) {
 
   return (
     <div id="reports-panel" className="backdrop-blur-md rounded-[2.5rem] p-8 border border-border bg-card text-foreground shadow-2xl flex flex-col gap-6 transition-all duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <ViewHeader
+        badge={
           <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
             {t('SqlAnalyticsEngine')}
           </Badge>
-          <Heading level={2} className="font-sans font-bold text-2xl mt-1.5 flex items-center gap-2 text-foreground">
-            <BarChart3 className="w-6 h-6 text-orange-400" />
-            {t('TimeSummariesReports')}
-          </Heading>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          data-testid="report-export-button"
-          onClick={() => setIsExportModalOpen(true)}
-          className="gap-2 self-start sm:self-auto rounded-xl"
-        >
-          <Download className="w-4 h-4 text-orange-400" />
-          {t('Export')}
-        </Button>
-      </div>
+        }
+        title={t('TimeSummariesReports')}
+        icon={BarChart3}
+        iconColor="text-primary"
+        actions={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid="report-export-button"
+            onClick={() => setIsExportModalOpen(true)}
+            className="gap-2 self-start sm:self-auto rounded-xl"
+          >
+            <Download className="w-4 h-4 text-primary" />
+            {t('Export')}
+          </Button>
+        }
+      />
 
       <ReportStatsCards
         todaySec={todaySec}

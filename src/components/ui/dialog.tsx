@@ -118,12 +118,15 @@ function DialogDescription({
   );
 }
 
+const DialogOverlay = DialogBackdrop;
+
 export {
   Dialog,
   DialogTrigger,
   DialogPortal,
   DialogClose,
   DialogBackdrop,
+  DialogOverlay,
   DialogContent,
   DialogHeader,
   DialogFooter,

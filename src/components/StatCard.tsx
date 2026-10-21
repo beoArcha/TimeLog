@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@components/ui/card';
-import { Heading, Text } from '@components/ui/typography';
+import { MetricText, Text } from '@components/ui/typography';
 import { Badge } from '@components/ui/badge';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react';
@@ -14,6 +14,7 @@ export interface StatCardTrend {
 }
 
 export interface StatCardProps {
+  key?: React.Key;
   title: React.ReactNode;
   value: React.ReactNode;
   description?: React.ReactNode;
@@ -88,9 +89,9 @@ export function StatCard({
             {title}
           </Text>
           <div className="flex items-baseline gap-2">
-            <Heading level={2} className="text-2xl font-bold tracking-tight font-mono">
+            <MetricText size="2xl" className="tracking-tight">
               {value}
-            </Heading>
+            </MetricText>
             {badge && (typeof badge === 'string' ? <Badge variant="secondary">{badge}</Badge> : badge)}
           </div>
         </div>

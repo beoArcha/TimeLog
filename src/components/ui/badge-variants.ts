@@ -29,10 +29,12 @@ export const badgeVariants = cva(
           "border-rose-500/30 bg-rose-500/20 text-rose-500 font-bold font-mono",
       },
       size: {
-        xs: "px-1.5 py-0.2 text-[9px]",
+        xs: "px-1.5 py-0.5 text-[9px]",
         sm: "px-2 py-0.5 text-[10px]",
         default: "px-2.5 py-0.5 text-xs",
+        md: "px-2.5 py-0.5 text-xs",
         lg: "px-3 py-1 text-sm",
+        xl: "px-3.5 py-1.5 text-base",
       },
     },
     defaultVariants: {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { PROJECT_COLORS } from '@/src/layouts/parts/LayoutStyles';
+import { PROJECT_COLORS } from '@common/constants/projectColors';
 
 export interface ProjectBadgeProps {
   name: string;

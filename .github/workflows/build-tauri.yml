@@ -1,0 +1,123 @@
+name: Build Tauri Packages
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref or SHA to build"
+        type: string
+        required: true
+      version:
+        description: "App version string"
+        type: string
+        required: true
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "windows-latest"
+            bundles: nsis
+            args: ""
+
+          - platform: "macos-latest"
+            bundles: dmg
+            args: "--target universal-apple-darwin"
+
+          - platform: "ubuntu-22.04"
+            bundles: deb,rpm,appimage
+            args: ""
+
+    env:
+      APP_VERSION: ${{ inputs.version }}
+      RUST_WORKSPACE: "src-tauri"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: ./.github/actions/setup-frontend
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          install-linux-deps: ${{ matrix.platform == 'ubuntu-22.04' && 'true' || 'false' }}
+
+      - name: Pre-build Universal CLI Binary (macOS)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          cargo build --release --target aarch64-apple-darwin --bin oxy --manifest-path src-tauri/Cargo.toml
+          cargo build --release --target x86_64-apple-darwin --bin oxy --manifest-path src-tauri/Cargo.toml
+          mkdir -p src-tauri/target/universal-apple-darwin/release
+          lipo -create -output src-tauri/target/universal-apple-darwin/release/oxy \
+            src-tauri/target/aarch64-apple-darwin/release/oxy \
+            src-tauri/target/x86_64-apple-darwin/release/oxy
+          chmod +x src-tauri/target/universal-apple-darwin/release/oxy
+
+      - name: Build Tauri Artifacts
+        env:
+          RUSTFLAGS: ${{ matrix.platform == 'ubuntu-22.04' && '-C link-arg=-fuse-ld=lld' || '' }}
+        run: bun x tauri build ${{ matrix.args }} --bundles ${{ matrix.bundles }}
+
+      - name: List Built Artifacts (debug)
+        if: failure()
+        shell: bash
+        run: |
+          echo "::group::Target"
+          find src-tauri/target -maxdepth 3
+          echo "::endgroup::"
+          echo "::group::Release"
+          ls -R src-tauri/target/release || true
+          echo "::endgroup::"
+          echo "::group::Bundle"
+          ls -R src-tauri/target/release/bundle || true
+          echo "::endgroup::"
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          ARTIFACT_DIR="artifacts-upload"
+          mkdir -p "$ARTIFACT_DIR"
+
+          copy() {
+            find src-tauri/target -type f -path "$1" -exec cp {} "$ARTIFACT_DIR/" \;
+          }
+
+          case "${{ matrix.platform }}" in
+            ubuntu-22.04)
+              copy "*/bundle/deb/*.deb"
+              copy "*/bundle/rpm/*.rpm"
+              copy "*/bundle/appimage/*.AppImage"
+              copy "*/bundle/appimage/*.AppImage.tar.gz"
+              ;;
+            windows-latest)
+              copy "*/bundle/nsis/*.exe"
+
+              EXE_PATH=$(find src-tauri/target -maxdepth 4 -type f \( -name "OxyFlow.exe" -o -name "oxy-flow.exe" \) | head -n 1)
+              if [ -n "$EXE_PATH" ]; then
+                cp "$EXE_PATH" "$ARTIFACT_DIR/OxyFlow-Standalone-x64-v${APP_VERSION}.exe"
+              else
+                echo "::warning::Standalone Windows executable not found"
+              fi
+              ;;
+            macos-latest)
+              copy "*/bundle/dmg/*.dmg"
+              ;;
+          esac
+
+          echo "=== Collected artifacts ==="
+          ls -la "$ARTIFACT_DIR"
+          [ -n "$(ls -A "$ARTIFACT_DIR")" ] || { echo "::error::No artifacts collected"; exit 1; }
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-artifacts-${{ matrix.platform }}
+          path: artifacts-upload/
+          if-no-files-found: error
+          retention-days: 7

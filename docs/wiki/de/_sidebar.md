@@ -1,0 +1,21 @@
+- **Benutzerhandbuch**
+  - [Übersicht](/de/README.md)
+  - [Erste Schritte](/de/getting-started.md)
+  - [Timer-Grundlagen](/de/timer.md)
+  - [Basis-CLI (`oxy`)](/de/cli.md)
+  - [Benutzeroberfläche](/de/interface.md)
+  - [Häufige Fragen (FAQ)](/de/faq.md)
+
+- **Technische Dokumentation**
+  - [Erweiterte CLI-Skripte](/de/advanced-cli.md)
+  - [Systemarchitektur](/de/architecture.md)
+  - [Sinks & Automatisierung](/de/automation.md)
+  - [Kompilierung aus Quellcode](/de/developer-build.md)
+
+- **Sprachen**
+  - [🇬🇧 English](/en/README.md)
+  - [🇵🇱 Polski](/pl/README.md)
+  - [🇩🇪 Deutsch](/de/README.md)
+  - [🇪🇸 Español](/es/README.md)
+  - [🇫🇷 Français](/fr/README.md)
+  - [🇧🇷 Português (BR)](/pt-br/README.md)

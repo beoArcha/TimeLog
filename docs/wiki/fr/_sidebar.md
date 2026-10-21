@@ -1,0 +1,21 @@
+- **Guide de l'Utilisateur**
+  - [Introduction](/fr/README.md)
+  - [Premiers Pas](/fr/getting-started.md)
+  - [Minuteur de Base](/fr/timer.md)
+  - [CLI de Base (`oxy`)](/fr/cli.md)
+  - [Interface et Thèmes](/fr/interface.md)
+  - [Foire Aux Questions (FAQ)](/fr/faq.md)
+
+- **Documentation Technique**
+  - [Scripts CLI Avancés](/fr/advanced-cli.md)
+  - [Architecture Système](/fr/architecture.md)
+  - [Automatisation & Sinks](/fr/automation.md)
+  - [Compilation du Code](/fr/developer-build.md)
+
+- **Langues**
+  - [🇬🇧 English](/en/README.md)
+  - [🇵🇱 Polski](/pl/README.md)
+  - [🇩🇪 Deutsch](/de/README.md)
+  - [🇪🇸 Español](/es/README.md)
+  - [🇫🇷 Français](/fr/README.md)
+  - [🇧🇷 Português (BR)](/pt-br/README.md)

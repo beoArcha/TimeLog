@@ -92,12 +92,12 @@ describe('LayoutManager', () => {
     expect(screen.getByTestId('layout-header')).not.toBeNull();
   });
 
-  it('should render FullLayoutBuilder and TabBar when layoutVariant is full and active tab is main', () => {
+  it('should render FullLayoutBuilder and TabBar when layoutVariant is full and active tab is tasks', () => {
     // Arrange
     activeMockState = {
       ...getMockOxyFlowState(),
       layoutVariant: 'full',
-      activeLargeTab: 'main',
+      activeLargeTab: 'tasks',
       isGuiClosed: false,
       isMinimized: false,
     };
@@ -205,7 +205,7 @@ describe('LayoutManager', () => {
       { tabName: 'cli', testId: 'mock-cli-interface' },
       { tabName: 'db', testId: 'mock-db-explorer' },
       { tabName: 'backup', testId: 'mock-backup-tab' },
-      { tabName: 'options', testId: 'mock-settings-tab' },
+      { tabName: 'settings', testId: 'mock-settings-tab' },
       { tabName: 'manual', testId: 'mock-manual-tab' },
       { tabName: 'credits', testId: 'mock-credits-tab' },
     ];

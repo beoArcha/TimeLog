@@ -3,7 +3,7 @@ import { GuiState } from '../hooks/useGuiLogic';
 import { Folder, Clock, Pencil, Plus } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { PROJECT_COLORS } from './LayoutStyles';
+import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
@@ -319,9 +319,16 @@ export default function Sidebar({ state }: { state: GuiState }) {
         open={editingProject !== null}
         onOpenChange={(open) => !open && setEditingProject(null)}
         project={editingProject}
-        onSave={(id, name, color, desc, icon, tags) => {
+        onSave={(payload) => {
           if (onUpdateProject) {
-            onUpdateProject(id, name, color, desc, icon, tags);
+            onUpdateProject(
+              payload.id,
+              payload.name,
+              payload.color,
+              payload.description,
+              payload.icon,
+              payload.tags,
+            );
           }
         }}
         locale={locale}

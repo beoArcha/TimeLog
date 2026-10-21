@@ -9,7 +9,7 @@ import {
   StarterTemplate,
   resolveStarterTemplate,
 } from '@common/templates/starterTemplates';
-import { PROJECT_COLORS } from './LayoutStyles';
+import { PROJECT_COLORS } from '@common/constants/projectColors';
 
 export interface ProjectEmptyStateProps {
   onApplyTemplate: (template: StarterTemplate) => void;

@@ -1,0 +1,63 @@
+name: Deploy GitHub Pages
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+    branches: [release]
+
+concurrency:
+  group: pages-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy Wiki to GitHub Pages
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/release') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'release')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: release
+
+      - name: Setup Pages site files
+        run: |
+          touch docs/wiki/.nojekyll
+          echo "Verified docs/wiki contents for GitHub Pages deployment:"
+          ls -la docs/wiki
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/wiki
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Report deployment status
+        run: |
+          {
+            echo "### 🚀 GitHub Pages Deployed"
+            echo ""
+            echo "- **Source directory**: \`docs/wiki\`"
+            echo "- **Branch**: \`release\`"
+            echo "- **Trigger event**: \`${{ github.event_name }}\`"
+            echo "- **Pages URL**: [${{ steps.deployment.outputs.page_url }}](${{ steps.deployment.outputs.page_url }})"
+          } >> "$GITHUB_STEP_SUMMARY"

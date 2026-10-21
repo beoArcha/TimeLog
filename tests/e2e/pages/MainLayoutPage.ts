@@ -31,10 +31,10 @@ export class MainLayoutPage extends BasePage {
 
     // Header & Tabs
     this.headerLogo = page.locator('[data-testid="app-header-logo"]');
-    this.tabMain = page.locator('[data-testid="tab-main"]');
+    this.tabMain = page.locator('[data-testid="tab-tasks"], [data-testid="tab-main"]');
     this.tabReports = page.locator('[data-testid="tab-reports"]');
     this.tabDb = page.locator('[data-testid="tab-db"]');
-    this.tabOptions = page.locator('[data-testid="tab-options"]');
+    this.tabOptions = page.locator('[data-testid="tab-settings"], [data-testid="tab-options"]');
 
     this.sizeSmallBtn = page.locator('[data-testid="layout-variant-compact"]:visible');
     this.sizeMediumBtn = page.locator('[data-testid="layout-variant-medium"]:visible');

@@ -78,6 +78,8 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
       nowIso: '2026-06-20T12:00:00Z',
       isGuiClosed: false,
       setIsGuiClosed: vi.fn(),
+      handleUpdateProject: vi.fn().mockResolvedValue(undefined),
+      handleToggleProjectArchive: vi.fn().mockResolvedValue(undefined),
     };
 
     const value = { ...defaultState, ...customValue };
@@ -94,6 +96,8 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
       setProjects,
       setTasks,
       setLogs,
+      handleUpdateProject: value.handleUpdateProject,
+      handleToggleProjectArchive: value.handleToggleProjectArchive,
     };
   };
 
@@ -104,7 +108,7 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
   });
 
   it('should update project fields and save edit when editing project', () => {
-    const { setProjects } = setup();
+    const { handleUpdateProject } = setup();
 
     const editBtns = screen.getAllByRole('button', { name: /Edit/i });
     fireEvent.click(editBtns[0]);
@@ -121,11 +125,11 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
     const saveBtn = screen.getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
-    expect(setProjects).toHaveBeenCalled();
+    expect(handleUpdateProject).toHaveBeenCalledWith('proj_1', 'Project Alpha Edited', 'rose');
   });
 
   it('should cancel editing without changes when cancel button is clicked', () => {
-    const { setProjects } = setup();
+    const { handleUpdateProject } = setup();
 
     const editBtns = screen.getAllByRole('button', { name: /Edit/i });
     fireEvent.click(editBtns[0]);
@@ -133,11 +137,11 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
     const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
     fireEvent.click(cancelBtn);
 
-    expect(setProjects).not.toHaveBeenCalled();
+    expect(handleUpdateProject).not.toHaveBeenCalled();
   });
 
   it('should delete project and related tasks and logs when deletion is confirmed in dialog', async () => {
-    const { setProjects, setTasks, setLogs } = setup();
+    const { handleToggleProjectArchive } = setup();
 
     const deleteBtns = screen.getAllByRole('button', { name: /Delete/i });
     fireEvent.click(deleteBtns[0]);
@@ -148,9 +152,7 @@ describe('Integration Tests: DbExplorer Projects Table', () => {
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(setProjects).toHaveBeenCalled();
-      expect(setTasks).toHaveBeenCalled();
-      expect(setLogs).toHaveBeenCalled();
+      expect(handleToggleProjectArchive).toHaveBeenCalledWith('proj_1');
     });
   });
 

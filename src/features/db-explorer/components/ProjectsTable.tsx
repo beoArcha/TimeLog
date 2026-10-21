@@ -6,14 +6,8 @@ import { ConfirmDialog } from '@components/ConfirmDialog';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@components/ui/table';
+import { DataTable, type DataTableColumn } from '@components/DataTable';
+import { TableRow, TableCell } from '@components/ui/table';
 import { Input } from '@components/ui/input';
 import {
   Select,
@@ -28,7 +22,7 @@ import { Caption, Overline } from '@components/ui/typography';
 
 export default function ProjectsTable() {
   const { locale, customTranslations } = useLocale();
-  const { projects, setProjects, setTasks, setLogs, handleToggleProjectArchive } = useData();
+  const { projects, handleUpdateProject, handleToggleProjectArchive } = useData();
 
   const [editingProjId, setEditingProjId] = useState<string | null>(null);
   const [projForm, setProjForm] = useState<{ name: string; color: string; reason: string }>({ name: '', color: 'violet', reason: '' });
@@ -42,37 +36,17 @@ export default function ProjectsTable() {
     setProjForm({ name: p.name, color: p.color, reason: 'Project name correction' });
   };
 
-  const saveEditProj = (id: string) => {
-    setProjects(curr => curr.map(p => {
-      if (p.id === id) {
-        const hasChanged = p.name !== projForm.name || p.color !== projForm.color;
-        if (!hasChanged) {
-          setEditingProjId(null);
-          return p;
-        }
-        const originalName = p.originalName || p.name;
-        const originalColor = p.originalColor || p.color;
-
-        const newHistoryItem = {
-          editedAt: new Date().toISOString(),
-          prevName: p.name,
-          prevColor: p.color,
-          reason: projForm.reason || 'Quick edit'
-        };
-
-        const updatedHistory = p.editHistory ? [...p.editHistory, newHistoryItem] : [newHistoryItem];
-
-        return {
-          ...p,
-          name: projForm.name,
-          color: projForm.color,
-          originalName,
-          originalColor,
-          editHistory: updatedHistory
-        };
-      }
-      return p;
-    }));
+  const saveEditProj = async (id: string) => {
+    const p = projects.find(proj => proj.id === id);
+    if (!p) return;
+    const hasChanged = p.name !== projForm.name || p.color !== projForm.color;
+    if (!hasChanged) {
+      setEditingProjId(null);
+      return;
+    }
+    if (handleUpdateProject) {
+      await handleUpdateProject(id, projForm.name, projForm.color);
+    }
     setEditingProjId(null);
   };
 
@@ -83,10 +57,15 @@ export default function ProjectsTable() {
     if (handleToggleProjectArchive) {
       await handleToggleProjectArchive(id);
     }
-    setProjects(curr => curr.filter(p => p.id !== id));
-    setTasks(curr => curr.filter(t => t.projectId !== id));
-    setLogs(curr => curr.filter(l => l.projectId !== id));
   };
+
+  const columns: DataTableColumn<Project>[] = [
+    { key: 'id', header: 'id' },
+    { key: 'name', header: 'name' },
+    { key: 'color', header: 'color' },
+    { key: 'originalValue', header: translate(locale, 'database', 'OriginalValue', customTranslations) },
+    { key: 'actions', header: translate(locale, 'database', 'ActionsCrud', customTranslations), align: 'right' },
+  ];
 
   return (
     <>
@@ -99,23 +78,17 @@ export default function ProjectsTable() {
       wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
       headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-orange-400"
     >
-      <div className="overflow-x-auto w-full">
-        <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
-          <TableHeader>
-            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
-              <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
-              <TableHead className="py-3 px-4">name</TableHead>
-              <TableHead className="py-3 px-4">color</TableHead>
-              <TableHead className="py-3 px-4">{translate(locale, 'database', 'OriginalValue', customTranslations)}</TableHead>
-              <TableHead className="py-3 px-4 rounded-r-xl text-right">{translate(locale, 'database', 'ActionsCrud', customTranslations)}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="text-foreground">
-            {projects.map(p => {
-              const isEditing = editingProjId === p.id;
-              const hasHistory = !!(p.originalName || p.originalColor || p.editHistory);
+      <DataTable<Project>
+        columns={columns}
+        data={projects}
+        keyExtractor={(p) => p.id}
+        maxHeight="500px"
+        className="text-xs font-mono"
+        renderRow={(p) => {
+          const isEditing = editingProjId === p.id;
+          const hasHistory = !!(p.originalName || p.originalColor || p.editHistory);
 
-              return (
+          return (
                 <React.Fragment key={p.id}>
                   <TableRow className="border-b border-border/50 hover:bg-muted/50">
                     <TableCell className="py-3.5 px-4 font-bold text-orange-500">{p.id}</TableCell>
@@ -263,11 +236,9 @@ export default function ProjectsTable() {
                   )}
                 </React.Fragment>
               );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-    </CollapsibleCard>
+            }}
+          />
+        </CollapsibleCard>
 
     <ConfirmDialog
       open={deleteTargetProjId !== null}

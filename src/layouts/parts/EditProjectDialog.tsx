@@ -13,29 +13,25 @@ import { Textarea } from '@components/ui/textarea';
 import { Label } from '@components/ui/label';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
-import { PROJECT_COLORS } from './LayoutStyles';
+import type { Project } from '@bindings/Project';
+import { PROJECT_COLORS } from '@common/constants/projectColors';
 
-export interface ProjectToEdit {
+export type ProjectToEdit = Pick<Project, 'id' | 'name' | 'color' | 'description' | 'icon' | 'tags'>;
+
+export interface EditProjectSavePayload {
   id: string;
   name: string;
   color: string;
-  description?: string | null;
-  icon?: string | null;
-  tags?: string[] | null;
+  description: string | null;
+  icon: string | null;
+  tags: string[] | null;
 }
 
 export interface EditProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   project: ProjectToEdit | null;
-  onSave: (
-    id: string,
-    name: string,
-    color: string,
-    description: string | null,
-    icon: string | null,
-    tags: string[] | null,
-  ) => void;
+  onSave: (payload: EditProjectSavePayload) => void;
   locale?: Locale;
   customTranslations?: Partial<TranslationDictionary>;
 }
@@ -65,14 +61,14 @@ function EditProjectDialogForm({
   const handleSave = () => {
     if (!name.trim()) return;
     const tagsArr = tags.split(',').map(t => t.trim()).filter(Boolean);
-    onSave(
-      project.id,
-      name.trim(),
+    onSave({
+      id: project.id,
+      name: name.trim(),
       color,
-      description.trim() || null,
-      icon.trim() || null,
-      tagsArr.length > 0 ? tagsArr : null,
-    );
+      description: description.trim() || null,
+      icon: icon.trim() || null,
+      tags: tagsArr.length > 0 ? tagsArr : null,
+    });
     onOpenChange(false);
   };
 
@@ -87,7 +83,7 @@ function EditProjectDialogForm({
     <div onKeyDown={handleKeyDown}>
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
-          <Pencil className="w-5 h-5 text-orange-500" />
+          <Pencil className="w-5 h-5 text-primary" />
           {translate(locale, 'project', 'EditProjectTitle', customTranslations)}
         </DialogTitle>
       </DialogHeader>
@@ -136,7 +132,7 @@ function EditProjectDialogForm({
                   onClick={() => setColor(col.name)}
                   aria-label={col.name}
                   className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${
-                    color === col.name ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
+                    color === col.name ? 'ring-2 ring-primary ring-offset-2 scale-105' : 'opacity-85'
                   }`}
                 >
                   {color === col.name && (

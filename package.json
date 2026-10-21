@@ -1,7 +1,7 @@
 {
   "name": "oxy-flow",
   "private": true,
-  "version": "1.9.0",
+  "version": "1.8.1",
   "license": "MPL-2.0",
   "type": "module",
   "scripts": {
@@ -24,7 +24,9 @@
     "test:mutation": "stryker run",
     "test:quality": "bun run test:smoke; bun run test:arch:rust; bun run check; bun run test:rust; bun run test",
     "check": "bun run typecheck; bun run lint; bun run lint:rust; bun run fmt:rust:check",
-    "fix": "eslint --fix .; bun run fmt:rust"
+    "fix": "eslint --fix .; bun run fmt:rust",
+    "docs:validate": "bun scripts/validate-docs.js",
+    "docs:serve": "bunx serve docs/wiki"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
