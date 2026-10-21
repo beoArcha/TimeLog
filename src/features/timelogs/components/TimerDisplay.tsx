@@ -26,7 +26,7 @@ export function TimerDisplay({
   const displayString = typeof value === 'number' ? formatSeconds(value) : value;
 
   const sizeClasses = {
-    xs: 'text-[10px] tracking-tight',
+    xs: 'text-xs tracking-tight',
     sm: 'text-xs tracking-tight',
     md: 'text-sm font-semibold tracking-tight',
     lg: 'text-base font-bold tracking-tight',

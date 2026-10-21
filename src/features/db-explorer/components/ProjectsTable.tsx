@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from '@components/ui/select';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Caption, Overline } from '@components/ui/typography';
 
 export default function ProjectsTable() {
   const { locale, customTranslations } = useLocale();
@@ -100,7 +102,7 @@ export default function ProjectsTable() {
       <div className="overflow-x-auto w-full">
         <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <TableHeader>
-            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
+            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
               <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
               <TableHead className="py-3 px-4">name</TableHead>
               <TableHead className="py-3 px-4">color</TableHead>
@@ -158,12 +160,12 @@ export default function ProjectsTable() {
                     </TableCell>
                     <TableCell className="py-3.5 px-4">
                       {hasHistory ? (
-                        <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-md font-bold flex items-center gap-1.5 w-max">
+                        <Badge variant="amber" size="sm" as="span" className="flex items-center gap-1.5 w-max">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
                           {translate(locale, 'database', 'OriginalLabel', customTranslations)}: {p.originalName || p.name}
-                        </span>
+                        </Badge>
                       ) : (
-                        <span className="text-muted-foreground text-[10px]">{translate(locale, 'database', 'NoPatches', customTranslations)}</span>
+                        <Caption as="span">{translate(locale, 'database', 'NoPatches', customTranslations)}</Caption>
                       )}
                     </TableCell>
                     <TableCell className="py-3.5 px-4 text-right">
@@ -189,7 +191,7 @@ export default function ProjectsTable() {
                                 aria-label={translate(locale, 'database', 'Reason', customTranslations)}
                                 value={projForm.reason} 
                                 onChange={e => setProjForm(prev => ({ ...prev, reason: e.target.value }))}
-                                className="text-[9px] bg-background border border-border px-1 py-0.5 h-6 rounded w-28 text-foreground"
+                                className="text-xs bg-background border border-border px-1.5 py-0.5 h-6 rounded w-28 text-foreground"
                               />
                             </div>
                             <Button
@@ -245,15 +247,15 @@ export default function ProjectsTable() {
                     <TableRow>
                       <TableCell colSpan={5} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
                         <div className="flex flex-col gap-1.5 border-l-2 border-teal-500 pl-4 py-1">
-                          <p className="text-[10px] uppercase font-bold tracking-widest text-teal-400 flex items-center gap-1.5">
+                          <Overline className="text-teal-400 flex items-center gap-1.5">
                             <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}
-                          </p>
+                          </Overline>
                           {p.editHistory.map((h, hIdx) => (
-                            <div key={hIdx} className="text-[11px] text-muted-foreground mt-1">
+                            <Caption key={hIdx} size="xs" className="text-muted-foreground mt-1 block">
                               <span>[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
                               {translate(locale, 'database', 'ChangeFromName', customTranslations)} <strong className="text-foreground">"{h.prevName}"</strong> ({translate(locale, 'common', 'Color', customTranslations)} {h.prevColor}) &rarr;{' '}
                               {translate(locale, 'database', 'Reason', customTranslations)} <em className="text-teal-300">"{h.reason}"</em>
-                            </div>
+                            </Caption>
                           ))}
                         </div>
                       </TableCell>

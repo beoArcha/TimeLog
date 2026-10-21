@@ -14,7 +14,8 @@ export default [
             "scripts",
             ".stryker-sandbox",
             ".stryker-tmp",
-            "reports"
+            "reports",
+            ".gemini"
         ],
     },
 

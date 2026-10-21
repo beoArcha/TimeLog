@@ -9,6 +9,7 @@ import {
 } from "@components/ui/dialog";
 import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";
+import { Overline, MonoText, MetricText, Caption } from "@components/ui/typography";
 import { useTranslation } from "@common/i18n/translator";
 import { PluginRegistry } from "@plugins/PluginRegistry";
 import { registerDefaultExporters } from "@plugins/exporters";
@@ -107,20 +108,20 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
         <div className="flex flex-col gap-4 py-3">
           <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 flex items-center justify-between text-xs">
             <div>
-              <span className="text-muted-foreground font-medium uppercase  tracking-wider">
+              <Overline>
                 {payload.period}
-              </span>
-              <p className="font-bold text-foreground font-mono mt-0.5">
+              </Overline>
+              <MonoText size="xs" weight="bold" className="text-foreground mt-0.5 block">
                 {payload.rows.length} {t("ExportEntriesCount")}
-              </p>
+              </MonoText>
             </div>
             <div className="text-right">
-              <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider">
+              <Overline>
                 {t("PeriodTotal")}
-              </span>
-              <p className="font-extrabold text-foreground font-mono mt-0.5">
+              </Overline>
+              <MetricText size="sm" weight="extrabold" className="text-foreground mt-0.5 block">
                 {payload.formattedTotalDuration}
-              </p>
+              </MetricText>
             </div>
           </div>
 
@@ -144,15 +145,16 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                       {getFormatIcon(exp.id)}
                       <div>
                         <p className="text-xs font-semibold">{exp.name}</p>
-                        <p className="text-[10px] opacity-75 font-mono">
+                        <Caption size="2xs" className="opacity-75 font-mono">
                           .{exp.fileExtension}
-                        </p>
+                        </Caption>
                       </div>
                     </div>
                     {isSelected && (
                       <Badge
                         variant="secondary"
-                        className="text-[10px] font-mono"
+                        size="sm"
+                        className="font-mono"
                       >
                         Active
                       </Badge>

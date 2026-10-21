@@ -11,6 +11,8 @@ import {
   TableRow,
 } from '@components/ui/table';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { MonoText } from '@components/ui/typography';
 
 export default function DbInspector({ state, isCondensed }: { state: GuiState; isCondensed: boolean }) {
   const {
@@ -25,18 +27,20 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
         onClick={() => setShowDbInspector(!showDbInspector)}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl flex items-center justify-center bg-muted border border-border">
-            <Database className="w-4 h-4 text-orange-400" />
+          <div className="p-2.5 rounded-2xl bg-orange-500/10 text-orange-500 border border-orange-500/20">
+            <Database className="w-5 h-5" />
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-sm text-foreground">oxytime.db • SQLite Client</span>
-            <span className="text-[10px] font-mono text-muted-foreground">Simulated microORM State</span>
+            <MonoText size="2xs">Simulated microORM State</MonoText>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           {showDbInspector && (
-            <span className="hidden sm:inline-block bg-orange-500/20 border border-orange-500/30 text-[10px] text-orange-600 dark:text-orange-300 px-2 py-0.5 rounded-full font-bold">ONLINE</span>
+            <Badge variant="orange" size="sm" as="span" className="hidden sm:inline-block">
+              ONLINE
+            </Badge>
           )}
           <Button
             id="toggle-db-inspector-btn"
@@ -70,7 +74,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                   <div className="overflow-auto scroller-hide max-h-[200px] w-full">
                     <Table className="w-full text-left whitespace-nowrap">
                       <TableHeader>
-                        <TableRow className="border-b border-border text-[10px] text-muted-foreground">
+                        <TableRow className="border-b border-border text-xs text-muted-foreground">
                           <TableHead className="py-1 pr-4">id</TableHead>
                           <TableHead className="py-1 pr-4">name</TableHead>
                           <TableHead className="py-1">created_at</TableHead>
@@ -81,7 +85,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                           <TableRow key={p.id} className="text-foreground">
                             <TableCell className="py-1 pr-4 font-bold text-indigo-500 dark:text-indigo-400">{p.id}</TableCell>
                             <TableCell className="py-1 pr-4">{p.name}</TableCell>
-                            <TableCell className="py-1 text-[9px] text-muted-foreground">{new Date(p.createdAt).toISOString().slice(0, 10)}</TableCell>
+                            <TableCell className="py-1 text-xs text-muted-foreground">{new Date(p.createdAt).toISOString().slice(0, 10)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -94,7 +98,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                   <div className="overflow-auto scroller-hide max-h-[200px] w-full">
                     <Table className="w-full text-left whitespace-nowrap">
                       <TableHeader>
-                        <TableRow className="border-b border-border text-[10px] text-muted-foreground">
+                        <TableRow className="border-b border-border text-xs text-muted-foreground">
                           <TableHead className="py-1 pr-4">id</TableHead>
                           <TableHead className="py-1 pr-4">proj_id</TableHead>
                           <TableHead className="py-1 pr-4">parent_id</TableHead>
@@ -112,7 +116,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                         ))}
                         {tasks.length > 8 && (
                           <TableRow>
-                            <TableCell colSpan={4} className="text-[10px] text-muted-foreground py-1 text-center">
+                            <TableCell colSpan={4} className="text-xs text-muted-foreground py-1 text-center">
                               {translate(locale, 'database', 'AndMoreRows', customTranslations).replace('{x}', (tasks.length - 8).toString())}
                             </TableCell>
                           </TableRow>
@@ -127,7 +131,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                   <div className="overflow-auto scroller-hide max-h-[250px] w-full">
                     <Table className="w-full text-left whitespace-nowrap">
                       <TableHeader>
-                        <TableRow className="border-b border-border text-[10px] text-muted-foreground">
+                        <TableRow className="border-b border-border text-xs text-muted-foreground">
                           <TableHead className="py-1 pr-4">id</TableHead>
                           <TableHead className="py-1 pr-4">task_id</TableHead>
                           <TableHead className="py-1 pr-4">start_time</TableHead>
@@ -147,9 +151,9 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                             <TableRow key={l.id} className="text-foreground">
                               <TableCell className="py-1 pr-4 text-indigo-500 dark:text-indigo-400 font-bold">{l.id.slice(0, 6)}</TableCell>
                               <TableCell className="py-1 pr-4">{l.taskId}</TableCell>
-                              <TableCell className="py-1 pr-4 text-[10px]">{start}</TableCell>
-                              <TableCell className="py-1 pr-4 text-[10px] font-semibold text-orange-500 dark:text-orange-400">{end}</TableCell>
-                              <TableCell className="py-1 text-[10px] text-right font-mono">{diffSec}s</TableCell>
+                              <TableCell className="py-1 pr-4 text-xs font-mono">{start}</TableCell>
+                              <TableCell className="py-1 pr-4 text-xs font-mono font-semibold text-orange-500 dark:text-orange-400">{end}</TableCell>
+                              <TableCell className="py-1 text-xs text-right font-mono">{diffSec}s</TableCell>
                             </TableRow>
                           );
                         })}

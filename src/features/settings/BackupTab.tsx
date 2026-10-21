@@ -4,6 +4,8 @@ import { translate } from '@common/i18n/translator';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Heading, Caption } from '@components/ui/typography';
 import { Input } from '@components/ui/input';
 import { Checkbox } from '@components/ui/checkbox';
 import { Label } from '@components/ui/label';
@@ -55,13 +57,13 @@ export default function BackupTab() {
   return (
     <div className="backdrop-blur-md rounded-[2.5rem] p-8 border border-border bg-card text-card-foreground shadow-2xl flex flex-col gap-6 transition-all duration-300">
       <div>
-        <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
+        <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
           {translate(locale, 'settings', 'TabBackup', customTranslations)}
-        </span>
-        <h2 className="font-sans font-bold text-2xl mt-1.5 flex items-center gap-2 text-foreground">
+        </Badge>
+        <Heading level={2} className="font-sans font-bold text-2xl mt-1.5 flex items-center gap-2 text-foreground">
           <UploadCloud className="w-6 h-6 text-emerald-400" />
           {translate(locale, 'settings', 'TabBackup', customTranslations)}
-        </h2>
+        </Heading>
         <p className="text-xs mt-2 text-muted-foreground">
           {translate(locale, 'settings', 'SendLogsToApi', customTranslations)}
         </p>
@@ -165,7 +167,7 @@ export default function BackupTab() {
 
             <div className="flex flex-col gap-1.5 mt-2">
               <Label className="text-xs font-mono font-bold text-foreground">{translate(locale, 'settings', 'ApiHeaders', customTranslations)}</Label>
-              <p className="text-[10px] text-slate-400">{translate(locale, 'settings', 'ApiHeadersDesc', customTranslations)}</p>
+              <Caption>{translate(locale, 'settings', 'ApiHeadersDesc', customTranslations)}</Caption>
               <Textarea
                 value={apiHeaders}
                 onChange={(e) => setApiHeaders(e.target.value)}
@@ -175,9 +177,9 @@ export default function BackupTab() {
               />
             </div>
 
-            <div className="text-[10px] text-indigo-500 font-mono font-bold mt-2 flex items-center gap-1.5">
+            <Caption size="2xs" weight="bold" className="text-indigo-500 font-mono mt-2 flex items-center gap-1.5">
               <CheckCircle className="w-3.5 h-3.5" /> {translate(locale, 'common', 'ErrSuccess', customTranslations)}!
-            </div>
+            </Caption>
           </div>
         )}
       </CollapsibleCard>

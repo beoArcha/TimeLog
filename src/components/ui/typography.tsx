@@ -41,6 +41,36 @@ function Text({ className, variant, size, as = "p", ...props }: TextProps) {
   );
 }
 
+/**
+ * Dedicated subtext/caption primitive.
+ * Defaults to 2xs (10px) text-muted-foreground leading-tight (the most common pattern in oXyFlow).
+ */
+function Caption({ className, variant = "caption", size = "2xs", as = "p", ...props }: TextProps) {
+  return <Text as={as} variant={variant} size={size} className={className} {...props} />;
+}
+
+/**
+ * Dedicated overline / section label primitive.
+ * Defaults to uppercase tracking-wider 2xs (10px) font-semibold text-muted-foreground.
+ */
+function Overline({ className, variant = "label", size = "2xs", as = "span", ...props }: TextProps) {
+  return <Text as={as} variant={variant} size={size} className={className} {...props} />;
+}
+
+/**
+ * Dedicated monospace text primitive for tags, hashes, timestamps, durations, and counts.
+ */
+function MonoText({ className, variant = "mono", size = "2xs", as = "span", ...props }: TextProps) {
+  return <Text as={as} variant={variant} size={size} className={className} {...props} />;
+}
+
+/**
+ * Dedicated metric text primitive for KPI numbers, duration sums, and stat cards.
+ */
+function MetricText({ className, variant = "metric", size = "base", as = "span", ...props }: TextProps) {
+  return <Text as={as} variant={variant} size={size} className={className} {...props} />;
+}
+
 export type ListProps = React.HTMLAttributes<HTMLUListElement | HTMLOListElement> & {
   ordered?: boolean;
 };
@@ -70,5 +100,4 @@ function ListItem({ className, ...props }: React.LiHTMLAttributes<HTMLLIElement>
   );
 }
 
-export { Heading, Text, List, ListItem };
-
+export { Heading, Text, Caption, Overline, MonoText, MetricText, List, ListItem };

@@ -18,6 +18,8 @@ import {
 import { Input } from '@components/ui/input';
 import { NativeSelect } from '@components/ui/select';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Caption, Overline } from '@components/ui/typography';
 
 export default function HolidaysLeavesTable() {
   const { locale, customTranslations } = useLocale();
@@ -116,7 +118,7 @@ export default function HolidaysLeavesTable() {
         <div className="overflow-x-auto w-full max-h-[300px] overflow-y-auto">
           <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
             <TableHeader>
-              <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
+              <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
                 <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
                 <TableHead className="py-3 px-4">date</TableHead>
                 <TableHead className="py-3 px-4">type</TableHead>
@@ -176,11 +178,11 @@ export default function HolidaysLeavesTable() {
                       </TableCell>
                       <TableCell className="py-3.5 px-4">
                         {hasHistory ? (
-                          <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-md font-bold">
+                          <Badge variant="amber" size="sm" as="span">
                             {translate(locale, 'database', 'OriginalLabel', customTranslations)}: {h.originalName || h.name} ({h.originalDate})
-                          </span>
+                          </Badge>
                         ) : (
-                          <span className="text-muted-foreground text-[10px]">{translate(locale, 'database', 'NoChanges', customTranslations)}</span>
+                          <Caption as="span">{translate(locale, 'database', 'NoChanges', customTranslations)}</Caption>
                         )}
                       </TableCell>
                       <TableCell className="py-3.5 px-4 text-right">
@@ -205,7 +207,7 @@ export default function HolidaysLeavesTable() {
                                 aria-label={translate(locale, 'database', 'ReasonForModification', customTranslations)}
                                 value={holidayForm.reason}
                                 onChange={e => setHolidayForm(prev => ({ ...prev, reason: e.target.value }))}
-                                className="text-[9px] bg-background border border-border px-1 py-0.5 h-6 rounded w-28 text-foreground mr-1"
+                                className="text-xs bg-background border border-border px-1 py-0.5 h-6 rounded w-28 text-foreground mr-1"
                               />
                               <Button
                                 variant="ghost"
@@ -260,15 +262,15 @@ export default function HolidaysLeavesTable() {
                       <TableRow>
                         <TableCell colSpan={6} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
                           <div className="flex flex-col gap-1.2 border-l-2 border-teal-500 pl-4 py-1">
-                            <p className="text-[10px] uppercase font-bold tracking-widest text-teal-400 flex items-center gap-1.5">
+                            <Overline className="text-teal-400 flex items-center gap-1.5">
                               <History className="w-3" /> {translate(locale, 'database', 'AuditTrailHolidays', customTranslations)}
-                            </p>
+                            </Overline>
                             {h.editHistory.map((x, idx) => (
-                              <div key={idx} className="text-[11px] text-muted-foreground mt-1">
+                              <Caption key={idx} size="xs" className="text-muted-foreground mt-1 block">
                                 <span>[{new Date(x.editedAt).toLocaleString()}]</span>{' '}
                                 {translate(locale, 'database', 'ModificationFrom', customTranslations)} <strong className="text-foreground">"{x.prevName}"</strong> ({x.prevDate}, {translate(locale, 'common', 'Type', customTranslations)} {x.prevType}) &rarr;{' '}
                                 {translate(locale, 'database', 'ReasonForModification', customTranslations)} <em className="text-teal-300">"{x.reason}"</em>
-                              </div>
+                              </Caption>
                             ))}
                           </div>
                         </TableCell>

@@ -11,7 +11,7 @@ export const CliQuickShortcuts: React.FC<CliQuickShortcutsProps> = ({
   title,
 }) => {
   return (
-    <div className="border border-border rounded-2xl p-3 flex flex-wrap items-center gap-2 text-[10px] font-mono transition-all bg-muted/40 text-muted-foreground">
+    <div className="border border-border rounded-2xl p-3 flex flex-wrap items-center gap-2 text-xs font-mono transition-all bg-muted/40 text-muted-foreground">
       <span className="font-bold text-foreground">{title}</span>
       <Button
         id="cmd-project-list-btn"

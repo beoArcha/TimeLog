@@ -5,6 +5,8 @@ import { useTranslation } from '@common/i18n/translator';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Caption } from '@components/ui/typography';
 import {
   Select,
   SelectContent,
@@ -118,7 +120,7 @@ export function TaskHeader({
                   }}
                 >
                   <SelectTrigger
-                    className={`h-6 text-[10px] font-bold px-2 py-0.5 rounded border font-mono shrink-0 transition-all ${rootTask.status === 'Done'
+                    className={`h-6 text-xs font-bold px-2 py-0.5 rounded border font-mono shrink-0 transition-all ${rootTask.status === 'Done'
                         ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                         : rootTask.status === 'InProgress'
                           ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
@@ -139,27 +141,25 @@ export function TaskHeader({
                 </Select>
               </div>
               {isChildRunning && runningSubtask && (
-                <span className="inline-flex items-center gap-1.5 text-[10px] bg-amber-500/15 border border-amber-500/35 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
+                <Badge variant="amber" size="sm" as="span" className="font-mono animate-pulse shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
                   <span className="truncate max-w-[120px]" title={runningSubtask.name}>
                     {tTask('SubtaskLabel')}: {runningSubtask.name}
                   </span>
-                </span>
+                </Badge>
               )}
               {isCurrentRunning && (
-                <span className="inline-flex items-center gap-1.5 text-[10px] bg-emerald-500/15 border border-emerald-500/35 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse shrink-0">
+                <Badge variant="emerald" size="sm" as="span" className="font-mono animate-pulse shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
                   {tTask('InProgressLabel')}
-                </span>
+                </Badge>
               )}
             </span>
           )}
 
-          <span
-            className={`text-[10px] font-mono block mt-0.5 truncate leading-tight text-muted-foreground`}
-          >
+          <Caption size="2xs" className="font-mono block mt-0.5 truncate leading-tight">
             ID: {rootTask.id} • SQLite table entry {isCurrentRunning || isChildRunning ? '(Active timing)' : ''}
-          </span>
+          </Caption>
         </div>
 
         {!isEditing && (

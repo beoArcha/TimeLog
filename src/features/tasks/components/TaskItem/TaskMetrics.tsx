@@ -98,7 +98,7 @@ export function TaskMetrics({
           onClick={() =>
             setShowSubtaskFormForId(showSubtaskFormForId === rootTask.id ? null : rootTask.id)
           }
-          className="rounded-xl px-2.5 py-2 h-auto text-[11px] font-semibold flex items-center gap-1 transition-all border cursor-pointer shrink-0 bg-muted hover:bg-muted/80 text-foreground border-border"
+          className="rounded-xl px-2.5 py-2 h-auto text-xs font-semibold flex items-center gap-1 transition-all border cursor-pointer shrink-0 bg-muted hover:bg-muted/80 text-foreground border-border"
           title={tTask('AddSubtask')}
           aria-label={tTask('AddSubtask')}
         >

@@ -6,6 +6,8 @@ import { Locale } from '@bindings/Locale';
 import { TableRow, TableCell } from '@components/ui/table';
 import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Caption, Overline } from '@components/ui/typography';
 
 interface TimeLogTableRowProps {
   key?: string | number;
@@ -103,11 +105,11 @@ export default function TimeLogTableRow({
         </TableCell>
         <TableCell className="py-3.5 px-4">
           {hasHistory ? (
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-md font-bold block w-max">
+            <Badge variant="amber" size="sm" as="span" className="w-max">
               {translate(locale, 'database', 'OriginalStart', customTranslations)} {getOriginalStartTime() ? new Date(getOriginalStartTime()).toLocaleTimeString() : 'N/A'}
-            </span>
+            </Badge>
           ) : (
-            <span className="text-muted-foreground text-[10px]">{translate(locale, 'database', 'NoChanges', customTranslations)}</span>
+            <Caption as="span">{translate(locale, 'database', 'NoChanges', customTranslations)}</Caption>
           )}
         </TableCell>
         <TableCell className="py-3.5 px-4 text-right">
@@ -132,7 +134,7 @@ export default function TimeLogTableRow({
                   aria-label={translate(locale, 'database', 'Reason', customTranslations)}
                   value={form.reason}
                   onChange={e => setForm(prev => ({ ...prev, reason: e.target.value }))}
-                  className="text-[9px] bg-black/45 border border-white/10 px-1 py-0.5 h-6 rounded w-32 text-white mr-1"
+                  className="text-xs bg-black/45 border border-white/10 px-1 py-0.5 h-6 rounded w-32 text-white mr-1"
                 />
                 <Button
                   variant="ghost"
@@ -187,15 +189,15 @@ export default function TimeLogTableRow({
         <TableRow>
           <TableCell colSpan={7} className="py-3 px-5 bg-black/20 border-b border-white/5 rounded-b-2xl">
             <div className="flex flex-col gap-1 border-l-2 border-teal-500 pl-4 py-1 text-left">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-teal-400 flex items-center gap-1.5">
+              <Overline className="text-teal-400 flex items-center gap-1.5">
                 <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}
-              </p>
+              </Overline>
               {l.editHistory.map((h, hIdx) => (
-                <div key={hIdx} className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                <Caption key={hIdx} size="xs" className="text-muted-foreground mt-1 leading-relaxed block">
                   <span>[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
                   {translate(locale, 'database', 'StartTime', customTranslations)} <strong className="text-foreground">"{h.prevStartTime}"</strong>, {translate(locale, 'database', 'EndTime', customTranslations)} <strong className="text-foreground">"{h.prevEndTime || translate(locale, 'common', 'No', customTranslations)}"</strong>, {translate(locale, 'database', 'Note', customTranslations)} <strong className="text-foreground">"{h.prevNote}"</strong> &rarr;{' '}
                   {translate(locale, 'database', 'Reason', customTranslations)} <em className="text-teal-300">"{h.reason}"</em>
-                </div>
+                </Caption>
               ))}
             </div>
           </TableCell>

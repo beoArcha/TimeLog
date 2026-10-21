@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Overline, MetricText, Caption } from '@components/ui/typography';
 
 export interface ReportMetricCardProps {
   key?: React.Key;
@@ -26,15 +27,15 @@ export function ReportMetricCard({
       className="p-5 rounded-3xl border border-border bg-card shadow-xs transition-all flex flex-col justify-between"
     >
       <div>
-        <p className="text-[10px] font-mono tracking-wider text-muted-foreground uppercase">{label}</p>
-        <p className={cn('text-2xl font-extrabold tracking-tight mt-1', valueClassName)}>
+        <Overline>{label}</Overline>
+        <MetricText size="2xl" weight="extrabold" className={cn('tracking-tight mt-1 block', valueClassName)}>
           {value}
-        </p>
+        </MetricText>
       </div>
       {description && (
-        <p className="text-[10px] text-muted-foreground mt-1 truncate">
+        <Caption className="mt-1 truncate block">
           {description}
-        </p>
+        </Caption>
       )}
     </div>
   );

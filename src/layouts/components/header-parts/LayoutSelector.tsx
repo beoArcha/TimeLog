@@ -11,7 +11,7 @@ export const LayoutSelector: React.FC = () => {
   const { showToast } = useWindowShell();
 
   return (
-    <div className="flex p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-[10px] font-sans">
+    <div className="flex p-0.5 rounded-lg border border-border bg-muted/40 transition-all duration-300 text-xs font-sans">
       {(['compact', 'medium', 'full'] as const).map(sz => {
         const isActive = layoutVariant === sz;
         const fullLabel = sz === 'compact'
@@ -32,7 +32,7 @@ export const LayoutSelector: React.FC = () => {
               }
             }}
             title={fullLabel}
-            className={`px-1.5 sm:px-2.5 py-0.5 h-auto rounded-md text-[9px] font-bold uppercase transition-all cursor-pointer ${
+            className={`px-1.5 sm:px-2.5 py-0.5 h-auto rounded-md font-bold uppercase transition-all cursor-pointer ${
               isActive
                 ? 'bg-card text-foreground border border-border shadow-xs font-bold'
                 : 'text-muted-foreground hover:text-foreground'

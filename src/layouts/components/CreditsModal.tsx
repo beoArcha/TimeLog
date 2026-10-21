@@ -8,6 +8,8 @@ import {
   DialogFooter,
 } from '@components/ui/dialog';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Overline } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
@@ -43,9 +45,9 @@ export default function CreditsModal() {
         </Button>
 
         <DialogHeader className="border-b pb-4 border-border">
-          <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25 w-fit">
+          <Badge variant="orange" size="sm" as="span" className="w-fit">
             {translate(locale, 'help', 'CreditsBadge', customTranslations)}
-          </span>
+          </Badge>
           <DialogTitle
             id="credits-modal-title"
             className="font-sans font-bold text-2xl mt-2 flex items-center gap-2 text-foreground"
@@ -56,9 +58,9 @@ export default function CreditsModal() {
         </DialogHeader>
 
         <div className="flex flex-col gap-3 my-2">
-          <h4 className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase">
+          <Overline as="h4" size="xs" className="font-mono">
             🕺 {translate(locale, 'help', 'AboutCreatorVibeCodingVibe', customTranslations)}
-          </h4>
+          </Overline>
           <div className="p-5 rounded-3xl border border-border bg-muted/40 text-foreground transition-all">
             <p className="font-sans text-sm leading-relaxed mb-3">
               {translate(locale, 'help', 'CreatorAppCreatedBy', customTranslations)}
@@ -71,9 +73,9 @@ export default function CreditsModal() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
           <div className="flex flex-col gap-2">
-            <h4 className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase">
+            <Overline as="h4" size="xs" className="font-mono">
               💖 {translate(locale, 'help', 'ComponentCreatorsAcknowledgement', customTranslations)}
-            </h4>
+            </Overline>
             <ul className="p-4 rounded-3xl border border-border list-disc pl-5 text-xs flex flex-col gap-1.5 leading-relaxed bg-muted/40 text-foreground">
               <li>
                 <strong className="text-orange-400">Lucide React</strong>:{' '}
@@ -95,10 +97,10 @@ export default function CreditsModal() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <h4 className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase">
+            <Overline as="h4" size="xs" className="font-mono">
               📄 {translate(locale, 'help', 'MplLicense', customTranslations)}
-            </h4>
-            <div className="p-4 rounded-3xl border border-border text-[9px] font-mono leading-relaxed h-[120px] overflow-y-auto bg-muted/60 text-muted-foreground">
+            </Overline>
+            <div className="p-4 rounded-3xl border border-border text-xs font-mono leading-relaxed h-[120px] overflow-y-auto bg-muted/60 text-muted-foreground">
               <p className="font-bold mb-1">Mozilla Public License Version 2.0 (MPL-2.0)</p>
               <p className="mb-2">Copyright (c) 2026 LogTime by OxyFlow</p>
               <p className="mb-2">

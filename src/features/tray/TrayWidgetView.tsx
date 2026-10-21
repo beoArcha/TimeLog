@@ -5,6 +5,8 @@ import { useTranslation } from '@common/i18n/translator';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Heading, Overline } from '@components/ui/typography';
 
 interface TrayWidgetProps {
   onRestore: () => void;
@@ -44,12 +46,12 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
         </div>
 
         <div>
-          <h1 className="font-heading font-extrabold text-2xl tracking-tight flex items-center gap-2 justify-center text-foreground">
+          <Heading level={1} className="font-heading font-extrabold text-2xl tracking-tight flex items-center gap-2 justify-center text-foreground">
             OxyFlow Engine
-            <span className="text-[10px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wider uppercase">
+            <Badge variant="emerald" size="sm" className="font-mono tracking-wider uppercase">
               {tEngine('EngineRunningBackground')}
-            </span>
-          </h1>
+            </Badge>
+          </Heading>
           <p className="text-sm mt-2 max-w-md font-sans text-muted-foreground">
             {tEngine('TrayDescription')}
           </p>
@@ -59,9 +61,9 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
         </div>
 
         <div className="w-full rounded-2xl p-4 text-left border border-border bg-muted/20 max-h-[180px] overflow-y-auto">
-          <p className="text-[10px] font-mono uppercase tracking-widest mb-3 border-b border-border pb-1.5 text-muted-foreground">
+          <Overline className="mb-3 border-b border-border pb-1.5 block">
             {tEngine('ActiveMeasuringThreads')} ({activeRunningLogs.length})
-          </p>
+          </Overline>
           {activeRunningLogs.length === 0 ? (
             <p className="text-xs italic text-center py-2 text-muted-foreground">
               {tTimer('NoActiveTimers')}

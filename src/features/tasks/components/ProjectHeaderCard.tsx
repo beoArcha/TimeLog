@@ -6,6 +6,8 @@ import { Project } from '@bindings/Project';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { StatsSkeleton } from '@components/ui/Skeletons';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Heading } from '@components/ui/typography';
 import { Input } from '@components/ui/input';
 
 interface ProjectHeaderCardProps {
@@ -39,16 +41,16 @@ export default function ProjectHeaderCard({
       <div className={`flex flex-col ${isCondensed ? 'gap-2 items-start' : 'sm:flex-row sm:items-start justify-between gap-2'} border-b pb-3 mb-3 border-border`}>
         <div className={`flex-1 min-w-0 ${isCondensed ? 'w-full' : ''}`}>
           {!isCondensed && (
-            <span className="text-main tracking-wider bg-orange-500/20 text-orange-500 dark:text-orange-300 px-2.5 py-0.5 rounded-full font-bold uppercase border border-orange-500/25 inline-block mb-1.5 whitespace-nowrap">
+            <Badge variant="orange" size="sm" className="tracking-wider uppercase inline-block mb-1.5 whitespace-nowrap">
               {tProject('SelectProject')}
-            </span>
+            </Badge>
           )}
 
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h2 className="font-sans font-bold flex items-center gap-2 text-title text-foreground">
+            <Heading level={2} className="font-sans font-bold flex items-center gap-2 text-title text-foreground">
               <span className="w-3.5 h-3.5 rounded-full bg-[var(--project-color,orange)] shrink-0 shadow-md" style={{ backgroundColor: selectedProject.color ? `var(--tw-color-${selectedProject.color}-500)` : undefined }} />
               <span className="truncate" title={selectedProject.name}>{selectedProject.name}</span>
-            </h2>
+            </Heading>
 
             {isCondensed && (
               <div className="font-mono text-xs border border-border px-2.5 py-1 rounded-xl flex items-center gap-1.5 bg-muted/40 text-foreground">

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Terminal, X } from 'lucide-react';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Heading, MonoText } from '@components/ui/typography';
 
 export interface CliDrawerHeaderProps {
   title: string;
@@ -25,26 +27,26 @@ export const CliDrawerHeader: React.FC<CliDrawerHeaderProps> = ({
         <div className="p-1.5 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/20">
           <Terminal className="w-5 h-5" />
         </div>
-        <h2 className="text-sm sm:text-base font-bold font-mono tracking-tight text-foreground">
+        <Heading level={2} className="text-sm sm:text-base font-bold font-mono tracking-tight text-foreground">
           {title}
-        </h2>
+        </Heading>
         <div id="cli-drawer-mode-badge" className="ml-2">
           {isSandbox ? (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-500 border border-amber-500/30">
+            <Badge variant="amber" size="sm">
               [{sandboxBadge}]
-            </span>
+            </Badge>
           ) : (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+            <Badge variant="emerald" size="sm">
               [{liveBadge}]
-            </span>
+            </Badge>
           )}
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="hidden sm:inline-block text-[11px] text-muted-foreground font-mono">
+        <MonoText size="xs" variant="muted" className="hidden sm:inline-block">
           Ctrl+` / Esc
-        </span>
+        </MonoText>
         <Button
           id="cli-drawer-close-btn"
           variant="ghost"

@@ -18,3 +18,4 @@ playwright-video/
 .stryker-sandbox/
 reports/mutation/
 src-tauri/bindings/
+.gemini/*

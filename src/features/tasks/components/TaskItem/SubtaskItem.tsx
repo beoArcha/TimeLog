@@ -141,7 +141,7 @@ export function SubtaskItem({
                   }}
                 >
                   <SelectTrigger
-                    className={`h-5 text-[9px] font-bold px-1.5 py-0.5 rounded border font-mono shrink-0 transition-all ${subTask.status === 'Done'
+                    className={`h-5 text-xs font-bold px-1.5 py-0.5 rounded border font-mono shrink-0 transition-all ${subTask.status === 'Done'
                         ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                         : subTask.status === 'InProgress'
                           ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'

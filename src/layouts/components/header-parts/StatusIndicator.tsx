@@ -1,5 +1,6 @@
 import React from 'react';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
+import { Badge } from '@components/ui/badge';
 
 export const StatusIndicator: React.FC = () => {
   const { engineState } = useWindowShell();
@@ -12,13 +13,14 @@ export const StatusIndicator: React.FC = () => {
         }`} />
       </div>
 
-      <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold hidden sm:inline whitespace-nowrap ${
-        engineState === 'searching'
-          ? 'bg-amber-500/20 text-amber-500 animate-pulse border border-amber-500/20'
-          : 'bg-success/15 text-success border border-success/30'
-      }`}>
+      <Badge
+        variant={engineState === 'searching' ? 'amber' : 'emerald'}
+        size="xs"
+        as="span"
+        className="hidden sm:inline-flex whitespace-nowrap"
+      >
         {engineState === 'searching' ? 'CONNECTING' : 'DAEMON RUNNING'}
-      </span>
+      </Badge>
     </div>
   );
 };

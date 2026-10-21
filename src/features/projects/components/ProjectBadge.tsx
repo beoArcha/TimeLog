@@ -43,8 +43,8 @@ export function ProjectBadge({
   }[size];
 
   const textSizeClasses = {
-    xs: 'text-[10px]',
-    sm: 'text-xs',
+    xs: 'text-xs',
+    sm: 'text-xs font-medium',
     md: 'text-sm font-semibold',
     lg: 'text-base font-bold',
   }[size];

@@ -3,6 +3,7 @@ import { Cpu, Terminal, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Button } from '@components/ui/button';
+import { Heading, MonoText } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 
@@ -33,10 +34,10 @@ export default function ManualTab() {
   return (
     <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
       <div className="border-b border-border pb-3">
-        <h2 className="text-lg font-bold flex items-center gap-2 text-foreground">
+        <Heading level={2} className="text-lg font-bold flex items-center gap-2 text-foreground">
           <BookOpen className="w-5 h-5 text-rose-500" />
           <span>{translate(locale, 'help', 'Title', customTranslations)}</span>
-        </h2>
+        </Heading>
         <p className="text-xs text-muted-foreground">{translate(locale, 'help', 'Description', customTranslations)}</p>
       </div>
 
@@ -53,17 +54,17 @@ export default function ManualTab() {
           </li>
           <li>
             {translate(locale, 'help', 'Step2', customTranslations)} (<code className="text-orange-400 font-mono">rustup</code>).
-            {currentOs === 'windows' && <span className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-muted-foreground">C++ Build Tools for Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'.</span>}
-            {currentOs === 'linux' && <span className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-muted-foreground">sudo apt update && sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev</span>}
-            {currentOs === 'macos' && <span className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-muted-foreground">xcode-select --install (CLang compiler required for macOS bindings)</span>}
+            {currentOs === 'windows' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">C++ Build Tools for Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'.</MonoText>}
+            {currentOs === 'linux' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">sudo apt update && sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev</MonoText>}
+            {currentOs === 'macos' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">xcode-select --install (CLang compiler required for macOS bindings)</MonoText>}
           </li>
           <li>
             {translate(locale, 'help', 'Step3', customTranslations)}
-            <pre className="p-2.5 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-foreground mt-1 select-all">npm install</pre>
+            <pre className="p-2.5 rounded-lg border border-border bg-muted/40 font-mono text-xs text-foreground mt-1 select-all">npm install</pre>
           </li>
           <li>
             {translate(locale, 'help', 'Step4', customTranslations)}
-            <pre className="p-2.5 rounded-lg border border-border bg-muted/40 font-mono text-[10px] text-orange-500 mt-1 select-all font-bold group hover:border-orange-500/30 transition-colors">npm run tauri build</pre>
+            <pre className="p-2.5 rounded-lg border border-border bg-muted/40 font-mono text-xs text-orange-500 mt-1 select-all font-bold group hover:border-orange-500/30 transition-colors">npm run tauri build</pre>
           </li>
           <li>
             {translate(locale, 'help', 'Step5', customTranslations)}
@@ -86,26 +87,26 @@ export default function ManualTab() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
           <div className="p-3 rounded-xl border border-border bg-card flex items-center justify-between">
             <span className="text-xs font-bold text-card-foreground">{translate(locale, 'help', 'ShortcutToggleInterface', customTranslations)}</span>
-            <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">ESC / X</kbd>
+            <kbd className="text-xs font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">ESC / X</kbd>
           </div>
           <div className="p-3 rounded-xl border border-border bg-card flex items-center justify-between">
             <span className="text-xs font-bold text-card-foreground">{translate(locale, 'help', 'ShortcutGlobalReturn', customTranslations)}</span>
-            <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">CTRL + SHIFT + O</kbd>
+            <kbd className="text-xs font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">CTRL + SHIFT + O</kbd>
           </div>
           <div className="p-3 rounded-xl border border-rose-500/20 bg-rose-500/5 flex items-center justify-between">
             <span className="text-xs font-bold text-rose-500">{translate(locale, 'help', 'ShortcutEmergencyStop', customTranslations)}</span>
-            <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-rose-500/30 bg-rose-500/10 text-rose-400">CTRL + SHIFT + X</kbd>
+            <kbd className="text-xs font-mono px-2 py-1 rounded border border-rose-500/30 bg-rose-500/10 text-rose-400">CTRL + SHIFT + X</kbd>
           </div>
           <div className="p-3 rounded-xl border border-border bg-card flex items-center justify-between">
             <span className="text-xs font-bold text-card-foreground">{translate(locale, 'help', 'ShortcutToggleTimer', customTranslations)}</span>
             <div className="flex gap-1.5">
-              <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">SPACE</kbd>
-              <kbd className="text-[10px] font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">CTRL + SPACE</kbd>
+              <kbd className="text-xs font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">SPACE</kbd>
+              <kbd className="text-xs font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">CTRL + SPACE</kbd>
             </div>
           </div>
           <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 flex items-center justify-between">
             <span className="text-xs font-bold text-amber-500">{translate(locale, 'help', 'ShortcutSystemCli', customTranslations)}</span>
-            <code className="text-[10px] font-mono text-amber-500">./oxytime start --task id</code>
+            <MonoText size="2xs" className="text-amber-500">./oxytime start --task id</MonoText>
           </div>
         </div>
       </CollapsibleCard>

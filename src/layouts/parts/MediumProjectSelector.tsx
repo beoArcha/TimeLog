@@ -7,6 +7,7 @@ import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
 import { MediumHeaderActions } from './MediumHeaderActions';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
+import { MonoText } from '@components/ui/typography';
 import {
   Folder,
   Plus,
@@ -93,7 +94,7 @@ export default function MediumProjectSelector({
               />
             </div>
             {selectedProject && (
-              <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
                 <span className="flex items-center gap-1 text-orange-500 font-semibold">
                   <Clock className="w-3 h-3" aria-hidden="true" />
                   {formatSeconds(
@@ -243,9 +244,9 @@ export default function MediumProjectSelector({
                     size="sm"
                     className="flex-1"
                   />
-                  <div className="flex items-center gap-2 shrink-0 font-mono text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-2 shrink-0 font-mono text-xs text-muted-foreground">
                     <span>{formatSeconds(dur)}</span>
-                    <span className="text-[10px]">({pTasks.length})</span>
+                    <MonoText as="span">({pTasks.length})</MonoText>
                     {isSelected && <Check className="w-3.5 h-3.5 text-orange-500 ml-1 shrink-0" />}
                   </div>
                 </Button>

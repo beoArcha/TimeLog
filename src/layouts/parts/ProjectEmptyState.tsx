@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@components/ui/button';
+import { Caption, MonoText } from '@components/ui/typography';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
 import {
@@ -31,9 +32,9 @@ export function ProjectEmptyState({
         <span>{translate(locale, 'project', 'StarterTemplatesHeading', customTranslations)}</span>
       </div>
 
-      <p className="text-[11px] text-muted-foreground leading-snug">
+      <Caption size="xs" className="leading-snug">
         {translate(locale, 'project', 'StarterTemplatesSubheading', customTranslations)}
-      </p>
+      </Caption>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
         {STARTER_TEMPLATES.map((tmpl) => {
@@ -63,18 +64,18 @@ export function ProjectEmptyState({
                 <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
               </div>
 
-              <p className="text-[10px] text-muted-foreground line-clamp-2 leading-tight">
+              <Caption className="line-clamp-2">
                 {resolved.description}
-              </p>
+              </Caption>
 
               <div className="flex items-center gap-1 mt-1">
                 <span
                   className={`w-2 h-2 rounded-full ${colorDef.bg} shrink-0`}
                   aria-hidden="true"
                 />
-                <span className="text-[9px] font-mono text-muted-foreground/80">
+                <MonoText size="3xs">
                   #{resolved.tags[0]}
-                </span>
+                </MonoText>
               </div>
             </Button>
           );

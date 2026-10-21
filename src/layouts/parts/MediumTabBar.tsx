@@ -3,6 +3,7 @@ import { ListTodo, BarChart3, Settings } from 'lucide-react';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
+import { Caption } from '@components/ui/typography';
 
 export type MediumTabType = 'tasks' | 'reports' | 'settings';
 
@@ -23,6 +24,7 @@ export default function MediumTabBar({
     <nav
       id="medium-bottom-nav"
       className="shrink-0 mt-2 p-1.5 border-t border-border rounded-2xl grid grid-cols-3 gap-2 z-30 transition-all bg-card/95 backdrop-blur-md text-foreground"
+      aria-label="Navigation Tabs"
     >
       <Button
         type="button"
@@ -36,9 +38,9 @@ export default function MediumTabBar({
         }`}
       >
         <ListTodo className="w-4 h-4 sm:w-5 sm:h-5" />
-        <span className="text-[11px] tracking-tight">
+        <Caption as="span" size="xs" className="tracking-tight text-inherit">
           {translate(locale, 'app', 'TabMain', customTranslations)}
-        </span>
+        </Caption>
       </Button>
 
       <Button
@@ -53,9 +55,9 @@ export default function MediumTabBar({
         }`}
       >
         <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-        <span className="text-[11px] tracking-tight">
+        <Caption as="span" size="xs" className="tracking-tight text-inherit">
           {translate(locale, 'report', 'TabReports', customTranslations)}
-        </span>
+        </Caption>
       </Button>
 
       <Button
@@ -70,9 +72,9 @@ export default function MediumTabBar({
         }`}
       >
         <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-        <span className="text-[11px] tracking-tight">
+        <Caption as="span" size="xs" className="tracking-tight text-inherit">
           {translate(locale, 'settings', 'TabOptions', customTranslations)}
-        </span>
+        </Caption>
       </Button>
     </nav>
   );

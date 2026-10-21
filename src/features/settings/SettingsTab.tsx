@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
 import PromptDialog from '@components/PromptDialog';
 import { Button } from '@components/ui/button';
+import { Heading } from '@components/ui/typography';
 import versionsData from '@app/versions.json';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
@@ -44,10 +45,10 @@ export default function SettingsTab() {
       />
       <div className="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold flex items-center gap-2 text-foreground">
+          <Heading level={2} className="text-lg font-bold flex items-center gap-2 text-foreground">
             <Settings className="w-5 h-5 text-amber-500 animate-spin-slow" />
             <span>{translate(locale, 'settings', 'Title', customTranslations)}</span>
-          </h2>
+          </Heading>
           <p className="text-xs text-muted-foreground">{translate(locale, 'settings', 'Description', customTranslations)}</p>
         </div>
       </div>
@@ -57,7 +58,9 @@ export default function SettingsTab() {
         <AutomationSettings />
 
         <div className="mt-2">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-orange-400" /> {translate(locale, 'settings', 'HolidaysTitle', customTranslations)}</h3>
+          <Heading level={3} className="text-lg font-bold mb-4 flex items-center gap-2">
+            <CalendarDays className="w-5 h-5 text-orange-400" /> {translate(locale, 'settings', 'HolidaysTitle', customTranslations)}
+          </Heading>
           <HolidaysLeavesView />
         </div>
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Cpu } from 'lucide-react';
 import { Button } from '@components/ui/button';
+import { Heading } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
@@ -12,7 +13,7 @@ export default function GuiClosedAlert() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground flex-col gap-4 font-mono">
       <Cpu className="w-12 h-12 text-orange-500 animate-pulse" />
-      <h1 className="text-2xl font-bold">{translate(locale, 'app', 'GuiClosedTitle', customTranslations)}</h1>
+      <Heading level={1} className="text-2xl font-bold">{translate(locale, 'app', 'GuiClosedTitle', customTranslations)}</Heading>
       <p className="text-muted-foreground">{translate(locale, 'app', 'GuiClosedDesc', customTranslations)}</p>
       <Button
         onClick={() => setIsGuiClosed(false)}

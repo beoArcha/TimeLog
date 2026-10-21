@@ -7,6 +7,7 @@ import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
+import { Caption } from '@components/ui/typography';
 import { WebhookDispatcher, WebhookSyncStatus } from '@common/sinks/WebhookDispatcher';
 
 export default function DaemonStatusBar() {
@@ -24,18 +25,18 @@ export default function DaemonStatusBar() {
 
   const activeRunningLogs = logs.filter(l => l.endTime === null);
 
-  if (engineState === 'searching') {
+  if (engineState === 'connecting') {
     return (
       <motion.div
-        id="engine-searching-alert"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-orange-500/10 border border-orange-500/20 text-orange-200 text-xs rounded-2xl p-4 flex items-center gap-3 animate-pulse"
+        id="engine-connecting-status-bar"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="bg-card/60 backdrop-blur-md border border-border text-xs rounded-xl py-2 px-3 sm:py-2.5 sm:px-4 flex items-center gap-3 transition-all"
       >
         <RefreshCw className="w-5 h-5 text-orange-400 animate-spin" />
         <div className="flex-1 text-left">
           <strong className="text-white">{translate(locale, 'engine', 'Searching', customTranslations)}</strong>
-          <p className="text-[10px] text-muted-foreground mt-0.5">{translate(locale, 'engine', 'Connecting', customTranslations)}</p>
+          <Caption className="mt-0.5">{translate(locale, 'engine', 'Connecting', customTranslations)}</Caption>
         </div>
       </motion.div>
     );
@@ -50,18 +51,19 @@ export default function DaemonStatusBar() {
     >
       <div className="flex items-center gap-2 text-left min-w-0 flex-wrap">
         <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
-        <p className="text-[11px] truncate leading-tight text-foreground">
+        <Caption as="p" size="xs" className="truncate leading-tight text-foreground">
           <span className="font-semibold text-emerald-600 dark:text-emerald-400">
             {translate(locale, 'engine', 'Connected', customTranslations)}
           </span>
           {' · '}
           <span>{translate(locale, 'engine', 'Synced', customTranslations)} <strong className="text-emerald-500 font-mono">{activeRunningLogs.length}</strong> {translate(locale, 'engine', 'Threads', customTranslations)}</span>
-        </p>
+        </Caption>
 
         <Badge
           variant="outline"
+          size="sm"
           data-testid="webhook-sync-indicator"
-          className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono border border-border bg-card/60 font-normal"
+          className="flex items-center gap-1.5 font-mono bg-card/60 font-normal"
         >
           {syncStatus.state === 'idle' && (
             <span className="flex items-center gap-1 text-muted-foreground">
@@ -86,7 +88,7 @@ export default function DaemonStatusBar() {
                 size="xs"
                 data-testid="webhook-retry-now-btn"
                 onClick={() => WebhookDispatcher.getInstance().retryNow()}
-                className="h-4 px-1.5 text-[9px] text-amber-500 hover:text-amber-400"
+                className="h-4 px-1.5 text-amber-500 hover:text-amber-400"
               >
                 {translate(locale, 'engine', 'RetryNow', customTranslations)}
               </Button>
@@ -103,7 +105,7 @@ export default function DaemonStatusBar() {
                 size="xs"
                 data-testid="webhook-retry-now-btn"
                 onClick={() => WebhookDispatcher.getInstance().retryNow()}
-                className="h-4 px-1.5 text-[9px] text-rose-500 hover:text-rose-400"
+                className="h-4 px-1.5 text-rose-500 hover:text-rose-400"
               >
                 {translate(locale, 'engine', 'RetryNow', customTranslations)}
               </Button>
@@ -118,7 +120,7 @@ export default function DaemonStatusBar() {
           variant="outline"
           size="xs"
           onClick={handleMinimizeToTray}
-          className="text-[10px] flex items-center shrink-0 justify-center gap-1.5 transition-all cursor-pointer font-mono font-semibold bg-card hover:bg-muted text-foreground border-border"
+          className="flex items-center shrink-0 justify-center gap-1.5 transition-all cursor-pointer font-mono font-semibold bg-card hover:bg-muted text-foreground border-border"
           title={translate(locale, 'engine', 'MinimizeToTray', customTranslations)}
         >
           <Minimize2 className="w-3 h-3 text-orange-400" />

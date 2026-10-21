@@ -17,6 +17,7 @@ import {
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 import { Button } from '@components/ui/button';
+import { Caption } from '@components/ui/typography';
 import {
   Dialog,
   DialogContent,
@@ -153,12 +154,12 @@ export default function PatchLogsTable() {
           </Button>
         }
       >
-        <p className="text-[11px] text-muted-foreground mb-4 mt-0.5">{translate(locale, 'database', 'PatchTableAllows', customTranslations)}</p>
+        <Caption size="xs" className="mb-4 mt-0.5 block">{translate(locale, 'database', 'PatchTableAllows', customTranslations)}</Caption>
 
         <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
           <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
             <TableHeader>
-              <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
+              <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
                 <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
                 <TableHead className="py-3 px-4">project_id</TableHead>
                 <TableHead className="py-3 px-4">task_id (opt)</TableHead>

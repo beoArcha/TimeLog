@@ -9,6 +9,8 @@ import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
 import { EditProjectDialog } from './EditProjectDialog';
 import { ProjectEmptyState } from './ProjectEmptyState';
+import { Heading, Caption } from '@components/ui/typography';
+import { Badge } from '@components/ui/badge';
 import { StarterTemplate, resolveStarterTemplate } from '@common/templates/starterTemplates';
 import { Project } from '@bindings/Project';
 
@@ -90,13 +92,13 @@ export default function Sidebar({ state }: { state: GuiState }) {
     <aside id="projects-sidebar" aria-label={translate(locale, 'project', 'ProjectsLabel', customTranslations)} className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
       <div className="backdrop-blur-md rounded-main padding-main border border-border bg-card text-card-foreground shadow-2xl transition-all duration-300">
         <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-          <h3 className="font-sans font-semibold text-title flex items-center gap-2 text-foreground">
+          <Heading level={3} className="text-title flex items-center gap-2">
             <Folder className="icon-medium text-orange-400" />
             {translate(locale, 'project', 'ProjectsLabel', customTranslations)} ({projects.length})
-          </h3>
-          <span className="text-main bg-orange-500/20 border border-orange-500/30 text-orange-600 px-2 py-1 rounded-full font-mono font-bold uppercase tracking-wider">
+          </Heading>
+          <Badge variant="orange" size="sm" as="span" className="text-orange-600 dark:text-orange-300 uppercase tracking-wider font-mono font-bold">
             MicroORM Tables
-          </span>
+          </Badge>
         </div>
 
         <form onSubmit={handleAddProjectSubmit} className="mb-6 padding-section rounded-section border border-border bg-muted/40 transition-all">
@@ -116,7 +118,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 variant="ghost"
                 size="xs"
                 onClick={() => setShowAddAdvanced(!showAddAdvanced)}
-                className="text-[10px] font-mono text-muted-foreground hover:text-orange-500 transition-colors uppercase tracking-wider h-auto p-0"
+                className="font-mono text-muted-foreground hover:text-orange-500 transition-colors uppercase tracking-wider h-auto p-0"
               >
                 {translate(locale, 'project', showAddAdvanced ? 'HideOptions' : 'MoreOptions', customTranslations)}
               </Button>
@@ -250,17 +252,17 @@ export default function Sidebar({ state }: { state: GuiState }) {
                       )}
 
                       {p.description && (
-                        <p className="text-[10px] leading-tight mt-0.5 truncate text-muted-foreground">
+                        <Caption className="mt-0.5 truncate">
                           {p.description}
-                        </p>
+                        </Caption>
                       )}
 
                       {p.tags && p.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {p.tags.map(t => (
-                            <span key={t} className="text-[9px] px-1 py-0.5 rounded bg-orange-500/10 text-orange-500 border border-orange-500/15 font-sans leading-none">
+                            <Badge key={t} variant="orange" size="xs" as="span" className="font-sans leading-none">
                               {t}
-                            </span>
+                            </Badge>
                           ))}
                         </div>
                       )}
@@ -294,7 +296,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
                             e.stopPropagation();
                             if (onToggleProjectArchive) onToggleProjectArchive(p.id);
                           }}
-                          className="opacity-0 group-hover:opacity-100 transition duration-200 px-1.5 py-0.5 h-auto rounded text-[9px] uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground"
+                          className="opacity-0 group-hover:opacity-100 transition duration-200 px-1.5 py-0.5 h-auto rounded uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground"
                         >
                           {p.archived ? translate(locale, 'common', 'Unarchive', customTranslations) : translate(locale, 'common', 'Archive', customTranslations)}
                         </Button>

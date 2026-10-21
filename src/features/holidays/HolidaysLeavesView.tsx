@@ -3,8 +3,9 @@ import { Calendar, Plus, Trash2, Database } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Button } from '@components/ui/button';
+import { Badge } from '@components/ui/badge';
+import { Heading, Overline } from '@components/ui/typography';
 import { Input } from '@components/ui/input';
-import { Label } from '@components/ui/label';
 import { NativeSelect } from '@components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@components/ui/table';
 import { useLocale } from '@common/hooks/LocaleProvider';
@@ -28,14 +29,14 @@ export default function HolidaysLeavesView() {
   return (
     <div className="p-6 rounded-[2rem] border border-border bg-card shadow-xs flex flex-col gap-6 transition-all duration-300">
       <div>
-        <span className="text-[10px] font-mono tracking-wider bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-bold uppercase border border-orange-500/25">
+        <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
           {translate(locale, 'calendar', 'ResourceDatabaseTable', customTranslations)}
-        </span>
+        </Badge>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1.5">
-          <h2 className="font-sans font-bold text-2xl flex items-center gap-2 text-foreground">
+          <Heading level={2} className="font-sans font-bold text-2xl flex items-center gap-2 text-foreground">
             <Calendar className="w-6 h-6 text-orange-400" />
             {translate(locale, 'calendar', 'HolidaysVacations', customTranslations)}
-          </h2>
+          </Heading>
         </div>
       </div>
 
@@ -50,18 +51,18 @@ export default function HolidaysLeavesView() {
         <form onSubmit={handleAddHolidaySubmit} className="mt-6 flex flex-col gap-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label className="text-[10px] font-mono tracking-wider text-muted-foreground uppercase">{translate(locale, 'common', 'Date', customTranslations)}</Label>
+              <Overline>{translate(locale, 'common', 'Date', customTranslations)}</Overline>
               <Input type="date" value={newHolidayDate} onChange={e => setNewHolidayDate(e.target.value)} required className="w-full font-mono" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label className="text-[10px] font-mono tracking-wider text-muted-foreground uppercase">{translate(locale, 'common', 'Type', customTranslations)}</Label>
+              <Overline>{translate(locale, 'common', 'Type', customTranslations)}</Overline>
               <NativeSelect value={newHolidayType} onChange={e => setNewHolidayType(e.target.value as 'holiday' | 'leave')} className="w-full font-mono">
                 <option value="leave">{translate(locale, 'calendar', 'VacationLeave', customTranslations)}</option>
                 <option value="holiday">{translate(locale, 'calendar', 'OfficialHoliday', customTranslations)}</option>
               </NativeSelect>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label className="text-[10px] font-mono tracking-wider text-muted-foreground uppercase">{translate(locale, 'calendar', 'DescriptionCause', customTranslations)}</Label>
+              <Overline>{translate(locale, 'calendar', 'DescriptionCause', customTranslations)}</Overline>
               <Input type="text" value={newHolidayName} onChange={e => setNewHolidayName(e.target.value)} placeholder={translate(locale, 'calendar', 'EGVibeDancingLeave', customTranslations)} required className="w-full font-sans" />
             </div>
           </div>
@@ -109,12 +110,13 @@ export default function HolidaysLeavesView() {
                       <TableCell className="py-3 px-4 font-mono text-xs">{h.date}</TableCell>
                       <TableCell className="py-3 px-4 font-mono text-xs text-muted-foreground">{weekdayStr}</TableCell>
                       <TableCell className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider border ${h.type === 'holiday'
-                          ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/20'
-                          : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20'
-                          }`}>
+                        <Badge
+                          variant={h.type === 'holiday' ? 'orange' : 'outline'}
+                          size="xs"
+                          className="font-bold uppercase tracking-wider"
+                        >
                           {h.type === 'holiday' ? translate(locale, 'calendar', 'Holiday', customTranslations) : translate(locale, 'calendar', 'Vacation', customTranslations)}
-                        </span>
+                        </Badge>
                       </TableCell>
                       <TableCell className="py-3 px-4 text-right">
                         <Button

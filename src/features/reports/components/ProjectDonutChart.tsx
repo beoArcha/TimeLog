@@ -82,15 +82,15 @@ export default function ProjectDonutChart({
       headerRight={
         selectedProjectId && (
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-[10px] font-sans">
+            <Badge variant="secondary" size="sm" className="font-sans">
               {selectedProjectName}
             </Badge>
             <Button
               variant="ghost"
-              size="sm"
+              size="xs"
               data-testid="clear-project-filter"
               onClick={() => onSelectProject?.(null)}
-              className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X className="w-3 h-3 mr-1" />
               {t('ClearFilter')}

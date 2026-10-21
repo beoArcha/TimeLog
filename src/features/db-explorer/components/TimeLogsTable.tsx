@@ -19,6 +19,7 @@ import {
   TableRow,
 } from '@components/ui/table';
 import { Button } from '@components/ui/button';
+import { Caption } from '@components/ui/typography';
 
 export default function TimeLogsTable() {
   const { locale, customTranslations } = useLocale();
@@ -118,7 +119,7 @@ export default function TimeLogsTable() {
         </Button>
       }
     >
-      <p className="text-[11px] text-muted-foreground mb-4 mt-0.5">{translate(locale, 'database', 'EntriesCrucialLabel', customTranslations)}</p>
+      <Caption size="xs" className="mb-4 mt-0.5 block">{translate(locale, 'database', 'EntriesCrucialLabel', customTranslations)}</Caption>
 
       {showAddLogForm && (
         <AddLogForm
@@ -134,7 +135,7 @@ export default function TimeLogsTable() {
       <div className="overflow-x-auto w-full max-h-[400px] overflow-y-auto">
         <Table className="w-full text-xs font-mono text-left whitespace-nowrap">
           <TableHeader>
-            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-[10px] tracking-wide">
+            <TableRow className="border-b border-border text-muted-foreground bg-muted/50 uppercase text-xs tracking-wide">
               <TableHead className="py-3 px-4 rounded-l-xl">id</TableHead>
               <TableHead className="py-3 px-4">task_id</TableHead>
               <TableHead className="py-3 px-4">{translate(locale, 'database', 'StartStamp', customTranslations)}</TableHead>
