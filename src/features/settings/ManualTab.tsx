@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Cpu, Terminal, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
+import CodeBlock from '@components/CodeBlock';
 import { Button } from '@components/ui/button';
-import { Heading, MonoText } from '@components/ui/typography';
+import { Heading, MonoText, Caption, List, ListItem } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 
@@ -38,7 +39,7 @@ export default function ManualTab() {
           <BookOpen className="w-5 h-5 text-rose-500" />
           <span>{translate(locale, 'help', 'Title', customTranslations)}</span>
         </Heading>
-        <p className="text-xs text-muted-foreground">{translate(locale, 'help', 'Description', customTranslations)}</p>
+        <Caption size="xs">{translate(locale, 'help', 'Description', customTranslations)}</Caption>
       </div>
 
       <CollapsibleCard
@@ -48,31 +49,31 @@ export default function ManualTab() {
         defaultExpanded={true}
         headerRight={osButtons}
       >
-        <ol className="list-decimal pl-4 flex flex-col gap-4 text-xs text-foreground font-sans mt-2">
-          <li>
-            {translate(locale, 'help', 'Step1', customTranslations)} <code className="text-orange-400 font-mono">npm</code>.
-          </li>
-          <li>
-            {translate(locale, 'help', 'Step2', customTranslations)} (<code className="text-orange-400 font-mono">rustup</code>).
+        <List ordered className="pl-4 flex flex-col gap-4 text-xs font-sans mt-2">
+          <ListItem>
+            {translate(locale, 'help', 'Step1', customTranslations)} <CodeBlock inline className="text-orange-400">npm</CodeBlock>.
+          </ListItem>
+          <ListItem>
+            {translate(locale, 'help', 'Step2', customTranslations)} (<CodeBlock inline className="text-orange-400">rustup</CodeBlock>).
             {currentOs === 'windows' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">C++ Build Tools for Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'.</MonoText>}
             {currentOs === 'linux' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">sudo apt update && sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev</MonoText>}
             {currentOs === 'macos' && <MonoText size="2xs" className="block mt-1 p-2 rounded-lg border border-border bg-muted/40 text-muted-foreground">xcode-select --install (CLang compiler required for macOS bindings)</MonoText>}
-          </li>
-          <li>
+          </ListItem>
+          <ListItem>
             {translate(locale, 'help', 'Step3', customTranslations)}
-            <pre className="p-2.5 rounded-lg border border-border bg-muted/40 font-mono text-xs text-foreground mt-1 select-all">npm install</pre>
-          </li>
-          <li>
+            <CodeBlock className="mt-1">npm install</CodeBlock>
+          </ListItem>
+          <ListItem>
             {translate(locale, 'help', 'Step4', customTranslations)}
-            <pre className="p-2.5 rounded-lg border border-border bg-muted/40 font-mono text-xs text-orange-500 mt-1 select-all font-bold group hover:border-orange-500/30 transition-colors">npm run tauri build</pre>
-          </li>
-          <li>
+            <CodeBlock className="mt-1 text-orange-500 font-bold group hover:border-orange-500/30 transition-colors">npm run tauri build</CodeBlock>
+          </ListItem>
+          <ListItem>
             {translate(locale, 'help', 'Step5', customTranslations)}
-            {currentOs === 'windows' && <code className="ml-1 text-emerald-400 font-mono">src-tauri/target/release/bundle/msi/OxyFlow_x64.msi</code>}
-            {currentOs === 'linux' && <code className="ml-1 text-emerald-400 font-mono">src-tauri/target/release/bundle/deb/oxyflow_amd64.deb</code>}
-            {currentOs === 'macos' && <code className="ml-1 text-emerald-400 font-mono">src-tauri/target/release/bundle/dmg/OxyFlow.dmg</code>}
-          </li>
-        </ol>
+            {currentOs === 'windows' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/msi/OxyFlow_x64.msi</CodeBlock>}
+            {currentOs === 'linux' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/deb/oxyflow_amd64.deb</CodeBlock>}
+            {currentOs === 'macos' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/dmg/OxyFlow.dmg</CodeBlock>}
+          </ListItem>
+        </List>
       </CollapsibleCard>
 
       <CollapsibleCard
@@ -81,9 +82,9 @@ export default function ManualTab() {
         iconColor="text-emerald-500"
         defaultExpanded={false}
       >
-        <p className="text-xs text-slate-400 leading-relaxed font-sans">
+        <Caption size="xs" className="leading-relaxed font-sans">
           {translate(locale, 'help', 'ShortcutsDesc', customTranslations)}
-        </p>
+        </Caption>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
           <div className="p-3 rounded-xl border border-border bg-card flex items-center justify-between">
             <span className="text-xs font-bold text-card-foreground">{translate(locale, 'help', 'ShortcutToggleInterface', customTranslations)}</span>

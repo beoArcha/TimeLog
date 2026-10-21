@@ -9,7 +9,7 @@ import {
 } from '@components/ui/dialog';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
-import { Overline } from '@components/ui/typography';
+import { Overline, List, ListItem } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
@@ -76,24 +76,24 @@ export default function CreditsModal() {
             <Overline as="h4" size="xs" className="font-mono">
               💖 {translate(locale, 'help', 'ComponentCreatorsAcknowledgement', customTranslations)}
             </Overline>
-            <ul className="p-4 rounded-3xl border border-border list-disc pl-5 text-xs flex flex-col gap-1.5 leading-relaxed bg-muted/40 text-foreground">
-              <li>
+            <List className="p-4 rounded-3xl border border-border pl-5 text-xs flex flex-col gap-1.5 leading-relaxed bg-muted/40 text-foreground">
+              <ListItem>
                 <strong className="text-orange-400">Lucide React</strong>:{' '}
                 {translate(locale, 'help', 'ForGorgeousConsistentVectorIco', customTranslations)}
-              </li>
-              <li>
+              </ListItem>
+              <ListItem>
                 <strong className="text-orange-400">Motion / Framer Motion</strong>:{' '}
                 {translate(locale, 'help', 'ForCinematicReactiveStateTrans', customTranslations)}
-              </li>
-              <li>
+              </ListItem>
+              <ListItem>
                 <strong className="text-orange-400">Tailwind CSS v4</strong>:{' '}
                 {translate(locale, 'help', 'ForRapidElegantResponsiveUtili', customTranslations)}
-              </li>
-              <li>
+              </ListItem>
+              <ListItem>
                 <strong className="text-orange-400">Vite & React 18</strong>:{' '}
                 {translate(locale, 'help', 'ForImmediateDevIterationsAndSo', customTranslations)}
-              </li>
-            </ul>
+              </ListItem>
+            </List>
           </div>
 
           <div className="flex flex-col gap-2">

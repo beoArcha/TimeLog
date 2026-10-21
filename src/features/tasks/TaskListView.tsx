@@ -10,7 +10,7 @@ import ProjectHeaderCard from './components/ProjectHeaderCard';
 import TaskEmptyState from './components/TaskEmptyState';
 import { useProjectStatistics } from './hooks/useProjectStatistics';
 import { TaskEditingProvider } from './context/TaskEditingContext';
-import { Heading } from '@components/ui/typography';
+import { Heading, Text } from '@components/ui/typography';
 
 import { TaskStatus } from '@bindings/TaskStatus';
 
@@ -169,7 +169,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
       <div className="border-2 border-dashed border-border rounded-main p-16 text-center transition-all flex-1 min-h-0 bg-muted/40 text-muted-foreground">
         <Folder className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
         <Heading level={3} className="font-bold text-title text-foreground">{tProject('SelectProjectPlaceholder')}</Heading>
-        <p className="text-main mt-1 text-muted-foreground">Zaznacz projekt w bocznym menu po lewej stronie, aby zacząć zarządzać czasem.</p>
+        <Text size="sm" className="mt-1 text-muted-foreground">{tProject('SelectProjectHint')}</Text>
       </div>
     );
   }

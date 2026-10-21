@@ -398,6 +398,7 @@ export type ProjectKey =
   | 'ProjectTotalTime'
   | 'ProjectsLabel'
   | 'SelectProject'
+  | 'SelectProjectHint'
   | 'SelectProjectPlaceholder'
   | 'StarterTemplatesHeading'
   | 'StarterTemplatesSubheading'
