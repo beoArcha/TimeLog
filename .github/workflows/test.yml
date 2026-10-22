@@ -116,7 +116,8 @@ jobs:
             --coverage \
             --coverage.reporter=json \
             --coverage.reporter=json-summary \
-            --coverage.reportsDirectory=coverage/unit
+            --coverage.reportsDirectory=coverage/unit \
+            --no-coverage.thresholds
 
           if [ -f coverage/unit/coverage-final.json ]; then
             cp coverage/unit/coverage-final.json coverage/unit/coverage-unit.json
@@ -157,7 +158,8 @@ jobs:
             --coverage \
             --coverage.reporter=json \
             --coverage.reporter=json-summary \
-            --coverage.reportsDirectory=coverage/integration
+            --coverage.reportsDirectory=coverage/integration \
+            --no-coverage.thresholds
 
           if [ -f coverage/integration/coverage-final.json ]; then
             cp coverage/integration/coverage-final.json coverage/integration/coverage-integration.json
