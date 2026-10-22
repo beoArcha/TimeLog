@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppWindow, Layers } from 'lucide-react';
-import { motion } from 'motion/react';
+import { AnimatedFade } from '@components/AnimatedFade';
+import { AnimatedCard } from '@components/AnimatedCard';
 import { useTranslation } from '@common/i18n/translator';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
@@ -24,7 +25,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
   const activeRunningLogs = logs.filter(l => l.endTime === null);
 
   return (
-    <motion.div
+    <AnimatedFade
       id="simulated-tray-widget"
       key="tray-state"
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -32,7 +33,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
       exit={{ opacity: 0, scale: 0.95, y: -20 }}
       className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full my-auto padding-main"
     >
-      <div className="rounded-main padding-main shadow-3xl w-full text-center flex flex-col items-center gap-main relative overflow-hidden group border border-border bg-card text-card-foreground transition-all duration-300">
+      <AnimatedCard hoverable={false} className="rounded-main padding-main shadow-3xl w-full text-center flex flex-col items-center gap-main relative overflow-hidden group border border-border bg-card text-card-foreground transition-all duration-300">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500"></div>
 
         <div className="relative">
@@ -121,7 +122,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
             {tEngine('PauseAllProcesses')}
           </Button>
         </div>
-      </div>
-    </motion.div>
+      </AnimatedCard>
+    </AnimatedFade>
   );
 }

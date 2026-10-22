@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { AnimatedProgressBar } from '@components/AnimatedProgressBar';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { TimeLog } from '@bindings/TimeLog';
@@ -57,14 +57,10 @@ export default function ReportLogList({
                   </span>
                   <span className="font-mono text-orange-500">{formatSeconds(pc.seconds)}</span>
                 </div>
-                <div className="w-full h-3 rounded-full overflow-hidden relative bg-muted">
-                  <motion.div
-                     initial={{ width: 0 }}
-                     animate={{ width: `${widthPct}%` }}
-                     transition={{ duration: 0.5 }}
-                     className="h-full bg-gradient-to-r from-orange-400 to-rose-500 rounded-full"
-                  />
-                </div>
+                <AnimatedProgressBar
+                  value={widthPct}
+                  aria-label={pc.name}
+                />
                 {pc.tasks.length > 0 && (
                   <div className="flex flex-col gap-1 mt-1 pl-4 border-l-2 border-border/50">
                     {pc.tasks.map((tt) => (

@@ -1,7 +1,8 @@
 import React from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { Clock, Square } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { AnimatedCard } from '@components/AnimatedCard';
 import { translate } from '@common/i18n/translator';
 import { useLiveTaskElapsed } from '@common/hooks/useLiveTaskElapsed';
 import { ProjectBadge } from '@/src/features/projects/components/ProjectBadge';
@@ -27,13 +28,14 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
   return (
     <AnimatePresence mode="wait">
       {activeLog ? (
-        <motion.div
+        <AnimatedCard
           id="active-timer-banner"
           key="active"
+          hoverable={false}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className={`relative backdrop-blur-md rounded-main padding-section border border-border bg-card text-card-foreground shadow-2xl flex flex-col ${isCondensed ? 'gap-section' : 'sm:flex-row sm:items-center justify-between gap-section'} overflow-hidden transition-all duration-300`}
+          className={`relative backdrop-blur-md rounded-main padding-section shadow-2xl flex flex-col ${isCondensed ? 'gap-section' : 'sm:flex-row sm:items-center justify-between gap-section'} overflow-hidden transition-all duration-300 h-auto`}
         >
           <div className="absolute top-0 left-0 w-16 h-16 bg-orange-500 rounded-full filter blur-md animate-pulse pointer-events-none opacity-20"></div>
 
@@ -94,7 +96,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
               <Square className="w-4 h-4 text-white fill-white group-hover:scale-110 transition-transform" />
             </Button>
           </div>
-        </motion.div>
+        </AnimatedCard>
       ) : (
         <div id="active-timer-idle-banner" className={`backdrop-blur-md rounded-main padding-section border border-border bg-card/60 text-card-foreground shadow-xs flex flex-col ${isCondensed ? 'gap-section' : 'md:flex-row items-center justify-between gap-section'} transition-all duration-300`}>
           <HStack gap="section">

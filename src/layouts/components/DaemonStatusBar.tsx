@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { AnimatedFade } from '@components/AnimatedFade';
 import { RefreshCw, Minimize2, CloudUpload, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
@@ -28,10 +28,8 @@ export default function DaemonStatusBar() {
 
   if (engineState === 'connecting') {
     return (
-      <motion.div
+      <AnimatedFade
         id="engine-connecting-status-bar"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
         className="bg-card/60 backdrop-blur-md border border-border text-xs rounded-xl py-2 px-3 sm:py-2.5 sm:px-4 flex items-center gap-3 transition-all"
       >
         <RefreshCw className="w-5 h-5 text-orange-400 animate-spin" />
@@ -39,12 +37,12 @@ export default function DaemonStatusBar() {
           <strong className="text-white">{translate(locale, 'engine', 'Searching', customTranslations)}</strong>
           <Caption className="mt-0.5">{translate(locale, 'engine', 'Connecting', customTranslations)}</Caption>
         </div>
-      </motion.div>
+      </AnimatedFade>
     );
   }
 
   return (
-    <motion.div
+    <AnimatedFade
       id="engine-ready-status-bar"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -128,6 +126,6 @@ export default function DaemonStatusBar() {
           <span className="hidden sm:inline">{translate(locale, 'engine', 'MinimizeToTray', customTranslations)}</span>
         </Button>
       )}
-    </motion.div>
+    </AnimatedFade>
   );
 }

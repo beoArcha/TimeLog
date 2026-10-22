@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 
 export interface AnimatedCardProps extends HTMLMotionProps<'div'> {
   delay?: number;
+  hoverable?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
@@ -14,6 +15,7 @@ export interface AnimatedCardProps extends HTMLMotionProps<'div'> {
  */
 export function AnimatedCard({
   delay = 0,
+  hoverable = true,
   className,
   children,
   initial = { opacity: 0, y: 10 },
@@ -27,7 +29,8 @@ export function AnimatedCard({
       animate={animate}
       transition={transition ?? { duration: 0.25, delay }}
       className={cn(
-        'p-5 rounded-3xl border border-border bg-card shadow-xs hover:border-primary/30 hover:shadow-md transition-all duration-300 flex flex-col h-full',
+        'p-5 rounded-3xl border border-border bg-card shadow-xs transition-all duration-300 flex flex-col h-full',
+        hoverable && 'hover:border-primary/30 hover:shadow-md',
         className
       )}
       {...rest}

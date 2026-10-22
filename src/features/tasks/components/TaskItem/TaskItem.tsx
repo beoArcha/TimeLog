@@ -1,6 +1,6 @@
 import React from 'react';
 import { Task } from '@bindings/Task';
-import { AnimatePresence } from 'motion/react';
+import { AnimatedCollapse } from '@components/AnimatedCollapse';
 import { useTaskItem } from './hooks/useTaskItem';
 import { TaskHeader } from './TaskHeader';
 import { TaskMetrics } from './TaskMetrics';
@@ -123,14 +123,12 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
         />
       </div>
 
-      <AnimatePresence>
-        {showSubtaskForm && (
-          <SubtaskForm
-            parentTaskId={rootTask.id}
-            onSubmit={handleAddSubtaskSubmit}
-          />
-        )}
-      </AnimatePresence>
+      <AnimatedCollapse isOpen={showSubtaskForm}>
+        <SubtaskForm
+          parentTaskId={rootTask.id}
+          onSubmit={handleAddSubtaskSubmit}
+        />
+      </AnimatedCollapse>
 
       <SubtaskList
         subTasks={subTasks}
