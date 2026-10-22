@@ -9,7 +9,10 @@ import { TimerDisplay } from '@/src/features/timelogs/components/TimerDisplay';
 import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 import { Button } from '@components/ui/button';
-import { HStack } from '@components/ui/stack';
+import { HStack, InlineCluster } from '@components/ui/stack';
+import { Text } from '@components/ui/typography';
+import { StatusDot } from '@components/ui/status-dot';
+import { cn } from '@/lib/utils';
 import { useTasksSafe, useTimerSafe } from '@common/hooks/DataContext';
 import { useTaskEditing } from '../../context/TaskEditingContext';
 import { TaskStatusSelect } from '../TaskStatusSelect';
@@ -21,6 +24,7 @@ export interface SubtaskItemProps {
   logs?: TimeLog[];
   nowIso?: string;
   metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
+  activeLog?: TimeLog | null;
   editingId?: string | null;
   editName?: string;
   onToggleTaskComplete?: (id: string) => void;
@@ -42,6 +46,7 @@ export interface SubtaskItemProps {
 export function SubtaskItem({
   subTask,
   metrics,
+  activeLog: propActiveLog,
   editingId: propEditingId,
   editName: propEditName,
   onToggleTaskComplete: propOnToggleTaskComplete,
@@ -74,6 +79,7 @@ export function SubtaskItem({
 
   const { isRunning: isSubRunning, formattedElapsed: subFormattedElapsed } = useLiveTaskElapsed(subTask.id, {
     metrics,
+    activeLog: propActiveLog ?? timerCtx?.activeLog,
   });
   const isEditing = editingId === subTask.id;
 
@@ -105,7 +111,7 @@ export function SubtaskItem({
           )}
         </Button>
 
-        <div className="min-w-0 flex-1 flex items-center justify-between group/taskedit">
+        <HStack justify="between" align="center" className="min-w-0 flex-1 group/taskedit">
           {isEditing ? (
             <TaskNameEditor
               taskId={subTask.id}
@@ -118,15 +124,16 @@ export function SubtaskItem({
               setEditingId={setEditingId}
             />
           ) : (
-            <span
-              className={`text-xs font-semibold flex flex-wrap items-center gap-2 transition-all duration-300 min-w-0 w-full ${subTask.completed
-                ? 'line-through text-muted-foreground font-normal'
-                : 'text-foreground'
-                }`}
-            >
-              <span className="truncate block max-w-full" title={subTask.name}>
+            <InlineCluster gap="xs" align="center" className="min-w-0 flex-1">
+              <Text
+                as="span"
+                size="xs"
+                weight={subTask.completed ? 'normal' : 'semibold'}
+                className={cn('truncate block max-w-full', subTask.completed && 'line-through text-muted-foreground')}
+                title={subTask.name}
+              >
                 {subTask.name}
-              </span>
+              </Text>
               <TaskStatusSelect
                 status={subTask.status}
                 onStatusChange={(status) => {
@@ -134,13 +141,13 @@ export function SubtaskItem({
                     onUpdateTask(subTask.id, subTask.name, subTask.parentTaskId || null, status, null);
                   }
                 }}
-                ariaLabel="Subtask status"
+                ariaLabel={tCommon('Status')}
                 size="xs"
               />
               {isSubRunning && (
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                <StatusDot variant="emerald" size="2xs" ping className="shrink-0" />
               )}
-            </span>
+            </InlineCluster>
           )}
 
           {!isEditing && (
@@ -155,7 +162,7 @@ export function SubtaskItem({
               setEditName={setEditName}
             />
           )}
-        </div>
+        </HStack>
       </HStack>
 
       <HStack gap="md" className="shrink-0">

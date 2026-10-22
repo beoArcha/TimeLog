@@ -30,6 +30,13 @@ describe('Unit Tests: useLiveTaskElapsed & useLiveProjectElapsed', () => {
         isRunning: true,
         hasRunningChild: false,
       },
+      'task-parent-with-child': {
+        taskId: 'task-parent-with-child',
+        elapsedSeconds: 500,
+        selfElapsedSeconds: 200,
+        isRunning: false,
+        hasRunningChild: true,
+      },
     },
     projects: {
       'proj-1': {
@@ -215,5 +222,30 @@ describe('Unit Tests: useLiveTaskElapsed & useLiveProjectElapsed', () => {
 
     expect(result.current.isRunning).toBe(false);
     expect(result.current.elapsedSeconds).toBe(120);
+  });
+
+  it('Given parent task with running child and includeChildren true, Then it should tick live', () => {
+    // Given
+    vi.setSystemTime(new Date('2026-06-15T12:00:00.000Z'));
+
+    // When
+    const { result } = renderHook(() =>
+      useLiveTaskElapsed('task-parent-with-child', {
+        metrics: baseMetrics,
+        includeChildren: true,
+      })
+    );
+
+    // Then
+    expect(result.current.isRunning).toBe(true);
+    expect(result.current.elapsedSeconds).toBe(500);
+
+    // When
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    // Then
+    expect(result.current.elapsedSeconds).toBe(503);
   });
 });

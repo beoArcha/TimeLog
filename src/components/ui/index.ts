@@ -24,3 +24,7 @@ export * from './sonner';
 export * from './chart';
 export * from './stack';
 export * from './stack-variants';
+export * from './status-dot';
+export * from './status-dot-variants';
+export * from './icon-box';
+export * from './icon-box-variants';

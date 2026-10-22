@@ -16,3 +16,4 @@ export * from './ViewHeader';
 export * from './FilterBar';
 export * from './TrendIndicator';
 export * from './SyncStatusBadge';
+export * from './types';

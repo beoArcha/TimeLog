@@ -47,4 +47,22 @@ impl ConfigRepository {
         let json_str = serde_json::to_string(order)?;
         Self::store_config_value(&conn, constants::KEY_PROJECT_ORDER, &json_str)
     }
+
+    pub fn get_last_tracked_task_id(&self) -> Result<Option<String>> {
+        let conn = self.connect()?;
+        Self::query_config_value(&conn, constants::KEY_LAST_TRACKED_TASK_ID)
+    }
+
+    pub fn save_last_tracked_task_id(&self, id: Option<&str>) -> Result<()> {
+        let conn = self.connect()?;
+        if let Some(val) = id {
+            Self::store_config_value(&conn, constants::KEY_LAST_TRACKED_TASK_ID, val)?;
+        } else {
+            conn.execute(
+                constants::DELETE_CONFIG_KEY,
+                params![constants::KEY_LAST_TRACKED_TASK_ID],
+            )?;
+        }
+        Ok(())
+    }
 }

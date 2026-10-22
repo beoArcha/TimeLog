@@ -5,6 +5,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
+import { useLiveProjectElapsed } from '@common/hooks/useLiveTaskElapsed';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { useTranslation } from '@common/i18n/translator';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ interface UseProjectStatisticsProps {
   logs?: TimeLog[];
   nowIso?: string;
   metrics?: EngineComputedMetrics | null;
+  activeLog?: TimeLog | null;
 }
 
 export interface UseProjectStatisticsResult {
@@ -27,9 +29,17 @@ export interface UseProjectStatisticsResult {
 export function useProjectStatistics({
   selectedProject,
   metrics,
+  activeLog,
+  nowIso,
 }: UseProjectStatisticsProps): UseProjectStatisticsResult {
   const projectId = selectedProject?.id ?? null;
   const projectMetric = projectId && metrics?.projects ? metrics.projects[projectId] : null;
+
+  const { elapsedSeconds: liveProjectSeconds } = useLiveProjectElapsed(projectId ?? '', {
+    metrics,
+    activeLog,
+    nowIso,
+  });
 
   const [asyncState, setAsyncState] = useState<{
     projectId: string | null;
@@ -85,19 +95,23 @@ export function useProjectStatistics({
     if (!projectId) return null;
     if (projectMetric) {
       return {
-        totalDurationSec: projectMetric.totalElapsedSeconds,
+        totalDurationSec: (metrics || activeLog) ? liveProjectSeconds : projectMetric.totalElapsedSeconds,
         totalTasks: projectMetric.activeTaskCount + projectMetric.completedTaskCount,
         completedTasks: projectMetric.completedTaskCount,
       };
     }
     return asyncState.projectId === projectId ? asyncState.stats : null;
-  }, [projectId, projectMetric, asyncState.projectId, asyncState.stats]);
+  }, [projectId, projectMetric, liveProjectSeconds, metrics, activeLog, asyncState.projectId, asyncState.stats]);
 
   const loading = Boolean(projectId && !projectMetric && asyncState.projectId !== projectId);
   const error = projectId && asyncState.projectId === projectId ? asyncState.error : null;
-  const projectDurationSeconds = stats
-    ? (stats.totalDurationSec ?? (stats as unknown as { totalDurationSeconds?: number }).totalDurationSeconds ?? 0)
-    : 0;
+  let projectDurationSeconds = 0;
+  if (metrics || activeLog) {
+    projectDurationSeconds = liveProjectSeconds;
+  } else if (stats) {
+    const rawStats = stats as unknown as { totalDurationSec?: number; totalDurationSeconds?: number };
+    projectDurationSeconds = rawStats.totalDurationSec ?? rawStats.totalDurationSeconds ?? 0;
+  }
 
   return {
     stats,

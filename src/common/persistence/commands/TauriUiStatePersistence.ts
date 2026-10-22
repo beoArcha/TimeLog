@@ -58,4 +58,22 @@ export class TauriUiStatePersistence implements IUiStatePersistence {
       throw err;
     }
   }
+
+  async getLastTrackedTaskId(): Promise<string | null> {
+    try {
+      return await invoke<string | null>('get_last_tracked_task_id');
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to get last tracked task id via Tauri', err, 'ERR_TAURI_UI_LAST_TASK_GET'));
+      throw err;
+    }
+  }
+
+  async saveLastTrackedTaskId(id: string | null): Promise<void> {
+    try {
+      await invoke('save_last_tracked_task_id', { id });
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to save last tracked task id via Tauri', err, 'ERR_TAURI_UI_LAST_TASK_SAVE'));
+      throw err;
+    }
+  }
 }

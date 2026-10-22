@@ -24,7 +24,10 @@
     "NoActiveTimers": "No active timers at this moment.",
     "RegisteredToday": "Registered today",
     "AllTrackersStopped": "All trackers stopped",
-    "SelectTaskToPlay": "Select a task below and play to start."
+    "SelectTaskToPlay": "Select a task below and play to start.",
+    "LastTrackedTask": "Last tracked task",
+    "ResumeTimer": "Resume",
+    "NoRecentTask": "No recent task"
   },
   "pl": {
     "StartTimer": "Rozpocznij",
@@ -51,7 +54,10 @@
     "NoActiveTimers": "Brak aktywnych timerów w tym momencie.",
     "RegisteredToday": "Zarejestrowano dziś",
     "AllTrackersStopped": "Brak aktywnych pomiarów",
-    "SelectTaskToPlay": "Wybierz zadanie poniżej i kliknij Play, żeby zacząć."
+    "SelectTaskToPlay": "Wybierz zadanie poniżej i kliknij Play, żeby zacząć.",
+    "LastTrackedTask": "Ostatnio mierzone zadanie",
+    "ResumeTimer": "Wznów",
+    "NoRecentTask": "Brak ostatniego zadania"
   },
   "de": {
     "StartTimer": "Start",
@@ -78,7 +84,10 @@
     "NoActiveTimers": "Momentan keine aktiven Timer.",
     "RegisteredToday": "Heute registriert",
     "AllTrackersStopped": "Alle Tracker gestoppt",
-    "SelectTaskToPlay": "Wählen Sie unten eine Aufgabe aus und drücken Sie Play zum Starten."
+    "SelectTaskToPlay": "Wählen Sie unten eine Aufgabe aus und drücken Sie Play zum Starten.",
+    "LastTrackedTask": "Zuletzt erfasste Aufgabe",
+    "ResumeTimer": "Fortsetzen",
+    "NoRecentTask": "Keine kürzliche Aufgabe"
   },
   "es": {
     "StartTimer": "Iniciar",
@@ -105,7 +114,10 @@
     "NoActiveTimers": "No hay temporizadores activos en este momento.",
     "RegisteredToday": "Registrado hoy",
     "AllTrackersStopped": "Todos los rastreadores detenidos",
-    "SelectTaskToPlay": "Selecciona una tarea para comenzar."
+    "SelectTaskToPlay": "Selecciona una tarea para comenzar.",
+    "LastTrackedTask": "Última tarea registrada",
+    "ResumeTimer": "Reanudar",
+    "NoRecentTask": "Sin tarea reciente"
   },
   "fr": {
     "StartTimer": "Démarrer",
@@ -132,7 +144,10 @@
     "NoActiveTimers": "Aucun minuteur actif pour le moment.",
     "RegisteredToday": "Enregistré aujourd'hui",
     "AllTrackersStopped": "Tous les traceurs arrêtés",
-    "SelectTaskToPlay": "Sélectionnez une tâche pour démarrer."
+    "SelectTaskToPlay": "Sélectionnez une tâche pour démarrer.",
+    "LastTrackedTask": "Dernière tâche suivie",
+    "ResumeTimer": "Reprendre",
+    "NoRecentTask": "Aucune tâche récente"
   },
   "pt-br": {
     "StartTimer": "Iniciar",
@@ -159,6 +174,9 @@
     "NoActiveTimers": "Não há cronômetros ativos no momento.",
     "RegisteredToday": "Registrado hoje",
     "AllTrackersStopped": "Todos os rastreadores parados",
-    "SelectTaskToPlay": "Selecione uma tarefa para começar."
+    "SelectTaskToPlay": "Selecione uma tarefa para começar.",
+    "LastTrackedTask": "Última tarefa monitorada",
+    "ResumeTimer": "Retomar",
+    "NoRecentTask": "Nenhuma tarefa recente"
   }
 }

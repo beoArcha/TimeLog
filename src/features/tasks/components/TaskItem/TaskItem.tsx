@@ -43,6 +43,7 @@ export interface TaskItemState {
   editName?: string;
   setEditName?: (val: string) => void;
   metrics?: EngineComputedMetrics | null;
+  activeLog?: TimeLog | null;
 }
 
 export interface TaskItemProps {
@@ -65,7 +66,15 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
   const tasksCtx = useTasksSafe();
 
   const { subTasks, rootDuration, runningSubtask, isCurrentRunning, isChildRunning, isAnyRunning } =
-    useTaskItem({ rootTask, tasks, logs, nowIso, metrics: state.metrics, projectTasks });
+    useTaskItem({
+      rootTask,
+      tasks,
+      logs,
+      nowIso,
+      metrics: state.metrics,
+      activeLog: state.activeLog,
+      projectTasks,
+    });
 
   const showSubtaskForm =
     (editing?.showSubtaskFormForId ?? state.showSubtaskFormForId) === rootTask.id;
@@ -133,6 +142,7 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
       <SubtaskList
         subTasks={subTasks}
         metrics={state.metrics}
+        activeLog={state.activeLog}
         isCondensed={isCondensed}
         onToggleTaskComplete={state.onToggleTaskComplete}
         onRenameTask={state.onRenameTask}

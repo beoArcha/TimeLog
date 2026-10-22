@@ -9,6 +9,7 @@ interface UseTaskItemParams {
   logs: TimeLog[];
   nowIso?: string;
   metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
+  activeLog?: TimeLog | null;
   projectTasks: Task[];
   locale?: Locale;
 }
@@ -26,21 +27,30 @@ export function useTaskItem({
   rootTask,
   logs,  
   metrics,
+  activeLog,
   projectTasks,
 }: UseTaskItemParams): UseTaskItemResult {
   const subTasks = projectTasks.filter((t: Task) => t.parentTaskId === rootTask.id);
-  const { elapsedSeconds: rootDuration, isRunning: isCurrentRunning } = useLiveTaskElapsed(rootTask.id, {
-    metrics,
-  });
   const taskMetric = metrics?.tasks?.[rootTask.id];
 
   const runningSubtask = subTasks.find((sub: Task) => {
     const subMetric = metrics?.tasks?.[sub.id];
     if (subMetric !== undefined) return subMetric.isRunning;
-    return logs.some((l: TimeLog) => l.taskId === sub.id && l.endTime === null);
+    return (
+      (activeLog && activeLog.taskId === sub.id) ||
+      logs.some((l: TimeLog) => l.taskId === sub.id && l.endTime === null)
+    );
   });
 
   const isChildRunning = taskMetric ? taskMetric.hasRunningChild : !!runningSubtask;
+
+  const { elapsedSeconds: rootDuration, isSelfRunning: isCurrentRunning } = useLiveTaskElapsed(rootTask.id, {
+    metrics,
+    activeLog,
+    includeChildren: true,
+    isChildRunning,
+  });
+
   const isAnyRunning = isCurrentRunning || isChildRunning;
 
   return {

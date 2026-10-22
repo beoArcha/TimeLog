@@ -39,4 +39,16 @@ export class LocalStorageUiStatePersistence implements IUiStatePersistence {
   async saveProjectOrder(order: string[]): Promise<void> {
     localStorage.setItem(STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
   }
+
+  async getLastTrackedTaskId(): Promise<string | null> {
+    return localStorage.getItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID);
+  }
+
+  async saveLastTrackedTaskId(id: string | null): Promise<void> {
+    if (id === null) {
+      localStorage.removeItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID);
+    } else {
+      localStorage.setItem(STORAGE_KEYS.LAST_TRACKED_TASK_ID, id);
+    }
+  }
 }

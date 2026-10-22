@@ -1,37 +1,28 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import Sidebar from '@/src/layouts/parts/Sidebar';
-import { SidebarHeader } from '@/src/layouts/parts/sidebar/SidebarHeader';
-import { SidebarProjectForm } from '@/src/layouts/parts/sidebar/SidebarProjectForm';
-import { SidebarProjectItem } from '@/src/layouts/parts/sidebar/SidebarProjectItem';
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import Sidebar from '@layouts/parts/Sidebar';
+import { SidebarHeader } from '@layouts/parts/sidebar/SidebarHeader';
+import { SidebarProjectForm } from '@layouts/parts/sidebar/SidebarProjectForm';
+import { SidebarProjectItem } from '@layouts/parts/sidebar/SidebarProjectItem';
+import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { aProject } from '@tests/shared/builders/entity-builders';
-import { GuiState } from '@/src/layouts/hooks/useGuiLogic';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 
-describe('Sidebar', () => {
-  afterEach(() => {
-    cleanup();
-    vi.restoreAllMocks();
-  });
+function createMockGuiState(overrides: Partial<GuiState> = {}): GuiState {
+  const p1 = aProject({ id: 'proj-1', name: 'Alpha Project', color: 'orange' });
+  const p2 = aProject({ id: 'proj-2', name: 'Beta Project', color: 'blue' });
 
-  const mockProject1 = aProject({ id: 'proj-1', name: 'Alpha Project', color: 'blue' });
-  const mockProject2 = aProject({ id: 'proj-2', name: 'Beta Project', color: 'violet', archived: true });
-
-  const createMockGuiState = (overrides?: Partial<GuiState>): GuiState => ({
-    projects: [mockProject1, mockProject2],
+  return {
+    projects: [p1, p2],
     tasks: [],
-    timeLogs: [],
-    metrics: {
-      projects: {
-        'proj-1': { totalElapsedSeconds: 3600, todayElapsedSeconds: 1800, weekElapsedSeconds: 3600 },
-        'proj-2': { totalElapsedSeconds: 0, todayElapsedSeconds: 0, weekElapsedSeconds: 0 },
-      },
-      tasks: {},
-    },
+    logs: [],
+    activeLog: null,
+    holidays: [],
+    metrics: null,
+    nowIso: '2026-06-15T12:00:00Z',
     locale: 'en',
-    customTranslations: {},
     selectedProjectId: 'proj-1',
     setSelectedProjectId: vi.fn(),
     onAddProject: vi.fn(),
@@ -39,15 +30,25 @@ describe('Sidebar', () => {
     onRenameProject: vi.fn(),
     onToggleProjectArchive: vi.fn(),
     isLoading: false,
+    onAddTask: vi.fn(),
+    onToggleTaskComplete: vi.fn(),
+    onStartTimer: vi.fn(),
+    onStopTimer: vi.fn(),
+    setHolidays: vi.fn(),
+    selectedTaskId: null,
     ...overrides,
-  } as unknown as GuiState);
+  } as unknown as GuiState;
+}
+
+describe('Sidebar', () => {
+  afterEach(cleanup);
 
   it('should render projects list and header when state is provided', () => {
     // Arrange
     const state = createMockGuiState();
 
     // Act
-    render(
+    const { container } = render(
       <MockProviders>
         <Sidebar state={state} />
       </MockProviders>
@@ -55,8 +56,8 @@ describe('Sidebar', () => {
 
     // Assert
     expect(screen.getByRole('complementary').getAttribute('id')).toBe('projects-sidebar');
-    expect(document.getElementById('project-item-proj-1')).not.toBeNull();
-    expect(document.getElementById('project-item-proj-2')).not.toBeNull();
+    expect(container.querySelector('#project-item-proj-1')).not.toBeNull();
+    expect(container.querySelector('#project-item-proj-2')).not.toBeNull();
   });
 
   it('should trigger project selection when item is clicked', () => {
@@ -65,12 +66,12 @@ describe('Sidebar', () => {
     const state = createMockGuiState({ setSelectedProjectId: onSelect });
 
     // Act
-    render(
+    const { container } = render(
       <MockProviders>
         <Sidebar state={state} />
       </MockProviders>
     );
-    const item2 = document.getElementById('project-item-proj-2');
+    const item2 = container.querySelector('#project-item-proj-2');
     if (item2) fireEvent.click(item2);
 
     // Assert
@@ -83,13 +84,13 @@ describe('Sidebar', () => {
     const state = createMockGuiState({ onAddProject });
 
     // Act
-    render(
+    const { container } = render(
       <MockProviders>
         <Sidebar state={state} />
       </MockProviders>
     );
-    const input = document.getElementById('new-project-input') as HTMLInputElement;
-    const addBtn = document.getElementById('add-project-btn') as HTMLButtonElement;
+    const input = container.querySelector('#new-project-input') as HTMLInputElement;
+    const addBtn = container.querySelector('#add-project-btn') as HTMLButtonElement;
 
     fireEvent.change(input, { target: { value: 'Delta Project' } });
     fireEvent.click(addBtn);
@@ -123,14 +124,14 @@ describe('SidebarProjectForm', () => {
     const onAdd = vi.fn();
 
     // Act
-    render(
+    const { container } = render(
       <MockProviders>
         <SidebarProjectForm onAddProject={onAdd} locale="en" />
       </MockProviders>
     );
-    const input = document.getElementById('new-project-input') as HTMLInputElement;
-    const colorBtn = document.getElementById('color-picker-emerald') as HTMLButtonElement;
-    const addBtn = document.getElementById('add-project-btn') as HTMLButtonElement;
+    const input = container.querySelector('#new-project-input') as HTMLInputElement;
+    const colorBtn = container.querySelector('#color-picker-emerald') as HTMLButtonElement;
+    const addBtn = container.querySelector('#add-project-btn') as HTMLButtonElement;
 
     fireEvent.change(input, { target: { value: 'Gamma' } });
     if (colorBtn) fireEvent.click(colorBtn);
@@ -150,7 +151,7 @@ describe('SidebarProjectItem', () => {
     const project = aProject({ id: 'p-test', name: 'Test Proj', archived: false });
 
     // Act
-    render(
+    const { container } = render(
       <MockProviders>
         <SidebarProjectItem
           project={project}
@@ -172,7 +173,7 @@ describe('SidebarProjectItem', () => {
         />
       </MockProviders>
     );
-    const archiveBtn = document.getElementById('archive-project-btn-p-test');
+    const archiveBtn = container.querySelector('#archive-project-btn-p-test');
     if (archiveBtn) fireEvent.click(archiveBtn);
 
     // Assert
@@ -186,7 +187,7 @@ describe('SidebarProjectItem', () => {
     const project = aProject({ id: 'p-test', name: 'Test Proj' });
 
     // Act
-    render(
+    const { container } = render(
       <MockProviders>
         <SidebarProjectItem
           project={project}
@@ -207,8 +208,8 @@ describe('SidebarProjectItem', () => {
         />
       </MockProviders>
     );
-    const upBtn = document.getElementById('move-up-project-btn-p-test');
-    const downBtn = document.getElementById('move-down-project-btn-p-test');
+    const upBtn = container.querySelector('#move-up-project-btn-p-test');
+    const downBtn = container.querySelector('#move-down-project-btn-p-test');
 
     if (upBtn) fireEvent.click(upBtn);
     if (downBtn) fireEvent.click(downBtn);

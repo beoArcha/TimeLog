@@ -41,4 +41,15 @@ impl UiStatePersistence {
         self.shared.config_repo.save_project_order(&order)?;
         Ok(())
     }
+
+    pub fn get_last_tracked_task_id(&self) -> PersistenceResult<Option<String>> {
+        Ok(self.shared.config_repo.get_last_tracked_task_id()?)
+    }
+
+    pub fn save_last_tracked_task_id(&self, id: Option<String>) -> PersistenceResult<()> {
+        self.shared
+            .config_repo
+            .save_last_tracked_task_id(id.as_deref())?;
+        Ok(())
+    }
 }

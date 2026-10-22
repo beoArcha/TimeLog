@@ -66,6 +66,8 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             ui_state::save_last_non_compact_variant,
             ui_state::get_project_order,
             ui_state::save_project_order,
+            ui_state::get_last_tracked_task_id,
+            ui_state::save_last_tracked_task_id,
             external_api::get_external_api_settings,
             external_api::save_external_api_settings,
             locale::get_locale_pref,

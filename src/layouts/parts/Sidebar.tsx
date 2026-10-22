@@ -14,7 +14,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
   const {
     projects, metrics, locale, customTranslations,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
-    onRenameProject, onToggleProjectArchive, isLoading
+    onRenameProject, onToggleProjectArchive, isLoading, activeLog
   } = state;
 
   const { orderedProjects, moveProject, isFirst, isLast } = useProjectReorder({ projects });
@@ -71,6 +71,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 key={p.id}
                 project={p}
                 isSelected={selectedProjectId === p.id}
+                metrics={metrics}
+                activeLog={activeLog}
                 totalSeconds={metrics?.projects?.[p.id]?.totalElapsedSeconds ?? 0}
                 locale={locale}
                 customTranslations={customTranslations}

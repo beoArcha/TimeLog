@@ -99,6 +99,8 @@ export interface IUiStatePersistence {
   saveLastNonCompactVariant(variant: string): Promise<void>;
   getProjectOrder(): Promise<string[]>;
   saveProjectOrder(order: string[]): Promise<void>;
+  getLastTrackedTaskId(): Promise<string | null>;
+  saveLastTrackedTaskId(id: string | null): Promise<void>;
 }
 
 export interface IExternalApiPersistence {

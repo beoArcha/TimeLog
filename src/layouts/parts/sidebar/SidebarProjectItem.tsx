@@ -2,14 +2,18 @@ import React from 'react';
 import { Clock, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
 import { Project } from '@bindings/Project';
 import { Locale } from '@bindings/Locale';
+import { TimeLog } from '@bindings/TimeLog';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
-import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
+import { useLiveProjectElapsed } from '@common/hooks/useLiveTaskElapsed';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Badge } from '@components/ui/badge';
 import { Text, Caption } from '@components/ui/typography';
 import { HStack, VStack, InlineCluster } from '@components/ui/stack';
+import { IconBox } from '@components/ui/icon-box';
+import { TimerDisplay } from '@features/timelogs/components/TimerDisplay';
 
 const HOVER_REVEAL_CLASS = 'opacity-0 group-hover:opacity-100 transition duration-200';
 const REORDER_BTN_CLASS = 'h-4 w-4 p-0 text-muted-foreground hover:text-orange-500 disabled:opacity-20 cursor-pointer';
@@ -18,7 +22,9 @@ export interface SidebarProjectItemProps {
   key?: React.Key;
   project: Project;
   isSelected: boolean;
-  totalSeconds: number;
+  totalSeconds?: number;
+  metrics?: EngineComputedMetrics | null;
+  activeLog?: TimeLog | null;
   locale: Locale;
   customTranslations?: Partial<TranslationDictionary>;
   isFirst: boolean;
@@ -39,6 +45,8 @@ export function SidebarProjectItem({
   project,
   isSelected,
   totalSeconds,
+  metrics,
+  activeLog,
   locale,
   customTranslations,
   isFirst,
@@ -55,6 +63,11 @@ export function SidebarProjectItem({
   onCancelInlineRename,
 }: SidebarProjectItemProps) {
   const projColor = PROJECT_COLORS.find(c => c.name === project.color) || PROJECT_COLORS[0];
+  const { elapsedSeconds: liveSeconds, isRunning: isProjectRunning } = useLiveProjectElapsed(project.id, {
+    metrics,
+    activeLog,
+  });
+  const displaySeconds = (metrics || activeLog) ? liveSeconds : (totalSeconds ?? liveSeconds);
 
   const handleInlineKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -77,9 +90,9 @@ export function SidebarProjectItem({
     >
       <HStack gap="sm" align="start" className="z-10 animate-fade-in min-w-0 flex-1 mr-2 gap-2.5">
         {project.icon ? (
-          <span className="icon-medium flex items-center justify-center text-lg shrink-0">
+          <IconBox size="sm" variant="ghost" as="span" className="shrink-0 text-lg">
             {project.icon}
-          </span>
+          </IconBox>
         ) : (
           <span className={`icon-small rounded-full ${projColor.bg} shadow-md shadow-black/20 shrink-0 mt-1`} />
         )}
@@ -123,42 +136,46 @@ export function SidebarProjectItem({
             </InlineCluster>
           )}
 
-          <Caption variant="muted" className="text-main opacity-80 font-sans tracking-wide flex items-center gap-2 mt-0.5">
-            {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(project.createdAt).toLocaleDateString()}
+          <HStack gap="sm" align="center" className="mt-0.5">
+            <Caption variant="muted" className="text-main opacity-80 font-sans tracking-wide">
+              {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(project.createdAt).toLocaleDateString()}
+            </Caption>
 
-            {!isEditingInline && (
+            <HStack gap="xs" align="center" className={HOVER_REVEAL_CLASS}>
+              {!isEditingInline && (
+                <Button
+                  id={`edit-project-btn-${project.id}`}
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  title={translate(locale, 'common', 'EditName', customTranslations)}
+                  onClick={e => {
+                    e.stopPropagation();
+                    onEditDialog(project);
+                  }}
+                  className="text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10 cursor-pointer"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+              )}
+
               <Button
-                id={`edit-project-btn-${project.id}`}
+                id={`archive-project-btn-${project.id}`}
                 type="button"
-                variant="ghost"
-                size="icon-xs"
-                title={translate(locale, 'common', 'EditName', customTranslations)}
+                variant="outline"
+                size="xs"
                 onClick={e => {
                   e.stopPropagation();
-                  onEditDialog(project);
+                  onToggleArchive?.(project.id);
                 }}
-                className={`${HOVER_REVEAL_CLASS} text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10`}
+                className="px-1.5 py-0.5 h-auto rounded uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
               >
-                <Pencil className="w-3.5 h-3.5" />
+                {project.archived
+                  ? translate(locale, 'common', 'Unarchive', customTranslations)
+                  : translate(locale, 'common', 'Archive', customTranslations)}
               </Button>
-            )}
-
-            <Button
-              id={`archive-project-btn-${project.id}`}
-              type="button"
-              variant="outline"
-              size="xs"
-              onClick={e => {
-                e.stopPropagation();
-                onToggleArchive?.(project.id);
-              }}
-              className={`${HOVER_REVEAL_CLASS} px-1.5 py-0.5 h-auto rounded uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground`}
-            >
-              {project.archived
-                ? translate(locale, 'common', 'Unarchive', customTranslations)
-                : translate(locale, 'common', 'Archive', customTranslations)}
-            </Button>
-          </Caption>
+            </HStack>
+          </HStack>
         </VStack>
       </HStack>
 
@@ -198,10 +215,14 @@ export function SidebarProjectItem({
           </Button>
         </VStack>
 
-        <HStack gap="xs" className="font-mono text-main font-bold px-2.5 py-1 rounded-full border border-border bg-card text-foreground transition-all shrink-0">
-          <Clock className="icon-medium text-orange-500" />
-          {formatSeconds(totalSeconds)}
-        </HStack>
+        <TimerDisplay
+          value={displaySeconds}
+          isRunning={isProjectRunning}
+          variant="highlight"
+          size="sm"
+          icon={<Clock className={`icon-medium text-orange-500 ${isProjectRunning ? 'animate-spin-slow' : ''}`} />}
+          className="text-main shrink-0"
+        />
       </HStack>
     </div>
   );

@@ -60,4 +60,18 @@ describe('TimerDisplay', () => {
     expect(el).toBeDefined();
     expect(el.className).toContain('custom-timer-class');
   });
+
+  it('should render icon alongside the formatted time when provided', () => {
+    // Arrange & Act
+    const { container } = render(
+      <TimerDisplay
+        value="00:05:00"
+        icon={<span data-testid="custom-timer-icon">ICON</span>}
+      />
+    );
+
+    // Assert
+    expect(container.querySelector('[data-testid="custom-timer-icon"]')).toBeTruthy();
+    expect(screen.getByText('00:05:00')).toBeTruthy();
+  });
 });

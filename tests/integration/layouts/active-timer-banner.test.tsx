@@ -28,6 +28,7 @@ describe('Given ActiveTimerBanner component', () => {
     it('Then it should display the idle banner status', () => {
       // Given
       mockState.activeLog = null;
+      mockState.logs = [];
       const stateProp = {
         ...mockState,
         onStopTimer: mockState.handleStopTimer,
@@ -38,6 +39,35 @@ describe('Given ActiveTimerBanner component', () => {
 
       // Then
       expect(screen.getByText(/All trackers stopped/i)).toBeTruthy();
+    });
+
+    it('Then it should display the last tracked task and resume button when a completed log exists', () => {
+      // Given
+      const startSpy = vi.fn();
+      const pastLog = aTimeLog({
+        id: 'l_old',
+        projectId: 'proj_1',
+        taskId: 'task_1',
+        startTime: '2026-06-15T09:00:00Z',
+        endTime: '2026-06-15T09:30:00Z',
+      });
+      mockState.activeLog = null;
+      mockState.logs = [pastLog];
+      const stateProp = {
+        ...mockState,
+        onStartTimer: startSpy,
+        onStopTimer: mockState.handleStopTimer,
+      } as unknown as GuiState;
+
+      // When
+      const { container } = render(<ActiveTimerBanner state={stateProp} isCondensed={false} />);
+
+      // Then
+      expect(screen.getByText('Active Task')).toBeTruthy();
+      const resumeBtn = container.querySelector('#resume-timer-btn');
+      expect(resumeBtn).not.toBeNull();
+      fireEvent.click(resumeBtn!);
+      expect(startSpy).toHaveBeenCalledWith('task_1');
     });
   });
 

@@ -43,3 +43,17 @@ pub fn save_project_order(order: Vec<String>, state: State<'_, AppState>) -> Res
     state.persistence.ui_state.save_project_order(order)?;
     Ok(())
 }
+
+#[tauri::command]
+pub fn get_last_tracked_task_id(state: State<'_, AppState>) -> Result<Option<String>, AppError> {
+    Ok(state.persistence.ui_state.get_last_tracked_task_id()?)
+}
+
+#[tauri::command]
+pub fn save_last_tracked_task_id(
+    id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
+    state.persistence.ui_state.save_last_tracked_task_id(id)?;
+    Ok(())
+}
