@@ -8,6 +8,7 @@ import BackupTab from '@features/settings/BackupTab';
 import SettingsTab from '@features/settings/SettingsTab';
 import ManualTab from '@features/settings/ManualTab';
 import CreditsTab from '@features/settings/CreditsTab';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { AppTabId } from '@common/types/navigation';
 import { GuiState } from '../hooks/useGuiLogic';
 
@@ -34,6 +35,8 @@ export const FullTabSwitchView: React.FC<FullTabSwitchViewProps> = ({
   guiState,
   sharedProps,
 }) => {
+  const { canInspectDatabase } = usePlatformCapabilities();
+
   return (
     <AnimatePresence mode="wait">
       {activeLargeTab === 'tasks' && (
@@ -60,7 +63,7 @@ export const FullTabSwitchView: React.FC<FullTabSwitchViewProps> = ({
         </AnimatedFade>
       )}
 
-      {activeLargeTab === 'db' && (
+      {activeLargeTab === 'db' && canInspectDatabase && (
         <AnimatedFade key="large-tab-db" className="w-full min-w-0">
           <DbExplorer />
         </AnimatedFade>

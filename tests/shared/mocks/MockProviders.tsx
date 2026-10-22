@@ -3,6 +3,7 @@ import { LocaleContext } from '@common/hooks/LocaleProvider';
 import { SettingsContext, SettingsState } from '@common/hooks/SettingsContext';
 import { DataContext, DataState } from '@common/hooks/DataContext';
 import { WindowShellContext, WindowShellState } from '@common/contexts/WindowShellContext';
+import { PlatformCapabilities, PlatformCapabilitiesContext } from '@common/contexts/PlatformCapabilitiesContext';
 import { OxyFlowState, getMockOxyFlowState } from './oxy-state-mock';
 
 import { CliSessionProvider } from '@features/cli/context/CliSessionProvider';
@@ -15,6 +16,7 @@ export interface MockProvidersProps {
   settingsState?: Partial<SettingsState>;
   windowShellState?: Partial<WindowShellState>;
   localeState?: Partial<LocaleContextType>;
+  capabilitiesState?: Partial<PlatformCapabilities>;
   children: React.ReactNode;
 }
 
@@ -48,6 +50,7 @@ export const MockProviders: React.FC<MockProvidersProps> = ({
   settingsState,
   windowShellState,
   localeState,
+  capabilitiesState,
   children,
 }) => {
   const merged = state ?? getMockOxyFlowState();
@@ -55,18 +58,25 @@ export const MockProviders: React.FC<MockProvidersProps> = ({
   const effectiveSettings = settingsState ? { ...merged, ...settingsState } : merged;
   const effectiveWindow = windowShellState ? { ...merged, ...windowShellState } : merged;
   const effectiveLocale = localeState ? { ...merged, ...localeState } : merged;
+  const effectiveCapabilities: PlatformCapabilities = {
+    dragRegionProps: {},
+    canInspectDatabase: true,
+    ...capabilitiesState,
+  };
 
   return (
-    <LocaleContext.Provider value={effectiveLocale as unknown as LocaleContextType}>
-      <SettingsContext.Provider value={effectiveSettings as unknown as SettingsState}>
-        <DataContext.Provider value={effectiveData as unknown as DataState}>
-          <WindowShellContext.Provider value={effectiveWindow as unknown as WindowShellState}>
-            <CliSessionProvider>
-              {children}
-            </CliSessionProvider>
-          </WindowShellContext.Provider>
-        </DataContext.Provider>
-      </SettingsContext.Provider>
-    </LocaleContext.Provider>
+    <PlatformCapabilitiesContext.Provider value={effectiveCapabilities}>
+      <LocaleContext.Provider value={effectiveLocale as unknown as LocaleContextType}>
+        <SettingsContext.Provider value={effectiveSettings as unknown as SettingsState}>
+          <DataContext.Provider value={effectiveData as unknown as DataState}>
+            <WindowShellContext.Provider value={effectiveWindow as unknown as WindowShellState}>
+              <CliSessionProvider>
+                {children}
+              </CliSessionProvider>
+            </WindowShellContext.Provider>
+          </DataContext.Provider>
+        </SettingsContext.Provider>
+      </LocaleContext.Provider>
+    </PlatformCapabilitiesContext.Provider>
   );
 };

@@ -25,6 +25,8 @@ vi.mock('@features/settings/SettingsTab', () => ({
   default: () => <div data-testid="mock-settings-tab">Settings Tab</div>
 }));
 
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
+
 describe('Unit Tests: MediumLayoutBuilder', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -76,7 +78,11 @@ describe('Unit Tests: MediumLayoutBuilder', () => {
   });
 
   it('Given user clicks bottom navigation tabs, Then it should switch views to reports and settings', () => {
-    render(<MediumLayoutBuilder state={mockState} />);
+    render(
+      <MockProviders capabilitiesState={{ canInspectDatabase: true }}>
+        <MediumLayoutBuilder state={mockState} />
+      </MockProviders>
+    );
 
     // Initially in tasks view
     expect(screen.getByTestId('mock-task-list-view')).not.toBeNull();

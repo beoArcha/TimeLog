@@ -9,6 +9,7 @@ import ReportView from '@features/reports/ReportView';
 import DbInspector from '@features/db-explorer/components/DbInspector';
 import SettingsTab from '@features/settings/SettingsTab';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
 import { VStack } from '@components/ui/stack';
 
@@ -23,6 +24,7 @@ export default function MediumLayoutBuilder({
   dockPosition: externalDockPos,
   onToggleDock,
 }: MediumLayoutBuilderProps) {
+  const { canInspectDatabase } = usePlatformCapabilities();
   const { locale, customTranslations } = state;
   const [mediumTab, setMediumTab] = useState<MediumTabType>('tasks');
   const [internalDockPos, setInternalDockPos] = useState<'right' | 'left'>(() => {
@@ -82,7 +84,7 @@ export default function MediumLayoutBuilder({
           {mediumTab === 'settings' && (
             <VStack gap="sm">
               <SettingsTab />
-              <DbInspector state={state} isCondensed={true} />
+              {canInspectDatabase && <DbInspector state={state} isCondensed={true} />}
             </VStack>
           )}
         </VStack>

@@ -2,6 +2,7 @@ pub mod cache;
 pub mod cli;
 pub mod config;
 pub mod core;
+pub mod debug;
 pub mod error;
 pub mod external_api;
 pub mod holidays;
@@ -18,6 +19,7 @@ pub mod workflow;
 
 use cli::CliPersistence;
 use core::CorePersistence;
+use debug::DebugPersistence;
 use external_api::ExternalApiPersistence;
 use holidays::HolidaysPersistence;
 use locale::LocalePersistence;
@@ -49,6 +51,7 @@ pub struct Persistence {
     pub webhook_queue: WebhookQueuePersistence,
     pub workflow: WorkflowPersistence,
     pub cli: CliPersistence,
+    pub debug: DebugPersistence,
 }
 
 impl Persistence {
@@ -70,7 +73,8 @@ impl Persistence {
             locale: LocalePersistence::new(shared.clone()),
             webhook_queue: WebhookQueuePersistence::new(shared.clone()),
             workflow: WorkflowPersistence::new(shared.clone()),
-            cli: CliPersistence::new(shared),
+            cli: CliPersistence::new(shared.clone()),
+            debug: DebugPersistence::new(shared),
         })
     }
 }

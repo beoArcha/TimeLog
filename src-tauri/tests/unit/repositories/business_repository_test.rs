@@ -185,3 +185,43 @@ fn test_business_repository_clear_all_data_wipes_all_entities() {
 
     let _ = std::fs::remove_file(&db_path);
 }
+
+#[test]
+fn test_business_repository_debug_introspection_and_update() {
+    // Arrange
+    let db_path = std::env::temp_dir().join("test_business_repo_debug.db");
+    if db_path.exists() {
+        let _ = std::fs::remove_file(&db_path);
+    }
+    let repo = BusinessRepository::new(&db_path).unwrap();
+
+    let project = ProjectBuilder::new()
+        .with_id("p_dbg")
+        .with_name("Debug Project")
+        .with_color("purple")
+        .with_created_at("2026-06-22T20:00:00Z")
+        .build();
+    repo.create_project(&project).unwrap();
+
+    // Act
+    let tables = repo.debug_get_tables().unwrap();
+    let rows_resp = repo.debug_get_table_rows("projects", 10, 0).unwrap();
+    repo.debug_update_cell("projects", "id", "p_dbg", "name", "Updated Via Debug")
+        .unwrap();
+    let updated_rows = repo.debug_get_table_rows("projects", 10, 0).unwrap();
+
+    // Assert
+    assert!(tables.contains(&"projects".to_string()));
+    assert!(tables.contains(&"tasks".to_string()));
+    assert_eq!(rows_resp.total_count, 1);
+    assert_eq!(
+        rows_resp.rows[0].get("name").unwrap(),
+        &serde_json::json!("Debug Project")
+    );
+    assert_eq!(
+        updated_rows.rows[0].get("name").unwrap(),
+        &serde_json::json!("Updated Via Debug")
+    );
+
+    let _ = std::fs::remove_file(&db_path);
+}

@@ -4,7 +4,12 @@ import { PlatformCapabilitiesProvider } from '@common/contexts/PlatformCapabilit
 
 export default function AppTauri() {
   return (
-    <PlatformCapabilitiesProvider capabilities={{ dragRegionProps: { 'data-tauri-drag-region': true } }}>
+    <PlatformCapabilitiesProvider
+      capabilities={{
+        dragRegionProps: { 'data-tauri-drag-region': true },
+        canInspectDatabase: Boolean(import.meta.env.DEV),
+      }}
+    >
       <LayoutManager runtime="tauri" />
     </PlatformCapabilitiesProvider>
   );

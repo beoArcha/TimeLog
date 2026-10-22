@@ -1,6 +1,6 @@
 use crate::app::state::AppState;
 use crate::commands::{
-    app as app_cmds, engine,
+    app as app_cmds, debug_db, engine,
     persistence::{
         core, external_api, holidays, locale, patches, project, settings, task, time_log, ui_state,
         webhook_queue,
@@ -97,7 +97,10 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             workflow_cmds::workflow_get_status,
             workflow_cmds::workflow_check_rules,
             workflow_cmds::workflow_start_daemon,
-            workflow_cmds::workflow_stop_daemon
+            workflow_cmds::workflow_stop_daemon,
+            debug_db::debug_get_tables,
+            debug_db::debug_get_table_rows,
+            debug_db::debug_update_cell
         ])
         .setup(|app| setup_app(app).map_err(Into::into))
         .on_window_event(handle_window_event)

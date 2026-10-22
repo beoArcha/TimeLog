@@ -14,6 +14,7 @@ import { TranslationDictionary } from "@common/i18n/types";
 import { Locale } from "@/src/bindings/Locale";
 import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { AppTabId } from "@common/types/navigation";
+import { usePlatformCapabilities } from "@common/contexts/PlatformCapabilitiesContext";
 import { cn } from "@/lib/utils";
 
 export type LargeTabId = AppTabId;
@@ -31,7 +32,9 @@ export default function TabBar({
   activeLargeTab,
   setActiveLargeTab,
 }: TabBarProps) {
-  const tabs: Array<{
+  const { canInspectDatabase } = usePlatformCapabilities();
+
+  const allTabs: Array<{
     id: AppTabId;
     icon: React.ComponentType<{ className?: string }>;
     iconColor: string;
@@ -86,6 +89,8 @@ export default function TabBar({
       label: translate(locale, "help", "TabCredits", customTranslations),
     },
   ];
+
+  const tabs = allTabs.filter((tb) => tb.id !== "db" || canInspectDatabase);
 
   return (
     <div className="shrink-0 z-20 border-b border-border bg-muted/30 transition-all duration-300">
