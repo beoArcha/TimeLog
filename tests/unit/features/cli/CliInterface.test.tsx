@@ -72,4 +72,63 @@ describe('Unit Tests: CliInterface', () => {
       expect(screen.getByText(/user@logtime-by-oxyflow:~\$ projects/i)).not.toBeNull();
     });
   });
+
+  it('should clear terminal history when Ctrl+L is pressed in input field', async () => {
+    // Arrange
+    render(
+      <MockProviders state={mockState}>
+        <CliInterface />
+      </MockProviders>
+    );
+
+    const inputField = screen.getByPlaceholderText(/Enter command/i) as HTMLInputElement;
+    expect(screen.getByText(/LogTime by OxyFlow CLI/i)).not.toBeNull();
+
+    // Act
+    fireEvent.keyDown(inputField, { key: 'l', ctrlKey: true });
+
+    // Assert
+    await vi.waitFor(() => {
+      expect(screen.queryByText(/LogTime by OxyFlow CLI/i)).toBeNull();
+    });
+  });
+
+  it('should switch prompt to oxyflow@emulator> when sandbox mode is toggled', async () => {
+    // Arrange
+    render(
+      <MockProviders state={mockState}>
+        <CliInterface />
+      </MockProviders>
+    );
+
+    // Initial prompt
+    expect(screen.getByText('oxyflow>')).not.toBeNull();
+
+    // Act: click Emulator Sandbox in header
+    const sandboxToggle = screen.getByText('Emulator Sandbox');
+    fireEvent.click(sandboxToggle);
+
+    // Assert
+    await vi.waitFor(() => {
+      expect(screen.getByText('oxyflow@emulator>')).not.toBeNull();
+    });
+  });
+
+  it('should populate input with addtask when task add shortcut button is clicked', () => {
+    // Arrange
+    render(
+      <MockProviders state={mockState}>
+        <CliInterface />
+      </MockProviders>
+    );
+
+    const taskAddBtn = screen.getByRole('button', { name: 'task add' });
+    const inputField = screen.getByPlaceholderText(/Enter command/i) as HTMLInputElement;
+
+    // Act
+    fireEvent.click(taskAddBtn);
+
+    // Assert
+    expect(inputField.value).toBe('addtask ');
+  });
 });

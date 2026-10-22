@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 
 export interface ProjectBreakState {
   projectId: string;
@@ -13,6 +14,7 @@ const STORAGE_KEY = 'oxy_active_break_timer';
 
 const readPersistedBreak = (): ProjectBreakState | null => {
   try {
+    if (typeof localStorage === 'undefined') return null;
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ProjectBreakState;
@@ -21,20 +23,26 @@ const readPersistedBreak = (): ProjectBreakState | null => {
     }
     localStorage.removeItem(STORAGE_KEY);
     return null;
-  } catch {
+  } catch (err) {
+    ErrorHandler.handle(
+      new PersistenceException('Failed reading break timer from localStorage', err, 'WARN_BREAK_TIMER_READ', 'WARN')
+    );
     return null;
   }
 };
 
 const savePersistedBreak = (state: ProjectBreakState | null): void => {
   try {
+    if (typeof localStorage === 'undefined') return;
     if (state) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
-  } catch {
-    // Ignore storage quota/security errors
+  } catch (err) {
+    ErrorHandler.handle(
+      new PersistenceException('Failed saving break timer to localStorage', err, 'ERR_BREAK_TIMER_SAVE')
+    );
   }
 };
 

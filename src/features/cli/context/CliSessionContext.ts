@@ -13,6 +13,7 @@ export interface CliSessionState {
   setDrawerOpen: (open: boolean) => void;
   clearHistory: () => void;
   setSandboxMode: (active: boolean) => void;
+  toggleSandbox: () => void;
   navigateHistory: (direction: 'up' | 'down', currentInput: string) => string;
 }
 

@@ -1,3 +1,4 @@
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
@@ -12,6 +13,51 @@ import {
 } from './sandboxDemoData';
 import { calculateSandboxMetrics } from './sandboxMetricsCalculator';
 import { buildSandboxCliContext, ISandboxStoreBridge } from './sandboxContextBridge';
+
+export const SANDBOX_STORAGE_KEY = 'oxy_cli_sandbox_state';
+
+export interface SandboxPersistedState {
+  projects: Project[];
+  tasks: Task[];
+  logs: TimeLog[];
+  holidays: HolidayLeave[];
+  activeLog: TimeLog | null;
+  selectedTaskId: string | null;
+  nextIdCounter: number;
+}
+
+const readPersistedSandboxState = (): SandboxPersistedState | null => {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem(SANDBOX_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as SandboxPersistedState;
+    if (Array.isArray(parsed.projects) && Array.isArray(parsed.tasks)) {
+      return parsed;
+    }
+    return null;
+  } catch (err) {
+    ErrorHandler.handle(
+      new PersistenceException('Failed reading sandbox emulator state from localStorage', err, 'WARN_SANDBOX_READ', 'WARN')
+    );
+    return null;
+  }
+};
+
+const savePersistedSandboxState = (state: SandboxPersistedState | null): void => {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    if (state) {
+      localStorage.setItem(SANDBOX_STORAGE_KEY, JSON.stringify(state));
+    } else {
+      localStorage.removeItem(SANDBOX_STORAGE_KEY);
+    }
+  } catch (err) {
+    ErrorHandler.handle(
+      new PersistenceException('Failed saving sandbox emulator state to localStorage', err, 'ERR_SANDBOX_SAVE')
+    );
+  }
+};
 
 /**
  * In-memory state store for isolated learning and test workflows.
@@ -30,6 +76,21 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
   private nextIdCounter = 100;
 
   private constructor() {
+    this.init();
+  }
+
+  private init(): void {
+    const saved = readPersistedSandboxState();
+    if (saved) {
+      this.projects = saved.projects;
+      this.tasks = saved.tasks;
+      this.logs = saved.logs;
+      this.holidays = saved.holidays;
+      this.activeLog = saved.activeLog;
+      this.selectedTaskId = saved.selectedTaskId;
+      this.nextIdCounter = saved.nextIdCounter ?? 100;
+      return;
+    }
     this.reset();
   }
 
@@ -41,6 +102,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
   }
 
   public static resetInstanceForTesting(): void {
+    savePersistedSandboxState(null);
     SandboxEmulatorStore.instance = new SandboxEmulatorStore();
   }
 
@@ -57,6 +119,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
   }
 
   public reset(): void {
+    savePersistedSandboxState(null);
     this.projects = createDemoProjects();
     this.tasks = createDemoTasks();
     this.logs = createDemoLogs();
@@ -64,6 +127,18 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     this.activeLog = null;
     this.selectedTaskId = 'sb_t1';
     this.nextIdCounter = 100;
+  }
+
+  private persist(): void {
+    savePersistedSandboxState({
+      projects: this.projects,
+      tasks: this.tasks,
+      logs: this.logs,
+      holidays: this.holidays,
+      activeLog: this.activeLog,
+      selectedTaskId: this.selectedTaskId,
+      nextIdCounter: this.nextIdCounter,
+    });
   }
 
   public getProjects(): Project[] {
@@ -92,6 +167,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
 
   public setSelectedTaskId(id: string | null): void {
     this.selectedTaskId = id;
+    this.persist();
   }
 
   public setHolidays(updater: HolidayLeave[] | ((prev: HolidayLeave[]) => HolidayLeave[])): void {
@@ -100,6 +176,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     } else {
       this.holidays = updater;
     }
+    this.persist();
   }
 
   public handleAddProject(name: string, color = 'indigo'): Project {
@@ -115,6 +192,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
       tags: null,
     };
     this.projects.push(newProject);
+    this.persist();
     return newProject;
   }
 
@@ -122,6 +200,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     const proj = this.projects.find((p) => p.id === projectId);
     if (!proj) return false;
     proj.name = newName;
+    this.persist();
     return true;
   }
 
@@ -137,6 +216,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
       parentTaskId,
     };
     this.tasks.push(newTask);
+    this.persist();
     return newTask;
   }
 
@@ -144,6 +224,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     const task = this.tasks.find((t) => t.id === taskId);
     if (!task) return false;
     task.name = newName;
+    this.persist();
     return true;
   }
 
@@ -151,6 +232,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     const task = this.tasks.find((t) => t.id === taskId);
     if (!task) return false;
     task.completed = !task.completed;
+    this.persist();
     return true;
   }
 
@@ -175,6 +257,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     this.logs.push(newLog);
     this.activeLog = newLog;
     this.selectedTaskId = taskId;
+    this.persist();
     return newLog;
   }
 
@@ -187,6 +270,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
       this.logs[idx] = { ...this.activeLog };
     }
     this.activeLog = null;
+    this.persist();
   }
 
   public getComputedMetrics(nowIso?: string): EngineComputedMetrics {

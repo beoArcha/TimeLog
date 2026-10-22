@@ -62,12 +62,14 @@ export const CliDrawer: React.FC<CliDrawerProps> = ({ onClose }) => {
           onKeyDown={handleInputKeyDown}
           placeholder={placeholder}
           submitLabel={submitLabel}
+          isSandbox={isSandbox}
         />
       </div>
 
       <div className="pt-1">
         <CliQuickShortcuts
           onExecute={executeCommand}
+          onSetInput={setInput}
           title={quickShortcutsTitle}
         />
       </div>

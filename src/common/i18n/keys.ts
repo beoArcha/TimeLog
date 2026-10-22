@@ -121,6 +121,8 @@ export type CliKey =
   | 'CliDrawerTitle'
   | 'LiveEngineBadge'
   | 'SandboxBadge'
+  | 'CliModeLive'
+  | 'CliModeSandbox'
   | 'StopDesc'
   | 'StoppedAllSessions'
   | 'SuccessAddedSubtask'

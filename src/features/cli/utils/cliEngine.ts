@@ -89,6 +89,18 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
       runTasksCommand(args, effectiveContext, output);
       break;
 
+    case 'task': {
+      const sub = args[0]?.toLowerCase();
+      if (sub === 'add') {
+        runAddTaskCommand(args.slice(1), effectiveContext, output);
+      } else if (sub === 'list') {
+        runTasksCommand(args.slice(1), effectiveContext, output);
+      } else {
+        runTasksCommand(args, effectiveContext, output);
+      }
+      break;
+    }
+
     case 'addproject':
       runAddProjectCommand(args, effectiveContext, output);
       break;
@@ -114,8 +126,16 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
       break;
 
     case 'stop':
+    case 'pause':
       runStopCommand(args, effectiveContext, output);
       break;
+
+    case 'break': {
+      runStopCommand([], effectiveContext, output);
+      const durationStr = args[0] || '5m';
+      output.info(`☕ Break started (${durationStr}). Active timer paused.`);
+      break;
+    }
 
     case 'switch':
       runSwitchCommand(args, effectiveContext, output);

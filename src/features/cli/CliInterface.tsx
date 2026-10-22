@@ -19,14 +19,19 @@ export default function CliInterface(props?: Partial<CliEngineContext>) {
     submitLabel,
     quickShortcutsTitle,
     isSandbox,
+    toggleSandbox,
   } = useCliOrchestrator(props);
+
+  const containerBorderClass = isSandbox
+    ? 'border-2 border-amber-500/40 ring-1 ring-amber-500/20'
+    : 'border border-border';
 
   return (
     <div
       id="cli-interface"
-      className="flex-1 min-h-0 flex flex-col gap-4 backdrop-blur-md rounded-3xl p-4 sm:p-6 border border-border bg-card text-foreground shadow-2xl relative transition-all duration-300"
+      className={`flex-1 min-h-0 flex flex-col gap-4 backdrop-blur-md rounded-3xl p-4 sm:p-6 ${containerBorderClass} bg-card text-foreground shadow-2xl relative transition-all duration-300`}
     >
-      <CliHeader isSandbox={isSandbox} />
+      <CliHeader isSandbox={isSandbox} onToggleSandbox={toggleSandbox} />
 
       <CliTerminalHistory
         history={history}
@@ -40,10 +45,12 @@ export default function CliInterface(props?: Partial<CliEngineContext>) {
         onKeyDown={handleInputKeyDown}
         placeholder={placeholder}
         submitLabel={submitLabel}
+        isSandbox={isSandbox}
       />
 
       <CliQuickShortcuts
         onExecute={executeCommand}
+        onSetInput={setInput}
         title={quickShortcutsTitle}
       />
     </div>

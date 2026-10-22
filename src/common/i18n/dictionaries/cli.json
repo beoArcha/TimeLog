@@ -81,7 +81,9 @@
     "CloseDrawer": "Close CLI Drawer (Esc)",
     "CliDrawerTitle": "OxyFlow Interactive Terminal",
     "LiveEngineBadge": "LIVE ENGINE",
-    "SandboxBadge": "SANDBOX EMULATOR"
+    "SandboxBadge": "SANDBOX EMULATOR",
+    "CliModeLive": "Live SQLite",
+    "CliModeSandbox": "Emulator Sandbox"
   },
   "pl": {
     "WelcomeHelp": "Wpisz \"help\" lub \"oxyhelp\", aby otworzyć listę dostępnych instrukcji.",
@@ -165,7 +167,9 @@
     "CloseDrawer": "Zamknij szufladę CLI (Esc)",
     "CliDrawerTitle": "Interaktywny terminal OxyFlow",
     "LiveEngineBadge": "SILNIK PRODUKCYJNY",
-    "SandboxBadge": "EMULATOR SANDBOX"
+    "SandboxBadge": "EMULATOR SANDBOX",
+    "CliModeLive": "Live SQLite",
+    "CliModeSandbox": "Emulator Sandbox"
   },
   "de": {
     "WelcomeHelp": "Geben Sie \"help\" oder \"oxyhelp\" ein, um die Liste der verfügbaren Befehle zu öffnen.",
@@ -249,7 +253,9 @@
     "CloseDrawer": "CLI-Schublade schließen (Esc)",
     "CliDrawerTitle": "Interaktives OxyFlow-Terminal",
     "LiveEngineBadge": "LIVE-ENGINE",
-    "SandboxBadge": "SANDBOX-EMULATOR"
+    "SandboxBadge": "SANDBOX-EMULATOR",
+    "CliModeLive": "Live SQLite",
+    "CliModeSandbox": "Emulator-Sandbox"
   },
   "es": {
     "WelcomeHelp": "Escriba \"help\" o \"oxyhelp\" para abrir la lista de comandos disponibles.",
@@ -333,7 +339,9 @@
     "CloseDrawer": "Cerrar consola CLI (Esc)",
     "CliDrawerTitle": "Terminal interactivo OxyFlow",
     "LiveEngineBadge": "MOTOR EN VIVO",
-    "SandboxBadge": "EMULADOR SANDBOX"
+    "SandboxBadge": "EMULADOR SANDBOX",
+    "CliModeLive": "Live SQLite",
+    "CliModeSandbox": "Emulator Sandbox"
   },
   "fr": {
     "WelcomeHelp": "Tapez \"help\" ou \"oxyhelp\" pour ouvrir la liste des commandes disponibles.",
@@ -417,7 +425,9 @@
     "CloseDrawer": "Fermer le tiroir CLI (Esc)",
     "CliDrawerTitle": "Terminal interactif OxyFlow",
     "LiveEngineBadge": "MOTEUR EN DIRECT",
-    "SandboxBadge": "ÉMULATEUR SANDBOX"
+    "SandboxBadge": "ÉMULATEUR SANDBOX",
+    "CliModeLive": "Live SQLite",
+    "CliModeSandbox": "Émulateur Sandbox"
   },
   "pt-br": {
     "WelcomeHelp": "Digite \"help\" ou \"oxyhelp\" para abrir a lista de comandos disponíveis.",
@@ -501,6 +511,8 @@
     "CloseDrawer": "Fechar console CLI (Esc)",
     "CliDrawerTitle": "Terminal interativo OxyFlow",
     "LiveEngineBadge": "MOTOR AO VIVO",
-    "SandboxBadge": "EMULADOR SANDBOX"
+    "SandboxBadge": "EMULADOR SANDBOX",
+    "CliModeLive": "Live SQLite",
+    "CliModeSandbox": "Emulator Sandbox"
   }
 }
