@@ -8,52 +8,114 @@ import {
 describe('markdown-summary-builder', () => {
   describe('formatPct', () => {
     it('should return green formatted badge when percentage is 80 or higher', () => {
-      // Arrange & Act & Assert
-      expect(formatPct(85)).toBe('🟢 `85.0%`');
-      expect(formatPct(80)).toBe('🟢 `80.0%`');
+      // Arrange
+      const scoreA = 85;
+      const scoreB = 80;
+
+      // Act
+      const badgeA = formatPct(scoreA);
+      const badgeB = formatPct(scoreB);
+
+      // Assert
+      expect(badgeA).toBe('🟢 `85.0%`');
+      expect(badgeB).toBe('🟢 `80.0%`');
     });
 
     it('should return yellow formatted badge when percentage is between 60 and 80', () => {
-      // Arrange & Act & Assert
-      expect(formatPct(75.5)).toBe('🟡 `75.5%`');
-      expect(formatPct(60)).toBe('🟡 `60.0%`');
+      // Arrange
+      const scoreA = 75.5;
+      const scoreB = 60;
+
+      // Act
+      const badgeA = formatPct(scoreA);
+      const badgeB = formatPct(scoreB);
+
+      // Assert
+      expect(badgeA).toBe('🟡 `75.5%`');
+      expect(badgeB).toBe('🟡 `60.0%`');
     });
 
     it('should return red formatted badge when percentage is below 60', () => {
-      // Arrange & Act & Assert
-      expect(formatPct(59.9)).toBe('🔴 `59.9%`');
-      expect(formatPct(0)).toBe('🔴 `0.0%`');
+      // Arrange
+      const scoreA = 59.9;
+      const scoreB = 0;
+
+      // Act
+      const badgeA = formatPct(scoreA);
+      const badgeB = formatPct(scoreB);
+
+      // Assert
+      expect(badgeA).toBe('🔴 `59.9%`');
+      expect(badgeB).toBe('🔴 `0.0%`');
     });
 
     it('should return em-dash when percentage is null, undefined, or NaN', () => {
-      // Arrange & Act & Assert
-      expect(formatPct(null)).toBe('—');
-      expect(formatPct(undefined)).toBe('—');
-      expect(formatPct(Number.NaN)).toBe('—');
+      // Arrange
+      const nullVal = null;
+      const undefinedVal = undefined;
+      const nanVal = Number.NaN;
+
+      // Act
+      const resNull = formatPct(nullVal);
+      const resUndefined = formatPct(undefinedVal);
+      const resNan = formatPct(nanVal);
+
+      // Assert
+      expect(resNull).toBe('—');
+      expect(resUndefined).toBe('—');
+      expect(resNan).toBe('—');
     });
   });
 
   describe('getStatusBadge', () => {
     it('should return PASS badge when percentage is 80 or above', () => {
-      // Arrange & Act & Assert
-      expect(getStatusBadge(80)).toBe('🟢 PASS');
-      expect(getStatusBadge(95)).toBe('🟢 PASS');
+      // Arrange
+      const scoreA = 80;
+      const scoreB = 95;
+
+      // Act
+      const badgeA = getStatusBadge(scoreA);
+      const badgeB = getStatusBadge(scoreB);
+
+      // Assert
+      expect(badgeA).toBe('🟢 PASS');
+      expect(badgeB).toBe('🟢 PASS');
     });
 
     it('should return WARN badge when percentage is between 60 and 80', () => {
-      // Arrange & Act & Assert
-      expect(getStatusBadge(60)).toBe('🟡 WARN');
-      expect(getStatusBadge(79.9)).toBe('🟡 WARN');
+      // Arrange
+      const scoreA = 60;
+      const scoreB = 79.9;
+
+      // Act
+      const badgeA = getStatusBadge(scoreA);
+      const badgeB = getStatusBadge(scoreB);
+
+      // Assert
+      expect(badgeA).toBe('🟡 WARN');
+      expect(badgeB).toBe('🟡 WARN');
     });
 
     it('should return FAIL badge when percentage is below 60', () => {
-      // Arrange & Act & Assert
-      expect(getStatusBadge(59.9)).toBe('🔴 FAIL');
+      // Arrange
+      const score = 59.9;
+
+      // Act
+      const badge = getStatusBadge(score);
+
+      // Assert
+      expect(badge).toBe('🔴 FAIL');
     });
 
     it('should return UNKNOWN badge when percentage is not a valid number', () => {
-      // Arrange & Act & Assert
-      expect(getStatusBadge(null)).toBe('⚪ UNKNOWN');
+      // Arrange
+      const invalidVal = null;
+
+      // Act
+      const badge = getStatusBadge(invalidVal);
+
+      // Assert
+      expect(badge).toBe('⚪ UNKNOWN');
     });
   });
 

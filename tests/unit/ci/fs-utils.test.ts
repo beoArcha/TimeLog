@@ -37,9 +37,17 @@ describe('fs-utils', () => {
     });
 
     it('should return empty string when given a null or undefined path', () => {
-      // Arrange & Act & Assert
-      expect(extractFilePath(null)).toBe('');
-      expect(extractFilePath(undefined)).toBe('');
+      // Arrange
+      const nullPath = null;
+      const undefinedPath = undefined;
+
+      // Act
+      const nullResult = extractFilePath(nullPath);
+      const undefinedResult = extractFilePath(undefinedPath);
+
+      // Assert
+      expect(nullResult).toBe('');
+      expect(undefinedResult).toBe('');
     });
   });
 

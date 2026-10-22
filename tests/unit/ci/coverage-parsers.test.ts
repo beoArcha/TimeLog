@@ -95,8 +95,11 @@ describe('coverage and test result parsers', () => {
     });
 
     it('should return null when no coverage candidate files exist', () => {
-      // Arrange & Act
-      const result = parseFrontendCoverage([path.join(tempDir, 'nonexistent.json')]);
+      // Arrange
+      const searchPaths = [path.join(tempDir, 'nonexistent.json')];
+
+      // Act
+      const result = parseFrontendCoverage(searchPaths);
 
       // Assert
       expect(result).toBeNull();
@@ -127,8 +130,11 @@ describe('coverage and test result parsers', () => {
     });
 
     it('should return null when no rust coverage files exist', () => {
-      // Arrange & Act
-      const result = parseRustCoverage([path.join(tempDir, 'empty')]);
+      // Arrange
+      const searchPaths = [path.join(tempDir, 'empty')];
+
+      // Act
+      const result = parseRustCoverage(searchPaths);
 
       // Assert
       expect(result).toBeNull();
