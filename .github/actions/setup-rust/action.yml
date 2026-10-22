@@ -33,12 +33,13 @@ runs:
       with:
         workspaces: ${{ inputs.workspaces }}
 
+    # Install Linux headers without recommended documentation and multimedia packages to reduce download count
     - name: Install Linux Dependencies
       if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
+        sudo apt-get install -y --no-install-recommends \
           pkg-config \
           libgtk-3-dev \
           libwebkit2gtk-4.1-dev \

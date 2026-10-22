@@ -33,7 +33,21 @@ runs:
         name: coverage-integration
         path: coverage-reports/integration
 
-    - name: Download Rust Test Artifacts
+    - name: Download Rust Unit Test Artifacts
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-rust-unit
+        path: coverage-reports/rust-unit
+
+    - name: Download Rust Integration Test Artifacts
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-rust-integration
+        path: coverage-reports/rust-integration
+
+    - name: Download Rust Combined Artifacts
       uses: actions/download-artifact@v4
       continue-on-error: true
       with:

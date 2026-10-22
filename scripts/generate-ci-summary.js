@@ -314,11 +314,19 @@ function parseRustCoverage() {
           }
 
           if (tot > 0) {
-            fileMap.set(cleanPath, { covered: cov, total: tot });
+            const existing = fileMap.get(cleanPath);
+            if (existing) {
+              fileMap.set(cleanPath, {
+                covered: Math.max(existing.covered, cov),
+                total: Math.max(existing.total, tot)
+              });
+            } else {
+              fileMap.set(cleanPath, { covered: cov, total: tot });
+            }
           }
         }
       }
-      if (overallCoverable > 0 || fileMap.size > 0) break;
+      // Continue aggregating all reports (e.g. rust-unit and rust-integration)
     } catch (e) {
       // Continue searching next candidate file
     }
