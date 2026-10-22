@@ -42,9 +42,10 @@ pub const SELECT_WEBHOOK_QUEUE_STATS: &str = "
     FROM webhook_queue
 ";
 
-// Configuration keys for auxiliary UI, API, and locale settings
+// Configuration keys for UI state, API, and locale settings
 pub const KEY_CURRENT_PROJECT_ID: &str = "ui_current_project_id";
 pub const KEY_LAST_NON_COMPACT_VARIANT: &str = "ui_last_non_compact_variant";
+pub const KEY_PROJECT_ORDER: &str = "ui_project_order";
 
 pub const KEY_API_LOG_TO_API: &str = "api_log_to_api";
 pub const KEY_API_TOKEN: &str = "api_token";

@@ -136,6 +136,8 @@ describe('Given PersistenceRouter wired to PersistenceCommands (Tauri IPC)', () 
       mockInvoke.mockResolvedValueOnce(undefined);
       mockInvoke.mockResolvedValueOnce('mini');
       mockInvoke.mockResolvedValueOnce(undefined);
+      mockInvoke.mockResolvedValueOnce(['p1', 'p2']);
+      mockInvoke.mockResolvedValueOnce(undefined);
       mockInvoke.mockResolvedValueOnce({ logToApi: true, apiToken: 't', apiUrl: 'u', apiMethod: 'POST', apiHeaders: '' });
       mockInvoke.mockResolvedValueOnce(undefined);
       mockInvoke.mockResolvedValueOnce('pl');
@@ -151,6 +153,8 @@ describe('Given PersistenceRouter wired to PersistenceCommands (Tauri IPC)', () 
       await router.uiState.saveCurrentProjectId('p_new');
       const variant = await router.uiState.getLastNonCompactVariant();
       await router.uiState.saveLastNonCompactVariant('full');
+      const projOrder = await router.uiState.getProjectOrder();
+      await router.uiState.saveProjectOrder(['p2', 'p1']);
       const apiSettings = await router.externalApi.getSettings();
       await router.externalApi.saveSettings(apiSettings);
       const pref = await router.locale.getLocalePref();
@@ -165,6 +169,8 @@ describe('Given PersistenceRouter wired to PersistenceCommands (Tauri IPC)', () 
       expect(mockInvoke).toHaveBeenCalledWith('save_current_project_id', { id: 'p_new' });
       expect(variant).toBe('mini');
       expect(mockInvoke).toHaveBeenCalledWith('save_last_non_compact_variant', { variant: 'full' });
+      expect(projOrder).toEqual(['p1', 'p2']);
+      expect(mockInvoke).toHaveBeenCalledWith('save_project_order', { order: ['p2', 'p1'] });
       expect(apiSettings.logToApi).toBe(true);
       expect(mockInvoke).toHaveBeenCalledWith('save_external_api_settings', { settings: apiSettings });
       expect(pref).toBe('pl');

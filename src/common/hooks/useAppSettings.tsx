@@ -24,7 +24,7 @@ export const useAppSettings = () => {
   const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(LAYOUT_VARIANTS.FULL);
   const [activeLargeTab, setActiveLargeTab] = useState<AppTabId>('tasks');
   const [isCompactExpanded, setIsCompactExpanded] = useState<boolean>(true);
-  const [currentProjectId, setCurrentProjectId] = useState<string>('1');
+  const [currentProjectId, setCurrentProjectId] = useState<string>('');
 
   useEffect(() => {
     Promise.all([

@@ -70,6 +70,8 @@ describe('Unit Tests: PersistenceRouter', () => {
         saveCurrentProjectId: vi.fn().mockResolvedValue(undefined),
         getLastNonCompactVariant: vi.fn().mockResolvedValue('full'),
         saveLastNonCompactVariant: vi.fn().mockResolvedValue(undefined),
+        getProjectOrder: vi.fn().mockResolvedValue([]),
+        saveProjectOrder: vi.fn().mockResolvedValue(undefined),
       },
       externalApi: {
         getSettings: vi.fn().mockResolvedValue({ logToApi: false, apiToken: '', apiUrl: '', apiMethod: 'POST', apiHeaders: '' }),

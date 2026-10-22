@@ -60,6 +60,9 @@ export interface LayoutCommonProps {
   selectedTaskId: string | null;
   setSelectedTaskId: (id: string | null) => void;
 
+  currentProjectId?: string;
+  setCurrentProjectId?: (id: string) => void;
+
   activeLargeTab?: import('@common/types/navigation').AppTabId;
   activeView?: string;
   isLoading?: boolean;

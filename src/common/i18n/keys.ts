@@ -393,6 +393,8 @@ export type ProjectKey =
   | 'HideOptions'
   | 'IconPlaceholder'
   | 'MoreOptions'
+  | 'MoveProjectDown'
+  | 'MoveProjectUp'
   | 'NewProject'
   | 'NoProjects'
   | 'NoProjectsYet'

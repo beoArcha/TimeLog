@@ -9,39 +9,54 @@ fn test_given_empty_auxiliary_when_saving_current_project_and_variant_then_retri
     // Given
     let (_conn, config, _temp_dir) = setup_persistence_test("int_aux_project_variant");
     let persistence = Persistence::new(&config).unwrap();
+    assert_eq!(persistence.ui_state.get_current_project_id().unwrap(), None);
     assert_eq!(
-        persistence.auxiliary.get_current_project_id().unwrap(),
-        None
-    );
-    assert_eq!(
-        persistence
-            .auxiliary
-            .get_last_non_compact_variant()
-            .unwrap(),
+        persistence.ui_state.get_last_non_compact_variant().unwrap(),
         "full"
     );
 
     // When
     persistence
-        .auxiliary
+        .ui_state
         .save_current_project_id(Some("proj-123".to_string()))
         .unwrap();
     persistence
-        .auxiliary
+        .ui_state
         .save_last_non_compact_variant("compact".to_string())
         .unwrap();
 
     // Then
     assert_eq!(
-        persistence.auxiliary.get_current_project_id().unwrap(),
+        persistence.ui_state.get_current_project_id().unwrap(),
         Some("proj-123".to_string())
     );
     assert_eq!(
-        persistence
-            .auxiliary
-            .get_last_non_compact_variant()
-            .unwrap(),
+        persistence.ui_state.get_last_non_compact_variant().unwrap(),
         "compact"
+    );
+}
+
+#[test]
+fn test_given_auxiliary_persistence_when_saving_project_order_then_retrieves_matching_order() {
+    // Given
+    let (_conn, config, _temp_dir) = setup_persistence_test("int_aux_project_order");
+    let persistence = Persistence::new(&config).unwrap();
+    assert_eq!(
+        persistence.ui_state.get_project_order().unwrap(),
+        Vec::<String>::new()
+    );
+
+    // When
+    let custom_order = vec!["proj-b".to_string(), "proj-a".to_string()];
+    persistence
+        .ui_state
+        .save_project_order(custom_order.clone())
+        .unwrap();
+
+    // Then
+    assert_eq!(
+        persistence.ui_state.get_project_order().unwrap(),
+        custom_order
     );
 }
 
@@ -50,7 +65,10 @@ fn test_given_default_api_settings_when_updating_custom_webhook_then_persists_se
     // Given
     let (_conn, config, _temp_dir) = setup_persistence_test("int_aux_api_settings");
     let persistence = Persistence::new(&config).unwrap();
-    let default_api = persistence.auxiliary.get_external_api_settings().unwrap();
+    let default_api = persistence
+        .external_api
+        .get_external_api_settings()
+        .unwrap();
     assert!(!default_api.log_to_api);
 
     // When
@@ -62,12 +80,15 @@ fn test_given_default_api_settings_when_updating_custom_webhook_then_persists_se
         api_headers: "X-Auth: tok".to_string(),
     };
     persistence
-        .auxiliary
+        .external_api
         .save_external_api_settings(custom_api.clone())
         .unwrap();
 
     // Then
-    let retrieved = persistence.auxiliary.get_external_api_settings().unwrap();
+    let retrieved = persistence
+        .external_api
+        .get_external_api_settings()
+        .unwrap();
     assert_eq!(retrieved, custom_api);
 }
 

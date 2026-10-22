@@ -2,7 +2,8 @@ use crate::app::state::AppState;
 use crate::commands::{
     app as app_cmds, engine,
     persistence::{
-        auxiliary, core, holidays, patches, project, settings, task, time_log, webhook_queue,
+        core, external_api, holidays, locale, patches, project, settings, task, time_log, ui_state,
+        webhook_queue,
     },
     window, workflow as workflow_cmds,
 };
@@ -59,18 +60,20 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             holidays::save_holidays,
             patches::get_patches,
             patches::save_patches,
-            auxiliary::get_current_project_id,
-            auxiliary::save_current_project_id,
-            auxiliary::get_last_non_compact_variant,
-            auxiliary::save_last_non_compact_variant,
-            auxiliary::get_external_api_settings,
-            auxiliary::save_external_api_settings,
-            auxiliary::get_locale_pref,
-            auxiliary::save_locale_pref,
-            auxiliary::get_locale,
-            auxiliary::save_locale,
-            auxiliary::get_custom_translations,
-            auxiliary::save_custom_translations,
+            ui_state::get_current_project_id,
+            ui_state::save_current_project_id,
+            ui_state::get_last_non_compact_variant,
+            ui_state::save_last_non_compact_variant,
+            ui_state::get_project_order,
+            ui_state::save_project_order,
+            external_api::get_external_api_settings,
+            external_api::save_external_api_settings,
+            locale::get_locale_pref,
+            locale::save_locale_pref,
+            locale::get_locale,
+            locale::save_locale,
+            locale::get_custom_translations,
+            locale::save_custom_translations,
             webhook_queue::enqueue_webhook,
             webhook_queue::get_pending_webhooks,
             webhook_queue::update_webhook_status,
@@ -136,7 +139,7 @@ fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
     };
 
     let initial_locale = persistence
-        .auxiliary
+        .locale
         .get_locale()
         .ok()
         .filter(|loc_str| !loc_str.is_empty())
