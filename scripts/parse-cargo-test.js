@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 
-// Parse CLI flags (--log <file>, --out <file>, --suite <name>)
+// Parse CLI flags (--log <file>, --out <file>, --suite <name>) or positional arguments
 const args = process.argv.slice(2);
 let logPath = null;
 let outPath = null;
@@ -12,6 +12,13 @@ for (let i = 0; i < args.length; i++) {
   if (args[i] === '--log' && args[i + 1]) logPath = args[++i];
   else if (args[i] === '--out' && args[i + 1]) outPath = args[++i];
   else if (args[i] === '--suite' && args[i + 1]) suiteName = args[++i];
+}
+
+// Fallback to positional arguments if flags were not provided
+if (!logPath && !outPath && args.length >= 2) {
+  logPath = args[0];
+  outPath = args[1];
+  if (args[2]) suiteName = args[2];
 }
 
 if (!logPath || !outPath) {

@@ -44,7 +44,7 @@ runs:
         # Node is used as portable fallback if Bun is not yet on PATH in pure Rust jobs
         PARSER="bun"
         command -v bun >/dev/null 2>&1 || PARSER="node"
-        $PARSER scripts/parse-cargo-test.js cargo-unit.log coverage/rust/test-results-rust-unit.json || true
+        $PARSER scripts/parse-cargo-test.js --log cargo-unit.log --out coverage/rust/test-results-rust-unit.json --suite "src-tauri/unit" || true
 
         if [ $UNIT_EXIT -ne 0 ]; then
           echo "::error::Rust unit tests failed with code $UNIT_EXIT"
@@ -63,7 +63,7 @@ runs:
 
         PARSER="bun"
         command -v bun >/dev/null 2>&1 || PARSER="node"
-        $PARSER scripts/parse-cargo-test.js cargo-integration.log coverage/rust/test-results-rust-integration.json || true
+        $PARSER scripts/parse-cargo-test.js --log cargo-integration.log --out coverage/rust/test-results-rust-integration.json --suite "src-tauri/integration" || true
 
         if [ $INTEG_EXIT -ne 0 ]; then
           echo "::error::Rust integration tests failed with code $INTEG_EXIT"

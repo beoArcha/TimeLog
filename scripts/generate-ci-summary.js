@@ -77,11 +77,12 @@ function parseTestResults() {
           }
           if (tr.assertionResults) {
             for (const ar of tr.assertionResults) {
-              if (ar.status === 'failed') {
-                const relativePath = path.relative(process.cwd(), tr.name).replace(/\\/g, '/');
+              if (ar && ar.status === 'failed') {
+                const trName = tr.name || 'tests';
+                const relativePath = path.relative(process.cwd(), String(trName)).replace(/\\/g, '/');
                 failures.push({
                   file: relativePath,
-                  title: ar.fullName || ar.title,
+                  title: ar.fullName || ar.title || 'Unknown test failure',
                   message: (ar.failureMessages || []).join('\n')
                 });
               }
@@ -246,6 +247,21 @@ function parseFrontendCoverage() {
 // ──────────────────────────────────────────────
 // 3. Parse Rust Coverage
 // ──────────────────────────────────────────────
+// Normalizes file paths across Tarpaulin JSON, Cobertura XML, and Windows/Linux representations
+function extractFilePath(raw) {
+  if (!raw) return '';
+  if (typeof raw === 'string') return raw.replace(/\\/g, '/');
+  // Tarpaulin JSON represents PathBuf as an array of path segments e.g. ["src", "engine", "mod.rs"]
+  if (Array.isArray(raw)) return raw.filter(Boolean).map(String).join('/');
+  if (typeof raw === 'object') {
+    if (raw.path) return extractFilePath(raw.path);
+    if (raw.filename) return extractFilePath(raw.filename);
+    if (raw.name) return extractFilePath(raw.name);
+    if (raw.file) return extractFilePath(raw.file);
+  }
+  return String(raw).replace(/\\/g, '/');
+}
+
 function parseRustCoverage() {
   const searchDirs = ['coverage-reports', 'coverage', 'coverage-rust', '.'];
   let jsonFiles = [];
@@ -276,10 +292,11 @@ function parseRustCoverage() {
 
       if (raw.files && typeof raw.files === 'object') {
         const entries = Array.isArray(raw.files)
-          ? raw.files.map(f => [f.path || f.name, f])
-          : Object.entries(raw.files);
+          ? raw.files.map(f => [extractFilePath(f), f])
+          : Object.entries(raw.files).map(([k, v]) => [extractFilePath(k), v]);
 
-        for (const [filePath, fileData] of entries) {
+        for (const [cleanPath, fileData] of entries) {
+          if (!cleanPath) continue;
           let cov = 0;
           let tot = 0;
 
@@ -297,7 +314,7 @@ function parseRustCoverage() {
           }
 
           if (tot > 0) {
-            fileMap.set(filePath, { covered: cov, total: tot });
+            fileMap.set(cleanPath, { covered: cov, total: tot });
           }
         }
       }
@@ -321,7 +338,8 @@ function parseRustCoverage() {
         const classRegex = /<class[^>]+filename="([^"]+)"[^>]*>([\s\S]*?)<\/class>/g;
         let match;
         while ((match = classRegex.exec(content)) !== null) {
-          const filename = match[1];
+          const filename = extractFilePath(match[1]);
+          if (!filename) continue;
           const classBody = match[2];
           const lineRegex = /<line[^>]+hits="(\d+)"/g;
           let lineMatch;
@@ -374,8 +392,13 @@ function parseRustCoverage() {
     let modCov = 0;
 
     for (const [filePath, data] of fileMap.entries()) {
-      const normalized = filePath.replace(/\\/g, '/');
-      if (normalized.includes(mod.token) || normalized.includes(mod.name)) {
+      const normalized = extractFilePath(filePath);
+      if (!normalized) continue;
+      if (
+        normalized.includes(mod.token) ||
+        normalized.startsWith(mod.token.slice(1)) ||
+        normalized.includes(mod.name)
+      ) {
         modTot += data.total;
         modCov += data.covered;
       }
