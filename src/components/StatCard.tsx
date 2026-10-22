@@ -3,6 +3,7 @@ import { Card } from '@components/ui/card';
 import { MetricText, Text, Caption } from '@components/ui/typography';
 import { Badge } from '@components/ui/badge';
 import { HStack, VStack } from '@components/ui/stack';
+import { IconBox } from '@components/ui/icon-box';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 import { TrendIndicator, type TrendDirection } from './TrendIndicator';
@@ -79,15 +80,15 @@ export function StatCard({
         </VStack>
 
         {Icon && (
-          <div
+          <IconBox
             aria-hidden="true"
-            className={cn(
-              'p-2.5 rounded-xl bg-muted/60 text-muted-foreground shrink-0 border border-border/50',
-              iconColor
-            )}
+            variant="muted"
+            size="md"
+            rounded="lg"
+            className={cn('border-border/50', iconColor)}
           >
             <Icon className="w-5 h-5" />
-          </div>
+          </IconBox>
         )}
       </HStack>
 

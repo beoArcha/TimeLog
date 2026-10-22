@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, type LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Card } from '@components/ui/card';
+import { HStack, VStack } from '@components/ui/stack';
 import { Heading } from '@components/ui/typography';
+import { cn } from '@/lib/utils';
 
 export interface CollapsibleCardProps {
   title?: React.ReactNode;
@@ -22,7 +24,7 @@ export interface CollapsibleCardProps {
 /**
  * Collapsible card with header toggle and expandable body section.
  */
-export default function CollapsibleCard({
+export function CollapsibleCard({
   title,
   icon: Icon,
   iconColor,
@@ -53,11 +55,16 @@ export default function CollapsibleCard({
   };
 
   return (
-    <div className={wrapperClassName || defaultWrapper} data-slot="collapsible-card">
-      <div
+    <Card
+      className={wrapperClassName || defaultWrapper}
+      data-slot="collapsible-card"
+    >
+      <HStack
         role="button"
         tabIndex={0}
-        className="flex items-center justify-between cursor-pointer select-none"
+        justify="between"
+        align="center"
+        className="cursor-pointer select-none"
         onClick={handleToggle}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -69,34 +76,34 @@ export default function CollapsibleCard({
         aria-controls={`collapsible-content-${headerTestId ?? 'card'}`}
         data-testid={headerTestId}
       >
-        <div className="flex items-center gap-2">
+        <HStack align="center" gap="xs">
           {Icon && <Icon className={cn('w-4 h-4', iconColor || 'text-muted-foreground')} />}
           {titleNode ? (
             titleNode
           ) : (
             <Heading level={3} className={headerClassName || defaultHeader}>{title}</Heading>
           )}
-        </div>
-        <div className="flex items-center gap-3">
+        </HStack>
+        <HStack align="center" gap="sm">
           {headerRight && <div onClick={(e) => e.stopPropagation()}>{headerRight}</div>}
           {isExpanded ? (
             <ChevronDown className="w-5 h-5 text-muted-foreground" />
           ) : (
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           )}
-        </div>
-      </div>
+        </HStack>
+      </HStack>
 
       {isExpanded && (
-        <div
+        <VStack
           id={`collapsible-content-${headerTestId ?? 'card'}`}
           className={cn('animate-in fade-in slide-in-from-top-2 duration-300', contentClassName)}
         >
           {children}
-        </div>
+        </VStack>
       )}
-    </div>
+    </Card>
   );
 }
 
-export { CollapsibleCard };
+export default CollapsibleCard;

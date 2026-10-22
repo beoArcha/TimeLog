@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { Code } from '@components/ui/code';
 
 export interface CodeBlockProps extends React.HTMLAttributes<HTMLElement> {
   children?: React.ReactNode;
@@ -8,7 +8,7 @@ export interface CodeBlockProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 /**
- * Semantic code container styled with design tokens for console and documentation snippets.
+ * Composite code block component delegating to the Code UI primitive.
  */
 export function CodeBlock({
   children,
@@ -16,31 +16,12 @@ export function CodeBlock({
   inline = false,
   ...props
 }: CodeBlockProps) {
-  if (inline) {
-    return (
-      <code
-        className={cn(
-          'bg-code-bg border border-code-border text-code-foreground font-mono text-xs px-1.5 py-0.5 rounded select-all',
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </code>
-    );
-  }
-
   return (
-    <pre
-      className={cn(
-        'bg-code-bg border border-code-border text-code-foreground font-mono text-xs p-3 rounded-xl overflow-x-auto leading-relaxed select-all',
-        className
-      )}
-      {...props}
-    >
-      <code>{children}</code>
-    </pre>
+    <Code block={!inline} className={className} {...props}>
+      {children}
+    </Code>
   );
 }
 
 export default CodeBlock;
+

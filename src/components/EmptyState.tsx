@@ -1,6 +1,8 @@
 import React from 'react';
 import { Heading, Text } from '@components/ui/typography';
 import { Button } from '@components/ui/button';
+import { IconBox } from '@components/ui/icon-box';
+import { VStack } from '@components/ui/stack';
 import { Inbox, type LucideIcon } from 'lucide-react';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
@@ -35,21 +37,25 @@ export function EmptyState({
   const resolvedTitle = title || translate(locale, 'common', 'NoData', customTranslations);
 
   return (
-    <div
+    <VStack
       role="status"
       aria-live="polite"
       data-slot="empty-state"
+      align="center"
+      justify="center"
       className={cn(
-        'flex flex-col items-center justify-center p-8 text-center rounded-2xl border border-dashed border-border/70 bg-card/40 my-4',
+        'p-8 text-center rounded-2xl border border-dashed border-border/70 bg-card/40 my-4',
         className
       )}
     >
-      <div
-        className="p-3.5 rounded-2xl bg-muted/70 text-muted-foreground mb-3 border border-border/40"
+      <IconBox
+        variant="subtle"
+        size="lg"
+        className="rounded-2xl bg-muted/70 text-muted-foreground mb-3 border border-border/40"
         aria-hidden="true"
       >
         <Icon className="w-6 h-6 stroke-[1.5]" />
-      </div>
+      </IconBox>
 
       <Heading level={4} className="text-sm font-semibold text-foreground">
         {resolvedTitle}
@@ -81,7 +87,7 @@ export function EmptyState({
           )}
         </div>
       )}
-    </div>
+    </VStack>
   );
 }
 
