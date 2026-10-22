@@ -4,6 +4,7 @@ import { BarChart3, Download } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
+import { Area } from '@components/ui/area';
 import { ViewHeader } from '@components/ViewHeader';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
@@ -96,7 +97,7 @@ export default function ReportView({ state }: { state: GuiState }) {
   }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, periodTotalSec, projectChart]);
 
   return (
-    <div id="reports-panel" className="backdrop-blur-md rounded-[2.5rem] p-8 border border-border bg-card text-foreground shadow-2xl flex flex-col gap-6 transition-all duration-300">
+    <Area as="main" id="reports-panel" variant="card" padding="section" radius="3xl" elevation="2xl" className="backdrop-blur-md flex flex-col gap-6 transition-all duration-300">
       <ViewHeader
         badge={
           <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
@@ -169,6 +170,6 @@ export default function ReportView({ state }: { state: GuiState }) {
         onClose={() => setIsExportModalOpen(false)}
         payload={exportPayload}
       />
-    </div>
+    </Area>
   );
 }

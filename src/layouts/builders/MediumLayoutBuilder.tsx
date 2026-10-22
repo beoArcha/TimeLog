@@ -12,6 +12,7 @@ import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
 import { VStack } from '@components/ui/stack';
+import { Area } from '@components/ui/area';
 
 type MediumLayoutBuilderProps = Partial<Omit<LayoutRouterProps, 'variant' | 'commonProps'>> & {
   state: GuiState;
@@ -53,7 +54,8 @@ export default function MediumLayoutBuilder({
   };
 
   return (
-    <div
+    <Area
+      as="section"
       data-testid="medium-layout"
       className="w-full flex-1 flex flex-col transition-all duration-300 min-h-0 overflow-hidden"
     >
@@ -96,6 +98,6 @@ export default function MediumLayoutBuilder({
           customTranslations={customTranslations}
         />
       </VStack>
-    </div>
+    </Area>
   );
 }

@@ -10,6 +10,7 @@ import {
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
+import { Form } from '@components/ui/form';
 import { IconBox } from '@components/ui/icon-box';
 import { VStack } from '@components/ui/stack';
 import { HelpCircle, type LucideIcon } from 'lucide-react';
@@ -93,7 +94,7 @@ function PromptDialogForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <Form onSubmit={handleSubmit} layout="vertical" gap="lg">
       <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
         <IconBox
           variant="subtle"
@@ -158,7 +159,7 @@ function PromptDialogForm({
           {resolvedConfirmLabel}
         </Button>
       </DialogFooter>
-    </form>
+    </Form>
   );
 }
 

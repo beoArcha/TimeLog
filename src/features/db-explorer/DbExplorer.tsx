@@ -15,6 +15,7 @@ import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Badge } from '@components/ui/badge';
 import { HStack } from '@components/ui/stack';
+import { Area } from '@components/ui/area';
 import { ViewHeader } from '@components/ViewHeader';
 import { exportDatabaseAsJson } from '@common/utils/databaseExport';
 import { validateBackupPayload } from '@common/utils/backupValidator';
@@ -148,7 +149,7 @@ export default function DbExplorer() {
   };
 
   return (
-    <div id="db-explorer-panel" className="text-left flex flex-col gap-8 pb-12">
+    <Area as="main" id="db-explorer-panel" className="text-left flex flex-col gap-8 pb-12">
       <ViewHeader
         className="border-b pb-4 border-border/40"
         title={translate(locale, 'database', 'DbTitle', customTranslations)}
@@ -225,7 +226,7 @@ export default function DbExplorer() {
           </>
         )}
       </div>
-    </div>
+    </Area>
   );
 }
 

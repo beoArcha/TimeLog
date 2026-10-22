@@ -2,6 +2,8 @@ import React from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
+import { Form } from '@components/ui/form';
+import { cn } from '@/lib/utils';
 
 export interface CliCommandInputProps {
   input: string;
@@ -35,7 +37,12 @@ export const CliCommandInput: React.FC<CliCommandInputProps> = ({
     : 'bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600';
 
   return (
-    <form onSubmit={onSubmit} className={`flex gap-2 p-1.5 rounded-2xl border ${formBorderClass} transition-all`}>
+    <Form
+      layout="horizontal"
+      gap="xs"
+      onSubmit={onSubmit}
+      className={cn('p-1.5 rounded-2xl border transition-all', formBorderClass)}
+    >
       <span id="cli-prompt-label" className={`${promptColorClass} font-mono text-sm self-center pl-2 font-bold select-none`}>
         {isSandbox ? 'oxyflow@emulator>' : 'oxyflow>'}
       </span>
@@ -58,6 +65,6 @@ export const CliCommandInput: React.FC<CliCommandInputProps> = ({
       >
         {submitLabel} <Send className="w-3 h-3" />
       </Button>
-    </form>
+    </Form>
   );
 };

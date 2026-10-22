@@ -6,6 +6,7 @@ import { ProjectBadge } from '@features/projects/components/ProjectBadge';
 import { MediumHeaderActions } from './MediumHeaderActions';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
+import { Form } from '@components/ui/form';
 import { Text, MonoText, Caption, Overline } from '@components/ui/typography';
 import { HStack, VStack, InlineCluster } from '@components/ui/stack';
 import { TimerDisplay } from '@features/timelogs/components/TimerDisplay';
@@ -222,7 +223,7 @@ export default function MediumProjectSelector({
           </HStack>
 
           {isAddingProject ? (
-            <form onSubmit={handleCreateProject} className="p-3 border-b border-inherit bg-orange-500/5">
+            <Form onSubmit={handleCreateProject} layout="none" className="p-3 border-b border-inherit bg-orange-500/5">
               <Caption weight="semibold" className="mb-2 text-orange-500 block">
                 {translate(locale, 'project', 'NewProject', customTranslations)}
               </Caption>
@@ -273,7 +274,7 @@ export default function MediumProjectSelector({
                   {translate(locale, 'common', 'Save', customTranslations)}
                 </Button>
               </HStack>
-            </form>
+            </Form>
           ) : (
             <div className="p-2 border-b border-inherit">
               <Button

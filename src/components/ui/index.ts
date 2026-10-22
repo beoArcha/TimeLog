@@ -34,3 +34,7 @@ export * from './code';
 export * from './code-variants';
 export * from './drawer';
 export * from './drawer-variants';
+export * from './form';
+export * from './form-variants';
+export * from './area';
+export * from './area-variants';

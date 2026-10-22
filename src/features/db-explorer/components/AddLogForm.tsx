@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@components/ui/select';
 import { Button } from '@components/ui/button';
+import { Form } from '@components/ui/form';
 import { Caption } from '@components/ui/typography';
 
 interface AddLogFormProps {
@@ -53,7 +54,7 @@ export default function AddLogForm({
   const selectDisplay = selectedTask ? `${selectedProject?.name || ''} > ${selectedTask.name}` : translate(locale, 'task', 'SelectTaskPlaceholder', customTranslations);
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 p-4 rounded-2xl bg-black/30 border border-white/5 flex flex-col gap-3">
+    <Form onSubmit={handleSubmit} layout="vertical" gap="md" className="mb-6 p-4 rounded-2xl bg-black/30 border border-white/5">
       <Caption weight="bold" className="text-orange-400 uppercase tracking-wide">SQL Command: INSERT INTO time_logs</Caption>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
         <div>
@@ -121,6 +122,6 @@ export default function AddLogForm({
           {translate(locale, 'common', 'Cancel', customTranslations)}
         </Button>
       </div>
-    </form>
+    </Form>
   );
 }

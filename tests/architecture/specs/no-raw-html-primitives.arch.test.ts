@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import path from 'path';
 import { DependencyGraphBuilder } from '../core/dependency-graph';
-import { NoRawHtmlPrimitivesRule, LEGACY_RAW_HTML_ALLOWLIST } from '../rules/no-raw-html-primitives.rule';
+import { NoRawHtmlPrimitivesRule } from '../rules/no-raw-html-primitives.rule';
 import { ModuleGraph } from '../core/types';
 
 describe('Architecture: Design System Primitive Enforcement', () => {
@@ -13,8 +13,8 @@ describe('Architecture: Design System Primitive Enforcement', () => {
     graph = DependencyGraphBuilder.buildGraph(srcRoot);
   });
 
-  it('should not contain raw HTML primitives outside components/ui/ (with migration allowlist)', () => {
-    const violations = rule.check(graph, { allowlist: LEGACY_RAW_HTML_ALLOWLIST });
+  it('should not contain raw HTML primitives outside components/ui/ (zero allowlist enforced)', () => {
+    const violations = rule.check(graph, { allowlist: new Set() });
 
     if (violations.length > 0) {
       const details = violations.map(v => `  - [${v.file}:${v.line}] ${v.message}`).join('\n');

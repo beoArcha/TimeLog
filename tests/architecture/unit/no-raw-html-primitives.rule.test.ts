@@ -146,4 +146,24 @@ export function ParagraphComponent() {
     const violations = rule.check(mockGraph);
     expect(violations).toHaveLength(0);
   });
+
+  it('should flag raw <form> and <aside> tags with appropriate component suggestions', () => {
+    const code = `
+export function FormAsideComponent() {
+  return (
+    <aside>
+      <form onSubmit={() => {}}>
+        <div>content</div>
+      </form>
+    </aside>
+  );
+}
+`;
+    const violations = rule.scanAst(code, 'features/example/FormAsideComponent.tsx');
+    expect(violations).toHaveLength(2);
+    expect(violations[0].target).toBe('aside');
+    expect(violations[0].message).toContain('Use <Area as="aside">');
+    expect(violations[1].target).toBe('form');
+    expect(violations[1].message).toContain('Use <Form>');
+  });
 });

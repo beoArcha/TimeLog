@@ -11,6 +11,7 @@ import { Badge } from "@components/ui/badge";
 import { Heading } from "@components/ui/typography";
 import { HStack } from "@components/ui/stack";
 import { Input } from "@components/ui/input";
+import { Form } from "@components/ui/form";
 
 interface ProjectHeaderCardProps {
   selectedProject: Project;
@@ -163,9 +164,11 @@ export default function ProjectHeaderCard({
         </div>
       )}
 
-      <form
+      <Form
+        layout="horizontal"
+        gap="sm"
         onSubmit={onAddTaskSubmit}
-        className={`flex gap-2 ${isCondensed ? "mt-2" : ""}`}
+        className={isCondensed ? "mt-2" : undefined}
       >
         <Input
           id="new-task-input"
@@ -186,7 +189,7 @@ export default function ProjectHeaderCard({
             {tTask("AddTask")}
           </span>
         </Button>
-      </form>
+      </Form>
     </div>
   );
 }

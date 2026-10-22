@@ -96,7 +96,7 @@ Rules marked *(enforced)* fail the build automatically; the test name points to 
 
 1. Business logic lives only in the Engine, once per runtime. *(enforced: `engine-boundary`, `persistence-boundary` arch tests)*
 2. Shared components never detect the runtime. *(enforced: `runtime-isolation` arch test)*
-3. No raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>` outside `src/components/ui/`. *(enforced: `no-raw-html-primitives` arch test + ESLint)*
+3. No raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>`, `<p>`, `<form>`, `<aside>` outside `src/components/ui/`. *(enforced: `no-raw-html-primitives` arch test + ESLint)*
 4. No theme branching in components (`theme === 'dark' ? …`). Use semantic tokens. *(enforced: `no-inline-theme-ternaries` arch test)*
 5. No custom `setInterval` tickers for elapsed time; use `useLiveTaskElapsed` / `useLiveProjectElapsed`. *(enforced: `timer-live-calculation` arch test)*
 6. No circular dependencies. *(enforced: `circular-dependencies` arch test, Rust `cyclic_dependencies_test`)*

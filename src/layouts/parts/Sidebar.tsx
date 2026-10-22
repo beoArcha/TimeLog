@@ -9,6 +9,7 @@ import { useProjectReorder } from '@common/hooks/useProjectReorder';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 import { SidebarProjectForm } from './sidebar/SidebarProjectForm';
 import { SidebarProjectItem } from './sidebar/SidebarProjectItem';
+import { Area } from '@components/ui/area';
 
 export default function Sidebar({ state }: { state: GuiState }) {
   const {
@@ -47,8 +48,8 @@ export default function Sidebar({ state }: { state: GuiState }) {
   };
 
   return (
-    <aside id="projects-sidebar" aria-label={translate(locale, 'project', 'ProjectsLabel', customTranslations)} className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
-      <div className="backdrop-blur-md rounded-main padding-main border border-border bg-card text-card-foreground shadow-2xl transition-all duration-300">
+    <Area as="aside" id="projects-sidebar" aria-label={translate(locale, 'project', 'ProjectsLabel', customTranslations)} className="lg:col-span-4 flex flex-col gap-main min-w-0 w-full">
+      <Area variant="glass" radius="main" padding="main" elevation="2xl" className="transition-all duration-300">
         <SidebarHeader count={projects.length} locale={locale} customTranslations={customTranslations} />
 
         <SidebarProjectForm
@@ -92,7 +93,7 @@ export default function Sidebar({ state }: { state: GuiState }) {
             ))
           )}
         </div>
-      </div>
+      </Area>
 
       <EditProjectDialog
         open={editingProject !== null}
@@ -112,6 +113,6 @@ export default function Sidebar({ state }: { state: GuiState }) {
         locale={locale}
         customTranslations={customTranslations}
       />
-    </aside>
+    </Area>
   );
 }

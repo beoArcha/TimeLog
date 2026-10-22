@@ -7,6 +7,7 @@ import TaskListView from '@features/tasks/TaskListView';
 import ReportView from '@features/reports/ReportView';
 
 import { VStack } from '@components/ui/stack';
+import { Area } from '@components/ui/area';
 
 type FullLayoutBuilderProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
@@ -14,7 +15,8 @@ export default function FullLayoutBuilder({ state }: FullLayoutBuilderProps) {
   const { activeView } = state;
 
   return (
-    <div
+    <Area
+      as="section"
       id="gui-container"
       className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-foreground flex-1 w-full max-w-full min-w-0 gui-min-size"
     >
@@ -33,6 +35,6 @@ export default function FullLayoutBuilder({ state }: FullLayoutBuilderProps) {
         {activeView === 'tasks' && <TaskListView state={state} isCondensed={false} />}
         {activeView === 'reports' && <ReportView state={state} />}
       </VStack>
-    </div>
+    </Area>
   );
 }

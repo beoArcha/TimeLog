@@ -5,6 +5,7 @@ import { Locale } from '@bindings/Locale';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
+import { Form } from '@components/ui/form';
 import { Textarea } from '@components/ui/textarea';
 import { Switch } from '@components/ui/switch';
 import { Label } from '@components/ui/label';
@@ -85,7 +86,7 @@ export function SidebarProjectForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 padding-section rounded-section border border-border bg-muted/40 transition-all">
+    <Form onSubmit={handleSubmit} layout="none" className="mb-6 padding-section rounded-section border border-border bg-muted/40 transition-all">
       <VStack gap="sm" className="gap-section">
         <Input
           id="new-project-input"
@@ -188,6 +189,6 @@ export function SidebarProjectForm({
           </Button>
         </HStack>
       </VStack>
-    </form>
+    </Form>
   );
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
+import { Form } from '@components/ui/form';
 
 import { useTaskEditing } from '../../context/TaskEditingContext';
 
@@ -26,8 +27,10 @@ export function SubtaskForm({
   const setNewSubtaskName = propSetNewSubtaskName ?? editingCtx?.setNewSubtaskName ?? (() => {});
 
   return (
-    <form
+    <Form
       id={`subtask-form-${parentTaskId}`}
+      layout="horizontal"
+      gap="xs"
       onSubmit={(e) => onSubmit(parentTaskId, e)}
       className="p-2.5 rounded-2xl border flex gap-2 ml-8 mt-1 bg-muted/40 border-border"
     >
@@ -49,6 +52,6 @@ export function SubtaskForm({
       >
         {tCommon('Save')}
       </Button>
-    </form>
+    </Form>
   );
 }
