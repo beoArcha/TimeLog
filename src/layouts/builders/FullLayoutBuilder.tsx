@@ -5,7 +5,8 @@ import Sidebar from '../parts/Sidebar';
 import ActiveTimerBanner from '../parts/ActiveTimerBanner';
 import TaskListView from '@features/tasks/TaskListView';
 import ReportView from '@features/reports/ReportView';
-import DbInspector from '@features/db-explorer/components/DbInspector';
+
+import { VStack } from '@components/ui/stack';
 
 type FullLayoutBuilderProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
@@ -19,14 +20,19 @@ export default function FullLayoutBuilder({ state }: FullLayoutBuilderProps) {
     >
       <Sidebar state={state} />
 
-      <main id="tasks-main" role="main" aria-label="Main content" className="lg:col-span-8 flex flex-col gap-6 min-w-0 w-full">
+      <VStack
+        as="main"
+        id="tasks-main"
+        role="main"
+        aria-label="Main content"
+        gap="md"
+        className="lg:col-span-8 min-w-0 w-full"
+      >
         <ActiveTimerBanner state={state} isCondensed={false} />
 
         {activeView === 'tasks' && <TaskListView state={state} isCondensed={false} />}
         {activeView === 'reports' && <ReportView state={state} />}
-
-        <DbInspector state={state} isCondensed={false} />
-      </main>
+      </VStack>
     </div>
   );
 }

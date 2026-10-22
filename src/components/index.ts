@@ -14,3 +14,5 @@ export * from './AnimatedProgressBar';
 export * from './AnimatedDrawer';
 export * from './ViewHeader';
 export * from './FilterBar';
+export * from './TrendIndicator';
+export * from './SyncStatusBadge';

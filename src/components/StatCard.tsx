@@ -1,15 +1,15 @@
 import React from 'react';
 import { Card } from '@components/ui/card';
-import { MetricText, Text } from '@components/ui/typography';
+import { MetricText, Text, Caption } from '@components/ui/typography';
 import { Badge } from '@components/ui/badge';
+import { HStack, VStack } from '@components/ui/stack';
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react';
-import { useSafeLocale } from '@common/hooks/LocaleProvider';
-import { translate } from '@common/i18n/translator';
+import type { LucideIcon } from 'lucide-react';
+import { TrendIndicator, type TrendDirection } from './TrendIndicator';
 
 export interface StatCardTrend {
   value: string | number;
-  direction?: 'up' | 'down' | 'neutral';
+  direction?: TrendDirection;
   label?: string;
 }
 
@@ -42,24 +42,6 @@ export function StatCard({
   onClick,
   testId,
 }: StatCardProps) {
-  const { locale, customTranslations } = useSafeLocale();
-
-  const resolveTrendLabel = () => {
-    if (!trend) return '';
-    const trendKeyMap: Record<string, 'TrendIncrease' | 'TrendDecrease' | 'TrendNeutral'> = {
-      up: 'TrendIncrease',
-      down: 'TrendDecrease',
-      neutral: 'TrendNeutral',
-    };
-    const key = trendKeyMap[trend.direction] ?? 'TrendNeutral';
-    return translate(locale, 'common', key, customTranslations);
-  };
-  const trendDirectionLabel = resolveTrendLabel();
-
-  const trendAria = trend
-    ? trend.label || `${trendDirectionLabel}: ${trend.value}`
-    : undefined;
-
   return (
     <Card
       data-testid={testId}
@@ -83,18 +65,18 @@ export function StatCard({
       )}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-1 min-w-0">
-          <Text variant="muted" className="truncate uppercase font-medium tracking-wider text-xs">
+      <HStack align="start" justify="between" gap="md">
+        <VStack gap="2xs" className="min-w-0">
+          <Text variant="muted" className="uppercase font-medium tracking-wider text-xs leading-tight line-clamp-2 break-words">
             {title}
           </Text>
-          <div className="flex items-baseline gap-2">
+          <HStack align="baseline" gap="xs">
             <MetricText size="2xl" className="tracking-tight">
               {value}
             </MetricText>
             {badge && (typeof badge === 'string' ? <Badge variant="secondary">{badge}</Badge> : badge)}
-          </div>
-        </div>
+          </HStack>
+        </VStack>
 
         {Icon && (
           <div
@@ -107,35 +89,27 @@ export function StatCard({
             <Icon className="w-5 h-5" />
           </div>
         )}
-      </div>
+      </HStack>
 
       {(description || trend) && (
-        <div className="flex items-center gap-2 pt-1 border-t border-border/40 text-xs">
+        <HStack gap="xs" className="pt-1 border-t border-border/40 text-xs">
           {trend && (
-            <span
-              aria-label={trendAria}
-              className={cn(
-                'inline-flex items-center gap-0.5 font-medium',
-                trend.direction === 'up' && 'text-emerald-500',
-                trend.direction === 'down' && 'text-rose-500',
-                trend.direction === 'neutral' && 'text-muted-foreground'
-              )}
-            >
-              {trend.direction === 'up' && <TrendingUp className="w-3.5 h-3.5" aria-hidden="true" />}
-              {trend.direction === 'down' && <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" />}
-              {trend.direction === 'neutral' && <Minus className="w-3.5 h-3.5" aria-hidden="true" />}
-              <span>{trend.value}</span>
-            </span>
+            <TrendIndicator
+              value={trend.value}
+              direction={trend.direction}
+              label={trend.label}
+            />
           )}
           {description && (
-            <Text variant="caption" className="text-muted-foreground truncate">
+            <Caption size="2xs" className="text-muted-foreground truncate">
               {description}
-            </Text>
+            </Caption>
           )}
-        </div>
+        </HStack>
       )}
     </Card>
   );
 }
 
 export default StatCard;
+

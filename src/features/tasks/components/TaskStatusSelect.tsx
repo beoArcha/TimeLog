@@ -7,6 +7,8 @@ import {
   SelectValue,
 } from '@components/ui/select';
 import { TaskStatus } from '@bindings/TaskStatus';
+import { useTranslation } from '@common/i18n/translator';
+import { InlineCluster } from '@components/ui/stack';
 
 const STATUS_BADGE_STYLE_MAP: Record<TaskStatus, string> = {
   Done: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
@@ -28,11 +30,19 @@ export function TaskStatusSelect({
   size = 'sm',
   ariaLabel = 'Task status',
 }: TaskStatusSelectProps) {
+  const { t } = useTranslation('task');
   const currentStatus: TaskStatus = status || 'Todo';
   const sizeClasses = size === 'xs' ? 'h-5 text-xs px-1.5 py-0.5' : 'h-6 text-xs px-2 py-0.5';
 
+  const statusLabels: Record<TaskStatus, string> = {
+    Todo: t('StatusTodo'),
+    InProgress: t('StatusInProgress'),
+    Done: t('StatusDone'),
+    Blocked: t('StatusBlocked'),
+  };
+
   return (
-    <div onClick={(e) => e.stopPropagation()}>
+    <InlineCluster as="span" onClick={(e) => e.stopPropagation()} className="inline-flex shrink-0">
       <Select
         value={currentStatus}
         onValueChange={(val) => {
@@ -47,15 +57,15 @@ export function TaskStatusSelect({
           }`}
           aria-label={ariaLabel}
         >
-          <SelectValue>{currentStatus}</SelectValue>
+          <SelectValue>{statusLabels[currentStatus]}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="Todo" className="text-xs">TODO</SelectItem>
-          <SelectItem value="InProgress" className="text-xs text-blue-400">In Progress</SelectItem>
-          <SelectItem value="Done" className="text-xs text-emerald-400">Done</SelectItem>
-          <SelectItem value="Blocked" className="text-xs text-rose-450">Blocked</SelectItem>
+          <SelectItem value="Todo" className="text-xs">{statusLabels.Todo}</SelectItem>
+          <SelectItem value="InProgress" className="text-xs text-blue-400">{statusLabels.InProgress}</SelectItem>
+          <SelectItem value="Done" className="text-xs text-emerald-400">{statusLabels.Done}</SelectItem>
+          <SelectItem value="Blocked" className="text-xs text-rose-400">{statusLabels.Blocked}</SelectItem>
         </SelectContent>
       </Select>
-    </div>
+    </InlineCluster>
   );
 }

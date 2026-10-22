@@ -10,6 +10,8 @@ import DbInspector from '@features/db-explorer/components/DbInspector';
 import SettingsTab from '@features/settings/SettingsTab';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 
+import { VStack } from '@components/ui/stack';
+
 type MediumLayoutBuilderProps = Partial<Omit<LayoutRouterProps, 'variant' | 'commonProps'>> & {
   state: GuiState;
   dockPosition?: 'right' | 'left';
@@ -53,14 +55,21 @@ export default function MediumLayoutBuilder({
       data-testid="medium-layout"
       className="w-full flex-1 flex flex-col transition-all duration-300 min-h-0 overflow-hidden"
     >
-      <div id="gui-container" className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <VStack id="gui-container" className="flex-1 min-h-0 overflow-hidden">
         <MediumProjectSelector
           state={state}
           dockPosition={dockPosition}
           onToggleDock={toggleDock}
         />
 
-        <main id="tasks-main" role="main" aria-label="Main content" className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pr-0.5">
+        <VStack
+          as="main"
+          id="tasks-main"
+          role="main"
+          aria-label="Main content"
+          gap="sm"
+          className="flex-1 min-h-0 overflow-y-auto pr-0.5"
+        >
           {mediumTab === 'tasks' && (
             <>
               <ActiveTimerBanner state={state} isCondensed={true} />
@@ -71,12 +80,12 @@ export default function MediumLayoutBuilder({
           {mediumTab === 'reports' && <ReportView state={state} />}
 
           {mediumTab === 'settings' && (
-            <div className="flex flex-col gap-4">
+            <VStack gap="sm">
               <SettingsTab />
               <DbInspector state={state} isCondensed={true} />
-            </div>
+            </VStack>
           )}
-        </main>
+        </VStack>
 
         <MediumTabBar
           currentTab={mediumTab}
@@ -84,7 +93,7 @@ export default function MediumLayoutBuilder({
           locale={locale}
           customTranslations={customTranslations}
         />
-      </div>
+      </VStack>
     </div>
   );
 }

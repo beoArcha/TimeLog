@@ -3,9 +3,12 @@ import { PluginRegistry } from '@plugins/PluginRegistry';
 import { WebhookQueueItem } from '@bindings/WebhookQueueItem';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { PersistenceException } from '@common/exceptions/AppExceptions';
+import type { SyncStateType, SyncStatusSnapshot } from '@common/types/sync';
 
-export interface WebhookSyncStatus {
-  state: 'idle' | 'syncing' | 'queued' | 'error';
+export type WebhookSyncStateType = SyncStateType;
+
+export interface WebhookSyncStatus extends SyncStatusSnapshot {
+  state: SyncStateType;
   pendingCount: number;
   failedCount: number;
   lastError: string | null;
@@ -33,7 +36,7 @@ export class WebhookDispatcher {
     lastDeliveredAt: null,
   };
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): WebhookDispatcher {
     if (!WebhookDispatcher.instance) {

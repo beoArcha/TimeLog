@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatedFade } from '@components/AnimatedFade';
-import { RefreshCw, Minimize2, CloudUpload, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, Minimize2 } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
-import { Badge } from '@components/ui/badge';
-import { Caption } from '@components/ui/typography';
-import { HStack } from '@components/ui/stack';
+import { Caption, Text, MonoText } from '@components/ui/typography';
+import { HStack, VStack } from '@components/ui/stack';
+import { SyncStatusBadge } from '@components/SyncStatusBadge';
 import { WebhookDispatcher, WebhookSyncStatus } from '@common/sinks/WebhookDispatcher';
 
 export default function DaemonStatusBar() {
@@ -33,10 +33,12 @@ export default function DaemonStatusBar() {
         className="bg-card/60 backdrop-blur-md border border-border text-xs rounded-xl py-2 px-3 sm:py-2.5 sm:px-4 flex items-center gap-3 transition-all"
       >
         <RefreshCw className="w-5 h-5 text-orange-400 animate-spin" />
-        <div className="flex-1 text-left">
-          <strong className="text-white">{translate(locale, 'engine', 'Searching', customTranslations)}</strong>
+        <VStack gap="2xs" className="flex-1 text-left">
+          <Text as="strong" weight="bold" className="text-foreground">
+            {translate(locale, 'engine', 'Searching', customTranslations)}
+          </Text>
           <Caption className="mt-0.5">{translate(locale, 'engine', 'Connecting', customTranslations)}</Caption>
-        </div>
+        </VStack>
       </AnimatedFade>
     );
   }
@@ -49,68 +51,25 @@ export default function DaemonStatusBar() {
       className="bg-emerald-500/5 border border-emerald-500/15 text-xs rounded-xl py-2 px-3 sm:py-2.5 sm:px-4 flex items-center justify-between gap-2.5 transition-all text-muted-foreground"
     >
       <HStack gap="sm" wrap className="text-left min-w-0">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
+        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 inline-block" aria-hidden="true" />
         <Caption as="p" size="xs" className="truncate leading-tight text-foreground">
-          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+          <Text as="span" weight="semibold" className="text-emerald-600 dark:text-emerald-400">
             {translate(locale, 'engine', 'Connected', customTranslations)}
-          </span>
+          </Text>
           {' · '}
-          <span>{translate(locale, 'engine', 'Synced', customTranslations)} <strong className="text-emerald-500 font-mono">{activeRunningLogs.length}</strong> {translate(locale, 'engine', 'Threads', customTranslations)}</span>
+          <Caption as="span" size="xs">
+            {translate(locale, 'engine', 'Synced', customTranslations)}{' '}
+            <MonoText as="strong" weight="bold" className="text-emerald-500">
+              {activeRunningLogs.length}
+            </MonoText>{' '}
+            {translate(locale, 'engine', 'Threads', customTranslations)}
+          </Caption>
         </Caption>
 
-        <Badge
-          variant="outline"
-          size="sm"
-          data-testid="webhook-sync-indicator"
-          className="flex items-center gap-1.5 font-mono bg-card/60 font-normal"
-        >
-          {syncStatus.state === 'idle' && (
-            <HStack as="span" gap="2xs" className="text-muted-foreground">
-              <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-              <span>{translate(locale, 'engine', 'SyncStatusOk', customTranslations)}</span>
-            </HStack>
-          )}
-          {syncStatus.state === 'syncing' && (
-            <HStack as="span" gap="2xs" className="text-sky-500">
-              <RefreshCw className="w-3 h-3 animate-spin" />
-              <span>{translate(locale, 'engine', 'SyncStatusSyncing', customTranslations)}</span>
-            </HStack>
-          )}
-          {syncStatus.state === 'queued' && (
-            <HStack as="span" gap="xs" className="text-amber-500">
-              <CloudUpload className="w-3 h-3 animate-pulse" />
-              <span>
-                {syncStatus.pendingCount} {translate(locale, 'engine', 'SyncStatusQueued', customTranslations)}
-              </span>
-              <Button
-                variant="ghost"
-                size="xs"
-                data-testid="webhook-retry-now-btn"
-                onClick={() => WebhookDispatcher.getInstance().retryNow()}
-                className="h-4 px-1.5 text-amber-500 hover:text-amber-400"
-              >
-                {translate(locale, 'engine', 'RetryNow', customTranslations)}
-              </Button>
-            </HStack>
-          )}
-          {syncStatus.state === 'error' && (
-            <HStack as="span" gap="xs" className="text-rose-500">
-              <AlertCircle className="w-3 h-3" />
-              <span>
-                {syncStatus.failedCount} {translate(locale, 'engine', 'SyncStatusError', customTranslations)}
-              </span>
-              <Button
-                variant="ghost"
-                size="xs"
-                data-testid="webhook-retry-now-btn"
-                onClick={() => WebhookDispatcher.getInstance().retryNow()}
-                className="h-4 px-1.5 text-rose-500 hover:text-rose-400"
-              >
-                {translate(locale, 'engine', 'RetryNow', customTranslations)}
-              </Button>
-            </HStack>
-          )}
-        </Badge>
+        <SyncStatusBadge
+          status={syncStatus}
+          onRetry={() => WebhookDispatcher.getInstance().retryNow()}
+        />
       </HStack>
 
       {handleMinimizeToTray && (
@@ -123,7 +82,9 @@ export default function DaemonStatusBar() {
           title={translate(locale, 'engine', 'MinimizeToTray', customTranslations)}
         >
           <Minimize2 className="w-3 h-3 text-orange-400" />
-          <span className="hidden sm:inline">{translate(locale, 'engine', 'MinimizeToTray', customTranslations)}</span>
+          <Caption as="span" size="xs" weight="semibold" className="hidden sm:inline">
+            {translate(locale, 'engine', 'MinimizeToTray', customTranslations)}
+          </Caption>
         </Button>
       )}
     </AnimatedFade>
