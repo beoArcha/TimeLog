@@ -1,7 +1,11 @@
 name: Deploy GitHub Pages
 
 on:
+  # Allows direct execution triggered by release.yml after publish completes
+  workflow_call:
+  # Allows manual triggers from GitHub Actions UI
   workflow_dispatch:
+  # Fallback trigger in case release workflow completes independently
   workflow_run:
     workflows: ["Release"]
     types: [completed]
@@ -21,19 +25,22 @@ jobs:
     name: Deploy Wiki to GitHub Pages
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/release') ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'release')
+      github.event_name == 'workflow_call' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      # Always force checkout of the release branch regardless of UI dispatch selection
       - name: Checkout release branch
-        uses: actions/checkout@v4
+        uses: ./.github/actions/checkout-release
         with:
           ref: release
 
       - name: Setup Pages site files
+        shell: bash
         run: |
           touch docs/wiki/.nojekyll
           echo "Verified docs/wiki contents for GitHub Pages deployment:"
@@ -52,6 +59,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
       - name: Report deployment status
+        shell: bash
         run: |
           {
             echo "### 🚀 GitHub Pages Deployed"

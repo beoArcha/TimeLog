@@ -247,55 +247,156 @@ function parseFrontendCoverage() {
 // 3. Parse Rust Coverage
 // ──────────────────────────────────────────────
 function parseRustCoverage() {
-  const candidateFiles = [
-    'coverage/rust/tarpaulin-report.json',
-    'coverage-reports/tarpaulin-report.json',
-    'coverage-rust/tarpaulin-report.json'
-  ];
+  const searchDirs = ['coverage-reports', 'coverage', 'coverage-rust', '.'];
+  let jsonFiles = [];
+  let xmlFiles = [];
 
-  for (const file of candidateFiles) {
-    if (fs.existsSync(file)) {
-      try {
-        const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
-        // Tarpaulin JSON can provide covered / coverable lines
-        if (raw.covered !== undefined && raw.coverable !== undefined) {
-          const pct = raw.coverable > 0 ? (raw.covered / raw.coverable) * 100 : 100;
-          return {
-            linesPct: pct,
-            covered: raw.covered,
-            coverable: raw.coverable
-          };
-        }
-      } catch (e) {
-        // continue
+  for (const dir of searchDirs) {
+    if (fs.existsSync(dir)) {
+      jsonFiles = jsonFiles.concat(findFilesRecursive(dir, /tarpaulin.*\.json$/));
+      xmlFiles = xmlFiles.concat(findFilesRecursive(dir, /cobertura.*\.xml$/));
+    }
+  }
+  jsonFiles = [...new Set(jsonFiles)];
+  xmlFiles = [...new Set(xmlFiles)];
+
+  const fileMap = new Map();
+  let overallCovered = 0;
+  let overallCoverable = 0;
+  let overallPct = null;
+
+  // Attempt to parse Tarpaulin JSON reports first for line-level data
+  for (const file of jsonFiles) {
+    try {
+      const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (raw.covered !== undefined && raw.coverable !== undefined) {
+        overallCovered = raw.covered;
+        overallCoverable = raw.coverable;
       }
+
+      if (raw.files && typeof raw.files === 'object') {
+        const entries = Array.isArray(raw.files)
+          ? raw.files.map(f => [f.path || f.name, f])
+          : Object.entries(raw.files);
+
+        for (const [filePath, fileData] of entries) {
+          let cov = 0;
+          let tot = 0;
+
+          if (Array.isArray(fileData)) {
+            // Line trace array: count hits greater than 0
+            for (const item of fileData) {
+              if (item === null || item === undefined) continue;
+              tot++;
+              if (typeof item === 'number' && item > 0) cov++;
+              else if (typeof item === 'object' && (item.count > 0 || item.hits > 0 || item.hit > 0)) cov++;
+            }
+          } else if (fileData && typeof fileData === 'object') {
+            cov = fileData.covered ?? 0;
+            tot = fileData.coverable ?? 0;
+          }
+
+          if (tot > 0) {
+            fileMap.set(filePath, { covered: cov, total: tot });
+          }
+        }
+      }
+      if (overallCoverable > 0 || fileMap.size > 0) break;
+    } catch (e) {
+      // Continue searching next candidate file
     }
   }
 
-  // Also check cobertura XML
-  const xmlCandidates = [
-    'coverage/rust/cobertura.xml',
-    'coverage-reports/cobertura.xml',
-    'coverage-rust/cobertura.xml'
-  ];
-
-  for (const file of xmlCandidates) {
-    if (fs.existsSync(file)) {
+  // Fallback or augment with Cobertura XML if fileMap is empty
+  if (fileMap.size === 0) {
+    for (const file of xmlFiles) {
       try {
         const content = fs.readFileSync(file, 'utf8');
-        const match = content.match(/line-rate="([0-9.]+)"/);
-        if (match && match[1]) {
-          return {
-            linesPct: parseFloat(match[1]) * 100
-          };
+        const rateMatch = content.match(/line-rate="([0-9.]+)"/);
+        if (rateMatch && rateMatch[1]) {
+          overallPct = parseFloat(rateMatch[1]) * 100;
         }
+
+        // Regex extraction avoids external XML parser dependencies
+        const classRegex = /<class[^>]+filename="([^"]+)"[^>]*>([\s\S]*?)<\/class>/g;
+        let match;
+        while ((match = classRegex.exec(content)) !== null) {
+          const filename = match[1];
+          const classBody = match[2];
+          const lineRegex = /<line[^>]+hits="(\d+)"/g;
+          let lineMatch;
+          let cov = 0;
+          let tot = 0;
+          while ((lineMatch = lineRegex.exec(classBody)) !== null) {
+            tot++;
+            if (parseInt(lineMatch[1], 10) > 0) cov++;
+          }
+          if (tot > 0) {
+            fileMap.set(filename, { covered: cov, total: tot });
+          }
+        }
+        if (fileMap.size > 0) break;
       } catch (e) {
-        // continue
+        // Continue searching next candidate file
       }
     }
   }
 
-  return null;
+  if (overallCoverable === 0 && fileMap.size > 0) {
+    for (const data of fileMap.values()) {
+      overallCovered += data.covered;
+      overallCoverable += data.total;
+    }
+  }
+
+  if (overallCoverable > 0) {
+    overallPct = (overallCovered / overallCoverable) * 100;
+  }
+
+  if (overallPct === null && fileMap.size === 0) {
+    return null;
+  }
+
+  // Calculate Rust submodule coverage breakdown
+  const rustModules = [
+    { name: 'src-tauri/src/engine/', token: '/engine/' },
+    { name: 'src-tauri/src/repositories/', token: '/repositories/' },
+    { name: 'src-tauri/src/persistence/', token: '/persistence/' },
+    { name: 'src-tauri/src/cli/', token: '/cli/' },
+    { name: 'src-tauri/src/sinks/', token: '/sinks/' },
+    { name: 'src-tauri/src/tray/', token: '/tray/' },
+    { name: 'src-tauri/src/commands/', token: '/commands/' }
+  ];
+
+  const breakdown = [];
+  for (const mod of rustModules) {
+    let modTot = 0;
+    let modCov = 0;
+
+    for (const [filePath, data] of fileMap.entries()) {
+      const normalized = filePath.replace(/\\/g, '/');
+      if (normalized.includes(mod.token) || normalized.includes(mod.name)) {
+        modTot += data.total;
+        modCov += data.covered;
+      }
+    }
+
+    if (modTot > 0) {
+      breakdown.push({
+        name: mod.name,
+        lines: (modCov / modTot) * 100,
+        covered: modCov,
+        total: modTot
+      });
+    }
+  }
+
+  return {
+    linesPct: overallPct ?? 0,
+    covered: overallCovered,
+    coverable: overallCoverable,
+    breakdown
+  };
 }
 
 // ──────────────────────────────────────────────
@@ -360,6 +461,12 @@ function buildMarkdown(testResults, frontendCov, rustCov) {
     if (rustCov) {
       const rl = rustCov.linesPct;
       parts.push(`| **Backend Engine (Rust / SQLite)** | ${formatPct(rl)} | ${formatPct(rl)} | — | — | ${getStatusBadge(rl)} |`);
+
+      if (rustCov.breakdown && rustCov.breakdown.length > 0) {
+        for (const sub of rustCov.breakdown) {
+          parts.push(`| &nbsp;&nbsp;↳ \`${sub.name}\` | ${formatPct(sub.lines)} | ${formatPct(sub.lines)} | — | — | ${getStatusBadge(sub.lines)} |`);
+        }
+      }
     }
 
     // Project Total (average of frontend and backend lines)
@@ -462,7 +569,17 @@ function main() {
         { name: 'src/components/', lines: 76.5, statements: 77.0, branches: 71.0, functions: 74.0 }
       ]
     };
-    rustCov = { linesPct: 69.8 };
+    rustCov = {
+      linesPct: 74.2,
+      breakdown: [
+        { name: 'src-tauri/src/engine/', lines: 88.5 },
+        { name: 'src-tauri/src/repositories/', lines: 81.2 },
+        { name: 'src-tauri/src/persistence/', lines: 76.0 },
+        { name: 'src-tauri/src/cli/', lines: 72.4 },
+        { name: 'src-tauri/src/sinks/', lines: 65.0 },
+        { name: 'src-tauri/src/tray/', lines: 61.8 }
+      ]
+    };
   } else {
     testResults = parseTestResults();
     frontendCov = parseFrontendCoverage();

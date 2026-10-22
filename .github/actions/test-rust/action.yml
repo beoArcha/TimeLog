@@ -1,0 +1,97 @@
+name: Run Rust Tests & Coverage
+description: Compiles Rust tests once, executes unit and integration tests separately, and gathers Tarpaulin coverage
+
+inputs:
+  run-coverage:
+    description: Whether to collect Tarpaulin code coverage
+    required: false
+    default: "true"
+  fail-under:
+    description: Minimum line coverage threshold for Tarpaulin
+    required: false
+    default: "40"
+  upload-artifact:
+    description: Whether to upload Rust test and coverage artifacts
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Create Coverage Directory
+      shell: bash
+      run: mkdir -p coverage/rust
+
+    # Pre-compile all test targets in a single compilation pass
+    - name: Pre-compile Rust Tests
+      shell: bash
+      env:
+        RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
+      run: |
+        echo "Compiling test binaries..."
+        cargo test --no-run --manifest-path src-tauri/Cargo.toml
+
+    # Execute unit test target and convert cargo test output to JSON
+    - name: Run Unit Tests
+      shell: bash
+      run: |
+        set +e
+        echo "Running Rust unit tests..."
+        cargo test --test unit_tests --manifest-path src-tauri/Cargo.toml > cargo-unit.log 2>&1
+        UNIT_EXIT=$?
+        cat cargo-unit.log
+
+        # Node is used as portable fallback if Bun is not yet on PATH in pure Rust jobs
+        PARSER="bun"
+        command -v bun >/dev/null 2>&1 || PARSER="node"
+        $PARSER scripts/parse-cargo-test.js cargo-unit.log coverage/rust/test-results-rust-unit.json || true
+
+        if [ $UNIT_EXIT -ne 0 ]; then
+          echo "::error::Rust unit tests failed with code $UNIT_EXIT"
+          exit $UNIT_EXIT
+        fi
+
+    # Execute integration test target and convert cargo test output to JSON
+    - name: Run Integration Tests
+      shell: bash
+      run: |
+        set +e
+        echo "Running Rust integration tests..."
+        cargo test --test integration_tests --manifest-path src-tauri/Cargo.toml > cargo-integration.log 2>&1
+        INTEG_EXIT=$?
+        cat cargo-integration.log
+
+        PARSER="bun"
+        command -v bun >/dev/null 2>&1 || PARSER="node"
+        $PARSER scripts/parse-cargo-test.js cargo-integration.log coverage/rust/test-results-rust-integration.json || true
+
+        if [ $INTEG_EXIT -ne 0 ]; then
+          echo "::error::Rust integration tests failed with code $INTEG_EXIT"
+          exit $INTEG_EXIT
+        fi
+
+    # Tarpaulin instruments code and generates Cobertura XML and JSON for GitLab summary
+    - name: Install cargo-tarpaulin
+      if: inputs.run-coverage == 'true'
+      uses: taiki-e/install-action@cargo-tarpaulin
+
+    - name: Collect Rust Code Coverage
+      if: inputs.run-coverage == 'true'
+      shell: bash
+      env:
+        RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
+      run: |
+        cd src-tauri
+        cargo tarpaulin \
+          --fail-under ${{ inputs.fail-under }} \
+          --out Xml \
+          --out Json \
+          --output-dir ../coverage/rust
+
+    - name: Upload Rust Test & Coverage Artifacts
+      if: always() && inputs.upload-artifact == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-rust
+        path: coverage/rust/
+        if-no-files-found: ignore

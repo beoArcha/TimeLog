@@ -1,0 +1,81 @@
+name: Generate Test Reports & Coverage Summary
+description: Merges test artifacts, posts GitLab-style summary to job summary and PR comments, and enforces coverage thresholds
+
+inputs:
+  gh-token:
+    description: GitHub Token used to update sticky PR comments
+    required: false
+    default: ""
+  coverage-threshold:
+    description: Minimum line coverage threshold for merged frontend coverage
+    required: false
+    default: "40"
+  enforce-coverage:
+    description: Whether to fail pipeline if coverage falls below threshold
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    # Artifact downloads continue on error so summary can still render partial reports
+    - name: Download Unit Test Artifacts
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-unit
+        path: coverage-reports/unit
+
+    - name: Download Integration Test Artifacts
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-integration
+        path: coverage-reports/integration
+
+    - name: Download Rust Test Artifacts
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: coverage-rust
+        path: coverage-reports/rust
+
+    # Publishes JUnit results into GitHub Actions Checks tab
+    - name: Publish Test Results (Checks Tab)
+      uses: dorny/test-reporter@v1
+      continue-on-error: true
+      with:
+        name: Test Suite Results
+        path: "coverage-reports/**/junit.xml"
+        reporter: java-junit
+        fail-on-error: false
+
+    # Aggregate individual test suite coverage maps into unified coverage-final.json
+    - name: Merge Frontend Coverage
+      shell: bash
+      run: |
+        mkdir -p coverage-merged
+        mkdir -p coverage-flat
+        find coverage-reports -name "coverage-*.json" -exec cp {} coverage-flat/ \; || true
+        if [ -n "$(ls -A coverage-flat 2>/dev/null)" ]; then
+          bun x nyc merge coverage-flat coverage-merged/coverage-final.json || true
+        fi
+
+    # Generates markdown summary with test breakdown and submodule coverage metrics
+    - name: Generate GitLab-Style Test & Coverage Summary
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh-token }}
+      run: bun scripts/generate-ci-summary.js
+
+    # Enforce minimum code coverage threshold on merged coverage
+    - name: Validate Coverage Thresholds
+      if: inputs.enforce-coverage == 'true' && hashFiles('coverage-merged/coverage-final.json') != ''
+      shell: bash
+      run: |
+        bun x nyc check-coverage \
+          --temp-dir coverage-merged \
+          --lines ${{ inputs.coverage-threshold }} \
+          --statements ${{ inputs.coverage-threshold }} \
+          --functions ${{ inputs.coverage-threshold }} \
+          --branches ${{ inputs.coverage-threshold }}

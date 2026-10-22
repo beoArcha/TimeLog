@@ -26,6 +26,7 @@ permissions:
 
 env:
   RUST_WORKSPACE: "src-tauri -> target"
+  # Disabling debug symbol generation reduces linker memory and build duration in CI
   CARGO_PROFILE_DEV_DEBUG: 0
 
 jobs:
@@ -48,9 +49,11 @@ jobs:
           install-linux-deps: "true"
 
       - name: Check formatting
+        shell: bash
         run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
 
       - name: Run Clippy
+        shell: bash
         run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 
   # ──────────────────────────────────────────────
@@ -69,6 +72,7 @@ jobs:
       - uses: ./.github/actions/setup-frontend
 
       - name: Typecheck
+        shell: bash
         run: bun run typecheck
 
   # ──────────────────────────────────────────────
@@ -87,6 +91,7 @@ jobs:
       - uses: ./.github/actions/setup-frontend
 
       - name: Run ESLint
+        shell: bash
         run: bun run lint
 
   # ──────────────────────────────────────────────
@@ -106,30 +111,10 @@ jobs:
       - uses: ./.github/actions/setup-frontend
 
       - name: Run Unit Tests
-        run: |
-          mkdir -p coverage/unit
-          bun x vitest run tests/unit \
-            --reporter=default \
-            --reporter=github-actions \
-            --reporter=json --outputFile.json=coverage/unit/test-results-unit.json \
-            --reporter=junit --outputFile.junit=coverage/unit/junit.xml \
-            --coverage \
-            --coverage.reporter=json \
-            --coverage.reporter=json-summary \
-            --coverage.reportsDirectory=coverage/unit \
-            --no-coverage.thresholds
-
-          if [ -f coverage/unit/coverage-final.json ]; then
-            cp coverage/unit/coverage-final.json coverage/unit/coverage-unit.json
-          fi
-
-      - name: Upload Unit Test & Coverage Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/test-frontend
         with:
-          name: coverage-unit
-          path: coverage/unit/
-          if-no-files-found: ignore
+          suite: unit
+          coverage: "true"
 
   # ──────────────────────────────────────────────
   # Integration tests
@@ -148,30 +133,10 @@ jobs:
       - uses: ./.github/actions/setup-frontend
 
       - name: Run Integration Tests
-        run: |
-          mkdir -p coverage/integration
-          bun x vitest run tests/integration \
-            --reporter=default \
-            --reporter=github-actions \
-            --reporter=json --outputFile.json=coverage/integration/test-results-integration.json \
-            --reporter=junit --outputFile.junit=coverage/integration/junit.xml \
-            --coverage \
-            --coverage.reporter=json \
-            --coverage.reporter=json-summary \
-            --coverage.reportsDirectory=coverage/integration \
-            --no-coverage.thresholds
-
-          if [ -f coverage/integration/coverage-final.json ]; then
-            cp coverage/integration/coverage-final.json coverage/integration/coverage-integration.json
-          fi
-
-      - name: Upload Integration Test & Coverage Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/test-frontend
         with:
-          name: coverage-integration
-          path: coverage/integration/
-          if-no-files-found: ignore
+          suite: integration
+          coverage: "true"
 
   # ──────────────────────────────────────────────
   # Rust tests + coverage
@@ -191,27 +156,11 @@ jobs:
         with:
           install-linux-deps: "true"
 
-      - name: Install cargo-tarpaulin
-        uses: taiki-e/install-action@cargo-tarpaulin
-
-      - name: Run Rust Tests + Coverage
-        env:
-          RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
-        run: |
-          cd src-tauri
-          cargo tarpaulin \
-            --fail-under 40 \
-            --out Xml \
-            --out Json \
-            --output-dir ../coverage/rust
-
-      - name: Upload Rust Coverage
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Run Rust Tests & Coverage
+        uses: ./.github/actions/test-rust
         with:
-          name: coverage-rust
-          path: coverage/rust/
-          if-no-files-found: ignore
+          run-coverage: "true"
+          fail-under: "40"
 
   # ──────────────────────────────────────────────
   # Test & Coverage Reports (GitLab Style)
@@ -219,6 +168,7 @@ jobs:
   reports:
     name: Test & Coverage Reports
     runs-on: ubuntu-latest
+    # Run even if preceding test jobs encountered test failures, so reports are still rendered
     if: always() && !cancelled()
     needs:
       - test-unit
@@ -237,60 +187,12 @@ jobs:
 
       - uses: ./.github/actions/setup-frontend
 
-      - name: Download Unit Artifacts
-        uses: actions/download-artifact@v4
-        continue-on-error: true
+      - name: Generate Reports and Enforce Coverage
+        uses: ./.github/actions/generate-test-reports
         with:
-          name: coverage-unit
-          path: coverage-reports/unit
-
-      - name: Download Integration Artifacts
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: coverage-integration
-          path: coverage-reports/integration
-
-      - name: Download Rust Artifacts
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: coverage-rust
-          path: coverage-reports/rust
-
-      - name: Publish Test Results (Checks Tab)
-        uses: dorny/test-reporter@v1
-        continue-on-error: true
-        with:
-          name: Test Suite Results
-          path: "coverage-reports/**/junit.xml"
-          reporter: java-junit
-          fail-on-error: false
-
-      - name: Merge Frontend Coverage
-        run: |
-          mkdir -p coverage-merged
-          mkdir -p coverage-flat
-          find coverage-reports -name "coverage-*.json" -exec cp {} coverage-flat/ \; || true
-          if [ -n "$(ls -A coverage-flat 2>/dev/null)" ]; then
-            bun x nyc merge coverage-flat coverage-merged/coverage-final.json || true
-          fi
-
-      - name: Generate GitLab-Style Test & Coverage Summary
-        env:
-          GH_TOKEN: ${{ secrets.AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
-        run: |
-          bun scripts/generate-ci-summary.js
-
-      - name: Validate Coverage Thresholds
-        if: hashFiles('coverage-merged/coverage-final.json') != ''
-        run: |
-          bun x nyc check-coverage \
-            --temp-dir coverage-merged \
-            --lines 40 \
-            --statements 40 \
-            --functions 40 \
-            --branches 40
+          gh-token: ${{ secrets.AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+          coverage-threshold: "40"
+          enforce-coverage: "true"
 
   # ──────────────────────────────────────────────
   # Build
@@ -313,4 +215,5 @@ jobs:
       - uses: ./.github/actions/setup-frontend
 
       - name: Build Application
+        shell: bash
         run: bun run build

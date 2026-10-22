@@ -1,0 +1,50 @@
+name: Run Frontend Tests
+description: Executes Vitest tests for a specified test suite and collects JUnit and coverage artifacts
+
+inputs:
+  suite:
+    description: Test suite directory to run (e.g. unit, integration)
+    required: true
+  coverage:
+    description: Whether to collect coverage metrics
+    required: false
+    default: "true"
+  upload-artifact:
+    description: Whether to upload coverage and test artifacts
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Run Vitest Suite
+      shell: bash
+      run: |
+        OUT_DIR="coverage/${{ inputs.suite }}"
+        mkdir -p "$OUT_DIR"
+
+        # Thresholds are skipped per-suite because enforcement occurs at the merged summary step
+        COV_FLAGS=""
+        if [ "${{ inputs.coverage }}" = "true" ]; then
+          COV_FLAGS="--coverage --coverage.reporter=json --coverage.reporter=json-summary --coverage.reportsDirectory=${OUT_DIR} --no-coverage.thresholds"
+        fi
+
+        bun x vitest run "tests/${{ inputs.suite }}" \
+          --reporter=default \
+          --reporter=github-actions \
+          --reporter=json --outputFile.json="${OUT_DIR}/test-results-${{ inputs.suite }}.json" \
+          --reporter=junit --outputFile.junit="${OUT_DIR}/junit.xml" \
+          ${COV_FLAGS}
+
+        # Keep a renamed copy of coverage-final.json to avoid collision during multi-suite nyc merge
+        if [ -f "${OUT_DIR}/coverage-final.json" ]; then
+          cp "${OUT_DIR}/coverage-final.json" "${OUT_DIR}/coverage-${{ inputs.suite }}.json"
+        fi
+
+    - name: Upload Test and Coverage Artifacts
+      if: always() && inputs.upload-artifact == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-${{ inputs.suite }}
+        path: coverage/${{ inputs.suite }}/
+        if-no-files-found: ignore

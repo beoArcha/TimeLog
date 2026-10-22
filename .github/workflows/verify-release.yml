@@ -22,9 +22,11 @@ jobs:
       - uses: ./.github/actions/setup-frontend
 
       - name: Typecheck
+        shell: bash
         run: bun run typecheck
 
       - name: Build Frontend
+        shell: bash
         run: bun run build
 
   verify-backend:
@@ -44,12 +46,15 @@ jobs:
           install-linux-deps: "true"
 
       - name: Check TypeScript Bindings Parity
+        shell: bash
         run: cargo test --manifest-path src-tauri/Cargo.toml --test export_bindings_when_testing
 
       - name: Run Rust Tests (Fast, No Coverage)
+        shell: bash
         env:
           RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
         run: cargo test --manifest-path src-tauri/Cargo.toml
 
       - name: Run Smoke Tests
+        shell: bash
         run: bun run test:smoke

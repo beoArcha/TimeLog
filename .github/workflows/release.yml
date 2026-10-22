@@ -23,24 +23,27 @@ jobs:
       tag: ${{ steps.meta.outputs.tag }}
 
     steps:
-      - uses: actions/checkout@v4
+      # Always force checkout of the release branch regardless of UI dispatch selection
+      - uses: ./.github/actions/checkout-release
         with:
           ref: release
 
       - name: Read version and validate
         id: meta
+        shell: bash
         run: |
           SHA=$(git rev-parse HEAD)
           VERSION=$(jq -r .version package.json)
           TAG="app-v${VERSION}"
           MINOR=$(echo "$VERSION" | cut -d. -f2)
 
-          # release ma nieparzysty minor, main parzysty
+          # Release branches enforce odd minor version numbers, main uses even
           if [ $((MINOR % 2)) -eq 0 ]; then
             echo "::error::Branch 'release' has version ${VERSION} (even minor). Run 'Promote to Release' first."
             exit 1
           fi
 
+          # Prevent overwriting an already published git tag
           if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" > /dev/null 2>&1; then
             echo "::error::Tag ${TAG} already exists. Run 'Promote to Release' to bump the version first."
             exit 1
@@ -99,11 +102,13 @@ jobs:
           merge-multiple: true
 
       - name: Verify assets
+        shell: bash
         run: |
           ls -la release-assets
           [ -n "$(ls -A release-assets)" ] || { echo "::error::No assets to publish"; exit 1; }
 
       - name: Generate SHA256 Checksums
+        shell: bash
         run: |
           cd release-assets
           for f in *; do
@@ -125,8 +130,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create tag and GitHub Release
+        shell: bash
         run: |
-          # --target z pełnym SHA tworzy tag dokładnie na zbudowanym commicie z release
+          # Passing full SHA ensures the tag is anchored to the exact validated commit
           gh release create "$TAG" release-assets/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$SHA" \
@@ -139,3 +145,15 @@ jobs:
             echo "Commit: \`${SHA}\`"
             echo "All release artifacts and \`SHA256SUMS.txt\` published successfully."
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # ──────────────────────────────────────────────
+  # Deploy Documentation to GitHub Pages
+  # ──────────────────────────────────────────────
+  deploy-pages:
+    name: Deploy Wiki
+    needs: publish
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
