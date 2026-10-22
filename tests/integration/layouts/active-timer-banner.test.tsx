@@ -95,16 +95,48 @@ describe('Given ActiveTimerBanner component', () => {
       } as unknown as GuiState;
 
       // When
-      render(<ActiveTimerBanner state={stateProp} isCondensed={false} />);
+      const { container } = render(<ActiveTimerBanner state={stateProp} isCondensed={false} />);
 
       // Then
       expect(screen.getByText('Active Project')).toBeTruthy();
       expect(screen.getByText('Active Task')).toBeTruthy();
       expect(screen.getByText('00:05:00')).toBeTruthy();
 
-      const stopBtn = screen.getByRole('button');
-      fireEvent.click(stopBtn);
+      const stopBtn = container.querySelector('#stop-timer-btn');
+      expect(stopBtn).not.toBeNull();
+      fireEvent.click(stopBtn!);
       expect(stopSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('When a break is in progress', () => {
+    it('Then it should display break banner with countdown and resume work immediately on button click', () => {
+      // Given
+      localStorage.setItem(
+        'oxy_active_break_timer',
+        JSON.stringify({
+          projectId: 'proj_1',
+          taskId: 'task_1',
+          totalSeconds: 300,
+          breakEndTimeMs: Date.now() + 300000,
+        })
+      );
+      const startSpy = vi.fn();
+      const stateProp = {
+        ...mockState,
+        activeLog: null,
+        onStartTimer: startSpy,
+      } as unknown as GuiState;
+
+      // When
+      const { container } = render(<ActiveTimerBanner state={stateProp} isCondensed={false} />);
+
+      // Then
+      expect(container.querySelector('#active-timer-break-banner')).not.toBeNull();
+      const resumeBtn = container.querySelector('#resume-work-now-btn');
+      expect(resumeBtn).not.toBeNull();
+      fireEvent.click(resumeBtn!);
+      expect(startSpy).toHaveBeenCalledWith('task_1');
     });
   });
 });

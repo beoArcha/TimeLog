@@ -34,12 +34,28 @@ const setupMockInvokeForRustBehavior = () => {
       const projectId = task.projectId;
       const now = new Date().toISOString();
 
+      const currentProj = state.projects.find((p) => p.id === projectId);
+      const allowsConcurrency = currentProj?.allowConcurrency ?? false;
+
       const projectTaskIds = new Set(
         state.tasks.filter((t: Task) => t.projectId === projectId).map((t: Task) => t.id)
       );
 
+      const otherNonConcurrentTaskIds = new Set(
+        state.tasks
+          .filter((t: Task) => {
+            const p = state.projects.find((proj) => proj.id === t.projectId);
+            return t.projectId !== projectId && !(p?.allowConcurrency ?? false);
+          })
+          .map((t: Task) => t.id)
+      );
+
       const updatedLogs = state.logs.map((log: TimeLog) => {
-        if (!log.endTime && projectTaskIds.has(log.taskId)) {
+        const isRunning = !log.endTime;
+        const isCurrentProjectTask = projectTaskIds.has(log.taskId);
+        const shouldCloseOther = !allowsConcurrency && otherNonConcurrentTaskIds.has(log.taskId);
+
+        if (isRunning && (isCurrentProjectTask || shouldCloseOther)) {
           return { ...log, endTime: now };
         }
         return log;

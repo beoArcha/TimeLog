@@ -19,6 +19,7 @@ export const getMockDbState = (): MockDatabaseState => {
     tasks: state?.tasks ?? [],
     logs: state?.logs ?? [],
     activeLog: state?.activeLog ?? null,
+    activeLogs: state?.activeLogs ?? (state?.activeLog ? [state.activeLog] : []),
   };
 };
 

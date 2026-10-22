@@ -55,6 +55,8 @@ export interface OxyFlowState {
   setAlwaysOnTopSmall?: Mock | ((val: boolean | ((prev: boolean) => boolean)) => void);
   alwaysOnTopMain?: boolean;
   setAlwaysOnTopMain?: Mock | ((val: boolean | ((prev: boolean) => boolean)) => void);
+  defaultProjectConcurrency?: boolean;
+  setDefaultProjectConcurrency?: Mock | ((val: boolean | ((prev: boolean) => boolean)) => void);
   logToApi?: boolean;
   setLogToApi?: Mock | ((val: boolean | ((prev: boolean) => boolean)) => void);
   apiToken?: string;
@@ -142,6 +144,8 @@ export const getMockOxyFlowState = (): OxyFlowState => ({
   setAlwaysOnTopSmall: vi.fn(),
   alwaysOnTopMain: false,
   setAlwaysOnTopMain: vi.fn(),
+  defaultProjectConcurrency: false,
+  setDefaultProjectConcurrency: vi.fn(),
   logToApi: false,
   setLogToApi: vi.fn(),
   apiToken: '123',

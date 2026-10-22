@@ -27,7 +27,13 @@
     "SelectTaskToPlay": "Select a task below and play to start.",
     "LastTrackedTask": "Last tracked task",
     "ResumeTimer": "Resume",
-    "NoRecentTask": "No recent task"
+    "NoRecentTask": "No recent task",
+    "TakeBreak": "Take Break",
+    "BreakMinutes": "{}m break",
+    "BreakInProgress": "Break in Progress",
+    "ResumeWorkNow": "Resume work now",
+    "CancelBreak": "Cancel break",
+    "AutoResumeIn": "Auto-resuming in"
   },
   "pl": {
     "StartTimer": "Rozpocznij",
@@ -57,7 +63,13 @@
     "SelectTaskToPlay": "Wybierz zadanie poniżej i kliknij Play, żeby zacząć.",
     "LastTrackedTask": "Ostatnio mierzone zadanie",
     "ResumeTimer": "Wznów",
-    "NoRecentTask": "Brak ostatniego zadania"
+    "NoRecentTask": "Brak ostatniego zadania",
+    "TakeBreak": "Zrób przerwę",
+    "BreakMinutes": "Przerwa {}m",
+    "BreakInProgress": "Przerwa w toku",
+    "ResumeWorkNow": "Zakończ przerwę teraz",
+    "CancelBreak": "Anuluj przerwę",
+    "AutoResumeIn": "Automatyczny powrót za"
   },
   "de": {
     "StartTimer": "Start",
@@ -87,7 +99,13 @@
     "SelectTaskToPlay": "Wählen Sie unten eine Aufgabe aus und drücken Sie Play zum Starten.",
     "LastTrackedTask": "Zuletzt erfasste Aufgabe",
     "ResumeTimer": "Fortsetzen",
-    "NoRecentTask": "Keine kürzliche Aufgabe"
+    "NoRecentTask": "Keine kürzliche Aufgabe",
+    "TakeBreak": "Pause machen",
+    "BreakMinutes": "{}m Pause",
+    "BreakInProgress": "Pause läuft",
+    "ResumeWorkNow": "Arbeit jetzt fortsetzen",
+    "CancelBreak": "Pause abbrechen",
+    "AutoResumeIn": "Automatische Fortsetzung in"
   },
   "es": {
     "StartTimer": "Iniciar",
@@ -117,7 +135,13 @@
     "SelectTaskToPlay": "Selecciona una tarea para comenzar.",
     "LastTrackedTask": "Última tarea registrada",
     "ResumeTimer": "Reanudar",
-    "NoRecentTask": "Sin tarea reciente"
+    "NoRecentTask": "Sin tarea reciente",
+    "TakeBreak": "Tomar descanso",
+    "BreakMinutes": "Descanso de {}m",
+    "BreakInProgress": "Descanso en curso",
+    "ResumeWorkNow": "Reanudar trabajo ahora",
+    "CancelBreak": "Cancelar descanso",
+    "AutoResumeIn": "Reanudación automática en"
   },
   "fr": {
     "StartTimer": "Démarrer",
@@ -147,7 +171,13 @@
     "SelectTaskToPlay": "Sélectionnez une tâche pour démarrer.",
     "LastTrackedTask": "Dernière tâche suivie",
     "ResumeTimer": "Reprendre",
-    "NoRecentTask": "Aucune tâche récente"
+    "NoRecentTask": "Aucune tâche récente",
+    "TakeBreak": "Prendre une pause",
+    "BreakMinutes": "Pause de {}m",
+    "BreakInProgress": "Pause en cours",
+    "ResumeWorkNow": "Reprendre le travail maintenant",
+    "CancelBreak": "Annuler la pause",
+    "AutoResumeIn": "Reprise automatique dans"
   },
   "pt-br": {
     "StartTimer": "Iniciar",
@@ -177,6 +207,12 @@
     "SelectTaskToPlay": "Selecione uma tarefa para começar.",
     "LastTrackedTask": "Última tarefa monitorada",
     "ResumeTimer": "Retomar",
-    "NoRecentTask": "Nenhuma tarefa recente"
+    "NoRecentTask": "Nenhuma tarefa recente",
+    "TakeBreak": "Fazer uma pausa",
+    "BreakMinutes": "Pausa de {}m",
+    "BreakInProgress": "Pausa em andamento",
+    "ResumeWorkNow": "Retomar trabalho agora",
+    "CancelBreak": "Cancelar pausa",
+    "AutoResumeIn": "Retomada automática em"
   }
 }

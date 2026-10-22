@@ -13,6 +13,7 @@ pub struct ProjectInput {
     pub description: Option<String>,
     pub icon: Option<String>,
     pub tags: Option<Vec<String>>,
+    pub allow_concurrency: Option<bool>,
 }
 
 struct ValidatedProjectData {
@@ -69,6 +70,7 @@ pub fn add_project(
         validated.description,
         input.icon,
         validated.tags,
+        input.allow_concurrency,
     );
     persistence.projects.create(project)?;
     Ok(engine.get_state()?)
@@ -105,6 +107,7 @@ pub fn update_project_details(
     project.description = validated.description;
     project.icon = input.icon;
     project.tags = validated.tags;
+    project.allow_concurrency = input.allow_concurrency;
     persistence.projects.patch(project)?;
 
     Ok(engine.get_state()?)
@@ -131,6 +134,7 @@ pub fn add(
     description: Option<String>,
     icon: Option<String>,
     tags: Option<Vec<String>>,
+    allow_concurrency: Option<bool>,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     add_project(
@@ -141,6 +145,7 @@ pub fn add(
             description,
             icon,
             tags,
+            allow_concurrency,
         },
     )
 }
@@ -153,25 +158,32 @@ pub fn toggle_archive(
     toggle_project_archive(&state.persistence, &project_id)
 }
 
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct UpdateProjectDto {
+    pub project_id: String,
+    pub name: String,
+    pub color: String,
+    pub description: Option<String>,
+    pub icon: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub allow_concurrency: Option<bool>,
+}
+
 #[tauri::command]
 pub fn update_project(
-    project_id: String,
-    name: String,
-    color: String,
-    description: Option<String>,
-    icon: Option<String>,
-    tags: Option<Vec<String>>,
+    input: UpdateProjectDto,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     update_project_details(
         &state.persistence,
-        &project_id,
+        &input.project_id,
         ProjectInput {
-            name,
-            color,
-            description,
-            icon,
-            tags,
+            name: input.name,
+            color: input.color,
+            description: input.description,
+            icon: input.icon,
+            tags: input.tags,
+            allow_concurrency: input.allow_concurrency,
         },
     )
 }

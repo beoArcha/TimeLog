@@ -96,7 +96,7 @@ describe('Sidebar', () => {
     fireEvent.click(addBtn);
 
     // Assert
-    expect(onAddProject).toHaveBeenCalledWith('Delta Project', 'violet', null, null, null);
+    expect(onAddProject).toHaveBeenCalledWith('Delta Project', 'violet', null, null, null, false);
   });
 });
 
@@ -138,7 +138,7 @@ describe('SidebarProjectForm', () => {
     fireEvent.click(addBtn);
 
     // Assert
-    expect(onAdd).toHaveBeenCalledWith('Gamma', 'emerald', null, null, null);
+    expect(onAdd).toHaveBeenCalledWith('Gamma', 'emerald', null, null, null, false);
   });
 });
 

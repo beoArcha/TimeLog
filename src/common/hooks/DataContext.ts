@@ -29,6 +29,7 @@ export interface TimerState {
   logs: DataState['logs'];
   setLogs: DataState['setLogs'];
   activeLog: DataState['activeLog'];
+  activeLogs: DataState['activeLogs'];
   setActiveLog: DataState['setActiveLog'];
   handleStartTimer: DataState['handleStartTimer'];
   handleStopTimer: DataState['handleStopTimer'];
@@ -102,6 +103,7 @@ export const useTimer = (): TimerState => {
     logs: data.logs,
     setLogs: data.setLogs,
     activeLog: data.activeLog,
+    activeLogs: data.activeLogs,
     setActiveLog: data.setActiveLog,
     handleStartTimer: data.handleStartTimer,
     handleStopTimer: data.handleStopTimer,
@@ -136,6 +138,7 @@ export const useTimerSafe = (): TimerState | null => {
     logs: data.logs,
     setLogs: data.setLogs,
     activeLog: data.activeLog,
+    activeLogs: data.activeLogs,
     setActiveLog: data.setActiveLog,
     handleStartTimer: data.handleStartTimer,
     handleStopTimer: data.handleStopTimer,

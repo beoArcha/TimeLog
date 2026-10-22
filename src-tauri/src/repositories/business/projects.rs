@@ -22,7 +22,8 @@ impl BusinessRepository {
                 edit_history_str,
                 project.description,
                 project.icon,
-                tags_str
+                tags_str,
+                project.allow_concurrency.unwrap_or(false) as i32
             ],
         )?;
         Ok(())
@@ -44,7 +45,8 @@ impl BusinessRepository {
                 edit_history_str,
                 project.description,
                 project.icon,
-                tags_str
+                tags_str,
+                project.allow_concurrency.unwrap_or(false) as i32
             ],
         )?;
         Ok(())
@@ -63,6 +65,7 @@ impl BusinessRepository {
         let archived_int: i32 = row.get(4)?;
         let tags_str: Option<String> = row.get(10)?;
         let tags: Option<Vec<String>> = tags_str.and_then(|s| serde_json::from_str(&s).ok());
+        let allow_concurrency_int: Option<i32> = row.get(11)?;
 
         Ok(Project {
             id: row.get(0)?,
@@ -76,6 +79,7 @@ impl BusinessRepository {
             description: row.get(8)?,
             icon: row.get(9)?,
             tags,
+            allow_concurrency: allow_concurrency_int.map(|v| v == 1),
         })
     }
 

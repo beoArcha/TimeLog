@@ -9,6 +9,9 @@ describe('BrowserTimerEngine', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     routerMock = {
+      core: {
+        load: vi.fn().mockResolvedValue(null),
+      },
       tasks: {
         getProjectId: vi.fn().mockResolvedValue('project-10'),
       },

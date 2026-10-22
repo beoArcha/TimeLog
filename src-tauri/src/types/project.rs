@@ -36,6 +36,8 @@ pub struct Project {
     pub icon: Option<String>,
     #[ts(optional)]
     pub tags: Option<Vec<String>>,
+    #[ts(optional)]
+    pub allow_concurrency: Option<bool>,
 }
 
 impl Project {
@@ -46,6 +48,7 @@ impl Project {
         description: Option<String>,
         icon: Option<String>,
         tags: Option<Vec<String>>,
+        allow_concurrency: Option<bool>,
     ) -> Self {
         Self {
             id,
@@ -59,6 +62,7 @@ impl Project {
             description,
             icon,
             tags,
+            allow_concurrency,
         }
     }
 }

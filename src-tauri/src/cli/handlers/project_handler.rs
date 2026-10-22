@@ -91,6 +91,7 @@ fn add_project(
         None,
         None,
         None,
+        None,
     );
     persistence.projects.create(project)?;
     Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))

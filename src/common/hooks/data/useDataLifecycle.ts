@@ -68,6 +68,7 @@ export const useDataLifecycle = ({
           deps.repositoryState.setTasksState(state.tasks);
           deps.repositoryState.setLogsState(state.logs);
           deps.repositoryState.setActiveLogState(state.activeLog);
+          deps.repositoryState.setActiveLogsState(state.activeLogs ?? (state.activeLog ? [state.activeLog] : []));
           deps.onTaskSelected?.(state.tasks?.[0]?.id ?? null);
         }
         deps.holidaysManager.setHolidaysState(loadedHolidays);
@@ -108,7 +109,10 @@ export const useDataLifecycle = ({
         if (data.projects) repositoryState.setProjectsState(nextState.projects);
         if (data.tasks) repositoryState.setTasksState(nextState.tasks);
         if (data.logs) repositoryState.setLogsState(nextState.logs);
-        if (nextState.activeLog !== undefined) repositoryState.setActiveLogState(nextState.activeLog);
+        if (nextState.activeLog !== undefined) {
+          repositoryState.setActiveLogState(nextState.activeLog);
+          repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
+        }
 
         if (data.holidays) await holidaysManager.setHolidays(data.holidays);
         if (data.patches) await patchesManager.setPatches(data.patches);

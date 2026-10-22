@@ -11,12 +11,13 @@ import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
 import { Label } from '@components/ui/label';
+import { Switch } from '@components/ui/switch';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
 import type { Project } from '@bindings/Project';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
 
-export type ProjectToEdit = Pick<Project, 'id' | 'name' | 'color' | 'description' | 'icon' | 'tags'>;
+export type ProjectToEdit = Pick<Project, 'id' | 'name' | 'color' | 'description' | 'icon' | 'tags' | 'allowConcurrency'>;
 
 export interface EditProjectSavePayload {
   id: string;
@@ -25,6 +26,7 @@ export interface EditProjectSavePayload {
   description: string | null;
   icon: string | null;
   tags: string[] | null;
+  allowConcurrency: boolean;
 }
 
 export interface EditProjectDialogProps {
@@ -57,6 +59,7 @@ function EditProjectDialogForm({
   const [description, setDescription] = useState(project.description || '');
   const [icon, setIcon] = useState(project.icon || '');
   const [tags, setTags] = useState(project.tags ? project.tags.join(', ') : '');
+  const [allowConcurrency, setAllowConcurrency] = useState(Boolean(project.allowConcurrency));
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -68,6 +71,7 @@ function EditProjectDialogForm({
       description: description.trim() || null,
       icon: icon.trim() || null,
       tags: tagsArr.length > 0 ? tagsArr : null,
+      allowConcurrency,
     });
     onOpenChange(false);
   };
@@ -168,6 +172,22 @@ function EditProjectDialogForm({
             value={tags}
             onChange={e => setTags(e.target.value)}
             className="w-full"
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card/50">
+          <div className="flex flex-col gap-0.5">
+            <Label htmlFor="edit-project-concurrency-switch" className="text-sm font-medium cursor-pointer">
+              {translate(locale, 'project', 'AllowConcurrency', customTranslations)}
+            </Label>
+            <span className="text-xs text-muted-foreground">
+              {translate(locale, 'project', 'AllowConcurrencyDesc', customTranslations)}
+            </span>
+          </div>
+          <Switch
+            id="edit-project-concurrency-switch"
+            checked={allowConcurrency}
+            onCheckedChange={setAllowConcurrency}
           />
         </div>
       </div>

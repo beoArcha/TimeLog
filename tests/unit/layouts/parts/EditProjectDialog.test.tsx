@@ -78,6 +78,7 @@ describe('Unit Tests: EditProjectDialog', () => {
       description: 'Alpha description',
       icon: '⚡',
       tags: ['core', 'v1'],
+      allowConcurrency: false,
     });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
@@ -122,6 +123,7 @@ describe('Unit Tests: EditProjectDialog', () => {
       description: 'New description',
       icon: '⚡',
       tags: ['frontend', 'ui'],
+      allowConcurrency: false,
     });
   });
 

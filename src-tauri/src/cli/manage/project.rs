@@ -52,6 +52,7 @@ fn create_project(
         description: None,
         icon: None,
         tags: None,
+        allow_concurrency: None,
     };
 
     persistence

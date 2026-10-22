@@ -120,6 +120,15 @@ export const useAppSettings = () => {
     }
   }, [currentProjectId, settingsLoaded]);
 
+  const [defaultProjectConcurrency, setDefaultProjectConcurrencyState] = useState<boolean>(() => {
+    return localStorage.getItem('oxy_default_project_concurrency') === 'true';
+  });
+
+  const setDefaultProjectConcurrency = (val: boolean) => {
+    setDefaultProjectConcurrencyState(val);
+    localStorage.setItem('oxy_default_project_concurrency', String(val));
+  };
+
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
 
   return {
@@ -135,6 +144,7 @@ export const useAppSettings = () => {
     isCompactExpanded, setIsCompactExpanded,
     currentProjectId, setCurrentProjectId,
     showCreditsModal, setShowCreditsModal,
-    minimizeToTray, setMinimizeToTray
+    minimizeToTray, setMinimizeToTray,
+    defaultProjectConcurrency, setDefaultProjectConcurrency
   };
 };

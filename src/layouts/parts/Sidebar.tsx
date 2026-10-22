@@ -99,7 +99,15 @@ export default function Sidebar({ state }: { state: GuiState }) {
         onOpenChange={open => !open && setEditingProject(null)}
         project={editingProject}
         onSave={payload => {
-          onUpdateProject?.(payload.id, payload.name, payload.color, payload.description, payload.icon, payload.tags);
+          onUpdateProject?.(
+            payload.id,
+            payload.name,
+            payload.color,
+            payload.description,
+            payload.icon,
+            payload.tags,
+            payload.allowConcurrency
+          );
         }}
         locale={locale}
         customTranslations={customTranslations}

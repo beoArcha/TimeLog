@@ -35,6 +35,7 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     description?: string | null;
     icon?: string | null;
     tags?: string[] | null;
+    allowConcurrency?: boolean | null;
   }): Promise<TimerRepositoryState> {
     const current = await this.store.getStateOrDefault();
     const newProject: Project = {
@@ -46,6 +47,7 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
       description: input.description ?? undefined,
       icon: input.icon ?? undefined,
       tags: input.tags ?? undefined,
+      allowConcurrency: input.allowConcurrency ?? undefined,
     };
     current.projects.push(newProject);
     return this.store.save(current);
@@ -63,7 +65,8 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     color: string,
     description: string | null,
     icon: string | null,
-    tags: string[] | null
+    tags: string[] | null,
+    allowConcurrency?: boolean | null
   ): Promise<TimerRepositoryState> {
     return this.mutateProject(projectId, (project) => {
       project.name = name;
@@ -71,6 +74,7 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
       project.description = description ?? undefined;
       project.icon = icon ?? undefined;
       project.tags = tags ?? undefined;
+      project.allowConcurrency = allowConcurrency ?? undefined;
     });
   }
 

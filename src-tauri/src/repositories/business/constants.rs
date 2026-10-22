@@ -1,7 +1,7 @@
 // Projects queries
 pub const INSERT_PROJECT: &str = "
-    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
 ";
 
 pub const UPDATE_PROJECT: &str = "
@@ -14,7 +14,8 @@ pub const UPDATE_PROJECT: &str = "
         edit_history = ?7,
         description = ?8,
         icon = ?9,
-        tags = ?10
+        tags = ?10,
+        allow_concurrency = ?11
     WHERE id = ?1
 ";
 
@@ -23,7 +24,7 @@ pub const ARCHIVE_PROJECT: &str = "
 ";
 
 pub const SELECT_PROJECT_BY_ID: &str = "
-    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags 
+    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency 
     FROM projects 
     WHERE id = ?1
 ";
@@ -168,7 +169,7 @@ pub const SELECT_ACTIVE_TASK_IDS: &str = "
 ";
 
 pub const SELECT_ALL_PROJECTS: &str = "
-    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags 
+    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency 
     FROM projects
 ";
 

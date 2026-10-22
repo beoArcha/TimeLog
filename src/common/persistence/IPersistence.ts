@@ -43,6 +43,7 @@ export interface IProjectsPersistence {
     description?: string | null;
     icon?: string | null;
     tags?: string[] | null;
+    allowConcurrency?: boolean | null;
   }): Promise<TimerRepositoryState>;
   toggleArchive(projectId: string): Promise<TimerRepositoryState>;
   update(
@@ -51,7 +52,8 @@ export interface IProjectsPersistence {
     color: string,
     description: string | null,
     icon: string | null,
-    tags: string[] | null
+    tags: string[] | null,
+    allowConcurrency?: boolean | null
   ): Promise<TimerRepositoryState>;
   rename(projectId: string, name: string): Promise<TimerRepositoryState>;
 }

@@ -73,6 +73,7 @@ impl BusinessRepository {
                     p.description,
                     p.icon,
                     tags_str,
+                    p.allow_concurrency.unwrap_or(false) as i32,
                 ],
             )?;
         }

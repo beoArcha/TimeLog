@@ -12,6 +12,7 @@ export interface ProjectInputData {
   description?: string | null;
   icon?: string | null;
   tags?: string[] | null;
+  allowConcurrency?: boolean | null;
 }
 
 export interface UseProjectsManagerOptions {
@@ -45,12 +46,13 @@ export const useProjectsManager = ({
     color = 'indigo',
     description: string | null = null,
     icon: string | null = null,
-    tags: string[] | null = null
+    tags: string[] | null = null,
+    allowConcurrency: boolean | null = null
   ) => {
     const input: ProjectInputData =
       typeof nameOrInput === 'object'
         ? nameOrInput
-        : { name: nameOrInput, color, description, icon, tags };
+        : { name: nameOrInput, color, description, icon, tags, allowConcurrency };
 
     await actionRunner.runAction('Failed to add project', async () => {
       await engineRouter.validation.validateProjectName(input.name, repositoryState.projects);
@@ -75,12 +77,13 @@ export const useProjectsManager = ({
     color?: string,
     description: string | null = null,
     icon: string | null = null,
-    tags: string[] | null = null
+    tags: string[] | null = null,
+    allowConcurrency: boolean | null = null
   ) => {
     const input: ProjectInputData =
       typeof nameOrInput === 'object'
         ? nameOrInput
-        : { name: nameOrInput, color: color ?? 'indigo', description, icon, tags };
+        : { name: nameOrInput, color: color ?? 'indigo', description, icon, tags, allowConcurrency };
 
     await actionRunner.runAction('Failed to update project', async () => {
       await engineRouter.validation.validateProjectName(input.name, repositoryState.projects, projectId);
@@ -90,7 +93,8 @@ export const useProjectsManager = ({
         input.color,
         input.description ?? null,
         input.icon ?? null,
-        input.tags ?? null
+        input.tags ?? null,
+        input.allowConcurrency ?? null
       );
       await syncState(nextState);
     });

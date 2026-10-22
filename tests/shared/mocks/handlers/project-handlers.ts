@@ -39,15 +39,17 @@ export const renameProjectHandler = async (args: MockCommandArgs): Promise<MockD
   return state;
 };
 
-export const updateProjectHandler = async (args: MockCommandArgs): Promise<MockDatabaseState> => {
+export const updateProjectHandler = async (args: MockCommandArgs & { input?: MockCommandArgs }): Promise<MockDatabaseState> => {
   const state = getMockDbState();
-  const proj = state.projects.find((p) => p.id === args.projectId);
+  const payload = args.input ?? args;
+  const proj = state.projects.find((p) => p.id === payload.projectId);
   if (proj) {
-    if (args.name !== undefined) proj.name = args.name ?? '';
-    if (args.color !== undefined) proj.color = args.color ?? '';
-    if (args.description !== undefined) proj.description = args.description ?? null;
-    if (args.icon !== undefined) proj.icon = args.icon ?? null;
-    if (args.tags !== undefined) proj.tags = args.tags ?? null;
+    if (payload.name !== undefined) proj.name = payload.name ?? '';
+    if (payload.color !== undefined) proj.color = payload.color ?? '';
+    if (payload.description !== undefined) proj.description = payload.description ?? null;
+    if (payload.icon !== undefined) proj.icon = payload.icon ?? null;
+    if (payload.tags !== undefined) proj.tags = payload.tags ?? null;
+    if (payload.allowConcurrency !== undefined) proj.allowConcurrency = Boolean(payload.allowConcurrency);
   }
   saveMockDbState(state);
   return state;

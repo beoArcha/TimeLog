@@ -381,9 +381,13 @@ export type HelpKey =
 
 export type ProjectKey =
   | 'AddNewProject'
+  | 'AllowConcurrency'
+  | 'AllowConcurrencyDefault'
+  | 'AllowConcurrencyDesc'
   | 'ChangeProject'
   | 'ChooseProjectColor'
   | 'ColorTheme'
+  | 'ConcurrencyBadge'
   | 'CompletedTasks'
   | 'Description'
   | 'DescriptionPlaceholder'
@@ -552,6 +556,10 @@ export type TimerKey =
   | 'AlwaysOnTopOff'
   | 'AlwaysOnTopOn'
   | 'AppProfile'
+  | 'AutoResumeIn'
+  | 'BreakInProgress'
+  | 'BreakMinutes'
+  | 'CancelBreak'
   | 'HideTasks'
   | 'LastTrackedTask'
   | 'MaximizeGui'
@@ -560,6 +568,7 @@ export type TimerKey =
   | 'NoRecentTask'
   | 'RegisteredToday'
   | 'ResumeTimer'
+  | 'ResumeWorkNow'
   | 'SelectTaskToPlay'
   | 'ShowTasks'
   | 'SmallGuiTitle'
@@ -573,7 +582,8 @@ export type TimerKey =
   | 'StopTimer'
   | 'StoppedMeasurement'
   | 'StoppedSubtask'
-  | 'SwitchToLarge';
+  | 'SwitchToLarge'
+  | 'TakeBreak';
 
 export interface DomainKeys {
   app: AppKey;

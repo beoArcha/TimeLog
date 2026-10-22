@@ -27,6 +27,7 @@ describe('Unit Tests: PersistenceCommands - Projects', () => {
         description: null,
         icon: null,
         tags: null,
+        allowConcurrency: null,
       });
     });
 
@@ -59,12 +60,15 @@ describe('Unit Tests: PersistenceCommands - Projects', () => {
 
       // Assert
       expect(mockInvoke).toHaveBeenCalledWith('update_project', {
-        projectId: 'p1',
-        name: 'New Name',
-        color: '#00ff00',
-        description: null,
-        icon: null,
-        tags: null,
+        input: {
+          projectId: 'p1',
+          name: 'New Name',
+          color: '#00ff00',
+          description: null,
+          icon: null,
+          tags: null,
+          allowConcurrency: null,
+        },
       });
       expect(mockInvoke).toHaveBeenCalledWith('rename_project', {
         projectId: 'p1',

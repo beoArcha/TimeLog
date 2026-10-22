@@ -14,6 +14,7 @@ export const aProject = (overrides?: Partial<Project>): Project => ({
   description: undefined,
   icon: undefined,
   tags: undefined,
+  allowConcurrency: false,
   ...overrides,
 });
 

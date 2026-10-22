@@ -30,6 +30,7 @@ describe('TauriProjectsPersistence', () => {
       description: 'Test description',
       icon: 'folder',
       tags: ['tag1'],
+      allowConcurrency: null,
     });
   });
 
@@ -60,12 +61,15 @@ describe('TauriProjectsPersistence', () => {
 
     // Assert
     expect(mockInvoke).toHaveBeenCalledWith('update_project', {
-      projectId: 'proj-123',
-      name: 'Updated Project',
-      color: '#00ff00',
-      description: 'Updated desc',
-      icon: 'star',
-      tags: ['new-tag'],
+      input: {
+        projectId: 'proj-123',
+        name: 'Updated Project',
+        color: '#00ff00',
+        description: 'Updated desc',
+        icon: 'star',
+        tags: ['new-tag'],
+        allowConcurrency: null,
+      },
     });
   });
 

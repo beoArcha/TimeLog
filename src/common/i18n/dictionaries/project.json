@@ -37,7 +37,11 @@
     "TemplateLearningName": "Learning & Research",
     "TemplateLearningDesc": "Documentation study, skill practice and courses",
     "TemplateCreativeName": "Content & Design",
-    "TemplateCreativeDesc": "Writing articles, media design and publishing"
+    "TemplateCreativeDesc": "Writing articles, media design and publishing",
+    "AllowConcurrency": "Allow Concurrent Tracking",
+    "AllowConcurrencyDesc": "Allow timers in this project to run in parallel with other projects",
+    "AllowConcurrencyDefault": "Default to concurrent tracking for new projects",
+    "ConcurrencyBadge": "Concurrent"
   },
   "pl": {
     "NewProject": "Nowy Projekt",
@@ -77,7 +81,11 @@
     "TemplateLearningName": "Nauka i Badania",
     "TemplateLearningDesc": "Studiowanie dokumentacji, ćwiczenie umiejętności i kursy",
     "TemplateCreativeName": "Treści i Design",
-    "TemplateCreativeDesc": "Pisanie artykułów, tworzenie multimediów i publikacja"
+    "TemplateCreativeDesc": "Pisanie artykułów, tworzenie multimediów i publikacja",
+    "AllowConcurrency": "Zezwól na współbieżny pomiar",
+    "AllowConcurrencyDesc": "Zezwalaj na równoległe działanie stoperów z innymi projektami",
+    "AllowConcurrencyDefault": "Domyślnie włączaj współbieżność dla nowych projektów",
+    "ConcurrencyBadge": "Współbieżny"
   },
   "de": {
     "NewProject": "Neues Projekt",
@@ -117,7 +125,11 @@
     "TemplateLearningName": "Lernen & Forschung",
     "TemplateLearningDesc": "Dokumentationsstudium, Übungen und Kurse",
     "TemplateCreativeName": "Inhalt & Design",
-    "TemplateCreativeDesc": "Artikel schreiben, Mediendesign und Veröffentlichung"
+    "TemplateCreativeDesc": "Artikel schreiben, Mediendesign und Veröffentlichung",
+    "AllowConcurrency": "Parallele Zeiterfassung erlauben",
+    "AllowConcurrencyDesc": "Timer in diesem Projekt parallel zu anderen Projekten laufen lassen",
+    "AllowConcurrencyDefault": "Standardmäßig parallele Zeiterfassung für neue Projekte aktivieren",
+    "ConcurrencyBadge": "Parallel"
   },
   "es": {
     "NewProject": "Nuevo Proyecto",
@@ -157,7 +169,11 @@
     "TemplateLearningName": "Aprendizaje e Investigación",
     "TemplateLearningDesc": "Estudio de documentación, práctica de habilidades y cursos",
     "TemplateCreativeName": "Contenido y Diseño",
-    "TemplateCreativeDesc": "Redacción de artículos, diseño de medios y publicación"
+    "TemplateCreativeDesc": "Redacción de artículos, diseño de medios y publicación",
+    "AllowConcurrency": "Permitir seguimiento concurrente",
+    "AllowConcurrencyDesc": "Permitir que los temporizadores funcionen en paralelo con otros proyectos",
+    "AllowConcurrencyDefault": "Predeterminar seguimiento concurrente para nuevos proyectos",
+    "ConcurrencyBadge": "Concurrente"
   },
   "fr": {
     "NewProject": "Nouveau Projet",
@@ -197,7 +213,11 @@
     "TemplateLearningName": "Apprentissage & Recherche",
     "TemplateLearningDesc": "Étude de la documentation, pratique des compétences et cours",
     "TemplateCreativeName": "Contenu & Design",
-    "TemplateCreativeDesc": "Rédaction d'articles, conception de médias et publication"
+    "TemplateCreativeDesc": "Rédaction d'articles, conception de médias et publication",
+    "AllowConcurrency": "Autoriser le suivi simultané",
+    "AllowConcurrencyDesc": "Permettre aux minuteurs de ce projet de fonctionner en parallèle avec d'autres",
+    "AllowConcurrencyDefault": "Activer le suivi simultané par défaut pour les nouveaux projets",
+    "ConcurrencyBadge": "Simultané"
   },
   "pt-br": {
     "NewProject": "Novo Projeto",
@@ -237,6 +257,10 @@
     "TemplateLearningName": "Aprendizado & Pesquisa",
     "TemplateLearningDesc": "Estudo de documentação, prática de habilidades e cursos",
     "TemplateCreativeName": "Conteúdo & Design",
-    "TemplateCreativeDesc": "Redação de artigos, design de mídia e publicação"
+    "TemplateCreativeDesc": "Redação de artigos, design de mídia e publicação",
+    "AllowConcurrency": "Permitir rastreamento simultâneo",
+    "AllowConcurrencyDesc": "Permitir que os cronômetros funcionem em paralelo com outros projetos",
+    "AllowConcurrencyDefault": "Definir rastreamento simultâneo como padrão para novos projetos",
+    "ConcurrencyBadge": "Simultâneo"
   }
 }

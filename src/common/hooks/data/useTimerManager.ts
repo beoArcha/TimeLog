@@ -49,6 +49,7 @@ export const useTimerManager = ({
       if (nextState) {
         repositoryState.setLogsState(nextState.logs);
         repositoryState.setActiveLogState(nextState.activeLog);
+        repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
         await refreshComputedMetrics();
         notifyActiveLogChanges(prevLogs, nextState.logs);
       }
@@ -64,6 +65,7 @@ export const useTimerManager = ({
       if (nextState) {
         repositoryState.setLogsState(nextState.logs);
         repositoryState.setActiveLogState(nextState.activeLog);
+        repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
         await refreshComputedMetrics();
         notifyActiveLogChanges(prevLogs, nextState.logs);
       }
@@ -86,6 +88,7 @@ export const useTimerManager = ({
         if (nextState) {
           repositoryState.setLogsState(nextState.logs);
           repositoryState.setActiveLogState(nextState.activeLog);
+          repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
           await refreshComputedMetrics();
         }
       },

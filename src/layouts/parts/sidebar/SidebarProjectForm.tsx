@@ -6,7 +6,11 @@ import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
+import { Switch } from '@components/ui/switch';
+import { Label } from '@components/ui/label';
+import { Caption } from '@components/ui/typography';
 import { VStack, HStack, InlineCluster } from '@components/ui/stack';
+import { useSettingsSafe } from '@common/hooks/SettingsContext';
 
 export interface SidebarProjectFormProps {
   onAddProject: (
@@ -14,7 +18,8 @@ export interface SidebarProjectFormProps {
     color: string,
     description: string | null,
     icon: string | null,
-    tags: string[] | null
+    tags: string[] | null,
+    allowConcurrency?: boolean | null
   ) => void;
   isLoading?: boolean;
   locale: Locale;
@@ -35,12 +40,16 @@ export function SidebarProjectForm({
   onNameChange,
   onColorChange,
 }: SidebarProjectFormProps) {
+  const settings = useSettingsSafe();
+  const defaultConcurrency = settings?.defaultProjectConcurrency ?? false;
   const [name, setNameLocal] = React.useState(initialName);
   const [color, setColorLocal] = React.useState(initialColor);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [description, setDescription] = React.useState('');
   const [icon, setIcon] = React.useState('');
   const [tags, setTags] = React.useState('');
+  const [allowConcurrencyOverride, setAllowConcurrencyOverride] = React.useState<boolean | null>(null);
+  const allowConcurrency = allowConcurrencyOverride ?? defaultConcurrency;
 
   const handleNameChange = (val: string) => {
     setNameLocal(val);
@@ -63,13 +72,15 @@ export function SidebarProjectForm({
       color,
       description.trim() || null,
       icon.trim() || null,
-      tagsArr.length > 0 ? tagsArr : null
+      tagsArr.length > 0 ? tagsArr : null,
+      allowConcurrency
     );
 
     handleNameChange('');
     setDescription('');
     setIcon('');
     setTags('');
+    setAllowConcurrencyOverride(null);
     setShowAdvanced(false);
   };
 
@@ -126,6 +137,21 @@ export function SidebarProjectForm({
               onChange={e => setDescription(e.target.value)}
               className="w-full px-2 py-1 text-xs min-h-[40px] h-10 resize-none"
             />
+            <HStack justify="between" align="center" className="w-full pt-1">
+              <VStack gap="none">
+                <Label htmlFor="new-project-concurrency" className="text-xs font-medium cursor-pointer">
+                  {translate(locale, 'project', 'AllowConcurrency', customTranslations)}
+                </Label>
+                <Caption size="xs" variant="muted">
+                  {translate(locale, 'project', 'AllowConcurrencyDesc', customTranslations)}
+                </Caption>
+              </VStack>
+              <Switch
+                id="new-project-concurrency"
+                checked={allowConcurrency}
+                onCheckedChange={setAllowConcurrencyOverride}
+              />
+            </HStack>
           </VStack>
         )}
 

@@ -12,3 +12,7 @@ export const useSettings = (): SettingsState => {
   if (!ctx) throw new ContextException('useSettings must be used within SettingsProvider', 'ERR_SETTINGS_CONTEXT');
   return ctx;
 };
+
+export const useSettingsSafe = (): SettingsState | null => {
+  return useContext(SettingsContext) ?? null;
+};

@@ -3,4 +3,4 @@ import type { Project } from "./Project";
 import type { Task } from "./Task";
 import type { TimeLog } from "./TimeLog";
 
-export type TimerRepositoryState = { projects: Array<Project>, tasks: Array<Task>, logs: Array<TimeLog>, activeLog: TimeLog | null, };
+export type TimerRepositoryState = { projects: Array<Project>, tasks: Array<Task>, logs: Array<TimeLog>, activeLog: TimeLog | null, activeLogs?: Array<TimeLog>, };

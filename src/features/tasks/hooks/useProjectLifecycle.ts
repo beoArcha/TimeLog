@@ -14,7 +14,8 @@ export interface UseProjectLifecycleProps {
     color: string,
     description?: string | null,
     icon?: string | null,
-    tags?: string[] | null
+    tags?: string[] | null,
+    allowConcurrency?: boolean | null
   ) => void;
   onUpdateProject?: (
     id: string,
@@ -22,7 +23,8 @@ export interface UseProjectLifecycleProps {
     color: string,
     description: string | null,
     icon: string | null,
-    tags: string[] | null
+    tags: string[] | null,
+    allowConcurrency?: boolean | null
   ) => void;
   onRenameProject?: (id: string, newName: string) => void;
   onToggleProjectArchive?: (id: string) => void;

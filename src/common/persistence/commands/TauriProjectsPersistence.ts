@@ -12,6 +12,7 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
     description?: string | null;
     icon?: string | null;
     tags?: string[] | null;
+    allowConcurrency?: boolean | null;
   }): Promise<TimerRepositoryState> {
     const cmd: ProjectsPersistenceCommand = 'add';
     return invoke<TimerRepositoryState>(cmd, {
@@ -20,6 +21,7 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
       description: input.description ?? null,
       icon: input.icon ?? null,
       tags: input.tags ?? null,
+      allowConcurrency: input.allowConcurrency ?? null,
     });
   }
 
@@ -34,16 +36,20 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
     color: string,
     description: string | null,
     icon: string | null,
-    tags: string[] | null
+    tags: string[] | null,
+    allowConcurrency?: boolean | null
   ): Promise<TimerRepositoryState> {
     const cmd: ProjectsPersistenceCommand = 'update_project';
     return invoke<TimerRepositoryState>(cmd, {
-      projectId,
-      name,
-      color,
-      description,
-      icon,
-      tags,
+      input: {
+        projectId,
+        name,
+        color,
+        description,
+        icon,
+        tags,
+        allowConcurrency: allowConcurrency ?? null,
+      },
     });
   }
 

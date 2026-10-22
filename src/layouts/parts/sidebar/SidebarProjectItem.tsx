@@ -126,9 +126,14 @@ export function SidebarProjectItem({
             </Caption>
           )}
 
-          {project.tags && project.tags.length > 0 && (
+          {(project.allowConcurrency || (project.tags && project.tags.length > 0)) && (
             <InlineCluster gap="xs" className="mt-1">
-              {project.tags.map(t => (
+              {project.allowConcurrency && (
+                <Badge variant="outline" size="xs" as="span" className="font-sans leading-none text-emerald-500 border-emerald-500/30">
+                  {translate(locale, 'project', 'ConcurrencyBadge', customTranslations)}
+                </Badge>
+              )}
+              {project.tags && project.tags.map(t => (
                 <Badge key={t} variant="orange" size="xs" as="span" className="font-sans leading-none">
                   {t}
                 </Badge>

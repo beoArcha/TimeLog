@@ -22,6 +22,8 @@ export default function EngineConfig() {
     setAlwaysOnTopMain,
     sysSettings,
     setSysSettings,
+    defaultProjectConcurrency,
+    setDefaultProjectConcurrency,
   } = useSettings();
 
   const updateSetting = (key: keyof typeof sysSettings, value: boolean) => {
@@ -47,9 +49,9 @@ export default function EngineConfig() {
               checked={sysSettings?.autoStart}
               onCheckedChange={(checked) => updateSetting('autoStart', !!checked)}
             />
-            <span className="text-xs font-semibold text-foreground">
+            <Caption as="span" size="xs">
               {translate(locale, 'engine', 'AutoStart', customTranslations)}
-            </span>
+            </Caption>
           </Label>
 
           <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
@@ -57,9 +59,19 @@ export default function EngineConfig() {
               checked={sysSettings?.includePatchesInReports}
               onCheckedChange={(checked) => updateSetting('includePatchesInReports', !!checked)}
             />
-            <span className="text-xs font-semibold text-foreground">
+            <Caption as="span" size="xs">
               {translate(locale, 'engine', 'IncludePatchesInReports', customTranslations)}
-            </span>
+            </Caption>
+          </Label>
+
+          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+            <Checkbox
+              checked={defaultProjectConcurrency}
+              onCheckedChange={(checked) => setDefaultProjectConcurrency(!!checked)}
+            />
+            <Caption as="span" size="xs">
+              {translate(locale, 'project', 'AllowConcurrencyDefault', customTranslations)}
+            </Caption>
           </Label>
 
           <Label className="flex items-center gap-2 cursor-pointer w-fit mt-2 border-t border-border pt-4 font-normal">
@@ -67,9 +79,9 @@ export default function EngineConfig() {
               checked={minimizeToTray}
               onCheckedChange={(checked) => setMinimizeToTray(!!checked)}
             />
-            <span className="text-xs font-semibold text-foreground">
+            <Caption as="span" size="xs">
               {translate(locale, 'engine', 'MinimizeToTrayDefault', customTranslations)}
-            </span>
+            </Caption>
           </Label>
 
           <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
@@ -77,9 +89,9 @@ export default function EngineConfig() {
               checked={alwaysOnTopSmall}
               onCheckedChange={(checked) => setAlwaysOnTopSmall(!!checked)}
             />
-            <span className="text-xs font-semibold text-foreground">
+            <Caption as="span" size="xs">
               {translate(locale, 'engine', 'AlwaysOnTopSmall', customTranslations)}
-            </span>
+            </Caption>
           </Label>
 
           <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
@@ -87,9 +99,9 @@ export default function EngineConfig() {
               checked={alwaysOnTopMain}
               onCheckedChange={(checked) => setAlwaysOnTopMain(!!checked)}
             />
-            <span className="text-xs font-semibold text-foreground">
+            <Caption as="span" size="xs">
               {translate(locale, 'engine', 'AlwaysOnTopMain', customTranslations)}
-            </span>
+            </Caption>
           </Label>
         </div>
       </div>

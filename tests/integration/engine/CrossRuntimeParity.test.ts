@@ -330,4 +330,51 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       });
     });
   });
+
+  describe('Given projects with different concurrency configurations in Browser runtime', () => {
+    it('Then it should enforce concurrency rules identically to Rust reference engine', async () => {
+      // Given
+      const persistence = new PersistencePlugin();
+      PersistenceRouter.getInstance().setImplementationForTesting(persistence);
+      const engine = new EnginePlugin();
+
+      await persistence.projects.add({ name: 'NonConcurrent1', color: 'blue', allowConcurrency: false });
+      await persistence.projects.add({ name: 'Concurrent', color: 'green', allowConcurrency: true });
+      await persistence.projects.add({ name: 'NonConcurrent2', color: 'red', allowConcurrency: false });
+
+      const state = await persistence.core.load();
+      const p1 = state!.projects.find((p) => p.name === 'NonConcurrent1')!;
+      const pConc = state!.projects.find((p) => p.name === 'Concurrent')!;
+      const p2 = state!.projects.find((p) => p.name === 'NonConcurrent2')!;
+
+      await persistence.tasks.add({ projectId: p1.id, name: 'Task1', parentTaskId: null });
+      await persistence.tasks.add({ projectId: pConc.id, name: 'TaskConc', parentTaskId: null });
+      await persistence.tasks.add({ projectId: p2.id, name: 'Task2', parentTaskId: null });
+
+      const tasksState = await persistence.core.load();
+      const t1 = tasksState!.tasks.find((t) => t.name === 'Task1')!;
+      const tConc = tasksState!.tasks.find((t) => t.name === 'TaskConc')!;
+      const t2 = tasksState!.tasks.find((t) => t.name === 'Task2')!;
+
+      // When
+      await engine.timer.startTimer(t1.id);
+      await engine.timer.startTimer(tConc.id);
+
+      // Then
+      let active = await engine.timer.getActiveLogs();
+      expect(active).toHaveLength(2);
+      expect(active).toContain(t1.id);
+      expect(active).toContain(tConc.id);
+
+      // When
+      await engine.timer.startTimer(t2.id);
+
+      // Then
+      active = await engine.timer.getActiveLogs();
+      expect(active).toHaveLength(2);
+      expect(active).toContain(tConc.id);
+      expect(active).toContain(t2.id);
+      expect(active).not.toContain(t1.id);
+    });
+  });
 });

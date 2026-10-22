@@ -23,7 +23,8 @@ export interface LayoutCommonProps {
     color: string,
     description?: string | null,
     icon?: string | null,
-    tags?: string[] | null
+    tags?: string[] | null,
+    allowConcurrency?: boolean | null
   ) => void;
   onAddTask: (projectId: string, name: string, parentTaskId: string | null) => void;
   onRenameProject?: (projectId: string, newName: string) => void;
@@ -34,7 +35,8 @@ export interface LayoutCommonProps {
     color: string,
     description: string | null,
     icon: string | null,
-    tags: string[] | null
+    tags: string[] | null,
+    allowConcurrency?: boolean | null
   ) => void;
   onUpdateTask?: (
     taskId: string,
