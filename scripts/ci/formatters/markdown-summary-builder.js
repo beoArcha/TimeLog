@@ -33,7 +33,7 @@ export function getStatusBadge(pct) {
 }
 
 /**
- * Builds the GitLab-style test results and code coverage Markdown report.
+ * Builds the test results and code coverage Markdown report.
  *
  * @param {import('../types.js').TestExecutionSummary} testResults Test summary data.
  * @param {import('../types.js').LayerCoverageReport | null} frontendCov Frontend coverage data.
@@ -45,7 +45,7 @@ export function buildMarkdownSummary(testResults, frontendCov, rustCov, timestam
   const parts = [];
 
   parts.push(SUMMARY_MARKER);
-  parts.push('## 🧪 Test & Code Coverage Summary (GitLab Style)');
+  parts.push('## 🧪 Test & Code Coverage Summary');
   parts.push('');
 
   const durationSec = (testResults.durationMs / 1000).toFixed(2);
@@ -89,7 +89,7 @@ export function buildMarkdownSummary(testResults, frontendCov, rustCov, timestam
       const b = frontendCov.total.branches?.pct;
       const f = frontendCov.total.functions?.pct;
       parts.push(
-        `| **Frontend (TypeScript / React)** | ${formatPct(l)} | ${formatPct(s)} | ` +
+        `| **Frontend** | ${formatPct(l)} | ${formatPct(s)} | ` +
         `${formatPct(b)} | ${formatPct(f)} | ${getStatusBadge(l)} |`
       );
 
@@ -104,7 +104,7 @@ export function buildMarkdownSummary(testResults, frontendCov, rustCov, timestam
     if (rustCov) {
       const rl = rustCov.linesPct;
       parts.push(
-        `| **Backend Engine (Rust / SQLite)** | ${formatPct(rl)} | ${formatPct(rl)} | — | — | ${getStatusBadge(rl)} |`
+        `| **Backend Engine** | ${formatPct(rl)} | ${formatPct(rl)} | — | — | ${getStatusBadge(rl)} |`
       );
 
       if (rustCov.breakdown && rustCov.breakdown.length > 0) {

@@ -189,7 +189,7 @@ jobs:
           fail-under: "40"
 
   # ──────────────────────────────────────────────
-  # Test & Coverage Reports (GitLab Style)
+  # Test & Coverage Reports
   # ──────────────────────────────────────────────
   reports:
     name: Test & Coverage Reports
