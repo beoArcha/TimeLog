@@ -3,60 +3,18 @@ use chrono::Utc;
 
 static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
-fn should_close_other_project(
-    persistence: &crate::persistence::Persistence,
-    active_task_id: &str,
-    current_proj_id: &str,
-) -> Result<Option<String>, EngineError> {
-    let other_proj_id = match persistence.tasks.get_project_id(active_task_id) {
-        Ok(id) if id != current_proj_id => id,
-        _ => return Ok(None),
-    };
-    let other_proj = persistence.projects.get(&other_proj_id)?;
-    let allows_concurrency = other_proj
-        .and_then(|p| p.allow_concurrency)
-        .unwrap_or(false);
-    if allows_concurrency {
-        Ok(None)
-    } else {
-        Ok(Some(other_proj_id))
-    }
-}
-
 impl<'a> Engine<'a> {
     pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
-        let proj_id = self.persistence.tasks.get_project_id(task_id)?;
-
         let now = Utc::now().to_rfc3339();
-        self.persistence
-            .time_logs
-            .close_active_by_project(&now, &proj_id)?;
-
-        let current_proj = self.persistence.projects.get(&proj_id)?;
-        let allows_concurrency = current_proj
-            .and_then(|p| p.allow_concurrency)
-            .unwrap_or(false);
-
-        if !allows_concurrency {
-            let active_tasks = self.persistence.time_logs.query_active()?;
-            for active_task in active_tasks {
-                if let Ok(Some(other_proj_id)) =
-                    should_close_other_project(self.persistence, &active_task, &proj_id)
-                {
-                    self.persistence
-                        .time_logs
-                        .close_active_by_project(&now, &other_proj_id)?;
-                }
-            }
-        }
-
         let log_id = format!(
             "log_{}_{}",
             Utc::now().timestamp_millis(),
             LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
         );
 
-        self.persistence.time_logs.insert(&log_id, task_id, &now)?;
+        self.persistence
+            .time_logs
+            .start_active(&now, &log_id, task_id, &now)?;
         Ok(())
     }
 

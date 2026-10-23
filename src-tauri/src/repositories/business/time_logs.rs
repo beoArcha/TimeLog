@@ -158,6 +158,50 @@ impl BusinessRepository {
         Ok(conn.execute(constants::DELETE_TIME_LOG_BY_ID, params![id])?)
     }
 
+    pub fn start_active_log(
+        &self,
+        end_time: &str,
+        log_id: &str,
+        task_id: &str,
+        start_time: &str,
+    ) -> Result<()> {
+        let mut conn = self.connect()?;
+        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+
+        let (project_id, allow_concurrency_int): (String, Option<i32>) = {
+            let mut stmt = tx.prepare(constants::SELECT_TASK_PROJECT_CONCURRENCY)?;
+            stmt.query_row(params![task_id], |row| Ok((row.get(0)?, row.get(1)?)))
+                .map_err(|err| match err {
+                    rusqlite::Error::QueryReturnedNoRows => RepositoryError::NotFound {
+                        entity: "Task",
+                        id: task_id.to_string(),
+                    },
+                    other => RepositoryError::Database(other),
+                })?
+        };
+
+        tx.execute(
+            constants::CLOSE_ACTIVE_LOGS_BY_PROJECT,
+            params![end_time, project_id],
+        )?;
+
+        let allows_concurrency = allow_concurrency_int.map(|v| v == 1).unwrap_or(false);
+        if !allows_concurrency {
+            tx.execute(
+                constants::CLOSE_ACTIVE_LOGS_NON_CONCURRENT,
+                params![end_time],
+            )?;
+        }
+
+        tx.execute(
+            constants::INSERT_TIME_LOG,
+            params![log_id, task_id, start_time],
+        )?;
+
+        tx.commit()?;
+        Ok(())
+    }
+
     pub fn switch_active_logs(
         &self,
         end_time: &str,
@@ -166,7 +210,7 @@ impl BusinessRepository {
         start_time: &str,
     ) -> Result<()> {
         let mut conn = self.connect()?;
-        let tx = conn.transaction()?;
+        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
 
         tx.execute(constants::CLOSE_ALL_ACTIVE_LOGS, params![end_time])?;
         tx.execute(

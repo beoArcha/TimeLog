@@ -141,11 +141,30 @@ pub const SELECT_PROJECT_ID_BY_TASK_ID: &str = "
     SELECT project_id FROM tasks WHERE id = ? LIMIT 1
 ";
 
+pub const SELECT_TASK_PROJECT_CONCURRENCY: &str = "
+    SELECT t.project_id, p.allow_concurrency 
+    FROM tasks t 
+    JOIN projects p ON t.project_id = p.id 
+    WHERE t.id = ?1
+";
+
 pub const CLOSE_ACTIVE_LOGS_BY_PROJECT: &str = "
     UPDATE time_logs 
     SET end_time = ? 
     WHERE end_time IS NULL 
     AND task_id IN (SELECT id FROM tasks WHERE project_id = ?)
+";
+
+pub const CLOSE_ACTIVE_LOGS_NON_CONCURRENT: &str = "
+    UPDATE time_logs 
+    SET end_time = ?1 
+    WHERE end_time IS NULL 
+    AND task_id IN (
+        SELECT t.id 
+        FROM tasks t 
+        JOIN projects p ON t.project_id = p.id 
+        WHERE p.allow_concurrency IS NULL OR p.allow_concurrency = 0
+    )
 ";
 
 pub const CLOSE_ALL_ACTIVE_LOGS: &str = "
