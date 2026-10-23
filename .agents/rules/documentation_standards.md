@@ -12,7 +12,8 @@ All documentation belongs to one of four clear tiers:
 | :--- | :--- | :--- | :--- |
 | **Analytical Artifacts** | Artifact dir / root | Discovery, root cause analysis, flow mapping, evidence gathering | Source of truth for planning; strictly factual and code-backed. |
 | **Implementation Plans** | Artifact dir | Step-by-step phased execution plans, task registers, test strategies | Planning stage only; strictly NO code/test modifications during planning. |
-| **Manifesto Specifications** | `docs/manifesto/` | Canonical system specifications (`ENGINEERING.md`, `CLI.md`, etc.) | Describes what the code does NOW; planned features explicitly marked. |
+| **Manifesto Specifications** | `docs/manifesto/` | Canonical system specifications (`ENGINEERING.md`, `CLI.md`, etc.) and roadmap (`MASTERMAP.md`) | Describes what the code does NOW; `MASTERMAP.md` is the high-level roadmap/plan, NOT a changelog. |
+| **Release Changelog** | `CHANGELOG.md` | User-facing release notes adhering to Keep a Changelog & SemVer | Historical record of delivered features, fixes, and changes per version; never contains roadmap plans. |
 | **Public Wiki** | `docs/wiki/` | Multilingual user guide (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) for GitHub Pages | User perspective; synchronized across all 6 locales; Docsify-compliant. |
 
 ---
@@ -100,9 +101,12 @@ Every implementation or refactoring plan must include:
 1. **Current Reality, Not Aspirations**:
    - Manifesto documents (`ENGINEERING.md`, `MASTERMAP.md`, `CLI.md`, `USERINTERFACE.md`, `USEREXPERIENCE.md`, `USER_GUIDE.md`, `INSTALLATION.md`) describe the system as it runs today.
    - Future or unmerged features must be explicitly marked as `[PLANNED]` or `[PROPOSED]`.
-2. **Synchronous Updates**:
+2. **Mastermap vs Changelog Invariant**:
+   - `docs/manifesto/MASTERMAP.md` is strictly an architecture and product roadmap tracking macro-phases, architectural vision, and high-level milestones. It is NEVER a changelog.
+   - All release notes, bug fixes, feature additions, and behavioral changes must be recorded in `CHANGELOG.md` in standard Keep a Changelog format (`Added`, `Changed`, `Fixed`, `Removed`). Never dump commit logs or micro-fixes into `MASTERMAP.md`.
+3. **Synchronous Updates**:
    - Whenever a change touches contracts, exit codes, architecture layers, CLI flags, or roadmap status, update the corresponding manifesto document in the **same commit**.
-3. **Hierarchy of Truth**:
+4. **Hierarchy of Truth**:
    - In case of discrepancy: `AGENTS.md` → `.agents/rules/*` → `docs/manifesto/*` → other docs. Never resolve contradictions silently; report them to the user.
 
 ---
