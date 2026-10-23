@@ -7,8 +7,16 @@ use rusqlite::params;
 impl BusinessRepository {
     pub fn create_project(&self, project: &Project) -> Result<()> {
         let conn = self.connect()?;
-        let edit_history_str = serde_json::to_string(&project.edit_history).ok();
-        let tags_str = serde_json::to_string(&project.tags).ok();
+        let edit_history_str = project
+            .edit_history
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
+        let tags_str = project
+            .tags
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
         conn.execute(
             constants::INSERT_PROJECT,
             params![
@@ -31,8 +39,16 @@ impl BusinessRepository {
 
     pub fn patch_project(&self, project: &Project) -> Result<()> {
         let conn = self.connect()?;
-        let edit_history_str = serde_json::to_string(&project.edit_history).ok();
-        let tags_str = serde_json::to_string(&project.tags).ok();
+        let edit_history_str = project
+            .edit_history
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
+        let tags_str = project
+            .tags
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
         conn.execute(
             constants::UPDATE_PROJECT,
             params![
@@ -61,10 +77,11 @@ impl BusinessRepository {
     fn map_project_row(row: &rusqlite::Row) -> rusqlite::Result<Project> {
         let edit_history_str: Option<String> = row.get(7)?;
         let edit_history: Option<Vec<ProjectEditHistory>> =
-            edit_history_str.and_then(|s| serde_json::from_str(&s).ok());
+            crate::repositories::shared::parse_json_column(7, edit_history_str)?;
         let archived_int: i32 = row.get(4)?;
         let tags_str: Option<String> = row.get(10)?;
-        let tags: Option<Vec<String>> = tags_str.and_then(|s| serde_json::from_str(&s).ok());
+        let tags: Option<Vec<String>> =
+            crate::repositories::shared::parse_json_column(10, tags_str)?;
         let allow_concurrency_int: Option<i32> = row.get(11)?;
 
         Ok(Project {

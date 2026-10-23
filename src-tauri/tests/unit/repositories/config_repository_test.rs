@@ -59,7 +59,8 @@ fn test_config_repository_retains_valid_keys() {
 }
 
 #[test]
-fn test_config_repository_self_healing_corrupted_keys() {
+fn test_config_repository_fails_on_corrupted_keys() {
+    // Arrange
     let db_path = std::env::temp_dir().join("test_config_corrupted.db");
     if db_path.exists() {
         let _ = std::fs::remove_file(&db_path);
@@ -76,10 +77,14 @@ fn test_config_repository_self_healing_corrupted_keys() {
         .unwrap();
     }
 
-    let config = repo
-        .get_config()
-        .expect("get_config should self-heal corrupted key");
-    assert!(!config.auto_start);
+    // Act
+    let result = repo.get_config();
+
+    // Assert
+    assert!(
+        result.is_err(),
+        "get_config must fail on corrupted boolean key instead of overwriting"
+    );
 
     let _ = std::fs::remove_file(&db_path);
 }

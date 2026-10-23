@@ -19,6 +19,24 @@ pub fn establish_connection(db_path: &Path) -> Result<Connection> {
     Ok(conn)
 }
 
+pub(crate) fn parse_json_column<T: serde::de::DeserializeOwned>(
+    col_idx: usize,
+    raw_opt: Option<String>,
+) -> rusqlite::Result<Option<T>> {
+    match raw_opt {
+        None => Ok(None),
+        Some(s) if s.trim().is_empty() || s.trim() == "null" => Ok(None),
+        Some(s) => match serde_json::from_str::<T>(&s) {
+            Ok(val) => Ok(Some(val)),
+            Err(err) => Err(rusqlite::Error::FromSqlConversionFailure(
+                col_idx,
+                rusqlite::types::Type::Text,
+                Box::new(err),
+            )),
+        },
+    }
+}
+
 fn has_column(conn: &Connection, table: &str, column: &str) -> Result<bool> {
     let pragma_sql = format!("PRAGMA table_info({table})");
     let mut stmt = conn.prepare(&pragma_sql)?;

@@ -193,6 +193,24 @@ pub const SELECT_ALL_PROJECTS: &str = "
 ";
 
 pub const DELETE_ALL_PROJECTS: &str = "DELETE FROM projects";
+pub const DELETE_PROJECT_BY_ID: &str = "DELETE FROM projects WHERE id = ?1";
+pub const SELECT_ALL_PROJECT_IDS: &str = "SELECT id FROM projects";
+pub const UPSERT_PROJECT: &str = "
+    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+    ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        color = excluded.color,
+        created_at = excluded.created_at,
+        archived = excluded.archived,
+        original_name = excluded.original_name,
+        original_color = excluded.original_color,
+        edit_history = excluded.edit_history,
+        description = excluded.description,
+        icon = excluded.icon,
+        tags = excluded.tags,
+        allow_concurrency = excluded.allow_concurrency
+";
 
 pub const SELECT_ALL_TASKS: &str = "
     SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
@@ -200,6 +218,23 @@ pub const SELECT_ALL_TASKS: &str = "
 ";
 
 pub const DELETE_ALL_TASKS: &str = "DELETE FROM tasks";
+pub const DELETE_TASK_BY_ID: &str = "DELETE FROM tasks WHERE id = ?1";
+pub const SELECT_ALL_TASK_IDS: &str = "SELECT id FROM tasks";
+pub const UPSERT_TASK: &str = "
+    INSERT INTO tasks (id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+    ON CONFLICT(id) DO UPDATE SET
+        project_id = excluded.project_id,
+        parent_task_id = excluded.parent_task_id,
+        name = excluded.name,
+        completed = excluded.completed,
+        created_at = excluded.created_at,
+        original_name = excluded.original_name,
+        original_completed = excluded.original_completed,
+        edit_history = excluded.edit_history,
+        archived = excluded.archived,
+        status = excluded.status
+";
 
 pub const SELECT_ALL_TIME_LOGS: &str = "
     SELECT 

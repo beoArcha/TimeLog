@@ -19,9 +19,9 @@ impl BusinessRepository {
         });
 
         let edit_history_str: Option<String> = row.get(8)?;
-        let edit_history = edit_history_str
-            .and_then(|s| serde_json::from_str::<Vec<HolidayLeaveEditHistory>>(&s).ok())
-            .filter(|v| !v.is_empty());
+        let edit_history: Option<Vec<HolidayLeaveEditHistory>> =
+            crate::repositories::shared::parse_json_column(8, edit_history_str)?
+                .filter(|v: &Vec<HolidayLeaveEditHistory>| !v.is_empty());
 
         Ok(HolidayLeave {
             id: row.get(0)?,
@@ -65,7 +65,8 @@ impl BusinessRepository {
             let edit_history_str = h
                 .edit_history
                 .as_ref()
-                .and_then(|eh| serde_json::to_string(eh).ok());
+                .map(serde_json::to_string)
+                .transpose()?;
 
             tx.execute(
                 constants::INSERT_OR_REPLACE_HOLIDAY,

@@ -225,3 +225,42 @@ fn test_business_repository_debug_introspection_and_update() {
 
     let _ = std::fs::remove_file(&db_path);
 }
+
+#[test]
+fn test_business_repository_corrupted_json_fails() {
+    // Arrange
+    let db_path = std::env::temp_dir().join("test_business_repo_corrupt_json.db");
+    if db_path.exists() {
+        let _ = std::fs::remove_file(&db_path);
+    }
+    let repo = BusinessRepository::new(&db_path).unwrap();
+
+    let project = ProjectBuilder::new()
+        .with_id("p_corrupt")
+        .with_name("Corrupt Project")
+        .with_color("blue")
+        .with_created_at("2026-06-22T20:00:00Z")
+        .build();
+    repo.create_project(&project).unwrap();
+
+    // Corrupt the tags column with invalid JSON
+    {
+        let conn = rusqlite::Connection::open(&db_path).unwrap();
+        conn.execute(
+            "UPDATE projects SET tags = '{not-a-valid-json}' WHERE id = 'p_corrupt'",
+            [],
+        )
+        .unwrap();
+    }
+
+    // Act
+    let result = repo.get_project("p_corrupt");
+
+    // Assert
+    assert!(
+        result.is_err(),
+        "get_project must fail when JSON column is corrupted"
+    );
+
+    let _ = std::fs::remove_file(&db_path);
+}

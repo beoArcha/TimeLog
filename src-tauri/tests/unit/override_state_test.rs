@@ -133,3 +133,57 @@ fn test_business_repository_delete_time_log() {
 
     let _ = std::fs::remove_file(&db_path);
 }
+
+#[test]
+fn test_business_repository_override_state_partial_preserves_unspecified() {
+    // Arrange
+    let db_path = std::env::temp_dir().join("test_override_state_partial.db");
+    if db_path.exists() {
+        let _ = std::fs::remove_file(&db_path);
+    }
+
+    let repo = BusinessRepository::new(&db_path).unwrap();
+
+    let project = ProjectBuilder::new()
+        .with_id("p1")
+        .with_name("Original Project")
+        .with_color("blue")
+        .with_created_at("2026-06-22T20:00:00Z")
+        .build();
+    repo.create_project(&project).unwrap();
+
+    let task = TaskBuilder::new()
+        .with_id("t1")
+        .with_project_id("p1")
+        .with_name("Existing Task")
+        .with_created_at("2026-06-22T20:00:00Z")
+        .build();
+    repo.create_task(&task).unwrap();
+
+    repo.insert_time_log("l1", "t1", "2026-06-22T20:00:00Z")
+        .unwrap();
+
+    let updated_project = ProjectBuilder::new()
+        .with_id("p1")
+        .with_name("Updated Project Name")
+        .with_color("green")
+        .with_created_at("2026-06-22T20:00:00Z")
+        .build();
+
+    // Act: Override projects only (tasks: None, logs: None)
+    repo.override_state(Some(vec![updated_project]), None, None)
+        .unwrap();
+
+    // Assert: Tasks and logs must remain intact
+    let p = repo.get_project("p1").unwrap().unwrap();
+    assert_eq!(p.name, "Updated Project Name");
+
+    let t = repo.get_task("t1").unwrap();
+    assert!(t.is_some(), "Existing task must be preserved");
+
+    let logs = repo.get_all_time_logs().unwrap();
+    assert_eq!(logs.len(), 1, "Existing time log must be preserved");
+    assert_eq!(logs[0].id, "l1");
+
+    let _ = std::fs::remove_file(&db_path);
+}

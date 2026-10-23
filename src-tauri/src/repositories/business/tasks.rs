@@ -8,16 +8,15 @@ use rusqlite::params;
 impl BusinessRepository {
     pub fn create_task(&self, task: &Task) -> Result<()> {
         let conn = self.connect()?;
-        let edit_history_str = serde_json::to_string(&task.edit_history).ok();
-        let status_str = serde_json::to_string(
-            &task
-                .status
-                .clone()
-                .unwrap_or(crate::types::TaskStatus::Todo),
-        )
-        .unwrap_or_else(|_| "\"Todo\"".to_string())
-        .trim_matches('"')
-        .to_string();
+        let edit_history_str = task
+            .edit_history
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
+        let status_str = match &task.status {
+            Some(s) => serde_json::to_string(s)?.trim_matches('"').to_string(),
+            None => "Todo".to_string(),
+        };
         conn.execute(
             constants::INSERT_TASK,
             params![
@@ -39,16 +38,15 @@ impl BusinessRepository {
 
     pub fn patch_task(&self, task: &Task) -> Result<()> {
         let conn = self.connect()?;
-        let edit_history_str = serde_json::to_string(&task.edit_history).ok();
-        let status_str = serde_json::to_string(
-            &task
-                .status
-                .clone()
-                .unwrap_or(crate::types::TaskStatus::Todo),
-        )
-        .unwrap_or_else(|_| "\"Todo\"".to_string())
-        .trim_matches('"')
-        .to_string();
+        let edit_history_str = task
+            .edit_history
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
+        let status_str = match &task.status {
+            Some(s) => serde_json::to_string(s)?.trim_matches('"').to_string(),
+            None => "Todo".to_string(),
+        };
         conn.execute(
             constants::UPDATE_TASK,
             params![
@@ -76,13 +74,32 @@ impl BusinessRepository {
     fn map_task_row(row: &rusqlite::Row) -> rusqlite::Result<Task> {
         let edit_history_str: Option<String> = row.get(8)?;
         let edit_history: Option<Vec<TaskEditHistory>> =
-            edit_history_str.and_then(|s| serde_json::from_str(&s).ok());
+            crate::repositories::shared::parse_json_column(8, edit_history_str)?;
         let completed_int: i32 = row.get(4)?;
         let orig_comp_int: Option<i32> = row.get(7)?;
         let archived_int: i32 = row.get(9)?;
         let status_str: Option<String> = row.get(10)?;
-        let status: Option<crate::types::TaskStatus> =
-            status_str.and_then(|s| serde_json::from_str(&format!("\"{}\"", s)).ok());
+        let status: Option<crate::types::TaskStatus> = match status_str {
+            None => None,
+            Some(s) if s.trim().is_empty() || s.trim() == "null" => None,
+            Some(s) => {
+                let quoted = if s.starts_with('"') {
+                    s
+                } else {
+                    format!("\"{}\"", s)
+                };
+                match serde_json::from_str::<crate::types::TaskStatus>(&quoted) {
+                    Ok(st) => Some(st),
+                    Err(err) => {
+                        return Err(rusqlite::Error::FromSqlConversionFailure(
+                            10,
+                            rusqlite::types::Type::Text,
+                            Box::new(err),
+                        ));
+                    }
+                }
+            }
+        };
 
         Ok(Task {
             id: row.get(0)?,

@@ -21,16 +21,21 @@ impl ConfigRepository {
         Ok(())
     }
 
+    fn parse_bool_value(key: &str, raw: &str) -> Result<bool> {
+        raw.parse::<bool>().map_err(|_| {
+            crate::repositories::shared::errors::RepositoryError::Validation(format!(
+                "Invalid boolean value for key '{key}': {raw}"
+            ))
+        })
+    }
+
     pub fn get_config(&self) -> Result<Settings> {
         let conn = self.connect()?;
         let mut keys_changed = false;
         let default_settings = Settings::default();
 
         let auto_start = match self.get_value(&conn, "auto_start")? {
-            Some(v) => v.parse::<bool>().unwrap_or_else(|_| {
-                keys_changed = true;
-                default_settings.auto_start
-            }),
+            Some(v) => Self::parse_bool_value("auto_start", &v)?,
             None => {
                 keys_changed = true;
                 default_settings.auto_start
@@ -39,10 +44,7 @@ impl ConfigRepository {
 
         let include_patches_in_reports =
             match self.get_value(&conn, "include_patches_in_reports")? {
-                Some(v) => v.parse::<bool>().unwrap_or_else(|_| {
-                    keys_changed = true;
-                    default_settings.include_patches_in_reports
-                }),
+                Some(v) => Self::parse_bool_value("include_patches_in_reports", &v)?,
                 None => {
                     keys_changed = true;
                     default_settings.include_patches_in_reports
@@ -50,10 +52,7 @@ impl ConfigRepository {
             };
 
         let active_sinks = match self.get_value(&conn, "active_sinks")? {
-            Some(v) => serde_json::from_str::<Vec<SinkType>>(&v).unwrap_or_else(|_| {
-                keys_changed = true;
-                default_settings.active_sinks.clone()
-            }),
+            Some(v) => serde_json::from_str::<Vec<SinkType>>(&v)?,
             None => {
                 keys_changed = true;
                 default_settings.active_sinks.clone()
@@ -65,15 +64,15 @@ impl ConfigRepository {
         let gui_variant = self.get_value(&conn, "gui_variant")?;
 
         let always_on_top_small = match self.get_value(&conn, "always_on_top_small")? {
-            Some(v) => v.parse::<bool>().ok(),
+            Some(v) => Some(Self::parse_bool_value("always_on_top_small", &v)?),
             None => None,
         };
         let always_on_top_main = match self.get_value(&conn, "always_on_top_main")? {
-            Some(v) => v.parse::<bool>().ok(),
+            Some(v) => Some(Self::parse_bool_value("always_on_top_main", &v)?),
             None => None,
         };
         let minimize_to_tray = match self.get_value(&conn, "minimize_to_tray")? {
-            Some(v) => v.parse::<bool>().ok(),
+            Some(v) => Some(Self::parse_bool_value("minimize_to_tray", &v)?),
             None => None,
         };
 

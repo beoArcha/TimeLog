@@ -115,6 +115,8 @@ pub enum AppSetupError {
     Tauri(#[from] tauri::Error),
     #[error("Persistence initialization error: {0}")]
     Persistence(#[from] crate::repositories::shared::errors::RepositoryError),
+    #[error("Persistence operation error: {0}")]
+    PersistenceOperation(#[from] crate::persistence::error::PersistenceError),
 }
 
 fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
@@ -131,7 +133,7 @@ fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
     let persistence =
         std::sync::Arc::new(crate::persistence::Persistence::new(&persistence_config)?);
 
-    let initial_settings = persistence.settings.get().unwrap_or_default();
+    let initial_settings = persistence.settings.get()?;
     let initial_minimize_to_tray = initial_settings.minimize_to_tray.unwrap_or(true);
     let initial_gui_variant = initial_settings
         .gui_variant
@@ -144,12 +146,12 @@ fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
         initial_settings.always_on_top_main.unwrap_or(false)
     };
 
-    let initial_locale = persistence
-        .locale
-        .get_locale()
-        .ok()
-        .filter(|loc_str| !loc_str.is_empty())
-        .map(|loc_str| crate::types::Locale::from_sys_lang(&loc_str));
+    let initial_locale_str = persistence.locale.get_locale()?;
+    let initial_locale = if initial_locale_str.is_empty() {
+        None
+    } else {
+        Some(crate::types::Locale::from_sys_lang(&initial_locale_str))
+    };
 
     let (tray_menu, tray_handles) = tray::build_tray_menu(
         app,

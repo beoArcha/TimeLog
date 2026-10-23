@@ -7,9 +7,11 @@ impl ConfigRepository {
     pub fn get_workflow_config(&self) -> Result<WorkflowConfig> {
         let conn = self.connect()?;
         if let Some(val) = Self::query_config_value(&conn, constants::KEY_WORKFLOW_CONFIG)? {
-            if let Ok(config) = serde_json::from_str::<WorkflowConfig>(&val) {
-                return Ok(config);
+            if val.trim().is_empty() || val.trim() == "null" {
+                return Ok(WorkflowConfig::default());
             }
+            let config = serde_json::from_str::<WorkflowConfig>(&val)?;
+            return Ok(config);
         }
         Ok(WorkflowConfig::default())
     }
