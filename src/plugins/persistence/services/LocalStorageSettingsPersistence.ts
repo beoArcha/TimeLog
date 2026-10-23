@@ -21,7 +21,15 @@ export class LocalStorageSettingsPersistence implements ISettingsPersistence {
     if (!data) return DEFAULT_SETTINGS;
     try {
       return { ...DEFAULT_SETTINGS, ...JSON.parse(data) };
-    } catch {
+    } catch (e) {
+      ErrorHandler.handle(
+        new PersistenceException(
+          'Failed to parse settings from LocalStorage',
+          e,
+          'WARN_PERSISTENCE_SETTINGS_PARSE',
+          'WARN'
+        )
+      );
       return DEFAULT_SETTINGS;
     }
   }

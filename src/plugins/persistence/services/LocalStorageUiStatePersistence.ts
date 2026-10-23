@@ -1,4 +1,5 @@
 import { IUiStatePersistence } from '@common/persistence/IPersistence';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { STORAGE_KEYS } from '@common/constants/storage-keys';
 
 export class LocalStorageUiStatePersistence implements IUiStatePersistence {
@@ -31,13 +32,32 @@ export class LocalStorageUiStatePersistence implements IUiStatePersistence {
         return parsed.filter((item): item is string => typeof item === 'string');
       }
       return [];
-    } catch {
+    } catch (e) {
+      ErrorHandler.handle(
+        new PersistenceException(
+          'Failed to parse project order from LocalStorage',
+          e,
+          'WARN_PERSISTENCE_PROJECT_ORDER_PARSE',
+          'WARN'
+        )
+      );
       return [];
     }
   }
 
   async saveProjectOrder(order: string[]): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+    try {
+      localStorage.setItem(STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+    } catch (e) {
+      ErrorHandler.handle(
+        new PersistenceException(
+          'Failed to save project order to LocalStorage',
+          e,
+          'ERR_PERSISTENCE_PROJECT_ORDER_SAVE'
+        )
+      );
+      throw e;
+    }
   }
 
   async getLastTrackedTaskId(): Promise<string | null> {

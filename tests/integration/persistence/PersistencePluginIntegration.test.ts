@@ -48,21 +48,16 @@ describe('Given PersistenceRouter wired to PersistencePlugin (LocalStorage)', ()
   });
 
   describe('When state is loaded from corrupted JSON in LocalStorage', () => {
-    it('Then it should return default empty state and report persistence error', async () => {
+    it('Then it should reject with PersistenceException to protect from data loss', async () => {
       // Given
       localStorage.setItem('timelog_persistence_plugin_state', 'invalid-json{');
       const router = PersistenceRouter.getInstance();
 
       // When
-      const state = await router.core.load();
+      const loadPromise = router.core.load();
 
       // Then
-      expect(state).toEqual({
-        projects: [],
-        tasks: [],
-        logs: [],
-        activeLog: null,
-      });
+      await expect(loadPromise).rejects.toThrow();
     });
   });
 

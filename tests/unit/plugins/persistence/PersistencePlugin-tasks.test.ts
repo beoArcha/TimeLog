@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 import { setupLocalStorageMock } from '@tests/shared/test-helpers';
+import { PersistenceException } from '@common/exceptions';
 
 vi.mock('@plugins/persistence/InitialData', () => ({
   INIT_PROJECTS: [],
@@ -271,5 +272,49 @@ describe('Unit Tests: PersistencePlugin - Tasks', () => {
 
     // Assert
     expect(subtasks).toHaveLength(0);
+  });
+
+  it('should throw PersistenceException when update is called on non-existent task', async () => {
+    // Arrange
+    const nonExistentId = 'task-404';
+
+    // Act
+    const action = () => plugin.tasks.update(nonExistentId, 'Updated Name', null, null, null);
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
+  });
+
+  it('should throw PersistenceException when rename is called on non-existent task', async () => {
+    // Arrange
+    const nonExistentId = 'task-404';
+
+    // Act
+    const action = () => plugin.tasks.rename(nonExistentId, 'Updated Name');
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
+  });
+
+  it('should throw PersistenceException when delete is called on non-existent task', async () => {
+    // Arrange
+    const nonExistentId = 'task-404';
+
+    // Act
+    const action = () => plugin.tasks.delete(nonExistentId);
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
+  });
+
+  it('should throw PersistenceException when toggleComplete is called on non-existent task', async () => {
+    // Arrange
+    const nonExistentId = 'task-404';
+
+    // Act
+    const action = () => plugin.tasks.toggleComplete(nonExistentId);
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
   });
 });

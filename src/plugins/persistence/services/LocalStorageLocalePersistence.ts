@@ -1,4 +1,5 @@
 import { ILocalePersistence } from '@common/persistence/IPersistence';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { STORAGE_KEYS } from '@common/constants/storage-keys';
 
 export class LocalStorageLocalePersistence implements ILocalePersistence {
@@ -23,7 +24,15 @@ export class LocalStorageLocalePersistence implements ILocalePersistence {
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch {
+      } catch (e) {
+        ErrorHandler.handle(
+          new PersistenceException(
+            'Failed to parse custom translations from LocalStorage',
+            e,
+            'WARN_PERSISTENCE_TRANSLATIONS_PARSE',
+            'WARN'
+          )
+        );
         return {};
       }
     }
@@ -31,6 +40,17 @@ export class LocalStorageLocalePersistence implements ILocalePersistence {
   }
 
   async saveCustomTranslations(translations: Record<string, Record<string, string>>): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS, JSON.stringify(translations));
+    try {
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_TRANSLATIONS, JSON.stringify(translations));
+    } catch (e) {
+      ErrorHandler.handle(
+        new PersistenceException(
+          'Failed to save custom translations to LocalStorage',
+          e,
+          'ERR_PERSISTENCE_TRANSLATIONS_SAVE'
+        )
+      );
+      throw e;
+    }
   }
 }

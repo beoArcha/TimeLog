@@ -54,15 +54,12 @@ describe('Unit Tests: PersistencePlugin - Core, Settings & RuntimeConfigs', () =
       expect(state).toEqual(mockState);
     });
 
-    it('should handle JSON parse error gracefully', async () => {
+    it('should throw PersistenceException when stored JSON is corrupted', async () => {
       // Arrange
       localStorage.setItem(STORAGE_KEY, 'invalid json');
 
-      // Act
-      const state = await plugin.core.load();
-
-      // Assert
-      expect(state).toEqual({ projects: [], tasks: [], logs: [], activeLog: null });
+      // Act & Assert
+      await expect(plugin.core.load()).rejects.toThrow();
     });
 
     it('should override state', async () => {
@@ -75,6 +72,24 @@ describe('Unit Tests: PersistencePlugin - Core, Settings & RuntimeConfigs', () =
       // Assert
       expect(state.projects).toHaveLength(1);
       expect(state.projects[0].name).toBe('P1');
+    });
+
+    it('should preserve existing tasks and logs when overriding only projects', async () => {
+      // Arrange
+      await plugin.tasks.add({ projectId: 'p1', name: 'Task 1', parentTaskId: null });
+      const beforeState = await plugin.core.load();
+      expect(beforeState?.tasks).toHaveLength(1);
+
+      // Act
+      const updatedState = await plugin.core.overrideState({
+        projects: [{ id: 'p2', name: 'Project 2', color: '#fff', createdAt: 'date' }],
+      });
+
+      // Assert
+      expect(updatedState.projects).toHaveLength(1);
+      expect(updatedState.projects[0].id).toBe('p2');
+      expect(updatedState.tasks).toHaveLength(1);
+      expect(updatedState.tasks[0].name).toBe('Task 1');
     });
 
     it('should reset state and clear all keys', async () => {

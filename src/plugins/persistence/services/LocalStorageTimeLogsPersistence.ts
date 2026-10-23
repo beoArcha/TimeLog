@@ -82,13 +82,18 @@ export class LocalStorageTimeLogsPersistence implements ITimeLogsPersistence {
 
   async delete(logId: string): Promise<void> {
     const current = await this.store.getStateOrDefault();
-    const initialLen = current.logs.length;
+    const exists = current.logs.some((l) => l.id === logId) || current.activeLog?.id === logId;
+    if (!exists) {
+      throw new PersistenceException(
+        `TimeLog ${logId} not found`,
+        undefined,
+        'ERR_PERSISTENCE_LOG_NOT_FOUND'
+      );
+    }
     current.logs = current.logs.filter((l) => l.id !== logId);
     if (current.activeLog?.id === logId) {
       current.activeLog = null;
     }
-    if (current.logs.length !== initialLen) {
-      await this.store.save(current);
-    }
+    await this.store.save(current);
   }
 }
