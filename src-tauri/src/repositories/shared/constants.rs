@@ -1,3 +1,10 @@
+pub const CREATE_SCHEMA_MIGRATIONS_TABLE: &str = "
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+        version INTEGER PRIMARY KEY,
+        applied_at TEXT NOT NULL
+    )
+";
+
 pub const CREATE_PROJECTS_TABLE: &str = "
     CREATE TABLE IF NOT EXISTS projects (
         id TEXT PRIMARY KEY,
