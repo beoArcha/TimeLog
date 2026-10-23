@@ -149,7 +149,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] **CLI Module Boundary**: `src-tauri/src/cli/` has zero Tauri GUI dependencies (enforced by `tauri_isolation_test.rs`) and consumes `Engine` and `Persistence` directly.
 - [ ] **CLI Crate Extraction**: Move the CLI into a standalone crate (`crates/oxy-cli`).
 - [x] **Dual-Layer Error Architecture**: Namespaced semantic error codes (`CLI_SYNTAX_*`, `DOM_ENTITY_*`, `STO_*`, `ENG_*`), technical English envelopes on `stderr`, localized user messages and semantic exit codes `0`..`5` (`src-tauri/src/cli/error/`).
-- [ ] **Typed Error Classification**: Derive error codes from typed `CliError` variants instead of matching message text, and emit the codes that are defined but not yet produced (`ENG_TIMER_ACTIVE`, `ENG_TIMER_INACTIVE`, `SNK_EXTERNAL_IO`, `MSK_*`, `CLI_SYNTAX_MISSING_TARGET`, `CLI_SYNTAX_UNKNOWN_COMMAND`, `STO_SQLITE_CONSTRAINT`).
+- [x] **Typed Error Classification**: Derive error codes from typed `CliError` variants instead of matching message text, and emit the codes that are defined but not yet produced (`ENG_TIMER_ACTIVE`, `ENG_TIMER_INACTIVE`, `SNK_EXTERNAL_IO`, `MSK_*`, `CLI_SYNTAX_MISSING_TARGET`, `CLI_SYNTAX_UNKNOWN_COMMAND`, `STO_SQLITE_CONSTRAINT`).
 - [x] **Machine & Automated Mode**: `--machine` and `--json` flags with deterministic JSON output.
 - [ ] **Machine Locale Config**: `cli_machine_locale` SQLite config key.
 - [x] **Power User Reporting**: Hierarchical Unicode report tree (`--tree`) and report exports in HTML, JSON and CSV.
