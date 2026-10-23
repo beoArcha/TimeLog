@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { parseFrontendCoverage } from '../../../scripts/ci/parsers/frontend-coverage-parser.js';
-import { parseRustCoverage } from '../../../scripts/ci/parsers/rust-coverage-parser.js';
-import { parseTestResults } from '../../../scripts/ci/parsers/test-results-parser.js';
+import { parseFrontendCoverage } from '../parsers/frontend-coverage-parser.js';
+import { parseRustCoverage } from '../parsers/rust-coverage-parser.js';
+import { parseTestResults } from '../parsers/test-results-parser.js';
 
 describe('coverage and test result parsers', () => {
   const tempDir = path.resolve('temp_test_ci_artifacts');
@@ -60,6 +60,33 @@ describe('coverage and test result parsers', () => {
       expect(summary.durationMs).toBe(500);
       expect(summary.failures).toHaveLength(1);
       expect(summary.failures[0].title).toBe('sample test should pass');
+      expect(summary.frontend?.unit?.total).toBe(12);
+      expect(summary.frontend?.all?.total).toBe(12);
+    });
+
+    it('should categorize tests into frontend and backend multi-tier suites', () => {
+      // Arrange
+      const feUnit = { numTotalTests: 10, numPassedTests: 10, numFailedTests: 0, numPendingTests: 0 };
+      const feInt = { numTotalTests: 5, numPassedTests: 5, numFailedTests: 0, numPendingTests: 0 };
+      const beUnit = { numTotalTests: 8, numPassedTests: 8, numFailedTests: 0, numPendingTests: 0 };
+      const beInt = { numTotalTests: 4, numPassedTests: 4, numFailedTests: 0, numPendingTests: 0 };
+
+      fs.writeFileSync(path.join(tempDir, 'test-results-unit.json'), JSON.stringify(feUnit), 'utf8');
+      fs.writeFileSync(path.join(tempDir, 'test-results-integration.json'), JSON.stringify(feInt), 'utf8');
+      fs.writeFileSync(path.join(tempDir, 'test-results-rust-unit.json'), JSON.stringify(beUnit), 'utf8');
+      fs.writeFileSync(path.join(tempDir, 'test-results-rust-integration.json'), JSON.stringify(beInt), 'utf8');
+
+      // Act
+      const summary = parseTestResults([tempDir]);
+
+      // Assert
+      expect(summary.total).toBe(27);
+      expect(summary.frontend?.unit?.total).toBe(10);
+      expect(summary.frontend?.integration?.total).toBe(5);
+      expect(summary.frontend?.all?.total).toBe(15);
+      expect(summary.backend?.unit?.total).toBe(8);
+      expect(summary.backend?.integration?.total).toBe(4);
+      expect(summary.backend?.all?.total).toBe(12);
     });
   });
 

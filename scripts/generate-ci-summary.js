@@ -12,12 +12,23 @@ import { updateOrPostPRComment } from './ci/services/pr-comment-service.js';
  * @returns {{ testResults: import('./ci/types.js').TestExecutionSummary, frontendCov: import('./ci/types.js').LayerCoverageReport, rustCov: import('./ci/types.js').LayerCoverageReport }}
  */
 function createMockData() {
+  /** @type {import('./ci/types.js').TestExecutionSummary} */
   const testResults = {
-    total: 350,
-    passed: 348,
+    total: 1458,
+    passed: 1456,
     failed: 2,
     skipped: 0,
-    durationMs: 14200,
+    durationMs: 44520,
+    frontend: {
+      all: { total: 1200, passed: 1199, failed: 1, skipped: 0, durationMs: 18200 },
+      unit: { total: 1150, passed: 1149, failed: 1, skipped: 0, durationMs: 14100 },
+      integration: { total: 50, passed: 50, failed: 0, skipped: 0, durationMs: 4100 }
+    },
+    backend: {
+      all: { total: 258, passed: 257, failed: 1, skipped: 0, durationMs: 26320 },
+      unit: { total: 180, passed: 179, failed: 1, skipped: 0, durationMs: 12000 },
+      integration: { total: 78, passed: 78, failed: 0, skipped: 0, durationMs: 14320 }
+    },
     failures: [
       {
         file: 'tests/unit/workflows/rules/DailyBoundaryRule.test.ts',
@@ -34,6 +45,7 @@ function createMockData() {
     ]
   };
 
+  /** @type {import('./ci/types.js').LayerCoverageReport} */
   const frontendCov = {
     total: {
       lines: { pct: 84.5 },
@@ -41,23 +53,47 @@ function createMockData() {
       branches: { pct: 78.4 },
       functions: { pct: 82.1 }
     },
+    all: {
+      lines: { pct: 84.5 },
+      statements: { pct: 85.2 },
+      branches: { pct: 78.4 },
+      functions: { pct: 82.1 }
+    },
+    unit: {
+      lines: { pct: 86.0 },
+      statements: { pct: 87.0 },
+      branches: { pct: 79.5 },
+      functions: { pct: 83.2 }
+    },
+    integration: {
+      lines: { pct: 72.0 },
+      statements: { pct: 73.1 },
+      branches: { pct: 65.4 },
+      functions: { pct: 68.0 }
+    },
     breakdown: [
       { name: 'src/features/', lines: 88.0, statements: 89.0, branches: 82.0, functions: 86.0 },
       { name: 'src/common/', lines: 92.5, statements: 93.0, branches: 89.0, functions: 91.0 },
       { name: 'src/plugins/', lines: 81.0, statements: 82.0, branches: 76.0, functions: 79.0 },
-      { name: 'src/components/', lines: 76.5, statements: 77.0, branches: 71.0, functions: 74.0 }
+      { name: 'src/components/', lines: 76.5, statements: 77.0, branches: 71.0, functions: 74.0 },
+      { name: 'src/layouts/', lines: 85.0, statements: 85.5, branches: 80.0, functions: 82.0 }
     ]
   };
 
+  /** @type {import('./ci/types.js').LayerCoverageReport} */
   const rustCov = {
     linesPct: 74.2,
+    all: { linesPct: 74.2 },
+    unit: { linesPct: 80.5 },
+    integration: { linesPct: 68.0 },
     breakdown: [
       { name: 'src-tauri/src/engine/', lines: 88.5 },
       { name: 'src-tauri/src/repositories/', lines: 81.2 },
       { name: 'src-tauri/src/persistence/', lines: 76.0 },
       { name: 'src-tauri/src/cli/', lines: 72.4 },
       { name: 'src-tauri/src/sinks/', lines: 65.0 },
-      { name: 'src-tauri/src/tray/', lines: 61.8 }
+      { name: 'src-tauri/src/tray/', lines: 61.8 },
+      { name: 'src-tauri/src/commands/', lines: 9.6 }
     ]
   };
 

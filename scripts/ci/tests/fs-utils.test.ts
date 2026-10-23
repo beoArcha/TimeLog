@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { detectTextEncoding, extractFilePath } from '../../../scripts/ci/fs-utils.js';
+import { detectTextEncoding, extractFilePath } from '../fs-utils.js';
 
 describe('fs-utils', () => {
   describe('extractFilePath', () => {

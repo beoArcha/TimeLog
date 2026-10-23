@@ -70,7 +70,7 @@ runs:
       run: |
         mkdir -p coverage-merged
         mkdir -p coverage-flat
-        find coverage-reports -name "coverage-*.json" -exec cp {} coverage-flat/ \; || true
+        find coverage-reports -name "coverage-*.json" ! -name "coverage-summary.json" -exec cp {} coverage-flat/ \; || true
         if [ -n "$(ls -A coverage-flat 2>/dev/null)" ]; then
           bun x nyc merge coverage-flat coverage-merged/coverage-final.json || true
         fi

@@ -12,6 +12,24 @@
  */
 
 /**
+ * Summary metrics for a specific test tier (unit, integration, or combined).
+ * @typedef {Object} SuiteTestSummary
+ * @property {number} total Total test count executed.
+ * @property {number} passed Total tests passing.
+ * @property {number} failed Total tests failing.
+ * @property {number} skipped Total tests skipped or ignored.
+ * @property {number} [durationMs] Execution duration in milliseconds.
+ */
+
+/**
+ * Multi-tier breakdown for a runtime (frontend or backend).
+ * @typedef {Object} MultiTierTestExecution
+ * @property {SuiteTestSummary} [unit]
+ * @property {SuiteTestSummary} [integration]
+ * @property {SuiteTestSummary} [all]
+ */
+
+/**
  * Standardized test execution summary across all test suites.
  * @typedef {Object} TestExecutionSummary
  * @property {number} total Total test count executed or scheduled.
@@ -20,6 +38,8 @@
  * @property {number} skipped Total tests skipped or ignored.
  * @property {number} durationMs Test execution duration in milliseconds.
  * @property {TestFailure[]} failures Detailed list of failed assertions.
+ * @property {MultiTierTestExecution} [frontend] Frontend suite execution breakdown.
+ * @property {MultiTierTestExecution} [backend] Backend suite execution breakdown.
  */
 
 /**
@@ -56,6 +76,9 @@
  * @typedef {Object} LayerCoverageReport
  * @property {CoverageSummary} [total] Overall 4-dimension metrics.
  * @property {number} [linesPct] Aggregate line percentage when 4-dim summary is unavailable.
+ * @property {CoverageSummary | { linesPct: number }} [unit] Unit test coverage metrics.
+ * @property {CoverageSummary | { linesPct: number }} [integration] Integration test coverage metrics.
+ * @property {CoverageSummary | { linesPct: number }} [all] Combined test coverage metrics.
  * @property {number} [covered] Aggregate covered units.
  * @property {number} [coverable] Aggregate coverable units.
  * @property {ModuleCoverageBreakdown[]} breakdown Subdirectory breakdown metrics.

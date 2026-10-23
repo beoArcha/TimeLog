@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildMarkdownSummary,
   formatPct,
+  getExecutionStatusBadge,
   getStatusBadge
-} from '../../../scripts/ci/formatters/markdown-summary-builder.js';
+} from '../formatters/badge-formatter.js';
+import {
+  buildMarkdownSummary,
+  MarkdownSummaryBuilder
+} from '../formatters/markdown-summary-builder.js';
+import { MarkdownTableFormatter } from '../formatters/markdown-table-formatter.js';
 
 describe('markdown-summary-builder', () => {
   describe('formatPct', () => {
@@ -119,7 +124,66 @@ describe('markdown-summary-builder', () => {
     });
   });
 
-  describe('buildMarkdownSummary', () => {
+  describe('getExecutionStatusBadge', () => {
+    it('should return PASSED badge when failures count is zero', () => {
+      // Arrange
+      const failed = 0;
+      const total = 50;
+
+      // Act
+      const badge = getExecutionStatusBadge(failed, total);
+
+      // Assert
+      expect(badge).toBe('✅ PASSED');
+    });
+
+    it('should return FAILED badge when failures count exceeds zero', () => {
+      // Arrange
+      const failed = 2;
+      const total = 50;
+
+      // Act
+      const badge = getExecutionStatusBadge(failed, total);
+
+      // Assert
+      expect(badge).toBe('❌ FAILED');
+    });
+
+    it('should return NO TESTS badge when total count is zero', () => {
+      // Arrange
+      const failed = 0;
+      const total = 0;
+
+      // Act
+      const badge = getExecutionStatusBadge(failed, total);
+
+      // Assert
+      expect(badge).toBe('⚪ NO TESTS');
+    });
+  });
+
+  describe('MarkdownTableFormatter', () => {
+    it('should render header, alignments, and rows accurately', () => {
+      // Arrange
+      const table = new MarkdownTableFormatter(
+        ['Name', 'Count', 'Status'],
+        [':---', ':---:', '---:']
+      );
+
+      // Act
+      table.addRow(['Engine', 42, 'OK']);
+      const rendered = table.render();
+
+      // Assert
+      expect(rendered).toBe(
+        '| Name | Count | Status |\n' +
+        '| :--- | :---: | ---: |\n' +
+        '| Engine | 42 | OK |'
+      );
+    });
+  });
+
+  describe('MarkdownSummaryBuilder', () => {
     it('should render test status card with PASSED status when zero tests failed', () => {
       // Arrange
       const testResults = {
@@ -132,7 +196,10 @@ describe('markdown-summary-builder', () => {
       };
 
       // Act
-      const markdown = buildMarkdownSummary(testResults, null, null, new Date('2026-10-22T00:00:00Z'));
+      const markdown = new MarkdownSummaryBuilder()
+        .withTestResults(testResults)
+        .withTimestamp(new Date('2026-10-22T00:00:00Z'))
+        .build();
 
       // Assert
       expect(markdown).toContain('<!-- oxyflow-test-coverage-summary -->');
@@ -140,6 +207,40 @@ describe('markdown-summary-builder', () => {
       expect(markdown).toContain('`10` ✅');
       expect(markdown).toContain('`0.52s` ⏱️');
       expect(markdown).toContain('*No coverage reports detected in current artifacts.*');
+    });
+
+    it('should render separate multi-tier execution tables when frontend and backend breakdowns are provided', () => {
+      // Arrange
+      const testResults = {
+        total: 150,
+        passed: 148,
+        failed: 2,
+        skipped: 0,
+        durationMs: 5000,
+        failures: [],
+        frontend: {
+          all: { total: 100, passed: 100, failed: 0, skipped: 0, durationMs: 2000 },
+          unit: { total: 80, passed: 80, failed: 0, skipped: 0, durationMs: 1500 },
+          integration: { total: 20, passed: 20, failed: 0, skipped: 0, durationMs: 500 }
+        },
+        backend: {
+          all: { total: 50, passed: 48, failed: 2, skipped: 0, durationMs: 3000 },
+          unit: { total: 30, passed: 30, failed: 0, skipped: 0, durationMs: 1000 },
+          integration: { total: 20, passed: 18, failed: 2, skipped: 0, durationMs: 2000 }
+        }
+      };
+
+      // Act
+      const markdown = buildMarkdownSummary(testResults, null, null, new Date('2026-10-22T00:00:00Z'));
+
+      // Assert
+      expect(markdown).toContain('#### 🌐 Frontend Tests');
+      expect(markdown).toContain('**All Frontend**');
+      expect(markdown).toContain('↳ Unit Tests');
+      expect(markdown).toContain('↳ Integration Tests');
+      expect(markdown).toContain('#### 🦀 Backend Tests (Rust Engine)');
+      expect(markdown).toContain('**All Backend**');
+      expect(markdown).toContain('`2` ❌');
     });
 
     it('should render collapsible failure blocks when tests have failed', () => {
@@ -169,7 +270,7 @@ describe('markdown-summary-builder', () => {
       expect(markdown).toContain('AssertionError: expected true to be false');
     });
 
-    it('should render coverage table with module breakdowns for frontend and backend layers', () => {
+    it('should render separate frontend and backend coverage tables with collapsible module breakdowns', () => {
       // Arrange
       const testResults = {
         total: 1,
@@ -186,12 +287,33 @@ describe('markdown-summary-builder', () => {
           branches: { pct: 80.0 },
           functions: { pct: 82.0 }
         },
+        all: {
+          lines: { pct: 85.0 },
+          statements: { pct: 86.0 },
+          branches: { pct: 80.0 },
+          functions: { pct: 82.0 }
+        },
+        unit: {
+          lines: { pct: 88.0 },
+          statements: { pct: 89.0 },
+          branches: { pct: 82.0 },
+          functions: { pct: 85.0 }
+        },
+        integration: {
+          lines: { pct: 75.0 },
+          statements: { pct: 76.0 },
+          branches: { pct: 70.0 },
+          functions: { pct: 72.0 }
+        },
         breakdown: [
           { name: 'src/features/', lines: 90.0, statements: 91.0, branches: 85.0, functions: 88.0 }
         ]
       };
       const rustCov = {
         linesPct: 75.0,
+        all: { linesPct: 75.0 },
+        unit: { linesPct: 80.0 },
+        integration: { linesPct: 70.0 },
         covered: 150,
         coverable: 200,
         breakdown: [
@@ -203,11 +325,15 @@ describe('markdown-summary-builder', () => {
       const markdown = buildMarkdownSummary(testResults, frontendCov, rustCov, new Date('2026-10-22T00:00:00Z'));
 
       // Assert
-      expect(markdown).toContain('**Frontend (TypeScript / React)**');
+      expect(markdown).toContain('#### 🌐 Frontend Code Coverage');
+      expect(markdown).toContain('**All Frontend**');
+      expect(markdown).toContain('Expand for Frontend Module Breakdown');
       expect(markdown).toContain('`src/features/`');
-      expect(markdown).toContain('**Backend Engine (Rust / SQLite)**');
+      expect(markdown).toContain('#### 🦀 Backend Code Coverage (Rust Engine)');
+      expect(markdown).toContain('**All Backend**');
+      expect(markdown).toContain('Expand for Backend Module Breakdown');
       expect(markdown).toContain('`src-tauri/src/engine/`');
-      expect(markdown).toContain('**Overall Combined Project**');
+      expect(markdown).toContain('#### 📈 Combined Full-Stack Coverage');
       expect(markdown).toContain('🟢 `80.0%`');
     });
   });

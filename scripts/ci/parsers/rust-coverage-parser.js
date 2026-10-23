@@ -13,7 +13,6 @@ function extractTarpaulinMetrics(fileData) {
   let tot = 0;
 
   if (Array.isArray(fileData)) {
-    // Tarpaulin line trace arrays indicate covered lines when value or count > 0.
     for (const item of fileData) {
       if (item === null || item === undefined) continue;
       tot++;
@@ -30,7 +29,6 @@ function extractTarpaulinMetrics(fileData) {
 
 /**
  * Parses Cobertura XML content when Tarpaulin JSON is not present.
- * Uses lightweight regex extraction to avoid heavy external XML parser dependencies.
  *
  * @param {string} content XML file content.
  * @param {Map<string, { covered: number, total: number }>} fileMap Map to populate.
@@ -132,14 +130,30 @@ export function parseRustCoverage(searchDirs = ['coverage-reports', 'coverage', 
   let overallCoverable = 0;
   let overallPct = null;
 
+  let unitCovered = 0;
+  let unitCoverable = 0;
+  let intCovered = 0;
+  let intCoverable = 0;
+
   for (const file of jsonFiles) {
     /** @type {any} */
     const raw = safeReadJson(file);
     if (!raw) continue;
 
+    const norm = file.replace(/\\/g, '/').toLowerCase();
+    const isUnit = norm.includes('unit');
+    const isInt = norm.includes('integration');
+
     if (raw.covered !== undefined && raw.coverable !== undefined) {
       overallCovered = raw.covered;
       overallCoverable = raw.coverable;
+      if (isUnit) {
+        unitCovered += raw.covered;
+        unitCoverable += raw.coverable;
+      } else if (isInt) {
+        intCovered += raw.covered;
+        intCoverable += raw.coverable;
+      }
     }
 
     if (raw.files && typeof raw.files === 'object') {
@@ -177,7 +191,7 @@ export function parseRustCoverage(searchDirs = ['coverage-reports', 'coverage', 
         }
         if (fileMap.size > 0) break;
       } catch {
-        // Continue searching next candidate file
+        // Continue searching candidate files
       }
     }
   }
@@ -201,6 +215,9 @@ export function parseRustCoverage(searchDirs = ['coverage-reports', 'coverage', 
 
   return {
     linesPct: overallPct ?? 0,
+    all: { linesPct: overallPct ?? 0 },
+    unit: unitCoverable > 0 ? { linesPct: (unitCovered / unitCoverable) * 100 } : undefined,
+    integration: intCoverable > 0 ? { linesPct: (intCovered / intCoverable) * 100 } : undefined,
     covered: overallCovered,
     coverable: overallCoverable,
     breakdown

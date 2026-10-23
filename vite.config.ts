@@ -23,6 +23,7 @@ export default defineConfig(() => {
     test: {
       environment: 'jsdom',
       environmentMatchGlobs: [
+        ['scripts/**', 'node'],
         ['tests/architecture/**', 'node'],
         ['tests/unit/workflows/rules/**', 'node'],
         ['tests/unit/features/reports/reportCalculator*', 'node'],

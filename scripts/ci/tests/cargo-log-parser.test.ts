@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseCargoTestOutput } from '../../../scripts/ci/parsers/cargo-log-parser.js';
+import { parseCargoTestOutput } from '../parsers/cargo-log-parser.js';
 
 describe('cargo-log-parser', () => {
   it('should parse standard cargo test output with passed and ignored counts', () => {
