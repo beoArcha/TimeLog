@@ -1,6 +1,6 @@
 use super::constants;
 use super::BusinessRepository;
-use crate::repositories::shared::errors::Result;
+use crate::repositories::shared::errors::{RepositoryError, Result};
 use crate::types::TimeLog;
 use rusqlite::params;
 
@@ -36,7 +36,14 @@ impl BusinessRepository {
     pub fn get_project_id_by_task_id(&self, task_id: &str) -> Result<String> {
         let conn = self.connect()?;
         let mut stmt = conn.prepare(constants::SELECT_PROJECT_ID_BY_TASK_ID)?;
-        Ok(stmt.query_row(params![task_id], |row| row.get(0))?)
+        stmt.query_row(params![task_id], |row| row.get(0))
+            .map_err(|err| match err {
+                rusqlite::Error::QueryReturnedNoRows => RepositoryError::NotFound {
+                    entity: "Task",
+                    id: task_id.to_string(),
+                },
+                other => RepositoryError::Database(other),
+            })
     }
 
     pub fn close_active_logs_by_project(&self, end_time: &str, project_id: &str) -> Result<usize> {
@@ -99,7 +106,14 @@ impl BusinessRepository {
     pub fn get_time_log_by_id(&self, log_id: &str) -> Result<TimeLog> {
         let conn = self.connect()?;
         let mut stmt = conn.prepare(constants::SELECT_TIME_LOG_BY_ID)?;
-        Ok(stmt.query_row(params![log_id], Self::map_time_log_row)?)
+        stmt.query_row(params![log_id], Self::map_time_log_row)
+            .map_err(|err| match err {
+                rusqlite::Error::QueryReturnedNoRows => RepositoryError::NotFound {
+                    entity: "TimeLog",
+                    id: log_id.to_string(),
+                },
+                other => RepositoryError::Database(other),
+            })
     }
 
     pub fn update_time_log_with_history(

@@ -28,12 +28,7 @@ impl From<crate::repositories::shared::errors::RepositoryError> for AppError {
             crate::repositories::shared::errors::RepositoryError::Database(e) => {
                 AppError::Database(e)
             }
-            crate::repositories::shared::errors::RepositoryError::Serialization(e) => {
-                AppError::Generic(e.to_string())
-            }
-            crate::repositories::shared::errors::RepositoryError::Validation(e) => {
-                AppError::Generic(e)
-            }
+            _ => AppError::Generic(err.to_string()),
         }
     }
 }
@@ -53,7 +48,7 @@ impl From<crate::persistence::PersistenceError> for AppError {
     fn from(err: crate::persistence::PersistenceError) -> Self {
         match err {
             crate::persistence::PersistenceError::Database(e) => AppError::Database(e),
-            crate::persistence::PersistenceError::Validation(e) => AppError::Generic(e),
+            _ => AppError::Generic(err.to_string()),
         }
     }
 }

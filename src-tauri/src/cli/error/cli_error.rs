@@ -179,9 +179,36 @@ impl From<crate::persistence::PersistenceError> for CliError {
 impl From<crate::engine::EngineError> for CliError {
     fn from(err: crate::engine::EngineError) -> Self {
         match err {
-            crate::engine::EngineError::Persistence(p) => CliError::Storage(p.to_string()),
+            crate::engine::EngineError::Persistence(p) => match p {
+                crate::persistence::PersistenceError::NotFound { entity, id } => {
+                    CliError::Entity(crate::cli::resolver::ResolveError::NotFound {
+                        target: id,
+                        entity_type: match entity {
+                            "Project" => crate::cli::resolver::EntityType::Project,
+                            _ => crate::cli::resolver::EntityType::Task,
+                        },
+                    })
+                }
+                other => CliError::Storage(other.to_string()),
+            },
+            crate::engine::EngineError::NoActiveTimer => {
+                CliError::Engine("No active timer to stop".to_string())
+            }
+            crate::engine::EngineError::ActiveTimerConflict { active_task_id } => CliError::Engine(
+                format!("Another timer is running for task '{active_task_id}'"),
+            ),
+            crate::engine::EngineError::EntityNotFound { entity, id } => {
+                CliError::Entity(crate::cli::resolver::ResolveError::NotFound {
+                    target: id,
+                    entity_type: match entity {
+                        "Project" => crate::cli::resolver::EntityType::Project,
+                        _ => crate::cli::resolver::EntityType::Task,
+                    },
+                })
+            }
             crate::engine::EngineError::Validation(v) => CliError::Business(v),
             crate::engine::EngineError::ParseTime(t) => CliError::Syntax(t),
+            crate::engine::EngineError::OperationFailed(m) => CliError::Engine(m),
         }
     }
 }
