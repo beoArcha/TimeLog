@@ -43,15 +43,18 @@ export const useTimerManager = ({
   const handleStartTimer = async (taskId: string) => {
     await actionRunner.runAction('Failed to start timer', async () => {
       const prevLogs = repositoryState.logs;
-      await EngineRouter.getInstance().timer.startTimer(taskId);
-      const nextState = await PersistenceRouter.getInstance().core.load();
+      try {
+        await EngineRouter.getInstance().timer.startTimer(taskId);
+      } finally {
+        const nextState = await PersistenceRouter.getInstance().core.load();
 
-      if (nextState) {
-        repositoryState.setLogsState(nextState.logs);
-        repositoryState.setActiveLogState(nextState.activeLog);
-        repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
-        await refreshComputedMetrics();
-        notifyActiveLogChanges(prevLogs, nextState.logs);
+        if (nextState) {
+          repositoryState.setLogsState(nextState.logs);
+          repositoryState.setActiveLogState(nextState.activeLog);
+          repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
+          await refreshComputedMetrics();
+          notifyActiveLogChanges(prevLogs, nextState.logs);
+        }
       }
     });
   };
@@ -59,15 +62,18 @@ export const useTimerManager = ({
   const handleStopTimer = async (specificProjectId?: string) => {
     await actionRunner.runAction('Failed to stop timer', async () => {
       const prevLogs = repositoryState.logs;
-      await EngineRouter.getInstance().timer.stopTimer(specificProjectId);
-      const nextState = await PersistenceRouter.getInstance().core.load();
+      try {
+        await EngineRouter.getInstance().timer.stopTimer(specificProjectId);
+      } finally {
+        const nextState = await PersistenceRouter.getInstance().core.load();
 
-      if (nextState) {
-        repositoryState.setLogsState(nextState.logs);
-        repositoryState.setActiveLogState(nextState.activeLog);
-        repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
-        await refreshComputedMetrics();
-        notifyActiveLogChanges(prevLogs, nextState.logs);
+        if (nextState) {
+          repositoryState.setLogsState(nextState.logs);
+          repositoryState.setActiveLogState(nextState.activeLog);
+          repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
+          await refreshComputedMetrics();
+          notifyActiveLogChanges(prevLogs, nextState.logs);
+        }
       }
     });
   };

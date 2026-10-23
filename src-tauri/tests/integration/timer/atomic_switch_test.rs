@@ -104,3 +104,70 @@ fn test_given_active_timer_when_switch_to_valid_target_task_then_previous_log_cl
         .unwrap();
     assert!(log_b.end_time.is_none());
 }
+
+#[test]
+fn test_given_active_timer_when_insert_fails_during_switch_then_transaction_rolls_back_and_previous_timer_remains_active(
+) {
+    // Given
+    let (conn, config, _temp_dir) = setup_persistence_test("int_switch_rollback");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let project = ProjectBuilder::new()
+        .with_id("proj_switch_rb")
+        .with_name("Switch Rollback Project")
+        .with_color("orange")
+        .build();
+    persistence.projects.create(project).unwrap();
+
+    let task_ok = TaskBuilder::new()
+        .with_id("task_sw_initial")
+        .with_project_id("proj_switch_rb")
+        .with_name("Initial Switch Task")
+        .build();
+    let task_failing = TaskBuilder::new()
+        .with_id("task_sw_fail")
+        .with_project_id("proj_switch_rb")
+        .with_name("Failing Switch Task")
+        .build();
+    persistence.tasks.create(task_ok).unwrap();
+    persistence.tasks.create(task_failing).unwrap();
+
+    engine.start_timer("task_sw_initial").unwrap();
+    let state_before = engine.get_state().unwrap();
+    assert_eq!(
+        state_before.active_log.as_ref().map(|l| l.task_id.as_str()),
+        Some("task_sw_initial")
+    );
+
+    // Install an SQLite trigger that fails insertion specifically for task_sw_fail
+    conn.execute(
+        "CREATE TRIGGER trigger_fail_insert_switch BEFORE INSERT ON time_logs
+         FOR EACH ROW WHEN NEW.task_id = 'task_sw_fail'
+         BEGIN
+             SELECT RAISE(ABORT, 'Simulated insert failure for switch rollback verification');
+         END;",
+        [],
+    )
+    .unwrap();
+
+    // When
+    let result = engine.switch_timer("task_sw_fail");
+
+    // Then
+    assert!(
+        result.is_err(),
+        "Engine switch_timer must return an error when insert fails"
+    );
+    let state_after = engine.get_state().unwrap();
+    assert_eq!(
+        state_after.active_log.as_ref().map(|l| l.task_id.as_str()),
+        Some("task_sw_initial"),
+        "Previous active timer must remain active because switch transaction rolled back"
+    );
+    assert_eq!(state_after.logs.len(), 1);
+    assert!(
+        state_after.logs[0].end_time.is_none(),
+        "Previous log must not have an end_time set after switch rollback"
+    );
+}
