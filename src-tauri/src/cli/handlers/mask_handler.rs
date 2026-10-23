@@ -102,7 +102,12 @@ fn remove_mask(
     let deleted = persistence.cli.delete_alias(&name)?;
 
     if !deleted {
-        return Err(CliError::Syntax(CliSyntaxError::AliasNotFound(name)));
+        return Err(CliError::Entity(
+            crate::cli::resolver::ResolveError::NotFound {
+                target: name,
+                entity_type: crate::cli::resolver::EntityType::MaskAlias,
+            },
+        ));
     }
 
     if is_machine {

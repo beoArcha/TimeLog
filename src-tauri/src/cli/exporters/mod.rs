@@ -9,10 +9,9 @@ pub use self::html::export_html;
 pub use self::json::export_json;
 
 use self::constants::ERR_UNSUPPORTED_FORMAT;
-use crate::cli::error::{CliError, CliSyntaxError};
+use crate::cli::error::{CliError, CliSyntaxError, SinkError};
 use crate::cli::formatters::ReportTreeDto;
 use crate::cli::parser::ExportFormat;
-use crate::persistence::PersistenceError;
 use std::path::Path;
 
 pub fn export_to_file(
@@ -33,10 +32,11 @@ pub fn export_to_file(
     if let Some(parent) = Path::new(output_path).parent() {
         if !parent.as_os_str().is_empty() {
             std::fs::create_dir_all(parent)
-                .map_err(|e| PersistenceError::Storage(e.to_string()))?;
+                .map_err(|e| CliError::Sink(SinkError::Io(e.to_string())))?;
         }
     }
 
-    std::fs::write(output_path, content).map_err(|e| PersistenceError::Storage(e.to_string()))?;
+    std::fs::write(output_path, content)
+        .map_err(|e| CliError::Sink(SinkError::Io(e.to_string())))?;
     Ok(())
 }

@@ -48,3 +48,27 @@ fn test_given_configured_persistence_when_config_list_invoked_then_displays_all_
     assert!(output_str.contains("editor"));
     assert!(output_str.contains("vim"));
 }
+
+#[test]
+fn test_given_configured_persistence_when_config_get_non_existent_key_then_fails_with_entity_error_exit_code_4(
+) {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_config_not_found");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let get_args = CliArgs::try_parse_from(["oxy", "config", "get", "unknown_key_xyz"]).unwrap();
+
+    // When
+    let result = handle_cli(get_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert_eq!(err.exit_code(), 4);
+    let envelope = err.to_envelope(None);
+    assert_eq!(envelope.code, "DOM_ENTITY_NOT_FOUND");
+    assert!(envelope
+        .technical
+        .contains("Config key 'unknown_key_xyz' not found"));
+}

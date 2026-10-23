@@ -35,7 +35,7 @@ fn list_tasks(
 ) -> Result<CliOutput, CliError> {
     let filter_project_id = resolve_project_filter(persistence, project)?;
     let all_tasks = persistence.tasks.get_all()?;
-    let projects = persistence.projects.get_all().unwrap_or_default();
+    let projects = persistence.projects.get_all()?;
 
     let filtered = filter_tasks(&all_tasks, filter_project_id.as_deref(), all);
     if filtered.is_empty() {

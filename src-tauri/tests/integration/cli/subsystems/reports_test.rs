@@ -172,3 +172,29 @@ fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_repor
 
     let _ = fs::remove_file(output_file);
 }
+
+#[test]
+fn test_given_invalid_path_when_exporting_then_fails_with_sink_error_exit_code_1() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_reports_export_io_err");
+    let engine = Engine::new(&persistence);
+    let invalid_path = if cfg!(windows) {
+        "Z:\\non_existent_drive_xyz\\report.csv"
+    } else {
+        "/non_existent_dir_xyz/deeply/nested/report.csv"
+    };
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "csv", "-o", invalid_path])
+            .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert_eq!(err.exit_code(), 1);
+    let envelope = err.to_envelope(None);
+    assert_eq!(envelope.code, "SNK_EXTERNAL_IO");
+}

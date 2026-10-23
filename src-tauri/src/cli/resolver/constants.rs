@@ -1,5 +1,8 @@
 pub const LABEL_ENTITY_PROJECT: &str = "Project";
 pub const LABEL_ENTITY_TASK: &str = "Task";
+pub const LABEL_ENTITY_TIME_LOG: &str = "Time log";
+pub const LABEL_ENTITY_CONFIG_KEY: &str = "Config key";
+pub const LABEL_ENTITY_MASK_ALIAS: &str = "Action mask alias";
 
 pub const ERR_RESOLVE_NOT_FOUND: &str = "{} '{}' not found.";
 pub const ERR_RESOLVE_AMBIGUOUS: &str =

@@ -92,3 +92,23 @@ fn test_given_clean_database_when_executing_full_cli_lifecycle_then_entities_and
         .unwrap();
     assert!(subtask_in_db.completed, "Subtask must be marked completed");
 }
+
+#[test]
+fn test_given_idle_timer_when_stop_invoked_then_fails_with_no_active_timer_exit_code_5() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_cli_stop_idle");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let stop_args = CliArgs::try_parse_from(["oxy", "stop"]).unwrap();
+
+    // When
+    let result = handle_cli(stop_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert_eq!(err.exit_code(), 5);
+    let envelope = err.to_envelope(None);
+    assert_eq!(envelope.code, "ENG_TIMER_INACTIVE");
+}

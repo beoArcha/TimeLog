@@ -33,7 +33,7 @@ fn list_projects(
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
     let projects = persistence.projects.get_all()?;
-    let tasks = persistence.tasks.get_all().unwrap_or_default();
+    let tasks = persistence.tasks.get_all()?;
 
     let filtered: Vec<_> = projects
         .into_iter()

@@ -1,6 +1,6 @@
 use super::constants::{
-    ERR_CONFIG_EMPTY_KEY, ERR_CONFIG_KEY_NOT_FOUND, FORMAT_CONFIG_LIST_ITEM, HEADER_CONFIG,
-    MSG_CONFIG_SET, MSG_NO_CONFIG_ENTRIES,
+    ERR_CONFIG_EMPTY_KEY, FORMAT_CONFIG_LIST_ITEM, HEADER_CONFIG, MSG_CONFIG_SET,
+    MSG_NO_CONFIG_ENTRIES,
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{ConfigArgs, ConfigSubcommand};
@@ -61,9 +61,12 @@ fn get_config(
     let val = persistence.cli.get_config_value(trimmed_key)?;
 
     let Some(value) = val else {
-        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
-            ERR_CONFIG_KEY_NOT_FOUND.replacen("{}", trimmed_key, 1),
-        )));
+        return Err(CliError::Entity(
+            crate::cli::resolver::ResolveError::NotFound {
+                target: trimmed_key.to_string(),
+                entity_type: crate::cli::resolver::EntityType::ConfigKey,
+            },
+        ));
     };
 
     if is_machine {

@@ -27,6 +27,8 @@ pub const MSG_ERR_REMEDIATION_STORAGE: &str =
     "Check file system permissions and disk capacity for the SQLite database.";
 pub const MSG_ERR_REMEDIATION_ENGINE: &str =
     "Inspect active timers using 'oxy status' or stop them with 'oxy stop'.";
+pub const MSG_ERR_REMEDIATION_SINK: &str =
+    "Verify target file path permissions and available storage for output export.";
 pub const FORMAT_REMEDIATION_DID_YOU_MEAN: &str = "Run command using candidate ID '{}'";
 
 pub const EXIT_CODE_SUCCESS: u8 = 0;

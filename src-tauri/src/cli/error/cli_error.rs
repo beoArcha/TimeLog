@@ -7,7 +7,7 @@ use super::exit_codes::{
 use crate::cli::resolver::ResolveError;
 use crate::cli::shared::constants::{
     FORMAT_REMEDIATION_DID_YOU_MEAN, MSG_ERR_REMEDIATION_ENGINE, MSG_ERR_REMEDIATION_ENTITY,
-    MSG_ERR_REMEDIATION_HELP, MSG_ERR_REMEDIATION_STORAGE,
+    MSG_ERR_REMEDIATION_HELP, MSG_ERR_REMEDIATION_SINK, MSG_ERR_REMEDIATION_STORAGE,
 };
 use crate::cli::shared::utils::DurationParseError;
 use crate::engine::EngineError;
@@ -53,6 +53,19 @@ impl fmt::Display for BusinessRuleViolation {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum SinkError {
+    Io(String),
+}
+
+impl fmt::Display for SinkError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(msg) => write!(f, "Sink I/O error: {}", msg),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum CliError {
     Syntax(CliSyntaxError),
@@ -60,6 +73,7 @@ pub enum CliError {
     Storage(PersistenceError),
     Engine(EngineError),
     Business(BusinessRuleViolation),
+    Sink(SinkError),
 }
 
 impl CliError {
@@ -81,6 +95,7 @@ impl CliError {
             CliError::Storage(_) => EXIT_CODE_STORAGE_ERROR,
             CliError::Engine(_) => EXIT_CODE_ENGINE_ERROR,
             CliError::Business(_) => EXIT_CODE_GENERIC_FAILURE,
+            CliError::Sink(_) => EXIT_CODE_GENERIC_FAILURE,
         }
     }
 
@@ -95,6 +110,10 @@ impl CliError {
                 CliSyntaxError::AliasNotFound(_) => CliErrorCode::MskAliasNotFound,
             },
             CliError::Entity(resolve_err) => match resolve_err {
+                ResolveError::NotFound {
+                    entity_type: crate::cli::resolver::EntityType::MaskAlias,
+                    ..
+                } => CliErrorCode::MskAliasNotFound,
                 ResolveError::NotFound { .. } => CliErrorCode::DomEntityNotFound,
                 ResolveError::AmbiguousMatch { .. } => CliErrorCode::DomEntityAmbiguous,
                 ResolveError::DidYouMean { .. } => CliErrorCode::DomEntityDidYouMean,
@@ -120,6 +139,7 @@ impl CliError {
                     CliErrorCode::DomBusinessViolation
                 }
             },
+            CliError::Sink(_) => CliErrorCode::SnkExternalIo,
         }
     }
 
@@ -184,6 +204,12 @@ impl CliError {
                 suggestion: None,
                 remediation: Some(MSG_ERR_REMEDIATION_ENTITY.to_string()),
             }),
+            CliError::Sink(_) => Some(LocalizedUserMessage {
+                locale: target_locale,
+                message: technical.clone(),
+                suggestion: None,
+                remediation: Some(MSG_ERR_REMEDIATION_SINK.to_string()),
+            }),
         };
 
         CliErrorEnvelope::new(code, exit_code, technical, user)
@@ -198,6 +224,7 @@ impl fmt::Display for CliError {
             CliError::Storage(err) => write!(f, "Storage error: {}", err),
             CliError::Engine(err) => write!(f, "Engine error: {}", err),
             CliError::Business(err) => write!(f, "{}", err),
+            CliError::Sink(err) => write!(f, "{}", err),
         }
     }
 }
@@ -231,6 +258,12 @@ impl From<DurationParseError> for CliError {
     }
 }
 
+impl From<SinkError> for CliError {
+    fn from(err: SinkError) -> Self {
+        CliError::Sink(err)
+    }
+}
+
 impl From<PersistenceError> for CliError {
     fn from(err: PersistenceError) -> Self {
         match err {
@@ -238,6 +271,7 @@ impl From<PersistenceError> for CliError {
                 target: id,
                 entity_type: match entity {
                     "Project" => crate::cli::resolver::EntityType::Project,
+                    "TimeLog" => crate::cli::resolver::EntityType::TimeLog,
                     _ => crate::cli::resolver::EntityType::Task,
                 },
             }),
@@ -265,6 +299,7 @@ impl From<EngineError> for CliError {
                     target: id,
                     entity_type: match entity {
                         "Project" => crate::cli::resolver::EntityType::Project,
+                        "TimeLog" => crate::cli::resolver::EntityType::TimeLog,
                         _ => crate::cli::resolver::EntityType::Task,
                     },
                 })

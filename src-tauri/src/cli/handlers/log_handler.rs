@@ -40,7 +40,7 @@ fn list_logs(
 ) -> Result<CliOutput, CliError> {
     let filter_task_id = resolve_task_filter(persistence, task)?;
     let all_logs = persistence.time_logs.get_all()?;
-    let tasks = persistence.tasks.get_all().unwrap_or_default();
+    let tasks = persistence.tasks.get_all()?;
 
     let filtered = filter_and_sort_logs(all_logs, filter_task_id.as_deref(), today, week, limit);
     if filtered.is_empty() {

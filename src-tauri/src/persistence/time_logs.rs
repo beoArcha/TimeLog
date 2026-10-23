@@ -27,18 +27,19 @@ impl TimeLogsPersistence {
         &self,
         end_time: &str,
         project_id: &str,
-    ) -> PersistenceResult<()> {
-        self.shared
+    ) -> PersistenceResult<usize> {
+        let count = self
+            .shared
             .business_repo
             .close_active_logs_by_project(end_time, project_id)?;
         self.shared.cache.clear();
-        Ok(())
+        Ok(count)
     }
 
-    pub fn close_all_active(&self, end_time: &str) -> PersistenceResult<()> {
-        self.shared.business_repo.close_all_active_logs(end_time)?;
+    pub fn close_all_active(&self, end_time: &str) -> PersistenceResult<usize> {
+        let count = self.shared.business_repo.close_all_active_logs(end_time)?;
         self.shared.cache.clear();
-        Ok(())
+        Ok(count)
     }
 
     pub fn insert(&self, log_id: &str, task_id: &str, start_time: &str) -> PersistenceResult<()> {

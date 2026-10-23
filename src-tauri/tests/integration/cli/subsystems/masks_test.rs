@@ -69,3 +69,27 @@ fn test_given_mask_template_with_tokens_when_expanded_then_replaces_parameters_a
     // Then
     assert_eq!(expanded, "log add t-refactor-99 30m \"Code Review\"");
 }
+
+#[test]
+fn test_given_configured_persistence_when_mask_rm_non_existent_alias_then_fails_with_entity_error_exit_code_4(
+) {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_mask_not_found");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let rm_args = CliArgs::try_parse_from(["oxy", "mask", "rm", "missing_alias_xyz"]).unwrap();
+
+    // When
+    let result = handle_cli(rm_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert_eq!(err.exit_code(), 4);
+    let envelope = err.to_envelope(None);
+    assert_eq!(envelope.code, "MSK_ALIAS_NOT_FOUND");
+    assert!(envelope
+        .technical
+        .contains("Action mask alias 'missing_alias_xyz' not found"));
+}

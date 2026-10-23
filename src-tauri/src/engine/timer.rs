@@ -20,16 +20,18 @@ impl<'a> Engine<'a> {
 
     pub fn stop_timer(&self, project_id: Option<&str>) -> Result<(), EngineError> {
         let now = Utc::now().to_rfc3339();
-        match project_id {
-            Some(p_id) => {
-                self.persistence
-                    .time_logs
-                    .close_active_by_project(&now, p_id)?;
-            }
-            None => {
-                self.persistence.time_logs.close_all_active(&now)?;
-            }
+        let affected = match project_id {
+            Some(p_id) => self
+                .persistence
+                .time_logs
+                .close_active_by_project(&now, p_id)?,
+            None => self.persistence.time_logs.close_all_active(&now)?,
+        };
+
+        if affected == 0 {
+            return Err(EngineError::NoActiveTimer);
         }
+
         Ok(())
     }
 

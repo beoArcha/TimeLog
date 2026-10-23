@@ -155,7 +155,14 @@ impl BusinessRepository {
 
     pub fn delete_time_log(&self, id: &str) -> Result<usize> {
         let conn = self.connect()?;
-        Ok(conn.execute(constants::DELETE_TIME_LOG_BY_ID, params![id])?)
+        let affected = conn.execute(constants::DELETE_TIME_LOG_BY_ID, params![id])?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "TimeLog",
+                id: id.to_string(),
+            });
+        }
+        Ok(affected)
     }
 
     pub fn start_active_log(
