@@ -24,7 +24,7 @@ fn main() -> ExitCode {
     let persistence = match Persistence::new(&persistence_config) {
         Ok(p) => p,
         Err(e) => {
-            let err = CliError::Storage(e.to_string());
+            let err = CliError::from(e);
             let envelope = err.to_envelope(None);
             envelope.render_stderr(is_machine);
             return envelope.to_exit_code();

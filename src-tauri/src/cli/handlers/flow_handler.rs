@@ -2,10 +2,10 @@ use super::constants::{
     DASHBOARD_TIP_FOOTER, DIVIDER_LINE, FORMAT_DASHBOARD_ACTIVE, FORMAT_DASHBOARD_PROGRESS,
     FORMAT_DASHBOARD_RECENT_ITEM, FORMAT_TODAY_ITEM, FORMAT_TODAY_TOTAL, HEADER_DASHBOARD,
     HEADER_TODAY_PREFIX, LABEL_GENERAL_PROJECT, LABEL_UNKNOWN_PROJECT, LABEL_UNKNOWN_TASK,
-    MSG_NO_TARGET_SPECIFIED, MSG_NO_TODAY_LOGS, SECTION_ACTIVE_SESSION, SECTION_RECENT_ACTIVITY,
-    SECTION_TODAY_PROGRESS, STATUS_ACTIVE_NOTICE, STATUS_IDLE_NOTICE, STATUS_IDLE_TIP,
+    MSG_NO_TODAY_LOGS, SECTION_ACTIVE_SESSION, SECTION_RECENT_ACTIVITY, SECTION_TODAY_PROGRESS,
+    STATUS_ACTIVE_NOTICE, STATUS_IDLE_NOTICE, STATUS_IDLE_TIP,
 };
-use crate::cli::error::CliError;
+use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::formatters::format_duration;
 use crate::cli::parser::tier1_flow::{StartArgs, StopArgs, SwitchArgs};
 use crate::cli::resolver::{
@@ -65,37 +65,31 @@ pub fn handle_start_interactive(
     let target = match args.target {
         Some(t) if !t.trim().is_empty() => t,
         _ => {
-            let active = engine
-                .get_active_logs()
-                .map_err(|e| CliError::Engine(e.to_string()))?;
+            let active = engine.get_active_logs()?;
             if !active.is_empty() {
                 return Ok(CliOutput::Status(active));
             }
 
             if !prompter.is_terminal() {
-                return Err(CliError::Syntax(MSG_NO_TARGET_SPECIFIED.to_string()));
+                return Err(CliError::Syntax(CliSyntaxError::MissingTarget));
             }
 
             prompter
                 .prompt_input(PROMPT_ENTER_TASK_TARGET)
                 .filter(|s| !s.trim().is_empty())
-                .ok_or_else(|| CliError::Syntax(MSG_NO_TARGET_SPECIFIED.to_string()))?
+                .ok_or(CliError::Syntax(CliSyntaxError::MissingTarget))?
         }
     };
 
     let resolver = EntityResolver::new(persistence);
     let task = resolver.resolve_task_interactive(&target, prompter)?;
 
-    engine
-        .start_timer(&task.id)
-        .map_err(|e| CliError::Engine(e.to_string()))?;
+    engine.start_timer(&task.id)?;
     Ok(CliOutput::Started(task.id))
 }
 
 pub fn handle_stop(_args: StopArgs, engine: &Engine) -> Result<CliOutput, CliError> {
-    engine
-        .stop_timer(None)
-        .map_err(|e| CliError::Engine(e.to_string()))?;
+    engine.stop_timer(None)?;
     Ok(CliOutput::Stopped)
 }
 
@@ -121,9 +115,7 @@ pub fn handle_switch_interactive(
 }
 
 pub fn handle_status(is_machine: bool, engine: &Engine) -> Result<CliOutput, CliError> {
-    let active = engine
-        .get_active_logs()
-        .map_err(|e| CliError::Engine(e.to_string()))?;
+    let active = engine.get_active_logs()?;
     if is_machine {
         let json = serde_json::json!({
             "active_tasks": active,
@@ -137,18 +129,9 @@ pub fn handle_status(is_machine: bool, engine: &Engine) -> Result<CliOutput, Cli
 
 pub fn handle_today(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, CliError> {
     let today_prefix = Utc::now().format(DATE_FORMAT_DATE_ONLY).to_string();
-    let logs = persistence
-        .time_logs
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
-    let tasks = persistence
-        .tasks
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
-    let projects = persistence
-        .projects
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let logs = persistence.time_logs.get_all()?;
+    let tasks = persistence.tasks.get_all()?;
+    let projects = persistence.projects.get_all()?;
 
     let today_logs: Vec<_> = logs
         .into_iter()
@@ -204,21 +187,10 @@ pub fn build_dashboard_dto(
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<DashboardDto, CliError> {
-    let active_ids = engine
-        .get_active_logs()
-        .map_err(|e| CliError::Engine(e.to_string()))?;
-    let tasks = persistence
-        .tasks
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
-    let projects = persistence
-        .projects
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
-    let logs = persistence
-        .time_logs
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let active_ids = engine.get_active_logs()?;
+    let tasks = persistence.tasks.get_all()?;
+    let projects = persistence.projects.get_all()?;
+    let logs = persistence.time_logs.get_all()?;
 
     let active_session = active_ids.first().map(|active_id| {
         let task_name = tasks

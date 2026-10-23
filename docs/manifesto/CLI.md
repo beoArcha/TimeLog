@@ -184,22 +184,22 @@ Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* ex
 | `syntax` | `CLI_SYNTAX_INVALID_ARGS` | `2` | Invalid arguments |
 | `syntax` | `CLI_SYNTAX_INVALID_DURATION` | `2` | Duration could not be parsed |
 | `syntax` | `CLI_SYNTAX_EMPTY_ID` | `2` | Empty entity ID |
-| `syntax` | `CLI_SYNTAX_MISSING_TARGET` | — | Required target missing (*not yet emitted*) |
-| `syntax` | `CLI_SYNTAX_UNKNOWN_COMMAND` | — | Unknown command (*not yet emitted*) |
+| `syntax` | `CLI_SYNTAX_MISSING_TARGET` | `2` | Required target missing |
+| `syntax` | `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Unknown command |
 | `entity` | `DOM_ENTITY_NOT_FOUND` | `4` | Target project, task or subtask not found |
 | `entity` | `DOM_ENTITY_AMBIGUOUS` | `4` | Query matches more than one entity |
 | `entity` | `DOM_ENTITY_DID_YOU_MEAN` | `4` | No exact match; close matches suggested |
 | `storage` | `STO_SQLITE_INIT` | `3` | Database initialization failed |
 | `storage` | `STO_SQLITE_QUERY` | `3` | Query failed |
-| `storage` | `STO_SQLITE_CONSTRAINT` | — | Constraint violation (*not yet emitted*) |
-| `engine` | `ENG_TIMER_CONFLICT` | `5` | Timer lifecycle conflict (currently used for every engine error) |
-| `engine` | `ENG_TIMER_ACTIVE` | — | Timer already active (*not yet emitted*) |
-| `engine` | `ENG_TIMER_INACTIVE` | — | No active timer (*not yet emitted*) |
+| `storage` | `STO_SQLITE_CONSTRAINT` | `3` | Constraint violation |
+| `engine` | `ENG_TIMER_CONFLICT` | `5` | Active timer conflict |
+| `engine` | `ENG_TIMER_ACTIVE` | `5` | Timer already active (*not yet emitted*) |
+| `engine` | `ENG_TIMER_INACTIVE` | `5` | No active timer running |
 | `business` | `DOM_BUSINESS_VIOLATION` | `1` | Business rule violated |
 | `business` | `DOM_BUSINESS_NO_PROJECTS` | `1` | Operation requires at least one project |
-| `sink` | `SNK_EXTERNAL_IO` | — | Sink I/O failure (*not yet emitted*) |
-| `mask` | `MSK_ALIAS_NOT_FOUND` | — | Action mask not registered (*not yet emitted*) |
-| `mask` | `MSK_ALIAS_SYNTAX` | — | Invalid mask template (*not yet emitted*) |
+| `sink` | `SNK_EXTERNAL_IO` | `1` | Sink I/O failure (*not yet emitted*) |
+| `mask` | `MSK_ALIAS_NOT_FOUND` | `2` | Action mask alias not found |
+| `mask` | `MSK_ALIAS_SYNTAX` | `2` | Invalid mask template (*not yet emitted*) |
 
 ### Interactive Self-Healing in TTY
 

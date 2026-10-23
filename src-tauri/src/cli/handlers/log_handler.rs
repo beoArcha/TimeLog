@@ -3,7 +3,7 @@ use super::constants::{
     LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION, LABEL_UNKNOWN_TASK, MSG_LOG_DELETED,
     MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
 };
-use crate::cli::error::CliError;
+use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::tier2_entities::{LogArgs, LogSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::constants::DATE_FORMAT_DATE_ONLY;
@@ -39,10 +39,7 @@ fn list_logs(
     limit: Option<usize>,
 ) -> Result<CliOutput, CliError> {
     let filter_task_id = resolve_task_filter(persistence, task)?;
-    let all_logs = persistence
-        .time_logs
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let all_logs = persistence.time_logs.get_all()?;
     let tasks = persistence.tasks.get_all().unwrap_or_default();
 
     let filtered = filter_and_sort_logs(all_logs, filter_task_id.as_deref(), today, week, limit);
@@ -176,10 +173,7 @@ fn add_log(
         note,
     };
 
-    persistence
-        .time_logs
-        .insert_full(&new_log)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.time_logs.insert_full(&new_log)?;
 
     Ok(CliOutput::Success(
         MSG_LOG_RECORDED
@@ -195,10 +189,7 @@ fn edit_log(
     duration: Option<String>,
     note: Option<String>,
 ) -> Result<CliOutput, CliError> {
-    let existing = persistence
-        .time_logs
-        .get_by_id(id)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let existing = persistence.time_logs.get_by_id(id)?;
 
     let new_start_time = calculate_adjusted_start_time(&existing, duration.as_deref())?;
     let new_note = note.as_deref().or(existing.note.as_deref());
@@ -219,10 +210,7 @@ fn edit_log(
         reason: Some(AuditSource::CliEdit),
     };
 
-    persistence
-        .time_logs
-        .update_with_history(&history_entry)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.time_logs.update_with_history(&history_entry)?;
 
     Ok(CliOutput::Success(MSG_LOG_UPDATED.replace("{}", id)))
 }
@@ -234,9 +222,8 @@ fn calculate_adjusted_start_time(
     if let Some(dur) = duration {
         let secs = parse_duration_seconds(dur)?;
         let end = match &existing.end_time {
-            Some(e) => {
-                DateTime::parse_from_rfc3339(e).map_err(|e| CliError::Syntax(e.to_string()))?
-            }
+            Some(e) => DateTime::parse_from_rfc3339(e)
+                .map_err(|e| CliError::Syntax(CliSyntaxError::InvalidDuration(e.to_string())))?,
             None => Utc::now().fixed_offset(),
         };
         let st = end - Duration::seconds(secs);
@@ -247,9 +234,6 @@ fn calculate_adjusted_start_time(
 }
 
 fn remove_log(persistence: &Persistence, id: &str) -> Result<CliOutput, CliError> {
-    persistence
-        .time_logs
-        .delete(id)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.time_logs.delete(id)?;
     Ok(CliOutput::Success(MSG_LOG_DELETED.replace("{}", id)))
 }

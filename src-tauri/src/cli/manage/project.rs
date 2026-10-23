@@ -55,10 +55,7 @@ fn create_project(
         allow_concurrency: None,
     };
 
-    persistence
-        .projects
-        .create(project)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.projects.create(project)?;
 
     Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))
 }
@@ -68,21 +65,14 @@ fn list_projects() -> Result<CliOutput, CliError> {
 }
 
 fn archive_project(persistence: &Persistence, id: String) -> Result<CliOutput, CliError> {
-    let _ = persistence
-        .projects
-        .get(&id)
-        .map_err(|e| CliError::Storage(e.to_string()))?
-        .ok_or_else(|| {
-            CliError::Entity(ResolveError::NotFound {
-                target: id.clone(),
-                entity_type: EntityType::Project,
-            })
-        })?;
+    let _ = persistence.projects.get(&id)?.ok_or_else(|| {
+        CliError::Entity(ResolveError::NotFound {
+            target: id.clone(),
+            entity_type: EntityType::Project,
+        })
+    })?;
 
-    persistence
-        .projects
-        .archive(id.clone())
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.projects.archive(id.clone())?;
 
     Ok(CliOutput::Success(MSG_PROJECT_ARCHIVED.replace("{}", &id)))
 }
@@ -92,22 +82,15 @@ fn rename_project(
     id: String,
     name: String,
 ) -> Result<CliOutput, CliError> {
-    let mut project = persistence
-        .projects
-        .get(&id)
-        .map_err(|e| CliError::Storage(e.to_string()))?
-        .ok_or_else(|| {
-            CliError::Entity(ResolveError::NotFound {
-                target: id.clone(),
-                entity_type: EntityType::Project,
-            })
-        })?;
+    let mut project = persistence.projects.get(&id)?.ok_or_else(|| {
+        CliError::Entity(ResolveError::NotFound {
+            target: id.clone(),
+            entity_type: EntityType::Project,
+        })
+    })?;
 
     project.name = name;
-    persistence
-        .projects
-        .patch(project)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.projects.patch(project)?;
 
     Ok(CliOutput::Success(MSG_PROJECT_RENAMED.replace("{}", &id)))
 }

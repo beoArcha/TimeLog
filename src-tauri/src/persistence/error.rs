@@ -42,3 +42,28 @@ impl From<crate::repositories::shared::errors::RepositoryError> for PersistenceE
         }
     }
 }
+
+impl PartialEq for PersistenceError {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                Self::NotFound {
+                    entity: e1,
+                    id: id1,
+                },
+                Self::NotFound {
+                    entity: e2,
+                    id: id2,
+                },
+            ) => e1 == e2 && id1 == id2,
+            (Self::Validation(v1), Self::Validation(v2)) => v1 == v2,
+            (Self::Initialization(i1), Self::Initialization(i2)) => i1 == i2,
+            (Self::Storage(s1), Self::Storage(s2)) => s1 == s2,
+            (Self::Database(d1), Self::Database(d2)) => d1.to_string() == d2.to_string(),
+            (Self::Serialization(s1), Self::Serialization(s2)) => s1.to_string() == s2.to_string(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for PersistenceError {}

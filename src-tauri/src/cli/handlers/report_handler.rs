@@ -79,18 +79,9 @@ pub fn build_report_tree(
         include_patches: Some(true),
     };
 
-    let metrics = engine
-        .calculate_range_metrics(&filter, None)
-        .map_err(|e| CliError::Engine(e.to_string()))?;
-
-    let all_projects = persistence
-        .projects
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
-    let all_tasks = persistence
-        .tasks
-        .get_all()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let metrics = engine.calculate_range_metrics(&filter, None)?;
+    let all_projects = persistence.projects.get_all()?;
+    let all_tasks = persistence.tasks.get_all()?;
 
     let project_map: HashMap<String, Project> = all_projects
         .into_iter()

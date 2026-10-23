@@ -12,10 +12,16 @@ fn test_app_error_serialization() {
     // Act
     let serialized = serde_json::to_string(&err).unwrap();
     let serialized_db = serde_json::to_string(&db_err).unwrap();
+    let payload: oxy_flow::types::IpcErrorPayload = serde_json::from_str(&serialized).unwrap();
+    let payload_db: oxy_flow::types::IpcErrorPayload =
+        serde_json::from_str(&serialized_db).unwrap();
 
     // Assert
-    assert_eq!(serialized, "\"Application error: test error\"");
-    assert!(serialized_db.contains("Database error:"));
+    assert_eq!(payload.code, "GEN_APPLICATION_ERROR");
+    assert_eq!(payload.message, "test error");
+    assert_eq!(payload_db.code, "STO_SQLITE_ERROR");
+    assert!(payload_db.message.contains("Query returned no rows"));
+    assert_eq!(payload_db.details.as_deref(), Some("QueryReturnedNoRows"));
 }
 
 #[test]
@@ -69,18 +75,54 @@ fn test_app_error_conversions() {
         RepositoryError::Database(rusqlite::Error::QueryReturnedNoRows).into();
 
     // Assert
-    assert!(matches!(repo_db, AppError::Database(_)));
-    assert!(matches!(repo_ser, AppError::Generic(_)));
-    assert!(matches!(repo_not_found, AppError::Generic(_)));
-    assert!(matches!(repo_val, AppError::Generic(_)));
-    assert!(matches!(eng_db, AppError::Database(_)));
-    assert!(matches!(eng_val, AppError::Generic(_)));
-    assert!(matches!(eng_parse, AppError::Generic(_)));
-    assert!(matches!(eng_not_found, AppError::Generic(_)));
-    assert!(matches!(eng_no_active, AppError::Generic(_)));
-    assert!(matches!(eng_conflict, AppError::Generic(_)));
-    assert!(matches!(persist_db, AppError::Database(_)));
-    assert!(matches!(persist_val, AppError::Generic(_)));
+    assert!(matches!(
+        repo_db,
+        AppError::Persistence(PersistenceError::Database(_))
+    ));
+    assert!(matches!(
+        repo_ser,
+        AppError::Persistence(PersistenceError::Serialization(_))
+    ));
+    assert!(matches!(
+        repo_not_found,
+        AppError::Persistence(PersistenceError::NotFound { .. })
+    ));
+    assert!(matches!(
+        repo_val,
+        AppError::Persistence(PersistenceError::Validation(_))
+    ));
+    assert!(matches!(
+        eng_db,
+        AppError::Engine(EngineError::Persistence(_))
+    ));
+    assert!(matches!(
+        eng_val,
+        AppError::Engine(EngineError::Validation(_))
+    ));
+    assert!(matches!(
+        eng_parse,
+        AppError::Engine(EngineError::ParseTime(_))
+    ));
+    assert!(matches!(
+        eng_not_found,
+        AppError::Engine(EngineError::EntityNotFound { .. })
+    ));
+    assert!(matches!(
+        eng_no_active,
+        AppError::Engine(EngineError::NoActiveTimer)
+    ));
+    assert!(matches!(
+        eng_conflict,
+        AppError::Engine(EngineError::ActiveTimerConflict { .. })
+    ));
+    assert!(matches!(
+        persist_db,
+        AppError::Persistence(PersistenceError::Database(_))
+    ));
+    assert!(matches!(
+        persist_val,
+        AppError::Persistence(PersistenceError::Validation(_))
+    ));
     assert!(matches!(p_repo_ser, PersistenceError::Serialization(_)));
     assert!(matches!(
         p_repo_not_found,

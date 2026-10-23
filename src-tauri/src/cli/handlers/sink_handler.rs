@@ -3,11 +3,11 @@ use super::constants::{
     HEADER_SINKS, MSG_NO_SINKS_CONFIGURED, MSG_SINK_CSV_CONFIGURED, MSG_SINK_TEST_HEADER,
     MSG_SINK_WEBHOOK_CONFIGURED,
 };
-use crate::cli::error::CliError;
+use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{SinkArgs, SinkSubcommand};
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::current_timestamp;
-use crate::persistence::Persistence;
+use crate::persistence::{Persistence, PersistenceError};
 use crate::types::CliSink;
 use serde_json::json;
 use std::path::Path;
@@ -28,10 +28,7 @@ pub fn handle(
 }
 
 fn list_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, CliError> {
-    let sinks = persistence
-        .cli
-        .get_all_sinks()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let sinks = persistence.cli.get_all_sinks()?;
 
     if is_machine {
         let json_str = serde_json::to_string_pretty(&sinks).unwrap_or_else(|_| "[]".to_string());
@@ -63,13 +60,16 @@ fn set_csv_sink(
     persistence: &Persistence,
 ) -> Result<CliOutput, CliError> {
     if dir.trim().is_empty() {
-        return Err(CliError::Syntax(ERR_SINK_INVALID_DIR.to_string()));
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            ERR_SINK_INVALID_DIR.to_string(),
+        )));
     }
 
     let path = Path::new(&dir);
     if !path.exists() {
-        std::fs::create_dir_all(path)
-            .map_err(|e| CliError::Storage(format!("Cannot create target directory: {}", e)))?;
+        std::fs::create_dir_all(path).map_err(|e| {
+            PersistenceError::Storage(format!("Cannot create target directory: {}", e))
+        })?;
     }
 
     let sink = CliSink {
@@ -81,10 +81,7 @@ fn set_csv_sink(
         created_at: current_timestamp(),
     };
 
-    persistence
-        .cli
-        .save_sink(&sink)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.cli.save_sink(&sink)?;
 
     if is_machine {
         return Ok(CliOutput::Success(
@@ -104,7 +101,9 @@ fn set_webhook_sink(
     persistence: &Persistence,
 ) -> Result<CliOutput, CliError> {
     if !url.starts_with("http://") && !url.starts_with("https://") {
-        return Err(CliError::Syntax(ERR_SINK_INVALID_URL.to_string()));
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            ERR_SINK_INVALID_URL.to_string(),
+        )));
     }
 
     let config = token.map(|t| json!({ "token": t }).to_string());
@@ -117,10 +116,7 @@ fn set_webhook_sink(
         created_at: current_timestamp(),
     };
 
-    persistence
-        .cli
-        .save_sink(&sink)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.cli.save_sink(&sink)?;
 
     if is_machine {
         return Ok(CliOutput::Success(
@@ -134,10 +130,7 @@ fn set_webhook_sink(
 }
 
 fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, CliError> {
-    let sinks = persistence
-        .cli
-        .get_all_sinks()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let sinks = persistence.cli.get_all_sinks()?;
 
     if sinks.is_empty() {
         if is_machine {

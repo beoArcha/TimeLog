@@ -40,16 +40,12 @@ fn create_subtask(
     task_id: String,
     name: String,
 ) -> Result<CliOutput, CliError> {
-    let parent = persistence
-        .tasks
-        .get(&task_id)
-        .map_err(|e| CliError::Storage(e.to_string()))?
-        .ok_or_else(|| {
-            CliError::Entity(ResolveError::NotFound {
-                target: task_id.clone(),
-                entity_type: EntityType::Task,
-            })
-        })?;
+    let parent = persistence.tasks.get(&task_id)?.ok_or_else(|| {
+        CliError::Entity(ResolveError::NotFound {
+            target: task_id.clone(),
+            entity_type: EntityType::Task,
+        })
+    })?;
 
     let id = generate_id();
     let subtask = Task {
@@ -66,10 +62,7 @@ fn create_subtask(
         status: Some(crate::types::TaskStatus::Todo),
     };
 
-    persistence
-        .tasks
-        .create_subtask(subtask)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.tasks.create_subtask(subtask)?;
 
     Ok(CliOutput::Success(MSG_SUBTASK_CREATED.replace("{}", &id)))
 }
@@ -79,41 +72,27 @@ fn archive_subtask(
     id: String,
     task_id: String,
 ) -> Result<CliOutput, CliError> {
-    let _ = persistence
-        .tasks
-        .get(&id)
-        .map_err(|e| CliError::Storage(e.to_string()))?
-        .ok_or_else(|| {
-            CliError::Entity(ResolveError::NotFound {
-                target: id.clone(),
-                entity_type: EntityType::Task,
-            })
-        })?;
+    let _ = persistence.tasks.get(&id)?.ok_or_else(|| {
+        CliError::Entity(ResolveError::NotFound {
+            target: id.clone(),
+            entity_type: EntityType::Task,
+        })
+    })?;
 
-    persistence
-        .tasks
-        .archive_subtask(id.clone(), task_id)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.tasks.archive_subtask(id.clone(), task_id)?;
 
     Ok(CliOutput::Success(MSG_SUBTASK_ARCHIVED.replace("{}", &id)))
 }
 
 fn list_subtasks(persistence: &Persistence, task_id: String) -> Result<CliOutput, CliError> {
-    let _parent = persistence
-        .tasks
-        .get(&task_id)
-        .map_err(|e| CliError::Storage(e.to_string()))?
-        .ok_or_else(|| {
-            CliError::Entity(ResolveError::NotFound {
-                target: task_id.clone(),
-                entity_type: EntityType::Task,
-            })
-        })?;
+    let _parent = persistence.tasks.get(&task_id)?.ok_or_else(|| {
+        CliError::Entity(ResolveError::NotFound {
+            target: task_id.clone(),
+            entity_type: EntityType::Task,
+        })
+    })?;
 
-    let subtasks = persistence
-        .tasks
-        .get_subtasks(&task_id)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let subtasks = persistence.tasks.get_subtasks(&task_id)?;
 
     if subtasks.is_empty() {
         return Ok(CliOutput::Success(

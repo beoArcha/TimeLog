@@ -9,7 +9,10 @@ pub mod settings;
 pub mod shared;
 pub mod timer;
 
-pub use error::{CliError, CliErrorCode, CliErrorEnvelope, LocalizedUserMessage};
+pub use error::{
+    BusinessRuleViolation, CliError, CliErrorCode, CliErrorEnvelope, CliSyntaxError,
+    LocalizedUserMessage,
+};
 pub use exporters::export_to_file;
 pub use formatters::{format_duration, render_tree_string, ReportTreeDto};
 pub use parser::{CliArgs, CliCommand, CliCommands, ExportFormat};

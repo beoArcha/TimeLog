@@ -53,10 +53,7 @@ fn create_task(
         status: Some(crate::types::TaskStatus::Todo),
     };
 
-    persistence
-        .tasks
-        .create(task)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.tasks.create(task)?;
     Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
 }
 
@@ -65,40 +62,26 @@ fn archive_task(
     id: String,
     project_id: String,
 ) -> Result<CliOutput, CliError> {
-    let _ = persistence
-        .tasks
-        .get(&id)
-        .map_err(|e| CliError::Storage(e.to_string()))?
-        .ok_or_else(|| {
-            CliError::Entity(ResolveError::NotFound {
-                target: id.clone(),
-                entity_type: EntityType::Task,
-            })
-        })?;
+    let _ = persistence.tasks.get(&id)?.ok_or_else(|| {
+        CliError::Entity(ResolveError::NotFound {
+            target: id.clone(),
+            entity_type: EntityType::Task,
+        })
+    })?;
 
-    persistence
-        .tasks
-        .archive(id.clone(), project_id)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.tasks.archive(id.clone(), project_id)?;
     Ok(CliOutput::Success(MSG_TASK_ARCHIVED.replace("{}", &id)))
 }
 
 fn rename_task(persistence: &Persistence, id: String, name: String) -> Result<CliOutput, CliError> {
-    let mut task = persistence
-        .tasks
-        .get(&id)
-        .map_err(|e| CliError::Storage(e.to_string()))?
-        .ok_or_else(|| {
-            CliError::Entity(ResolveError::NotFound {
-                target: id.clone(),
-                entity_type: EntityType::Task,
-            })
-        })?;
+    let mut task = persistence.tasks.get(&id)?.ok_or_else(|| {
+        CliError::Entity(ResolveError::NotFound {
+            target: id.clone(),
+            entity_type: EntityType::Task,
+        })
+    })?;
 
     task.name = name;
-    persistence
-        .tasks
-        .patch(task)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.tasks.patch(task)?;
     Ok(CliOutput::Success(MSG_TASK_RENAMED.replace("{}", &id)))
 }

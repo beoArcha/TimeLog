@@ -1,9 +1,8 @@
 use super::constants::{
-    ERR_MASK_EMPTY_NAME, ERR_MASK_EMPTY_TEMPLATE, ERR_MASK_NOT_FOUND, ERR_MASK_SELF_REFERENCE,
-    FORMAT_MASK_LIST_ITEM, HEADER_MASKS, MSG_MASK_CONFIGURED, MSG_MASK_REMOVED,
-    MSG_NO_MASKS_CONFIGURED,
+    ERR_MASK_EMPTY_NAME, ERR_MASK_EMPTY_TEMPLATE, ERR_MASK_SELF_REFERENCE, FORMAT_MASK_LIST_ITEM,
+    HEADER_MASKS, MSG_MASK_CONFIGURED, MSG_MASK_REMOVED, MSG_NO_MASKS_CONFIGURED,
 };
-use crate::cli::error::CliError;
+use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{MaskArgs, MaskSubcommand};
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::current_timestamp;
@@ -24,10 +23,7 @@ pub fn handle(
 }
 
 fn list_masks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, CliError> {
-    let aliases = persistence
-        .cli
-        .get_all_aliases()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let aliases = persistence.cli.get_all_aliases()?;
 
     if is_machine {
         let json_str = serde_json::to_string_pretty(&aliases).unwrap_or_else(|_| "[]".to_string());
@@ -58,16 +54,22 @@ fn set_mask(
 ) -> Result<CliOutput, CliError> {
     let trimmed_name = name.trim();
     if trimmed_name.is_empty() {
-        return Err(CliError::Syntax(ERR_MASK_EMPTY_NAME.to_string()));
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            ERR_MASK_EMPTY_NAME.to_string(),
+        )));
     }
 
     let trimmed_template = template.trim();
     if trimmed_template.is_empty() {
-        return Err(CliError::Syntax(ERR_MASK_EMPTY_TEMPLATE.to_string()));
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            ERR_MASK_EMPTY_TEMPLATE.to_string(),
+        )));
     }
 
     if trimmed_template.split_whitespace().next() == Some(trimmed_name) {
-        return Err(CliError::Syntax(ERR_MASK_SELF_REFERENCE.to_string()));
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            ERR_MASK_SELF_REFERENCE.to_string(),
+        )));
     }
 
     let alias = CliAlias {
@@ -76,10 +78,7 @@ fn set_mask(
         created_at: current_timestamp(),
     };
 
-    persistence
-        .cli
-        .save_alias(&alias)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.cli.save_alias(&alias)?;
 
     if is_machine {
         return Ok(CliOutput::Success(
@@ -100,15 +99,10 @@ fn remove_mask(
     is_machine: bool,
     persistence: &Persistence,
 ) -> Result<CliOutput, CliError> {
-    let deleted = persistence
-        .cli
-        .delete_alias(&name)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let deleted = persistence.cli.delete_alias(&name)?;
 
     if !deleted {
-        return Err(CliError::Syntax(
-            ERR_MASK_NOT_FOUND.replacen("{}", &name, 1),
-        ));
+        return Err(CliError::Syntax(CliSyntaxError::AliasNotFound(name)));
     }
 
     if is_machine {

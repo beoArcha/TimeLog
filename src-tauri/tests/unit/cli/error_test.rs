@@ -1,15 +1,19 @@
-use oxy_flow::cli::error::{CliErrorCode, CliErrorEnvelope};
+use oxy_flow::cli::error::{BusinessRuleViolation, CliErrorCode, CliErrorEnvelope, CliSyntaxError};
 use oxy_flow::cli::resolver::{EntityType, ResolveError};
 use oxy_flow::cli::shared::constants::{
     EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENGINE_ERROR, EXIT_CODE_ENTITY_ERROR,
     EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR,
 };
 use oxy_flow::cli::CliError;
+use oxy_flow::engine::EngineError;
+use oxy_flow::persistence::PersistenceError;
 
 #[test]
 fn test_given_syntax_error_when_converting_to_envelope_then_maps_to_cli_syntax_and_exit_code_2() {
     // Arrange
-    let error = CliError::Syntax("Missing required argument --name".to_string());
+    let error = CliError::Syntax(CliSyntaxError::InvalidArgs(
+        "Missing required argument --name".to_string(),
+    ));
 
     // Act
     let envelope = error.to_envelope(None);
@@ -29,7 +33,7 @@ fn test_given_syntax_error_when_converting_to_envelope_then_maps_to_cli_syntax_a
 fn test_given_duration_syntax_error_when_converting_to_envelope_then_maps_to_invalid_duration_code()
 {
     // Arrange
-    let error = CliError::Syntax("Invalid duration format: 3x".to_string());
+    let error = CliError::Syntax(CliSyntaxError::InvalidDuration("3x".to_string()));
 
     // Act
     let envelope = error.to_envelope(None);
@@ -111,7 +115,9 @@ fn test_given_ambiguous_entity_when_converting_to_envelope_then_maps_to_dom_enti
 #[test]
 fn test_given_storage_error_when_converting_to_envelope_then_maps_to_sto_sqlite_and_exit_code_3() {
     // Arrange
-    let error = CliError::Storage("database locked by concurrent process".to_string());
+    let error = CliError::Storage(PersistenceError::Storage(
+        "database locked by concurrent process".to_string(),
+    ));
 
     // Act
     let envelope = error.to_envelope(None);
@@ -126,7 +132,9 @@ fn test_given_storage_error_when_converting_to_envelope_then_maps_to_sto_sqlite_
 #[test]
 fn test_given_storage_init_error_when_converting_to_envelope_then_maps_to_sto_sqlite_init() {
     // Arrange
-    let error = CliError::Storage("Storage Initialization failed: permission denied".to_string());
+    let error = CliError::Storage(PersistenceError::Initialization(
+        "permission denied".to_string(),
+    ));
 
     // Act
     let envelope = error.to_envelope(None);
@@ -140,7 +148,9 @@ fn test_given_storage_init_error_when_converting_to_envelope_then_maps_to_sto_sq
 #[test]
 fn test_given_engine_error_when_converting_to_envelope_then_maps_to_eng_timer_and_exit_code_5() {
     // Arrange
-    let error = CliError::Engine("Timer active on conflicting thread".to_string());
+    let error = CliError::Engine(EngineError::ActiveTimerConflict {
+        active_task_id: "task-1".to_string(),
+    });
 
     // Act
     let envelope = error.to_envelope(None);
@@ -155,7 +165,9 @@ fn test_given_engine_error_when_converting_to_envelope_then_maps_to_eng_timer_an
 fn test_given_business_error_when_converting_to_envelope_then_maps_to_dom_business_and_exit_code_1()
 {
     // Arrange
-    let error = CliError::Business("Project name cannot exceed 100 characters".to_string());
+    let error = CliError::Business(BusinessRuleViolation::Constraint(
+        "Project name cannot exceed 100 characters".to_string(),
+    ));
 
     // Act
     let envelope = error.to_envelope(None);
@@ -169,7 +181,9 @@ fn test_given_business_error_when_converting_to_envelope_then_maps_to_dom_busine
 #[test]
 fn test_given_envelope_when_serialized_to_json_then_produces_deterministic_machine_schema() {
     // Arrange
-    let error = CliError::Syntax("Invalid flag --foo".to_string());
+    let error = CliError::Syntax(CliSyntaxError::InvalidArgs(
+        "Invalid flag --foo".to_string(),
+    ));
     let envelope = error.to_envelope(Some("en"));
 
     // Act

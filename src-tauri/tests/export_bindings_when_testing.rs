@@ -46,4 +46,5 @@ fn export_bindings() {
     WorkflowConfig::export_all_to(BINDINGS_DIR).unwrap();
     WorkflowStatus::export_all_to(BINDINGS_DIR).unwrap();
     WorkflowCheckResult::export_all_to(BINDINGS_DIR).unwrap();
+    IpcErrorPayload::export_all_to(BINDINGS_DIR).unwrap();
 }
