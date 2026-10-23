@@ -15,8 +15,12 @@ Passing tests and a clean compiler are a prerequisite, not proof of compliance. 
 Use the phase-gate process for roadmap phases, large features and refactors spanning several modules. Small fixes and single-concern changes follow only the default flow in `AGENTS.md`.
 
 ```text
-1. Discovery  →  2. Implementation plan  →  3. Phases (subphases → phase gate → review fixes → approval)
-                                         →  4. Full verification  →  5. Sign-off and docs
+1. Discovery (analytical artifact as source of truth)
+   → 2. Implementation plan (plan artifact with phases and subphases)
+   → 3. Phases (subphases run automatically → reviewer subphase → phase gate → review fixes → explicit approval)
+   → 4. Penultimate phase: Full automated verification (tests, lint, formatting, typecheck across runtimes)
+   → 5. Final phase: Agent-executed manual verification (runtime checks, exit codes, state persistence)
+   → 6. Sign-off and documentation update
 ```
 
 ## 2. Stages
@@ -24,22 +28,37 @@ Use the phase-gate process for roadmap phases, large features and refactors span
 ### 2.1. Discovery
 
 - Read the relevant modules in `src/` and `src-tauri/` and the applicable rules before writing code.
+- Create an analytical artifact (e.g. `backend_error_handling_analysis.md`) that serves as the concrete **source of truth** mapping existing flows, root causes, exact file locations, and target behaviors.
 - Resolve ambiguities by asking the user, preferably as multiple-choice questions. Never guess unstated requirements.
 
 ### 2.2. Implementation Plan
 
 - Write the plan as a Markdown document (e.g. `phase_X_implementation_plan.md`) and get it approved before implementation.
-- Structure: **Phases** (`Phase X.Y`) are vertical slices ending with a phase gate; **Subphases** (`Subphase X.Y.Z`) are atomic tasks inside a phase.
+- **Phase Structure:**
+  - **Phases (`Phase X`):** Complete, vertical slices producing working, compilable, and tested code, ending with a mandatory Phase Gate.
+  - **Subphases (`Subphase X.Y`):** Atomic, logical code tasks inside an approved phase. Execution moves between subphases automatically without prompting the user.
+  - **Mandatory Final Reviewer Subphase (`Subphase X.Review`):** The last subphase in every production phase is a formal quality & architecture review auditing touched code.
+- The penultimate phase is always **Full Automated Verification** (tests, linter, typecheck, fmt across all environments).
+- The final phase is always **Agent-Executed Manual Verification** (testing runtime behavior, exit codes, state persistence).
 - Split responsibilities explicitly: the AI writes code, tests, lint and typecheck fixes; the user verifies visuals, window behavior and business sign-off.
 - End the plan with a **Verification Plan**: the exact automated commands and manual checks.
 - The approved plan is a frozen reference. Do not tick or untick its checkboxes during execution.
 
 ### 2.3. Phase Execution
 
-1. **Subphases**: move between subphases of an approved phase without stopping. Each subphase leaves the code compiling and its targeted tests passing.
-2. **Phase gate**: after the last subphase, stop. Report the summary of changes, test results and verification commands, and ask for a code review.
-3. **Review fixes**: fixes requested in review belong to the current phase. After applying them, re-run the tests, report what changed and wait again.
-4. **Advance**: start the next phase only after the user explicitly says so. A completed review fix is not permission to advance.
+1. **Subphases**: move between subphases of an approved phase automatically without stopping. Each subphase leaves the code compiling and its targeted tests passing.
+2. **Reviewer Subphase**: before the Phase Gate, conduct an architectural and code audit covering:
+   - **Changes & Rationale (WHY):** What was changed and why.
+   - **Pre-existing Violations (WHAT WAS BROKEN):** What was defected, missing, or violating standards in the original code.
+   - **SOLID:** SRP, OCP, LSP, ISP, DIP.
+   - **KISS & DRY:** Simplest working solution, zero duplication.
+   - **Clean Code:** Clean naming, max nested ifs <= 2 (Rule of 3 Ifs), zero unwrap() in production.
+   - **Comments:** Follow `code_commenting_standards.md` — English only, explaining WHY, no narration of obvious match/variants, no ASCII banners/dividers, zero declarative buzzwords.
+   - **Clean Architecture:** Layer boundaries strictly preserved, SQL isolated in repositories, no Tauri GUI types in domain/persistence.
+   - **Boy Scout Rule:** Report cleanup of technical debt or inconsistencies in touched files.
+3. **Phase gate**: after the reviewer subphase, STOP completely. Report the summary of changes, reviewer audit, test results and verification commands, and ask for a code review.
+4. **Review fixes**: fixes requested in review belong to the current phase. After applying them, re-run tests and report what changed.
+5. **Advance**: start the next phase ONLY after the user explicitly says so (e.g. "następna faza", "proceed", "approved"). **A completed review fix NEVER constitutes permission to advance automatically.**
 
 ### 2.4. Pre-Review Self-Audit
 
