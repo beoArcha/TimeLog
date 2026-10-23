@@ -28,12 +28,12 @@ Use the phase-gate process for roadmap phases, large features and refactors span
 ### 2.1. Discovery
 
 - Read the relevant modules in `src/` and `src-tauri/` and the applicable rules before writing code.
-- Create an analytical artifact (e.g. `backend_error_handling_analysis.md`) that serves as the concrete **source of truth** mapping existing flows, root causes, exact file locations, and target behaviors.
+- Create an analytical artifact (e.g. `backend_error_handling_analysis.md`) adhering to `documentation_standards.md` as the concrete **source of truth** mapping existing flows, root causes, exact file locations, and target behaviors.
 - Resolve ambiguities by asking the user, preferably as multiple-choice questions. Never guess unstated requirements.
 
 ### 2.2. Implementation Plan
 
-- Write the plan as a Markdown document (e.g. `phase_X_implementation_plan.md`) and get it approved before implementation.
+- Write the plan as a Markdown document (e.g. `phase_X_implementation_plan.md`) adhering to the 10-section structure in `documentation_standards.md` and get it approved before implementation.
 - **Phase Structure:**
   - **Phases (`Phase X`):** Complete, vertical slices producing working, compilable, and tested code, ending with a mandatory Phase Gate.
   - **Subphases (`Subphase X.Y`):** Atomic, logical code tasks inside an approved phase. Execution moves between subphases automatically without prompting the user.
