@@ -70,7 +70,6 @@ impl WorkflowDaemon {
                 let config = match persistence_ref.workflow.get_config() {
                     Ok(cfg) => cfg,
                     Err(err) => {
-                        eprintln!("[WorkflowDaemon] Failed to get workflow config: {err}");
                         if let Ok(mut st) = status_ref.lock() {
                             st.last_error = Some(err.to_string());
                             st.last_error_time_iso = Some(now.to_rfc3339());
@@ -82,7 +81,6 @@ impl WorkflowDaemon {
                 let all_logs = match persistence_ref.time_logs.get_all() {
                     Ok(logs) => logs,
                     Err(err) => {
-                        eprintln!("[WorkflowDaemon] Failed to get time logs: {err}");
                         if let Ok(mut st) = status_ref.lock() {
                             st.last_error = Some(err.to_string());
                             st.last_error_time_iso = Some(now.to_rfc3339());
@@ -181,7 +179,6 @@ fn handle_workflow_stop(
 ) {
     let engine = Engine::new(persistence);
     if let Err(err) = engine.stop_timer(None) {
-        eprintln!("[WorkflowDaemon] Failed to stop timer on workflow trigger: {err}");
         if let Ok(mut st) = status_ref.lock() {
             st.last_error = Some(err.to_string());
             st.last_error_time_iso = Some(now.to_rfc3339());

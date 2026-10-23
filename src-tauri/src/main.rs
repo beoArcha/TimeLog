@@ -23,11 +23,14 @@ fn main() -> ExitCode {
             db_path,
             csv_directory,
         };
+        let is_machine = cli_args.machine || cli_args.json;
         let persistence = match oxy_flow::persistence::Persistence::new(&persistence_config) {
             Ok(p) => p,
             Err(e) => {
-                eprintln!("Error initializing storage: {e}");
-                return ExitCode::from(oxy_flow::cli::shared::constants::EXIT_CODE_STORAGE_ERROR);
+                let err = cli::CliError::from(e);
+                let envelope = err.to_envelope(None);
+                envelope.render_stderr(is_machine);
+                return envelope.to_exit_code();
             }
         };
         let engine = oxy_flow::engine::Engine::new(&persistence);
