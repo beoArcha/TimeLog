@@ -28,6 +28,13 @@ pub fn resume_timer(task_id: String, state: State<'_, AppState>) -> Result<(), A
 }
 
 #[tauri::command]
+pub fn switch_timer(task_id: String, state: State<'_, AppState>) -> Result<(), AppError> {
+    let engine = Engine::new(&state.persistence);
+    engine.switch_timer(&task_id)?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn get_active_logs(state: State<'_, AppState>) -> Result<Vec<String>, AppError> {
     let engine = Engine::new(&state.persistence);
     let logs = engine.get_active_logs()?;

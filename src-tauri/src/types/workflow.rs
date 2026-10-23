@@ -53,6 +53,10 @@ pub struct WorkflowStatus {
     pub last_auto_stop_reason: Option<String>,
     #[ts(optional)]
     pub last_auto_stop_time_iso: Option<String>,
+    #[ts(optional)]
+    pub last_error: Option<String>,
+    #[ts(optional)]
+    pub last_error_time_iso: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, TS)]

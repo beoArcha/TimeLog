@@ -34,9 +34,10 @@ pub fn workflow_check_rules(
         None => None,
     };
     let config = state.persistence.workflow.get_config()?;
-    Ok(state
+    let result = state
         .workflow_daemon
-        .check_rules_now(&state.persistence, &config, now))
+        .check_rules_now(&state.persistence, &config, now)?;
+    Ok(result)
 }
 
 #[tauri::command]

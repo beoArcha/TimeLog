@@ -23,6 +23,7 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             engine::start_timer,
             engine::stop_timer,
             engine::resume_timer,
+            engine::switch_timer,
             engine::get_active_logs,
             engine::get_task_elapsed,
             engine::get_project_elapsed,

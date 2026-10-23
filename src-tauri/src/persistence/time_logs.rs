@@ -80,4 +80,18 @@ impl TimeLogsPersistence {
         self.shared.cache.clear();
         Ok(())
     }
+
+    pub fn switch_active(
+        &self,
+        end_time: &str,
+        log_id: &str,
+        task_id: &str,
+        start_time: &str,
+    ) -> PersistenceResult<()> {
+        self.shared
+            .business_repo
+            .switch_active_logs(end_time, log_id, task_id, start_time)?;
+        self.shared.cache.clear();
+        Ok(())
+    }
 }

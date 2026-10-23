@@ -21,6 +21,7 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       expect(typeof plugin.timer.startTimer).toBe('function');
       expect(typeof plugin.timer.stopTimer).toBe('function');
       expect(typeof plugin.timer.resumeTimer).toBe('function');
+      expect(typeof plugin.timer.switchTimer).toBe('function');
       expect(typeof plugin.timer.getActiveLogs).toBe('function');
 
       expect(typeof plugin.metrics.getComputedMetrics).toBe('function');
@@ -43,6 +44,7 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       expect(typeof commands.timer.startTimer).toBe('function');
       expect(typeof commands.timer.stopTimer).toBe('function');
       expect(typeof commands.timer.resumeTimer).toBe('function');
+      expect(typeof commands.timer.switchTimer).toBe('function');
       expect(typeof commands.timer.getActiveLogs).toBe('function');
 
       expect(typeof commands.metrics.getComputedMetrics).toBe('function');

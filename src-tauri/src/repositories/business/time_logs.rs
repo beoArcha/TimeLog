@@ -157,4 +157,24 @@ impl BusinessRepository {
         let conn = self.connect()?;
         Ok(conn.execute(constants::DELETE_TIME_LOG_BY_ID, params![id])?)
     }
+
+    pub fn switch_active_logs(
+        &self,
+        end_time: &str,
+        log_id: &str,
+        task_id: &str,
+        start_time: &str,
+    ) -> Result<()> {
+        let mut conn = self.connect()?;
+        let tx = conn.transaction()?;
+
+        tx.execute(constants::CLOSE_ALL_ACTIVE_LOGS, params![end_time])?;
+        tx.execute(
+            constants::INSERT_TIME_LOG,
+            params![log_id, task_id, start_time],
+        )?;
+
+        tx.commit()?;
+        Ok(())
+    }
 }

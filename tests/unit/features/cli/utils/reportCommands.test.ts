@@ -42,6 +42,7 @@ describe('Unit Tests: ReportCommands', () => {
         startTimer: vi.fn(),
         stopTimer: vi.fn(),
         resumeTimer: vi.fn(),
+        switchTimer: vi.fn(),
         getActiveLogs: vi.fn().mockResolvedValue([])
       },
       metrics: {

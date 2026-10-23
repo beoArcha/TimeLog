@@ -116,10 +116,7 @@ pub fn handle_switch_interactive(
     let resolver = EntityResolver::new(persistence);
     let task = resolver.resolve_task_interactive(&args.target, prompter)?;
 
-    let _ = engine.stop_timer(None);
-    engine
-        .start_timer(&task.id)
-        .map_err(|e| CliError::Engine(e.to_string()))?;
+    engine.switch_timer(&task.id)?;
     Ok(CliOutput::Started(task.id))
 }
 

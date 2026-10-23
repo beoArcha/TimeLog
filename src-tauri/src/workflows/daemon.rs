@@ -1,4 +1,4 @@
-use crate::engine::Engine;
+use crate::engine::{Engine, EngineError};
 use crate::persistence::Persistence;
 use crate::types::{FrontendEvent, WorkflowCheckResult, WorkflowConfig, WorkflowStatus};
 use crate::workflows::evaluator::evaluate_rules;
@@ -67,11 +67,31 @@ impl WorkflowDaemon {
                 }
 
                 let now = Utc::now();
-                let config = persistence_ref.workflow.get_config().unwrap_or_default();
-                let active_logs: Vec<crate::types::TimeLog> = persistence_ref
-                    .time_logs
-                    .get_all()
-                    .unwrap_or_default()
+                let config = match persistence_ref.workflow.get_config() {
+                    Ok(cfg) => cfg,
+                    Err(err) => {
+                        eprintln!("[WorkflowDaemon] Failed to get workflow config: {err}");
+                        if let Ok(mut st) = status_ref.lock() {
+                            st.last_error = Some(err.to_string());
+                            st.last_error_time_iso = Some(now.to_rfc3339());
+                        }
+                        continue;
+                    }
+                };
+
+                let all_logs = match persistence_ref.time_logs.get_all() {
+                    Ok(logs) => logs,
+                    Err(err) => {
+                        eprintln!("[WorkflowDaemon] Failed to get time logs: {err}");
+                        if let Ok(mut st) = status_ref.lock() {
+                            st.last_error = Some(err.to_string());
+                            st.last_error_time_iso = Some(now.to_rfc3339());
+                        }
+                        continue;
+                    }
+                };
+
+                let active_logs: Vec<crate::types::TimeLog> = all_logs
                     .into_iter()
                     .filter(|l| l.end_time.is_none())
                     .collect();
@@ -110,12 +130,10 @@ impl WorkflowDaemon {
         persistence: &Persistence,
         config: &WorkflowConfig,
         now: Option<DateTime<Utc>>,
-    ) -> WorkflowCheckResult {
+    ) -> Result<WorkflowCheckResult, EngineError> {
         let current_time = now.unwrap_or_else(Utc::now);
-        let active_logs: Vec<crate::types::TimeLog> = persistence
-            .time_logs
-            .get_all()
-            .unwrap_or_default()
+        let all_logs = persistence.time_logs.get_all()?;
+        let active_logs: Vec<crate::types::TimeLog> = all_logs
             .into_iter()
             .filter(|l| l.end_time.is_none())
             .collect();
@@ -123,7 +141,7 @@ impl WorkflowDaemon {
         let result = evaluate_rules(config, &active_logs, current_time);
         if result.stopped {
             let engine = Engine::new(persistence);
-            let _ = engine.stop_timer(None);
+            engine.stop_timer(None)?;
 
             if let Ok(mut st) = self.status.lock() {
                 st.last_auto_stop_reason = result.reason.clone();
@@ -135,13 +153,49 @@ impl WorkflowDaemon {
             st.last_check_iso = Some(current_time.to_rfc3339());
         }
 
-        result
+        Ok(result)
     }
 }
 
 impl Drop for WorkflowDaemon {
     fn drop(&mut self) {
         self.stop();
+    }
+}
+
+fn handle_workflow_warning(
+    result: &WorkflowCheckResult,
+    event_sink_opt: &Option<WorkflowEventSink>,
+) {
+    if let Some(ref sink) = event_sink_opt {
+        sink(FrontendEvent::WorkflowWarning.as_str(), result);
+    }
+}
+
+fn handle_workflow_stop(
+    result: &WorkflowCheckResult,
+    now: DateTime<Utc>,
+    persistence: &Persistence,
+    status_ref: &Arc<Mutex<WorkflowStatus>>,
+    event_sink_opt: &Option<WorkflowEventSink>,
+) {
+    let engine = Engine::new(persistence);
+    if let Err(err) = engine.stop_timer(None) {
+        eprintln!("[WorkflowDaemon] Failed to stop timer on workflow trigger: {err}");
+        if let Ok(mut st) = status_ref.lock() {
+            st.last_error = Some(err.to_string());
+            st.last_error_time_iso = Some(now.to_rfc3339());
+        }
+        return;
+    }
+
+    if let Ok(mut st) = status_ref.lock() {
+        st.last_auto_stop_reason = result.reason.clone();
+        st.last_auto_stop_time_iso = Some(now.to_rfc3339());
+    }
+
+    if let Some(ref sink) = event_sink_opt {
+        sink(FrontendEvent::WorkflowAutoStopped.as_str(), result);
     }
 }
 
@@ -153,20 +207,8 @@ fn dispatch_workflow_result(
     event_sink_opt: &Option<WorkflowEventSink>,
 ) {
     if result.stopped {
-        let engine = Engine::new(persistence);
-        let _ = engine.stop_timer(None);
-
-        if let Ok(mut st) = status_ref.lock() {
-            st.last_auto_stop_reason = result.reason.clone();
-            st.last_auto_stop_time_iso = Some(now.to_rfc3339());
-        }
-
-        if let Some(ref sink) = event_sink_opt {
-            sink(FrontendEvent::WorkflowAutoStopped.as_str(), result);
-        }
+        handle_workflow_stop(result, now, persistence, status_ref, event_sink_opt);
     } else if result.warning {
-        if let Some(ref sink) = event_sink_opt {
-            sink(FrontendEvent::WorkflowWarning.as_str(), result);
-        }
+        handle_workflow_warning(result, event_sink_opt);
     }
 }

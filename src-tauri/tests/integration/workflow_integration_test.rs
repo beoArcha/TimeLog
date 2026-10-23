@@ -44,7 +44,9 @@ fn test_given_active_timer_and_hours_limit_when_rules_checked_after_limit_then_t
     let check_time_exceeded = Utc::now() + Duration::hours(3);
 
     // When
-    let check_res = daemon.check_rules_now(&persistence, &wf_config, Some(check_time_exceeded));
+    let check_res = daemon
+        .check_rules_now(&persistence, &wf_config, Some(check_time_exceeded))
+        .unwrap();
 
     // Then
     assert!(check_res.stopped);
@@ -96,7 +98,9 @@ fn test_given_configured_daemon_with_event_sink_when_hours_limit_exceeded_then_d
     let simulated_future_time = Utc::now() + Duration::minutes(70);
 
     // When
-    let check_res = daemon.check_rules_now(&persistence, &wf_config, Some(simulated_future_time));
+    let check_res = daemon
+        .check_rules_now(&persistence, &wf_config, Some(simulated_future_time))
+        .unwrap();
 
     // Then
     assert!(check_res.stopped);
@@ -159,7 +163,9 @@ fn test_given_active_log_crossing_daily_boundary_when_rules_checked_then_timer_i
         .with_timezone(&Utc);
 
     // When
-    let check_res = daemon.check_rules_now(&persistence, &wf_config, Some(now_18_30_utc));
+    let check_res = daemon
+        .check_rules_now(&persistence, &wf_config, Some(now_18_30_utc))
+        .unwrap();
 
     // Then
     assert!(check_res.stopped);

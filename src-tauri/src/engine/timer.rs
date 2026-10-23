@@ -75,6 +75,23 @@ impl<'a> Engine<'a> {
         Ok(())
     }
 
+    pub fn switch_timer(&self, target_task_id: &str) -> Result<(), EngineError> {
+        // Validate target task existence before touching active timers
+        let _ = self.persistence.tasks.get_project_id(target_task_id)?;
+
+        let now = Utc::now().to_rfc3339();
+        let log_id = format!(
+            "log_{}_{}",
+            Utc::now().timestamp_millis(),
+            LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+        );
+
+        self.persistence
+            .time_logs
+            .switch_active(&now, &log_id, target_task_id, &now)?;
+        Ok(())
+    }
+
     pub fn get_active_logs(&self) -> Result<Vec<String>, EngineError> {
         let ids = self.persistence.time_logs.query_active()?;
         Ok(ids)

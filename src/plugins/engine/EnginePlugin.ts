@@ -40,6 +40,10 @@ export class EnginePlugin implements IEngine {
     return this.timer.resumeTimer(taskId);
   }
 
+  async switchTimer(taskId: string): Promise<void> {
+    return this.timer.switchTimer(taskId);
+  }
+
   async getActiveLogs(): Promise<string[]> {
     return this.timer.getActiveLogs();
   }

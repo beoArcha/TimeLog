@@ -62,6 +62,14 @@ export class BrowserTimerEngine implements ITimerEngine {
     return this.startTimer(taskId);
   }
 
+  async switchTimer(taskId: string): Promise<void> {
+    await this.persistence.tasks.getProjectId(taskId);
+    const now = new Date().toISOString();
+    await this.persistence.timeLogs.closeAllActive(now);
+    const logId = `log_${Date.now()}_${logCounter++}`;
+    await this.persistence.timeLogs.insert(logId, taskId, now);
+  }
+
   async getActiveLogs(): Promise<string[]> {
     return this.persistence.timeLogs.queryActive();
   }

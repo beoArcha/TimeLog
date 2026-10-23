@@ -30,6 +30,15 @@ export class TauriTimerEngine implements ITimerEngine {
     }
   }
 
+  async switchTimer(taskId: string): Promise<void> {
+    try {
+      await invoke('switch_timer', { taskId });
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to switch timer via Tauri', err, 'ERR_TAURI_ENGINE_SWITCH'));
+      throw err;
+    }
+  }
+
   async getActiveLogs(): Promise<string[]> {
     try {
       return await invoke<string[]>('get_active_logs');
