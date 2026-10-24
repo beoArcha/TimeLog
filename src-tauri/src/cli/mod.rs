@@ -39,7 +39,7 @@ pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCod
             ExitCode::from(EXIT_CODE_SUCCESS)
         }
         Err(err) => {
-            let envelope = err.to_envelope(None);
+            let envelope = err.to_envelope_with_mode(is_machine, None);
             envelope.render_stderr(is_machine);
             envelope.to_exit_code()
         }

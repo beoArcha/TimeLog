@@ -26,7 +26,7 @@ fn list_config(is_machine: bool, persistence: &Persistence) -> Result<CliOutput,
 
     if is_machine {
         let map: BTreeMap<String, String> = entries.into_iter().collect();
-        let json_str = serde_json::to_string_pretty(&map).unwrap_or_else(|_| "{}".to_string());
+        let json_str = serde_json::to_string_pretty(&map)?;
         return Ok(CliOutput::Success(json_str));
     }
 

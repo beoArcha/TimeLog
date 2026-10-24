@@ -21,6 +21,7 @@ pub enum CliErrorCode {
     EngTimerActive,
     EngTimerInactive,
     EngTimerConflict,
+    EngOperationFailed,
 
     DomBusinessViolation,
     DomBusinessNoProjects,
@@ -51,6 +52,7 @@ impl CliErrorCode {
             Self::EngTimerActive => "ENG_TIMER_ACTIVE",
             Self::EngTimerInactive => "ENG_TIMER_INACTIVE",
             Self::EngTimerConflict => "ENG_TIMER_CONFLICT",
+            Self::EngOperationFailed => "ENG_OPERATION_FAILED",
 
             Self::DomBusinessViolation => "DOM_BUSINESS_VIOLATION",
             Self::DomBusinessNoProjects => "DOM_BUSINESS_NO_PROJECTS",
@@ -76,7 +78,10 @@ impl CliErrorCode {
 
             Self::StoSqliteInit | Self::StoSqliteQuery | Self::StoSqliteConstraint => "storage",
 
-            Self::EngTimerActive | Self::EngTimerInactive | Self::EngTimerConflict => "engine",
+            Self::EngTimerActive
+            | Self::EngTimerInactive
+            | Self::EngTimerConflict
+            | Self::EngOperationFailed => "engine",
 
             Self::DomBusinessViolation | Self::DomBusinessNoProjects => "business",
 

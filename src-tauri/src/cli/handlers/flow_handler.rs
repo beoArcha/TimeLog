@@ -13,6 +13,7 @@ use crate::cli::resolver::{
 };
 use crate::cli::shared::constants::DATE_FORMAT_DATE_ONLY;
 use crate::cli::shared::output::CliOutput;
+use crate::cli::shared::validation::validate_id;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::{Project, Task, TimeLog};
@@ -63,8 +64,11 @@ pub fn handle_start_interactive(
     prompter: &dyn Prompter,
 ) -> Result<CliOutput, CliError> {
     let target = match args.target {
-        Some(t) if !t.trim().is_empty() => t,
-        _ => {
+        Some(t) => {
+            validate_id(&t)?;
+            t
+        }
+        None => {
             let active = engine.get_active_logs()?;
             if !active.is_empty() {
                 return Ok(CliOutput::Status(active));
@@ -107,6 +111,7 @@ pub fn handle_switch_interactive(
     engine: &Engine,
     prompter: &dyn Prompter,
 ) -> Result<CliOutput, CliError> {
+    validate_id(&args.target)?;
     let resolver = EntityResolver::new(persistence);
     let task = resolver.resolve_task_interactive(&args.target, prompter)?;
 
@@ -176,7 +181,7 @@ pub fn handle_glance(
     let dto = build_dashboard_dto(persistence, engine)?;
 
     if is_machine {
-        let json = serde_json::to_string_pretty(&dto).unwrap_or_else(|_| "{}".to_string());
+        let json = serde_json::to_string_pretty(&dto)?;
         return Ok(CliOutput::Json(json));
     }
 

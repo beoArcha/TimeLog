@@ -22,6 +22,7 @@ pub enum CliSyntaxError {
     InvalidArgs(String),
     UnknownCommand(String),
     AliasNotFound(String),
+    MaskSyntax(String),
 }
 
 impl fmt::Display for CliSyntaxError {
@@ -33,6 +34,7 @@ impl fmt::Display for CliSyntaxError {
             Self::InvalidArgs(msg) => write!(f, "{}", msg),
             Self::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
             Self::AliasNotFound(name) => write!(f, "Alias '{}' not found", name),
+            Self::MaskSyntax(msg) => write!(f, "Invalid mask syntax: {}", msg),
         }
     }
 }
@@ -90,10 +92,24 @@ impl CliError {
             CliError::Syntax(_) => EXIT_CODE_CLI_SYNTAX,
             CliError::Entity(resolve_err) => match resolve_err {
                 ResolveError::StorageError(_) => EXIT_CODE_STORAGE_ERROR,
+                ResolveError::NotFound {
+                    entity_type: crate::cli::resolver::EntityType::MaskAlias,
+                    ..
+                } => EXIT_CODE_CLI_SYNTAX,
                 _ => EXIT_CODE_ENTITY_ERROR,
             },
             CliError::Storage(_) => EXIT_CODE_STORAGE_ERROR,
-            CliError::Engine(_) => EXIT_CODE_ENGINE_ERROR,
+            CliError::Engine(engine_err) => match engine_err {
+                EngineError::NoActiveTimer | EngineError::ActiveTimerConflict { .. } => {
+                    EXIT_CODE_ENGINE_ERROR
+                }
+                EngineError::OperationFailed(_) | EngineError::Validation(_) => {
+                    EXIT_CODE_GENERIC_FAILURE
+                }
+                EngineError::EntityNotFound { .. } => EXIT_CODE_ENTITY_ERROR,
+                EngineError::ParseTime(_) => EXIT_CODE_CLI_SYNTAX,
+                EngineError::Persistence(_) => EXIT_CODE_STORAGE_ERROR,
+            },
             CliError::Business(_) => EXIT_CODE_GENERIC_FAILURE,
             CliError::Sink(_) => EXIT_CODE_GENERIC_FAILURE,
         }
@@ -108,6 +124,7 @@ impl CliError {
                 CliSyntaxError::InvalidArgs(_) => CliErrorCode::CliSyntaxInvalidArgs,
                 CliSyntaxError::UnknownCommand(_) => CliErrorCode::CliSyntaxUnknownCommand,
                 CliSyntaxError::AliasNotFound(_) => CliErrorCode::MskAliasNotFound,
+                CliSyntaxError::MaskSyntax(_) => CliErrorCode::MskAliasSyntax,
             },
             CliError::Entity(resolve_err) => match resolve_err {
                 ResolveError::NotFound {
@@ -131,7 +148,11 @@ impl CliError {
             CliError::Engine(engine_err) => match engine_err {
                 EngineError::NoActiveTimer => CliErrorCode::EngTimerInactive,
                 EngineError::ActiveTimerConflict { .. } => CliErrorCode::EngTimerConflict,
-                _ => CliErrorCode::EngTimerConflict,
+                EngineError::OperationFailed(_) => CliErrorCode::EngOperationFailed,
+                EngineError::EntityNotFound { .. } => CliErrorCode::DomEntityNotFound,
+                EngineError::Validation(_) => CliErrorCode::DomBusinessViolation,
+                EngineError::ParseTime(_) => CliErrorCode::CliSyntaxInvalidDuration,
+                EngineError::Persistence(_) => CliErrorCode::StoSqliteQuery,
             },
             CliError::Business(business_err) => match business_err {
                 BusinessRuleViolation::NoProjectsExist => CliErrorCode::DomBusinessNoProjects,
@@ -144,72 +165,88 @@ impl CliError {
     }
 
     pub fn to_envelope(&self, locale: Option<&str>) -> CliErrorEnvelope {
+        self.to_envelope_with_mode(false, locale)
+    }
+
+    pub fn to_machine_envelope(&self) -> CliErrorEnvelope {
+        self.to_envelope_with_mode(true, None)
+    }
+
+    pub fn to_envelope_with_mode(
+        &self,
+        is_machine: bool,
+        locale: Option<&str>,
+    ) -> CliErrorEnvelope {
         let code = self.error_code();
         let exit_code = self.exit_code();
         let technical = self.to_string();
         let target_locale = locale.unwrap_or("en").to_string();
 
-        let user = match self {
-            CliError::Syntax(_) => Some(LocalizedUserMessage {
-                locale: target_locale,
-                message: technical.clone(),
-                suggestion: None,
-                remediation: Some(MSG_ERR_REMEDIATION_HELP.to_string()),
-            }),
-            CliError::Entity(resolve_err) => match resolve_err {
-                ResolveError::NotFound { .. } | ResolveError::AmbiguousMatch { .. } => {
-                    Some(LocalizedUserMessage {
+        let user = if is_machine {
+            None
+        } else {
+            match self {
+                CliError::Syntax(_) => Some(LocalizedUserMessage {
+                    locale: target_locale,
+                    message: technical.clone(),
+                    suggestion: None,
+                    remediation: Some(MSG_ERR_REMEDIATION_HELP.to_string()),
+                }),
+                CliError::Entity(resolve_err) => match resolve_err {
+                    ResolveError::NotFound { .. } | ResolveError::AmbiguousMatch { .. } => {
+                        Some(LocalizedUserMessage {
+                            locale: target_locale,
+                            message: technical.clone(),
+                            suggestion: None,
+                            remediation: Some(MSG_ERR_REMEDIATION_ENTITY.to_string()),
+                        })
+                    }
+                    ResolveError::DidYouMean {
+                        suggestion,
+                        candidate_id,
+                        ..
+                    } => Some(LocalizedUserMessage {
+                        locale: target_locale,
+                        message: technical.clone(),
+                        suggestion: Some(suggestion.clone()),
+                        remediation: Some(FORMAT_REMEDIATION_DID_YOU_MEAN.replacen(
+                            "{}",
+                            candidate_id,
+                            1,
+                        )),
+                    }),
+                    ResolveError::StorageError(_) => Some(LocalizedUserMessage {
                         locale: target_locale,
                         message: technical.clone(),
                         suggestion: None,
-                        remediation: Some(MSG_ERR_REMEDIATION_ENTITY.to_string()),
-                    })
-                }
-                ResolveError::DidYouMean {
-                    suggestion,
-                    candidate_id,
-                    ..
-                } => Some(LocalizedUserMessage {
-                    locale: target_locale,
-                    message: technical.clone(),
-                    suggestion: Some(suggestion.clone()),
-                    remediation: Some(FORMAT_REMEDIATION_DID_YOU_MEAN.replacen(
-                        "{}",
-                        candidate_id,
-                        1,
-                    )),
-                }),
-                ResolveError::StorageError(_) => Some(LocalizedUserMessage {
+                        remediation: Some(MSG_ERR_REMEDIATION_STORAGE.to_string()),
+                    }),
+                },
+                CliError::Storage(_) => Some(LocalizedUserMessage {
                     locale: target_locale,
                     message: technical.clone(),
                     suggestion: None,
                     remediation: Some(MSG_ERR_REMEDIATION_STORAGE.to_string()),
                 }),
-            },
-            CliError::Storage(_) => Some(LocalizedUserMessage {
-                locale: target_locale,
-                message: technical.clone(),
-                suggestion: None,
-                remediation: Some(MSG_ERR_REMEDIATION_STORAGE.to_string()),
-            }),
-            CliError::Engine(_) => Some(LocalizedUserMessage {
-                locale: target_locale,
-                message: technical.clone(),
-                suggestion: None,
-                remediation: Some(MSG_ERR_REMEDIATION_ENGINE.to_string()),
-            }),
-            CliError::Business(_) => Some(LocalizedUserMessage {
-                locale: target_locale,
-                message: technical.clone(),
-                suggestion: None,
-                remediation: Some(MSG_ERR_REMEDIATION_ENTITY.to_string()),
-            }),
-            CliError::Sink(_) => Some(LocalizedUserMessage {
-                locale: target_locale,
-                message: technical.clone(),
-                suggestion: None,
-                remediation: Some(MSG_ERR_REMEDIATION_SINK.to_string()),
-            }),
+                CliError::Engine(_) => Some(LocalizedUserMessage {
+                    locale: target_locale,
+                    message: technical.clone(),
+                    suggestion: None,
+                    remediation: Some(MSG_ERR_REMEDIATION_ENGINE.to_string()),
+                }),
+                CliError::Business(_) => Some(LocalizedUserMessage {
+                    locale: target_locale,
+                    message: technical.clone(),
+                    suggestion: None,
+                    remediation: Some(MSG_ERR_REMEDIATION_ENTITY.to_string()),
+                }),
+                CliError::Sink(_) => Some(LocalizedUserMessage {
+                    locale: target_locale,
+                    message: technical.clone(),
+                    suggestion: None,
+                    remediation: Some(MSG_ERR_REMEDIATION_SINK.to_string()),
+                }),
+            }
         };
 
         CliErrorEnvelope::new(code, exit_code, technical, user)
@@ -261,6 +298,12 @@ impl From<DurationParseError> for CliError {
 impl From<SinkError> for CliError {
     fn from(err: SinkError) -> Self {
         CliError::Sink(err)
+    }
+}
+
+impl From<serde_json::Error> for CliError {
+    fn from(err: serde_json::Error) -> Self {
+        CliError::Storage(PersistenceError::Serialization(err))
     }
 }
 

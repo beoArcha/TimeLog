@@ -10,6 +10,7 @@ use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::generate_id;
+use crate::cli::shared::validation::validate_id;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::{Project, Task, TaskStatus};
@@ -241,6 +242,7 @@ fn resolve_default_project_id(persistence: &Persistence) -> Result<String, CliEr
 }
 
 fn complete_task(persistence: &Persistence, target: &str) -> Result<CliOutput, CliError> {
+    validate_id(target)?;
     let resolver = EntityResolver::new(persistence);
     let mut task = resolver.resolve_task(target)?;
     task.completed = true;
@@ -258,6 +260,7 @@ fn rename_task(
     target: &str,
     new_name: String,
 ) -> Result<CliOutput, CliError> {
+    validate_id(target)?;
     let resolver = EntityResolver::new(persistence);
     let mut task = resolver.resolve_task(target)?;
     let engine = Engine::new(persistence);
@@ -267,6 +270,7 @@ fn rename_task(
 }
 
 fn archive_task(persistence: &Persistence, target: &str) -> Result<CliOutput, CliError> {
+    validate_id(target)?;
     let resolver = EntityResolver::new(persistence);
     let task = resolver.resolve_task(target)?;
     persistence

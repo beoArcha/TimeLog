@@ -26,7 +26,7 @@ fn list_masks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
     let aliases = persistence.cli.get_all_aliases()?;
 
     if is_machine {
-        let json_str = serde_json::to_string_pretty(&aliases).unwrap_or_else(|_| "[]".to_string());
+        let json_str = serde_json::to_string_pretty(&aliases)?;
         return Ok(CliOutput::Success(json_str));
     }
 
@@ -61,13 +61,13 @@ fn set_mask(
 
     let trimmed_template = template.trim();
     if trimmed_template.is_empty() {
-        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+        return Err(CliError::Syntax(CliSyntaxError::MaskSyntax(
             ERR_MASK_EMPTY_TEMPLATE.to_string(),
         )));
     }
 
     if trimmed_template.split_whitespace().next() == Some(trimmed_name) {
-        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+        return Err(CliError::Syntax(CliSyntaxError::MaskSyntax(
             ERR_MASK_SELF_REFERENCE.to_string(),
         )));
     }

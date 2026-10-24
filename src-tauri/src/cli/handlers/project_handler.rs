@@ -41,7 +41,7 @@ fn list_projects(
         .collect();
 
     if is_machine {
-        let json = serde_json::to_string_pretty(&filtered).unwrap_or_else(|_| "[]".to_string());
+        let json = serde_json::to_string_pretty(&filtered)?;
         return Ok(CliOutput::Json(json));
     }
 

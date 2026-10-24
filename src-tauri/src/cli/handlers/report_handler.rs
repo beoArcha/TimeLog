@@ -44,21 +44,21 @@ pub fn handle(
         }
         Some(ReportSubcommand::Tree { today, week, month }) => {
             let tree = build_report_tree(today, week, month, persistence, engine)?;
-            Ok(render_tree_output(&tree, is_machine))
+            render_tree_output(&tree, is_machine)
         }
         None => {
             let tree = build_report_tree(args.today, args.week, args.month, persistence, engine)?;
-            Ok(render_tree_output(&tree, is_machine))
+            render_tree_output(&tree, is_machine)
         }
     }
 }
 
-fn render_tree_output(tree: &ReportTreeDto, is_machine: bool) -> CliOutput {
+fn render_tree_output(tree: &ReportTreeDto, is_machine: bool) -> Result<CliOutput, CliError> {
     if is_machine {
-        let json = serde_json::to_string_pretty(tree).unwrap_or_else(|_| "{}".to_string());
-        CliOutput::Json(json)
+        let json = serde_json::to_string_pretty(tree)?;
+        Ok(CliOutput::Json(json))
     } else {
-        CliOutput::Success(render_tree_string(tree))
+        Ok(CliOutput::Success(render_tree_string(tree)))
     }
 }
 

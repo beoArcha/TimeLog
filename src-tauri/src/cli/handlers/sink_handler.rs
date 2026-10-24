@@ -31,7 +31,7 @@ fn list_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
     let sinks = persistence.cli.get_all_sinks()?;
 
     if is_machine {
-        let json_str = serde_json::to_string_pretty(&sinks).unwrap_or_else(|_| "[]".to_string());
+        let json_str = serde_json::to_string_pretty(&sinks)?;
         return Ok(CliOutput::Success(json_str));
     }
 
@@ -165,9 +165,7 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
     }
 
     if is_machine {
-        return Ok(CliOutput::Success(
-            serde_json::to_string_pretty(&results).unwrap_or_else(|_| "[]".to_string()),
-        ));
+        return Ok(CliOutput::Success(serde_json::to_string_pretty(&results)?));
     }
 
     Ok(CliOutput::Success(out))

@@ -71,7 +71,7 @@ fn test_given_mask_template_with_tokens_when_expanded_then_replaces_parameters_a
 }
 
 #[test]
-fn test_given_configured_persistence_when_mask_rm_non_existent_alias_then_fails_with_entity_error_exit_code_4(
+fn test_given_configured_persistence_when_mask_rm_non_existent_alias_then_fails_with_syntax_exit_code_2(
 ) {
     // Given
     let (_conn, config, _temp) = setup_persistence_test("test_subsystem_mask_not_found");
@@ -86,9 +86,13 @@ fn test_given_configured_persistence_when_mask_rm_non_existent_alias_then_fails_
     // Then
     assert!(result.is_err());
     let err = result.unwrap_err();
-    assert_eq!(err.exit_code(), 4);
+    assert_eq!(
+        err.exit_code(),
+        oxy_flow::cli::shared::constants::EXIT_CODE_CLI_SYNTAX
+    );
     let envelope = err.to_envelope(None);
     assert_eq!(envelope.code, "MSK_ALIAS_NOT_FOUND");
+    assert_eq!(envelope.category, "mask");
     assert!(envelope
         .technical
         .contains("Action mask alias 'missing_alias_xyz' not found"));
