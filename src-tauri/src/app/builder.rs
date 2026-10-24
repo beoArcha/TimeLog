@@ -113,10 +113,8 @@ pub enum AppSetupError {
     Io(#[from] std::io::Error),
     #[error("Tauri framework error: {0}")]
     Tauri(#[from] tauri::Error),
-    #[error("Persistence initialization error: {0}")]
-    Persistence(#[from] crate::repositories::shared::errors::RepositoryError),
-    #[error("Persistence operation error: {0}")]
-    PersistenceOperation(#[from] crate::persistence::error::PersistenceError),
+    #[error("Persistence error: {0}")]
+    Persistence(#[from] crate::persistence::error::PersistenceError),
 }
 
 fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {

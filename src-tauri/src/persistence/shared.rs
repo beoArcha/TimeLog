@@ -14,11 +14,10 @@ pub struct PersistenceShared {
 }
 
 impl PersistenceShared {
-    pub fn new(
-        config: &PersistenceConfig,
-    ) -> Result<Self, crate::repositories::shared::errors::RepositoryError> {
-        let business_repo = BusinessRepository::new(&config.db_path)?;
-        let config_repo = ConfigRepository::new(&config.db_path)?;
+    pub fn new(config: &PersistenceConfig) -> PersistenceResult<Self> {
+        let business_repo =
+            BusinessRepository::new(&config.db_path).map_err(PersistenceError::from)?;
+        let config_repo = ConfigRepository::new(&config.db_path).map_err(PersistenceError::from)?;
         let csv_sink = CsvSink::new(&config.csv_directory);
         let cache = PersistenceCache::new();
 

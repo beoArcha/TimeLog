@@ -1,4 +1,3 @@
-use super::constants::ERR_PROJECT_NOT_FOUND;
 use crate::common::AppError;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
@@ -38,10 +37,12 @@ fn validate_project_input(
 }
 
 fn get_project_or_fail(persistence: &Persistence, project_id: &str) -> Result<Project, AppError> {
-    persistence
-        .projects
-        .get(project_id)?
-        .ok_or_else(|| AppError::Generic(ERR_PROJECT_NOT_FOUND.replace("{}", project_id)))
+    persistence.projects.get(project_id)?.ok_or_else(|| {
+        AppError::Persistence(crate::persistence::PersistenceError::NotFound {
+            entity: "Project",
+            id: project_id.to_string(),
+        })
+    })
 }
 
 fn stop_active_timer_if_project_matching(

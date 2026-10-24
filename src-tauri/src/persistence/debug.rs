@@ -1,6 +1,6 @@
+use super::error::PersistenceResult;
 use super::shared::PersistenceShared;
 use crate::repositories::business::debug::TableRowsResponse;
-use crate::repositories::shared::errors::Result;
 use std::sync::Arc;
 
 pub struct DebugPersistence {
@@ -12,8 +12,8 @@ impl DebugPersistence {
         Self { shared }
     }
 
-    pub fn get_tables(&self) -> Result<Vec<String>> {
-        self.shared.business_repo.debug_get_tables()
+    pub fn get_tables(&self) -> PersistenceResult<Vec<String>> {
+        Ok(self.shared.business_repo.debug_get_tables()?)
     }
 
     pub fn get_table_rows(
@@ -21,10 +21,11 @@ impl DebugPersistence {
         table: &str,
         limit: u32,
         offset: u32,
-    ) -> Result<TableRowsResponse> {
-        self.shared
+    ) -> PersistenceResult<TableRowsResponse> {
+        Ok(self
+            .shared
             .business_repo
-            .debug_get_table_rows(table, limit, offset)
+            .debug_get_table_rows(table, limit, offset)?)
     }
 
     pub fn update_cell(
@@ -34,9 +35,10 @@ impl DebugPersistence {
         id_value: &str,
         column: &str,
         new_value: &str,
-    ) -> Result<()> {
-        self.shared
+    ) -> PersistenceResult<()> {
+        Ok(self
+            .shared
             .business_repo
-            .debug_update_cell(table, id_column, id_value, column, new_value)
+            .debug_update_cell(table, id_column, id_value, column, new_value)?)
     }
 }

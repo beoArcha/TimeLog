@@ -138,6 +138,7 @@ impl CliError {
             },
             CliError::Storage(storage_err) => match storage_err {
                 PersistenceError::Initialization(_) => CliErrorCode::StoSqliteInit,
+                PersistenceError::ConstraintViolation(_) => CliErrorCode::StoSqliteConstraint,
                 PersistenceError::Database(rusqlite::Error::SqliteFailure(err, _))
                     if err.code == rusqlite::ErrorCode::ConstraintViolation =>
                 {
@@ -320,12 +321,6 @@ impl From<PersistenceError> for CliError {
             }),
             other => CliError::Storage(other),
         }
-    }
-}
-
-impl From<crate::repositories::shared::errors::RepositoryError> for CliError {
-    fn from(err: crate::repositories::shared::errors::RepositoryError) -> Self {
-        CliError::from(PersistenceError::from(err))
     }
 }
 

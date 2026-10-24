@@ -39,6 +39,9 @@ fn persistence_to_payload(p: &crate::persistence::PersistenceError) -> IpcErrorP
         crate::persistence::PersistenceError::Storage(msg) => {
             IpcErrorPayload::new("STO_STORAGE_ERROR", p.to_string(), Some(msg.clone()))
         }
+        crate::persistence::PersistenceError::ConstraintViolation(msg) => {
+            IpcErrorPayload::new("STO_SQLITE_CONSTRAINT", p.to_string(), Some(msg.clone()))
+        }
         crate::persistence::PersistenceError::Serialization(e) => IpcErrorPayload::new(
             "STO_SERIALIZATION_ERROR",
             p.to_string(),
@@ -80,11 +83,9 @@ impl AppError {
                 crate::engine::EngineError::Validation(v) => {
                     IpcErrorPayload::new("DOM_BUSINESS_VIOLATION", e.to_string(), Some(v.clone()))
                 }
-                crate::engine::EngineError::ParseTime(t) => IpcErrorPayload::new(
-                    "CLI_SYNTAX_INVALID_DURATION",
-                    e.to_string(),
-                    Some(t.clone()),
-                ),
+                crate::engine::EngineError::ParseTime(t) => {
+                    IpcErrorPayload::new("DOM_INVALID_TIMESTAMP", e.to_string(), Some(t.clone()))
+                }
                 crate::engine::EngineError::Persistence(p) => persistence_to_payload(p),
                 crate::engine::EngineError::OperationFailed(m) => {
                     IpcErrorPayload::new("ENG_OPERATION_FAILED", e.to_string(), Some(m.clone()))
@@ -103,11 +104,5 @@ impl Serialize for AppError {
         S: serde::Serializer,
     {
         self.to_payload().serialize(serializer)
-    }
-}
-
-impl From<crate::repositories::shared::errors::RepositoryError> for AppError {
-    fn from(err: crate::repositories::shared::errors::RepositoryError) -> Self {
-        AppError::Persistence(crate::persistence::PersistenceError::from(err))
     }
 }

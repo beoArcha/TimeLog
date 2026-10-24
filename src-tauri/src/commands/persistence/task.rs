@@ -1,4 +1,3 @@
-use super::constants::ERR_TASK_NOT_FOUND;
 use crate::common::AppError;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
@@ -15,10 +14,12 @@ pub struct TaskUpdateInput {
 }
 
 fn get_task_or_fail(persistence: &Persistence, task_id: &str) -> Result<Task, AppError> {
-    persistence
-        .tasks
-        .get(task_id)?
-        .ok_or_else(|| AppError::Generic(ERR_TASK_NOT_FOUND.replace("{}", task_id)))
+    persistence.tasks.get(task_id)?.ok_or_else(|| {
+        AppError::Persistence(crate::persistence::PersistenceError::NotFound {
+            entity: "Task",
+            id: task_id.to_string(),
+        })
+    })
 }
 
 fn apply_status_and_completion(

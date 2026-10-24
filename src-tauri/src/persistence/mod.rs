@@ -55,9 +55,7 @@ pub struct Persistence {
 }
 
 impl Persistence {
-    pub fn new(
-        config: &PersistenceConfig,
-    ) -> Result<Self, crate::repositories::shared::errors::RepositoryError> {
+    pub fn new(config: &PersistenceConfig) -> PersistenceResult<Self> {
         let shared = Arc::new(PersistenceShared::new(config)?);
 
         Ok(Self {

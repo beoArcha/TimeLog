@@ -12,6 +12,9 @@ pub enum PersistenceError {
     #[error("Validation error: {0}")]
     Validation(String),
 
+    #[error("Constraint violation: {0}")]
+    ConstraintViolation(String),
+
     #[error("Initialization error: {0}")]
     Initialization(String),
 
@@ -37,7 +40,7 @@ impl From<crate::repositories::shared::errors::RepositoryError> for PersistenceE
                 PersistenceError::Validation(e)
             }
             crate::repositories::shared::errors::RepositoryError::ConstraintViolation(e) => {
-                PersistenceError::Validation(e)
+                PersistenceError::ConstraintViolation(e)
             }
         }
     }
@@ -57,6 +60,7 @@ impl PartialEq for PersistenceError {
                 },
             ) => e1 == e2 && id1 == id2,
             (Self::Validation(v1), Self::Validation(v2)) => v1 == v2,
+            (Self::ConstraintViolation(c1), Self::ConstraintViolation(c2)) => c1 == c2,
             (Self::Initialization(i1), Self::Initialization(i2)) => i1 == i2,
             (Self::Storage(s1), Self::Storage(s2)) => s1 == s2,
             (Self::Database(d1), Self::Database(d2)) => d1.to_string() == d2.to_string(),
