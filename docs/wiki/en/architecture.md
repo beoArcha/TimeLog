@@ -70,3 +70,25 @@ Across both TypeScript and Rust modules, the maximum allowed nested `if` depth i
 ### 4. Headless CLI Isolation
 
 The native CLI binary (`src-tauri/src/cli/`) communicates directly with `Engine` and `Persistence` contracts. It is strictly prohibited from importing any Tauri GUI types (`AppState`, `tauri::AppHandle`, window controllers, or tray components).
+
+### 5. Layer Encapsulation & Error Contract
+
+oXyFlow enforces unidirectional, strictly typed error propagation across all architectural boundaries:
+
+```text
+Repositories (RepositoryError)
+         │
+         ▼
+Persistence Layer (PersistenceError)
+         │
+         ├───────────────────────────────┐
+         ▼                               ▼
+Tauri IPC Commands (AppError)    Native CLI (CliError)
+         │                               │
+         ▼                               ▼
+Frontend (string codes: "DOM_*") Terminal / CI (JSON envelope & exit code)
+```
+
+1. **Strict Repository Encapsulation**: Low-level database and SQL failures (`RepositoryError`) are strictly mapped to domain persistence errors (`PersistenceError`). Raw repository types never cross into Tauri IPC command handlers or CLI modules.
+2. **Typed Error Enums**: Each layer defines its own `thiserror` enum with structured variants. Functions never return generic `String`, `Box<dyn Error>`, or `anyhow::Error`.
+3. **Deterministic Error Mapping**: Domain failures map to namespaced uppercase codes (`DOM_*`, `ENG_*`, `STO_*`, `SNK_*`, `CLI_SYNTAX_*`) and deterministic POSIX exit codes (`0`–`5`).

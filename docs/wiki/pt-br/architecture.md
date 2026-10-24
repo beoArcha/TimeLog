@@ -70,3 +70,25 @@ Em todo o projeto (TypeScript e Rust), o nível máximo permitido de aninhamento
 ### 4. Isolamento do CLI Headless
 
 O binário de terminal (`src-tauri/src/cli/`) comunica-se diretamente com os contratos `Engine` e `Persistence`. É expressamente proibido importar tipos de interface gráfica do Tauri (`AppState`, `tauri::AppHandle`, controladores de janelas ou ícones de bandeja).
+
+### 5. Encapsulamento de Camadas e Contrato de Erros
+
+oXyFlow impõe uma propagação de erros unidirecional e estritamente tipada em todas as fronteiras arquiteturais:
+
+```text
+Repositórios (RepositoryError)
+         │
+         ▼
+Camada de Persistência (PersistenceError)
+         │
+         ├───────────────────────────────┐
+         ▼                               ▼
+Comandos Tauri IPC (AppError)    CLI Nativo (CliError)
+         │                               │
+         ▼                               ▼
+Frontend (códigos texto: "DOM_*") Terminal / CI (envelope JSON e código de saída)
+```
+
+1. **Encapsulamento Estrito de Repositórios**: Falhas de baixo nível de banco de dados e consultas SQL (`RepositoryError`) são rigorosamente mapeadas para erros de persistência do domínio (`PersistenceError`). Tipos brutos de repositório nunca cruzam para os manipuladores de comandos Tauri IPC ou módulos CLI.
+2. **Enums de Erro Tipados**: Cada camada define seu próprio enum com `thiserror` com variantes estruturadas. O retorno de tipos genéricos como `String`, `Box<dyn Error>` ou `anyhow::Error` é proibido.
+3. **Mapeamento Determinístico de Erros**: Falhas de domínio são convertidas para códigos padronizados em maiúsculas (`DOM_*`, `ENG_*`, `STO_*`, `SNK_*`, `CLI_SYNTAX_*`) e códigos de saída POSIX determinísticos (`0`–`5`).

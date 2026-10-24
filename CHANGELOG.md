@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **Layer Encapsulation & Repository Error Boundary**:
+  - Strictly encapsulated `RepositoryError` within the persistence layer; eliminated abstraction leakage where `RepositoryError` was directly convertible to `AppError` or `CliError`.
+  - Added `PersistenceError::ConstraintViolation` capturing SQLite foreign key and uniqueness constraint failures, mapping to `"STO_SQLITE_CONSTRAINT"` at the IPC boundary.
+  - Standardized entity lookup errors in Tauri persistence commands (`commands/persistence/project.rs`, `task.rs`) to typed `PersistenceError::NotFound`, eliminating ad-hoc string formatting and emitting canonical `"DOM_ENTITY_NOT_FOUND"` error codes.
+  - Replaced error-swallowing `.ok()` timestamp parsing in workflow daemon steps (`workflow_run_daemon_step`) with explicit ISO 8601 validation propagating `EngineError::ParseTime` and returning `"DOM_INVALID_TIMESTAMP"`.
+
+- **CLI Error Contract & Exit Codes**:
+  - Standardized machine mode error envelopes: under `--machine` / `-m` and `--json` / `-j`, error payloads emit clean single-line JSON to `stderr` with the `"user"` suggestion block omitted to guarantee deterministic automation parsing.
+  - Fixed command syntax classification: unimplemented subcommands (such as `oxy manage project list`) now return exit code `2` (`EXIT_CODE_CLI_SYNTAX`) with `CLI_SYNTAX_UNKNOWN_COMMAND` instead of a silent no-op.
+  - Fixed sink error classification: `oxy sink set-csv` with empty or whitespace-only paths returns exit code `2` (`CLI_SYNTAX_INVALID_ARGS`), while inaccessible filesystem destinations return exit code `1` (`SNK_EXTERNAL_IO`) instead of leaking SQLite storage errors.
+  - Fixed sink diagnostic reporting: `oxy sink test` reports full diagnostics and returns exit code `1` (`SNK_EXTERNAL_IO`) when any configured sink fails its synthetic health check.
+  - Wired entity name validation: creating or renaming projects, tasks, or subtasks via `oxy manage` now validates non-empty names against `Engine` validation rules, returning exit code `1` (`ENG_OPERATION_FAILED`) on blank inputs.
+
+### Added
+
+- **Backend Error Handling Verification & Parity**:
+  - Added unit test suite `src-tauri/tests/unit/cli/manage_test.rs` covering exit codes for unimplemented commands and entity validation failures.
+  - Added integration test `test_given_unhealthy_sink_when_testing_sinks_then_fails_with_exit_code_1_and_snk_external_io` in `src-tauri/tests/integration/cli/subsystems/sinks_test.rs`.
+  - Added unit tests for ISO 8601 timestamp parsing and error propagation in `src-tauri/tests/unit/workflow/daemon_test.rs`.
+  - Extended cross-runtime CLI parity fixtures (`cli-parity-cases.json`) with entity not found error cases.
+
+---
+
 ## [1.8.2] - 2026-10-23
 
 ### Fixed in 1.8.2

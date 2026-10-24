@@ -179,7 +179,7 @@ Defined in `src-tauri/src/cli/shared/constants.rs` and mapped by `CliError::exit
 
 Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* exist in the enum but no code path produces them yet.
 
-| Category | Semantic Code | Exit Code | Description (Always English) |
+| Category | Semantic Code | Exit Code | Description |
 | :--- | :--- | :--- | :--- |
 | `syntax` | `CLI_SYNTAX_INVALID_ARGS` | `2` | Invalid arguments |
 | `syntax` | `CLI_SYNTAX_INVALID_DURATION` | `2` | Duration could not be parsed |
@@ -195,11 +195,12 @@ Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* ex
 | `engine` | `ENG_TIMER_CONFLICT` | `5` | Active timer conflict |
 | `engine` | `ENG_TIMER_ACTIVE` | `5` | Timer already active (*not yet emitted*) |
 | `engine` | `ENG_TIMER_INACTIVE` | `5` | No active timer running |
+| `engine` | `ENG_OPERATION_FAILED` | `1` | Engine internal operation failed |
 | `business` | `DOM_BUSINESS_VIOLATION` | `1` | Business rule violated |
 | `business` | `DOM_BUSINESS_NO_PROJECTS` | `1` | Operation requires at least one project |
-| `sink` | `SNK_EXTERNAL_IO` | `1` | Sink I/O failure (*not yet emitted*) |
+| `sink` | `SNK_EXTERNAL_IO` | `1` | Sink I/O or verification failure |
 | `mask` | `MSK_ALIAS_NOT_FOUND` | `2` | Action mask alias not found |
-| `mask` | `MSK_ALIAS_SYNTAX` | `2` | Invalid mask template (*not yet emitted*) |
+| `mask` | `MSK_ALIAS_SYNTAX` | `2` | Invalid mask syntax |
 
 ### Interactive Self-Healing in TTY
 

@@ -98,4 +98,49 @@ Todos los comandos de `oxy` devuelven códigos de salida POSIX deterministas:
 | `4` | Error de entidad | Entidad no encontrada o coincidencia ambigua. |
 | `5` | Error de motor | Conflicto de ciclo de vida del temporizador. |
 
+---
+
+## Envoltorio de Errores y Modo Máquina
+
+Cuando un comando falla, `oxy` escribe información técnica estructurada en `stderr`.
+
+En canalizaciones automatizadas con `--machine` (o `--json`), las solicitudes interactivas y los bloques de sugerencias para el usuario se suprimen. El error se emite como un envoltorio JSON determinista de una sola línea:
+
+```json
+{"code":"DOM_ENTITY_NOT_FOUND","message":"Task '104' was not found","operation":"start","subsystem":"domain"}
+```
+
+En modo interactivo de terminal (TTY), el envoltorio incluye un objeto `user` adicional con contexto legible en el idioma correspondiente, sugerencias de solución y recomendaciones "¿Quiso decir...?":
+
+```json
+{
+  "code": "DOM_ENTITY_NOT_FOUND",
+  "message": "Task '104' was not found",
+  "operation": "start",
+  "subsystem": "domain",
+  "user": {
+    "locale": "es",
+    "message": "La tarea '104' no existe en el proyecto activo.",
+    "suggestion": "¿Quiso decir la tarea '105' (Implementación OAuth)?",
+    "remediation": "Ejecute 'oxy task ls' para ver las tareas disponibles."
+  }
+}
+```
+
+### Códigos de Error Semánticos
+
+| Código de Error | Código de Salida | Descripción |
+| :--- | :---: | :--- |
+| `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Comando o subcomando desconocido o no implementado. |
+| `CLI_SYNTAX_INVALID_ARGS` | `2` | Argumentos faltantes o inválidos (ej. rutas vacías). |
+| `DOM_ENTITY_NOT_FOUND` | `4` | El proyecto, tarea, registro de tiempo o alias no existe. |
+| `ENG_OPERATION_FAILED` | `1` | Invariante de negocio fallida (ej. validación de nombre vacío). |
+| `ENG_TIMER_ACTIVE` | `5` | Intento de iniciar temporizador cuando ya hay otro activo sin flag de forzar. |
+| `ENG_TIMER_INACTIVE` | `5` | Intento de detener temporizador cuando no hay sesión activa. |
+| `SNK_EXTERNAL_IO` | `1` | Fallo de destino externo (ruta inaccesible o prueba fallida). |
+| `STO_SQLITE_CONSTRAINT` | `3` | Violación de restricción SQLite (clave única o foránea). |
+| `STO_STORAGE_ERROR` | `3` | Fallo de bajo nivel de acceso a la base de datos o E/S. |
+
+---
+
 Para automatización con scripts de shell y flujos JSON, consulte **[Scripting CLI Avanzado](advanced-cli.md)**.

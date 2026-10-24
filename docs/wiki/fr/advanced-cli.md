@@ -53,6 +53,19 @@ oxy today --json
 oxy today --json | jq '.total_seconds / 3600'
 ```
 
+### Gestion Automatisée des Erreurs
+
+Dans les scripts et pipelines CI/CD automatisés, utilisez `--machine` pour recevoir des erreurs JSON propres sur une seule ligne sur `stderr` et vérifier les codes de sortie POSIX déterministes :
+
+```bash
+# Capturer l'erreur lisible par machine sur stderr
+if ! oxy start "Tâche Inexistante" --machine 2> error.json; then
+    exit_code=$?
+    error_code=$(jq -r '.code // "UNKNOWN"' error.json)
+    echo "Échec de la commande (code $exit_code) avec l'erreur : $error_code"
+fi
+```
+
 ---
 
 ## Intégration à l'Invite du Terminal

@@ -53,6 +53,19 @@ oxy today --json
 oxy today --json | jq '.total_seconds / 3600'
 ```
 
+### Automatische Fehlerbehandlung
+
+In Automatisierungsskripten und CI/CD-Pipelines ermöglicht `--machine` den Empfang sauberer, einzeiliger JSON-Fehler auf `stderr` und die Überprüfung deterministischer POSIX-Exit-Codes:
+
+```bash
+# Maschinenlesbaren Fehler auf stderr erfassen
+if ! oxy start "Nicht Vorhandene Aufgabe" --machine 2> error.json; then
+    exit_code=$?
+    error_code=$(jq -r '.code // "UNKNOWN"' error.json)
+    echo "Befehl fehlgeschlagen (Exit-Code $exit_code) mit Fehler: $error_code"
+fi
+```
+
 ---
 
 ## Terminal-Prompt-Integration

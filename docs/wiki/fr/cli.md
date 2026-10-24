@@ -98,4 +98,49 @@ Toutes les commandes `oxy` renvoient des codes de sortie POSIX déterministes :
 | `4` | Erreur d'entité | Entité introuvable ou requête ambiguë. |
 | `5` | Erreur moteur | Conflit dans le cycle de vie du minuteur. |
 
+---
+
+## Enveloppe d'Erreur et Mode Machine
+
+Lorsqu'une commande échoue, `oxy` écrit des détails techniques structurés sur `stderr`.
+
+Dans les pipelines automatisés avec `--machine` (ou `--json`), les invites interactives et les blocs de suggestions humaines sont supprimés. L'erreur est émise sous forme d'une enveloppe JSON déterministe sur une seule ligne :
+
+```json
+{"code":"DOM_ENTITY_NOT_FOUND","message":"Task '104' was not found","operation":"start","subsystem":"domain"}
+```
+
+En mode interactif dans un terminal (TTY), l'enveloppe inclut un objet `user` supplémentaire fournissant du contexte lisible, des instructions de remédiation et des suggestions « Vouliez-vous dire... » :
+
+```json
+{
+  "code": "DOM_ENTITY_NOT_FOUND",
+  "message": "Task '104' was not found",
+  "operation": "start",
+  "subsystem": "domain",
+  "user": {
+    "locale": "fr",
+    "message": "La tâche '104' n'existe pas dans le projet actif.",
+    "suggestion": "Vouliez-vous dire la tâche '105' (Implémentation OAuth) ?",
+    "remediation": "Exécutez 'oxy task ls' pour voir les tâches disponibles."
+  }
+}
+```
+
+### Codes d'Erreur Sémantiques
+
+| Code d'Erreur | Code de Sortie | Description |
+| :--- | :---: | :--- |
+| `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Commande ou sous-commande inconnue ou non implémentée. |
+| `CLI_SYNTAX_INVALID_ARGS` | `2` | Arguments manquants ou invalides (ex. chemins vides). |
+| `DOM_ENTITY_NOT_FOUND` | `4` | Le projet, la tâche, l'entrée de temps ou l'alias ciblé n'existe pas. |
+| `ENG_OPERATION_FAILED` | `1` | Règle métier enfreinte (ex. validation de nom d'entité vide). |
+| `ENG_TIMER_ACTIVE` | `5` | Tentative de démarrer un minuteur alors qu'un autre est actif sans flag de forçage. |
+| `ENG_TIMER_INACTIVE` | `5` | Tentative d'arrêter le minuteur alors qu'aucune session n'est active. |
+| `SNK_EXTERNAL_IO` | `1` | Échec de destination externe (chemin inaccessible ou test de sink échoué). |
+| `STO_SQLITE_CONSTRAINT` | `3` | Violation de contrainte SQLite (clé unique ou étrangère). |
+| `STO_STORAGE_ERROR` | `3` | Erreur de bas niveau d'accès à la base de données ou d'E/S. |
+
+---
+
 Pour les flux de données et l'automatisation en scripts de shell, consultez **[Scripts CLI Avancés](advanced-cli.md)**.

@@ -70,3 +70,25 @@ Dans l'ensemble du projet (TypeScript comme Rust), la profondeur d'imbrication d
 ### 4. Isolation du CLI Sans Affichage
 
 Le binaire `oxy` (`src-tauri/src/cli/`) communique exclusivement avec les contrats `Engine` et `Persistence`. Il lui est rigoureusement interdit d'importer des éléments d'interface Tauri (`AppState`, `tauri::AppHandle`, gestionnaires de fenêtres ou de barre des tâches).
+
+### 5. Encapsulation des Couches et Contrat d'Erreurs
+
+oXyFlow applique une propagation d'erreurs unidirectionnelle et strictement typée à travers toutes les frontières architecturales :
+
+```text
+Dépôts / Repositories (RepositoryError)
+         │
+         ▼
+Couche de Persistance (PersistenceError)
+         │
+         ├───────────────────────────────┐
+         ▼                               ▼
+Commandes Tauri IPC (AppError)   CLI Natif (CliError)
+         │                               │
+         ▼                               ▼
+Frontend (codes texte : "DOM_*") Terminal / CI (enveloppe JSON et code de sortie)
+```
+
+1. **Encapsulation Stricte des Dépôts** : Les erreurs de base de données et SQL de bas niveau (`RepositoryError`) sont strictement converties en erreurs de persistance de domaine (`PersistenceError`). Les types de dépôts bruts ne franchissent jamais les gestionnaires de commandes Tauri IPC ou les modules CLI.
+2. **Énumérations d'Erreurs Typées** : Chaque couche définit sa propre énumération via `thiserror` avec des variantes structurées. L'utilisation de chaînes génériques (`String`), de `Box<dyn Error>` ou de `anyhow::Error` est interdite.
+3. **Mappage Déterministe des Erreurs** : Les défaillances de domaine sont associées à des codes standardisés en majuscules (`DOM_*`, `ENG_*`, `STO_*`, `SNK_*`, `CLI_SYNTAX_*`) et des codes de sortie POSIX déterministes (`0`–`5`).

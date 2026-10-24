@@ -70,3 +70,25 @@ Im gesamten Quellcode (TypeScript und Rust) beträgt die maximal erlaubte Schach
 ### 4. Headless-CLI-Isolation
 
 Das native CLI-Binary (`src-tauri/src/cli/`) kommuniziert ausschließlich direkt mit den Schnittstellen `Engine` und `Persistence`. Es darf unter keinen Umständen Tauri-GUI-Typen (`AppState`, `tauri::AppHandle`, Fenster- oder Tray-Controller) importieren.
+
+### 5. Schichtenkapselung & Fehlerkontrakt
+
+oXyFlow erzwingt eine unidirektionale, streng typisierte Fehlerweiterleitung über alle Architekturgrenzen hinweg:
+
+```text
+Repositories (RepositoryError)
+         │
+         ▼
+Persistenzschicht (PersistenceError)
+         │
+         ├───────────────────────────────┐
+         ▼                               ▼
+Tauri-IPC-Befehle (AppError)     Natives CLI (CliError)
+         │                               │
+         ▼                               ▼
+Frontend (String-Codes: "DOM_*") Terminal / CI (JSON-Umschlag & Exit-Code)
+```
+
+1. **Strikte Repository-Kapselung**: Low-Level-Datenbank- und SQL-Fehler (`RepositoryError`) werden strikt auf Domänen-Persistenzfehler (`PersistenceError`) abgebildet. Rohe Repository-Typen dringen niemals in Tauri-IPC-Handler oder CLI-Module vor.
+2. **Typisierte Fehler-Enums**: Jede Schicht definiert ihr eigenes `thiserror`-Enum mit strukturierten Varianten. Die Rückgabe generischer Strings, `Box<dyn Error>` oder `anyhow::Error` ist verboten.
+3. **Deterministisches Fehler-Mapping**: Domänenfehler werden auf standardisierte Uppercase-Codes (`DOM_*`, `ENG_*`, `STO_*`, `SNK_*`, `CLI_SYNTAX_*`) sowie deterministische POSIX-Exit-Codes (`0`–`5`) abgebildet.

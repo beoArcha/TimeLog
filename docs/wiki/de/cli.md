@@ -98,4 +98,49 @@ Alle CLI-Befehle liefern deterministische POSIX-Exit-Codes:
 | `4` | Entitätsfehler | Entität nicht gefunden oder mehrdeutige Übereinstimmung. |
 | `5` | Engine-Fehler | Timer-Lebenszykluskonflikt (z. B. Stoppen bei inaktivem Timer). |
 
+---
+
+## Fehlerumschlag & Maschinenmodus
+
+Wenn ein Befehl fehlschlägt, gibt `oxy` strukturierte technische Fehlerinformationen auf `stderr` aus.
+
+In automatisierten Pipelines mit `--machine` (oder `--json`) werden interaktive Abfragen und Benutzervorschläge unterdrückt. Der Fehler wird als deterministischer einzeiliger JSON-Umschlag ausgegeben:
+
+```json
+{"code":"DOM_ENTITY_NOT_FOUND","message":"Task '104' was not found","operation":"start","subsystem":"domain"}
+```
+
+Im interaktiven TTY-Modus enthält der Umschlag ein zusätzliches `user`-Objekt mit menschenlesbarem Kontext, Fehlerbehebungshinweisen und „Meinten Sie...“-Vorschlägen:
+
+```json
+{
+  "code": "DOM_ENTITY_NOT_FOUND",
+  "message": "Task '104' was not found",
+  "operation": "start",
+  "subsystem": "domain",
+  "user": {
+    "locale": "de",
+    "message": "Aufgabe '104' wurde im aktiven Projekt nicht gefunden.",
+    "suggestion": "Meinten Sie Aufgabe '105' (OAuth-Implementierung)?",
+    "remediation": "Führen Sie 'oxy task ls' aus, um verfügbare Aufgaben anzuzeigen."
+  }
+}
+```
+
+### Semantische Fehlercodes
+
+| Fehlercode | Exit-Code | Beschreibung |
+| :--- | :---: | :--- |
+| `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Unbekannter oder nicht implementierter Befehl oder Unterbefehl. |
+| `CLI_SYNTAX_INVALID_ARGS` | `2` | Fehlende oder ungültige Argumente (z. B. leere Pfadangaben). |
+| `DOM_ENTITY_NOT_FOUND` | `4` | Angegebenes Projekt, Aufgabe, Zeiteintrag oder Alias existiert nicht. |
+| `ENG_OPERATION_FAILED` | `1` | Geschäftsregel verletzt (z. B. Validierung leerer Entitätsnamen). |
+| `ENG_TIMER_ACTIVE` | `5` | Versuch, Timer zu starten, während ein anderer ohne Force-Flag läuft. |
+| `ENG_TIMER_INACTIVE` | `5` | Versuch, Timer anzuhalten, wenn keine aktive Sitzung existiert. |
+| `SNK_EXTERNAL_IO` | `1` | Fehler des externen Ziels (nicht erreichbarer Pfad oder fehlgeschlagener Sink-Test). |
+| `STO_SQLITE_CONSTRAINT` | `3` | SQLite-Constraint-Verletzung (Eindeutigkeit oder Fremdschlüsselkonflikt). |
+| `STO_STORAGE_ERROR` | `3` | Low-Level-Datenbankzugriffs- oder E/A-Fehler. |
+
+---
+
 Für Shell-Pipelines, Cron-Jobs und Starship-Integration siehe **[Erweiterte CLI-Skripte](advanced-cli.md)**.

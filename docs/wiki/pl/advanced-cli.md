@@ -53,6 +53,19 @@ oxy today --json
 oxy today --json | jq '.total_seconds / 3600'
 ```
 
+### Automatyczna Obsługa Błędów
+
+W skryptach automatyzacji i potokach CI/CD flaga `--machine` pozwala odbierać czyste, jednolinijkowe błędy JSON na strumieniu `stderr` oraz weryfikować deterministyczne kody wyjścia:
+
+```bash
+# Przechwyć maszynowy błąd na stderr
+if ! oxy start "Nieistniejące Zadanie" --machine 2> error.json; then
+    exit_code=$?
+    error_code=$(jq -r '.code // "UNKNOWN"' error.json)
+    echo "Polecenie nie powiodło się (kod $exit_code) z błędem: $error_code"
+fi
+```
+
 ---
 
 ## Integracja z Promptem Terminala

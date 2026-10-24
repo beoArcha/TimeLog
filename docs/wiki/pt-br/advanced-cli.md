@@ -53,6 +53,19 @@ oxy today --json
 oxy today --json | jq '.total_seconds / 3600'
 ```
 
+### Tratamento Automatizado de Erros
+
+Em scripts automatizados e pipelines de CI/CD, use `--machine` para receber erros em formato JSON limpo e em linha única na saída `stderr` e verificar códigos de saída POSIX determinísticos:
+
+```bash
+# Capturar erro estruturado na saída stderr
+if ! oxy start "Tarefa Inexistente" --machine 2> error.json; then
+    exit_code=$?
+    error_code=$(jq -r '.code // "UNKNOWN"' error.json)
+    echo "Comando falhou (código $exit_code) com o erro: $error_code"
+fi
+```
+
 ---
 
 ## Integração com o Prompt do Terminal

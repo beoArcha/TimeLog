@@ -100,4 +100,49 @@ All CLI commands return deterministic POSIX exit codes:
 | `4` | Entity error | Entity not found, ambiguous match, or unresolved ID. |
 | `5` | Engine error | Timer lifecycle conflict (e.g. stopping an inactive timer). |
 
+---
+
+## Error Envelope & Machine Mode
+
+When a command fails, `oxy` writes structured technical error information to `stderr`.
+
+In automated pipelines using `--machine` (or `--json`), interactive prompts and human suggestion blocks are suppressed. The error is emitted as a deterministic single-line JSON envelope:
+
+```json
+{"code":"DOM_ENTITY_NOT_FOUND","message":"Task '104' was not found","operation":"start","subsystem":"domain"}
+```
+
+In interactive TTY mode, the envelope includes an additional `user` object providing human-readable context, remediation guidance, and "Did you mean?" suggestions:
+
+```json
+{
+  "code": "DOM_ENTITY_NOT_FOUND",
+  "message": "Task '104' was not found",
+  "operation": "start",
+  "subsystem": "domain",
+  "user": {
+    "locale": "en",
+    "message": "Task '104' was not found in the active project.",
+    "suggestion": "Did you mean task '105' (OAuth Implementation)?",
+    "remediation": "Run 'oxy task ls' to view available tasks."
+  }
+}
+```
+
+### Semantic Error Codes
+
+| Error Code | Exit Code | Description |
+| :--- | :---: | :--- |
+| `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Unknown or unimplemented command or subcommand. |
+| `CLI_SYNTAX_INVALID_ARGS` | `2` | Missing or invalid arguments (e.g. empty or whitespace paths). |
+| `DOM_ENTITY_NOT_FOUND` | `4` | Targeted project, task, timelog, or alias does not exist. |
+| `ENG_OPERATION_FAILED` | `1` | Business invariant failed (e.g. empty entity name validation). |
+| `ENG_TIMER_ACTIVE` | `5` | Attempted to start a timer while another is running without force. |
+| `ENG_TIMER_INACTIVE` | `5` | Attempted to stop a timer when no active session is running. |
+| `SNK_EXTERNAL_IO` | `1` | External sink failure (inaccessible file path or unhealthy sink test). |
+| `STO_SQLITE_CONSTRAINT` | `3` | SQLite constraint violation (uniqueness or foreign key conflict). |
+| `STO_STORAGE_ERROR` | `3` | Low-level database access or I/O failure. |
+
+---
+
 For advanced shell automation, CI/CD scripting, and JSON data pipelines, see **[Advanced CLI Scripting](advanced-cli.md)**.
