@@ -1,6 +1,6 @@
 use super::constants;
 use super::BusinessRepository;
-use crate::repositories::shared::errors::Result;
+use crate::repositories::shared::errors::{RepositoryError, Result};
 use crate::types::{Project, ProjectEditHistory};
 use rusqlite::params;
 
@@ -49,7 +49,7 @@ impl BusinessRepository {
             .as_ref()
             .map(serde_json::to_string)
             .transpose()?;
-        conn.execute(
+        let affected = conn.execute(
             constants::UPDATE_PROJECT,
             params![
                 project.id,
@@ -65,12 +65,24 @@ impl BusinessRepository {
                 project.allow_concurrency.unwrap_or(false) as i32
             ],
         )?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "Project",
+                id: project.id.clone(),
+            });
+        }
         Ok(())
     }
 
     pub fn archive_project(&self, id: &str) -> Result<()> {
         let conn = self.connect()?;
-        conn.execute(constants::ARCHIVE_PROJECT, params![id])?;
+        let affected = conn.execute(constants::ARCHIVE_PROJECT, params![id])?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "Project",
+                id: id.to_string(),
+            });
+        }
         Ok(())
     }
 

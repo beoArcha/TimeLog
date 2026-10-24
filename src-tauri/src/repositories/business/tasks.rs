@@ -47,7 +47,7 @@ impl BusinessRepository {
             Some(s) => serde_json::to_string(s)?.trim_matches('"').to_string(),
             None => "Todo".to_string(),
         };
-        conn.execute(
+        let affected = conn.execute(
             constants::UPDATE_TASK,
             params![
                 task.id,
@@ -62,12 +62,24 @@ impl BusinessRepository {
                 status_str
             ],
         )?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "Task",
+                id: task.id.clone(),
+            });
+        }
         Ok(())
     }
 
     pub fn archive_task(&self, id: &str) -> Result<()> {
         let conn = self.connect()?;
-        conn.execute(constants::ARCHIVE_TASK, params![id])?;
+        let affected = conn.execute(constants::ARCHIVE_TASK, params![id])?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "Task",
+                id: id.to_string(),
+            });
+        }
         Ok(())
     }
 

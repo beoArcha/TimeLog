@@ -5,11 +5,11 @@ use crate::types::TimeLog;
 use rusqlite::params;
 
 impl BusinessRepository {
-    fn map_time_log_row(row: &rusqlite::Row) -> rusqlite::Result<TimeLog> {
+    pub fn map_time_log_row(row: &rusqlite::Row) -> rusqlite::Result<TimeLog> {
         let edit_history_str: Option<String> = row.get(6)?;
-        let edit_history = edit_history_str
-            .and_then(|s| serde_json::from_str::<Vec<crate::types::TimeLogEditHistory>>(&s).ok())
-            .filter(|v| !v.is_empty());
+        let edit_history: Option<Vec<crate::types::TimeLogEditHistory>> =
+            crate::repositories::shared::parse_json_column(6, edit_history_str)?;
+        let edit_history = edit_history.filter(|v| !v.is_empty());
 
         Ok(TimeLog {
             id: row.get(0)?,
@@ -123,7 +123,7 @@ impl BusinessRepository {
         let mut conn = self.connect()?;
         let tx = conn.transaction()?;
 
-        tx.execute(
+        let affected = tx.execute(
             constants::UPDATE_TIME_LOG,
             params![
                 entry.id,
@@ -133,6 +133,12 @@ impl BusinessRepository {
                 entry.note
             ],
         )?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "TimeLog",
+                id: entry.id.to_string(),
+            });
+        }
 
         let reason_str = entry.reason.map(|r| r.as_str());
 
