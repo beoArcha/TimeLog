@@ -21,6 +21,7 @@ pub enum CliSyntaxError {
     MissingTarget,
     InvalidArgs(String),
     UnknownCommand(String),
+    CommandNotImplemented(String),
     AliasNotFound(String),
     MaskSyntax(String),
 }
@@ -33,6 +34,7 @@ impl fmt::Display for CliSyntaxError {
             Self::MissingTarget => write!(f, "No target specified"),
             Self::InvalidArgs(msg) => write!(f, "{}", msg),
             Self::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
+            Self::CommandNotImplemented(msg) => write!(f, "{}", msg),
             Self::AliasNotFound(name) => write!(f, "Alias '{}' not found", name),
             Self::MaskSyntax(msg) => write!(f, "Invalid mask syntax: {}", msg),
         }
@@ -58,12 +60,14 @@ impl fmt::Display for BusinessRuleViolation {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum SinkError {
     Io(String),
+    TestFailed(String),
 }
 
 impl fmt::Display for SinkError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Io(msg) => write!(f, "Sink I/O error: {}", msg),
+            Self::TestFailed(msg) => write!(f, "Sink verification failed: {}", msg),
         }
     }
 }
@@ -122,7 +126,9 @@ impl CliError {
                 CliSyntaxError::EmptyId => CliErrorCode::CliSyntaxEmptyId,
                 CliSyntaxError::MissingTarget => CliErrorCode::CliSyntaxMissingTarget,
                 CliSyntaxError::InvalidArgs(_) => CliErrorCode::CliSyntaxInvalidArgs,
-                CliSyntaxError::UnknownCommand(_) => CliErrorCode::CliSyntaxUnknownCommand,
+                CliSyntaxError::UnknownCommand(_) | CliSyntaxError::CommandNotImplemented(_) => {
+                    CliErrorCode::CliSyntaxUnknownCommand
+                }
                 CliSyntaxError::AliasNotFound(_) => CliErrorCode::MskAliasNotFound,
                 CliSyntaxError::MaskSyntax(_) => CliErrorCode::MskAliasSyntax,
             },

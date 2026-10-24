@@ -46,16 +46,17 @@ fn create_subtask(
             entity_type: EntityType::Task,
         })
     })?;
+    let valid_name = crate::engine::validation::validate_task_name(&name)?;
 
     let id = generate_id();
     let subtask = Task {
         id: id.clone(),
         project_id: parent.project_id,
         parent_task_id: Some(task_id),
-        name: name.clone(),
+        name: valid_name.clone(),
         created_at: current_timestamp(),
         completed: false,
-        original_name: Some(name),
+        original_name: Some(valid_name),
         original_completed: Some(false),
         edit_history: Some(vec![]),
         archived: Some(false),

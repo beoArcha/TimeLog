@@ -1,5 +1,5 @@
 use super::constants::{MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED, MSG_PROJECT_RENAMED};
-use crate::cli::error::CliError;
+use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::resolver::{EntityType, ResolveError};
 use crate::cli::shared::constants::{DEFAULT_COLOR, MSG_LIST_NOT_IMPLEMENTED};
 use crate::cli::shared::output::CliOutput;
@@ -39,14 +39,15 @@ fn create_project(
     name: String,
     color: Option<String>,
 ) -> Result<CliOutput, CliError> {
+    let valid_name = crate::engine::Engine::new(persistence).validate_project_name(&name, None)?;
     let id = generate_id();
     let project = Project {
         id: id.clone(),
-        name: name.clone(),
+        name: valid_name.clone(),
         color: color.clone().unwrap_or_else(|| DEFAULT_COLOR.to_string()),
         created_at: current_timestamp(),
         archived: Some(false),
-        original_name: Some(name),
+        original_name: Some(valid_name),
         original_color: color,
         edit_history: Some(vec![]),
         description: None,
@@ -61,7 +62,9 @@ fn create_project(
 }
 
 fn list_projects() -> Result<CliOutput, CliError> {
-    Ok(CliOutput::Success(MSG_LIST_NOT_IMPLEMENTED.to_string()))
+    Err(CliError::Syntax(CliSyntaxError::CommandNotImplemented(
+        MSG_LIST_NOT_IMPLEMENTED.to_string(),
+    )))
 }
 
 fn archive_project(persistence: &Persistence, id: String) -> Result<CliOutput, CliError> {
@@ -82,6 +85,8 @@ fn rename_project(
     id: String,
     name: String,
 ) -> Result<CliOutput, CliError> {
+    let valid_name =
+        crate::engine::Engine::new(persistence).validate_project_name(&name, Some(&id))?;
     let mut project = persistence.projects.get(&id)?.ok_or_else(|| {
         CliError::Entity(ResolveError::NotFound {
             target: id.clone(),
@@ -89,7 +94,7 @@ fn rename_project(
         })
     })?;
 
-    project.name = name;
+    project.name = valid_name;
     persistence.projects.patch(project)?;
 
     Ok(CliOutput::Success(MSG_PROJECT_RENAMED.replace("{}", &id)))

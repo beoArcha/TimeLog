@@ -38,15 +38,22 @@ fn create_task(
     project_id: String,
     name: String,
 ) -> Result<CliOutput, CliError> {
+    let _ = persistence.projects.get(&project_id)?.ok_or_else(|| {
+        CliError::Entity(ResolveError::NotFound {
+            target: project_id.clone(),
+            entity_type: EntityType::Project,
+        })
+    })?;
+    let valid_name = crate::engine::validation::validate_task_name(&name)?;
     let id = generate_id();
     let task = Task {
         id: id.clone(),
         project_id,
         parent_task_id: None,
-        name: name.clone(),
+        name: valid_name.clone(),
         created_at: current_timestamp(),
         completed: false,
-        original_name: Some(name),
+        original_name: Some(valid_name),
         original_completed: Some(false),
         edit_history: Some(vec![]),
         archived: Some(false),
@@ -74,6 +81,7 @@ fn archive_task(
 }
 
 fn rename_task(persistence: &Persistence, id: String, name: String) -> Result<CliOutput, CliError> {
+    let valid_name = crate::engine::validation::validate_task_name(&name)?;
     let mut task = persistence.tasks.get(&id)?.ok_or_else(|| {
         CliError::Entity(ResolveError::NotFound {
             target: id.clone(),
@@ -81,7 +89,7 @@ fn rename_task(persistence: &Persistence, id: String, name: String) -> Result<Cl
         })
     })?;
 
-    task.name = name;
+    task.name = valid_name;
     persistence.tasks.patch(task)?;
     Ok(CliOutput::Success(MSG_TASK_RENAMED.replace("{}", &id)))
 }

@@ -7,7 +7,7 @@ use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{SinkArgs, SinkSubcommand};
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::current_timestamp;
-use crate::persistence::{Persistence, PersistenceError};
+use crate::persistence::Persistence;
 use crate::types::CliSink;
 use serde_json::json;
 use std::path::Path;
@@ -68,7 +68,10 @@ fn set_csv_sink(
     let path = Path::new(&dir);
     if !path.exists() {
         std::fs::create_dir_all(path).map_err(|e| {
-            PersistenceError::Storage(format!("Cannot create target directory: {}", e))
+            CliError::Sink(crate::cli::error::SinkError::Io(format!(
+                "Cannot create target directory: {}",
+                e
+            )))
         })?;
     }
 
@@ -141,9 +144,13 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
 
     let mut results = Vec::new();
     let mut out = String::from(MSG_SINK_TEST_HEADER);
+    let mut all_passed = true;
 
     for sink in &sinks {
         let (passed, detail) = test_single_sink(sink);
+        if !passed {
+            all_passed = false;
+        }
         let icon = if passed { "✅" } else { "❌" };
         let status_text = if passed { "healthy" } else { "unreachable" };
 
@@ -165,7 +172,21 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
     }
 
     if is_machine {
-        return Ok(CliOutput::Success(serde_json::to_string_pretty(&results)?));
+        let json_str = serde_json::to_string_pretty(&results)?;
+        if !all_passed {
+            println!("{}", json_str);
+            return Err(CliError::Sink(crate::cli::error::SinkError::TestFailed(
+                "One or more sinks failed verification".to_string(),
+            )));
+        }
+        return Ok(CliOutput::Success(json_str));
+    }
+
+    if !all_passed {
+        println!("{}", out);
+        return Err(CliError::Sink(crate::cli::error::SinkError::TestFailed(
+            "One or more sinks failed verification".to_string(),
+        )));
     }
 
     Ok(CliOutput::Success(out))

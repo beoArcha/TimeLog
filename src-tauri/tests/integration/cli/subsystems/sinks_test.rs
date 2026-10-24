@@ -73,3 +73,38 @@ fn test_given_configured_persistence_when_setting_webhook_sink_and_testing_then_
     assert_eq!(sink.target, "https://webhook.site/integration-test");
     assert!(sink.config.unwrap().contains("bearer-test-token-123"));
 }
+
+#[test]
+fn test_given_unhealthy_sink_when_testing_sinks_then_fails_with_exit_code_1_and_snk_external_io() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_sinks_unhealthy");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let bad_sink = oxy_flow::types::CliSink {
+        name: "bad_webhook".to_string(),
+        sink_type: "webhook".to_string(),
+        target: "ftp://unsupported.domain/hook".to_string(),
+        config: None,
+        enabled: true,
+        created_at: oxy_flow::cli::shared::utils::current_timestamp(),
+    };
+    persistence.cli.save_sink(&bad_sink).unwrap();
+
+    let test_args = CliArgs::try_parse_from(["oxy", "sink", "test"]).unwrap();
+
+    // When
+    let test_result = handle_cli(test_args, &persistence, &engine);
+
+    // Then
+    assert!(
+        test_result.is_err(),
+        "Sink test must fail on unhealthy sink"
+    );
+    let err = test_result.unwrap_err();
+    assert_eq!(err.exit_code(), 1, "Failed sink test must exit with code 1");
+    assert_eq!(
+        err.error_code(),
+        oxy_flow::cli::error::CliErrorCode::SnkExternalIo
+    );
+}
