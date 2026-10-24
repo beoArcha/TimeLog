@@ -53,9 +53,9 @@ Use the phase-gate process for roadmap phases, large features and refactors span
    - **Clean Code:** Clean naming, max nested ifs <= 2 (Rule of 3 Ifs), zero unwrap() in production.
    - **Comments:** Follow `code_commenting_standards.md` — English only, explaining WHY, no narration of obvious match/variants, no ASCII banners/dividers, zero declarative buzzwords.
    - **Clean Architecture:** Layer boundaries strictly preserved, SQL isolated in repositories, no Tauri GUI types in domain/persistence.
-   - **Boy Scout Rule:** Report cleanup of technical debt or inconsistencies in touched files.
+   - **Boy Scout Rule & File Length:** Proactively clean up technical debt and decompose touched files. If any modified or newly expanded file exceeds ~300 lines of code or mixes multiple domain responsibilities, proactively decompose it into cohesive submodules (e.g. `handlers/`, `ops/`, `store/`) within the current phase before the review gate.
 3. **Phase gate**: after the reviewer subphase, STOP completely. Report the summary of changes, reviewer audit, test results and verification commands, and ask for a code review.
-   - **Commit Message Preparation**: At phase completion, stage changes (`git add .`), prepare a highly informative commit message (specifying scope, rationale, and itemized changes), and display the prepared message clearly to the user for review. Never commit to git history prematurely without user confirmation.
+   - **Commit Message Preparation**: At phase completion, stage changes (`git add .`), prepare a concise, high-level commit message adhering to Conventional Commits, and display it for review. The message should informatively summarize the operational scope and key changes in 3–6 focused bullet points without exhaustive file-by-file manifests (the git diff provides the granular detail). Never commit to git history prematurely without user confirmation.
 4. **Review fixes**: fixes requested in review belong to the current phase. After applying them, re-run tests and report what changed.
 5. **Advance**: start the next phase ONLY after the user explicitly says so (e.g. "następna faza", "proceed", "approved"). **A completed review fix NEVER constitutes permission to advance automatically.**
 
@@ -90,7 +90,8 @@ Full verification suite:
 ## 3. Refactoring Scope
 
 - Clean up the code you touch: unclear names, dead code, magic strings and rule violations on the lines you change.
-- Larger refactors (splitting a monolithic file, moving modules, changing contracts) are proposed to the user and done as a separate subphase or commit after approval.
+- Proactive Modularization: If a file you are touching or expanding exceeds ~300 lines of code or accumulates multiple responsibilities, decompose it into focused domain submodules as part of your current work. Do not leave oversized god-objects for the user to catch in review.
+- Unrelated structural refactors (moving unrelated modules, renaming public contracts across distant layers) remain a separate task or subphase requiring approval.
 - Never mix a feature, an unrelated refactor and an architecture change in one commit.
 
 ## 4. Tool-Specific Notes

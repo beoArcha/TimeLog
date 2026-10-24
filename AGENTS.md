@@ -128,7 +128,8 @@ Large features and roadmap phases follow the phase-gate process in [`development
 ### Refactoring scope
 
 - Small cleanups inside code you are already changing are expected: rename unclear identifiers, remove dead code, replace a magic string, fix a rule violation on the touched lines.
-- Larger refactors (splitting files, moving modules, changing contracts) are a separate task or commit. Propose them; do them only when requested or approved.
+- Proactive decomposition: Keep files focused and lean (aim for ≤300 LOC). If a touched file expands beyond single responsibility or healthy size, decompose it into domain submodules within the current task.
+- Unrelated structural refactors across distant subsystems or contracts are proposed and done as a separate task or commit after approval.
 - Never mix a feature, an unrelated refactor and an architecture change in one commit.
 
 ---
