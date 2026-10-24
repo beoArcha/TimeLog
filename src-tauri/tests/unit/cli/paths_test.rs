@@ -1,7 +1,14 @@
 use oxy_flow::common::constants::DEFAULT_DB_NAME;
 use oxy_flow::common::paths::{resolve_db_path, ENV_OXY_DB_PATH};
+use std::sync::Mutex;
+
+// Process-wide environment variables require synchronization across parallel test threads.
+static ENV_LOCK: Mutex<()> = Mutex::new(());
+
 #[test]
 fn test_given_cli_override_flag_when_resolving_db_path_then_prioritizes_cli_path() {
+    let _guard = ENV_LOCK.lock().expect("Lock env mutex");
+
     // Arrange
     let custom_db = std::env::temp_dir().join("oxy_test_sub").join("custom.db");
     let custom_str = custom_db.to_str().expect("Path to str");
@@ -17,6 +24,8 @@ fn test_given_cli_override_flag_when_resolving_db_path_then_prioritizes_cli_path
 
 #[test]
 fn test_given_env_var_and_no_cli_flag_when_resolving_db_path_then_uses_env_var() {
+    let _guard = ENV_LOCK.lock().expect("Lock env mutex");
+
     // Arrange
     let env_db = std::env::temp_dir().join("oxy_from_env.db");
     let env_str = env_db.to_str().expect("Path to str");
@@ -32,6 +41,8 @@ fn test_given_env_var_and_no_cli_flag_when_resolving_db_path_then_uses_env_var()
 
 #[test]
 fn test_given_no_flag_and_no_env_when_resolving_db_path_then_falls_back_to_default() {
+    let _guard = ENV_LOCK.lock().expect("Lock env mutex");
+
     // Arrange
     std::env::remove_var(ENV_OXY_DB_PATH);
 
