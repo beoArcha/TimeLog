@@ -3,6 +3,8 @@ import { LayoutCommonProps } from '@layouts/types/LayoutCommonProps';
 export interface TerminalLine {
   text: string;
   type: 'input' | 'output' | 'error' | 'success' | 'info';
+  errorCode?: string;
+  exitCode?: number;
 }
 
 export interface CliDomainHandlers {

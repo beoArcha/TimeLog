@@ -379,5 +379,35 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       const lines = output.getLines();
       expect(lines.length).toBeGreaterThan(0);
     });
+
+    it('should add a time log when log add is executed', () => {
+      // Arrange
+      const initialLogsCount = store.getLogs().length;
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'add', 'sb_t1', '45m', 'Unit test note'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      expect(store.getLogs().length).toBe(initialLogsCount + 1);
+      const lines = output.getLines();
+      expect(lines.some((l) => l.type === 'success' && l.text.includes('45m'))).toBe(true);
+    });
+
+    it('should delete a time log when log remove is executed', () => {
+      // Arrange
+      const createdLog = store.handleAddLog('sb_t1', 1800, 'To remove');
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'remove', createdLog.id], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      expect(store.getLogs().some((l) => l.id === createdLog.id)).toBe(false);
+      const lines = output.getLines();
+      expect(lines.some((l) => l.type === 'success' && l.text.includes('Deleted'))).toBe(true);
+    });
   });
 });

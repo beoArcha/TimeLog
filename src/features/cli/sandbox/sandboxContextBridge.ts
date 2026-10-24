@@ -20,6 +20,8 @@ export interface ISandboxStoreBridge {
   handleRenameTask(taskId: string, newName: string): boolean;
   handleToggleTaskComplete(taskId: string): boolean;
   handleArchiveTask?(taskId: string): boolean;
+  handleAddLog?(taskId: string, durationSeconds: number, note?: string | null, startTimeIso?: string): TimeLog;
+  handleRemoveLog?(logId: string): boolean;
   handleStartTimer(taskId: string, nowIso?: string): TimeLog;
   handleStopTimer(projectId?: string, nowIso?: string): { success: boolean; error?: string; errorCode?: string };
   handleSwitchTimer?(taskId: string, nowIso?: string): TimeLog;

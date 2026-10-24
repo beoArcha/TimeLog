@@ -261,7 +261,7 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
 
     default: {
       const helpTip = translate(effectiveContext.locale, 'cli', 'ErrUnknownCmdHelp', effectiveContext.customTranslations, { command: commandName });
-      output.error(`Error: Unknown command "${commandName}". ${helpTip}`);
+      output.error(`Error: Unknown command "${commandName}". ${helpTip}`, 'CLI_SYNTAX_UNKNOWN_COMMAND', 2);
     }
   }
 

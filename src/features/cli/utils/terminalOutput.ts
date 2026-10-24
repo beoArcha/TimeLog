@@ -42,8 +42,8 @@ export class TerminalOutput {
     return this;
   }
 
-  error(text: string): this {
-    this.lines.push({ text, type: 'error' });
+  error(text: string, errorCode?: string, exitCode?: number): this {
+    this.lines.push({ text, type: 'error', errorCode, exitCode });
     return this;
   }
 
