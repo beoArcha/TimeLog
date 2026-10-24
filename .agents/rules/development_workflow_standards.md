@@ -18,9 +18,8 @@ Use the phase-gate process for roadmap phases, large features and refactors span
 1. Discovery (analytical artifact as source of truth)
    → 2. Implementation plan (plan artifact with phases and subphases)
    → 3. Phases (subphases run automatically → reviewer subphase → phase gate → review fixes → explicit approval)
-   → 4. Penultimate phase: Full automated verification (tests, lint, formatting, typecheck across runtimes)
-   → 5. Final phase: Agent-executed manual verification (runtime checks, exit codes, state persistence)
-   → 6. Sign-off and documentation update
+   → 4. Unified Verification Gate: Automated & Manual Verification executed concurrently
+   → 5. Sign-off, documentation update, and commit message preparation
 ```
 
 ## 2. Stages
@@ -38,8 +37,7 @@ Use the phase-gate process for roadmap phases, large features and refactors span
   - **Phases (`Phase X`):** Complete, vertical slices producing working, compilable, and tested code, ending with a mandatory Phase Gate.
   - **Subphases (`Subphase X.Y`):** Atomic, logical code tasks inside an approved phase. Execution moves between subphases automatically without prompting the user.
   - **Mandatory Final Reviewer Subphase (`Subphase X.Review`):** The last subphase in every production phase is a formal quality & architecture review auditing touched code.
-- The penultimate phase is always **Full Automated Verification** (tests, linter, typecheck, fmt across all environments).
-- The final phase is always **Agent-Executed Manual Verification** (testing runtime behavior, exit codes, state persistence).
+- Verification can be consolidated into a **Unified Verification Gate**: automated and manual tests run concurrently. While long-running automated suites execute in the background, the agent uses the waiting time to perform manual runtime checks. If an issue is found, fix it cleanly and resume testing; re-running tests is scoped pragmatically based on the fix impact.
 - Split responsibilities explicitly: the AI writes code, tests, lint and typecheck fixes; the user verifies visuals, window behavior and business sign-off.
 - End the plan with a **Verification Plan**: the exact automated commands and manual checks.
 - The approved plan is a frozen reference. Do not tick or untick its checkboxes during execution.
@@ -57,6 +55,7 @@ Use the phase-gate process for roadmap phases, large features and refactors span
    - **Clean Architecture:** Layer boundaries strictly preserved, SQL isolated in repositories, no Tauri GUI types in domain/persistence.
    - **Boy Scout Rule:** Report cleanup of technical debt or inconsistencies in touched files.
 3. **Phase gate**: after the reviewer subphase, STOP completely. Report the summary of changes, reviewer audit, test results and verification commands, and ask for a code review.
+   - **Commit Message Preparation**: At phase completion, stage changes (`git add .`), prepare a highly informative commit message (specifying scope, rationale, and itemized changes), and display the prepared message clearly to the user for review. Never commit to git history prematurely without user confirmation.
 4. **Review fixes**: fixes requested in review belong to the current phase. After applying them, re-run tests and report what changed.
 5. **Advance**: start the next phase ONLY after the user explicitly says so (e.g. "następna faza", "proceed", "approved"). **A completed review fix NEVER constitutes permission to advance automatically.**
 
@@ -71,10 +70,13 @@ Before requesting a review, confirm:
 - [ ] Comments follow `code_commenting_standards.md`.
 - [ ] Documentation updated per the table in `AGENTS.md`.
 
-### 2.5. Full Verification
+### 2.5. Unified Verification Gate (Automated & Manual Concurrency)
 
-After the last phase, run the complete suite and report results honestly:
+Automated and manual verifications form a single collaborative quality gate:
+- **Concurrent Execution**: Launch background automated test suites (`bun run test`, `cargo test`, linters), and during the execution waiting time, immediately proceed with agent-executed manual runtime checks (CLI exit codes, real database state, error envelopes).
+- **Pragmatic Defect Remediation**: If manual or automated checks reveal a defect, fix it cleanly in place and continue verification. Re-running the full suite is required only if the fix touches cross-cutting boundaries or contracts; otherwise, run targeted regression checks.
 
+Full verification suite:
 - `bun run test:smoke`, `bun run test`, `bun run typecheck`, `bun run lint`
 - `bun run test:rust`, `bun run lint:rust`, `bun run fmt:rust:check`, `bun run test:arch:rust`
 - `bun run test:e2e` when UI flows changed

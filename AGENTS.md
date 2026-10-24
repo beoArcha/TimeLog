@@ -141,7 +141,7 @@ Update documentation in the same change when you:
 | --- | --- |
 | Architecture, layers, contracts | `docs/manifesto/ENGINEERING.md`, and `AGENTS.md` if a rule changes |
 | Roadmap phase completed or started | `docs/manifesto/MASTERMAP.md` (Strategic roadmap/plan only; NEVER use as a changelog) |
-| Feature, bug fix, or version delivered | `CHANGELOG.md` (Keep a Changelog format: `Added`, `Changed`, `Fixed`, `Removed`) |
+| Feature, bug fix, or version delivered | `CHANGELOG.md` (Keep a Changelog format with version suffixes: `Added in X.Y.Z`, `Changed in X.Y.Z`, `Fixed in X.Y.Z`, `Removed in X.Y.Z`) |
 | CLI command, flag, error code or exit code | `docs/manifesto/CLI.md` |
 | Setup, scripts, features list | `README.md` |
 | UI dimensions, tokens, design system | `docs/manifesto/USERINTERFACE.md` |
