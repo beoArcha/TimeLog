@@ -24,12 +24,18 @@ pub enum ProjectSubcommand {
         )]
         color: Option<String>,
     },
-    #[command(alias = "ren", about = "Rename an existing project")]
+    #[command(alias = "ren", about = "Rename or recolor an existing project")]
     Rename {
         #[arg(help = "Target project (by ID, prefix, or name)")]
         target: String,
         #[arg(help = "New project name")]
-        new_name: String,
+        new_name: Option<String>,
+        #[arg(
+            short,
+            long,
+            help = "Hex or semantic color (e.g. '#3b82f6' or 'indigo')"
+        )]
+        color: Option<String>,
     },
     #[command(alias = "rm", about = "Archive a project")]
     Archive {
@@ -77,6 +83,20 @@ pub enum TaskSubcommand {
         target: String,
         #[arg(help = "New task title")]
         new_name: String,
+    },
+    #[command(about = "Change the parent of a task (or promote to root with 'none')")]
+    Reparent {
+        #[arg(help = "Target task (by ID, prefix, or name)")]
+        target: String,
+        #[arg(help = "New parent task (by ID, prefix, or name), or 'none' / 'root' to detach")]
+        new_parent: String,
+    },
+    #[command(about = "Move a task and its subtasks to another project")]
+    Move {
+        #[arg(help = "Target task (by ID, prefix, or name)")]
+        target: String,
+        #[arg(help = "Destination project (by ID, prefix, or name)")]
+        new_project: String,
     },
     #[command(alias = "rm", about = "Archive a task")]
     Archive {

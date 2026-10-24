@@ -355,3 +355,274 @@ fn test_given_existing_task_when_archiving_in_machine_mode_then_returns_json_env
     assert_eq!(parsed["action"], "archived");
     assert_eq!(parsed["id"], "t-rm-mach");
 }
+
+#[test]
+fn test_given_task_and_new_parent_when_reparent_invoked_then_hierarchy_is_updated() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_reparent");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-rep-1")
+        .with_name("Reparent Proj")
+        .build();
+    let parent1 = TaskBuilder::new()
+        .with_id("t-p1")
+        .with_project_id("p-rep-1")
+        .with_name("Parent 1")
+        .build();
+    let parent2 = TaskBuilder::new()
+        .with_id("t-p2")
+        .with_project_id("p-rep-1")
+        .with_name("Parent 2")
+        .build();
+    let child = TaskBuilder::new()
+        .with_id("t-c1")
+        .with_project_id("p-rep-1")
+        .with_parent("t-p1")
+        .with_name("Child Task")
+        .build();
+
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(parent1).unwrap();
+    persistence.tasks.create(parent2).unwrap();
+    persistence.tasks.create(child).unwrap();
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "task", "reparent", "Child Task", "Parent 2"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let task_in_db = persistence.tasks.get("t-c1").unwrap().unwrap();
+    assert_eq!(task_in_db.parent_task_id.as_deref(), Some("t-p2"));
+}
+
+#[test]
+fn test_given_task_when_reparent_to_self_or_descendant_then_fails_with_business_constraint() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_reparent_cycle");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-rep-cycle")
+        .with_name("Reparent Cycle Proj")
+        .build();
+    let parent = TaskBuilder::new()
+        .with_id("t-cycle-p")
+        .with_project_id("p-rep-cycle")
+        .with_name("Top Parent")
+        .build();
+    let child = TaskBuilder::new()
+        .with_id("t-cycle-c")
+        .with_project_id("p-rep-cycle")
+        .with_parent("t-cycle-p")
+        .with_name("Nested Child")
+        .build();
+
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(parent).unwrap();
+    persistence.tasks.create(child).unwrap();
+
+    // Attempt to reparent task to itself
+    let self_args =
+        CliArgs::try_parse_from(["oxy", "task", "reparent", "Top Parent", "Top Parent"]).unwrap();
+    let self_res = handle_cli(self_args, &persistence, &engine);
+    assert!(self_res.is_err());
+    assert_eq!(self_res.unwrap_err().exit_code(), 1);
+
+    // Attempt to reparent parent under its own child (cycle)
+    let cycle_args =
+        CliArgs::try_parse_from(["oxy", "task", "reparent", "Top Parent", "Nested Child"]).unwrap();
+    let cycle_res = handle_cli(cycle_args, &persistence, &engine);
+    assert!(cycle_res.is_err());
+    assert_eq!(cycle_res.unwrap_err().exit_code(), 1);
+}
+
+#[test]
+fn test_given_subtask_when_reparented_to_none_then_promoted_to_root() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_reparent_detach");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-detach")
+        .with_name("Detach Proj")
+        .build();
+    let parent = TaskBuilder::new()
+        .with_id("t-detach-p")
+        .with_project_id("p-detach")
+        .with_name("Parent Node")
+        .build();
+    let child = TaskBuilder::new()
+        .with_id("t-detach-c")
+        .with_project_id("p-detach")
+        .with_parent("t-detach-p")
+        .with_name("To Detach")
+        .build();
+
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(parent).unwrap();
+    persistence.tasks.create(child).unwrap();
+
+    let args = CliArgs::try_parse_from(["oxy", "task", "reparent", "To Detach", "none"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let task_in_db = persistence.tasks.get("t-detach-c").unwrap().unwrap();
+    assert_eq!(task_in_db.parent_task_id, None);
+}
+
+#[test]
+fn test_given_task_with_subtasks_when_move_to_new_project_then_cascades_project_id() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_move");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let p1 = ProjectBuilder::new()
+        .with_id("p-move-1")
+        .with_name("Source Project")
+        .build();
+    let p2 = ProjectBuilder::new()
+        .with_id("p-move-2")
+        .with_name("Target Project")
+        .build();
+    let root = TaskBuilder::new()
+        .with_id("t-move-root")
+        .with_project_id("p-move-1")
+        .with_name("Feature Epic")
+        .build();
+    let subtask = TaskBuilder::new()
+        .with_id("t-move-sub")
+        .with_project_id("p-move-1")
+        .with_parent("t-move-root")
+        .with_name("Feature Implementation")
+        .build();
+
+    persistence.projects.create(p1).unwrap();
+    persistence.projects.create(p2).unwrap();
+    persistence.tasks.create(root).unwrap();
+    persistence.tasks.create(subtask).unwrap();
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "task", "move", "Feature Epic", "Target Project"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let root_in_db = persistence.tasks.get("t-move-root").unwrap().unwrap();
+    let sub_in_db = persistence.tasks.get("t-move-sub").unwrap().unwrap();
+    assert_eq!(root_in_db.project_id, "p-move-2");
+    assert_eq!(sub_in_db.project_id, "p-move-2");
+    assert_eq!(sub_in_db.parent_task_id.as_deref(), Some("t-move-root"));
+}
+
+#[test]
+fn test_given_task_when_reparent_in_machine_mode_then_returns_json_envelope() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_reparent_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-mach-rep")
+        .with_name("Machine Reparent")
+        .build();
+    let parent = TaskBuilder::new()
+        .with_id("t-mach-p")
+        .with_project_id("p-mach-rep")
+        .with_name("Parent Node")
+        .build();
+    let child = TaskBuilder::new()
+        .with_id("t-mach-c")
+        .with_project_id("p-mach-rep")
+        .with_name("Child Node")
+        .build();
+
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(parent).unwrap();
+    persistence.tasks.create(child).unwrap();
+
+    let args = CliArgs::try_parse_from([
+        "oxy",
+        "--machine",
+        "task",
+        "reparent",
+        "Child Node",
+        "Parent Node",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["action"], "reparented");
+    assert_eq!(parsed["id"], "t-mach-c");
+    assert_eq!(parsed["parent_id"], "t-mach-p");
+}
+
+#[test]
+fn test_given_task_when_move_in_machine_mode_then_returns_json_envelope() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_move_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let p1 = ProjectBuilder::new()
+        .with_id("p-src")
+        .with_name("Source Proj")
+        .build();
+    let p2 = ProjectBuilder::new()
+        .with_id("p-dst")
+        .with_name("Destination Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-to-move")
+        .with_project_id("p-src")
+        .with_name("Task To Move")
+        .build();
+
+    persistence.projects.create(p1).unwrap();
+    persistence.projects.create(p2).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args = CliArgs::try_parse_from([
+        "oxy",
+        "--json",
+        "task",
+        "move",
+        "Task To Move",
+        "Destination Proj",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["action"], "moved");
+    assert_eq!(parsed["id"], "t-to-move");
+    assert_eq!(parsed["project_id"], "p-dst");
+}

@@ -1,14 +1,21 @@
 pub const MSG_PROJECT_CREATED: &str = "Created project with ID: {}";
 pub const MSG_PROJECT_ARCHIVED: &str = "Archived project: {}";
 pub const MSG_PROJECT_RENAMED: &str = "Renamed project: {}";
+pub const MSG_PROJECT_UPDATED: &str = "Updated project: {}";
 pub const MSG_PROJECT_NOT_FOUND: &str = "Project not found: {}";
 pub const MSG_NO_PROJECTS_FOUND: &str = "No projects found.";
 pub const MSG_NO_PROJECTS_EXIST: &str =
     "No projects exist. Create a project first with 'oxy project add <name>'";
+pub const ERR_PROJECT_RENAME_EMPTY: &str = "At least one of new name or --color must be provided.";
 
 pub const MSG_TASK_CREATED: &str = "Created task with ID: {}";
 pub const MSG_TASK_ARCHIVED: &str = "Archived task: {}";
 pub const MSG_TASK_RENAMED: &str = "Renamed task: {}";
+pub const MSG_TASK_REPARENTED: &str = "Reparented task '{}' under '{}'";
+pub const MSG_TASK_DETACHED: &str = "Detached task '{}' as a root task";
+pub const MSG_TASK_MOVED: &str = "Moved task '{}' to project '{}'";
+pub const ERR_REPARENT_SELF: &str = "Cannot reparent task to itself.";
+pub const ERR_REPARENT_DIFFERENT_PROJECT: &str = "Parent task belongs to a different project.";
 pub const MSG_TASK_NOT_FOUND: &str = "Task not found: {}";
 pub const MSG_TASK_COMPLETED: &str = "Marked task '{}' [{}] as completed.";
 pub const MSG_NO_TASKS_FOUND: &str = "No tasks found matching criteria.";

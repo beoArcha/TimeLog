@@ -148,8 +148,11 @@ fn test_given_project_domain_commands_when_parsing_cli_then_maps_to_subcommands(
         Some(CliCommand::Project(args)) => {
             assert!(matches!(
                 args.command,
-                ProjectSubcommand::Rename { ref target, ref new_name }
-                    if target == "p1" && new_name == "NewName"
+                ProjectSubcommand::Rename {
+                    ref target,
+                    ref new_name,
+                    color: None
+                } if target == "p1" && new_name.as_deref() == Some("NewName")
             ));
         }
         other => panic!("Expected Project Rename, got: {:?}", other),
@@ -174,6 +177,10 @@ fn test_given_task_domain_commands_when_parsing_cli_then_maps_subtasks_and_done(
     ])
     .expect("t add subtask");
     let done = CliArgs::try_parse_from(vec!["oxy", "t", "done", "auth"]).expect("t done");
+    let reparent = CliArgs::try_parse_from(vec!["oxy", "task", "reparent", "child", "new_parent"])
+        .expect("task reparent");
+    let move_task =
+        CliArgs::try_parse_from(vec!["oxy", "task", "move", "task1", "proj2"]).expect("task move");
 
     // Assert
     match add_subtask.command {
@@ -200,6 +207,32 @@ fn test_given_task_domain_commands_when_parsing_cli_then_maps_subtasks_and_done(
             ));
         }
         other => panic!("Expected Task Done, got: {:?}", other),
+    }
+
+    match reparent.command {
+        Some(CliCommand::Task(args)) => {
+            assert!(matches!(
+                args.command,
+                TaskSubcommand::Reparent {
+                    ref target,
+                    ref new_parent
+                } if target == "child" && new_parent == "new_parent"
+            ));
+        }
+        other => panic!("Expected Task Reparent, got: {:?}", other),
+    }
+
+    match move_task.command {
+        Some(CliCommand::Task(args)) => {
+            assert!(matches!(
+                args.command,
+                TaskSubcommand::Move {
+                    ref target,
+                    ref new_project
+                } if target == "task1" && new_project == "proj2"
+            ));
+        }
+        other => panic!("Expected Task Move, got: {:?}", other),
     }
 }
 

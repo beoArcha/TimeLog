@@ -1,9 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 use super::constants::{
-    FORMAT_TASK_ORPHAN_ROW, FORMAT_TASK_ROOT_ROW, FORMAT_TASK_SUBTASK_ROW, HEADER_TASKS,
-    LABEL_SUBTASK_BADGE, LABEL_UNKNOWN_PROJECT, MSG_NO_TASKS_FOUND, MSG_TASK_ARCHIVED,
-    MSG_TASK_COMPLETED, MSG_TASK_CREATED, MSG_TASK_RENAMED, SYMBOL_TASK_DONE, SYMBOL_TASK_TODO,
+    ERR_REPARENT_DIFFERENT_PROJECT, ERR_REPARENT_SELF, FORMAT_TASK_ORPHAN_ROW,
+    FORMAT_TASK_ROOT_ROW, FORMAT_TASK_SUBTASK_ROW, HEADER_TASKS, LABEL_SUBTASK_BADGE,
+    LABEL_UNKNOWN_PROJECT, MSG_NO_TASKS_FOUND, MSG_TASK_ARCHIVED, MSG_TASK_COMPLETED,
+    MSG_TASK_CREATED, MSG_TASK_DETACHED, MSG_TASK_MOVED, MSG_TASK_RENAMED, MSG_TASK_REPARENTED,
+    SYMBOL_TASK_DONE, SYMBOL_TASK_TODO,
 };
 use crate::cli::error::{BusinessRuleViolation, CliError};
 use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
@@ -34,6 +36,13 @@ pub fn handle(
         TaskSubcommand::Rename { target, new_name } => {
             rename_task(persistence, &target, new_name, is_machine)
         }
+        TaskSubcommand::Reparent { target, new_parent } => {
+            reparent_task(persistence, &target, &new_parent, is_machine)
+        }
+        TaskSubcommand::Move {
+            target,
+            new_project,
+        } => move_task(persistence, &target, &new_project, is_machine),
         TaskSubcommand::Archive { target } => archive_task(persistence, &target, is_machine),
     }
 }
@@ -349,4 +358,160 @@ fn archive_task(
     Ok(CliOutput::Success(
         MSG_TASK_ARCHIVED.replace("{}", &task.id),
     ))
+}
+
+fn reparent_task(
+    persistence: &Persistence,
+    target: &str,
+    new_parent: &str,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
+    validate_id(target)?;
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let mut task = resolver.resolve_task(target)?;
+
+    let is_detaching =
+        new_parent.eq_ignore_ascii_case("none") || new_parent.eq_ignore_ascii_case("root");
+
+    if is_detaching {
+        task.parent_task_id = None;
+        persistence.tasks.patch(task.clone())?;
+
+        if is_machine {
+            return Ok(CliOutput::Json(
+                serde_json::json!({
+                    "status": "ok",
+                    "id": task.id,
+                    "parent_id": null,
+                    "action": "reparented"
+                })
+                .to_string(),
+            ));
+        }
+
+        return Ok(CliOutput::Success(
+            MSG_TASK_DETACHED.replace("{}", &task.name),
+        ));
+    }
+
+    validate_id(new_parent)?;
+    let parent_task = resolver.resolve_task(new_parent)?;
+
+    if task.id == parent_task.id {
+        return Err(CliError::Business(BusinessRuleViolation::Constraint(
+            ERR_REPARENT_SELF.to_string(),
+        )));
+    }
+
+    if task.project_id != parent_task.project_id {
+        return Err(CliError::Business(BusinessRuleViolation::Constraint(
+            ERR_REPARENT_DIFFERENT_PROJECT.to_string(),
+        )));
+    }
+
+    let engine = Engine::new(persistence);
+    engine.validate_task_hierarchy(Some(&task.id), Some(&parent_task.id))?;
+
+    task.parent_task_id = Some(parent_task.id.clone());
+    persistence.tasks.patch(task.clone())?;
+
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": task.id,
+                "parent_id": parent_task.id,
+                "action": "reparented"
+            })
+            .to_string(),
+        ));
+    }
+
+    Ok(CliOutput::Success(
+        MSG_TASK_REPARENTED
+            .replacen("{}", &task.name, 1)
+            .replacen("{}", &parent_task.name, 1),
+    ))
+}
+
+fn move_task(
+    persistence: &Persistence,
+    target: &str,
+    new_project: &str,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
+    validate_id(target)?;
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let mut task = resolver.resolve_task(target)?;
+    let target_project = resolver.resolve_project(new_project)?;
+
+    if task.project_id == target_project.id {
+        if is_machine {
+            return Ok(CliOutput::Json(
+                serde_json::json!({
+                    "status": "ok",
+                    "id": task.id,
+                    "project_id": target_project.id,
+                    "action": "moved"
+                })
+                .to_string(),
+            ));
+        }
+        return Ok(CliOutput::Success(
+            MSG_TASK_MOVED
+                .replacen("{}", &task.name, 1)
+                .replacen("{}", &target_project.name, 1),
+        ));
+    }
+
+    task.parent_task_id = None;
+    task.project_id = target_project.id.clone();
+    persistence.tasks.patch(task.clone())?;
+
+    cascade_move_descendants(persistence, &task.id, &target_project.id)?;
+
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": task.id,
+                "project_id": target_project.id,
+                "action": "moved"
+            })
+            .to_string(),
+        ));
+    }
+
+    Ok(CliOutput::Success(
+        MSG_TASK_MOVED
+            .replacen("{}", &task.name, 1)
+            .replacen("{}", &target_project.name, 1),
+    ))
+}
+
+fn cascade_move_descendants(
+    persistence: &Persistence,
+    root_task_id: &str,
+    new_project_id: &str,
+) -> Result<(), CliError> {
+    let all_tasks = persistence.tasks.get_all()?;
+    let mut child_map: HashMap<String, Vec<Task>> = HashMap::new();
+    for t in all_tasks {
+        if let Some(ref pid) = t.parent_task_id {
+            child_map.entry(pid.clone()).or_default().push(t);
+        }
+    }
+
+    let mut queue = vec![root_task_id.to_string()];
+    while let Some(current_id) = queue.pop() {
+        if let Some(children) = child_map.remove(&current_id) {
+            for mut child in children {
+                queue.push(child.id.clone());
+                child.project_id = new_project_id.to_string();
+                persistence.tasks.patch(child)?;
+            }
+        }
+    }
+
+    Ok(())
 }

@@ -1,8 +1,9 @@
 use super::constants::{
-    FORMAT_PROJECT_ROW, HEADER_PROJECTS, LABEL_ARCHIVED_BADGE, MSG_NO_PROJECTS_FOUND,
-    MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED, MSG_PROJECT_RENAMED,
+    ERR_PROJECT_RENAME_EMPTY, FORMAT_PROJECT_ROW, HEADER_PROJECTS, LABEL_ARCHIVED_BADGE,
+    MSG_NO_PROJECTS_FOUND, MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED, MSG_PROJECT_RENAMED,
+    MSG_PROJECT_UPDATED,
 };
-use crate::cli::error::CliError;
+use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::tier2_entities::{ProjectArgs, ProjectSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::constants::DEFAULT_COLOR;
@@ -21,9 +22,11 @@ pub fn handle(
     match args.command {
         ProjectSubcommand::List { all } => list_projects(persistence, all, is_machine, is_quiet),
         ProjectSubcommand::Add { name, color } => add_project(persistence, name, color, is_machine),
-        ProjectSubcommand::Rename { target, new_name } => {
-            rename_project(persistence, &target, new_name, is_machine)
-        }
+        ProjectSubcommand::Rename {
+            target,
+            new_name,
+            color,
+        } => rename_project(persistence, &target, new_name, color, is_machine),
         ProjectSubcommand::Archive { target } => archive_project(persistence, &target, is_machine),
     }
 }
@@ -119,27 +122,50 @@ fn add_project(
 fn rename_project(
     persistence: &Persistence,
     target: &str,
-    new_name: String,
+    new_name: Option<String>,
+    color: Option<String>,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
+    if new_name.is_none() && color.is_none() {
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            ERR_PROJECT_RENAME_EMPTY.to_string(),
+        )));
+    }
+
     let resolver = EntityResolver::with_mode(persistence, is_machine);
     let mut project = resolver.resolve_project(target)?;
-    let engine = Engine::new(persistence);
-    project.name = engine.validate_project_name(&new_name, Some(&project.id))?;
+
+    let has_new_name = new_name.is_some();
+    if let Some(ref name) = new_name {
+        let engine = Engine::new(persistence);
+        project.name = engine.validate_project_name(name, Some(&project.id))?;
+    }
+    if let Some(c) = color {
+        project.color = c;
+    }
+
     persistence.projects.patch(project.clone())?;
+
     if is_machine {
+        let action = if has_new_name { "renamed" } else { "recolored" };
         return Ok(CliOutput::Json(
             serde_json::json!({
                 "status": "ok",
                 "id": project.id,
-                "action": "renamed"
+                "name": project.name,
+                "color": project.color,
+                "action": action
             })
             .to_string(),
         ));
     }
-    Ok(CliOutput::Success(
-        MSG_PROJECT_RENAMED.replace("{}", &project.id),
-    ))
+
+    let msg = if has_new_name {
+        MSG_PROJECT_RENAMED.replace("{}", &project.id)
+    } else {
+        MSG_PROJECT_UPDATED.replace("{}", &project.id)
+    };
+    Ok(CliOutput::Success(msg))
 }
 
 fn archive_project(

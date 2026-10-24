@@ -232,3 +232,97 @@ fn test_given_existing_project_when_archiving_in_machine_mode_then_returns_json_
     assert_eq!(parsed["status"], "ok");
     assert_eq!(parsed["action"], "archived");
 }
+
+#[test]
+fn test_given_existing_project_when_rename_with_color_then_color_and_name_updated() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_project_ren_color");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let add_args =
+        CliArgs::try_parse_from(["oxy", "project", "add", "Old Name", "--color", "blue"]).unwrap();
+    handle_cli(add_args, &persistence, &engine).unwrap();
+
+    let ren_args = CliArgs::try_parse_from([
+        "oxy",
+        "project",
+        "ren",
+        "Old Name",
+        "Brand New Name",
+        "--color",
+        "#ff5500",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(ren_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let projects = persistence.projects.get_all().unwrap();
+    assert_eq!(projects[0].name, "Brand New Name");
+    assert_eq!(projects[0].color, "#ff5500");
+}
+
+#[test]
+fn test_given_existing_project_when_recolor_only_then_color_updated_and_name_preserved() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_project_recolor_only");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let add_args =
+        CliArgs::try_parse_from(["oxy", "project", "add", "Stable Name", "--color", "gray"])
+            .unwrap();
+    handle_cli(add_args, &persistence, &engine).unwrap();
+
+    let ren_args = CliArgs::try_parse_from([
+        "oxy",
+        "--machine",
+        "project",
+        "ren",
+        "Stable Name",
+        "--color",
+        "purple",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(ren_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["action"], "recolored");
+    assert_eq!(parsed["color"], "purple");
+    assert_eq!(parsed["name"], "Stable Name");
+
+    let projects = persistence.projects.get_all().unwrap();
+    assert_eq!(projects[0].name, "Stable Name");
+    assert_eq!(projects[0].color, "purple");
+}
+
+#[test]
+fn test_given_existing_project_when_rename_with_no_name_and_no_color_then_fails_with_syntax_error()
+{
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_project_ren_empty");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let add_args = CliArgs::try_parse_from(["oxy", "project", "add", "Target Proj"]).unwrap();
+    handle_cli(add_args, &persistence, &engine).unwrap();
+
+    let ren_args = CliArgs::try_parse_from(["oxy", "project", "ren", "Target Proj"]).unwrap();
+
+    // When
+    let result = handle_cli(ren_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert_eq!(err.exit_code(), 2);
+}
