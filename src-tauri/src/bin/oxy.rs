@@ -11,6 +11,14 @@ fn main() -> ExitCode {
         .iter()
         .any(|a| a == "-m" || a == "--machine" || a == "-j" || a == "--json");
 
+    if let Err(err) = CliArgs::try_parse_from(&raw_args) {
+        if err.kind() == clap::error::ErrorKind::DisplayHelp
+            || err.kind() == clap::error::ErrorKind::DisplayVersion
+        {
+            err.exit();
+        }
+    }
+
     let early_db = extract_early_db_flag(&raw_args);
     let db_path = match resolve_db_path(early_db.as_deref()) {
         Ok(path) => path,

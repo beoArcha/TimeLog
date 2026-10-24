@@ -24,16 +24,26 @@ impl Drop for TempEnvDir {
 #[test]
 fn test_given_compiled_oxy_binary_when_invoking_help_flag_then_outputs_usage_text() {
     // Given
+    let temp_env = TempEnvDir::new("oxy_smoke_help");
     let bin_path = env!("CARGO_BIN_EXE_oxy");
 
     // When
     let output = Command::new(bin_path)
+        .env("APPDATA", &temp_env.path)
+        .env("HOME", &temp_env.path)
+        .env("USERPROFILE", &temp_env.path)
         .arg("--help")
         .output()
         .expect("Failed to execute oxy binary with --help");
 
     // Then
-    assert!(output.status.success());
+    assert!(
+        output.status.success(),
+        "Help command failed: status={:?}, stdout={}, stderr={}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
         stdout.contains("Usage") || stdout.contains("oxy"),
@@ -45,10 +55,14 @@ fn test_given_compiled_oxy_binary_when_invoking_help_flag_then_outputs_usage_tex
 #[test]
 fn test_given_compiled_oxy_binary_when_invoking_invalid_subcommand_then_returns_non_zero_status() {
     // Given
+    let temp_env = TempEnvDir::new("oxy_smoke_invalid");
     let bin_path = env!("CARGO_BIN_EXE_oxy");
 
     // When
     let output = Command::new(bin_path)
+        .env("APPDATA", &temp_env.path)
+        .env("HOME", &temp_env.path)
+        .env("USERPROFILE", &temp_env.path)
         .arg("nonexistent-command-xyz")
         .output()
         .expect("Failed to execute oxy binary");
@@ -60,16 +74,26 @@ fn test_given_compiled_oxy_binary_when_invoking_invalid_subcommand_then_returns_
 #[test]
 fn test_given_compiled_oxy_binary_when_invoking_version_flag_then_outputs_version() {
     // Given
+    let temp_env = TempEnvDir::new("oxy_smoke_version");
     let bin_path = env!("CARGO_BIN_EXE_oxy");
 
     // When
     let output = Command::new(bin_path)
+        .env("APPDATA", &temp_env.path)
+        .env("HOME", &temp_env.path)
+        .env("USERPROFILE", &temp_env.path)
         .arg("--version")
         .output()
         .expect("Failed to execute oxy binary with --version");
 
     // Then
-    assert!(output.status.success());
+    assert!(
+        output.status.success(),
+        "Version command failed: status={:?}, stdout={}, stderr={}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
         stdout.contains("oxy"),
