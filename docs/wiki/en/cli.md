@@ -17,6 +17,7 @@ The `oxy` binary accepts global flags that control output formatting and verbosi
 | `--json` | `-j` | Emits unformatted, machine-parseable JSON to `stdout`. |
 | `--machine` | `-m` | Emits deterministic single-line JSON, suppressing interactive prompts. |
 | `--quiet` | `-q` | Suppresses non-essential notices and table headers. |
+| `--db <path>` | | Explicit path to SQLite database file (overrides `OXY_DB_PATH`). |
 
 ---
 
@@ -31,6 +32,9 @@ oxy start "API Implementation"
 
 # Stop the active timer session
 oxy stop
+
+# Stop all active timer sessions across all projects
+oxy stop --all
 
 # Atomically switch the active timer to another task in a single step
 oxy switch "Frontend Bugfix"
@@ -79,10 +83,45 @@ oxy report --tree --today
 # Render a report for the current week
 oxy report --tree --week
 
+# Query reports for an arbitrary date range and specific project
+oxy report --from 2026-10-01 --to 2026-10-31 -p "Client Portal"
+
 # Export tracked time data to HTML, CSV, or JSON
 oxy report export -f html -o ./timesheet.html
 oxy report export -f csv -o ./timesheet.csv
 oxy report export -f json -o ./timesheet.json
+```
+
+---
+
+## Diagnostics and Database Management
+
+```bash
+# Run system and SQLite database health checks
+oxy doctor
+
+# Create an online SQLite backup
+oxy db backup ./backups/oxytime-backup.db
+
+# Restore database from a backup snapshot
+oxy db restore ./backups/oxytime-backup.db
+```
+
+---
+
+## Action Masks and Macros
+
+Action masks allow defining reusable command shortcuts with positional argument substitution (`$1`..`$9`):
+
+```bash
+# Define a custom shortcut with argument substitution
+oxy mask set standup "start $1"
+
+# Execute the shortcut directly
+oxy standup "Daily Standup"
+
+# List configured action masks
+oxy mask ls
 ```
 
 ---

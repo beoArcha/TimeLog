@@ -17,6 +17,7 @@ O binário `oxy` aceita flags globais para ajustar a saída e o nível de detalh
 | `--json` | `-j` | Emite dados brutos em JSON estruturado na saída padrão (`stdout`). |
 | `--machine` | `-m` | Emite JSON conciso em linha única, sem menus iterativos. |
 | `--quiet` | `-q` | Oculta notificações informativas e cabeçalhos de tabela. |
+| `--db <caminho>` | | Caminho explícito para o arquivo do banco de dados SQLite (substitui `OXY_DB_PATH`). |
 
 ---
 
@@ -31,6 +32,9 @@ oxy start "Implementação da API"
 
 # Parar a sessão em andamento
 oxy stop
+
+# Parar todos os temporizadores ativos em todos os projetos
+oxy stop --all
 
 # Alternar atomicamente para outra tarefa em uma única etapa
 oxy switch "Correção na Interface"
@@ -77,10 +81,45 @@ oxy report --tree --today
 # Exibir o relatório consolidado da semana
 oxy report --tree --week
 
+# Consultar o relatório para um intervalo de datas e projeto específico
+oxy report --from 2026-10-01 --to 2026-10-31 -p "Portal do Cliente"
+
 # Exportar registros de tempo para HTML, CSV ou JSON
 oxy report export -f html -o ./relatorio.html
 oxy report export -f csv -o ./relatorio.csv
 oxy report export -f json -o ./relatorio.json
+```
+
+---
+
+## Diagnóstico do Sistema e Gestão do Banco de Dados
+
+```bash
+# Executar diagnóstico de integridade do sistema e do SQLite
+oxy doctor
+
+# Criar backup online do banco de dados SQLite
+oxy db backup ./backups/oxytime-backup.db
+
+# Restaurar banco de dados a partir de um snapshot de backup
+oxy db restore ./backups/oxytime-backup.db
+```
+
+---
+
+## Máscaras de Ação e Macros
+
+Máscaras de ação permitem definir atalhos de comandos reutilizáveis com substituição posicional de argumentos (`$1`..`$9`):
+
+```bash
+# Definir atalho personalizado com substituição de argumentos
+oxy mask set standup "start $1"
+
+# Executar o atalho configurado diretamente
+oxy standup "Alinhamento Diário"
+
+# Listar as máscaras registradas
+oxy mask ls
 ```
 
 ---

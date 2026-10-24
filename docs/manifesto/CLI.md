@@ -121,19 +121,24 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Task** | List | `oxy task list [-p <project-id>]` | Supports filtering and sorting | Hierarchical list with subtasks |
 | **Subtask** | Create | `oxy subtask create -t <parent-id> "<name>"` | Links subtask to parent | Prompts for parent task selection |
 | **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite | Displays green running timer badge |
-| **Timer** | Stop | `oxy timer stop [--all]` | Idempotent timer stop | Prints total elapsed time for session |
+| **Timer** | Stop | `oxy timer stop [--all]` | Idempotent timer stop (`--all` stops all active timers) | Prints total elapsed time for session |
 | **Timer** | Switch | `oxy switch <new-task-id>` | Atomic stop old + start new ($<100\text{ms}$) | Explains previous and new task state |
 | **Timer** | Quick-Log | `oxy timer log <task-id> <duration> ["<note>"]` | Direct retroactive log insertion | Confirms retroactive time captured |
 | **Timer** | Status | `oxy status` | Single-line or JSON status | Visual card with live running timer |
 | **Report** | Tree | `oxy report --tree [--today\|--week\|--month]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
+| **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
 | **Report** | Export | `oxy report export -f <format> -o <path>` | Supports **HTML, JSON, CSV**; `xml`, `ods`, `xlsx` are accepted by the parser but rejected with exit code `2` until implemented | Interactive format selector |
 | **Report** | Stream | `oxy report -f json \| jq .` | Raw unescaped JSON to `stdout` | N/A (interactive terminal) |
+| **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
+| **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
+| **Database** | Restore | `oxy db restore <path>` | Restores state with schema integrity verification | Confirms restored database |
 | **Sink** | Set CSV | `oxy sink set csv --dir <path>` | Configures local CSV audit log | Prompts for directory path |
 | **Sink** | Set API | `oxy sink set webhook --url <url> -t <token>` | Updates external webhook target | Tests connectivity and saves |
 | **Sink** | Test | `oxy sink test` | Synthetic event verification | Displays green checkmarks for active sinks |
 | **Mask** | Set | `oxy mask set <name> "<template>"` | Saves alias in SQLite `cli_aliases` | Validates syntax and explains variables |
 | **Mask** | List | `oxy mask list` | Lists registered aliases | Displays examples of how to run them |
+| **Mask** | Execute | `oxy <mask-name> [args]` | Preprocessed substitution of `$1..$9` tokens | Seamless alias execution |
 
 ---
 
@@ -272,6 +277,7 @@ TimeLog/
 │       ├── cli_test.rs, cli_subtask_test.rs, cli_settings_test.rs
 │       ├── ergonomic_flow_test.rs, interactive_flow_test.rs, subsystem_flow_test.rs
 │       ├── report_integration_test.rs, error_envelope_test.rs
+│       ├── subsystems/ (doctor_test.rs, db_test.rs, masks_execution_test.rs, paths_test.rs)
 │       ├── cli_parity_test.rs           # Shared parity fixtures (Rust side)
 │       └── subprocess_test.rs           # Compiled binary execution
 └── tests/

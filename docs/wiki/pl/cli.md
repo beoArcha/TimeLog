@@ -17,6 +17,7 @@ Program `oxy` przyjmuje globalne flagi kontrolujące formatowanie i poziom szcze
 | `--json` | `-j` | Emituje sformatowany JSON na standardowe wyjście (`stdout`). |
 | `--machine` | `-m` | Emituje jednoliniowy, zwięzły format JSON bez interaktywnych promptów. |
 | `--quiet` | `-q` | Wycisza komunikaty informacyjne i nagłówki tabel. |
+| `--db <ścieżka>` | | Wskazuje jawną ścieżkę do pliku bazy SQLite (nadpisuje `OXY_DB_PATH`). |
 
 ---
 
@@ -31,6 +32,9 @@ oxy start "Implementacja API"
 
 # Zatrzymaj aktywną sesję pomiaru
 oxy stop
+
+# Zatrzymaj wszystkie aktywne sesje pomiaru we wszystkich projektach
+oxy stop --all
 
 # Atomowo przełącz stoper na inne zadanie w pojedynczym kroku
 oxy switch "Poprawka Frontendu"
@@ -79,10 +83,45 @@ oxy report --tree --today
 # Wyświetl raport dla bieżącego tygodnia
 oxy report --tree --week
 
+# Pobierz raport dla dowolnego przedziału dat i wskazanego projektu
+oxy report --from 2026-10-01 --to 2026-10-31 -p "Portal Klienta"
+
 # Wyeksportuj zarejestrowany czas do pliku HTML, CSV lub JSON
 oxy report export -f html -o ./zestawienie.html
 oxy report export -f csv -o ./zestawienie.csv
 oxy report export -f json -o ./zestawienie.json
+```
+
+---
+
+## Diagnostyka i Zarządzanie Bazą Danych
+
+```bash
+# Wykonaj diagnostykę stanu systemu i integralności bazy danych
+oxy doctor
+
+# Utwórz kopię zapasową bazy SQLite w czasie rzeczywistym
+oxy db backup ./kopie/oxytime-backup.db
+
+# Przywróć stan bazy z kopii zapasowej
+oxy db restore ./kopie/oxytime-backup.db
+```
+
+---
+
+## Maski Akcji i Skróty
+
+Maski akcji umożliwiają definiowanie skrótów z podstawianiem argumentów pozycyjnych (`$1`..`$9`):
+
+```bash
+# Zdefiniuj własny skrót z podstawianiem argumentu
+oxy mask set standup "start $1"
+
+# Uruchom zdefiniowany skrót bezpośrednio
+oxy standup "Spotkanie Codzienne"
+
+# Wyświetl listę zarejestrowanych masek
+oxy mask ls
 ```
 
 ---

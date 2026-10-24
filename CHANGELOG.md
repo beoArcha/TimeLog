@@ -9,28 +9,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+---
+
+## [1.10.0] - 2026-10-24
+
+### Added in 1.10.0
+
+- **Database Routing & Custom Storage Path (`--db`, `OXY_DB_PATH`)**:
+  - Added global `--db <path>` flag and `OXY_DB_PATH` environment variable support in `paths.rs` allowing explicit SQLite database targeting, with fallback to standard OS paths.
+- **System & Database Health Diagnostics (`oxy doctor`)**:
+  - Implemented `oxy doctor` diagnostics verifying database file accessibility and write permissions, SQLite integrity (`PRAGMA integrity_check`), core schema tables (`projects`, `tasks`, `subtasks`, `time_logs`, `config`, etc.), and external sink configurations.
+  - Supports `--json` / `--machine` output returning structured `{ overall_status, checks }` envelopes.
+- **Native Database Tooling (`oxy db backup`, `oxy db restore`)**:
+  - Implemented `oxy db backup <path>` and `oxy db restore <path>` utilizing the SQLite Online Backup API (`rusqlite::backup::Backup`) for consistent, lock-free snapshots and recovery.
+- **Action Masks Runtime Macro Expansion**:
+  - Implemented CLI preprocessor intercepting registered action masks (`cli_aliases`), substituting positional tokens `$1` through `$9` with whitespace-safe quotation, and transparently executing expanded commands while preserving global flags (`--db`, `--json`, `--machine`).
+- **Flexible Date Range & Filtered Reporting**:
+  - Added `--from <YYYY-MM-DD>` and `--to <YYYY-MM-DD>` flags to `oxy report`, supporting arbitrary historical reporting intervals.
+  - Added project (`-p`) and task (`-t`) filtering for report queries.
+- **Global Timer Cascade Stop**:
+  - Added `--all` flag to `oxy stop` (`oxy timer stop`), atomically terminating all active tracking sessions across all projects.
+- **Backend Error Handling Verification & Parity**:
+  - Added unit test suite `src-tauri/tests/unit/cli/manage_test.rs` covering exit codes for unimplemented commands and entity validation failures.
+  - Added integration test `test_given_unhealthy_sink_when_testing_sinks_then_fails_with_exit_code_1_and_snk_external_io` in `src-tauri/tests/integration/cli/subsystems/sinks_test.rs`.
+  - Added unit tests for ISO 8601 timestamp parsing and error propagation in `src-tauri/tests/unit/workflow/daemon_test.rs`.
+  - Extended cross-runtime CLI parity fixtures (`cli-parity-cases.json`) with entity not found error cases.
+
+### Changed in 1.10.0
+
+- **Version Bump**:
+  - Bumped version to `1.10.0` across `package.json`, `src/versions.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`, conforming to the even minor version invariant on `main`.
+- **CLI Error Contract & Exit Codes**:
+  - Standardized machine mode error envelopes: under `--machine` / `-m` and `--json` / `-j`, error payloads emit clean single-line JSON to `stderr` with the `"user"` suggestion block omitted to guarantee deterministic automation parsing.
+  - Standardized semantic exit codes across all commands: `0` (Success), `1` (Generic failure / Business violation / Sink I/O), `2` (Syntax error), `3` (Storage error), `4` (Entity error), `5` (Engine error).
+
+### Fixed in 1.10.0
 
 - **Layer Encapsulation & Repository Error Boundary**:
   - Strictly encapsulated `RepositoryError` within the persistence layer; eliminated abstraction leakage where `RepositoryError` was directly convertible to `AppError` or `CliError`.
   - Added `PersistenceError::ConstraintViolation` capturing SQLite foreign key and uniqueness constraint failures, mapping to `"STO_SQLITE_CONSTRAINT"` at the IPC boundary.
   - Standardized entity lookup errors in Tauri persistence commands (`commands/persistence/project.rs`, `task.rs`) to typed `PersistenceError::NotFound`, eliminating ad-hoc string formatting and emitting canonical `"DOM_ENTITY_NOT_FOUND"` error codes.
   - Replaced error-swallowing `.ok()` timestamp parsing in workflow daemon steps (`workflow_run_daemon_step`) with explicit ISO 8601 validation propagating `EngineError::ParseTime` and returning `"DOM_INVALID_TIMESTAMP"`.
-
-- **CLI Error Contract & Exit Codes**:
-  - Standardized machine mode error envelopes: under `--machine` / `-m` and `--json` / `-j`, error payloads emit clean single-line JSON to `stderr` with the `"user"` suggestion block omitted to guarantee deterministic automation parsing.
+- **CLI Command Syntax & Diagnostics**:
   - Fixed command syntax classification: unimplemented subcommands (such as `oxy manage project list`) now return exit code `2` (`EXIT_CODE_CLI_SYNTAX`) with `CLI_SYNTAX_UNKNOWN_COMMAND` instead of a silent no-op.
   - Fixed sink error classification: `oxy sink set-csv` with empty or whitespace-only paths returns exit code `2` (`CLI_SYNTAX_INVALID_ARGS`), while inaccessible filesystem destinations return exit code `1` (`SNK_EXTERNAL_IO`) instead of leaking SQLite storage errors.
   - Fixed sink diagnostic reporting: `oxy sink test` reports full diagnostics and returns exit code `1` (`SNK_EXTERNAL_IO`) when any configured sink fails its synthetic health check.
   - Wired entity name validation: creating or renaming projects, tasks, or subtasks via `oxy manage` now validates non-empty names against `Engine` validation rules, returning exit code `1` (`ENG_OPERATION_FAILED`) on blank inputs.
 
-### Added
+### Removed in 1.10.0
 
-- **Backend Error Handling Verification & Parity**:
-  - Added unit test suite `src-tauri/tests/unit/cli/manage_test.rs` covering exit codes for unimplemented commands and entity validation failures.
-  - Added integration test `test_given_unhealthy_sink_when_testing_sinks_then_fails_with_exit_code_1_and_snk_external_io` in `src-tauri/tests/integration/cli/subsystems/sinks_test.rs`.
-  - Added unit tests for ISO 8601 timestamp parsing and error propagation in `src-tauri/tests/unit/workflow/daemon_test.rs`.
-  - Extended cross-runtime CLI parity fixtures (`cli-parity-cases.json`) with entity not found error cases.
+- **Legacy CLI Zombie Code**:
+  - Physically deleted deprecated legacy CLI modules (`src-tauri/src/cli/manage/`, `src-tauri/src/cli/settings/`, `src-tauri/src/cli/timer/`, `src-tauri/src/cli/shared/parser.rs`), consolidating all CLI commands onto modular tiered handlers (`tier1_flow`, `tier2_entities`, `tier3_subsystems`).
 
 ---
 

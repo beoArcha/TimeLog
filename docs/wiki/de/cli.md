@@ -17,6 +17,7 @@ Das Binary `oxy` akzeptiert globale Flags zur Steuerung von Ausgabeformatierung 
 | `--json` | `-j` | Gibt unformatiertes JSON auf `stdout` aus. |
 | `--machine` | `-m` | Gibt deterministisches, einzeiliges JSON ohne interaktive Prompts aus. |
 | `--quiet` | `-q` | Unterdrückt informative Hinweise und Tabellenkopfzeilen. |
+| `--db <Pfad>` | | Expliziter Pfad zur SQLite-Datenbankdatei (überschreibt `OXY_DB_PATH`). |
 
 ---
 
@@ -31,6 +32,9 @@ oxy start "API-Implementierung"
 
 # Laufenden Timer stoppen
 oxy stop
+
+# Alle aktiven Timer über alle Projekte hinweg stoppen
+oxy stop --all
 
 # Atomar in einem Schritt zu einer anderen Aufgabe wechseln
 oxy switch "Frontend-Bugfix"
@@ -77,10 +81,45 @@ oxy report --tree --today
 # Bericht für die aktuelle Woche ausgeben
 oxy report --tree --week
 
+# Bericht für einen beliebigen Datumsbereich und ein bestimmtes Projekt abfragen
+oxy report --from 2026-10-01 --to 2026-10-31 -p "Kunden-Portal"
+
 # Erfasste Arbeitszeiten nach HTML, CSV oder JSON exportieren
 oxy report export -f html -o ./zeiterfassung.html
 oxy report export -f csv -o ./zeiterfassung.csv
 oxy report export -f json -o ./zeiterfassung.json
+```
+
+---
+
+## Systemdiagnose und Datenbankverwaltung
+
+```bash
+# System- und SQLite-Integritätsprüfung durchführen
+oxy doctor
+
+# Online-Backup der SQLite-Datenbank erstellen
+oxy db backup ./backups/oxytime-backup.db
+
+# Datenbank aus einer Sicherung wiederherstellen
+oxy db restore ./backups/oxytime-backup.db
+```
+
+---
+
+## Aktionsmasken und Makros
+
+Aktionsmasken ermöglichen die Definition wiederverwendbarer Befehlskürzel mit Positionsargumenten (`$1`..`$9`):
+
+```bash
+# Eigenes Makro mit Argumentersetzung definieren
+oxy mask set standup "start $1"
+
+# Definiertes Makro direkt ausführen
+oxy standup "Tägliches Standup"
+
+# Registrierte Masken auflisten
+oxy mask ls
 ```
 
 ---

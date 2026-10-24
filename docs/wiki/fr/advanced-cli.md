@@ -126,9 +126,41 @@ oxy stop --quiet 2>/dev/null || true
 
 ## Sauvegardes Automatisées
 
-`oxy` communiquant directement avec SQLite sans ouvrir de fenêtre, vous pouvez planifier des sauvegardes via `cron` ou le planificateur de tâches Windows :
+`oxy` communiquant directement avec SQLite sans ouvrir de fenêtre, vous pouvez planifier des instantanés de la base de données et des exports périodiques via `cron` ou le planificateur de tâches Windows :
 
 ```bash
+# Sauvegarde en ligne de la base SQLite chaque nuit à 02h00 via cron
+0 2 * * * /usr/local/bin/oxy db backup /backups/oxytime-$(date +\%Y\%m\%d).db
+
 # Export CSV automatique chaque soir à 23h59 via cron
 59 23 * * * /usr/local/bin/oxy report export -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
+```
+
+---
+
+## Vérifications d'Intégrité dans les Pipelines CI/CD
+
+Dans les environnements d'intégration continue ou les scripts de validation pré-déploiement, `oxy doctor --json` évalue l'intégrité du système et du schéma :
+
+```bash
+# Vérifier l'intégrité de SQLite et la disponibilité des tables dans un pipeline CI
+if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
+    echo "Échec du diagnostic de la base de données oXyFlow" >&2
+    exit 1
+fi
+```
+
+---
+
+## Routage de Base de Données dans l'Automatisation
+
+Les suites de tests automatisés ou les processus agents peuvent rediriger `oxy` vers des bases de données isolées sans altérer les données utilisateur :
+
+```bash
+# Via l'option globale en ligne de commande
+oxy --db ./test-fixtures/isolated.db status --json
+
+# Via variable d'environnement
+export OXY_DB_PATH="/tmp/ci-run/oxytime.db"
+oxy project ls --json
 ```

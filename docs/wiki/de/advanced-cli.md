@@ -126,9 +126,41 @@ oxy stop --quiet 2>/dev/null || true
 
 ## Automatisierte Backups mit Schedulern
 
-Da `oxy` ohne GUI direkt auf SQLite operiert, können Exporte über `cron` oder die Windows-Aufgabenplanung automatisiert werden:
+Da `oxy` ohne GUI direkt auf SQLite operiert, können automatisierte Datenbanksicherungen sowie zyklische Exporte über `cron` oder die Windows-Aufgabenplanung eingerichtet werden:
 
 ```bash
+# Tägliches Online-Backup der SQLite-Datenbank um 02:00 Uhr via cron
+0 2 * * * /usr/local/bin/oxy db backup /backups/oxytime-$(date +\%Y\%m\%d).db
+
 # Täglicher CSV-Export um 23:59 Uhr via cron
 59 23 * * * /usr/local/bin/oxy report export -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
+```
+
+---
+
+## Integritätsprüfungen in CI-Pipelines
+
+In Continuous-Integration-Pipelines oder vor automatisierten Deployments prüft `oxy doctor --json` die System- und Schemaintegrität:
+
+```bash
+# SQLite-Integrität und Tabellenverfügbarkeit in Pipelines verifizieren
+if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
+    echo "Fehler bei der Überprüfung der oXyFlow-Datenbank" >&2
+    exit 1
+fi
+```
+
+---
+
+## Datenbankumleitung in Automatisierungen
+
+Automatisierte Testsuiten oder Agent-Workflows können `oxy` gezielt auf dedizierte Testdatenbanken umleiten, ohne Benutzerdaten zu berühren:
+
+```bash
+# Über die globale Befehlszeilenflagge
+oxy --db ./test-fixtures/isolated.db status --json
+
+# Über die Umgebungsvariable
+export OXY_DB_PATH="/tmp/ci-run/oxytime.db"
+oxy project ls --json
 ```
