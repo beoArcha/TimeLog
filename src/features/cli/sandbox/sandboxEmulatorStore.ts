@@ -196,10 +196,19 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     return newProject;
   }
 
-  public handleRenameProject(projectId: string, newName: string): boolean {
+  public handleRenameProject(projectId: string, newName: string, color?: string): boolean {
     const proj = this.projects.find((p) => p.id === projectId);
     if (!proj) return false;
     proj.name = newName;
+    if (color) proj.color = color;
+    this.persist();
+    return true;
+  }
+
+  public handleArchiveProject(projectId: string): boolean {
+    const proj = this.projects.find((p) => p.id === projectId);
+    if (!proj) return false;
+    proj.archived = !proj.archived;
     this.persist();
     return true;
   }
@@ -236,12 +245,47 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     return true;
   }
 
+  public handleArchiveTask(taskId: string): boolean {
+    const task = this.tasks.find((t) => t.id === taskId);
+    if (!task) return false;
+    task.archived = !task.archived;
+    this.persist();
+    return true;
+  }
+
+  public handleReparentTask(taskId: string, newParentId: string | null): boolean {
+    const task = this.tasks.find((t) => t.id === taskId);
+    if (!task) return false;
+    task.parentTaskId = newParentId;
+    this.persist();
+    return true;
+  }
+
+  public handleMoveTask(taskId: string, newProjectId: string): boolean {
+    const task = this.tasks.find((t) => t.id === taskId);
+    if (!task) return false;
+    task.projectId = newProjectId;
+    for (const child of this.tasks) {
+      if (child.parentTaskId === taskId) {
+        child.projectId = newProjectId;
+      }
+    }
+    this.persist();
+    return true;
+  }
+
   public handleStartTimer(taskId: string, nowIso?: string): TimeLog {
+    if (!taskId) {
+      throw new Error('MissingTarget: Task ID or name is required');
+    }
+    const task = this.tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new Error(`NotFound: Task "${taskId}" does not exist`);
+    }
     if (this.activeLog) {
       this.handleStopTimer(undefined, nowIso);
     }
-    const task = this.tasks.find((t) => t.id === taskId);
-    const projectId = task?.projectId ?? 'sb_p1';
+    const projectId = task.projectId;
     const startTime = nowIso || new Date().toISOString();
     const id = `sb_l${++this.nextIdCounter}`;
 
@@ -261,8 +305,14 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     return newLog;
   }
 
-  public handleStopTimer(_projectId?: string, nowIso?: string): void {
-    if (!this.activeLog) return;
+  public handleStopTimer(_projectId?: string, nowIso?: string): { success: boolean; error?: string; errorCode?: string } {
+    if (!this.activeLog) {
+      return {
+        success: false,
+        error: 'No active timer session is currently running',
+        errorCode: 'ENG_TIMER_INACTIVE',
+      };
+    }
     const endTime = nowIso || new Date().toISOString();
     this.activeLog.endTime = endTime;
     const idx = this.logs.findIndex((l) => l.id === this.activeLog?.id);
@@ -271,6 +321,41 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     }
     this.activeLog = null;
     this.persist();
+    return { success: true };
+  }
+
+  public handleSwitchTimer(newTaskId: string, nowIso?: string): TimeLog {
+    if (!newTaskId) {
+      throw new Error('MissingTarget: Target task is required to switch');
+    }
+    const task = this.tasks.find((t) => t.id === newTaskId);
+    if (!task) {
+      throw new Error(`NotFound: Task "${newTaskId}" does not exist`);
+    }
+    const timestamp = nowIso || new Date().toISOString();
+    if (this.activeLog) {
+      this.activeLog.endTime = timestamp;
+      const idx = this.logs.findIndex((l) => l.id === this.activeLog?.id);
+      if (idx !== -1) {
+        this.logs[idx] = { ...this.activeLog };
+      }
+      this.activeLog = null;
+    }
+    const id = `sb_l${++this.nextIdCounter}`;
+    const newLog: TimeLog = {
+      id,
+      taskId: task.id,
+      projectId: task.projectId,
+      startTime: timestamp,
+      endTime: null,
+      note: null,
+      editHistory: null,
+    };
+    this.logs.push(newLog);
+    this.activeLog = newLog;
+    this.selectedTaskId = task.id;
+    this.persist();
+    return newLog;
   }
 
   public getComputedMetrics(nowIso?: string): EngineComputedMetrics {

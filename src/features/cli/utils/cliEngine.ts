@@ -16,6 +16,7 @@ import {
   runStopCommand,
   runStatusCommand,
   runSwitchCommand,
+  runTodayCommand,
   runCompleteCommand,
   runLogsCommand,
   runHolidaysCommand,
@@ -24,6 +25,8 @@ import {
   runSandboxCommand,
   SandboxEmulatorStore,
 } from './commands';
+
+import { SandboxCommandRouter } from '../sandbox/sandboxCommandRouter';
 
 export type { TerminalLine, CliEngineContext };
 export { TerminalOutput };
@@ -104,6 +107,15 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
     return executeNativeCli(trimmed, context, output);
   }
 
+  if (isSandboxActive && commandName !== 'sandbox') {
+    const normalizedTokens = SandboxCommandRouter.normalizeLegacyCommand(matches);
+    const routed = SandboxCommandRouter.route(normalizedTokens, sandboxStore, output);
+    if (routed) {
+      output.empty();
+      return output.getLines();
+    }
+  }
+
   const effectiveContext = isSandboxActive
     ? sandboxStore.toCliContext(context)
     : context;
@@ -139,15 +151,31 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
       runProjectsCommand(effectiveContext, output);
       break;
 
+    case 'project': {
+      const sub = args[0]?.toLowerCase() || 'list';
+      if (sub === 'add' || sub === 'create') {
+        runAddProjectCommand(args.slice(1), effectiveContext, output);
+      } else if (sub === 'rename' || sub === 'ren') {
+        runRenameProjectCommand(args.slice(1), effectiveContext, output);
+      } else {
+        runProjectsCommand(effectiveContext, output);
+      }
+      break;
+    }
+
     case 'tasks':
       runTasksCommand(args, effectiveContext, output);
       break;
 
     case 'task': {
-      const sub = args[0]?.toLowerCase();
-      if (sub === 'add') {
+      const sub = args[0]?.toLowerCase() || 'list';
+      if (sub === 'add' || sub === 'create') {
         runAddTaskCommand(args.slice(1), effectiveContext, output);
-      } else if (sub === 'list') {
+      } else if (sub === 'done' || sub === 'complete') {
+        runCompleteCommand(args.slice(1), effectiveContext, output);
+      } else if (sub === 'rename' || sub === 'ren') {
+        runRenameTaskCommand(args.slice(1), effectiveContext, output);
+      } else if (sub === 'list' || sub === 'ls') {
         runTasksCommand(args.slice(1), effectiveContext, output);
       } else {
         runTasksCommand(args, effectiveContext, output);
@@ -197,6 +225,10 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
 
     case 'status':
       runStatusCommand(effectiveContext, output);
+      break;
+
+    case 'today':
+      runTodayCommand(effectiveContext, output);
       break;
 
     case 'complete':

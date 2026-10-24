@@ -246,4 +246,58 @@ describe('Unit Tests: SandboxEmulatorStore', () => {
     setItemSpy.mockRestore();
     errorHandlerSpy.mockRestore();
   });
+
+  it('should return ENG_TIMER_INACTIVE error when stopping timer while idle', () => {
+    // Arrange
+    expect(store.getActiveLog()).toBeNull();
+
+    // Act
+    const result = store.handleStopTimer();
+
+    // Assert
+    expect(result.success).toBe(false);
+    expect(result.errorCode).toBe('ENG_TIMER_INACTIVE');
+  });
+
+  it('should atomically stop previous timer and start new task on handleSwitchTimer', () => {
+    // Arrange
+    const firstLog = store.handleStartTimer('sb_t1', '2026-06-15T10:00:00Z');
+    expect(store.getActiveLog()?.taskId).toBe('sb_t1');
+
+    // Act
+    const switchedLog = store.handleSwitchTimer('sb_t2', '2026-06-15T11:00:00Z');
+
+    // Assert
+    expect(switchedLog.taskId).toBe('sb_t2');
+    expect(store.getActiveLog()?.taskId).toBe('sb_t2');
+    const stoppedFirst = store.getLogs().find((l) => l.id === firstLog.id);
+    expect(stoppedFirst?.endTime).toBe('2026-06-15T11:00:00Z');
+  });
+
+  it('should throw MissingTarget error when starting timer without valid taskId', () => {
+    // Arrange & Act & Assert
+    expect(() => store.handleStartTimer('')).toThrowError(/MissingTarget/);
+  });
+
+  it('should archive and unarchive projects and tasks', () => {
+    // Arrange
+    const proj = store.getProjects()[0];
+    const task = store.getTasks()[0];
+
+    // Act
+    store.handleArchiveProject(proj.id);
+    store.handleArchiveTask(task.id);
+
+    // Assert
+    expect(store.getProjects().find((p) => p.id === proj.id)?.archived).toBe(true);
+    expect(store.getTasks().find((t) => t.id === task.id)?.archived).toBe(true);
+
+    // Act (unarchive)
+    store.handleArchiveProject(proj.id);
+    store.handleArchiveTask(task.id);
+
+    // Assert (unarchive)
+    expect(store.getProjects().find((p) => p.id === proj.id)?.archived).toBe(false);
+    expect(store.getTasks().find((t) => t.id === task.id)?.archived).toBe(false);
+  });
 });
