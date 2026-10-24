@@ -1,6 +1,6 @@
 {
   "productName": "OxyFlow",
-  "version": "1.11.1",
+  "version": "1.10.2",
   "identifier": "com.oxytime.oxyflow",
   "build": {
     "beforeBuildCommand": "bun run build",

@@ -24,9 +24,11 @@ jobs:
 
     steps:
       # Always force checkout of the release branch regardless of UI dispatch selection
-      - uses: ./.github/actions/checkout-release
+      - name: Checkout release branch
+        uses: actions/checkout@v4
         with:
           ref: release
+          fetch-depth: 0
 
       - name: Read version and validate
         id: meta
