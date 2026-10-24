@@ -1,9 +1,9 @@
 {
   "major": 1,
   "minor": 10,
-  "release": 3,
+  "release": 4,
   "subversions": {
-    "engine": 21,
+    "engine": 22,
     "components": 3,
     "translations": 2,
     "front": 15
