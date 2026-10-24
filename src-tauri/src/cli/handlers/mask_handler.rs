@@ -133,7 +133,17 @@ pub fn expand_mask_template(template: &str, args: &[String], last_task_id: Optio
 
     for (idx, arg) in args.iter().enumerate() {
         let token = format!("${}", idx + 1);
-        expanded = expanded.replace(&token, arg);
+        let quoted_token = format!("\"${}\"", idx + 1);
+        let single_quoted_token = format!("'${}'", idx + 1);
+
+        if expanded.contains(&quoted_token) || expanded.contains(&single_quoted_token) {
+            expanded = expanded.replace(&token, arg);
+        } else if arg.contains(char::is_whitespace) {
+            let quoted_arg = format!("\"{}\"", arg);
+            expanded = expanded.replace(&token, &quoted_arg);
+        } else {
+            expanded = expanded.replace(&token, arg);
+        }
     }
 
     expanded
@@ -178,12 +188,8 @@ pub fn preprocess_alias_invocation(
             None => return Ok(current_args),
         };
 
-        let positional_args: Vec<String> = current_args
-            .iter()
-            .skip(alias_idx + 1)
-            .filter(|a| !is_global_flag(a))
-            .cloned()
-            .collect();
+        let positional_args = extract_positional_args(&current_args, alias_idx);
+        let global_flags = extract_global_flags(&current_args);
 
         let last_task_id = resolve_last_task_id(persistence, engine);
         let expanded =
@@ -195,12 +201,7 @@ pub fn preprocess_alias_invocation(
             next_args.push(binary.clone());
         }
 
-        for arg in &current_args[1..] {
-            if is_global_flag(arg) {
-                next_args.push(arg.clone());
-            }
-        }
-
+        next_args.extend(global_flags);
         next_args.extend(tokens);
         current_args = next_args;
         depth += 1;
@@ -209,6 +210,35 @@ pub fn preprocess_alias_invocation(
     Err(CliError::syntax_invalid_args(
         "Circular macro/alias expansion limit exceeded",
     ))
+}
+
+fn extract_global_flags(args: &[String]) -> Vec<String> {
+    let mut flags = Vec::new();
+    let mut iter = args.iter().skip(1);
+    while let Some(arg) = iter.next() {
+        if arg == "--db" {
+            flags.push(arg.clone());
+            if let Some(val) = iter.next() {
+                flags.push(val.clone());
+            }
+        } else if is_global_flag(arg) {
+            flags.push(arg.clone());
+        }
+    }
+    flags
+}
+
+fn extract_positional_args(args: &[String], alias_idx: usize) -> Vec<String> {
+    let mut positional = Vec::new();
+    let mut iter = args.iter().enumerate().skip(alias_idx + 1);
+    while let Some((_, arg)) = iter.next() {
+        if arg == "--db" {
+            let _ = iter.next();
+        } else if !is_global_flag(arg) {
+            positional.push(arg.clone());
+        }
+    }
+    positional
 }
 
 fn is_global_flag(arg: &str) -> bool {
