@@ -30,7 +30,7 @@ export default function Header() {
         </div>
       </div>
 
-      <div className={`flex items-center justify-between ${isMediumMode ? '' : 'md:justify-end'} gap-1.5 sm:gap-2 w-full md:w-auto`}>
+      <div className={`flex items-center justify-between ${isMediumMode ? '' : 'md:justify-end'} gap-1.5 sm:gap-2 flex-wrap w-full md:w-auto`}>
         {!isMediumMode && (
           <div className="hidden md:flex items-center">
             <LayoutSelector />

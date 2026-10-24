@@ -12,6 +12,7 @@ export const createMockRepositoryState = (
   const setTasksState = overrides?.setTasksState ?? vi.fn();
   const setLogsState = overrides?.setLogsState ?? vi.fn();
   const setActiveLogState = overrides?.setActiveLogState ?? vi.fn();
+  const setActiveLogsState = overrides?.setActiveLogsState ?? vi.fn();
   const syncRepositoryState =
     overrides?.syncRepositoryState ??
     vi.fn((nextState: Partial<TimerRepositoryState>) => {
@@ -19,6 +20,11 @@ export const createMockRepositoryState = (
       if (nextState.tasks !== undefined) setTasksState(nextState.tasks);
       if (nextState.logs !== undefined) setLogsState(nextState.logs);
       if (nextState.activeLog !== undefined) setActiveLogState(nextState.activeLog);
+      if (nextState.activeLogs !== undefined) {
+        setActiveLogsState(nextState.activeLogs);
+      } else if (nextState.activeLog !== undefined) {
+        setActiveLogsState(nextState.activeLog ? [nextState.activeLog] : []);
+      }
     });
 
   return {
@@ -30,6 +36,8 @@ export const createMockRepositoryState = (
     setLogsState,
     activeLog: null,
     setActiveLogState,
+    activeLogs: [],
+    setActiveLogsState,
     syncRepositoryState,
     ...overrides,
   };

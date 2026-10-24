@@ -17,6 +17,7 @@ Das Binary `oxy` akzeptiert globale Flags zur Steuerung von Ausgabeformatierung 
 | `--json` | `-j` | Gibt unformatiertes JSON auf `stdout` aus. |
 | `--machine` | `-m` | Gibt deterministisches, einzeiliges JSON ohne interaktive Prompts aus. |
 | `--quiet` | `-q` | Unterdrückt informative Hinweise und Tabellenkopfzeilen. |
+| `--db <Pfad>` | | Expliziter Pfad zur SQLite-Datenbankdatei (überschreibt `OXY_DB_PATH`). |
 
 ---
 
@@ -31,6 +32,9 @@ oxy start "API-Implementierung"
 
 # Laufenden Timer stoppen
 oxy stop
+
+# Alle aktiven Timer über alle Projekte hinweg stoppen
+oxy stop --all
 
 # Atomar in einem Schritt zu einer anderen Aufgabe wechseln
 oxy switch "Frontend-Bugfix"
@@ -77,10 +81,45 @@ oxy report --tree --today
 # Bericht für die aktuelle Woche ausgeben
 oxy report --tree --week
 
+# Bericht für einen beliebigen Datumsbereich und ein bestimmtes Projekt abfragen
+oxy report --from 2026-10-01 --to 2026-10-31 -p "Kunden-Portal"
+
 # Erfasste Arbeitszeiten nach HTML, CSV oder JSON exportieren
 oxy report export -f html -o ./zeiterfassung.html
 oxy report export -f csv -o ./zeiterfassung.csv
 oxy report export -f json -o ./zeiterfassung.json
+```
+
+---
+
+## Systemdiagnose und Datenbankverwaltung
+
+```bash
+# System- und SQLite-Integritätsprüfung durchführen
+oxy doctor
+
+# Online-Backup der SQLite-Datenbank erstellen
+oxy db backup ./backups/oxytime-backup.db
+
+# Datenbank aus einer Sicherung wiederherstellen
+oxy db restore ./backups/oxytime-backup.db
+```
+
+---
+
+## Aktionsmasken und Makros
+
+Aktionsmasken ermöglichen die Definition wiederverwendbarer Befehlskürzel mit Positionsargumenten (`$1`..`$9`):
+
+```bash
+# Eigenes Makro mit Argumentersetzung definieren
+oxy mask set standup "start $1"
+
+# Definiertes Makro direkt ausführen
+oxy standup "Tägliches Standup"
+
+# Registrierte Masken auflisten
+oxy mask ls
 ```
 
 ---
@@ -97,5 +136,50 @@ Alle CLI-Befehle liefern deterministische POSIX-Exit-Codes:
 | `3` | Speicherfehler | SQLite-Datenbankfehler oder Datei-E/A-Problem. |
 | `4` | Entitätsfehler | Entität nicht gefunden oder mehrdeutige Übereinstimmung. |
 | `5` | Engine-Fehler | Timer-Lebenszykluskonflikt (z. B. Stoppen bei inaktivem Timer). |
+
+---
+
+## Fehlerumschlag & Maschinenmodus
+
+Wenn ein Befehl fehlschlägt, gibt `oxy` strukturierte technische Fehlerinformationen auf `stderr` aus.
+
+In automatisierten Pipelines mit `--machine` (oder `--json`) werden interaktive Abfragen und Benutzervorschläge unterdrückt. Der Fehler wird als deterministischer einzeiliger JSON-Umschlag ausgegeben:
+
+```json
+{"code":"DOM_ENTITY_NOT_FOUND","message":"Task '104' was not found","operation":"start","subsystem":"domain"}
+```
+
+Im interaktiven TTY-Modus enthält der Umschlag ein zusätzliches `user`-Objekt mit menschenlesbarem Kontext, Fehlerbehebungshinweisen und „Meinten Sie...“-Vorschlägen:
+
+```json
+{
+  "code": "DOM_ENTITY_NOT_FOUND",
+  "message": "Task '104' was not found",
+  "operation": "start",
+  "subsystem": "domain",
+  "user": {
+    "locale": "de",
+    "message": "Aufgabe '104' wurde im aktiven Projekt nicht gefunden.",
+    "suggestion": "Meinten Sie Aufgabe '105' (OAuth-Implementierung)?",
+    "remediation": "Führen Sie 'oxy task ls' aus, um verfügbare Aufgaben anzuzeigen."
+  }
+}
+```
+
+### Semantische Fehlercodes
+
+| Fehlercode | Exit-Code | Beschreibung |
+| :--- | :---: | :--- |
+| `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Unbekannter oder nicht implementierter Befehl oder Unterbefehl. |
+| `CLI_SYNTAX_INVALID_ARGS` | `2` | Fehlende oder ungültige Argumente (z. B. leere Pfadangaben). |
+| `DOM_ENTITY_NOT_FOUND` | `4` | Angegebenes Projekt, Aufgabe, Zeiteintrag oder Alias existiert nicht. |
+| `ENG_OPERATION_FAILED` | `1` | Geschäftsregel verletzt (z. B. Validierung leerer Entitätsnamen). |
+| `ENG_TIMER_ACTIVE` | `5` | Versuch, Timer zu starten, während ein anderer ohne Force-Flag läuft. |
+| `ENG_TIMER_INACTIVE` | `5` | Versuch, Timer anzuhalten, wenn keine aktive Sitzung existiert. |
+| `SNK_EXTERNAL_IO` | `1` | Fehler des externen Ziels (nicht erreichbarer Pfad oder fehlgeschlagener Sink-Test). |
+| `STO_SQLITE_CONSTRAINT` | `3` | SQLite-Constraint-Verletzung (Eindeutigkeit oder Fremdschlüsselkonflikt). |
+| `STO_STORAGE_ERROR` | `3` | Low-Level-Datenbankzugriffs- oder E/A-Fehler. |
+
+---
 
 Für Shell-Pipelines, Cron-Jobs und Starship-Integration siehe **[Erweiterte CLI-Skripte](advanced-cli.md)**.

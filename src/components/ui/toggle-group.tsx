@@ -10,12 +10,12 @@ const ToggleGroupContext = React.createContext<{
   variant?: VariantProps<typeof buttonVariants>["variant"];
 }>({
   size: "default",
-  variant: "default",
+  variant: "ghost",
 });
 
 function ToggleGroup({
   className,
-  variant = "default",
+  variant = "ghost",
   size = "default",
   children,
   ...props

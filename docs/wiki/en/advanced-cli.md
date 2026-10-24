@@ -53,6 +53,19 @@ oxy today --json
 oxy today --json | jq '.total_seconds / 3600'
 ```
 
+### Automated Error Handling
+
+In automated scripts and CI/CD pipelines, use `--machine` to receive clean, single-line JSON errors on `stderr` and check deterministic POSIX exit codes:
+
+```bash
+# Capture machine-readable error output on stderr
+if ! oxy start "Nonexistent Task" --machine 2> error.json; then
+    exit_code=$?
+    error_code=$(jq -r '.code // "UNKNOWN"' error.json)
+    echo "Command failed (exit code $exit_code) with error: $error_code"
+fi
+```
+
 ---
 
 ## Terminal Prompt Integration
@@ -115,9 +128,41 @@ oxy stop --quiet 2>/dev/null || true
 
 ## Automated Backups with Shell Schedulers
 
-Because `oxy` operates directly on SQLite without requiring the UI window, you can schedule automated exports via `cron` or Windows Task Scheduler:
+Because `oxy` operates directly on SQLite without requiring the UI window, you can schedule automated database snapshots and periodic exports via `cron` or Windows Task Scheduler:
 
 ```bash
-# Nightly CSV export at 23:59 via cron
+# Nightly online SQLite database backup at 02:00 via cron
+0 2 * * * /usr/local/bin/oxy db backup /backups/oxytime-$(date +\%Y\%m\%d).db
+
+# Nightly CSV report export at 23:59 via cron
 59 23 * * * /usr/local/bin/oxy report export -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
+```
+
+---
+
+## Health Checks in CI Pipelines
+
+In continuous integration environments or pre-flight deployment scripts, `oxy doctor --json` evaluates system and schema health:
+
+```bash
+# Verify SQLite integrity and schema availability in automated pipeline
+if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
+    echo "oXyFlow database or sink check failed" >&2
+    exit 1
+fi
+```
+
+---
+
+## Database Routing in Automation
+
+Automated test suites or isolated agent workflows can redirect `oxy` to dedicated databases without touching user data:
+
+```bash
+# Using explicit global flag
+oxy --db ./test-fixtures/isolated.db status --json
+
+# Using environment variable
+export OXY_DB_PATH="/tmp/ci-run/oxytime.db"
+oxy project ls --json
 ```

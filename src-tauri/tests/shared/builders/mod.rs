@@ -22,6 +22,7 @@ impl Default for ProjectBuilder {
                 description: None,
                 icon: None,
                 tags: None,
+                allow_concurrency: None,
             },
         }
     }
@@ -69,6 +70,11 @@ impl ProjectBuilder {
 
     pub fn archived(mut self, is_archived: bool) -> Self {
         self.project.archived = Some(is_archived);
+        self
+    }
+
+    pub fn with_allow_concurrency(mut self, allow: bool) -> Self {
+        self.project.allow_concurrency = Some(allow);
         self
     }
 

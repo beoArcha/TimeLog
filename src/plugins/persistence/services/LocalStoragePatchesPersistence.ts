@@ -1,5 +1,6 @@
 import { IPatchesPersistence } from '@common/persistence/IPersistence';
 import { PatchLog } from '@bindings/PatchLog';
+import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { STORAGE_KEYS } from '@common/constants/storage-keys';
 
 export class LocalStoragePatchesPersistence implements IPatchesPersistence {
@@ -8,12 +9,31 @@ export class LocalStoragePatchesPersistence implements IPatchesPersistence {
     if (!data) return [];
     try {
       return JSON.parse(data);
-    } catch {
+    } catch (e) {
+      ErrorHandler.handle(
+        new PersistenceException(
+          'Failed to parse patches from LocalStorage',
+          e,
+          'WARN_PERSISTENCE_PATCHES_PARSE',
+          'WARN'
+        )
+      );
       return [];
     }
   }
 
   async save(patches: PatchLog[]): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.PATCHES, JSON.stringify(patches));
+    try {
+      localStorage.setItem(STORAGE_KEYS.PATCHES, JSON.stringify(patches));
+    } catch (e) {
+      ErrorHandler.handle(
+        new PersistenceException(
+          'Failed to save patches to LocalStorage',
+          e,
+          'ERR_PERSISTENCE_PATCHES_SAVE'
+        )
+      );
+      throw e;
+    }
   }
 }

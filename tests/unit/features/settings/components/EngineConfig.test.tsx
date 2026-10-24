@@ -31,7 +31,7 @@ describe('EngineConfig', () => {
 
     // Assert
     const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes.length).toBe(5);
+    expect(checkboxes.length).toBe(6);
   });
 
   it('should trigger setSysSettings when autoStart checkbox is toggled', () => {
@@ -62,6 +62,20 @@ describe('EngineConfig', () => {
     expect(setSysSettingsSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('should trigger setDefaultProjectConcurrency when defaultProjectConcurrency checkbox is toggled', () => {
+    // Arrange
+    const setDefaultProjectConcurrencySpy = vi.fn();
+    const { getByTestId } = renderEngineConfig({ setDefaultProjectConcurrency: setDefaultProjectConcurrencySpy });
+    fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
+
+    // Act
+    const concurrencyCheckbox = screen.getAllByRole('checkbox')[2];
+    fireEvent.click(concurrencyCheckbox);
+
+    // Assert
+    expect(setDefaultProjectConcurrencySpy).toHaveBeenCalledTimes(1);
+  });
+
   it('should trigger setMinimizeToTray when minimizeToTray checkbox is toggled', () => {
     // Arrange
     const setMinimizeToTraySpy = vi.fn();
@@ -69,7 +83,7 @@ describe('EngineConfig', () => {
     fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
 
     // Act
-    const minimizeCheckbox = screen.getAllByRole('checkbox')[2];
+    const minimizeCheckbox = screen.getAllByRole('checkbox')[3];
     fireEvent.click(minimizeCheckbox);
 
     // Assert
@@ -83,7 +97,7 @@ describe('EngineConfig', () => {
     fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
 
     // Act
-    const smallCheckbox = screen.getAllByRole('checkbox')[3];
+    const smallCheckbox = screen.getAllByRole('checkbox')[4];
     fireEvent.click(smallCheckbox);
 
     // Assert
@@ -97,7 +111,7 @@ describe('EngineConfig', () => {
     fireEvent.click(getByTestId('collapsible-trigger-engine-settings'));
 
     // Act
-    const mainCheckbox = screen.getAllByRole('checkbox')[4];
+    const mainCheckbox = screen.getAllByRole('checkbox')[5];
     fireEvent.click(mainCheckbox);
 
     // Assert

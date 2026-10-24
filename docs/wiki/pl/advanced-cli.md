@@ -53,6 +53,19 @@ oxy today --json
 oxy today --json | jq '.total_seconds / 3600'
 ```
 
+### Automatyczna Obsługa Błędów
+
+W skryptach automatyzacji i potokach CI/CD flaga `--machine` pozwala odbierać czyste, jednolinijkowe błędy JSON na strumieniu `stderr` oraz weryfikować deterministyczne kody wyjścia:
+
+```bash
+# Przechwyć maszynowy błąd na stderr
+if ! oxy start "Nieistniejące Zadanie" --machine 2> error.json; then
+    exit_code=$?
+    error_code=$(jq -r '.code // "UNKNOWN"' error.json)
+    echo "Polecenie nie powiodło się (kod $exit_code) z błędem: $error_code"
+fi
+```
+
 ---
 
 ## Integracja z Promptem Terminala
@@ -113,9 +126,41 @@ oxy stop --quiet 2>/dev/null || true
 
 ## Zautomatyzowane Kopie z Harmonogramem Zadań
 
-Ponieważ `oxy` operuje bezpośrednio na bazie SQLite bez potrzeby uruchamiania okna aplikacji, możesz zaplanować cykliczny eksport raportów przez `cron` lub Harmonogram zadań Windows:
+Ponieważ `oxy` operuje bezpośrednio na bazie SQLite bez potrzeby uruchamiania okna aplikacji, możesz zaplanować automatyczne kopie bazy danych oraz cykliczny eksport raportów przez `cron` lub Harmonogram zadań Windows:
 
 ```bash
+# Nocna kopia zapasowa bazy danych SQLite o 02:00 w cronie
+0 2 * * * /usr/local/bin/oxy db backup /backups/oxytime-$(date +\%Y\%m\%d).db
+
 # Nocny eksport CSV o 23:59 w cronie
 59 23 * * * /usr/local/bin/oxy report export -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
+```
+
+---
+
+## Testy Stanu Systemu w Potokach CI/CD
+
+W środowiskach ciągłej integracji lub skryptach weryfikacji przedwdrożeniowej, `oxy doctor --json` pozwala zbadać integralność bazy i konfigurację odbiorników:
+
+```bash
+# Weryfikacja integralności SQLite i dostępności tabel w potoku CI
+if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
+    echo "Błąd integralności bazy danych lub odbiornika w oXyFlow" >&2
+    exit 1
+fi
+```
+
+---
+
+## Przekierowanie Bazy Danych w Automatyzacji
+
+Zautomatyzowane zestawy testów lub procesy agentowe mogą bezpiecznie kierować `oxy` do dedykowanych baz danych bez modyfikowania danych użytkownika:
+
+```bash
+# Jawna flaga globalna wiersza poleceń
+oxy --db ./test-fixtures/isolated.db status --json
+
+# Zmienna środowiskowa
+export OXY_DB_PATH="/tmp/ci-run/oxytime.db"
+oxy project ls --json
 ```

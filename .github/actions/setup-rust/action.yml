@@ -33,12 +33,34 @@ runs:
       with:
         workspaces: ${{ inputs.workspaces }}
 
+    - name: Cache Linux APT Packages
+      if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
+      uses: actions/cache@v4
+      with:
+        path: /tmp/apt-archives
+        key: apt-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/actions/setup-rust/action.yml') }}
+        restore-keys: |
+          apt-cache-${{ runner.os }}-${{ runner.arch }}-
+
+    # Install Linux headers without recommended documentation and multimedia packages to reduce download count.
+    # Azure Ubuntu mirrors frequently throttle large package downloads (such as WebKit2GTK at 25MB).
+    # Overriding to Canonical's primary archive mirror and caching deb files prevents 10-minute network stalls.
     - name: Install Linux Dependencies
       if: inputs.install-linux-deps == 'true' && runner.os == 'Linux'
       shell: bash
       run: |
+        sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/sources.list /etc/apt/sources.list.d/* /etc/apt/apt-mirrors.txt 2>/dev/null || true
+
+        mkdir -p /tmp/apt-archives/partial
+        sudo tee /etc/apt/apt.conf.d/99speed > /dev/null << 'EOF'
+        Acquire::http::Timeout "30";
+        Acquire::Retries "3";
+        Dpkg::Use-Pty "0";
+        Dir::Cache::Archives "/tmp/apt-archives";
+        EOF
+
         sudo apt-get update
-        sudo apt-get install -y \
+        sudo apt-get install -y --no-install-recommends \
           pkg-config \
           libgtk-3-dev \
           libwebkit2gtk-4.1-dev \
@@ -46,3 +68,5 @@ runs:
           librsvg2-dev \
           patchelf \
           lld
+
+        sudo chmod -R a+rX /tmp/apt-archives

@@ -17,6 +17,7 @@ Le binaire `oxy` accepte des drapeaux globaux pour ajuster le niveau de détail 
 | `--json` | `-j` | Émet du JSON structuré et brut sur la sortie standard (`stdout`). |
 | `--machine` | `-m` | Émet du JSON concis sur une seule ligne en désactivant les invites interactives. |
 | `--quiet` | `-q` | Masque les messages informatifs et les en-têtes de tableau. |
+| `--db <chemin>` | | Chemin explicite vers la base de données SQLite (remplace `OXY_DB_PATH`). |
 
 ---
 
@@ -31,6 +32,9 @@ oxy start "Implémentation API"
 
 # Arrêter la session en cours
 oxy stop
+
+# Arrêter tous les minuteurs actifs sur l'ensemble des projets
+oxy stop --all
 
 # Basculer de façon atomique vers une autre tâche en une seule étape
 oxy switch "Correction Interface"
@@ -77,10 +81,45 @@ oxy report --tree --today
 # Afficher le rapport de la semaine en cours
 oxy report --tree --week
 
+# Interroger le rapport sur un intervalle de dates et un projet spécifique
+oxy report --from 2026-10-01 --to 2026-10-31 -p "Portail Client"
+
 # Exporter les temps vers un fichier HTML, CSV ou JSON
 oxy report export -f html -o ./releve.html
 oxy report export -f csv -o ./releve.csv
 oxy report export -f json -o ./releve.json
+```
+
+---
+
+## Diagnostic Système et Gestion de la Base de Données
+
+```bash
+# Exécuter les vérifications d'intégrité du système et de SQLite
+oxy doctor
+
+# Créer une sauvegarde à chaud de la base de données SQLite
+oxy db backup ./backups/oxytime-backup.db
+
+# Restaurer la base de données à partir d'un instantané de sauvegarde
+oxy db restore ./backups/oxytime-backup.db
+```
+
+---
+
+## Masques d'Action et Macros
+
+Les masques d'action permettent de définir des raccourcis réutilisables avec substitution positionnelle d'arguments (`$1`..`$9`) :
+
+```bash
+# Définir un raccourci personnalisé avec substitution d'arguments
+oxy mask set standup "start $1"
+
+# Exécuter directement le raccourci configuré
+oxy standup "Point Quotidien"
+
+# Lister les masques configurés
+oxy mask ls
 ```
 
 ---
@@ -97,5 +136,50 @@ Toutes les commandes `oxy` renvoient des codes de sortie POSIX déterministes :
 | `3` | Erreur de stockage | Échec de lecture/écriture dans la base SQLite. |
 | `4` | Erreur d'entité | Entité introuvable ou requête ambiguë. |
 | `5` | Erreur moteur | Conflit dans le cycle de vie du minuteur. |
+
+---
+
+## Enveloppe d'Erreur et Mode Machine
+
+Lorsqu'une commande échoue, `oxy` écrit des détails techniques structurés sur `stderr`.
+
+Dans les pipelines automatisés avec `--machine` (ou `--json`), les invites interactives et les blocs de suggestions humaines sont supprimés. L'erreur est émise sous forme d'une enveloppe JSON déterministe sur une seule ligne :
+
+```json
+{"code":"DOM_ENTITY_NOT_FOUND","message":"Task '104' was not found","operation":"start","subsystem":"domain"}
+```
+
+En mode interactif dans un terminal (TTY), l'enveloppe inclut un objet `user` supplémentaire fournissant du contexte lisible, des instructions de remédiation et des suggestions « Vouliez-vous dire... » :
+
+```json
+{
+  "code": "DOM_ENTITY_NOT_FOUND",
+  "message": "Task '104' was not found",
+  "operation": "start",
+  "subsystem": "domain",
+  "user": {
+    "locale": "fr",
+    "message": "La tâche '104' n'existe pas dans le projet actif.",
+    "suggestion": "Vouliez-vous dire la tâche '105' (Implémentation OAuth) ?",
+    "remediation": "Exécutez 'oxy task ls' pour voir les tâches disponibles."
+  }
+}
+```
+
+### Codes d'Erreur Sémantiques
+
+| Code d'Erreur | Code de Sortie | Description |
+| :--- | :---: | :--- |
+| `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Commande ou sous-commande inconnue ou non implémentée. |
+| `CLI_SYNTAX_INVALID_ARGS` | `2` | Arguments manquants ou invalides (ex. chemins vides). |
+| `DOM_ENTITY_NOT_FOUND` | `4` | Le projet, la tâche, l'entrée de temps ou l'alias ciblé n'existe pas. |
+| `ENG_OPERATION_FAILED` | `1` | Règle métier enfreinte (ex. validation de nom d'entité vide). |
+| `ENG_TIMER_ACTIVE` | `5` | Tentative de démarrer un minuteur alors qu'un autre est actif sans flag de forçage. |
+| `ENG_TIMER_INACTIVE` | `5` | Tentative d'arrêter le minuteur alors qu'aucune session n'est active. |
+| `SNK_EXTERNAL_IO` | `1` | Échec de destination externe (chemin inaccessible ou test de sink échoué). |
+| `STO_SQLITE_CONSTRAINT` | `3` | Violation de contrainte SQLite (clé unique ou étrangère). |
+| `STO_STORAGE_ERROR` | `3` | Erreur de bas niveau d'accès à la base de données ou d'E/S. |
+
+---
 
 Pour les flux de données et l'automatisation en scripts de shell, consultez **[Scripts CLI Avancés](advanced-cli.md)**.

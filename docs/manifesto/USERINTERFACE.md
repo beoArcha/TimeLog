@@ -220,6 +220,12 @@ Atomic, domain-agnostic headless primitives built on top of Radix / Base-UI and 
 - `SearchInput`: Standardized search box with integrated search icon, clear button, and accessible input.
 - `ProjectBadge`: Standardized project color dot/icon + truncated title badge.
 - `TimerDisplay`: Monospace timer display with design tokens and active live states.
+- `Form`: Semantic Form component with standardized vertical/horizontal layouts, token gaps, automated `preventDefault`, and `role="form"`.
+- `Area`: Polymorphic surface and layout container primitive (`variant`, `padding`, `radius`, `elevation`, `as?: 'aside' | 'section' | 'main' | ...`).
+- `Progress` / `ProgressBar`: Accessible progress indicators with design token colors and size variants.
+- `Code`: Semantic inline and block code formatting container.
+- `Drawer`: Semantic edge-sliding modal sheet with focus trap and accessibility attributes.
+- `IconBox`: Standardized icon bubble container replacing duplicated utility styles.
 
 #### 2. Composite Components (`src/components/`)
 
@@ -237,9 +243,9 @@ Higher-level UX building blocks composed entirely of UI primitives:
 
 ### Architectural Protection: Zero Raw HTML Primitives
 
-Raw HTML form and table tags are strictly forbidden outside `src/components/ui/`:
+Raw HTML form, layout, and table tags are strictly forbidden outside `src/components/ui/`:
 
-- **Forbidden elements**: `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>`.
+- **Forbidden elements**: `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>`, `<p>`, `<form>`, `<aside>`.
 - **Enforcement**:
   1. **Vitest Architecture Rule** (`tests/architecture/rules/no-raw-html-primitives.rule.ts`): Parses TypeScript AST to ensure zero instances across all feature views and layouts. Zero allowlist exceptions.
   2. **ESLint AST Rule** (`eslint.config.js`): Uses `no-restricted-syntax` to report forbidden raw JSX elements in real time in IDE and during linting.

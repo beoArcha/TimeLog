@@ -29,6 +29,7 @@ export interface IDataManager {
 
 export class LocalStorageDataManager implements IDataManager {
   private readonly storageKey: string;
+  private isCorrupted = false;
 
   constructor(storageKey: string) {
     this.storageKey = storageKey;
@@ -40,20 +41,39 @@ export class LocalStorageDataManager implements IDataManager {
     try {
       return JSON.parse(stored) as FullAppState;
     } catch (err) {
-      ErrorHandler.handle(new PersistenceException('Failed parsing local LogTime by OxyFlow store', err, 'WARN_PERSISTENCE_PARSE', 'WARN'));
-      return null;
+      this.isCorrupted = true;
+      const exception = new PersistenceException(
+        'Failed parsing local LogTime by OxyFlow store - state quarantined to prevent data loss',
+        err,
+        'ERR_PERSISTENCE_CORRUPT'
+      );
+      ErrorHandler.handle(exception);
+      throw exception;
     }
   }
 
   saveState(state: FullAppState): void {
+    if (this.isCorrupted) {
+      const exception = new PersistenceException(
+        'Cannot write to LocalStorage while in corrupted quarantine state',
+        null,
+        'ERR_PERSISTENCE_QUARANTINE'
+      );
+      ErrorHandler.handle(exception);
+      throw exception;
+    }
+
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(state));
     } catch (err) {
-      ErrorHandler.handle(new PersistenceException('Failed to save state to localStorage', err, 'ERR_PERSISTENCE_SAVE'));
+      const exception = new PersistenceException('Failed to save state to localStorage', err, 'ERR_PERSISTENCE_SAVE');
+      ErrorHandler.handle(exception);
+      throw exception;
     }
   }
 
   clearState(): void {
+    this.isCorrupted = false;
     localStorage.removeItem(this.storageKey);
   }
 

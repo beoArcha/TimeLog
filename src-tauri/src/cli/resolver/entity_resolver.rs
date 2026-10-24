@@ -1,7 +1,8 @@
 use super::constants::{
     ERR_RESOLVE_AMBIGUOUS, ERR_RESOLVE_DID_YOU_MEAN, ERR_RESOLVE_NOT_FOUND, ERR_RESOLVE_STORAGE,
-    FORMAT_CANDIDATE_MATCH, LABEL_ENTITY_PROJECT, LABEL_ENTITY_TASK, PROMPT_AMBIGUOUS_MATCHES,
-    PROMPT_CHOOSE_INPUT, PROMPT_OPTION_ROW,
+    FORMAT_CANDIDATE_MATCH, LABEL_ENTITY_CONFIG_KEY, LABEL_ENTITY_MASK_ALIAS, LABEL_ENTITY_PROJECT,
+    LABEL_ENTITY_TASK, LABEL_ENTITY_TIME_LOG, PROMPT_AMBIGUOUS_MATCHES, PROMPT_CHOOSE_INPUT,
+    PROMPT_OPTION_ROW,
 };
 use super::levenshtein::levenshtein_distance;
 use super::prompter::{Prompter, TerminalPrompter};
@@ -13,6 +14,9 @@ use std::fmt;
 pub enum EntityType {
     Project,
     Task,
+    TimeLog,
+    ConfigKey,
+    MaskAlias,
 }
 
 impl fmt::Display for EntityType {
@@ -20,6 +24,9 @@ impl fmt::Display for EntityType {
         match self {
             EntityType::Project => write!(f, "{}", LABEL_ENTITY_PROJECT),
             EntityType::Task => write!(f, "{}", LABEL_ENTITY_TASK),
+            EntityType::TimeLog => write!(f, "{}", LABEL_ENTITY_TIME_LOG),
+            EntityType::ConfigKey => write!(f, "{}", LABEL_ENTITY_CONFIG_KEY),
+            EntityType::MaskAlias => write!(f, "{}", LABEL_ENTITY_MASK_ALIAS),
         }
     }
 }
@@ -88,15 +95,26 @@ impl fmt::Display for ResolveError {
 
 pub struct EntityResolver<'a> {
     persistence: &'a Persistence,
+    is_machine: bool,
 }
 
 impl<'a> EntityResolver<'a> {
     pub fn new(persistence: &'a Persistence) -> Self {
-        Self { persistence }
+        Self {
+            persistence,
+            is_machine: false,
+        }
+    }
+
+    pub fn with_mode(persistence: &'a Persistence, is_machine: bool) -> Self {
+        Self {
+            persistence,
+            is_machine,
+        }
     }
 
     pub fn resolve_task(&self, target: &str) -> Result<Task, ResolveError> {
-        self.resolve_task_interactive(target, &TerminalPrompter)
+        self.resolve_task_interactive(target, &TerminalPrompter::new(self.is_machine))
     }
 
     pub fn resolve_task_interactive(
@@ -121,7 +139,7 @@ impl<'a> EntityResolver<'a> {
     }
 
     pub fn resolve_project(&self, target: &str) -> Result<Project, ResolveError> {
-        self.resolve_project_interactive(target, &TerminalPrompter)
+        self.resolve_project_interactive(target, &TerminalPrompter::new(self.is_machine))
     }
 
     pub fn resolve_project_interactive(

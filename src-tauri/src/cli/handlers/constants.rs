@@ -1,14 +1,21 @@
 pub const MSG_PROJECT_CREATED: &str = "Created project with ID: {}";
 pub const MSG_PROJECT_ARCHIVED: &str = "Archived project: {}";
 pub const MSG_PROJECT_RENAMED: &str = "Renamed project: {}";
+pub const MSG_PROJECT_UPDATED: &str = "Updated project: {}";
 pub const MSG_PROJECT_NOT_FOUND: &str = "Project not found: {}";
 pub const MSG_NO_PROJECTS_FOUND: &str = "No projects found.";
 pub const MSG_NO_PROJECTS_EXIST: &str =
     "No projects exist. Create a project first with 'oxy project add <name>'";
+pub const ERR_PROJECT_RENAME_EMPTY: &str = "At least one of new name or --color must be provided.";
 
 pub const MSG_TASK_CREATED: &str = "Created task with ID: {}";
 pub const MSG_TASK_ARCHIVED: &str = "Archived task: {}";
 pub const MSG_TASK_RENAMED: &str = "Renamed task: {}";
+pub const MSG_TASK_REPARENTED: &str = "Reparented task '{}' under '{}'";
+pub const MSG_TASK_DETACHED: &str = "Detached task '{}' as a root task";
+pub const MSG_TASK_MOVED: &str = "Moved task '{}' to project '{}'";
+pub const ERR_REPARENT_SELF: &str = "Cannot reparent task to itself.";
+pub const ERR_REPARENT_DIFFERENT_PROJECT: &str = "Parent task belongs to a different project.";
 pub const MSG_TASK_NOT_FOUND: &str = "Task not found: {}";
 pub const MSG_TASK_COMPLETED: &str = "Marked task '{}' [{}] as completed.";
 pub const MSG_NO_TASKS_FOUND: &str = "No tasks found matching criteria.";
@@ -22,6 +29,12 @@ pub const MSG_LOG_RECORDED: &str = "Logged {} to '{}' [ID: {}]";
 pub const MSG_LOG_UPDATED: &str = "Updated time log: {}";
 pub const MSG_LOG_DELETED: &str = "Deleted time log: {}";
 pub const MSG_NO_LOGS_FOUND: &str = "No time logs found matching criteria.";
+pub const ERR_INVALID_TIMESTAMP: &str =
+    "Invalid timestamp format '{}': expected RFC3339 (e.g. '2026-10-24T10:00:00Z') or 'YYYY-MM-DD'";
+pub const ERR_LOG_ADD_NO_DURATION_OR_FROM: &str =
+    "Either duration or --from timestamp must be provided.";
+pub const ERR_LOG_EDIT_EMPTY: &str =
+    "At least one field to edit must be provided (--duration, --note, --start, --end, --task).";
 
 pub const MSG_NO_TARGET_SPECIFIED: &str = "No target task specified. Usage: oxy start <target>";
 pub const MSG_NO_TODAY_LOGS: &str =
@@ -118,3 +131,22 @@ pub const PERIOD_LABEL_TODAY: &str = "Today";
 pub const PERIOD_LABEL_WEEK: &str = "This Week";
 pub const PERIOD_LABEL_MONTH: &str = "This Month";
 pub const PERIOD_LABEL_ALL: &str = "All Time";
+pub const PERIOD_LABEL_CUSTOM: &str = "Custom Range";
+
+pub const ERR_DATE_RANGE_INVALID: &str = "Filter start date cannot be after end date.";
+pub const ERR_TASK_NOT_IN_PROJECT: &str = "Task '{}' does not belong to project '{}'";
+pub const ERR_MULTIPLE_TIMERS_SPECIFY_ALL: &str =
+    "Multiple active timers running ({}). Use 'oxy stop --all' to stop all active timers.";
+
+pub const HEADER_DOCTOR: &str =
+    "🩺 oXyFlow System & Database Diagnostics\n──────────────────────────────────────────────────\n";
+pub const FORMAT_DOCTOR_ITEM: &str = " • [{}] {}: {}\n";
+pub const FORMAT_DOCTOR_DB_INFO: &str = " • Database: {} ({} bytes)\n";
+pub const MSG_DOCTOR_SUCCESS: &str = "All diagnostic checks passed successfully.";
+pub const ERR_DOCTOR_FAILED: &str = "One or more diagnostic checks failed.";
+
+pub const MSG_DB_BACKUP_SUCCESS: &str = "Database successfully backed up to '{}'";
+pub const MSG_DB_RESTORE_SUCCESS: &str = "Database successfully restored from '{}'";
+pub const ERR_DB_BACKUP_PATH_EMPTY: &str = "Backup destination path cannot be empty";
+pub const ERR_DB_RESTORE_PATH_EMPTY: &str = "Restore source path cannot be empty";
+pub const ERR_DB_RESTORE_NOT_FOUND: &str = "Backup source file '{}' does not exist";

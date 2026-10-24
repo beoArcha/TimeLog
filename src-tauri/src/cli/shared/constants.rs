@@ -15,6 +15,14 @@ pub const ERR_DURATION_UNRECOGNIZED_CHAR: &str = "Unrecognized character '{}' in
 pub const ERR_DURATION_INVALID_SEGMENT: &str = "Invalid duration segment in '{}'";
 pub const ERR_DURATION_PARSE_FAILED: &str = "Could not parse duration '{}'";
 
+pub const ERR_INVALID_TIMESTAMP: &str =
+    "Invalid timestamp format '{}': expected RFC3339 (e.g. '2026-10-24T10:00:00Z') or 'YYYY-MM-DD'";
+pub const ERR_DATE_RANGE_INVALID: &str = "Filter start date cannot be after end date.";
+pub const ERR_TASK_NOT_IN_PROJECT: &str = "Task '{}' does not belong to project '{}'";
+pub const ERR_MULTIPLE_TIMERS_SPECIFY_ALL: &str =
+    "Multiple active timers running ({}). Use 'oxy stop --all' to stop all active timers.";
+pub const PERIOD_LABEL_CUSTOM: &str = "Custom Range";
+
 pub const FORMAT_ERROR_BANNER: &str = "Error [{}]: {}";
 pub const FORMAT_ERROR_SUGGESTION: &str = "Suggestion: {}";
 pub const FORMAT_ERROR_REMEDIATION: &str = "Remediation: {}";
@@ -27,6 +35,8 @@ pub const MSG_ERR_REMEDIATION_STORAGE: &str =
     "Check file system permissions and disk capacity for the SQLite database.";
 pub const MSG_ERR_REMEDIATION_ENGINE: &str =
     "Inspect active timers using 'oxy status' or stop them with 'oxy stop'.";
+pub const MSG_ERR_REMEDIATION_SINK: &str =
+    "Verify target file path permissions and available storage for output export.";
 pub const FORMAT_REMEDIATION_DID_YOU_MEAN: &str = "Run command using candidate ID '{}'";
 
 pub const EXIT_CODE_SUCCESS: u8 = 0;

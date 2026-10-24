@@ -24,7 +24,7 @@ export const useAppSettings = () => {
   const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(LAYOUT_VARIANTS.FULL);
   const [activeLargeTab, setActiveLargeTab] = useState<AppTabId>('tasks');
   const [isCompactExpanded, setIsCompactExpanded] = useState<boolean>(true);
-  const [currentProjectId, setCurrentProjectId] = useState<string>('1');
+  const [currentProjectId, setCurrentProjectId] = useState<string>('');
 
   useEffect(() => {
     Promise.all([
@@ -120,6 +120,15 @@ export const useAppSettings = () => {
     }
   }, [currentProjectId, settingsLoaded]);
 
+  const [defaultProjectConcurrency, setDefaultProjectConcurrencyState] = useState<boolean>(() => {
+    return localStorage.getItem('oxy_default_project_concurrency') === 'true';
+  });
+
+  const setDefaultProjectConcurrency = (val: boolean) => {
+    setDefaultProjectConcurrencyState(val);
+    localStorage.setItem('oxy_default_project_concurrency', String(val));
+  };
+
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
 
   return {
@@ -135,6 +144,7 @@ export const useAppSettings = () => {
     isCompactExpanded, setIsCompactExpanded,
     currentProjectId, setCurrentProjectId,
     showCreditsModal, setShowCreditsModal,
-    minimizeToTray, setMinimizeToTray
+    minimizeToTray, setMinimizeToTray,
+    defaultProjectConcurrency, setDefaultProjectConcurrency
   };
 };

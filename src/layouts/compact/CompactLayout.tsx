@@ -1,4 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatedFade } from '@components/AnimatedFade';
+import { AnimatedCollapse } from '@components/AnimatedCollapse';
 import type { LayoutRouterProps } from '../types/LayoutCommonProps';
 import { GuiState } from '../hooks/useGuiLogic';
 import { useCompactLayout } from './hooks/useCompactLayout';
@@ -45,7 +46,7 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
     });
 
   return (
-    <motion.div
+    <AnimatedFade
       key="small-state"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -84,31 +85,25 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
           onToggle={() => setIsCompactExpanded(!isCompactExpanded)}
         />
 
-        <AnimatePresence>
-          {isCompactExpanded && (
-            <motion.div
-              data-testid="compact-tasks-drawer"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col gap-2 flex-1 overflow-y-auto pr-1 text-left"
-            >
-              <TaskList
-                activeProj={activeProj}
-                rootTasks={projectRootTasks}
-                allTasks={tasks}
-                activeLog={activeLog}
-                locale={locale}
-                customTranslations={customTranslations}
-                onStartTimer={handleStartTimer}
-                onStopTimer={handleStopTimer}
-                showToast={showToast}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <AnimatedCollapse
+          isOpen={isCompactExpanded}
+          data-testid="compact-tasks-drawer"
+          duration={0.2}
+          className="flex flex-col gap-2 flex-1 overflow-y-auto pr-1 text-left"
+        >
+          <TaskList
+            activeProj={activeProj}
+            rootTasks={projectRootTasks}
+            allTasks={tasks}
+            activeLog={activeLog}
+            locale={locale}
+            customTranslations={customTranslations}
+            onStartTimer={handleStartTimer}
+            onStopTimer={handleStopTimer}
+            showToast={showToast}
+          />
+        </AnimatedCollapse>
       </div>
-    </motion.div>
+    </AnimatedFade>
   );
 }

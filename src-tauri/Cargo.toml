@@ -1,6 +1,6 @@
 [package]
 name = "oxy-flow"
-version = "1.9.1"
+version = "1.10.1"
 edition = "2021"
 description = "Lightweight work-timer built with Tauri v2 speed, SQLite, and a background system tray daemon."
 license = "MPL-2.0"
@@ -21,7 +21,7 @@ tauri = { version = "2.0.0", features = ["tray-icon", "devtools"] }
 
 chrono = { version = "0.4.38", features = ["serde"] }
 # Local SQLite MicroORM
-rusqlite = { version = "0.31.0", features = ["bundled", "chrono"] }
+rusqlite = { version = "0.31.0", features = ["bundled", "chrono", "backup"] }
 
 clap = { version = "4.5", features = ["derive"] }
 # System stats & CLI

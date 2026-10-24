@@ -27,7 +27,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 export const ThemeSelector: React.FC = () => {
   const { locale, customTranslations } = useLocale();
-  const { theme: currentThemeId, setTheme, layoutVariant } = useSettings();
+  const { theme: currentThemeId, setTheme } = useSettings();
 
   const themeOptions: ThemeOption[] = React.useMemo(() => {
     const registryThemes = ThemeRegistry.getInstance().getAll();
@@ -56,10 +56,6 @@ export const ThemeSelector: React.FC = () => {
       return {
         value: th.id,
         icon: th.icon,
-        label:
-          layoutVariant === "full" ? (
-            <span className="hidden xl:inline">{labelText}</span>
-          ) : undefined,
         title: labelText,
         ariaLabel: labelText,
         testId: `theme-btn-${th.id}`,

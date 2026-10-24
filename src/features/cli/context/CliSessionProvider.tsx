@@ -127,6 +127,7 @@ export const CliSessionProvider: React.FC<CliSessionProviderProps> = ({
       isSandbox: isSandboxMode,
       onToggleSandbox: setSandboxMode,
       onSwitchTask: contextOverrides?.onSwitchTask,
+      onRefreshData: ambientData?.refreshData,
     };
 
     const outputs = await executeCliCommand(cmdText, cliContext);
@@ -173,6 +174,10 @@ export const CliSessionProvider: React.FC<CliSessionProviderProps> = ({
     return currentInput;
   }, [commandHistory]);
 
+  const toggleSandbox = useCallback(() => {
+    setSandboxMode(!isSandboxMode);
+  }, [isSandboxMode, setSandboxMode]);
+
   const value = useMemo<CliSessionState>(() => ({
     terminalHistory,
     commandHistory,
@@ -184,6 +189,7 @@ export const CliSessionProvider: React.FC<CliSessionProviderProps> = ({
     setDrawerOpen,
     clearHistory,
     setSandboxMode,
+    toggleSandbox,
     navigateHistory,
   }), [
     terminalHistory,
@@ -196,6 +202,7 @@ export const CliSessionProvider: React.FC<CliSessionProviderProps> = ({
     setDrawerOpen,
     clearHistory,
     setSandboxMode,
+    toggleSandbox,
     navigateHistory,
   ]);
 

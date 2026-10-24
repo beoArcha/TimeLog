@@ -6,6 +6,8 @@
     "commandRust": ["status"],
     "initialActiveTaskId": null,
     "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
     "expectedPatterns": ["status", "idle", "0", "no active", "stopped"]
   },
   {
@@ -15,6 +17,8 @@
     "commandRust": ["status"],
     "initialActiveTaskId": "t1",
     "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
     "expectedPatterns": ["status", "t1", "parity task", "1"]
   },
   {
@@ -24,7 +28,31 @@
     "commandRust": ["start", "t1"],
     "initialActiveTaskId": null,
     "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
     "expectedPatterns": ["start", "t1"]
+  },
+  {
+    "id": "start-missing-target",
+    "description": "Start timer without target in non-interactive mode returns syntax error",
+    "commandFrontend": "start",
+    "commandRust": ["start"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_MISSING_TARGET",
+    "expectedPatterns": ["error", "target", "missing"]
+  },
+  {
+    "id": "start-not-found",
+    "description": "Start timer on non-existent task fails across runtimes",
+    "commandFrontend": "start non-existent-id-999",
+    "commandRust": ["start", "non-existent-id-999"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not exist", "not found"]
   },
   {
     "id": "stop-active",
@@ -33,7 +61,31 @@
     "commandRust": ["stop"],
     "initialActiveTaskId": "t1",
     "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
     "expectedPatterns": ["stop"]
+  },
+  {
+    "id": "stop-idle",
+    "description": "Stop timer when no timer is active fails with engine error exit 5",
+    "commandFrontend": "stop",
+    "commandRust": ["stop"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 5,
+    "expectedErrorCode": "ENG_TIMER_INACTIVE",
+    "expectedPatterns": ["error", "no active timer", "inactive"]
+  },
+  {
+    "id": "stop-all",
+    "description": "Stop all active timers with --all flag",
+    "commandFrontend": "stop --all",
+    "commandRust": ["stop", "--all"],
+    "initialActiveTaskId": "t1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["stop", "all"]
   },
   {
     "id": "switch-valid",
@@ -42,7 +94,306 @@
     "commandRust": ["switch", "t1"],
     "initialActiveTaskId": null,
     "expectSuccess": true,
-    "expectedPatterns": ["t1"]
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["t1", "switch", "started"]
+  },
+  {
+    "id": "switch-not-found",
+    "description": "Switch timer to non-existent task fails with entity error",
+    "commandFrontend": "switch non-existent-id-999",
+    "commandRust": ["switch", "non-existent-id-999"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not exist", "not found"]
+  },
+  {
+    "id": "today-summary",
+    "description": "Query today summary and work progress",
+    "commandFrontend": "today",
+    "commandRust": ["today"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["today", "progress", "summary", "no time"]
+  },
+  {
+    "id": "project-list",
+    "description": "List existing projects",
+    "commandFrontend": "project list",
+    "commandRust": ["project", "list"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["p1", "parity project", "projects"]
+  },
+  {
+    "id": "project-list-all",
+    "description": "List projects including archived with --all flag",
+    "commandFrontend": "project list --all",
+    "commandRust": ["project", "list", "--all"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["p1", "parity project", "projects"]
+  },
+  {
+    "id": "project-add-valid",
+    "description": "Create a new project with color flag",
+    "commandFrontend": "project add \"New Proj\" -c indigo",
+    "commandRust": ["project", "add", "New Proj", "-c", "indigo"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["project", "created", "new proj", "id"]
+  },
+  {
+    "id": "project-add-missing-name",
+    "description": "Project add fails when name argument is missing",
+    "commandFrontend": "project add",
+    "commandRust": ["project", "add"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
+    "expectedPatterns": ["error", "required", "name"]
+  },
+  {
+    "id": "project-rename-valid",
+    "description": "Rename an existing project",
+    "commandFrontend": "project rename p1 \"Renamed Proj\"",
+    "commandRust": ["project", "rename", "p1", "Renamed Proj"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["project", "updated", "renamed", "renamed proj"]
+  },
+  {
+    "id": "project-rename-not-found",
+    "description": "Rename non-existent project fails with entity error",
+    "commandFrontend": "project rename non-existent-p999 \"Renamed Proj\"",
+    "commandRust": ["project", "rename", "non-existent-p999", "Renamed Proj"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found"]
+  },
+  {
+    "id": "project-archive-valid",
+    "description": "Archive an existing project",
+    "commandFrontend": "project archive p1",
+    "commandRust": ["project", "archive", "p1"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["project", "archived", "p1"]
+  },
+  {
+    "id": "project-archive-not-found",
+    "description": "Archive non-existent project fails with entity error",
+    "commandFrontend": "project archive non-existent-p999",
+    "commandRust": ["project", "archive", "non-existent-p999"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found"]
+  },
+  {
+    "id": "task-list",
+    "description": "List tasks hierarchically",
+    "commandFrontend": "task list",
+    "commandRust": ["task", "list"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["parity task", "t1", "tasks"]
+  },
+  {
+    "id": "task-list-project",
+    "description": "List tasks filtered by project",
+    "commandFrontend": "task list -p p1",
+    "commandRust": ["task", "list", "-p", "p1"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["parity task", "t1"]
+  },
+  {
+    "id": "task-list-all",
+    "description": "List tasks with --all flag",
+    "commandFrontend": "task list --all",
+    "commandRust": ["task", "list", "--all"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["parity task", "t1"]
+  },
+  {
+    "id": "task-add-valid",
+    "description": "Create a new task attached to a project",
+    "commandFrontend": "task add \"Task 2\" -p p1",
+    "commandRust": ["task", "add", "Task 2", "-p", "p1"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["task", "created", "task 2", "id"]
+  },
+  {
+    "id": "task-add-missing-name",
+    "description": "Task add fails when task name is missing",
+    "commandFrontend": "task add",
+    "commandRust": ["task", "add"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
+    "expectedPatterns": ["error", "required", "title", "name"]
+  },
+  {
+    "id": "task-add-subtask",
+    "description": "Create a subtask attached to parent task with -P flag",
+    "commandFrontend": "task add \"Sub 1\" -p p1 -P t1",
+    "commandRust": ["task", "add", "Sub 1", "-p", "p1", "-P", "t1"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["created", "sub 1", "subtask", "id"]
+  },
+  {
+    "id": "task-done-valid",
+    "description": "Mark task as completed",
+    "commandFrontend": "task done t1",
+    "commandRust": ["task", "done", "t1"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["completed", "marked", "t1", "parity task"]
+  },
+  {
+    "id": "task-done-not-found",
+    "description": "Complete non-existent task fails with entity error",
+    "commandFrontend": "task done non-existent-t999",
+    "commandRust": ["task", "done", "non-existent-t999"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found"]
+  },
+  {
+    "id": "task-rename-valid",
+    "description": "Rename an existing task",
+    "commandFrontend": "task rename t1 \"Renamed Task\"",
+    "commandRust": ["task", "rename", "t1", "Renamed Task"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["renamed", "task", "renamed task", "t1"]
+  },
+  {
+    "id": "task-rename-not-found",
+    "description": "Rename non-existent task fails with entity error",
+    "commandFrontend": "task rename non-existent-t999 \"Renamed Task\"",
+    "commandRust": ["task", "rename", "non-existent-t999", "Renamed Task"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found"]
+  },
+  {
+    "id": "task-archive-valid",
+    "description": "Archive an existing task",
+    "commandFrontend": "task archive t1",
+    "commandRust": ["task", "archive", "t1"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["archived", "task", "t1", "parity task"]
+  },
+  {
+    "id": "task-archive-not-found",
+    "description": "Archive non-existent task fails with entity error",
+    "commandFrontend": "task archive non-existent-t999",
+    "commandRust": ["task", "archive", "non-existent-t999"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found"]
+  },
+  {
+    "id": "log-list",
+    "description": "List recorded time logs",
+    "commandFrontend": "log list",
+    "commandRust": ["log", "list"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["log", "time", "no time logs found"]
+  },
+  {
+    "id": "log-list-today",
+    "description": "List time logs filtered for today",
+    "commandFrontend": "log list --today",
+    "commandRust": ["log", "list", "--today"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["log", "time", "no time logs found"]
+  },
+  {
+    "id": "log-list-project",
+    "description": "List time logs filtered by project",
+    "commandFrontend": "log list -p p1",
+    "commandRust": ["log", "list", "-p", "p1"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["log", "time", "no time logs found"]
+  },
+  {
+    "id": "log-add-valid",
+    "description": "Retroactively add a time log entry",
+    "commandFrontend": "log add t1 45m \"Retro note\"",
+    "commandRust": ["log", "add", "t1", "45m", "Retro note"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["logged", "t1", "45m", "log"]
+  },
+  {
+    "id": "log-remove-not-found",
+    "description": "Remove non-existent log entry fails with entity error",
+    "commandFrontend": "log remove non-existent-l999",
+    "commandRust": ["log", "remove", "non-existent-l999"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found"]
   },
   {
     "id": "unknown-command",
@@ -51,6 +402,30 @@
     "commandRust": ["unrecognized_command_xyz"],
     "initialActiveTaskId": null,
     "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_UNKNOWN_COMMAND",
+    "expectedPatterns": ["error", "unknown", "unrecognized"]
+  },
+  {
+    "id": "project-invalid-subcommand",
+    "description": "Syntax rejection on unknown project subcommand",
+    "commandFrontend": "project invalidaction",
+    "commandRust": ["project", "invalidaction"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
+    "expectedPatterns": ["error", "unknown", "unrecognized"]
+  },
+  {
+    "id": "task-invalid-subcommand",
+    "description": "Syntax rejection on unknown task subcommand",
+    "commandFrontend": "task invalidaction",
+    "commandRust": ["task", "invalidaction"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
     "expectedPatterns": ["error", "unknown", "unrecognized"]
   }
 ]

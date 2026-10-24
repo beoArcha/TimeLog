@@ -46,4 +46,10 @@ fn export_bindings() {
     WorkflowConfig::export_all_to(BINDINGS_DIR).unwrap();
     WorkflowStatus::export_all_to(BINDINGS_DIR).unwrap();
     WorkflowCheckResult::export_all_to(BINDINGS_DIR).unwrap();
+    IpcErrorPayload::export_all_to(BINDINGS_DIR).unwrap();
+    CliAlias::export_all_to(BINDINGS_DIR).unwrap();
+    CliSink::export_all_to(BINDINGS_DIR).unwrap();
+    LocalizedUserMessage::export_all_to(BINDINGS_DIR).unwrap();
+    CliErrorEnvelope::export_all_to(BINDINGS_DIR).unwrap();
+    CliExecutionResult::export_all_to(BINDINGS_DIR).unwrap();
 }

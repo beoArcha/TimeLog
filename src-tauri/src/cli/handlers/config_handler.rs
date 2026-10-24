@@ -1,8 +1,8 @@
 use super::constants::{
-    ERR_CONFIG_EMPTY_KEY, ERR_CONFIG_KEY_NOT_FOUND, FORMAT_CONFIG_LIST_ITEM, HEADER_CONFIG,
-    MSG_CONFIG_SET, MSG_NO_CONFIG_ENTRIES,
+    ERR_CONFIG_EMPTY_KEY, FORMAT_CONFIG_LIST_ITEM, HEADER_CONFIG, MSG_CONFIG_SET,
+    MSG_NO_CONFIG_ENTRIES,
 };
-use crate::cli::error::CliError;
+use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{ConfigArgs, ConfigSubcommand};
 use crate::cli::shared::output::CliOutput;
 use crate::persistence::Persistence;
@@ -22,15 +22,12 @@ pub fn handle(
 }
 
 fn list_config(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, CliError> {
-    let entries = persistence
-        .cli
-        .get_all_config_entries()
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let entries = persistence.cli.get_all_config_entries()?;
 
     if is_machine {
         let map: BTreeMap<String, String> = entries.into_iter().collect();
-        let json_str = serde_json::to_string_pretty(&map).unwrap_or_else(|_| "{}".to_string());
-        return Ok(CliOutput::Success(json_str));
+        let json_str = serde_json::to_string_pretty(&map)?;
+        return Ok(CliOutput::Json(json_str));
     }
 
     if entries.is_empty() {
@@ -56,24 +53,24 @@ fn get_config(
 ) -> Result<CliOutput, CliError> {
     let trimmed_key = key.trim();
     if trimmed_key.is_empty() {
-        return Err(CliError::Syntax(ERR_CONFIG_EMPTY_KEY.to_string()));
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            ERR_CONFIG_EMPTY_KEY.to_string(),
+        )));
     }
 
-    let val = persistence
-        .cli
-        .get_config_value(trimmed_key)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    let val = persistence.cli.get_config_value(trimmed_key)?;
 
     let Some(value) = val else {
-        return Err(CliError::Syntax(ERR_CONFIG_KEY_NOT_FOUND.replacen(
-            "{}",
-            trimmed_key,
-            1,
-        )));
+        return Err(CliError::Entity(
+            crate::cli::resolver::ResolveError::NotFound {
+                target: trimmed_key.to_string(),
+                entity_type: crate::cli::resolver::EntityType::ConfigKey,
+            },
+        ));
     };
 
     if is_machine {
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::Json(
             json!({ "key": trimmed_key, "value": value }).to_string(),
         ));
     }
@@ -89,16 +86,15 @@ fn set_config(
 ) -> Result<CliOutput, CliError> {
     let trimmed_key = key.trim();
     if trimmed_key.is_empty() {
-        return Err(CliError::Syntax(ERR_CONFIG_EMPTY_KEY.to_string()));
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            ERR_CONFIG_EMPTY_KEY.to_string(),
+        )));
     }
 
-    persistence
-        .cli
-        .set_config_value(trimmed_key, &value)
-        .map_err(|e| CliError::Storage(e.to_string()))?;
+    persistence.cli.set_config_value(trimmed_key, &value)?;
 
     if is_machine {
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::Json(
             json!({ "status": "ok", "key": trimmed_key, "value": value }).to_string(),
         ));
     }

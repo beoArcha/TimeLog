@@ -14,14 +14,25 @@ impl BusinessRepository {
         let mut conn = self.connect()?;
         let tx = conn.transaction()?;
 
-        Self::clear_existing_records(&tx, projects.is_some(), tasks.is_some(), logs.is_some())?;
+        let replace_all_projects = projects.is_some() && tasks.is_some();
+        let replace_all_tasks = tasks.is_some() && logs.is_some();
+
+        Self::clear_existing_records(&tx, replace_all_projects, replace_all_tasks, logs.is_some())?;
 
         if let Some(ref projs) = projects {
-            Self::insert_projects(&tx, projs)?;
+            if replace_all_projects {
+                Self::insert_projects(&tx, projs)?;
+            } else {
+                Self::sync_projects_selectively(&tx, projs)?;
+            }
         }
 
         if let Some(ref tlist) = tasks {
-            Self::insert_tasks(&tx, tlist)?;
+            if replace_all_tasks {
+                Self::insert_tasks(&tx, tlist)?;
+            } else {
+                Self::sync_tasks_selectively(&tx, tlist)?;
+            }
         }
 
         if let Some(ref llist) = logs {
@@ -38,13 +49,12 @@ impl BusinessRepository {
         has_tasks: bool,
         has_logs: bool,
     ) -> Result<()> {
-        // Cascade dependencies: logs & history first, then tasks, then projects
-        if has_logs || has_tasks || has_projects {
+        if has_logs {
             tx.execute(constants::DELETE_ALL_TIME_LOGS, [])?;
             tx.execute("DELETE FROM time_logs_history", [])?;
         }
 
-        if has_tasks || has_projects {
+        if has_tasks {
             tx.execute(constants::DELETE_ALL_TASKS, [])?;
         }
 
@@ -55,10 +65,106 @@ impl BusinessRepository {
         Ok(())
     }
 
+    fn sync_projects_selectively(tx: &Transaction, projects: &[Project]) -> Result<()> {
+        let new_ids: std::collections::HashSet<&str> =
+            projects.iter().map(|p| p.id.as_str()).collect();
+
+        let mut stmt = tx.prepare(constants::SELECT_ALL_PROJECT_IDS)?;
+        let existing_ids: Vec<String> = stmt
+            .query_map([], |row| row.get(0))?
+            .collect::<rusqlite::Result<Vec<String>>>()?;
+
+        for id in existing_ids {
+            if !new_ids.contains(id.as_str()) {
+                tx.execute(constants::DELETE_PROJECT_BY_ID, params![id])?;
+            }
+        }
+
+        for p in projects {
+            let edit_history_str = p
+                .edit_history
+                .as_ref()
+                .map(serde_json::to_string)
+                .transpose()?;
+            let tags_str = p.tags.as_ref().map(serde_json::to_string).transpose()?;
+            tx.execute(
+                constants::UPSERT_PROJECT,
+                params![
+                    p.id,
+                    p.name,
+                    p.color,
+                    p.created_at,
+                    p.archived.unwrap_or(false) as i32,
+                    p.original_name,
+                    p.original_color,
+                    edit_history_str,
+                    p.description,
+                    p.icon,
+                    tags_str,
+                    p.allow_concurrency.unwrap_or(false) as i32,
+                ],
+            )?;
+        }
+
+        Ok(())
+    }
+
+    fn sync_tasks_selectively(tx: &Transaction, tasks: &[Task]) -> Result<()> {
+        let new_ids: std::collections::HashSet<&str> =
+            tasks.iter().map(|t| t.id.as_str()).collect();
+
+        let mut stmt = tx.prepare(constants::SELECT_ALL_TASK_IDS)?;
+        let existing_ids: Vec<String> = stmt
+            .query_map([], |row| row.get(0))?
+            .collect::<rusqlite::Result<Vec<String>>>()?;
+
+        for id in existing_ids {
+            if !new_ids.contains(id.as_str()) {
+                tx.execute(constants::DELETE_TASK_BY_ID, params![id])?;
+            }
+        }
+
+        // Insert root tasks before subtasks to satisfy foreign key hierarchy constraints.
+        let (roots, children): (Vec<&Task>, Vec<&Task>) =
+            tasks.iter().partition(|t| t.parent_task_id.is_none());
+
+        for t in roots.into_iter().chain(children) {
+            let edit_history_str = t
+                .edit_history
+                .as_ref()
+                .map(serde_json::to_string)
+                .transpose()?;
+            let status_str = Self::task_status_to_str(t.status.as_ref());
+
+            tx.execute(
+                constants::UPSERT_TASK,
+                params![
+                    t.id,
+                    t.project_id,
+                    t.parent_task_id,
+                    t.name,
+                    t.completed as i32,
+                    t.created_at,
+                    t.original_name,
+                    t.original_completed.unwrap_or(false) as i32,
+                    edit_history_str,
+                    t.archived.unwrap_or(false) as i32,
+                    status_str,
+                ],
+            )?;
+        }
+
+        Ok(())
+    }
+
     fn insert_projects(tx: &Transaction, projects: &[Project]) -> Result<()> {
         for p in projects {
-            let edit_history_str = serde_json::to_string(&p.edit_history).ok();
-            let tags_str = serde_json::to_string(&p.tags).ok();
+            let edit_history_str = p
+                .edit_history
+                .as_ref()
+                .map(serde_json::to_string)
+                .transpose()?;
+            let tags_str = p.tags.as_ref().map(serde_json::to_string).transpose()?;
             tx.execute(
                 constants::INSERT_PROJECT,
                 params![
@@ -73,6 +179,7 @@ impl BusinessRepository {
                     p.description,
                     p.icon,
                     tags_str,
+                    p.allow_concurrency.unwrap_or(false) as i32,
                 ],
             )?;
         }
@@ -80,12 +187,16 @@ impl BusinessRepository {
     }
 
     fn insert_tasks(tx: &Transaction, tasks: &[Task]) -> Result<()> {
-        // Insert root tasks before subtasks to satisfy foreign key constraints
+        // Insert root tasks before subtasks to satisfy foreign key hierarchy constraints.
         let (roots, children): (Vec<&Task>, Vec<&Task>) =
             tasks.iter().partition(|t| t.parent_task_id.is_none());
 
         for t in roots.into_iter().chain(children) {
-            let edit_history_str = serde_json::to_string(&t.edit_history).ok();
+            let edit_history_str = t
+                .edit_history
+                .as_ref()
+                .map(serde_json::to_string)
+                .transpose()?;
             let status_str = Self::task_status_to_str(t.status.as_ref());
 
             tx.execute(

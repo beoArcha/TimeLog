@@ -45,6 +45,7 @@ export interface TaskListViewState {
   setShowSubtaskFormForId?: (val: string | null) => void;
   newSubtaskName?: string;
   setNewSubtaskName?: (val: string) => void;
+  activeLog?: TimeLog | null;
 }
 
 export interface TaskListViewProps {
@@ -109,6 +110,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     logs,
     nowIso,
     metrics: state.metrics,
+    activeLog: state.activeLog,
   });
 
   const taskItemState: TaskItemState = React.useMemo(() => ({
@@ -133,6 +135,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     editName,
     setEditName,
     metrics: state.metrics,
+    activeLog: state.activeLog,
   }), [
     tasks,
     logs,
@@ -155,6 +158,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
     editName,
     setEditName,
     state.metrics,
+    state.activeLog,
   ]);
 
   const handleAddTaskSubmit = (e: React.FormEvent) => {
@@ -198,7 +202,7 @@ export default function TaskListView({ state, isCondensed }: TaskListViewProps) 
         initialNewSubtaskName={state.newSubtaskName}
         onSetNewSubtaskName={state.setNewSubtaskName}
       >
-        <div id="tasks-tree-container" className={`flex flex-col gap-main ${isCondensed ? 'overflow-visible' : 'overflow-y-auto flex-1 min-h-0'} pr-1`}>
+        <div id="tasks-tree-container" className="flex flex-col gap-main overflow-visible pr-1">
           {rootTasks.length === 0 ? (
             <TaskEmptyState />
           ) : (

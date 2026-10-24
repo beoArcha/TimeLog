@@ -67,7 +67,11 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
     }
     const task = current.tasks.find((t) => t.id === taskId);
     if (!task) {
-      return this.store.save(current);
+      throw new PersistenceException(
+        `Task ${taskId} not found`,
+        undefined,
+        'ERR_PERSISTENCE_TASK_NOT_FOUND'
+      );
     }
 
     task.name = name;
@@ -87,14 +91,27 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
   async rename(taskId: string, name: string): Promise<TimerRepositoryState> {
     const current = await this.store.getStateOrDefault();
     const task = current.tasks.find((t) => t.id === taskId);
-    if (task) {
-      task.name = name;
+    if (!task) {
+      throw new PersistenceException(
+        `Task ${taskId} not found`,
+        undefined,
+        'ERR_PERSISTENCE_TASK_NOT_FOUND'
+      );
     }
+    task.name = name;
     return this.store.save(current);
   }
 
   async delete(id: string): Promise<TimerRepositoryState> {
     const current = await this.store.getStateOrDefault();
+    const exists = current.tasks.some((t) => t.id === id);
+    if (!exists) {
+      throw new PersistenceException(
+        `Task ${id} not found`,
+        undefined,
+        'ERR_PERSISTENCE_TASK_NOT_FOUND'
+      );
+    }
 
     const idsToDelete = new Set<string>([id]);
     let added: boolean;
@@ -121,17 +138,22 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
   async toggleComplete(taskId: string): Promise<TimerRepositoryState> {
     const current = await this.store.getStateOrDefault();
     const task = current.tasks.find((t) => t.id === taskId);
-    if (task) {
-      task.completed = !task.completed;
-      task.status = task.completed ? 'Done' : 'Todo';
-      if (task.completed && current.activeLog?.taskId === taskId) {
-        const now = new Date().toISOString();
-        current.activeLog.endTime = now;
-        current.logs = current.logs.map((l) =>
-          l.id === current.activeLog?.id ? { ...l, endTime: now } : l
-        );
-        current.activeLog = null;
-      }
+    if (!task) {
+      throw new PersistenceException(
+        `Task ${taskId} not found`,
+        undefined,
+        'ERR_PERSISTENCE_TASK_NOT_FOUND'
+      );
+    }
+    task.completed = !task.completed;
+    task.status = task.completed ? 'Done' : 'Todo';
+    if (task.completed && current.activeLog?.taskId === taskId) {
+      const now = new Date().toISOString();
+      current.activeLog.endTime = now;
+      current.logs = current.logs.map((l) =>
+        l.id === current.activeLog?.id ? { ...l, endTime: now } : l
+      );
+      current.activeLog = null;
     }
     return this.store.save(current);
   }

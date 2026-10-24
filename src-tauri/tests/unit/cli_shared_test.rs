@@ -1,5 +1,4 @@
 use chrono::DateTime;
-use oxy_flow::cli::shared::constants::MSG_ID_EMPTY;
 use oxy_flow::cli::shared::output::CliOutput;
 use oxy_flow::cli::shared::utils::{current_timestamp, generate_id};
 use oxy_flow::cli::shared::validation::validate_id;
@@ -31,7 +30,10 @@ fn test_validate_id_empty() {
         let res = validate_id(input);
 
         // Assert
-        assert_eq!(res, Err(CliError::Syntax(MSG_ID_EMPTY.to_string())));
+        assert_eq!(
+            res,
+            Err(CliError::Syntax(oxy_flow::cli::CliSyntaxError::EmptyId))
+        );
     }
 }
 

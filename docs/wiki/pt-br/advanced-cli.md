@@ -53,6 +53,19 @@ oxy today --json
 oxy today --json | jq '.total_seconds / 3600'
 ```
 
+### Tratamento Automatizado de Erros
+
+Em scripts automatizados e pipelines de CI/CD, use `--machine` para receber erros em formato JSON limpo e em linha única na saída `stderr` e verificar códigos de saída POSIX determinísticos:
+
+```bash
+# Capturar erro estruturado na saída stderr
+if ! oxy start "Tarefa Inexistente" --machine 2> error.json; then
+    exit_code=$?
+    error_code=$(jq -r '.code // "UNKNOWN"' error.json)
+    echo "Comando falhou (código $exit_code) com o erro: $error_code"
+fi
+```
+
 ---
 
 ## Integração com o Prompt do Terminal
@@ -113,9 +126,41 @@ oxy stop --quiet 2>/dev/null || true
 
 ## Backups Agendados via Terminal
 
-Como o `oxy` opera diretamente no arquivo SQLite sem precisar abrir janelas, é possível agendar exportações pelo `cron` ou pelo Agendador de Tarefas do Windows:
+Como o `oxy` opera diretamente no arquivo SQLite sem precisar abrir janelas, é possível agendar backups consistentes do banco de dados e exportações periódicas pelo `cron` ou pelo Agendador de Tarefas do Windows:
 
 ```bash
+# Backup online do banco de dados SQLite às 02:00 via cron
+0 2 * * * /usr/local/bin/oxy db backup /backups/oxytime-$(date +\%Y\%m\%d).db
+
 # Exportação CSV noturna às 23:59 via cron
 59 23 * * * /usr/local/bin/oxy report export -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
+```
+
+---
+
+## Testes de Integridade em Pipelines de CI/CD
+
+Em ambientes de integração contínua ou scripts de verificação pré-deploy, `oxy doctor --json` avalia a integridade do sistema e do esquema:
+
+```bash
+# Verificar integridade do SQLite e disponibilidade de tabelas em pipeline de CI
+if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
+    echo "Falha na verificação do banco de dados do oXyFlow" >&2
+    exit 1
+fi
+```
+
+---
+
+## Roteamento de Banco de Dados em Automação
+
+Suítes de testes automatizados ou fluxos de trabalho de agentes podem redirecionar o `oxy` para bancos de dados isolados sem tocar nos dados do usuário:
+
+```bash
+# Usando a flag global de linha de comando
+oxy --db ./test-fixtures/isolated.db status --json
+
+# Usando variável de ambiente
+export OXY_DB_PATH="/tmp/ci-run/oxytime.db"
+oxy project ls --json
 ```

@@ -22,13 +22,20 @@ export interface UseLiveTaskElapsedOptions {
   /** Precomputed engine metrics snapshot. */
   metrics?: EngineComputedMetrics | null;
   /** Current active log if any. */
-  activeLog?: TimeLog | null;  
+  activeLog?: TimeLog | null;
+  /** Whether to consider running children/subtasks for live ticking. */
+  includeChildren?: boolean;
+  /** Explicitly passed indicator if child task is running. */
+  isChildRunning?: boolean;
+  /** Optional reference timestamp for testing and synchronized frames. */
+  nowIso?: string;
 }
 
 export interface UseLiveTaskElapsedResult {
   elapsedSeconds: number;
   formattedElapsed: string;
   isRunning: boolean;
+  isSelfRunning: boolean;
 }
 
 /**
@@ -46,19 +53,27 @@ export function useLiveTaskElapsed(
   const metrics = options?.metrics;
   const activeLog = options?.activeLog;
 
-  const isRunning = Boolean(
+  const isSelfRunning = Boolean(
     taskId && (
       metrics?.tasks?.[taskId]?.isRunning ??
       (activeLog ? activeLog.taskId === taskId : false)
     )
   );
 
+  const isChildRunning = Boolean(
+    options?.isChildRunning ||
+    (taskId && options?.includeChildren && (metrics?.tasks?.[taskId]?.hasRunningChild ?? false))
+  );
+
+  const isRunning = isSelfRunning || isChildRunning;
+
   const baseElapsed = (taskId && metrics?.tasks?.[taskId]?.elapsedSeconds) ?? 0;
 
   const getElapsedDelta = () => {
     if (!isRunning) return 0;
     const startTickMs = resolveStartTickMs(metrics?.snapshotNowIso, activeLog?.startTime);
-    return Math.max(0, Math.floor((Date.now() - startTickMs) / 1000));
+    const nowMs = options?.nowIso ? new Date(options.nowIso).getTime() : Date.now();
+    return Math.max(0, Math.floor((nowMs - startTickMs) / 1000));
   };
 
   const [liveExtraSeconds, setLiveExtraSeconds] = useState(getElapsedDelta);
@@ -95,6 +110,7 @@ export function useLiveTaskElapsed(
     elapsedSeconds: elapsed,
     formattedElapsed: formatSeconds(elapsed),
     isRunning,
+    isSelfRunning,
   };
 }
 
@@ -106,6 +122,8 @@ export interface UseLiveProjectElapsedOptions {
   refreshIntervalMs?: number;
   metrics?: EngineComputedMetrics | null;
   activeLog?: TimeLog | null;
+  /** Optional reference timestamp for testing and synchronized frames. */
+  nowIso?: string;
 }
 
 export interface UseLiveProjectElapsedResult {
@@ -137,7 +155,8 @@ export function useLiveProjectElapsed(
   const getElapsedDelta = () => {
     if (!isRunning) return 0;
     const startTickMs = resolveStartTickMs(metrics?.snapshotNowIso, activeLog?.startTime);
-    return Math.max(0, Math.floor((Date.now() - startTickMs) / 1000));
+    const nowMs = options?.nowIso ? new Date(options.nowIso).getTime() : Date.now();
+    return Math.max(0, Math.floor((nowMs - startTickMs) / 1000));
   };
 
   const [liveExtraSeconds, setLiveExtraSeconds] = useState(getElapsedDelta);

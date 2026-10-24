@@ -8,10 +8,11 @@ import {
   DialogFooter,
 } from '@components/ui/dialog';
 import { Button } from '@components/ui/button';
+import { IconBox } from '@components/ui/icon-box';
+import { VStack } from '@components/ui/stack';
 import { AlertTriangle, HelpCircle, type LucideIcon } from 'lucide-react';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
-import { cn } from '@/lib/utils';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -89,15 +90,15 @@ export function ConfirmDialog({
         className="max-w-md focus-visible:outline-none"
       >
         <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
-          <div className={cn('p-2.5 rounded-2xl border shrink-0', iconColor)} aria-hidden="true">
+          <IconBox aria-hidden="true" size="md" rounded="section" className={iconColor}>
             <Icon className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col gap-1 text-left">
+          </IconBox>
+          <VStack gap="2xs" className="text-left">
             <DialogTitle id={titleId}>{title}</DialogTitle>
             {description && (
               <DialogDescription id={descriptionId}>{description}</DialogDescription>
             )}
-          </div>
+          </VStack>
         </DialogHeader>
 
         <DialogFooter className="mt-4 gap-2">

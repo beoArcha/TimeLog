@@ -17,6 +17,7 @@ O binário `oxy` aceita flags globais para ajustar a saída e o nível de detalh
 | `--json` | `-j` | Emite dados brutos em JSON estruturado na saída padrão (`stdout`). |
 | `--machine` | `-m` | Emite JSON conciso em linha única, sem menus iterativos. |
 | `--quiet` | `-q` | Oculta notificações informativas e cabeçalhos de tabela. |
+| `--db <caminho>` | | Caminho explícito para o arquivo do banco de dados SQLite (substitui `OXY_DB_PATH`). |
 
 ---
 
@@ -31,6 +32,9 @@ oxy start "Implementação da API"
 
 # Parar a sessão em andamento
 oxy stop
+
+# Parar todos os temporizadores ativos em todos os projetos
+oxy stop --all
 
 # Alternar atomicamente para outra tarefa em uma única etapa
 oxy switch "Correção na Interface"
@@ -77,10 +81,45 @@ oxy report --tree --today
 # Exibir o relatório consolidado da semana
 oxy report --tree --week
 
+# Consultar o relatório para um intervalo de datas e projeto específico
+oxy report --from 2026-10-01 --to 2026-10-31 -p "Portal do Cliente"
+
 # Exportar registros de tempo para HTML, CSV ou JSON
 oxy report export -f html -o ./relatorio.html
 oxy report export -f csv -o ./relatorio.csv
 oxy report export -f json -o ./relatorio.json
+```
+
+---
+
+## Diagnóstico do Sistema e Gestão do Banco de Dados
+
+```bash
+# Executar diagnóstico de integridade do sistema e do SQLite
+oxy doctor
+
+# Criar backup online do banco de dados SQLite
+oxy db backup ./backups/oxytime-backup.db
+
+# Restaurar banco de dados a partir de um snapshot de backup
+oxy db restore ./backups/oxytime-backup.db
+```
+
+---
+
+## Máscaras de Ação e Macros
+
+Máscaras de ação permitem definir atalhos de comandos reutilizáveis com substituição posicional de argumentos (`$1`..`$9`):
+
+```bash
+# Definir atalho personalizado com substituição de argumentos
+oxy mask set standup "start $1"
+
+# Executar o atalho configurado diretamente
+oxy standup "Alinhamento Diário"
+
+# Listar as máscaras registradas
+oxy mask ls
 ```
 
 ---
@@ -97,5 +136,50 @@ Todos os comandos de `oxy` retornam códigos de saída POSIX determinísticos:
 | `3` | Erro de banco | Falha de E/S ou acesso à base SQLite. |
 | `4` | Erro de entidade | Entidade não encontrada ou correspondência ambígua. |
 | `5` | Erro de motor | Conflito no ciclo de vida do temporizador. |
+
+---
+
+## Envelope de Erros e Modo Máquina
+
+Quando um comando falha, o `oxy` grava informações técnicas estruturadas na saída `stderr`.
+
+Em pipelines automatizados com `--machine` (ou `--json`), prompts interativos e blocos de sugestão para humanos são suprimidos. O erro é emitido como um envelope JSON determinístico em linha única:
+
+```json
+{"code":"DOM_ENTITY_NOT_FOUND","message":"Task '104' was not found","operation":"start","subsystem":"domain"}
+```
+
+No modo interativo do terminal (TTY), o envelope inclui um objeto `user` adicional com contexto no idioma selecionado, instruções de remediação e sugestões do tipo "Você quis dizer...":
+
+```json
+{
+  "code": "DOM_ENTITY_NOT_FOUND",
+  "message": "Task '104' was not found",
+  "operation": "start",
+  "subsystem": "domain",
+  "user": {
+    "locale": "pt-br",
+    "message": "A tarefa '104' não existe no projeto ativo.",
+    "suggestion": "Você quis dizer a tarefa '105' (Implementação OAuth)?",
+    "remediation": "Execute 'oxy task ls' para ver as tarefas disponíveis."
+  }
+}
+```
+
+### Códigos de Erro Semânticos
+
+| Código de Erro | Código de Saída | Descrição |
+| :--- | :---: | :--- |
+| `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Comando ou subcomando desconhecido ou não implementado. |
+| `CLI_SYNTAX_INVALID_ARGS` | `2` | Argumentos ausentes ou inválidos (ex.: caminhos em branco). |
+| `DOM_ENTITY_NOT_FOUND` | `4` | Projeto, tarefa, registro de tempo ou alias não encontrado. |
+| `ENG_OPERATION_FAILED` | `1` | Violação de regra de negócio (ex.: validação de nome vazio). |
+| `ENG_TIMER_ACTIVE` | `5` | Tentativa de iniciar cronômetro quando outro está ativo sem flag force. |
+| `ENG_TIMER_INACTIVE` | `5` | Tentativa de parar cronômetro sem nenhuma sessão ativa em andamento. |
+| `SNK_EXTERNAL_IO` | `1` | Falha de destino externo (caminho inacessível ou teste de sink reprovado). |
+| `STO_SQLITE_CONSTRAINT` | `3` | Violação de restrição do SQLite (chave única ou estrangeira). |
+| `STO_STORAGE_ERROR` | `3` | Erro de baixo nível de acesso ao banco de dados ou E/S. |
+
+---
 
 Para rotinas automatizadas e manipulação com `jq`, veja **[Scripting CLI Avançado](advanced-cli.md)**.

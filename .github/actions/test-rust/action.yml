@@ -1,0 +1,79 @@
+name: Run Rust Tests
+description: Executes Rust test suite (unit or integration) and collects test results and coverage
+
+inputs:
+  suite:
+    description: Test suite to run ('unit' or 'integration')
+    required: true
+  run-coverage:
+    description: Whether to collect Tarpaulin code coverage
+    required: false
+    default: "true"
+  fail-under:
+    description: Minimum line coverage threshold for Tarpaulin
+    required: false
+    default: "40"
+  upload-artifact:
+    description: Whether to upload Rust test and coverage artifacts
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Create Coverage Directory
+      shell: bash
+      run: mkdir -p "coverage/rust-${{ inputs.suite }}"
+
+    # Install official v2 binary release of cargo-tarpaulin
+    - name: Install cargo-tarpaulin
+      if: inputs.run-coverage == 'true'
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-tarpaulin
+
+    # Single pass: runs the target suite directly once and records both test results and coverage
+    - name: Run Test Suite
+      shell: bash
+      env:
+        RUSTFLAGS: "-C link-arg=-fuse-ld=lld"
+      run: |
+        OUT_DIR="coverage/rust-${{ inputs.suite }}"
+        TARGET="${{ inputs.suite == 'unit' && 'unit_tests' || 'integration_tests' }}"
+        LOG_FILE="cargo-${{ inputs.suite }}.log"
+
+        set +e
+        if [ "${{ inputs.run-coverage }}" = "true" ]; then
+          echo "Running Rust ${{ inputs.suite }} tests with Tarpaulin coverage..."
+          (cd src-tauri && cargo tarpaulin \
+            --test "$TARGET" \
+            --out Xml \
+            --out Json \
+            --output-dir "../$OUT_DIR" \
+            --fail-under "${{ inputs.fail-under }}") > "$LOG_FILE" 2>&1
+          TEST_EXIT=$?
+        else
+          echo "Running Rust ${{ inputs.suite }} tests without coverage..."
+          cargo test --test "$TARGET" --manifest-path src-tauri/Cargo.toml > "$LOG_FILE" 2>&1
+          TEST_EXIT=$?
+        fi
+
+        cat "$LOG_FILE"
+
+        # Node is used as portable fallback if Bun is not yet on PATH in pure Rust runners
+        PARSER="bun"
+        command -v bun >/dev/null 2>&1 || PARSER="node"
+        $PARSER scripts/parse-cargo-test.js --log "$LOG_FILE" --out "${OUT_DIR}/test-results-rust-${{ inputs.suite }}.json" --suite "src-tauri/${{ inputs.suite }}" || true
+
+        if [ $TEST_EXIT -ne 0 ]; then
+          echo "::error::Rust ${{ inputs.suite }} tests failed with exit code $TEST_EXIT"
+          exit $TEST_EXIT
+        fi
+
+    - name: Upload Rust Test & Coverage Artifacts
+      if: always() && inputs.upload-artifact == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-rust-${{ inputs.suite }}
+        path: coverage/rust-${{ inputs.suite }}/
+        if-no-files-found: ignore

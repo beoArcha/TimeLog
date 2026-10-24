@@ -1,4 +1,6 @@
 import { translate } from '@common/i18n/translator';
+import { CliRouter } from '@common/cli/CliRouter';
+import { CliExecutionResult } from '@bindings/CliExecutionResult';
 import {
   TerminalLine,
   CliEngineContext,
@@ -14,6 +16,7 @@ import {
   runStopCommand,
   runStatusCommand,
   runSwitchCommand,
+  runTodayCommand,
   runCompleteCommand,
   runLogsCommand,
   runHolidaysCommand,
@@ -23,12 +26,60 @@ import {
   SandboxEmulatorStore,
 } from './commands';
 
+import { SandboxCommandRouter } from '../sandbox/sandboxCommandRouter';
+
 export type { TerminalLine, CliEngineContext };
 export { TerminalOutput };
 
+const formatNativeCliResult = (
+  result: CliExecutionResult,
+  output: TerminalOutput
+): void => {
+  if (!result.stdout) return;
+  const lines = result.stdout.split('\n');
+  for (const line of lines) {
+    if (!result.success) {
+      output.error(line);
+    } else if (line.startsWith('Started') || line.startsWith('Stopped') || line.startsWith('✅')) {
+      output.success(line);
+    } else {
+      output.output(line);
+    }
+  }
+};
+
+const executeNativeCli = async (
+  trimmed: string,
+  context: CliEngineContext,
+  output: TerminalOutput
+): Promise<TerminalLine[]> => {
+  const cliRouter = CliRouter.getInstance();
+  try {
+    const result = await cliRouter.execute(trimmed);
+    formatNativeCliResult(result, output);
+    if (result.success) {
+      await context.onRefreshData?.();
+    }
+  } catch (err: unknown) {
+    output.error(err instanceof Error ? err.message : String(err));
+  }
+  output.empty();
+  return output.getLines();
+};
+
 export const executeCliCommand = async (cmdText: string, context: CliEngineContext): Promise<TerminalLine[]> => {
   const trimmed = cmdText.trim();
-  if (!trimmed) return [];
+  const sandboxStore = SandboxEmulatorStore.getInstance();
+  const isSandboxActive = context.isSandbox || sandboxStore.isActive();
+
+  if (!trimmed) {
+    if (!isSandboxActive && CliRouter.getInstance().hasNativeCli()) {
+      const output = new TerminalOutput();
+      output.input('user@logtime-by-oxyflow:~$ ');
+      return executeNativeCli('', context, output);
+    }
+    return [];
+  }
 
   const regex = /[^\s"']+|"([^"]*)"|'([^']*)'/g;
   const matches: string[] = [];
@@ -43,16 +94,31 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
   const args = matches.slice(1);
   const output = new TerminalOutput();
 
-  const sandboxStore = SandboxEmulatorStore.getInstance();
-  const isSandboxActive = context.isSandbox || sandboxStore.isActive();
-  const effectiveContext = isSandboxActive
-    ? sandboxStore.toCliContext(context)
-    : context;
+  if (commandName === 'clear') {
+    return [{ text: '__CLEAR__', type: 'info' }];
+  }
 
   const promptPrefix = isSandboxActive
     ? 'sandbox@oxyflow-simulator:~$ '
     : 'user@logtime-by-oxyflow:~$ ';
   output.input(`${promptPrefix}${trimmed}`);
+
+  if (!isSandboxActive && commandName !== 'sandbox' && CliRouter.getInstance().hasNativeCli()) {
+    return executeNativeCli(trimmed, context, output);
+  }
+
+  if (isSandboxActive && commandName !== 'sandbox') {
+    const normalizedTokens = SandboxCommandRouter.normalizeLegacyCommand(matches);
+    const routed = SandboxCommandRouter.route(normalizedTokens, sandboxStore, output);
+    if (routed) {
+      output.empty();
+      return output.getLines();
+    }
+  }
+
+  const effectiveContext = isSandboxActive
+    ? sandboxStore.toCliContext(context)
+    : context;
 
   switch (commandName) {
     case 'help':
@@ -85,9 +151,37 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
       runProjectsCommand(effectiveContext, output);
       break;
 
+    case 'project': {
+      const sub = args[0]?.toLowerCase() || 'list';
+      if (sub === 'add' || sub === 'create') {
+        runAddProjectCommand(args.slice(1), effectiveContext, output);
+      } else if (sub === 'rename' || sub === 'ren') {
+        runRenameProjectCommand(args.slice(1), effectiveContext, output);
+      } else {
+        runProjectsCommand(effectiveContext, output);
+      }
+      break;
+    }
+
     case 'tasks':
       runTasksCommand(args, effectiveContext, output);
       break;
+
+    case 'task': {
+      const sub = args[0]?.toLowerCase() || 'list';
+      if (sub === 'add' || sub === 'create') {
+        runAddTaskCommand(args.slice(1), effectiveContext, output);
+      } else if (sub === 'done' || sub === 'complete') {
+        runCompleteCommand(args.slice(1), effectiveContext, output);
+      } else if (sub === 'rename' || sub === 'ren') {
+        runRenameTaskCommand(args.slice(1), effectiveContext, output);
+      } else if (sub === 'list' || sub === 'ls') {
+        runTasksCommand(args.slice(1), effectiveContext, output);
+      } else {
+        runTasksCommand(args, effectiveContext, output);
+      }
+      break;
+    }
 
     case 'addproject':
       runAddProjectCommand(args, effectiveContext, output);
@@ -114,8 +208,16 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
       break;
 
     case 'stop':
+    case 'pause':
       runStopCommand(args, effectiveContext, output);
       break;
+
+    case 'break': {
+      runStopCommand([], effectiveContext, output);
+      const durationStr = args[0] || '5m';
+      output.info(`☕ Break started (${durationStr}). Active timer paused.`);
+      break;
+    }
 
     case 'switch':
       runSwitchCommand(args, effectiveContext, output);
@@ -123,6 +225,10 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
 
     case 'status':
       runStatusCommand(effectiveContext, output);
+      break;
+
+    case 'today':
+      runTodayCommand(effectiveContext, output);
       break;
 
     case 'complete':
@@ -155,7 +261,7 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
 
     default: {
       const helpTip = translate(effectiveContext.locale, 'cli', 'ErrUnknownCmdHelp', effectiveContext.customTranslations, { command: commandName });
-      output.error(`Error: Unknown command "${commandName}". ${helpTip}`);
+      output.error(`Error: Unknown command "${commandName}". ${helpTip}`, 'CLI_SYNTAX_UNKNOWN_COMMAND', 2);
     }
   }
 

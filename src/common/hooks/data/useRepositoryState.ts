@@ -9,12 +9,18 @@ export const useRepositoryState = () => {
   const [tasks, setTasksState] = useState<Task[]>([]);
   const [logs, setLogsState] = useState<TimeLog[]>([]);
   const [activeLog, setActiveLogState] = useState<TimeLog | null>(null);
+  const [activeLogs, setActiveLogsState] = useState<TimeLog[]>([]);
 
   const syncRepositoryState = (nextState: Partial<TimerRepositoryState>) => {
     if (nextState.projects !== undefined) setProjectsState(nextState.projects);
     if (nextState.tasks !== undefined) setTasksState(nextState.tasks);
     if (nextState.logs !== undefined) setLogsState(nextState.logs);
     if (nextState.activeLog !== undefined) setActiveLogState(nextState.activeLog);
+    if (nextState.activeLogs !== undefined) {
+      setActiveLogsState(nextState.activeLogs);
+    } else if (nextState.activeLog !== undefined) {
+      setActiveLogsState(nextState.activeLog ? [nextState.activeLog] : []);
+    }
   };
 
   return {
@@ -26,6 +32,8 @@ export const useRepositoryState = () => {
     setLogsState,
     activeLog,
     setActiveLogState,
+    activeLogs,
+    setActiveLogsState,
     syncRepositoryState,
   };
 };

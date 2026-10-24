@@ -11,6 +11,7 @@ This file is the single entry point. Detailed, topic-specific rules live in `.ag
 | [`.agents/rules/backend_rust_engineering_standards.md`](.agents/rules/backend_rust_engineering_standards.md) | Rust domain modeling, errors, CLI exit codes, handler structure |
 | [`.agents/rules/testing_standards.md`](.agents/rules/testing_standards.md) | Test tiers, naming, AAA / BDT, builders, decoupling, timeouts |
 | [`.agents/rules/code_commenting_standards.md`](.agents/rules/code_commenting_standards.md) | When and how to write comments |
+| [`.agents/rules/documentation_standards.md`](.agents/rules/documentation_standards.md) | Analytical artifacts, implementation plans, manifesto, multilingual wiki, AI humanizer |
 
 Architecture background for humans and agents: [`docs/manifesto/ENGINEERING.md`](docs/manifesto/ENGINEERING.md). Roadmap and status: [`docs/manifesto/MASTERMAP.md`](docs/manifesto/MASTERMAP.md). CLI contract: [`docs/manifesto/CLI.md`](docs/manifesto/CLI.md). UI and UX principles: [`docs/manifesto/USERINTERFACE.md`](docs/manifesto/USERINTERFACE.md), [`docs/manifesto/USEREXPERIENCE.md`](docs/manifesto/USEREXPERIENCE.md).
 
@@ -96,7 +97,7 @@ Rules marked *(enforced)* fail the build automatically; the test name points to 
 
 1. Business logic lives only in the Engine, once per runtime. *(enforced: `engine-boundary`, `persistence-boundary` arch tests)*
 2. Shared components never detect the runtime. *(enforced: `runtime-isolation` arch test)*
-3. No raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>` outside `src/components/ui/`. *(enforced: `no-raw-html-primitives` arch test + ESLint)*
+3. No raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>`, `<p>`, `<form>`, `<aside>` outside `src/components/ui/`. *(enforced: `no-raw-html-primitives` arch test + ESLint)*
 4. No theme branching in components (`theme === 'dark' ? …`). Use semantic tokens. *(enforced: `no-inline-theme-ternaries` arch test)*
 5. No custom `setInterval` tickers for elapsed time; use `useLiveTaskElapsed` / `useLiveProjectElapsed`. *(enforced: `timer-live-calculation` arch test)*
 6. No circular dependencies. *(enforced: `circular-dependencies` arch test, Rust `cyclic_dependencies_test`)*
@@ -127,7 +128,8 @@ Large features and roadmap phases follow the phase-gate process in [`development
 ### Refactoring scope
 
 - Small cleanups inside code you are already changing are expected: rename unclear identifiers, remove dead code, replace a magic string, fix a rule violation on the touched lines.
-- Larger refactors (splitting files, moving modules, changing contracts) are a separate task or commit. Propose them; do them only when requested or approved.
+- Proactive decomposition: Keep files focused and lean (aim for ≤300 LOC). If a touched file expands beyond single responsibility or healthy size, decompose it into domain submodules within the current task.
+- Unrelated structural refactors across distant subsystems or contracts are proposed and done as a separate task or commit after approval.
 - Never mix a feature, an unrelated refactor and an architecture change in one commit.
 
 ---
@@ -139,7 +141,8 @@ Update documentation in the same change when you:
 | Change | Update |
 | --- | --- |
 | Architecture, layers, contracts | `docs/manifesto/ENGINEERING.md`, and `AGENTS.md` if a rule changes |
-| Roadmap item completed or started | `docs/manifesto/MASTERMAP.md` |
+| Roadmap phase completed or started | `docs/manifesto/MASTERMAP.md` (Strategic roadmap/plan only; NEVER use as a changelog) |
+| Feature, bug fix, or version delivered | `CHANGELOG.md` (Keep a Changelog format with version suffixes: `Added in X.Y.Z`, `Changed in X.Y.Z`, `Fixed in X.Y.Z`, `Removed in X.Y.Z`) |
 | CLI command, flag, error code or exit code | `docs/manifesto/CLI.md` |
 | Setup, scripts, features list | `README.md` |
 | UI dimensions, tokens, design system | `docs/manifesto/USERINTERFACE.md` |

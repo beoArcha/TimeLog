@@ -20,6 +20,8 @@ const FORBIDDEN_HTML_TAGS: Record<string, string> = {
   th: 'Use <TableHead> from @components/ui/table',
   td: 'Use <TableCell> from @components/ui/table',
   p: 'Use <Text> or <Caption> from @components/ui/typography',
+  form: 'Use <Form> from @components/ui/form',
+  aside: 'Use <Area as="aside"> from @components/ui/area',
 };
 
 export const LEGACY_RAW_HTML_ALLOWLIST = new Set<string>();

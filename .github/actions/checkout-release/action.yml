@@ -1,0 +1,41 @@
+name: Checkout Release
+description: Checks out the release branch regardless of dispatch trigger ref
+
+inputs:
+  ref:
+    description: Branch or commit ref to checkout
+    required: false
+    default: "release"
+  fetch-depth:
+    description: Commit depth to fetch (0 = full history)
+    required: false
+    default: 0
+
+outputs:
+  sha:
+    description: Git commit SHA of the checked out ref
+    value: ${{ steps.meta.outputs.sha }}
+  version:
+    description: Application version from package.json
+    value: ${{ steps.meta.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    # Full history (fetch-depth: 0) is required for version tagging and changelog resolution
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.ref }}
+        fetch-depth: ${{ inputs.fetch-depth }}
+
+    # Resolve commit SHA and package version for downstream job dependencies
+    - name: Resolve Commit and Version
+      id: meta
+      shell: bash
+      run: |
+        SHA=$(git rev-parse HEAD)
+        VERSION=$(node -p "require('./package.json').version")
+        echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+        echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+        echo "Checked out ref '${{ inputs.ref }}' at commit ${SHA} (version ${VERSION})"

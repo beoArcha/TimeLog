@@ -23,9 +23,8 @@ impl CsvSink {
     }
 
     pub fn emit(&self, event: &PersistenceEvent) {
-        if let Err(e) = self.try_emit(event) {
-            eprintln!("Warning: CsvSink failed to emit event: {}", e);
-        }
+        // CsvSink acts as a best-effort audit sink; failures must not disrupt persistence or pollute stderr.
+        let _ = self.try_emit(event);
     }
 
     fn try_emit(&self, event: &PersistenceEvent) -> Result<(), CsvSinkError> {

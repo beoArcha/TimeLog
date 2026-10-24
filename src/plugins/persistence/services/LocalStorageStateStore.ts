@@ -18,6 +18,8 @@ export interface ILocalStorageStateStore {
 }
 
 export class LocalStorageStateStore implements ILocalStorageStateStore {
+  private isCorrupted = false;
+
   async load(): Promise<TimerRepositoryState | null> {
     const data = localStorage.getItem(STORAGE_KEYS.STORAGE_KEY);
     if (!data) {
@@ -35,14 +37,28 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
     try {
       return JSON.parse(data) as TimerRepositoryState;
     } catch (e) {
-      ErrorHandler.handle(
-        new PersistenceException('Failed to parse persistence state from LocalStorage', e, 'ERR_PERSISTENCE_PARSE')
+      this.isCorrupted = true;
+      const exception = new PersistenceException(
+        'Failed to parse persistence state from LocalStorage - storage quarantined to prevent data loss',
+        e,
+        'ERR_PERSISTENCE_PARSE'
       );
-      return getDefaultState();
+      ErrorHandler.handle(exception);
+      throw exception;
     }
   }
 
   async save(state: TimerRepositoryState): Promise<TimerRepositoryState> {
+    if (this.isCorrupted) {
+      const exception = new PersistenceException(
+        'Cannot save state while LocalStorage is in quarantined corrupted state',
+        null,
+        'ERR_PERSISTENCE_QUARANTINE'
+      );
+      ErrorHandler.handle(exception);
+      throw exception;
+    }
+
     try {
       localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(state));
       return state;
@@ -55,6 +71,7 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
   }
 
   async reset(): Promise<TimerRepositoryState> {
+    this.isCorrupted = false;
     localStorage.removeItem(STORAGE_KEYS.STORAGE_KEY);
     localStorage.removeItem(STORAGE_KEYS.SETTINGS_KEY);
     localStorage.removeItem(STORAGE_KEYS.RUN_CONFIGS_KEY);

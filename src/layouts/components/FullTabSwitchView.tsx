@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { AnimatedFade } from '@components/AnimatedFade';
 import FullLayoutBuilder from '../builders/FullLayoutBuilder';
 import CliInterface from '@features/cli/CliInterface';
 import DbExplorer from '@features/db-explorer/DbExplorer';
@@ -7,6 +8,7 @@ import BackupTab from '@features/settings/BackupTab';
 import SettingsTab from '@features/settings/SettingsTab';
 import ManualTab from '@features/settings/ManualTab';
 import CreditsTab from '@features/settings/CreditsTab';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { AppTabId } from '@common/types/navigation';
 import { GuiState } from '../hooks/useGuiLogic';
 
@@ -33,60 +35,62 @@ export const FullTabSwitchView: React.FC<FullTabSwitchViewProps> = ({
   guiState,
   sharedProps,
 }) => {
+  const { canInspectDatabase } = usePlatformCapabilities();
+
   return (
     <AnimatePresence mode="wait">
       {activeLargeTab === 'tasks' && (
-        <motion.div key="large-tab-tasks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+        <AnimatedFade key="large-tab-tasks" className="w-full min-w-0">
           <FullLayoutBuilder
             state={guiState}
             {...sharedProps}
           />
-        </motion.div>
+        </AnimatedFade>
       )}
 
       {activeLargeTab === 'cli' && (
-        <motion.div key="large-tab-cli" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0 flex-1 flex flex-col min-h-0">
+        <AnimatedFade key="large-tab-cli" className="w-full min-w-0 flex-1 flex flex-col min-h-0">
           <CliInterface />
-        </motion.div>
+        </AnimatedFade>
       )}
 
       {activeLargeTab === 'reports' && (
-        <motion.div key="large-tab-reports" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+        <AnimatedFade key="large-tab-reports" className="w-full min-w-0">
           <FullLayoutBuilder
             state={guiState}
             {...sharedProps}
           />
-        </motion.div>
+        </AnimatedFade>
       )}
 
-      {activeLargeTab === 'db' && (
-        <motion.div key="large-tab-db" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+      {activeLargeTab === 'db' && canInspectDatabase && (
+        <AnimatedFade key="large-tab-db" className="w-full min-w-0">
           <DbExplorer />
-        </motion.div>
+        </AnimatedFade>
       )}
 
       {activeLargeTab === 'backup' && (
-        <motion.div key="large-tab-backup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+        <AnimatedFade key="large-tab-backup" className="w-full min-w-0">
           <BackupTab />
-        </motion.div>
+        </AnimatedFade>
       )}
 
       {activeLargeTab === 'settings' && (
-        <motion.div key="large-tab-settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+        <AnimatedFade key="large-tab-settings" className="w-full min-w-0">
           <SettingsTab />
-        </motion.div>
+        </AnimatedFade>
       )}
 
       {activeLargeTab === 'manual' && (
-        <motion.div key="large-tab-manual" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+        <AnimatedFade key="large-tab-manual" className="w-full min-w-0">
           <ManualTab />
-        </motion.div>
+        </AnimatedFade>
       )}
 
       {activeLargeTab === 'credits' && (
-        <motion.div key="large-tab-credits" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full min-w-0">
+        <AnimatedFade key="large-tab-credits" className="w-full min-w-0">
           <CreditsTab />
-        </motion.div>
+        </AnimatedFade>
       )}
     </AnimatePresence>
   );

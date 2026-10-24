@@ -161,6 +161,8 @@ pub struct TimerRepositoryState {
     pub tasks: Vec<Task>,
     pub logs: Vec<TimeLog>,
     pub active_log: Option<TimeLog>,
+    #[ts(optional)]
+    pub active_logs: Option<Vec<TimeLog>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]

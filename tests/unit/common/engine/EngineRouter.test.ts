@@ -11,6 +11,7 @@ describe('Unit Tests: EngineRouter', () => {
         startTimer: vi.fn().mockResolvedValue(undefined),
         stopTimer: vi.fn().mockResolvedValue(undefined),
         resumeTimer: vi.fn().mockResolvedValue(undefined),
+        switchTimer: vi.fn().mockResolvedValue(undefined),
         getActiveLogs: vi.fn().mockResolvedValue(['log-1']),
       },
       metrics: {

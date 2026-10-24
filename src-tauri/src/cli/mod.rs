@@ -2,14 +2,14 @@ pub mod error;
 pub mod exporters;
 pub mod formatters;
 pub mod handlers;
-pub mod manage;
 pub mod parser;
 pub mod resolver;
-pub mod settings;
 pub mod shared;
-pub mod timer;
 
-pub use error::{CliError, CliErrorCode, CliErrorEnvelope, LocalizedUserMessage};
+pub use error::{
+    BusinessRuleViolation, CliError, CliErrorCode, CliErrorEnvelope, CliSyntaxError,
+    LocalizedUserMessage,
+};
 pub use exporters::export_to_file;
 pub use formatters::{format_duration, render_tree_string, ReportTreeDto};
 pub use parser::{CliArgs, CliCommand, CliCommands, ExportFormat};
@@ -28,6 +28,14 @@ pub fn handle_cli(
     handlers::dispatch_command(args, persistence, engine)
 }
 
+pub fn preprocess_args(
+    raw_args: &[String],
+    persistence: &Persistence,
+    engine: &Engine,
+) -> Result<Vec<String>, CliError> {
+    handlers::mask_handler::preprocess_alias_invocation(raw_args, persistence, engine)
+}
+
 pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCode {
     let is_machine = args.machine || args.json;
     match handle_cli(args, persistence, engine) {
@@ -36,7 +44,7 @@ pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCod
             ExitCode::from(EXIT_CODE_SUCCESS)
         }
         Err(err) => {
-            let envelope = err.to_envelope(None);
+            let envelope = err.to_envelope_with_mode(is_machine, None);
             envelope.render_stderr(is_machine);
             envelope.to_exit_code()
         }

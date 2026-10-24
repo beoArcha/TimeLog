@@ -4,7 +4,12 @@ import { PlatformCapabilitiesProvider } from '@common/contexts/PlatformCapabilit
 
 export default function AppBrowser() {
   return (
-    <PlatformCapabilitiesProvider capabilities={{ dragRegionProps: {} }}>
+    <PlatformCapabilitiesProvider
+      capabilities={{
+        dragRegionProps: {},
+        canInspectDatabase: Boolean(import.meta.env.DEV),
+      }}
+    >
       <LayoutManager runtime="browser" />
     </PlatformCapabilitiesProvider>
   );

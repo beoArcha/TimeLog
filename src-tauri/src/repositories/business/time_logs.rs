@@ -1,15 +1,15 @@
 use super::constants;
 use super::BusinessRepository;
-use crate::repositories::shared::errors::Result;
+use crate::repositories::shared::errors::{RepositoryError, Result};
 use crate::types::TimeLog;
 use rusqlite::params;
 
 impl BusinessRepository {
-    fn map_time_log_row(row: &rusqlite::Row) -> rusqlite::Result<TimeLog> {
+    pub fn map_time_log_row(row: &rusqlite::Row) -> rusqlite::Result<TimeLog> {
         let edit_history_str: Option<String> = row.get(6)?;
-        let edit_history = edit_history_str
-            .and_then(|s| serde_json::from_str::<Vec<crate::types::TimeLogEditHistory>>(&s).ok())
-            .filter(|v| !v.is_empty());
+        let edit_history: Option<Vec<crate::types::TimeLogEditHistory>> =
+            crate::repositories::shared::parse_json_column(6, edit_history_str)?;
+        let edit_history = edit_history.filter(|v| !v.is_empty());
 
         Ok(TimeLog {
             id: row.get(0)?,
@@ -36,7 +36,14 @@ impl BusinessRepository {
     pub fn get_project_id_by_task_id(&self, task_id: &str) -> Result<String> {
         let conn = self.connect()?;
         let mut stmt = conn.prepare(constants::SELECT_PROJECT_ID_BY_TASK_ID)?;
-        Ok(stmt.query_row(params![task_id], |row| row.get(0))?)
+        stmt.query_row(params![task_id], |row| row.get(0))
+            .map_err(|err| match err {
+                rusqlite::Error::QueryReturnedNoRows => RepositoryError::NotFound {
+                    entity: "Task",
+                    id: task_id.to_string(),
+                },
+                other => RepositoryError::Database(other),
+            })
     }
 
     pub fn close_active_logs_by_project(&self, end_time: &str, project_id: &str) -> Result<usize> {
@@ -99,7 +106,14 @@ impl BusinessRepository {
     pub fn get_time_log_by_id(&self, log_id: &str) -> Result<TimeLog> {
         let conn = self.connect()?;
         let mut stmt = conn.prepare(constants::SELECT_TIME_LOG_BY_ID)?;
-        Ok(stmt.query_row(params![log_id], Self::map_time_log_row)?)
+        stmt.query_row(params![log_id], Self::map_time_log_row)
+            .map_err(|err| match err {
+                rusqlite::Error::QueryReturnedNoRows => RepositoryError::NotFound {
+                    entity: "TimeLog",
+                    id: log_id.to_string(),
+                },
+                other => RepositoryError::Database(other),
+            })
     }
 
     pub fn update_time_log_with_history(
@@ -109,7 +123,7 @@ impl BusinessRepository {
         let mut conn = self.connect()?;
         let tx = conn.transaction()?;
 
-        tx.execute(
+        let affected = tx.execute(
             constants::UPDATE_TIME_LOG,
             params![
                 entry.id,
@@ -119,6 +133,12 @@ impl BusinessRepository {
                 entry.note
             ],
         )?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "TimeLog",
+                id: entry.id.to_string(),
+            });
+        }
 
         let reason_str = entry.reason.map(|r| r.as_str());
 
@@ -141,6 +161,77 @@ impl BusinessRepository {
 
     pub fn delete_time_log(&self, id: &str) -> Result<usize> {
         let conn = self.connect()?;
-        Ok(conn.execute(constants::DELETE_TIME_LOG_BY_ID, params![id])?)
+        let affected = conn.execute(constants::DELETE_TIME_LOG_BY_ID, params![id])?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "TimeLog",
+                id: id.to_string(),
+            });
+        }
+        Ok(affected)
+    }
+
+    pub fn start_active_log(
+        &self,
+        end_time: &str,
+        log_id: &str,
+        task_id: &str,
+        start_time: &str,
+    ) -> Result<()> {
+        let mut conn = self.connect()?;
+        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+
+        let (project_id, allow_concurrency_int): (String, Option<i32>) = {
+            let mut stmt = tx.prepare(constants::SELECT_TASK_PROJECT_CONCURRENCY)?;
+            stmt.query_row(params![task_id], |row| Ok((row.get(0)?, row.get(1)?)))
+                .map_err(|err| match err {
+                    rusqlite::Error::QueryReturnedNoRows => RepositoryError::NotFound {
+                        entity: "Task",
+                        id: task_id.to_string(),
+                    },
+                    other => RepositoryError::Database(other),
+                })?
+        };
+
+        tx.execute(
+            constants::CLOSE_ACTIVE_LOGS_BY_PROJECT,
+            params![end_time, project_id],
+        )?;
+
+        let allows_concurrency = allow_concurrency_int.map(|v| v == 1).unwrap_or(false);
+        if !allows_concurrency {
+            tx.execute(
+                constants::CLOSE_ACTIVE_LOGS_NON_CONCURRENT,
+                params![end_time],
+            )?;
+        }
+
+        tx.execute(
+            constants::INSERT_TIME_LOG,
+            params![log_id, task_id, start_time],
+        )?;
+
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn switch_active_logs(
+        &self,
+        end_time: &str,
+        log_id: &str,
+        task_id: &str,
+        start_time: &str,
+    ) -> Result<()> {
+        let mut conn = self.connect()?;
+        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+
+        tx.execute(constants::CLOSE_ALL_ACTIVE_LOGS, params![end_time])?;
+        tx.execute(
+            constants::INSERT_TIME_LOG,
+            params![log_id, task_id, start_time],
+        )?;
+
+        tx.commit()?;
+        Ok(())
     }
 }

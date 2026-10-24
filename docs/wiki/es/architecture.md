@@ -70,3 +70,25 @@ Tanto en el código TypeScript como en los módulos Rust, la profundidad máxima
 ### 4. Aislamiento del CLI Nativo
 
 El binario de terminal (`src-tauri/src/cli/`) se comunica directamente con las interfaces `Engine` y `Persistence`. Tiene prohibido explícitamente importar tipos de interfaz gráfica de Tauri (`AppState`, `tauri::AppHandle`, controladores de ventanas o componentes de bandeja del sistema).
+
+### 5. Encapsulación de Capas y Contrato de Errores
+
+oXyFlow impone una propagación de errores unidireccional y fuertemente tipada en todos los límites arquitectónicos:
+
+```text
+Repositorios (RepositoryError)
+         │
+         ▼
+Capa de Persistencia (PersistenceError)
+         │
+         ├───────────────────────────────┐
+         ▼                               ▼
+Comandos Tauri IPC (AppError)    CLI Nativo (CliError)
+         │                               │
+         ▼                               ▼
+Frontend (códigos texto: "DOM_*") Terminal / CI (envoltorio JSON y código de salida)
+```
+
+1. **Encapsulación Estricta de Repositorios**: Los fallos de bajo nivel de base de datos y consultas SQL (`RepositoryError`) se asignan estrictamente a errores de persistencia del dominio (`PersistenceError`). Los tipos de repositorio crudos nunca cruzan hacia los manejadores de comandos Tauri IPC o módulos CLI.
+2. **Enums de Error Tipados**: Cada capa define su propio enum con `thiserror` con variantes estructuradas. Está prohibido devolver tipos genéricos como `String`, `Box<dyn Error>` o `anyhow::Error`.
+3. **Mapeo Determinista de Errores**: Los errores de dominio se asignan a códigos estandarizados en mayúsculas (`DOM_*`, `ENG_*`, `STO_*`, `SNK_*`, `CLI_SYNTAX_*`) y códigos de salida POSIX deterministas (`0`–`5`).

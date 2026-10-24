@@ -40,20 +40,40 @@ describe('LocalStorageStateStore', () => {
     expect(result).toEqual(sampleState);
   });
 
-  it('should return empty default state when stored JSON is invalid', async () => {
+  it('should throw PersistenceException and quarantine storage when stored JSON is invalid', async () => {
     // Arrange
     localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, 'invalid-json{{{');
 
+    // Act & Assert
+    await expect(store.load()).rejects.toThrow('quarantined to prevent data loss');
+
+    // Assert subsequent save is blocked by quarantine
+    await expect(
+      store.save({
+        projects: [],
+        tasks: [],
+        logs: [],
+        activeLog: null,
+      })
+    ).rejects.toThrow('quarantined corrupted state');
+  });
+
+  it('should reset quarantine state on explicit reset', async () => {
+    // Arrange
+    localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, 'invalid-json{{{');
+    await expect(store.load()).rejects.toThrow();
+
     // Act
-    const result = await store.load();
+    await store.reset();
 
     // Assert
-    expect(result).toEqual({
+    const afterReset = await store.save({
       projects: [],
       tasks: [],
       logs: [],
       activeLog: null,
     });
+    expect(afterReset).toBeDefined();
   });
 
   it('should serialize and persist state to localStorage on save', async () => {

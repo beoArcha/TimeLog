@@ -1,8 +1,9 @@
 use crate::app::state::AppState;
 use crate::commands::{
-    app as app_cmds, engine,
+    app as app_cmds, cli as cli_cmds, debug_db, engine,
     persistence::{
-        auxiliary, core, holidays, patches, project, settings, task, time_log, webhook_queue,
+        core, external_api, holidays, locale, patches, project, settings, task, time_log, ui_state,
+        webhook_queue,
     },
     window, workflow as workflow_cmds,
 };
@@ -22,6 +23,7 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             engine::start_timer,
             engine::stop_timer,
             engine::resume_timer,
+            engine::switch_timer,
             engine::get_active_logs,
             engine::get_task_elapsed,
             engine::get_project_elapsed,
@@ -59,18 +61,22 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             holidays::save_holidays,
             patches::get_patches,
             patches::save_patches,
-            auxiliary::get_current_project_id,
-            auxiliary::save_current_project_id,
-            auxiliary::get_last_non_compact_variant,
-            auxiliary::save_last_non_compact_variant,
-            auxiliary::get_external_api_settings,
-            auxiliary::save_external_api_settings,
-            auxiliary::get_locale_pref,
-            auxiliary::save_locale_pref,
-            auxiliary::get_locale,
-            auxiliary::save_locale,
-            auxiliary::get_custom_translations,
-            auxiliary::save_custom_translations,
+            ui_state::get_current_project_id,
+            ui_state::save_current_project_id,
+            ui_state::get_last_non_compact_variant,
+            ui_state::save_last_non_compact_variant,
+            ui_state::get_project_order,
+            ui_state::save_project_order,
+            ui_state::get_last_tracked_task_id,
+            ui_state::save_last_tracked_task_id,
+            external_api::get_external_api_settings,
+            external_api::save_external_api_settings,
+            locale::get_locale_pref,
+            locale::save_locale_pref,
+            locale::get_locale,
+            locale::save_locale,
+            locale::get_custom_translations,
+            locale::save_custom_translations,
             webhook_queue::enqueue_webhook,
             webhook_queue::get_pending_webhooks,
             webhook_queue::update_webhook_status,
@@ -92,7 +98,11 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             workflow_cmds::workflow_get_status,
             workflow_cmds::workflow_check_rules,
             workflow_cmds::workflow_start_daemon,
-            workflow_cmds::workflow_stop_daemon
+            workflow_cmds::workflow_stop_daemon,
+            debug_db::debug_get_tables,
+            debug_db::debug_get_table_rows,
+            debug_db::debug_update_cell,
+            cli_cmds::cli_execute
         ])
         .setup(|app| setup_app(app).map_err(Into::into))
         .on_window_event(handle_window_event)
@@ -104,8 +114,8 @@ pub enum AppSetupError {
     Io(#[from] std::io::Error),
     #[error("Tauri framework error: {0}")]
     Tauri(#[from] tauri::Error),
-    #[error("Persistence initialization error: {0}")]
-    Persistence(#[from] crate::repositories::shared::errors::RepositoryError),
+    #[error("Persistence error: {0}")]
+    Persistence(#[from] crate::persistence::error::PersistenceError),
 }
 
 fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
@@ -122,7 +132,7 @@ fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
     let persistence =
         std::sync::Arc::new(crate::persistence::Persistence::new(&persistence_config)?);
 
-    let initial_settings = persistence.settings.get().unwrap_or_default();
+    let initial_settings = persistence.settings.get()?;
     let initial_minimize_to_tray = initial_settings.minimize_to_tray.unwrap_or(true);
     let initial_gui_variant = initial_settings
         .gui_variant
@@ -135,12 +145,12 @@ fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
         initial_settings.always_on_top_main.unwrap_or(false)
     };
 
-    let initial_locale = persistence
-        .auxiliary
-        .get_locale()
-        .ok()
-        .filter(|loc_str| !loc_str.is_empty())
-        .map(|loc_str| crate::types::Locale::from_sys_lang(&loc_str));
+    let initial_locale_str = persistence.locale.get_locale()?;
+    let initial_locale = if initial_locale_str.is_empty() {
+        None
+    } else {
+        Some(crate::types::Locale::from_sys_lang(&initial_locale_str))
+    };
 
     let (tray_menu, tray_handles) = tray::build_tray_menu(
         app,

@@ -8,6 +8,7 @@ export interface MockDatabaseState {
   tasks: Task[];
   logs: TimeLog[];
   activeLog: TimeLog | null;
+  activeLogs?: TimeLog[];
 }
 
 export interface MockCommandArgs {

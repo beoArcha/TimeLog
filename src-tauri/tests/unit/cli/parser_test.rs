@@ -148,8 +148,11 @@ fn test_given_project_domain_commands_when_parsing_cli_then_maps_to_subcommands(
         Some(CliCommand::Project(args)) => {
             assert!(matches!(
                 args.command,
-                ProjectSubcommand::Rename { ref target, ref new_name }
-                    if target == "p1" && new_name == "NewName"
+                ProjectSubcommand::Rename {
+                    ref target,
+                    ref new_name,
+                    color: None
+                } if target == "p1" && new_name.as_deref() == Some("NewName")
             ));
         }
         other => panic!("Expected Project Rename, got: {:?}", other),
@@ -174,6 +177,10 @@ fn test_given_task_domain_commands_when_parsing_cli_then_maps_subtasks_and_done(
     ])
     .expect("t add subtask");
     let done = CliArgs::try_parse_from(vec!["oxy", "t", "done", "auth"]).expect("t done");
+    let reparent = CliArgs::try_parse_from(vec!["oxy", "task", "reparent", "child", "new_parent"])
+        .expect("task reparent");
+    let move_task =
+        CliArgs::try_parse_from(vec!["oxy", "task", "move", "task1", "proj2"]).expect("task move");
 
     // Assert
     match add_subtask.command {
@@ -201,6 +208,32 @@ fn test_given_task_domain_commands_when_parsing_cli_then_maps_subtasks_and_done(
         }
         other => panic!("Expected Task Done, got: {:?}", other),
     }
+
+    match reparent.command {
+        Some(CliCommand::Task(args)) => {
+            assert!(matches!(
+                args.command,
+                TaskSubcommand::Reparent {
+                    ref target,
+                    ref new_parent
+                } if target == "child" && new_parent == "new_parent"
+            ));
+        }
+        other => panic!("Expected Task Reparent, got: {:?}", other),
+    }
+
+    match move_task.command {
+        Some(CliCommand::Task(args)) => {
+            assert!(matches!(
+                args.command,
+                TaskSubcommand::Move {
+                    ref target,
+                    ref new_project
+                } if target == "task1" && new_project == "proj2"
+            ));
+        }
+        other => panic!("Expected Task Move, got: {:?}", other),
+    }
 }
 
 #[test]
@@ -224,12 +257,111 @@ fn test_given_log_domain_commands_when_parsing_cli_then_parses_duration_and_note
                 LogSubcommand::Add {
                     ref target,
                     ref duration,
-                    ref note
+                    ref note,
+                    ..
                 } if target == "auth"
-                    && duration == "45m"
+                    && duration.as_deref() == Some("45m")
                     && note.as_deref() == Some("Fixed token refresh")
             ));
         }
         other => panic!("Expected Log Add, got: {:?}", other),
+    }
+
+    let add_explicit = CliArgs::try_parse_from(vec![
+        "oxy",
+        "log",
+        "add",
+        "auth",
+        "--from",
+        "2026-10-24T10:00:00Z",
+        "--to",
+        "2026-10-24T11:00:00Z",
+        "--note",
+        "Explicit range",
+    ])
+    .expect("log add explicit");
+
+    match add_explicit.command {
+        Some(CliCommand::Log(args)) => {
+            assert!(matches!(
+                args.command,
+                LogSubcommand::Add {
+                    ref target,
+                    ref from,
+                    ref to,
+                    ref explicit_note,
+                    ..
+                } if target == "auth"
+                    && from.as_deref() == Some("2026-10-24T10:00:00Z")
+                    && to.as_deref() == Some("2026-10-24T11:00:00Z")
+                    && explicit_note.as_deref() == Some("Explicit range")
+            ));
+        }
+        other => panic!("Expected Log Add explicit, got: {:?}", other),
+    }
+
+    let edit_log = CliArgs::try_parse_from(vec![
+        "oxy",
+        "log",
+        "edit",
+        "log-123",
+        "--start",
+        "2026-10-24T09:00:00Z",
+        "--end",
+        "2026-10-24T10:30:00Z",
+        "--task",
+        "backend",
+    ])
+    .expect("log edit");
+
+    match edit_log.command {
+        Some(CliCommand::Log(args)) => {
+            assert!(matches!(
+                args.command,
+                LogSubcommand::Edit {
+                    ref id,
+                    ref start,
+                    ref end,
+                    ref task,
+                    ..
+                } if id == "log-123"
+                    && start.as_deref() == Some("2026-10-24T09:00:00Z")
+                    && end.as_deref() == Some("2026-10-24T10:30:00Z")
+                    && task.as_deref() == Some("backend")
+            ));
+        }
+        other => panic!("Expected Log Edit, got: {:?}", other),
+    }
+
+    let list_logs = CliArgs::try_parse_from(vec![
+        "oxy",
+        "log",
+        "ls",
+        "-p",
+        "Website",
+        "--month",
+        "--from",
+        "2026-10-01",
+        "--to",
+        "2026-10-31",
+    ])
+    .expect("log ls");
+
+    match list_logs.command {
+        Some(CliCommand::Log(args)) => {
+            assert!(matches!(
+                args.command,
+                LogSubcommand::List {
+                    ref project,
+                    month: true,
+                    ref from,
+                    ref to,
+                    ..
+                } if project.as_deref() == Some("Website")
+                    && from.as_deref() == Some("2026-10-01")
+                    && to.as_deref() == Some("2026-10-31")
+            ));
+        }
+        other => panic!("Expected Log List, got: {:?}", other),
     }
 }

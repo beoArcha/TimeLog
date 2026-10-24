@@ -43,6 +43,13 @@ export const useCliDrawer = ({ onClose }: UseCliDrawerProps = {}) => {
   }, [input, session]);
 
   const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    const isCtrlL = (e.key === 'l' || e.key === 'L') && (e.ctrlKey || e.metaKey);
+    if (isCtrlL) {
+      e.preventDefault();
+      session.clearHistory();
+      return;
+    }
+
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       const previousCmd = session.navigateHistory('up', input);

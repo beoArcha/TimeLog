@@ -5,6 +5,7 @@ export interface SubtaskListProps {
   subTasks: Task[];
   isCondensed: boolean;
   metrics?: import('@bindings/EngineComputedMetrics').EngineComputedMetrics | null;
+  activeLog?: import('@bindings/TimeLog').TimeLog | null;
   onToggleTaskComplete?: (id: string) => void;
   onRenameTask?: ((id: string, name: string) => void) | undefined;
   onUpdateTask?: ((
@@ -23,6 +24,7 @@ export function SubtaskList({
   subTasks,
   isCondensed,
   metrics,
+  activeLog,
   onToggleTaskComplete,
   onRenameTask,
   onUpdateTask,
@@ -45,6 +47,7 @@ export function SubtaskList({
           key={subTask.id}
           subTask={subTask}
           metrics={metrics}
+          activeLog={activeLog}
           onToggleTaskComplete={onToggleTaskComplete}
           onRenameTask={onRenameTask}
           onUpdateTask={onUpdateTask}

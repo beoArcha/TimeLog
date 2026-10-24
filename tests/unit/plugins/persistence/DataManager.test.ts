@@ -27,50 +27,89 @@ describe('Unit Tests: LocalStorageDataManager', () => {
   });
 
   describe('loadState', () => {
-    it('Given no stored data, Then it should return null', () => {
+    it('should return null when no stored data exists', () => {
+      // Act
       const state = manager.loadState();
+
+      // Assert
       expect(state).toBeNull();
     });
 
-    it('Given valid JSON stored, Then it should parse and return state', () => {
+    it('should parse and return state when valid JSON is stored', () => {
+      // Arrange
       const stored = buildEmptyState();
       stored.projects.push({ id: 'p1', name: 'Proj', color: 'red', createdAt: '2026' });
       localStorage.setItem(TEST_KEY, JSON.stringify(stored));
 
+      // Act
       const state = manager.loadState();
+
+      // Assert
       expect(state).not.toBeNull();
       expect(state!.projects).toHaveLength(1);
       expect(state!.projects[0].id).toBe('p1');
     });
 
-    it('Given invalid JSON stored, Then it should return null and not throw', () => {
+    it('should throw PersistenceException and quarantine storage when stored JSON is invalid', () => {
+      // Arrange
       localStorage.setItem(TEST_KEY, 'not-valid-json');
-      const state = manager.loadState();
-      expect(state).toBeNull();
+
+      // Act & Assert
+      expect(() => manager.loadState()).toThrow('state quarantined to prevent data loss');
     });
   });
 
   describe('saveState', () => {
-    it('Given valid state, Then it should serialize it to localStorage', () => {
+    it('should serialize and persist state to localStorage', () => {
+      // Arrange
       const state = buildEmptyState();
       state.projects.push({ id: 'p1', name: 'Saved', color: 'blue', createdAt: '2026' });
+
+      // Act
       manager.saveState(state);
 
+      // Assert
       const raw = localStorage.getItem(TEST_KEY);
       expect(raw).not.toBeNull();
       const parsed = JSON.parse(raw!);
       expect(parsed.projects[0].name).toBe('Saved');
     });
+
+    it('should block saveState when storage is quarantined in corrupted state', () => {
+      // Arrange
+      localStorage.setItem(TEST_KEY, 'not-valid-json');
+      expect(() => manager.loadState()).toThrow();
+
+      // Act & Assert
+      const state = buildEmptyState();
+      expect(() => manager.saveState(state)).toThrow('corrupted quarantine state');
+    });
+
+    it('should rethrow PersistenceException when localStorage.setItem fails', () => {
+      // Arrange
+      const state = buildEmptyState();
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
+
+      // Act & Assert
+      expect(() => manager.saveState(state)).toThrow('Failed to save state to localStorage');
+    });
   });
 
   describe('clearState', () => {
-    it('Given stored state, Then clearState should remove it', () => {
-      const state = buildEmptyState();
-      manager.saveState(state);
-      expect(localStorage.getItem(TEST_KEY)).not.toBeNull();
+    it('should remove stored state and reset quarantine', () => {
+      // Arrange
+      localStorage.setItem(TEST_KEY, 'corrupt-json');
+      expect(() => manager.loadState()).toThrow();
 
+      // Act
       manager.clearState();
+
+      // Assert
       expect(localStorage.getItem(TEST_KEY)).toBeNull();
+      const validState = buildEmptyState();
+      expect(() => manager.saveState(validState)).not.toThrow();
     });
   });
 

@@ -8,6 +8,7 @@ pub mod external_api;
 pub mod frontend_event;
 pub mod gui;
 pub mod holiday;
+pub mod ipc;
 pub mod locale;
 pub mod persistence_event;
 pub mod project;
@@ -17,7 +18,7 @@ pub mod timelog;
 pub mod webhook_queue;
 pub mod workflow;
 
-pub use cli::{CliAlias, CliSink};
+pub use cli::{CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, LocalizedUserMessage};
 pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,
     SettingsPersistenceCommand, TasksPersistenceCommand, WindowCommand,
@@ -26,6 +27,7 @@ pub use external_api::ExternalApiSettings;
 pub use frontend_event::FrontendEvent;
 pub use gui::{AlwaysOnTopConfig, LayoutVariant, TextAndIconSize, WindowDimensions};
 pub use holiday::{HolidayLeave, HolidayLeaveEditHistory, HolidayType};
+pub use ipc::IpcErrorPayload;
 pub use locale::Locale;
 pub use persistence_event::PersistenceEvent;
 pub use project::{Project, ProjectEditHistory, ProjectStatistics};

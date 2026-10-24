@@ -8,6 +8,8 @@ import { Overline } from '@components/ui/typography';
 import { ViewHeader } from '@components/ViewHeader';
 import { Input } from '@components/ui/input';
 import { NativeSelect } from '@components/ui/select';
+import { Area } from '@components/ui/area';
+import { Form } from '@components/ui/form';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { HolidayType } from '@bindings/HolidayType';
@@ -29,7 +31,7 @@ export default function HolidaysLeavesView() {
   };
 
   return (
-    <div className="p-6 rounded-[2rem] border border-border bg-card shadow-xs flex flex-col gap-6 transition-all duration-300">
+    <Area as="main" variant="card" padding="main" radius="3xl" elevation="xs" className="flex flex-col gap-6 transition-all duration-300">
       <ViewHeader
         badge={
           <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
@@ -49,7 +51,7 @@ export default function HolidaysLeavesView() {
         wrapperClassName="p-6 rounded-3xl border border-border bg-muted/30"
         headerClassName="text-xs font-bold font-mono tracking-wide text-foreground"
       >
-        <form onSubmit={handleAddHolidaySubmit} className="mt-6 flex flex-col gap-4">
+        <Form onSubmit={handleAddHolidaySubmit} layout="vertical" gap="lg" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5">
               <Overline>{translate(locale, 'common', 'Date', customTranslations)}</Overline>
@@ -75,7 +77,7 @@ export default function HolidaysLeavesView() {
           >
             <Plus className="w-4 h-4" /> {translate(locale, 'common', 'Save', customTranslations)}
           </Button>
-        </form>
+        </Form>
       </CollapsibleCard>
 
       <HolidaysLeavesTable
@@ -83,6 +85,6 @@ export default function HolidaysLeavesView() {
         hideAddButton={true}
         wrapperClassName="rounded-3xl border border-border bg-card overflow-hidden shadow-xs"
       />
-    </div>
+    </Area>
   );
 }

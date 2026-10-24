@@ -1,9 +1,8 @@
-use crate::cli::error::CliError;
-use crate::cli::shared::constants::MSG_ID_EMPTY;
+use crate::cli::error::{CliError, CliSyntaxError};
 
 pub fn validate_id(id: &str) -> Result<String, CliError> {
     if id.trim().is_empty() {
-        Err(CliError::Syntax(MSG_ID_EMPTY.to_string()))
+        Err(CliError::Syntax(CliSyntaxError::EmptyId))
     } else {
         Ok(id.trim().to_string())
     }

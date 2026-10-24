@@ -1,8 +1,10 @@
+use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
 use oxy_flow::cli::{handle_cli, CliArgs, CliOutput};
 use oxy_flow::engine::Engine;
 use oxy_flow::persistence::Persistence;
+use oxy_flow::types::NewTimeLog;
 
 #[test]
 fn test_given_clean_database_when_executing_full_cli_lifecycle_then_entities_and_timer_transition_correctly(
@@ -91,4 +93,155 @@ fn test_given_clean_database_when_executing_full_cli_lifecycle_then_entities_and
         .unwrap()
         .unwrap();
     assert!(subtask_in_db.completed, "Subtask must be marked completed");
+}
+
+#[test]
+fn test_given_idle_timer_when_stop_invoked_then_fails_with_no_active_timer_exit_code_5() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_cli_stop_idle");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let stop_args = CliArgs::try_parse_from(["oxy", "stop"]).unwrap();
+
+    // When
+    let result = handle_cli(stop_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert_eq!(err.exit_code(), 5);
+    let envelope = err.to_envelope(None);
+    assert_eq!(envelope.code, "ENG_TIMER_INACTIVE");
+}
+
+#[test]
+fn test_given_multiple_active_timers_when_stop_invoked_without_all_then_fails_requiring_all_flag() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_cli_stop_mult_no_all");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj_a = ProjectBuilder::new()
+        .with_id("p_mstop_a")
+        .with_name("Stop Proj A")
+        .build();
+    let proj_b = ProjectBuilder::new()
+        .with_id("p_mstop_b")
+        .with_name("Stop Proj B")
+        .build();
+    persistence.projects.create(proj_a).unwrap();
+    persistence.projects.create(proj_b).unwrap();
+
+    let task_a = TaskBuilder::new()
+        .with_id("t_mstop_a")
+        .with_project_id("p_mstop_a")
+        .with_name("Stop Task A")
+        .build();
+    let task_b = TaskBuilder::new()
+        .with_id("t_mstop_b")
+        .with_project_id("p_mstop_b")
+        .with_name("Stop Task B")
+        .build();
+    persistence.tasks.create(task_a).unwrap();
+    persistence.tasks.create(task_b).unwrap();
+
+    let log_a = NewTimeLog {
+        id: "l_mstop_a".to_string(),
+        task_id: "t_mstop_a".to_string(),
+        start_time: "2026-10-24T10:00:00Z".to_string(),
+        end_time: None,
+        note: None,
+    };
+    let log_b = NewTimeLog {
+        id: "l_mstop_b".to_string(),
+        task_id: "t_mstop_b".to_string(),
+        start_time: "2026-10-24T10:05:00Z".to_string(),
+        end_time: None,
+        note: None,
+    };
+    persistence.time_logs.insert_full(&log_a).unwrap();
+    persistence.time_logs.insert_full(&log_b).unwrap();
+
+    let stop_args = CliArgs::try_parse_from(["oxy", "stop"]).unwrap();
+
+    // When
+    let result = handle_cli(stop_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert_eq!(err.exit_code(), 1);
+    assert!(err
+        .to_string()
+        .contains("Multiple active timers running (2)"));
+    assert!(err.to_string().contains("Use 'oxy stop --all'"));
+}
+
+#[test]
+fn test_given_multiple_active_timers_when_stop_all_invoked_then_stops_all_active_timers() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_cli_stop_mult_all");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj_a = ProjectBuilder::new()
+        .with_id("p_stop_all_a")
+        .with_name("Stop All Proj A")
+        .build();
+    let proj_b = ProjectBuilder::new()
+        .with_id("p_stop_all_b")
+        .with_name("Stop All Proj B")
+        .build();
+    persistence.projects.create(proj_a).unwrap();
+    persistence.projects.create(proj_b).unwrap();
+
+    let task_a = TaskBuilder::new()
+        .with_id("t_stop_all_a")
+        .with_project_id("p_stop_all_a")
+        .with_name("Stop All Task A")
+        .build();
+    let task_b = TaskBuilder::new()
+        .with_id("t_stop_all_b")
+        .with_project_id("p_stop_all_b")
+        .with_name("Stop All Task B")
+        .build();
+    persistence.tasks.create(task_a).unwrap();
+    persistence.tasks.create(task_b).unwrap();
+
+    let log_a = NewTimeLog {
+        id: "l_stop_all_a".to_string(),
+        task_id: "t_stop_all_a".to_string(),
+        start_time: "2026-10-24T10:00:00Z".to_string(),
+        end_time: None,
+        note: None,
+    };
+    let log_b = NewTimeLog {
+        id: "l_stop_all_b".to_string(),
+        task_id: "t_stop_all_b".to_string(),
+        start_time: "2026-10-24T10:05:00Z".to_string(),
+        end_time: None,
+        note: None,
+    };
+    persistence.time_logs.insert_full(&log_a).unwrap();
+    persistence.time_logs.insert_full(&log_b).unwrap();
+
+    let stop_args = CliArgs::try_parse_from(["oxy", "--json", "stop", "--all"]).unwrap();
+
+    // When
+    let result = handle_cli(stop_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    if let CliOutput::Json(ref json_str) = result.unwrap() {
+        let val: serde_json::Value = serde_json::from_str(json_str).unwrap();
+        assert_eq!(val["status"], "ok");
+        assert_eq!(val["action"], "stopped");
+        assert_eq!(val["stopped_count"], 2);
+    } else {
+        panic!("Expected CliOutput::Json");
+    }
+
+    let active_remaining = engine.get_active_logs().unwrap();
+    assert!(active_remaining.is_empty());
 }

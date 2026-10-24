@@ -12,6 +12,35 @@ import {
 } from './sandboxDemoData';
 import { calculateSandboxMetrics } from './sandboxMetricsCalculator';
 import { buildSandboxCliContext, ISandboxStoreBridge } from './sandboxContextBridge';
+import {
+  SANDBOX_STORAGE_KEY,
+  SandboxPersistedState,
+  readPersistedSandboxState,
+  savePersistedSandboxState,
+} from './store/sandboxStorage';
+import {
+  addProjectOp,
+  renameProjectOp,
+  archiveProjectOp,
+} from './store/sandboxProjectOps';
+import {
+  addTaskOp,
+  renameTaskOp,
+  toggleTaskCompleteOp,
+  archiveTaskOp,
+  reparentTaskOp,
+  moveTaskOp,
+} from './store/sandboxTaskOps';
+import {
+  addLogOp,
+  removeLogOp,
+  startTimerOp,
+  stopTimerOp,
+  switchTimerOp,
+} from './store/sandboxTimerOps';
+
+export { SANDBOX_STORAGE_KEY };
+export type { SandboxPersistedState };
 
 /**
  * In-memory state store for isolated learning and test workflows.
@@ -30,6 +59,21 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
   private nextIdCounter = 100;
 
   private constructor() {
+    this.init();
+  }
+
+  private init(): void {
+    const saved = readPersistedSandboxState();
+    if (saved) {
+      this.projects = saved.projects;
+      this.tasks = saved.tasks;
+      this.logs = saved.logs;
+      this.holidays = saved.holidays;
+      this.activeLog = saved.activeLog;
+      this.selectedTaskId = saved.selectedTaskId;
+      this.nextIdCounter = saved.nextIdCounter ?? 100;
+      return;
+    }
     this.reset();
   }
 
@@ -41,6 +85,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
   }
 
   public static resetInstanceForTesting(): void {
+    savePersistedSandboxState(null);
     SandboxEmulatorStore.instance = new SandboxEmulatorStore();
   }
 
@@ -57,6 +102,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
   }
 
   public reset(): void {
+    savePersistedSandboxState(null);
     this.projects = createDemoProjects();
     this.tasks = createDemoTasks();
     this.logs = createDemoLogs();
@@ -64,6 +110,18 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     this.activeLog = null;
     this.selectedTaskId = 'sb_t1';
     this.nextIdCounter = 100;
+  }
+
+  private persist(): void {
+    savePersistedSandboxState({
+      projects: this.projects,
+      tasks: this.tasks,
+      logs: this.logs,
+      holidays: this.holidays,
+      activeLog: this.activeLog,
+      selectedTaskId: this.selectedTaskId,
+      nextIdCounter: this.nextIdCounter,
+    });
   }
 
   public getProjects(): Project[] {
@@ -92,6 +150,7 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
 
   public setSelectedTaskId(id: string | null): void {
     this.selectedTaskId = id;
+    this.persist();
   }
 
   public setHolidays(updater: HolidayLeave[] | ((prev: HolidayLeave[]) => HolidayLeave[])): void {
@@ -100,93 +159,142 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     } else {
       this.holidays = updater;
     }
+    this.persist();
   }
 
   public handleAddProject(name: string, color = 'indigo'): Project {
-    const id = `sb_p${++this.nextIdCounter}`;
-    const newProject: Project = {
-      id,
-      name,
-      color,
-      createdAt: new Date().toISOString(),
-      archived: false,
-      description: null,
-      icon: null,
-      tags: null,
-    };
-    this.projects.push(newProject);
-    return newProject;
+    const project = addProjectOp(this.projects, `sb_p${++this.nextIdCounter}`, name, color);
+    this.persist();
+    return project;
   }
 
-  public handleRenameProject(projectId: string, newName: string): boolean {
-    const proj = this.projects.find((p) => p.id === projectId);
-    if (!proj) return false;
-    proj.name = newName;
-    return true;
+  public handleRenameProject(projectId: string, newName: string, color?: string): boolean {
+    const success = renameProjectOp(this.projects, projectId, newName, color);
+    if (success) this.persist();
+    return success;
+  }
+
+  public handleArchiveProject(projectId: string): boolean {
+    const success = archiveProjectOp(this.projects, projectId);
+    if (success) this.persist();
+    return success;
   }
 
   public handleAddTask(projectId: string, name: string, parentTaskId: string | null = null): Task {
-    const id = `sb_t${++this.nextIdCounter}`;
-    const newTask: Task = {
-      id,
-      projectId,
-      name,
-      completed: false,
-      createdAt: new Date().toISOString(),
-      status: null,
-      parentTaskId,
-    };
-    this.tasks.push(newTask);
-    return newTask;
+    const task = addTaskOp(this.tasks, `sb_t${++this.nextIdCounter}`, projectId, name, parentTaskId);
+    this.persist();
+    return task;
   }
 
   public handleRenameTask(taskId: string, newName: string): boolean {
-    const task = this.tasks.find((t) => t.id === taskId);
-    if (!task) return false;
-    task.name = newName;
-    return true;
+    const success = renameTaskOp(this.tasks, taskId, newName);
+    if (success) this.persist();
+    return success;
   }
 
   public handleToggleTaskComplete(taskId: string): boolean {
-    const task = this.tasks.find((t) => t.id === taskId);
-    if (!task) return false;
-    task.completed = !task.completed;
-    return true;
+    const success = toggleTaskCompleteOp(this.tasks, taskId);
+    if (success) this.persist();
+    return success;
+  }
+
+  public handleArchiveTask(taskId: string): boolean {
+    const success = archiveTaskOp(this.tasks, taskId);
+    if (success) this.persist();
+    return success;
+  }
+
+  public handleReparentTask(taskId: string, newParentId: string | null): boolean {
+    const success = reparentTaskOp(this.tasks, taskId, newParentId);
+    if (success) this.persist();
+    return success;
+  }
+
+  public handleMoveTask(taskId: string, newProjectId: string): boolean {
+    const success = moveTaskOp(this.tasks, taskId, newProjectId);
+    if (success) this.persist();
+    return success;
+  }
+
+  public handleAddLog(
+    taskId: string,
+    durationSeconds: number,
+    note?: string | null,
+    startTimeIso?: string
+  ): TimeLog {
+    const log = addLogOp(
+      this.tasks,
+      this.logs,
+      `sb_l${++this.nextIdCounter}`,
+      taskId,
+      durationSeconds,
+      note,
+      startTimeIso
+    );
+    this.persist();
+    return log;
+  }
+
+  public handleRemoveLog(logId: string): boolean {
+    const success = removeLogOp(this.logs, logId);
+    if (success) this.persist();
+    return success;
+  }
+
+  public seedForTesting(state: {
+    projects?: Project[];
+    tasks?: Task[];
+    logs?: TimeLog[];
+    activeLog?: TimeLog | null;
+    selectedTaskId?: string | null;
+  }): void {
+    savePersistedSandboxState(null);
+    this.projects = state.projects ? [...state.projects] : [];
+    this.tasks = state.tasks ? [...state.tasks] : [];
+    this.logs = state.logs ? [...state.logs] : [];
+    this.activeLog = state.activeLog !== undefined ? state.activeLog : null;
+    this.selectedTaskId = state.selectedTaskId !== undefined ? state.selectedTaskId : null;
+    this.nextIdCounter = 100;
+    this.isSandboxEnabled = true;
   }
 
   public handleStartTimer(taskId: string, nowIso?: string): TimeLog {
-    if (this.activeLog) {
-      this.handleStopTimer(undefined, nowIso);
-    }
-    const task = this.tasks.find((t) => t.id === taskId);
-    const projectId = task?.projectId ?? 'sb_p1';
-    const startTime = nowIso || new Date().toISOString();
-    const id = `sb_l${++this.nextIdCounter}`;
-
-    const newLog: TimeLog = {
-      id,
+    const newLog = startTimerOp(
+      this.tasks,
+      this.logs,
+      this.activeLog,
+      `sb_l${++this.nextIdCounter}`,
       taskId,
-      projectId,
-      startTime,
-      endTime: null,
-      note: null,
-      editHistory: null,
-    };
-    this.logs.push(newLog);
+      nowIso
+    );
     this.activeLog = newLog;
     this.selectedTaskId = taskId;
+    this.persist();
     return newLog;
   }
 
-  public handleStopTimer(_projectId?: string, nowIso?: string): void {
-    if (!this.activeLog) return;
-    const endTime = nowIso || new Date().toISOString();
-    this.activeLog.endTime = endTime;
-    const idx = this.logs.findIndex((l) => l.id === this.activeLog?.id);
-    if (idx !== -1) {
-      this.logs[idx] = { ...this.activeLog };
+  public handleStopTimer(_projectId?: string, nowIso?: string): { success: boolean; error?: string; errorCode?: string } {
+    const result = stopTimerOp(this.logs, this.activeLog, nowIso);
+    if (result.success) {
+      this.activeLog = null;
+      this.persist();
     }
-    this.activeLog = null;
+    return result;
+  }
+
+  public handleSwitchTimer(newTaskId: string, nowIso?: string): TimeLog {
+    const newLog = switchTimerOp(
+      this.tasks,
+      this.logs,
+      this.activeLog,
+      `sb_l${++this.nextIdCounter}`,
+      newTaskId,
+      nowIso
+    );
+    this.activeLog = newLog;
+    this.selectedTaskId = newTaskId;
+    this.persist();
+    return newLog;
   }
 
   public getComputedMetrics(nowIso?: string): EngineComputedMetrics {

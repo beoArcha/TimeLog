@@ -18,6 +18,8 @@
     "CompletedTasks": "Completed Tasks",
     "MoreOptions": "More Options",
     "HideOptions": "Hide Options",
+    "MoveProjectUp": "Move project up",
+    "MoveProjectDown": "Move project down",
     "IconPlaceholder": "Icon (🚀)",
     "TagsPlaceholder": "Tags (tag1, tag2)",
     "DescriptionPlaceholder": "Project description...",
@@ -35,7 +37,11 @@
     "TemplateLearningName": "Learning & Research",
     "TemplateLearningDesc": "Documentation study, skill practice and courses",
     "TemplateCreativeName": "Content & Design",
-    "TemplateCreativeDesc": "Writing articles, media design and publishing"
+    "TemplateCreativeDesc": "Writing articles, media design and publishing",
+    "AllowConcurrency": "Allow Concurrent Tracking",
+    "AllowConcurrencyDesc": "Allow timers in this project to run in parallel with other projects",
+    "AllowConcurrencyDefault": "Default to concurrent tracking for new projects",
+    "ConcurrencyBadge": "Concurrent"
   },
   "pl": {
     "NewProject": "Nowy Projekt",
@@ -56,6 +62,8 @@
     "CompletedTasks": "Ukończone zadania",
     "MoreOptions": "Więcej opcji",
     "HideOptions": "Ukryj opcje",
+    "MoveProjectUp": "Przesuń projekt w górę",
+    "MoveProjectDown": "Przesuń projekt w dół",
     "IconPlaceholder": "Ikona (🚀)",
     "TagsPlaceholder": "Tagi (tag1, tag2)",
     "DescriptionPlaceholder": "Opis projektu...",
@@ -73,7 +81,11 @@
     "TemplateLearningName": "Nauka i Badania",
     "TemplateLearningDesc": "Studiowanie dokumentacji, ćwiczenie umiejętności i kursy",
     "TemplateCreativeName": "Treści i Design",
-    "TemplateCreativeDesc": "Pisanie artykułów, tworzenie multimediów i publikacja"
+    "TemplateCreativeDesc": "Pisanie artykułów, tworzenie multimediów i publikacja",
+    "AllowConcurrency": "Zezwól na współbieżny pomiar",
+    "AllowConcurrencyDesc": "Zezwalaj na równoległe działanie stoperów z innymi projektami",
+    "AllowConcurrencyDefault": "Domyślnie włączaj współbieżność dla nowych projektów",
+    "ConcurrencyBadge": "Współbieżny"
   },
   "de": {
     "NewProject": "Neues Projekt",
@@ -94,6 +106,8 @@
     "CompletedTasks": "Erledigte Aufgaben",
     "MoreOptions": "Mehr Optionen",
     "HideOptions": "Optionen ausblenden",
+    "MoveProjectUp": "Projekt nach oben verschieben",
+    "MoveProjectDown": "Projekt nach unten verschieben",
     "IconPlaceholder": "Symbol (🚀)",
     "TagsPlaceholder": "Tags (tag1, tag2)",
     "DescriptionPlaceholder": "Projektbeschreibung...",
@@ -111,7 +125,11 @@
     "TemplateLearningName": "Lernen & Forschung",
     "TemplateLearningDesc": "Dokumentationsstudium, Übungen und Kurse",
     "TemplateCreativeName": "Inhalt & Design",
-    "TemplateCreativeDesc": "Artikel schreiben, Mediendesign und Veröffentlichung"
+    "TemplateCreativeDesc": "Artikel schreiben, Mediendesign und Veröffentlichung",
+    "AllowConcurrency": "Parallele Zeiterfassung erlauben",
+    "AllowConcurrencyDesc": "Timer in diesem Projekt parallel zu anderen Projekten laufen lassen",
+    "AllowConcurrencyDefault": "Standardmäßig parallele Zeiterfassung für neue Projekte aktivieren",
+    "ConcurrencyBadge": "Parallel"
   },
   "es": {
     "NewProject": "Nuevo Proyecto",
@@ -132,6 +150,8 @@
     "CompletedTasks": "Tareas Completadas",
     "MoreOptions": "Más Opciones",
     "HideOptions": "Ocultar Opciones",
+    "MoveProjectUp": "Mover proyecto hacia arriba",
+    "MoveProjectDown": "Mover proyecto hacia abajo",
     "IconPlaceholder": "Icono (🚀)",
     "TagsPlaceholder": "Etiquetas (tag1, tag2)",
     "DescriptionPlaceholder": "Descripción del proyecto...",
@@ -149,7 +169,11 @@
     "TemplateLearningName": "Aprendizaje e Investigación",
     "TemplateLearningDesc": "Estudio de documentación, práctica de habilidades y cursos",
     "TemplateCreativeName": "Contenido y Diseño",
-    "TemplateCreativeDesc": "Redacción de artículos, diseño de medios y publicación"
+    "TemplateCreativeDesc": "Redacción de artículos, diseño de medios y publicación",
+    "AllowConcurrency": "Permitir seguimiento concurrente",
+    "AllowConcurrencyDesc": "Permitir que los temporizadores funcionen en paralelo con otros proyectos",
+    "AllowConcurrencyDefault": "Predeterminar seguimiento concurrente para nuevos proyectos",
+    "ConcurrencyBadge": "Concurrente"
   },
   "fr": {
     "NewProject": "Nouveau Projet",
@@ -170,6 +194,8 @@
     "CompletedTasks": "Tâches terminées",
     "MoreOptions": "Plus d'options",
     "HideOptions": "Masquer les options",
+    "MoveProjectUp": "Déplacer le projet vers le haut",
+    "MoveProjectDown": "Déplacer le projet vers le bas",
     "IconPlaceholder": "Icône (🚀)",
     "TagsPlaceholder": "Balises (tag1, tag2)",
     "DescriptionPlaceholder": "Description du projet...",
@@ -187,7 +213,11 @@
     "TemplateLearningName": "Apprentissage & Recherche",
     "TemplateLearningDesc": "Étude de la documentation, pratique des compétences et cours",
     "TemplateCreativeName": "Contenu & Design",
-    "TemplateCreativeDesc": "Rédaction d'articles, conception de médias et publication"
+    "TemplateCreativeDesc": "Rédaction d'articles, conception de médias et publication",
+    "AllowConcurrency": "Autoriser le suivi simultané",
+    "AllowConcurrencyDesc": "Permettre aux minuteurs de ce projet de fonctionner en parallèle avec d'autres",
+    "AllowConcurrencyDefault": "Activer le suivi simultané par défaut pour les nouveaux projets",
+    "ConcurrencyBadge": "Simultané"
   },
   "pt-br": {
     "NewProject": "Novo Projeto",
@@ -208,6 +238,8 @@
     "CompletedTasks": "Tarefas Concluídas",
     "MoreOptions": "Mais Opções",
     "HideOptions": "Ocultar Opções",
+    "MoveProjectUp": "Mover projeto para cima",
+    "MoveProjectDown": "Mover projeto para baixo",
     "IconPlaceholder": "Ícone (🚀)",
     "TagsPlaceholder": "Tags (tag1, tag2)",
     "DescriptionPlaceholder": "Descrição do projeto...",
@@ -225,6 +257,10 @@
     "TemplateLearningName": "Aprendizado & Pesquisa",
     "TemplateLearningDesc": "Estudo de documentação, prática de habilidades e cursos",
     "TemplateCreativeName": "Conteúdo & Design",
-    "TemplateCreativeDesc": "Redação de artigos, design de mídia e publicação"
+    "TemplateCreativeDesc": "Redação de artigos, design de mídia e publicação",
+    "AllowConcurrency": "Permitir rastreamento simultâneo",
+    "AllowConcurrencyDesc": "Permitir que os cronômetros funcionem em paralelo com outros projetos",
+    "AllowConcurrencyDefault": "Definir rastreamento simultâneo como padrão para novos projetos",
+    "ConcurrencyBadge": "Simultâneo"
   }
 }

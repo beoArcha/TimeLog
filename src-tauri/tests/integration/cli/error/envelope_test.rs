@@ -123,7 +123,7 @@ fn test_given_missing_target_and_no_active_logs_when_start_invoked_then_returns_
     assert_eq!(err.exit_code(), EXIT_CODE_CLI_SYNTAX);
 
     let envelope = err.to_envelope(None);
-    assert_eq!(envelope.code, "CLI_SYNTAX_INVALID_ARGS");
+    assert_eq!(envelope.code, "CLI_SYNTAX_MISSING_TARGET");
     assert_eq!(envelope.category, "syntax");
     assert_eq!(envelope.exit_code, EXIT_CODE_CLI_SYNTAX);
 }

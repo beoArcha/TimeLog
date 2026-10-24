@@ -14,12 +14,17 @@ export interface ISandboxStoreBridge {
   getSelectedTaskId(): string | null;
   setSelectedTaskId(id: string | null): void;
   handleAddProject(name: string, color?: string): Project;
-  handleRenameProject(projectId: string, newName: string): boolean;
+  handleRenameProject(projectId: string, newName: string, color?: string): boolean;
+  handleArchiveProject?(projectId: string): boolean;
   handleAddTask(projectId: string, name: string, parentTaskId?: string | null): Task;
   handleRenameTask(taskId: string, newName: string): boolean;
   handleToggleTaskComplete(taskId: string): boolean;
+  handleArchiveTask?(taskId: string): boolean;
+  handleAddLog?(taskId: string, durationSeconds: number, note?: string | null, startTimeIso?: string): TimeLog;
+  handleRemoveLog?(logId: string): boolean;
   handleStartTimer(taskId: string, nowIso?: string): TimeLog;
-  handleStopTimer(projectId?: string, nowIso?: string): void;
+  handleStopTimer(projectId?: string, nowIso?: string): { success: boolean; error?: string; errorCode?: string };
+  handleSwitchTimer?(taskId: string, nowIso?: string): TimeLog;
   setHolidays(updater: HolidayLeave[] | ((prev: HolidayLeave[]) => HolidayLeave[])): void;
   getComputedMetrics(nowIso?: string): EngineComputedMetrics;
 }
@@ -49,7 +54,16 @@ export const buildSandboxCliContext = (
     onRenameTask: (taskId: string, name: string) => store.handleRenameTask(taskId, name),
     onToggleTaskComplete: (taskId: string) => store.handleToggleTaskComplete(taskId),
     onStartTimer: (taskId: string) => store.handleStartTimer(taskId, baseContext.nowIso),
-    onStopTimer: (projectId?: string) => store.handleStopTimer(projectId, baseContext.nowIso),
+    onStopTimer: (projectId?: string) => {
+      store.handleStopTimer(projectId, baseContext.nowIso);
+    },
+    onSwitchTask: (taskId: string) => {
+      if (store.handleSwitchTimer) {
+        store.handleSwitchTimer(taskId, baseContext.nowIso);
+      } else {
+        store.handleStartTimer(taskId, baseContext.nowIso);
+      }
+    },
     setHolidays: (value) => store.setHolidays(value),
   };
 };

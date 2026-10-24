@@ -29,4 +29,25 @@ impl CorePersistence {
         self.shared.cache.clear();
         Ok(())
     }
+
+    pub fn get_db_path(&self) -> &std::path::Path {
+        self.shared.business_repo.get_db_path()
+    }
+
+    pub fn check_integrity(&self) -> PersistenceResult<String> {
+        Ok(self.shared.business_repo.check_integrity()?)
+    }
+
+    pub fn backup_database(&self, destination_path: &std::path::Path) -> PersistenceResult<()> {
+        self.shared
+            .business_repo
+            .backup_database(destination_path)?;
+        Ok(())
+    }
+
+    pub fn restore_database(&self, source_path: &std::path::Path) -> PersistenceResult<()> {
+        self.shared.business_repo.restore_database(source_path)?;
+        self.shared.cache.clear();
+        Ok(())
+    }
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { HStack, VStack, InlineCluster } from '@components/ui/stack';
 import { SearchInput } from './SearchInput';
 import { cn } from '@/lib/utils';
 
@@ -29,15 +30,21 @@ export function FilterBar({
   testId,
 }: FilterBarProps) {
   return (
-    <div
+    <VStack
       data-slot="filter-bar"
       data-testid={testId}
+      gap="md"
       className={cn(
-        'p-4 rounded-2xl border border-border bg-muted/40 flex flex-col gap-4 text-left transition-colors',
+        'p-4 rounded-2xl border border-border bg-muted/40 text-left transition-colors',
         className
       )}
     >
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <HStack
+        align="center"
+        justify="between"
+        gap="md"
+        className="flex-col md:flex-row w-full flex-wrap"
+      >
         {search && (
           <div className="w-full sm:max-w-xs shrink-0">
             <SearchInput
@@ -51,18 +58,18 @@ export function FilterBar({
         )}
 
         {children && (
-          <div className="flex-1 flex flex-wrap items-center gap-3">
+          <InlineCluster gap="sm" align="center" className="flex-1">
             {children}
-          </div>
+          </InlineCluster>
         )}
 
         {rightActions && (
-          <div className="flex items-center gap-3 shrink-0 self-start md:self-auto ml-auto">
+          <HStack gap="sm" align="center" className="shrink-0 self-start md:self-auto ml-auto">
             {rightActions}
-          </div>
+          </HStack>
         )}
-      </div>
-    </div>
+      </HStack>
+    </VStack>
   );
 }
 

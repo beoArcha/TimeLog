@@ -22,21 +22,36 @@ pub fn workflow_get_status(state: State<'_, AppState>) -> Result<WorkflowStatus,
     Ok(state.workflow_daemon.get_status())
 }
 
+pub fn parse_now_iso(
+    now_iso: Option<String>,
+) -> Result<Option<chrono::DateTime<chrono::Utc>>, AppError> {
+    match now_iso {
+        Some(ref iso) => {
+            let dt = chrono::DateTime::parse_from_rfc3339(iso)
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .map_err(|e| {
+                    crate::engine::EngineError::ParseTime(format!(
+                        "Invalid RFC 3339 timestamp '{}': {}",
+                        iso, e
+                    ))
+                })?;
+            Ok(Some(dt))
+        }
+        None => Ok(None),
+    }
+}
+
 #[tauri::command]
 pub fn workflow_check_rules(
     now_iso: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<WorkflowCheckResult, AppError> {
-    let now = match now_iso {
-        Some(iso) => chrono::DateTime::parse_from_rfc3339(&iso)
-            .map(|dt| dt.with_timezone(&chrono::Utc))
-            .ok(),
-        None => None,
-    };
+    let now = parse_now_iso(now_iso)?;
     let config = state.persistence.workflow.get_config()?;
-    Ok(state
+    let result = state
         .workflow_daemon
-        .check_rules_now(&state.persistence, &config, now))
+        .check_rules_now(&state.persistence, &config, now)?;
+    Ok(result)
 }
 
 #[tauri::command]

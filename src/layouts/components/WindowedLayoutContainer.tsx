@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { AnimatedFade } from '@components/AnimatedFade';
 import Header from './Header';
 import TabBar from './TabBar';
 import DaemonStatusBar from './DaemonStatusBar';
@@ -52,7 +52,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
   const isFull = isFullLayout(layoutVariant);
 
   return (
-    <motion.div
+    <AnimatedFade
       key="windowed-state"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -118,6 +118,6 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
         </div>
 
       </div>
-    </motion.div>
+    </AnimatedFade>
   );
 };

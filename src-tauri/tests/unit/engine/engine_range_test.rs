@@ -240,3 +240,35 @@ fn test_engine_calculate_range_metrics_includes_patch_logs_when_enabled() {
     assert_eq!(result_patches.total_seconds, 10800);
     assert_eq!(result_patches.clamped_logs.len(), 2);
 }
+
+#[test]
+fn test_engine_calculate_range_metrics_propagates_persistence_error_on_subtask_query_failure() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_range_subtask_error");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let filter = ElapsedRangeFilter {
+        task_id: Some("t_corrupt".to_string()),
+        project_id: None,
+        from: Some("2026-06-15T00:00:00Z".to_string()),
+        to: Some("2026-06-16T00:00:00Z".to_string()),
+        include_patches: None,
+    };
+
+    // Drop the tasks table so get_subtasks returns a database error
+    conn.execute("DROP TABLE tasks", []).unwrap();
+
+    // Act
+    let result = engine.calculate_range_metrics(&filter, None);
+
+    // Assert
+    assert!(
+        result.is_err(),
+        "range metrics must fail when subtask query fails"
+    );
+    match result.unwrap_err() {
+        oxy_flow::engine::EngineError::Persistence(_) => (),
+        other => panic!("expected EngineError::Persistence, got {:?}", other),
+    }
+}

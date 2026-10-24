@@ -58,7 +58,7 @@ The single source of truth is `src-tauri/src/cli/shared/constants.rs`, mapped in
 | `4` | `EXIT_CODE_ENTITY_ERROR` | Entity not found, ambiguous match, did-you-mean |
 | `5` | `EXIT_CODE_ENGINE_ERROR` | Timer lifecycle or engine conflict |
 
-Changing a code or its mapping is a breaking change of the CLI contract: update `docs/CLI.md` and the parity fixtures in the same change.
+Changing a code or its mapping is a breaking change of the CLI contract: update `docs/manifesto/CLI.md` and the parity fixtures in the same change.
 
 ## 5. Handler Structure
 

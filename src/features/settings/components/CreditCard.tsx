@@ -1,7 +1,7 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { AnimatedCard } from '@components/AnimatedCard';
-import { HStack } from '@components/ui/stack';
+import { HStack, VStack } from '@components/ui/stack';
 import { Heading } from '@components/ui/typography';
 
 export interface CreditCardProps {
@@ -24,11 +24,11 @@ export function CreditCard({
   delay = 0.05,
 }: CreditCardProps) {
   return (
-    <AnimatedCard delay={delay}>
+    <AnimatedCard delay={delay} className="flex flex-col h-full">
       <HStack gap="sm" className="mb-3">
-        <div className={`w-8 h-8 rounded-full ${iconBgClass} flex items-center justify-center`}>
+        <HStack justify="center" align="center" className={`w-8 h-8 rounded-full ${iconBgClass} shrink-0`}>
           <Icon className={`w-4 h-4 ${iconColorClass}`} />
-        </div>
+        </HStack>
         <Heading level={3} className="text-sm font-bold text-foreground">
           {title}
         </Heading>
@@ -36,7 +36,7 @@ export function CreditCard({
 
       {children}
 
-      {footer && <div className="mt-auto pt-3">{footer}</div>}
+      {footer && <VStack className="mt-auto pt-3">{footer}</VStack>}
     </AnimatedCard>
   );
 }

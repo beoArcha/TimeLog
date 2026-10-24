@@ -172,12 +172,12 @@ Elapsed-time display is centralized:
 
 ### CLI Integration
 
-The in-app CLI (`src/features/cli/`) uses the same domain services as the GUI:
+The in-app CLI (`src/features/cli/`) is integrated through `CliRouter` (`src/common/cli/CliRouter.ts`):
 
-- Report commands delegate durations to `IMetricsEngine.getComputedMetrics()` and `getElapsedRange()`, so multi-day logs, midnight crossings and active timers are calculated exactly as in the GUI.
-- Terminal output is built with `TerminalOutput` (`src/features/cli/utils/terminalOutput.ts`) using typed line envelopes (`info`, `success`, `error`, `output`).
-- `switch <task-id>` stops and starts timers atomically.
-- Domain exceptions are translated into structured terminal envelopes, never unhandled rejections.
+- **Desktop runtime (Tauri):** Terminal commands delegate directly to the native Rust reference CLI via the `cli_execute` Tauri IPC command (`TauriCliClient`). Any mutating command triggers `DataContext.refreshData()`, synchronizing GUI views instantaneously with SQLite.
+- **Browser runtime & simulator:** Commands route through `SandboxCommandRouter` and execute against `SandboxEmulatorStore` in memory, guaranteeing zero side-effects to persistent storage.
+- **Report commands:** Report calculations delegate durations to `IMetricsEngine.getComputedMetrics()` and `getElapsedRange()`, ensuring identical calculation across GUI, native CLI, and emulator.
+- **Atomicity & Parity:** `switch <task-id>` stops and starts timers atomically. Identical syntax, exit codes (`0`..`5`), and error envelopes are verified across both runtimes by the shared 39-vector parity matrix (`tests/shared/fixtures/cli-parity-cases.json`).
 
 ---
 

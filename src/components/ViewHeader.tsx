@@ -1,6 +1,7 @@
 import React from 'react';
 import { type LucideIcon } from 'lucide-react';
 import { Heading, Text } from '@components/ui/typography';
+import { VStack, InlineCluster } from '@components/ui/stack';
 import { cn } from '@/lib/utils';
 
 export interface ViewHeaderProps {
@@ -36,8 +37,8 @@ export function ViewHeader({
         className
       )}
     >
-      <div className="flex flex-col text-left">
-        {badge && <div className="mb-1.5 w-fit">{badge}</div>}
+      <VStack gap="2xs" className="text-left">
+        {badge && <div className="w-fit">{badge}</div>}
         <Heading
           level={2}
           className="font-sans font-bold text-2xl flex items-center gap-2.5 text-foreground leading-tight"
@@ -55,12 +56,12 @@ export function ViewHeader({
             {description}
           </Text>
         )}
-      </div>
+      </VStack>
 
       {actions && (
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-start sm:self-auto">
+        <InlineCluster gap="sm" align="center" className="shrink-0 self-start sm:self-auto">
           {actions}
-        </div>
+        </InlineCluster>
       )}
     </div>
   );

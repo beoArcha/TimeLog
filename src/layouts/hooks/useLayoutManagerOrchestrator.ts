@@ -32,6 +32,7 @@ export const useLayoutManagerOrchestrator = () => {
     isCompactExpanded,
     setIsCompactExpanded,
     currentProjectId,
+    setCurrentProjectId,
     lastNonCompactVariant,
     alwaysOnTopSmall,
     setAlwaysOnTopSmall,
@@ -156,6 +157,8 @@ export const useLayoutManagerOrchestrator = () => {
     textAndIconSize,
     selectedTaskId,
     setSelectedTaskId,
+    currentProjectId,
+    setCurrentProjectId,
     activeLargeTab,
     activeView: activeLargeTab === 'reports' ? 'reports' : 'tasks',
   };

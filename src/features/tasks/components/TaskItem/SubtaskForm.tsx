@@ -1,8 +1,8 @@
 import React from 'react';
-import { motion } from 'motion/react';
 import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
+import { Form } from '@components/ui/form';
 
 import { useTaskEditing } from '../../context/TaskEditingContext';
 
@@ -27,11 +27,10 @@ export function SubtaskForm({
   const setNewSubtaskName = propSetNewSubtaskName ?? editingCtx?.setNewSubtaskName ?? (() => {});
 
   return (
-    <motion.form
+    <Form
       id={`subtask-form-${parentTaskId}`}
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: 'auto', opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
+      layout="horizontal"
+      gap="xs"
       onSubmit={(e) => onSubmit(parentTaskId, e)}
       className="p-2.5 rounded-2xl border flex gap-2 ml-8 mt-1 bg-muted/40 border-border"
     >
@@ -53,6 +52,6 @@ export function SubtaskForm({
       >
         {tCommon('Save')}
       </Button>
-    </motion.form>
+    </Form>
   );
 }

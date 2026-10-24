@@ -136,6 +136,21 @@ describe('Unit Tests: PersistenceCommands - System & UI', () => {
       expect(variant).toBe('full');
     });
 
+    it('should invoke get_project_order and save_project_order correctly', async () => {
+      // Arrange
+      mockInvoke.mockResolvedValueOnce(['p1', 'p2']);
+      mockInvoke.mockResolvedValueOnce(undefined);
+
+      // Act
+      const order = await commands.uiState.getProjectOrder();
+      await commands.uiState.saveProjectOrder(['p2', 'p1']);
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('get_project_order');
+      expect(order).toEqual(['p1', 'p2']);
+      expect(mockInvoke).toHaveBeenCalledWith('save_project_order', { order: ['p2', 'p1'] });
+    });
+
     it('should report exception and rethrow when uiState invocation fails', async () => {
       // Arrange
       mockInvoke.mockRejectedValue(new Error('UI state error'));
@@ -145,7 +160,9 @@ describe('Unit Tests: PersistenceCommands - System & UI', () => {
       await expect(commands.uiState.saveCurrentProjectId('p1')).rejects.toThrow('UI state error');
       await expect(commands.uiState.getLastNonCompactVariant()).rejects.toThrow('UI state error');
       await expect(commands.uiState.saveLastNonCompactVariant('full')).rejects.toThrow('UI state error');
-      expect(ErrorHandler.handle).toHaveBeenCalledTimes(4);
+      await expect(commands.uiState.getProjectOrder()).rejects.toThrow('UI state error');
+      await expect(commands.uiState.saveProjectOrder(['p1'])).rejects.toThrow('UI state error');
+      expect(ErrorHandler.handle).toHaveBeenCalledTimes(6);
     });
   });
 

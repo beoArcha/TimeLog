@@ -53,6 +53,19 @@ oxy today --json
 oxy today --json | jq '.total_seconds / 3600'
 ```
 
+### Manejo Automatizado de Errores
+
+En scripts automatizados y canalizaciones CI/CD, use `--machine` para recibir errores JSON limpios de una sola línea en `stderr` y verificar códigos de salida POSIX deterministas:
+
+```bash
+# Capturar error legible por máquina en stderr
+if ! oxy start "Tarea Inexistente" --machine 2> error.json; then
+    exit_code=$?
+    error_code=$(jq -r '.code // "UNKNOWN"' error.json)
+    echo "El comando falló (código $exit_code) con error: $error_code"
+fi
+```
+
 ---
 
 ## Integración con el Prompt del Terminal
@@ -113,9 +126,41 @@ oxy stop --quiet 2>/dev/null || true
 
 ## Copias de Seguridad Automatizadas con Planificadores
 
-Dado que `oxy` opera directamente sobre la base SQLite sin abrir la GUI, puede programar exportaciones automáticas mediante `cron` o el Programador de Tareas de Windows:
+Dado que `oxy` opera directamente sobre la base SQLite sin abrir la GUI, puede programar copias de seguridad continuas de la base de datos y exportaciones periódicas mediante `cron` o el Programador de Tareas de Windows:
 
 ```bash
+# Copia de seguridad en línea de la base de datos SQLite a las 02:00 vía cron
+0 2 * * * /usr/local/bin/oxy db backup /backups/oxytime-$(date +\%Y\%m\%d).db
+
 # Exportación nocturna CSV a las 23:59 vía cron
 59 23 * * * /usr/local/bin/oxy report export -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
+```
+
+---
+
+## Pruebas de Estado del Sistema en Flujos de CI/CD
+
+En entornos de integración continua o secuencias de comandos de verificación previa al despliegue, `oxy doctor --json` evalúa el estado del sistema y la integridad del esquema:
+
+```bash
+# Verificar la integridad de SQLite y la disponibilidad de tablas en un flujo de CI
+if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
+    echo "Fallo en la comprobación de la base de datos de oXyFlow" >&2
+    exit 1
+fi
+```
+
+---
+
+## Enrutamiento de Base de Datos en Automatización
+
+Las suites de pruebas automatizadas o flujos de trabajo de agentes pueden redirigir `oxy` a bases de datos dedicadas sin modificar los datos del usuario:
+
+```bash
+# Usando la bandera global de línea de comandos
+oxy --db ./test-fixtures/isolated.db status --json
+
+# Usando variable de entorno
+export OXY_DB_PATH="/tmp/ci-run/oxytime.db"
+oxy project ls --json
 ```

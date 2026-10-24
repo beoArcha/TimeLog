@@ -29,6 +29,7 @@ export interface TimerState {
   logs: DataState['logs'];
   setLogs: DataState['setLogs'];
   activeLog: DataState['activeLog'];
+  activeLogs: DataState['activeLogs'];
   setActiveLog: DataState['setActiveLog'];
   handleStartTimer: DataState['handleStartTimer'];
   handleStopTimer: DataState['handleStopTimer'];
@@ -59,6 +60,7 @@ export interface DataLifecycleState {
   setEngineState: DataState['setEngineState'];
   handleResetLocalStorage: DataState['handleResetLocalStorage'];
   handleRestoreState: DataState['handleRestoreState'];
+  refreshData: DataState['refreshData'];
 }
 
 export const DataContext = createContext<DataState | undefined>(undefined);
@@ -102,6 +104,7 @@ export const useTimer = (): TimerState => {
     logs: data.logs,
     setLogs: data.setLogs,
     activeLog: data.activeLog,
+    activeLogs: data.activeLogs,
     setActiveLog: data.setActiveLog,
     handleStartTimer: data.handleStartTimer,
     handleStopTimer: data.handleStopTimer,
@@ -136,6 +139,7 @@ export const useTimerSafe = (): TimerState | null => {
     logs: data.logs,
     setLogs: data.setLogs,
     activeLog: data.activeLog,
+    activeLogs: data.activeLogs,
     setActiveLog: data.setActiveLog,
     handleStartTimer: data.handleStartTimer,
     handleStopTimer: data.handleStopTimer,
@@ -175,5 +179,6 @@ export const useDataLifecycleState = (): DataLifecycleState => {
     setEngineState: data.setEngineState,
     handleResetLocalStorage: data.handleResetLocalStorage,
     handleRestoreState: data.handleRestoreState,
+    refreshData: data.refreshData,
   };
 };

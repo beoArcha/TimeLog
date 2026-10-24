@@ -1,5 +1,6 @@
 import { AbstractException } from './AbstractException';
 import { ErrorLevel } from './ErrorLevel';
+import type { IpcErrorPayload } from '@bindings/IpcErrorPayload';
 
 export class ContextException extends AbstractException {
   constructor(message: string, code?: string, cause?: unknown) {
@@ -8,8 +9,21 @@ export class ContextException extends AbstractException {
 }
 
 export class TauriInteropException extends AbstractException {
+  public readonly ipcError?: IpcErrorPayload;
+
   constructor(message: string, cause?: unknown, code?: string) {
-    super(message, 'ERROR', code, cause);
+    let resolvedCode = code;
+    let resolvedMessage = message;
+    let ipcError: IpcErrorPayload | undefined;
+
+    if (cause && typeof cause === 'object' && 'code' in cause && 'message' in cause) {
+      ipcError = cause as IpcErrorPayload;
+      resolvedCode = resolvedCode ?? ipcError.code;
+      resolvedMessage = `${message}: ${ipcError.message}`;
+    }
+
+    super(resolvedMessage, 'ERROR', resolvedCode, cause);
+    this.ipcError = ipcError;
   }
 }
 

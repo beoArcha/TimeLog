@@ -1,14 +1,22 @@
 use super::constants;
 use super::BusinessRepository;
-use crate::repositories::shared::errors::Result;
+use crate::repositories::shared::errors::{RepositoryError, Result};
 use crate::types::{Project, ProjectEditHistory};
 use rusqlite::params;
 
 impl BusinessRepository {
     pub fn create_project(&self, project: &Project) -> Result<()> {
         let conn = self.connect()?;
-        let edit_history_str = serde_json::to_string(&project.edit_history).ok();
-        let tags_str = serde_json::to_string(&project.tags).ok();
+        let edit_history_str = project
+            .edit_history
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
+        let tags_str = project
+            .tags
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
         conn.execute(
             constants::INSERT_PROJECT,
             params![
@@ -22,7 +30,8 @@ impl BusinessRepository {
                 edit_history_str,
                 project.description,
                 project.icon,
-                tags_str
+                tags_str,
+                project.allow_concurrency.unwrap_or(false) as i32
             ],
         )?;
         Ok(())
@@ -30,9 +39,17 @@ impl BusinessRepository {
 
     pub fn patch_project(&self, project: &Project) -> Result<()> {
         let conn = self.connect()?;
-        let edit_history_str = serde_json::to_string(&project.edit_history).ok();
-        let tags_str = serde_json::to_string(&project.tags).ok();
-        conn.execute(
+        let edit_history_str = project
+            .edit_history
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
+        let tags_str = project
+            .tags
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
+        let affected = conn.execute(
             constants::UPDATE_PROJECT,
             params![
                 project.id,
@@ -44,25 +61,40 @@ impl BusinessRepository {
                 edit_history_str,
                 project.description,
                 project.icon,
-                tags_str
+                tags_str,
+                project.allow_concurrency.unwrap_or(false) as i32
             ],
         )?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "Project",
+                id: project.id.clone(),
+            });
+        }
         Ok(())
     }
 
     pub fn archive_project(&self, id: &str) -> Result<()> {
         let conn = self.connect()?;
-        conn.execute(constants::ARCHIVE_PROJECT, params![id])?;
+        let affected = conn.execute(constants::ARCHIVE_PROJECT, params![id])?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "Project",
+                id: id.to_string(),
+            });
+        }
         Ok(())
     }
 
     fn map_project_row(row: &rusqlite::Row) -> rusqlite::Result<Project> {
         let edit_history_str: Option<String> = row.get(7)?;
         let edit_history: Option<Vec<ProjectEditHistory>> =
-            edit_history_str.and_then(|s| serde_json::from_str(&s).ok());
+            crate::repositories::shared::parse_json_column(7, edit_history_str)?;
         let archived_int: i32 = row.get(4)?;
         let tags_str: Option<String> = row.get(10)?;
-        let tags: Option<Vec<String>> = tags_str.and_then(|s| serde_json::from_str(&s).ok());
+        let tags: Option<Vec<String>> =
+            crate::repositories::shared::parse_json_column(10, tags_str)?;
+        let allow_concurrency_int: Option<i32> = row.get(11)?;
 
         Ok(Project {
             id: row.get(0)?,
@@ -76,6 +108,7 @@ impl BusinessRepository {
             description: row.get(8)?,
             icon: row.get(9)?,
             tags,
+            allow_concurrency: allow_concurrency_int.map(|v| v == 1),
         })
     }
 

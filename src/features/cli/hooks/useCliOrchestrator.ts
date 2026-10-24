@@ -32,6 +32,9 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
   ]);
 
   const terminalHistoryRef = useRef<HTMLDivElement>(null);
+  const localCommandHistoryRef = useRef<string[]>([]);
+  const localHistoryIndexRef = useRef<number>(-1);
+  const localDraftInputRef = useRef<string>('');
 
   // If session is available and no props overrides, use session history and sandbox
   const defaultSandbox = session?.isSandbox ?? localSandboxMode;
@@ -106,6 +109,7 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
       isSandbox: isSandboxMode,
       onToggleSandbox: handleToggleSandbox,
       onSwitchTask: props?.onSwitchTask,
+      onRefreshData: ambientData?.refreshData,
     };
 
     const outputs = await executeCliCommand(cmdText, cliContext);
@@ -117,7 +121,18 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
   }, [ambientData, customTranslations, handleToggleSandbox, isSandboxMode, locale, nowIso, props, session]);
 
   const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (session) {
+    const isCtrlL = (e.key === 'l' || e.key === 'L') && (e.ctrlKey || e.metaKey);
+    if (isCtrlL) {
+      e.preventDefault();
+      if (session && !props?.projects) {
+        session.clearHistory();
+      } else {
+        setLocalHistory([]);
+      }
+      return;
+    }
+
+    if (session && !props?.projects) {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         const prev = session.navigateHistory('up', input);
@@ -127,12 +142,39 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
         const next = session.navigateHistory('down', input);
         setInput(next);
       }
+      return;
     }
-  }, [input, session]);
+
+    const history = localCommandHistoryRef.current;
+    if (history.length === 0) return;
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (localHistoryIndexRef.current === -1) {
+        localDraftInputRef.current = input;
+        localHistoryIndexRef.current = history.length - 1;
+      } else if (localHistoryIndexRef.current > 0) {
+        localHistoryIndexRef.current -= 1;
+      }
+      setInput(history[localHistoryIndexRef.current]);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (localHistoryIndexRef.current === -1) return;
+      if (localHistoryIndexRef.current < history.length - 1) {
+        localHistoryIndexRef.current += 1;
+        setInput(history[localHistoryIndexRef.current]);
+      } else {
+        localHistoryIndexRef.current = -1;
+        setInput(localDraftInputRef.current);
+      }
+    }
+  }, [input, props?.projects, session]);
 
   const handleFormSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
+    localCommandHistoryRef.current.push(input);
+    localHistoryIndexRef.current = -1;
     executeCommand(input);
     setInput('');
   }, [executeCommand, input]);

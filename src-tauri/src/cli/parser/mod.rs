@@ -9,13 +9,9 @@ pub use tier2_entities::{
     LogArgs, LogSubcommand, ProjectArgs, ProjectSubcommand, TaskArgs, TaskSubcommand,
 };
 pub use tier3_subsystems::{
-    ConfigArgs, ConfigSubcommand, ExportFormat, MaskArgs, MaskSubcommand, ReportArgs,
-    ReportSubcommand, SinkArgs, SinkSubcommand,
+    ConfigArgs, ConfigSubcommand, DbArgs, DbSubcommand, DoctorArgs, ExportFormat, MaskArgs,
+    MaskSubcommand, ReportArgs, ReportSubcommand, SinkArgs, SinkSubcommand,
 };
-
-use crate::cli::manage::ManageCommand;
-use crate::cli::settings::SettingsCommand;
-use crate::cli::timer::TimerCommand;
 
 #[derive(Parser, Debug, Clone, Default)]
 #[command(
@@ -48,6 +44,13 @@ pub struct CliArgs {
         help = "Suppress non-essential output"
     )]
     pub quiet: bool,
+
+    #[arg(
+        long = "db",
+        global = true,
+        help = "Explicit path to SQLite database file"
+    )]
+    pub db: Option<String>,
 
     #[command(subcommand)]
     pub command: Option<CliCommand>,
@@ -100,12 +103,9 @@ pub enum CliCommand {
     #[command(about = "Inspect and modify SQLite configuration settings")]
     Config(ConfigArgs),
 
-    #[command(hide = true, subcommand)]
-    Manage(ManageCommand),
+    #[command(about = "Perform system and database health diagnostics")]
+    Doctor(DoctorArgs),
 
-    #[command(hide = true, subcommand)]
-    Timer(TimerCommand),
-
-    #[command(hide = true, subcommand)]
-    Settings(SettingsCommand),
+    #[command(about = "Manage database backup and recovery operations")]
+    Db(DbArgs),
 }

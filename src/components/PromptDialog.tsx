@@ -10,6 +10,9 @@ import {
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
+import { Form } from '@components/ui/form';
+import { IconBox } from '@components/ui/icon-box';
+import { VStack } from '@components/ui/stack';
 import { HelpCircle, type LucideIcon } from 'lucide-react';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
@@ -91,23 +94,25 @@ function PromptDialogForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+    <Form onSubmit={handleSubmit} layout="vertical" gap="lg">
       <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
-        <div
-          className="p-2.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary shrink-0"
+        <IconBox
+          variant="subtle"
+          size="md"
+          className="rounded-2xl border border-primary/20 bg-primary/10 text-primary"
           aria-hidden="true"
         >
           <Icon className="w-5 h-5" />
-        </div>
-        <div className="flex flex-col gap-1 text-left">
+        </IconBox>
+        <VStack gap="xs" align="start">
           <DialogTitle id={titleId}>{title}</DialogTitle>
           {description && (
             <DialogDescription id={descriptionId}>{description}</DialogDescription>
           )}
-        </div>
+        </VStack>
       </DialogHeader>
 
-      <div className="flex flex-col gap-1.5 my-2">
+      <VStack gap="xs" className="my-2">
         <Label htmlFor={inputId} className="sr-only">
           {inputAriaLabel || (typeof title === 'string' ? title : resolvedConfirmLabel)}
         </Label>
@@ -133,7 +138,7 @@ function PromptDialogForm({
             {error}
           </span>
         )}
-      </div>
+      </VStack>
 
       <DialogFooter className="gap-2">
         <Button
@@ -154,7 +159,7 @@ function PromptDialogForm({
           {resolvedConfirmLabel}
         </Button>
       </DialogFooter>
-    </form>
+    </Form>
   );
 }
 

@@ -8,10 +8,13 @@ describe('useProjectLifecycle', () => {
   const p2 = aProject({ id: 'p2', name: 'Beta' });
 
   it('should initialize selected project with first project in list', () => {
-    // Arrange & Act
+    // Arrange
+    const initialProjects = [p1, p2];
+
+    // Act
     const { result } = renderHook(() =>
       useProjectLifecycle({
-        projects: [p1, p2],
+        projects: initialProjects,
       })
     );
 
@@ -20,11 +23,13 @@ describe('useProjectLifecycle', () => {
     expect(result.current.selectedProject?.name).toBe('Alpha');
   });
 
-  it('should update selected project when setSelectedProjectId is called', () => {
+  it('should update selected project and notify when setSelectedProjectId is called', () => {
     // Arrange
+    const onSelectProjectId = vi.fn();
     const { result } = renderHook(() =>
       useProjectLifecycle({
         projects: [p1, p2],
+        onSelectProjectId,
       })
     );
 
@@ -36,6 +41,69 @@ describe('useProjectLifecycle', () => {
     // Assert
     expect(result.current.selectedProjectId).toBe('p2');
     expect(result.current.selectedProject?.name).toBe('Beta');
+    expect(onSelectProjectId).toHaveBeenCalledWith('p2');
+  });
+
+  it('should automatically select first active project when projects load asynchronously', () => {
+    // Arrange
+    const onSelectProjectId = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ projects }) =>
+        useProjectLifecycle({
+          projects,
+          onSelectProjectId,
+        }),
+      { initialProps: { projects: [] as typeof p1[] } }
+    );
+
+    expect(result.current.selectedProjectId).toBeNull();
+
+    // Act
+    rerender({ projects: [p1, p2] });
+
+    // Assert
+    expect(result.current.selectedProjectId).toBe('p1');
+    expect(onSelectProjectId).toHaveBeenCalledWith('p1');
+  });
+
+  it('should retain saved initial project when present and not archived', () => {
+    // Arrange
+    const onSelectProjectId = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ projects }) =>
+        useProjectLifecycle({
+          projects,
+          initialSelectedProjectId: 'p2',
+          onSelectProjectId,
+        }),
+      { initialProps: { projects: [] as typeof p1[] } }
+    );
+
+    // Act
+    rerender({ projects: [p1, p2] });
+
+    // Assert
+    expect(result.current.selectedProjectId).toBe('p2');
+  });
+
+  it('should fallback to first active project when initial project is archived', () => {
+    // Arrange
+    const archivedP1 = aProject({ id: 'p1', name: 'Alpha', archived: true });
+    const onSelectProjectId = vi.fn();
+    const { result } = renderHook(() =>
+      useProjectLifecycle({
+        projects: [archivedP1, p2],
+        initialSelectedProjectId: 'p1',
+        onSelectProjectId,
+      })
+    );
+
+    // Act
+    const selected = result.current.selectedProjectId;
+
+    // Assert
+    expect(selected).toBe('p2');
+    expect(onSelectProjectId).toHaveBeenCalledWith('p2');
   });
 
   it('should create new project with tags and reset draft state when valid', () => {

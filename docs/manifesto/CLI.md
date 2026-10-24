@@ -21,24 +21,37 @@ The CLI is built around **strict architectural decoupling**: it lives as an isol
                           │                               │
         ┌─────────────────▼───────────────┐     ┌─────────▼─────────────────────┐
         │       Native Shell / CI         │     │     React Desktop / Web       │
-        │   (Terminal / Bash / Cmd)       │     │   (CliInterface.tsx Shell)    │
+        │   (Terminal / Bash / Cmd)       │     │   (CliInterface / CliDrawer)  │
         └─────────────────┬───────────────┘     └─────────┬─────────────────────┘
                           │                               │
-                          ▼                               ▼
-                 Native Rust CLI Module           TypeScript CliEngine
-               (src-tauri/src/cli/*)           (src/features/cli/*)
+                          │                               ▼
+                          │                     CliRouter (IRouter<ICliClient>)
+                          │                     (src/common/cli/CliRouter.ts)
                           │                               │
-        ══════════════════╪═══════════════════════════════╪══════════════════  Module Boundary
-                          │                               │
-        ┌─────────────────▼───────────────┐     ┌─────────▼─────────────────────┐
-        │      Engine & Persistence       │     │    Engine & Persistence       │
-        │   (Rust Core Domain Engine)     │     │      (Browser Plugins)        │
-        └─────────────────┬───────────────┘     └─────────┬─────────────────────┘
-                          │                               │
-                          ▼                               ▼
-                   SQLite Database               Browser LocalStorage
-                   & CSV/API Sinks                   & Web Sinks
+                          │            ┌──────────────────┴──────────────────┐
+                          │            │ Desktop (TauriCliClient)            │ Browser (Sandbox)
+                          │            │ [IPC: cli_execute]                  │
+                          │            ▼                                     ▼
+                          └──────────► Native Rust CLI Dispatcher    SandboxCommandRouter
+                                      (src-tauri/src/cli/*)         (src/features/cli/sandbox/*)
+                                               │                               │
+        ═══════════════════════════════════════╪═══════════════════════════════╪═══════ Module Boundary
+                                               │                               │
+                                      ┌────────▼────────────┐         ┌────────▼────────────┐
+                                      │ Engine & Repos      │         │ SandboxEmulatorStore│
+                                      │ (Rust Core Domain)  │         │ (In-Memory State)   │
+                                      └────────┬────────────┘         └─────────────────────┘
+                                               │
+                                               ▼
+                                         SQLite Database
+                                         & CSV/API Sinks
 ```
+
+### Frontend CLI Routing & Runtime Integration
+
+1. **Desktop Runtime (Tauri):** The in-app terminal delegates domain commands to the native Rust CLI via the `cli_execute` Tauri IPC command (`TauriCliClient`). The native binary parser (Clap) and domain dispatcher execute against SQLite, ensuring identical output formatting, validation, and error envelopes. After any mutating command, `DataContext.refreshData()` is triggered, synchronizing open GUI views instantaneously.
+2. **Browser Runtime & Simulator:** In web environments without native IPC, or when sandbox mode is explicitly activated (`sandbox on`), commands route through `SandboxCommandRouter` and execute against `SandboxEmulatorStore` in memory, guaranteeing zero side-effects to storage.
+3. **Shell Built-ins:** Interactive utility commands (`clear`, `sandbox [on|off|reset|status]`, `break [duration]`) are handled directly by the frontend shell orchestrator without reaching backend persistence.
 
 ### Module Isolation Invariants
 
@@ -121,19 +134,24 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Task** | List | `oxy task list [-p <project-id>]` | Supports filtering and sorting | Hierarchical list with subtasks |
 | **Subtask** | Create | `oxy subtask create -t <parent-id> "<name>"` | Links subtask to parent | Prompts for parent task selection |
 | **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite | Displays green running timer badge |
-| **Timer** | Stop | `oxy timer stop [--all]` | Idempotent timer stop | Prints total elapsed time for session |
+| **Timer** | Stop | `oxy timer stop [--all]` | Idempotent timer stop (`--all` stops all active timers) | Prints total elapsed time for session |
 | **Timer** | Switch | `oxy switch <new-task-id>` | Atomic stop old + start new ($<100\text{ms}$) | Explains previous and new task state |
 | **Timer** | Quick-Log | `oxy timer log <task-id> <duration> ["<note>"]` | Direct retroactive log insertion | Confirms retroactive time captured |
 | **Timer** | Status | `oxy status` | Single-line or JSON status | Visual card with live running timer |
 | **Report** | Tree | `oxy report --tree [--today\|--week\|--month]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
+| **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
 | **Report** | Export | `oxy report export -f <format> -o <path>` | Supports **HTML, JSON, CSV**; `xml`, `ods`, `xlsx` are accepted by the parser but rejected with exit code `2` until implemented | Interactive format selector |
 | **Report** | Stream | `oxy report -f json \| jq .` | Raw unescaped JSON to `stdout` | N/A (interactive terminal) |
+| **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
+| **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
+| **Database** | Restore | `oxy db restore <path>` | Restores state with schema integrity verification | Confirms restored database |
 | **Sink** | Set CSV | `oxy sink set csv --dir <path>` | Configures local CSV audit log | Prompts for directory path |
 | **Sink** | Set API | `oxy sink set webhook --url <url> -t <token>` | Updates external webhook target | Tests connectivity and saves |
 | **Sink** | Test | `oxy sink test` | Synthetic event verification | Displays green checkmarks for active sinks |
 | **Mask** | Set | `oxy mask set <name> "<template>"` | Saves alias in SQLite `cli_aliases` | Validates syntax and explains variables |
 | **Mask** | List | `oxy mask list` | Lists registered aliases | Displays examples of how to run them |
+| **Mask** | Execute | `oxy <mask-name> [args]` | Preprocessed substitution of `$1..$9` tokens | Seamless alias execution |
 
 ---
 
@@ -179,27 +197,28 @@ Defined in `src-tauri/src/cli/shared/constants.rs` and mapped by `CliError::exit
 
 Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* exist in the enum but no code path produces them yet.
 
-| Category | Semantic Code | Exit Code | Description (Always English) |
+| Category | Semantic Code | Exit Code | Description |
 | :--- | :--- | :--- | :--- |
 | `syntax` | `CLI_SYNTAX_INVALID_ARGS` | `2` | Invalid arguments |
 | `syntax` | `CLI_SYNTAX_INVALID_DURATION` | `2` | Duration could not be parsed |
 | `syntax` | `CLI_SYNTAX_EMPTY_ID` | `2` | Empty entity ID |
-| `syntax` | `CLI_SYNTAX_MISSING_TARGET` | — | Required target missing (*not yet emitted*) |
-| `syntax` | `CLI_SYNTAX_UNKNOWN_COMMAND` | — | Unknown command (*not yet emitted*) |
+| `syntax` | `CLI_SYNTAX_MISSING_TARGET` | `2` | Required target missing |
+| `syntax` | `CLI_SYNTAX_UNKNOWN_COMMAND` | `2` | Unknown command |
 | `entity` | `DOM_ENTITY_NOT_FOUND` | `4` | Target project, task or subtask not found |
 | `entity` | `DOM_ENTITY_AMBIGUOUS` | `4` | Query matches more than one entity |
 | `entity` | `DOM_ENTITY_DID_YOU_MEAN` | `4` | No exact match; close matches suggested |
 | `storage` | `STO_SQLITE_INIT` | `3` | Database initialization failed |
 | `storage` | `STO_SQLITE_QUERY` | `3` | Query failed |
-| `storage` | `STO_SQLITE_CONSTRAINT` | — | Constraint violation (*not yet emitted*) |
-| `engine` | `ENG_TIMER_CONFLICT` | `5` | Timer lifecycle conflict (currently used for every engine error) |
-| `engine` | `ENG_TIMER_ACTIVE` | — | Timer already active (*not yet emitted*) |
-| `engine` | `ENG_TIMER_INACTIVE` | — | No active timer (*not yet emitted*) |
+| `storage` | `STO_SQLITE_CONSTRAINT` | `3` | Constraint violation |
+| `engine` | `ENG_TIMER_CONFLICT` | `5` | Active timer conflict |
+| `engine` | `ENG_TIMER_ACTIVE` | `5` | Timer already active (*not yet emitted*) |
+| `engine` | `ENG_TIMER_INACTIVE` | `5` | No active timer running |
+| `engine` | `ENG_OPERATION_FAILED` | `1` | Engine internal operation failed |
 | `business` | `DOM_BUSINESS_VIOLATION` | `1` | Business rule violated |
 | `business` | `DOM_BUSINESS_NO_PROJECTS` | `1` | Operation requires at least one project |
-| `sink` | `SNK_EXTERNAL_IO` | — | Sink I/O failure (*not yet emitted*) |
-| `mask` | `MSK_ALIAS_NOT_FOUND` | — | Action mask not registered (*not yet emitted*) |
-| `mask` | `MSK_ALIAS_SYNTAX` | — | Invalid mask template (*not yet emitted*) |
+| `sink` | `SNK_EXTERNAL_IO` | `1` | Sink I/O or verification failure |
+| `mask` | `MSK_ALIAS_NOT_FOUND` | `2` | Action mask alias not found |
+| `mask` | `MSK_ALIAS_SYNTAX` | `2` | Invalid mask syntax |
 
 ### Interactive Self-Healing in TTY
 
@@ -271,15 +290,17 @@ TimeLog/
 │       ├── cli_test.rs, cli_subtask_test.rs, cli_settings_test.rs
 │       ├── ergonomic_flow_test.rs, interactive_flow_test.rs, subsystem_flow_test.rs
 │       ├── report_integration_test.rs, error_envelope_test.rs
-│       ├── cli_parity_test.rs           # Shared parity fixtures (Rust side)
+│       ├── ipc_cli_test.rs              # Tauri IPC cli_execute bridge tests
+│       ├── parity/parity_matrix_test.rs # 39 cross-runtime parity vectors (Rust side)
+│       ├── subsystems/ (doctor_test.rs, db_test.rs, masks_execution_test.rs, paths_test.rs)
 │       └── subprocess_test.rs           # Compiled binary execution
 └── tests/
     ├── unit/features/cli/               # In-app CLI unit tests (CliDrawer, CliInterface, context, sandbox, utils)
     ├── integration/cli/
-    │   ├── cli-cross-runtime-parity.test.ts   # Shared parity fixtures (TS side)
+    │   ├── cli-cross-runtime-parity.test.ts   # 39 cross-runtime parity vectors (TS side)
     │   ├── cli-drawer-integration.test.tsx
     │   └── cli-interface.test.tsx
-    └── shared/fixtures/cli-parity-cases.json  # Parity matrix used by both runtimes
+    └── shared/fixtures/cli-parity-cases.json  # 39 shared parity vectors across both runtimes
 ```
 
 ---

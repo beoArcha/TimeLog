@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
-import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { translate } from '@common/i18n/translator';
 import { ProjectBadge } from '@features/projects/components/ProjectBadge';
 import { MediumHeaderActions } from './MediumHeaderActions';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
-import { MonoText, Caption } from '@components/ui/typography';
+import { Form } from '@components/ui/form';
+import { Text, MonoText, Caption, Overline } from '@components/ui/typography';
+import { HStack, VStack, InlineCluster } from '@components/ui/stack';
+import { TimerDisplay } from '@features/timelogs/components/TimerDisplay';
 import {
   Folder,
   Plus,
@@ -16,11 +18,71 @@ import {
   X,
   Clock,
 } from 'lucide-react';
+import { useLiveProjectElapsed } from '@common/hooks/useLiveTaskElapsed';
+import { Project } from '@bindings/Project';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
+import { TimeLog } from '@bindings/TimeLog';
 
 export interface MediumProjectSelectorProps {
   state: GuiState;
   dockPosition: 'right' | 'left';
   onToggleDock: () => void;
+}
+
+interface MediumDropdownProjectItemProps {
+  key?: React.Key;
+  project: Project;
+  isSelected: boolean;
+  tasksCount: number;
+  metrics?: EngineComputedMetrics | null;
+  activeLog?: TimeLog | null;
+  onSelect: (id: string) => void;
+}
+
+function MediumDropdownProjectItem({
+  project,
+  isSelected,
+  tasksCount,
+  metrics,
+  activeLog,
+  onSelect,
+}: MediumDropdownProjectItemProps) {
+  const { elapsedSeconds, isRunning } = useLiveProjectElapsed(project.id, {
+    metrics,
+    activeLog,
+  });
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      data-testid={`medium-project-item-${project.id}`}
+      onClick={() => onSelect(project.id)}
+      className={`w-full p-2.5 rounded-xl flex items-center justify-between gap-2 text-left cursor-pointer transition-colors h-auto ${
+        isSelected
+          ? 'bg-orange-500/15 text-orange-500 font-bold'
+          : 'hover:bg-muted/50 text-foreground'
+      }`}
+    >
+      <ProjectBadge
+        name={project.name}
+        color={project.color}
+        icon={project.icon}
+        size="sm"
+        className="flex-1"
+      />
+      <HStack gap="xs" align="center" className="shrink-0 font-mono text-xs text-muted-foreground">
+        <TimerDisplay
+          value={elapsedSeconds}
+          isRunning={isRunning}
+          size="xs"
+          className={isRunning ? 'text-orange-500 font-semibold' : ''}
+        />
+        <MonoText as="span">({tasksCount})</MonoText>
+        {isSelected && <Check className="w-3.5 h-3.5 text-orange-500 ml-1 shrink-0" />}
+      </HStack>
+    </Button>
+  );
 }
 
 export default function MediumProjectSelector({
@@ -49,6 +111,12 @@ export default function MediumProjectSelector({
     projects.find(p => p.id === selectedProjectId) ||
     projects[0];
 
+  const { elapsedSeconds: selectedProjectSeconds, isRunning: isSelectedProjectRunning } =
+    useLiveProjectElapsed(selectedProject?.id ?? '', {
+      metrics: state.metrics,
+      activeLog: state.activeLog,
+    });
+
   const handleCreateProject = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProjectName.trim()) return;
@@ -60,7 +128,12 @@ export default function MediumProjectSelector({
 
   return (
     <div className="relative mb-2.5 shrink-0">
-      <div className="p-2.5 sm:p-3 rounded-2xl border border-border bg-muted/40 text-foreground flex items-center justify-between gap-2 transition-all">
+      <HStack
+        justify="between"
+        align="center"
+        gap="sm"
+        className="p-2.5 sm:p-3 rounded-2xl border border-border bg-muted/40 text-foreground transition-all"
+      >
         <Button
           type="button"
           variant="ghost"
@@ -72,41 +145,42 @@ export default function MediumProjectSelector({
           aria-expanded={isProjectDropdownOpen}
           aria-haspopup="dialog"
         >
-          <div
-            className="w-4 h-4 rounded-full shrink-0 shadow-xs ring-1 ring-white/20"
-            style={{
-              backgroundColor: selectedProject?.color
-                ? `var(--tw-color-${selectedProject.color}-500, #f97316)`
-                : '#f97316',
-            }}
+          <ProjectBadge
+            name={selectedProject?.name || ''}
+            color={selectedProject?.color}
+            icon={selectedProject?.icon}
+            size="md"
+            showName={false}
           />
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm truncate block">
+            <HStack gap="xs" align="center">
+              <Text weight="bold" size="sm" as="span" className="truncate block">
                 {selectedProject?.name ||
                   translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations)}
-              </span>
+              </Text>
               <ChevronDown
                 aria-hidden="true"
                 className={`w-3.5 h-3.5 shrink-0 transition-transform ${
                   isProjectDropdownOpen ? 'rotate-180 text-orange-400' : 'text-muted-foreground'
                 }`}
               />
-            </div>
+            </HStack>
             {selectedProject && (
-              <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
-                <span className="flex items-center gap-1 text-orange-500 font-semibold">
-                  <Clock className="w-3 h-3" aria-hidden="true" />
-                  {formatSeconds(
-                    state.metrics?.projects?.[selectedProject.id]?.totalElapsedSeconds ?? 0
-                  )}
-                </span>
-                <span>·</span>
-                <span>
+              <HStack gap="xs" align="center" className="text-xs font-mono text-muted-foreground">
+                <TimerDisplay
+                  value={selectedProjectSeconds}
+                  isRunning={isSelectedProjectRunning}
+                  variant="plain"
+                  size="xs"
+                  className="text-orange-500 font-semibold"
+                  icon={<Clock className={`w-3 h-3 ${isSelectedProjectRunning ? 'animate-spin-slow' : ''}`} aria-hidden="true" />}
+                />
+                <Text as="span" variant="muted" size="2xs">·</Text>
+                <Caption as="span">
                   {tasks.filter(t => t.projectId === selectedProject.id).length}{' '}
                   {translate(locale, 'project', 'TotalTasks', customTranslations)}
-                </span>
-              </div>
+                </Caption>
+              </HStack>
             )}
           </div>
         </Button>
@@ -121,18 +195,18 @@ export default function MediumProjectSelector({
           locale={locale}
           customTranslations={customTranslations}
         />
-      </div>
+      </HStack>
 
       {isProjectDropdownOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl border border-border bg-card text-card-foreground shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-2xl">
-          <div className="p-3 border-b border-inherit flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <HStack justify="between" align="center" className="p-3 border-b border-inherit">
+            <HStack gap="xs" align="center">
               <Folder className="w-4 h-4 text-orange-400" />
-              <span className="font-bold text-xs uppercase tracking-wider">
+              <Overline weight="bold">
                 {translate(locale, 'project', 'ProjectsLabel', customTranslations)} (
                 {projects.length})
-              </span>
-            </div>
+              </Overline>
+            </HStack>
             <Button
               type="button"
               variant="ghost"
@@ -146,10 +220,10 @@ export default function MediumProjectSelector({
             >
               <X className="w-4 h-4" />
             </Button>
-          </div>
+          </HStack>
 
           {isAddingProject ? (
-            <form onSubmit={handleCreateProject} className="p-3 border-b border-inherit bg-orange-500/5">
+            <Form onSubmit={handleCreateProject} layout="none" className="p-3 border-b border-inherit bg-orange-500/5">
               <Caption weight="semibold" className="mb-2 text-orange-500 block">
                 {translate(locale, 'project', 'NewProject', customTranslations)}
               </Caption>
@@ -163,7 +237,7 @@ export default function MediumProjectSelector({
                 required
                 className="w-full mb-2"
               />
-              <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+              <InlineCluster gap="xs" className="mb-3">
                 {PROJECT_COLORS.map(c => (
                   <Button
                     key={c.name}
@@ -180,8 +254,8 @@ export default function MediumProjectSelector({
                     title={c.name}
                   />
                 ))}
-              </div>
-              <div className="flex items-center justify-end gap-2">
+              </InlineCluster>
+              <HStack justify="end" gap="xs">
                 <Button
                   type="button"
                   variant="outline"
@@ -199,8 +273,8 @@ export default function MediumProjectSelector({
                 >
                   {translate(locale, 'common', 'Save', customTranslations)}
                 </Button>
-              </div>
-            </form>
+              </HStack>
+            </Form>
           ) : (
             <div className="p-2 border-b border-inherit">
               <Button
@@ -216,43 +290,22 @@ export default function MediumProjectSelector({
             </div>
           )}
 
-          <div className="max-h-60 overflow-y-auto p-1.5 flex flex-col gap-1">
-            {projects.map(p => {
-              const isSelected = p.id === selectedProject?.id;
-              const dur = state.metrics?.projects?.[p.id]?.totalElapsedSeconds ?? 0;
-              const pTasks = tasks.filter(t => t.projectId === p.id);
-              return (
-                <Button
-                  key={p.id}
-                  type="button"
-                  variant="ghost"
-                  data-testid={`medium-project-item-${p.id}`}
-                  onClick={() => {
-                    setSelectedProjectId?.(p.id);
-                    setIsProjectDropdownOpen(false);
-                  }}
-                  className={`w-full p-2.5 rounded-xl flex items-center justify-between gap-2 text-left cursor-pointer transition-colors h-auto ${
-                    isSelected
-                      ? 'bg-orange-500/15 text-orange-500 font-bold'
-                      : 'hover:bg-muted/50 text-foreground'
-                  }`}
-                >
-                  <ProjectBadge
-                    name={p.name}
-                    color={p.color}
-                    icon={p.icon}
-                    size="sm"
-                    className="flex-1"
-                  />
-                  <div className="flex items-center gap-2 shrink-0 font-mono text-xs text-muted-foreground">
-                    <span>{formatSeconds(dur)}</span>
-                    <MonoText as="span">({pTasks.length})</MonoText>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-orange-500 ml-1 shrink-0" />}
-                  </div>
-                </Button>
-              );
-            })}
-          </div>
+          <VStack gap="xs" className="max-h-60 overflow-y-auto p-1.5">
+            {projects.map(p => (
+              <MediumDropdownProjectItem
+                key={p.id}
+                project={p}
+                isSelected={p.id === selectedProject?.id}
+                tasksCount={tasks.filter(t => t.projectId === p.id).length}
+                metrics={state.metrics}
+                activeLog={state.activeLog}
+                onSelect={(id) => {
+                  setSelectedProjectId?.(id);
+                  setIsProjectDropdownOpen(false);
+                }}
+              />
+            ))}
+          </VStack>
         </div>
       )}
     </div>

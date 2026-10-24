@@ -12,6 +12,14 @@ pub struct ReportArgs {
     pub week: bool,
     #[arg(long, help = "Scope report to current month")]
     pub month: bool,
+    #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
+    pub project: Option<String>,
+    #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
+    pub task: Option<String>,
+    #[arg(long, help = "Filter by start date (YYYY-MM-DD or RFC3339)")]
+    pub from: Option<String>,
+    #[arg(long, help = "Filter by end date (YYYY-MM-DD or RFC3339)")]
+    pub to: Option<String>,
 }
 
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
@@ -24,6 +32,14 @@ pub enum ReportSubcommand {
         week: bool,
         #[arg(long, help = "Scope to current month")]
         month: bool,
+        #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
+        project: Option<String>,
+        #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
+        task: Option<String>,
+        #[arg(long, help = "Filter by start date (YYYY-MM-DD or RFC3339)")]
+        from: Option<String>,
+        #[arg(long, help = "Filter by end date (YYYY-MM-DD or RFC3339)")]
+        to: Option<String>,
     },
     #[command(about = "Export report to HTML, CSV, or JSON file")]
     Export {
@@ -31,6 +47,20 @@ pub enum ReportSubcommand {
         format: ExportFormat,
         #[arg(short, long, help = "Output destination file path")]
         output: String,
+        #[arg(long, help = "Scope to today")]
+        today: bool,
+        #[arg(long, help = "Scope to current week")]
+        week: bool,
+        #[arg(long, help = "Scope to current month")]
+        month: bool,
+        #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
+        project: Option<String>,
+        #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
+        task: Option<String>,
+        #[arg(long, help = "Filter by start date (YYYY-MM-DD or RFC3339)")]
+        from: Option<String>,
+        #[arg(long, help = "Filter by end date (YYYY-MM-DD or RFC3339)")]
+        to: Option<String>,
     },
 }
 
@@ -115,5 +145,31 @@ pub enum ConfigSubcommand {
         key: String,
         #[arg(help = "Configuration value")]
         value: String,
+    },
+}
+
+#[derive(Args, Debug, Clone, PartialEq, Eq, Default)]
+pub struct DoctorArgs {
+    #[arg(long, help = "Attempt automatic remediation of detected anomalies")]
+    pub fix: bool,
+}
+
+#[derive(Args, Debug, Clone, PartialEq, Eq)]
+pub struct DbArgs {
+    #[command(subcommand)]
+    pub command: DbSubcommand,
+}
+
+#[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
+pub enum DbSubcommand {
+    #[command(about = "Safely backup SQLite database to target destination file")]
+    Backup {
+        #[arg(help = "Destination file path for the backup (e.g. backup.sqlite)")]
+        path: String,
+    },
+    #[command(about = "Safely restore SQLite database from backup file")]
+    Restore {
+        #[arg(help = "Source backup file path to restore from")]
+        path: String,
     },
 }

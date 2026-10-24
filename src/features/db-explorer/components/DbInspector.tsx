@@ -1,6 +1,6 @@
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { Database } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatedCollapse } from '@components/AnimatedCollapse';
 import { translate } from '@common/i18n/translator';
 import {
   Table,
@@ -59,17 +59,12 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
         </HStack>
       </HStack>
 
-      <AnimatePresence>
-        {showDbInspector && (
-          <motion.div
-            id="db-inspector-panel"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <div className="p-4 pt-4 md:p-6 md:pt-4 border-t border-border/50 font-mono text-xs gap-4 flex flex-col">
+      <AnimatedCollapse
+        id="db-inspector-panel"
+        isOpen={showDbInspector}
+        duration={0.3}
+      >
+        <div className="p-4 pt-4 md:p-6 md:pt-4 border-t border-border/50 font-mono text-xs gap-4 flex flex-col">
               <div className={`flex flex-col gap-4 pb-2 ${!isCondensed ? 'md:grid md:grid-cols-2' : ''}`}>
                 <div className="flex-1 p-3 rounded-xl border border-border bg-muted/30 flex flex-col">
                   <Text className="text-orange-500 dark:text-orange-400 font-bold mb-1.5 font-sans shrink-0">TABLE projects</Text>
@@ -165,9 +160,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </AnimatedCollapse>
     </div>
   );
 }

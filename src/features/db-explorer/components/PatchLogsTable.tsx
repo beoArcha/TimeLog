@@ -11,6 +11,7 @@ import { useData } from '@common/hooks/DataContext';
 import { Input } from '@components/ui/input';
 import { Label } from '@components/ui/label';
 import { Button } from '@components/ui/button';
+import { Form } from '@components/ui/form';
 import { Caption } from '@components/ui/typography';
 import {
   Dialog,
@@ -127,7 +128,7 @@ export default function PatchLogsTable() {
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleAddPatch} className="flex flex-col gap-3 my-2">
+          <Form onSubmit={handleAddPatch} layout="vertical" gap="md" className="my-2">
             <div>
               <Label htmlFor="patch-start-time" className="text-xs font-mono text-muted-foreground block mb-1">
                 {translate(locale, 'database', 'StartTimeIso', customTranslations)}
@@ -183,7 +184,7 @@ export default function PatchLogsTable() {
                 {translate(locale, 'common', 'Save', customTranslations)}
               </Button>
             </DialogFooter>
-          </form>
+          </Form>
         </DialogContent>
       </Dialog>
 

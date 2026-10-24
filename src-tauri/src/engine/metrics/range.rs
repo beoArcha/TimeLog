@@ -29,10 +29,10 @@ impl<'a> Engine<'a> {
         let range_start = parse_optional_utc(filter.from.as_deref())?;
         let range_end = parse_optional_utc(filter.to.as_deref())?;
 
-        let relevant_task_ids: Option<HashSet<String>> = filter
-            .task_id
-            .as_deref()
-            .map(|tid| self.collect_relevant_task_ids(tid));
+        let relevant_task_ids: Option<HashSet<String>> = match filter.task_id.as_deref() {
+            Some(tid) => Some(self.collect_relevant_task_ids(tid)?),
+            None => None,
+        };
 
         let mut result = RangeMetricsResult {
             total_seconds: 0,
@@ -92,20 +92,22 @@ impl<'a> Engine<'a> {
         Ok(result)
     }
 
-    fn collect_relevant_task_ids(&self, root_task_id: &str) -> HashSet<String> {
+    fn collect_relevant_task_ids(
+        &self,
+        root_task_id: &str,
+    ) -> Result<HashSet<String>, EngineError> {
         let mut ids = HashSet::new();
         ids.insert(root_task_id.to_string());
         let mut queue = vec![root_task_id.to_string()];
         while let Some(parent_id) = queue.pop() {
-            if let Ok(subtasks) = self.persistence.tasks.get_subtasks(&parent_id) {
-                for sub in subtasks {
-                    if ids.insert(sub.id.clone()) {
-                        queue.push(sub.id);
-                    }
+            let subtasks = self.persistence.tasks.get_subtasks(&parent_id)?;
+            for sub in subtasks {
+                if ids.insert(sub.id.clone()) {
+                    queue.push(sub.id);
                 }
             }
         }
-        ids
+        Ok(ids)
     }
 
     fn process_patches(

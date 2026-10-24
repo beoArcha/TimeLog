@@ -11,7 +11,7 @@ import {
 import { useTauriWindow } from '@common/tauri/useTauriWindow';
 import { TAURI_COMMANDS } from '@common/tauri/tauri-commands';
 
-describe('Integration Tests: useTauriWindow Events Integration', () => {
+describe('Given useTauriWindow hook in desktop runtime', () => {
   const defaultProps = {
     layoutVariant: 'full' as const,
     setLayoutVariant: vi.fn(),
@@ -29,12 +29,10 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     customTranslations: {},
   };
 
-
   beforeEach(() => {
     vi.clearAllMocks();
     setupLocalStorageMock();
     setupMatchMediaMock(false);
-    // Simulate being inside Tauri
     setTauriDesktopEnvironment(true);
   });
 
@@ -48,77 +46,119 @@ describe('Integration Tests: useTauriWindow Events Integration', () => {
     });
   };
 
-  it('should register event listeners and respond to native-window-maximized by resizing', async () => {
-    renderHook(() => useTauriWindow(defaultProps));
-    await waitForListeners();
+  describe('When native-window-maximized event is dispatched', () => {
+    it('Then it should adjust layout variant to full and record last non-compact variant', async () => {
+      // Given
+      renderHook(() => useTauriWindow(defaultProps));
+      await waitForListeners();
 
-    expect(tauriEventRegistry['native-window-maximized']).toBeDefined();
-    triggerTauriEvent('native-window-maximized');
+      expect(tauriEventRegistry['native-window-maximized']).toBeDefined();
 
-    expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('full');
-    expect(defaultProps.setLastNonCompactVariant).toHaveBeenCalledWith('full');
+      // When
+      triggerTauriEvent('native-window-maximized');
+
+      // Then
+      expect(defaultProps.setLayoutVariant).toHaveBeenCalledWith('full');
+      expect(defaultProps.setLastNonCompactVariant).toHaveBeenCalledWith('full');
+    });
   });
 
-  it('should toggle alwaysOnTop state through tray-toggle-on-top event based on current layoutVariant', async () => {
-    const setAlwaysOnTopMainSpy = vi.fn();
-    const setAlwaysOnTopSmallSpy = vi.fn();
+  describe('When tray-toggle-on-top event is triggered', () => {
+    it('Then it should toggle always-on-top based on whether layout is compact or full', async () => {
+      // Given
+      const setAlwaysOnTopMainSpy = vi.fn();
+      const setAlwaysOnTopSmallSpy = vi.fn();
 
-    renderHook(() => useTauriWindow({
-      ...defaultProps,
-      layoutVariant: 'full',
-      setAlwaysOnTopMain: setAlwaysOnTopMainSpy,
-      setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
-    }));
-    await waitForListeners();
+      renderHook(() =>
+        useTauriWindow({
+          ...defaultProps,
+          layoutVariant: 'full',
+          setAlwaysOnTopMain: setAlwaysOnTopMainSpy,
+          setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
+        })
+      );
+      await waitForListeners();
 
-    triggerTauriEvent('tray-toggle-on-top');
-    expect(setAlwaysOnTopMainSpy).toHaveBeenCalled();
-    expect(setAlwaysOnTopSmallSpy).not.toHaveBeenCalled();
+      // When
+      triggerTauriEvent('tray-toggle-on-top');
 
-    vi.clearAllMocks();
-    renderHook(() => useTauriWindow({
-      ...defaultProps,
-      layoutVariant: 'compact',
-      setAlwaysOnTopMain: setAlwaysOnTopMainSpy,
-      setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
-    }));
-    await waitForListeners();
+      // Then
+      expect(setAlwaysOnTopMainSpy).toHaveBeenCalled();
+      expect(setAlwaysOnTopSmallSpy).not.toHaveBeenCalled();
 
-    triggerTauriEvent('tray-toggle-on-top');
-    expect(setAlwaysOnTopSmallSpy).toHaveBeenCalled();
-    expect(setAlwaysOnTopMainSpy).not.toHaveBeenCalled();
+      // Given compact layout
+      vi.clearAllMocks();
+      renderHook(() =>
+        useTauriWindow({
+          ...defaultProps,
+          layoutVariant: 'compact',
+          setAlwaysOnTopMain: setAlwaysOnTopMainSpy,
+          setAlwaysOnTopSmall: setAlwaysOnTopSmallSpy,
+        })
+      );
+      await waitForListeners();
+
+      // When
+      triggerTauriEvent('tray-toggle-on-top');
+
+      // Then
+      expect(setAlwaysOnTopSmallSpy).toHaveBeenCalled();
+      expect(setAlwaysOnTopMainSpy).not.toHaveBeenCalled();
+    });
   });
 
-  it('should execute close commands depending on minimizeToTray preference when close requested', async () => {
-    renderHook(() => useTauriWindow({
-      ...defaultProps,
-      minimizeToTray: false,
-    }));
-    await waitForListeners();
+  describe('When native-close-requested event is received', () => {
+    it('Then it should exit app when minimizeToTray is false, or hide window when true', async () => {
+      // Given: minimizeToTray is false
+      renderHook(() =>
+        useTauriWindow({
+          ...defaultProps,
+          minimizeToTray: false,
+        })
+      );
+      await waitForListeners();
 
-    triggerTauriEvent('native-close-requested');
-    expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.EXIT_APP);
+      // When
+      triggerTauriEvent('native-close-requested');
 
-    vi.clearAllMocks();
-    renderHook(() => useTauriWindow({
-      ...defaultProps,
-      minimizeToTray: true,
-    }));
-    await waitForListeners();
+      // Then
+      expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.EXIT_APP);
 
-    triggerTauriEvent('native-close-requested');
-    expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.HIDE_WINDOW);
+      // Given: minimizeToTray is true
+      vi.clearAllMocks();
+      renderHook(() =>
+        useTauriWindow({
+          ...defaultProps,
+          minimizeToTray: true,
+        })
+      );
+      await waitForListeners();
+
+      // When
+      triggerTauriEvent('native-close-requested');
+
+      // Then
+      expect(mockInvoke).toHaveBeenCalledWith(TAURI_COMMANDS.HIDE_WINDOW);
+    });
   });
 
-  it('should stop active tracking timers on tray-stop-all-timers event', async () => {
-    const handleStopTimerSpy = vi.fn();
-    renderHook(() => useTauriWindow({
-      ...defaultProps,
-      handleStopTimer: handleStopTimerSpy,
-    }));
-    await waitForListeners();
+  describe('When tray-stop-all-timers event is received', () => {
+    it('Then it should delegate to handleStopTimer callback', async () => {
+      // Given
+      const handleStopTimerSpy = vi.fn();
+      renderHook(() =>
+        useTauriWindow({
+          ...defaultProps,
+          handleStopTimer: handleStopTimerSpy,
+        })
+      );
+      await waitForListeners();
 
-    triggerTauriEvent('tray-stop-all-timers');
-    expect(handleStopTimerSpy).toHaveBeenCalled();
+      // When
+      triggerTauriEvent('tray-stop-all-timers');
+
+      // Then
+      expect(handleStopTimerSpy).toHaveBeenCalled();
+    });
   });
 });

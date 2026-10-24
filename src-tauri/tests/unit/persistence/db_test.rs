@@ -110,3 +110,33 @@ fn test_cascade_delete() {
     assert_eq!(task_count, 0);
     assert_eq!(log_count, 0);
 }
+
+#[test]
+fn test_initialize_database_records_migrations_in_memory() {
+    // Arrange
+    let conn = setup_in_memory();
+
+    // Act
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM schema_migrations", [], |r| r.get(0))
+        .unwrap();
+
+    // Assert
+    assert_eq!(count, 6);
+}
+
+#[test]
+fn test_initialize_database_subsequent_call_is_idempotent() {
+    // Arrange
+    let conn = setup_in_memory();
+
+    // Act
+    let second_run = initialize_database(&conn);
+
+    // Assert
+    assert!(second_run.is_ok());
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM schema_migrations", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(count, 6);
+}

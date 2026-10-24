@@ -7,6 +7,8 @@ export const STORAGE_KEYS = {
   ALWAYS_ON_TOP_SMALL: 'oxytime_always_on_top_small',
   ALWAYS_ON_TOP_MAIN: 'oxytime_always_on_top_main',
   CURRENT_PROJ_ID: 'oxytime_current_proj_id',
+  PROJECT_ORDER: 'oxytime_project_order',
+  LAST_TRACKED_TASK_ID: 'oxytime_last_tracked_task_id',
   MIN_TO_TRAY: 'oxytime_min_to_tray',
   LOG_TO_API: 'oxytime_log_to_api',
   API_TOKEN: 'oxytime_api_token',

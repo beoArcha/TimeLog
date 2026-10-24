@@ -18,7 +18,7 @@ export default function ManualTab() {
   };
 
   return (
-    <div className="text-left flex flex-col gap-6 max-h-[85vh] overflow-y-auto pr-1">
+    <div className="text-left flex flex-col gap-6 pb-10">
       <div className="border-b border-border pb-3">
         <Heading level={2} className="text-lg font-bold flex items-center gap-2 text-foreground">
           <BookOpen className="w-5 h-5 text-rose-500" />

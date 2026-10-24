@@ -70,3 +70,25 @@ Zarówno w kodzie TypeScript, jak i w modułach Rust maksymalna dopuszczalna gł
 ### 4. Izolacja Bezgłowego CLI
 
 Natywny plik wykonywalny CLI (`src-tauri/src/cli/`) komunikuje się bezpośrednio z kontraktami `Engine` i `Persistence`. Obowiązuje go bezwzględny zakaz importowania jakichkolwiek typów okienkowych Tauri (`AppState`, `tauri::AppHandle`, kontrolerów okien czy komponentów zasobnika systemowego).
+
+### 5. Enkapsulacja Warstw i Kontrakt Błędów
+
+oXyFlow wymusza jednokierunkową, silnie typowaną propagację błędów na wszystkich granicach architektonicznych:
+
+```text
+Repozytoria (RepositoryError)
+         │
+         ▼
+Warstwa Trwałości (PersistenceError)
+         │
+         ├───────────────────────────────┐
+         ▼                               ▼
+Polecenia Tauri IPC (AppError)   Natywne CLI (CliError)
+         │                               │
+         ▼                               ▼
+Frontend (kody tekstowe: "DOM_*") Terminal / CI (koperta JSON i kod wyjścia)
+```
+
+1. **Ścisła Enkapsulacja Repozytoriów**: Niskopoziomowe błędy bazy danych i zapytań SQL (`RepositoryError`) są bezwzględnie mapowane na domenowe błędy trwałości (`PersistenceError`). Surowe typy repozytoriów nigdy nie przenikają do modułów obsługi poleceń Tauri IPC ani CLI.
+2. **Typowane Typy Wyliczeniowe Błędów**: Każda warstwa definiuje własny enum z wykorzystaniem `thiserror` z ustrukturyzowanymi wariantami. Zwracanie ogólnych typów `String`, `Box<dyn Error>` lub `anyhow::Error` jest zabronione.
+3. **Deterministyczne Mapowanie Błędów**: Błędy domenowe mapowane są na spójne kody w wielkich literach (`DOM_*`, `ENG_*`, `STO_*`, `SNK_*`, `CLI_SYNTAX_*`) oraz deterministyczne kody wyjścia POSIX (`0`–`5`).

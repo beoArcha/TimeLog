@@ -5,4 +5,4 @@ pub mod paths;
 
 pub use console::attach_parent_console;
 pub use errors::AppError;
-pub use paths::{get_default_csv_dir, get_default_db_path};
+pub use paths::{get_default_csv_dir, get_default_db_path, try_get_default_db_path};

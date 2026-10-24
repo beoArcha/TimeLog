@@ -25,6 +25,8 @@ export interface GuiReportFilterState {
 export function useGuiLogic(props: LayoutCommonProps) {
   const projectLifecycle = useProjectLifecycle({
     projects: props.projects,
+    initialSelectedProjectId: props.currentProjectId,
+    onSelectProjectId: props.setCurrentProjectId,
     onAddProject: props.onAddProject,
     onUpdateProject: props.onUpdateProject,
     onRenameProject: props.onRenameProject,

@@ -69,3 +69,30 @@ fn test_given_extra_positional_tokens_without_args_when_expanding_then_leaves_un
     // Assert
     assert_eq!(expanded, "log add only_one $2");
 }
+
+#[test]
+fn test_given_quoted_arguments_when_splitting_shell_args_then_preserves_spaces_inside_quotes() {
+    // Arrange
+    let cmd = "log add task-1 30m \"Review PR #42\"";
+
+    // Act
+    let tokens = oxy_flow::cli::shared::utils::split_shell_args(cmd);
+
+    // Assert
+    assert_eq!(tokens, vec!["log", "add", "task-1", "30m", "Review PR #42"]);
+}
+
+#[test]
+fn test_given_single_quotes_and_multiple_spaces_when_splitting_then_normalizes_and_preserves() {
+    // Arrange
+    let cmd = "task   add   'Feature development'   -p   p1";
+
+    // Act
+    let tokens = oxy_flow::cli::shared::utils::split_shell_args(cmd);
+
+    // Assert
+    assert_eq!(
+        tokens,
+        vec!["task", "add", "Feature development", "-p", "p1"]
+    );
+}

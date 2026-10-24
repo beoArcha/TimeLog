@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LocalStorageTasksPersistence } from '@plugins/persistence/services/LocalStorageTasksPersistence';
 import { ILocalStorageStateStore } from '@plugins/persistence/services/LocalStorageStateStore';
 import { aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
+import { PersistenceException } from '@common/exceptions';
 
 describe('LocalStorageTasksPersistence', () => {
   let storeMock: ILocalStorageStateStore;
@@ -121,7 +122,77 @@ describe('LocalStorageTasksPersistence', () => {
   });
 
   it('should throw exception when getProjectId is called for non-existent task', async () => {
-    // Act & Assert
-    await expect(tasksPersistence.getProjectId('missing')).rejects.toThrow();
+    // Arrange
+    const taskId = 'missing';
+
+    // Act
+    const action = () => tasksPersistence.getProjectId(taskId);
+
+    // Assert
+    await expect(action).rejects.toThrow();
+  });
+
+  it('should throw PersistenceException when update is called for non-existent task', async () => {
+    // Arrange
+    vi.mocked(storeMock.getStateOrDefault).mockResolvedValueOnce({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+
+    // Act
+    const action = () => tasksPersistence.update('missing', 'Name', null, null, null);
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
+  });
+
+  it('should throw PersistenceException when rename is called for non-existent task', async () => {
+    // Arrange
+    vi.mocked(storeMock.getStateOrDefault).mockResolvedValueOnce({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+
+    // Act
+    const action = () => tasksPersistence.rename('missing', 'New Name');
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
+  });
+
+  it('should throw PersistenceException when delete is called for non-existent task', async () => {
+    // Arrange
+    vi.mocked(storeMock.getStateOrDefault).mockResolvedValueOnce({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+
+    // Act
+    const action = () => tasksPersistence.delete('missing');
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
+  });
+
+  it('should throw PersistenceException when toggleComplete is called for non-existent task', async () => {
+    // Arrange
+    vi.mocked(storeMock.getStateOrDefault).mockResolvedValueOnce({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+
+    // Act
+    const action = () => tasksPersistence.toggleComplete('missing');
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
   });
 });

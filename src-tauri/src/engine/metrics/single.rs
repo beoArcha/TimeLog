@@ -1,29 +1,35 @@
 use crate::engine::{Engine, EngineError};
-use crate::types::ProjectStatistics;
+use crate::types::{ProjectStatistics, TimeLog};
 use chrono::{DateTime, Utc};
 use std::time::Duration;
 
 impl<'a> Engine<'a> {
+    pub fn calculate_log_elapsed(log: &TimeLog) -> Result<Duration, EngineError> {
+        let start = DateTime::parse_from_rfc3339(&log.start_time)
+            .map_err(|e| EngineError::ParseTime(e.to_string()))?
+            .with_timezone(&Utc);
+
+        let end = match log.end_time {
+            Some(ref end_str) => DateTime::parse_from_rfc3339(end_str)
+                .map_err(|e| EngineError::ParseTime(e.to_string()))?
+                .with_timezone(&Utc),
+            None => Utc::now(),
+        };
+
+        if end >= start {
+            let diff = end.signed_duration_since(start);
+            Ok(Duration::from_secs(diff.num_seconds() as u64))
+        } else {
+            Ok(Duration::ZERO)
+        }
+    }
+
     pub fn calculate_subtask_elapsed(&self, subtask_id: &str) -> Result<Duration, EngineError> {
         let logs = self.persistence.time_logs.get_for_task(subtask_id)?;
         let mut total_duration = Duration::ZERO;
 
-        for log in logs {
-            let start = DateTime::parse_from_rfc3339(&log.start_time)
-                .map_err(|e| EngineError::ParseTime(e.to_string()))?
-                .with_timezone(&Utc);
-
-            let end = match log.end_time {
-                Some(ref end_str) => DateTime::parse_from_rfc3339(end_str)
-                    .map_err(|e| EngineError::ParseTime(e.to_string()))?
-                    .with_timezone(&Utc),
-                None => Utc::now(),
-            };
-
-            if end >= start {
-                let diff = end.signed_duration_since(start);
-                total_duration += Duration::from_secs(diff.num_seconds() as u64);
-            }
+        for log in &logs {
+            total_duration += Self::calculate_log_elapsed(log)?;
         }
 
         Ok(total_duration)
@@ -33,22 +39,8 @@ impl<'a> Engine<'a> {
         let logs = self.persistence.time_logs.get_for_task(task_id)?;
         let mut total_duration = Duration::ZERO;
 
-        for log in logs {
-            let start = DateTime::parse_from_rfc3339(&log.start_time)
-                .map_err(|e| EngineError::ParseTime(e.to_string()))?
-                .with_timezone(&Utc);
-
-            let end = match log.end_time {
-                Some(ref end_str) => DateTime::parse_from_rfc3339(end_str)
-                    .map_err(|e| EngineError::ParseTime(e.to_string()))?
-                    .with_timezone(&Utc),
-                None => Utc::now(),
-            };
-
-            if end >= start {
-                let diff = end.signed_duration_since(start);
-                total_duration += Duration::from_secs(diff.num_seconds() as u64);
-            }
+        for log in &logs {
+            total_duration += Self::calculate_log_elapsed(log)?;
         }
 
         let subtasks = self.persistence.tasks.get_subtasks(task_id)?;

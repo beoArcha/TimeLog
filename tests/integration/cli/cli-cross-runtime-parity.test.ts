@@ -43,6 +43,8 @@ describe('Given CLI Cross-Runtime Parity Suite', () => {
     parityCases.forEach((testCase) => {
       it(`Then it should satisfy contract expectations for ${testCase.id} (${testCase.description})`, async () => {
         // Given
+        const defaultProject = aProject({ id: 'p1', name: 'Parity Project', color: 'indigo' });
+        const defaultTask = aTask({ id: 't1', projectId: 'p1', name: 'Parity Task' });
         const activeLog = testCase.initialActiveTaskId
           ? aTimeLog({
               id: 'l_active',
@@ -52,9 +54,22 @@ describe('Given CLI Cross-Runtime Parity Suite', () => {
               endTime: undefined,
             })
           : null;
+
+        const store = SandboxEmulatorStore.getInstance();
+        store.seedForTesting({
+          projects: [defaultProject],
+          tasks: [defaultTask],
+          logs: activeLog ? [activeLog] : [],
+          activeLog,
+          selectedTaskId: 't1',
+        });
+
         const context = createTestContext({
+          projects: [defaultProject],
+          tasks: [defaultTask],
           activeLog,
           logs: activeLog ? [activeLog] : [],
+          isSandbox: true,
         });
 
         // When
@@ -72,8 +87,18 @@ describe('Given CLI Cross-Runtime Parity Suite', () => {
           );
           expect(matchesAnyExpected).toBe(true);
         } else {
-          const hasError = output.some(l => l.type === 'error');
-          expect(hasError).toBe(true);
+          const errorLine = output.find(l => l.type === 'error');
+          expect(errorLine).toBeDefined();
+          if (testCase.expectedExitCode !== undefined && errorLine?.exitCode !== undefined) {
+            expect(errorLine.exitCode).toBe(testCase.expectedExitCode);
+          }
+          if (testCase.expectedErrorCode && errorLine?.errorCode) {
+            expect(errorLine.errorCode).toBe(testCase.expectedErrorCode);
+          }
+          const matchesAnyExpected = testCase.expectedPatterns.some(pat =>
+            combinedText.includes(pat.toLowerCase())
+          );
+          expect(matchesAnyExpected).toBe(true);
         }
       });
     });

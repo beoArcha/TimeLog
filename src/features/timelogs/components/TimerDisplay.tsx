@@ -8,6 +8,7 @@ export interface TimerDisplayProps {
   isRunning?: boolean;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'plain' | 'pill' | 'highlight';
+  icon?: React.ReactNode;
   id?: string;
   className?: string;
 }
@@ -20,6 +21,7 @@ export function TimerDisplay({
   isRunning = false,
   size = 'md',
   variant = 'plain',
+  icon,
   id,
   className,
 }: TimerDisplayProps) {
@@ -53,12 +55,13 @@ export function TimerDisplay({
     <span
       id={id}
       className={cn(
-        'font-mono tabular-nums select-none inline-flex items-center',
+        'font-mono tabular-nums select-none inline-flex items-center gap-1.5',
         sizeClasses,
         variantClasses,
         className
       )}
     >
+      {icon}
       {displayString}
     </span>
   );

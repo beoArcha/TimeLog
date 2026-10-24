@@ -24,12 +24,18 @@ pub enum ProjectSubcommand {
         )]
         color: Option<String>,
     },
-    #[command(alias = "ren", about = "Rename an existing project")]
+    #[command(alias = "ren", about = "Rename or recolor an existing project")]
     Rename {
         #[arg(help = "Target project (by ID, prefix, or name)")]
         target: String,
         #[arg(help = "New project name")]
-        new_name: String,
+        new_name: Option<String>,
+        #[arg(
+            short,
+            long,
+            help = "Hex or semantic color (e.g. '#3b82f6' or 'indigo')"
+        )]
+        color: Option<String>,
     },
     #[command(alias = "rm", about = "Archive a project")]
     Archive {
@@ -78,6 +84,20 @@ pub enum TaskSubcommand {
         #[arg(help = "New task title")]
         new_name: String,
     },
+    #[command(about = "Change the parent of a task (or promote to root with 'none')")]
+    Reparent {
+        #[arg(help = "Target task (by ID, prefix, or name)")]
+        target: String,
+        #[arg(help = "New parent task (by ID, prefix, or name), or 'none' / 'root' to detach")]
+        new_parent: String,
+    },
+    #[command(about = "Move a task and its subtasks to another project")]
+    Move {
+        #[arg(help = "Target task (by ID, prefix, or name)")]
+        target: String,
+        #[arg(help = "Destination project (by ID, prefix, or name)")]
+        new_project: String,
+    },
     #[command(alias = "rm", about = "Archive a task")]
     Archive {
         #[arg(help = "Target task (by ID, prefix, or name)")]
@@ -97,10 +117,24 @@ pub enum LogSubcommand {
     List {
         #[arg(short, long, help = "Filter by task (by ID, prefix, or name)")]
         task: Option<String>,
+        #[arg(short = 'p', long, help = "Filter by project (by ID, prefix, or name)")]
+        project: Option<String>,
         #[arg(long, help = "Filter to logs from today")]
         today: bool,
         #[arg(long, help = "Filter to logs from the current week")]
         week: bool,
+        #[arg(long, help = "Filter to logs from the current month")]
+        month: bool,
+        #[arg(
+            long,
+            help = "Filter start date (ISO date or RFC3339, e.g. '2026-10-01')"
+        )]
+        from: Option<String>,
+        #[arg(
+            long,
+            help = "Filter end date (ISO date or RFC3339, e.g. '2026-10-31')"
+        )]
+        to: Option<String>,
         #[arg(short, long, help = "Limit number of entries returned")]
         limit: Option<usize>,
     },
@@ -109,9 +143,21 @@ pub enum LogSubcommand {
         #[arg(help = "Target task (by ID, prefix, or name)")]
         target: String,
         #[arg(help = "Duration (e.g. '45m', '1h30m', '90')")]
-        duration: String,
+        duration: Option<String>,
         #[arg(help = "Optional log note/description")]
         note: Option<String>,
+        #[arg(
+            long,
+            help = "Explicit start timestamp (RFC3339, e.g. '2026-10-24T10:00:00Z')"
+        )]
+        from: Option<String>,
+        #[arg(
+            long,
+            help = "Explicit end timestamp (RFC3339, e.g. '2026-10-24T11:30:00Z')"
+        )]
+        to: Option<String>,
+        #[arg(long = "note", help = "Optional log note when using --from/--to")]
+        explicit_note: Option<String>,
     },
     #[command(alias = "update", about = "Edit an existing log entry")]
     Edit {
@@ -121,6 +167,18 @@ pub enum LogSubcommand {
         duration: Option<String>,
         #[arg(short, long, help = "New note")]
         note: Option<String>,
+        #[arg(
+            long,
+            help = "New start timestamp (RFC3339, e.g. '2026-10-24T10:00:00Z')"
+        )]
+        start: Option<String>,
+        #[arg(
+            long,
+            help = "New end timestamp (RFC3339, e.g. '2026-10-24T11:30:00Z')"
+        )]
+        end: Option<String>,
+        #[arg(long, help = "Reassign log to target task (by ID, prefix, or name)")]
+        task: Option<String>,
     },
     #[command(alias = "rm", alias = "delete", about = "Delete a log entry")]
     Remove {

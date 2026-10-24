@@ -39,4 +39,41 @@ export class TauriUiStatePersistence implements IUiStatePersistence {
       throw err;
     }
   }
+
+  async getProjectOrder(): Promise<string[]> {
+    try {
+      const order = await invoke<string[]>('get_project_order');
+      return order || [];
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to get project order via Tauri', err, 'ERR_TAURI_UI_PROJ_ORDER_GET'));
+      throw err;
+    }
+  }
+
+  async saveProjectOrder(order: string[]): Promise<void> {
+    try {
+      await invoke('save_project_order', { order });
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to save project order via Tauri', err, 'ERR_TAURI_UI_PROJ_ORDER_SAVE'));
+      throw err;
+    }
+  }
+
+  async getLastTrackedTaskId(): Promise<string | null> {
+    try {
+      return await invoke<string | null>('get_last_tracked_task_id');
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to get last tracked task id via Tauri', err, 'ERR_TAURI_UI_LAST_TASK_GET'));
+      throw err;
+    }
+  }
+
+  async saveLastTrackedTaskId(id: string | null): Promise<void> {
+    try {
+      await invoke('save_last_tracked_task_id', { id });
+    } catch (err) {
+      ErrorHandler.handle(new TauriInteropException('Failed to save last tracked task id via Tauri', err, 'ERR_TAURI_UI_LAST_TASK_SAVE'));
+      throw err;
+    }
+  }
 }

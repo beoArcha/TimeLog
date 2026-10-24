@@ -47,6 +47,7 @@ describe('Unit Tests: CliEngine', () => {
         startTimer: vi.fn(),
         stopTimer: vi.fn(),
         resumeTimer: vi.fn(),
+        switchTimer: vi.fn(),
         getActiveLogs: vi.fn().mockResolvedValue([])
       },
       metrics: {

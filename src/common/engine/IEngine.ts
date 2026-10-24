@@ -21,6 +21,7 @@ export interface ITimerEngine {
   startTimer(taskId: string): Promise<void>;
   stopTimer(projectId?: string): Promise<void>;
   resumeTimer(taskId: string): Promise<void>;
+  switchTimer(taskId: string): Promise<void>;
   getActiveLogs(): Promise<string[]>;
 }
 

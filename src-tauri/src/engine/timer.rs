@@ -5,35 +5,50 @@ static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUs
 
 impl<'a> Engine<'a> {
     pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
-        let proj_id = self.persistence.tasks.get_project_id(task_id)?;
-
         let now = Utc::now().to_rfc3339();
-        self.persistence
-            .time_logs
-            .close_active_by_project(&now, &proj_id)?;
-
         let log_id = format!(
             "log_{}_{}",
             Utc::now().timestamp_millis(),
             LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
         );
 
-        self.persistence.time_logs.insert(&log_id, task_id, &now)?;
+        self.persistence
+            .time_logs
+            .start_active(&now, &log_id, task_id, &now)?;
         Ok(())
     }
 
     pub fn stop_timer(&self, project_id: Option<&str>) -> Result<(), EngineError> {
         let now = Utc::now().to_rfc3339();
-        match project_id {
-            Some(p_id) => {
-                self.persistence
-                    .time_logs
-                    .close_active_by_project(&now, p_id)?;
-            }
-            None => {
-                self.persistence.time_logs.close_all_active(&now)?;
-            }
+        let affected = match project_id {
+            Some(p_id) => self
+                .persistence
+                .time_logs
+                .close_active_by_project(&now, p_id)?,
+            None => self.persistence.time_logs.close_all_active(&now)?,
+        };
+
+        if affected == 0 {
+            return Err(EngineError::NoActiveTimer);
         }
+
+        Ok(())
+    }
+
+    pub fn switch_timer(&self, target_task_id: &str) -> Result<(), EngineError> {
+        // Validate target task existence before touching active timers
+        let _ = self.persistence.tasks.get_project_id(target_task_id)?;
+
+        let now = Utc::now().to_rfc3339();
+        let log_id = format!(
+            "log_{}_{}",
+            Utc::now().timestamp_millis(),
+            LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+        );
+
+        self.persistence
+            .time_logs
+            .switch_active(&now, &log_id, target_task_id, &now)?;
         Ok(())
     }
 
@@ -99,19 +114,19 @@ impl<'a> Engine<'a> {
         let logs = self.persistence.time_logs.get_all()?;
 
         let active_task_ids = self.persistence.time_logs.query_active()?;
-        let active_log = if !active_task_ids.is_empty() {
-            logs.iter()
-                .find(|l| l.end_time.is_none() && active_task_ids.contains(&l.task_id))
-                .cloned()
-        } else {
-            None
-        };
+        let active_logs: Vec<crate::types::TimeLog> = logs
+            .iter()
+            .filter(|l| l.end_time.is_none() && active_task_ids.contains(&l.task_id))
+            .cloned()
+            .collect();
+        let active_log = active_logs.first().cloned();
 
         Ok(crate::types::TimerRepositoryState {
             projects,
             tasks,
             logs,
             active_log,
+            active_logs: Some(active_logs),
         })
     }
 }

@@ -43,6 +43,7 @@ export interface IProjectsPersistence {
     description?: string | null;
     icon?: string | null;
     tags?: string[] | null;
+    allowConcurrency?: boolean | null;
   }): Promise<TimerRepositoryState>;
   toggleArchive(projectId: string): Promise<TimerRepositoryState>;
   update(
@@ -51,7 +52,8 @@ export interface IProjectsPersistence {
     color: string,
     description: string | null,
     icon: string | null,
-    tags: string[] | null
+    tags: string[] | null,
+    allowConcurrency?: boolean | null
   ): Promise<TimerRepositoryState>;
   rename(projectId: string, name: string): Promise<TimerRepositoryState>;
 }
@@ -97,6 +99,10 @@ export interface IUiStatePersistence {
   saveCurrentProjectId(id: string | null): Promise<void>;
   getLastNonCompactVariant(): Promise<string>;
   saveLastNonCompactVariant(variant: string): Promise<void>;
+  getProjectOrder(): Promise<string[]>;
+  saveProjectOrder(order: string[]): Promise<void>;
+  getLastTrackedTaskId(): Promise<string | null>;
+  saveLastTrackedTaskId(id: string | null): Promise<void>;
 }
 
 export interface IExternalApiPersistence {

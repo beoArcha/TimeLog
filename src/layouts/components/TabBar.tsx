@@ -14,6 +14,7 @@ import { TranslationDictionary } from "@common/i18n/types";
 import { Locale } from "@/src/bindings/Locale";
 import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { AppTabId } from "@common/types/navigation";
+import { usePlatformCapabilities } from "@common/contexts/PlatformCapabilitiesContext";
 import { cn } from "@/lib/utils";
 
 export type LargeTabId = AppTabId;
@@ -31,7 +32,9 @@ export default function TabBar({
   activeLargeTab,
   setActiveLargeTab,
 }: TabBarProps) {
-  const tabs: Array<{
+  const { canInspectDatabase } = usePlatformCapabilities();
+
+  const allTabs: Array<{
     id: AppTabId;
     icon: React.ComponentType<{ className?: string }>;
     iconColor: string;
@@ -87,9 +90,11 @@ export default function TabBar({
     },
   ];
 
+  const tabs = allTabs.filter((tb) => tb.id !== "db" || canInspectDatabase);
+
   return (
     <div className="shrink-0 z-20 border-b border-border bg-muted/30 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-6 overflow-x-auto">
+      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Tabs
           value={activeLargeTab}
           onValueChange={(val) => {
@@ -98,7 +103,7 @@ export default function TabBar({
         >
           <TabsList
             aria-label="Navigation tabs"
-            className="flex gap-1.5 py-2.5 whitespace-nowrap min-w-max h-auto bg-transparent border-0 p-0"
+            className="flex gap-1.5 py-2.5 whitespace-nowrap min-w-max group-data-horizontal/tabs:!h-auto !h-auto bg-transparent border-0 p-0"
           >
             {tabs.map((tb) => {
               const isActive = activeLargeTab === tb.id;

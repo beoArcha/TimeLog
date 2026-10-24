@@ -223,3 +223,115 @@ fn test_calculate_elapsed_range_with_no_logs_returns_zero() {
     assert_eq!(range_default.as_secs(), 0);
     assert_eq!(range_specific.as_secs(), 0);
 }
+
+#[test]
+fn test_timer_concurrency_stops_non_concurrent_project_when_starting_another_non_concurrent() {
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("timer_concurrency_stop_other");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let proj1 = ProjectBuilder::new()
+        .with_id("p_conc_1")
+        .with_name("Proj1")
+        .with_color("blue")
+        .with_allow_concurrency(false)
+        .build();
+    let proj2 = ProjectBuilder::new()
+        .with_id("p_conc_2")
+        .with_name("Proj2")
+        .with_color("red")
+        .with_allow_concurrency(false)
+        .build();
+    persistence.projects.create(proj1).unwrap();
+    persistence.projects.create(proj2).unwrap();
+
+    let task1 = TaskBuilder::new()
+        .with_id("t_conc_1")
+        .with_project_id("p_conc_1")
+        .with_name("Task 1")
+        .build();
+    let task2 = TaskBuilder::new()
+        .with_id("t_conc_2")
+        .with_project_id("p_conc_2")
+        .with_name("Task 2")
+        .build();
+    persistence.tasks.create(task1).unwrap();
+    persistence.tasks.create(task2).unwrap();
+
+    // Act
+    engine.start_timer("t_conc_1").unwrap();
+    assert_eq!(engine.get_active_logs().unwrap(), vec!["t_conc_1"]);
+
+    engine.start_timer("t_conc_2").unwrap();
+
+    // Assert
+    let active_logs = engine.get_active_logs().unwrap();
+    assert_eq!(active_logs, vec!["t_conc_2"]);
+}
+
+#[test]
+fn test_timer_concurrency_keeps_running_when_allow_concurrency_is_true() {
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("timer_concurrency_allow_concurrent");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let proj_concurrent = ProjectBuilder::new()
+        .with_id("p_conc_true")
+        .with_name("Concurrent Proj")
+        .with_color("green")
+        .with_allow_concurrency(true)
+        .build();
+    let proj_single_1 = ProjectBuilder::new()
+        .with_id("p_single_1")
+        .with_name("Single 1")
+        .with_color("purple")
+        .with_allow_concurrency(false)
+        .build();
+    let proj_single_2 = ProjectBuilder::new()
+        .with_id("p_single_2")
+        .with_name("Single 2")
+        .with_color("orange")
+        .with_allow_concurrency(false)
+        .build();
+    persistence.projects.create(proj_concurrent).unwrap();
+    persistence.projects.create(proj_single_1).unwrap();
+    persistence.projects.create(proj_single_2).unwrap();
+
+    let task_conc = TaskBuilder::new()
+        .with_id("t_conc")
+        .with_project_id("p_conc_true")
+        .with_name("Concurrent Task")
+        .build();
+    let task_single_1 = TaskBuilder::new()
+        .with_id("t_single_1")
+        .with_project_id("p_single_1")
+        .with_name("Single Task 1")
+        .build();
+    let task_single_2 = TaskBuilder::new()
+        .with_id("t_single_2")
+        .with_project_id("p_single_2")
+        .with_name("Single Task 2")
+        .build();
+    persistence.tasks.create(task_conc).unwrap();
+    persistence.tasks.create(task_single_1).unwrap();
+    persistence.tasks.create(task_single_2).unwrap();
+
+    // Act & Assert
+    // 1. Start concurrent project timer
+    engine.start_timer("t_conc").unwrap();
+    assert_eq!(engine.get_active_logs().unwrap(), vec!["t_conc"]);
+
+    // 2. Start single project 1 timer - concurrent project should keep running!
+    engine.start_timer("t_single_1").unwrap();
+    let mut active = engine.get_active_logs().unwrap();
+    active.sort();
+    assert_eq!(active, vec!["t_conc", "t_single_1"]);
+
+    // 3. Start single project 2 timer - single project 1 should stop, but concurrent stays running!
+    engine.start_timer("t_single_2").unwrap();
+    let mut active_after = engine.get_active_logs().unwrap();
+    active_after.sort();
+    assert_eq!(active_after, vec!["t_conc", "t_single_2"]);
+}

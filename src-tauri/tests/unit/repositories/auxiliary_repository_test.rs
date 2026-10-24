@@ -113,3 +113,25 @@ fn test_auxiliary_repository_locale_settings_defaults_and_roundtrip() {
 
     let _ = std::fs::remove_file(&db_path);
 }
+
+#[test]
+fn test_auxiliary_repository_project_order_roundtrip() {
+    // Arrange
+    let db_path = std::env::temp_dir().join("test_aux_order.db");
+    if db_path.exists() {
+        let _ = std::fs::remove_file(&db_path);
+    }
+    let repo = ConfigRepository::new(&db_path).unwrap();
+
+    // Act
+    let initial = repo.get_project_order().unwrap();
+    let sample = vec!["proj-2".to_string(), "proj-1".to_string()];
+    repo.save_project_order(&sample).unwrap();
+    let updated = repo.get_project_order().unwrap();
+
+    // Assert
+    assert!(initial.is_empty());
+    assert_eq!(updated, sample);
+
+    let _ = std::fs::remove_file(&db_path);
+}

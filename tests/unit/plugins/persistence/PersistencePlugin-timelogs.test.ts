@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 import { setupLocalStorageMock } from '@tests/shared/test-helpers';
+import { PersistenceException } from '@common/exceptions';
 
 vi.mock('@plugins/persistence/InitialData', () => ({
   INIT_PROJECTS: [],
@@ -190,5 +191,33 @@ describe('Unit Tests: PersistencePlugin - TimeLogs', () => {
 
     // Assert
     expect(all).toHaveLength(2);
+  });
+
+  it('should delete existing time log and clear activeLog when delete is called', async () => {
+    // Arrange
+    await plugin.tasks.add({ projectId: 'p1', name: 'Task', parentTaskId: null });
+    const state = await plugin.core.load();
+    const taskId = state!.tasks[0].id;
+    const start = new Date().toISOString();
+    await plugin.timeLogs.insert('log-to-delete', taskId, start);
+
+    // Act
+    await plugin.timeLogs.delete('log-to-delete');
+
+    // Assert
+    const afterDelete = await plugin.core.load();
+    expect(afterDelete!.logs).toHaveLength(0);
+    expect(afterDelete!.activeLog).toBeNull();
+  });
+
+  it('should throw PersistenceException when delete is called on non-existent time log', async () => {
+    // Arrange
+    const nonExistentLogId = 'log-404';
+
+    // Act
+    const action = () => plugin.timeLogs.delete(nonExistentLogId);
+
+    // Assert
+    await expect(action).rejects.toThrow(PersistenceException);
   });
 });

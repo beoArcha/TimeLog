@@ -16,6 +16,10 @@ struct ParityCase {
     initial_active_task_id: Option<String>,
     #[serde(rename = "expectSuccess")]
     expect_success: bool,
+    #[serde(rename = "expectedExitCode")]
+    expected_exit_code: Option<u8>,
+    #[serde(rename = "expectedErrorCode")]
+    expected_error_code: Option<String>,
     #[serde(rename = "expectedPatterns")]
     expected_patterns: Vec<String>,
 }
@@ -93,6 +97,33 @@ fn test_given_shared_cli_parity_matrix_when_executed_in_rust_then_satisfies_cros
                         "Expected error for case '{}', but command succeeded",
                         case.id
                     );
+                    let err = result.as_ref().unwrap_err();
+                    if let Some(expected_code) = case.expected_exit_code {
+                        assert_eq!(
+                            err.exit_code(),
+                            expected_code,
+                            "Case '{}' exit code mismatch",
+                            case.id
+                        );
+                    }
+                    if let Some(ref expected_err_code) = case.expected_error_code {
+                        assert_eq!(
+                            err.error_code().as_str(),
+                            expected_err_code,
+                            "Case '{}' error code mismatch",
+                            case.id
+                        );
+                    }
+                    let err_text = err.to_string().to_lowercase();
+                    let matches_any = case
+                        .expected_patterns
+                        .iter()
+                        .any(|pat| err_text.contains(&pat.to_lowercase()));
+                    assert!(
+                        matches_any,
+                        "Case '{}' error text '{}' did not contain expected pattern: {:?}",
+                        case.id, err_text, case.expected_patterns
+                    );
                 }
             }
             Err(parse_err) => {
@@ -102,11 +133,22 @@ fn test_given_shared_cli_parity_matrix_when_executed_in_rust_then_satisfies_cros
                         case.id, parse_err
                     );
                 } else {
-                    // Rejection of invalid command syntax by clap parser satisfies parity
+                    if let Some(expected_code) = case.expected_exit_code {
+                        assert_eq!(
+                            2, expected_code,
+                            "Case '{}' expected exit code 2 for clap parse error",
+                            case.id
+                        );
+                    }
+                    let parse_text = parse_err.to_string().to_lowercase();
+                    let matches_any = case
+                        .expected_patterns
+                        .iter()
+                        .any(|pat| parse_text.contains(&pat.to_lowercase()));
                     assert!(
-                        !case.expect_success,
-                        "Expected syntax failure for invalid case '{}'",
-                        case.id
+                        matches_any,
+                        "Case '{}' parse error '{}' did not contain expected pattern: {:?}",
+                        case.id, parse_text, case.expected_patterns
                     );
                 }
             }
