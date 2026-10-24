@@ -159,6 +159,9 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] **System Diagnostics & Database Tooling**: `oxy doctor` system/schema health verification, `oxy db backup`, `oxy db restore` via SQLite Online Backup API, and explicit database routing (`--db <path>`, `OXY_DB_PATH`).
 - [x] **Legacy Code Elimination**: Purged dead legacy modules (`cli/manage/`, `cli/settings/`, `cli/timer/`, `cli/shared/parser.rs`), establishing tiered modular dispatchers.
 - [x] **Dedicated CLI Test Suites**: `src-tauri/tests/unit/cli/`, `src-tauri/tests/integration/cli/`, `tests/unit/features/cli/`, `tests/integration/cli/`, including cross-runtime parity and error envelope tests.
+- [x] **Frontend CLI Native Delegation & IPC Bridge**: Tauri IPC command `cli_execute` connecting desktop terminal directly to native Rust CLI with reactive `DataContext.refreshData()` GUI synchronization.
+- [x] **Cross-Runtime CLI Parity Matrix**: 39 test vectors in `cli-parity-cases.json` executed by both Vitest and Cargo suites verifying identical outputs, exit codes, and error codes across runtimes.
+- [x] **Browser Sandbox Noun-Verb Alignment & Modularization**: `SandboxCommandRouter` and `SandboxEmulatorStore` aligned with canonical syntax and decomposed into focused domain handlers and pure operation modules.
 
 ### Phase 11 — Multi-Platform Packaging, Distribution & Documentation Infrastructure ✅ (Completed)
 

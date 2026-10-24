@@ -21,24 +21,37 @@ The CLI is built around **strict architectural decoupling**: it lives as an isol
                           │                               │
         ┌─────────────────▼───────────────┐     ┌─────────▼─────────────────────┐
         │       Native Shell / CI         │     │     React Desktop / Web       │
-        │   (Terminal / Bash / Cmd)       │     │   (CliInterface.tsx Shell)    │
+        │   (Terminal / Bash / Cmd)       │     │   (CliInterface / CliDrawer)  │
         └─────────────────┬───────────────┘     └─────────┬─────────────────────┘
                           │                               │
-                          ▼                               ▼
-                 Native Rust CLI Module           TypeScript CliEngine
-               (src-tauri/src/cli/*)           (src/features/cli/*)
+                          │                               ▼
+                          │                     CliRouter (IRouter<ICliClient>)
+                          │                     (src/common/cli/CliRouter.ts)
                           │                               │
-        ══════════════════╪═══════════════════════════════╪══════════════════  Module Boundary
-                          │                               │
-        ┌─────────────────▼───────────────┐     ┌─────────▼─────────────────────┐
-        │      Engine & Persistence       │     │    Engine & Persistence       │
-        │   (Rust Core Domain Engine)     │     │      (Browser Plugins)        │
-        └─────────────────┬───────────────┘     └─────────┬─────────────────────┘
-                          │                               │
-                          ▼                               ▼
-                   SQLite Database               Browser LocalStorage
-                   & CSV/API Sinks                   & Web Sinks
+                          │            ┌──────────────────┴──────────────────┐
+                          │            │ Desktop (TauriCliClient)            │ Browser (Sandbox)
+                          │            │ [IPC: cli_execute]                  │
+                          │            ▼                                     ▼
+                          └──────────► Native Rust CLI Dispatcher    SandboxCommandRouter
+                                      (src-tauri/src/cli/*)         (src/features/cli/sandbox/*)
+                                               │                               │
+        ═══════════════════════════════════════╪═══════════════════════════════╪═══════ Module Boundary
+                                               │                               │
+                                      ┌────────▼────────────┐         ┌────────▼────────────┐
+                                      │ Engine & Repos      │         │ SandboxEmulatorStore│
+                                      │ (Rust Core Domain)  │         │ (In-Memory State)   │
+                                      └────────┬────────────┘         └─────────────────────┘
+                                               │
+                                               ▼
+                                         SQLite Database
+                                         & CSV/API Sinks
 ```
+
+### Frontend CLI Routing & Runtime Integration
+
+1. **Desktop Runtime (Tauri):** The in-app terminal delegates domain commands to the native Rust CLI via the `cli_execute` Tauri IPC command (`TauriCliClient`). The native binary parser (Clap) and domain dispatcher execute against SQLite, ensuring identical output formatting, validation, and error envelopes. After any mutating command, `DataContext.refreshData()` is triggered, synchronizing open GUI views instantaneously.
+2. **Browser Runtime & Simulator:** In web environments without native IPC, or when sandbox mode is explicitly activated (`sandbox on`), commands route through `SandboxCommandRouter` and execute against `SandboxEmulatorStore` in memory, guaranteeing zero side-effects to storage.
+3. **Shell Built-ins:** Interactive utility commands (`clear`, `sandbox [on|off|reset|status]`, `break [duration]`) are handled directly by the frontend shell orchestrator without reaching backend persistence.
 
 ### Module Isolation Invariants
 
@@ -277,16 +290,17 @@ TimeLog/
 │       ├── cli_test.rs, cli_subtask_test.rs, cli_settings_test.rs
 │       ├── ergonomic_flow_test.rs, interactive_flow_test.rs, subsystem_flow_test.rs
 │       ├── report_integration_test.rs, error_envelope_test.rs
+│       ├── ipc_cli_test.rs              # Tauri IPC cli_execute bridge tests
+│       ├── parity/parity_matrix_test.rs # 39 cross-runtime parity vectors (Rust side)
 │       ├── subsystems/ (doctor_test.rs, db_test.rs, masks_execution_test.rs, paths_test.rs)
-│       ├── cli_parity_test.rs           # Shared parity fixtures (Rust side)
 │       └── subprocess_test.rs           # Compiled binary execution
 └── tests/
     ├── unit/features/cli/               # In-app CLI unit tests (CliDrawer, CliInterface, context, sandbox, utils)
     ├── integration/cli/
-    │   ├── cli-cross-runtime-parity.test.ts   # Shared parity fixtures (TS side)
+    │   ├── cli-cross-runtime-parity.test.ts   # 39 cross-runtime parity vectors (TS side)
     │   ├── cli-drawer-integration.test.tsx
     │   └── cli-interface.test.tsx
-    └── shared/fixtures/cli-parity-cases.json  # Parity matrix used by both runtimes
+    └── shared/fixtures/cli-parity-cases.json  # 39 shared parity vectors across both runtimes
 ```
 
 ---
