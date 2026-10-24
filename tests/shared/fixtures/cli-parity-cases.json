@@ -52,5 +52,14 @@
     "initialActiveTaskId": null,
     "expectSuccess": false,
     "expectedPatterns": ["error", "unknown", "unrecognized"]
+  },
+  {
+    "id": "start-not-found",
+    "description": "Start timer on non-existent task fails across runtimes",
+    "commandFrontend": "start non-existent-id-999",
+    "commandRust": ["start", "non-existent-id-999"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedPatterns": ["error", "not exist", "not found"]
   }
 ]
