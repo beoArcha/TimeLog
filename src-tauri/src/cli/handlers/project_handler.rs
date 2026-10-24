@@ -15,15 +15,16 @@ use crate::types::{Project, Task};
 pub fn handle(
     args: ProjectArgs,
     is_machine: bool,
+    is_quiet: bool,
     persistence: &Persistence,
 ) -> Result<CliOutput, CliError> {
     match args.command {
-        ProjectSubcommand::List { all } => list_projects(persistence, all, is_machine),
-        ProjectSubcommand::Add { name, color } => add_project(persistence, name, color),
+        ProjectSubcommand::List { all } => list_projects(persistence, all, is_machine, is_quiet),
+        ProjectSubcommand::Add { name, color } => add_project(persistence, name, color, is_machine),
         ProjectSubcommand::Rename { target, new_name } => {
-            rename_project(persistence, &target, new_name)
+            rename_project(persistence, &target, new_name, is_machine)
         }
-        ProjectSubcommand::Archive { target } => archive_project(persistence, &target),
+        ProjectSubcommand::Archive { target } => archive_project(persistence, &target, is_machine),
     }
 }
 
@@ -31,6 +32,7 @@ fn list_projects(
     persistence: &Persistence,
     all: bool,
     is_machine: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     let projects = persistence.projects.get_all()?;
     let tasks = persistence.tasks.get_all()?;
@@ -49,15 +51,21 @@ fn list_projects(
         return Ok(CliOutput::Success(MSG_NO_PROJECTS_FOUND.to_string()));
     }
 
-    Ok(CliOutput::Success(format_project_list(&filtered, &tasks)))
+    Ok(CliOutput::Success(format_project_list(
+        &filtered, &tasks, is_quiet,
+    )))
 }
 
-fn format_project_list(projects: &[Project], tasks: &[Task]) -> String {
+fn format_project_list(projects: &[Project], tasks: &[Task], is_quiet: bool) -> String {
     let rows: String = projects
         .iter()
         .map(|p| format_project_row(p, tasks))
         .collect();
-    format!("{}{}", HEADER_PROJECTS, rows)
+    if is_quiet {
+        rows.trim_end().to_string()
+    } else {
+        format!("{}{}", HEADER_PROJECTS, rows)
+    }
 }
 
 fn format_project_row(project: &Project, tasks: &[Task]) -> String {
@@ -80,6 +88,7 @@ fn add_project(
     persistence: &Persistence,
     name: String,
     color: Option<String>,
+    is_machine: bool,
 ) -> Result<CliOutput, CliError> {
     let engine = Engine::new(persistence);
     let valid_name = engine.validate_project_name(&name, None)?;
@@ -94,6 +103,16 @@ fn add_project(
         None,
     );
     persistence.projects.create(project)?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": id,
+                "action": "created"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))
 }
 
@@ -101,21 +120,46 @@ fn rename_project(
     persistence: &Persistence,
     target: &str,
     new_name: String,
+    is_machine: bool,
 ) -> Result<CliOutput, CliError> {
-    let resolver = EntityResolver::new(persistence);
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
     let mut project = resolver.resolve_project(target)?;
     let engine = Engine::new(persistence);
     project.name = engine.validate_project_name(&new_name, Some(&project.id))?;
     persistence.projects.patch(project.clone())?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": project.id,
+                "action": "renamed"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Success(
         MSG_PROJECT_RENAMED.replace("{}", &project.id),
     ))
 }
 
-fn archive_project(persistence: &Persistence, target: &str) -> Result<CliOutput, CliError> {
-    let resolver = EntityResolver::new(persistence);
+fn archive_project(
+    persistence: &Persistence,
+    target: &str,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
     let project = resolver.resolve_project(target)?;
     persistence.projects.archive(project.id.clone())?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": project.id,
+                "action": "archived"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Success(
         MSG_PROJECT_ARCHIVED.replace("{}", &project.id),
     ))

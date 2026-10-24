@@ -7,11 +7,20 @@ pub trait Prompter: Send + Sync {
     fn prompt_input(&self, query: &str) -> Option<String>;
 }
 
-pub struct TerminalPrompter;
+#[derive(Debug, Clone, Copy, Default)]
+pub struct TerminalPrompter {
+    pub is_machine: bool,
+}
+
+impl TerminalPrompter {
+    pub fn new(is_machine: bool) -> Self {
+        Self { is_machine }
+    }
+}
 
 impl Prompter for TerminalPrompter {
     fn is_terminal(&self) -> bool {
-        io::stdin().is_terminal()
+        !self.is_machine && io::stdin().is_terminal()
     }
 
     fn prompt_selection(&self, prompt_text: &str, options_count: usize) -> Option<usize> {

@@ -32,7 +32,7 @@ fn list_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
 
     if is_machine {
         let json_str = serde_json::to_string_pretty(&sinks)?;
-        return Ok(CliOutput::Success(json_str));
+        return Ok(CliOutput::Json(json_str));
     }
 
     if sinks.is_empty() {
@@ -87,7 +87,7 @@ fn set_csv_sink(
     persistence.cli.save_sink(&sink)?;
 
     if is_machine {
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::Json(
             json!({ "status": "ok", "sink": "csv", "target": dir }).to_string(),
         ));
     }
@@ -122,7 +122,7 @@ fn set_webhook_sink(
     persistence.cli.save_sink(&sink)?;
 
     if is_machine {
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::Json(
             json!({ "status": "ok", "sink": "webhook", "target": url }).to_string(),
         ));
     }
@@ -137,7 +137,7 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
 
     if sinks.is_empty() {
         if is_machine {
-            return Ok(CliOutput::Success(json!([]).to_string()));
+            return Ok(CliOutput::Json(json!([]).to_string()));
         }
         return Ok(CliOutput::Success(MSG_NO_SINKS_CONFIGURED.to_string()));
     }
@@ -174,18 +174,16 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
     if is_machine {
         let json_str = serde_json::to_string_pretty(&results)?;
         if !all_passed {
-            println!("{}", json_str);
             return Err(CliError::Sink(crate::cli::error::SinkError::TestFailed(
-                "One or more sinks failed verification".to_string(),
+                format!("One or more sinks failed verification: {}", json_str),
             )));
         }
-        return Ok(CliOutput::Success(json_str));
+        return Ok(CliOutput::Json(json_str));
     }
 
     if !all_passed {
-        println!("{}", out);
         return Err(CliError::Sink(crate::cli::error::SinkError::TestFailed(
-            "One or more sinks failed verification".to_string(),
+            format!("One or more sinks failed verification.\n{}", out),
         )));
     }
 

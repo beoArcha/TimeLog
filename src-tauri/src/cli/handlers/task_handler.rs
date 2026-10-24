@@ -15,17 +15,26 @@ use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::{Project, Task, TaskStatus};
 
-pub fn handle(args: TaskArgs, persistence: &Persistence) -> Result<CliOutput, CliError> {
+pub fn handle(
+    args: TaskArgs,
+    is_machine: bool,
+    is_quiet: bool,
+    persistence: &Persistence,
+) -> Result<CliOutput, CliError> {
     match args.command {
-        TaskSubcommand::List { project, all } => list_tasks(persistence, project, all),
+        TaskSubcommand::List { project, all } => {
+            list_tasks(persistence, project, all, is_machine, is_quiet)
+        }
         TaskSubcommand::Add {
             name,
             project,
             parent,
-        } => add_task(persistence, name, project, parent),
-        TaskSubcommand::Done { target } => complete_task(persistence, &target),
-        TaskSubcommand::Rename { target, new_name } => rename_task(persistence, &target, new_name),
-        TaskSubcommand::Archive { target } => archive_task(persistence, &target),
+        } => add_task(persistence, name, project, parent, is_machine),
+        TaskSubcommand::Done { target } => complete_task(persistence, &target, is_machine),
+        TaskSubcommand::Rename { target, new_name } => {
+            rename_task(persistence, &target, new_name, is_machine)
+        }
+        TaskSubcommand::Archive { target } => archive_task(persistence, &target, is_machine),
     }
 }
 
@@ -33,18 +42,25 @@ fn list_tasks(
     persistence: &Persistence,
     project: Option<String>,
     all: bool,
+    is_machine: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     let filter_project_id = resolve_project_filter(persistence, project)?;
     let all_tasks = persistence.tasks.get_all()?;
     let projects = persistence.projects.get_all()?;
 
     let filtered = filter_tasks(&all_tasks, filter_project_id.as_deref(), all);
+    if is_machine {
+        let json = serde_json::to_string_pretty(&filtered)?;
+        return Ok(CliOutput::Json(json));
+    }
+
     if filtered.is_empty() {
         return Ok(CliOutput::Success(MSG_NO_TASKS_FOUND.to_string()));
     }
 
     Ok(CliOutput::Success(render_task_hierarchy(
-        &filtered, &projects,
+        &filtered, &projects, is_quiet,
     )))
 }
 
@@ -117,14 +133,18 @@ impl<'a> TaskHierarchy<'a> {
     }
 }
 
-fn render_task_hierarchy(tasks: &[&Task], projects: &[Project]) -> String {
+fn render_task_hierarchy(tasks: &[&Task], projects: &[Project], is_quiet: bool) -> String {
     let hierarchy = TaskHierarchy::partition(tasks);
     let project_names: HashMap<&str, &str> = projects
         .iter()
         .map(|p| (p.id.as_str(), p.name.as_str()))
         .collect();
 
-    let mut out = String::from(HEADER_TASKS);
+    let mut out = if is_quiet {
+        String::new()
+    } else {
+        String::from(HEADER_TASKS)
+    };
 
     for root in hierarchy.roots {
         let proj_name = project_names
@@ -191,13 +211,14 @@ fn add_task(
     name: String,
     project: Option<String>,
     parent: Option<String>,
+    is_machine: bool,
 ) -> Result<CliOutput, CliError> {
     let engine = Engine::new(persistence);
     let valid_name = engine.validate_task_name(&name)?;
 
     let parent_task = match parent {
         Some(target) => {
-            let resolver = EntityResolver::new(persistence);
+            let resolver = EntityResolver::with_mode(persistence, is_machine);
             let p_task = resolver.resolve_task(&target)?;
             engine.validate_task_hierarchy(None, Some(&p_task.id))?;
             Some(p_task)
@@ -207,7 +228,7 @@ fn add_task(
 
     let project_id = match project {
         Some(target) => {
-            let resolver = EntityResolver::new(persistence);
+            let resolver = EntityResolver::with_mode(persistence, is_machine);
             let p = resolver.resolve_project(&target)?;
             if let Some(ref p_task) = parent_task {
                 if p_task.project_id != p.id {
@@ -229,6 +250,16 @@ fn add_task(
     let task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
 
     persistence.tasks.create(task)?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": id,
+                "action": "created"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
 }
 
@@ -241,13 +272,27 @@ fn resolve_default_project_id(persistence: &Persistence) -> Result<String, CliEr
     Ok(first.id)
 }
 
-fn complete_task(persistence: &Persistence, target: &str) -> Result<CliOutput, CliError> {
+fn complete_task(
+    persistence: &Persistence,
+    target: &str,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::new(persistence);
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
     let mut task = resolver.resolve_task(target)?;
     task.completed = true;
     task.status = Some(TaskStatus::Done);
     persistence.tasks.patch(task.clone())?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": task.id,
+                "action": "completed"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Success(
         MSG_TASK_COMPLETED
             .replacen("{}", &task.name, 1)
@@ -259,23 +304,48 @@ fn rename_task(
     persistence: &Persistence,
     target: &str,
     new_name: String,
+    is_machine: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::new(persistence);
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
     let mut task = resolver.resolve_task(target)?;
     let engine = Engine::new(persistence);
     task.name = engine.validate_task_name(&new_name)?;
     persistence.tasks.patch(task.clone())?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": task.id,
+                "action": "renamed"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Success(MSG_TASK_RENAMED.replace("{}", &task.id)))
 }
 
-fn archive_task(persistence: &Persistence, target: &str) -> Result<CliOutput, CliError> {
+fn archive_task(
+    persistence: &Persistence,
+    target: &str,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::new(persistence);
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
     let task = resolver.resolve_task(target)?;
     persistence
         .tasks
         .archive(task.id.clone(), task.project_id)?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": task.id,
+                "action": "archived"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Success(
         MSG_TASK_ARCHIVED.replace("{}", &task.id),
     ))

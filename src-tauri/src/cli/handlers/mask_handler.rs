@@ -27,7 +27,7 @@ fn list_masks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
 
     if is_machine {
         let json_str = serde_json::to_string_pretty(&aliases)?;
-        return Ok(CliOutput::Success(json_str));
+        return Ok(CliOutput::Json(json_str));
     }
 
     if aliases.is_empty() {
@@ -81,7 +81,7 @@ fn set_mask(
     persistence.cli.save_alias(&alias)?;
 
     if is_machine {
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::Json(
             json!({ "status": "ok", "name": trimmed_name, "template": trimmed_template })
                 .to_string(),
         ));
@@ -111,7 +111,7 @@ fn remove_mask(
     }
 
     if is_machine {
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::Json(
             json!({ "status": "ok", "removed": name }).to_string(),
         ));
     }

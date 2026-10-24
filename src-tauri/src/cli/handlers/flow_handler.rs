@@ -51,14 +51,31 @@ pub struct DashboardDto {
 
 pub fn handle_start(
     args: StartArgs,
+    is_machine: bool,
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
-    handle_start_interactive(args, persistence, engine, &TerminalPrompter)
+    handle_start_with_prompter(
+        args,
+        is_machine,
+        persistence,
+        engine,
+        &TerminalPrompter::new(is_machine),
+    )
 }
 
 pub fn handle_start_interactive(
     args: StartArgs,
+    persistence: &Persistence,
+    engine: &Engine,
+    prompter: &dyn Prompter,
+) -> Result<CliOutput, CliError> {
+    handle_start_with_prompter(args, false, persistence, engine, prompter)
+}
+
+pub fn handle_start_with_prompter(
+    args: StartArgs,
+    is_machine: bool,
     persistence: &Persistence,
     engine: &Engine,
     prompter: &dyn Prompter,
@@ -71,6 +88,16 @@ pub fn handle_start_interactive(
         None => {
             let active = engine.get_active_logs()?;
             if !active.is_empty() {
+                if is_machine {
+                    return Ok(CliOutput::Json(
+                        serde_json::json!({
+                            "status": "ok",
+                            "active_tasks": active,
+                            "running": true
+                        })
+                        .to_string(),
+                    ));
+                }
                 return Ok(CliOutput::Status(active));
             }
 
@@ -85,24 +112,54 @@ pub fn handle_start_interactive(
         }
     };
 
-    let resolver = EntityResolver::new(persistence);
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
     let task = resolver.resolve_task_interactive(&target, prompter)?;
 
     engine.start_timer(&task.id)?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "task_id": task.id,
+                "action": "started"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Started(task.id))
 }
 
-pub fn handle_stop(_args: StopArgs, engine: &Engine) -> Result<CliOutput, CliError> {
+pub fn handle_stop(
+    _args: StopArgs,
+    is_machine: bool,
+    engine: &Engine,
+) -> Result<CliOutput, CliError> {
     engine.stop_timer(None)?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "action": "stopped"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Stopped)
 }
 
 pub fn handle_switch(
     args: SwitchArgs,
+    is_machine: bool,
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
-    handle_switch_interactive(args, persistence, engine, &TerminalPrompter)
+    handle_switch_with_prompter(
+        args,
+        is_machine,
+        persistence,
+        engine,
+        &TerminalPrompter::new(is_machine),
+    )
 }
 
 pub fn handle_switch_interactive(
@@ -111,11 +168,31 @@ pub fn handle_switch_interactive(
     engine: &Engine,
     prompter: &dyn Prompter,
 ) -> Result<CliOutput, CliError> {
+    handle_switch_with_prompter(args, false, persistence, engine, prompter)
+}
+
+pub fn handle_switch_with_prompter(
+    args: SwitchArgs,
+    is_machine: bool,
+    persistence: &Persistence,
+    engine: &Engine,
+    prompter: &dyn Prompter,
+) -> Result<CliOutput, CliError> {
     validate_id(&args.target)?;
-    let resolver = EntityResolver::new(persistence);
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
     let task = resolver.resolve_task_interactive(&args.target, prompter)?;
 
     engine.switch_timer(&task.id)?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "task_id": task.id,
+                "action": "switched"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Started(task.id))
 }
 

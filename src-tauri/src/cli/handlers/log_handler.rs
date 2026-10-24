@@ -13,21 +13,28 @@ use crate::persistence::Persistence;
 use crate::types::{AuditSource, NewTimeLog, TimeLogUpdateHistory};
 use chrono::{DateTime, Duration, Utc};
 
-pub fn handle(args: LogArgs, persistence: &Persistence) -> Result<CliOutput, CliError> {
+pub fn handle(
+    args: LogArgs,
+    is_machine: bool,
+    is_quiet: bool,
+    persistence: &Persistence,
+) -> Result<CliOutput, CliError> {
     match args.command {
         LogSubcommand::List {
             task,
             today,
             week,
             limit,
-        } => list_logs(persistence, task, today, week, limit),
+        } => list_logs(persistence, task, today, week, limit, is_machine, is_quiet),
         LogSubcommand::Add {
             target,
             duration,
             note,
-        } => add_log(persistence, &target, &duration, note),
-        LogSubcommand::Edit { id, duration, note } => edit_log(persistence, &id, duration, note),
-        LogSubcommand::Remove { id } => remove_log(persistence, &id),
+        } => add_log(persistence, &target, &duration, note, is_machine),
+        LogSubcommand::Edit { id, duration, note } => {
+            edit_log(persistence, &id, duration, note, is_machine)
+        }
+        LogSubcommand::Remove { id } => remove_log(persistence, &id, is_machine),
     }
 }
 
@@ -37,26 +44,35 @@ fn list_logs(
     today: bool,
     week: bool,
     limit: Option<usize>,
+    is_machine: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
-    let filter_task_id = resolve_task_filter(persistence, task)?;
+    let filter_task_id = resolve_task_filter(persistence, task, is_machine)?;
     let all_logs = persistence.time_logs.get_all()?;
     let tasks = persistence.tasks.get_all()?;
 
     let filtered = filter_and_sort_logs(all_logs, filter_task_id.as_deref(), today, week, limit);
+    if is_machine {
+        let json_str = serde_json::to_string_pretty(&filtered)?;
+        return Ok(CliOutput::Json(json_str));
+    }
     if filtered.is_empty() {
         return Ok(CliOutput::Success(MSG_NO_LOGS_FOUND.to_string()));
     }
 
-    Ok(CliOutput::Success(render_logs_table(&filtered, &tasks)))
+    Ok(CliOutput::Success(render_logs_table(
+        &filtered, &tasks, is_quiet,
+    )))
 }
 
 fn resolve_task_filter(
     persistence: &Persistence,
     task: Option<String>,
+    is_machine: bool,
 ) -> Result<Option<String>, CliError> {
     match task {
         Some(target) => {
-            let resolver = EntityResolver::new(persistence);
+            let resolver = EntityResolver::with_mode(persistence, is_machine);
             let t = resolver.resolve_task(&target)?;
             Ok(Some(t.id))
         }
@@ -122,8 +138,16 @@ fn format_log_duration(start_time: &str, end_time: Option<&str>) -> String {
     }
 }
 
-fn render_logs_table(logs: &[crate::types::TimeLog], tasks: &[crate::types::Task]) -> String {
-    let mut out = String::from(HEADER_TIME_LOGS);
+fn render_logs_table(
+    logs: &[crate::types::TimeLog],
+    tasks: &[crate::types::Task],
+    is_quiet: bool,
+) -> String {
+    let mut out = if is_quiet {
+        String::new()
+    } else {
+        String::from(HEADER_TIME_LOGS)
+    };
     for log in logs {
         let task_name = tasks
             .iter()
@@ -156,8 +180,9 @@ fn add_log(
     target: &str,
     duration: &str,
     note: Option<String>,
+    is_machine: bool,
 ) -> Result<CliOutput, CliError> {
-    let resolver = EntityResolver::new(persistence);
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
     let task = resolver.resolve_task(target)?;
 
     let dur_secs = parse_duration_seconds(duration)?;
@@ -175,6 +200,17 @@ fn add_log(
 
     persistence.time_logs.insert_full(&new_log)?;
 
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": id,
+                "action": "created"
+            })
+            .to_string(),
+        ));
+    }
+
     Ok(CliOutput::Success(
         MSG_LOG_RECORDED
             .replacen("{}", duration, 1)
@@ -188,6 +224,7 @@ fn edit_log(
     id: &str,
     duration: Option<String>,
     note: Option<String>,
+    is_machine: bool,
 ) -> Result<CliOutput, CliError> {
     let existing = persistence.time_logs.get_by_id(id)?;
 
@@ -212,6 +249,17 @@ fn edit_log(
 
     persistence.time_logs.update_with_history(&history_entry)?;
 
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": id,
+                "action": "updated"
+            })
+            .to_string(),
+        ));
+    }
+
     Ok(CliOutput::Success(MSG_LOG_UPDATED.replace("{}", id)))
 }
 
@@ -233,7 +281,21 @@ fn calculate_adjusted_start_time(
     }
 }
 
-fn remove_log(persistence: &Persistence, id: &str) -> Result<CliOutput, CliError> {
+fn remove_log(
+    persistence: &Persistence,
+    id: &str,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
     persistence.time_logs.delete(id)?;
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": id,
+                "action": "removed"
+            })
+            .to_string(),
+        ));
+    }
     Ok(CliOutput::Success(MSG_LOG_DELETED.replace("{}", id)))
 }

@@ -5,6 +5,7 @@ pub mod exporter_test;
 pub mod levenshtein_test;
 pub mod manage_test;
 pub mod mask_expansion_test;
+pub mod output_formatter_test;
 pub mod parser_test;
 pub mod prompter_test;
 pub mod resolver_test;

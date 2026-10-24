@@ -27,7 +27,7 @@ fn list_config(is_machine: bool, persistence: &Persistence) -> Result<CliOutput,
     if is_machine {
         let map: BTreeMap<String, String> = entries.into_iter().collect();
         let json_str = serde_json::to_string_pretty(&map)?;
-        return Ok(CliOutput::Success(json_str));
+        return Ok(CliOutput::Json(json_str));
     }
 
     if entries.is_empty() {
@@ -70,7 +70,7 @@ fn get_config(
     };
 
     if is_machine {
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::Json(
             json!({ "key": trimmed_key, "value": value }).to_string(),
         ));
     }
@@ -94,7 +94,7 @@ fn set_config(
     persistence.cli.set_config_value(trimmed_key, &value)?;
 
     if is_machine {
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::Json(
             json!({ "status": "ok", "key": trimmed_key, "value": value }).to_string(),
         ));
     }

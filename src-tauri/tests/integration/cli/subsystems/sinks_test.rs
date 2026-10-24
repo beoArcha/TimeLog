@@ -108,3 +108,87 @@ fn test_given_unhealthy_sink_when_testing_sinks_then_fails_with_exit_code_1_and_
         oxy_flow::cli::error::CliErrorCode::SnkExternalIo
     );
 }
+
+#[test]
+fn test_given_configured_persistence_when_setting_csv_sink_in_machine_mode_then_returns_clean_json()
+{
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_sinks_csv_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let temp_csv_dir =
+        std::env::temp_dir().join(format!("test_csv_sink_mach_{}", uuid::Uuid::new_v4()));
+    let temp_csv_str = temp_csv_dir.to_str().unwrap();
+
+    let set_args =
+        CliArgs::try_parse_from(["oxy", "--machine", "sink", "set-csv", "--dir", temp_csv_str])
+            .unwrap();
+
+    // When
+    let result = handle_cli(set_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["sink"], "csv");
+
+    let _ = fs::remove_dir_all(&temp_csv_dir);
+}
+
+#[test]
+fn test_given_configured_persistence_when_listing_sinks_in_machine_mode_then_returns_clean_json_array(
+) {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_sinks_ls_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let list_args = CliArgs::try_parse_from(["oxy", "--machine", "sink", "ls"]).unwrap();
+
+    // When
+    let result = handle_cli(list_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON array");
+    assert!(parsed.is_array());
+}
+
+#[test]
+fn test_given_configured_persistence_when_setting_webhook_sink_in_machine_mode_then_returns_clean_json(
+) {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_sinks_webhook_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let set_args = CliArgs::try_parse_from([
+        "oxy",
+        "--json",
+        "sink",
+        "set-webhook",
+        "--url",
+        "https://example.com/test-endpoint",
+        "--token",
+        "secret-token",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(set_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["sink"], "webhook");
+    assert_eq!(parsed["target"], "https://example.com/test-endpoint");
+}

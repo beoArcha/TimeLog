@@ -72,3 +72,76 @@ fn test_given_configured_persistence_when_config_get_non_existent_key_then_fails
         .technical
         .contains("Config key 'unknown_key_xyz' not found"));
 }
+
+#[test]
+fn test_given_configured_persistence_when_config_list_in_machine_mode_then_returns_clean_json_map()
+{
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_config_ls_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    persistence
+        .cli
+        .set_config_value("theme", "cyberpunk")
+        .unwrap();
+
+    let list_args = CliArgs::try_parse_from(["oxy", "--machine", "config", "ls"]).unwrap();
+
+    // When
+    let result = handle_cli(list_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON map");
+    assert!(parsed.is_object());
+    assert_eq!(parsed["theme"], "cyberpunk");
+}
+
+#[test]
+fn test_given_configured_persistence_when_config_get_in_machine_mode_then_returns_clean_json() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_config_get_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    persistence.cli.set_config_value("editor", "nano").unwrap();
+
+    let get_args = CliArgs::try_parse_from(["oxy", "--json", "config", "get", "editor"]).unwrap();
+
+    // When
+    let result = handle_cli(get_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
+    assert_eq!(parsed["key"], "editor");
+    assert_eq!(parsed["value"], "nano");
+}
+
+#[test]
+fn test_given_configured_persistence_when_config_set_in_machine_mode_then_returns_clean_json() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_config_set_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let set_args =
+        CliArgs::try_parse_from(["oxy", "--machine", "config", "set", "locale", "pl"]).unwrap();
+
+    // When
+    let result = handle_cli(set_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["key"], "locale");
+    assert_eq!(parsed["value"], "pl");
+}

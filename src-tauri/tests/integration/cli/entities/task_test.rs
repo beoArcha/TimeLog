@@ -173,3 +173,185 @@ fn test_given_projects_and_tasks_when_task_list_invoked_then_displays_hierarchy_
     assert!(output_str.contains("Parent Container"));
     assert!(output_str.contains("Nested Child Task"));
 }
+
+#[test]
+fn test_given_configured_persistence_when_adding_task_in_machine_mode_then_returns_json_envelope() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_add_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-task-mach")
+        .with_name("Mach Project")
+        .build();
+    persistence.projects.create(proj).unwrap();
+
+    let args = CliArgs::try_parse_from([
+        "oxy",
+        "--json",
+        "task",
+        "add",
+        "Mach Task",
+        "-p",
+        "Mach Project",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["action"], "created");
+    assert!(parsed["id"].is_string());
+}
+
+#[test]
+fn test_given_existing_tasks_when_listing_in_machine_mode_then_returns_clean_json_array() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_ls_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-task-ls")
+        .with_name("List Task Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-mach-01")
+        .with_project_id("p-task-ls")
+        .with_name("Machine Listed Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args = CliArgs::try_parse_from(["oxy", "--machine", "task", "ls", "--all"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON array");
+    assert!(parsed.is_array());
+    assert_eq!(parsed[0]["name"], "Machine Listed Task");
+}
+
+#[test]
+fn test_given_existing_task_when_marking_done_in_machine_mode_then_returns_json_envelope() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_done_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-task-done")
+        .with_name("Done Task Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-done-mach")
+        .with_project_id("p-task-done")
+        .with_name("Task To Complete")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "--machine", "task", "done", "Task To Complete"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["action"], "completed");
+    assert_eq!(parsed["id"], "t-done-mach");
+}
+
+#[test]
+fn test_given_existing_task_when_renaming_in_machine_mode_then_returns_json_envelope() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_ren_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-task-ren")
+        .with_name("Ren Task Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-ren-mach")
+        .with_project_id("p-task-ren")
+        .with_name("Before Rename")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args = CliArgs::try_parse_from([
+        "oxy",
+        "--machine",
+        "task",
+        "ren",
+        "Before Rename",
+        "After Rename",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["action"], "renamed");
+    assert_eq!(parsed["id"], "t-ren-mach");
+}
+
+#[test]
+fn test_given_existing_task_when_archiving_in_machine_mode_then_returns_json_envelope() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_rm_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-task-rm")
+        .with_name("Rm Task Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-rm-mach")
+        .with_project_id("p-task-rm")
+        .with_name("Task To Archive")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "--machine", "task", "rm", "Task To Archive"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["action"], "archived");
+    assert_eq!(parsed["id"], "t-rm-mach");
+}

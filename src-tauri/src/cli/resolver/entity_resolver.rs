@@ -95,15 +95,26 @@ impl fmt::Display for ResolveError {
 
 pub struct EntityResolver<'a> {
     persistence: &'a Persistence,
+    is_machine: bool,
 }
 
 impl<'a> EntityResolver<'a> {
     pub fn new(persistence: &'a Persistence) -> Self {
-        Self { persistence }
+        Self {
+            persistence,
+            is_machine: false,
+        }
+    }
+
+    pub fn with_mode(persistence: &'a Persistence, is_machine: bool) -> Self {
+        Self {
+            persistence,
+            is_machine,
+        }
     }
 
     pub fn resolve_task(&self, target: &str) -> Result<Task, ResolveError> {
-        self.resolve_task_interactive(target, &TerminalPrompter)
+        self.resolve_task_interactive(target, &TerminalPrompter::new(self.is_machine))
     }
 
     pub fn resolve_task_interactive(
@@ -128,7 +139,7 @@ impl<'a> EntityResolver<'a> {
     }
 
     pub fn resolve_project(&self, target: &str) -> Result<Project, ResolveError> {
-        self.resolve_project_interactive(target, &TerminalPrompter)
+        self.resolve_project_interactive(target, &TerminalPrompter::new(self.is_machine))
     }
 
     pub fn resolve_project_interactive(

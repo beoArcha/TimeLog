@@ -97,3 +97,75 @@ fn test_given_configured_persistence_when_mask_rm_non_existent_alias_then_fails_
         .technical
         .contains("Action mask alias 'missing_alias_xyz' not found"));
 }
+
+#[test]
+fn test_given_configured_persistence_when_mask_set_in_machine_mode_then_returns_clean_json() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_mask_set_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let set_args =
+        CliArgs::try_parse_from(["oxy", "--machine", "mask", "set", "dev", "start core"]).unwrap();
+
+    // When
+    let result = handle_cli(set_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["name"], "dev");
+}
+
+#[test]
+fn test_given_configured_persistence_when_mask_list_in_machine_mode_then_returns_clean_json_array()
+{
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_mask_ls_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let set_args =
+        CliArgs::try_parse_from(["oxy", "mask", "set", "review", "log add PR 30m"]).unwrap();
+    handle_cli(set_args, &persistence, &engine).unwrap();
+
+    let list_args = CliArgs::try_parse_from(["oxy", "--machine", "mask", "ls"]).unwrap();
+
+    // When
+    let result = handle_cli(list_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON array");
+    assert!(parsed.is_array());
+    assert_eq!(parsed[0]["name"], "review");
+}
+
+#[test]
+fn test_given_configured_persistence_when_mask_rm_in_machine_mode_then_returns_clean_json() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_mask_rm_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let set_args = CliArgs::try_parse_from(["oxy", "mask", "set", "to_delete", "stop"]).unwrap();
+    handle_cli(set_args, &persistence, &engine).unwrap();
+
+    let rm_args = CliArgs::try_parse_from(["oxy", "--json", "mask", "rm", "to_delete"]).unwrap();
+
+    // When
+    let result = handle_cli(rm_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let rendered = format!("{}", result.unwrap());
+    assert!(!rendered.contains('✅'));
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["removed"], "to_delete");
+}
