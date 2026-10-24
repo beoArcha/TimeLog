@@ -1,9 +1,9 @@
 use super::constants::{
-    DASHBOARD_TIP_FOOTER, DIVIDER_LINE, FORMAT_DASHBOARD_ACTIVE, FORMAT_DASHBOARD_PROGRESS,
-    FORMAT_DASHBOARD_RECENT_ITEM, FORMAT_TODAY_ITEM, FORMAT_TODAY_TOTAL, HEADER_DASHBOARD,
-    HEADER_TODAY_PREFIX, LABEL_GENERAL_PROJECT, LABEL_UNKNOWN_PROJECT, LABEL_UNKNOWN_TASK,
-    MSG_NO_TODAY_LOGS, SECTION_ACTIVE_SESSION, SECTION_RECENT_ACTIVITY, SECTION_TODAY_PROGRESS,
-    STATUS_ACTIVE_NOTICE, STATUS_IDLE_NOTICE, STATUS_IDLE_TIP,
+    DASHBOARD_TIP_FOOTER, DIVIDER_LINE, ERR_MULTIPLE_TIMERS_SPECIFY_ALL, FORMAT_DASHBOARD_ACTIVE,
+    FORMAT_DASHBOARD_PROGRESS, FORMAT_DASHBOARD_RECENT_ITEM, FORMAT_TODAY_ITEM, FORMAT_TODAY_TOTAL,
+    HEADER_DASHBOARD, HEADER_TODAY_PREFIX, LABEL_GENERAL_PROJECT, LABEL_UNKNOWN_PROJECT,
+    LABEL_UNKNOWN_TASK, MSG_NO_TODAY_LOGS, SECTION_ACTIVE_SESSION, SECTION_RECENT_ACTIVITY,
+    SECTION_TODAY_PROGRESS, STATUS_ACTIVE_NOTICE, STATUS_IDLE_NOTICE, STATUS_IDLE_TIP,
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::formatters::format_duration;
@@ -130,16 +130,28 @@ pub fn handle_start_with_prompter(
 }
 
 pub fn handle_stop(
-    _args: StopArgs,
+    args: StopArgs,
     is_machine: bool,
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
+    let active = engine.get_active_logs()?;
+    if active.is_empty() {
+        return Err(crate::engine::EngineError::NoActiveTimer.into());
+    }
+    if active.len() > 1 && !args.all {
+        return Err(CliError::business_custom(
+            ERR_MULTIPLE_TIMERS_SPECIFY_ALL.replace("{}", &active.len().to_string()),
+        ));
+    }
+
+    let stopped_count = active.len();
     engine.stop_timer(None)?;
     if is_machine {
         return Ok(CliOutput::Json(
             serde_json::json!({
                 "status": "ok",
-                "action": "stopped"
+                "action": "stopped",
+                "stopped_count": stopped_count
             })
             .to_string(),
         ));

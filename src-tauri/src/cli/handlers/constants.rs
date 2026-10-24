@@ -131,3 +131,9 @@ pub const PERIOD_LABEL_TODAY: &str = "Today";
 pub const PERIOD_LABEL_WEEK: &str = "This Week";
 pub const PERIOD_LABEL_MONTH: &str = "This Month";
 pub const PERIOD_LABEL_ALL: &str = "All Time";
+pub const PERIOD_LABEL_CUSTOM: &str = "Custom Range";
+
+pub const ERR_DATE_RANGE_INVALID: &str = "Filter start date cannot be after end date.";
+pub const ERR_TASK_NOT_IN_PROJECT: &str = "Task '{}' does not belong to project '{}'";
+pub const ERR_MULTIPLE_TIMERS_SPECIFY_ALL: &str =
+    "Multiple active timers running ({}). Use 'oxy stop --all' to stop all active timers.";

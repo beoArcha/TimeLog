@@ -117,3 +117,49 @@ pub fn parse_duration_seconds(input: &str) -> Result<i64, DurationParseError> {
 
     Ok(total_seconds)
 }
+
+pub fn parse_date_bound(
+    input: &str,
+    is_upper_bound: bool,
+) -> Result<chrono::DateTime<chrono::Utc>, crate::cli::error::CliError> {
+    if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(input) {
+        return Ok(dt.with_timezone(&chrono::Utc));
+    }
+    if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(input, "%Y-%m-%dT%H:%M:%S") {
+        return Ok(chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+            ndt,
+            chrono::Utc,
+        ));
+    }
+    if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(input, "%Y-%m-%d %H:%M:%S") {
+        return Ok(chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+            ndt,
+            chrono::Utc,
+        ));
+    }
+    if let Ok(nd) = chrono::NaiveDate::parse_from_str(input, "%Y-%m-%d") {
+        let (h, m, s) = if is_upper_bound {
+            (23, 59, 59)
+        } else {
+            (0, 0, 0)
+        };
+        let ndt = nd.and_hms_opt(h, m, s).ok_or_else(|| {
+            crate::cli::error::CliError::syntax_invalid_args(
+                crate::cli::shared::constants::ERR_INVALID_TIMESTAMP.replace("{}", input),
+            )
+        })?;
+        return Ok(chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+            ndt,
+            chrono::Utc,
+        ));
+    }
+    Err(crate::cli::error::CliError::syntax_invalid_args(
+        crate::cli::shared::constants::ERR_INVALID_TIMESTAMP.replace("{}", input),
+    ))
+}
+
+pub fn parse_iso_or_rfc3339(
+    input: &str,
+) -> Result<chrono::DateTime<chrono::Utc>, crate::cli::error::CliError> {
+    parse_date_bound(input, false)
+}

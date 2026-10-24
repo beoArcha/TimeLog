@@ -1,15 +1,16 @@
 use super::constants::{
-    ERR_INVALID_TIMESTAMP, ERR_LOG_ADD_NO_DURATION_OR_FROM, ERR_LOG_EDIT_EMPTY,
-    FORMAT_DURATION_MINS_SECS, FORMAT_LOG_NOTE, FORMAT_LOG_ROW, HEADER_TIME_LOGS,
-    LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION, LABEL_UNKNOWN_TASK, MSG_LOG_DELETED,
-    MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
+    ERR_LOG_ADD_NO_DURATION_OR_FROM, ERR_LOG_EDIT_EMPTY, FORMAT_DURATION_MINS_SECS,
+    FORMAT_LOG_NOTE, FORMAT_LOG_ROW, HEADER_TIME_LOGS, LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION,
+    LABEL_UNKNOWN_TASK, MSG_LOG_DELETED, MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
 };
 use crate::cli::error::CliError;
 use crate::cli::parser::tier2_entities::{LogArgs, LogSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::constants::DATE_FORMAT_DATE_ONLY;
 use crate::cli::shared::output::CliOutput;
-use crate::cli::shared::utils::{current_timestamp, generate_id, parse_duration_seconds};
+use crate::cli::shared::utils::{
+    current_timestamp, generate_id, parse_date_bound, parse_duration_seconds, parse_iso_or_rfc3339,
+};
 use crate::persistence::Persistence;
 use crate::types::{AuditSource, NewTimeLog, TimeLogUpdateHistory};
 use chrono::{DateTime, Duration, Utc};
@@ -243,36 +244,6 @@ fn is_log_after(start_time: &str, bound: DateTime<Utc>) -> bool {
     parse_log_timestamp(start_time)
         .map(|st| st > bound)
         .unwrap_or(false)
-}
-
-fn parse_date_bound(input: &str, is_upper_bound: bool) -> Result<DateTime<Utc>, CliError> {
-    if let Ok(dt) = DateTime::parse_from_rfc3339(input) {
-        return Ok(dt.with_timezone(&Utc));
-    }
-    if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(input, "%Y-%m-%dT%H:%M:%S") {
-        return Ok(DateTime::<Utc>::from_naive_utc_and_offset(ndt, Utc));
-    }
-    if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(input, "%Y-%m-%d %H:%M:%S") {
-        return Ok(DateTime::<Utc>::from_naive_utc_and_offset(ndt, Utc));
-    }
-    if let Ok(nd) = chrono::NaiveDate::parse_from_str(input, "%Y-%m-%d") {
-        let (h, m, s) = if is_upper_bound {
-            (23, 59, 59)
-        } else {
-            (0, 0, 0)
-        };
-        let ndt = nd.and_hms_opt(h, m, s).ok_or_else(|| {
-            CliError::syntax_invalid_args(ERR_INVALID_TIMESTAMP.replace("{}", input))
-        })?;
-        return Ok(DateTime::<Utc>::from_naive_utc_and_offset(ndt, Utc));
-    }
-    Err(CliError::syntax_invalid_args(
-        ERR_INVALID_TIMESTAMP.replace("{}", input),
-    ))
-}
-
-fn parse_iso_or_rfc3339(input: &str) -> Result<DateTime<Utc>, CliError> {
-    parse_date_bound(input, false)
 }
 
 fn filter_and_sort_logs(
