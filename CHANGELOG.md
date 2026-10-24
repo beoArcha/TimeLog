@@ -11,6 +11,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.10.1] - 2026-10-24
+
+### Added in 1.10.1
+
+- **Frontend CLI Delegation & IPC Bridge (`cli_execute`)**:
+  - Implemented `cli_execute` Tauri IPC command in `src-tauri/src/commands/cli.rs` and frontend `CliRouter` (`src/common/cli/CliRouter.ts`) with `TauriCliClient`, delegating in-app terminal commands directly to the native Rust CLI engine.
+  - Added reactive UI synchronization: executing mutating CLI commands triggers `DataContext.refreshData()`, updating GUI views immediately with SQLite.
+- **Cross-Runtime CLI Parity Matrix**:
+  - Expanded `tests/shared/fixtures/cli-parity-cases.json` from 7 to 39 cross-runtime parity test vectors covering Flow (11), Project (8), Task (12), Log (5), and Syntax/Error (3) scenarios with expected exit codes (`0`..`5`) and error codes.
+  - Implemented cross-runtime parity assertion suites in Vitest (`cli-cross-runtime-parity.test.ts`) and Cargo (`parity_matrix_test.rs`).
+- **Canonical Noun-Verb Syntax in Sandbox Emulator**:
+  - Implemented `SandboxCommandRouter` providing canonical noun-verb command structure (`project`, `task`, `log`, `start`, `stop`, `switch`, `status`, `today`) with flag parsing and backward-compatible redirects for legacy flat commands.
+
+### Changed in 1.10.1
+
+- **Version Bump**:
+  - Bumped release version to `1.10.1` across `package.json`, `src/versions.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`.
+- **Sandbox Architecture Modularization**:
+  - Decomposed `sandboxCommandRouter.ts` (768 LOC) and `sandboxEmulatorStore.ts` (421 LOC) into domain handlers (`handlers/sandboxProjectHandlers.ts`, `sandboxTaskHandlers.ts`, `sandboxLogHandlers.ts`, `sandboxFlowHandlers.ts`), pure operations (`store/sandboxProjectOps.ts`, `sandboxTaskOps.ts`, `sandboxTimerOps.ts`), and dedicated localStorage persistence (`store/sandboxStorage.ts`), adhering to file length limits (aim $\le 300$ LOC).
+
+### Fixed in 1.10.1
+
+- **Atomic Task Switching & Timer Parity**:
+  - Aligned `switch <task-id>` in sandbox emulator to atomically stop active timer and start new timer in a single transaction.
+  - Aligned `stop` command semantics in sandbox emulator: attempting to stop an inactive timer returns error code `5` (`ENG_TIMER_INACTIVE`) matching native Rust CLI behavior instead of silent success.
+  - Fixed sandbox log duration display format (`durationStr || formatSeconds(durSecs)`) to match native Rust CLI output ("45m").
+
+---
+
 ## [1.10.0] - 2026-10-24
 
 ### Added in 1.10.0
@@ -34,14 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added integration test `test_given_unhealthy_sink_when_testing_sinks_then_fails_with_exit_code_1_and_snk_external_io` in `src-tauri/tests/integration/cli/subsystems/sinks_test.rs`.
   - Added unit tests for ISO 8601 timestamp parsing and error propagation in `src-tauri/tests/unit/workflow/daemon_test.rs`.
   - Extended cross-runtime CLI parity fixtures (`cli-parity-cases.json`) with entity not found error cases.
-- **Frontend CLI Delegation & IPC Bridge (`cli_execute`)**:
-  - Implemented `cli_execute` Tauri IPC command in `src-tauri/src/commands/cli.rs` and frontend `CliRouter` (`src/common/cli/CliRouter.ts`) with `TauriCliClient`, delegating in-app terminal commands directly to the native Rust CLI engine.
-  - Added reactive UI synchronization: executing mutating CLI commands triggers `DataContext.refreshData()`, updating GUI views immediately with SQLite.
-- **Cross-Runtime CLI Parity Matrix**:
-  - Expanded `tests/shared/fixtures/cli-parity-cases.json` from 7 to 39 cross-runtime parity test vectors covering Flow (11), Project (8), Task (12), Log (5), and Syntax/Error (3) scenarios with expected exit codes (`0`..`5`) and error codes.
-  - Implemented cross-runtime parity assertion suites in Vitest (`cli-cross-runtime-parity.test.ts`) and Cargo (`parity_matrix_test.rs`).
-- **Canonical Noun-Verb Syntax in Sandbox Emulator**:
-  - Implemented `SandboxCommandRouter` providing canonical noun-verb command structure (`project`, `task`, `log`, `start`, `stop`, `switch`, `status`, `today`) with flag parsing and backward-compatible redirects for legacy flat commands.
 
 ### Changed in 1.10.0
 
@@ -50,8 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CLI Error Contract & Exit Codes**:
   - Standardized machine mode error envelopes: under `--machine` / `-m` and `--json` / `-j`, error payloads emit clean single-line JSON to `stderr` with the `"user"` suggestion block omitted to guarantee deterministic automation parsing.
   - Standardized semantic exit codes across all commands: `0` (Success), `1` (Generic failure / Business violation / Sink I/O), `2` (Syntax error), `3` (Storage error), `4` (Entity error), `5` (Engine error).
-- **Sandbox Architecture Modularization**:
-  - Decomposed `sandboxCommandRouter.ts` (768 LOC) and `sandboxEmulatorStore.ts` (421 LOC) into domain handlers (`handlers/sandboxProjectHandlers.ts`, `sandboxTaskHandlers.ts`, `sandboxLogHandlers.ts`, `sandboxFlowHandlers.ts`), pure operations (`store/sandboxProjectOps.ts`, `sandboxTaskOps.ts`, `sandboxTimerOps.ts`), and dedicated localStorage persistence (`store/sandboxStorage.ts`), adhering to file length limits (aim $\le 300$ LOC).
 
 ### Fixed in 1.10.0
 
@@ -65,10 +84,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed sink error classification: `oxy sink set-csv` with empty or whitespace-only paths returns exit code `2` (`CLI_SYNTAX_INVALID_ARGS`), while inaccessible filesystem destinations return exit code `1` (`SNK_EXTERNAL_IO`) instead of leaking SQLite storage errors.
   - Fixed sink diagnostic reporting: `oxy sink test` reports full diagnostics and returns exit code `1` (`SNK_EXTERNAL_IO`) when any configured sink fails its synthetic health check.
   - Wired entity name validation: creating or renaming projects, tasks, or subtasks via `oxy manage` now validates non-empty names against `Engine` validation rules, returning exit code `1` (`ENG_OPERATION_FAILED`) on blank inputs.
-- **Atomic Task Switching & Timer Parity**:
-  - Aligned `switch <task-id>` in sandbox emulator to atomically stop active timer and start new timer in a single transaction.
-  - Aligned `stop` command semantics in sandbox emulator: attempting to stop an inactive timer returns error code `5` (`ENG_TIMER_INACTIVE`) matching native Rust CLI behavior instead of silent success.
-  - Fixed sandbox log duration display format (`durationStr || formatSeconds(durSecs)`) to match native Rust CLI output ("45m").
 
 ### Removed in 1.10.0
 
