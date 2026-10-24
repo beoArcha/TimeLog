@@ -52,33 +52,37 @@ export const useDataLifecycle = ({
     };
   });
 
-  useEffect(() => {
-    const loadState = async () => {
-      const deps = initDepsRef.current;
-      await deps.actionRunner.runAction('Failed to load repository state', async () => {
-        const router = PersistenceRouter.getInstance();
-        const [state, loadedHolidays, loadedPatches] = await Promise.all([
-          router.core.load(),
-          router.holidays.getAll(),
-          router.patches.getAll(),
-        ]);
+  const refreshData = async () => {
+    const deps = initDepsRef.current;
+    await deps.actionRunner.runAction('Failed to load repository state', async () => {
+      const router = PersistenceRouter.getInstance();
+      const [state, loadedHolidays, loadedPatches] = await Promise.all([
+        router.core.load(),
+        router.holidays.getAll(),
+        router.patches.getAll(),
+      ]);
 
-        if (state !== null) {
-          deps.repositoryState.setProjectsState(state.projects);
-          deps.repositoryState.setTasksState(state.tasks);
-          deps.repositoryState.setLogsState(state.logs);
-          deps.repositoryState.setActiveLogState(state.activeLog);
-          deps.repositoryState.setActiveLogsState(state.activeLogs ?? (state.activeLog ? [state.activeLog] : []));
-          deps.onTaskSelected?.(state.tasks?.[0]?.id ?? null);
-        }
-        deps.holidaysManager.setHolidaysState(loadedHolidays);
-        deps.patchesManager.setPatchesState(loadedPatches);
-        await deps.refreshComputedMetrics();
-      });
+      if (state !== null) {
+        deps.repositoryState.setProjectsState(state.projects);
+        deps.repositoryState.setTasksState(state.tasks);
+        deps.repositoryState.setLogsState(state.logs);
+        deps.repositoryState.setActiveLogState(state.activeLog);
+        deps.repositoryState.setActiveLogsState(state.activeLogs ?? (state.activeLog ? [state.activeLog] : []));
+        deps.onTaskSelected?.(state.tasks?.[0]?.id ?? null);
+      }
+      deps.holidaysManager.setHolidaysState(loadedHolidays);
+      deps.patchesManager.setPatchesState(loadedPatches);
+      await deps.refreshComputedMetrics();
+    });
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      await refreshData();
       setIsInitialized(true);
     };
 
-    loadState();
+    init();
   }, []);
 
   const handleResetLocalStorage = async () => {
@@ -130,6 +134,7 @@ export const useDataLifecycle = ({
     isResetting,
     handleResetLocalStorage,
     handleRestoreState,
+    refreshData,
   };
 };
 

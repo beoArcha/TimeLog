@@ -1,4 +1,6 @@
 import { translate } from '@common/i18n/translator';
+import { CliRouter } from '@common/cli/CliRouter';
+import { CliExecutionResult } from '@bindings/CliExecutionResult';
 import {
   TerminalLine,
   CliEngineContext,
@@ -26,9 +28,55 @@ import {
 export type { TerminalLine, CliEngineContext };
 export { TerminalOutput };
 
+const formatNativeCliResult = (
+  result: CliExecutionResult,
+  output: TerminalOutput
+): void => {
+  if (!result.stdout) return;
+  const lines = result.stdout.split('\n');
+  for (const line of lines) {
+    if (!result.success) {
+      output.error(line);
+    } else if (line.startsWith('Started') || line.startsWith('Stopped') || line.startsWith('✅')) {
+      output.success(line);
+    } else {
+      output.output(line);
+    }
+  }
+};
+
+const executeNativeCli = async (
+  trimmed: string,
+  context: CliEngineContext,
+  output: TerminalOutput
+): Promise<TerminalLine[]> => {
+  const cliRouter = CliRouter.getInstance();
+  try {
+    const result = await cliRouter.execute(trimmed);
+    formatNativeCliResult(result, output);
+    if (result.success) {
+      await context.onRefreshData?.();
+    }
+  } catch (err: unknown) {
+    output.error(err instanceof Error ? err.message : String(err));
+  }
+  output.empty();
+  return output.getLines();
+};
+
 export const executeCliCommand = async (cmdText: string, context: CliEngineContext): Promise<TerminalLine[]> => {
   const trimmed = cmdText.trim();
-  if (!trimmed) return [];
+  const sandboxStore = SandboxEmulatorStore.getInstance();
+  const isSandboxActive = context.isSandbox || sandboxStore.isActive();
+
+  if (!trimmed) {
+    if (!isSandboxActive && CliRouter.getInstance().hasNativeCli()) {
+      const output = new TerminalOutput();
+      output.input('user@logtime-by-oxyflow:~$ ');
+      return executeNativeCli('', context, output);
+    }
+    return [];
+  }
 
   const regex = /[^\s"']+|"([^"]*)"|'([^']*)'/g;
   const matches: string[] = [];
@@ -43,16 +91,22 @@ export const executeCliCommand = async (cmdText: string, context: CliEngineConte
   const args = matches.slice(1);
   const output = new TerminalOutput();
 
-  const sandboxStore = SandboxEmulatorStore.getInstance();
-  const isSandboxActive = context.isSandbox || sandboxStore.isActive();
-  const effectiveContext = isSandboxActive
-    ? sandboxStore.toCliContext(context)
-    : context;
+  if (commandName === 'clear') {
+    return [{ text: '__CLEAR__', type: 'info' }];
+  }
 
   const promptPrefix = isSandboxActive
     ? 'sandbox@oxyflow-simulator:~$ '
     : 'user@logtime-by-oxyflow:~$ ';
   output.input(`${promptPrefix}${trimmed}`);
+
+  if (!isSandboxActive && commandName !== 'sandbox' && CliRouter.getInstance().hasNativeCli()) {
+    return executeNativeCli(trimmed, context, output);
+  }
+
+  const effectiveContext = isSandboxActive
+    ? sandboxStore.toCliContext(context)
+    : context;
 
   switch (commandName) {
     case 'help':

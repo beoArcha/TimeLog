@@ -60,6 +60,7 @@ export interface DataLifecycleState {
   setEngineState: DataState['setEngineState'];
   handleResetLocalStorage: DataState['handleResetLocalStorage'];
   handleRestoreState: DataState['handleRestoreState'];
+  refreshData: DataState['refreshData'];
 }
 
 export const DataContext = createContext<DataState | undefined>(undefined);
@@ -178,5 +179,6 @@ export const useDataLifecycleState = (): DataLifecycleState => {
     setEngineState: data.setEngineState,
     handleResetLocalStorage: data.handleResetLocalStorage,
     handleRestoreState: data.handleRestoreState,
+    refreshData: data.refreshData,
   };
 };

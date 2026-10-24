@@ -9,6 +9,7 @@ export interface CliDomainHandlers {
   isSandbox?: boolean;
   onToggleSandbox?: (enabled?: boolean) => void;
   onSwitchTask?: (targetTaskIdOrName: string) => Promise<void> | void;
+  onRefreshData?: () => Promise<void> | void;
 }
 
 /**

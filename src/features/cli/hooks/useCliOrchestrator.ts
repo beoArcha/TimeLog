@@ -109,6 +109,7 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
       isSandbox: isSandboxMode,
       onToggleSandbox: handleToggleSandbox,
       onSwitchTask: props?.onSwitchTask,
+      onRefreshData: ambientData?.refreshData,
     };
 
     const outputs = await executeCliCommand(cmdText, cliContext);

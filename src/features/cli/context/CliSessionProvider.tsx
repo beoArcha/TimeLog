@@ -127,6 +127,7 @@ export const CliSessionProvider: React.FC<CliSessionProviderProps> = ({
       isSandbox: isSandboxMode,
       onToggleSandbox: setSandboxMode,
       onSwitchTask: contextOverrides?.onSwitchTask,
+      onRefreshData: ambientData?.refreshData,
     };
 
     const outputs = await executeCliCommand(cmdText, cliContext);
