@@ -6,6 +6,7 @@ use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{MaskArgs, MaskSubcommand};
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::current_timestamp;
+use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::CliAlias;
 use serde_json::json;
@@ -136,4 +137,105 @@ pub fn expand_mask_template(template: &str, args: &[String], last_task_id: Optio
     }
 
     expanded
+}
+
+/// Resolves the most recently active task ID across active timers and time logs.
+pub fn resolve_last_task_id(persistence: &Persistence, engine: &Engine) -> Option<String> {
+    if let Ok(active) = engine.get_active_logs() {
+        if let Some(first_id) = active.first() {
+            return Some(first_id.clone());
+        }
+    }
+
+    if let Ok(mut logs) = persistence.time_logs.get_all() {
+        logs.sort_by(|a, b| b.start_time.cmp(&a.start_time));
+        if let Some(recent_log) = logs.first() {
+            return Some(recent_log.task_id.clone());
+        }
+    }
+
+    None
+}
+
+/// Expands registered alias shortcuts before command line parsing.
+pub fn preprocess_alias_invocation(
+    raw_args: &[String],
+    persistence: &Persistence,
+    engine: &Engine,
+) -> Result<Vec<String>, CliError> {
+    let mut current_args = raw_args.to_vec();
+    let mut depth = 0;
+    const MAX_RECURSION_DEPTH: usize = 5;
+
+    while depth < MAX_RECURSION_DEPTH {
+        let (alias_idx, alias_name) = match find_alias_candidate(&current_args) {
+            Some(res) => res,
+            None => return Ok(current_args),
+        };
+
+        let alias = match persistence.cli.get_alias(&alias_name)? {
+            Some(a) => a,
+            None => return Ok(current_args),
+        };
+
+        let positional_args: Vec<String> = current_args
+            .iter()
+            .skip(alias_idx + 1)
+            .filter(|a| !is_global_flag(a))
+            .cloned()
+            .collect();
+
+        let last_task_id = resolve_last_task_id(persistence, engine);
+        let expanded =
+            expand_mask_template(&alias.template, &positional_args, last_task_id.as_deref());
+        let tokens = crate::cli::shared::utils::split_shell_args(&expanded);
+
+        let mut next_args = Vec::new();
+        if let Some(binary) = current_args.first() {
+            next_args.push(binary.clone());
+        }
+
+        for arg in &current_args[1..] {
+            if is_global_flag(arg) {
+                next_args.push(arg.clone());
+            }
+        }
+
+        next_args.extend(tokens);
+        current_args = next_args;
+        depth += 1;
+    }
+
+    Err(CliError::syntax_invalid_args(
+        "Circular macro/alias expansion limit exceeded",
+    ))
+}
+
+fn is_global_flag(arg: &str) -> bool {
+    arg == "-m"
+        || arg == "--machine"
+        || arg == "-j"
+        || arg == "--json"
+        || arg == "-q"
+        || arg == "--quiet"
+        || arg.starts_with("--db")
+}
+
+fn find_alias_candidate(args: &[String]) -> Option<(usize, String)> {
+    let mut skip_next = false;
+    for (i, arg) in args.iter().enumerate().skip(1) {
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+        if arg == "--db" {
+            skip_next = true;
+            continue;
+        }
+        if arg.starts_with('-') {
+            continue;
+        }
+        return Some((i, arg.clone()));
+    }
+    None
 }

@@ -147,3 +147,29 @@ pub enum ConfigSubcommand {
         value: String,
     },
 }
+
+#[derive(Args, Debug, Clone, PartialEq, Eq, Default)]
+pub struct DoctorArgs {
+    #[arg(long, help = "Attempt automatic remediation of detected anomalies")]
+    pub fix: bool,
+}
+
+#[derive(Args, Debug, Clone, PartialEq, Eq)]
+pub struct DbArgs {
+    #[command(subcommand)]
+    pub command: DbSubcommand,
+}
+
+#[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
+pub enum DbSubcommand {
+    #[command(about = "Safely backup SQLite database to target destination file")]
+    Backup {
+        #[arg(help = "Destination file path for the backup (e.g. backup.sqlite)")]
+        path: String,
+    },
+    #[command(about = "Safely restore SQLite database from backup file")]
+    Restore {
+        #[arg(help = "Source backup file path to restore from")]
+        path: String,
+    },
+}

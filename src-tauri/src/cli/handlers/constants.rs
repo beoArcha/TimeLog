@@ -137,3 +137,16 @@ pub const ERR_DATE_RANGE_INVALID: &str = "Filter start date cannot be after end 
 pub const ERR_TASK_NOT_IN_PROJECT: &str = "Task '{}' does not belong to project '{}'";
 pub const ERR_MULTIPLE_TIMERS_SPECIFY_ALL: &str =
     "Multiple active timers running ({}). Use 'oxy stop --all' to stop all active timers.";
+
+pub const HEADER_DOCTOR: &str =
+    "🩺 oXyFlow System & Database Diagnostics\n──────────────────────────────────────────────────\n";
+pub const FORMAT_DOCTOR_ITEM: &str = " • [{}] {}: {}\n";
+pub const FORMAT_DOCTOR_DB_INFO: &str = " • Database: {} ({} bytes)\n";
+pub const MSG_DOCTOR_SUCCESS: &str = "All diagnostic checks passed successfully.";
+pub const ERR_DOCTOR_FAILED: &str = "One or more diagnostic checks failed.";
+
+pub const MSG_DB_BACKUP_SUCCESS: &str = "Database successfully backed up to '{}'";
+pub const MSG_DB_RESTORE_SUCCESS: &str = "Database successfully restored from '{}'";
+pub const ERR_DB_BACKUP_PATH_EMPTY: &str = "Backup destination path cannot be empty";
+pub const ERR_DB_RESTORE_PATH_EMPTY: &str = "Restore source path cannot be empty";
+pub const ERR_DB_RESTORE_NOT_FOUND: &str = "Backup source file '{}' does not exist";

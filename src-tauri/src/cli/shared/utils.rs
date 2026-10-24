@@ -163,3 +163,39 @@ pub fn parse_iso_or_rfc3339(
 ) -> Result<chrono::DateTime<chrono::Utc>, crate::cli::error::CliError> {
     parse_date_bound(input, false)
 }
+
+/// Tokenizes command line strings into arguments while preserving quoted segments.
+pub fn split_shell_args(input: &str) -> Vec<String> {
+    let mut args = Vec::new();
+    let mut current = String::new();
+    let mut in_quotes: Option<char> = None;
+
+    for ch in input.chars() {
+        match ch {
+            '"' | '\'' => {
+                if in_quotes == Some(ch) {
+                    in_quotes = None;
+                } else if in_quotes.is_none() {
+                    in_quotes = Some(ch);
+                } else {
+                    current.push(ch);
+                }
+            }
+            c if c.is_whitespace() => {
+                if in_quotes.is_some() {
+                    current.push(c);
+                } else if !current.is_empty() {
+                    args.push(current);
+                    current = String::new();
+                }
+            }
+            c => current.push(c),
+        }
+    }
+
+    if !current.is_empty() {
+        args.push(current);
+    }
+
+    args
+}

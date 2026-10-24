@@ -16,6 +16,9 @@ pub enum RepositoryError {
 
     #[error("Constraint violation: {0}")]
     ConstraintViolation(String),
+
+    #[error("Storage error: {0}")]
+    Storage(String),
 }
 
 pub type Result<T> = std::result::Result<T, RepositoryError>;

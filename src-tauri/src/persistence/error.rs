@@ -42,6 +42,9 @@ impl From<crate::repositories::shared::errors::RepositoryError> for PersistenceE
             crate::repositories::shared::errors::RepositoryError::ConstraintViolation(e) => {
                 PersistenceError::ConstraintViolation(e)
             }
+            crate::repositories::shared::errors::RepositoryError::Storage(e) => {
+                PersistenceError::Storage(e)
+            }
         }
     }
 }

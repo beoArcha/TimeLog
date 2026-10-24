@@ -1,5 +1,7 @@
 pub mod config_handler;
 pub mod constants;
+pub mod db_handler;
+pub mod doctor_handler;
 pub mod flow_handler;
 pub mod log_handler;
 pub mod mask_handler;
@@ -49,8 +51,9 @@ pub fn dispatch_command(
         Some(CliCommand::Config(cmd_args)) => {
             config_handler::handle(cmd_args, is_machine, persistence)
         }
-        Some(CliCommand::Manage(cmd)) => crate::cli::manage::handle(cmd, persistence),
-        Some(CliCommand::Timer(cmd)) => crate::cli::timer::handle(cmd, engine),
-        Some(CliCommand::Settings(cmd)) => crate::cli::settings::handle(cmd, persistence),
+        Some(CliCommand::Doctor(cmd_args)) => {
+            doctor_handler::handle(cmd_args, is_machine, persistence, engine)
+        }
+        Some(CliCommand::Db(cmd_args)) => db_handler::handle(cmd_args, is_machine, persistence),
     }
 }

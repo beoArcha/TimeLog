@@ -2,12 +2,9 @@ pub mod error;
 pub mod exporters;
 pub mod formatters;
 pub mod handlers;
-pub mod manage;
 pub mod parser;
 pub mod resolver;
-pub mod settings;
 pub mod shared;
-pub mod timer;
 
 pub use error::{
     BusinessRuleViolation, CliError, CliErrorCode, CliErrorEnvelope, CliSyntaxError,
@@ -29,6 +26,14 @@ pub fn handle_cli(
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
     handlers::dispatch_command(args, persistence, engine)
+}
+
+pub fn preprocess_args(
+    raw_args: &[String],
+    persistence: &Persistence,
+    engine: &Engine,
+) -> Result<Vec<String>, CliError> {
+    handlers::mask_handler::preprocess_alias_invocation(raw_args, persistence, engine)
 }
 
 pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCode {
