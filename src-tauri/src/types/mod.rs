@@ -18,7 +18,7 @@ pub mod timelog;
 pub mod webhook_queue;
 pub mod workflow;
 
-pub use cli::{CliAlias, CliSink};
+pub use cli::{CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, LocalizedUserMessage};
 pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,
     SettingsPersistenceCommand, TasksPersistenceCommand, WindowCommand,
