@@ -35,9 +35,10 @@ jobs:
     steps:
       # Always force checkout of the release branch regardless of UI dispatch selection
       - name: Checkout release branch
-        uses: ./.github/actions/checkout-release
+        uses: actions/checkout@v4
         with:
           ref: release
+          fetch-depth: 0
 
       - name: Setup Pages site files
         shell: bash
