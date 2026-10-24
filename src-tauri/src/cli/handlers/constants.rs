@@ -29,6 +29,12 @@ pub const MSG_LOG_RECORDED: &str = "Logged {} to '{}' [ID: {}]";
 pub const MSG_LOG_UPDATED: &str = "Updated time log: {}";
 pub const MSG_LOG_DELETED: &str = "Deleted time log: {}";
 pub const MSG_NO_LOGS_FOUND: &str = "No time logs found matching criteria.";
+pub const ERR_INVALID_TIMESTAMP: &str =
+    "Invalid timestamp format '{}': expected RFC3339 (e.g. '2026-10-24T10:00:00Z') or 'YYYY-MM-DD'";
+pub const ERR_LOG_ADD_NO_DURATION_OR_FROM: &str =
+    "Either duration or --from timestamp must be provided.";
+pub const ERR_LOG_EDIT_EMPTY: &str =
+    "At least one field to edit must be provided (--duration, --note, --start, --end, --task).";
 
 pub const MSG_NO_TARGET_SPECIFIED: &str = "No target task specified. Usage: oxy start <target>";
 pub const MSG_NO_TODAY_LOGS: &str =

@@ -257,12 +257,111 @@ fn test_given_log_domain_commands_when_parsing_cli_then_parses_duration_and_note
                 LogSubcommand::Add {
                     ref target,
                     ref duration,
-                    ref note
+                    ref note,
+                    ..
                 } if target == "auth"
-                    && duration == "45m"
+                    && duration.as_deref() == Some("45m")
                     && note.as_deref() == Some("Fixed token refresh")
             ));
         }
         other => panic!("Expected Log Add, got: {:?}", other),
+    }
+
+    let add_explicit = CliArgs::try_parse_from(vec![
+        "oxy",
+        "log",
+        "add",
+        "auth",
+        "--from",
+        "2026-10-24T10:00:00Z",
+        "--to",
+        "2026-10-24T11:00:00Z",
+        "--note",
+        "Explicit range",
+    ])
+    .expect("log add explicit");
+
+    match add_explicit.command {
+        Some(CliCommand::Log(args)) => {
+            assert!(matches!(
+                args.command,
+                LogSubcommand::Add {
+                    ref target,
+                    ref from,
+                    ref to,
+                    ref explicit_note,
+                    ..
+                } if target == "auth"
+                    && from.as_deref() == Some("2026-10-24T10:00:00Z")
+                    && to.as_deref() == Some("2026-10-24T11:00:00Z")
+                    && explicit_note.as_deref() == Some("Explicit range")
+            ));
+        }
+        other => panic!("Expected Log Add explicit, got: {:?}", other),
+    }
+
+    let edit_log = CliArgs::try_parse_from(vec![
+        "oxy",
+        "log",
+        "edit",
+        "log-123",
+        "--start",
+        "2026-10-24T09:00:00Z",
+        "--end",
+        "2026-10-24T10:30:00Z",
+        "--task",
+        "backend",
+    ])
+    .expect("log edit");
+
+    match edit_log.command {
+        Some(CliCommand::Log(args)) => {
+            assert!(matches!(
+                args.command,
+                LogSubcommand::Edit {
+                    ref id,
+                    ref start,
+                    ref end,
+                    ref task,
+                    ..
+                } if id == "log-123"
+                    && start.as_deref() == Some("2026-10-24T09:00:00Z")
+                    && end.as_deref() == Some("2026-10-24T10:30:00Z")
+                    && task.as_deref() == Some("backend")
+            ));
+        }
+        other => panic!("Expected Log Edit, got: {:?}", other),
+    }
+
+    let list_logs = CliArgs::try_parse_from(vec![
+        "oxy",
+        "log",
+        "ls",
+        "-p",
+        "Website",
+        "--month",
+        "--from",
+        "2026-10-01",
+        "--to",
+        "2026-10-31",
+    ])
+    .expect("log ls");
+
+    match list_logs.command {
+        Some(CliCommand::Log(args)) => {
+            assert!(matches!(
+                args.command,
+                LogSubcommand::List {
+                    ref project,
+                    month: true,
+                    ref from,
+                    ref to,
+                    ..
+                } if project.as_deref() == Some("Website")
+                    && from.as_deref() == Some("2026-10-01")
+                    && to.as_deref() == Some("2026-10-31")
+            ));
+        }
+        other => panic!("Expected Log List, got: {:?}", other),
     }
 }
