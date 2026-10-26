@@ -2,7 +2,7 @@
 name = "oxy-flow"
 version = "1.10.4"
 edition = "2021"
-description = "oXyFlow TimeLog — Ultra-lightweight, local-first work timer and task tracker built with Rust, Tauri v2, SQLite, and React 19."
+description = "oXyFlow TimeLog — Lightweight, local-first work timer and task tracker built with Rust, Tauri v2, SQLite, and React 19."
 authors = ["Marcin 'beoArcha' Stefan"]
 license = "MPL-2.0"
 

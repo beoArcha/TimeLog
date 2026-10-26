@@ -72,7 +72,6 @@ if (!flag) {
 }
 
 const metadataFile = path.resolve('metadata.json');
-const versionsFile = path.resolve('src/versions.json');
 
 let metadata;
 if (fs.existsSync(metadataFile)) {
@@ -82,12 +81,12 @@ if (fs.existsSync(metadataFile)) {
   process.exit(1);
 }
 
-let v = metadata.versions || (fs.existsSync(versionsFile) ? JSON.parse(fs.readFileSync(versionsFile, UTF8)) : {
+let v = metadata.versions || {
   major: 1,
   minor: 0,
   release: 0,
   subversions: { engine: 0, components: 0, translations: 0, front: 0 }
-});
+};
 
 let changedFiles = [];
 try {

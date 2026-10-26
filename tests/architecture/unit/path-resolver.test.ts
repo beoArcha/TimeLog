@@ -55,7 +55,7 @@ describe('PathResolver (Unit Tests)', () => {
 
     it('should return true when importing between a root file and a sub-directory', () => {
       expect(resolver.isCrossTopLevelBoundary('App.tsx', 'app-browser/AppBrowser')).toBe(true);
-      expect(resolver.isCrossTopLevelBoundary('features/cli/CliInterface.tsx', 'versions.json')).toBe(true);
+      expect(resolver.isCrossTopLevelBoundary('features/cli/CliInterface.tsx', 'main.tsx')).toBe(true);
     });
   });
 
@@ -63,7 +63,7 @@ describe('PathResolver (Unit Tests)', () => {
     it('should generate appropriate alias string for target paths', () => {
       expect(resolver.getSuggestedAlias('plugins/engine/EnginePlugin')).toBe('@plugins/engine/EnginePlugin');
       expect(resolver.getSuggestedAlias('styles/index.css')).toBe('@styles/index.css');
-      expect(resolver.getSuggestedAlias('versions.json')).toBe('@app/versions.json');
+      expect(resolver.getSuggestedAlias('main.tsx')).toBe('@app/main.tsx');
     });
   });
 });

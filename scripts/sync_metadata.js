@@ -80,17 +80,7 @@ syncTextFile(path.join(rootDir, 'src-tauri/Cargo.toml'), (cargo) => {
   return res;
 });
 
-// 4. Sync src/versions.json
-syncJsonFile(path.join(rootDir, 'src/versions.json'), (v) => {
-  v.major = versions.major;
-  v.minor = versions.minor;
-  v.release = versions.release;
-  if (versions.subversions) {
-    v.subversions = { ...versions.subversions };
-  }
-});
-
-// 5. Sync src-tauri/src/common/constants.rs
+// 4. Sync src-tauri/src/common/constants.rs
 syncTextFile(path.join(rootDir, 'src-tauri/src/common/constants.rs'), (constants) => {
   return constants.replace(
     /pub const APP_NAME: &str = ".*";/,

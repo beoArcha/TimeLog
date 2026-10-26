@@ -1,5 +1,6 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
+import { translate } from '@common/i18n/translator';
 import metadata from '@/metadata.json';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { useLocale } from '@common/hooks/LocaleProvider';
@@ -26,7 +27,7 @@ export const AppLogo: React.FC = () => {
         >
           <span>oXyFlow TimeLog</span>
           <Badge variant="orange" size="xs" as="span" className="ml-1.5 font-mono">
-            v{versionsData.subversions.front}
+            v{metadata.versions.subversions.front}
           </Badge>
         </Heading>
         {layoutVariant === 'full' && (

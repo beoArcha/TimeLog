@@ -61,7 +61,6 @@ Tauri, Rust Cargo, and npm/bun require individual configuration files. The synch
 | `package.json` | `name`, `version`, `author`, `description`, `license` |
 | `src-tauri/tauri.conf.json` | `productName`, `version`, `app.windows[0].title` |
 | `src-tauri/Cargo.toml` | `version`, `authors`, `description` |
-| `src/versions.json` | `major`, `minor`, `release`, `subversions` (kept for React imports) |
 | `src-tauri/src/common/constants.rs` | `APP_NAME` |
 
 ---
