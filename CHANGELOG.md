@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed in Unreleased
+
+- **Documentation & Brand Identity Overhaul (`README.md`)**:
+  - Overhauled root `README.md` to establish the canonical product name **oXyFlow TimeLog**, incorporating official badges, binary download matrices for Windows, macOS, and Linux, and a dedicated "CLI in 30 Seconds" terminal tour.
+  - Aligned architecture diagrams and feature specifications with v1.10.x capabilities (offline SQLite, native `oxy` CLI, multi-density layouts, Recharts analytics, real-time sinks, and 6-language localization).
+
 ---
 
 ## [1.10.1] - 2026-10-24
