@@ -1,7 +1,6 @@
 import React from 'react';
 import { Shield } from 'lucide-react';
-import { translate } from '@common/i18n/translator';
-import versionsData from '@app/versions.json';
+import metadata from '@/metadata.json';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';

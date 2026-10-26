@@ -54,18 +54,21 @@ Most modern productivity tools suffer from bloated runtimes, slow cold starts, a
 ## Key Features
 
 ### ⏱️ Zero-Friction Time Tracking
+
 * **One-Click Execution:** Start, pause, or switch tracking sessions with zero cognitive friction.
 * **Atomic Task Switching:** Switching tasks immediately stops the current active session and starts the new one in a single atomic database transaction—preventing overlapping time log errors.
 * **System Tray Daemon:** Minimize to system tray with live elapsed indicators, tray context actions, and global keyboard shortcuts.
 * **Cascade Safeguards:** Archiving or deleting a project automatically commits active timers before updating records.
 
 ### 💻 Standalone Native CLI (`oxy`) & In-App Terminal Drawer
+
 * **High-Velocity Automation:** Full command suite (`oxy start`, `oxy stop`, `oxy switch`, `oxy status`, `oxy report`).
 * **Machine Automation Mode:** Clean JSON streams to `stdout` with structured machine-parseable error envelopes to `stderr` (`--machine`, `--json`) and POSIX exit codes (`0`..`5`).
 * **Beginner Guidance:** Levenshtein-based "Did you mean?" suggestions for command typos and interactive parameter prompts in TTY mode.
 * **Action Masks & Macros:** Register custom shorthand commands (`oxy mask set wrap-up "oxy stop --all && oxy report --today"`) with dynamic argument substitution (`$1`..`$9`).
 
 ### 🎛️ Spatial Layout Density & CSS Design Tokens
+
 * **Three Responsive Layouts:**
   * **Compact Layout:** Minimalist floating mini-timer widget with always-on-top mode for distraction-free tracking.
   * **Medium Layout:** Balanced two-pane split with task hierarchy and active timer controls.
@@ -73,21 +76,25 @@ Most modern productivity tools suffer from bloated runtimes, slow cold starts, a
 * **Decoupled Sizing & Themes:** Independent scaling via CSS tokens (`small`, `medium`, `large`) and three built-in accessibility themes (`light`, `dark`, `high-contrast`).
 
 ### 📊 Advanced Analytics & Reporting
+
 * **Visual Breakdown:** Interactive time distribution charts, project share pie graphs, and activity timelines built with Recharts.
 * **Terminal Unicode Trees:** Generate hierarchical ASCII/Unicode summary trees directly in the console (`oxy report --today --tree`).
 * **Multi-Format Exports:** Export filtered intervals to HTML, CSV, or structured JSON.
 
 ### 🛡️ SQLite Data Integrity & Database Explorer
+
 * **Database Explorer:** Inspect raw SQLite tables, verify entity relations, and review full revision audit trails in-app.
 * **Automated System Diagnostics (`oxy doctor`):** Verify filesystem permissions, schema health, table integrity, and sink connectivity in one command.
 * **Online Backup & Restore:** Create lock-free SQLite backups and restore data through the SQLite Online Backup API (`oxy db backup <path>`).
 
 ### 🔌 Real-Time Sinks & Automations
+
 * **CSV Audit Sink:** Append every completed time log to an external CSV file immediately upon timer stop.
 * **HTTP Webhook Integration:** Dispatch real-time lifecycle events to external REST endpoints with an SQLite outbox queue and exponential retry backoff.
 * **Workflow Rules:** Configurable auto-stop hours limits and midnight boundary auto-split daemons.
 
 ### 🌍 Multilingual by Design
+
 * 100% translated across 6 supported languages: **English**, **Polski**, **Deutsch**, **Español**, **Français**, and **Português (Brasil)**.
 
 ---

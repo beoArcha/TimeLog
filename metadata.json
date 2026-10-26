@@ -4,10 +4,10 @@
   "longName": "oXyFlow TimeLog",
   "identifier": "com.oxytime.timelog",
   "author": "Marcin 'beoArcha' Stefan",
-  "description": "Ultra-lightweight, local-first work timer and task tracker built with Rust, Tauri v2, SQLite, and React 19.",
+  "description": "Lightweight, local-first work timer and task tracker built with Rust, Tauri v2, SQLite, and React 19.",
   "license": "MPL-2.0",
   "repository": "https://github.com/beoArcha/TimeLog",
-  "homepage": "https://github.com/beoArcha/TimeLog",
+  "homepage": "https://beoarcha.github.io/TimeLog/#/",
   "version": "1.10.4",
   "versions": {
     "major": 1,
