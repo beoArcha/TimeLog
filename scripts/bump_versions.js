@@ -71,24 +71,23 @@ if (!flag) {
   process.exit(1);
 }
 
+const metadataFile = path.resolve('metadata.json');
 const versionsFile = path.resolve('src/versions.json');
-const packageJsonFile = path.resolve('package.json');
 
-if (!fs.existsSync(versionsFile)) {
-  fs.writeFileSync(versionsFile, JSON.stringify({
-    major: 1,
-    minor: 0,
-    release: 0,
-    subversions: {
-      engine: 0,
-      components: 0,
-      translations: 0,
-      front: 0
-    }
-  }, null, 2));
+let metadata;
+if (fs.existsSync(metadataFile)) {
+  metadata = JSON.parse(fs.readFileSync(metadataFile, UTF8));
+} else {
+  console.error("metadata.json not found! Please create metadata.json first.");
+  process.exit(1);
 }
 
-let v = JSON.parse(fs.readFileSync(versionsFile, UTF8));
+let v = metadata.versions || (fs.existsSync(versionsFile) ? JSON.parse(fs.readFileSync(versionsFile, UTF8)) : {
+  major: 1,
+  minor: 0,
+  release: 0,
+  subversions: { engine: 0, components: 0, translations: 0, front: 0 }
+});
 
 let changedFiles = [];
 try {
@@ -122,30 +121,15 @@ if (v.subversions) {
 }
 
 v = calculateNextVersion(v, flag);
-
-fs.writeFileSync(versionsFile, JSON.stringify(v, null, 2) + '\n');
-
 const newVersionStr = `${v.major}.${v.minor}.${v.release}`;
 
-if (fs.existsSync(packageJsonFile)) {
-  let pkg = JSON.parse(fs.readFileSync(packageJsonFile, UTF8));
-  pkg.version = newVersionStr;
-  fs.writeFileSync(packageJsonFile, JSON.stringify(pkg, null, 2) + '\n');
-}
+// Update metadata.json (Single Source of Truth)
+metadata.version = newVersionStr;
+metadata.versions = v;
+fs.writeFileSync(metadataFile, JSON.stringify(metadata, null, 2) + '\n');
 
-const tauriConfFile = path.resolve('src-tauri/tauri.conf.json');
-if (fs.existsSync(tauriConfFile)) {
-  let tauriConf = JSON.parse(fs.readFileSync(tauriConfFile, UTF8));
-  tauriConf.version = newVersionStr;
-  fs.writeFileSync(tauriConfFile, JSON.stringify(tauriConf, null, 2) + '\n');
-}
-
-const cargoTomlFile = path.resolve('src-tauri/Cargo.toml');
-if (fs.existsSync(cargoTomlFile)) {
-  let cargoToml = fs.readFileSync(cargoTomlFile, UTF8);
-  cargoToml = cargoToml.replace(/^version = ".*"/m, `version = "${newVersionStr}"`);
-  fs.writeFileSync(cargoTomlFile, cargoToml);
-}
+// Propagate to all downstream configs via sync_metadata.js
+execSync('bun scripts/sync_metadata.js', { stdio: 'inherit' });
 
 console.log(`Updated versions: ${flag} ${newVersionStr}`);
 if (v.subversions) {

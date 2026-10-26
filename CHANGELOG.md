@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation & Brand Identity Overhaul (`README.md`)**:
   - Overhauled root `README.md` to establish the canonical product name **oXyFlow TimeLog**, incorporating official badges, binary download matrices for Windows, macOS, and Linux, and a dedicated "CLI in 30 Seconds" terminal tour.
   - Aligned architecture diagrams and feature specifications with v1.10.x capabilities (offline SQLite, native `oxy` CLI, multi-density layouts, Recharts analytics, real-time sinks, and 6-language localization).
+- **Single Source of Truth Metadata Centralization & Canonical Build Naming**:
+  - Established root `metadata.json` as the unified source of truth for versioning, canonical names (Short: `TimeLog`, Long: `oXyFlow TimeLog`), and author attribution (**Marcin 'beoArcha' Stefan**).
+  - Implemented `scripts/sync_metadata.js` (`bun run metadata:sync`, `bun run metadata:check`) synchronizing `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `src/versions.json`, and backend constants.
+  - Aligned desktop build output to short executable name `TimeLog.exe` / `timelog` with long window title `oXyFlow TimeLog`.
+  - Added permanent `.learn` reference in `.agents/rules/project_metadata_standards.md` detailing step-by-step update procedures.
 
 ---
 

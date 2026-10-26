@@ -1,5 +1,5 @@
 {
-  "productName": "OxyFlow",
+  "productName": "TimeLog",
   "version": "1.10.4",
   "identifier": "com.oxytime.oxyflow",
   "build": {
@@ -12,7 +12,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "OxyFlow",
+        "title": "oXyFlow TimeLog",
         "width": 800,
         "height": 600,
         "resizable": true,

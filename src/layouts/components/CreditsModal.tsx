@@ -102,7 +102,7 @@ export default function CreditsModal() {
             </Overline>
             <div className="p-4 rounded-3xl border border-border text-xs font-mono leading-relaxed h-[120px] overflow-y-auto bg-muted/60 text-muted-foreground">
               <MonoText weight="bold" size="xs" className="mb-1 block">Mozilla Public License Version 2.0 (MPL-2.0)</MonoText>
-              <MonoText size="xs" className="mb-2 block">Copyright (c) 2026 LogTime by OxyFlow</MonoText>
+              <MonoText size="xs" className="mb-2 block">Copyright (c) 2026 Marcin 'beoArcha' Stefan (oXyFlow TimeLog)</MonoText>
               <MonoText size="xs" className="mb-2 block">
                 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
                 If a copy of the MPL was not distributed with this file, You can obtain one at

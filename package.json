@@ -1,5 +1,5 @@
 {
-  "name": "oxy-flow",
+  "name": "timelog",
   "private": true,
   "version": "1.10.4",
   "license": "MPL-2.0",
@@ -26,7 +26,9 @@
     "check": "bun run typecheck; bun run lint; bun run lint:rust; bun run fmt:rust:check",
     "fix": "eslint --fix .; bun run fmt:rust",
     "docs:validate": "bun scripts/validate-docs.js",
-    "docs:serve": "bunx serve docs/wiki"
+    "docs:serve": "bunx serve docs/wiki",
+    "metadata:sync": "bun scripts/sync_metadata.js",
+    "metadata:check": "bun scripts/sync_metadata.js --check"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -76,5 +78,7 @@
     "vite": "^6.4.4",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.12"
-  }
+  },
+  "author": "Marcin 'beoArcha' Stefan",
+  "description": "Ultra-lightweight, local-first work timer and task tracker built with Rust, Tauri v2, SQLite, and React 19."
 }

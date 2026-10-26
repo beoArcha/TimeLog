@@ -1,6 +1,23 @@
 {
-  "name": "LogTime by OxyFlow",
-  "description": "Multi-mode work tracker and Rust project generator with a fluid GUI, an integrated CLI emulator, and exportable Rust engine files.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "TimeLog",
+  "shortName": "TimeLog",
+  "longName": "oXyFlow TimeLog",
+  "identifier": "com.oxytime.timelog",
+  "author": "Marcin 'beoArcha' Stefan",
+  "description": "Ultra-lightweight, local-first work timer and task tracker built with Rust, Tauri v2, SQLite, and React 19.",
+  "license": "MPL-2.0",
+  "repository": "https://github.com/beoArcha/TimeLog",
+  "homepage": "https://github.com/beoArcha/TimeLog",
+  "version": "1.10.4",
+  "versions": {
+    "major": 1,
+    "minor": 10,
+    "release": 4,
+    "subversions": {
+      "engine": 22,
+      "components": 3,
+      "translations": 2,
+      "front": 15
+    }
+  }
 }

@@ -12,6 +12,7 @@ This file is the single entry point. Detailed, topic-specific rules live in `.ag
 | [`.agents/rules/testing_standards.md`](.agents/rules/testing_standards.md) | Test tiers, naming, AAA / BDT, builders, decoupling, timeouts |
 | [`.agents/rules/code_commenting_standards.md`](.agents/rules/code_commenting_standards.md) | When and how to write comments |
 | [`.agents/rules/documentation_standards.md`](.agents/rules/documentation_standards.md) | Analytical artifacts, implementation plans, manifesto, multilingual wiki, AI humanizer |
+| [`.agents/rules/project_metadata_standards.md`](.agents/rules/project_metadata_standards.md) | Canonical naming, Single Source of Truth (`metadata.json`), author attribution, version sync |
 
 Architecture background for humans and agents: [`docs/manifesto/ENGINEERING.md`](docs/manifesto/ENGINEERING.md). Roadmap and status: [`docs/manifesto/MASTERMAP.md`](docs/manifesto/MASTERMAP.md). CLI contract: [`docs/manifesto/CLI.md`](docs/manifesto/CLI.md). UI and UX principles: [`docs/manifesto/USERINTERFACE.md`](docs/manifesto/USERINTERFACE.md), [`docs/manifesto/USEREXPERIENCE.md`](docs/manifesto/USEREXPERIENCE.md).
 

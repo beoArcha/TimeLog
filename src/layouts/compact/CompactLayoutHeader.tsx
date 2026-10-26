@@ -49,7 +49,7 @@ export function CompactLayoutHeader({
           data-testid="compact-header-title"
           className="font-sans font-bold tracking-tight text-foreground"
         >
-          LogTime by OxyFlow v{versionsData.major}.{versionsData.minor}.{versionsData.release}
+          oXyFlow TimeLog v{versionsData.major}.{versionsData.minor}.{versionsData.release}
         </MonoText>
       </HStack>
 

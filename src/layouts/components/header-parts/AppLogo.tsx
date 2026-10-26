@@ -25,7 +25,7 @@ export const AppLogo: React.FC = () => {
           data-testid="app-header-logo"
           className="font-sans font-bold text-sm sm:text-base tracking-tight leading-none flex items-center text-foreground"
         >
-          <span>OxyFlow</span>
+          <span>oXyFlow TimeLog</span>
           <Badge variant="orange" size="xs" as="span" className="ml-1.5 font-mono">
             v{versionsData.subversions.front}
           </Badge>
