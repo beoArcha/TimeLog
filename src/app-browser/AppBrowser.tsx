@@ -1,21 +1,25 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import LayoutManager from '@layouts/manager/LayoutManager';
 import { PlatformCapabilitiesProvider } from '@common/contexts/PlatformCapabilitiesProvider';
+import { PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
 export default function AppBrowser() {
+  const capabilities: PlatformCapabilities = useMemo(
+    () => ({
+      dragRegionProps: {},
+      canInspectDatabase: false,
+      supportedLayouts: ['medium', 'full'],
+      defaultLayout: 'full',
+      supportsTray: false,
+      supportsAlwaysOnTop: false,
+      supportsAutoStart: false,
+      isPwaInstallable: true,
+    }),
+    []
+  );
+
   return (
-    <PlatformCapabilitiesProvider
-      capabilities={{
-        dragRegionProps: {},
-        canInspectDatabase: false,
-        supportedLayouts: ['medium', 'full'],
-        defaultLayout: 'full',
-        supportsTray: false,
-        supportsAlwaysOnTop: false,
-        supportsAutoStart: false,
-        isPwaInstallable: true,
-      }}
-    >
+    <PlatformCapabilitiesProvider capabilities={capabilities}>
       <LayoutManager runtime="browser" />
     </PlatformCapabilitiesProvider>
   );

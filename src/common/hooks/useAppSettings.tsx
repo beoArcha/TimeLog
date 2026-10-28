@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Settings as AppSettings } from '@bindings/Settings';
 import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
@@ -45,12 +45,19 @@ export const useAppSettings = () => {
     }
   }, [supportedLayouts]);
 
+  const layoutsSignature = supportedLayouts.slice().sort().join(',');
+  const hasInitializedRef = useRef(false);
+
   useEffect(() => {
+    let isCancelled = false;
+
     Promise.all([
       PersistenceRouter.getInstance().settings.get(),
       PersistenceRouter.getInstance().uiState.getCurrentProjectId(),
       PersistenceRouter.getInstance().uiState.getLastNonCompactVariant(),
     ]).then(([loaded, currentProj, lastNonCompact]) => {
+      if (isCancelled) return;
+
       setTheme((loaded.theme as ThemePreference) || 'system');
       setTextAndIconSize((loaded.textAndIconSize as TextAndIconSize) || 'medium');
       const rawVariant = (loaded.guiVariant as LayoutVariant) || defaultLayout || LAYOUT_VARIANTS.FULL;
@@ -69,11 +76,17 @@ export const useAppSettings = () => {
       if (currentProj) setCurrentProjectId(currentProj);
       if (lastNonCompact) setLastNonCompactVariant(lastNonCompact as Exclude<LayoutVariant, 'compact'>);
       setSettingsLoaded(true);
+      hasInitializedRef.current = true;
     }).catch(err => {
+      if (isCancelled) return;
       ErrorHandler.handle(err);
       setSettingsLoaded(true);
     });
-  }, [defaultLayout, supportedLayouts]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [defaultLayout, layoutsSignature, supportedLayouts]);
 
   const [systemTheme, setSystemTheme] = useState<Theme>(() =>
     window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
