@@ -5,6 +5,7 @@ import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { Button } from '@components/ui/button';
 import { Caption, Text, MonoText } from '@components/ui/typography';
 import { HStack, VStack } from '@components/ui/stack';
@@ -15,6 +16,7 @@ export default function DaemonStatusBar() {
   const { locale, customTranslations } = useLocale();
   const { logs, engineState } = useData();
   const { handleMinimizeToTray } = useWindowShell();
+  const { supportsTray } = usePlatformCapabilities();
   const [syncStatus, setSyncStatus] = useState<WebhookSyncStatus>(
     WebhookDispatcher.getInstance().getStatus()
   );
@@ -56,7 +58,7 @@ export default function DaemonStatusBar() {
           <Text as="span" weight="semibold" className="text-emerald-600 dark:text-emerald-400">
             {translate(locale, 'engine', 'Connected', customTranslations)}
           </Text>
-          {' · '}
+          {' \u00b7 '}
           <Caption as="span" size="xs">
             {translate(locale, 'engine', 'Synced', customTranslations)}{' '}
             <MonoText as="strong" weight="bold" className="text-emerald-500">
@@ -72,7 +74,7 @@ export default function DaemonStatusBar() {
         />
       </HStack>
 
-      {handleMinimizeToTray && (
+      {supportsTray && handleMinimizeToTray && (
         <Button
           id="minimize-tray-shortcut"
           variant="outline"
