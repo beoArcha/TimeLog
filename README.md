@@ -182,6 +182,9 @@ bun run tauri:dev
 
 # 5. Build Desktop Production Bundle (NSIS, DMG, AppImage, or DEB)
 bun run tauri:build
+
+# 6. Build Standalone Web Application & PWA
+bun run build:web
 ```
 
 ### Verification & Quality Gate
