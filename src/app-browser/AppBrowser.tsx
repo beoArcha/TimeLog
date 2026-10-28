@@ -7,7 +7,13 @@ export default function AppBrowser() {
     <PlatformCapabilitiesProvider
       capabilities={{
         dragRegionProps: {},
-        canInspectDatabase: Boolean(import.meta.env.DEV),
+        canInspectDatabase: false,
+        supportedLayouts: ['medium', 'full'],
+        defaultLayout: 'full',
+        supportsTray: false,
+        supportsAlwaysOnTop: false,
+        supportsAutoStart: false,
+        isPwaInstallable: true,
       }}
     >
       <LayoutManager runtime="browser" />

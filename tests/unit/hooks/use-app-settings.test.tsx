@@ -1,6 +1,8 @@
+import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useAppSettings } from '@common/hooks/useAppSettings';
+import { PlatformCapabilitiesContext, PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { setupLocalStorageMock, setupMatchMediaMock } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: useAppSettings Hook', () => {
@@ -30,6 +32,89 @@ describe('Unit Tests: useAppSettings Hook', () => {
     await waitFor(() => {
       expect(result.current.theme).toBe('light');
     });
+    expect(result.current.layoutVariant).toBe('medium');
+  });
+
+  it('should fallback to defaultLayout when loaded layout is unsupported in current platform', async () => {
+    // Arrange
+    localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+      theme: 'dark',
+      guiVariant: 'compact',
+      textAndIconSize: 'medium',
+      autoStart: false,
+      includePatchesInReports: true,
+      activeSinks: ['Csv'],
+      alwaysOnTopSmall: false,
+      alwaysOnTopMain: false,
+      minimizeToTray: false,
+    }));
+
+    const webCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: false,
+      supportedLayouts: ['medium', 'full'],
+      defaultLayout: 'full',
+      supportsTray: false,
+      supportsAlwaysOnTop: false,
+      supportsAutoStart: false,
+      isPwaInstallable: true,
+    };
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={webCapabilities}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    // Act
+    const { result } = renderHook(() => useAppSettings(), { wrapper });
+
+    // Assert
+    await waitFor(() => {
+      expect(result.current.theme).toBe('dark');
+    });
+    expect(result.current.layoutVariant).toBe('full');
+  });
+
+  it('should ignore setting an unsupported layout variant', async () => {
+    // Arrange
+    const webCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: false,
+      supportedLayouts: ['medium', 'full'],
+      defaultLayout: 'full',
+      supportsTray: false,
+      supportsAlwaysOnTop: false,
+      supportsAutoStart: false,
+      isPwaInstallable: true,
+    };
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={webCapabilities}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    const { result } = renderHook(() => useAppSettings(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.layoutVariant).toBe('full');
+    });
+
+    // Act: try setting compact, which is not supported in webCapabilities
+    act(() => {
+      result.current.setLayoutVariant('compact');
+    });
+
+    // Assert
+    expect(result.current.layoutVariant).toBe('full');
+
+    // Act: setting medium should succeed
+    act(() => {
+      result.current.setLayoutVariant('medium');
+    });
+
+    // Assert
     expect(result.current.layoutVariant).toBe('medium');
   });
 

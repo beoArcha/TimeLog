@@ -61,6 +61,12 @@ export const MockProviders: React.FC<MockProvidersProps> = ({
   const effectiveCapabilities: PlatformCapabilities = {
     dragRegionProps: {},
     canInspectDatabase: true,
+    supportedLayouts: ['compact', 'medium', 'full'],
+    defaultLayout: 'full',
+    supportsTray: true,
+    supportsAlwaysOnTop: true,
+    supportsAutoStart: true,
+    isPwaInstallable: false,
     ...capabilitiesState,
   };
 

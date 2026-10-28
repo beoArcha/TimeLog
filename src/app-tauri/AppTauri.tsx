@@ -8,6 +8,12 @@ export default function AppTauri() {
       capabilities={{
         dragRegionProps: { 'data-tauri-drag-region': true },
         canInspectDatabase: Boolean(import.meta.env.DEV),
+        supportedLayouts: ['compact', 'medium', 'full'],
+        defaultLayout: 'full',
+        supportsTray: true,
+        supportsAlwaysOnTop: true,
+        supportsAutoStart: true,
+        isPwaInstallable: false,
       }}
     >
       <LayoutManager runtime="tauri" />
