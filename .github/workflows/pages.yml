@@ -66,6 +66,13 @@ jobs:
           mkdir -p _site/app
           cp -r dist/* _site/app/
           touch _site/.nojekyll
+
+          echo "Validating Pages combined staging contents..."
+          [ -s "_site/index.html" ] || { echo "::error::_site/index.html is missing or empty"; exit 1; }
+          [ -s "_site/app/index.html" ] || { echo "::error::_site/app/index.html is missing or empty"; exit 1; }
+          [ -s "_site/app/manifest.webmanifest" ] || { echo "::error::_site/app/manifest.webmanifest is missing or empty"; exit 1; }
+          [ -f "_site/.nojekyll" ] || { echo "::error::_site/.nojekyll is missing"; exit 1; }
+
           echo "Verified Pages combined staging contents:"
           ls -la _site
           ls -la _site/app

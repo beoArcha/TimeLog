@@ -163,7 +163,7 @@ jobs:
   # ──────────────────────────────────────────────
   deploy-pages:
     name: Deploy Wiki & Web App
-    needs: [publish, build-web]
+    needs: [prepare, publish, build-web]
     permissions:
       contents: read
       pages: write
@@ -171,3 +171,4 @@ jobs:
     uses: ./.github/workflows/pages.yml
     with:
       ref: ${{ needs.prepare.outputs.sha }}
+
