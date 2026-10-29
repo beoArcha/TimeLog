@@ -157,7 +157,7 @@ Contexts are split by domain to avoid unnecessary re-renders:
 | Context | Responsibility |
 | --- | --- |
 | `WindowShellContext` | Window lifecycle, tray minimization, toasts, shell alerts |
-| `PlatformCapabilitiesContext` | Capabilities of the current runtime |
+| `PlatformCapabilitiesContext` | Capabilities of the current runtime (supported layouts, tray, always-on-top, autostart, PWA) |
 | `DataContext` | Projects, tasks, time logs, selections, CRUD and the metrics snapshot (`useMetricsManager`) |
 | `SettingsContext` | Preferences: layout variant, theme, visual scale |
 | `LocaleProvider` | Current locale and dictionaries |

@@ -26,8 +26,9 @@
 
 Production packages and portable binaries are published with cryptographic SHA-256 checksums on the [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) page.
 
-| Operating System | Package Type | Target Architecture | Link |
+| Operating System / Platform | Package Type | Target Architecture | Link |
 | :--- | :--- | :--- | :--- |
+| **Web & PWA** | Web Application (Zero Install) | Modern Web Browsers | [Launch Web App](https://beoarcha.github.io/TimeLog/app/) |
 | **Windows** | Setup Wizard (`.exe`) | x86_64 | [Download Setup](https://github.com/beoArcha/TimeLog/releases/latest/download/OxyFlow-Setup-x64.exe) |
 | **Windows** | Portable Executable (`.exe`) | x86_64 | [Download Standalone](https://github.com/beoArcha/TimeLog/releases/latest/download/OxyFlow-Standalone-x64.exe) |
 | **macOS** | Universal DMG (`.dmg`) | Apple Silicon (M1–M4) & Intel | [Download DMG](https://github.com/beoArcha/TimeLog/releases/latest/download/OxyFlow-Universal.dmg) |
@@ -182,6 +183,9 @@ bun run tauri:dev
 
 # 5. Build Desktop Production Bundle (NSIS, DMG, AppImage, or DEB)
 bun run tauri:build
+
+# 6. Build Standalone Web Application & PWA
+bun run build:web
 ```
 
 ### Verification & Quality Gate

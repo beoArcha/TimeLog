@@ -4,11 +4,21 @@
 
 ---
 
-Ten poradnik przeprowadzi Cię przez instalację oXyFlow, konfigurację środowiska i rejestrację pierwszego wpisu czasu pracy.
+Ten poradnik przeprowadzi Cię przez uruchomienie oXyFlow w przeglądarce (Web/PWA) lub instalację aplikacji desktopowej, konfigurację środowiska i rejestrację pierwszego wpisu czasu pracy.
 
 ---
 
-## Instalacja
+## Aplikacja Webowa i PWA (Bez Instalacji)
+
+Możesz korzystać z oXyFlow od razu, bez konieczności pobierania plików instalacyjnych:
+
+1. Wejdź na stronę **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)** w dowolnej nowoczesnej przeglądarce (Chrome, Edge, Firefox, Safari).
+2. Cały stoper, projekty i zadania działają i zapisują się w 100% lokalnie w magazynie Twojej przeglądarki.
+3. **Instalacja PWA**: W przeglądarkach obsługujących PWA kliknij przycisk **Zainstaluj aplikację** na pasku adresu lub w menu przeglądarki, aby zainstalować oXyFlow jako samodzielną aplikację działającą również w trybie offline na pulpicie lub ekranie głównym telefonu.
+
+---
+
+## Instalacja Desktopowa
 
 Pobierz odpowiednią paczkę instalacyjną ze [strony wydań GitHub](https://github.com/beoArcha/TimeLog/releases/latest):
 
@@ -41,24 +51,24 @@ oxy --version
 
 ## Tworzenie Projektu i Zadania
 
-1. Uruchom aplikację **oXyFlow**.
+1. Uruchom aplikację **oXyFlow** (wersję desktopową lub webową).
 2. Kliknij przycisk **"+ Nowy Projekt"** na pasku bocznym.
 3. Wprowadź nazwę projektu (np. `Projekt Klienta A`) i wybierz kolor etykiety. Kliknij **Zapisz**.
 4. W sekcji nowo utworzonego projektu kliknij **"+ Dodaj zadanie"**. Wpisz tytuł (np. `Implementacja API`) i naciśnij **Enter**.
 
 ---
 
-## Pomiar Czasu
+## Rejestracja Czasu
 
-- Kliknij przycisk **Start (▶)** obok zadania, aby natychmiast rozpocząć pomiar czasu.
-- Górny pasek statusu podświetla aktywne zadanie i prezentuje upływający czas na żywo.
-- Kliknij **Stop (■)**, aby zakończyć bieżącą sesję pomiaru.
-- Kliknięcie przycisku Start przy innym zadaniu natychmiast zatrzymuje bieżące i uruchamia nowe w pojedynczej transakcji atomowej (mechanizm `switch`).
+- Kliknij przycisk **Start (▶)** przy zadaniu, aby rozpocząć odliczanie.
+- Pasek statusu podświetli aktywne zadanie wraz z bieżącym czasem trwania.
+- Kliknij **Pauza (⏸)** lub **Stop (■)**, aby zakończyć sesję.
+- Rozpoczęcie innego zadania automatycznie zatrzymuje poprzednie w jednej atomowej transakcji.
 
 ---
 
 ## Dalsze Kroki
 
-- **[Podstawy Timera](timer.md)**: Zasady edycji wpisów, reguły nakładania i rozliczanie dnia.
-- **[Podstawowe CLI (`oxy`)](cli.md)**: Obsługa z wiersza poleceń terminala.
-- **[Interfejs i Motywy](interface.md)**: Personalizacja wariantów układu okna i motywów.
+- **[Podstawy Timera](timer.md)**: Ręczna korekta wpisów, reguły nakładania i historia.
+- **[CLI Companion (`oxy`)](cli.md)**: Sterowanie stoperem z poziomu powłoki PowerShell / Bash.
+- **[Interfejs i Motywy](interface.md)**: Dostosowanie gęstości układu oraz motywów kolorystycznych.

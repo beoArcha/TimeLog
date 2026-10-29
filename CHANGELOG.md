@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added in Unreleased
+
+- **Web Application & Progressive Web App (PWA) Deployment (`/app/`)**:
+  - Configured standalone web build script (`bun run build:web`) with base path `/TimeLog/app/` for GitHub Pages hosting alongside Docsify documentation.
+  - Integrated `vite-plugin-pwa` with webmanifest generation, offline asset precaching, and responsive PWA icon assets (`192x192`, `512x512`) in `public/icons/`.
+  - Added reusable GitHub Actions workflow `.github/workflows/build-web.yml` and unified Pages deployment in `.github/workflows/pages.yml` serving Docsify wiki at `/` and the PWA web app at `/app/`.
+  - Gated desktop-specific features (`autoStart`, `minimizeToTray`, `alwaysOnTop`) and restricted selectable layouts strictly to `medium` and `full` in browser runtime via `PlatformCapabilitiesContext`.
+
 ### Changed in Unreleased
 
 - **Documentation & Brand Identity Overhaul (`README.md`)**:

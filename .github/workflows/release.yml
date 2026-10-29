@@ -81,11 +81,21 @@ jobs:
       version: ${{ needs.prepare.outputs.version }}
 
   # ──────────────────────────────────────────────
+  # Build Web Application & PWA
+  # ──────────────────────────────────────────────
+  build-web:
+    name: Build Web App
+    needs: [prepare, pre-flight]
+    uses: ./.github/workflows/build-web.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
+
+  # ──────────────────────────────────────────────
   # Tag on GitHub Release
   # ──────────────────────────────────────────────
   publish:
     name: Tag & GitHub Release
-    needs: [prepare, build-tauri]
+    needs: [prepare, build-tauri, build-web]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -152,10 +162,13 @@ jobs:
   # Deploy Documentation to GitHub Pages
   # ──────────────────────────────────────────────
   deploy-pages:
-    name: Deploy Wiki
-    needs: publish
+    name: Deploy Wiki & Web App
+    needs: [prepare, publish, build-web]
     permissions:
       contents: read
       pages: write
       id-token: write
     uses: ./.github/workflows/pages.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
+

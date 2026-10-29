@@ -245,3 +245,7 @@ jobs:
       - name: Build Application
         shell: bash
         run: bun run build
+
+      - name: Build Web Application & PWA
+        shell: bash
+        run: bun run build:web
