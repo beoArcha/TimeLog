@@ -2,50 +2,57 @@ import React, { useState } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import CollapsibleCard from '@components/CollapsibleCard';
-import PromptDialog from '@components/PromptDialog';
+import ConfirmDialog from '@components/ConfirmDialog';
 import { Button } from '@components/ui/button';
 import { Caption } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
-import { ErrorHandler, PersistenceException } from '@common/exceptions';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
 export function DestructiveResetCard() {
   const { customTranslations, locale } = useLocale();
-  const { setProjects, setTasks, setLogs } = useData();
+  const { handleResetLocalStorage } = useData();
+  const { supportsTray } = usePlatformCapabilities();
+  const isDesktop = supportsTray;
+
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
-  const handleConfirmReset = (response: string) => {
+  const handleConfirmReset = async () => {
     setIsResetModalOpen(false);
-    if (response === 'reset') {
-      setProjects([]);
-      setTasks([]);
-      setLogs([]);
-      try {
-        localStorage.removeItem('oxytime_state_db_6');
-      } catch (err) {
-        ErrorHandler.handle(
-          new PersistenceException(
-            'Failed to remove state DB from localStorage during reset',
-            err,
-            'ERR_SETTINGS_RESET'
-          )
-        );
-      }
+    try {
+      await handleResetLocalStorage();
       toast.success(translate(locale, 'engine', 'ResetSuccess', customTranslations));
-    } else {
+    } catch {
       toast.error(translate(locale, 'engine', 'ResetCancel', customTranslations));
     }
   };
 
+  const dialogTitle = isDesktop
+    ? translate(locale, 'engine', 'DesktopResetTitle', customTranslations)
+    : translate(locale, 'engine', 'PwaResetTitle', customTranslations);
+
+  const dialogDescription = isDesktop
+    ? translate(locale, 'engine', 'DesktopResetConfirm', customTranslations)
+    : translate(locale, 'engine', 'PwaResetConfirm', customTranslations);
+
+  const resetDesc = isDesktop
+    ? translate(locale, 'engine', 'DesktopResetDesc', customTranslations)
+    : translate(locale, 'engine', 'PwaResetDesc', customTranslations);
+
+  const resetBtnLabel = isDesktop
+    ? translate(locale, 'engine', 'DesktopResetBtn', customTranslations)
+    : translate(locale, 'engine', 'PwaResetBtn', customTranslations);
+
   return (
     <>
-      <PromptDialog
+      <ConfirmDialog
         open={isResetModalOpen}
         onOpenChange={setIsResetModalOpen}
-        title={translate(locale, 'engine', 'DestructiveZone', customTranslations)}
-        description={translate(locale, 'cli', 'WarningResetApp', customTranslations)}
-        confirmLabel={translate(locale, 'common', 'Confirm', customTranslations)}
+        title={dialogTitle}
+        description={dialogDescription}
+        variant="destructive"
+        confirmLabel={resetBtnLabel}
         cancelLabel={translate(locale, 'common', 'Cancel', customTranslations)}
         onConfirm={handleConfirmReset}
         onCancel={() => setIsResetModalOpen(false)}
@@ -62,7 +69,7 @@ export function DestructiveResetCard() {
       >
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
           <Caption variant="muted" className="max-w-sm">
-            {translate(locale, 'engine', 'HardResetDesc', customTranslations)}
+            {resetDesc}
           </Caption>
           <Button
             data-testid="hard-reset-btn"
@@ -70,7 +77,7 @@ export function DestructiveResetCard() {
             onClick={() => setIsResetModalOpen(true)}
             className="bg-rose-500 hover:bg-rose-600 px-6 py-3 rounded-2xl text-white text-xs font-bold uppercase transition-all shadow-lg flex items-center gap-2 cursor-pointer whitespace-nowrap h-auto"
           >
-            <RefreshCw className="w-4 h-4" /> {translate(locale, 'engine', 'HardResetBtn', customTranslations)}
+            <RefreshCw className="w-4 h-4" /> {resetBtnLabel}
           </Button>
         </div>
       </CollapsibleCard>

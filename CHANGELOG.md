@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added in Unreleased
 
+- **PWA vs Desktop Reset Semantics & Accessible ConfirmDialog UX**:
+  - Replaced manual typing prompt dialog with accessible Base UI `ConfirmDialog` (`@components/ConfirmDialog`) styled with the destructive design token variant.
+  - Runtime awareness via `usePlatformCapabilities`: distinguishes between browser LocalStorage (`supportsTray: false` -> "Clear browser data" / "Wyczyść dane przeglądarki") and desktop SQLite database (`supportsTray: true` -> "Reset SQLite database" / "Zresetuj bazę SQLite").
+  - Delegated reset execution to `DataContext.handleResetLocalStorage()`, triggering `PersistenceRouter.getInstance().core.reset()` and eliminating obsolete `localStorage.removeItem('oxytime_state_db_6')`.
+  - Added full 6-language translations (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) across `src/common/i18n/dictionaries/engine.json` and synchronized `EngineKey` in `src/common/i18n/keys.ts`.
+  - Added isolated unit test suite in `tests/unit/features/settings/DestructiveResetCard.test.tsx` and updated `SettingsTab.test.tsx`.
+
 - **Legacy Backup Migration & Tolerance (`backupMigrator`)**:
   - Implemented `migrateLegacyBackup` in `src/common/utils/backupMigrator.ts` providing automated normalization for legacy localStorage dumps and previous backup structures.
   - Integrated migration pipeline into `validateBackupPayload` in `src/common/utils/backupValidator.ts`.

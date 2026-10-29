@@ -108,6 +108,7 @@ export function ConfirmDialog({
             onClick={handleCancel}
             disabled={isLoading}
             autoFocus={variant === 'destructive'}
+            data-testid="confirm-dialog-cancel-btn"
           >
             {resolvedCancelLabel}
           </Button>
@@ -117,6 +118,7 @@ export function ConfirmDialog({
             onClick={handleConfirm}
             loading={isLoading}
             aria-busy={isLoading}
+            data-testid="confirm-dialog-confirm-btn"
           >
             {resolvedConfirmLabel}
           </Button>

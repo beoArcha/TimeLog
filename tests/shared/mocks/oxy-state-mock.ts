@@ -88,6 +88,7 @@ export interface OxyFlowState {
   handleDeleteTimeLog?: Mock | ((id: string) => Promise<unknown>);
   handleInsertTimeLog?: Mock | ((id: string, taskId: string, startTime: string, endTime?: string | null, note?: string | null) => Promise<unknown>);
   handleRestoreState?: Mock | ((payload: unknown) => Promise<unknown>);
+  handleResetLocalStorage?: Mock | (() => Promise<void> | void);
   handleAddHoliday?: Mock | ((date: string, type: string, name: string) => Promise<unknown>);
   handleUpdateHoliday?: Mock | ((id: string, date: string, type: 'holiday' | 'leave', name: string, reason?: string) => Promise<unknown>);
   handleDeleteHoliday?: Mock | ((id: string) => Promise<unknown>);
@@ -176,6 +177,7 @@ export const getMockOxyFlowState = (): OxyFlowState => ({
   handleDeleteTimeLog: vi.fn(),
   handleInsertTimeLog: vi.fn(),
   handleRestoreState: vi.fn(),
+  handleResetLocalStorage: vi.fn(),
   handleAddHoliday: vi.fn(),
   handleUpdateHoliday: vi.fn(),
   handleDeleteHoliday: vi.fn(),
