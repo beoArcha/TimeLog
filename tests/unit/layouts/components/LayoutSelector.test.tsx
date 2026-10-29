@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -7,6 +6,7 @@ import { PlatformCapabilitiesContext, PlatformCapabilities } from '@common/conte
 import { SettingsContext, SettingsState } from '@common/hooks/SettingsContext';
 import { WindowShellContext, WindowShellState } from '@common/contexts/WindowShellContext';
 import { LocaleContext } from '@common/hooks/LocaleProvider';
+import type { LayoutVariant } from '@bindings/LayoutVariant';
 
 describe('LayoutSelector', () => {
   afterEach(() => {
@@ -75,10 +75,11 @@ describe('LayoutSelector', () => {
   };
 
   it('should render compact, medium, and full options when supportedLayouts contains all 3', () => {
-    // Arrange & Act
-    renderSelector({
-      supportedLayouts: ['compact', 'medium', 'full'],
-    });
+    // Arrange
+    const supportedLayouts: LayoutVariant[] = ['compact', 'medium', 'full'];
+
+    // Act
+    renderSelector({ supportedLayouts });
 
     // Assert
     expect(screen.getByTestId('layout-variant-compact')).not.toBeNull();
@@ -87,10 +88,11 @@ describe('LayoutSelector', () => {
   });
 
   it('should render only medium and full options when supportedLayouts contains medium and full', () => {
-    // Arrange & Act
-    renderSelector({
-      supportedLayouts: ['medium', 'full'],
-    });
+    // Arrange
+    const supportedLayouts: LayoutVariant[] = ['medium', 'full'];
+
+    // Act
+    renderSelector({ supportedLayouts });
 
     // Assert
     expect(screen.queryByTestId('layout-variant-compact')).toBeNull();

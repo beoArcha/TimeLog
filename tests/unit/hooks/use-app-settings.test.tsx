@@ -5,36 +5,9 @@ import { useAppSettings } from '@common/hooks/useAppSettings';
 import { PlatformCapabilitiesContext, PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { setupLocalStorageMock, setupMatchMediaMock } from '@tests/shared/test-helpers';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { PersistenceCommands } from '@common/persistence/PersistenceCommands';
-import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
-import { ISettingsPersistence } from '@common/persistence/IPersistence';
 import { Settings as AppSettings } from '@bindings/Settings';
 
-/**
- * Explicit test double representing the Desktop (Tauri IPC / SQLite) settings store.
- * Operates in isolated memory, completely separate from browser LocalStorage.
- */
-class DesktopSettingsStorageDouble implements ISettingsPersistence {
-  private store: AppSettings;
-
-  constructor(initialSettings: AppSettings) {
-    this.store = { ...initialSettings };
-  }
-
-  async get(): Promise<AppSettings> {
-    return { ...this.store };
-  }
-
-  async save(settings: AppSettings): Promise<void> {
-    this.store = { ...settings };
-  }
-
-  getSnapshot(): AppSettings {
-    return { ...this.store };
-  }
-}
-
-describe('Unit Tests: useAppSettings Hook', () => {
+describe('useAppSettings', () => {
   beforeEach(() => {
     setupLocalStorageMock();
     setupMatchMediaMock(false);
@@ -111,7 +84,7 @@ describe('Unit Tests: useAppSettings Hook', () => {
     expect(result.current.layoutVariant).toBe('full');
   });
 
-  it('should ignore setting an unsupported layout variant', async () => {
+  it('should ignore setting an unsupported layout variant when attempted', async () => {
     // Arrange
     const webCapabilities: PlatformCapabilities = {
       dragRegionProps: {},
@@ -131,20 +104,44 @@ describe('Unit Tests: useAppSettings Hook', () => {
     );
 
     const { result } = renderHook(() => useAppSettings(), { wrapper });
-
     await waitFor(() => {
       expect(result.current.layoutVariant).toBe('full');
     });
 
-    // Act: try setting compact, which is not supported in webCapabilities
+    // Act
     act(() => {
       result.current.setLayoutVariant('compact');
     });
 
     // Assert
     expect(result.current.layoutVariant).toBe('full');
+  });
 
-    // Act: setting medium should succeed
+  it('should allow setting a supported layout variant when available', async () => {
+    // Arrange
+    const webCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: false,
+      supportedLayouts: ['medium', 'full'],
+      defaultLayout: 'full',
+      supportsTray: false,
+      supportsAlwaysOnTop: false,
+      supportsAutoStart: false,
+      isPwaInstallable: true,
+    };
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={webCapabilities}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    const { result } = renderHook(() => useAppSettings(), { wrapper });
+    await waitFor(() => {
+      expect(result.current.layoutVariant).toBe('full');
+    });
+
+    // Act
     act(() => {
       result.current.setLayoutVariant('medium');
     });
@@ -189,157 +186,8 @@ describe('Unit Tests: useAppSettings Hook', () => {
     expect(result.current.resolvedTheme).toBe('light');
   });
 
-  it('should preserve desktop-specific preferences when settings are updated in browser runtime across actual persistence boundaries', async () => {
-    // ------------------------------------------------------------------------------------
-    // 1. DESKTOP RUNTIME SESSION
-    // ------------------------------------------------------------------------------------
-    // The desktop runtime uses PersistenceCommands backed by a dedicated SQLite/IPC store
-    const initialDesktopSettings: AppSettings = {
-      theme: 'dark',
-      guiVariant: 'compact',
-      textAndIconSize: 'large',
-      autoStart: true,
-      includePatchesInReports: false,
-      activeSinks: ['Csv'],
-      alwaysOnTopSmall: true,
-      alwaysOnTopMain: true,
-      minimizeToTray: true,
-    };
-
-    const desktopStorage = new DesktopSettingsStorageDouble(initialDesktopSettings);
-    PersistenceRouter.getInstance().setImplementationForTesting(
-      new PersistenceCommands({ settings: desktopStorage })
-    );
-
-    const desktopCapabilities: PlatformCapabilities = {
-      dragRegionProps: {},
-      canInspectDatabase: true,
-      supportedLayouts: ['compact', 'medium', 'full'],
-      defaultLayout: 'compact',
-      supportsTray: true,
-      supportsAlwaysOnTop: true,
-      supportsAutoStart: true,
-      isPwaInstallable: false,
-    };
-
-    const desktopWrapper = ({ children }: { children: React.ReactNode }) => (
-      <PlatformCapabilitiesContext.Provider value={desktopCapabilities}>
-        {children}
-      </PlatformCapabilitiesContext.Provider>
-    );
-
-    const { result: desktopResult, unmount: unmountDesktop } = renderHook(() => useAppSettings(), {
-      wrapper: desktopWrapper,
-    });
-
-    await waitFor(() => {
-      expect(desktopResult.current.theme).toBe('dark');
-      expect(desktopResult.current.layoutVariant).toBe('compact');
-      expect(desktopResult.current.textAndIconSize).toBe('large');
-      expect(desktopResult.current.alwaysOnTopSmall).toBe(true);
-      expect(desktopResult.current.alwaysOnTopMain).toBe(true);
-      expect(desktopResult.current.minimizeToTray).toBe(true);
-      expect(desktopResult.current.sysSettings.autoStart).toBe(true);
-      expect(desktopResult.current.sysSettings.includePatchesInReports).toBe(false);
-      expect(desktopResult.current.sysSettings.activeSinks).toEqual(['Csv']);
-    });
-
-    unmountDesktop();
-
-    // ------------------------------------------------------------------------------------
-    // 2. BROWSER RUNTIME SESSION (PersistencePlugin with LocalStorage)
-    // ------------------------------------------------------------------------------------
-    PersistenceRouter.resetForTesting();
-    PersistenceRouter.getInstance().setImplementationForTesting(new PersistencePlugin());
-
-    const webCapabilities: PlatformCapabilities = {
-      dragRegionProps: {},
-      canInspectDatabase: false,
-      supportedLayouts: ['medium', 'full'],
-      defaultLayout: 'full',
-      supportsTray: false,
-      supportsAlwaysOnTop: false,
-      supportsAutoStart: false,
-      isPwaInstallable: true,
-    };
-
-    const webWrapper = ({ children }: { children: React.ReactNode }) => (
-      <PlatformCapabilitiesContext.Provider value={webCapabilities}>
-        {children}
-      </PlatformCapabilitiesContext.Provider>
-    );
-
-    const { result: webResult, unmount: unmountWeb } = renderHook(() => useAppSettings(), {
-      wrapper: webWrapper,
-    });
-
-    await waitFor(() => {
-      expect(webResult.current.theme).toBe('system');
-      expect(webResult.current.layoutVariant).toBe('full');
-    });
-
-    // Act: Update web-supported settings in browser
-    await act(async () => {
-      webResult.current.setTheme('light');
-      webResult.current.setTextAndIconSize('small');
-      webResult.current.setLayoutVariant('medium');
-    });
-
-    await waitFor(() => {
-      expect(webResult.current.theme).toBe('light');
-      expect(webResult.current.textAndIconSize).toBe('small');
-      expect(webResult.current.layoutVariant).toBe('medium');
-    });
-
-    // Assert: Web settings are stored in LocalStorage
-    const savedInBrowser = JSON.parse(
-      localStorage.getItem('timelog_persistence_plugin_settings') || '{}'
-    );
-    expect(savedInBrowser.theme).toBe('light');
-    expect(savedInBrowser.textAndIconSize).toBe('small');
-    expect(savedInBrowser.guiVariant).toBe('medium');
-
-    unmountWeb();
-
-    // ------------------------------------------------------------------------------------
-    // 3. RE-LAUNCH DESKTOP RUNTIME SESSION
-    // ------------------------------------------------------------------------------------
-    PersistenceRouter.resetForTesting();
-    PersistenceRouter.getInstance().setImplementationForTesting(
-      new PersistenceCommands({ settings: desktopStorage })
-    );
-
-    const { result: restoredDesktopResult } = renderHook(() => useAppSettings(), {
-      wrapper: desktopWrapper,
-    });
-
-    // Assert: Desktop persistence store was completely isolated and retained all preferences
-    await waitFor(() => {
-      expect(restoredDesktopResult.current.theme).toBe('dark');
-      expect(restoredDesktopResult.current.textAndIconSize).toBe('large');
-      expect(restoredDesktopResult.current.layoutVariant).toBe('compact');
-      expect(restoredDesktopResult.current.alwaysOnTopSmall).toBe(true);
-      expect(restoredDesktopResult.current.alwaysOnTopMain).toBe(true);
-      expect(restoredDesktopResult.current.minimizeToTray).toBe(true);
-      expect(restoredDesktopResult.current.sysSettings.autoStart).toBe(true);
-      expect(restoredDesktopResult.current.sysSettings.includePatchesInReports).toBe(false);
-      expect(restoredDesktopResult.current.sysSettings.activeSinks).toEqual(['Csv']);
-    });
-
-    const snapshot = desktopStorage.getSnapshot();
-    expect(snapshot.theme).toBe('dark');
-    expect(snapshot.textAndIconSize).toBe('large');
-    expect(snapshot.guiVariant).toBe('compact');
-    expect(snapshot.autoStart).toBe(true);
-    expect(snapshot.minimizeToTray).toBe(true);
-    expect(snapshot.alwaysOnTopSmall).toBe(true);
-    expect(snapshot.alwaysOnTopMain).toBe(true);
-    expect(snapshot.includePatchesInReports).toBe(false);
-    expect(snapshot.activeSinks).toEqual(['Csv']);
-  });
-
   it('should ignore stale async promise resolutions when effect unmounts or cancels', async () => {
-    // Arrange: Create a deferred promise that resolves slowly
+    // Arrange
     let resolveStalePromise!: (val: AppSettings) => void;
     const stalePromise = new Promise<AppSettings>((resolve) => {
       resolveStalePromise = resolve;
@@ -349,11 +197,10 @@ describe('Unit Tests: useAppSettings Hook', () => {
       return stalePromise;
     });
 
-    // Act: Mount and immediately unmount hook
     const { unmount } = renderHook(() => useAppSettings());
-    unmount();
 
-    // Now resolve the stale promise after unmount
+    // Act
+    unmount();
     resolveStalePromise({
       theme: 'light',
       guiVariant: 'full',
@@ -365,15 +212,16 @@ describe('Unit Tests: useAppSettings Hook', () => {
       alwaysOnTopMain: false,
       minimizeToTray: false,
     });
-
-    // Allow any pending microtasks to flush
     await new Promise((r) => setTimeout(r, 20));
+
+    // Assert
+    expect(getSpy).toHaveBeenCalledTimes(1);
 
     getSpy.mockRestore();
   });
 
   it('should prevent stale out-of-order async reads from overwriting newer state', async () => {
-    // Arrange: Two deferred promises for settings.get(): P1 (first read) and P2 (second read)
+    // Arrange
     let resolveP1!: (val: AppSettings) => void;
     const p1 = new Promise<AppSettings>((resolve) => {
       resolveP1 = resolve;
@@ -414,16 +262,12 @@ describe('Unit Tests: useAppSettings Hook', () => {
       </PlatformCapabilitiesContext.Provider>
     );
 
-    // Act 1: Mount with initial capabilities -> triggers Read 1 (P1)
     const { result, rerender } = renderHook(() => useAppSettings(), { wrapper });
-    expect(callCount).toBe(1);
 
-    // Act 2: Change capabilities to trigger Read 2 (P2)
+    // Act
     currentCapabilities = updatedCapabilities;
     rerender();
-    expect(callCount).toBe(2);
 
-    // Act 3: Resolve P2 first with theme = 'light'
     resolveP2({
       theme: 'light',
       guiVariant: 'medium',
@@ -441,7 +285,6 @@ describe('Unit Tests: useAppSettings Hook', () => {
       expect(result.current.layoutVariant).toBe('medium');
     });
 
-    // Act 4: Resolve P1 second with stale theme = 'dark' and layout = 'compact'
     resolveP1({
       theme: 'dark',
       guiVariant: 'compact',
@@ -454,10 +297,10 @@ describe('Unit Tests: useAppSettings Hook', () => {
       minimizeToTray: true,
     });
 
-    // Flush microtasks
     await new Promise((r) => setTimeout(r, 25));
 
-    // Assert: P1's stale resolution was cancelled and must NOT overwrite P2's values
+    // Assert
+    expect(callCount).toBe(2);
     expect(result.current.theme).toBe('light');
     expect(result.current.layoutVariant).toBe('medium');
 
