@@ -243,4 +243,184 @@ describe('Unit Tests: useAppSettings Hook', () => {
 
     getSpy.mockRestore();
   });
+
+  it('should prevent stale out-of-order async reads from overwriting newer state', async () => {
+    // Arrange: Two deferred promises for settings.get(): P1 (first read) and P2 (second read)
+    let resolveP1!: (val: AppSettings) => void;
+    const p1 = new Promise<AppSettings>((resolve) => {
+      resolveP1 = resolve;
+    });
+
+    let resolveP2!: (val: AppSettings) => void;
+    const p2 = new Promise<AppSettings>((resolve) => {
+      resolveP2 = resolve;
+    });
+
+    let callCount = 0;
+    const getSpy = vi.spyOn(PersistenceRouter.getInstance().settings, 'get').mockImplementation(() => {
+      callCount++;
+      return callCount === 1 ? p1 : p2;
+    });
+
+    const initialCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: false,
+      supportedLayouts: ['compact', 'medium', 'full'],
+      defaultLayout: 'full',
+      supportsTray: true,
+      supportsAlwaysOnTop: true,
+      supportsAutoStart: true,
+      isPwaInstallable: false,
+    };
+
+    const updatedCapabilities: PlatformCapabilities = {
+      ...initialCapabilities,
+      supportedLayouts: ['medium', 'full'],
+      defaultLayout: 'medium',
+    };
+
+    let currentCapabilities = initialCapabilities;
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={currentCapabilities}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    // Act 1: Mount with initial capabilities -> triggers Read 1 (P1)
+    const { result, rerender } = renderHook(() => useAppSettings(), { wrapper });
+    expect(callCount).toBe(1);
+
+    // Act 2: Change capabilities to trigger Read 2 (P2)
+    currentCapabilities = updatedCapabilities;
+    rerender();
+    expect(callCount).toBe(2);
+
+    // Act 3: Resolve P2 first with theme = 'light'
+    resolveP2({
+      theme: 'light',
+      guiVariant: 'medium',
+      textAndIconSize: 'medium',
+      autoStart: false,
+      includePatchesInReports: true,
+      activeSinks: ['Csv'],
+      alwaysOnTopSmall: false,
+      alwaysOnTopMain: false,
+      minimizeToTray: false,
+    });
+
+    await waitFor(() => {
+      expect(result.current.theme).toBe('light');
+      expect(result.current.layoutVariant).toBe('medium');
+    });
+
+    // Act 4: Resolve P1 second with stale theme = 'dark' and layout = 'compact'
+    resolveP1({
+      theme: 'dark',
+      guiVariant: 'compact',
+      textAndIconSize: 'small',
+      autoStart: true,
+      includePatchesInReports: true,
+      activeSinks: ['Csv'],
+      alwaysOnTopSmall: true,
+      alwaysOnTopMain: true,
+      minimizeToTray: true,
+    });
+
+    // Flush microtasks
+    await new Promise((r) => setTimeout(r, 25));
+
+    // Assert: P1's stale resolution was cancelled and must NOT overwrite P2's values
+    expect(result.current.theme).toBe('light');
+    expect(result.current.layoutVariant).toBe('medium');
+
+    getSpy.mockRestore();
+  });
+
+  it('should support full Desktop -> Web -> Desktop roundtrip persistence without corrupting desktop fields', async () => {
+    // Step 1: Initial Desktop session saves complete desktop preferences
+    const desktopCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: true,
+      supportedLayouts: ['compact', 'medium', 'full'],
+      defaultLayout: 'compact',
+      supportsTray: true,
+      supportsAlwaysOnTop: true,
+      supportsAutoStart: true,
+      isPwaInstallable: false,
+    };
+
+    const initialDesktopSettings: AppSettings = {
+      theme: 'dark',
+      guiVariant: 'compact',
+      textAndIconSize: 'large',
+      autoStart: true,
+      includePatchesInReports: false,
+      activeSinks: ['Csv'],
+      alwaysOnTopSmall: true,
+      alwaysOnTopMain: true,
+      minimizeToTray: true,
+    };
+
+    localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify(initialDesktopSettings));
+
+    // Step 2: Web session mounts (where tray, autoStart, alwaysOnTop are unsupported)
+    const webCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: false,
+      supportedLayouts: ['medium', 'full'],
+      defaultLayout: 'full',
+      supportsTray: false,
+      supportsAlwaysOnTop: false,
+      supportsAutoStart: false,
+      isPwaInstallable: true,
+    };
+
+    const webWrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={webCapabilities}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    const { result: webResult, unmount: webUnmount } = renderHook(() => useAppSettings(), { wrapper: webWrapper });
+
+    await waitFor(() => {
+      expect(webResult.current.theme).toBe('dark');
+      expect(webResult.current.layoutVariant).toBe('full');
+    });
+
+    // Step 3: Web session updates user settings (changes theme to 'light' and text size to 'small')
+    await act(async () => {
+      webResult.current.setTheme('light');
+      webResult.current.setTextAndIconSize('small');
+    });
+
+    await waitFor(() => {
+      expect(webResult.current.theme).toBe('light');
+      expect(webResult.current.textAndIconSize).toBe('small');
+    });
+
+    // Unmount web session
+    webUnmount();
+
+    // Step 4: Re-mount Desktop session
+    const desktopWrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={desktopCapabilities}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    const { result: desktopResult } = renderHook(() => useAppSettings(), { wrapper: desktopWrapper });
+
+    // Step 5: Assert that desktop hook loaded the web modifications while preserving all desktop flags
+    await waitFor(() => {
+      expect(desktopResult.current.theme).toBe('light');
+      expect(desktopResult.current.textAndIconSize).toBe('small');
+      expect(desktopResult.current.alwaysOnTopSmall).toBe(true);
+      expect(desktopResult.current.alwaysOnTopMain).toBe(true);
+      expect(desktopResult.current.minimizeToTray).toBe(true);
+      expect(desktopResult.current.sysSettings.autoStart).toBe(true);
+      expect(desktopResult.current.sysSettings.includePatchesInReports).toBe(false);
+      expect(desktopResult.current.sysSettings.activeSinks).toEqual(['Csv']);
+    });
+  });
 });

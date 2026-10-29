@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:web": "vite build --base=/TimeLog/app/",
+    "build:web": "vite build --base=/TimeLog/app/ && bun scripts/verify-pwa-paths.ts",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
