@@ -41,7 +41,10 @@
     "AllowConcurrency": "Allow Concurrent Tracking",
     "AllowConcurrencyDesc": "Allow timers in this project to run in parallel with other projects",
     "AllowConcurrencyDefault": "Default to concurrent tracking for new projects",
-    "ConcurrencyBadge": "Concurrent"
+    "ConcurrencyBadge": "Concurrent",
+    "SelectEmoji": "Select emoji",
+    "ClearEmoji": "Clear emoji",
+    "SearchEmoji": "Search emoji..."
   },
   "pl": {
     "NewProject": "Nowy Projekt",
@@ -85,7 +88,10 @@
     "AllowConcurrency": "Zezwól na współbieżny pomiar",
     "AllowConcurrencyDesc": "Zezwalaj na równoległe działanie stoperów z innymi projektami",
     "AllowConcurrencyDefault": "Domyślnie włączaj współbieżność dla nowych projektów",
-    "ConcurrencyBadge": "Współbieżny"
+    "ConcurrencyBadge": "Współbieżny",
+    "SelectEmoji": "Wybierz emoji",
+    "ClearEmoji": "Wyczyść emoji",
+    "SearchEmoji": "Szukaj emoji..."
   },
   "de": {
     "NewProject": "Neues Projekt",
@@ -129,7 +135,10 @@
     "AllowConcurrency": "Parallele Zeiterfassung erlauben",
     "AllowConcurrencyDesc": "Timer in diesem Projekt parallel zu anderen Projekten laufen lassen",
     "AllowConcurrencyDefault": "Standardmäßig parallele Zeiterfassung für neue Projekte aktivieren",
-    "ConcurrencyBadge": "Parallel"
+    "ConcurrencyBadge": "Parallel",
+    "SelectEmoji": "Emoji auswählen",
+    "ClearEmoji": "Emoji entfernen",
+    "SearchEmoji": "Emoji suchen..."
   },
   "es": {
     "NewProject": "Nuevo Proyecto",
@@ -173,7 +182,10 @@
     "AllowConcurrency": "Permitir seguimiento concurrente",
     "AllowConcurrencyDesc": "Permitir que los temporizadores funcionen en paralelo con otros proyectos",
     "AllowConcurrencyDefault": "Predeterminar seguimiento concurrente para nuevos proyectos",
-    "ConcurrencyBadge": "Concurrente"
+    "ConcurrencyBadge": "Concurrente",
+    "SelectEmoji": "Seleccionar emoji",
+    "ClearEmoji": "Borrar emoji",
+    "SearchEmoji": "Buscar emoji..."
   },
   "fr": {
     "NewProject": "Nouveau Projet",
@@ -217,7 +229,10 @@
     "AllowConcurrency": "Autoriser le suivi simultané",
     "AllowConcurrencyDesc": "Permettre aux minuteurs de ce projet de fonctionner en parallèle avec d'autres",
     "AllowConcurrencyDefault": "Activer le suivi simultané par défaut pour les nouveaux projets",
-    "ConcurrencyBadge": "Simultané"
+    "ConcurrencyBadge": "Simultané",
+    "SelectEmoji": "Sélectionner un emoji",
+    "ClearEmoji": "Effacer l'emoji",
+    "SearchEmoji": "Rechercher un emoji..."
   },
   "pt-br": {
     "NewProject": "Novo Projeto",
@@ -261,6 +276,9 @@
     "AllowConcurrency": "Permitir rastreamento simultâneo",
     "AllowConcurrencyDesc": "Permitir que os cronômetros funcionem em paralelo com outros projetos",
     "AllowConcurrencyDefault": "Definir rastreamento simultâneo como padrão para novos projetos",
-    "ConcurrencyBadge": "Simultâneo"
+    "ConcurrencyBadge": "Simultâneo",
+    "SelectEmoji": "Selecionar emoji",
+    "ClearEmoji": "Limpar emoji",
+    "SearchEmoji": "Pesquisar emoji..."
   }
 }
