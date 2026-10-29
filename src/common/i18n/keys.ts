@@ -425,6 +425,11 @@ export type ProjectKey =
   | 'Description'
   | 'DescriptionPlaceholder'
   | 'EditProjectTitle'
+  | 'EmojiCategoryAll'
+  | 'EmojiCategoryCreative'
+  | 'EmojiCategoryLife'
+  | 'EmojiCategoryStatus'
+  | 'EmojiCategoryWork'
   | 'EmojiIcon'
   | 'EnterProjectName'
   | 'HideOptions'
@@ -434,6 +439,7 @@ export type ProjectKey =
   | 'MoveProjectUp'
   | 'NewProject'
   | 'NoProjects'
+  | 'NoEmojiFound'
   | 'NoProjectsYet'
   | 'ProjectName'
   | 'ProjectTotalTime'
@@ -456,7 +462,8 @@ export type ProjectKey =
   | 'TemplateSoftwareDevDesc'
   | 'TemplateSoftwareDevName'
   | 'TotalDuration'
-  | 'TotalTasks';
+  | 'TotalTasks'
+  | 'UseCustomEmoji';
 
 
 export type ReportKey =

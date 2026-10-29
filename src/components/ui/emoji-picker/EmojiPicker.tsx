@@ -12,6 +12,7 @@ import {
   EMOJI_CATEGORIES,
   EmojiCategoryId,
   getFirstGrapheme,
+  isEmoji,
 } from './emojiData';
 
 export interface EmojiPickerProps {
@@ -68,6 +69,9 @@ export function EmojiPicker({
   const selectLabel = translate(locale, 'project', 'SelectEmoji', customTranslations);
   const clearLabel = translate(locale, 'project', 'ClearEmoji', customTranslations);
   const searchPlaceholder = translate(locale, 'project', 'SearchEmoji', customTranslations);
+
+  const customGrapheme = getFirstGrapheme(search.trim());
+  const hasCustomEmoji = Boolean(customGrapheme && isEmoji(customGrapheme));
 
   let triggerContent: React.ReactNode = <Smile className="w-4 h-4 text-muted-foreground" />;
   if (currentDisplay) {
@@ -131,6 +135,8 @@ export function EmojiPicker({
           <HStack gap="2xs" className="w-full overflow-x-auto pb-1 no-scrollbar">
             {EMOJI_CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat.id;
+              const catLabel =
+                translate(locale, 'project', cat.labelKey, customTranslations) || cat.fallbackLabel;
               return (
                 <Button
                   key={cat.id}
@@ -141,7 +147,7 @@ export function EmojiPicker({
                   data-testid={`${testId}-category-${cat.id}`}
                   className="text-[10px] h-6 px-2 rounded-lg font-mono tracking-tight"
                 >
-                  {cat.label}
+                  {catLabel}
                 </Button>
               );
             })}
@@ -166,19 +172,30 @@ export function EmojiPicker({
           ))}
           {filteredEmojis.length === 0 && search.trim() && (
             <div className="col-span-6 py-4 flex flex-col items-center justify-center gap-1.5">
-              <Caption size="xs" variant="muted">
-                {search}
-              </Caption>
-              <Button
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={() => handleSelectEmoji(search)}
-                data-testid={`${testId}-custom-use-btn`}
-                className="text-xs h-7 rounded-lg"
-              >
-                Use &quot;{getFirstGrapheme(search)}&quot;
-              </Button>
+              {hasCustomEmoji ? (
+                <>
+                  <Caption size="xs" variant="muted">
+                    {search}
+                  </Caption>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="xs"
+                    onClick={() => handleSelectEmoji(customGrapheme)}
+                    data-testid={`${testId}-custom-use-btn`}
+                    className="text-xs h-7 rounded-lg"
+                  >
+                    {translate(locale, 'project', 'UseCustomEmoji', customTranslations).replace(
+                      '{emoji}',
+                      customGrapheme
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Caption size="xs" variant="muted" data-testid={`${testId}-no-results`}>
+                  {translate(locale, 'project', 'NoEmojiFound', customTranslations)}
+                </Caption>
+              )}
             </div>
           )}
         </div>

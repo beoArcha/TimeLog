@@ -1,3 +1,5 @@
+import type { ProjectKey } from '@common/i18n/keys';
+
 export interface EmojiItem {
   emoji: string;
   name: string;
@@ -5,26 +7,44 @@ export interface EmojiItem {
   keywords: string[];
 }
 
+export const FALLBACK_GRAPHEME_REGEX =
+  /^(?:\p{Regional_Indicator}{2}|[0-9#*]\uFE0F?\u20E3|(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?\p{Emoji_Modifier}?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?\p{Emoji_Modifier}?)*|[\s\S])/u;
+
+export const EMOJI_REGEX =
+  /^(?:\p{Regional_Indicator}{2}|[0-9#*]\uFE0F?\u20E3|(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?\p{Emoji_Modifier}?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?\p{Emoji_Modifier}?)*)$/u;
+
 /**
  * Extract the first user-perceived grapheme cluster without splitting multi-byte/surrogate/ZWJ emojis.
+ * Uses Intl.Segmenter when available; falls back to Unicode grapheme cluster regex when unsupported.
  */
 export function getFirstGrapheme(text: string): string {
   if (!text) return '';
-  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+  if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
     const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
     const segments = Array.from(segmenter.segment(text));
     return segments[0]?.segment || '';
   }
-  return Array.from(text)[0] || '';
+  const match = text.match(FALLBACK_GRAPHEME_REGEX);
+  return match ? match[0] : (Array.from(text)[0] || '');
+}
+
+/**
+ * Validates whether the provided text or its first grapheme represents a genuine Unicode emoji.
+ */
+export function isEmoji(text: string): boolean {
+  if (!text) return false;
+  const grapheme = getFirstGrapheme(text.trim());
+  if (!grapheme) return false;
+  return EMOJI_REGEX.test(grapheme);
 }
 
 export const EMOJI_CATEGORIES = [
-  { id: 'all', label: 'All' },
-  { id: 'work', label: 'Work' },
-  { id: 'status', label: 'Status' },
-  { id: 'creative', label: 'Creative' },
-  { id: 'life', label: 'Life' },
-] as const;
+  { id: 'all', labelKey: 'EmojiCategoryAll', fallbackLabel: 'All' },
+  { id: 'work', labelKey: 'EmojiCategoryWork', fallbackLabel: 'Work' },
+  { id: 'status', labelKey: 'EmojiCategoryStatus', fallbackLabel: 'Status' },
+  { id: 'creative', labelKey: 'EmojiCategoryCreative', fallbackLabel: 'Creative' },
+  { id: 'life', labelKey: 'EmojiCategoryLife', fallbackLabel: 'Life' },
+] as const satisfies readonly { id: string; labelKey: ProjectKey; fallbackLabel: string }[];
 
 export type EmojiCategoryId = (typeof EMOJI_CATEGORIES)[number]['id'];
 
@@ -79,7 +99,7 @@ export const CURATED_EMOJIS: EmojiItem[] = [
   { emoji: '💼', name: 'Briefcase', category: 'life', keywords: ['business', 'client', 'work', 'job'] },
   { emoji: '🏠', name: 'House', category: 'life', keywords: ['home', 'personal', 'chores', 'family'] },
   { emoji: '🏋️', name: 'Gym', category: 'life', keywords: ['fitness', 'workout', 'exercise', 'health'] },
-  { emoji: '🚴', name: 'Bicycle', category: 'life', keywords: ['bike', 'cycling', 'commute', 'sport'] },
+  { emoji: '🚲', name: 'Bicycle', category: 'life', keywords: ['bike', 'cycling', 'commute', 'sport'] },
   { emoji: '🌴', name: 'Palm Tree', category: 'life', keywords: ['vacation', 'holiday', 'leave', 'rest', 'beach'] },
   { emoji: '🍕', name: 'Pizza', category: 'life', keywords: ['food', 'lunch', 'dinner', 'snack'] },
   { emoji: '✈️', name: 'Airplane', category: 'life', keywords: ['travel', 'trip', 'flight', 'abroad'] },

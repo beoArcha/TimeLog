@@ -246,3 +246,5 @@ export function EditProjectDialog({
     </Dialog>
   );
 }
+
+export default EditProjectDialog;
