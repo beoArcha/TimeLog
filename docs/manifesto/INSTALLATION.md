@@ -29,8 +29,9 @@ Welcome to the installation and deployment guide for **oXyFlow**, an ultra-light
 All official production builds are published on the GitHub Releases page:
 👉 **[Latest Official Release](https://github.com/beoArcha/TimeLog/releases/latest)**
 
-| Operating System | Recommended Package | Target Architecture | Description |
+| Operating System / Platform | Recommended Package | Target Architecture | Description |
 | :--- | :--- | :--- | :--- |
+| **Web & PWA** | Web Application (Zero Install) | Modern Web Browsers | [Launch Web App](https://beoarcha.github.io/TimeLog/app/) — Runs 100% locally in browser, offline-capable PWA |
 | **Windows** | `OxyFlow-Setup-x64.exe` | x86_64 (Intel/AMD) | NSIS setup wizard with start menu & tray integration |
 | **Windows (Portable)** | `OxyFlow-Standalone-x64.exe` | x86_64 (Intel/AMD) | Single standalone `.exe` without installer |
 | **macOS** | `OxyFlow-Universal.dmg` | Universal (M1–M4 & Intel) | Drag-and-drop macOS disk image |
@@ -89,7 +90,7 @@ oXyFlow for macOS is distributed as a **Universal Binary**, natively supporting 
 
 Because community open-source binaries are not notarized through Apple's paid developer program, macOS Gatekeeper may display a message:
 
-> *"“OxyFlow” can’t be opened because Apple cannot check it for malicious software."*
+> *““OxyFlow” can’t be opened because Apple cannot check it for malicious software.”*
 
 #### Method A: Graphical Approval (Recommended)
 

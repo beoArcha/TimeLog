@@ -4,11 +4,21 @@
 
 ---
 
-Diese Anleitung führt Sie durch die Installation von oXyFlow, die Umgebungseinrichtung und die Erfassung Ihres ersten Arbeitszeiteintrags.
+Diese Anleitung führt Sie durch den Zugriff auf oXyFlow über das Web / PWA oder die Desktop-Installation, die Umgebungseinrichtung und die Erfassung Ihres ersten Arbeitszeiteintrags.
 
 ---
 
-## Installation
+## Webanwendung & PWA (Ohne Installation)
+
+Sie können oXyFlow sofort und ohne Download im Browser nutzen:
+
+1. Rufen Sie **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)** in einem modernen Webbrowser (Chrome, Edge, Firefox, Safari) auf.
+2. Alle Daten und Timer-Funktionen laufen und speichern 100% lokal im Speicher Ihres Browsers.
+3. **PWA-Installation**: Klicken Sie in kompatiblen Browsern auf **App installieren** in der Adressleiste, um oXyFlow als eigenständige, offlinefähige Desktop- oder Mobil-App zu installieren.
+
+---
+
+## Desktop-Installation
 
 Laden Sie das entsprechende Paket von der [GitHub Releases-Seite](https://github.com/beoArcha/TimeLog/releases/latest) herunter:
 
@@ -41,24 +51,24 @@ oxy --version
 
 ## Projekt und Aufgabe anlegen
 
-1. Starten Sie **oXyFlow**.
+1. Starten Sie **oXyFlow** (Desktop- oder Webversion).
 2. Klicken Sie in der Seitenleiste auf **"+ Neues Projekt"**.
 3. Geben Sie den Projektnamen ein (z. B. `Kunden-Portal`) und wählen Sie eine Farbmarkierung. Klicken Sie auf **Speichern**.
 4. Klicken Sie innerhalb des Projekts auf **"+ Aufgabe hinzufügen"**. Geben Sie den Aufgabentitel ein (z. B. `API-Implementierung`) und bestätigen Sie mit **Enter**.
 
 ---
 
-## Zeiterfassung steuern
+## Zeiterfassung
 
-- Klicken Sie auf das **Start-Symbol (▶)** neben der Aufgabe, um die Zeiterfassung zu starten.
-- Die obere Statusleiste hebt die aktive Aufgabe hervor und zeigt die laufende Zeit in Echtzeit an.
-- Klicken Sie auf **Stopp (■)**, um die aktuelle Sitzung zu beenden.
-- Ein Klick auf Start bei einer anderen Aufgabe stoppt die laufende Aufgabe und startet die neue in einer atomaren Datenbanktransaktion (`switch`).
+- Klicken Sie auf die Schaltfläche **Start (▶)** neben einer Aufgabe, um die Erfassung zu starten.
+- Die Statusleiste hebt die aktive Aufgabe mit fortlaufender Zeitanzeige hervor.
+- Klicken Sie auf **Pause (⏸)** oder **Stopp (■)**, um die Sitzung zu beenden.
+- Das Starten einer anderen Aufgabe stoppt die vorherige automatisch in einer atomaren Transaktion.
 
 ---
 
 ## Nächste Schritte
 
-- **[Timer-Grundlagen](timer.md)**: Manuelle Zeitanpassung, Überlappungsregeln und Tagesübersicht.
-- **[Basis-CLI (`oxy`)](cli.md)**: Steuerung über die Kommandozeile.
-- **[Benutzeroberfläche & Designs](interface.md)**: Layout-Modi und Themes anpassen.
+- **[Timer-Grundlagen](timer.md)**: Manuelle Anpassungen, Überlappungsregeln und Protokollverwaltung.
+- **[Basis-CLI (`oxy`)](cli.md)**: Timer-Steuerung über PowerShell oder Bash.
+- **[Benutzeroberfläche & Designs](interface.md)**: Layout-Dichten und Farbschemata anpassen.
