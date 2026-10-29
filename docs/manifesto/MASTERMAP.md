@@ -191,3 +191,107 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] **Database Explorer Data Integrity & Persistence Boundary**: Migrated all raw database inspection tables to canonical `DataTable<T>`, eliminated direct persistence coupling from presentation layers, and extended `persistence-boundary.rule.ts` architecture testing to strictly safeguard `features/`.
 - [x] **Unified Leave Management**: Unified `HolidaysLeavesView` and `HolidaysLeavesTable` into a single shared source of truth.
 - [x] **Quality Gate & Coverage Verification**: 100% Vitest pass across 195 test files (1,160 tests), 0 ESLint warnings, 0 typecheck errors, and global test coverage exceeding 87% (all coverage thresholds met).
+
+### Phase 14 — Critical Defect Remediation, Destructive Action Safety & Tiered PR Workflow 🚧 (Planned)
+
+#### Group A (Parallel Track) — Layout & Visual Collision Fixes
+- [ ] **Sidebar Action Button Collision Fix**: Restructure [`SidebarProjectItem.tsx`](../../src/layouts/parts/sidebar/SidebarProjectItem.tsx) bottom row into two independent flex zones (`truncate min-w-0` for date and `flex-shrink-0 gap-1.5` for actions), eliminating button overlap on timer displays and sorting arrows.
+- [ ] **Technical Badge Purge**: Remove unnecessary technical `<Badge>MicroORM Tables</Badge>` from [`SidebarHeader.tsx`](../../src/layouts/parts/sidebar/SidebarHeader.tsx).
+- [ ] **Creation Date Disambiguation**: Replace ambiguous creation date rendering in [`SidebarProjectItem.tsx`](../../src/layouts/parts/sidebar/SidebarProjectItem.tsx) with localized formatting via `new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' })` to avoid US format confusion.
+- [ ] **Copywriting & Label Corrections**: Correct grammatical issues across [`TaskEmptyState.tsx`](../../src/features/tasks/components/TaskEmptyState.tsx), fix banner text in [`ActiveTimerBanner.tsx`](../../src/features/tasks/components/ActiveTimerBanner.tsx) (`AKTYWNY POMIAR`), and refine project edit tooltip to `Edytuj projekt`.
+
+#### Group B (Parallel Track) — Destructive Action Security & ConfirmDialog Guardrails
+- [ ] **Footer Database Reset Removal**: Purge the direct destructive reset button (`Skasuj bazę danych (SQL Reset)`) from [`AppFooter.tsx`](../../src/layouts/components/AppFooter.tsx); convert into a safe navigation link to [`SettingsTab.tsx`](../../src/features/settings/SettingsTab.tsx) targeting the destructive operations card (`DestructiveResetCard`) with scoped reset categories (`BUSINESS`, `SETTINGS`, `SYSTEM`).
+- [ ] **Task & Subtask Deletion Confirmation**: Introduce modal confirmation using `ConfirmDialog` in [`TaskActions.tsx`](../../src/features/tasks/components/TaskItem/TaskActions.tsx) and [`TaskItem.tsx`](../../src/features/tasks/components/TaskItem/TaskItem.tsx) displaying the count of linked subtasks and warnings for associated time logs before executing deletion.
+
+#### Group C (Parallel Track) — Event-Tiered GitHub Actions PR Workflow & Architecture Checks
+- [ ] **PR Verification Workflow**: Create [`.github/workflows/pr-checks.yml`](../../.github/workflows/pr-checks.yml) triggered on `pull_request: types: [opened, synchronize, reopened]`.
+- [ ] **Path-Based Change Filtering**: Integrate `dorny/paths-filter@v3` to detect changes across `frontend` (`src/**`, `tests/**`) and `rust` (`src-tauri/**`).
+- [ ] **Event-Tiered Test Execution Policy**:
+  - **On `opened`**: Run the **entire test suite** for the affected stack group (full frontend Vitest suite if frontend changed, full `cargo test` if Rust changed, or both if both changed).
+  - **On `synchronize` and `reopened`**: Execute **selective testing** restricted to changed code and affected dependents via `bun x vitest related --run` or `vitest --changed=origin/${{ github.base_ref }}`.
+- [ ] **Three-Variant Architecture Testing Matrix**: Condition architecture tests on changed layers: Variant A (TS only -> `bun test tests/architecture/`), Variant B (Rust only -> `cargo test --test architecture_tests`), or Variant C (both changed -> run both suites concurrently).
+
+---
+
+### Phase 15 — PWA Capabilities Gating, Environmental Purity & Project Lifecycle Form 🚧 (Planned)
+
+#### Group A (Parallel Track) — PWA Capabilities Gating & Runtime Purity
+- [ ] **PWA Wording & Storage Abstraction**: Detect runtime environment in [`AppFooter.tsx`](../../src/layouts/components/AppFooter.tsx), [`Header.tsx`](../../src/layouts/components/Header.tsx), and [`TaskItem.tsx`](../../src/features/tasks/components/TaskItem/TaskItem.tsx); display `LocalStorage Engine` instead of `SQLite MicroORM`, `Storage Ready` instead of `SQL Ready`, and `Entity #id` instead of `SQLite table entry`.
+- [ ] **Daemon Status & Indicator Gating**: Gate [`StatusIndicator.tsx`](../../src/layouts/components/StatusIndicator.tsx) and [`DaemonStatusBar.tsx`](../../src/layouts/components/DaemonStatusBar.tsx) behind `usePlatformCapabilities()`, showing `PWA READY` or `ONLINE` without desktop daemon connection messages.
+- [ ] **Desktop Settings Gating**: Hide Tauri-specific settings in [`EngineConfig.tsx`](../../src/features/settings/components/EngineConfig.tsx) and [`AutomationSettings.tsx`](../../src/features/settings/components/AutomationSettings.tsx) (Autostart, Minimize to Tray, Always on Top, Daemon status row) when running in browser mode.
+- [ ] **CLI Drawer Gating**: Hide the CLI tab in [`TabBar.tsx`](../../src/layouts/components/TabBar.tsx) and [`MediumTabBar.tsx`](../../src/layouts/parts/MediumTabBar.tsx) in browser runtimes unless explicit debug mode is enabled (`?debug=1`).
+
+#### Group B (Parallel Track) — Adaptive User Guides & Documentation
+- [ ] **Manual Tab PWA Customization**: Conditionally hide desktop C++/Rust compilation guides ([`CompilationGuideCard.tsx`](../../src/features/settings/components/CompilationGuideCard.tsx)) and daemon keyboard shortcuts in [`ManualTab.tsx`](../../src/features/settings/ManualTab.tsx) in browser mode.
+- [ ] **Web-First User Guidance**: Add documentation for PWA installation, offline browser storage, and JSON backup/restore flows.
+
+#### Group C (Parallel Track) — Adaptive Sidebar Project Form & Interactive Controls
+- [ ] **Two-Tier Form Composition (Basic + Collapsible Drawer)**: Refactor [`SidebarProjectForm.tsx`](../../src/layouts/parts/sidebar/SidebarProjectForm.tsx) into a compact primary row (Project Name, color swatches, Save button, and a Chevron toggle) and an expandable drawer containing advanced options.
+- [ ] **Color Palette Paintbrush Picker**: Add an interactive `Paintbrush` icon to the final palette swatch in [`SidebarProjectForm.tsx`](../../src/layouts/parts/sidebar/SidebarProjectForm.tsx) opening an HTML5 native/popover hex color picker.
+- [ ] **Lightweight Emoji Picker**: Replace raw text input with a dedicated Base UI popover emoji selector in [`src/components/ui/emoji-picker/`](../../src/components/ui/emoji-picker/).
+- [ ] **Smart Tag Suggestion Cloud**: Implement `useAllProjectTags()` hook extracting unique tags across existing projects, rendering clickable chip suggestions below the tag input.
+
+#### Group D (Parallel Track) — Project Deletion vs Archival Lifecycle & Parity
+- [ ] **Conditional Project Deletion Invariant**: Restrict project deletion (`Trash2`) in [`SidebarProjectItem.tsx`](../../src/layouts/parts/sidebar/SidebarProjectItem.tsx) and [`useProjectLifecycle.ts`](../../src/features/tasks/hooks/useProjectLifecycle.ts) to projects with exactly `00:00:00` logged time; enforce `Archive` for projects with logged history (`> 00:00:00`).
+- [ ] **Cross-Runtime Lifecycle Parity**: Enforce matching deletion invariants across Rust command `delete_project` in `src-tauri/src/commands/persistence/project.rs` and browser persistence in `src/plugins/implementations/LocalStorageProjectsPersistence.ts`.
+
+---
+
+### Phase 16 — Cross-Runtime Billing Engine, Dynamic Currencies & Rate Inheritance 🚧 (Planned)
+
+#### Group A (Parallel Track) — Cross-Runtime Data Models & Type Generation
+- [ ] **Rust Domain Extensions**: Extend `Project` struct with `pub hourly_rate: Option<f64>` and `pub currency: Option<String>` in [`src-tauri/src/types/project.rs`](../../src-tauri/src/types/project.rs); extend `Task` struct with `pub hourly_rate: Option<f64>` in [`src-tauri/src/types/task.rs`](../../src-tauri/src/types/task.rs). Note: currency is maintained strictly at the Project level.
+- [ ] **Type Synchronization**: Re-export updated bindings via `ts-rs` into [`src/bindings/Project.ts`](../../src/bindings/Project.ts) and [`src/bindings/Task.ts`](../../src/bindings/Task.ts).
+- [ ] **SQLite Repository Migration**: Update table migrations and queries in `src-tauri/src/repositories/business/projects.rs` and `src-tauri/src/repositories/business/tasks.rs` to persist `hourly_rate` and `currency` fields.
+
+#### Group B (Parallel Track) — Dual-Persistence & Zero-Override Rate Resolver Engine
+- [ ] **Effective Rate Resolver**: Implement `resolveEffectiveHourlyRate(task, project): number` in [`src/features/reports/utils/billingCalculator.ts`](../../src/features/reports/utils/billingCalculator.ts).
+- [ ] **Strict Zero-Override Rate Rule**: Guarantee that explicit `task.hourlyRate === 0` (e.g. non-billable / pro-bono work) evaluates strictly to `0` and never falls back to the parent project's hourly rate.
+- [ ] **Default Inheritance Mode**: Treat `null` or `undefined` on task as default inheritance from `project.hourlyRate` (falling back to `0` if undefined).
+- [ ] **Browser Storage Persistence**: Update `LocalStorageProjectsPersistence.ts` and `LocalStorageTasksPersistence.ts` to serialize and restore rate and currency properties.
+
+#### Group C (Parallel Track) — Locale-Driven & Custom Currency Project Configuration
+- [ ] **Locale-Aware Default Currency**: Automatically determine initial currency defaults based on active application locale (`pl` -> `PLN`, `en` -> `USD` or `GBP`, `de`/`fr`/`es`/`it`/`nl` -> `EUR`, `ja` -> `JPY`, `pt-br` -> `BRL`).
+- [ ] **Custom Currency Extension**: Support selection from predefined suggestions (`PLN`, `EUR`, `USD`, `GBP`, `CHF`, `BRL`, `JPY`) plus arbitrary user input of custom currency codes/symbols, appending new values to user's currency selection list.
+- [ ] **Project Rate UI**: Integrate hourly rate input and currency controls into [`SidebarProjectForm.tsx`](../../src/layouts/parts/sidebar/SidebarProjectForm.tsx) (advanced drawer) and [`EditProjectDialog.tsx`](../../src/features/projects/components/EditProjectDialog.tsx).
+- [ ] **Task Rate Selector & Override Modes**: Integrate rate controls into task item details/popover in [`TaskItem.tsx`](../../src/features/tasks/components/TaskItem/TaskItem.tsx) with three explicit modes: Default (inherit project rate), Custom numeric rate, and Explicit 0 (non-billable / pro-bono).
+
+---
+
+### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🚧 (Planned)
+
+#### Group A (Parallel Track) — Modular Domain Keys & Type Aggregation
+- [ ] **Decomposition of `keys.ts`**: Decompose [`src/common/i18n/keys.ts`](../../src/common/i18n/keys.ts) by extracting domain key union types into dedicated modules under `src/common/i18n/keys/`:
+  - `app.ts` (`AppKey`), `calendar.ts` (`CalendarKey`), `cli.ts` (`CliKey`), `common.ts` (`CommonKey`), `database.ts` (`DatabaseKey`), `engine.ts` (`EngineKey`), `help.ts` (`HelpKey`), `project.ts` (`ProjectKey`), `report.ts` (`ReportKey`), `settings.ts` (`SettingsKey`), `task.ts` (`TaskKey`), `timer.ts` (`TimerKey`).
+- [ ] **Canonical Type Aggregation**: Retain in `src/common/i18n/keys.ts` solely aggregated re-exports and the canonical `export interface DomainKeys` contract.
+
+#### Group B (Parallel Track) — Extended Locales Integration (`ja`, `nl`, `it`)
+- [ ] **Language Selection Modal**: Maintain clean primary quick-select bar while introducing full language selection dialog (`LanguageSelectionModal`) in settings supporting extended locales: Japanese (`ja`), Dutch (`nl`), and Italian (`it`).
+- [ ] **Dictionary Schema Generation**: Scaffold matching dictionary json files for new locales across all domain dictionaries (`src/common/i18n/dictionaries/`).
+
+#### Group C (Parallel Track) — Automated Multi-Locale MCP Validation
+- [ ] **MCP Chrome Preview Validation**: Execute automated visual regression and translation completeness audits across all locales using Chrome MCP (`preview_*`).
+- [ ] **Layout & Boundary Verification**: Verify that labels in German (`de`), Japanese (`ja`), and Dutch (`nl`) do not cause button overflow, text wrapping defects, or clipping across Compact, Medium, and Full layouts.
+
+---
+
+### Phase 18 — Reports Suite Modernization, Financial Analytics & Credits 🚧 (Planned)
+
+#### Group A (Parallel Track) — Localized Date Formats & Chart Refinement
+- [ ] **Short Localized Chart Dates**: Refactor XAxis date rendering in [`StackedBarActivityChart.tsx`](../../src/features/reports/components/StackedBarActivityChart.tsx) to format date keys using `new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric' })`, producing localized labels (e.g., `czw. 10` in Polish, `Thu 10` in English, `Do. 10` in German).
+- [ ] **Date Key Disambiguation**: Replace raw string slicing (`dateKey.slice(5)`) with robust UTC-safe calendar formatting supporting multi-locale switching.
+
+#### Group B (Parallel Track) — Financial KPI Analytics & Revenue Aggregation
+- [ ] **Financial Metric Calculation**: Extend [`reportCalculator.ts`](../../src/features/reports/utils/reportCalculator.ts) and [`useReportStatistics.ts`](../../src/features/reports/hooks/useReportStatistics.ts) to compute total period financial value ($\sum \text{durationHours} \times \text{effectiveRate}$).
+- [ ] **Financial Revenue StatCard**: Add a primary KPI card for Total Period Value (e.g., `3 450,00 PLN`) into [`ReportStatsCards.tsx`](../../src/features/reports/components/ReportStatsCards.tsx), respecting active project currencies and zero-rate tasks.
+
+#### Group C (Parallel Track) — Report Exploration, Tag Filtering & Inline Auditing
+- [ ] **Tag-Based Period Filtering**: Add tag selector chips (`#client`, `#dev`, `#internal`) into [`ReportPeriodSelector.tsx`](../../src/features/reports/components/ReportPeriodSelector.tsx) to filter report datasets across projects and tasks.
+- [ ] **Live Text Search Filter**: Add real-time search bar filtering report log rows by task name, project name, or note content.
+- [ ] **Inline Log Correction & Deletion**: Add direct note editing, duration correction, and deletion actions within [`ReportLogList.tsx`](../../src/features/reports/components/ReportLogList.tsx) (`PlainDump`) for streamlined time audit maintenance.
+
+#### Group D (Parallel Track) — Print Stylesheet, PWA Title Cleanup & Credits Refresh
+- [ ] **Print / PDF Stylesheet**: Implement `@media print` CSS rules formatting [`ReportView.tsx`](../../src/features/reports/ReportView.tsx) into a clean, client-facing PDF document, stripping navigation sidebars, buttons, and decorative badges.
+- [ ] **PWA Analytics Badge Cleanup**: Update [`ReportView.tsx`](../../src/features/reports/ReportView.tsx) to display `ANALIZY STATYSTYCZNE` (without `SQL`) when running in browser mode.
+- [ ] **Credits & Technology Stack Refresh**: Update [`CreditsModal.tsx`](../../src/layouts/components/CreditsModal.tsx) to incorporate current core dependencies (React 19, @base-ui/react, Tauri v2, Recharts, Sonner, Geist Font Family, Google GenAI) and update author notes regarding Vibe Coding architecture practices.
