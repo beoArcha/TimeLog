@@ -58,7 +58,7 @@ export default function DaemonStatusBar() {
           <Text as="span" weight="semibold" className="text-emerald-600 dark:text-emerald-400">
             {translate(locale, 'engine', 'Connected', customTranslations)}
           </Text>
-          {' \u00b7 '}
+          {' · '}
           <Caption as="span" size="xs">
             {translate(locale, 'engine', 'Synced', customTranslations)}{' '}
             <MonoText as="strong" weight="bold" className="text-emerald-500">
@@ -77,6 +77,7 @@ export default function DaemonStatusBar() {
       {supportsTray && handleMinimizeToTray && (
         <Button
           id="minimize-tray-shortcut"
+          data-testid="minimize-tray-shortcut"
           variant="outline"
           size="xs"
           onClick={handleMinimizeToTray}

@@ -29,7 +29,7 @@ describe('DaemonStatusBar', () => {
     );
 
     // Assert
-    expect(screen.queryByTestId('minimize-tray-shortcut') || document.getElementById('minimize-tray-shortcut')).not.toBeNull();
+    expect(screen.getByTestId('minimize-tray-shortcut')).toBeDefined();
   });
 
   it('should omit the tray minimize button when supportsTray is false', () => {
@@ -49,6 +49,6 @@ describe('DaemonStatusBar', () => {
     );
 
     // Assert
-    expect(document.getElementById('minimize-tray-shortcut')).toBeNull();
+    expect(screen.queryByTestId('minimize-tray-shortcut')).toBeNull();
   });
 });
