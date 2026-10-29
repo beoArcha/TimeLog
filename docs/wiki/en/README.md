@@ -1,6 +1,6 @@
 # oXyFlow Documentation
 
-> **Language**: **English** | [Polski](/pl/README.md) | [Deutsch](/de/README.md) | [Espa\u00f1ol](/es/README.md) | [Fran\u00e7ais](/fr/README.md) | [Portugu\u00eas](/pt-br/README.md)
+> **Language**: **English** | [Polski](/pl/README.md) | [Deutsch](/de/README.md) | [Español](/es/README.md) | [Français](/fr/README.md) | [Português](/pt-br/README.md)
 
 ---
 
