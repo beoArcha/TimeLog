@@ -38,7 +38,18 @@ jobs:
           git checkout release || git checkout -b release
 
           # Merge main into release resolving conflicts in favor of main (theirs)
-          git merge origin/main --no-edit -X theirs
+          if ! git merge origin/main --no-edit -X theirs; then
+            echo "Resolving structural/deletion conflicts in favor of origin/main..."
+            git diff --name-only --diff-filter=U | while IFS= read -r file; do
+              if git show origin/main:"$file" >/dev/null 2>&1; then
+                git checkout --theirs -- "$file"
+                git add "$file"
+              else
+                git rm -f "$file"
+              fi
+            done
+            git commit --no-edit
+          fi
 
           # Bump release version to odd minor
           bun scripts/bump_versions.js --release
