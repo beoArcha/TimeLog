@@ -6,6 +6,7 @@ import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { StorageDomain, StorageResetScope } from '@common/constants/storage-keys';
 import { RepositoryStateHook } from './useRepositoryState';
 import { AsyncActionRunnerHook } from './useAsyncActionRunner';
 import { useHolidaysManager } from './useHolidaysManager';
@@ -85,10 +86,10 @@ export const useDataLifecycle = ({
     init();
   }, []);
 
-  const handleResetLocalStorage = async () => {
+  const handleResetLocalStorage = async (scope?: StorageResetScope | StorageDomain[]) => {
     isResetting.current = true;
     await actionRunner.runAction('Failed to reset storage', async () => {
-      await PersistenceRouter.getInstance().core.reset();
+      await PersistenceRouter.getInstance().core.reset(scope);
       window.location.reload();
     });
   };

@@ -48,7 +48,15 @@
     "DesktopResetTitle": "Reset Local Database (SQLite)",
     "DesktopResetDesc": "Completely purge the local SQLite database file on disk, deleting all projects, tasks, and recorded sessions.",
     "DesktopResetBtn": "Reset SQLite database",
-    "DesktopResetConfirm": "Are you sure you want to completely clear the local SQLite database? All sessions, projects, and tasks on disk will be purged."
+    "DesktopResetConfirm": "Are you sure you want to completely clear the local SQLite database? All sessions, projects, and tasks on disk will be purged.",
+    "ResetDomainBusiness": "Business Data",
+    "ResetDomainBusinessDesc": "Projects, tasks, recorded time logs, and holidays",
+    "ResetDomainSettings": "User Settings",
+    "ResetDomainSettingsDesc": "Theme, layouts, custom translations, and UI preferences",
+    "ResetDomainSystem": "System & Runtime",
+    "ResetDomainSystemDesc": "Runtime configs, webhook queue, and API credentials",
+    "ResetDomainAll": "Select All",
+    "ResetDomainAllDesc": "Erase all domains completely"
   },
   "pl": {
     "ConfigTitle": "Opcje Silnika i Daemony",
@@ -99,7 +107,15 @@
     "DesktopResetTitle": "Zresetuj lokalną bazę danych (SQLite)",
     "DesktopResetDesc": "Całkowite wyczyszczenie lokalnego pliku bazy SQLite na dysku, usuwające wszystkie projekty, zadania i zarejestrowane sesje.",
     "DesktopResetBtn": "Zresetuj bazę SQLite",
-    "DesktopResetConfirm": "Czy na pewno chcesz całkowicie wyczyścić lokalną bazę SQLite? Wszystkie sesje, projekty i zadania na dysku zostaną usunięte."
+    "DesktopResetConfirm": "Czy na pewno chcesz całkowicie wyczyścić lokalną bazę SQLite? Wszystkie sesje, projekty i zadania na dysku zostaną usunięte.",
+    "ResetDomainBusiness": "Dane biznesowe",
+    "ResetDomainBusinessDesc": "Projekty, zadania, wpisy czasu i urlopy",
+    "ResetDomainSettings": "Ustawienia użytkownika",
+    "ResetDomainSettingsDesc": "Motyw, układ okna, własne tłumaczenia i preferencje",
+    "ResetDomainSystem": "System i integracje",
+    "ResetDomainSystemDesc": "Konfiguracja runtime, kolejka webhooków i klucze API",
+    "ResetDomainAll": "Zaznacz wszystko",
+    "ResetDomainAllDesc": "Całkowite wyczyszczenie wszystkich obszarów"
   },
   "de": {
     "ConfigTitle": "Motor-Optionen & Dämons",
@@ -150,7 +166,15 @@
     "DesktopResetTitle": "Lokale Datenbank zurücksetzen (SQLite)",
     "DesktopResetDesc": "Vollständiges Löschen der lokalen SQLite-Datenbankdatei auf der Festplatte, wodurch alle Projekte, Aufgaben und erfassten Sitzungen entfernt werden.",
     "DesktopResetBtn": "SQLite-Datenbank zurücksetzen",
-    "DesktopResetConfirm": "Möchten Sie die lokale SQLite-Datenbank wirklich vollständig leeren? Alle Sitzungen, Projekte und Aufgaben auf der Festplatte werden gelöscht."
+    "DesktopResetConfirm": "Möchten Sie die lokale SQLite-Datenbank wirklich vollständig leeren? Alle Sitzungen, Projekte und Aufgaben auf der Festplatte werden gelöscht.",
+    "ResetDomainBusiness": "Geschäftsdaten",
+    "ResetDomainBusinessDesc": "Projekte, Aufgaben, Zeiterfassungsdaten und Urlaube",
+    "ResetDomainSettings": "Benutzereinstellungen",
+    "ResetDomainSettingsDesc": "Design, Fensterlayout, eigene Übersetzungen und Einstellungen",
+    "ResetDomainSystem": "System & Laufzeit",
+    "ResetDomainSystemDesc": "Laufzeitkonfigurationen, Webhook-Warteschlange und API-Schlüssel",
+    "ResetDomainAll": "Alles auswählen",
+    "ResetDomainAllDesc": "Vollständiges Löschen aller Bereiche"
   },
   "es": {
     "ConfigTitle": "Opciones del Motor y Daemons",
@@ -201,7 +225,15 @@
     "DesktopResetTitle": "Restablecer base de datos local (SQLite)",
     "DesktopResetDesc": "Purga completa del archivo de base de datos SQLite local en disco, eliminando todos los proyectos, tareas y sesiones grabadas.",
     "DesktopResetBtn": "Restablecer base de datos SQLite",
-    "DesktopResetConfirm": "¿Está seguro de que desea borrar por completo la base de datos SQLite local? Se purgarán todas las sesiones, proyectos y tareas en el disco."
+    "DesktopResetConfirm": "¿Está seguro de que desea borrar por completo la base de datos SQLite local? Se purgarán todas las sesiones, proyectos y tareas en el disco.",
+    "ResetDomainBusiness": "Datos de negocio",
+    "ResetDomainBusinessDesc": "Proyectos, tareas, registros de tiempo y festivos",
+    "ResetDomainSettings": "Ajustes de usuario",
+    "ResetDomainSettingsDesc": "Tema, diseño de ventana, traducciones personalizadas y preferencias",
+    "ResetDomainSystem": "Sistema y tiempo de ejecución",
+    "ResetDomainSystemDesc": "Configuraciones de ejecución, cola de webhooks y credenciales API",
+    "ResetDomainAll": "Seleccionar todo",
+    "ResetDomainAllDesc": "Borrar todas las áreas por completo"
   },
   "fr": {
     "ConfigTitle": "Options du Moteur & Démons",
@@ -252,7 +284,15 @@
     "DesktopResetTitle": "Réinitialiser la base de données locale (SQLite)",
     "DesktopResetDesc": "Purge complète du fichier de base de données SQLite local sur disque, supprimant tous les projets, tâches et sessions enregistrées.",
     "DesktopResetBtn": "Réinitialiser la base SQLite",
-    "DesktopResetConfirm": "Êtes-vous sûr de vouloir vider complètement la base de données SQLite locale ? Toutes les sessions, projets et tâches sur le disque seront purgés."
+    "DesktopResetConfirm": "Êtes-vous sûr de vouloir vider complètement la base de données SQLite locale ? Toutes les sessions, projets et tâches sur le disque seront purgés.",
+    "ResetDomainBusiness": "Données métier",
+    "ResetDomainBusinessDesc": "Projets, tâches, journaux de temps et congés",
+    "ResetDomainSettings": "Paramètres utilisateur",
+    "ResetDomainSettingsDesc": "Thème, disposition des fenêtres, traductions personnalisées et préférences",
+    "ResetDomainSystem": "Système et exécution",
+    "ResetDomainSystemDesc": "Configurations d’exécution, file d’attente des webhooks et clés API",
+    "ResetDomainAll": "Tout sélectionner",
+    "ResetDomainAllDesc": "Suppression complète de toutes les zones"
   },
   "pt-br": {
     "ConfigTitle": "Opções do Motor e Daemons",
@@ -303,6 +343,14 @@
     "DesktopResetTitle": "Redefinir banco de dados local (SQLite)",
     "DesktopResetDesc": "Limpeza completa do arquivo de banco de dados SQLite local no disco, excluindo todos os projetos, tarefas e sessões gravadas.",
     "DesktopResetBtn": "Redefinir banco de dados SQLite",
-    "DesktopResetConfirm": "Tem certeza de que deseja limpar completamente o banco de dados SQLite local? Todas as sessões, projetos e tarefas no disco serão purgados."
+    "DesktopResetConfirm": "Tem certeza de que deseja limpar completamente o banco de dados SQLite local? Todas as sessões, projetos e tarefas no disco serão purgados.",
+    "ResetDomainBusiness": "Dados de negócio",
+    "ResetDomainBusinessDesc": "Projetos, tarefas, registros de tempo e feriados",
+    "ResetDomainSettings": "Configurações do usuário",
+    "ResetDomainSettingsDesc": "Tema, layout da janela, traduções personalizadas e preferências",
+    "ResetDomainSystem": "Sistema e execução",
+    "ResetDomainSystemDesc": "Configurações de execução, fila de webhooks e credenciais de API",
+    "ResetDomainAll": "Selecionar tudo",
+    "ResetDomainAllDesc": "Apagar todas as áreas completamente"
   }
 }

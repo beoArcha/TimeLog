@@ -19,6 +19,7 @@ export interface ConfirmDialogProps {
   onOpenChange?: (open: boolean) => void;
   title: React.ReactNode;
   description?: React.ReactNode;
+  children?: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'default' | 'destructive' | 'warning';
@@ -26,6 +27,7 @@ export interface ConfirmDialogProps {
   onConfirm: () => void | Promise<void>;
   onCancel?: () => void;
   loading?: boolean;
+  confirmDisabled?: boolean;
 }
 
 /**
@@ -36,6 +38,7 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
+  children,
   confirmLabel,
   cancelLabel,
   variant = 'default',
@@ -43,6 +46,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   loading = false,
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
   const { locale, customTranslations } = useSafeLocale();
   const [internalLoading, setInternalLoading] = React.useState(false);
@@ -101,6 +105,8 @@ export function ConfirmDialog({
           </VStack>
         </DialogHeader>
 
+        {children && <div className="py-2">{children}</div>}
+
         <DialogFooter className="mt-4 gap-2">
           <Button
             type="button"
@@ -116,6 +122,7 @@ export function ConfirmDialog({
             type="button"
             variant={variant === 'destructive' ? 'destructive' : 'default'}
             onClick={handleConfirm}
+            disabled={isLoading || confirmDisabled}
             loading={isLoading}
             aria-busy={isLoading}
             data-testid="confirm-dialog-confirm-btn"
