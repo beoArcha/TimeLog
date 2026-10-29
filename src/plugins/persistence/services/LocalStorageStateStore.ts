@@ -1,7 +1,6 @@
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
-import { STORAGE_KEYS } from '@common/constants/storage-keys';
-import { INIT_PROJECTS, INIT_TASKS, INIT_LOGS, DEFAULT_HOLIDAYS } from '../InitialData';
+import { STORAGE_KEYS, DOMAIN_STORAGE_KEYS, StorageDomain, StorageResetScope } from '@common/constants/storage-keys';
 
 export const getDefaultState = (): TimerRepositoryState => ({
   projects: [],
@@ -13,8 +12,18 @@ export const getDefaultState = (): TimerRepositoryState => ({
 export interface ILocalStorageStateStore {
   load(): Promise<TimerRepositoryState | null>;
   save(state: TimerRepositoryState): Promise<TimerRepositoryState>;
-  reset(): Promise<TimerRepositoryState>;
+  reset(scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState>;
   getStateOrDefault(): Promise<TimerRepositoryState>;
+}
+
+function resolveResetDomains(scope: StorageResetScope | StorageDomain[]): StorageDomain[] {
+  if (scope === 'ALL') {
+    return ['BUSINESS', 'SETTINGS', 'SYSTEM'];
+  }
+  if (Array.isArray(scope)) {
+    return Array.from(new Set(scope));
+  }
+  return [scope];
 }
 
 export class LocalStorageStateStore implements ILocalStorageStateStore {
@@ -23,15 +32,9 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
   async load(): Promise<TimerRepositoryState | null> {
     const data = localStorage.getItem(STORAGE_KEYS.STORAGE_KEY);
     if (!data) {
-      localStorage.setItem(STORAGE_KEYS.HOLIDAYS_KEY, JSON.stringify(DEFAULT_HOLIDAYS));
-      const seedState: TimerRepositoryState = {
-        projects: INIT_PROJECTS,
-        tasks: INIT_TASKS,
-        logs: INIT_LOGS,
-        activeLog: null,
-      };
-      await this.save(seedState);
-      return seedState;
+      const cleanState = getDefaultState();
+      await this.save(cleanState);
+      return cleanState;
     }
 
     try {
@@ -70,13 +73,25 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
     }
   }
 
-  async reset(): Promise<TimerRepositoryState> {
-    this.isCorrupted = false;
-    localStorage.removeItem(STORAGE_KEYS.STORAGE_KEY);
-    localStorage.removeItem(STORAGE_KEYS.SETTINGS_KEY);
-    localStorage.removeItem(STORAGE_KEYS.RUN_CONFIGS_KEY);
-    localStorage.removeItem(STORAGE_KEYS.HOLIDAYS_KEY);
-    return getDefaultState();
+  async reset(scope: StorageResetScope | StorageDomain[] = 'ALL'): Promise<TimerRepositoryState> {
+    const domains = resolveResetDomains(scope);
+    const hasBusiness = domains.includes('BUSINESS');
+
+    if (hasBusiness) {
+      this.isCorrupted = false;
+    }
+
+    for (const domain of domains) {
+      const keys = DOMAIN_STORAGE_KEYS[domain] || [];
+      for (const key of keys) {
+        localStorage.removeItem(key);
+      }
+    }
+
+    if (hasBusiness) {
+      return getDefaultState();
+    }
+    return this.getStateOrDefault();
   }
 
   async getStateOrDefault(): Promise<TimerRepositoryState> {

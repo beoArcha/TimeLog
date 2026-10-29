@@ -11,6 +11,7 @@ import { Switch } from '@components/ui/switch';
 import { Label } from '@components/ui/label';
 import { Caption } from '@components/ui/typography';
 import { VStack, HStack, InlineCluster } from '@components/ui/stack';
+import { EmojiPicker, getFirstGrapheme } from '@components/ui/emoji-picker';
 import { useSettingsSafe } from '@common/hooks/SettingsContext';
 
 export interface SidebarProjectFormProps {
@@ -112,13 +113,18 @@ export function SidebarProjectForm({
         {showAdvanced && (
           <VStack gap="xs" className="mt-1 pt-2 border-t border-border/40 animate-fade-in">
             <HStack gap="xs" className="w-full">
-              <div className="w-1/3">
+              <div className="flex items-center gap-1.5 w-1/3">
+                <EmojiPicker
+                  value={icon}
+                  onChange={setIcon}
+                  testId="sidebar-project-emoji-picker"
+                />
                 <Input
+                  id="sidebar-project-icon-input"
                   type="text"
                   placeholder={translate(locale, 'project', 'IconPlaceholder', customTranslations)}
-                  maxLength={2}
                   value={icon}
-                  onChange={e => setIcon(e.target.value)}
+                  onChange={e => setIcon(getFirstGrapheme(e.target.value))}
                   className="w-full px-2 py-1 text-center text-xs"
                 />
               </div>

@@ -77,11 +77,21 @@ describe('Unit Tests: backupValidator', () => {
   it('should throw BackupValidationException when project entry is invalid', () => {
     // Arrange
     const invalidProj = { projects: [{ id: '', name: 'P', color: 'red' }], tasks: [], logs: [] };
-    const missingColor = { projects: [{ id: 'p1', name: 'P' }], tasks: [], logs: [] };
 
     // Act & Assert
     expect(() => validateBackupPayload(invalidProj)).toThrow(BackupValidationException);
-    expect(() => validateBackupPayload(missingColor)).toThrow(BackupValidationException);
+  });
+
+  it('should migrate a legacy project with a missing color to the default violet color', () => {
+    // Arrange
+    const missingColor = { projects: [{ id: 'p1', name: 'P' }], tasks: [], logs: [] };
+
+    // Act
+    const result = validateBackupPayload(missingColor);
+
+    // Assert
+    expect(result.projects).toHaveLength(1);
+    expect(result.projects[0].color).toBe('violet');
   });
 
   it('should throw BackupValidationException when task entry is missing projectId or name', () => {

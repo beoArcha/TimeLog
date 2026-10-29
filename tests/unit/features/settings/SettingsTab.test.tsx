@@ -1,7 +1,7 @@
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import SettingsTab from '@features/settings/SettingsTab';
 import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
@@ -20,6 +20,7 @@ describe('Unit Tests: SettingsTab', () => {
   const setProjectsMock = vi.fn();
   const setTasksMock = vi.fn();
   const setLogsMock = vi.fn();
+  const handleResetLocalStorageMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -33,6 +34,7 @@ describe('Unit Tests: SettingsTab', () => {
       setProjects: setProjectsMock,
       setTasks: setTasksMock,
       setLogs: setLogsMock,
+      handleResetLocalStorage: handleResetLocalStorageMock,
     };
   });
 
@@ -67,11 +69,9 @@ describe('Unit Tests: SettingsTab', () => {
     expect(setSysSettingsMock).toHaveBeenCalled();
   });
 
-  it('should open prompt dialog, confirm reset with correct keyword, and clear local state', () => {
-    const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem');
-
+  it('should open confirm dialog in browser mode and call handleResetLocalStorage on confirm', async () => {
     render(
-      <MockProviders state={mockState}>
+      <MockProviders state={mockState} capabilitiesState={{ supportsTray: false }}>
         <SettingsTab />
       </MockProviders>
     );
@@ -80,30 +80,29 @@ describe('Unit Tests: SettingsTab', () => {
     const destructiveCard = screen.getByTestId('destructive-zone-card');
     fireEvent.click(destructiveCard);
 
-    // Open PromptDialog via hard-reset-btn
+    // Verify PWA / browser specific text
+    expect(screen.getByText(/Clear browser data/i)).not.toBeNull();
+
+    // Open ConfirmDialog via hard-reset-btn
     const resetBtn = screen.getByTestId('hard-reset-btn');
     fireEvent.click(resetBtn);
 
-    // Fill in 'reset' into PromptDialog
-    const input = screen.getByTestId('prompt-dialog-input');
-    fireEvent.change(input, { target: { value: 'reset' } });
+    // Verify dialog content
+    expect(screen.getByText(/Clear Local Storage \(Browser Cache\)/i)).not.toBeNull();
 
-    // Confirm
-    const confirmBtn = screen.getByTestId('prompt-dialog-confirm-btn');
+    // Click confirm in ConfirmDialog
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
     fireEvent.click(confirmBtn);
 
-    expect(setProjectsMock).toHaveBeenCalledWith([]);
-    expect(setTasksMock).toHaveBeenCalledWith([]);
-    expect(setLogsMock).toHaveBeenCalledWith([]);
-    expect(removeItemSpy).toHaveBeenCalledWith('oxytime_state_db_6');
-    expect(toast.success).toHaveBeenCalled();
-
-    removeItemSpy.mockRestore();
+    await waitFor(() => {
+      expect(handleResetLocalStorageMock).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalled();
+    });
   });
 
-  it('should show error toast when reset confirmation text does not match', () => {
+  it('should display desktop reset semantics when running in desktop mode', async () => {
     render(
-      <MockProviders state={mockState}>
+      <MockProviders state={mockState} capabilitiesState={{ supportsTray: true }}>
         <SettingsTab />
       </MockProviders>
     );
@@ -112,22 +111,24 @@ describe('Unit Tests: SettingsTab', () => {
     const destructiveCard = screen.getByTestId('destructive-zone-card');
     fireEvent.click(destructiveCard);
 
-    // Open PromptDialog
+    // Verify Desktop SQLite specific text
+    expect(screen.getByText(/Reset SQLite database/i)).not.toBeNull();
+
+    // Open ConfirmDialog
     const resetBtn = screen.getByTestId('hard-reset-btn');
     fireEvent.click(resetBtn);
 
-    // Input incorrect confirmation keyword
-    const input = screen.getByTestId('prompt-dialog-input');
-    fireEvent.change(input, { target: { value: 'no' } });
+    // Verify dialog content
+    expect(screen.getByText(/Reset Local Database \(SQLite\)/i)).not.toBeNull();
 
-    // Confirm
-    const confirmBtn = screen.getByTestId('prompt-dialog-confirm-btn');
+    // Confirm reset
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
     fireEvent.click(confirmBtn);
 
-    expect(setProjectsMock).not.toHaveBeenCalled();
-    expect(setTasksMock).not.toHaveBeenCalled();
-    expect(setLogsMock).not.toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(handleResetLocalStorageMock).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalled();
+    });
   });
 
   it('should close dialog without clearing state when cancelled', () => {
@@ -141,15 +142,15 @@ describe('Unit Tests: SettingsTab', () => {
     const destructiveCard = screen.getByTestId('destructive-zone-card');
     fireEvent.click(destructiveCard);
 
-    // Open PromptDialog
+    // Open ConfirmDialog
     const resetBtn = screen.getByTestId('hard-reset-btn');
     fireEvent.click(resetBtn);
 
-    // Click cancel in PromptDialog
-    const cancelBtn = screen.getByTestId('prompt-dialog-cancel-btn');
+    // Click cancel in ConfirmDialog
+    const cancelBtn = screen.getByTestId('confirm-dialog-cancel-btn');
     fireEvent.click(cancelBtn);
 
-    expect(setProjectsMock).not.toHaveBeenCalled();
+    expect(handleResetLocalStorageMock).not.toHaveBeenCalled();
     expect(toast.success).not.toHaveBeenCalled();
     expect(toast.error).not.toHaveBeenCalled();
   });

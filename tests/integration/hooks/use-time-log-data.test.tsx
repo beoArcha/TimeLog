@@ -6,6 +6,7 @@ import { TEST_CONSTANTS } from '@tests/shared/test-constants';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PersistencePlugin } from '../../../src/plugins/persistence/PersistencePlugin';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { DEMO_PROJECTS, DEMO_TASKS, DEMO_LOGS } from '@plugins/persistence/InitialData';
 const LOCAL_STORAGE_KEY = 'timelog_persistence_plugin_state';
 
 describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
@@ -24,6 +25,7 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
     vi.clearAllMocks();
     setupLocalStorageMock();
     PersistenceRouter.getInstance().setImplementationForTesting(new PersistencePlugin());
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ projects: DEMO_PROJECTS, tasks: DEMO_TASKS, logs: DEMO_LOGS, activeLog: null, holidays: [], patches: [] }));
   });
 
   const renderTimeLog = async () => {
@@ -37,14 +39,14 @@ describe('Integration Tests: useTimeLogData Storage Lifecycle', () => {
 
     const { result } = await renderTimeLog();
 
-    expect(result.current.projects).toHaveLength(3);
-    expect(result.current.tasks).toHaveLength(7);
-    expect(result.current.logs).toHaveLength(3);
+    expect(result.current.projects).toHaveLength(0);
+    expect(result.current.tasks).toHaveLength(0);
+    expect(result.current.logs).toHaveLength(0);
     expect(result.current.isInitialized).toBe(true);
 
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     expect(saved).toBeDefined();
-    expect(JSON.parse(saved!).projects).toHaveLength(3);
+    expect(JSON.parse(saved!).projects).toHaveLength(0);
   });
 
   it('Given existing projects, When application starts, Then state is restored', async () => {

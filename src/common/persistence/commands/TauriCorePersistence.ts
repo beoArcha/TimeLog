@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { ICorePersistence } from '../IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { CorePersistenceCommand } from '@bindings/CorePersistenceCommand';
+import { StorageDomain, StorageResetScope } from '@common/constants/storage-keys';
 import { ErrorHandler, TauriInteropException } from '../../exceptions';
 
 export class TauriCorePersistence implements ICorePersistence {
@@ -32,7 +33,7 @@ export class TauriCorePersistence implements ICorePersistence {
     return currentState || { projects: [], tasks: [], logs: [], activeLog: null };
   }
 
-  async reset(): Promise<TimerRepositoryState> {
+  async reset(_scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState> {
     const cmd: CorePersistenceCommand = 'reset';
     return invoke<TimerRepositoryState>(cmd);
   }

@@ -7,10 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.12.2] - 2026-10-29
 
 ### Added in Unreleased
 
+- **Accessible Emoji Selector & Unicode Grapheme Normalization**:
+  - Implemented `EmojiPicker` (`@components/ui/emoji-picker`) based on `@base-ui/react/popover` with category navigation (`work`, `status`, `creative`, `life`), keyword search, and custom emoji support.
+  - Implemented `getFirstGrapheme` utility utilizing `Intl.Segmenter` to prevent truncation of multi-byte, ZWJ sequences, skin-tone modifiers, and regional indicator flag emojis.
+  - Integrated `EmojiPicker` into `SidebarProjectForm` and `EditProjectDialog`, removing legacy `maxLength={2}` restriction that truncated complex emojis.
+  - Added 6-language translations (`SelectEmoji`, `ClearEmoji`, `SearchEmoji`) across `src/common/i18n/dictionaries/project.json` and synchronized `ProjectKey` in `src/common/i18n/keys.ts`.
+  - Added unit test suite in `tests/unit/components/EmojiPicker.test.tsx` and extended `tests/unit/layouts/parts/EditProjectDialog.test.tsx`.
+
+- **PWA vs Desktop Reset Semantics & Accessible ConfirmDialog UX**:
+  - Replaced manual typing prompt dialog with accessible Base UI `ConfirmDialog` (`@components/ConfirmDialog`) styled with the destructive design token variant.
+  - Runtime awareness via `usePlatformCapabilities`: distinguishes between browser LocalStorage (`supportsTray: false` -> "Clear browser data" / "Wyczyść dane przeglądarki") and desktop SQLite database (`supportsTray: true` -> "Reset SQLite database" / "Zresetuj bazę SQLite").
+  - Delegated reset execution to `DataContext.handleResetLocalStorage()`, triggering `PersistenceRouter.getInstance().core.reset()` and eliminating obsolete `localStorage.removeItem('oxytime_state_db_6')`.
+  - Added full 6-language translations (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) across `src/common/i18n/dictionaries/engine.json` and synchronized `EngineKey` in `src/common/i18n/keys.ts`.
+  - Added isolated unit test suite in `tests/unit/features/settings/DestructiveResetCard.test.tsx` and updated `SettingsTab.test.tsx`.
+
+- **Legacy Backup Migration & Tolerance (`backupMigrator`)**:
+  - Implemented `migrateLegacyBackup` in `src/common/utils/backupMigrator.ts` providing automated normalization for legacy localStorage dumps and previous backup structures.
+  - Integrated migration pipeline into `validateBackupPayload` in `src/common/utils/backupValidator.ts`.
+  - Added unit test suite in `tests/unit/common/utils/backupMigrator.test.ts`.
 - **Web Application & Progressive Web App (PWA) Deployment (`/app/`)**:
   - Configured standalone web build script (`bun run build:web`) with base path `/TimeLog/app/` for GitHub Pages hosting alongside Docsify documentation.
   - Integrated `vite-plugin-pwa` with webmanifest generation, offline asset precaching, and responsive PWA icon assets (`192x192`, `512x512`) in `public/icons/`.
@@ -19,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed in Unreleased
 
+- **Zero-Data Clean Slate Initial State & Storage Partitioning**:
+  - Refactored `LocalStorageStateStore.load()` to initialize with clean empty collections (`projects: []`, `tasks: []`, `logs: []`) on fresh application launches, eliminating forced demo data pollution.
+  - Purged personal vacation items from `DEFAULT_HOLIDAYS` in `InitialData.ts`, retaining official statutory holidays only.
+  - Partitioned storage keys in `src/common/constants/storage-keys.ts` (`DOMAIN_STORAGE_KEYS.BUSINESS`, `SETTINGS`, `SYSTEM`) allowing atomic cleanup of business data without affecting user preferences.
 - **Documentation & Brand Identity Overhaul (`README.md`)**:
   - Overhauled root `README.md` to establish the canonical product name **oXyFlow TimeLog**, incorporating official badges, binary download matrices for Windows, macOS, and Linux, and a dedicated "CLI in 30 Seconds" terminal tour.
   - Aligned architecture diagrams and feature specifications with v1.10.x capabilities (offline SQLite, native `oxy` CLI, multi-density layouts, Recharts analytics, real-time sinks, and 6-language localization).

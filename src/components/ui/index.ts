@@ -38,3 +38,5 @@ export * from './form';
 export * from './form-variants';
 export * from './area';
 export * from './area-variants';
+export * from './popover';
+export * from './emoji-picker';
