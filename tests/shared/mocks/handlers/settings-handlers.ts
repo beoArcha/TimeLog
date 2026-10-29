@@ -1,7 +1,56 @@
 import { MockCommandArgs } from '../types';
 
+export interface MockDesktopSqliteSettings {
+  autoStart: boolean;
+  includePatchesInReports: boolean;
+  activeSinks: string[];
+  theme: string;
+  textAndIconSize: string;
+  guiVariant: string;
+  alwaysOnTopSmall: boolean;
+  alwaysOnTopMain: boolean;
+  minimizeToTray: boolean;
+}
+
+let mockDesktopDbSettings: MockDesktopSqliteSettings | null = null;
+
+export const resetMockDesktopSettings = (seed?: Partial<MockDesktopSqliteSettings>) => {
+  if (seed) {
+    mockDesktopDbSettings = {
+      autoStart: false,
+      includePatchesInReports: false,
+      activeSinks: ['Csv'],
+      theme: 'system',
+      textAndIconSize: 'medium',
+      guiVariant: 'full',
+      alwaysOnTopSmall: false,
+      alwaysOnTopMain: false,
+      minimizeToTray: true,
+      ...seed,
+    };
+  } else {
+    mockDesktopDbSettings = null;
+  }
+};
+
+export const getMockDesktopSettingsSnapshot = (): MockDesktopSqliteSettings => ({
+  autoStart: false,
+  includePatchesInReports: false,
+  activeSinks: ['Csv'],
+  theme: 'system',
+  textAndIconSize: 'medium',
+  guiVariant: 'full',
+  alwaysOnTopSmall: false,
+  alwaysOnTopMain: false,
+  minimizeToTray: true,
+  ...(mockDesktopDbSettings ?? {}),
+});
+
 export const SETTINGS_HANDLERS: Record<string, (args: MockCommandArgs) => Promise<unknown>> = {
   get: async () => {
+    if (mockDesktopDbSettings) {
+      return { ...mockDesktopDbSettings };
+    }
     const saved = localStorage.getItem('timelog_persistence_plugin_settings');
     if (saved) {
       try {
@@ -41,7 +90,33 @@ export const SETTINGS_HANDLERS: Record<string, (args: MockCommandArgs) => Promis
     };
   },
   save: async (args) => {
-    if (args.settings) {
+    if (mockDesktopDbSettings && args.settings && typeof args.settings === 'object') {
+      const s = args.settings as Record<string, unknown>;
+      mockDesktopDbSettings = {
+        autoStart: typeof s.autoStart === 'boolean' ? s.autoStart : mockDesktopDbSettings.autoStart,
+        includePatchesInReports:
+          typeof s.includePatchesInReports === 'boolean'
+            ? s.includePatchesInReports
+            : mockDesktopDbSettings.includePatchesInReports,
+        activeSinks: Array.isArray(s.activeSinks) ? (s.activeSinks as string[]) : mockDesktopDbSettings.activeSinks,
+        theme: typeof s.theme === 'string' ? s.theme : mockDesktopDbSettings.theme,
+        textAndIconSize:
+          typeof s.textAndIconSize === 'string' ? s.textAndIconSize : mockDesktopDbSettings.textAndIconSize,
+        guiVariant: typeof s.guiVariant === 'string' ? s.guiVariant : mockDesktopDbSettings.guiVariant,
+        alwaysOnTopSmall:
+          typeof s.alwaysOnTopSmall === 'boolean'
+            ? s.alwaysOnTopSmall
+            : mockDesktopDbSettings.alwaysOnTopSmall,
+        alwaysOnTopMain:
+          typeof s.alwaysOnTopMain === 'boolean'
+            ? s.alwaysOnTopMain
+            : mockDesktopDbSettings.alwaysOnTopMain,
+        minimizeToTray:
+          typeof s.minimizeToTray === 'boolean'
+            ? s.minimizeToTray
+            : mockDesktopDbSettings.minimizeToTray,
+      };
+    } else if (args.settings) {
       localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify(args.settings));
     }
     return Promise.resolve();

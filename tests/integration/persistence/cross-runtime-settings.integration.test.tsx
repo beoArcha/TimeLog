@@ -6,33 +6,15 @@ import { PlatformCapabilitiesContext, PlatformCapabilities } from '@common/conte
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PersistenceCommands } from '@common/persistence/PersistenceCommands';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
-import { ISettingsPersistence } from '@common/persistence/IPersistence';
 import { Settings as AppSettings } from '@bindings/Settings';
-import { setupLocalStorageMock, setupMatchMediaMock } from '@tests/shared/test-helpers';
-
-class DesktopSettingsStorageDouble implements ISettingsPersistence {
-  private store: AppSettings;
-
-  constructor(initialSettings: AppSettings) {
-    this.store = { ...initialSettings };
-  }
-
-  async get(): Promise<AppSettings> {
-    return { ...this.store };
-  }
-
-  async save(settings: AppSettings): Promise<void> {
-    this.store = { ...settings };
-  }
-
-  getSnapshot(): AppSettings {
-    return { ...this.store };
-  }
-}
+import {
+  setupLocalStorageMock,
+  setupMatchMediaMock,
+  resetMockDesktopSettings,
+  getMockDesktopSettingsSnapshot,
+} from '@tests/shared/test-helpers';
 
 describe('Given desktop and browser environments with separate persistence stores', () => {
-  const originalTauriInternals = (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__;
-
   beforeEach(() => {
     setupLocalStorageMock();
     setupMatchMediaMock(false);
@@ -41,11 +23,6 @@ describe('Given desktop and browser environments with separate persistence store
 
   afterEach(() => {
     PersistenceRouter.resetForTesting();
-    if (originalTauriInternals !== undefined) {
-      (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ = originalTauriInternals;
-    } else {
-      delete (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__;
-    }
     vi.restoreAllMocks();
   });
 
@@ -64,10 +41,10 @@ describe('Given desktop and browser environments with separate persistence store
         minimizeToTray: true,
       };
 
-      const desktopStorage = new DesktopSettingsStorageDouble(initialDesktopSettings);
-      const desktopPersistence = new PersistenceCommands({ settings: desktopStorage });
+      resetMockDesktopSettings(initialDesktopSettings);
 
-      PersistenceRouter.getInstance().setImplementationForTesting(desktopPersistence);
+      // Desktop runtime uses real PersistenceCommands with Tauri IPC mock (SQLite test double)
+      PersistenceRouter.getInstance().setImplementationForTesting(new PersistenceCommands());
 
       const desktopCapabilities: PlatformCapabilities = {
         dragRegionProps: {},
@@ -99,8 +76,8 @@ describe('Given desktop and browser environments with separate persistence store
 
       // When
       PersistenceRouter.resetForTesting();
-      const webPersistence = new PersistencePlugin();
-      PersistenceRouter.getInstance().setImplementationForTesting(webPersistence);
+      // Browser runtime uses real PersistencePlugin backed by LocalStorage
+      PersistenceRouter.getInstance().setImplementationForTesting(new PersistencePlugin());
 
       const webCapabilities: PlatformCapabilities = {
         dragRegionProps: {},
@@ -140,18 +117,26 @@ describe('Given desktop and browser environments with separate persistence store
         expect(webResult.current.layoutVariant).toBe('medium');
       });
 
+      // Verify that browser write strictly targeted LocalStorage
+      const webSavedJson = localStorage.getItem('timelog_persistence_plugin_settings');
+      expect(webSavedJson).not.toBeNull();
+      const webSaved = JSON.parse(webSavedJson!);
+      expect(webSaved.theme).toBe('light');
+      expect(webSaved.textAndIconSize).toBe('small');
+      expect(webSaved.guiVariant).toBe('medium');
+
       unmountWeb();
 
       // Then
       PersistenceRouter.resetForTesting();
-      PersistenceRouter.getInstance().setImplementationForTesting(
-        new PersistenceCommands({ settings: desktopStorage })
-      );
+      // Re-initialize desktop runtime with real PersistenceCommands
+      PersistenceRouter.getInstance().setImplementationForTesting(new PersistenceCommands());
 
       const { result: restoredDesktopResult } = renderHook(() => useAppSettings(), {
         wrapper: desktopWrapper,
       });
 
+      // Assert that desktop persistence store remained completely isolated from web mutations
       await waitFor(() => {
         expect(restoredDesktopResult.current.theme).toBe('dark');
         expect(restoredDesktopResult.current.textAndIconSize).toBe('large');
@@ -164,7 +149,7 @@ describe('Given desktop and browser environments with separate persistence store
         expect(restoredDesktopResult.current.sysSettings.activeSinks).toEqual(['Csv']);
       });
 
-      const desktopSnapshot = desktopStorage.getSnapshot();
+      const desktopSnapshot = getMockDesktopSettingsSnapshot();
       expect(desktopSnapshot.theme).toBe('dark');
       expect(desktopSnapshot.textAndIconSize).toBe('large');
       expect(desktopSnapshot.guiVariant).toBe('compact');
