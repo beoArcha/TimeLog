@@ -1,16 +1,49 @@
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useAppSettings } from '@common/hooks/useAppSettings';
 import { PlatformCapabilitiesContext, PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { setupLocalStorageMock, setupMatchMediaMock } from '@tests/shared/test-helpers';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { PersistenceCommands } from '@common/persistence/PersistenceCommands';
+import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
+import { ISettingsPersistence } from '@common/persistence/IPersistence';
 import { Settings as AppSettings } from '@bindings/Settings';
+
+/**
+ * Explicit test double representing the Desktop (Tauri IPC / SQLite) settings store.
+ * Operates in isolated memory, completely separate from browser LocalStorage.
+ */
+class DesktopSettingsStorageDouble implements ISettingsPersistence {
+  private store: AppSettings;
+
+  constructor(initialSettings: AppSettings) {
+    this.store = { ...initialSettings };
+  }
+
+  async get(): Promise<AppSettings> {
+    return { ...this.store };
+  }
+
+  async save(settings: AppSettings): Promise<void> {
+    this.store = { ...settings };
+  }
+
+  getSnapshot(): AppSettings {
+    return { ...this.store };
+  }
+}
 
 describe('Unit Tests: useAppSettings Hook', () => {
   beforeEach(() => {
     setupLocalStorageMock();
     setupMatchMediaMock(false);
+    PersistenceRouter.resetForTesting();
+  });
+
+  afterEach(() => {
+    PersistenceRouter.resetForTesting();
+    vi.restoreAllMocks();
   });
 
   it('should load saved settings when initialized', async () => {
@@ -156,20 +189,68 @@ describe('Unit Tests: useAppSettings Hook', () => {
     expect(result.current.resolvedTheme).toBe('light');
   });
 
-  it('should preserve desktop-specific preferences when settings are updated in browser runtime', async () => {
-    // Arrange: Seed persistence with desktop preferences
-    const initialSettings = {
+  it('should preserve desktop-specific preferences when settings are updated in browser runtime across actual persistence boundaries', async () => {
+    // ------------------------------------------------------------------------------------
+    // 1. DESKTOP RUNTIME SESSION
+    // ------------------------------------------------------------------------------------
+    // The desktop runtime uses PersistenceCommands backed by a dedicated SQLite/IPC store
+    const initialDesktopSettings: AppSettings = {
       theme: 'dark',
-      guiVariant: 'medium',
-      textAndIconSize: 'medium',
+      guiVariant: 'compact',
+      textAndIconSize: 'large',
       autoStart: true,
-      includePatchesInReports: true,
+      includePatchesInReports: false,
       activeSinks: ['Csv'],
       alwaysOnTopSmall: true,
       alwaysOnTopMain: true,
       minimizeToTray: true,
     };
-    localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify(initialSettings));
+
+    const desktopStorage = new DesktopSettingsStorageDouble(initialDesktopSettings);
+    PersistenceRouter.getInstance().setImplementationForTesting(
+      new PersistenceCommands({ settings: desktopStorage })
+    );
+
+    const desktopCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: true,
+      supportedLayouts: ['compact', 'medium', 'full'],
+      defaultLayout: 'compact',
+      supportsTray: true,
+      supportsAlwaysOnTop: true,
+      supportsAutoStart: true,
+      isPwaInstallable: false,
+    };
+
+    const desktopWrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={desktopCapabilities}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    const { result: desktopResult, unmount: unmountDesktop } = renderHook(() => useAppSettings(), {
+      wrapper: desktopWrapper,
+    });
+
+    await waitFor(() => {
+      expect(desktopResult.current.theme).toBe('dark');
+      expect(desktopResult.current.layoutVariant).toBe('compact');
+      expect(desktopResult.current.textAndIconSize).toBe('large');
+      expect(desktopResult.current.alwaysOnTopSmall).toBe(true);
+      expect(desktopResult.current.alwaysOnTopMain).toBe(true);
+      expect(desktopResult.current.minimizeToTray).toBe(true);
+      expect(desktopResult.current.sysSettings.autoStart).toBe(true);
+      expect(desktopResult.current.sysSettings.includePatchesInReports).toBe(false);
+      expect(desktopResult.current.sysSettings.activeSinks).toEqual(['Csv']);
+    });
+
+    unmountDesktop();
+
+    // ------------------------------------------------------------------------------------
+    // 2. BROWSER RUNTIME SESSION (PersistencePlugin with LocalStorage)
+    // ------------------------------------------------------------------------------------
+    PersistenceRouter.resetForTesting();
+    PersistenceRouter.getInstance().setImplementationForTesting(new PersistencePlugin());
 
     const webCapabilities: PlatformCapabilities = {
       dragRegionProps: {},
@@ -182,32 +263,79 @@ describe('Unit Tests: useAppSettings Hook', () => {
       isPwaInstallable: true,
     };
 
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
+    const webWrapper = ({ children }: { children: React.ReactNode }) => (
       <PlatformCapabilitiesContext.Provider value={webCapabilities}>
         {children}
       </PlatformCapabilitiesContext.Provider>
     );
 
-    const { result } = renderHook(() => useAppSettings(), { wrapper });
-
-    await waitFor(() => {
-      expect(result.current.theme).toBe('dark');
+    const { result: webResult, unmount: unmountWeb } = renderHook(() => useAppSettings(), {
+      wrapper: webWrapper,
     });
 
-    // Act: update theme in browser
+    await waitFor(() => {
+      expect(webResult.current.theme).toBe('system');
+      expect(webResult.current.layoutVariant).toBe('full');
+    });
+
+    // Act: Update web-supported settings in browser
     await act(async () => {
-      result.current.setTheme('light');
+      webResult.current.setTheme('light');
+      webResult.current.setTextAndIconSize('small');
+      webResult.current.setLayoutVariant('medium');
     });
 
-    // Assert: desktop settings must be preserved in persistence
     await waitFor(() => {
-      const saved = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
-      expect(saved.theme).toBe('light');
-      expect(saved.autoStart).toBe(true);
-      expect(saved.minimizeToTray).toBe(true);
-      expect(saved.alwaysOnTopSmall).toBe(true);
-      expect(saved.alwaysOnTopMain).toBe(true);
+      expect(webResult.current.theme).toBe('light');
+      expect(webResult.current.textAndIconSize).toBe('small');
+      expect(webResult.current.layoutVariant).toBe('medium');
     });
+
+    // Assert: Web settings are stored in LocalStorage
+    const savedInBrowser = JSON.parse(
+      localStorage.getItem('timelog_persistence_plugin_settings') || '{}'
+    );
+    expect(savedInBrowser.theme).toBe('light');
+    expect(savedInBrowser.textAndIconSize).toBe('small');
+    expect(savedInBrowser.guiVariant).toBe('medium');
+
+    unmountWeb();
+
+    // ------------------------------------------------------------------------------------
+    // 3. RE-LAUNCH DESKTOP RUNTIME SESSION
+    // ------------------------------------------------------------------------------------
+    PersistenceRouter.resetForTesting();
+    PersistenceRouter.getInstance().setImplementationForTesting(
+      new PersistenceCommands({ settings: desktopStorage })
+    );
+
+    const { result: restoredDesktopResult } = renderHook(() => useAppSettings(), {
+      wrapper: desktopWrapper,
+    });
+
+    // Assert: Desktop persistence store was completely isolated and retained all preferences
+    await waitFor(() => {
+      expect(restoredDesktopResult.current.theme).toBe('dark');
+      expect(restoredDesktopResult.current.textAndIconSize).toBe('large');
+      expect(restoredDesktopResult.current.layoutVariant).toBe('compact');
+      expect(restoredDesktopResult.current.alwaysOnTopSmall).toBe(true);
+      expect(restoredDesktopResult.current.alwaysOnTopMain).toBe(true);
+      expect(restoredDesktopResult.current.minimizeToTray).toBe(true);
+      expect(restoredDesktopResult.current.sysSettings.autoStart).toBe(true);
+      expect(restoredDesktopResult.current.sysSettings.includePatchesInReports).toBe(false);
+      expect(restoredDesktopResult.current.sysSettings.activeSinks).toEqual(['Csv']);
+    });
+
+    const snapshot = desktopStorage.getSnapshot();
+    expect(snapshot.theme).toBe('dark');
+    expect(snapshot.textAndIconSize).toBe('large');
+    expect(snapshot.guiVariant).toBe('compact');
+    expect(snapshot.autoStart).toBe(true);
+    expect(snapshot.minimizeToTray).toBe(true);
+    expect(snapshot.alwaysOnTopSmall).toBe(true);
+    expect(snapshot.alwaysOnTopMain).toBe(true);
+    expect(snapshot.includePatchesInReports).toBe(false);
+    expect(snapshot.activeSinks).toEqual(['Csv']);
   });
 
   it('should ignore stale async promise resolutions when effect unmounts or cancels', async () => {
