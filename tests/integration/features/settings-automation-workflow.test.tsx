@@ -139,7 +139,7 @@ describe('Given SettingsTab and Workflow Automation settings', () => {
   });
 
   describe('When user initiates destructive reset with confirmation keyword', () => {
-    it('Then it should clear entity state arrays in DataContext coordinator', async () => {
+    it('Then it should delegate storage reset to handleResetLocalStorage', async () => {
       // Given
       const mockState = getMockOxyFlowState();
 
@@ -156,16 +156,13 @@ describe('Given SettingsTab and Workflow Automation settings', () => {
       const resetBtn = screen.getByTestId('hard-reset-btn');
       fireEvent.click(resetBtn);
 
-      const promptInput = screen.getByTestId('prompt-dialog-input');
-      fireEvent.change(promptInput, { target: { value: 'reset' } });
-
-      const confirmBtn = screen.getByTestId('prompt-dialog-confirm-btn');
+      const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
       fireEvent.click(confirmBtn);
 
       // Then
-      expect(mockState.setProjects).toHaveBeenCalledWith([]);
-      expect(mockState.setTasks).toHaveBeenCalledWith([]);
-      expect(mockState.setLogs).toHaveBeenCalledWith([]);
+      await waitFor(() => {
+        expect(mockState.handleResetLocalStorage).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });
