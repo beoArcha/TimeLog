@@ -9,7 +9,7 @@ export interface RawLegacyPayload {
   [key: string]: unknown;
 }
 
-function normalizeLegacyProject(p: unknown): unknown {
+export function normalizeLegacyProject(p: unknown): unknown {
   if (typeof p !== 'object' || p === null || Array.isArray(p)) {
     return p;
   }
@@ -24,11 +24,34 @@ function normalizeLegacyProject(p: unknown): unknown {
   return p;
 }
 
+function parseNestedState(rawState: unknown): Record<string, unknown> | null {
+  if (!rawState) {
+    return null;
+  }
+  if (typeof rawState === 'string') {
+    try {
+      const parsed = JSON.parse(rawState);
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      return null;
+    }
+  }
+  if (typeof rawState === 'object' && !Array.isArray(rawState)) {
+    return rawState as Record<string, unknown>;
+  }
+  return null;
+}
+
 /**
  * Normalizes legacy backup payloads into standard structure.
  * Handles:
- * - Payloads where state is nested under `state` (e.g. legacy LocalStorage state dumps)
- * - Missing non-critical project colors in legacy nested state exports
+ * - Shape A: Root-level state dump (`{ projects: [...], tasks: [...] }`)
+ * - Shape B: Nested plain object (`{ state: { projects: [...] } }`)
+ * - Shape C: Stringified nested state (`{ state: "{\"projects\":[...]}" }`)
+ * - Shape D: Hybrid with conflict precedence (root collections take precedence, missing collections fall back to state)
+ * - Universal normalization of project colors (defaulting missing color to 'violet') across all shapes
  */
 export function migrateLegacyBackup(raw: unknown): Record<string, unknown> {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
@@ -36,13 +59,20 @@ export function migrateLegacyBackup(raw: unknown): Record<string, unknown> {
   }
 
   const payload = raw as RawLegacyPayload;
-  if (!payload.state || typeof payload.state !== 'object' || Array.isArray(payload.state)) {
-    return payload as Record<string, unknown>;
+  const nested = parseNestedState(payload.state);
+  const merged: Record<string, unknown> = nested ? { ...nested, ...payload } : { ...payload };
+
+  if (nested) {
+    for (const key of Object.keys(nested)) {
+      if (payload[key] === undefined) {
+        merged[key] = nested[key];
+      }
+    }
   }
 
-  const sourceState = { ...payload, ...(payload.state as Record<string, unknown>) };
-  if (Array.isArray(sourceState.projects)) {
-    sourceState.projects = sourceState.projects.map(normalizeLegacyProject);
+  if (Array.isArray(merged.projects)) {
+    merged.projects = merged.projects.map(normalizeLegacyProject);
   }
-  return sourceState;
+
+  return merged;
 }

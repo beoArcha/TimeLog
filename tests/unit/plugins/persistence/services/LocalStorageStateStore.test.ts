@@ -12,7 +12,9 @@ describe('LocalStorageStateStore', () => {
     store = new LocalStorageStateStore();
   });
 
-  it('should return clean empty state on first load when storage is empty', async () => {
+  it('should return clean empty state when loaded for first time on empty storage', async () => {
+    // Arrange: empty localStorage
+
     // Act
     const result = await store.load();
 
@@ -24,7 +26,7 @@ describe('LocalStorageStateStore', () => {
     expect(result?.activeLog).toBeNull();
   });
 
-  it('should return parsed state from storage when data exists', async () => {
+  it('should return parsed state from storage when state data exists', async () => {
     // Arrange
     const sampleState = {
       projects: [aProject({ id: 'p-1', name: 'Saved Project' })],
@@ -45,39 +47,49 @@ describe('LocalStorageStateStore', () => {
     // Arrange
     localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, 'invalid-json{{{');
 
-    // Act & Assert
-    await expect(store.load()).rejects.toThrow('quarantined to prevent data loss');
+    // Act
+    const loadPromise = store.load();
 
-    // Assert subsequent save is blocked by quarantine
-    await expect(
-      store.save({
-        projects: [],
-        tasks: [],
-        logs: [],
-        activeLog: null,
-      })
-    ).rejects.toThrow('quarantined corrupted state');
+    // Assert
+    await expect(loadPromise).rejects.toThrow('quarantined to prevent data loss');
   });
 
-  it('should reset quarantine state on explicit reset', async () => {
+  it('should block subsequent save operations when storage is in quarantined state', async () => {
     // Arrange
     localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, 'invalid-json{{{');
     await expect(store.load()).rejects.toThrow();
 
     // Act
-    await store.reset();
+    const savePromise = store.save({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
 
     // Assert
+    await expect(savePromise).rejects.toThrow('quarantined corrupted state');
+  });
+
+  it('should reset quarantine state when explicit reset is called', async () => {
+    // Arrange
+    localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, 'invalid-json{{{');
+    await expect(store.load()).rejects.toThrow();
+    await store.reset();
+
+    // Act
     const afterReset = await store.save({
       projects: [],
       tasks: [],
       logs: [],
       activeLog: null,
     });
+
+    // Assert
     expect(afterReset).toBeDefined();
   });
 
-  it('should serialize and persist state to localStorage on save', async () => {
+  it('should serialize and persist state to localStorage when save is called', async () => {
     // Arrange
     const stateToSave = {
       projects: [aProject({ id: 'p-save', name: 'Persisted' })],
@@ -95,12 +107,11 @@ describe('LocalStorageStateStore', () => {
     expect(raw).toBe(JSON.stringify(stateToSave));
   });
 
-  it('should clear all storage keys and return empty state on reset', async () => {
+  it('should clear all domains and return empty state when reset is called without scope (defaults to ALL)', async () => {
     // Arrange
-    localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, '{"projects":[]}');
-    localStorage.setItem(STORAGE_KEYS.SETTINGS_KEY, '{"theme":"dark"}');
+    localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, '{"projects":[{"id":"p1"}]}');
+    localStorage.setItem(STORAGE_KEYS.THEME, 'dark');
     localStorage.setItem(STORAGE_KEYS.RUN_CONFIGS_KEY, '[]');
-    localStorage.setItem(STORAGE_KEYS.HOLIDAYS_KEY, '[]');
 
     // Act
     const resetState = await store.reset();
@@ -113,6 +124,95 @@ describe('LocalStorageStateStore', () => {
       activeLog: null,
     });
     expect(localStorage.getItem(STORAGE_KEYS.STORAGE_KEY)).toBeNull();
-    expect(localStorage.getItem(STORAGE_KEYS.SETTINGS_KEY)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.RUN_CONFIGS_KEY)).toBeNull();
+  });
+
+  it('should clear only business domain keys and preserve settings and system keys when reset is called with BUSINESS scope', async () => {
+    // Arrange
+    localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, '{"projects":[{"id":"p1"}]}');
+    localStorage.setItem(STORAGE_KEYS.CURRENT_PROJ_ID, 'p1');
+    localStorage.setItem(STORAGE_KEYS.THEME, 'dark');
+    localStorage.setItem(STORAGE_KEYS.RUN_CONFIGS_KEY, '[]');
+
+    // Act
+    const resetState = await store.reset('BUSINESS');
+
+    // Assert
+    expect(resetState).toEqual({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+    expect(localStorage.getItem(STORAGE_KEYS.STORAGE_KEY)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.CURRENT_PROJ_ID)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBe('dark');
+    expect(localStorage.getItem(STORAGE_KEYS.RUN_CONFIGS_KEY)).toBe('[]');
+  });
+
+  it('should clear only settings domain keys and preserve business state when reset is called with SETTINGS scope', async () => {
+    // Arrange
+    const businessState = {
+      projects: [aProject({ id: 'p-keep', name: 'Keep Me' })],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    };
+    localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(businessState));
+    localStorage.setItem(STORAGE_KEYS.THEME, 'dark');
+    localStorage.setItem(STORAGE_KEYS.RUN_CONFIGS_KEY, '[]');
+
+    // Act
+    const returnedState = await store.reset('SETTINGS');
+
+    // Assert
+    expect(returnedState).toEqual(businessState);
+    expect(localStorage.getItem(STORAGE_KEYS.STORAGE_KEY)).toBe(JSON.stringify(businessState));
+    expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.RUN_CONFIGS_KEY)).toBe('[]');
+  });
+
+  it('should clear only system domain keys and preserve business and settings keys when reset is called with SYSTEM scope', async () => {
+    // Arrange
+    const businessState = {
+      projects: [aProject({ id: 'p-keep-2', name: 'Keep Me Too' })],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    };
+    localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(businessState));
+    localStorage.setItem(STORAGE_KEYS.THEME, 'light');
+    localStorage.setItem(STORAGE_KEYS.RUN_CONFIGS_KEY, '["some-config"]');
+
+    // Act
+    const returnedState = await store.reset('SYSTEM');
+
+    // Assert
+    expect(returnedState).toEqual(businessState);
+    expect(localStorage.getItem(STORAGE_KEYS.STORAGE_KEY)).toBe(JSON.stringify(businessState));
+    expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBe('light');
+    expect(localStorage.getItem(STORAGE_KEYS.RUN_CONFIGS_KEY)).toBeNull();
+  });
+
+  it('should clear selected multiple domains when reset is called with domain array', async () => {
+    // Arrange
+    localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, '{"projects":[{"id":"p1"}]}');
+    localStorage.setItem(STORAGE_KEYS.THEME, 'cyberpunk');
+    localStorage.setItem(STORAGE_KEYS.RUN_CONFIGS_KEY, '["sys"]');
+
+    // Act
+    const resetState = await store.reset(['BUSINESS', 'SYSTEM']);
+
+    // Assert
+    expect(resetState).toEqual({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+    expect(localStorage.getItem(STORAGE_KEYS.STORAGE_KEY)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.RUN_CONFIGS_KEY)).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEYS.THEME)).toBe('cyberpunk');
   });
 });

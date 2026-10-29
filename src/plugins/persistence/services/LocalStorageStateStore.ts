@@ -1,6 +1,6 @@
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
-import { STORAGE_KEYS, DOMAIN_STORAGE_KEYS } from '@common/constants/storage-keys';
+import { STORAGE_KEYS, DOMAIN_STORAGE_KEYS, StorageDomain, StorageResetScope } from '@common/constants/storage-keys';
 
 export const getDefaultState = (): TimerRepositoryState => ({
   projects: [],
@@ -12,8 +12,18 @@ export const getDefaultState = (): TimerRepositoryState => ({
 export interface ILocalStorageStateStore {
   load(): Promise<TimerRepositoryState | null>;
   save(state: TimerRepositoryState): Promise<TimerRepositoryState>;
-  reset(): Promise<TimerRepositoryState>;
+  reset(scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState>;
   getStateOrDefault(): Promise<TimerRepositoryState>;
+}
+
+function resolveResetDomains(scope: StorageResetScope | StorageDomain[]): StorageDomain[] {
+  if (scope === 'ALL') {
+    return ['BUSINESS', 'SETTINGS', 'SYSTEM'];
+  }
+  if (Array.isArray(scope)) {
+    return Array.from(new Set(scope));
+  }
+  return [scope];
 }
 
 export class LocalStorageStateStore implements ILocalStorageStateStore {
@@ -63,14 +73,25 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
     }
   }
 
-  async reset(): Promise<TimerRepositoryState> {
-    this.isCorrupted = false;
-    for (const key of DOMAIN_STORAGE_KEYS.BUSINESS) {
-      localStorage.removeItem(key);
+  async reset(scope: StorageResetScope | StorageDomain[] = 'ALL'): Promise<TimerRepositoryState> {
+    const domains = resolveResetDomains(scope);
+    const hasBusiness = domains.includes('BUSINESS');
+
+    if (hasBusiness) {
+      this.isCorrupted = false;
     }
-    localStorage.removeItem(STORAGE_KEYS.SETTINGS_KEY);
-    localStorage.removeItem(STORAGE_KEYS.RUN_CONFIGS_KEY);
-    return getDefaultState();
+
+    for (const domain of domains) {
+      const keys = DOMAIN_STORAGE_KEYS[domain] || [];
+      for (const key of keys) {
+        localStorage.removeItem(key);
+      }
+    }
+
+    if (hasBusiness) {
+      return getDefaultState();
+    }
+    return this.getStateOrDefault();
   }
 
   async getStateOrDefault(): Promise<TimerRepositoryState> {

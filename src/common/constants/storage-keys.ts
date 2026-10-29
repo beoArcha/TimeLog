@@ -33,9 +33,13 @@ export const STORAGE_KEYS = {
   WORKFLOW_CONFIG: 'oxytime_workflow_config',
 } as const;
 
-export const DOMAIN_STORAGE_KEYS = {
+export type StorageDomain = 'BUSINESS' | 'SETTINGS' | 'SYSTEM';
+export type StorageResetScope = StorageDomain | 'ALL';
+
+export const DOMAIN_STORAGE_KEYS: Record<StorageDomain, readonly string[]> = {
   BUSINESS: [
     STORAGE_KEYS.STORAGE_KEY,
+    STORAGE_KEYS.STATE_DB,
     STORAGE_KEYS.CURRENT_PROJ_ID,
     STORAGE_KEYS.PROJECT_ORDER,
     STORAGE_KEYS.LAST_TRACKED_TASK_ID,
