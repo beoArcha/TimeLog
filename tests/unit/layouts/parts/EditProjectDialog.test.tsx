@@ -127,6 +127,71 @@ describe('Unit Tests: EditProjectDialog', () => {
     });
   });
 
+  it('should support picking and saving multi-byte compound emoji without truncation', () => {
+    // Arrange
+    const state = getMockOxyFlowState();
+    const onSave = vi.fn();
+
+    render(
+      <MockProviders state={state}>
+        <EditProjectDialog
+          open={true}
+          onOpenChange={vi.fn()}
+          project={baseProject}
+          onSave={onSave}
+        />
+      </MockProviders>,
+    );
+
+    // Open EmojiPicker
+    const pickerTrigger = screen.getByTestId('edit-project-emoji-picker-trigger');
+    fireEvent.click(pickerTrigger);
+
+    // Select Rocket emoji
+    const rocketBtn = screen.getByTestId('edit-project-emoji-picker-emoji-🚀');
+    fireEvent.click(rocketBtn);
+
+    // Save
+    const saveBtn = screen.getByRole('button', { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        icon: '🚀',
+      })
+    );
+  });
+
+  it('should allow typing multi-byte compound emoji directly without truncation', () => {
+    // Arrange
+    const state = getMockOxyFlowState();
+    const onSave = vi.fn();
+
+    render(
+      <MockProviders state={state}>
+        <EditProjectDialog
+          open={true}
+          onOpenChange={vi.fn()}
+          project={baseProject}
+          onSave={onSave}
+        />
+      </MockProviders>,
+    );
+
+    const iconInput = screen.getByLabelText(/Emoji Icon/i);
+    // Compound ZWJ emoji (technologist)
+    fireEvent.change(iconInput, { target: { value: '👨‍💻' } });
+
+    const saveBtn = screen.getByRole('button', { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        icon: '👨‍💻',
+      })
+    );
+  });
+
   it('should close dialog when Cancel button is clicked', () => {
     // Arrange
     const state = getMockOxyFlowState();
@@ -166,12 +231,10 @@ describe('Unit Tests: EditProjectDialog', () => {
       </MockProviders>,
     );
 
-    // Act
     const nameInput = screen.getByLabelText(/Project Name/i);
     fireEvent.change(nameInput, { target: { value: '   ' } });
 
-    // Assert
-    const saveBtn = screen.getByRole('button', { name: /Save/i }) as HTMLButtonElement;
-    expect(saveBtn.disabled).toBe(true);
+    const saveBtn = screen.getByRole('button', { name: /Save/i });
+    expect((saveBtn as HTMLButtonElement).disabled).toBe(true);
   });
 });

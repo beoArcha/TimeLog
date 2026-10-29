@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added in Unreleased
 
+- **Accessible Emoji Selector & Unicode Grapheme Normalization**:
+  - Implemented `EmojiPicker` (`@components/ui/emoji-picker`) based on `@base-ui/react/popover` with category navigation (`work`, `status`, `creative`, `life`), keyword search, and custom emoji support.
+  - Implemented `getFirstGrapheme` utility utilizing `Intl.Segmenter` to prevent truncation of multi-byte, ZWJ sequences, skin-tone modifiers, and regional indicator flag emojis.
+  - Integrated `EmojiPicker` into `SidebarProjectForm` and `EditProjectDialog`, removing legacy `maxLength={2}` restriction that truncated complex emojis.
+  - Added 6-language translations (`SelectEmoji`, `ClearEmoji`, `SearchEmoji`) across `src/common/i18n/dictionaries/project.json` and synchronized `ProjectKey` in `src/common/i18n/keys.ts`.
+  - Added unit test suite in `tests/unit/components/EmojiPicker.test.tsx` and extended `tests/unit/layouts/parts/EditProjectDialog.test.tsx`.
+
 - **PWA vs Desktop Reset Semantics & Accessible ConfirmDialog UX**:
   - Replaced manual typing prompt dialog with accessible Base UI `ConfirmDialog` (`@components/ConfirmDialog`) styled with the destructive design token variant.
   - Runtime awareness via `usePlatformCapabilities`: distinguishes between browser LocalStorage (`supportsTray: false` -> "Clear browser data" / "Wyczyść dane przeglądarki") and desktop SQLite database (`supportsTray: true` -> "Reset SQLite database" / "Zresetuj bazę SQLite").

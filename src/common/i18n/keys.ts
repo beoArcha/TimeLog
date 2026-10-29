@@ -418,12 +418,18 @@ export type ProjectKey =
   | 'AllowConcurrencyDesc'
   | 'ChangeProject'
   | 'ChooseProjectColor'
+  | 'ClearEmoji'
   | 'ColorTheme'
-  | 'ConcurrencyBadge'
   | 'CompletedTasks'
+  | 'ConcurrencyBadge'
   | 'Description'
   | 'DescriptionPlaceholder'
   | 'EditProjectTitle'
+  | 'EmojiCategoryAll'
+  | 'EmojiCategoryCreative'
+  | 'EmojiCategoryLife'
+  | 'EmojiCategoryStatus'
+  | 'EmojiCategoryWork'
   | 'EmojiIcon'
   | 'EnterProjectName'
   | 'HideOptions'
@@ -433,10 +439,13 @@ export type ProjectKey =
   | 'MoveProjectUp'
   | 'NewProject'
   | 'NoProjects'
+  | 'NoEmojiFound'
   | 'NoProjectsYet'
   | 'ProjectName'
   | 'ProjectTotalTime'
   | 'ProjectsLabel'
+  | 'SearchEmoji'
+  | 'SelectEmoji'
   | 'SelectProject'
   | 'SelectProjectHint'
   | 'SelectProjectPlaceholder'
@@ -453,7 +462,8 @@ export type ProjectKey =
   | 'TemplateSoftwareDevDesc'
   | 'TemplateSoftwareDevName'
   | 'TotalDuration'
-  | 'TotalTasks';
+  | 'TotalTasks'
+  | 'UseCustomEmoji';
 
 
 export type ReportKey =
