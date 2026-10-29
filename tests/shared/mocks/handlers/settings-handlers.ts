@@ -15,6 +15,7 @@ export interface MockDesktopSqliteSettings {
 let mockDesktopDbSettings: MockDesktopSqliteSettings | null = null;
 
 export const resetMockDesktopSettings = (seed?: Partial<MockDesktopSqliteSettings>) => {
+  mockDesktopDbSettings = null;
   if (seed) {
     mockDesktopDbSettings = {
       autoStart: false,
@@ -28,8 +29,6 @@ export const resetMockDesktopSettings = (seed?: Partial<MockDesktopSqliteSetting
       minimizeToTray: true,
       ...seed,
     };
-  } else {
-    mockDesktopDbSettings = null;
   }
 };
 
@@ -128,21 +127,6 @@ export const SETTINGS_HANDLERS: Record<string, (args: MockCommandArgs) => Promis
     return SETTINGS_HANDLERS.save(args);
   },
   save_runtime_config: async (args) => {
-    const raw = localStorage.getItem('mock_runtime_configs');
-    const configs = raw ? JSON.parse(raw) : [];
-    if (args.config) {
-      const idx = configs.findIndex((c: { id: string }) => c.id === (args.config as { id: string }).id);
-      if (idx !== -1) {
-        configs[idx] = args.config;
-      } else {
-        configs.push(args.config);
-      }
-    }
-    localStorage.setItem('mock_runtime_configs', JSON.stringify(configs));
-    return Promise.resolve();
-  },
-  get_runtime_configs: async () => {
-    const raw = localStorage.getItem('mock_runtime_configs');
-    return raw ? JSON.parse(raw) : [];
+    return SETTINGS_HANDLERS.save(args);
   },
 };

@@ -306,4 +306,91 @@ describe('useAppSettings', () => {
 
     getSpy.mockRestore();
   });
+
+  it('should not save settings to persistence while a re-read triggered by capability changes is in progress', async () => {
+    // Arrange
+    const initialCapabilities: PlatformCapabilities = {
+      dragRegionProps: {},
+      canInspectDatabase: false,
+      supportedLayouts: ['compact', 'medium', 'full'],
+      defaultLayout: 'compact',
+      supportsTray: true,
+      supportsAlwaysOnTop: true,
+      supportsAutoStart: true,
+      isPwaInstallable: false,
+    };
+
+    localStorage.setItem(
+      'timelog_persistence_plugin_settings',
+      JSON.stringify({
+        theme: 'dark',
+        guiVariant: 'compact',
+        textAndIconSize: 'medium',
+        autoStart: true,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+        alwaysOnTopSmall: true,
+        alwaysOnTopMain: true,
+        minimizeToTray: true,
+      })
+    );
+
+    let currentCapabilities = initialCapabilities;
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PlatformCapabilitiesContext.Provider value={currentCapabilities}>
+        {children}
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    const { result, rerender } = renderHook(() => useAppSettings(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.theme).toBe('dark');
+      expect(result.current.layoutVariant).toBe('compact');
+    });
+
+    let resolveDeferredGet!: (val: AppSettings) => void;
+    const deferredGetPromise = new Promise<AppSettings>((resolve) => {
+      resolveDeferredGet = resolve;
+    });
+
+    const getSpy = vi.spyOn(PersistenceRouter.getInstance().settings, 'get').mockReturnValue(deferredGetPromise);
+    const saveSpy = vi.spyOn(PersistenceRouter.getInstance().settings, 'save');
+
+    const updatedCapabilities: PlatformCapabilities = {
+      ...initialCapabilities,
+      supportedLayouts: ['medium', 'full'],
+      defaultLayout: 'medium',
+    };
+
+    // Act
+    currentCapabilities = updatedCapabilities;
+    rerender();
+
+    await new Promise((r) => setTimeout(r, 30));
+
+    // Assert
+    expect(saveSpy).not.toHaveBeenCalled();
+
+    resolveDeferredGet({
+      theme: 'light',
+      guiVariant: 'medium',
+      textAndIconSize: 'small',
+      autoStart: false,
+      includePatchesInReports: false,
+      activeSinks: ['Csv'],
+      alwaysOnTopSmall: false,
+      alwaysOnTopMain: false,
+      minimizeToTray: false,
+    });
+
+    await waitFor(() => {
+      expect(result.current.theme).toBe('light');
+      expect(result.current.layoutVariant).toBe('medium');
+      expect(result.current.textAndIconSize).toBe('small');
+    });
+
+    getSpy.mockRestore();
+    saveSpy.mockRestore();
+  });
 });

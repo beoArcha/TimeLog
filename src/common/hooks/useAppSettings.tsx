@@ -46,7 +46,14 @@ export const useAppSettings = () => {
   }, [supportedLayouts]);
 
   const layoutsSignature = supportedLayouts.slice().sort().join(',');
+  const currentSignature = `${defaultLayout || ''}|${layoutsSignature}`;
+  const [prevSignature, setPrevSignature] = useState(currentSignature);
   const hasInitializedRef = useRef(false);
+
+  if (prevSignature !== currentSignature) {
+    setPrevSignature(currentSignature);
+    setSettingsLoaded(false);
+  }
 
   useEffect(() => {
     let isCancelled = false;
