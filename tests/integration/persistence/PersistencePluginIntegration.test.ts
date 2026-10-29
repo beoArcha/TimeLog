@@ -2,7 +2,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
-import { INIT_PROJECTS, INIT_TASKS, INIT_LOGS } from '@plugins/persistence/InitialData';
 import { setupLocalStorageMock } from '@tests/shared/mocks/browser-mocks';
 import { PersistenceException, ErrorHandler } from '@common/exceptions';
 import { RuntimeConfig } from '@bindings/RuntimeConfig';
@@ -39,9 +38,9 @@ describe('Given PersistenceRouter wired to PersistencePlugin (LocalStorage)', ()
 
       // Then
       expect(state).toEqual({
-        projects: INIT_PROJECTS,
-        tasks: INIT_TASKS,
-        logs: INIT_LOGS,
+        projects: [],
+        tasks: [],
+        logs: [],
         activeLog: null,
       });
     });

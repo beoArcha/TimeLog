@@ -4,6 +4,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { HolidayLeave } from '@bindings/HolidayLeave';
 import { PatchLog } from '@bindings/PatchLog';
 import { BackupValidationException } from '../exceptions';
+import { migrateLegacyBackup } from './backupMigrator';
 
 export interface BackupPayload {
   version?: number;
@@ -71,44 +72,47 @@ export function validateBackupPayload(raw: unknown): BackupPayload {
     throw new BackupValidationException('Invalid backup payload: expected a JSON object at root level');
   }
 
-  if (raw.version !== undefined && (typeof raw.version !== 'number' || raw.version < 1)) {
+  // Pre-process legacy or variant payloads into canonical structure
+  const normalized = migrateLegacyBackup(raw);
+
+  if (normalized.version !== undefined && (typeof normalized.version !== 'number' || normalized.version < 1)) {
     throw new BackupValidationException('Invalid backup payload: version must be a positive number when provided');
   }
 
-  if (!Array.isArray(raw.projects)) {
+  if (!Array.isArray(normalized.projects)) {
     throw new BackupValidationException("Invalid backup payload: 'projects' must be an array");
   }
 
-  if (!Array.isArray(raw.tasks)) {
+  if (!Array.isArray(normalized.tasks)) {
     throw new BackupValidationException("Invalid backup payload: 'tasks' must be an array");
   }
 
-  if (!Array.isArray(raw.logs)) {
+  if (!Array.isArray(normalized.logs)) {
     throw new BackupValidationException("Invalid backup payload: 'logs' must be an array");
   }
 
-  const projects = raw.projects.map((p, idx) => validateProject(p, idx));
-  const tasks = raw.tasks.map((t, idx) => validateTask(t, idx));
-  const logs = raw.logs.map((l, idx) => validateTimeLog(l, idx));
+  const projects = normalized.projects.map((p, idx) => validateProject(p, idx));
+  const tasks = normalized.tasks.map((t, idx) => validateTask(t, idx));
+  const logs = normalized.logs.map((l, idx) => validateTimeLog(l, idx));
 
   let holidays: HolidayLeave[] | undefined;
-  if (raw.holidays !== undefined) {
-    if (!Array.isArray(raw.holidays)) {
+  if (normalized.holidays !== undefined) {
+    if (!Array.isArray(normalized.holidays)) {
       throw new BackupValidationException("Invalid backup payload: 'holidays' must be an array when provided");
     }
-    holidays = raw.holidays as HolidayLeave[];
+    holidays = normalized.holidays as HolidayLeave[];
   }
 
   let patches: PatchLog[] | undefined;
-  if (raw.patches !== undefined) {
-    if (!Array.isArray(raw.patches)) {
+  if (normalized.patches !== undefined) {
+    if (!Array.isArray(normalized.patches)) {
       throw new BackupValidationException("Invalid backup payload: 'patches' must be an array when provided");
     }
-    patches = raw.patches as PatchLog[];
+    patches = normalized.patches as PatchLog[];
   }
 
   return {
-    version: typeof raw.version === 'number' ? raw.version : 1,
+    version: typeof normalized.version === 'number' ? normalized.version : 1,
     projects,
     tasks,
     logs,

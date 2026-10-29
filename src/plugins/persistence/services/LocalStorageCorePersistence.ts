@@ -1,5 +1,6 @@
 import { ICorePersistence } from '@common/persistence/IPersistence';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+import { StorageDomain, StorageResetScope } from '@common/constants/storage-keys';
 import { ILocalStorageStateStore } from './LocalStorageStateStore';
 
 export class LocalStorageCorePersistence implements ICorePersistence {
@@ -21,7 +22,7 @@ export class LocalStorageCorePersistence implements ICorePersistence {
     return this.store.save(newState);
   }
 
-  async reset(): Promise<TimerRepositoryState> {
-    return this.store.reset();
+  async reset(scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState> {
+    return this.store.reset(scope);
   }
 }

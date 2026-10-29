@@ -9,6 +9,7 @@ import { PatchLog } from '@bindings/PatchLog';
 import { ExternalApiSettings } from '@bindings/ExternalApiSettings';
 import { WebhookQueueItem } from '@bindings/WebhookQueueItem';
 import { WebhookQueueStats } from '@bindings/WebhookQueueStats';
+import { StorageDomain, StorageResetScope } from '@common/constants/storage-keys';
 
 export type ApiPayload = {
   event: string;
@@ -33,7 +34,7 @@ export interface IWebhookQueuePersistence {
 export interface ICorePersistence {
   load(): Promise<TimerRepositoryState | null>;
   overrideState(state: Partial<TimerRepositoryState>): Promise<TimerRepositoryState>;
-  reset(): Promise<TimerRepositoryState>;
+  reset(scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState>;
 }
 
 export interface IProjectsPersistence {
@@ -143,4 +144,3 @@ export interface IPersistence {
   locale: ILocalePersistence;
   webhookQueue: IWebhookQueuePersistence;
 }
-
