@@ -1,7 +1,6 @@
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
-import { STORAGE_KEYS } from '@common/constants/storage-keys';
-import { INIT_PROJECTS, INIT_TASKS, INIT_LOGS, DEFAULT_HOLIDAYS } from '../InitialData';
+import { STORAGE_KEYS, DOMAIN_STORAGE_KEYS } from '@common/constants/storage-keys';
 
 export const getDefaultState = (): TimerRepositoryState => ({
   projects: [],
@@ -23,15 +22,9 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
   async load(): Promise<TimerRepositoryState | null> {
     const data = localStorage.getItem(STORAGE_KEYS.STORAGE_KEY);
     if (!data) {
-      localStorage.setItem(STORAGE_KEYS.HOLIDAYS_KEY, JSON.stringify(DEFAULT_HOLIDAYS));
-      const seedState: TimerRepositoryState = {
-        projects: INIT_PROJECTS,
-        tasks: INIT_TASKS,
-        logs: INIT_LOGS,
-        activeLog: null,
-      };
-      await this.save(seedState);
-      return seedState;
+      const cleanState = getDefaultState();
+      await this.save(cleanState);
+      return cleanState;
     }
 
     try {
@@ -72,10 +65,11 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
 
   async reset(): Promise<TimerRepositoryState> {
     this.isCorrupted = false;
-    localStorage.removeItem(STORAGE_KEYS.STORAGE_KEY);
+    for (const key of DOMAIN_STORAGE_KEYS.BUSINESS) {
+      localStorage.removeItem(key);
+    }
     localStorage.removeItem(STORAGE_KEYS.SETTINGS_KEY);
     localStorage.removeItem(STORAGE_KEYS.RUN_CONFIGS_KEY);
-    localStorage.removeItem(STORAGE_KEYS.HOLIDAYS_KEY);
     return getDefaultState();
   }
 

@@ -12,15 +12,16 @@ describe('LocalStorageStateStore', () => {
     store = new LocalStorageStateStore();
   });
 
-  it('should seed default data on first load when storage is empty', async () => {
+  it('should return clean empty state on first load when storage is empty', async () => {
     // Act
     const result = await store.load();
 
     // Assert
     expect(result).not.toBeNull();
-    expect(result?.projects.length).toBeGreaterThan(0);
-    expect(localStorage.getItem(STORAGE_KEYS.STORAGE_KEY)).not.toBeNull();
-    expect(localStorage.getItem(STORAGE_KEYS.HOLIDAYS_KEY)).not.toBeNull();
+    expect(result?.projects).toHaveLength(0);
+    expect(result?.tasks).toHaveLength(0);
+    expect(result?.logs).toHaveLength(0);
+    expect(result?.activeLog).toBeNull();
   });
 
   it('should return parsed state from storage when data exists', async () => {
