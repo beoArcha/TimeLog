@@ -4,6 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import EngineConfig from '@/src/features/settings/components/EngineConfig';
 import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
 describe('EngineConfig', () => {
   afterEach(() => {
@@ -11,11 +12,14 @@ describe('EngineConfig', () => {
     vi.restoreAllMocks();
   });
 
-  const renderEngineConfig = (overrides: Partial<OxyFlowState> = {}) => {
+  const renderEngineConfig = (
+    overrides: Partial<OxyFlowState> = {},
+    capabilitiesOverrides: Partial<PlatformCapabilities> = {}
+  ) => {
     const baseState = getMockOxyFlowState();
     const state = { ...baseState, ...overrides };
     return render(
-      <MockProviders state={state}>
+      <MockProviders state={state} capabilitiesState={capabilitiesOverrides}>
         <EngineConfig />
       </MockProviders>
     );
@@ -34,6 +38,23 @@ describe('EngineConfig', () => {
     expect(checkboxes.length).toBe(6);
   });
 
+  it('should render only universal settings and omit desktop-only checkboxes in web runtime capabilities', () => {
+    // Arrange
+    const { getByTestId } = renderEngineConfig({}, {
+      supportsAutoStart: false,
+      supportsTray: false,
+      supportsAlwaysOnTop: false,
+    });
+    const trigger = getByTestId('collapsible-trigger-engine-settings');
+
+    // Act
+    fireEvent.click(trigger);
+
+    // Assert
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes.length).toBe(2);
+  });
+
   it('should trigger setSysSettings when autoStart checkbox is toggled', () => {
     // Arrange
     const setSysSettingsSpy = vi.fn();
@@ -48,7 +69,7 @@ describe('EngineConfig', () => {
     expect(setSysSettingsSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should trigger setSysSettings when includePatchesInReports checkbox is toggled', () => {
+  it('should trigger setIncludePatchesInReports when includePatchesInReports checkbox is toggled', () => {
     // Arrange
     const setSysSettingsSpy = vi.fn();
     const { getByTestId } = renderEngineConfig({ setSysSettings: setSysSettingsSpy });

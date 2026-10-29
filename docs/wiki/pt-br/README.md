@@ -4,7 +4,9 @@
 
 ---
 
-oXyFlow é um aplicativo desktop para controle de tempo de trabalho e rastreamento de tarefas, desenvolvido com Tauri v2, Rust e um banco de dados local SQLite. Funciona de modo 100% offline e inclui uma interface de linha de comando sincronizada (`oxy`) para automação via terminal e scripts.
+oXyFlow é um aplicativo local de controle de tempo e rastreamento de tarefas, disponível como aplicação nativa para desktop (Tauri v2, Rust, SQLite) acompanhada pelo utilitário CLI (`oxy`), bem como uma **aplicação Web e Progressive Web App (PWA)** hospedada diretamente no GitHub Pages.
+
+> 🚀 **Aplicativo Web ao Vivo**: Inicie o oXyFlow imediatamente no seu navegador ou instale com capacidade offline em **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
 
 ---
 
@@ -14,23 +16,26 @@ oXyFlow é um aplicativo desktop para controle de tempo de trabalho e rastreamen
 ┌────────────────────────────────────────────────────────┐
 │                   React 19 + Vite UI                   │
 │         (Tailwind CSS, Base UI, Tokens Semânticos)     │
-└───────────────────────────┬────────────────────────────┘
-                            │ Tauri IPC (Comandos)
-┌───────────────────────────▼────────────────────────────┐
-│                    Motor de Referência Rust            │
-│  - Ciclo de vida do timer & regras de sobreposição     │
-│  - Repositórios SQLite & migrações de esquema          │
-│  - Sinks em tempo real (CSV & webhooks HTTP)           │
-└───────────────────────────┬────────────────────────────┘
-                            │ Ponte CLI
-┌───────────────────────────▼────────────────────────────┐
-│                  Binário Nativo CLI (`oxy`)            │
-└────────────────────────────────────────────────────────┘
+└──────────────────────────┬─────────────────────────────┘
+                           │
+         ┌─────────────────┴─────────────────┐
+         │                                   │
+         ▼ (Ambiente Desktop)                ▼ (Ambiente Web / PWA)
+┌─────────────────────────────┐     ┌─────────────────────────────┐
+│    Tauri IPC (Comandos)     │     │    Armazenamento Navegador  │
+│  - Motor nativo em Rust     │     │  - Plugin localStorage      │
+│  - Banco de dados SQLite    │     │  - Service Worker PWA       │
+│  - Sinks em tempo real      │     │  - Funcionamento 100% offline│
+└──────────────┬──────────────┘     └─────────────────────────────┘
+               │ Ponte CLI
+┌──────────────▼──────────────┐
+│  Binário Nativo CLI (`oxy`) │
+└─────────────────────────────┘
 ```
 
-- **Armazenamento Local**: Todos os registros são salvos em um banco de dados local SQLite (`oxytime.db`). Sem dependências de nuvem, telemetria ou login obrigatório.
+- **Armazenamento Local**: No desktop, os dados ficam no SQLite local (`oxytime.db`), e na versão Web/PWA no `localStorage` privado do navegador. Sem telemetria nem contas obrigatórias.
 - **Triplo Desacoplamento (Triple Decoupling)**: Separação estrita entre a interface de usuário, as regras do motor de domínio e os drivers de armazenamento.
-- **Interfaces Duplas**: Aplicativo desktop com três densidades visuais (Compacto, Médio, Completo) e CLI de terminal sincronizado (`oxy`).
+- **Multiplataforma**: Aplicativo desktop (Compacto, Médio, Completo), terminal sincronizado (`oxy`) e versão Web/PWA instantânea.
 
 ---
 
@@ -38,7 +43,7 @@ oXyFlow é um aplicativo desktop para controle de tempo de trabalho e rastreamen
 
 ### Guia do Usuário
 
-- **[Primeiros Passos](getting-started.md)**: Instalação, configuração inicial e criação de projetos e tarefas.
+- **[Primeiros Passos](getting-started.md)**: Acesso Web, instalação no desktop, configuração inicial e criação de projetos e tarefas.
 - **[Uso do Temporizador](timer.md)**: Controle do timer, alternância atômica de tarefas, edição de registros e regras temporais.
 - **[CLI Básico (`oxy`)](cli.md)**: Sintaxe de comandos no PowerShell, Bash ou Zsh.
 - **[Interface e Temas](interface.md)**: Variantes de layout, temas semânticos integrados e escalas visuais.
@@ -53,15 +58,16 @@ oXyFlow é um aplicativo desktop para controle de tempo de trabalho e rastreamen
 
 ---
 
-## Pacotes Oficiais
+## Pacotes Oficiais e Implantações
 
-| Sistema Operacional | Tipo de Pacote | Arquitetura |
-| :--- | :--- | :--- |
-| **Windows** | Instalador Setup (`.exe`) | x86_64 |
-| **Windows** | Executável Portátil (`.exe`) | x86_64 |
-| **macOS** | Disco Universal (`.dmg`) | Universal (Apple Silicon M1–M4 & Intel x86_64) |
-| **Linux** | AppImage (`.AppImage`) | x86_64 |
-| **Linux (Debian / Ubuntu)** | Pacote DEB (`.deb`) | amd64 |
-| **Linux (RHEL / Fedora)** | Pacote RPM (`.rpm`) | x86_64 |
+| Plataforma | Tipo de Pacote / Implantação | Arquitetura | Link / Instruções |
+| :--- | :--- | :--- | :--- |
+| **Web & PWA** | Aplicação Web (Sem instalação) | Navegadores Modernos | [Abrir Aplicação Web](https://beoarcha.github.io/TimeLog/app/) |
+| **Windows** | Instalador Setup (`.exe`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Windows** | Executável Portátil (`.exe`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **macOS** | Disco Universal (`.dmg`) | Universal (Apple Silicon M1–M4 & Intel x86_64) | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux** | AppImage (`.AppImage`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux (Debian / Ubuntu)** | Pacote DEB (`.deb`) | amd64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux (RHEL / Fedora)** | Pacote RPM (`.rpm`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
 
 Os arquivos binários e as somas de verificação criptográficas (`SHA256SUMS.txt`) estão disponíveis na [página de versões do GitHub](https://github.com/beoArcha/TimeLog/releases/latest).

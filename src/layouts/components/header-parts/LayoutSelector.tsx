@@ -3,6 +3,7 @@ import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { SegmentedControl, type SegmentedControlOption } from '@components/SegmentedControl';
 import type { LayoutVariant } from '@bindings/LayoutVariant';
 
@@ -22,8 +23,13 @@ export const LayoutSelector: React.FC = () => {
   const { locale, customTranslations } = useLocale();
   const { layoutVariant, setLayoutVariant } = useSettings();
   const { showToast } = useWindowShell();
+  const { supportedLayouts } = usePlatformCapabilities();
 
-  const options: SegmentedControlOption<LayoutVariant>[] = (['compact', 'medium', 'full'] as const).map(sz => {
+  const availableSizes = (['compact', 'medium', 'full'] as const).filter((sz) =>
+    supportedLayouts.includes(sz)
+  );
+
+  const options: SegmentedControlOption<LayoutVariant>[] = availableSizes.map((sz) => {
     const fullLabel = translate(locale, 'app', LAYOUT_KEY_MAP[sz], customTranslations);
     return {
       value: sz,
@@ -55,4 +61,3 @@ export const LayoutSelector: React.FC = () => {
     />
   );
 };
-

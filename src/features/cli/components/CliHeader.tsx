@@ -4,7 +4,7 @@ import { Badge } from '@components/ui/badge';
 import { SegmentedControl, type SegmentedControlOption } from '@components/SegmentedControl';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
-import versionsData from '@app/versions.json';
+import metadata from '@/metadata.json';
 
 export interface CliHeaderProps {
   version?: string;
@@ -13,7 +13,7 @@ export interface CliHeaderProps {
 }
 
 export const CliHeader: React.FC<CliHeaderProps> = ({
-  version = `${versionsData.major}.${versionsData.minor}.${versionsData.release}`,
+  version = metadata.version,
   isSandbox = false,
   onToggleSandbox,
 }) => {

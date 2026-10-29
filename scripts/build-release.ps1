@@ -119,7 +119,7 @@ if ($Bundle -eq "none") {
     & cargo build --release --manifest-path src-tauri/Cargo.toml
 } elseif ($Bundle -eq "standalone") {
     Write-Host "Building standalone release executable..."
-    & cargo build --release --manifest-path src-tauri/Cargo.toml --bin oxy-flow
+    & cargo build --release --manifest-path src-tauri/Cargo.toml --bin timelog
 } elseif ($Bundle -eq "nsis") {
     Write-Host "Building NSIS installer package via Tauri..."
     & bun x tauri build --bundles nsis

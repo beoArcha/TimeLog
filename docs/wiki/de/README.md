@@ -4,7 +4,9 @@
 
 ---
 
-oXyFlow ist eine Desktop-Anwendung zur Arbeitszeiterfassung und Aufgabenverwaltung, entwickelt mit Tauri v2, Rust und einer lokalen SQLite-Datenbank. Die Anwendung arbeitet vollständig offline und bietet ein synchronisiertes Terminal-CLI (`oxy`) für die Shell-Automatisierung.
+oXyFlow ist eine lokale Arbeitszeiterfassungs- und Aufgabenverwaltungsanwendung, verfügbar als native Desktop-Anwendung (Tauri v2, Rust, SQLite) mit integriertem CLI-Begleiter (`oxy`), sowie als eigenständige **Webanwendung und Progressive Web App (PWA)**, die direkt über GitHub Pages bereitgestellt wird.
+
+> 🚀 **Live-Web-App**: Starten Sie oXyFlow direkt im Browser oder installieren Sie die App offlinefähig unter **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
 
 ---
 
@@ -14,23 +16,26 @@ oXyFlow ist eine Desktop-Anwendung zur Arbeitszeiterfassung und Aufgabenverwaltu
 ┌────────────────────────────────────────────────────────┐
 │                   React 19 + Vite UI                   │
 │        (Tailwind CSS, Base UI, Semantische Token)      │
-└───────────────────────────┬────────────────────────────┘
-                            │ Tauri IPC (Befehle)
-┌───────────────────────────▼────────────────────────────┐
-│                    Rust Referenz-Engine                │
-│  - Timer-Lebenszyklus & Überlappungsinvarianten        │
-│  - SQLite-Repositories & Migrationen                   │
-│  - Echtzeit-Sinks (CSV, HTTP-Webhooks)                 │
-└───────────────────────────┬────────────────────────────┘
-                            │ CLI-Brücke
-┌───────────────────────────▼────────────────────────────┐
-│                Natives CLI-Binary (`oxy`)              │
-└────────────────────────────────────────────────────────┘
+└──────────────────────────┬─────────────────────────────┘
+                           │
+         ┌─────────────────┴─────────────────┐
+         │                                   │
+         ▼ (Desktop-Laufzeit)                ▼ (Web- / PWA-Laufzeit)
+┌─────────────────────────────┐     ┌─────────────────────────────┐
+│    Tauri IPC (Befehle)      │     │      Browser-Speicher       │
+│  - Native Rust-Engine       │     │  - localStorage Plugin      │
+│  - SQLite-Datenbank         │     │  - PWA Service Worker       │
+│  - Echtzeit-Sinks           │     │  - 100% Offline-Betrieb     │
+└──────────────┬──────────────┘     └─────────────────────────────┘
+               │ CLI-Brücke
+┌──────────────▼──────────────┐
+│   Natives CLI-Binary (`oxy`)│
+└─────────────────────────────┘
 ```
 
-- **Lokale Datenbank**: Sämtliche Einträge werden in einer lokalen SQLite-Datei (`oxytime.db`) gespeichert. Keine Cloud-Zwangsanbindung oder Telemetrie.
+- **Lokale Datenbank**: Desktop-Einträge verbleiben in der lokalen SQLite-Datei (`oxytime.db`), Web/PWA-Einträge im privaten `localStorage` des Browsers. Keine Telemetrie oder Kontozwang.
 - **Dreifache Entkopplung (Triple Decoupling)**: Vollständige Trennung von Benutzeroberfläche, Engine-Regeln und Datenhaltung.
-- **Duale Schnittstellen**: Desktop-Anwendung mit drei Layout-Dichten (Kompakt, Mittel, Voll) und synchronisiertes Terminal-CLI (`oxy`).
+- **Flexible Laufzeitumgebungen**: Desktop-App (Kompakt, Mittel, Voll), synchronisiertes Terminal-CLI (`oxy`) und sofortige Web/PWA-Verfügbarkeit.
 
 ---
 
@@ -38,7 +43,7 @@ oXyFlow ist eine Desktop-Anwendung zur Arbeitszeiterfassung und Aufgabenverwaltu
 
 ### Benutzerhandbuch
 
-- **[Erste Schritte](getting-started.md)**: Installation, Einrichtung und Erstellung des ersten Projekts und Tasks.
+- **[Erste Schritte](getting-started.md)**: Web-Zugriff, Desktop-Installation, Einrichtung und Erstellung des ersten Projekts und Tasks.
 - **[Timer-Grundlagen](timer.md)**: Timer-Bedienung, atomares Aufgabenwechseln, Eintragsanpassung und Validierung.
 - **[Basis-CLI (`oxy`)](cli.md)**: Terminalbefehle zum Starten, Stoppen, Auflisten und Verwalten von Tasks.
 - **[Benutzeroberfläche & Designs](interface.md)**: Layout-Varianten, integrierte semantische Themes und Skalierung.
@@ -53,15 +58,16 @@ oXyFlow ist eine Desktop-Anwendung zur Arbeitszeiterfassung und Aufgabenverwaltu
 
 ---
 
-## Offizielle Pakete
+## Offizielle Pakete & Bereitstellung
 
-| Betriebssystem | Pakettyp | Zielarchitektur |
-| :--- | :--- | :--- |
-| **Windows** | Setup-Installer (`.exe`) | x86_64 |
-| **Windows** | Portable Executable (`.exe`) | x86_64 |
-| **macOS** | Universal DMG (`.dmg`) | Universal (Apple Silicon M1–M4 & Intel x86_64) |
-| **Linux** | AppImage (`.AppImage`) | x86_64 |
-| **Linux (Debian / Ubuntu)** | DEB-Paket (`.deb`) | amd64 |
-| **Linux (RHEL / Fedora)** | RPM-Paket (`.rpm`) | x86_64 |
+| Plattform | Bereitstellung / Pakettyp | Zielarchitektur | Link / Anleitung |
+| :--- | :--- | :--- | :--- |
+| **Web & PWA** | Webanwendung (ohne Installation) | Moderne Webbrowser | [Web-App öffnen](https://beoarcha.github.io/TimeLog/app/) |
+| **Windows** | Setup-Installer (`.exe`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Windows** | Portable Executable (`.exe`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **macOS** | Universal DMG (`.dmg`) | Universal (Apple Silicon M1–M4 & Intel x86_64) | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux** | AppImage (`.AppImage`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux (Debian / Ubuntu)** | DEB-Paket (`.deb`) | amd64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux (RHEL / Fedora)** | RPM-Paket (`.rpm`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
 
 Binärdateien und kryptografische Prüfsummen (`SHA256SUMS.txt`) stehen auf der [GitHub Releases-Seite](https://github.com/beoArcha/TimeLog/releases/latest) bereit.

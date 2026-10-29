@@ -7,12 +7,14 @@ import { Caption } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
 /**
  * Settings panel for engine and system daemon options.
  */
 export default function EngineConfig() {
   const { locale, customTranslations } = useLocale();
+  const { supportsTray, supportsAlwaysOnTop, supportsAutoStart } = usePlatformCapabilities();
   const {
     minimizeToTray,
     setMinimizeToTray,
@@ -30,6 +32,8 @@ export default function EngineConfig() {
     setSysSettings((prev) => ({ ...prev, [key]: value }));
   };
 
+  const hasDesktopOptions = supportsTray || supportsAlwaysOnTop || supportsAutoStart;
+
   return (
     <CollapsibleCard
       title={translate(locale, 'engine', 'ConfigTitle', customTranslations)}
@@ -44,15 +48,17 @@ export default function EngineConfig() {
         </Caption>
 
         <div className="flex flex-col gap-4">
-          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
-            <Checkbox
-              checked={sysSettings?.autoStart}
-              onCheckedChange={(checked) => updateSetting('autoStart', !!checked)}
-            />
-            <Caption as="span" size="xs">
-              {translate(locale, 'engine', 'AutoStart', customTranslations)}
-            </Caption>
-          </Label>
+          {supportsAutoStart && (
+            <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+              <Checkbox
+                checked={sysSettings?.autoStart}
+                onCheckedChange={(checked) => updateSetting('autoStart', !!checked)}
+              />
+              <Caption as="span" size="xs">
+                {translate(locale, 'engine', 'AutoStart', customTranslations)}
+              </Caption>
+            </Label>
+          )}
 
           <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
             <Checkbox
@@ -74,35 +80,45 @@ export default function EngineConfig() {
             </Caption>
           </Label>
 
-          <Label className="flex items-center gap-2 cursor-pointer w-fit mt-2 border-t border-border pt-4 font-normal">
-            <Checkbox
-              checked={minimizeToTray}
-              onCheckedChange={(checked) => setMinimizeToTray(!!checked)}
-            />
-            <Caption as="span" size="xs">
-              {translate(locale, 'engine', 'MinimizeToTrayDefault', customTranslations)}
-            </Caption>
-          </Label>
+          {hasDesktopOptions && (
+            <div className="flex flex-col gap-4 mt-2 border-t border-border pt-4">
+              {supportsTray && (
+                <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+                  <Checkbox
+                    checked={minimizeToTray}
+                    onCheckedChange={(checked) => setMinimizeToTray(!!checked)}
+                  />
+                  <Caption as="span" size="xs">
+                    {translate(locale, 'engine', 'MinimizeToTrayDefault', customTranslations)}
+                  </Caption>
+                </Label>
+              )}
 
-          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
-            <Checkbox
-              checked={alwaysOnTopSmall}
-              onCheckedChange={(checked) => setAlwaysOnTopSmall(!!checked)}
-            />
-            <Caption as="span" size="xs">
-              {translate(locale, 'engine', 'AlwaysOnTopSmall', customTranslations)}
-            </Caption>
-          </Label>
+              {supportsAlwaysOnTop && (
+                <>
+                  <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+                    <Checkbox
+                      checked={alwaysOnTopSmall}
+                      onCheckedChange={(checked) => setAlwaysOnTopSmall(!!checked)}
+                    />
+                    <Caption as="span" size="xs">
+                      {translate(locale, 'engine', 'AlwaysOnTopSmall', customTranslations)}
+                    </Caption>
+                  </Label>
 
-          <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
-            <Checkbox
-              checked={alwaysOnTopMain}
-              onCheckedChange={(checked) => setAlwaysOnTopMain(!!checked)}
-            />
-            <Caption as="span" size="xs">
-              {translate(locale, 'engine', 'AlwaysOnTopMain', customTranslations)}
-            </Caption>
-          </Label>
+                  <Label className="flex items-center gap-2 cursor-pointer w-fit font-normal">
+                    <Checkbox
+                      checked={alwaysOnTopMain}
+                      onCheckedChange={(checked) => setAlwaysOnTopMain(!!checked)}
+                    />
+                    <Caption as="span" size="xs">
+                      {translate(locale, 'engine', 'AlwaysOnTopMain', customTranslations)}
+                    </Caption>
+                  </Label>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </CollapsibleCard>

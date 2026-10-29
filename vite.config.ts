@@ -2,14 +2,55 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { resolveDevServerConfig } from './config/devServer.ts';
 
 export default defineConfig(() => {
   const devConfig = resolveDevServerConfig();
+  const base = process.env.VITE_BASE_URL || '/';
 
   return {
-    plugins: [react(), tailwindcss(), tsconfigPaths()],
+    base,
+    plugins: [
+      react(),
+      tailwindcss(),
+      tsconfigPaths(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'icons/*.png'],
+        manifest: {
+          name: 'LogTime by OxyFlow',
+          short_name: 'TimeLog',
+          description: 'Lightweight, local-first work timer and task tracker',
+          theme_color: '#090d16',
+          background_color: '#090d16',
+          display: 'standalone',
+          orientation: 'any',
+          icons: [
+            {
+              src: 'icons/icon-192.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: 'icons/icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+            },
+            {
+              src: 'icons/icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+          ],
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        },
+      }),
+    ],
 
     server: {
       host: devConfig.host,

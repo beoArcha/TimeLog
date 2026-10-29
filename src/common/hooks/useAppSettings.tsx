@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Settings as AppSettings } from '@bindings/Settings';
 import { LayoutVariant } from '@bindings/LayoutVariant';
 import { TextAndIconSize } from '@bindings/TextAndIconSize';
@@ -8,33 +8,70 @@ import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { ThemeRegistry } from '@/src/styles/themeRegistry';
 import { LAYOUT_VARIANTS, isCompactLayout } from '@common/constants/layoutVariants';
 import { AppTabId } from '@common/types/navigation';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { toast } from 'sonner';
 
 export const useAppSettings = () => {
+  const { supportedLayouts, defaultLayout } = usePlatformCapabilities();
   const [theme, setTheme] = useState<ThemePreference>('system');
   const [textAndIconSize, setTextAndIconSize] = useState<TextAndIconSize>('medium');
-  const [layoutVariant, setLayoutVariant] = useState<LayoutVariant>(LAYOUT_VARIANTS.FULL);
+  const [storedLayoutVariant, setStoredLayoutVariant] = useState<LayoutVariant>(
+    defaultLayout || LAYOUT_VARIANTS.FULL
+  );
   const [alwaysOnTopSmall, setAlwaysOnTopSmall] = useState<boolean>(false);
   const [alwaysOnTopMain, setAlwaysOnTopMain] = useState<boolean>(false);
   const [minimizeToTray, setMinimizeToTray] = useState<boolean>(true);
-  const [sysSettings, setSysSettings] = useState<AppSettings>({ autoStart: false, includePatchesInReports: true, activeSinks: ['Csv'] });
-
+  const [sysSettings, setSysSettings] = useState<AppSettings>({
+    autoStart: false,
+    includePatchesInReports: true,
+    activeSinks: ['Csv'],
+  });
 
   const [settingsLoaded, setSettingsLoaded] = useState(false);
-  const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(LAYOUT_VARIANTS.FULL);
+  const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(
+    LAYOUT_VARIANTS.FULL
+  );
   const [activeLargeTab, setActiveLargeTab] = useState<AppTabId>('tasks');
   const [isCompactExpanded, setIsCompactExpanded] = useState<boolean>(true);
   const [currentProjectId, setCurrentProjectId] = useState<string>('');
 
+  const effectiveLayoutVariant: LayoutVariant = supportedLayouts.includes(storedLayoutVariant)
+    ? storedLayoutVariant
+    : (defaultLayout || LAYOUT_VARIANTS.FULL);
+
+  const setLayoutVariant = useCallback((variant: LayoutVariant) => {
+    if (supportedLayouts.includes(variant)) {
+      setStoredLayoutVariant(variant);
+    }
+  }, [supportedLayouts]);
+
+  const layoutsSignature = supportedLayouts.slice().sort().join(',');
+  const currentSignature = `${defaultLayout || ''}|${layoutsSignature}`;
+  const [prevSignature, setPrevSignature] = useState(currentSignature);
+  const hasInitializedRef = useRef(false);
+
+  if (prevSignature !== currentSignature) {
+    setPrevSignature(currentSignature);
+    setSettingsLoaded(false);
+  }
+
   useEffect(() => {
+    let isCancelled = false;
+
     Promise.all([
       PersistenceRouter.getInstance().settings.get(),
       PersistenceRouter.getInstance().uiState.getCurrentProjectId(),
       PersistenceRouter.getInstance().uiState.getLastNonCompactVariant(),
     ]).then(([loaded, currentProj, lastNonCompact]) => {
+      if (isCancelled) return;
+
       setTheme((loaded.theme as ThemePreference) || 'system');
       setTextAndIconSize((loaded.textAndIconSize as TextAndIconSize) || 'medium');
-      setLayoutVariant((loaded.guiVariant as LayoutVariant) || LAYOUT_VARIANTS.FULL);
+      const rawVariant = (loaded.guiVariant as LayoutVariant) || defaultLayout || LAYOUT_VARIANTS.FULL;
+      const initialVariant = supportedLayouts.includes(rawVariant)
+        ? rawVariant
+        : (defaultLayout || LAYOUT_VARIANTS.FULL);
+      setStoredLayoutVariant(initialVariant);
       setAlwaysOnTopSmall(loaded.alwaysOnTopSmall ?? false);
       setAlwaysOnTopMain(loaded.alwaysOnTopMain ?? false);
       setMinimizeToTray(loaded.minimizeToTray ?? true);
@@ -46,11 +83,17 @@ export const useAppSettings = () => {
       if (currentProj) setCurrentProjectId(currentProj);
       if (lastNonCompact) setLastNonCompactVariant(lastNonCompact as Exclude<LayoutVariant, 'compact'>);
       setSettingsLoaded(true);
+      hasInitializedRef.current = true;
     }).catch(err => {
+      if (isCancelled) return;
       ErrorHandler.handle(err);
       setSettingsLoaded(true);
     });
-  }, []);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [defaultLayout, layoutsSignature, supportedLayouts]);
 
   const [systemTheme, setSystemTheme] = useState<Theme>(() =>
     window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
@@ -72,8 +115,8 @@ export const useAppSettings = () => {
     ThemeRegistry.getInstance().applyTheme(resolvedTheme);
   }, [resolvedTheme]);
 
-  if (!isCompactLayout(layoutVariant) && layoutVariant !== lastNonCompactVariant) {
-    setLastNonCompactVariant(layoutVariant);
+  if (!isCompactLayout(effectiveLayoutVariant) && effectiveLayoutVariant !== lastNonCompactVariant) {
+    setLastNonCompactVariant(effectiveLayoutVariant as Exclude<LayoutVariant, 'compact'>);
   }
 
   useEffect(() => {
@@ -91,7 +134,7 @@ export const useAppSettings = () => {
         activeSinks: sysSettings.activeSinks || ['Csv'],
         theme: theme,
         textAndIconSize: textAndIconSize,
-        guiVariant: layoutVariant,
+        guiVariant: effectiveLayoutVariant,
         alwaysOnTopSmall: alwaysOnTopSmall,
         alwaysOnTopMain: alwaysOnTopMain,
         minimizeToTray: minimizeToTray,
@@ -107,12 +150,11 @@ export const useAppSettings = () => {
     sysSettings,
     theme,
     textAndIconSize,
-    layoutVariant,
+    effectiveLayoutVariant,
     alwaysOnTopSmall,
     alwaysOnTopMain,
     minimizeToTray,
   ]);
-
 
   useEffect(() => {
     if (settingsLoaded && currentProjectId) {
@@ -136,7 +178,7 @@ export const useAppSettings = () => {
     textAndIconSize, setTextAndIconSize,
     resolvedTheme, setResolvedTheme,
     sysSettings, setSysSettings,
-    layoutVariant, setLayoutVariant,
+    layoutVariant: effectiveLayoutVariant, setLayoutVariant,
     lastNonCompactVariant, setLastNonCompactVariant,
     alwaysOnTopSmall, setAlwaysOnTopSmall,
     alwaysOnTopMain, setAlwaysOnTopMain,

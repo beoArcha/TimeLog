@@ -4,11 +4,21 @@
 
 ---
 
-Este guia orienta você na instalação do oXyFlow, na preparação do ambiente e no registro de sua primeira sessão de tempo.
+Este guia orienta você no acesso ao oXyFlow via Web / PWA ou na instalação do aplicativo desktop, na preparação do ambiente e no registro de sua primeira sessão de tempo.
 
 ---
 
-## Instalação
+## Aplicação Web e PWA (Sem Instalação)
+
+Você pode usar o oXyFlow imediatamente sem a necessidade de baixar instaladores:
+
+1. Acesse **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)** em qualquer navegador moderno (Chrome, Edge, Firefox, Safari).
+2. Todo o timer e os dados operam e persistem 100% localmente no armazenamento privado do navegador.
+3. **Instalação como PWA**: Em navegadores compatíveis, clique em **Instalar aplicativo** na barra de endereços para instalar o oXyFlow como um aplicativo independente com suporte offline no seu computador ou celular.
+
+---
+
+## Instalação no Desktop
 
 Baixe o pacote apropriado para seu sistema operacional na [página de versões do GitHub](https://github.com/beoArcha/TimeLog/releases/latest):
 
@@ -41,24 +51,24 @@ oxy --version
 
 ## Criando um Projeto e uma Tarefa
 
-1. Abra o **oXyFlow**.
+1. Abra o **oXyFlow** (versão desktop ou web).
 2. Clique no botão **"+ Novo Projeto"** na barra lateral.
 3. Digite o nome do projeto (ex.: `Portal do Cliente`) e selecione uma cor de identificação. Clique em **Salvar**.
 4. Dentro do projeto criado, clique em **"+ Adicionar tarefa"**. Digite o título (ex.: `Implementação da API`) e pressione **Enter**.
 
 ---
 
-## Monitorando o Tempo
+## Registro de Tempo
 
-- Clique no botão **Iniciar (▶)** ao lado da tarefa para começar o temporizador imediatamente.
-- A barra de status superior destacará a tarefa em execução e exibirá o tempo decorrido em tempo real.
-- Clique em **Parar (■)** para encerrar a sessão de trabalho.
-- Clicar em Iniciar em outra tarefa encerra a sessão ativa anterior e abre a nova em uma única transação atômica (`switch`).
+- Clique no botão **Iniciar (▶)** ao lado da tarefa para iniciar o cronômetro.
+- A barra de status destacará a tarefa ativa com a contagem de tempo em tempo real.
+- Clique em **Pausar (⏸)** ou **Parar (■)** para encerrar a sessão.
+- Iniciar outra tarefa interrompe automaticamente a anterior em uma transação atômica.
 
 ---
 
 ## Próximos Passos
 
-- **[Uso do Temporizador](timer.md)**: Regras de sobreposição, ajuste de registros e relatórios diários.
-- **[CLI Básico (`oxy`)](cli.md)**: Controle completo via terminal.
-- **[Interface e Temas](interface.md)**: Variantes de layout e personalização de cores.
+- **[Uso do Temporizador](timer.md)**: Ajustes manuais, regras de sobreposição e histórico.
+- **[CLI Básico (`oxy`)](cli.md)**: Operação do timer pelo terminal PowerShell ou Bash.
+- **[Interface e Temas](interface.md)**: Personalização de densidades visuais e temas de cores.

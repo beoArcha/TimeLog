@@ -98,7 +98,7 @@ jobs:
             windows-latest)
               copy "*/bundle/nsis/*.exe"
 
-              EXE_PATH=$(find src-tauri/target -maxdepth 4 -type f \( -name "OxyFlow.exe" -o -name "oxy-flow.exe" \) | head -n 1)
+              EXE_PATH=$(find src-tauri/target -maxdepth 4 -type f \( -name "TimeLog.exe" -o -name "timelog.exe" -o -name "OxyFlow.exe" -o -name "oxy-flow.exe" \) | head -n 1)
               if [ -n "$EXE_PATH" ]; then
                 cp "$EXE_PATH" "$ARTIFACT_DIR/OxyFlow-Standalone-x64-v${APP_VERSION}.exe"
               else

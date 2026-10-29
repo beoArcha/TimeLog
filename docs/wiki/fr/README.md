@@ -4,7 +4,9 @@
 
 ---
 
-oXyFlow est une application de bureau pour le suivi du temps de travail et la gestion des tâches, conçue avec Tauri v2, Rust et une base de données locale SQLite. Elle fonctionne de manière totalement locale (offline-first) et comprend un CLI de terminal synchronisé (`oxy`) pour l'automatisation en ligne de commande.
+oXyFlow est une application de suivi du temps et de gestion des tâches locale (local-first), disponible sous forme d'application de bureau native (Tauri v2, Rust, base SQLite) accompagnée d'un outil CLI (`oxy`), ainsi que sous forme **d'application Web et Progressive Web App (PWA)** hébergée directement sur GitHub Pages.
+
+> 🚀 **Application Web en Direct** : Lancez oXyFlow immédiatement dans votre navigateur ou installez-la avec support hors ligne sur **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
 
 ---
 
@@ -14,23 +16,26 @@ oXyFlow est une application de bureau pour le suivi du temps de travail et la ge
 ┌────────────────────────────────────────────────────────┐
 │                   React 19 + Vite UI                   │
 │         (Tailwind CSS, Base UI, Jetons Sémantiques)    │
-└───────────────────────────┬────────────────────────────┘
-                            │ Tauri IPC (Commandes)
-┌───────────────────────────▼────────────────────────────┐
-│                    Moteur de Référence Rust            │
-│  - Cycle de vie du timer & règles de chevauchement     │
-│  - Dépôts SQLite & migrations de schéma                │
-│  - Sinks en temps réel (CSV & webhooks HTTP)           │
-└───────────────────────────┬────────────────────────────┘
-                            │ Pont CLI
-┌───────────────────────────▼────────────────────────────┐
-│                  Binaire Natif CLI (`oxy`)             │
-└────────────────────────────────────────────────────────┘
+└──────────────────────────┬─────────────────────────────┘
+                           │
+         ┌─────────────────┴─────────────────┐
+         │                                   │
+         ▼ (Environnement Bureau)            ▼ (Environnement Web / PWA)
+┌─────────────────────────────┐     ┌─────────────────────────────┐
+│    Tauri IPC (Commandes)    │     │      Stockage Navigateur    │
+│  - Moteur Rust natif        │     │  - Plugin localStorage      │
+│  - Base de données SQLite   │     │  - Service Worker PWA       │
+│  - Sinks en temps réel      │     │  - Fonctionnement 100% hors │
+└──────────────┬──────────────┘     └─────────────────────────────┘
+               │ Pont CLI
+┌──────────────▼──────────────┐
+│  Binaire Natif CLI (`oxy`)  │
+└─────────────────────────────┘
 ```
 
-- **Stockage Local** : Toutes les données sont enregistrées dans un fichier SQLite local (`oxytime.db`). Aucune dépendance au cloud, télémétrie ou authentification requise.
+- **Stockage Local** : Sur le bureau, les données sont persistées dans SQLite (`oxytime.db`), et dans le navigateur dans le `localStorage` privé. Aucune télémétrie ni compte requis.
 - **Triple Découplage (Triple Decoupling)** : Isolation absolue entre l'interface utilisateur, la logique métier du moteur et les pilotes de stockage.
-- **Interfaces Doubles** : Application de bureau avec trois densités de disposition (Compact, Moyen, Complet) et terminal CLI synchronisé (`oxy`).
+- **Multiplateforme** : Application de bureau (Compact, Moyen, Complet), terminal synchronisé (`oxy`) et version Web/PWA instantanée.
 
 ---
 
@@ -38,7 +43,7 @@ oXyFlow est une application de bureau pour le suivi du temps de travail et la ge
 
 ### Guide de l'Utilisateur
 
-- **[Premiers Pas](getting-started.md)** : Installation, configuration initiale et création de projets et tâches.
+- **[Premiers Pas](getting-started.md)** : Accès Web, installation de bureau, configuration initiale et création de projets et tâches.
 - **[Minuteur de Base](timer.md)** : Contrôle du minuteur, basculement atomique de tâche, correction des entrées et règles temporelles.
 - **[CLI de Base (`oxy`)](cli.md)** : Syntaxe des commandes dans le terminal avec PowerShell, Bash ou Zsh.
 - **[Interface et Thèmes](interface.md)** : Variantes de disposition, thèmes sémantiques intégrés et échelles visuelles.
@@ -53,15 +58,16 @@ oXyFlow est une application de bureau pour le suivi du temps de travail et la ge
 
 ---
 
-## Paquets Officiels
+## Paquets Officiels et Déploiements
 
-| Système d'Exploitation | Type de Paquet | Architecture Cible |
-| :--- | :--- | :--- |
-| **Windows** | Installateur Setup (`.exe`) | x86_64 |
-| **Windows** | Exécutable Portable (`.exe`) | x86_64 |
-| **macOS** | Image Disque Universelle (`.dmg`) | Universel (Apple Silicon M1–M4 & Intel x86_64) |
-| **Linux** | AppImage (`.AppImage`) | x86_64 |
-| **Linux (Debian / Ubuntu)** | Paquet DEB (`.deb`) | amd64 |
-| **Linux (RHEL / Fedora)** | Paquet RPM (`.rpm`) | x86_64 |
+| Plateforme | Type de Paquet / Déploiement | Architecture Cible | Lien / Instructions |
+| :--- | :--- | :--- | :--- |
+| **Web & PWA** | Application Web (Sans installation) | Navigateurs Web Modernes | [Ouvrir l'application Web](https://beoarcha.github.io/TimeLog/app/) |
+| **Windows** | Installateur Setup (`.exe`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Windows** | Exécutable Portable (`.exe`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **macOS** | Image Disque Universelle (`.dmg`) | Universel (Apple Silicon M1–M4 & Intel x86_64) | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux** | AppImage (`.AppImage`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux (Debian / Ubuntu)** | Paquet DEB (`.deb`) | amd64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
+| **Linux (RHEL / Fedora)** | Paquet RPM (`.rpm`) | x86_64 | [GitHub Releases](https://github.com/beoArcha/TimeLog/releases/latest) |
 
 Les fichiers binaires et les sommes de contrôle cryptographiques (`SHA256SUMS.txt`) sont disponibles sur la [page des versions GitHub](https://github.com/beoArcha/TimeLog/releases/latest).

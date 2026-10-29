@@ -1,7 +1,7 @@
 import { Clock, Maximize2, X } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 import { LayoutVariant } from '@bindings/LayoutVariant';
-import versionsData from '@app/versions.json';
+import metadata from '@/metadata.json';
 import { Locale } from '@bindings/Locale';
 import { Button } from '@components/ui/button';
 import { Checkbox } from '@components/ui/checkbox';
@@ -49,7 +49,7 @@ export function CompactLayoutHeader({
           data-testid="compact-header-title"
           className="font-sans font-bold tracking-tight text-foreground"
         >
-          LogTime by OxyFlow v{versionsData.major}.{versionsData.minor}.{versionsData.release}
+          oXyFlow TimeLog v{metadata.version}
         </MonoText>
       </HStack>
 

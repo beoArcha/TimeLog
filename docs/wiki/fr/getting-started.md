@@ -4,11 +4,21 @@
 
 ---
 
-Ce guide vous accompagne dans l'installation d'oXyFlow, la configuration de votre environnement et l'enregistrement de votre première session de travail.
+Ce guide vous accompagne dans l'accès à oXyFlow via le Web / PWA ou l'installation de l'application de bureau, la configuration de votre environnement et l'enregistrement de votre première session de travail.
 
 ---
 
-## Installation
+## Application Web et PWA (Sans Installation)
+
+Vous pouvez utiliser oXyFlow immédiatement sans télécharger de fichiers d'installation :
+
+1. Rendez-vous sur **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)** dans n'importe quel navigateur moderne (Chrome, Edge, Firefox, Safari).
+2. L'ensemble du minuteur et de vos données fonctionne et persiste à 100% localement dans le stockage privé de votre navigateur.
+3. **Installation PWA** : Dans les navigateurs compatibles, cliquez sur **Installer l'application** dans la barre d'adresse pour installer oXyFlow en tant qu'application autonome fonctionnant hors ligne sur votre ordinateur ou votre smartphone.
+
+---
+
+## Installation de Bureau
 
 Téléchargez le paquet correspondant à votre système d'exploitation depuis la [page des versions GitHub](https://github.com/beoArcha/TimeLog/releases/latest) :
 
@@ -41,24 +51,24 @@ oxy --version
 
 ## Créer un Projet et une Tâche
 
-1. Lancez **oXyFlow**.
+1. Lancez **oXyFlow** (version de bureau ou Web).
 2. Cliquez sur le bouton **"+ Nouveau Projet"** dans la barre latérale.
 3. Saisissez le nom du projet (ex. `Portail Client`) et choisissez une couleur d'identification. Cliquez sur **Enregistrer**.
 4. Au sein du projet créé, cliquez sur **"+ Ajouter une tâche"**. Renseignez le titre (ex. `Implémentation API`) et appuyez sur **Entrée**.
 
 ---
 
-## Suivre le Temps
+## Enregistrement du Temps
 
-- Cliquez sur le bouton **Démarrer (▶)** à côté de la tâche pour lancer le minuteur immédiatement.
-- La barre supérieure met en surbrillance la tâche active et affiche le temps écoulé en direct.
-- Cliquez sur **Arrêter (■)** pour clore la session actuelle.
-- Cliquer sur Démarrer sur une autre tâche interrompt immédiatement la tâche en cours et lance la nouvelle dans une seule transaction atomique (`switch`).
+- Cliquez sur le bouton **Démarrer (▶)** à côté d'une tâche pour lancer le chronomètre.
+- La barre d'état affiche la tâche en cours avec son temps écoulé en direct.
+- Cliquez sur **Pause (⏸)** ou **Arrêter (■)** pour clôturer la session.
+- Démarrer une autre tâche arrête automatiquement la session précédente dans une transaction atomique.
 
 ---
 
 ## Étapes Suivantes
 
-- **[Minuteur de Base](timer.md)** : Règles de non-chevauchement, ajustement des entrées et totaux.
-- **[CLI de Base (`oxy`)](cli.md)** : Contrôle en ligne de commande.
-- **[Interface et Thèmes](interface.md)** : Personnalisation des dispositions et des styles.
+- **[Minuteur de Base](timer.md)** : Ajustements manuels, règles de chevauchement et historique.
+- **[CLI de Base (`oxy`)](cli.md)** : Gestion du minuteur depuis la console PowerShell ou Bash.
+- **[Interface et Thèmes](interface.md)** : Personnalisation des densités d'affichage et thèmes.

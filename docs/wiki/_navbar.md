@@ -5,5 +5,6 @@
   * [🇪🇸 Español](/es/README.md)
   * [🇫🇷 Français](/fr/README.md)
   * [🇧🇷 Português (BR)](/pt-br/README.md)
+* [🚀 Web App (PWA)](https://beoarcha.github.io/TimeLog/app/)
 * [📦 Releases](https://github.com/beoArcha/TimeLog/releases)
 * [💻 GitHub](https://github.com/beoArcha/TimeLog)

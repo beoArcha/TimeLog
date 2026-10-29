@@ -3,7 +3,7 @@ import { useLocale } from '@common/hooks/LocaleProvider';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { useDataSafe } from '@common/hooks/DataContext';
 import { translate } from '@common/i18n/translator';
-import versionsData from '@app/versions.json';
+import metadata from '@/metadata.json';
 import { executeCliCommand } from '../utils/cliEngine';
 import { SandboxEmulatorStore } from '../sandbox/sandboxEmulatorStore';
 import { TerminalLine, CliEngineContext } from '../types';
@@ -25,7 +25,7 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
 
   const [input, setInput] = useState('');
   const [localHistory, setLocalHistory] = useState<TerminalLine[]>([
-    { text: `LogTime by OxyFlow CLI Engine [Version ${versionsData.major}.${versionsData.minor}.${versionsData.release}]`, type: 'info' },
+    { text: `LogTime by OxyFlow CLI Engine [Version ${metadata.version}]`, type: 'info' },
     { text: "Type 'help' to see available commands.", type: 'info' },
     { text: "Connected to local SQLite database in memory.", type: 'success' },
     { text: '', type: 'output' },

@@ -3,8 +3,20 @@ name: Deploy GitHub Pages
 on:
   # Allows direct execution triggered by release.yml after publish completes
   workflow_call:
+    inputs:
+      ref:
+        description: "Git ref or SHA to deploy"
+        type: string
+        required: false
+        default: "release"
   # Allows manual triggers from GitHub Actions UI
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref or branch to deploy"
+        type: string
+        required: false
+        default: "release"
   # Fallback trigger in case release workflow completes independently
   workflow_run:
     workflows: ["Release"]
@@ -22,7 +34,7 @@ permissions:
 
 jobs:
   deploy:
-    name: Deploy Wiki to GitHub Pages
+    name: Deploy Wiki & Web App to GitHub Pages
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_call' ||
@@ -33,19 +45,37 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      # Always force checkout of the release branch regardless of UI dispatch selection
-      - name: Checkout release branch
+      # Checkout the target branch (default release)
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: release
+          ref: ${{ inputs.ref || 'release' }}
           fetch-depth: 0
 
-      - name: Setup Pages site files
+      - name: Setup Frontend
+        uses: ./.github/actions/setup-frontend
+
+      - name: Build Web Application
+        run: bun run build:web
+
+      - name: Prepare Combined Pages Site
         shell: bash
         run: |
-          touch docs/wiki/.nojekyll
-          echo "Verified docs/wiki contents for GitHub Pages deployment:"
-          ls -la docs/wiki
+          mkdir -p _site
+          cp -r docs/wiki/* _site/
+          mkdir -p _site/app
+          cp -r dist/* _site/app/
+          touch _site/.nojekyll
+
+          echo "Validating Pages combined staging contents..."
+          [ -s "_site/index.html" ] || { echo "::error::_site/index.html is missing or empty"; exit 1; }
+          [ -s "_site/app/index.html" ] || { echo "::error::_site/app/index.html is missing or empty"; exit 1; }
+          [ -s "_site/app/manifest.webmanifest" ] || { echo "::error::_site/app/manifest.webmanifest is missing or empty"; exit 1; }
+          [ -f "_site/.nojekyll" ] || { echo "::error::_site/.nojekyll is missing"; exit 1; }
+
+          echo "Verified Pages combined staging contents:"
+          ls -la _site
+          ls -la _site/app
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -53,7 +83,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/wiki
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -65,8 +95,8 @@ jobs:
           {
             echo "### 🚀 GitHub Pages Deployed"
             echo ""
-            echo "- **Source directory**: \`docs/wiki\`"
-            echo "- **Branch**: \`release\`"
+            echo "- **Wiki documentation**: [${{ steps.deployment.outputs.page_url }}](${{ steps.deployment.outputs.page_url }})"
+            echo "- **Web application & PWA**: [${{ steps.deployment.outputs.page_url }}app/](${{ steps.deployment.outputs.page_url }}app/)"
+            echo "- **Target ref**: \`${{ inputs.ref || 'release' }}\`"
             echo "- **Trigger event**: \`${{ github.event_name }}\`"
-            echo "- **Pages URL**: [${{ steps.deployment.outputs.page_url }}](${{ steps.deployment.outputs.page_url }})"
           } >> "$GITHUB_STEP_SUMMARY"

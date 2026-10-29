@@ -5,7 +5,7 @@ import { Caption, MonoText, Text } from '@components/ui/typography';
 import { HStack } from '@components/ui/stack';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
-import versionsData from '@app/versions.json';
+import metadata from '@/metadata.json';
 
 interface VersionTileProps {
   label: string;
@@ -43,26 +43,26 @@ export function AppVersionsCard() {
             {translate(locale, 'settings', 'AppRelease', customTranslations)}
           </Text>
           <MonoText size="sm" weight="bold" className="text-blue-500">
-            v{versionsData.major}.{versionsData.minor}.{versionsData.release}
+            v{metadata.version}
           </MonoText>
         </HStack>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs mt-2">
           <VersionTile
             label={translate(locale, 'settings', 'EngineComponent', customTranslations)}
-            version={`${versionsData.major}.${versionsData.minor}.${versionsData.subversions.engine}`}
+            version={`${metadata.versions.major}.${metadata.versions.minor}.${metadata.versions.subversions.engine}`}
           />
           <VersionTile
             label={translate(locale, 'settings', 'FrontComponent', customTranslations)}
-            version={`${versionsData.major}.${versionsData.minor}.${versionsData.subversions.front}`}
+            version={`${metadata.versions.major}.${metadata.versions.minor}.${metadata.versions.subversions.front}`}
           />
           <VersionTile
             label={translate(locale, 'settings', 'ComponentsLibrary', customTranslations)}
-            version={`${versionsData.major}.${versionsData.minor}.${versionsData.subversions.components}`}
+            version={`${metadata.versions.major}.${metadata.versions.minor}.${metadata.versions.subversions.components}`}
           />
           <VersionTile
             label={translate(locale, 'settings', 'TranslationsPack', customTranslations)}
-            version={`${versionsData.major}.${versionsData.minor}.${versionsData.subversions.translations}`}
+            version={`${metadata.versions.major}.${metadata.versions.minor}.${metadata.versions.subversions.translations}`}
           />
         </div>
       </div>
