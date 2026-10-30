@@ -233,7 +233,7 @@ Higher-level UX building blocks composed entirely of UI primitives:
 
 - `StatCard`: Metric summary card with title, icon, value, optional delta badge, and trend indicator.
 - `CollapsibleCard`: Expandable section card with header, badge count, actions, and animated collapsible body.
-- `ConfirmDialog`: Accessible confirmation dialog replacing browser `confirm()` with semantic cancel and action buttons.
+- `ConfirmDialog`: Accessible confirmation dialog replacing browser `confirm()` with semantic cancel and action buttons, integrated user-visible error alerts (`role="alert"`, `data-testid="confirm-dialog-error"`), asynchronous promise rejection handling, and automatic loading state management.
 - `PromptDialog`: Accessible input dialog replacing browser `prompt()`.
 - `SegmentedControl`: Compact option switcher replacing ad-hoc button groups.
 - `EmptyState`: Standardized empty view displaying icon, message, and call-to-action button.
