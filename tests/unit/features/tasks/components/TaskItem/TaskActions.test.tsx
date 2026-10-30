@@ -114,9 +114,9 @@ describe('Unit Tests: TaskActions', () => {
     });
   });
 
-  it('keeps confirmation dialog open and resets isDeleting when onDeleteTask fails', async () => {
+  it('keeps confirmation dialog open, renders role="alert" with error message, and allows retry when onDeleteTask fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    onDeleteTaskMock.mockRejectedValueOnce(new Error('Network failure'));
+    onDeleteTaskMock.mockRejectedValueOnce(new Error('Failed to delete'));
     render(<TaskActions {...baseProps} />);
 
     fireEvent.click(screen.getByRole('button', { name: /Delete task/i }));
@@ -124,6 +124,11 @@ describe('Unit Tests: TaskActions', () => {
     fireEvent.click(confirmBtn);
 
     expect(onDeleteTaskMock).toHaveBeenCalledWith('t1');
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).not.toBeNull();
+    expect(alert.textContent).toBe('Failed to delete');
+    expect(screen.getByTestId('confirm-dialog-error')).not.toBeNull();
 
     await waitFor(() => {
       expect(screen.getByRole('alertdialog')).not.toBeNull();

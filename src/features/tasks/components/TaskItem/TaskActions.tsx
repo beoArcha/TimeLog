@@ -35,6 +35,7 @@ export function TaskActions({
 }: TaskActionsProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { t: tCommon } = useTranslation('common');
   const { t: tTask } = useTranslation('task');
 
@@ -42,10 +43,18 @@ export function TaskActions({
     if (isDeleting) return;
     setIsDeleting(true);
     try {
+      setDeleteError(null);
       await onDeleteTask?.(taskId);
       setIsConfirmOpen(false);
     } catch (error) {
       console.error('Failed to delete task:', error);
+      let message = tCommon('ErrGeneric');
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (typeof error === 'string') {
+        message = error;
+      }
+      setDeleteError(message);
       throw error;
     } finally {
       setIsDeleting(false);
@@ -80,6 +89,7 @@ export function TaskActions({
           aria-label={deleteTitle}
           onClick={(e) => {
             e.stopPropagation();
+            setDeleteError(null);
             setIsConfirmOpen(true);
           }}
           className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 ml-0.5 cursor-pointer"
@@ -90,14 +100,24 @@ export function TaskActions({
 
       <ConfirmDialog
         open={isConfirmOpen}
-        onOpenChange={setIsConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteError(null);
+          }
+          setIsConfirmOpen(open);
+        }}
         variant="destructive"
         loading={isDeleting}
+        errorMessage={deleteError}
+        onClearError={() => setDeleteError(null)}
         title={isSubtask ? tTask('ConfirmDeleteSubtaskTitle') : tTask('ConfirmDeleteTaskTitle')}
         confirmLabel={tCommon('Delete')}
         cancelLabel={tCommon('Cancel')}
         onConfirm={handleConfirmDelete}
-        onCancel={() => setIsConfirmOpen(false)}
+        onCancel={() => {
+          setDeleteError(null);
+          setIsConfirmOpen(false);
+        }}
       >
         <VStack gap="xs" className="text-left mt-1">
           <Text size="sm" weight="semibold" className="text-foreground">

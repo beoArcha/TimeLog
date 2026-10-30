@@ -121,6 +121,9 @@ describe('Unit Tests: ConfirmDialog', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
     // Modal dialog still present in DOM
     expect(screen.getByRole('alertdialog')).not.toBeNull();
+    // Error element is rendered
+    expect(screen.getByRole('alert')).not.toBeNull();
+    expect(screen.getByTestId('confirm-dialog-error').textContent).toBe('Async rejection error');
     // Error logged properly
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Failed to execute confirm action in ConfirmDialog:',
@@ -130,7 +133,42 @@ describe('Unit Tests: ConfirmDialog', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('keeps dialog open and logs error when synchronous onConfirm throws', () => {
+  it('renders visible role="alert" with error message when onConfirm rejects, keeps dialog open, and allows retry', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onOpenChange = vi.fn();
+    const onConfirm = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Database error'))
+      .mockResolvedValueOnce(undefined);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Database Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).not.toBeNull();
+    expect(alert.textContent).toBe('Database error');
+    expect(screen.getByTestId('confirm-dialog-error')).not.toBeNull();
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    // Verify retry
+    fireEvent.click(confirmBtn);
+    expect(onConfirm).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('keeps dialog open and displays role="alert" when synchronous onConfirm throws', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const onOpenChange = vi.fn();
     const error = new Error('Synchronous throw');
@@ -153,11 +191,37 @@ describe('Unit Tests: ConfirmDialog', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(screen.getByRole('alertdialog')).not.toBeNull();
+    expect(screen.getByRole('alert').textContent).toBe('Synchronous throw');
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Failed to execute confirm action in ConfirmDialog:',
       error
     );
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it('displays external errorMessage prop and clears error on cancel', () => {
+    const onClearError = vi.fn();
+    const onCancel = vi.fn();
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="External Error Prop Test"
+        errorMessage="External failure reason"
+        onClearError={onClearError}
+        onCancel={onCancel}
+        onConfirm={vi.fn()}
+      />
+    );
+
+    const alert = screen.getByRole('alert');
+    expect(alert.textContent).toBe('External failure reason');
+
+    const cancelBtn = screen.getByTestId('confirm-dialog-cancel-btn');
+    fireEvent.click(cancelBtn);
+
+    expect(onClearError).toHaveBeenCalledTimes(1);
+    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });
