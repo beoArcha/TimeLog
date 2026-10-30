@@ -1,0 +1,328 @@
+name: PR Quality Gates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      frontend_files: ${{ steps.filter.outputs.frontend_files }}
+      rust: ${{ steps.filter.outputs.rust }}
+      documentation: ${{ steps.filter.outputs.documentation }}
+      e2e: ${{ steps.filter.outputs.e2e }}
+      ci_config: ${{ steps.filter.outputs.ci_config }}
+      is_opened: ${{ github.event.action == 'opened' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          list-files: shell
+          filters: |
+            documentation:
+              - 'docs/**'
+              - '*.md'
+              - '**/*.md'
+              - '.markdownlint*'
+              - 'scripts/validate-docs.js'
+            frontend:
+              - 'src/**'
+              - 'tests/**'
+              - '!tests/e2e/**'
+              - '!docs/**'
+              - '!*.md'
+              - '!**/*.md'
+              - 'package.json'
+              - 'bun.lock'
+              - 'bun.lockb'
+              - 'tsconfig*.json'
+              - 'vite.config.*'
+              - 'eslint.config.*'
+              - 'components.json'
+              - 'dev.config.json'
+              - 'stryker.config.*'
+              - 'scripts/**'
+            rust:
+              - 'src-tauri/**'
+              - '!src-tauri/**/*.md'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'rust-toolchain*'
+              - '**/rust-toolchain*'
+              - '.cargo/**'
+            e2e:
+              - 'tests/e2e/**'
+            ci_config:
+              - '.github/**'
+              - 'scripts/ci/**'
+
+  check-docs:
+    name: Documentation Quality Gate
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.documentation == 'true' || needs.detect-changes.outputs.ci_config == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-frontend
+
+      - name: Documentation Parity & Integrity Validation
+        shell: bash
+        run: bun run docs:validate
+
+  check-frontend:
+    name: Frontend Quality Gate
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.ci_config == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-frontend
+
+      - name: TypeScript Check
+        shell: bash
+        run: bun run typecheck
+
+      - name: ESLint
+        shell: bash
+        run: bun run lint
+
+      - name: Run Architecture Specs
+        shell: bash
+        run: bun x vitest run tests/architecture/specs
+
+      - name: Tiered Vitest Execution
+        env:
+          IS_OPENED: ${{ needs.detect-changes.outputs.is_opened }}
+          FRONTEND_FILES: ${{ needs.detect-changes.outputs.frontend_files }}
+        shell: bash
+        run: |
+          set -e
+          echo "=== Tiered Vitest Execution ==="
+          echo "PR action opened: $IS_OPENED"
+          echo "Frontend changed files: $FRONTEND_FILES"
+
+          if [ "$IS_OPENED" = "true" ]; then
+            echo "PR opened: running comprehensive unit and integration test suites..."
+            bun x vitest run tests/unit tests/integration
+            exit 0
+          fi
+
+          # PR synchronize / reopened: evaluate changed files
+          RUN_FULL=false
+
+          if [ -z "$FRONTEND_FILES" ]; then
+            echo "No specific frontend files detected. Falling back to full test suite..."
+            RUN_FULL=true
+          else
+            for file in $FRONTEND_FILES; do
+              case "$file" in
+                package.json|bun.lockb|bun.lock|tsconfig*.json|vite.config.*|eslint.config.*|scripts/*|scripts/**|.github/*|.github/**|*/types/*|*types.ts|*types.d.ts|src/common/*|src/common/**|tests/*|tests/**)
+                  echo "Detected configuration, test suite, shared, or core types change in: $file"
+                  RUN_FULL=true
+                  break
+                  ;;
+              esac
+            done
+          fi
+
+          if [ "$RUN_FULL" = "true" ]; then
+            echo "Triggering full unit and integration test suites due to configuration/shared/test changes..."
+            bun x vitest run tests/unit tests/integration
+          else
+            echo "Running related unit and integration tests for modified frontend components/functions..."
+            set -o pipefail
+            bun x vitest related --run --exclude "tests/smoke/**" --exclude "tests/architecture/**" --exclude "tests/e2e/**" $FRONTEND_FILES 2>&1 | tee vitest_related.log
+            RELATED_EXIT=${PIPESTATUS[0]}
+
+            if [ $RELATED_EXIT -ne 0 ]; then
+              echo "::error::vitest related run failed with code $RELATED_EXIT"
+              exit $RELATED_EXIT
+            fi
+
+            if grep -q "No test files found" vitest_related.log || grep -q "No tests found" vitest_related.log; then
+              echo "No related test files found for changed components. Falling back to full unit and integration suite..."
+              bun x vitest run tests/unit tests/integration
+            else
+              echo "Related tests passed successfully."
+            fi
+          fi
+
+  check-rust:
+    name: Rust Quality Gate
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.rust == 'true' || needs.detect-changes.outputs.ci_config == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RUST_WORKSPACE: "src-tauri -> target"
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: rustfmt, clippy
+          install-linux-deps: "true"
+
+      - name: Check Formatting
+        shell: bash
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+
+      - name: Run Clippy
+        shell: bash
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+      - name: Run Rust Architecture Tests
+        shell: bash
+        run: cargo test --manifest-path src-tauri/Cargo.toml --test architecture_tests
+
+      - name: Run Rust Test Suite
+        shell: bash
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+  check-e2e:
+    name: E2E Smoke Tests
+    needs: [detect-changes]
+    if: >-
+      (needs.detect-changes.outputs.frontend == 'true' ||
+       needs.detect-changes.outputs.rust == 'true' ||
+       needs.detect-changes.outputs.e2e == 'true' ||
+       needs.detect-changes.outputs.ci_config == 'true' ||
+       needs.detect-changes.outputs.is_opened == 'true') &&
+      (needs.detect-changes.outputs.documentation != 'true' ||
+       needs.detect-changes.outputs.frontend == 'true' ||
+       needs.detect-changes.outputs.rust == 'true' ||
+       needs.detect-changes.outputs.e2e == 'true' ||
+       needs.detect-changes.outputs.ci_config == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RUST_WORKSPACE: "src-tauri -> target"
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-frontend
+      - uses: ./.github/actions/setup-rust
+        with:
+          install-linux-deps: "true"
+
+      - name: Run Smoke Test Suite
+        shell: bash
+        run: bun run test:smoke
+
+  pr-gate:
+    name: PR Gate (Unified Check)
+    needs: [detect-changes, check-docs, check-frontend, check-rust, check-e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate Upstream Quality Gates
+        shell: bash
+        env:
+          DETECT_CHANGES_RES: ${{ needs.detect-changes.result }}
+          CHECK_DOCS_RES: ${{ needs.check-docs.result }}
+          CHECK_FRONTEND_RES: ${{ needs.check-frontend.result }}
+          CHECK_RUST_RES: ${{ needs.check-rust.result }}
+          CHECK_E2E_RES: ${{ needs.check-e2e.result }}
+          DOCS_CHANGED: ${{ needs.detect-changes.outputs.documentation }}
+          FRONTEND_CHANGED: ${{ needs.detect-changes.outputs.frontend }}
+          RUST_CHANGED: ${{ needs.detect-changes.outputs.rust }}
+          E2E_CHANGED: ${{ needs.detect-changes.outputs.e2e }}
+          CI_CONFIG_CHANGED: ${{ needs.detect-changes.outputs.ci_config }}
+          IS_OPENED: ${{ needs.detect-changes.outputs.is_opened }}
+        run: |
+          echo "=== PR Quality Gate Evaluation ==="
+          echo "Detect Changes:   result=$DETECT_CHANGES_RES"
+          echo "Check Docs:       result=$CHECK_DOCS_RES, changed=$DOCS_CHANGED"
+          echo "Check Frontend:   result=$CHECK_FRONTEND_RES, changed=$FRONTEND_CHANGED"
+          echo "Check Rust:       result=$CHECK_RUST_RES, changed=$RUST_CHANGED"
+          echo "Check E2E:        result=$CHECK_E2E_RES, e2e_changed=$E2E_CHANGED"
+          echo "CI Config:        changed=$CI_CONFIG_CHANGED"
+          echo "PR Event Action:  is_opened=$IS_OPENED"
+          echo "=================================="
+
+          FAILED=false
+
+          # 1. detect-changes must succeed
+          if [ "$DETECT_CHANGES_RES" != "success" ]; then
+            echo "::error::detect-changes job did not succeed (result: $DETECT_CHANGES_RES)"
+            FAILED=true
+          fi
+
+          # 2. Check for unexpected failure or cancellation in any executed job
+          for job_res in "$CHECK_DOCS_RES" "$CHECK_FRONTEND_RES" "$CHECK_RUST_RES" "$CHECK_E2E_RES"; do
+            if [ "$job_res" = "failure" ] || [ "$job_res" = "cancelled" ]; then
+              echo "::error::An upstream check finished with status '$job_res'."
+              FAILED=true
+            fi
+          done
+
+          # Docs-only PR detection
+          IS_DOCS_ONLY=false
+          if [ "$DOCS_CHANGED" = "true" ] && [ "$FRONTEND_CHANGED" != "true" ] && [ "$RUST_CHANGED" != "true" ] && [ "$E2E_CHANGED" != "true" ] && [ "$CI_CONFIG_CHANGED" != "true" ]; then
+            IS_DOCS_ONLY=true
+            echo "Determined PR is docs-only. Validating documentation check while application tests remain bypassed."
+          fi
+
+          # 3. If documentation changed -> check-docs must be success
+          if [ "$DOCS_CHANGED" = "true" ] || [ "$CI_CONFIG_CHANGED" = "true" ]; then
+            if [ "$CHECK_DOCS_RES" != "success" ]; then
+              echo "::error::Documentation validation (check-docs) was required but result is '$CHECK_DOCS_RES'."
+              FAILED=true
+            fi
+          fi
+
+          # 4. If frontend changed (or CI config) -> check-frontend must be success
+          if [ "$FRONTEND_CHANGED" = "true" ] || [ "$CI_CONFIG_CHANGED" = "true" ]; then
+            if [ "$CHECK_FRONTEND_RES" != "success" ]; then
+              echo "::error::Frontend quality gate (check-frontend) was required but result is '$CHECK_FRONTEND_RES'."
+              FAILED=true
+            fi
+          fi
+
+          # 5. If rust changed (or CI config) -> check-rust must be success
+          if [ "$RUST_CHANGED" = "true" ] || [ "$CI_CONFIG_CHANGED" = "true" ]; then
+            if [ "$CHECK_RUST_RES" != "success" ]; then
+              echo "::error::Rust quality gate (check-rust) was required but result is '$CHECK_RUST_RES'."
+              FAILED=true
+            fi
+          fi
+
+          # 6. If application code changed -> check-e2e must be success
+          APP_CODE_CHANGED=false
+          if [ "$FRONTEND_CHANGED" = "true" ] || [ "$RUST_CHANGED" = "true" ] || [ "$E2E_CHANGED" = "true" ] || [ "$CI_CONFIG_CHANGED" = "true" ]; then
+            APP_CODE_CHANGED=true
+          elif [ "$IS_OPENED" = "true" ] && [ "$IS_DOCS_ONLY" != "true" ]; then
+            APP_CODE_CHANGED=true
+          fi
+
+          if [ "$IS_DOCS_ONLY" = "true" ]; then
+            echo "Docs-only PR confirmed: check-docs result is '$CHECK_DOCS_RES'; application test gates (frontend, rust, e2e) were bypassed as expected."
+          elif [ "$APP_CODE_CHANGED" = "true" ]; then
+            if [ "$CHECK_E2E_RES" != "success" ]; then
+              echo "::error::E2E / Smoke tests (check-e2e) were required for application changes but result is '$CHECK_E2E_RES'."
+              FAILED=true
+            fi
+          fi
+
+          if [ "$FAILED" = "true" ]; then
+            echo "::error::PR quality gates validation failed. One or more required checks failed, were cancelled, or unexpectedly skipped."
+            exit 1
+          fi
+
+          echo "All required quality gate checks completed successfully."
+          exit 0

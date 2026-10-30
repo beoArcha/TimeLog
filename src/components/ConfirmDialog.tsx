@@ -66,15 +66,25 @@ export function ConfirmDialog({
   };
 
   const handleConfirm = () => {
-    const result = onConfirm();
-    if (result && typeof (result as Promise<void>).then === 'function') {
-      setInternalLoading(true);
-      (result as Promise<void>).finally(() => {
-        setInternalLoading(false);
+    try {
+      const result = onConfirm();
+      if (result && typeof (result as Promise<void>).then === 'function') {
+        setInternalLoading(true);
+        (result as Promise<void>)
+          .then(() => {
+            onOpenChange?.(false);
+          })
+          .catch((error) => {
+            console.error('Failed to execute confirm action in ConfirmDialog:', error);
+          })
+          .finally(() => {
+            setInternalLoading(false);
+          });
+      } else {
         onOpenChange?.(false);
-      });
-    } else {
-      onOpenChange?.(false);
+      }
+    } catch (error) {
+      console.error('Failed to execute confirm action in ConfirmDialog:', error);
     }
   };
 
