@@ -21,7 +21,6 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
       frontend_files: ${{ steps.filter.outputs.frontend_files }}
       rust: ${{ steps.filter.outputs.rust }}
-      rust_files: ${{ steps.filter.outputs.rust_files }}
       documentation: ${{ steps.filter.outputs.documentation }}
       e2e: ${{ steps.filter.outputs.e2e }}
       ci_config: ${{ steps.filter.outputs.ci_config }}
@@ -191,79 +190,9 @@ jobs:
         shell: bash
         run: cargo test --manifest-path src-tauri/Cargo.toml --test architecture_tests
 
-      - name: Tiered Rust Test Execution
-        env:
-          IS_OPENED: ${{ needs.detect-changes.outputs.is_opened }}
-          RUST_FILES: ${{ needs.detect-changes.outputs.rust_files }}
+      - name: Run Rust Test Suite
         shell: bash
-        run: |
-          set -e
-          echo "=== Tiered Rust Test Execution ==="
-          echo "PR action opened: $IS_OPENED"
-          echo "Rust changed files: $RUST_FILES"
-
-          if [ "$IS_OPENED" = "true" ]; then
-            echo "PR opened: running comprehensive Rust test suite..."
-            cargo test --manifest-path src-tauri/Cargo.toml
-            exit 0
-          fi
-
-          # PR synchronize / reopened: evaluate changed files
-          if [ -z "$RUST_FILES" ]; then
-            echo "No specific Rust files detected. Falling back to full test suite..."
-            cargo test --manifest-path src-tauri/Cargo.toml
-            exit 0
-          fi
-
-          RUN_FULL=false
-          MODULES=""
-
-          for file in $RUST_FILES; do
-            case "$file" in
-              Cargo.toml|Cargo.lock|*/Cargo.toml|*/Cargo.lock|*rust-toolchain*|*/tauri.conf.json|*build.rs|*/src/main.rs|*/src/lib.rs|*types*|*/types/*|*migration*|*/migrations/*)
-                echo "Detected global, configuration, migration, or core types change in: $file"
-                RUN_FULL=true
-                break
-                ;;
-              src-tauri/src/engine/*)
-                MODULES="$MODULES engine::"
-                ;;
-              src-tauri/src/repositories/*)
-                MODULES="$MODULES repositories::"
-                ;;
-              src-tauri/src/cli/*)
-                MODULES="$MODULES cli::"
-                ;;
-              src-tauri/src/sinks/*)
-                MODULES="$MODULES sinks::"
-                ;;
-              src-tauri/src/persistence/*)
-                MODULES="$MODULES persistence::"
-                ;;
-              *)
-                echo "File not matched to a specific isolated subsystem: $file"
-                RUN_FULL=true
-                break
-                ;;
-            esac
-          done
-
-          if [ "$RUN_FULL" = "true" ]; then
-            echo "Triggering full Rust test suite due to global/configuration changes or unmatched files..."
-            cargo test --manifest-path src-tauri/Cargo.toml
-          else
-            # Deduplicate module targets
-            UNIQUE_MODULES=$(echo "$MODULES" | tr ' ' '\n' | grep -v '^$' | sort -u)
-            if [ -z "$UNIQUE_MODULES" ]; then
-              echo "No specific subsystem modules identified. Running full test suite as fallback..."
-              cargo test --manifest-path src-tauri/Cargo.toml
-            else
-              for mod in $UNIQUE_MODULES; do
-                echo "Running targeted tests for subsystem: $mod"
-                cargo test --manifest-path src-tauri/Cargo.toml "$mod"
-              done
-            fi
-          fi
+        run: cargo test --manifest-path src-tauri/Cargo.toml
 
   check-e2e:
     name: E2E Smoke Tests
