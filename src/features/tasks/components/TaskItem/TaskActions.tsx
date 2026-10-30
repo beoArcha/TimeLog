@@ -44,6 +44,9 @@ export function TaskActions({
     try {
       await onDeleteTask?.(taskId);
       setIsConfirmOpen(false);
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      throw error;
     } finally {
       setIsDeleting(false);
     }
