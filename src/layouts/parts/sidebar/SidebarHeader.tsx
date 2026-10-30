@@ -2,7 +2,6 @@ import { Folder } from 'lucide-react';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 import { Heading } from '@components/ui/typography';
-import { Badge } from '@components/ui/badge';
 import { HStack } from '@components/ui/stack';
 
 export interface SidebarHeaderProps {
@@ -18,14 +17,6 @@ export function SidebarHeader({ count, locale, customTranslations }: SidebarHead
         <Folder className="icon-medium text-orange-400" />
         {translate(locale, 'project', 'ProjectsLabel', customTranslations)} ({count})
       </Heading>
-      <Badge
-        variant="orange"
-        size="sm"
-        as="span"
-        className="text-orange-600 dark:text-orange-300 uppercase tracking-wider font-mono font-bold"
-      >
-        MicroORM Tables
-      </Badge>
     </HStack>
   );
 }
