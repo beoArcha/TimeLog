@@ -38,7 +38,7 @@
   "pl": {
     "StartTimer": "Rozpocznij",
     "StopTimer": "Zatrzymaj",
-    "ActiveTracker": "Aktywne Pomiaru",
+    "ActiveTracker": "AKTYWNY POMIAR",
     "StopAllThreads": "Zatrzymaj wszystkie pomiary",
     "StoppedMeasurement": "Zatrzymano pomiar: ",
     "StartedMeasurement": "Uruchomiono pomiar: ",
