@@ -69,6 +69,18 @@ export function SidebarProjectItem({
   });
   const displaySeconds = (metrics || activeLog) ? liveSeconds : (totalSeconds ?? liveSeconds);
 
+  const formattedCreatedAt = React.useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat(locale, {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }).format(new Date(project.createdAt));
+    } catch {
+      return new Date(project.createdAt).toLocaleDateString();
+    }
+  }, [project.createdAt, locale]);
+
   const handleInlineKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       onCommitInlineRename(project.id, inlineEditName);
@@ -141,19 +153,21 @@ export function SidebarProjectItem({
             </InlineCluster>
           )}
 
-          <HStack gap="sm" align="center" className="mt-0.5">
-            <Caption variant="muted" className="text-main opacity-80 font-sans tracking-wide">
-              {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {new Date(project.createdAt).toLocaleDateString()}
-            </Caption>
+          <div className="flex items-center justify-between w-full mt-0.5 gap-1.5 min-w-0">
+            <div className="min-w-0 flex-1 truncate">
+              <Caption variant="muted" className="truncate text-main opacity-80 font-sans tracking-wide">
+                {translate(locale, 'common', 'CreatedAtLabel', customTranslations)} {formattedCreatedAt}
+              </Caption>
+            </div>
 
-            <HStack gap="xs" align="center" className={HOVER_REVEAL_CLASS}>
+            <div className={`flex items-center gap-1.5 shrink-0 ${HOVER_REVEAL_CLASS}`}>
               {!isEditingInline && (
                 <Button
                   id={`edit-project-btn-${project.id}`}
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  title={translate(locale, 'common', 'EditName', customTranslations)}
+                  title={translate(locale, 'project', 'EditProject', customTranslations)}
                   onClick={e => {
                     e.stopPropagation();
                     onEditDialog(project);
@@ -179,8 +193,8 @@ export function SidebarProjectItem({
                   ? translate(locale, 'common', 'Unarchive', customTranslations)
                   : translate(locale, 'common', 'Archive', customTranslations)}
               </Button>
-            </HStack>
-          </HStack>
+            </div>
+          </div>
         </VStack>
       </HStack>
 

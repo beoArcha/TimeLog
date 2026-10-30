@@ -103,7 +103,7 @@ describe('Sidebar', () => {
 describe('SidebarHeader', () => {
   afterEach(cleanup);
 
-  it('should display project count badge and header title', () => {
+  it('should display project count and header title without technical MicroORM badge', () => {
     // Arrange & Act
     render(
       <MockProviders>
@@ -112,7 +112,8 @@ describe('SidebarHeader', () => {
     );
 
     // Assert
-    expect(screen.getByText(/MicroORM Tables/i)).not.toBeNull();
+    expect(screen.getByText(/Projects.*\(5\)/i)).not.toBeNull();
+    expect(screen.queryByText(/MicroORM Tables/i)).toBeNull();
   });
 });
 
@@ -217,5 +218,50 @@ describe('SidebarProjectItem', () => {
     // Assert
     expect(onMoveUp).toHaveBeenCalledWith('p-test');
     expect(onMoveDown).toHaveBeenCalledWith('p-test');
+  });
+
+  it('should render localized created date and Edit project tooltip without layout collision', () => {
+    // Arrange
+    const onEditDialog = vi.fn();
+    const project = aProject({
+      id: 'p-test',
+      name: 'Alpha Long Project Name For Layout Testing',
+      createdAt: '2026-06-15T12:00:00Z',
+    });
+
+    // Act
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem
+          project={project}
+          isSelected={false}
+          totalSeconds={3600}
+          locale="en"
+          isFirst={false}
+          isLast={false}
+          isEditingInline={false}
+          inlineEditName=""
+          onSelect={vi.fn()}
+          onEditDialog={onEditDialog}
+          onMoveUp={vi.fn()}
+          onMoveDown={vi.fn()}
+          onInlineNameChange={vi.fn()}
+          onCommitInlineRename={vi.fn()}
+          onCancelInlineRename={vi.fn()}
+        />
+      </MockProviders>
+    );
+
+    // Assert
+    const editBtn = container.querySelector('#edit-project-btn-p-test');
+    expect(editBtn).not.toBeNull();
+    expect(editBtn?.getAttribute('title')).toBe('Edit project');
+
+    // Localized date check (e.g. Jun 15, 2026)
+    expect(screen.getByText(/Jun 15, 2026/i)).not.toBeNull();
+
+    // Trigger edit dialog
+    fireEvent.click(editBtn!);
+    expect(onEditDialog).toHaveBeenCalledWith(project);
   });
 });
