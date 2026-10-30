@@ -37,6 +37,8 @@ jobs:
               - 'docs/**'
               - '*.md'
               - '**/*.md'
+              - '.markdownlint*'
+              - 'scripts/validate-docs.js'
             frontend:
               - 'src/**'
               - 'tests/**'
@@ -45,19 +47,28 @@ jobs:
               - '!*.md'
               - '!**/*.md'
               - 'package.json'
+              - 'bun.lock'
               - 'bun.lockb'
-              - 'tsconfig.json'
-              - 'vite.config.ts'
-              - 'eslint.config.js'
+              - 'tsconfig*.json'
+              - 'vite.config.*'
+              - 'eslint.config.*'
+              - 'components.json'
+              - 'dev.config.json'
+              - 'stryker.config.*'
               - 'scripts/**'
             rust:
               - 'src-tauri/**'
+              - '!src-tauri/**/*.md'
               - 'Cargo.toml'
               - 'Cargo.lock'
+              - 'rust-toolchain*'
+              - '**/rust-toolchain*'
+              - '.cargo/**'
             e2e:
               - 'tests/e2e/**'
             ci_config:
               - '.github/**'
+              - 'scripts/ci/**'
 
   check-docs:
     name: Documentation Quality Gate
@@ -121,8 +132,8 @@ jobs:
           else
             for file in $FRONTEND_FILES; do
               case "$file" in
-                package.json|bun.lockb|tsconfig*.json|vite.config.*|eslint.config.*|scripts/*|.github/*|*/types/*|*types.ts)
-                  echo "Detected configuration or core types change in: $file"
+                package.json|bun.lockb|bun.lock|tsconfig*.json|vite.config.*|eslint.config.*|scripts/*|scripts/**|.github/*|.github/**|*/types/*|*types.ts|*types.d.ts|src/common/*|src/common/**|tests/*|tests/**)
+                  echo "Detected configuration, test suite, shared, or core types change in: $file"
                   RUN_FULL=true
                   break
                   ;;
@@ -131,12 +142,12 @@ jobs:
           fi
 
           if [ "$RUN_FULL" = "true" ]; then
-            echo "Triggering full unit and integration test suites due to configuration/types change..."
+            echo "Triggering full unit and integration test suites due to configuration/shared/test changes..."
             bun x vitest run tests/unit tests/integration
           else
-            echo "Running related tests for modified frontend components/functions..."
+            echo "Running related unit and integration tests for modified frontend components/functions..."
             set -o pipefail
-            bun x vitest related --run $FRONTEND_FILES 2>&1 | tee vitest_related.log
+            bun x vitest related --run --exclude "tests/smoke/**" --exclude "tests/architecture/**" --exclude "tests/e2e/**" $FRONTEND_FILES 2>&1 | tee vitest_related.log
             RELATED_EXIT=${PIPESTATUS[0]}
 
             if [ $RELATED_EXIT -ne 0 ]; then
@@ -144,7 +155,7 @@ jobs:
               exit $RELATED_EXIT
             fi
 
-            if grep -q "No test files found" vitest_related.log; then
+            if grep -q "No test files found" vitest_related.log || grep -q "No tests found" vitest_related.log; then
               echo "No related test files found for changed components. Falling back to full unit and integration suite..."
               bun x vitest run tests/unit tests/integration
             else
@@ -180,9 +191,79 @@ jobs:
         shell: bash
         run: cargo test --manifest-path src-tauri/Cargo.toml --test architecture_tests
 
-      - name: Run Rust Unit and Integration Tests
+      - name: Tiered Rust Test Execution
+        env:
+          IS_OPENED: ${{ needs.detect-changes.outputs.is_opened }}
+          RUST_FILES: ${{ needs.detect-changes.outputs.rust_files }}
         shell: bash
-        run: cargo test --manifest-path src-tauri/Cargo.toml
+        run: |
+          set -e
+          echo "=== Tiered Rust Test Execution ==="
+          echo "PR action opened: $IS_OPENED"
+          echo "Rust changed files: $RUST_FILES"
+
+          if [ "$IS_OPENED" = "true" ]; then
+            echo "PR opened: running comprehensive Rust test suite..."
+            cargo test --manifest-path src-tauri/Cargo.toml
+            exit 0
+          fi
+
+          # PR synchronize / reopened: evaluate changed files
+          if [ -z "$RUST_FILES" ]; then
+            echo "No specific Rust files detected. Falling back to full test suite..."
+            cargo test --manifest-path src-tauri/Cargo.toml
+            exit 0
+          fi
+
+          RUN_FULL=false
+          MODULES=""
+
+          for file in $RUST_FILES; do
+            case "$file" in
+              Cargo.toml|Cargo.lock|*/Cargo.toml|*/Cargo.lock|*rust-toolchain*|*/tauri.conf.json|*build.rs|*/src/main.rs|*/src/lib.rs|*types*|*/types/*|*migration*|*/migrations/*)
+                echo "Detected global, configuration, migration, or core types change in: $file"
+                RUN_FULL=true
+                break
+                ;;
+              src-tauri/src/engine/*)
+                MODULES="$MODULES engine::"
+                ;;
+              src-tauri/src/repositories/*)
+                MODULES="$MODULES repositories::"
+                ;;
+              src-tauri/src/cli/*)
+                MODULES="$MODULES cli::"
+                ;;
+              src-tauri/src/sinks/*)
+                MODULES="$MODULES sinks::"
+                ;;
+              src-tauri/src/persistence/*)
+                MODULES="$MODULES persistence::"
+                ;;
+              *)
+                echo "File not matched to a specific isolated subsystem: $file"
+                RUN_FULL=true
+                break
+                ;;
+            esac
+          done
+
+          if [ "$RUN_FULL" = "true" ]; then
+            echo "Triggering full Rust test suite due to global/configuration changes or unmatched files..."
+            cargo test --manifest-path src-tauri/Cargo.toml
+          else
+            # Deduplicate module targets
+            UNIQUE_MODULES=$(echo "$MODULES" | tr ' ' '\n' | grep -v '^$' | sort -u)
+            if [ -z "$UNIQUE_MODULES" ]; then
+              echo "No specific subsystem modules identified. Running full test suite as fallback..."
+              cargo test --manifest-path src-tauri/Cargo.toml
+            else
+              for mod in $UNIQUE_MODULES; do
+                echo "Running targeted tests for subsystem: $mod"
+                cargo test --manifest-path src-tauri/Cargo.toml "$mod"
+              done
+            fi
+          fi
 
   check-e2e:
     name: E2E Smoke Tests
@@ -261,6 +342,13 @@ jobs:
             fi
           done
 
+          # Docs-only PR detection
+          IS_DOCS_ONLY=false
+          if [ "$DOCS_CHANGED" = "true" ] && [ "$FRONTEND_CHANGED" != "true" ] && [ "$RUST_CHANGED" != "true" ] && [ "$E2E_CHANGED" != "true" ] && [ "$CI_CONFIG_CHANGED" != "true" ]; then
+            IS_DOCS_ONLY=true
+            echo "Determined PR is docs-only. Validating documentation check while application tests remain bypassed."
+          fi
+
           # 3. If documentation changed -> check-docs must be success
           if [ "$DOCS_CHANGED" = "true" ] || [ "$CI_CONFIG_CHANGED" = "true" ]; then
             if [ "$CHECK_DOCS_RES" != "success" ]; then
@@ -289,11 +377,13 @@ jobs:
           APP_CODE_CHANGED=false
           if [ "$FRONTEND_CHANGED" = "true" ] || [ "$RUST_CHANGED" = "true" ] || [ "$E2E_CHANGED" = "true" ] || [ "$CI_CONFIG_CHANGED" = "true" ]; then
             APP_CODE_CHANGED=true
-          elif [ "$IS_OPENED" = "true" ] && [ "$DOCS_CHANGED" != "true" ]; then
+          elif [ "$IS_OPENED" = "true" ] && [ "$IS_DOCS_ONLY" != "true" ]; then
             APP_CODE_CHANGED=true
           fi
 
-          if [ "$APP_CODE_CHANGED" = "true" ]; then
+          if [ "$IS_DOCS_ONLY" = "true" ]; then
+            echo "Docs-only PR confirmed: check-docs result is '$CHECK_DOCS_RES'; application test gates (frontend, rust, e2e) were bypassed as expected."
+          elif [ "$APP_CODE_CHANGED" = "true" ]; then
             if [ "$CHECK_E2E_RES" != "success" ]; then
               echo "::error::E2E / Smoke tests (check-e2e) were required for application changes but result is '$CHECK_E2E_RES'."
               FAILED=true
