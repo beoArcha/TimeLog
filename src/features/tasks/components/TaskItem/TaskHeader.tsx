@@ -18,6 +18,8 @@ export interface TaskHeaderProps {
   runningSubtask: Task | undefined;
   editingId?: string | null;
   editName?: string;
+  subtasksCount?: number;
+  timeLogsCount?: number;
   onToggleTaskComplete?: (id: string) => void;
   onRenameTask?: ((id: string, name: string) => void) | undefined;
   onUpdateTask?: ((
@@ -39,6 +41,8 @@ export function TaskHeader({
   runningSubtask,
   editingId: propEditingId,
   editName: propEditName,
+  subtasksCount = 0,
+  timeLogsCount = 0,
   onToggleTaskComplete: propOnToggleTaskComplete,
   onRenameTask: propOnRenameTask,
   onUpdateTask: propOnUpdateTask,
@@ -145,6 +149,9 @@ export function TaskHeader({
             onDeleteTask={onDeleteTask}
             setEditingId={setEditingId}
             setEditName={setEditName}
+            subtasksCount={subtasksCount}
+            timeLogsCount={timeLogsCount}
+            isSubtask={false}
           />
         )}
       </div>

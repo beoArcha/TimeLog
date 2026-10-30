@@ -76,6 +76,13 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
       projectTasks,
     });
 
+  const subtaskIds = React.useMemo(() => new Set(subTasks.map((st) => st.id)), [subTasks]);
+  const rootAndSubtaskLogsCount = React.useMemo(
+    () => (logs ?? []).filter((l) => l.taskId === rootTask.id || subtaskIds.has(l.taskId)).length,
+    [logs, rootTask.id, subtaskIds]
+  );
+  const subtasksCount = subTasks.length;
+
   const showSubtaskForm =
     (editing?.showSubtaskFormForId ?? state.showSubtaskFormForId) === rootTask.id;
 
@@ -115,6 +122,8 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
           isCurrentRunning={isCurrentRunning}
           isChildRunning={isChildRunning}
           runningSubtask={runningSubtask}
+          subtasksCount={subtasksCount}
+          timeLogsCount={rootAndSubtaskLogsCount}
           onToggleTaskComplete={state.onToggleTaskComplete}
           onRenameTask={state.onRenameTask}
           onUpdateTask={state.onUpdateTask}
@@ -141,6 +150,7 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
 
       <SubtaskList
         subTasks={subTasks}
+        logs={logs}
         metrics={state.metrics}
         activeLog={state.activeLog}
         isCondensed={isCondensed}

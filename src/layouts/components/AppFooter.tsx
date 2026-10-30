@@ -9,14 +9,14 @@ import { Caption, MonoText } from '@components/ui/typography';
 interface AppFooterProps {
   locale: Locale;
   customTranslations?: Partial<TranslationDictionary>;
-  handleResetLocalStorage: () => void;
+  onNavigateToSettings?: () => void;
   setShowCreditsModal: (show: boolean) => void;
 }
 
 export default function AppFooter({
   locale,
   customTranslations,
-  handleResetLocalStorage,
+  onNavigateToSettings,
   setShowCreditsModal,
 }: AppFooterProps) {
   return (
@@ -54,10 +54,10 @@ export default function AppFooter({
           id="db-clean-force-btn"
           variant="link"
           size="xs"
-          onClick={handleResetLocalStorage}
+          onClick={onNavigateToSettings}
           className="text-orange-500 hover:text-orange-400 font-bold transition-all cursor-pointer p-0 h-auto"
         >
-          {translate(locale, 'engine', 'SqlReset', customTranslations)}
+          {translate(locale, 'engine', 'GoToDatabaseReset', customTranslations)}
         </Button>
       </HStack>
     </HStack>

@@ -68,7 +68,7 @@ describe('Unit Tests: TaskItem', () => {
     expect(onToggleTaskCompleteMock).toHaveBeenCalledWith('t1');
   });
 
-  it('should trigger onDeleteTask when task delete button is clicked', () => {
+  it('should trigger onDeleteTask when task delete button is clicked and confirmed', () => {
     // Arrange
     const state = createMockState();
     const { container } = render(<TaskItem rootTask={rootTask} state={state} isCondensed={false} />);
@@ -77,6 +77,11 @@ describe('Unit Tests: TaskItem', () => {
     const deleteBtn = container.querySelector('#delete-task-btn-t1');
     expect(deleteBtn).not.toBeNull();
     fireEvent.click(deleteBtn!);
+
+    // Confirmation dialog opens
+    expect(onDeleteTaskMock).not.toHaveBeenCalled();
+    const confirmBtn = screen.getByRole('button', { name: /Delete$|Usuń$/i });
+    fireEvent.click(confirmBtn);
 
     // Assert
     expect(onDeleteTaskMock).toHaveBeenCalledTimes(1);
