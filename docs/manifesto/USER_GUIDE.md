@@ -58,6 +58,7 @@ oXyFlow uses a clean, two-level organizational structure:
 - **Projects**: High-level initiatives, clients, or categories. Each project can be assigned one of 10 curated color badges to help you visually differentiate client work at a glance.
 - **Tasks**: Actionable units of work. You can mark tasks as completed (strikethrough) when finished, or archive them when you no longer need them in your active view.
 - **Subtasks**: For complex jobs, break tasks down into manageable child steps. Time tracked on subtasks automatically rolls up to the parent project in reports.
+- **Destructive Action Safety**: Deleting tasks or subtasks triggers an accessible confirmation modal (`ConfirmDialog`) showing the number of linked subtasks and warnings for tracked time records. If any storage or network failure occurs during deletion, an inline alert (`role="alert"`) is rendered directly inside the dialog without closing it or locking action controls, allowing immediate retry.
 
 ### 2.2 Tracking Time
 
@@ -181,9 +182,9 @@ oxy task add "API Authentication" --project "Mobile App"
 
 Your timesheets are stored in an ACID-compliant, local SQLite database on your machine:
 
-- **Windows**: `%APPDATA%\com.oxytime.oxyflow\timelog.db`
-- **Linux**: `~/.local/share/com.oxytime.oxyflow/timelog.db`
-- **macOS**: `~/Library/Application Support/com.oxytime.oxyflow/timelog.db`
+- **Windows**: `%APPDATA%\com.oxytime.oxyflow\oxytime.db`
+- **Linux**: `~/.local/share/com.oxytime.oxyflow/oxytime.db`
+- **macOS**: `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db`
 
 Because it is a standard SQLite database, you always have full ownership of your data.
 
@@ -193,6 +194,7 @@ In **Settings $\to$ Database**:
 
 - Click **"Create Backup"** to export a timestamped `.sqlite` snapshot of your entire database.
 - Click **"Restore Database"** to import a previously saved backup file.
+- **Safe Scoped Reset**: To prevent accidental data loss, direct database reset actions have been removed from quick-access UI panels (such as the footer) and centralized in **Settings $\to$ Database Operations**, allowing scoped resets (`BUSINESS`, `SETTINGS`, `SYSTEM`) with mandatory confirmation modals.
 
 ### 4.3 Automatic CSV & Webhook Sinks
 

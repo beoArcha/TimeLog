@@ -45,6 +45,7 @@ export interface SubtaskItemProps {
 
 export function SubtaskItem({
   subTask,
+  logs: propLogs,
   metrics,
   activeLog: propActiveLog,
   editingId: propEditingId,
@@ -82,6 +83,7 @@ export function SubtaskItem({
     activeLog: propActiveLog ?? timerCtx?.activeLog,
   });
   const isEditing = editingId === subTask.id;
+  const timeLogsCount = (propLogs ?? timerCtx?.logs ?? []).filter((l) => l.taskId === subTask.id).length;
 
   return (
     <HStack
@@ -160,6 +162,9 @@ export function SubtaskItem({
               onDeleteTask={onDeleteTask}
               setEditingId={setEditingId}
               setEditName={setEditName}
+              subtasksCount={0}
+              timeLogsCount={timeLogsCount}
+              isSubtask={true}
             />
           )}
         </HStack>

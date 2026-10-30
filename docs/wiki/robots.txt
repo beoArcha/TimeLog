@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://beoarcha.github.io/TimeLog/sitemap.xml

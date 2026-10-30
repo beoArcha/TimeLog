@@ -19,3 +19,4 @@ playwright-video/
 reports/mutation/
 src-tauri/bindings/
 .gemini/*
+/t3/

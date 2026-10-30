@@ -18,7 +18,7 @@ export interface WindowedLayoutContainerProps {
   setActiveLargeTab: (tab: AppTabId) => void;
   locale: string;
   customTranslations?: Record<string, unknown>;
-  handleResetLocalStorage: () => void;
+  handleResetLocalStorage?: () => void;
   setShowCreditsModal: (show: boolean) => void;
   guiState: GuiState;
   sharedProps: {
@@ -43,7 +43,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
   setActiveLargeTab,
   locale,
   customTranslations,
-  handleResetLocalStorage,
+  handleResetLocalStorage: _handleResetLocalStorage,
   setShowCreditsModal,
   guiState,
   sharedProps,
@@ -112,7 +112,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
           <AppFooter
             locale={locale}
             customTranslations={customTranslations}
-            handleResetLocalStorage={handleResetLocalStorage}
+            onNavigateToSettings={() => setActiveLargeTab('settings')}
             setShowCreditsModal={setShowCreditsModal}
           />
         </div>

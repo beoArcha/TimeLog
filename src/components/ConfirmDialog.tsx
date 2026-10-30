@@ -28,6 +28,8 @@ export interface ConfirmDialogProps {
   onCancel?: () => void;
   loading?: boolean;
   confirmDisabled?: boolean;
+  errorMessage?: string | null;
+  onClearError?: () => void;
 }
 
 /**
@@ -47,10 +49,14 @@ export function ConfirmDialog({
   onCancel,
   loading = false,
   confirmDisabled = false,
+  errorMessage,
+  onClearError,
 }: ConfirmDialogProps) {
   const { locale, customTranslations } = useSafeLocale();
   const [internalLoading, setInternalLoading] = React.useState(false);
+  const [internalError, setInternalError] = React.useState<string | null>(null);
   const isLoading = loading || internalLoading;
+  const displayError = errorMessage ?? internalError;
 
   const titleId = useId();
   const descriptionId = useId();
@@ -60,21 +66,58 @@ export function ConfirmDialog({
 
   const Icon = IconProp || (variant === 'destructive' || variant === 'warning' ? AlertTriangle : HelpCircle);
 
+  const clearError = () => {
+    setInternalError(null);
+    onClearError?.();
+  };
+
   const handleCancel = () => {
+    clearError();
     onCancel?.();
     onOpenChange?.(false);
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      clearError();
+    }
+    onOpenChange?.(nextOpen);
+  };
+
+  const extractErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    if (typeof error === 'string') {
+      return error;
+    }
+    return translate(locale, 'common', 'ErrGeneric', customTranslations);
+  };
+
   const handleConfirm = () => {
-    const result = onConfirm();
-    if (result && typeof (result as Promise<void>).then === 'function') {
-      setInternalLoading(true);
-      (result as Promise<void>).finally(() => {
-        setInternalLoading(false);
+    try {
+      const result = onConfirm();
+      if (result && typeof (result as Promise<void>).then === 'function') {
+        setInternalLoading(true);
+        (result as Promise<void>)
+          .then(() => {
+            clearError();
+            onOpenChange?.(false);
+          })
+          .catch((error) => {
+            console.error('Failed to execute confirm action in ConfirmDialog:', error);
+            setInternalError(extractErrorMessage(error));
+          })
+          .finally(() => {
+            setInternalLoading(false);
+          });
+      } else {
+        clearError();
         onOpenChange?.(false);
-      });
-    } else {
-      onOpenChange?.(false);
+      }
+    } catch (error) {
+      console.error('Failed to execute confirm action in ConfirmDialog:', error);
+      setInternalError(extractErrorMessage(error));
     }
   };
 
@@ -85,7 +128,7 @@ export function ConfirmDialog({
   const iconColor = iconColorMap[variant] ?? 'text-primary bg-primary/10 border-primary/20';
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         role="alertdialog"
         aria-modal="true"
@@ -106,6 +149,16 @@ export function ConfirmDialog({
         </DialogHeader>
 
         {children && <div className="py-2">{children}</div>}
+
+        {displayError && (
+          <div
+            role="alert"
+            data-testid="confirm-dialog-error"
+            className="text-xs font-medium text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-2.5 my-2"
+          >
+            {displayError}
+          </div>
+        )}
 
         <DialogFooter className="mt-4 gap-2">
           <Button

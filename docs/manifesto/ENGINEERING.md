@@ -199,6 +199,7 @@ Architecture tests (TypeScript: `tests/architecture/`):
 | Spec | Protects |
 | --- | --- |
 | `max-nested-ifs` | Cyclomatic complexity; Rule of 3 Ifs (depth >= 3 triggers failure) |
+| `no-nested-ternaries` | Code readability and nesting limit; prohibits nested ternary expressions |
 | `no-raw-html-primitives` | Design-system primitives only in `src/components/ui/` |
 | `no-inline-theme-ternaries` | Theme dependency inversion |
 | `runtime-isolation` | Shared code does not detect the runtime |
@@ -218,6 +219,18 @@ Architecture tests (Rust: `src-tauri/tests/architecture/`):
 | `error_handling_test` | Strictly typed domain errors; zero generic errors |
 | `sql_isolation_test` | Raw SQL statements isolated exclusively to `repositories` |
 | `tauri_isolation_test` | Zero Tauri GUI coupling in headless modules |
+
+### Continuous Integration & PR Quality Gates
+
+Pull requests are verified automatically by `.github/workflows/pr-checks.yml`:
+
+- **Path-Based Change Filtering (`dorny/paths-filter@v3`)**: Detects modifications to `frontend` (`src/**`, `tests/**`), `rust` (`src-tauri/**`), and `documentation` (`docs/**`, `*.md`).
+- **Event-Tiered Execution**:
+  - `opened`: Runs complete test suites for modified stacks.
+  - `synchronize` / `reopened`: Runs selective test suites restricted to changed files and their direct dependents (`vitest related --run`, focused cargo tests).
+- **Architecture Matrix**: Conditionally triggers TypeScript (`tests/architecture/`) or Rust (`src-tauri/tests/architecture/`) AST governance suites based on layer changes.
+- **Documentation Parity**: Changes touching documentation trigger `check-docs` (`bun run docs:validate`), verifying 6-locale parity, link validity, and naming integrity.
+- **Unified Status Gate**: A single required status check `pr-gate` acts as the definitive merge gate for human and automated review.
 
 ---
 
