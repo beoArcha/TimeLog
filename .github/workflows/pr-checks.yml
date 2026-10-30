@@ -1,0 +1,143 @@
+name: PR Quality Gates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      frontend_files: ${{ steps.filter.outputs.frontend_files }}
+      rust: ${{ steps.filter.outputs.rust }}
+      rust_files: ${{ steps.filter.outputs.rust_files }}
+      is_opened: ${{ github.event.action == 'opened' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          list-files: shell
+          filters: |
+            frontend:
+              - 'src/**'
+              - 'tests/**'
+              - 'package.json'
+              - 'bun.lockb'
+              - 'tsconfig.json'
+              - 'vite.config.ts'
+              - 'eslint.config.js'
+              - 'scripts/**'
+              - 'docs/**'
+            rust:
+              - 'src-tauri/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+
+  check-frontend:
+    name: Frontend Quality Gate
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.is_opened == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-frontend
+
+      - name: TypeScript Check
+        shell: bash
+        run: bun run typecheck
+
+      - name: ESLint
+        shell: bash
+        run: bun run lint
+
+      - name: Documentation & i18n Parity Validation
+        shell: bash
+        run: bun run docs:validate
+
+      - name: Run Architecture Specs
+        shell: bash
+        run: bun x vitest run tests/architecture/specs
+
+      - name: Tiered Vitest Execution
+        shell: bash
+        run: |
+          if [ "${{ needs.detect-changes.outputs.is_opened }}" = "true" ]; then
+            echo "PR opened: running comprehensive test suites"
+            bun x vitest run tests/unit tests/integration tests/architecture
+          else
+            echo "PR update: running related and unit tests"
+            bun x vitest run tests/unit tests/architecture/specs
+          fi
+
+  check-rust:
+    name: Rust Quality Gate
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.rust == 'true' || needs.detect-changes.outputs.is_opened == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RUST_WORKSPACE: "src-tauri -> target"
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: rustfmt, clippy
+          install-linux-deps: "true"
+
+      - name: Check Formatting
+        shell: bash
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+
+      - name: Run Clippy
+        shell: bash
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+      - name: Run Rust Architecture Tests
+        shell: bash
+        run: cargo test --manifest-path src-tauri/Cargo.toml --test architecture_tests
+
+      - name: Run Rust Unit and Integration Tests
+        shell: bash
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+  pr-gate:
+    name: PR Gate (Unified Check)
+    needs: [detect-changes, check-frontend, check-rust]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate Upstream Quality Gates
+        shell: bash
+        run: |
+          echo "Detect Changes: ${{ needs.detect-changes.result }}"
+          echo "Frontend Gate:  ${{ needs.check-frontend.result }}"
+          echo "Rust Gate:      ${{ needs.check-rust.result }}"
+
+          FAILED=false
+          for res in "${{ needs.detect-changes.result }}" "${{ needs.check-frontend.result }}" "${{ needs.check-rust.result }}"; do
+            if [ "$res" = "failure" ] || [ "$res" = "cancelled" ]; then
+              FAILED=true
+            fi
+          done
+
+          if [ "$FAILED" = "true" ]; then
+            echo "::error::One or more required quality gate checks failed or were cancelled."
+            exit 1
+          fi
+
+          echo "All relevant quality gates passed successfully."
+          exit 0
