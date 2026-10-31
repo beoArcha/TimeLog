@@ -8,11 +8,11 @@
   "license": "MPL-2.0",
   "repository": "https://github.com/beoArcha/TimeLog",
   "homepage": "https://beoarcha.github.io/TimeLog/#/",
-  "version": "1.12.3",
+  "version": "1.12.4",
   "versions": {
     "major": 1,
     "minor": 12,
-    "release": 3,
+    "release": 4,
     "subversions": {
       "engine": 22,
       "components": 4,
