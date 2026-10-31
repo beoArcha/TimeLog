@@ -32,6 +32,34 @@ Además de las variantes de diseño, oXyFlow admite tres niveles de escala indep
 
 ---
 
+## Formulario de Proyecto de Dos Niveles
+
+La barra lateral incluye un formulario adaptable de creación de proyectos estructurado en dos niveles: una fila principal compacta y un panel desplegable de opciones avanzadas:
+
+### Fila Principal (Nivel 1)
+- **Nombre del Proyecto**: Campo de texto directo (al pulsar Intro se crea el proyecto de inmediato).
+- **Paleta Predefinida**: Diez muestras de color (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Selector de Color Personalizado (Paintbrush)**: El botón con el icono de pincel (Paintbrush) al final de la paleta abre un selector interactivo que admite cualquier código de color HEX (por ejemplo, `#8B5CF6`).
+- **Selector de Opciones Avanzadas**: Botón de flecha (**Más opciones** / **Ocultar opciones**) para desplegar o plegar el panel adicional.
+- **Botón Añadir Proyecto**: Botón principal para confirmar y guardar el proyecto.
+
+### Panel Desplegable Avanzado (Nivel 2)
+- **Selector de Emoji**: Selector emergente para asignar un icono emoji al proyecto.
+- **Nube de Sugerencias de Etiquetas**: Campo para etiquetas separadas por comas con una nube dinámica que examina los proyectos existentes. Al hacer clic en una etiqueta sugerida, se añade directamente al campo sin necesidad de escribirla.
+- **Descripción del Proyecto**: Campo de texto para notas y alcance del proyecto.
+- **Conmutador de Concurrencia**: Define si las tareas de este proyecto pueden ejecutarse de forma simultánea con tareas de otros proyectos.
+
+---
+
+## Ciclo de Vida del Proyecto: Eliminación vs. Archivo
+
+Para proteger la integridad de las hojas de horas y evitar la pérdida de datos de auditoría:
+
+- **Proyectos sin Tiempo Registrado (`00:00:00`)**: Los proyectos sin sesiones guardadas y sin temporizador activo muestran un botón de eliminación permanente (icono Trash2). La eliminación borra por completo el proyecto del almacenamiento.
+- **Proyectos con Tiempo Registrado (`> 00:00:00`)**: El motor de validación bloquea la eliminación (`validate_project_deletion`). La interfaz reemplaza de forma automática el icono de papelera por el botón **Archivar**. El archivado oculta el proyecto de las barras laterales y listas activas, conservando todas las sesiones históricas, tareas e informes de auditoría.
+
+---
+
 ## Temas Integrados
 
 oXyFlow incluye tres temas integrados gestionados a través de `ThemeRegistry`:

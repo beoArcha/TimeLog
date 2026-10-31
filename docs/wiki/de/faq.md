@@ -14,7 +14,7 @@ Alle Zeiteinträge, Projekte, Aufgaben und Konfigurationen werden in einer lokal
 | **Linux** | `~/.local/share/com.oxytime.oxyflow/oxytime.db` |
 | **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db` |
 
-Im Browser-Modus werden die Daten im HTML5-`localStorage` unter entsprechenden Namespaces abgelegt.
+Im Browser-Modus (PWA) werden die Daten im HTML5-`localStorage` anstelle einer physischen SQLite-Datei abgelegt (weitere Details siehe Frage 7).
 
 ---
 
@@ -47,15 +47,32 @@ Der aktive Zeiteintrag läuft weiter, bis er manuell gestoppt, pausiert oder umg
 
 ## 5. Wie erstelle und sichere ich ein Backup der Datenbank?
 
-- **Automatische Backups**: oXyFlow bietet Sicherungsfunktionen unter **Einstellungen → Datenbank & Backup**.
-- **Manuelles Backup**: Kopieren Sie die Datei `oxytime.db` bei geschlossener Anwendung oder führen Sie einen SQLite-Befehl aus:
+- **Universelles JSON-Backup**: Unter **Einstellungen → Backup** (Karte **Datenbank- & Status-Backup**):
+  - **Exportieren**: Klicken Sie auf **Backup als JSON exportieren** (`data-testid="export-backup-btn"`), um einen portablen JSON-Snapshot (`OxyFlow_Backup_YYYY-MM-DD.json`) mit allen Projekten, Aufgaben, Zeiteinträgen und Einstellungen zu erzeugen.
+  - **Wiederherstellen / Importieren**: Klicken Sie auf **Backup aus JSON wiederherstellen** (`data-testid="import-backup-btn"`) und wählen Sie eine zuvor exportierte `.json`-Datei. Das System validiert die Dateistruktur (`validateBackupPayload`), bevor der Status wiederhergestellt wird.
+  - **Plattformübergreifende Portabilität**: Das JSON-Format ist über alle Laufzeitumgebungen hinweg identisch. Sie können Backups aus der Browser-PWA exportieren und in die Desktop-App importieren (oder umgekehrt).
+- **Physisches SQLite-Backup (Nur Desktop)**: Auf Desktop-Systemen können Sie die Datei `oxytime.db` bei geschlossener Anwendung direkt kopieren oder SQLite-Befehle nutzen:
 
   ```bash
   sqlite3 oxytime.db ".backup 'oxytime-backup.db'"
   ```
+
+In der Browser-PWA verhindert die Browser-Sandbox den direkten Dateisystemzugriff; das universelle JSON-Backup ist das primäre Sicherungsverfahren.
 
 ---
 
 ## 6. Wie synchronisieren sich GUI und CLI (`oxy`)?
 
 Das CLI-Binary (`oxy`) greift auf dieselbe lokale SQLite-Datei (`oxytime.db`) zu. Wird ein Vorgang über das Terminal ausgeführt (z. B. `oxy start <aufgabe>`), aktualisiert die grafische Oberfläche die Anzeige beim nächsten Timer-Tick oder beim Fensterfokus.
+
+---
+
+## 7. Wie unterscheidet sich die Datenspeicherung zwischen Desktop-App und Browser-PWA?
+
+oXyFlow nutzt an die jeweilige Laufzeitumgebung angepasste Persistenz-Engines:
+
+- **Desktop (Tauri v2)**: Die Daten werden in einer ACID-konformen lokalen SQLite-Datei (`oxytime.db`) im Dateisystem gespeichert. Nutzer haben direkten Zugriff auf die Datei für manuelle Backups und den CLI-Abgleich.
+- **Browser (PWA)**: Die Daten liegen im herkunftsisolierten `localStorage` des Browsers (`LocalStorage Engine`). Da Webbrowser in einer Sicherheits-Sandbox ohne Dateisystemzugriff arbeiten, wird kein physisches `.sqlite`-File erstellt oder exportiert.
+- **Warnung vor Browser-Bereinigungen**: Bereinigungsaktionen des Browsers („Browserdaten löschen“, Löschen von Cookies/Websitespeichern) oder private Browserfenster löschen alle gespeicherten Zeiteinträge unwiderruflich.
+- **Empfohlene Vorgehensweise**: Erstellen Sie bei Nutzung der Web-App regelmäßige Sicherungen über **Einstellungen → Backup → Backup als JSON exportieren**, um Daten auf der Festplatte zu sichern.
+
