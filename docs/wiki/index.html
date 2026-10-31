@@ -120,6 +120,150 @@
     .app-nav {
       margin-right: 25px;
     }
+
+    /* Product landing page */
+    .markdown-section:has(.landing-hero) {
+      max-width: 1080px;
+      padding-top: 2.5rem;
+    }
+
+    .landing-hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(3rem, 8vw, 7rem) clamp(1.5rem, 6vw, 5rem);
+      margin: 0 0 5rem;
+      border: 1px solid rgba(148, 163, 184, .16);
+      border-radius: 28px;
+      background:
+        radial-gradient(ellipse at 82% 12%, rgba(16, 185, 129, .18), transparent 38%),
+        radial-gradient(ellipse at 8% 90%, rgba(56, 189, 248, .10), transparent 42%),
+        linear-gradient(145deg, #111c2d, #0d1422 68%);
+    }
+
+    .landing-eyebrow {
+      margin: 0 0 1.1rem !important;
+      color: #34d399;
+      font-size: .72rem !important;
+      font-weight: 750;
+      letter-spacing: .16em;
+      line-height: 1.4;
+    }
+
+    .landing-hero h1,
+    .landing-section h2,
+    .landing-band h2,
+    .landing-docs h2 {
+      color: #f8fafc;
+      font-weight: 750;
+      letter-spacing: -.055em;
+      line-height: 1.05;
+    }
+
+    .landing-hero h1 {
+      max-width: 760px;
+      margin: 0 0 1.5rem;
+      font-size: clamp(3rem, 8vw, 6.2rem);
+    }
+
+    .landing-lead {
+      max-width: 660px;
+      margin: 0;
+      color: #cbd5e1;
+      font-size: clamp(1.05rem, 2vw, 1.3rem);
+      line-height: 1.7;
+    }
+
+    .landing-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .8rem;
+      margin-top: 2.2rem;
+    }
+
+    .landing-button {
+      display: inline-flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .85rem 1.2rem;
+      border: 1px solid rgba(148, 163, 184, .28);
+      border-radius: 999px;
+      font-size: .92rem;
+      font-weight: 700;
+      text-decoration: none !important;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .landing-button:hover { transform: translateY(-2px); }
+    .landing-button-primary { color: #052e24 !important; background: #34d399; border-color: #34d399; }
+    .landing-button-primary:hover { background: #6ee7b7; }
+    .landing-button-secondary { color: #e2e8f0 !important; background: rgba(15, 23, 42, .5); }
+    .landing-button-secondary:hover { border-color: #64748b; background: rgba(30, 41, 59, .8); }
+    .landing-note { margin: 1.3rem 0 0; color: #94a3b8; font-size: .8rem; }
+
+    .landing-section { margin: 0 0 5rem; }
+    .landing-section h2, .landing-band h2, .landing-docs h2 {
+      margin: 0 0 1.2rem;
+      font-size: clamp(2.1rem, 5vw, 3.5rem);
+    }
+    .landing-intro { max-width: 720px; margin: 0 0 2rem; color: #aebdce; font-size: 1.08rem; }
+
+    .landing-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .landing-card {
+      padding: 1.5rem;
+      border: 1px solid #263449;
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(30, 41, 59, .72), rgba(15, 23, 42, .55));
+    }
+    .landing-card-mark { color: #34d399; font-size: .75rem; font-weight: 800; letter-spacing: .12em; }
+    .landing-card h3 { margin: .8rem 0 .55rem; color: #f1f5f9; font-size: 1.2rem; letter-spacing: -.025em; }
+    .landing-card p { margin: 0; color: #aebdce; font-size: .94rem; }
+    .landing-band {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+      gap: clamp(2rem, 6vw, 5rem);
+      align-items: start;
+      padding: clamp(2rem, 5vw, 3.5rem);
+      margin: 0 0 5rem;
+      border: 1px solid #263449;
+      border-radius: 22px;
+      background: #101a2a;
+    }
+    .landing-band p { color: #aebdce; }
+    .landing-feature-list { display: grid; gap: 0; }
+    .landing-feature-list > div { display: grid; gap: .25rem; padding: 1rem 0; border-bottom: 1px solid #263449; }
+    .landing-feature-list > div:first-child { padding-top: 0; }
+    .landing-feature-list strong { color: #f1f5f9; }
+    .landing-feature-list span { color: #aebdce; font-size: .92rem; }
+    .landing-grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .landing-platform-label { color: #34d399; font-size: .7rem; font-weight: 800; letter-spacing: .14em; }
+    .landing-platform-card h3 { margin-top: 1rem; font-size: 1.45rem; }
+    .landing-platform-card a { display: inline-block; margin-top: 1rem; color: #6ee7b7; font-weight: 700; }
+    .landing-privacy { grid-template-columns: 1fr 1fr; }
+    .landing-tech { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.8rem; }
+    .landing-tech span { padding: .5rem .75rem; border: 1px solid #334155; border-radius: 999px; color: #cbd5e1; font-size: .7rem; font-weight: 750; letter-spacing: .08em; }
+    .landing-docs { padding: clamp(2rem, 6vw, 4rem); margin: 0 0 2rem; border-radius: 24px; background: linear-gradient(135deg, #102b2a, #101a2a 65%); }
+    .landing-docs > p:not(.landing-eyebrow):not(.landing-footer) { max-width: 650px; color: #b8c7d6; }
+    .landing-doc-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: 2rem; }
+    .landing-doc-links a { display: grid; grid-template-columns: 1fr auto; gap: .2rem 1rem; padding: 1.1rem; border: 1px solid rgba(148, 163, 184, .2); border-radius: 14px; color: #f1f5f9; text-decoration: none !important; background: rgba(15, 23, 42, .35); }
+    .landing-doc-links a strong { font-size: .98rem; }
+    .landing-doc-links a span { grid-column: 1; color: #aebdce; font-size: .82rem; }
+    .landing-doc-links a b { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: #6ee7b7; font-size: 1.2rem; }
+    .landing-doc-links a:hover { border-color: #34d399; background: rgba(15, 23, 42, .7); }
+    .landing-footer { margin: 3rem 0 0; color: #6ee7b7; font-size: .9rem; font-weight: 700; letter-spacing: .02em; }
+
+    @media (max-width: 700px) {
+      .markdown-section:has(.landing-hero) { padding: 1.2rem 1rem; }
+      .landing-hero { padding: 3rem 1.4rem; margin-bottom: 3.5rem; border-radius: 20px; }
+      .landing-grid, .landing-grid-two, .landing-band, .landing-privacy, .landing-doc-links { grid-template-columns: 1fr; }
+      .landing-section, .landing-band { margin-bottom: 3.5rem; }
+      .landing-band { padding: 1.6rem; }
+      .landing-docs { padding: 1.6rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .landing-button { transition: none; }
+      .landing-button:hover { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -250,6 +394,67 @@
         successText: 'Copied'
       }
     };
+  </script>
+
+  <script>
+    (function () {
+      var languages = ['en', 'pl', 'de', 'es', 'fr', 'pt-br'];
+      var storageKey = 'timelog-docs-language';
+      var languagePattern = /^#?\/(en|pl|de|es|fr|pt-br)(?:\/|$)/i;
+
+      function normalizeLanguage(value) {
+        if (!value) return 'en';
+        var normalized = value.toLowerCase();
+        if (normalized.startsWith('pt')) return 'pt-br';
+        var shortCode = normalized.split('-')[0];
+        return languages.indexOf(shortCode) >= 0 ? shortCode : 'en';
+      }
+
+      function getPreferredLanguage() {
+        try {
+          var saved = localStorage.getItem(storageKey);
+          if (saved && languages.indexOf(saved) >= 0) return saved;
+        } catch (_) {}
+        var candidates = navigator.languages && navigator.languages.length
+          ? navigator.languages
+          : [navigator.language || 'en'];
+        for (var i = 0; i < candidates.length; i++) {
+          var candidate = normalizeLanguage(candidates[i]);
+          if (candidate !== 'en' || String(candidates[i]).toLowerCase().startsWith('en')) return candidate;
+        }
+        return 'en';
+      }
+
+      function isRootRoute(hash) {
+        return !hash || hash === '#' || hash === '#/' || hash === '#/README' || hash === '#/README.md';
+      }
+
+      if (isRootRoute(window.location.hash)) {
+        var preferred = getPreferredLanguage();
+        if (preferred !== 'en') window.location.replace(window.location.pathname + window.location.search + '#/' + preferred + '/README.md');
+      }
+
+      document.addEventListener('click', function (event) {
+        var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+        if (!link) return;
+        var href = link.getAttribute('href') || '';
+        var target = href.match(languagePattern);
+        if (!target) return;
+
+        var language = target[1].toLowerCase();
+        try { localStorage.setItem(storageKey, language); } catch (_) {}
+
+        var current = window.location.hash.replace(/^#\/?/, '').split('?')[0];
+        var parts = current.split('/');
+        var currentSlug = parts.length > 1 && languages.indexOf(parts[0].toLowerCase()) >= 0
+          ? parts.slice(1).join('/')
+          : 'README.md';
+        if (!currentSlug || currentSlug === 'README' || currentSlug === 'README.md') currentSlug = 'README.md';
+
+        event.preventDefault();
+        window.location.hash = '#/' + language + '/' + currentSlug;
+      }, true);
+    })();
   </script>
 
   <!-- Docsify v4 core -->
