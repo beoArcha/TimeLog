@@ -198,6 +198,32 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       const proj = store.getProjects().find((p) => p.id === 'sb_p1');
       expect(proj?.archived).toBe(true);
     });
+
+    it('should add project with rate and currency flags and update them via rename', () => {
+      // Arrange
+      const output = new TerminalOutput();
+
+      // Act: add project with rate and currency
+      SandboxCommandRouter.route(
+        ['project', 'add', 'Billed Project', '--rate', '125.50', '--currency', 'USD'],
+        store,
+        output
+      );
+      const billed = store.getProjects().find((p) => p.name === 'Billed Project');
+      expect(billed).toBeDefined();
+      expect(billed?.hourlyRate).toBe('125.50');
+      expect(billed?.currency).toBe('USD');
+
+      // Act: clear rate and currency with clear/none
+      SandboxCommandRouter.route(
+        ['project', 'rename', billed!.id, '--rate', 'none', '--currency', 'clear'],
+        store,
+        output
+      );
+      const updated = store.getProjects().find((p) => p.id === billed!.id);
+      expect(updated?.hourlyRate).toBeNull();
+      expect(updated?.currency).toBeNull();
+    });
   });
 
   describe('Task commands routing', () => {
@@ -286,6 +312,37 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(handled).toBe(true);
       const task = store.getTasks().find((t) => t.id === 'sb_t1');
       expect(task?.archived).toBe(true);
+    });
+
+    it('should add task with rate and set rate or inherit via task rate', () => {
+      // Arrange
+      const output = new TerminalOutput();
+
+      // Act: add task with rate
+      SandboxCommandRouter.route(
+        ['task', 'add', 'Billed Task', '-p', 'sb_p1', '--rate', '80.00'],
+        store,
+        output
+      );
+      const task = store.getTasks().find((t) => t.name === 'Billed Task');
+      expect(task).toBeDefined();
+      expect(task?.hourlyRate).toBe('80.00');
+
+      // Act: update rate via task rate
+      SandboxCommandRouter.route(
+        ['task', 'rate', task!.id, '95.00'],
+        store,
+        output
+      );
+      expect(store.getTasks().find((t) => t.id === task!.id)?.hourlyRate).toBe('95.00');
+
+      // Act: reset rate to inherit
+      SandboxCommandRouter.route(
+        ['task', 'rate', task!.id, 'inherit'],
+        store,
+        output
+      );
+      expect(store.getTasks().find((t) => t.id === task!.id)?.hourlyRate).toBeNull();
     });
   });
 

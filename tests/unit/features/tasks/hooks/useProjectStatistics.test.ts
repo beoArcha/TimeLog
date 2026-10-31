@@ -31,6 +31,10 @@ describe('Unit Tests: useProjectStatistics', () => {
       validateTaskName: vi.fn(),
       validateTaskHierarchy: vi.fn(),
     },
+    billing: {
+      resolveEffectiveTaskRate: vi.fn(),
+      calculateRangeBilling: vi.fn(),
+    },
   };
 
   beforeEach(() => {

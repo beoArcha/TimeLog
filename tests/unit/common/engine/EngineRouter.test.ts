@@ -30,6 +30,10 @@ describe('Unit Tests: EngineRouter', () => {
         validateTaskName: vi.fn().mockResolvedValue(undefined),
         validateTaskHierarchy: vi.fn().mockResolvedValue(undefined),
       },
+      billing: {
+        resolveEffectiveTaskRate: vi.fn(),
+        calculateRangeBilling: vi.fn(),
+      },
     };
 
     EngineRouter.resetForTesting();
@@ -89,6 +93,7 @@ describe('Unit Tests: EngineRouter', () => {
       metrics: { ...mockEngine.metrics },
       timeLogs: { ...mockEngine.timeLogs },
       validation: { ...mockEngine.validation },
+      billing: { ...mockEngine.billing },
     };
 
     // Act
@@ -99,6 +104,7 @@ describe('Unit Tests: EngineRouter', () => {
     expect(router.metrics).toBe(customEngine.metrics);
     expect(router.timeLogs).toBe(customEngine.timeLogs);
     expect(router.validation).toBe(customEngine.validation);
+    expect(router.billing).toBe(customEngine.billing);
   });
 
   it('should reset singleton instance when resetForTesting is invoked', () => {
