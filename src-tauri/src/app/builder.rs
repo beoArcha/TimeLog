@@ -32,6 +32,8 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             engine::edit_time_log,
             engine::get_project_statistics,
             engine::get_computed_metrics,
+            engine::billing_resolve_effective_rate,
+            engine::billing_calculate_range,
             core::get_state,
             core::override_state,
             core::reset,

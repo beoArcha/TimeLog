@@ -52,7 +52,10 @@ describe('useProjectEditDialog', () => {
       'emerald',
       'New Desc',
       '🎯',
-      ['v2']
+      ['v2'],
+      undefined,
+      undefined,
+      undefined
     );
     expect(result.current.editingProject).toBeNull();
   });

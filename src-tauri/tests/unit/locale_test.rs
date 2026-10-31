@@ -11,6 +11,9 @@ fn test_locale_from_sys_lang_resolves_all_locales_and_falls_back_to_en() {
         ("fr-FR", Locale::Fr),
         ("pt-BR", Locale::PtBr),
         ("pt-PT", Locale::PtBr),
+        ("uk-UA", Locale::Uk),
+        ("UK", Locale::Uk),
+        ("uk", Locale::Uk),
         ("en-US", Locale::En),
         ("invalid", Locale::En),
     ];
@@ -33,6 +36,7 @@ fn test_locale_to_sys_lang_converts_all_enum_variants_correctly() {
         (Locale::Es, "es"),
         (Locale::Fr, "fr"),
         (Locale::PtBr, "pt"),
+        (Locale::Uk, "uk"),
         (Locale::En, "en"),
         (Locale::System, "en"),
         (Locale::Custom, "en"),

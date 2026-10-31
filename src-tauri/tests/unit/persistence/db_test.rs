@@ -122,7 +122,7 @@ fn test_initialize_database_records_migrations_in_memory() {
         .unwrap();
 
     // Assert
-    assert_eq!(count, 6);
+    assert_eq!(count, 7);
 }
 
 #[test]
@@ -138,5 +138,5 @@ fn test_initialize_database_subsequent_call_is_idempotent() {
     let count: i64 = conn
         .query_row("SELECT COUNT(*) FROM schema_migrations", [], |r| r.get(0))
         .unwrap();
-    assert_eq!(count, 6);
+    assert_eq!(count, 7);
 }

@@ -21,7 +21,10 @@ import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { EmojiPicker } from '@components/ui/emoji-picker';
 import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
 
-export type ProjectToEdit = Pick<Project, 'id' | 'name' | 'color' | 'description' | 'icon' | 'tags' | 'allowConcurrency'>;
+export type ProjectToEdit = Pick<
+  Project,
+  'id' | 'name' | 'color' | 'description' | 'icon' | 'tags' | 'allowConcurrency' | 'hourlyRate' | 'currency'
+>;
 
 export interface EditProjectSavePayload {
   id: string;
@@ -31,6 +34,8 @@ export interface EditProjectSavePayload {
   icon: string | null;
   tags: string[] | null;
   allowConcurrency: boolean;
+  hourlyRate: string | null;
+  currency: string | null;
 }
 
 export interface EditProjectDialogProps {
@@ -65,6 +70,8 @@ function EditProjectDialogForm({
   const [icon, setIcon] = useState(project.icon || '');
   const [tags, setTags] = useState(project.tags ? project.tags.join(', ') : '');
   const [allowConcurrency, setAllowConcurrency] = useState(Boolean(project.allowConcurrency));
+  const [hourlyRate, setHourlyRate] = useState(project.hourlyRate ?? '');
+  const [currency, setCurrency] = useState(project.currency ?? '');
   const colorInputRef = useRef<HTMLInputElement>(null);
   const isCustomColor = isValidHexColor(color);
 
@@ -98,6 +105,8 @@ function EditProjectDialogForm({
       icon: icon.trim() || null,
       tags: tagsArr.length > 0 ? tagsArr : null,
       allowConcurrency,
+      hourlyRate: hourlyRate.trim() || null,
+      currency: currency.trim() || null,
     });
     onOpenChange(false);
   };
@@ -251,6 +260,38 @@ function EditProjectDialogForm({
               </div>
             </div>
           )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="edit-project-hourly-rate" className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
+              {translate(locale, 'project', 'HourlyRate', customTranslations)}
+            </Label>
+            <Input
+              id="edit-project-hourly-rate"
+              data-testid="edit-project-hourly-rate"
+              type="text"
+              placeholder={translate(locale, 'project', 'HourlyRatePlaceholder', customTranslations)}
+              value={hourlyRate}
+              onChange={e => setHourlyRate(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label htmlFor="edit-project-currency" className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
+              {translate(locale, 'project', 'Currency', customTranslations)}
+            </Label>
+            <Input
+              id="edit-project-currency"
+              data-testid="edit-project-currency"
+              type="text"
+              placeholder={translate(locale, 'project', 'CurrencyPlaceholder', customTranslations)}
+              value={currency}
+              onChange={e => setCurrency(e.target.value.toUpperCase())}
+              maxLength={4}
+              className="w-full"
+            />
+          </div>
         </div>
 
         <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card/50">

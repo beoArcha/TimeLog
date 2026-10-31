@@ -23,6 +23,7 @@ describe('Unit Tests: PersistenceCommands - Tasks', () => {
         projectId: 'p1',
         name: 'Task 1',
         parentTaskId: null,
+        hourlyRate: null,
       });
     });
 

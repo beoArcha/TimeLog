@@ -29,6 +29,7 @@ describe('LocalStorageStateStore', () => {
   it('should return parsed state from storage when state data exists', async () => {
     // Arrange
     const sampleState = {
+      schemaVersion: 2,
       projects: [aProject({ id: 'p-1', name: 'Saved Project' })],
       tasks: [aTask({ id: 't-1', projectId: 'p-1' })],
       logs: [aTimeLog({ id: 'l-1', taskId: 't-1' })],
@@ -154,6 +155,7 @@ describe('LocalStorageStateStore', () => {
   it('should clear only settings domain keys and preserve business state when reset is called with SETTINGS scope', async () => {
     // Arrange
     const businessState = {
+      schemaVersion: 2,
       projects: [aProject({ id: 'p-keep', name: 'Keep Me' })],
       tasks: [],
       logs: [],
@@ -176,6 +178,7 @@ describe('LocalStorageStateStore', () => {
   it('should clear only system domain keys and preserve business and settings keys when reset is called with SYSTEM scope', async () => {
     // Arrange
     const businessState = {
+      schemaVersion: 2,
       projects: [aProject({ id: 'p-keep-2', name: 'Keep Me Too' })],
       tasks: [],
       logs: [],

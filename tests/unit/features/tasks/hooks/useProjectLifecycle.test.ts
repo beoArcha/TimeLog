@@ -195,7 +195,10 @@ describe('useProjectLifecycle', () => {
       'rose',
       'New desc',
       '🚀',
-      ['v2']
+      ['v2'],
+      undefined,
+      undefined,
+      undefined
     );
   });
 

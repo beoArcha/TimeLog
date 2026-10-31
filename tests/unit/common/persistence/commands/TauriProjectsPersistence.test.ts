@@ -31,6 +31,8 @@ describe('TauriProjectsPersistence', () => {
       icon: 'folder',
       tags: ['tag1'],
       allowConcurrency: null,
+      hourlyRate: null,
+      currency: null,
     });
   });
 
@@ -69,6 +71,39 @@ describe('TauriProjectsPersistence', () => {
         icon: 'star',
         tags: ['new-tag'],
         allowConcurrency: null,
+      },
+    });
+  });
+
+  it('should invoke update_project command with billing fields when provided', async () => {
+    // Arrange
+    mockInvoke.mockResolvedValueOnce({ projects: [], tasks: [], logs: [], activeLog: null });
+
+    // Act
+    await projectsPersistence.update(
+      'proj-123',
+      'Updated Project',
+      '#00ff00',
+      'Updated desc',
+      'star',
+      ['new-tag'],
+      false,
+      '250.00',
+      'EUR'
+    );
+
+    // Assert
+    expect(mockInvoke).toHaveBeenCalledWith('update_project', {
+      input: {
+        projectId: 'proj-123',
+        name: 'Updated Project',
+        color: '#00ff00',
+        description: 'Updated desc',
+        icon: 'star',
+        tags: ['new-tag'],
+        allowConcurrency: false,
+        hourlyRate: '250.00',
+        currency: 'EUR',
       },
     });
   });

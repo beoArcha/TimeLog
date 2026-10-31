@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, DollarSign } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { Text, Caption } from '@components/ui/typography';
 import { VStack } from '@components/ui/stack';
+import { Task } from '@bindings/Task';
+import { useTasksSafe } from '@common/hooks/DataContext';
+import { TaskBillingModal } from '../TaskBillingModal';
 
 export interface TaskActionsProps {
   taskId: string;
@@ -18,6 +21,8 @@ export interface TaskActionsProps {
   subtasksCount?: number;
   timeLogsCount?: number;
   isSubtask?: boolean;
+  task?: Task;
+  onUpdateRate?: (hourlyRate: string | null) => void;
 }
 
 export function TaskActions({
@@ -32,12 +37,31 @@ export function TaskActions({
   subtasksCount = 0,
   timeLogsCount = 0,
   isSubtask = false,
+  task,
+  onUpdateRate,
 }: TaskActionsProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isBillingOpen, setIsBillingOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const { t: tCommon } = useTranslation('common');
   const { t: tTask } = useTranslation('task');
+  const tasksCtx = useTasksSafe();
+
+  const handleSaveRate = (rate: string | null) => {
+    if (onUpdateRate) {
+      onUpdateRate(rate);
+    } else if (task && tasksCtx?.handleUpdateTask) {
+      tasksCtx.handleUpdateTask(
+        task.id,
+        task.name,
+        task.parentTaskId || null,
+        task.status || null,
+        task.completed,
+        rate
+      );
+    }
+  };
 
   const handleConfirmDelete = async () => {
     if (isDeleting) return;
@@ -64,6 +88,24 @@ export function TaskActions({
   return (
     <>
       <div className="opacity-100 md:opacity-0 md:group-hover/taskedit:opacity-100 flex items-center transition duration-200 shrink-0 ml-2">
+        {task && (
+          <Button
+            id={`billing-task-btn-${taskId}`}
+            data-testid={`billing-task-btn-${taskId}`}
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            title={tTask('Rate')}
+            aria-label={tTask('Rate')}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsBillingOpen(true);
+            }}
+            className="p-1 rounded text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 cursor-pointer mr-0.5"
+          >
+            <DollarSign className={pencilSize} />
+          </Button>
+        )}
         <Button
           id={`edit-task-btn-${taskId}`}
           type="button"
@@ -97,6 +139,15 @@ export function TaskActions({
           <Trash2 className={trashSize} />
         </Button>
       </div>
+
+      {task && (
+        <TaskBillingModal
+          open={isBillingOpen}
+          onOpenChange={setIsBillingOpen}
+          task={task}
+          onSaveRate={handleSaveRate}
+        />
+      )}
 
       <ConfirmDialog
         open={isConfirmOpen}

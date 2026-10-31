@@ -97,7 +97,7 @@ describe('Sidebar', () => {
     fireEvent.click(addBtn);
 
     // Assert
-    expect(onAddProject).toHaveBeenCalledWith('Delta Project', 'violet', null, null, null, false);
+    expect(onAddProject).toHaveBeenCalledWith('Delta Project', 'violet', null, null, null, false, null, null);
   });
 
   it('should render delete button for project with 0 seconds and archive button for project with logged time', () => {
@@ -184,7 +184,7 @@ describe('SidebarProjectForm', () => {
     fireEvent.click(addBtn);
 
     // Assert
-    expect(onAdd).toHaveBeenCalledWith('Gamma', 'emerald', null, null, null, false);
+    expect(onAdd).toHaveBeenCalledWith('Gamma', 'emerald', null, null, null, false, null, null);
   });
 });
 

@@ -15,6 +15,8 @@ export const aProject = (overrides?: Partial<Project>): Project => ({
   icon: undefined,
   tags: undefined,
   allowConcurrency: false,
+  hourlyRate: null as unknown as string,
+  currency: null as unknown as string,
   ...overrides,
 });
 
@@ -26,6 +28,7 @@ export const aTask = (overrides?: Partial<Task>): Task => ({
   createdAt: '2026-06-15T00:00:00Z',
   status: undefined,
   parentTaskId: undefined,
+  hourlyRate: null as unknown as string,
   ...overrides,
 });
 

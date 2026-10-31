@@ -1,0 +1,83 @@
+import { Project } from '@bindings/Project';
+import { Task } from '@bindings/Task';
+import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
+
+export const CURRENT_LOCAL_STORAGE_SCHEMA_VERSION = 2;
+
+export interface VersionedProject extends Omit<Project, 'hourlyRate' | 'currency'> {
+  hourlyRate?: string | null;
+  currency?: string | null;
+}
+
+export interface VersionedTask extends Omit<Task, 'hourlyRate'> {
+  hourlyRate?: string | null;
+}
+
+export interface VersionedState extends Omit<TimerRepositoryState, 'projects' | 'tasks'> {
+  projects: VersionedProject[];
+  tasks: VersionedTask[];
+  schemaVersion?: number;
+  _migrated?: boolean;
+}
+
+function migrateProject(project: unknown): VersionedProject {
+  if (!project || typeof project !== 'object') {
+    return project as VersionedProject;
+  }
+  const p = project as unknown as Record<string, unknown>;
+  return {
+    ...p,
+    hourlyRate: typeof p.hourlyRate === 'string' ? p.hourlyRate : null,
+    currency: typeof p.currency === 'string' ? p.currency : null,
+  } as VersionedProject;
+}
+
+function migrateTask(task: unknown): VersionedTask {
+  if (!task || typeof task !== 'object') {
+    return task as VersionedTask;
+  }
+  const t = task as unknown as Record<string, unknown>;
+  return {
+    ...t,
+    hourlyRate: typeof t.hourlyRate === 'string' ? t.hourlyRate : null,
+  } as VersionedTask;
+}
+
+/**
+ * Versioned migrator for active browser LocalStorage state.
+ * Upgrades legacy state shapes while preserving existing records and unknown properties.
+ */
+export function migrateLocalStorageState(raw: unknown): VersionedState {
+  if (!raw || typeof raw !== 'object') {
+    return {
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+      schemaVersion: CURRENT_LOCAL_STORAGE_SCHEMA_VERSION,
+    };
+  }
+
+  const state = { ...(raw as Record<string, unknown>) } as unknown as VersionedState;
+  let didMigrate = false;
+  const currentVersion = typeof state.schemaVersion === 'number' ? state.schemaVersion : 1;
+
+  if (currentVersion < 2) {
+    if (Array.isArray(state.projects)) {
+      state.projects = state.projects.map(migrateProject);
+    }
+
+    if (Array.isArray(state.tasks)) {
+      state.tasks = state.tasks.map(migrateTask);
+    }
+
+    state.schemaVersion = CURRENT_LOCAL_STORAGE_SCHEMA_VERSION;
+    didMigrate = true;
+  }
+
+  if (didMigrate) {
+    state._migrated = true;
+  }
+
+  return state;
+}

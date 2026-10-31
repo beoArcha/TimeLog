@@ -152,6 +152,7 @@ export function TaskHeader({
             subtasksCount={subtasksCount}
             timeLogsCount={timeLogsCount}
             isSubtask={false}
+            task={rootTask}
           />
         )}
       </div>

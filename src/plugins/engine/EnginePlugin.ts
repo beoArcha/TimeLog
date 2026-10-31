@@ -7,6 +7,7 @@ import {
   EngineComputedMetrics,
   ElapsedRangeFilter,
 } from '@common/engine/IEngine';
+import { IBillingEngine } from '@common/engine/billing/types';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
@@ -14,18 +15,21 @@ import { BrowserTimerEngine } from './services/BrowserTimerEngine';
 import { BrowserMetricsEngine } from './services/BrowserMetricsEngine';
 import { BrowserTimeLogsEngine } from './services/BrowserTimeLogsEngine';
 import { BrowserValidationEngine } from './services/BrowserValidationEngine';
+import { BrowserBillingEngine } from './services/BrowserBillingEngine';
 
 export class EnginePlugin implements IEngine {
   readonly timer: ITimerEngine;
   readonly metrics: IMetricsEngine;
   readonly timeLogs: ITimeLogsEngine;
   readonly validation: IValidationEngine;
+  readonly billing: IBillingEngine;
 
   constructor(services?: Partial<IEngine>) {
     this.timer = services?.timer ?? new BrowserTimerEngine();
     this.metrics = services?.metrics ?? new BrowserMetricsEngine();
     this.timeLogs = services?.timeLogs ?? new BrowserTimeLogsEngine();
     this.validation = services?.validation ?? new BrowserValidationEngine();
+    this.billing = services?.billing ?? new BrowserBillingEngine();
   }
 
   async startTimer(taskId: string): Promise<void> {

@@ -13,6 +13,7 @@ pub enum Locale {
     #[ts(rename = "pt-br")]
     PtBr,
     Fr,
+    Uk,
     Custom,
     System,
 }
@@ -26,6 +27,7 @@ impl Locale {
             "es" => Locale::Es,
             "fr" => Locale::Fr,
             "pt" => Locale::PtBr,
+            "uk" => Locale::Uk,
             _ => Locale::En,
         }
     }
@@ -37,6 +39,7 @@ impl Locale {
             Locale::Es => "es",
             Locale::Fr => "fr",
             Locale::PtBr => "pt",
+            Locale::Uk => "uk",
             _ => "en",
         }
     }

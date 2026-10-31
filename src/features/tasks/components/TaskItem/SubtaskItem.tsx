@@ -165,6 +165,7 @@ export function SubtaskItem({
               subtasksCount={0}
               timeLogsCount={timeLogsCount}
               isSubtask={true}
+              task={subTask}
             />
           )}
         </HStack>
