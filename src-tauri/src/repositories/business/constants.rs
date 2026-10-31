@@ -204,7 +204,8 @@ pub const COUNT_PROJECT_LOGGED_TIME: &str = "
     JOIN tasks t ON tl.task_id = t.id
     WHERE t.project_id = ?1
 ";
-pub const DELETE_SUBTASKS_BY_PROJECT: &str = "DELETE FROM tasks WHERE project_id = ?1 AND parent_task_id IS NOT NULL";
+pub const DELETE_SUBTASKS_BY_PROJECT: &str =
+    "DELETE FROM tasks WHERE project_id = ?1 AND parent_task_id IS NOT NULL";
 pub const DELETE_TASKS_BY_PROJECT: &str = "DELETE FROM tasks WHERE project_id = ?1";
 pub const SELECT_ALL_PROJECT_IDS: &str = "SELECT id FROM projects";
 pub const UPSERT_PROJECT: &str = "

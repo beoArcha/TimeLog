@@ -146,9 +146,7 @@ impl BusinessRepository {
         let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
 
         let project_exists: bool = tx
-            .query_row(constants::SELECT_PROJECT_BY_ID, params![id], |_| {
-                Ok(true)
-            })
+            .query_row(constants::SELECT_PROJECT_BY_ID, params![id], |_| Ok(true))
             .optional()?
             .unwrap_or(false);
 
@@ -159,11 +157,10 @@ impl BusinessRepository {
             });
         }
 
-        let active_count: i64 = tx.query_row(
-            constants::COUNT_PROJECT_ACTIVE_TIMERS,
-            params![id],
-            |row| row.get(0),
-        )?;
+        let active_count: i64 =
+            tx.query_row(constants::COUNT_PROJECT_ACTIVE_TIMERS, params![id], |row| {
+                row.get(0)
+            })?;
 
         if active_count > 0 {
             return Err(RepositoryError::Validation(
@@ -171,11 +168,10 @@ impl BusinessRepository {
             ));
         }
 
-        let logs_count: i64 = tx.query_row(
-            constants::COUNT_PROJECT_LOGGED_TIME,
-            params![id],
-            |row| row.get(0),
-        )?;
+        let logs_count: i64 =
+            tx.query_row(constants::COUNT_PROJECT_LOGGED_TIME, params![id], |row| {
+                row.get(0)
+            })?;
 
         if logs_count > 0 {
             return Err(RepositoryError::Validation(

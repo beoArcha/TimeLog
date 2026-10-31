@@ -277,7 +277,8 @@ fn test_given_project_when_repeatedly_deleted_then_second_attempt_returns_not_fo
 }
 
 #[test]
-fn test_given_concurrent_time_log_creation_and_project_deletion_then_project_with_time_is_never_deleted() {
+fn test_given_concurrent_time_log_creation_and_project_deletion_then_project_with_time_is_never_deleted(
+) {
     use std::sync::Arc;
     use std::thread;
 
@@ -313,9 +314,7 @@ fn test_given_concurrent_time_log_creation_and_project_deletion_then_project_wit
         p1.time_logs.insert_full(&log)
     });
 
-    let t2 = thread::spawn(move || {
-        delete_project_by_id(&p2, "proj_concurrent")
-    });
+    let t2 = thread::spawn(move || delete_project_by_id(&p2, "proj_concurrent"));
 
     let _ = t1.join().unwrap();
     let del_res = t2.join().unwrap();
@@ -323,12 +322,20 @@ fn test_given_concurrent_time_log_creation_and_project_deletion_then_project_wit
     // Assert: Invariant verification
     let remaining_project = persistence.projects.get("proj_concurrent").unwrap();
     let remaining_logs = persistence.time_logs.get_all().unwrap();
-    let project_has_logs = remaining_logs.iter().any(|l| l.task_id == "task_concurrent");
+    let project_has_logs = remaining_logs
+        .iter()
+        .any(|l| l.task_id == "task_concurrent");
 
     if project_has_logs {
-        assert!(remaining_project.is_some(), "Project with tracked time must never be deleted!");
+        assert!(
+            remaining_project.is_some(),
+            "Project with tracked time must never be deleted!"
+        );
         assert!(del_res.is_err(), "Delete must fail when time exists!");
     } else if del_res.is_ok() {
-        assert!(remaining_project.is_none(), "Project without time must be deleted cleanly!");
+        assert!(
+            remaining_project.is_none(),
+            "Project without time must be deleted cleanly!"
+        );
     }
 }
