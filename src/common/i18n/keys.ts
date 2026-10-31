@@ -484,6 +484,8 @@ export type ProjectKey =
 
 export type ReportKey =
   | 'AccumulatedMonthSeconds'
+  | 'Amount'
+  | 'BillableTime'
   | 'BillingSummary'
   | 'ByCurrency'
   | 'ClearFilter'
@@ -521,6 +523,7 @@ export type ReportKey =
   | 'PeriodTotal'
   | 'PlainDump'
   | 'ProjectShare'
+  | 'SelectFormat'
   | 'SelectedPeriodTotalDesc'
   | 'Share'
   | 'SortBy'
@@ -597,6 +600,7 @@ export type TaskKey =
   | 'BillingRate'
   | 'ConfirmDeleteSubtaskTitle'
   | 'ConfirmDeleteTaskTitle'
+  | 'ConfigureRate'
   | 'CounterLabel'
   | 'CreateMainTaskHint'
   | 'DeleteTask'
@@ -608,6 +612,7 @@ export type TaskKey =
   | 'NoTaskSelected'
   | 'NoTasksInProfile'
   | 'NoTasksInProject'
+  | 'Rate'
   | 'RateCustom'
   | 'RateCustomLabel'
   | 'RateInherit'

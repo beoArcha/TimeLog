@@ -24,6 +24,7 @@ function resolveSystemLocale(): Locale {
   if (browserLang.startsWith('es')) return 'es';
   if (browserLang.startsWith('pt')) return 'pt-br';
   if (browserLang.startsWith('fr')) return 'fr';
+  if (browserLang.startsWith('uk')) return 'uk';
   return 'en';
 }
 

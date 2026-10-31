@@ -5,7 +5,7 @@ import { StatCard } from '@components/StatCard';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { EngineRouter } from '@common/engine/EngineRouter';
-import { RangeBillingResult } from '@common/engine/billing/types';
+import { RangeBillingResult, CurrencyBillingSummary } from '@common/engine/billing/types';
 import { getRangeFilterForPeriod } from '../utils/periodRanges';
 import { Settings } from '@bindings/Settings';
 import { Badge } from '@components/ui/badge';
@@ -74,7 +74,9 @@ export default function ReportBillingCard({
     return null;
   }
 
-  const currencies = billingResult ? Object.values(billingResult.byCurrency) : [];
+  const currencies = billingResult
+    ? (Object.values(billingResult.byCurrency) as CurrencyBillingSummary[])
+    : [];
 
   return (
     <CollapsibleCard

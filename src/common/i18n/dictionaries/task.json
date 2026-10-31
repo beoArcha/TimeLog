@@ -30,7 +30,9 @@
     "RateCustom": "Custom rate",
     "RateNonBillable": "Non-billable (0.00)",
     "RateCustomLabel": "Custom hourly rate",
-    "RatePlaceholder": "0.00"
+    "RatePlaceholder": "0.00",
+    "ConfigureRate": "Configure Hourly Rate",
+    "Rate": "Hourly Rate"
   },
   "pl": {
     "AddTask": "Dodaj zadanie",
@@ -63,7 +65,9 @@
     "RateCustom": "Własna stawka",
     "RateNonBillable": "Nierozliczalne (0.00)",
     "RateCustomLabel": "Własna stawka godzinowa",
-    "RatePlaceholder": "0.00"
+    "RatePlaceholder": "0.00",
+    "ConfigureRate": "Skonfiguruj stawkę godzinową",
+    "Rate": "Stawka godzinowa"
   },
   "de": {
     "AddTask": "Aufgabe hinzufügen",
@@ -96,7 +100,9 @@
     "RateCustom": "Benutzerdefinierter Satz",
     "RateNonBillable": "Nicht abrechenbar (0.00)",
     "RateCustomLabel": "Eigener Stundensatz",
-    "RatePlaceholder": "0.00"
+    "RatePlaceholder": "0.00",
+    "ConfigureRate": "Stundensatz konfigurieren",
+    "Rate": "Stundensatz"
   },
   "es": {
     "AddTask": "Agregar Tarea",
@@ -129,7 +135,9 @@
     "RateCustom": "Tarifa personalizada",
     "RateNonBillable": "No facturable (0.00)",
     "RateCustomLabel": "Tarifa por hora personalizada",
-    "RatePlaceholder": "0.00"
+    "RatePlaceholder": "0.00",
+    "ConfigureRate": "Configurar tarifa horaria",
+    "Rate": "Tarifa horaria"
   },
   "fr": {
     "AddTask": "Ajouter une Tâche",
@@ -162,7 +170,9 @@
     "RateCustom": "Taux personnalisé",
     "RateNonBillable": "Non facturable (0.00)",
     "RateCustomLabel": "Taux horaire personnalisé",
-    "RatePlaceholder": "0.00"
+    "RatePlaceholder": "0.00",
+    "ConfigureRate": "Configurer le taux horaire",
+    "Rate": "Taux horaire"
   },
   "pt-br": {
     "AddTask": "Adicionar Tarefa",
@@ -195,6 +205,43 @@
     "RateCustom": "Taxa personalizada",
     "RateNonBillable": "Não faturável (0.00)",
     "RateCustomLabel": "Taxa horária personalizada",
-    "RatePlaceholder": "0.00"
+    "RatePlaceholder": "0.00",
+    "ConfigureRate": "Configurar taxa horária",
+    "Rate": "Taxa horária"
+  },
+  "uk": {
+    "AddTask": "Додати завдання",
+    "EnterMainTaskName": "Введіть назву основного завдання...",
+    "TaskName": "Назва завдання",
+    "CounterLabel": "Слідкуйте за лічильником:",
+    "DeleteTask": "Видалити",
+    "StatusTodo": "До виконання",
+    "StatusInProgress": "У процесі",
+    "StatusBlocked": "Заблоковано",
+    "StatusDone": "Виконано",
+    "AddSubtask": "Додати підзавдання",
+    "AddSubtaskTitle": "Додати нове підзавдання",
+    "EnterSubtaskName": "Введіть назву підзавдання...",
+    "InProgressLabel": "У процесі",
+    "TasksAndSubtasks": "Завдання та підзавдання",
+    "SubtaskLabel": "Підзавдання",
+    "NoTasksInProject": "У цьому проекті ще немає завдань. Створіть перше завдання зверху!",
+    "CreateMainTaskHint": "Створіть основне завдання, щоб почати запис часу.",
+    "SelectTaskPlaceholder": "Виберіть завдання...",
+    "TaskRequired": "Необхідно вказати назву завдання",
+    "ConfirmDeleteTaskTitle": "Видалити завдання?",
+    "ConfirmDeleteSubtaskTitle": "Видалити підзавдання?",
+    "DeleteTaskWarningSubtasks": "Це завдання містить підзавдання. Усі вони також будуть видалені.",
+    "DeleteTaskWarningLogs": "З цим завданням пов'язані записи часу. Вони також будуть видалені.",
+    "NoTaskSelected": "Немає вибраного завдання",
+    "NoTasksInProfile": "Немає завдань у поточному профілі",
+    "BillingRate": "Погодинна ставка",
+    "ConfigureRate": "Налаштувати погодинну ставку",
+    "Rate": "Погодинна ставка",
+    "RateInherit": "Успадкувати від проекту",
+    "RateNonBillable": "Не оплачується (0.00)",
+    "RateCustom": "Власна ставка",
+    "RateCustomLabel": "Власна погодинна ставка",
+    "RatePlaceholder": "напр. 75.00"
   }
 }

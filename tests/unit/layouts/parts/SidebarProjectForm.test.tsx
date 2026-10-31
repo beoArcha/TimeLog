@@ -91,7 +91,7 @@ describe('SidebarProjectForm', () => {
     fireEvent.click(addBtn);
 
     // Assert
-    expect(onAdd).toHaveBeenCalledWith('Primary Project', 'teal', null, null, null, false);
+    expect(onAdd).toHaveBeenCalledWith('Primary Project', 'teal', null, null, null, false, null, null);
   });
 
   it('should submit project payload with advanced options when drawer fields are populated', () => {
@@ -110,6 +110,8 @@ describe('SidebarProjectForm', () => {
     const descInput = container.querySelector('#sidebar-project-description-input') as HTMLTextAreaElement;
     const emojiTrigger = container.querySelector('[data-testid="sidebar-project-emoji-picker-trigger"]') as HTMLButtonElement;
     const tagsInput = container.querySelector('#sidebar-project-tags-input') as HTMLInputElement;
+    const rateInput = container.querySelector('#sidebar-project-hourly-rate') as HTMLInputElement;
+    const currInput = container.querySelector('#sidebar-project-currency') as HTMLInputElement;
     const switchBtn = container.querySelector('#new-project-concurrency') as HTMLElement;
     const addBtn = container.querySelector('#add-project-btn') as HTMLButtonElement;
 
@@ -119,6 +121,8 @@ describe('SidebarProjectForm', () => {
     const emojiBtn = screen.getByTestId('sidebar-project-emoji-picker-emoji-🚀');
     fireEvent.click(emojiBtn);
     fireEvent.change(tagsInput, { target: { value: 'frontend, ui, core' } });
+    fireEvent.change(rateInput, { target: { value: '85.50' } });
+    fireEvent.change(currInput, { target: { value: 'usd' } });
     fireEvent.click(switchBtn);
     fireEvent.click(addBtn);
 
@@ -129,7 +133,9 @@ describe('SidebarProjectForm', () => {
       'Deep architecture description',
       '🚀',
       ['frontend', 'ui', 'core'],
-      true
+      true,
+      '85.50',
+      'USD'
     );
   });
 
@@ -148,7 +154,7 @@ describe('SidebarProjectForm', () => {
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
 
     // Assert
-    expect(onAdd).toHaveBeenCalledWith('Enter Key Project', 'violet', null, null, null, false);
+    expect(onAdd).toHaveBeenCalledWith('Enter Key Project', 'violet', null, null, null, false, null, null);
   });
 
   it('should not submit project when project name is empty or only whitespace', () => {
@@ -245,7 +251,9 @@ describe('SidebarProjectForm', () => {
       null,
       null,
       null,
-      false
+      false,
+      null,
+      null
     );
   });
 
@@ -276,7 +284,9 @@ describe('SidebarProjectForm', () => {
       null,
       null,
       null,
-      false
+      false,
+      null,
+      null
     );
   });
 

@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@components/ui/select';
 
-const SUPPORTED_LOCALES = ['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'system'] as const;
+const SUPPORTED_LOCALES = ['pl', 'en', 'de', 'es', 'pt-br', 'fr', 'uk', 'system'] as const;
 
 export const LanguageSelector: React.FC = () => {
   const { localePref, setLocalePref } = useLocale();

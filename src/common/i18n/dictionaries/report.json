@@ -50,7 +50,9 @@
     "UnconfiguredTime": "Unconfigured Rate",
     "NonBillableTime": "Non-billable Time",
     "EffectiveRate": "Effective Rate",
-    "ByCurrency": "By Currency"
+    "ByCurrency": "By Currency",
+    "BillableTime": "Billable Time",
+    "Amount": "Amount"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -103,7 +105,9 @@
     "UnconfiguredTime": "Nieskonfigurowana stawka",
     "NonBillableTime": "Czas nierozliczalny",
     "EffectiveRate": "Stawka efektywna",
-    "ByCurrency": "Według waluty"
+    "ByCurrency": "Według waluty",
+    "BillableTime": "Czas rozliczany",
+    "Amount": "Kwota"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -156,7 +160,9 @@
     "UnconfiguredTime": "Nicht konfigurierter Satz",
     "NonBillableTime": "Nicht abrechenbare Zeit",
     "EffectiveRate": "Effektiver Satz",
-    "ByCurrency": "Nach Währung"
+    "ByCurrency": "Nach Währung",
+    "BillableTime": "Abrechenbare Zeit",
+    "Amount": "Betrag"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -209,7 +215,9 @@
     "UnconfiguredTime": "Tarifa no configurada",
     "NonBillableTime": "Tiempo no facturable",
     "EffectiveRate": "Tarifa efectiva",
-    "ByCurrency": "Por moneda"
+    "ByCurrency": "Por moneda",
+    "BillableTime": "Tiempo facturable",
+    "Amount": "Monto"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -262,7 +270,9 @@
     "UnconfiguredTime": "Taux non configuré",
     "NonBillableTime": "Temps non facturable",
     "EffectiveRate": "Taux effectif",
-    "ByCurrency": "Par devise"
+    "ByCurrency": "Par devise",
+    "BillableTime": "Temps facturable",
+    "Amount": "Montant"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -315,6 +325,63 @@
     "UnconfiguredTime": "Taxa não configurada",
     "NonBillableTime": "Tempo não faturável",
     "EffectiveRate": "Taxa efetiva",
-    "ByCurrency": "Por moeda"
+    "ByCurrency": "Por moeda",
+    "BillableTime": "Tempo faturável",
+    "Amount": "Valor"
+  },
+  "uk": {
+    "Title": "Журнал звітів",
+    "PeriodReport": "Періодичний звіт",
+    "TodayTotal": "РАЗОМ ЗА СЬОГОДНІ",
+    "LogsSumToday": "Сума записів SQLite за сьогодні",
+    "WeekTotal": "РАЗОМ ЗА ТИЖДЕНЬ",
+    "FromMondayUntilNow": "З понеділка дотепер",
+    "MonthTotal": "РАЗОМ ЗА МІСЯЦЬ",
+    "AccumulatedMonthSeconds": "Накопичені секунди за місяць",
+    "SortBy": "Сортувати за:",
+    "DurationHighestFirst": "Тривалість (від найдовших)",
+    "DateChronological": "Дата (хронологічно)",
+    "NoDataSelectedRange": "Немає даних у записах SQLite для вибраного діапазону.",
+    "GraphicalDistribution": "ГРАФІЧНИЙ РОЗПОДІЛ ЧАСУ ЗА ПРОЕКТАМИ",
+    "PlainDump": "ПРОСТИЙ ДАМП ЗАПИСІВ SQLITE",
+    "TabReports": "Звіти",
+    "SqlAnalyticsEngine": "Аналітичний рушій SQL",
+    "TimeSummariesReports": "Підсумки та звіти за часом",
+    "Yesterday": "Вчора",
+    "LastWeek": "Минулий тиждень",
+    "LastMonth": "Минулий місяць",
+    "Last30Days": "Останні 30 днів",
+    "ThisYear": "Цей рік",
+    "CustomRange": "Власний діапазон",
+    "DateFrom": "Від",
+    "DateTo": "До",
+    "DailyAverage": "СЕРЕДНЄ ЗА ДЕНЬ",
+    "DailyAverageDesc": "Середній щоденний записаний час",
+    "TopProject": "ГОЛОВНИЙ ПРОЕКТ",
+    "PeriodTotal": "РАЗОМ ЗА ПЕРІОД",
+    "SelectedPeriodTotalDesc": "Загальний час у вибраному періоді",
+    "MultiDaySegmentBadge": "Сегмент",
+    "PatchBadge": "Коригування",
+    "Share": "Поділитися",
+    "ClearFilter": "Очистити фільтр",
+    "DailyActivity": "Щоденна активність",
+    "ProjectShare": "Частка проекту",
+    "Export": "Експорт",
+    "ExportReport": "Експорт звіту",
+    "ExportReportDesc": "Завантажити або скопіювати зведені дані записів часу у стандартних форматах.",
+    "SelectFormat": "Виберіть формат",
+    "DownloadFile": "Завантажити файл",
+    "CopyToClipboard": "Копіювати в буфер",
+    "ExportEntriesCount": "записів",
+    "Close": "Закрити",
+    "BillingSummary": "Підсумок розрахунків",
+    "TotalAmount": "Загальна сума",
+    "TotalBillableTime": "Оплачуваний час",
+    "BillableTime": "Оплачуваний час",
+    "UnconfiguredTime": "Неналаштована ставка",
+    "NonBillableTime": "Неоплачуваний час",
+    "EffectiveRate": "Ефективна ставка",
+    "ByCurrency": "За валютою",
+    "Amount": "Сума"
   }
 }
