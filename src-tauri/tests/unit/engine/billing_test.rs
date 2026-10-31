@@ -552,7 +552,6 @@ fn test_billing_rate_cents_safe_integer_contract() {
     );
 }
 
-
 #[test]
 fn test_persistence_rejects_negative_billing_rate_cents() {
     let (persistence, db_path) = setup_test_persistence();

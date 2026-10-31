@@ -56,10 +56,7 @@ pub fn validate_and_parse_rate(s: &str) -> Result<u64, EngineError> {
             )));
         }
         let whole = whole_str.parse::<u64>().map_err(|_| {
-            EngineError::Validation(format!(
-                "Invalid whole rate component: '{}'",
-                whole_str
-            ))
+            EngineError::Validation(format!("Invalid whole rate component: '{}'", whole_str))
         })?;
         if frac_str.len() > 2 || !frac_str.chars().all(|c| c.is_ascii_digit()) {
             return Err(EngineError::Validation(format!(
@@ -76,10 +73,7 @@ pub fn validate_and_parse_rate(s: &str) -> Result<u64, EngineError> {
             .checked_mul(100)
             .and_then(|w| w.checked_add(frac))
             .ok_or_else(|| {
-                EngineError::Validation(format!(
-                    "Rate value '{}' exceeds supported range",
-                    s
-                ))
+                EngineError::Validation(format!("Rate value '{}' exceeds supported range", s))
             })?
     } else {
         if !trimmed.chars().all(|c| c.is_ascii_digit()) {
@@ -90,10 +84,7 @@ pub fn validate_and_parse_rate(s: &str) -> Result<u64, EngineError> {
             .map_err(|_| EngineError::Validation(format!("Invalid rate: '{}'", s)))?
             .checked_mul(100)
             .ok_or_else(|| {
-                EngineError::Validation(format!(
-                    "Rate value '{}' exceeds supported range",
-                    s
-                ))
+                EngineError::Validation(format!("Rate value '{}' exceeds supported range", s))
             })?
     };
     validate_billing_rate_cents(cents)
@@ -171,7 +162,9 @@ pub fn resolve_effective_rate(
 
     // Level 1: Task override
     let task_cents = if let Some(cents) = task.billing_rate_cents {
-        u64::try_from(cents).ok().filter(|v| *v <= MAX_BILLING_RATE_CENTS)
+        u64::try_from(cents)
+            .ok()
+            .filter(|v| *v <= MAX_BILLING_RATE_CENTS)
     } else if let Some(task_rate_str) = task.hourly_rate.as_deref() {
         let trimmed = task_rate_str.trim();
         if !trimmed.is_empty() {
@@ -203,7 +196,9 @@ pub fn resolve_effective_rate(
     // Level 2: Project rate inheritance
     let proj_cents = if let Some(proj) = project {
         if let Some(cents) = proj.billing_rate_cents {
-            u64::try_from(cents).ok().filter(|v| *v <= MAX_BILLING_RATE_CENTS)
+            u64::try_from(cents)
+                .ok()
+                .filter(|v| *v <= MAX_BILLING_RATE_CENTS)
         } else if let Some(proj_rate_str) = proj.hourly_rate.as_deref() {
             let trimmed = proj_rate_str.trim();
             if !trimmed.is_empty() {

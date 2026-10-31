@@ -96,7 +96,8 @@ pub fn create_task(
         if !trimmed.is_empty() {
             let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
             task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-            task.billing_rate_cents = Some(crate::engine::billing::checked_billing_rate_to_i64(cents)?);
+            task.billing_rate_cents =
+                Some(crate::engine::billing::checked_billing_rate_to_i64(cents)?);
         }
     }
 
@@ -136,7 +137,8 @@ pub fn update_task_details(
                 let trimmed = rate_str.trim();
                 let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
                 task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-                task.billing_rate_cents = Some(crate::engine::billing::checked_billing_rate_to_i64(cents)?);
+                task.billing_rate_cents =
+                    Some(crate::engine::billing::checked_billing_rate_to_i64(cents)?);
             }
             None => {
                 task.hourly_rate = None;

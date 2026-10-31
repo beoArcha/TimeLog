@@ -48,16 +48,13 @@ impl BusinessRepository {
                 .and_then(crate::engine::billing::parse_rate_to_cents)
                 .map(|c| i64::try_from(c).expect("validated billing cents fit SQLite INTEGER"))
         });
-        let effective_hourly_rate: Option<String> = task
-            .hourly_rate
-            .clone()
-            .or_else(|| {
-                effective_cents.map(|c| {
-                    crate::engine::billing::format_cents(
-                        u64::try_from(c).expect("validated billing cents"),
-                    )
-                })
-            });
+        let effective_hourly_rate: Option<String> = task.hourly_rate.clone().or_else(|| {
+            effective_cents.map(|c| {
+                crate::engine::billing::format_cents(
+                    u64::try_from(c).expect("validated billing cents"),
+                )
+            })
+        });
         let effective_currency: Option<String> = task
             .currency
             .clone()
@@ -112,10 +109,13 @@ impl BusinessRepository {
                 .and_then(crate::engine::billing::parse_rate_to_cents)
                 .map(|c| i64::try_from(c).expect("validated billing cents fit SQLite INTEGER"))
         });
-        let effective_hourly_rate: Option<String> = task
-            .hourly_rate
-            .clone()
-            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(u64::try_from(c).expect("validated billing cents"))));
+        let effective_hourly_rate: Option<String> = task.hourly_rate.clone().or_else(|| {
+            effective_cents.map(|c| {
+                crate::engine::billing::format_cents(
+                    u64::try_from(c).expect("validated billing cents"),
+                )
+            })
+        });
         let effective_currency: Option<String> = task
             .currency
             .clone()
@@ -202,7 +202,9 @@ impl BusinessRepository {
 
         if hourly_rate.is_none() {
             if let Some(cents) = billing_rate_cents {
-                hourly_rate = Some(crate::engine::billing::format_cents(u64::try_from(cents).expect("validated billing cents")));
+                hourly_rate = Some(crate::engine::billing::format_cents(
+                    u64::try_from(cents).expect("validated billing cents"),
+                ));
             }
         }
         if currency.is_none() {

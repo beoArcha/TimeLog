@@ -121,8 +121,9 @@ impl NormalizedBillingUpdate {
                         trimmed
                     )))
                 })?;
-                crate::engine::billing::validate_billing_rate_cents(cents).map_err(CliError::Engine)?;
-            let cents_i64 = i64::try_from(cents).map_err(|_| {
+                crate::engine::billing::validate_billing_rate_cents(cents)
+                    .map_err(CliError::Engine)?;
+                let cents_i64 = i64::try_from(cents).map_err(|_| {
                     CliError::Engine(crate::engine::EngineError::Validation(format!(
                         "Rate cents value '{}' exceeds supported range",
                         cents
