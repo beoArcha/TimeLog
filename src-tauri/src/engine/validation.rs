@@ -220,6 +220,59 @@ impl<'a> Engine<'a> {
 
         Ok(())
     }
+
+    pub fn validate_project_deletion(&self, project_id: &str) -> Result<(), EngineError> {
+        let project = self.persistence.projects.get(project_id)?;
+        if project.is_none() {
+            return Err(EngineError::EntityNotFound {
+                entity: "Project",
+                id: project_id.to_string(),
+            });
+        }
+
+        let all_tasks = self.persistence.tasks.get_all()?;
+        let project_task_ids: std::collections::HashSet<String> = all_tasks
+            .into_iter()
+            .filter(|t| t.project_id == project_id)
+            .map(|t| t.id)
+            .collect();
+
+        let active_task_ids = self.persistence.time_logs.query_active()?;
+        let has_active_timer_by_id = active_task_ids
+            .iter()
+            .any(|t_id| project_task_ids.contains(t_id));
+
+        let all_logs = self.persistence.time_logs.get_all()?;
+        let has_active_log = all_logs.iter().any(|log| {
+            (log.project_id == project_id || project_task_ids.contains(&log.task_id))
+                && (log.end_time.is_none() || active_task_ids.contains(&log.task_id))
+        });
+
+        if has_active_timer_by_id || has_active_log {
+            return Err(EngineError::Validation(
+                "Cannot delete project with active timer. Stop timer first".to_string(),
+            ));
+        }
+
+        let has_logs = all_logs
+            .iter()
+            .any(|log| log.project_id == project_id || project_task_ids.contains(&log.task_id));
+
+        if has_logs {
+            return Err(EngineError::Validation(
+                "Cannot delete project with logged time".to_string(),
+            ));
+        }
+
+        let elapsed = self.calculate_project_elapsed(project_id)?;
+        if !elapsed.is_zero() {
+            return Err(EngineError::Validation(
+                "Cannot delete project with logged time".to_string(),
+            ));
+        }
+
+        Ok(())
+    }
 }
 
 fn parse_utc_timestamp(val: &str) -> Result<DateTime<Utc>, EngineError> {

@@ -197,3 +197,25 @@ pub fn rename_project(
 ) -> Result<TimerRepositoryState, AppError> {
     rename_project_name(&state.persistence, &project_id, &name)
 }
+
+pub fn delete_project_by_id(
+    persistence: &Persistence,
+    project_id: &str,
+) -> Result<TimerRepositoryState, AppError> {
+    get_project_or_fail(persistence, project_id)?;
+    let engine = Engine::new(persistence);
+    engine.validate_project_deletion(project_id)?;
+
+    persistence.projects.delete(project_id)?;
+    Ok(engine.get_state()?)
+}
+
+pub use delete_project_by_id as delete_project_details;
+
+#[tauri::command]
+pub fn delete_project(
+    project_id: String,
+    state: State<'_, AppState>,
+) -> Result<TimerRepositoryState, AppError> {
+    delete_project_by_id(&state.persistence, &project_id)
+}
