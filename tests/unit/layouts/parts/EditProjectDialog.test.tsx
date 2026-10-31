@@ -79,6 +79,8 @@ describe('Unit Tests: EditProjectDialog', () => {
       icon: '⚡',
       tags: ['core', 'v1'],
       allowConcurrency: false,
+      hourlyRate: null,
+      currency: null,
     });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
@@ -124,7 +126,44 @@ describe('Unit Tests: EditProjectDialog', () => {
       icon: '⚡',
       tags: ['frontend', 'ui'],
       allowConcurrency: false,
+      hourlyRate: null,
+      currency: null,
     });
+  });
+
+  it('should allow modifying hourlyRate and currency and submitting them', () => {
+    // Arrange
+    const state = getMockOxyFlowState();
+    const onSave = vi.fn();
+
+    render(
+      <MockProviders state={state}>
+        <EditProjectDialog
+          open={true}
+          onOpenChange={vi.fn()}
+          project={baseProject}
+          onSave={onSave}
+        />
+      </MockProviders>,
+    );
+
+    // Act
+    const rateInput = screen.getByTestId('edit-project-hourly-rate');
+    fireEvent.change(rateInput, { target: { value: '120.50' } });
+
+    const currencyInput = screen.getByTestId('edit-project-currency');
+    fireEvent.change(currencyInput, { target: { value: 'eur' } });
+
+    const saveBtn = screen.getByRole('button', { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hourlyRate: '120.50',
+        currency: 'EUR',
+      })
+    );
   });
 
   it('should support picking and saving multi-byte compound emoji without truncation', () => {

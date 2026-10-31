@@ -1,0 +1,157 @@
+{
+  "roundingVectors": [
+    {
+      "description": "Exact 1 hour at 150.00",
+      "durationSeconds": 3600,
+      "rate": "150.00",
+      "expectedAmount": "150.00"
+    },
+    {
+      "description": "Half hour at 150.00",
+      "durationSeconds": 1800,
+      "rate": "150.00",
+      "expectedAmount": "75.00"
+    },
+    {
+      "description": "Banker's round half to even: remainder 0.5 round down to 0",
+      "durationSeconds": 50,
+      "rate": "0.36",
+      "expectedAmount": "0.00"
+    },
+    {
+      "description": "Banker's round half to even: remainder 1.5 round up to 2",
+      "durationSeconds": 150,
+      "rate": "0.36",
+      "expectedAmount": "0.02"
+    },
+    {
+      "description": "1 second at 100.00: 100/3600 = 0.0277... rounds to 0.03",
+      "durationSeconds": 1,
+      "rate": "100.00",
+      "expectedAmount": "0.03"
+    },
+    {
+      "description": "Non-billable zero rate",
+      "durationSeconds": 3600,
+      "rate": "0.00",
+      "expectedAmount": "0.00"
+    }
+  ],
+  "rateResolutionVectors": [
+    {
+      "description": "Task inherits project rate",
+      "taskRate": null,
+      "projectRate": "120.00",
+      "projectCurrency": "USD",
+      "expectedStatus": "inherited",
+      "expectedRate": "120.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "project"
+    },
+    {
+      "description": "Task overrides project rate with custom billable rate",
+      "taskRate": "200.00",
+      "projectRate": "120.00",
+      "projectCurrency": "EUR",
+      "expectedStatus": "custom",
+      "expectedRate": "200.00",
+      "expectedCurrency": "EUR",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Task overrides with explicit zero",
+      "taskRate": "0.00",
+      "projectRate": "120.00",
+      "projectCurrency": "PLN",
+      "expectedStatus": "non_billable",
+      "expectedRate": "0.00",
+      "expectedCurrency": "PLN",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Project is explicit zero and task inherits",
+      "taskRate": null,
+      "projectRate": "0.00",
+      "projectCurrency": "GBP",
+      "expectedStatus": "non_billable",
+      "expectedRate": "0.00",
+      "expectedCurrency": "GBP",
+      "expectedSource": "project"
+    },
+    {
+      "description": "Neither task nor project has rate configured",
+      "taskRate": null,
+      "projectRate": null,
+      "projectCurrency": "USD",
+      "expectedStatus": "unconfigured",
+      "expectedRate": null,
+      "expectedCurrency": "USD",
+      "expectedSource": "none"
+    },
+    {
+      "description": "Task overrides currency independently of project currency",
+      "taskRate": "150.00",
+      "taskCurrency": "EUR",
+      "projectRate": "100.00",
+      "projectCurrency": "USD",
+      "expectedStatus": "custom",
+      "expectedRate": "150.00",
+      "expectedCurrency": "EUR",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Task uses canonical billingRateCents over legacy hourlyRate",
+      "taskRate": "99.00",
+      "taskBillingRateCents": 25000,
+      "projectRate": "100.00",
+      "projectCurrency": "USD",
+      "expectedStatus": "custom",
+      "expectedRate": "250.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Project uses canonical billingRateCents over legacy hourlyRate",
+      "taskRate": null,
+      "projectRate": "99.00",
+      "projectBillingRateCents": 18000,
+      "projectCurrency": "USD",
+      "expectedStatus": "inherited",
+      "expectedRate": "180.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "project"
+    },
+    {
+      "description": "Task uses billingCurrency field override",
+      "taskRate": "100.00",
+      "taskBillingCurrency": "PLN",
+      "projectCurrency": "USD",
+      "expectedStatus": "custom",
+      "expectedRate": "100.00",
+      "expectedCurrency": "PLN",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Runtime config default rate tier 3 billable",
+      "taskRate": null,
+      "projectRate": null,
+      "projectCurrency": "USD",
+      "runtimeDefaultRate": "50.00",
+      "expectedStatus": "inherited",
+      "expectedRate": "50.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "default"
+    },
+    {
+      "description": "Runtime config default rate tier 3 zero non-billable",
+      "taskRate": null,
+      "projectRate": null,
+      "projectCurrency": "USD",
+      "runtimeDefaultRate": "0.00",
+      "expectedStatus": "non_billable",
+      "expectedRate": "0.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "default"
+    }
+  ]
+}

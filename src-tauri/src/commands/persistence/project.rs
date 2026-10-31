@@ -1,7 +1,7 @@
 use crate::common::AppError;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{Project, TimerRepositoryState};
+use crate::types::{Project, TimerRepositoryState, TriState};
 use crate::AppState;
 use tauri::State;
 
@@ -13,6 +13,20 @@ pub struct ProjectInput {
     pub icon: Option<String>,
     pub tags: Option<Vec<String>>,
     pub allow_concurrency: Option<bool>,
+    pub hourly_rate: Option<String>,
+    pub currency: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ProjectUpdateInput {
+    pub name: String,
+    pub color: String,
+    pub description: Option<String>,
+    pub icon: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub allow_concurrency: Option<bool>,
+    pub hourly_rate: TriState<String>,
+    pub currency: TriState<String>,
 }
 
 struct ValidatedProjectData {
@@ -21,14 +35,16 @@ struct ValidatedProjectData {
     tags: Option<Vec<String>>,
 }
 
-fn validate_project_input(
+fn validate_project_fields(
     engine: &Engine,
-    input: &ProjectInput,
+    name: &str,
+    description: Option<&str>,
+    tags: Option<Vec<String>>,
     project_id: Option<&str>,
 ) -> Result<ValidatedProjectData, AppError> {
-    let name = engine.validate_project_name(&input.name, project_id)?;
-    let description = engine.validate_description(input.description.as_deref())?;
-    let tags = engine.validate_tags(input.tags.clone())?;
+    let name = engine.validate_project_name(name, project_id)?;
+    let description = engine.validate_description(description)?;
+    let tags = engine.validate_tags(tags)?;
     Ok(ValidatedProjectData {
         name,
         description,
@@ -62,9 +78,15 @@ pub fn add_project(
     input: ProjectInput,
 ) -> Result<TimerRepositoryState, AppError> {
     let engine = Engine::new(persistence);
-    let validated = validate_project_input(&engine, &input, None)?;
+    let validated = validate_project_fields(
+        &engine,
+        &input.name,
+        input.description.as_deref(),
+        input.tags,
+        None,
+    )?;
 
-    let project = Project::new(
+    let mut project = Project::new(
         format!("proj_{}", chrono::Utc::now().timestamp_millis()),
         validated.name,
         input.color,
@@ -73,6 +95,22 @@ pub fn add_project(
         validated.tags,
         input.allow_concurrency,
     );
+    if let Some(rate_str) = input.hourly_rate {
+        let trimmed = rate_str.trim();
+        if !trimmed.is_empty() {
+            let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
+            project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+            project.billing_rate_cents = Some(cents as i64);
+        }
+    }
+    if let Some(curr_str) = input.currency {
+        let trimmed = curr_str.trim();
+        if !trimmed.is_empty() {
+            let validated_curr = crate::engine::billing::validate_currency_code(trimmed)?;
+            project.currency = Some(validated_curr.clone());
+            project.billing_currency = Some(validated_curr);
+        }
+    }
     persistence.projects.create(project)?;
     Ok(engine.get_state()?)
 }
@@ -97,10 +135,16 @@ pub fn toggle_project_archive(
 pub fn update_project_details(
     persistence: &Persistence,
     project_id: &str,
-    input: ProjectInput,
+    input: ProjectUpdateInput,
 ) -> Result<TimerRepositoryState, AppError> {
     let engine = Engine::new(persistence);
-    let validated = validate_project_input(&engine, &input, Some(project_id))?;
+    let validated = validate_project_fields(
+        &engine,
+        &input.name,
+        input.description.as_deref(),
+        input.tags,
+        Some(project_id),
+    )?;
     let mut project = get_project_or_fail(persistence, project_id)?;
 
     project.name = validated.name;
@@ -109,6 +153,37 @@ pub fn update_project_details(
     project.icon = input.icon;
     project.tags = validated.tags;
     project.allow_concurrency = input.allow_concurrency;
+
+    if let Some(rate_opt) = input.hourly_rate.as_set() {
+        match rate_opt {
+            Some(rate_str) => {
+                let trimmed = rate_str.trim();
+                let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
+                project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+                project.billing_rate_cents = Some(cents as i64);
+            }
+            None => {
+                project.hourly_rate = None;
+                project.billing_rate_cents = None;
+            }
+        }
+    }
+
+    if let Some(curr_opt) = input.currency.as_set() {
+        match curr_opt {
+            Some(curr_str) => {
+                let trimmed = curr_str.trim();
+                let validated_curr = crate::engine::billing::validate_currency_code(trimmed)?;
+                project.currency = Some(validated_curr.clone());
+                project.billing_currency = Some(validated_curr);
+            }
+            None => {
+                project.currency = None;
+                project.billing_currency = None;
+            }
+        }
+    }
+
     persistence.projects.patch(project)?;
 
     Ok(engine.get_state()?)
@@ -129,6 +204,7 @@ pub fn rename_project_name(
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub fn add(
     name: String,
     color: String,
@@ -136,6 +212,8 @@ pub fn add(
     icon: Option<String>,
     tags: Option<Vec<String>>,
     allow_concurrency: Option<bool>,
+    hourly_rate: Option<String>,
+    currency: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     add_project(
@@ -147,6 +225,8 @@ pub fn add(
             icon,
             tags,
             allow_concurrency,
+            hourly_rate,
+            currency,
         },
     )
 }
@@ -160,6 +240,7 @@ pub fn toggle_archive(
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateProjectDto {
     pub project_id: String,
     pub name: String,
@@ -168,6 +249,10 @@ pub struct UpdateProjectDto {
     pub icon: Option<String>,
     pub tags: Option<Vec<String>>,
     pub allow_concurrency: Option<bool>,
+    #[serde(default)]
+    pub hourly_rate: TriState<String>,
+    #[serde(default)]
+    pub currency: TriState<String>,
 }
 
 #[tauri::command]
@@ -178,13 +263,15 @@ pub fn update_project(
     update_project_details(
         &state.persistence,
         &input.project_id,
-        ProjectInput {
+        ProjectUpdateInput {
             name: input.name,
             color: input.color,
             description: input.description,
             icon: input.icon,
             tags: input.tags,
             allow_concurrency: input.allow_concurrency,
+            hourly_rate: input.hourly_rate,
+            currency: input.currency,
         },
     )
 }

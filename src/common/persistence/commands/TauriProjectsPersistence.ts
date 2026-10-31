@@ -13,6 +13,8 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
     icon?: string | null;
     tags?: string[] | null;
     allowConcurrency?: boolean | null;
+    hourlyRate?: string | null;
+    currency?: string | null;
   }): Promise<TimerRepositoryState> {
     const cmd: ProjectsPersistenceCommand = 'add';
     return invoke<TimerRepositoryState>(cmd, {
@@ -22,6 +24,8 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
       icon: input.icon ?? null,
       tags: input.tags ?? null,
       allowConcurrency: input.allowConcurrency ?? null,
+      hourlyRate: input.hourlyRate ?? null,
+      currency: input.currency ?? null,
     });
   }
 
@@ -37,20 +41,27 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
     description: string | null,
     icon: string | null,
     tags: string[] | null,
-    allowConcurrency?: boolean | null
+    allowConcurrency?: boolean | null,
+    hourlyRate?: string | null,
+    currency?: string | null
   ): Promise<TimerRepositoryState> {
     const cmd: ProjectsPersistenceCommand = 'update_project';
-    return invoke<TimerRepositoryState>(cmd, {
-      input: {
-        projectId,
-        name,
-        color,
-        description,
-        icon,
-        tags,
-        allowConcurrency: allowConcurrency ?? null,
-      },
-    });
+    const input: Record<string, unknown> = {
+      projectId,
+      name,
+      color,
+      description,
+      icon,
+      tags,
+      allowConcurrency: allowConcurrency ?? null,
+    };
+    if (hourlyRate !== undefined) {
+      input.hourlyRate = hourlyRate;
+    }
+    if (currency !== undefined) {
+      input.currency = currency;
+    }
+    return invoke<TimerRepositoryState>(cmd, { input });
   }
 
   async rename(projectId: string, name: string): Promise<TimerRepositoryState> {

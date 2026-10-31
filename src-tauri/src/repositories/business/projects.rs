@@ -17,6 +17,27 @@ impl BusinessRepository {
             .as_ref()
             .map(serde_json::to_string)
             .transpose()?;
+
+        let effective_cents: Option<i64> = project.billing_rate_cents.or_else(|| {
+            project
+                .hourly_rate
+                .as_deref()
+                .and_then(crate::engine::billing::parse_rate_to_cents)
+                .map(|c| c as i64)
+        });
+        let effective_hourly_rate: Option<String> = project
+            .hourly_rate
+            .clone()
+            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(c as u64)));
+        let effective_currency: Option<String> = project
+            .currency
+            .clone()
+            .or_else(|| project.billing_currency.clone());
+        let effective_billing_currency: Option<String> = project
+            .billing_currency
+            .clone()
+            .or_else(|| project.currency.clone());
+
         conn.execute(
             constants::INSERT_PROJECT,
             params![
@@ -31,7 +52,11 @@ impl BusinessRepository {
                 project.description,
                 project.icon,
                 tags_str,
-                project.allow_concurrency.unwrap_or(false) as i32
+                project.allow_concurrency.unwrap_or(false) as i32,
+                effective_hourly_rate,
+                effective_currency,
+                effective_cents,
+                effective_billing_currency
             ],
         )?;
         Ok(())
@@ -49,6 +74,27 @@ impl BusinessRepository {
             .as_ref()
             .map(serde_json::to_string)
             .transpose()?;
+
+        let effective_cents: Option<i64> = project.billing_rate_cents.or_else(|| {
+            project
+                .hourly_rate
+                .as_deref()
+                .and_then(crate::engine::billing::parse_rate_to_cents)
+                .map(|c| c as i64)
+        });
+        let effective_hourly_rate: Option<String> = project
+            .hourly_rate
+            .clone()
+            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(c as u64)));
+        let effective_currency: Option<String> = project
+            .currency
+            .clone()
+            .or_else(|| project.billing_currency.clone());
+        let effective_billing_currency: Option<String> = project
+            .billing_currency
+            .clone()
+            .or_else(|| project.currency.clone());
+
         let affected = conn.execute(
             constants::UPDATE_PROJECT,
             params![
@@ -62,7 +108,11 @@ impl BusinessRepository {
                 project.description,
                 project.icon,
                 tags_str,
-                project.allow_concurrency.unwrap_or(false) as i32
+                project.allow_concurrency.unwrap_or(false) as i32,
+                effective_hourly_rate,
+                effective_currency,
+                effective_cents,
+                effective_billing_currency
             ],
         )?;
         if affected == 0 {
@@ -96,6 +146,20 @@ impl BusinessRepository {
             crate::repositories::shared::parse_json_column(10, tags_str)?;
         let allow_concurrency_int: Option<i32> = row.get(11)?;
 
+        let mut hourly_rate: Option<String> = row.get(12)?;
+        let mut currency: Option<String> = row.get(13)?;
+        let billing_rate_cents: Option<i64> = row.get(14).ok().flatten();
+        let billing_currency: Option<String> = row.get(15).ok().flatten();
+
+        if hourly_rate.is_none() {
+            if let Some(cents) = billing_rate_cents {
+                hourly_rate = Some(crate::engine::billing::format_cents(cents as u64));
+            }
+        }
+        if currency.is_none() {
+            currency = billing_currency.clone();
+        }
+
         Ok(Project {
             id: row.get(0)?,
             name: row.get(1)?,
@@ -109,6 +173,10 @@ impl BusinessRepository {
             icon: row.get(9)?,
             tags,
             allow_concurrency: allow_concurrency_int.map(|v| v == 1),
+            hourly_rate,
+            currency,
+            billing_rate_cents,
+            billing_currency,
         })
     }
 

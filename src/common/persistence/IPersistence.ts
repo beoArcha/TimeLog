@@ -45,6 +45,8 @@ export interface IProjectsPersistence {
     icon?: string | null;
     tags?: string[] | null;
     allowConcurrency?: boolean | null;
+    hourlyRate?: string | null;
+    currency?: string | null;
   }): Promise<TimerRepositoryState>;
   toggleArchive(projectId: string): Promise<TimerRepositoryState>;
   update(
@@ -54,20 +56,28 @@ export interface IProjectsPersistence {
     description: string | null,
     icon: string | null,
     tags: string[] | null,
-    allowConcurrency?: boolean | null
+    allowConcurrency?: boolean | null,
+    hourlyRate?: string | null,
+    currency?: string | null
   ): Promise<TimerRepositoryState>;
   rename(projectId: string, name: string): Promise<TimerRepositoryState>;
   delete(projectId: string): Promise<TimerRepositoryState>;
 }
 
 export interface ITasksPersistence {
-  add(input: { projectId: string; name: string; parentTaskId: string | null }): Promise<TimerRepositoryState>;
+  add(input: {
+    projectId: string;
+    name: string;
+    parentTaskId: string | null;
+    hourlyRate?: string | null;
+  }): Promise<TimerRepositoryState>;
   update(
     taskId: string,
     name: string,
     parentTaskId: string | null,
     status: TaskStatus | null,
-    completed: boolean | null
+    completed: boolean | null,
+    hourlyRate?: string | null
   ): Promise<TimerRepositoryState>;
   rename(taskId: string, name: string): Promise<TimerRepositoryState>;
   delete(taskId: string): Promise<TimerRepositoryState>;

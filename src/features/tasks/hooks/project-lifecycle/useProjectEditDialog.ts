@@ -9,7 +9,10 @@ export interface UseProjectEditDialogProps {
     color: string,
     description: string | null,
     icon: string | null,
-    tags: string[] | null
+    tags: string[] | null,
+    allowConcurrency?: boolean | null,
+    hourlyRate?: string | null,
+    currency?: string | null
   ) => void;
 }
 
@@ -32,7 +35,10 @@ export function useProjectEditDialog({ onUpdateProject }: UseProjectEditDialogPr
         payload.color,
         payload.description,
         payload.icon,
-        payload.tags
+        payload.tags,
+        payload.allowConcurrency,
+        payload.hourlyRate,
+        payload.currency
       );
       setEditingProject(null);
     },

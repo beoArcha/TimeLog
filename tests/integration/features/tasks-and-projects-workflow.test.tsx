@@ -49,7 +49,7 @@ describe('Given Tasks and Projects integration workflow', () => {
       fireEvent.click(submitBtn);
 
       // Then
-      expect(addProjectSpy).toHaveBeenCalledWith('Project Epsilon', 'rose', null, null, null, false);
+      expect(addProjectSpy).toHaveBeenCalledWith('Project Epsilon', 'rose', null, null, null, false, null, null);
     });
   });
 

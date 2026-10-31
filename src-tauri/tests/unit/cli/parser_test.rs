@@ -137,7 +137,7 @@ fn test_given_project_domain_commands_when_parsing_cli_then_maps_to_subcommands(
         Some(CliCommand::Project(args)) => {
             assert!(matches!(
                 args.command,
-                ProjectSubcommand::Add { ref name, ref color }
+                ProjectSubcommand::Add { ref name, ref color, .. }
                     if name == "Backend" && color.as_deref() == Some("red")
             ));
         }
@@ -151,7 +151,8 @@ fn test_given_project_domain_commands_when_parsing_cli_then_maps_to_subcommands(
                 ProjectSubcommand::Rename {
                     ref target,
                     ref new_name,
-                    color: None
+                    color: None,
+                    ..
                 } if target == "p1" && new_name.as_deref() == Some("NewName")
             ));
         }
@@ -190,7 +191,8 @@ fn test_given_task_domain_commands_when_parsing_cli_then_maps_subtasks_and_done(
                 TaskSubcommand::Add {
                     ref name,
                     ref project,
-                    ref parent
+                    ref parent,
+                    ..
                 } if name == "SubTask1"
                     && project.as_deref() == Some("p1")
                     && parent.as_deref() == Some("parent1")
@@ -363,5 +365,118 @@ fn test_given_log_domain_commands_when_parsing_cli_then_parses_duration_and_note
             ));
         }
         other => panic!("Expected Log List, got: {:?}", other),
+    }
+}
+
+#[test]
+fn test_given_billing_cli_commands_when_parsing_then_binds_rate_and_currency() {
+    // Project add with rate and currency
+    let proj_add = CliArgs::try_parse_from(vec![
+        "oxy",
+        "project",
+        "add",
+        "ClientX",
+        "--rate",
+        "15000",
+        "--currency",
+        "USD",
+    ])
+    .expect("project add with rate and currency");
+
+    match proj_add.command {
+        Some(CliCommand::Project(args)) => {
+            assert!(matches!(
+                args.command,
+                ProjectSubcommand::Add {
+                    ref name,
+                    ref rate,
+                    ref currency,
+                    ..
+                } if name == "ClientX"
+                    && rate.as_deref() == Some("15000")
+                    && currency.as_deref() == Some("USD")
+            ));
+        }
+        other => panic!("Expected Project Add, got: {:?}", other),
+    }
+
+    // Project update alias with rate and currency
+    let proj_update = CliArgs::try_parse_from(vec![
+        "oxy",
+        "project",
+        "update",
+        "ClientX",
+        "--rate",
+        "12000",
+        "--currency",
+        "EUR",
+    ])
+    .expect("project update with rate and currency");
+
+    match proj_update.command {
+        Some(CliCommand::Project(args)) => {
+            assert!(matches!(
+                args.command,
+                ProjectSubcommand::Rename {
+                    ref target,
+                    ref rate,
+                    ref currency,
+                    ..
+                } if target == "ClientX"
+                    && rate.as_deref() == Some("12000")
+                    && currency.as_deref() == Some("EUR")
+            ));
+        }
+        other => panic!("Expected Project Update, got: {:?}", other),
+    }
+
+    // Task rate command with cents only
+    let task_rate = CliArgs::try_parse_from(vec!["oxy", "task", "rate", "t-123", "18000"])
+        .expect("task rate command");
+
+    match task_rate.command {
+        Some(CliCommand::Task(args)) => {
+            assert!(matches!(
+                args.command,
+                TaskSubcommand::Rate {
+                    ref target,
+                    ref rate,
+                    ref currency,
+                    ..
+                } if target == "t-123"
+                    && rate == "18000"
+                    && currency.is_none()
+            ));
+        }
+        other => panic!("Expected Task Rate, got: {:?}", other),
+    }
+
+    // Task rate command with cents and currency override
+    let task_rate_curr = CliArgs::try_parse_from(vec![
+        "oxy",
+        "task",
+        "rate",
+        "t-123",
+        "20000",
+        "--currency",
+        "GBP",
+    ])
+    .expect("task rate command with currency");
+
+    match task_rate_curr.command {
+        Some(CliCommand::Task(args)) => {
+            assert!(matches!(
+                args.command,
+                TaskSubcommand::Rate {
+                    ref target,
+                    ref rate,
+                    ref currency,
+                    ..
+                } if target == "t-123"
+                    && rate == "20000"
+                    && currency.as_deref() == Some("GBP")
+            ));
+        }
+        other => panic!("Expected Task Rate with currency, got: {:?}", other),
     }
 }

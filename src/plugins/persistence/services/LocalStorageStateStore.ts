@@ -2,6 +2,8 @@ import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { ErrorHandler, PersistenceException } from '@common/exceptions';
 import { STORAGE_KEYS, DOMAIN_STORAGE_KEYS, StorageDomain, StorageResetScope } from '@common/constants/storage-keys';
 
+import { migrateLocalStorageState } from '../migrations/localStorageMigrator';
+
 export const getDefaultState = (): TimerRepositoryState => ({
   projects: [],
   tasks: [],
@@ -71,7 +73,18 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
     }
 
     try {
-      return JSON.parse(data) as TimerRepositoryState;
+      const parsed = JSON.parse(data);
+      const migrated = migrateLocalStorageState(parsed);
+      if (migrated._migrated) {
+        delete migrated._migrated;
+        try {
+          localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(migrated));
+        } catch {
+          // Ignore quota or write errors during passive migration write-back;
+          // return in-memory migrated state.
+        }
+      }
+      return migrated as TimerRepositoryState;
     } catch (e) {
       this.isCorrupted = true;
       const exception = new PersistenceException(

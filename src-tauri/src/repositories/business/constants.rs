@@ -1,7 +1,7 @@
 // Projects queries
 pub const INSERT_PROJECT: &str = "
-    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency, hourly_rate, currency, billing_rate_cents, billing_currency)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
 ";
 
 pub const UPDATE_PROJECT: &str = "
@@ -15,7 +15,11 @@ pub const UPDATE_PROJECT: &str = "
         description = ?8,
         icon = ?9,
         tags = ?10,
-        allow_concurrency = ?11
+        allow_concurrency = ?11,
+        hourly_rate = ?12,
+        currency = ?13,
+        billing_rate_cents = ?14,
+        billing_currency = ?15
     WHERE id = ?1
 ";
 
@@ -24,15 +28,15 @@ pub const ARCHIVE_PROJECT: &str = "
 ";
 
 pub const SELECT_PROJECT_BY_ID: &str = "
-    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency 
+    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency, hourly_rate, currency, billing_rate_cents, billing_currency 
     FROM projects 
     WHERE id = ?1
 ";
 
 // Tasks queries
 pub const INSERT_TASK: &str = "
-    INSERT INTO tasks (id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+    INSERT INTO tasks (id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status, hourly_rate, billing_rate_cents, billing_currency, currency)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
 ";
 
 pub const UPDATE_TASK: &str = "
@@ -45,7 +49,11 @@ pub const UPDATE_TASK: &str = "
         original_completed = ?7, 
         edit_history = ?8,
         archived = ?9,
-        status = ?10
+        status = ?10,
+        hourly_rate = ?11,
+        billing_rate_cents = ?12,
+        billing_currency = ?13,
+        currency = ?14
     WHERE id = ?1
 ";
 
@@ -54,19 +62,19 @@ pub const ARCHIVE_TASK: &str = "
 ";
 
 pub const SELECT_TASK_BY_ID: &str = "
-    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status, hourly_rate, billing_rate_cents, billing_currency, currency 
     FROM tasks 
     WHERE id = ?1
 ";
 
 pub const SELECT_TASKS_BY_PROJECT: &str = "
-    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status, hourly_rate, billing_rate_cents, billing_currency, currency 
     FROM tasks 
     WHERE project_id = ?1 AND parent_task_id IS NULL
 ";
 
 pub const SELECT_SUBTASKS_BY_PARENT: &str = "
-    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status, hourly_rate, billing_rate_cents, billing_currency, currency 
     FROM tasks 
     WHERE parent_task_id = ?1
 ";
@@ -188,7 +196,7 @@ pub const SELECT_ACTIVE_TASK_IDS: &str = "
 ";
 
 pub const SELECT_ALL_PROJECTS: &str = "
-    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency 
+    SELECT id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency, hourly_rate, currency, billing_rate_cents, billing_currency 
     FROM projects
 ";
 
@@ -209,8 +217,8 @@ pub const DELETE_SUBTASKS_BY_PROJECT: &str =
 pub const DELETE_TASKS_BY_PROJECT: &str = "DELETE FROM tasks WHERE project_id = ?1";
 pub const SELECT_ALL_PROJECT_IDS: &str = "SELECT id FROM projects";
 pub const UPSERT_PROJECT: &str = "
-    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+    INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency, hourly_rate, currency, billing_rate_cents, billing_currency)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
     ON CONFLICT(id) DO UPDATE SET
         name = excluded.name,
         color = excluded.color,
@@ -222,11 +230,15 @@ pub const UPSERT_PROJECT: &str = "
         description = excluded.description,
         icon = excluded.icon,
         tags = excluded.tags,
-        allow_concurrency = excluded.allow_concurrency
+        allow_concurrency = excluded.allow_concurrency,
+        hourly_rate = excluded.hourly_rate,
+        currency = excluded.currency,
+        billing_rate_cents = excluded.billing_rate_cents,
+        billing_currency = excluded.billing_currency
 ";
 
 pub const SELECT_ALL_TASKS: &str = "
-    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status 
+    SELECT id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status, hourly_rate, billing_rate_cents, billing_currency, currency 
     FROM tasks
 ";
 
@@ -234,8 +246,8 @@ pub const DELETE_ALL_TASKS: &str = "DELETE FROM tasks";
 pub const DELETE_TASK_BY_ID: &str = "DELETE FROM tasks WHERE id = ?1";
 pub const SELECT_ALL_TASK_IDS: &str = "SELECT id FROM tasks";
 pub const UPSERT_TASK: &str = "
-    INSERT INTO tasks (id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+    INSERT INTO tasks (id, project_id, parent_task_id, name, completed, created_at, original_name, original_completed, edit_history, archived, status, hourly_rate, billing_rate_cents, billing_currency, currency)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
     ON CONFLICT(id) DO UPDATE SET
         project_id = excluded.project_id,
         parent_task_id = excluded.parent_task_id,
@@ -246,7 +258,11 @@ pub const UPSERT_TASK: &str = "
         original_completed = excluded.original_completed,
         edit_history = excluded.edit_history,
         archived = excluded.archived,
-        status = excluded.status
+        status = excluded.status,
+        hourly_rate = excluded.hourly_rate,
+        billing_rate_cents = excluded.billing_rate_cents,
+        billing_currency = excluded.billing_currency,
+        currency = excluded.currency
 ";
 
 pub const SELECT_ALL_TIME_LOGS: &str = "

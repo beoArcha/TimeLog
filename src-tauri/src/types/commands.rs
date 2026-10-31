@@ -37,6 +37,8 @@ pub enum EngineCommand {
     EditTimeLog,
     GetProjectStatistics,
     GetComputedMetrics,
+    BillingResolveEffectiveRate,
+    BillingCalculateRange,
 }
 
 #[derive(TS, Serialize)]

@@ -17,6 +17,26 @@ impl BusinessRepository {
             Some(s) => serde_json::to_string(s)?.trim_matches('"').to_string(),
             None => "Todo".to_string(),
         };
+
+        let effective_cents: Option<i64> = task.billing_rate_cents.or_else(|| {
+            task.hourly_rate
+                .as_deref()
+                .and_then(crate::engine::billing::parse_rate_to_cents)
+                .map(|c| c as i64)
+        });
+        let effective_hourly_rate: Option<String> = task
+            .hourly_rate
+            .clone()
+            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(c as u64)));
+        let effective_currency: Option<String> = task
+            .currency
+            .clone()
+            .or_else(|| task.billing_currency.clone());
+        let effective_billing_currency: Option<String> = task
+            .billing_currency
+            .clone()
+            .or_else(|| task.currency.clone());
+
         conn.execute(
             constants::INSERT_TASK,
             params![
@@ -30,7 +50,11 @@ impl BusinessRepository {
                 task.original_completed.unwrap_or(false) as i32,
                 edit_history_str,
                 task.archived.unwrap_or(false) as i32,
-                status_str
+                status_str,
+                effective_hourly_rate,
+                effective_cents,
+                effective_billing_currency,
+                effective_currency
             ],
         )?;
         Ok(())
@@ -47,6 +71,26 @@ impl BusinessRepository {
             Some(s) => serde_json::to_string(s)?.trim_matches('"').to_string(),
             None => "Todo".to_string(),
         };
+
+        let effective_cents: Option<i64> = task.billing_rate_cents.or_else(|| {
+            task.hourly_rate
+                .as_deref()
+                .and_then(crate::engine::billing::parse_rate_to_cents)
+                .map(|c| c as i64)
+        });
+        let effective_hourly_rate: Option<String> = task
+            .hourly_rate
+            .clone()
+            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(c as u64)));
+        let effective_currency: Option<String> = task
+            .currency
+            .clone()
+            .or_else(|| task.billing_currency.clone());
+        let effective_billing_currency: Option<String> = task
+            .billing_currency
+            .clone()
+            .or_else(|| task.currency.clone());
+
         let affected = conn.execute(
             constants::UPDATE_TASK,
             params![
@@ -59,7 +103,11 @@ impl BusinessRepository {
                 task.original_completed.unwrap_or(false) as i32,
                 edit_history_str,
                 task.archived.unwrap_or(false) as i32,
-                status_str
+                status_str,
+                effective_hourly_rate,
+                effective_cents,
+                effective_billing_currency,
+                effective_currency
             ],
         )?;
         if affected == 0 {
@@ -113,6 +161,20 @@ impl BusinessRepository {
             }
         };
 
+        let mut hourly_rate: Option<String> = row.get(11)?;
+        let billing_rate_cents: Option<i64> = row.get(12).ok().flatten();
+        let billing_currency: Option<String> = row.get(13).ok().flatten();
+        let mut currency: Option<String> = row.get(14).ok().flatten();
+
+        if hourly_rate.is_none() {
+            if let Some(cents) = billing_rate_cents {
+                hourly_rate = Some(crate::engine::billing::format_cents(cents as u64));
+            }
+        }
+        if currency.is_none() {
+            currency = billing_currency.clone();
+        }
+
         Ok(Task {
             id: row.get(0)?,
             project_id: row.get(1)?,
@@ -125,6 +187,10 @@ impl BusinessRepository {
             edit_history,
             archived: Some(archived_int == 1),
             status,
+            hourly_rate,
+            currency,
+            billing_rate_cents,
+            billing_currency,
         })
     }
 

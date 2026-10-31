@@ -7,7 +7,7 @@ use super::constants::{
     MSG_TASK_CREATED, MSG_TASK_DETACHED, MSG_TASK_MOVED, MSG_TASK_RENAMED, MSG_TASK_REPARENTED,
     SYMBOL_TASK_DONE, SYMBOL_TASK_TODO,
 };
-use crate::cli::error::{BusinessRuleViolation, CliError};
+use crate::cli::error::{BusinessRuleViolation, CliError, CliSyntaxError};
 use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
@@ -31,11 +31,27 @@ pub fn handle(
             name,
             project,
             parent,
-        } => add_task(persistence, name, project, parent, is_machine),
+            rate,
+            rate_cents,
+        } => add_task(
+            persistence,
+            name,
+            project,
+            parent,
+            rate,
+            rate_cents,
+            is_machine,
+        ),
         TaskSubcommand::Done { target } => complete_task(persistence, &target, is_machine),
         TaskSubcommand::Rename { target, new_name } => {
             rename_task(persistence, &target, new_name, is_machine)
         }
+        TaskSubcommand::Rate {
+            target,
+            rate,
+            currency,
+            cents,
+        } => set_task_rate(persistence, &target, rate, currency, cents, is_machine),
         TaskSubcommand::Reparent { target, new_parent } => {
             reparent_task(persistence, &target, &new_parent, is_machine)
         }
@@ -220,8 +236,15 @@ fn add_task(
     name: String,
     project: Option<String>,
     parent: Option<String>,
+    rate: Option<String>,
+    rate_cents: Option<u64>,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
+    if rate.is_some() && rate_cents.is_some() {
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            "Cannot specify both --rate and --rate-cents".to_string(),
+        )));
+    }
     let engine = Engine::new(persistence);
     let valid_name = engine.validate_task_name(&name)?;
 
@@ -256,7 +279,16 @@ fn add_task(
 
     let parent_task_id = parent_task.map(|p| p.id);
     let id = generate_id();
-    let task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
+    let mut task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
+    if let Some(cents) = rate_cents {
+        task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+        task.billing_rate_cents = Some(cents as i64);
+    } else if let Some(r) = rate {
+        let trimmed = r.trim();
+        let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
+        task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+        task.billing_rate_cents = Some(cents as i64);
+    }
 
     persistence.tasks.create(task)?;
     if is_machine {
@@ -270,6 +302,84 @@ fn add_task(
         ));
     }
     Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
+}
+
+fn set_task_rate(
+    persistence: &Persistence,
+    target: &str,
+    rate: String,
+    currency: Option<String>,
+    cents: bool,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
+    validate_id(target)?;
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let mut task = resolver.resolve_task(target)?;
+
+    let trimmed = rate.trim();
+    if trimmed.eq_ignore_ascii_case("inherit")
+        || trimmed.eq_ignore_ascii_case("none")
+        || trimmed.eq_ignore_ascii_case("clear")
+    {
+        task.hourly_rate = None;
+        task.billing_rate_cents = None;
+    } else if cents {
+        let parsed_cents = trimmed.parse::<u64>().map_err(|_| {
+            crate::engine::EngineError::Validation(format!("Invalid cents rate: '{}'", rate))
+        })?;
+        task.hourly_rate = Some(crate::engine::billing::format_cents(parsed_cents));
+        task.billing_rate_cents = Some(parsed_cents as i64);
+    } else if let Some(cents_val) = crate::engine::billing::parse_rate_or_cents(trimmed) {
+        task.hourly_rate = Some(crate::engine::billing::format_cents(cents_val));
+        task.billing_rate_cents = Some(cents_val as i64);
+    } else {
+        return Err(
+            crate::engine::EngineError::Validation(format!("Invalid rate: '{}'", rate)).into(),
+        );
+    }
+
+    if let Some(curr) = currency {
+        let trimmed_curr = curr.trim();
+        if trimmed_curr.eq_ignore_ascii_case("inherit")
+            || trimmed_curr.eq_ignore_ascii_case("none")
+            || trimmed_curr.eq_ignore_ascii_case("clear")
+        {
+            task.currency = None;
+            task.billing_currency = None;
+        } else {
+            let validated = crate::engine::billing::validate_currency_code(trimmed_curr)?;
+            task.currency = Some(validated.clone());
+            task.billing_currency = Some(validated);
+        }
+    }
+
+    persistence.tasks.patch(task.clone())?;
+
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": task.id,
+                "hourly_rate": task.hourly_rate,
+                "billing_rate_cents": task.billing_rate_cents,
+                "currency": task.currency,
+                "billing_currency": task.billing_currency,
+                "action": "rate_updated"
+            })
+            .to_string(),
+        ));
+    }
+
+    let rate_display = task.hourly_rate.as_deref().unwrap_or("inherited");
+    let curr_display = task
+        .currency
+        .as_deref()
+        .map(|c| format!(" ({})", c))
+        .unwrap_or_default();
+    Ok(CliOutput::Success(format!(
+        "Updated billing rate for task '{}' ({}) to {}{}.",
+        task.name, task.id, rate_display, curr_display
+    )))
 }
 
 fn resolve_default_project_id(persistence: &Persistence) -> Result<String, CliError> {

@@ -13,6 +13,8 @@ export interface ProjectInputData {
   icon?: string | null;
   tags?: string[] | null;
   allowConcurrency?: boolean | null;
+  hourlyRate?: string | null;
+  currency?: string | null;
 }
 
 export interface UseProjectsManagerOptions {
@@ -47,12 +49,14 @@ export const useProjectsManager = ({
     description: string | null = null,
     icon: string | null = null,
     tags: string[] | null = null,
-    allowConcurrency: boolean | null = null
+    allowConcurrency: boolean | null = null,
+    hourlyRate: string | null = null,
+    currency: string | null = null
   ) => {
     const input: ProjectInputData =
       typeof nameOrInput === 'object'
         ? nameOrInput
-        : { name: nameOrInput, color, description, icon, tags, allowConcurrency };
+        : { name: nameOrInput, color, description, icon, tags, allowConcurrency, hourlyRate, currency };
 
     await actionRunner.runAction('Failed to add project', async () => {
       await engineRouter.validation.validateProjectName(input.name, repositoryState.projects);
@@ -78,12 +82,14 @@ export const useProjectsManager = ({
     description: string | null = null,
     icon: string | null = null,
     tags: string[] | null = null,
-    allowConcurrency: boolean | null = null
+    allowConcurrency: boolean | null = null,
+    hourlyRate?: string | null,
+    currency?: string | null
   ) => {
     const input: ProjectInputData =
       typeof nameOrInput === 'object'
         ? nameOrInput
-        : { name: nameOrInput, color: color ?? 'indigo', description, icon, tags, allowConcurrency };
+        : { name: nameOrInput, color: color ?? 'indigo', description, icon, tags, allowConcurrency, hourlyRate, currency };
 
     await actionRunner.runAction('Failed to update project', async () => {
       await engineRouter.validation.validateProjectName(input.name, repositoryState.projects, projectId);
@@ -94,7 +100,9 @@ export const useProjectsManager = ({
         input.description ?? null,
         input.icon ?? null,
         input.tags ?? null,
-        input.allowConcurrency ?? null
+        input.allowConcurrency ?? null,
+        input.hourlyRate,
+        input.currency
       );
       await syncState(nextState);
     });
