@@ -5,6 +5,7 @@ import { Locale } from '@/src/bindings/Locale';
 import { Button } from '@components/ui/button';
 import { HStack } from '@components/ui/stack';
 import { Caption, MonoText } from '@components/ui/typography';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
 interface AppFooterProps {
   locale: Locale;
@@ -19,6 +20,11 @@ export default function AppFooter({
   onNavigateToSettings,
   setShowCreditsModal,
 }: AppFooterProps) {
+  const { storageEngineName } = usePlatformCapabilities();
+  const environmentLabel = storageEngineName === 'sqlite'
+    ? translate(locale, 'engine', 'EnvironmentSqlite', customTranslations)
+    : translate(locale, 'engine', 'EnvironmentLocalStorage', customTranslations);
+
   return (
     <HStack
       as="footer"
@@ -31,7 +37,7 @@ export default function AppFooter({
           OxyFlowOS
         </MonoText>
         <Caption as="span" size="xs" className="hidden sm:inline text-muted-foreground/60">
-          Environment — SQLite MicroORM
+          {environmentLabel}
         </Caption>
         <Caption as="span" size="xs" className="hidden sm:inline text-muted-foreground/40 select-none">
           •
