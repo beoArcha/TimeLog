@@ -12,8 +12,9 @@ import { Switch } from '@components/ui/switch';
 import { Label } from '@components/ui/label';
 import { Caption } from '@components/ui/typography';
 import { VStack, HStack, InlineCluster } from '@components/ui/stack';
-import { EmojiPicker, getFirstGrapheme } from '@components/ui/emoji-picker';
+import { EmojiPicker } from '@components/ui/emoji-picker';
 import { useSettingsSafe } from '@common/hooks/SettingsContext';
+import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
 
 export interface SidebarProjectFormProps {
   onAddProject: (
@@ -45,6 +46,7 @@ export function SidebarProjectForm({
 }: SidebarProjectFormProps) {
   const settings = useSettingsSafe();
   const defaultConcurrency = settings?.defaultProjectConcurrency ?? false;
+  const availableTags = useAllProjectTags();
   const [name, setNameLocal] = React.useState(initialName);
   const [color, setColorLocal] = React.useState(initialColor);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
@@ -55,6 +57,17 @@ export function SidebarProjectForm({
   const allowConcurrency = allowConcurrencyOverride ?? defaultConcurrency;
   const colorInputRef = React.useRef<HTMLInputElement>(null);
   const isCustomColor = isValidHexColor(color);
+
+  const handleAddTagSuggestion = (tagToAdd: string) => {
+    const currentTags = tags
+      .split(',')
+      .map(t => t.trim())
+      .filter(Boolean);
+    if (!currentTags.includes(tagToAdd)) {
+      const updated = [...currentTags, tagToAdd].join(', ');
+      setTags(updated);
+    }
+  };
 
   const handleNameChange = (val: string) => {
     setNameLocal(val);
@@ -245,37 +258,46 @@ export function SidebarProjectForm({
             gap="xs"
             className="mt-2 pt-2 border-t border-border/40 animate-in fade-in slide-in-from-top-2 duration-300"
           >
-            <HStack gap="xs" className="w-full">
-              <div className="flex items-center gap-1.5 w-1/3">
-                <EmojiPicker
-                  value={icon}
-                  onChange={setIcon}
-                  testId="sidebar-project-emoji-picker"
-                />
-                <Input
-                  id="sidebar-project-icon-input"
-                  data-testid="sidebar-project-icon-input"
-                  type="text"
-                  placeholder={translate(locale, 'project', 'IconPlaceholder', customTranslations)}
-                  aria-label={translate(locale, 'project', 'EmojiIcon', customTranslations)}
-                  value={icon}
-                  onChange={e => setIcon(getFirstGrapheme(e.target.value))}
-                  className="w-full px-2 py-1 text-center text-xs"
-                />
-              </div>
-              <div className="w-2/3">
-                <Input
-                  id="sidebar-project-tags-input"
-                  data-testid="sidebar-project-tags-input"
-                  type="text"
-                  placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
-                  aria-label={translate(locale, 'project', 'Tags', customTranslations)}
-                  value={tags}
-                  onChange={e => setTags(e.target.value)}
-                  className="w-full px-2 py-1 text-xs"
-                />
-              </div>
+            <HStack gap="xs" className="w-full items-center">
+              <EmojiPicker
+                value={icon}
+                onChange={setIcon}
+                testId="sidebar-project-emoji-picker"
+              />
+              <Input
+                id="sidebar-project-tags-input"
+                data-testid="sidebar-project-tags-input"
+                type="text"
+                placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
+                aria-label={translate(locale, 'project', 'Tags', customTranslations)}
+                value={tags}
+                onChange={e => setTags(e.target.value)}
+                className="flex-1 px-2 py-1 text-xs"
+              />
             </HStack>
+
+            {availableTags.length > 0 && (
+              <VStack gap="2xs" className="w-full">
+                <Caption size="xs" variant="muted" className="font-mono text-[10px] uppercase tracking-wider">
+                  {translate(locale, 'project', 'TagSuggestionsLabel', customTranslations)}
+                </Caption>
+                <div className="flex flex-wrap gap-1" data-testid="sidebar-project-tag-suggestions">
+                  {availableTags.map(tag => (
+                    <Button
+                      key={tag}
+                      type="button"
+                      variant="outline"
+                      size="xs"
+                      onClick={() => handleAddTagSuggestion(tag)}
+                      data-testid={`tag-suggestion-${tag}`}
+                      className="h-5 px-2 py-0 text-[10px] rounded-full font-normal cursor-pointer"
+                    >
+                      {tag}
+                    </Button>
+                  ))}
+                </div>
+              </VStack>
+            )}
 
             <Textarea
               id="sidebar-project-description-input"
