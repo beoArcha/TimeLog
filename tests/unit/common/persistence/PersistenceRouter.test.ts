@@ -30,6 +30,7 @@ describe('Unit Tests: PersistenceRouter', () => {
         toggleArchive: vi.fn().mockResolvedValue(mockState),
         update: vi.fn().mockResolvedValue(mockState),
         rename: vi.fn().mockResolvedValue(mockState),
+        delete: vi.fn().mockResolvedValue(mockState),
       },
       tasks: {
         add: vi.fn().mockResolvedValue(mockState),
