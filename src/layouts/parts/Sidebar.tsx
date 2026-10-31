@@ -6,6 +6,7 @@ import { ProjectEmptyState } from './ProjectEmptyState';
 import { StarterTemplate, resolveStarterTemplate } from '@common/templates/starterTemplates';
 import { Project } from '@bindings/Project';
 import { useProjectReorder } from '@common/hooks/useProjectReorder';
+import { useProjects } from '@common/hooks/DataContext';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 import { SidebarProjectForm } from './sidebar/SidebarProjectForm';
 import { SidebarProjectItem } from './sidebar/SidebarProjectItem';
@@ -15,9 +16,10 @@ export default function Sidebar({ state }: { state: GuiState }) {
   const {
     projects, metrics, locale, customTranslations,
     onAddProject, onUpdateProject, selectedProjectId, setSelectedProjectId,
-    onRenameProject, onToggleProjectArchive, isLoading, activeLog
+    onRenameProject, onToggleProjectArchive, isLoading, activeLog, tasks
   } = state;
 
+  const { handleDeleteProject } = useProjects();
   const { orderedProjects, moveProject, isFirst, isLast } = useProjectReorder({ projects });
   const [editingId, setEditingIdLocal] = React.useState<string | null>(() => state.editingId ?? null);
   const [editName, setEditNameLocal] = React.useState(() => state.editName ?? '');
@@ -81,9 +83,11 @@ export default function Sidebar({ state }: { state: GuiState }) {
                 isLast={isLast(p.id)}
                 isEditingInline={editingId === p.id}
                 inlineEditName={editName}
+                taskCount={tasks ? tasks.filter(t => t.projectId === p.id).length : 0}
                 onSelect={setSelectedProjectId}
                 onEditDialog={setEditingProject}
                 onToggleArchive={onToggleProjectArchive}
+                onDeleteProject={handleDeleteProject}
                 onMoveUp={id => moveProject(id, 'up')}
                 onMoveDown={id => moveProject(id, 'down')}
                 onInlineNameChange={setEditName}

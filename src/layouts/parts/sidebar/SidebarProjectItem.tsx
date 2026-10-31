@@ -1,12 +1,14 @@
 import React from 'react';
-import { Clock, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
+import { Clock, Pencil, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { Project } from '@bindings/Project';
+import { Task } from '@bindings/Task';
 import { Locale } from '@bindings/Locale';
 import { TimeLog } from '@bindings/TimeLog';
 import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 import { resolveProjectColor } from '@common/utils/colorUtils';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { useLiveProjectElapsed } from '@common/hooks/useLiveTaskElapsed';
+import { useProjects } from '@common/hooks/DataContext';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Badge } from '@components/ui/badge';
@@ -14,6 +16,7 @@ import { Text, Caption } from '@components/ui/typography';
 import { HStack, VStack, InlineCluster } from '@components/ui/stack';
 import { IconBox } from '@components/ui/icon-box';
 import { TimerDisplay } from '@features/timelogs/components/TimerDisplay';
+import { ConfirmDialog } from '@components/ConfirmDialog';
 
 const HOVER_REVEAL_CLASS = 'opacity-0 group-hover:opacity-100 transition duration-200';
 const REORDER_BTN_CLASS = 'h-4 w-4 p-0 text-muted-foreground hover:text-orange-500 disabled:opacity-20 cursor-pointer';
@@ -31,9 +34,12 @@ export interface SidebarProjectItemProps {
   isLast: boolean;
   isEditingInline: boolean;
   inlineEditName: string;
+  taskCount?: number;
+  tasks?: Task[];
   onSelect: (id: string) => void;
   onEditDialog: (project: Project) => void;
   onToggleArchive?: (id: string) => void;
+  onDeleteProject?: (id: string) => void;
   onMoveUp: (id: string) => void;
   onMoveDown: (id: string) => void;
   onInlineNameChange: (val: string) => void;
@@ -53,21 +59,44 @@ export function SidebarProjectItem({
   isLast,
   isEditingInline,
   inlineEditName,
+  taskCount,
+  tasks,
   onSelect,
   onEditDialog,
   onToggleArchive,
+  onDeleteProject,
   onMoveUp,
   onMoveDown,
   onInlineNameChange,
   onCommitInlineRename,
   onCancelInlineRename,
 }: SidebarProjectItemProps) {
+  const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
+  const { handleDeleteProject } = useProjects();
   const resolvedColor = resolveProjectColor(project.color);
   const { elapsedSeconds: liveSeconds, isRunning: isProjectRunning } = useLiveProjectElapsed(project.id, {
     metrics,
     activeLog,
   });
   const displaySeconds = (metrics || activeLog) ? liveSeconds : (totalSeconds ?? liveSeconds);
+
+  const hasRecordedTime = displaySeconds > 0 || (totalSeconds !== undefined && totalSeconds > 0) || isProjectRunning;
+  const canDelete = !hasRecordedTime;
+
+  const resolvedTaskCount = taskCount ?? (tasks ? tasks.filter(t => t.projectId === project.id).length : 0);
+
+  const deleteWarningMessage = resolvedTaskCount > 0
+    ? translate(locale, 'project', 'DeleteProjectWarningTasks', customTranslations).replace('{count}', String(resolvedTaskCount))
+    : translate(locale, 'database', 'DeleteConfirmProject', customTranslations);
+
+  const handleConfirmDelete = async () => {
+    if (onDeleteProject) {
+      await onDeleteProject(project.id);
+    } else if (handleDeleteProject) {
+      await handleDeleteProject(project.id);
+    }
+    setIsConfirmOpen(false);
+  };
 
   const formattedCreatedAt = React.useMemo(() => {
     try {
@@ -90,7 +119,8 @@ export function SidebarProjectItem({
   };
 
   return (
-    <div
+    <>
+      <div
       id={`project-item-${project.id}`}
       data-archived={project.archived ? 'true' : 'false'}
       onClick={() => onSelect(project.id)}
@@ -182,21 +212,39 @@ export function SidebarProjectItem({
                 </Button>
               )}
 
-              <Button
-                id={`archive-project-btn-${project.id}`}
-                type="button"
-                variant="outline"
-                size="xs"
-                onClick={e => {
-                  e.stopPropagation();
-                  onToggleArchive?.(project.id);
-                }}
-                className="px-1.5 py-0.5 h-auto rounded uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
-              >
-                {project.archived
-                  ? translate(locale, 'common', 'Unarchive', customTranslations)
-                  : translate(locale, 'common', 'Archive', customTranslations)}
-              </Button>
+              {canDelete ? (
+                <Button
+                  id={`delete-project-btn-${project.id}`}
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  title={translate(locale, 'project', 'DeleteProject', customTranslations)}
+                  aria-label={translate(locale, 'project', 'DeleteProject', customTranslations)}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setIsConfirmOpen(true);
+                  }}
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              ) : (
+                <Button
+                  id={`archive-project-btn-${project.id}`}
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  onClick={e => {
+                    e.stopPropagation();
+                    onToggleArchive?.(project.id);
+                  }}
+                  className="px-1.5 py-0.5 h-auto rounded uppercase font-bold tracking-wider hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
+                >
+                  {project.archived
+                    ? translate(locale, 'common', 'Unarchive', customTranslations)
+                    : translate(locale, 'common', 'Archive', customTranslations)}
+                </Button>
+              )}
             </div>
           </div>
         </VStack>
@@ -248,5 +296,18 @@ export function SidebarProjectItem({
         />
       </HStack>
     </div>
-  );
+
+    <ConfirmDialog
+      open={isConfirmOpen}
+      onOpenChange={setIsConfirmOpen}
+      title={translate(locale, 'project', 'ConfirmDeleteProjectTitle', customTranslations)}
+      description={deleteWarningMessage}
+      variant="destructive"
+      confirmLabel={translate(locale, 'common', 'Delete', customTranslations)}
+      cancelLabel={translate(locale, 'common', 'Cancel', customTranslations)}
+      onConfirm={handleConfirmDelete}
+      onCancel={() => setIsConfirmOpen(false)}
+    />
+  </>
+);
 }

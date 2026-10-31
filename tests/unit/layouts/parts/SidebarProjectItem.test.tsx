@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, cleanup, screen } from '@testing-library/react';
+import { render, cleanup, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { SidebarProjectItem } from '@layouts/parts/sidebar/SidebarProjectItem';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
@@ -122,5 +122,146 @@ describe('SidebarProjectItem', () => {
     // Assert
     expect(screen.queryByTestId('project-color-dot-p-1')).toBeNull();
     expect(screen.getByText('🚀')).not.toBeNull();
+  });
+
+  it('should render delete-project-btn and NOT archive-project-btn for project with 0 seconds logged', () => {
+    const project = createBaseProject();
+
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem {...defaultProps} project={project} totalSeconds={0} />
+      </MockProviders>
+    );
+
+    expect(container.querySelector('#delete-project-btn-p-1')).not.toBeNull();
+    expect(container.querySelector('#archive-project-btn-p-1')).toBeNull();
+  });
+
+  it('should render archive-project-btn and NOT delete-project-btn for project with totalSeconds > 0', () => {
+    const project = createBaseProject();
+
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem {...defaultProps} project={project} totalSeconds={120} />
+      </MockProviders>
+    );
+
+    expect(container.querySelector('#archive-project-btn-p-1')).not.toBeNull();
+    expect(container.querySelector('#delete-project-btn-p-1')).toBeNull();
+  });
+
+  it('should render archive-project-btn and NOT delete-project-btn when timer is running for project', () => {
+    const project = createBaseProject();
+    const activeLog = {
+      id: 'log-1',
+      projectId: 'p-1',
+      taskId: 'task-1',
+      startTime: new Date().toISOString(),
+      endTime: null,
+      note: null,
+    };
+
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem {...defaultProps} project={project} totalSeconds={0} activeLog={activeLog} />
+      </MockProviders>
+    );
+
+    expect(container.querySelector('#archive-project-btn-p-1')).not.toBeNull();
+    expect(container.querySelector('#delete-project-btn-p-1')).toBeNull();
+  });
+
+  it('should open confirm dialog with title and destructive styling when delete-project-btn is clicked', () => {
+    const project = createBaseProject();
+
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem {...defaultProps} project={project} totalSeconds={0} />
+      </MockProviders>
+    );
+
+    const deleteBtn = container.querySelector('#delete-project-btn-p-1') as HTMLButtonElement;
+    expect(deleteBtn).not.toBeNull();
+    fireEvent.click(deleteBtn);
+
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+    expect(screen.getByText('Delete Project')).not.toBeNull();
+  });
+
+  it('should show DeleteProjectWarningTasks with interpolated count in confirm dialog when project has tasks', () => {
+    const project = createBaseProject();
+
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem {...defaultProps} project={project} totalSeconds={0} taskCount={3} />
+      </MockProviders>
+    );
+
+    const deleteBtn = container.querySelector('#delete-project-btn-p-1') as HTMLButtonElement;
+    fireEvent.click(deleteBtn);
+
+    expect(
+      screen.getByText(/This project contains 3 task\(s\)\. Are you sure you want to delete this project and all its tasks\?/)
+    ).not.toBeNull();
+  });
+
+  it('should show standard DeleteConfirmProject in confirm dialog when project has 0 tasks', () => {
+    const project = createBaseProject();
+
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem {...defaultProps} project={project} totalSeconds={0} taskCount={0} />
+      </MockProviders>
+    );
+
+    const deleteBtn = container.querySelector('#delete-project-btn-p-1') as HTMLButtonElement;
+    fireEvent.click(deleteBtn);
+
+    expect(
+      screen.getByText('Are you sure you want to delete this project and all its tasks and logs?')
+    ).not.toBeNull();
+  });
+
+  it('should invoke onDeleteProject when deletion is confirmed in dialog', async () => {
+    const onDeleteProject = vi.fn();
+    const project = createBaseProject();
+
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectItem
+          {...defaultProps}
+          project={project}
+          totalSeconds={0}
+          onDeleteProject={onDeleteProject}
+        />
+      </MockProviders>
+    );
+
+    const deleteBtn = container.querySelector('#delete-project-btn-p-1') as HTMLButtonElement;
+    fireEvent.click(deleteBtn);
+
+    const confirmBtn = screen.getByRole('button', { name: 'Delete' });
+    fireEvent.click(confirmBtn);
+
+    expect(onDeleteProject).toHaveBeenCalledWith('p-1');
+  });
+
+  it('should invoke handleDeleteProject from DataContext when confirmed without explicit onDeleteProject prop', async () => {
+    const handleDeleteProject = vi.fn();
+    const project = createBaseProject();
+
+    const { container } = render(
+      <MockProviders dataState={{ handleDeleteProject }}>
+        <SidebarProjectItem {...defaultProps} project={project} totalSeconds={0} />
+      </MockProviders>
+    );
+
+    const deleteBtn = container.querySelector('#delete-project-btn-p-1') as HTMLButtonElement;
+    fireEvent.click(deleteBtn);
+
+    const confirmBtn = screen.getByRole('button', { name: 'Delete' });
+    fireEvent.click(confirmBtn);
+
+    expect(handleDeleteProject).toHaveBeenCalledWith('p-1');
   });
 });
