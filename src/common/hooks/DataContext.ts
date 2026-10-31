@@ -11,6 +11,7 @@ export interface ProjectsState {
   handleToggleProjectArchive: DataState['handleToggleProjectArchive'];
   handleUpdateProject: DataState['handleUpdateProject'];
   handleRenameProject: DataState['handleRenameProject'];
+  handleDeleteProject: DataState['handleDeleteProject'];
 }
 
 export interface TasksState {
@@ -80,6 +81,7 @@ export const useProjects = (): ProjectsState => {
     handleToggleProjectArchive: data.handleToggleProjectArchive,
     handleUpdateProject: data.handleUpdateProject,
     handleRenameProject: data.handleRenameProject,
+    handleDeleteProject: data.handleDeleteProject,
   };
 };
 
