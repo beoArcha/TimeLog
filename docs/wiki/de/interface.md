@@ -32,6 +32,34 @@ Ergänzend zu den Layout-Varianten unterstützt oXyFlow drei unabhängige Skalie
 
 ---
 
+## Zweistufiges Projektformular
+
+Die Seitenleiste enthält ein adaptives, zweistufiges Formular zur Projekterstellung mit einer kompakten Hauptzeile für die Schnelleingabe und einer ausklappbaren Optionsschublade:
+
+### Hauptzeile (Stufe 1)
+- **Projektname**: Textfeld zur direkten Eingabe (Drücken der Eingabetaste erstellt das Projekt sofort).
+- **Farbpalette**: Zehn vordefinierte Farbmuster (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Benutzerdefinierte Farbwahl (Paintbrush)**: Die Pinselschaltfläche (Paintbrush) am Ende der Palette öffnet eine Farbauswahl für beliebige HEX-Farbcodes (z. B. `#8B5CF6`).
+- **Schaltfläche für Erweiterte Optionen**: Pfeilschaltfläche (**Mehr Optionen** / **Optionen ausblenden**) zum Ein- und Ausklappen der erweiterten Optionen.
+- **Projekt Hinzufügen**: Primäre Schaltfläche zum Bestätigen und Speichern.
+
+### Erweiterte Schublade (Stufe 2)
+- **Emoji-Auswahl**: Popover-Menü zur Zuweisung eines Emoji-Icons für das Projekt.
+- **Tag-Vorschlagswolke**: Eingabefeld für kommagetrennte Tags mit automatischer Vorschlagswolke aus bestehenden Projekten. Ein Klick auf einen Tag-Chip fügt diesen direkt in das Feld ein.
+- **Projektbeschreibung**: Mehrzeiliges Textfeld für Notizen und Kontext.
+- **Parallelitäts-Schalter**: Steuert, ob Aufgaben dieses Projekts gleichzeitig mit Aufgaben anderer Projekte ausgeführt werden dürfen.
+
+---
+
+## Projektlebenszyklus: Löschen vs. Archivieren
+
+Um die Integrität der Zeiterfassung zu sichern und Datenverlust zu verhindern:
+
+- **Projekte ohne Zeiteinträge (`00:00:00`)**: Projekte ohne erfasste Arbeitszeit und ohne aktiven Timer zeigen eine Löschschaltfläche (Trash2-Icon). Das Löschen entfernt das Projekt vollständig aus dem Speicher.
+- **Projekte mit Zeiteinträgen (`> 00:00:00`)**: Die Validierungs-Engine blockiert das Löschen (`validate_project_deletion`). Die Oberfläche ersetzt das Lösch-Icon automatisch durch die Schaltfläche **Archivieren**. Das Archivieren blendet das Projekt aus den aktiven Seitenleisten und Auswahllisten aus, erhält jedoch alle erfassten Sitzungen, Aufgaben und Berichtsdaten.
+
+---
+
 ## Integrierte Themes
 
 oXyFlow stellt drei über die `ThemeRegistry` verwaltete Themes bereit:

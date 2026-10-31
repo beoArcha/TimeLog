@@ -32,6 +32,34 @@ Poza układem okna oXyFlow obsługuje trzy niezależne poziomy skalowania kontro
 
 ---
 
+## Dwupoziomowy Formularz Projektu
+
+Pasek boczny zawiera adaptacyjny, dwupoziomowy formularz tworzenia projektu z wierszem podstawowym oraz rozwijaną szufladą opcji zaawansowanych:
+
+### Wiersz Podstawowy (Poziom 1)
+- **Nazwa Projektu**: Pole tekstowe do natychmiastowego wpisania nazwy (naciśnięcie Enter od razu tworzy projekt).
+- **Zdefiniowana Paleta**: Dziesięć gotowych próbek kolorów (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Wybór Niestandardowego Koloru (Paintbrush)**: Przycisk z ikoną Paintbrush (pędzel) na końcu palety otwiera próbnik kolorów obsługujący dowolny kod HEX (np. `#8B5CF6`).
+- **Przełącznik Opcji Zaawansowanych**: Przycisk ze strzałką (**Więcej opcji** / **Ukryj opcje**) rozwijający i zwijający szufladę.
+- **Przycisk Dodawania Projektu**: Przycisk zatwierdzający i zapisujący nowy projekt.
+
+### Rozwijana Szuflada Opcji Zaawansowanych (Poziom 2)
+- **Wybór Ikony Emoji**: Dedykowany selektor popover przypisujący ikonę emoji do projektu.
+- **Chmura Sugestii Tagów**: Pole tagów rozdzielanych przecinkami z dynamiczną chmurą podpowiedzi skanującą istniejące projekty. Kliknięcie kafelka tagu dodaje go bezpośrednio do pola bez konieczności wpisywania.
+- **Opis Projektu**: Opcjonalne pole tekstowe na notatki i zakres projektu.
+- **Przełącznik Współbieżności**: Określa, czy zadania w ramach tego projektu mogą być uruchamiane jednocześnie z zadaniami z innych projektów.
+
+---
+
+## Cykl Życia Projektu: Usuwanie a Archiwizacja
+
+W celu ochrony spójności ewidencji czasu pracy i zapobiegania utracie danych audytowych:
+
+- **Projekty bez Zalogowanego Czasu (`00:00:00`)**: Projekty bez zarejestrowanych sesji i bez aktywnego stopera wyświetlają przycisk trwałego usunięcia (ikona Trash2). Usunięcie trwale kasuje projekt oraz niepowiązane metadane z bazy danych.
+- **Projekty z Zalogowanym Czasem (`> 00:00:00`)**: Silnik walidacji blokuje usunięcie (`validate_project_deletion`). Interfejs automatycznie zastępuje ikonę kosza przyciskiem **Archiwizuj**. Archiwizacja ukrywa projekt na listach bocznych i w selektorach, zachowując wszystkie zarejestrowane wpisy, zadania i historię audytową w raportach.
+
+---
+
 ## Wbudowane Motywy Kolorystyczne
 
 oXyFlow oferuje trzy zweryfikowane motywy zarządzane przez `ThemeRegistry`:
