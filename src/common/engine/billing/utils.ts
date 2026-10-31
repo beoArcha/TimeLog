@@ -8,11 +8,12 @@ export function parseRateToCents(s: string): number | null {
   if (parts.length === 2) {
     const fracStr = parts[1];
     if (!/^\d*$/.test(fracStr)) return null;
+    if (fracStr.length > 2) return null;
     let frac = 0;
     if (fracStr.length === 1) {
       frac = Number(fracStr) * 10;
-    } else if (fracStr.length >= 2) {
-      frac = Number(fracStr.slice(0, 2));
+    } else if (fracStr.length === 2) {
+      frac = Number(fracStr);
     }
     return whole * 100 + frac;
   }

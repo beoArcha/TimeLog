@@ -37,6 +37,8 @@ fn test_parse_rate_and_boundaries() {
     assert_eq!(parse_rate_to_cents("150.55"), Some(15055));
     assert_eq!(parse_rate_to_cents("0"), Some(0));
     assert_eq!(parse_rate_to_cents("0.00"), Some(0));
+    assert_eq!(parse_rate_to_cents("150.999"), None);
+    assert_eq!(parse_rate_to_cents("150.1234"), None);
     assert_eq!(parse_rate_to_cents(""), None);
     assert_eq!(parse_rate_to_cents("-10"), None);
 
@@ -67,6 +69,7 @@ fn test_validation_rate_and_currency() {
     assert!(validate_and_parse_rate("").is_err());
     assert!(validate_and_parse_rate("-10").is_err());
     assert!(validate_and_parse_rate("150.555").is_err()); // > 2 decimal places
+    assert!(validate_and_parse_rate("150.999").is_err()); // > 2 decimal places
     assert!(validate_and_parse_rate("abc").is_err());
 
     // Valid currencies

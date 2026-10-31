@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use super::billing_input::{NormalizedBillingCreation, NormalizedBillingUpdate};
 use super::constants::{
     ERR_REPARENT_DIFFERENT_PROJECT, ERR_REPARENT_SELF, FORMAT_TASK_ORPHAN_ROW,
     FORMAT_TASK_ROOT_ROW, FORMAT_TASK_SUBTASK_ROW, HEADER_TASKS, LABEL_SUBTASK_BADGE,
@@ -277,18 +278,12 @@ fn add_task(
         },
     };
 
+    let billing = NormalizedBillingCreation::parse(rate, rate_cents, None)?;
     let parent_task_id = parent_task.map(|p| p.id);
     let id = generate_id();
     let mut task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
-    if let Some(cents) = rate_cents {
-        task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-        task.billing_rate_cents = Some(cents as i64);
-    } else if let Some(r) = rate {
-        let trimmed = r.trim();
-        let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
-        task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-        task.billing_rate_cents = Some(cents as i64);
-    }
+    task.hourly_rate = billing.hourly_rate;
+    task.billing_rate_cents = billing.billing_rate_cents;
 
     persistence.tasks.create(task)?;
     if is_machine {
@@ -317,41 +312,24 @@ fn set_task_rate(
     let mut task = resolver.resolve_task(target)?;
 
     let trimmed = rate.trim();
-    if trimmed.eq_ignore_ascii_case("inherit")
-        || trimmed.eq_ignore_ascii_case("none")
-        || trimmed.eq_ignore_ascii_case("clear")
-    {
-        task.hourly_rate = None;
-        task.billing_rate_cents = None;
-    } else if cents {
-        let parsed_cents = trimmed.parse::<u64>().map_err(|_| {
-            crate::engine::EngineError::Validation(format!("Invalid cents rate: '{}'", rate))
-        })?;
-        task.hourly_rate = Some(crate::engine::billing::format_cents(parsed_cents));
-        task.billing_rate_cents = Some(parsed_cents as i64);
-    } else if let Some(cents_val) = crate::engine::billing::parse_rate_or_cents(trimmed) {
-        task.hourly_rate = Some(crate::engine::billing::format_cents(cents_val));
-        task.billing_rate_cents = Some(cents_val as i64);
-    } else {
-        return Err(
-            crate::engine::EngineError::Validation(format!("Invalid rate: '{}'", rate)).into(),
-        );
-    }
-
-    if let Some(curr) = currency {
-        let trimmed_curr = curr.trim();
-        if trimmed_curr.eq_ignore_ascii_case("inherit")
-            || trimmed_curr.eq_ignore_ascii_case("none")
-            || trimmed_curr.eq_ignore_ascii_case("clear")
+    let (rate_arg, rate_cents_arg) = if cents {
+        if trimmed.eq_ignore_ascii_case("inherit")
+            || trimmed.eq_ignore_ascii_case("none")
+            || trimmed.eq_ignore_ascii_case("clear")
         {
-            task.currency = None;
-            task.billing_currency = None;
+            (Some(rate), None)
         } else {
-            let validated = crate::engine::billing::validate_currency_code(trimmed_curr)?;
-            task.currency = Some(validated.clone());
-            task.billing_currency = Some(validated);
+            let parsed_cents = trimmed.parse::<u64>().map_err(|_| {
+                crate::engine::EngineError::Validation(format!("Invalid cents rate: '{}'", rate))
+            })?;
+            (None, Some(parsed_cents))
         }
-    }
+    } else {
+        (Some(rate), None)
+    };
+
+    let billing_update = NormalizedBillingUpdate::parse(rate_arg, rate_cents_arg, currency)?;
+    billing_update.apply_to_task(&mut task);
 
     persistence.tasks.patch(task.clone())?;
 

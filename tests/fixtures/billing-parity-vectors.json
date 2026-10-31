@@ -153,5 +153,55 @@
       "expectedCurrency": "USD",
       "expectedSource": "default"
     }
+  ],
+  "rateParsingVectors": [
+    {
+      "description": "Valid standard two decimal places",
+      "input": "150.00",
+      "expectedCents": 15000,
+      "valid": true
+    },
+    {
+      "description": "Valid single decimal place",
+      "input": "150.5",
+      "expectedCents": 15050,
+      "valid": true
+    },
+    {
+      "description": "Valid integer rate",
+      "input": "150",
+      "expectedCents": 15000,
+      "valid": true
+    },
+    {
+      "description": "Valid zero rate",
+      "input": "0.00",
+      "expectedCents": 0,
+      "valid": true
+    },
+    {
+      "description": "Reject rate with three decimal places",
+      "input": "150.999",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject rate with four decimal places",
+      "input": "150.1234",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject negative rate",
+      "input": "-50.00",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject non-numeric string",
+      "input": "abc",
+      "expectedCents": null,
+      "valid": false
+    }
   ]
 }

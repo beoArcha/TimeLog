@@ -13,6 +13,11 @@ import { Label } from '@components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@components/ui/radio-group';
 import { useTranslation } from '@common/i18n/translator';
 import { Task } from '@bindings/Task';
+import {
+  TaskBillingFormMode,
+  getTaskBillingFormInitialState,
+  mapBillingFormToHourlyRate,
+} from '../utils/taskBillingFormMapper';
 
 export interface TaskBillingModalProps {
   open: boolean;
@@ -30,33 +35,16 @@ export function TaskBillingModal({
   const { t: tTask } = useTranslation('task');
   const { t: tCommon } = useTranslation('common');
 
-  // Determine initial mode
-  const getInitialMode = (): 'inherit' | 'non_billable' | 'custom' => {
-    if (task.hourlyRate === null || task.hourlyRate === undefined) {
-      return 'inherit';
-    }
-    const trimmed = task.hourlyRate.trim();
-    if (trimmed === '0' || trimmed === '0.00') {
-      return 'non_billable';
-    }
-    return 'custom';
-  };
-
-  const [mode, setMode] = useState<'inherit' | 'non_billable' | 'custom'>(getInitialMode);
+  const [mode, setMode] = useState<TaskBillingFormMode>(
+    () => getTaskBillingFormInitialState(task).mode
+  );
   const [customRate, setCustomRate] = useState<string>(
-    task.hourlyRate && task.hourlyRate !== '0' && task.hourlyRate !== '0.00'
-      ? task.hourlyRate
-      : ''
+    () => getTaskBillingFormInitialState(task).customRate
   );
 
   const handleSave = () => {
-    if (mode === 'inherit') {
-      onSaveRate(null);
-    } else if (mode === 'non_billable') {
-      onSaveRate('0.00');
-    } else {
-      onSaveRate(customRate.trim() || null);
-    }
+    const rateToSave = mapBillingFormToHourlyRate(mode, customRate);
+    onSaveRate(rateToSave);
     onOpenChange(false);
   };
 

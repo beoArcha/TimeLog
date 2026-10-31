@@ -1,3 +1,6 @@
+use super::billing_input::{
+    BillingValueAction, NormalizedBillingCreation, NormalizedBillingUpdate,
+};
 use super::constants::{
     ERR_PROJECT_RENAME_EMPTY, FORMAT_PROJECT_ROW, HEADER_PROJECTS, LABEL_ARCHIVED_BADGE,
     MSG_NO_PROJECTS_FOUND, MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED, MSG_PROJECT_RENAMED,
@@ -12,6 +15,16 @@ use crate::cli::shared::utils::generate_id;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::{Project, Task};
+
+pub struct RenameProjectOptions {
+    pub target: String,
+    pub new_name: Option<String>,
+    pub color: Option<String>,
+    pub rate: Option<String>,
+    pub rate_cents: Option<u64>,
+    pub currency: Option<String>,
+    pub is_machine: bool,
+}
 
 pub fn handle(
     args: ProjectArgs,
@@ -45,13 +58,15 @@ pub fn handle(
             currency,
         } => rename_project(
             persistence,
-            &target,
-            new_name,
-            color,
-            rate,
-            rate_cents,
-            currency,
-            is_machine,
+            RenameProjectOptions {
+                target,
+                new_name,
+                color,
+                rate,
+                rate_cents,
+                currency,
+                is_machine,
+            },
         ),
         ProjectSubcommand::Archive { target } => archive_project(persistence, &target, is_machine),
     }
@@ -122,11 +137,7 @@ fn add_project(
     currency: Option<String>,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
-    if rate.is_some() && rate_cents.is_some() {
-        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
-            "Cannot specify both --rate and --rate-cents".to_string(),
-        )));
-    }
+    let billing = NormalizedBillingCreation::parse(rate, rate_cents, currency)?;
     let engine = Engine::new(persistence);
     let valid_name = engine.validate_project_name(&name, None)?;
     let id = generate_id();
@@ -139,21 +150,10 @@ fn add_project(
         None,
         None,
     );
-    if let Some(cents) = rate_cents {
-        project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-        project.billing_rate_cents = Some(cents as i64);
-    } else if let Some(r) = rate {
-        let trimmed = r.trim();
-        let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
-        project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-        project.billing_rate_cents = Some(cents as i64);
-    }
-    if let Some(curr) = currency {
-        let trimmed = curr.trim();
-        let validated = crate::engine::billing::validate_currency_code(trimmed)?;
-        project.currency = Some(validated.clone());
-        project.billing_currency = Some(validated);
-    }
+    project.hourly_rate = billing.hourly_rate;
+    project.billing_rate_cents = billing.billing_rate_cents;
+    project.currency = billing.currency;
+    project.billing_currency = billing.billing_currency;
     persistence.projects.create(project)?;
     if is_machine {
         return Ok(CliOutput::Json(
@@ -168,76 +168,43 @@ fn add_project(
     Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))
 }
 
-#[allow(clippy::too_many_arguments)]
 fn rename_project(
     persistence: &Persistence,
-    target: &str,
-    new_name: Option<String>,
-    color: Option<String>,
-    rate: Option<String>,
-    rate_cents: Option<u64>,
-    currency: Option<String>,
-    is_machine: bool,
+    opts: RenameProjectOptions,
 ) -> Result<CliOutput, CliError> {
-    if rate.is_some() && rate_cents.is_some() {
-        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
-            "Cannot specify both --rate and --rate-cents".to_string(),
-        )));
-    }
-    if new_name.is_none()
-        && color.is_none()
-        && rate.is_none()
-        && rate_cents.is_none()
-        && currency.is_none()
+    if opts.new_name.is_none()
+        && opts.color.is_none()
+        && opts.rate.is_none()
+        && opts.rate_cents.is_none()
+        && opts.currency.is_none()
     {
         return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
             ERR_PROJECT_RENAME_EMPTY.to_string(),
         )));
     }
 
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
-    let mut project = resolver.resolve_project(target)?;
+    let billing_update = NormalizedBillingUpdate::parse(opts.rate, opts.rate_cents, opts.currency)?;
 
-    let has_new_name = new_name.is_some();
-    let has_color = color.is_some();
-    let has_rate = rate.is_some() || rate_cents.is_some();
-    let has_currency = currency.is_some();
-    if let Some(ref name) = new_name {
+    let resolver = EntityResolver::with_mode(persistence, opts.is_machine);
+    let mut project = resolver.resolve_project(&opts.target)?;
+
+    let has_new_name = opts.new_name.is_some();
+    let has_color = opts.color.is_some();
+    let has_rate = billing_update.rate != BillingValueAction::Unchanged;
+    let has_currency = billing_update.currency != BillingValueAction::Unchanged;
+
+    if let Some(ref name) = opts.new_name {
         let engine = Engine::new(persistence);
         project.name = engine.validate_project_name(name, Some(&project.id))?;
     }
-    if let Some(c) = color {
+    if let Some(c) = opts.color {
         project.color = c;
     }
-    if let Some(cents) = rate_cents {
-        project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-        project.billing_rate_cents = Some(cents as i64);
-    } else if let Some(r) = rate {
-        let trimmed = r.trim();
-        if trimmed.eq_ignore_ascii_case("none") || trimmed.eq_ignore_ascii_case("clear") {
-            project.hourly_rate = None;
-            project.billing_rate_cents = None;
-        } else {
-            let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
-            project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-            project.billing_rate_cents = Some(cents as i64);
-        }
-    }
-    if let Some(curr) = currency {
-        let trimmed = curr.trim();
-        if trimmed.eq_ignore_ascii_case("none") || trimmed.eq_ignore_ascii_case("clear") {
-            project.currency = None;
-            project.billing_currency = None;
-        } else {
-            let validated = crate::engine::billing::validate_currency_code(trimmed)?;
-            project.currency = Some(validated.clone());
-            project.billing_currency = Some(validated);
-        }
-    }
+    billing_update.apply_to_project(&mut project);
 
     persistence.projects.patch(project.clone())?;
 
-    if is_machine {
+    if opts.is_machine {
         let action = if has_new_name {
             "renamed"
         } else if has_color && !has_rate && !has_currency {

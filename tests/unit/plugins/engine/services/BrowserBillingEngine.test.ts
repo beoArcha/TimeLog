@@ -21,6 +21,20 @@ describe('BrowserBillingEngine & Billing Helpers', () => {
     );
   });
 
+  describe('Rate Parsing & Validation Parity Vectors', () => {
+    it.each(parityVectors.rateParsingVectors)(
+      '$description ($input)',
+      ({ input, expectedCents, valid }) => {
+        const result = parseRateToCents(input);
+        if (valid) {
+          expect(result).toBe(expectedCents);
+        } else {
+          expect(result).toBeNull();
+        }
+      }
+    );
+  });
+
   describe('Rate Resolution & Billing Calculation', () => {
     let billingEngine: BrowserBillingEngine;
     let mockPersistence: {
