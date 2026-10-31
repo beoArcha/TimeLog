@@ -3,6 +3,23 @@ import { TimeLog } from '@bindings/TimeLog';
 import { PersistenceException } from '@common/exceptions';
 import { ILocalStorageStateStore } from './LocalStorageStateStore';
 
+function shouldCloseOtherNonConcurrentLog(
+  log: TimeLog,
+  currentProjectId: string,
+  taskMap: Map<string, { projectId: string }>,
+  projectMap: Map<string, { allowConcurrency?: boolean | null }>
+): boolean {
+  if (log.endTime) {
+    return false;
+  }
+  const activeTask = taskMap.get(log.taskId);
+  if (!activeTask || activeTask.projectId === currentProjectId) {
+    return false;
+  }
+  const otherProj = projectMap.get(activeTask.projectId);
+  return !(otherProj?.allowConcurrency ?? false);
+}
+
 export class LocalStorageTimeLogsPersistence implements ITimeLogsPersistence {
   constructor(private readonly store: ILocalStorageStateStore) {}
 
@@ -129,16 +146,8 @@ export class LocalStorageTimeLogsPersistence implements ITimeLogsPersistence {
         const projectMap = new Map(current.projects.map((p) => [p.id, p]));
 
         current.logs = current.logs.map((log) => {
-          if (!log.endTime) {
-            const activeTask = taskMap.get(log.taskId);
-            const otherProjId = activeTask?.projectId;
-            if (otherProjId && otherProjId !== projectId) {
-              const otherProj = projectMap.get(otherProjId);
-              const isOtherNonConcurrent = !(otherProj?.allowConcurrency ?? false);
-              if (isOtherNonConcurrent) {
-                return { ...log, endTime: now };
-              }
-            }
+          if (shouldCloseOtherNonConcurrentLog(log, projectId, taskMap, projectMap)) {
+            return { ...log, endTime: now };
           }
           return log;
         });
