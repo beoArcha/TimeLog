@@ -301,9 +301,13 @@ fn test_given_concurrent_time_log_creation_and_project_deletion_then_project_wit
 
     let p1 = Arc::clone(&persistence);
     let p2 = Arc::clone(&persistence);
+    let barrier = Arc::new(std::sync::Barrier::new(2));
+    let b1 = Arc::clone(&barrier);
+    let b2 = Arc::clone(&barrier);
 
-    // Act: Spawn concurrent threads for time log insertion and project deletion
+    // Act: Spawn concurrent threads for time log insertion and project deletion with barrier start
     let t1 = thread::spawn(move || {
+        b1.wait();
         let log = NewTimeLog {
             id: "log_concurrent_1".to_string(),
             task_id: "task_concurrent".to_string(),
@@ -314,7 +318,10 @@ fn test_given_concurrent_time_log_creation_and_project_deletion_then_project_wit
         p1.time_logs.insert_full(&log)
     });
 
-    let t2 = thread::spawn(move || delete_project_by_id(&p2, "proj_concurrent"));
+    let t2 = thread::spawn(move || {
+        b2.wait();
+        delete_project_by_id(&p2, "proj_concurrent")
+    });
 
     let _ = t1.join().unwrap();
     let del_res = t2.join().unwrap();
@@ -338,4 +345,122 @@ fn test_given_concurrent_time_log_creation_and_project_deletion_then_project_wit
             "Project without time must be deleted cleanly!"
         );
     }
+}
+
+#[test]
+fn test_given_two_sqlite_connections_when_delete_holds_immediate_tx_then_concurrent_write_is_blocked_until_commit(
+) {
+    use rusqlite::{params, Connection, OpenFlags};
+    use std::sync::mpsc;
+    use std::thread;
+
+    // Arrange: Create shared in-memory database
+    let (_conn, config, _temp_dir) = setup_persistence_test("unit_delete_two_conn_sync");
+    let persistence = Persistence::new(&config).unwrap();
+
+    let project = ProjectBuilder::new()
+        .with_id("proj_sync_test")
+        .with_name("Sync Project")
+        .build();
+    persistence.projects.create(project).unwrap();
+
+    let task = TaskBuilder::new()
+        .with_id("task_sync_test")
+        .with_project_id("proj_sync_test")
+        .with_name("Sync Task")
+        .build();
+    persistence.tasks.create(task).unwrap();
+
+    let db_path = config.db_path.clone();
+
+    // Channels for controlled step-by-step synchronization between SQLite connections
+    let (tx_in_immediate, rx_in_immediate) = mpsc::channel();
+    let (tx_write_result, rx_write_result) = mpsc::channel();
+
+    // Thread 1: Connection 1 begins BEGIN IMMEDIATE and holds the lock while checking validation
+    let db_path_t1 = db_path.clone();
+    let t1 = thread::spawn(move || {
+        let mut conn1 = Connection::open_with_flags(
+            &db_path_t1,
+            OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_URI,
+        )
+        .unwrap();
+
+        let tx = conn1
+            .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .unwrap();
+
+        // Signal Thread 2: "I hold the IMMEDIATE reserved write lock"
+        tx_in_immediate.send(()).unwrap();
+
+        // Wait until Thread 2 attempts to write and reports back
+        let (other_write_blocked,): (bool,) = rx_write_result.recv().unwrap();
+        assert!(
+            other_write_blocked,
+            "Concurrent write on connection 2 MUST be blocked by connection 1's IMMEDIATE transaction!"
+        );
+
+        // Complete deletion in the transaction
+        tx.execute(
+            "DELETE FROM tasks WHERE project_id = ?1",
+            params!["proj_sync_test"],
+        )
+        .unwrap();
+        tx.execute(
+            "DELETE FROM projects WHERE id = ?1",
+            params!["proj_sync_test"],
+        )
+        .unwrap();
+        tx.commit().unwrap();
+    });
+
+    // Thread 2: Connection 2 attempts to insert a time log while Thread 1 holds IMMEDIATE lock
+    let db_path_t2 = db_path.clone();
+    let t2 = thread::spawn(move || {
+        // Wait until Thread 1 has acquired the BEGIN IMMEDIATE transaction lock
+        rx_in_immediate.recv().unwrap();
+
+        let conn2 = Connection::open_with_flags(
+            &db_path_t2,
+            OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_URI,
+        )
+        .unwrap();
+        conn2
+            .busy_timeout(std::time::Duration::from_millis(10))
+            .unwrap();
+
+        // Attempt a write operation on Connection 2
+        let insert_res = conn2.execute(
+            "INSERT INTO time_logs (id, task_id, start_time) VALUES (?1, ?2, ?3)",
+            params!["log_sync_attempt", "task_sync_test", "2026-06-22T10:00:00Z"],
+        );
+
+        let is_blocked = match &insert_res {
+            Err(rusqlite::Error::SqliteFailure(err, _)) => {
+                err.code == rusqlite::ErrorCode::DatabaseBusy
+                    || err.code == rusqlite::ErrorCode::DatabaseLocked
+                    || err.extended_code == 5
+                    || err.extended_code == 6
+                    || err.extended_code == 261
+                    || err.extended_code == 262
+                    || err.extended_code == 517
+            }
+            _ => false,
+        };
+
+        tx_write_result.send((is_blocked,)).unwrap();
+    });
+
+    t1.join().unwrap();
+    t2.join().unwrap();
+
+    // Verify final state: project was deleted and no orphan logs were created
+    assert!(persistence
+        .projects
+        .get("proj_sync_test")
+        .unwrap()
+        .is_none());
+    assert!(persistence.tasks.get("task_sync_test").unwrap().is_none());
+    let logs = persistence.time_logs.get_all().unwrap();
+    assert!(!logs.iter().any(|l| l.id == "log_sync_attempt"));
 }

@@ -107,24 +107,27 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
   }
 
   async reset(scope: StorageResetScope | StorageDomain[] = 'ALL'): Promise<TimerRepositoryState> {
-    const domains = resolveResetDomains(scope);
-    const hasBusiness = domains.includes('BUSINESS');
+    return this.runExclusive(async () => {
+      const domains = resolveResetDomains(scope);
+      const hasBusiness = domains.includes('BUSINESS');
 
-    if (hasBusiness) {
-      this.isCorrupted = false;
-    }
-
-    for (const domain of domains) {
-      const keys = DOMAIN_STORAGE_KEYS[domain] || [];
-      for (const key of keys) {
-        localStorage.removeItem(key);
+      if (hasBusiness) {
+        this.isCorrupted = false;
       }
-    }
 
-    if (hasBusiness) {
-      return getDefaultState();
-    }
-    return this.getStateOrDefault();
+      for (const domain of domains) {
+        const keys = DOMAIN_STORAGE_KEYS[domain] || [];
+        for (const key of keys) {
+          localStorage.removeItem(key);
+        }
+      }
+
+      if (hasBusiness) {
+        return getDefaultState();
+      }
+      const state = await this.load();
+      return state || getDefaultState();
+    });
   }
 
   async getStateOrDefault(): Promise<TimerRepositoryState> {

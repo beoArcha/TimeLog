@@ -108,4 +108,127 @@ describe('LocalStorage Concurrency & Mutation Serialization', () => {
       expect(names).toContain(`Parallel Project ${i}`);
     }
   });
+
+  it('deterministically queues reset() behind in-flight mutations preventing resurrection', async () => {
+    // Arrange: Create helper barrier
+    const onEnter = (() => {
+      let resolve!: () => void;
+      const promise = new Promise<void>((r) => {
+        resolve = r;
+      });
+      return { promise, resolve };
+    })();
+
+    const barrier = (() => {
+      let resolve!: () => void;
+      const promise = new Promise<void>((r) => {
+        resolve = r;
+      });
+      return { promise, resolve };
+    })();
+
+    let mutationCompleted = false;
+    let resetCompleted = false;
+
+    // Act 1: Start a slow in-flight mutation that pauses inside its mutator
+    const slowMutation = store.mutate(async (state) => {
+      onEnter.resolve();
+      await barrier.promise;
+      state.projects.push(aProject({ id: 'proj-resurrect', name: 'Should Be Wiped' }));
+      mutationCompleted = true;
+    });
+
+    // Wait until mutation is in-flight and holds the exclusive lock
+    await onEnter.promise;
+
+    // Act 2: Dispatch reset while mutation is actively in-flight
+    const resetOperation = store.reset('BUSINESS').then((result) => {
+      resetCompleted = true;
+      return result;
+    });
+
+    // Assert intermediary state: neither operation has finished
+    expect(mutationCompleted).toBe(false);
+    expect(resetCompleted).toBe(false);
+
+    // Act 3: Release the in-flight mutation so it commits to storage first
+    barrier.resolve();
+    await slowMutation;
+    expect(mutationCompleted).toBe(true);
+
+    // Wait for queued reset to execute after the mutation
+    await resetOperation;
+    expect(resetCompleted).toBe(true);
+
+    // Assert: Storage must be empty because reset ran strictly after the mutation committed
+    const finalState = await store.load();
+    expect(finalState?.projects).toHaveLength(0);
+    expect(finalState?.projects.some((p) => p.id === 'proj-resurrect')).toBe(false);
+  });
+
+  it('deterministically rejects project deletion when delete is queued behind in-flight timer start', async () => {
+    // Arrange: Pre-populate project and task
+    const proj = aProject({ id: 'proj-guarded', name: 'Guarded Project' });
+    const task = aTask({ id: 'task-guarded', projectId: 'proj-guarded', name: 'Guarded Task' });
+    await store.save({
+      projects: [proj],
+      tasks: [task],
+      logs: [],
+      activeLog: null,
+    });
+
+    const onEnter = (() => {
+      let resolve!: () => void;
+      const promise = new Promise<void>((r) => {
+        resolve = r;
+      });
+      return { promise, resolve };
+    })();
+
+    const timerBarrier = (() => {
+      let resolve!: () => void;
+      const promise = new Promise<void>((r) => {
+        resolve = r;
+      });
+      return { promise, resolve };
+    })();
+
+    let timerInFlightStarted = false;
+
+    // Act 1: Start an operation that begins tracking time and halts before committing
+    const startTimerOp = store.mutate(async (state) => {
+      timerInFlightStarted = true;
+      onEnter.resolve();
+      await timerBarrier.promise;
+      state.logs.push({
+        id: 'log-guarded-1',
+        taskId: 'task-guarded',
+        projectId: 'proj-guarded',
+        startTime: new Date().toISOString(),
+        endTime: undefined,
+        note: undefined,
+        editHistory: undefined,
+      });
+      state.activeLog = state.logs[0];
+    });
+
+    // Wait until the mutator has actually entered execution and is paused
+    await onEnter.promise;
+    expect(timerInFlightStarted).toBe(true);
+
+    // Act 2: Attempt delete while timer start is in-flight and holds the lock
+    const deleteOp = projects.delete('proj-guarded');
+
+    // Act 3: Complete timer start
+    timerBarrier.resolve();
+    await startTimerOp;
+
+    // Assert: Delete must fail because timer start committed first
+    await expect(deleteOp).rejects.toThrow(ValidationException);
+
+    // Project and log must be intact in storage
+    const state = await store.load();
+    expect(state?.projects.some((p) => p.id === 'proj-guarded')).toBe(true);
+    expect(state?.logs).toHaveLength(1);
+  });
 });
