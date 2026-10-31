@@ -240,46 +240,47 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ---
 
-### Phase 16 — Cross-Runtime Billing Engine, Dynamic Currencies & Rate Inheritance 🚧 (Planned)
+### Phase 16 — Cross-Runtime Billing Engine, Dynamic Currencies & Rate Inheritance 🚧 (In Progress)
 
 #### Group A — Rust Backend & Native Persistence
-- [ ] **Billing Domain Models**: Extend the Project and Task domain models with billing configuration, preserving the distinction between an unset task rate (inheritance) and an explicit zero rate.
-- [ ] **SQLite Repositories**: Extend Project and Task repositories to persist, update, retrieve, and map billing configuration through their existing CRUD operations.
-- [ ] **Database Migrations**: Introduce versioned, backward-compatible SQLite migrations for billing fields, preserving existing user data and supporting safe upgrades from previous schema versions.
-- [ ] **Native Billing Engine**: Implement the Rust Billing domain for effective-rate resolution and billing calculations, keeping business rules out of repositories and command handlers.
-- [ ] **Native Integration**: Expose the required Billing Engine and persistence capabilities through the existing Tauri command and runtime architecture.
-- [ ] **Type Bindings**: Synchronize Rust domain contracts with the generated TypeScript bindings via `ts-rs`.
+- [x] **Billing Domain Models**: Extend the Project and Task domain models with billing configuration, preserving the distinction between an unset task rate (inheritance) and an explicit zero rate.
+- [x] **SQLite Repositories**: Extend Project and Task repositories to persist, update, retrieve, and map billing configuration through their existing CRUD operations.
+- [x] **Database Migrations**: Introduce versioned, backward-compatible SQLite migrations for billing fields, preserving existing user data and supporting safe upgrades from previous schema versions.
+- [x] **Native Billing Engine**: Implement the Rust Billing domain for effective-rate resolution and billing calculations, keeping business rules out of repositories and command handlers.
+- [x] **Native Integration**: Expose the required Billing Engine and persistence capabilities through the existing Tauri command and runtime architecture.
+- [x] **Type Bindings**: Synchronize Rust domain contracts with the generated TypeScript bindings via `ts-rs`.
 
 #### Group B — PWA Backend & Plugins
-- [ ] **Browser Persistence**: Extend the Project and Task Persistence plugins to store and restore billing configuration in LocalStorage.
-- [ ] **LocalStorage Migrations**: Introduce versioned, backward-compatible migrations for existing browser data, preserving records that predate billing configuration.
-- [ ] **Browser Billing Engine**: Implement the Browser Billing Engine with the same domain behavior and calculation rules as the native Rust implementation.
-- [ ] **Shared Contracts & Routing**: Extend the common Engine contracts and `EngineRouter` to expose the Billing domain consistently across Browser and Tauri runtimes.
-- [ ] **Plugin Integration**: Register and integrate the Billing Engine and Persistence capabilities through the existing plugin architecture without moving business rules into plugins.
-- [ ] **Cross-Runtime Parity**: Verify that equivalent billing inputs produce equivalent domain results in Browser and Tauri implementations.
+- [x] **Browser Persistence**: Extend the Project and Task Persistence plugins to store and restore billing configuration in LocalStorage.
+- [x] **LocalStorage Migrations**: Introduce versioned, backward-compatible migrations for existing browser data, preserving records that predate billing configuration.
+- [x] **Browser Billing Engine**: Implement the Browser Billing Engine with the same domain behavior and calculation rules as the native Rust implementation.
+- [x] **Shared Contracts & Routing**: Extend the common Engine contracts and `EngineRouter` to expose the Billing domain consistently across Browser and Tauri runtimes.
+- [x] **Plugin Integration**: Register and integrate the Billing Engine and Persistence capabilities through the existing plugin architecture without moving business rules into plugins.
+- [x] **Cross-Runtime Parity**: Verify that equivalent billing inputs produce equivalent domain results in Browser and Tauri implementations.
 
 #### Group C — React Frontend & Billing UI
-- [ ] **Project Billing Configuration**: Provide Project-level hourly rate and currency configuration in project creation and editing flows.
-- [ ] **Task Rate Configuration**: Provide explicit task rate modes: inherit the Project rate, use a custom rate, or set an explicit zero rate.
-- [ ] **Currency Selection**: Provide locale-informed currency suggestions, predefined currency options, and support for custom currency configuration while keeping currency identity separate from its display symbol.
-- [ ] **Billing Presentation**: Integrate Billing Engine results into Reports and relevant application views, including appropriate currency-aware formatting.
-- [ ] **Presentation Boundary**: Keep billing calculations, rate inheritance, and other billing business rules inside the Engine; React remains responsible for configuration and presentation.
-- [ ] **Frontend Verification**: Cover Project and Task configuration, inheritance states, validation, and report presentation with component and integration tests.
+- [x] **Project Billing Configuration**: Provide Project-level hourly rate and currency configuration in project creation and editing flows.
+- [x] **Task Rate Configuration**: Provide explicit task rate modes: inherit the Project rate, use a custom rate, or set an explicit zero rate.
+- [x] **Currency Selection**: Provide locale-informed currency suggestions, predefined currency options, and support for custom currency configuration while keeping currency identity separate from its display symbol.
+- [x] **Billing Presentation**: Integrate Billing Engine results into Reports and relevant application views, including appropriate currency-aware formatting.
+- [x] **Presentation Boundary**: Keep billing calculations, rate inheritance, and other billing business rules inside the Engine; React remains responsible for configuration and presentation.
+- [x] **Frontend Verification**: Cover Project and Task configuration, inheritance states, validation, and report presentation with component and integration tests.
 
 #### Group D — CLI & Billing Operations
-- [ ] **CLI Billing Configuration**: Extend the native CLI and Browser CLI implementation to inspect and manage Project and Task billing configuration.
-- [ ] **Rate Operations**: Support setting and clearing Project and Task rates, configuring Project currency, inheriting the Project rate, and explicitly setting a zero rate.
+- [x] **CLI Billing Configuration**: Extend the native CLI and Browser CLI implementation to inspect and manage Project and Task billing configuration.
+- [x] **Rate Operations**: Support setting and clearing Project and Task rates, configuring Project currency, inheriting the Project rate, and explicitly setting a zero rate.
 - [ ] **Billing Reports**: Provide CLI operations for calculating and reporting billing values for supported Projects, Tasks, and time ranges.
-- [ ] **Machine-Readable Output**: Support stable structured output for automation while preserving the existing CLI output and error conventions.
-- [ ] **Shared Domain Logic**: Reuse the Billing Engine contracts and implementations; CLI handlers must not duplicate rate resolution or billing calculations.
-- [ ] **CLI Parity**: Extend the existing CLI parity suite to verify consistent syntax, results, and error behavior across native and Browser CLI runtimes.
+- [x] **Machine-Readable Output**: Support stable structured output for automation while preserving the existing CLI output and error conventions.
+- [x] **Shared Domain Logic**: Reuse the Billing Engine contracts and implementations; CLI handlers must not duplicate rate resolution or billing calculations.
+- [x] **CLI Parity**: Extend the existing CLI parity suite to verify consistent syntax, results, and error behavior across native and Browser CLI runtimes.
+- [ ] **Billing Reports**: Add billing-aware CLI report calculations and output; the existing CLI report handler currently reports elapsed-time metrics rather than `calculate_range_billing()` results.
 
 #### Phase 16 Completion Criteria
-- [ ] Billing configuration is persisted and restored correctly by both SQLite and LocalStorage implementations.
-- [ ] Existing user data is preserved and upgraded through backward-compatible, versioned migrations.
-- [ ] Native and Browser Billing Engines implement the same rate inheritance, explicit-zero, currency, and calculation rules.
-- [ ] React consumes Billing capabilities through the existing routers and contains no duplicated billing business logic.
-- [ ] Native and Browser CLI implementations expose consistent billing operations and machine-readable results.
+- [x] Billing configuration is persisted and restored correctly by both SQLite and LocalStorage implementations.
+- [x] Existing user data is preserved and upgraded through backward-compatible, versioned migrations.
+- [x] Native and Browser Billing Engines implement the same rate inheritance, explicit-zero, currency, and calculation rules.
+- [x] React consumes Billing capabilities through the existing routers and contains no duplicated billing business logic.
+- [ ] Native and Browser CLI implementations expose consistent billing operations and machine-readable results, including billing-specific report operations.
 - [ ] Relevant unit, repository, migration, integration, cross-runtime parity, frontend, and CLI tests pass.
 
 ### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🚧 (Planned)

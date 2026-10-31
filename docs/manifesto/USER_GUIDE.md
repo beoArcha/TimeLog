@@ -12,16 +12,18 @@ Your data never leaves your computer. There are no cloud subscriptions, no force
 - [2. The Desktop & Web App](#2-the-desktop--web-app)
   - [2.1 Projects & Tasks Hierarchy](#21-projects--tasks-hierarchy)
   - [2.2 Two-Tier Project Creation & Form Controls](#22-two-tier-project-creation--form-controls)
-  - [2.3 Tracking Time](#23-tracking-time)
-  - [2.4 Reports & Progress](#24-reports--progress)
-  - [2.5 Customization: Themes & Scale](#25-customization-themes--scale)
-  - [2.6 Language Selection](#26-language-selection)
+  - [2.3 Billing Rates & Currency](#23-billing-rates--currency)
+  - [2.4 Tracking Time](#24-tracking-time)
+  - [2.5 Reports & Progress](#25-reports--progress)
+  - [2.6 Customization: Themes & Scale](#26-customization-themes--scale)
+  - [2.7 Language Selection](#27-language-selection)
 - [3. The Terminal Companion (Basic CLI)](#3-the-terminal-companion-basic-cli)
   - [3.1 Starting a Timer](#31-starting-a-timer)
   - [3.2 Stopping a Timer](#32-stopping-a-timer)
   - [3.3 Checking Current Status](#33-checking-current-status)
   - [3.4 Today's Work Summary](#34-todays-work-summary)
   - [3.5 Adding Projects and Tasks from Terminal](#35-adding-projects-and-tasks-from-terminal)
+  - [3.6 Billing Configuration from CLI](#36-billing-configuration-from-cli)
 - [4. Data Safety, Backups & Sinks](#4-data-safety-backups--sinks)
   - [4.1 Storage Architecture: Desktop SQLite vs Browser LocalStorage](#41-storage-architecture-desktop-sqlite-vs-browser-localstorage)
   - [4.2 Universal JSON Backups & State Restoration](#42-universal-json-backups--state-restoration)
@@ -81,25 +83,51 @@ oXyFlow provides an adaptive two-tier creation form in the sidebar:
   - **Project Description**: Optional notes and scope summary for the project.
   - **Allow Concurrency Toggle**: Controls whether multiple tasks under this project can run simultaneously with other projects.
 
-### 2.3 Tracking Time
+### 2.3 Billing Rates & Currency
+
+Billing configuration is optional. It lets the Reports view estimate billable amounts from tracked task durations and hourly rates.
+
+#### Project rate and currency
+
+Set the default hourly rate and currency when creating or editing a Project. Tasks in that Project can inherit this rate unless a Task has its own override. Currency is stored as a code (for example, `PLN`, `EUR`, or `USD`), not as a display symbol.
+
+#### Task billing modes
+
+A Task can use one of these effective states:
+
+- **Inherited**: no Task-specific rate is set, so the Project rate is used; if the Project has no rate, the configured runtime default rate may be used.
+- **Custom**: the Task has its own hourly rate, which takes precedence over the Project rate.
+- **Non-billable**: an explicit rate of `0.00` is set. This is different from an unset rate: zero means do not bill this Task, while unset means inherit.
+- **Unconfigured**: no applicable rate is available, so the tracked duration is reported as unconfigured rather than assigned an amount.
+
+Currency resolution follows the Task override first and then the Project currency. A Task rate override does not require changing the Project's rate.
+
+#### Precision and calculation
+
+Rates are entered with at most two decimal places and stored as integer cents (minor units). The maximum accepted rate is 9,007,199,254,740,991 cents, keeping Rust and JavaScript integer handling consistent. Values above this limit are rejected. This limit is far beyond ordinary hourly rates and exists as a numeric-safety boundary, not as a recommended rate.
+
+The Billing Engine calculates amounts from tracked seconds and the effective hourly rate. Each Task amount is rounded to two decimal places using round-half-to-even (banker's rounding); currency totals sum those calculated Task amounts. This means fractional minor units can occur during intermediate calculation, but the report amount is expressed in the currency's two-decimal representation.
+
+### 2.4 Tracking Time
 
 - **The Single-Active-Timer Invariant**: You can only have **one** task actively ticking at any given time. Starting a new task automatically closes and commits the previous session. This prevents accidental double-counting and keeps your timesheets audit-ready.
 - **Live Elapsed Time**: The timer updates smoothly every second. Even if you minimize the window to the system tray, time tracking continues accurately in the background.
 - **Manual Adjustments**: Forgot to start the timer? You can manually add a logged time entry with a custom start time, end time, and optional notes (e.g., *"Consulting call with client"*).
 
-### 2.4 Reports & Progress
+### 2.5 Reports & Progress
 
 Navigate to the **Reports** tab to inspect and export your logged time:
 
 - **Daily Calendar & Timeline**: See a visual breakdown of your working blocks across the day.
 - **Project Distribution**: View clean percentage bars showing where your hours went.
 - **Hierarchy Tree View**: Displays a structured Unicode outline of projects, tasks, and accumulated durations.
+- **Billing Summary**: Shows billable, non-billable, and unconfigured time, effective hourly rates, and calculated amounts grouped by currency and Task. Tasks without an applicable rate remain visible as unconfigured time rather than being treated as zero-rate work.
 - **One-Click Exports**:
   - **HTML**: Beautiful, ready-to-print invoice timesheet.
   - **CSV**: Standard tabular spreadsheet file for Excel, Google Sheets, or Numbers.
   - **JSON**: Machine-readable format for custom developer pipelines.
 
-### 2.5 Customization: Themes & Scale
+### 2.6 Customization: Themes & Scale
 
 oXyFlow comes with **12 built-in, curated color themes** designed for all lighting conditions and tastes:
 
@@ -121,7 +149,7 @@ In **Settings**, adjust the UI scale to fit your screen resolution:
 - **Medium**: Sidebar plus main timer dashboard.
 - **Full**: Comprehensive view with project list, task hierarchy, calendar, and analytics visible side-by-side.
 
-### 2.6 Language Selection
+### 2.7 Language Selection
 
 oXyFlow is fully localized in 6 languages:
 
@@ -196,6 +224,27 @@ oxy task add "API Authentication" --project "Mobile App"
 > Check out the [Advanced CLI Guide](./CLI.md) for machine `--json` outputs, action macros (`oxy mask`), and automated shell pipelines.
 
 ---
+
+### 3.6 Billing Configuration from CLI
+
+The native CLI can configure Project rates and currencies and Task-specific rate overrides:
+
+```bash
+# Create a Project with an hourly rate and currency
+oxy project add "Client Work" --rate "150.00" --currency PLN
+
+# Create a Task with its own rate
+oxy task add "Implementation" --project "Client Work" --rate "200.00"
+
+# Override a Task rate, set it to non-billable, or restore inheritance
+oxy task rate "Implementation" "220.00" --currency PLN
+oxy task rate "Implementation" "0.00"
+oxy task rate "Implementation" inherit
+```
+
+Use `--rate-cents` for integer cents on Project/Task creation and Project updates, or `--cents` with `oxy task rate`. The `inherit`, `none`, and `clear` Task values remove the Task override; `0.00` explicitly marks the Task as non-billable. The CLI does not yet provide billing-specific report output; use the application's Reports view for billing summaries.
+
+For the full command reference and machine-mode behavior, see the [Advanced CLI Guide](./CLI.md).
 
 ## 4. Data Safety, Backups & Sinks
 

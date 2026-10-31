@@ -124,14 +124,15 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 
 | Domain | Action | Command Syntax | Power User / Machine Flag | Beginner Interactive Behavior |
 | :--- | :--- | :--- | :--- | :--- |
-| **Project** | Create | `oxy project create "<name>" [-c <color>]` | `--machine --json` | Prompts for project name and color |
+| **Project** | Create | `oxy project add "<name>" [--rate <amount>] [--rate-cents <cents>] [--currency <CODE>]` | `--machine --json` | Prompts for project name and color |
 | **Project** | Archive | `oxy project archive <id>` | Soft-archives with `archived = true` | Displays confirmation with affected tasks |
 | **Project** | List | `oxy project list` | Tabular or JSON output | Color-coded badges and active task counts |
-| **Project** | Rename | `oxy project rename <id> "<new-name>"` | Updates entity and audit trail | Prompts for new name |
-| **Task** | Create | `oxy task create -p <project-id> "<name>"` | Instant return with generated ID | Prompts to pick project and enter title |
+| **Project** | Rename / update | `oxy project rename <id> [<new-name>] [--rate <amount>] [--rate-cents <cents>] [--currency <CODE>]` | Updates entity and billing configuration | Prompts for new name |
+| **Task** | Create | `oxy task add -p <project-id> "<name>" [--rate <amount>] [--rate-cents <cents>]` | Instant return with generated ID | Prompts to pick project and enter title |
 | **Task** | Archive | `oxy task archive <id> -p <project-id>` | Soft-archives task and subtasks | Asks confirmation |
 | **Task** | Complete | `oxy task complete <id>` | Toggles `completed: true` | Prints celebratory checkmark |
 | **Task** | List | `oxy task list [-p <project-id>]` | Supports filtering and sorting | Hierarchical list with subtasks |
+| **Task** | Billing rate | `oxy task rate <id> <amount\|inherit\|none> [--currency <CODE>] [--cents]` | Sets override, clears it to inherit, or applies currency override | N/A (explicit arguments) |
 | **Subtask** | Create | `oxy subtask create -t <parent-id> "<name>"` | Links subtask to parent | Prompts for parent task selection |
 | **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite | Displays green running timer badge |
 | **Timer** | Stop | `oxy timer stop [--all]` | Idempotent timer stop (`--all` stops all active timers) | Prints total elapsed time for session |
@@ -155,6 +156,47 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 
 ---
 
+
+### Billing Configuration (Implemented)
+
+Billing rates are configured on Projects and optionally overridden on Tasks. The native CLI accepts a rate in major currency units (for example, `150.00`) or as integer minor units (for example, `15000` cents). A Project currency is supplied as a three-letter code such as `PLN`, `EUR`, or `USD`.
+
+**Create or update a Project rate**
+
+```bash
+# Create a project with a rate of 150.00 PLN per hour
+oxy project add "Client Work" --rate "150.00" --currency PLN
+
+# Update an existing project's rate and currency
+oxy project rename "Client Work" --rate "175.50" --currency EUR
+
+# Clear the project's rate or currency
+oxy project rename "Client Work" --rate none --currency none
+```
+
+**Set a Task override or inherit the Project rate**
+
+```bash
+# Create a task with a custom hourly rate
+oxy task add "Implementation" --project "Client Work" --rate "200.00"
+
+# Set a custom rate and currency override on an existing task
+oxy task rate "Implementation" "220.00" --currency PLN
+
+# Set an explicit zero rate (non-billable)
+oxy task rate "Implementation" "0.00"
+
+# Remove the Task override and inherit the Project rate again
+oxy task rate "Implementation" inherit
+```
+
+For integer minor-unit input, use `--rate-cents 15000` on Project/Task creation or Project update, or use `--cents` with `oxy task rate <target> 15000 --cents`. Do not pass both `--rate` and `--rate-cents` in one command. Task rate values `inherit`, `none`, and `clear` remove the Task override; an explicit `0.00` remains a non-billable override.
+
+**Current CLI scope:** Project/Task billing configuration and machine-readable mutation responses are implemented. Billing-aware CLI report output is not implemented yet; `oxy report` continues to use the existing elapsed-time report path. Billing summaries are currently available in the application's Reports view.
+
+**Rate input contract:** Rates have two decimal places and are represented internally as integer cents. The accepted maximum is 9,007,199,254,740,991 cents (the JavaScript safe-integer boundary), and larger values are rejected consistently by Rust and TypeScript. The report calculator rounds each task's calculated amount to the currency's two-decimal minor-unit representation using round-half-to-even (banker's rounding).
+
+---
 ## 🛡️ Hierarchical Error & Failure Architecture
 
 The CLI enforces a **Dual-Layer Response Architecture**:
