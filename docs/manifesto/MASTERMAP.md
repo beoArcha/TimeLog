@@ -269,11 +269,10 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 #### Group D — CLI & Billing Operations
 - [x] **CLI Billing Configuration**: Extend the native CLI and Browser CLI implementation to inspect and manage Project and Task billing configuration.
 - [x] **Rate Operations**: Support setting and clearing Project and Task rates, configuring Project currency, inheriting the Project rate, and explicitly setting a zero rate.
-- [ ] **Billing Reports**: Provide CLI operations for calculating and reporting billing values for supported Projects, Tasks, and time ranges.
+- [ ] **Billing Reports**: Provide CLI operations for calculating and reporting billing values for supported Projects, Tasks, and time ranges. The existing CLI report handler still reports elapsed-time metrics rather than `calculate_range_billing()` results.
 - [x] **Machine-Readable Output**: Support stable structured output for automation while preserving the existing CLI output and error conventions.
 - [x] **Shared Domain Logic**: Reuse the Billing Engine contracts and implementations; CLI handlers must not duplicate rate resolution or billing calculations.
 - [x] **CLI Parity**: Extend the existing CLI parity suite to verify consistent syntax, results, and error behavior across native and Browser CLI runtimes.
-- [ ] **Billing Reports**: Add billing-aware CLI report calculations and output; the existing CLI report handler currently reports elapsed-time metrics rather than `calculate_range_billing()` results.
 
 #### Phase 16 Completion Criteria
 - [x] Billing configuration is persisted and restored correctly by both SQLite and LocalStorage implementations.
