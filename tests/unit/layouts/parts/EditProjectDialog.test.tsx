@@ -237,4 +237,36 @@ describe('Unit Tests: EditProjectDialog', () => {
     const saveBtn = screen.getByRole('button', { name: /Save/i });
     expect((saveBtn as HTMLButtonElement).disabled).toBe(true);
   });
+
+  it('should allow picking and saving a custom HEX color', () => {
+    // Arrange
+    const state = getMockOxyFlowState();
+    const onSave = vi.fn();
+
+    render(
+      <MockProviders state={state}>
+        <EditProjectDialog
+          open={true}
+          onOpenChange={vi.fn()}
+          project={baseProject}
+          onSave={onSave}
+        />
+      </MockProviders>,
+    );
+
+    // Act
+    const customInput = screen.getByTestId('edit-project-custom-color-input');
+    fireEvent.change(customInput, { target: { value: '#ff4400' } });
+
+    const saveBtn = screen.getByRole('button', { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'p-100',
+        color: '#ff4400',
+      })
+    );
+  });
 });

@@ -4,7 +4,7 @@ import { Project } from '@bindings/Project';
 import { Locale } from '@bindings/Locale';
 import { TimeLog } from '@bindings/TimeLog';
 import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
-import { PROJECT_COLORS } from '@common/constants/projectColors';
+import { resolveProjectColor } from '@common/utils/colorUtils';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { useLiveProjectElapsed } from '@common/hooks/useLiveTaskElapsed';
 import { Button } from '@components/ui/button';
@@ -62,7 +62,7 @@ export function SidebarProjectItem({
   onCommitInlineRename,
   onCancelInlineRename,
 }: SidebarProjectItemProps) {
-  const projColor = PROJECT_COLORS.find(c => c.name === project.color) || PROJECT_COLORS[0];
+  const resolvedColor = resolveProjectColor(project.color);
   const { elapsedSeconds: liveSeconds, isRunning: isProjectRunning } = useLiveProjectElapsed(project.id, {
     metrics,
     activeLog,
@@ -106,7 +106,11 @@ export function SidebarProjectItem({
             {project.icon}
           </IconBox>
         ) : (
-          <span className={`icon-small rounded-full ${projColor.bg} shadow-md shadow-black/20 shrink-0 mt-1`} />
+          <span
+            data-testid={`project-color-dot-${project.id}`}
+            className={`icon-small rounded-full ${resolvedColor.bgClass} shadow-md shadow-black/20 shrink-0 mt-1`}
+            style={resolvedColor.bgStyle}
+          />
         )}
 
         <VStack gap="none" className="min-w-0 flex-1">

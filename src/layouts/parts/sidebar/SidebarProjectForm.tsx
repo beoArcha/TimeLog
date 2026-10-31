@@ -1,8 +1,9 @@
 import React from 'react';
-import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Paintbrush } from 'lucide-react';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
+import { isValidHexColor, normalizeHexColor } from '@common/utils/colorUtils';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Form } from '@components/ui/form';
@@ -52,6 +53,8 @@ export function SidebarProjectForm({
   const [tags, setTags] = React.useState('');
   const [allowConcurrencyOverride, setAllowConcurrencyOverride] = React.useState<boolean | null>(null);
   const allowConcurrency = allowConcurrencyOverride ?? defaultConcurrency;
+  const colorInputRef = React.useRef<HTMLInputElement>(null);
+  const isCustomColor = isValidHexColor(color);
 
   const handleNameChange = (val: string) => {
     setNameLocal(val);
@@ -61,6 +64,14 @@ export function SidebarProjectForm({
   const handleColorChange = (val: string) => {
     setColorLocal(val);
     onColorChange?.(val);
+  };
+
+  const handleCustomColorClick = () => {
+    if (!isCustomColor) {
+      const currentHex = colorInputRef.current?.value || '#8b5cf6';
+      handleColorChange(currentHex);
+    }
+    colorInputRef.current?.click();
   };
 
   const handleSubmit = (e?: React.SyntheticEvent) => {
@@ -139,6 +150,36 @@ export function SidebarProjectForm({
                   </Button>
                 );
               })}
+
+              <Button
+                id="color-picker-custom"
+                data-testid="color-picker-custom"
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={handleCustomColorClick}
+                aria-label={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
+                title={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
+                style={isCustomColor ? { backgroundColor: color } : undefined}
+                className={`w-5 h-5 rounded-full border border-border transition-all duration-200 transform hover:scale-110 flex items-center justify-center p-0 ${
+                  isCustomColor
+                    ? 'ring-2 ring-orange-500 ring-offset-2 scale-105 text-white'
+                    : 'opacity-85 bg-muted/60 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Paintbrush className="w-2.5 h-2.5" />
+              </Button>
+              <Input
+                ref={colorInputRef}
+                id="custom-color-input"
+                data-testid="custom-color-input"
+                type="color"
+                value={isCustomColor ? normalizeHexColor(color) : '#8b5cf6'}
+                onChange={e => handleColorChange(e.target.value)}
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
             </InlineCluster>
 
             <HStack gap="xs" align="center">

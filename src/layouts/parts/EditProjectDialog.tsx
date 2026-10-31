@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Pencil, Paintbrush } from 'lucide-react';
+import { isValidHexColor, normalizeHexColor } from '@common/utils/colorUtils';
 import {
   Dialog,
   DialogContent,
@@ -61,6 +62,16 @@ function EditProjectDialogForm({
   const [icon, setIcon] = useState(project.icon || '');
   const [tags, setTags] = useState(project.tags ? project.tags.join(', ') : '');
   const [allowConcurrency, setAllowConcurrency] = useState(Boolean(project.allowConcurrency));
+  const colorInputRef = useRef<HTMLInputElement>(null);
+  const isCustomColor = isValidHexColor(color);
+
+  const handleCustomColorClick = () => {
+    if (!isCustomColor) {
+      const currentHex = colorInputRef.current?.value || '#8b5cf6';
+      setColor(currentHex);
+    }
+    colorInputRef.current?.click();
+  };
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -136,6 +147,8 @@ function EditProjectDialogForm({
             <div className="flex flex-wrap gap-1.5 mt-1">
               {PROJECT_COLORS.map(col => (
                 <Button
+                  id={`edit-project-color-picker-${col.name}`}
+                  data-testid={`edit-project-color-picker-${col.name}`}
                   key={col.name}
                   type="button"
                   variant="ghost"
@@ -151,6 +164,36 @@ function EditProjectDialogForm({
                   )}
                 </Button>
               ))}
+
+              <Button
+                id="edit-project-color-picker-custom"
+                data-testid="edit-project-color-picker-custom"
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={handleCustomColorClick}
+                aria-label={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
+                title={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
+                style={isCustomColor ? { backgroundColor: color } : undefined}
+                className={`w-5 h-5 rounded-full border border-border transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${
+                  isCustomColor
+                    ? 'ring-2 ring-primary ring-offset-2 scale-105 text-white'
+                    : 'opacity-85 bg-muted/60 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Paintbrush className="w-2.5 h-2.5" />
+              </Button>
+              <Input
+                ref={colorInputRef}
+                id="edit-project-custom-color-input"
+                data-testid="edit-project-custom-color-input"
+                type="color"
+                value={isCustomColor ? normalizeHexColor(color) : '#8b5cf6'}
+                onChange={e => setColor(e.target.value)}
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
             </div>
           </div>
         </div>
