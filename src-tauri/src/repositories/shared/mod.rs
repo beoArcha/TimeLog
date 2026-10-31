@@ -201,9 +201,39 @@ fn apply_migration_7(conn: &Connection) -> Result<()> {
     )?;
     add_column_if_missing(
         conn,
+        "projects",
+        "billing_rate_cents",
+        constants::ALTER_PROJECTS_ADD_BILLING_RATE_CENTS,
+    )?;
+    add_column_if_missing(
+        conn,
+        "projects",
+        "billing_currency",
+        constants::ALTER_PROJECTS_ADD_BILLING_CURRENCY,
+    )?;
+    add_column_if_missing(
+        conn,
         "tasks",
         "hourly_rate",
         constants::ALTER_TASKS_ADD_HOURLY_RATE,
+    )?;
+    add_column_if_missing(
+        conn,
+        "tasks",
+        "currency",
+        constants::ALTER_TASKS_ADD_CURRENCY,
+    )?;
+    add_column_if_missing(
+        conn,
+        "tasks",
+        "billing_rate_cents",
+        constants::ALTER_TASKS_ADD_BILLING_RATE_CENTS,
+    )?;
+    add_column_if_missing(
+        conn,
+        "tasks",
+        "billing_currency",
+        constants::ALTER_TASKS_ADD_BILLING_CURRENCY,
     )?;
     Ok(())
 }

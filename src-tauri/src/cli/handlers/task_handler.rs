@@ -37,8 +37,8 @@ pub fn handle(
         TaskSubcommand::Rename { target, new_name } => {
             rename_task(persistence, &target, new_name, is_machine)
         }
-        TaskSubcommand::Rate { target, rate } => {
-            set_task_rate(persistence, &target, rate, is_machine)
+        TaskSubcommand::Rate { target, rate, currency } => {
+            set_task_rate(persistence, &target, rate, currency, is_machine)
         }
         TaskSubcommand::Reparent { target, new_parent } => {
             reparent_task(persistence, &target, &new_parent, is_machine)
@@ -282,6 +282,7 @@ fn set_task_rate(
     persistence: &Persistence,
     target: &str,
     rate: String,
+    currency: Option<String>,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
@@ -294,8 +295,26 @@ fn set_task_rate(
         || trimmed.eq_ignore_ascii_case("clear")
     {
         task.hourly_rate = None;
+        task.billing_rate_cents = None;
+    } else if let Some(cents) = crate::engine::billing::parse_rate_or_cents(trimmed) {
+        task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+        task.billing_rate_cents = Some(cents as i64);
     } else {
         task.hourly_rate = Some(trimmed.to_string());
+    }
+
+    if let Some(curr) = currency {
+        let trimmed_curr = curr.trim();
+        if trimmed_curr.eq_ignore_ascii_case("inherit")
+            || trimmed_curr.eq_ignore_ascii_case("none")
+            || trimmed_curr.eq_ignore_ascii_case("clear")
+        {
+            task.currency = None;
+            task.billing_currency = None;
+        } else {
+            task.currency = Some(trimmed_curr.to_string());
+            task.billing_currency = Some(trimmed_curr.to_string());
+        }
     }
 
     persistence.tasks.patch(task.clone())?;
@@ -306,6 +325,9 @@ fn set_task_rate(
                 "status": "ok",
                 "id": task.id,
                 "hourly_rate": task.hourly_rate,
+                "billing_rate_cents": task.billing_rate_cents,
+                "currency": task.currency,
+                "billing_currency": task.billing_currency,
                 "action": "rate_updated"
             })
             .to_string(),
@@ -313,9 +335,14 @@ fn set_task_rate(
     }
 
     let rate_display = task.hourly_rate.as_deref().unwrap_or("inherited");
+    let curr_display = task
+        .currency
+        .as_deref()
+        .map(|c| format!(" ({})", c))
+        .unwrap_or_default();
     Ok(CliOutput::Success(format!(
-        "Updated billing rate for task '{}' ({}) to {}.",
-        task.name, task.id, rate_display
+        "Updated billing rate for task '{}' ({}) to {}{}.",
+        task.name, task.id, rate_display, curr_display
     )))
 }
 

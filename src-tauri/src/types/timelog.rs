@@ -47,6 +47,12 @@ pub struct Task {
     pub archived: Option<bool>,
     #[ts(optional)]
     pub hourly_rate: Option<String>,
+    #[ts(optional)]
+    pub currency: Option<String>,
+    #[ts(optional)]
+    pub billing_rate_cents: Option<i64>,
+    #[ts(optional)]
+    pub billing_currency: Option<String>,
 }
 
 impl Task {
@@ -69,6 +75,9 @@ impl Task {
             edit_history: None,
             archived: Some(false),
             hourly_rate: None,
+            currency: None,
+            billing_rate_cents: None,
+            billing_currency: None,
         }
     }
 }

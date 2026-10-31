@@ -25,6 +25,8 @@ impl Default for ProjectBuilder {
                 allow_concurrency: None,
                 hourly_rate: None,
                 currency: None,
+                billing_rate_cents: None,
+                billing_currency: None,
             },
         }
     }
@@ -116,6 +118,9 @@ impl Default for TaskBuilder {
                 edit_history: None,
                 archived: Some(false),
                 hourly_rate: None,
+                currency: None,
+                billing_rate_cents: None,
+                billing_currency: None,
             },
         }
     }

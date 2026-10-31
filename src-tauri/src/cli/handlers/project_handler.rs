@@ -114,8 +114,17 @@ fn add_project(
         None,
         None,
     );
-    project.hourly_rate = rate;
-    project.currency = currency;
+    if let Some(r) = rate {
+        let trimmed = r.trim();
+        if let Some(cents) = crate::engine::billing::parse_rate_or_cents(trimmed) {
+            project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+            project.billing_rate_cents = Some(cents as i64);
+        } else {
+            project.hourly_rate = Some(trimmed.to_string());
+        }
+    }
+    project.currency = currency.clone();
+    project.billing_currency = currency;
     persistence.projects.create(project)?;
     if is_machine {
         return Ok(CliOutput::Json(
@@ -157,30 +166,42 @@ fn rename_project(
         project.color = c;
     }
     if let Some(r) = rate {
-        project.hourly_rate = if r.eq_ignore_ascii_case("none") || r.eq_ignore_ascii_case("clear") {
-            None
+        let trimmed = r.trim();
+        if trimmed.eq_ignore_ascii_case("none") || trimmed.eq_ignore_ascii_case("clear") {
+            project.hourly_rate = None;
+            project.billing_rate_cents = None;
+        } else if let Some(cents) = crate::engine::billing::parse_rate_or_cents(trimmed) {
+            project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+            project.billing_rate_cents = Some(cents as i64);
         } else {
-            Some(r)
-        };
+            project.hourly_rate = Some(trimmed.to_string());
+        }
     }
     if let Some(curr) = currency {
-        project.currency = if curr.eq_ignore_ascii_case("none") || curr.eq_ignore_ascii_case("clear") {
-            None
+        let trimmed = curr.trim();
+        if trimmed.eq_ignore_ascii_case("none") || trimmed.eq_ignore_ascii_case("clear") {
+            project.currency = None;
+            project.billing_currency = None;
         } else {
-            Some(curr)
-        };
+            project.currency = Some(trimmed.to_string());
+            project.billing_currency = Some(trimmed.to_string());
+        }
     }
 
     persistence.projects.patch(project.clone())?;
 
     if is_machine {
-        let action = if has_new_name { "renamed" } else { "recolored" };
+        let action = if has_new_name { "renamed" } else { "updated" };
         return Ok(CliOutput::Json(
             serde_json::json!({
                 "status": "ok",
                 "id": project.id,
                 "name": project.name,
                 "color": project.color,
+                "hourly_rate": project.hourly_rate,
+                "billing_rate_cents": project.billing_rate_cents,
+                "currency": project.currency,
+                "billing_currency": project.billing_currency,
                 "action": action
             })
             .to_string(),

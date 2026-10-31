@@ -42,6 +42,10 @@ pub struct Project {
     pub hourly_rate: Option<String>,
     #[ts(optional)]
     pub currency: Option<String>,
+    #[ts(optional)]
+    pub billing_rate_cents: Option<i64>,
+    #[ts(optional)]
+    pub billing_currency: Option<String>,
 }
 
 impl Project {
@@ -69,6 +73,8 @@ impl Project {
             allow_concurrency,
             hourly_rate: None,
             currency: None,
+            billing_rate_cents: None,
+            billing_currency: None,
         }
     }
 }
