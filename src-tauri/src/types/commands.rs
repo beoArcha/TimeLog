@@ -55,6 +55,7 @@ pub enum ProjectsPersistenceCommand {
     UpdateProject,
     ToggleArchive,
     RenameProject,
+    DeleteProject,
 }
 
 #[derive(TS, Serialize)]

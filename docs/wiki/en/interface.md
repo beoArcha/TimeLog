@@ -34,6 +34,34 @@ Scaling adjusts font sizes, line heights, paddings, and icon dimensions uniforml
 
 ---
 
+## Two-Tier Project Form
+
+The sidebar provides an adaptive two-tier project creation form with a compact primary row for rapid entry and an expandable options drawer:
+
+### Primary Row (Tier 1)
+- **Project Name**: Direct text input (pressing Enter creates the project immediately).
+- **Curated Palette**: Six default color swatches (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
+- **Custom Color Picker (Paintbrush)**: The Paintbrush button at the end of the palette swatches opens an interactive color picker accepting any valid HEX color code (e.g. `#8B5CF6`).
+- **More Options Toggle**: Chevron button (**More Options** / **Hide Options**) to expand or collapse the advanced drawer.
+- **Add Project Button**: Primary confirmation button to create and persist the project.
+
+### Advanced Drawer (Tier 2)
+- **Emoji Icon Picker**: Popover selector to assign an emoji icon to the project.
+- **Tag Suggestion Cloud**: Input field for comma-separated tags, accompanied by a dynamic suggestion cloud scanning existing project tags. Clicking any tag chip appends it directly without manual typing.
+- **Project Description**: Optional notes and scope context for the project.
+- **Allow Concurrency Toggle**: Controls whether multiple tasks under this project can run simultaneously with tasks in other projects.
+
+---
+
+## Project Lifecycle: Deletion vs Archival
+
+To safeguard timesheet integrity and prevent accidental data loss:
+
+- **Zero-Time Projects (`00:00:00`)**: Projects with no logged sessions and no active timer show a delete button (Trash2 icon). Deletion permanently removes the project and unlinked metadata from storage.
+- **Projects With Logged Time (`> 00:00:00`)**: The core validation engine blocks deletion (`validate_project_deletion`). The user interface automatically replaces the delete icon with an **Archive** button. Archiving hides the project from active sidebars and selectors while preserving all historical sessions, tasks, and audit records in reports.
+
+---
+
 ## Built-In Themes
 
 oXyFlow provides three verified built-in themes managed by the `ThemeRegistry`:

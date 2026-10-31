@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.12.3] - 2026-10-31
+
+### Added
+
+- **PWA Capabilities Gating & Environmental Purity**:
+  - Extended `PlatformCapabilitiesContext` with `hasNativeDaemon`, `canUseCli`, and `storageEngineName` (`'sqlite' | 'localStorage'`).
+  - Implemented environment-accurate runtime indicators across `AppFooter`, `TaskHeader`, `StatusIndicator`, `DaemonStatusBar`, `AutomationSettings`, and `TabBar`.
+  - Conditionally hid native C++/Rust compilation guide in `ManualTab` when running in browser / PWA runtime (`hasNativeDaemon === false`).
+- **Project Lifecycle Form & Advanced Options Drawer**:
+  - Redesigned `SidebarProjectForm` into a compact two-tier form (primary row with Enter-to-save, palette swatches, paintbrush picker, and drawer toggle).
+  - Implemented Paintbrush HEX color picker and universal `resolveProjectColor` supporting both Tailwind palette tokens and arbitrary `#RRGGBB` values.
+  - Integrated `useAllProjectTags` hook and interactive tag suggestion cloud for quick tag assignment.
+- **Destructive Deletion vs Archival Lifecycle Parity**:
+  - Implemented cross-runtime `delete_project` command across Tauri Rust IPC and browser `LocalStorageProjectsPersistence` with strict time guardrail (`> 00:00:00` forces archival).
+  - Added conditional `Trash2` (with modal `ConfirmDialog` and child task cascade) vs `Archive` button in `SidebarProjectItem`.
+- **Cross-Locale Wiki & Documentation Synchronization**:
+  - Synchronized Phase 15 feature documentation across all 6 locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) in `docs/wiki/` (`interface.md` and `faq.md`).
+  - Updated `USER_GUIDE.md` and `INSTALLATION.md` with JSON backup portability and PWA storage characteristics.
+
+---
+
 ## [1.12.2] - 2026-10-29
 
 ### Added in Unreleased

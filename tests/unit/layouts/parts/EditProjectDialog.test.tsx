@@ -39,12 +39,12 @@ describe('Unit Tests: EditProjectDialog', () => {
 
     // Assert
     const nameInput = screen.getByLabelText(/Project Name/i) as HTMLInputElement;
-    const iconInput = screen.getByLabelText(/Emoji Icon/i) as HTMLInputElement;
+    const emojiTrigger = screen.getByTestId('edit-project-emoji-picker-trigger');
     const descInput = screen.getByLabelText(/Description/i) as HTMLTextAreaElement;
     const tagsInput = screen.getByLabelText(/Tags/i) as HTMLInputElement;
 
     expect(nameInput.value).toBe('Project Alpha');
-    expect(iconInput.value).toBe('⚡');
+    expect(emojiTrigger.textContent).toContain('⚡');
     expect(descInput.value).toBe('Alpha description');
     expect(tagsInput.value).toBe('core, v1');
   });
@@ -162,7 +162,7 @@ describe('Unit Tests: EditProjectDialog', () => {
     );
   });
 
-  it('should allow typing multi-byte compound emoji directly without truncation', () => {
+  it('should allow typing multi-byte compound emoji via picker search without truncation', () => {
     // Arrange
     const state = getMockOxyFlowState();
     const onSave = vi.fn();
@@ -178,16 +178,23 @@ describe('Unit Tests: EditProjectDialog', () => {
       </MockProviders>,
     );
 
-    const iconInput = screen.getByLabelText(/Emoji Icon/i);
-    // Compound ZWJ emoji (technologist)
-    fireEvent.change(iconInput, { target: { value: '👨‍💻' } });
+    // Open EmojiPicker
+    const pickerTrigger = screen.getByTestId('edit-project-emoji-picker-trigger');
+    fireEvent.click(pickerTrigger);
+
+    const searchInput = screen.getByTestId('edit-project-emoji-picker-search-input');
+    // Non-curated emoji or compound emoji (technologist)
+    fireEvent.change(searchInput, { target: { value: '🦄' } });
+
+    const customEmojiBtn = screen.getByTestId('edit-project-emoji-picker-custom-use-btn');
+    fireEvent.click(customEmojiBtn);
 
     const saveBtn = screen.getByRole('button', { name: /Save/i });
     fireEvent.click(saveBtn);
 
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
-        icon: '👨‍💻',
+        icon: '🦄',
       })
     );
   });
@@ -236,5 +243,37 @@ describe('Unit Tests: EditProjectDialog', () => {
 
     const saveBtn = screen.getByRole('button', { name: /Save/i });
     expect((saveBtn as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('should allow picking and saving a custom HEX color', () => {
+    // Arrange
+    const state = getMockOxyFlowState();
+    const onSave = vi.fn();
+
+    render(
+      <MockProviders state={state}>
+        <EditProjectDialog
+          open={true}
+          onOpenChange={vi.fn()}
+          project={baseProject}
+          onSave={onSave}
+        />
+      </MockProviders>,
+    );
+
+    // Act
+    const customInput = screen.getByTestId('edit-project-custom-color-input');
+    fireEvent.change(customInput, { target: { value: '#ff4400' } });
+
+    const saveBtn = screen.getByRole('button', { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'p-100',
+        color: '#ff4400',
+      })
+    );
   });
 });

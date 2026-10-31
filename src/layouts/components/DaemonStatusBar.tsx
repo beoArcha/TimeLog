@@ -16,7 +16,7 @@ export default function DaemonStatusBar() {
   const { locale, customTranslations } = useLocale();
   const { logs, engineState } = useData();
   const { handleMinimizeToTray } = useWindowShell();
-  const { supportsTray } = usePlatformCapabilities();
+  const { supportsTray, hasNativeDaemon } = usePlatformCapabilities();
   const [syncStatus, setSyncStatus] = useState<WebhookSyncStatus>(
     WebhookDispatcher.getInstance().getStatus()
   );
@@ -27,8 +27,9 @@ export default function DaemonStatusBar() {
   }, []);
 
   const activeRunningLogs = logs.filter(l => l.endTime === null);
+  const isPwa = hasNativeDaemon === false;
 
-  if (engineState === 'connecting') {
+  if (!isPwa && engineState === 'connecting') {
     return (
       <AnimatedFade
         id="engine-connecting-status-bar"
@@ -45,6 +46,10 @@ export default function DaemonStatusBar() {
     );
   }
 
+  const statusLabel = isPwa
+    ? translate(locale, 'engine', 'PwaOnlineReady', customTranslations)
+    : translate(locale, 'engine', 'Connected', customTranslations);
+
   return (
     <AnimatedFade
       id="engine-ready-status-bar"
@@ -56,7 +61,7 @@ export default function DaemonStatusBar() {
         <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 inline-block" aria-hidden="true" />
         <Caption as="p" size="xs" className="truncate leading-tight text-foreground">
           <Text as="span" weight="semibold" className="text-emerald-600 dark:text-emerald-400">
-            {translate(locale, 'engine', 'Connected', customTranslations)}
+            {statusLabel}
           </Text>
           {' · '}
           <Caption as="span" size="xs">

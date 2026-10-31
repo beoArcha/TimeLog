@@ -57,4 +57,9 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
     const cmd: ProjectsPersistenceCommand = 'rename_project';
     return invoke<TimerRepositoryState>(cmd, { projectId, name });
   }
+
+  async delete(projectId: string): Promise<TimerRepositoryState> {
+    const cmd: ProjectsPersistenceCommand = 'delete_project';
+    return invoke<TimerRepositoryState>(cmd, { projectId });
+  }
 }

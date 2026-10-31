@@ -32,7 +32,7 @@ export default function TabBar({
   activeLargeTab,
   setActiveLargeTab,
 }: TabBarProps) {
-  const { canInspectDatabase } = usePlatformCapabilities();
+  const { canInspectDatabase, canUseCli } = usePlatformCapabilities();
 
   const allTabs: Array<{
     id: AppTabId;
@@ -90,7 +90,11 @@ export default function TabBar({
     },
   ];
 
-  const tabs = allTabs.filter((tb) => tb.id !== "db" || canInspectDatabase);
+  const tabs = allTabs.filter(
+    (tb) =>
+      (tb.id !== "db" || canInspectDatabase) &&
+      (tb.id !== "cli" || canUseCli !== false)
+  );
 
   return (
     <div className="shrink-0 z-20 border-b border-border bg-muted/30 transition-all duration-300">

@@ -135,8 +135,7 @@ export function EmojiPicker({
           <HStack gap="2xs" className="w-full overflow-x-auto pb-1 no-scrollbar">
             {EMOJI_CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat.id;
-              const catLabel =
-                translate(locale, 'project', cat.labelKey, customTranslations) || cat.fallbackLabel;
+              const catLabel = translate(locale, 'project', cat.labelKey, customTranslations);
               return (
                 <Button
                   key={cat.id}

@@ -10,6 +10,9 @@ export interface PlatformCapabilities {
   supportsAlwaysOnTop: boolean;
   supportsAutoStart: boolean;
   isPwaInstallable: boolean;
+  hasNativeDaemon?: boolean;
+  canUseCli?: boolean;
+  storageEngineName?: 'sqlite' | 'localStorage';
 }
 
 const defaultCapabilities: PlatformCapabilities = {
@@ -17,10 +20,13 @@ const defaultCapabilities: PlatformCapabilities = {
   canInspectDatabase: false,
   supportedLayouts: ['compact', 'medium', 'full'],
   defaultLayout: 'full',
-  supportsTray: true,
-  supportsAlwaysOnTop: true,
-  supportsAutoStart: true,
+  supportsTray: false,
+  supportsAlwaysOnTop: false,
+  supportsAutoStart: false,
   isPwaInstallable: false,
+  hasNativeDaemon: false,
+  canUseCli: false,
+  storageEngineName: 'localStorage',
 };
 
 export const PlatformCapabilitiesContext = createContext<PlatformCapabilities>(defaultCapabilities);

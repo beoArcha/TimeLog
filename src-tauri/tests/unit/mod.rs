@@ -14,3 +14,4 @@ pub mod app_state_test;
 pub mod cli_shared_test;
 pub mod locale_test;
 pub mod override_state_test;
+pub mod project_delete_tests;

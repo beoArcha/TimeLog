@@ -4,12 +4,14 @@ import { toast } from 'sonner';
 import { Heading, Caption } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { CompilationGuideCard } from './components/CompilationGuideCard';
 import { KeyboardShortcutsCard } from './components/KeyboardShortcutsCard';
 import type { SupportedOs } from './components/OsSelector';
 
 export default function ManualTab() {
   const { locale, customTranslations } = useLocale();
+  const { hasNativeDaemon } = usePlatformCapabilities();
   const [currentOs, setCurrentOs] = useState<SupportedOs>('windows');
 
   const handleSelectOs = (os: SupportedOs) => {
@@ -27,10 +29,12 @@ export default function ManualTab() {
         <Caption size="xs">{translate(locale, 'help', 'Description', customTranslations)}</Caption>
       </div>
 
-      <CompilationGuideCard
-        currentOs={currentOs}
-        onSelectOs={handleSelectOs}
-      />
+      {hasNativeDaemon && (
+        <CompilationGuideCard
+          currentOs={currentOs}
+          onSelectOs={handleSelectOs}
+        />
+      )}
 
       <KeyboardShortcutsCard />
     </div>

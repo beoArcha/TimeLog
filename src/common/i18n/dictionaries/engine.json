@@ -57,7 +57,10 @@
     "ResetDomainSystem": "System & Runtime",
     "ResetDomainSystemDesc": "Runtime configs, webhook queue, and API credentials",
     "ResetDomainAll": "Select All",
-    "ResetDomainAllDesc": "Erase all domains completely"
+    "ResetDomainAllDesc": "Erase all domains completely",
+    "EnvironmentSqlite": "Environment — SQLite Engine",
+    "EnvironmentLocalStorage": "Environment — LocalStorage Engine",
+    "PwaOnlineReady": "PWA READY / ONLINE"
   },
   "pl": {
     "ConfigTitle": "Opcje Silnika i Daemony",
@@ -117,7 +120,10 @@
     "ResetDomainSystem": "System i integracje",
     "ResetDomainSystemDesc": "Konfiguracja runtime, kolejka webhooków i klucze API",
     "ResetDomainAll": "Zaznacz wszystko",
-    "ResetDomainAllDesc": "Całkowite wyczyszczenie wszystkich obszarów"
+    "ResetDomainAllDesc": "Całkowite wyczyszczenie wszystkich obszarów",
+    "EnvironmentSqlite": "Środowisko — Silnik SQLite",
+    "EnvironmentLocalStorage": "Środowisko — Silnik LocalStorage",
+    "PwaOnlineReady": "PWA GOTOWE / ONLINE"
   },
   "de": {
     "ConfigTitle": "Motor-Optionen & Dämons",
@@ -177,7 +183,10 @@
     "ResetDomainSystem": "System & Laufzeit",
     "ResetDomainSystemDesc": "Laufzeitkonfigurationen, Webhook-Warteschlange und API-Schlüssel",
     "ResetDomainAll": "Alles auswählen",
-    "ResetDomainAllDesc": "Vollständiges Löschen aller Bereiche"
+    "ResetDomainAllDesc": "Vollständiges Löschen aller Bereiche",
+    "EnvironmentSqlite": "Umgebung — SQLite-Engine",
+    "EnvironmentLocalStorage": "Umgebung — LocalStorage-Engine",
+    "PwaOnlineReady": "PWA BEREIT / ONLINE"
   },
   "es": {
     "ConfigTitle": "Opciones del Motor y Daemons",
@@ -237,7 +246,10 @@
     "ResetDomainSystem": "Sistema y tiempo de ejecución",
     "ResetDomainSystemDesc": "Configuraciones de ejecución, cola de webhooks y credenciales API",
     "ResetDomainAll": "Seleccionar todo",
-    "ResetDomainAllDesc": "Borrar todas las áreas por completo"
+    "ResetDomainAllDesc": "Borrar todas las áreas por completo",
+    "EnvironmentSqlite": "Entorno — Motor SQLite",
+    "EnvironmentLocalStorage": "Entorno — Motor LocalStorage",
+    "PwaOnlineReady": "PWA LISTO / EN LÍNEA"
   },
   "fr": {
     "ConfigTitle": "Options du Moteur & Démons",
@@ -297,7 +309,10 @@
     "ResetDomainSystem": "Système et exécution",
     "ResetDomainSystemDesc": "Configurations d’exécution, file d’attente des webhooks et clés API",
     "ResetDomainAll": "Tout sélectionner",
-    "ResetDomainAllDesc": "Suppression complète de toutes les zones"
+    "ResetDomainAllDesc": "Suppression complète de toutes les zones",
+    "EnvironmentSqlite": "Environnement — Moteur SQLite",
+    "EnvironmentLocalStorage": "Environnement — Moteur LocalStorage",
+    "PwaOnlineReady": "PWA PRÊT / EN LIGNE"
   },
   "pt-br": {
     "ConfigTitle": "Opções do Motor e Daemons",
@@ -357,6 +372,9 @@
     "ResetDomainSystem": "Sistema e execução",
     "ResetDomainSystemDesc": "Configurações de execução, fila de webhooks e credenciais de API",
     "ResetDomainAll": "Selecionar tudo",
-    "ResetDomainAllDesc": "Apagar todas as áreas completamente"
+    "ResetDomainAllDesc": "Apagar todas as áreas completamente",
+    "EnvironmentSqlite": "Ambiente — Motor SQLite",
+    "EnvironmentLocalStorage": "Ambiente — Motor LocalStorage",
+    "PwaOnlineReady": "PWA PRONTO / ONLINE"
   }
 }

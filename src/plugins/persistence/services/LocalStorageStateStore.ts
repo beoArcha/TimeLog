@@ -14,6 +14,10 @@ export interface ILocalStorageStateStore {
   save(state: TimerRepositoryState): Promise<TimerRepositoryState>;
   reset(scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState>;
   getStateOrDefault(): Promise<TimerRepositoryState>;
+  runExclusive<T>(operation: () => Promise<T>): Promise<T>;
+  mutate<T = void>(
+    mutator: (state: TimerRepositoryState) => Promise<T> | T
+  ): Promise<T extends void ? TimerRepositoryState : T>;
 }
 
 function resolveResetDomains(scope: StorageResetScope | StorageDomain[]): StorageDomain[] {
@@ -28,6 +32,35 @@ function resolveResetDomains(scope: StorageResetScope | StorageDomain[]): Storag
 
 export class LocalStorageStateStore implements ILocalStorageStateStore {
   private isCorrupted = false;
+  private transactionQueue: Promise<unknown> = Promise.resolve();
+
+  async runExclusive<T>(operation: () => Promise<T>): Promise<T> {
+    const next = this.transactionQueue.then(operation, operation);
+    this.transactionQueue = next.then(
+      () => {},
+      () => {}
+    );
+    return next;
+  }
+
+  async mutate<T = void>(
+    mutator: (state: TimerRepositoryState) => Promise<T> | T
+  ): Promise<T extends void ? TimerRepositoryState : T> {
+    return this.runExclusive(async () => {
+      const state = await this.getStateOrDefault();
+      const result = await mutator(state);
+      const stateToSave =
+        result &&
+        typeof result === 'object' &&
+        'projects' in result &&
+        'tasks' in result &&
+        'logs' in result
+          ? ((result as unknown) as TimerRepositoryState)
+          : state;
+      await this.save(stateToSave);
+      return (result !== undefined ? result : stateToSave) as T extends void ? TimerRepositoryState : T;
+    });
+  }
 
   async load(): Promise<TimerRepositoryState | null> {
     const data = localStorage.getItem(STORAGE_KEYS.STORAGE_KEY);
@@ -74,24 +107,27 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
   }
 
   async reset(scope: StorageResetScope | StorageDomain[] = 'ALL'): Promise<TimerRepositoryState> {
-    const domains = resolveResetDomains(scope);
-    const hasBusiness = domains.includes('BUSINESS');
+    return this.runExclusive(async () => {
+      const domains = resolveResetDomains(scope);
+      const hasBusiness = domains.includes('BUSINESS');
 
-    if (hasBusiness) {
-      this.isCorrupted = false;
-    }
-
-    for (const domain of domains) {
-      const keys = DOMAIN_STORAGE_KEYS[domain] || [];
-      for (const key of keys) {
-        localStorage.removeItem(key);
+      if (hasBusiness) {
+        this.isCorrupted = false;
       }
-    }
 
-    if (hasBusiness) {
-      return getDefaultState();
-    }
-    return this.getStateOrDefault();
+      for (const domain of domains) {
+        const keys = DOMAIN_STORAGE_KEYS[domain] || [];
+        for (const key of keys) {
+          localStorage.removeItem(key);
+        }
+      }
+
+      if (hasBusiness) {
+        return getDefaultState();
+      }
+      const state = await this.load();
+      return state || getDefaultState();
+    });
   }
 
   async getStateOrDefault(): Promise<TimerRepositoryState> {

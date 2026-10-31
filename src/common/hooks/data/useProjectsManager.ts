@@ -108,6 +108,13 @@ export const useProjectsManager = ({
     });
   };
 
+  const handleDeleteProject = async (projectId: string) => {
+    await actionRunner.runAction('Failed to delete project', async () => {
+      const nextState = await persistenceRouter.projects.delete(projectId);
+      await syncState(nextState);
+    });
+  };
+
   const setProjects = async (action: SetStateAction<Project[]>) => {
     await actionRunner.runAction(
       'Failed to set projects',
@@ -127,6 +134,7 @@ export const useProjectsManager = ({
     handleToggleProjectArchive,
     handleUpdateProject,
     handleRenameProject,
+    handleDeleteProject,
   };
 };
 

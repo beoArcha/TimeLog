@@ -283,6 +283,8 @@ export type EngineKey =
   | 'DestructiveZone'
   | 'EngineConfigLabel'
   | 'EngineRunningBackground'
+  | 'EnvironmentLocalStorage'
+  | 'EnvironmentSqlite'
   | 'GoToDatabaseReset'
   | 'HardResetBtn'
   | 'HardResetDesc'
@@ -293,6 +295,7 @@ export type EngineKey =
   | 'MinimizeToTray'
   | 'MinimizeToTrayDefault'
   | 'PauseAllProcesses'
+  | 'PwaOnlineReady'
   | 'PwaResetBtn'
   | 'PwaResetConfirm'
   | 'PwaResetDesc'
@@ -417,12 +420,17 @@ export type ProjectKey =
   | 'AllowConcurrency'
   | 'AllowConcurrencyDefault'
   | 'AllowConcurrencyDesc'
+  | 'CannotDeleteProjectWithTimeLogs'
   | 'ChangeProject'
   | 'ChooseProjectColor'
   | 'ClearEmoji'
   | 'ColorTheme'
   | 'CompletedTasks'
   | 'ConcurrencyBadge'
+  | 'ConfirmDeleteProjectTitle'
+  | 'CustomColorPicker'
+  | 'DeleteProject'
+  | 'DeleteProjectWarningTasks'
   | 'Description'
   | 'DescriptionPlaceholder'
   | 'EditProject'
@@ -453,6 +461,7 @@ export type ProjectKey =
   | 'SelectProjectPlaceholder'
   | 'StarterTemplatesHeading'
   | 'StarterTemplatesSubheading'
+  | 'TagSuggestionsLabel'
   | 'Tags'
   | 'TagsPlaceholder'
   | 'TemplateConsultingDesc'
@@ -647,3 +656,23 @@ export interface DomainKeys {
   task: TaskKey;
   timer: TimerKey;
 }
+
+export const I18N_KEYS = {
+  project: {
+    DeleteProject: 'DeleteProject',
+    ConfirmDeleteProjectTitle: 'ConfirmDeleteProjectTitle',
+    DeleteProjectWarningTasks: 'DeleteProjectWarningTasks',
+    CannotDeleteProjectWithTimeLogs: 'CannotDeleteProjectWithTimeLogs',
+    CustomColorPicker: 'CustomColorPicker',
+    TagSuggestionsLabel: 'TagSuggestionsLabel',
+  },
+  engine: {
+    EnvironmentSqlite: 'EnvironmentSqlite',
+    EnvironmentLocalStorage: 'EnvironmentLocalStorage',
+    PwaOnlineReady: 'PwaOnlineReady',
+  },
+} as const;
+
+export type I18nKeysContract = typeof I18N_KEYS;
+export type I18nProjectKeys = typeof I18N_KEYS.project;
+export type I18nEngineKeys = typeof I18N_KEYS.engine;

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Paintbrush } from 'lucide-react';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
+import { isValidHexColor, normalizeHexColor } from '@common/utils/colorUtils';
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Form } from '@components/ui/form';
@@ -11,8 +12,9 @@ import { Switch } from '@components/ui/switch';
 import { Label } from '@components/ui/label';
 import { Caption } from '@components/ui/typography';
 import { VStack, HStack, InlineCluster } from '@components/ui/stack';
-import { EmojiPicker, getFirstGrapheme } from '@components/ui/emoji-picker';
+import { EmojiPicker } from '@components/ui/emoji-picker';
 import { useSettingsSafe } from '@common/hooks/SettingsContext';
+import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
 
 export interface SidebarProjectFormProps {
   onAddProject: (
@@ -44,6 +46,7 @@ export function SidebarProjectForm({
 }: SidebarProjectFormProps) {
   const settings = useSettingsSafe();
   const defaultConcurrency = settings?.defaultProjectConcurrency ?? false;
+  const availableTags = useAllProjectTags();
   const [name, setNameLocal] = React.useState(initialName);
   const [color, setColorLocal] = React.useState(initialColor);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
@@ -52,6 +55,19 @@ export function SidebarProjectForm({
   const [tags, setTags] = React.useState('');
   const [allowConcurrencyOverride, setAllowConcurrencyOverride] = React.useState<boolean | null>(null);
   const allowConcurrency = allowConcurrencyOverride ?? defaultConcurrency;
+  const colorInputRef = React.useRef<HTMLInputElement>(null);
+  const isCustomColor = isValidHexColor(color);
+
+  const handleAddTagSuggestion = (tagToAdd: string) => {
+    const currentTags = tags
+      .split(',')
+      .map(t => t.trim())
+      .filter(Boolean);
+    if (!currentTags.includes(tagToAdd)) {
+      const updated = [...currentTags, tagToAdd].join(', ');
+      setTags(updated);
+    }
+  };
 
   const handleNameChange = (val: string) => {
     setNameLocal(val);
@@ -63,8 +79,16 @@ export function SidebarProjectForm({
     onColorChange?.(val);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCustomColorClick = () => {
+    if (!isCustomColor) {
+      const currentHex = colorInputRef.current?.value || '#8b5cf6';
+      handleColorChange(currentHex);
+    }
+    colorInputRef.current?.click();
+  };
+
+  const handleSubmit = (e?: React.SyntheticEvent) => {
+    e?.preventDefault();
     const trimmedName = name.trim();
     if (!trimmedName) return;
 
@@ -79,6 +103,8 @@ export function SidebarProjectForm({
     );
 
     handleNameChange('');
+    setColorLocal(initialColor);
+    onColorChange?.(initialColor);
     setDescription('');
     setIcon('');
     setTags('');
@@ -86,64 +112,203 @@ export function SidebarProjectForm({
     setShowAdvanced(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   return (
-    <Form onSubmit={handleSubmit} layout="none" className="mb-6 padding-section rounded-section border border-border bg-muted/40 transition-all">
-      <VStack gap="sm" className="gap-section">
-        <Input
-          id="new-project-input"
-          type="text"
-          placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
-          value={name}
-          onChange={e => handleNameChange(e.target.value)}
-          className="w-full border border-input bg-card text-foreground placeholder:text-muted-foreground px-3 input-py rounded-section text-main focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all"
-        />
+    <Form
+      onSubmit={handleSubmit}
+      layout="none"
+      className="mb-6 padding-section rounded-section border border-border bg-muted/40 transition-all"
+    >
+      <VStack gap="xs" className="w-full">
+        {/* Tier 1: Primary Level (Compact Main Row & Color Palette) */}
+        <VStack gap="xs" className="w-full">
+          <Input
+            id="new-project-input"
+            data-testid="new-project-input"
+            type="text"
+            placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
+            aria-label={translate(locale, 'project', 'ProjectName', customTranslations)}
+            value={name}
+            onChange={e => handleNameChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="w-full border border-input bg-card text-foreground placeholder:text-muted-foreground px-3 input-py rounded-section text-main focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all"
+          />
 
-        <HStack justify="between" className="mt-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="font-mono text-muted-foreground hover:text-orange-500 transition-colors uppercase tracking-wider h-auto p-0"
-          >
-            {translate(locale, 'project', showAdvanced ? 'HideOptions' : 'MoreOptions', customTranslations)}
-          </Button>
-        </HStack>
+          <HStack justify="between" align="center" wrap className="gap-2 pt-0.5">
+            <InlineCluster gap="xs" align="center">
+              {PROJECT_COLORS.map(col => {
+                const isSelected = color === col.name;
+                return (
+                  <Button
+                    id={`color-picker-${col.name}`}
+                    data-testid={`color-picker-${col.name}`}
+                    key={col.name}
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => handleColorChange(col.name)}
+                    aria-label={col.name}
+                    title={col.name}
+                    className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-200 transform hover:scale-110 flex items-center justify-center p-0 ${
+                      isSelected ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
+                    }`}
+                  >
+                    {isSelected && <span className="w-1.5 h-1.5 bg-card rounded-full" />}
+                  </Button>
+                );
+              })}
 
-        {showAdvanced && (
-          <VStack gap="xs" className="mt-1 pt-2 border-t border-border/40 animate-fade-in">
-            <HStack gap="xs" className="w-full">
-              <div className="flex items-center gap-1.5 w-1/3">
-                <EmojiPicker
-                  value={icon}
-                  onChange={setIcon}
-                  testId="sidebar-project-emoji-picker"
-                />
-                <Input
-                  id="sidebar-project-icon-input"
-                  type="text"
-                  placeholder={translate(locale, 'project', 'IconPlaceholder', customTranslations)}
-                  value={icon}
-                  onChange={e => setIcon(getFirstGrapheme(e.target.value))}
-                  className="w-full px-2 py-1 text-center text-xs"
-                />
-              </div>
-              <div className="w-2/3">
-                <Input
-                  type="text"
-                  placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
-                  value={tags}
-                  onChange={e => setTags(e.target.value)}
-                  className="w-full px-2 py-1 text-xs"
-                />
-              </div>
+              <Button
+                id="color-picker-custom"
+                data-testid="color-picker-custom"
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={handleCustomColorClick}
+                aria-label={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
+                title={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
+                style={isCustomColor ? { backgroundColor: color } : undefined}
+                className={`w-5 h-5 rounded-full border border-border transition-all duration-200 transform hover:scale-110 flex items-center justify-center p-0 ${
+                  isCustomColor
+                    ? 'ring-2 ring-orange-500 ring-offset-2 scale-105 text-white'
+                    : 'opacity-85 bg-muted/60 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Paintbrush className="w-2.5 h-2.5" />
+              </Button>
+              <Input
+                ref={colorInputRef}
+                id="custom-color-input"
+                data-testid="custom-color-input"
+                type="color"
+                value={isCustomColor ? normalizeHexColor(color) : '#8b5cf6'}
+                onChange={e => handleColorChange(e.target.value)}
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+            </InlineCluster>
+
+            <HStack gap="xs" align="center">
+              <Button
+                id="sidebar-project-toggle-advanced"
+                data-testid="sidebar-project-toggle-advanced"
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                aria-expanded={showAdvanced}
+                aria-label={translate(
+                  locale,
+                  'project',
+                  showAdvanced ? 'HideOptions' : 'MoreOptions',
+                  customTranslations
+                )}
+                title={translate(
+                  locale,
+                  'project',
+                  showAdvanced ? 'HideOptions' : 'MoreOptions',
+                  customTranslations
+                )}
+                className="font-mono text-xs text-muted-foreground hover:text-orange-500 transition-colors flex items-center gap-1 h-auto p-1"
+              >
+                {showAdvanced ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+                <span className="text-[11px] uppercase tracking-wider">
+                  {translate(
+                    locale,
+                    'project',
+                    showAdvanced ? 'HideOptions' : 'MoreOptions',
+                    customTranslations
+                  )}
+                </span>
+              </Button>
+
+              <Button
+                id="add-project-btn"
+                data-testid="add-project-btn"
+                type="submit"
+                variant="accent"
+                disabled={isLoading}
+                aria-label={translate(locale, 'project', 'AddNewProject', customTranslations)}
+                title={translate(locale, 'project', 'AddNewProject', customTranslations)}
+                className="rounded-xl px-3 py-1 text-main font-bold shadow-md cursor-pointer flex items-center gap-1.5 h-auto shrink-0"
+              >
+                <Plus className="icon-small" />
+                <span>{translate(locale, 'project', 'AddNewProject', customTranslations)}</span>
+              </Button>
             </HStack>
+          </HStack>
+        </VStack>
+
+        {/* Tier 2: Advanced Level (Collapsible Drawer / Panel) */}
+        {showAdvanced && (
+          <VStack
+            id="sidebar-project-advanced-drawer"
+            data-testid="sidebar-project-advanced-drawer"
+            gap="xs"
+            className="mt-2 pt-2 border-t border-border/40 animate-in fade-in slide-in-from-top-2 duration-300"
+          >
+            <HStack gap="xs" className="w-full items-center">
+              <EmojiPicker
+                value={icon}
+                onChange={setIcon}
+                testId="sidebar-project-emoji-picker"
+              />
+              <Input
+                id="sidebar-project-tags-input"
+                data-testid="sidebar-project-tags-input"
+                type="text"
+                placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
+                aria-label={translate(locale, 'project', 'Tags', customTranslations)}
+                value={tags}
+                onChange={e => setTags(e.target.value)}
+                className="flex-1 px-2 py-1 text-xs"
+              />
+            </HStack>
+
+            {availableTags.length > 0 && (
+              <VStack gap="2xs" className="w-full">
+                <Caption size="xs" variant="muted" className="font-mono text-[10px] uppercase tracking-wider">
+                  {translate(locale, 'project', 'TagSuggestionsLabel', customTranslations)}
+                </Caption>
+                <div className="flex flex-wrap gap-1" data-testid="sidebar-project-tag-suggestions">
+                  {availableTags.map(tag => (
+                    <Button
+                      key={tag}
+                      type="button"
+                      variant="outline"
+                      size="xs"
+                      onClick={() => handleAddTagSuggestion(tag)}
+                      data-testid={`tag-suggestion-${tag}`}
+                      className="h-5 px-2 py-0 text-[10px] rounded-full font-normal cursor-pointer"
+                    >
+                      {tag}
+                    </Button>
+                  ))}
+                </div>
+              </VStack>
+            )}
+
             <Textarea
+              id="sidebar-project-description-input"
+              data-testid="sidebar-project-description-input"
               placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
+              aria-label={translate(locale, 'project', 'Description', customTranslations)}
               value={description}
               onChange={e => setDescription(e.target.value)}
               className="w-full px-2 py-1 text-xs min-h-[40px] h-10 resize-none"
             />
+
             <HStack justify="between" align="center" className="w-full pt-1">
               <VStack gap="none">
                 <Label htmlFor="new-project-concurrency" className="text-xs font-medium cursor-pointer">
@@ -155,45 +320,13 @@ export function SidebarProjectForm({
               </VStack>
               <Switch
                 id="new-project-concurrency"
+                data-testid="new-project-concurrency"
                 checked={allowConcurrency}
                 onCheckedChange={setAllowConcurrencyOverride}
               />
             </HStack>
           </VStack>
         )}
-
-        <HStack justify="between" wrap className="gap-section mt-1.5">
-          <InlineCluster gap="xs">
-            {PROJECT_COLORS.map(col => {
-              const isSelected = color === col.name;
-              return (
-                <Button
-                  id={`color-picker-${col.name}`}
-                  key={col.name}
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={() => handleColorChange(col.name)}
-                  className={`w-6 h-6 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${
-                    isSelected ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
-                  }`}
-                >
-                  {isSelected && <span className="w-1.5 h-1.5 bg-card rounded-full" />}
-                </Button>
-              );
-            })}
-          </InlineCluster>
-
-          <Button
-            id="add-project-btn"
-            type="submit"
-            variant="accent"
-            disabled={isLoading}
-            className="rounded-xl px-4 py-1 text-main font-bold shadow-md cursor-pointer flex items-center gap-1.5 h-auto"
-          >
-            <Plus className="icon-small" /> {translate(locale, 'common', 'Save', customTranslations)}
-          </Button>
-        </HStack>
       </VStack>
     </Form>
   );

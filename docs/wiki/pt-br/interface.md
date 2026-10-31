@@ -32,6 +32,34 @@ Além das variantes de layout, o oXyFlow disponibiliza três opções de escala 
 
 ---
 
+## Formulário de Projeto em Dois Níveis
+
+A barra lateral disponibiliza um formulário adaptativo de criação de projetos estruturado em dois níveis: uma linha principal compacta e uma gaveta expansível de opções avançadas:
+
+### Linha Principal (Nível 1)
+- **Nome do Projeto**: Campo de texto direto (pressionar Enter cria o projeto imediatamente).
+- **Paleta Predefinida**: Seis amostras de cores selecionadas (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
+- **Seletor de Cor Personalizada (Paintbrush)**: O botão com ícone de pincel (Paintbrush) ao final da paleta abre um seletor interativo compatível com qualquer código de cor HEX (por exemplo, `#8B5CF6`).
+- **Alternador de Opções Avançadas**: Botão de seta (**Mais opções** / **Ocultar opções**) para expandir ou recolher a gaveta de opções.
+- **Botão Adicionar Projeto**: Botão principal para confirmar e salvar o projeto.
+
+### Gaveta Expansível Avançada (Nível 2)
+- **Seletor de Ícone Emoji**: Popover para atribuir um ícone emoji ao projeto.
+- **Nuvem de Sugestões de Tags**: Campo para tags separadas por vírgula acompanhado por uma nuvem dinâmica que identifica tags dos projetos existentes. Clicar em uma tag a insere diretamente no campo sem necessidade de digitação.
+- **Descrição do Projeto**: Área de texto para anotações e escopo do projeto.
+- **Alternador de Concorrência**: Controla se as tarefas deste projeto podem ser executadas simultaneamente com tarefas de outros projetos.
+
+---
+
+## Ciclo de Vida do Projeto: Exclusão vs. Arquivamento
+
+Para assegurar a integridade dos registros de horas e evitar perdas acidentais de auditoria:
+
+- **Projetos sem Tempo Registrado (`00:00:00`)**: Projetos sem sessões gravadas e sem timer ativo exibem o botão de exclusão permanente (ícone Trash2). A exclusão remove o projeto e metadados não vinculados de forma definitiva do armazenamento.
+- **Projetos com Tempo Registrado (`> 00:00:00`)**: O motor de validação bloqueia a exclusão (`validate_project_deletion`). A interface substitui automaticamente o ícone de lixeira pelo botão **Arquivar**. O arquivamento oculta o projeto das barras laterais e seletores ativos, preservando todas as sessões históricas, tarefas e relatórios de auditoria.
+
+---
+
 ## Temas Integrados
 
 O oXyFlow oferece três temas integrados gerenciados via `ThemeRegistry`:

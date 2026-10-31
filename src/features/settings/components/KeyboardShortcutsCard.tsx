@@ -5,10 +5,12 @@ import { Caption, MonoText } from '@components/ui/typography';
 import { HStack } from '@components/ui/stack';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { ShortcutTile } from './ShortcutTile';
 
 export function KeyboardShortcutsCard() {
   const { locale, customTranslations } = useLocale();
+  const { canUseCli } = usePlatformCapabilities();
   return (
     <CollapsibleCard
       title={translate(locale, 'help', 'ShortcutsTitle', customTranslations)}
@@ -58,15 +60,17 @@ export function KeyboardShortcutsCard() {
             </HStack>
           }
         />
-        <ShortcutTile
-          variant="warning"
-          label={translate(locale, 'help', 'ShortcutSystemCli', customTranslations)}
-          shortcut={
-            <MonoText size="2xs" className="text-amber-500">
-              oxy timer start --task &lt;id&gt;
-            </MonoText>
-          }
-        />
+        {canUseCli && (
+          <ShortcutTile
+            variant="warning"
+            label={translate(locale, 'help', 'ShortcutSystemCli', customTranslations)}
+            shortcut={
+              <MonoText size="2xs" className="text-amber-500">
+                oxy timer start --task &lt;id&gt;
+              </MonoText>
+            }
+          />
+        )}
       </div>
     </CollapsibleCard>
   );

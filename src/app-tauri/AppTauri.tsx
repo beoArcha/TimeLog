@@ -14,6 +14,9 @@ export default function AppTauri() {
       supportsAlwaysOnTop: true,
       supportsAutoStart: true,
       isPwaInstallable: false,
+      hasNativeDaemon: true,
+      canUseCli: true,
+      storageEngineName: 'sqlite',
     }),
     []
   );
