@@ -86,7 +86,7 @@
   <p class="landing-eyebrow">BUILT WITH INTENTION</p>
   <h2>Focused software.<br>Thoughtful engineering.</h2>
   <p class="landing-intro">A native Rust engine and Tauri v2 desktop shell meet a React 19 interface, TypeScript and SQLite. The same product idea adapts to desktop and browser runtimes, with six interface languages: English, Polish, German, Spanish, French and Brazilian Portuguese.</p>
-  <div class="landing-tech"><span>RUST</span><span>TAURI V2</span><span>REACT 19</span><span>TYPESCRIPT</span><span>SQLITE</span><span>MPL-2.0</span></div>
+  <div class="landing-tech"><span class="landing-platform-label">RUST </span><span>TAURI V2 </span><span class="landing-platform-label">REACT 19 </span><span class="landing-platform-label">TYPESCRIPT </span><span class="landing-platform-label">SQLITE </span><span class="landing-platform-label">MPL-2.0</span></div>
 </div>
 
 <div class="landing-docs">
