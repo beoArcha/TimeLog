@@ -78,9 +78,13 @@ export function handleProjectRename(
   const project = resolve.entity;
   const finalName = newName || project.name;
   const finalRate =
-    rateFlag === 'none' || rateFlag === 'clear' ? null : rateFlag !== undefined ? rateFlag : undefined;
+    rateFlag && (rateFlag.toLowerCase() === 'none' || rateFlag.toLowerCase() === 'clear')
+      ? null
+      : rateFlag !== undefined
+      ? rateFlag
+      : undefined;
   const finalCurrency =
-    currencyFlag === 'none' || currencyFlag === 'clear'
+    currencyFlag && (currencyFlag.toLowerCase() === 'none' || currencyFlag.toLowerCase() === 'clear')
       ? null
       : currencyFlag !== undefined
       ? currencyFlag

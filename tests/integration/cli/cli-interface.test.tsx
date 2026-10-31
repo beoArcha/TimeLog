@@ -70,6 +70,10 @@ describe('Integration Tests: CliInterface Component', () => {
       validateProjectName: vi.fn(),
       validateTaskName: vi.fn(),
       validateTaskHierarchy: vi.fn()
+    },
+    billing: {
+      resolveEffectiveTaskRate: vi.fn(),
+      calculateRangeBilling: vi.fn()
     }
   };
 

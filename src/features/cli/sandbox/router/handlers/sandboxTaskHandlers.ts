@@ -141,12 +141,12 @@ export function handleTaskRate(
     return;
   }
 
+  const trimmed = rateArg.trim();
+  const lower = trimmed.toLowerCase();
   const rate =
-    rateArg.toLowerCase() === 'inherit' ||
-    rateArg.toLowerCase() === 'none' ||
-    rateArg.toLowerCase() === 'clear'
+    lower === 'inherit' || lower === 'none' || lower === 'clear'
       ? null
-      : rateArg;
+      : trimmed;
 
   store.handleSetTaskRate(resolve.entity.id, rate);
   output.success(`Updated billing rate for task "${resolve.entity.name}" [ID: ${resolve.entity.id}] to ${rate ?? 'inherited'}.`);

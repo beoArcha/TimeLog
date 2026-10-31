@@ -1,8 +1,21 @@
+import { Project } from '@bindings/Project';
+import { Task } from '@bindings/Task';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 
 export const CURRENT_LOCAL_STORAGE_SCHEMA_VERSION = 2;
 
-export interface VersionedState extends TimerRepositoryState {
+export interface VersionedProject extends Omit<Project, 'hourlyRate' | 'currency'> {
+  hourlyRate?: string | null;
+  currency?: string | null;
+}
+
+export interface VersionedTask extends Omit<Task, 'hourlyRate'> {
+  hourlyRate?: string | null;
+}
+
+export interface VersionedState extends Omit<TimerRepositoryState, 'projects' | 'tasks'> {
+  projects: VersionedProject[];
+  tasks: VersionedTask[];
   schemaVersion?: number;
   _migrated?: boolean;
 }
@@ -22,32 +35,32 @@ export function migrateLocalStorageState(raw: unknown): VersionedState {
     };
   }
 
-  const state = { ...(raw as Record<string, unknown>) } as VersionedState;
+  const state = { ...(raw as Record<string, unknown>) } as unknown as VersionedState;
   let didMigrate = false;
   const currentVersion = typeof state.schemaVersion === 'number' ? state.schemaVersion : 1;
 
   if (currentVersion < 2) {
     if (Array.isArray(state.projects)) {
       state.projects = state.projects.map((project) => {
-        if (!project || typeof project !== 'object') return project;
-        const p = project as Record<string, unknown>;
+        if (!project || typeof project !== 'object') return project as VersionedProject;
+        const p = project as unknown as Record<string, unknown>;
         return {
           ...p,
           hourlyRate: typeof p.hourlyRate === 'string' ? p.hourlyRate : null,
           currency: typeof p.currency === 'string' ? p.currency : null,
-        };
+        } as VersionedProject;
       });
       didMigrate = true;
     }
 
     if (Array.isArray(state.tasks)) {
       state.tasks = state.tasks.map((task) => {
-        if (!task || typeof task !== 'object') return task;
-        const t = task as Record<string, unknown>;
+        if (!task || typeof task !== 'object') return task as VersionedTask;
+        const t = task as unknown as Record<string, unknown>;
         return {
           ...t,
           hourlyRate: typeof t.hourlyRate === 'string' ? t.hourlyRate : null,
-        };
+        } as VersionedTask;
       });
       didMigrate = true;
     }
