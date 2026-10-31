@@ -1,3 +1,5 @@
+export const MAX_BILLING_RATE_CENTS = Number.MAX_SAFE_INTEGER;
+
 export function parseRateToCents(s: string): number | null {
   const trimmed = s.trim();
   if (!trimmed) return null;
@@ -19,11 +21,11 @@ export function parseRateToCents(s: string): number | null {
       frac = Number(fracStr);
     }
     const total = whole * 100 + frac;
-    return Number.isSafeInteger(total) ? total : null;
+    return Number.isSafeInteger(total) && total <= MAX_BILLING_RATE_CENTS ? total : null;
   }
 
   const total = whole * 100;
-  return Number.isSafeInteger(total) ? total : null;
+  return Number.isSafeInteger(total) && total <= MAX_BILLING_RATE_CENTS ? total : null;
 }
 
 export function parseRateOrCents(s: string): number | null {
@@ -33,7 +35,7 @@ export function parseRateOrCents(s: string): number | null {
     const centsStr = trimmed.slice(0, -1).trim();
     if (!/^\d+$/.test(centsStr)) return null;
     const cents = Number(centsStr);
-    return Number.isSafeInteger(cents) ? cents : null;
+    return Number.isSafeInteger(cents) && cents <= MAX_BILLING_RATE_CENTS ? cents : null;
   }
   if (trimmed.includes('.')) {
     return parseRateToCents(trimmed);
@@ -41,7 +43,7 @@ export function parseRateOrCents(s: string): number | null {
   if (!/^\d+$/.test(trimmed)) return null;
   const whole = Number(trimmed);
   const total = whole * 100;
-  return Number.isSafeInteger(total) ? total : null;
+  return Number.isSafeInteger(total) && total <= MAX_BILLING_RATE_CENTS ? total : null;
 }
 
 export function formatCents(cents: number): string {

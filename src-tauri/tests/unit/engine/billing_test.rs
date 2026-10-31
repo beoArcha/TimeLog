@@ -528,3 +528,14 @@ fn test_parity_vectors_shared_fixture() {
         }
     }
 }
+
+#[test]
+fn test_billing_rate_cents_safe_integer_contract() {
+    use oxy_flow::engine::billing::{checked_billing_rate_to_i64, validate_billing_rate_cents, validate_stored_billing_rate_cents, MAX_BILLING_RATE_CENTS};
+    assert_eq!(validate_billing_rate_cents(MAX_BILLING_RATE_CENTS).unwrap(), MAX_BILLING_RATE_CENTS);
+    assert!(validate_billing_rate_cents(MAX_BILLING_RATE_CENTS + 1).is_err());
+    assert_eq!(checked_billing_rate_to_i64(MAX_BILLING_RATE_CENTS).unwrap(), MAX_BILLING_RATE_CENTS as i64);
+    assert!(validate_stored_billing_rate_cents(-1).is_err());
+    assert!(validate_stored_billing_rate_cents(i64::MAX).is_err());
+    assert_eq!(validate_stored_billing_rate_cents(MAX_BILLING_RATE_CENTS as i64).unwrap(), MAX_BILLING_RATE_CENTS);
+}

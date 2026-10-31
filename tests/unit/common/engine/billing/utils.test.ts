@@ -4,6 +4,7 @@ import {
   parseRateOrCents,
   formatCents,
   calculateBankersAmount,
+  MAX_BILLING_RATE_CENTS,
 } from '@common/engine/billing/utils';
 
 describe('Unit Tests: billing/utils - parseRateToCents, parseRateOrCents, formatCents', () => {
@@ -42,6 +43,8 @@ describe('Unit Tests: billing/utils - parseRateToCents, parseRateOrCents, format
 
     it('handles boundary values and rejects overflow beyond safe integers', () => {
       expect(parseRateToCents('90071992547409')).toBe(9007199254740900);
+      expect(parseRateToCents('90071992547409.91')).toBe(MAX_BILLING_RATE_CENTS);
+      expect(parseRateToCents('90071992547409.92')).toBeNull();
       expect(parseRateToCents('999999999999999999999999999999999999')).toBeNull();
     });
   });
@@ -50,6 +53,8 @@ describe('Unit Tests: billing/utils - parseRateToCents, parseRateOrCents, format
     it('accepts integer cents with c or ¢ suffix', () => {
       expect(parseRateOrCents('15000c')).toBe(15000);
       expect(parseRateOrCents('15000¢')).toBe(15000);
+      expect(parseRateOrCents('9007199254740991c')).toBe(MAX_BILLING_RATE_CENTS);
+      expect(parseRateOrCents('9007199254740992c')).toBeNull();
       expect(parseRateOrCents('0c')).toBe(0);
       expect(parseRateOrCents('  2500c  ')).toBe(2500);
     });

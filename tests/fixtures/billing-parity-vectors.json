@@ -359,6 +359,18 @@
       "input": "999999999999999999999999999999999999",
       "expectedCents": null,
       "valid": false
+    },
+    {
+      "description": "Accept maximum safe integer cents represented as a decimal rate",
+      "input": "90071992547409.91",
+      "expectedCents": 9007199254740991,
+      "valid": true
+    },
+    {
+      "description": "Reject first cents value above maximum safe integer",
+      "input": "90071992547409.92",
+      "expectedCents": null,
+      "valid": false
     }
   ],
   "rateOrCentsParsingVectors": [
@@ -455,6 +467,18 @@
     {
       "description": "Reject non-numeric string in rate or cents",
       "input": "abc",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Accept maximum safe integer cents with suffix",
+      "input": "9007199254740991c",
+      "expectedCents": 9007199254740991,
+      "valid": true
+    },
+    {
+      "description": "Reject cents suffix one above maximum safe integer",
+      "input": "9007199254740992c",
       "expectedCents": null,
       "valid": false
     }
