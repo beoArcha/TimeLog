@@ -140,4 +140,26 @@ impl BusinessRepository {
         conn.execute(constants::DELETE_ALL_PROJECTS, [])?;
         Ok(())
     }
+
+    pub fn delete_project(&self, id: &str) -> Result<()> {
+        let mut conn = self.connect()?;
+        let tx = conn.transaction()?;
+
+        tx.execute(
+            "DELETE FROM tasks WHERE project_id = ?1 AND parent_task_id IS NOT NULL",
+            params![id],
+        )?;
+        tx.execute("DELETE FROM tasks WHERE project_id = ?1", params![id])?;
+
+        let affected = tx.execute(constants::DELETE_PROJECT_BY_ID, params![id])?;
+        if affected == 0 {
+            return Err(RepositoryError::NotFound {
+                entity: "Project",
+                id: id.to_string(),
+            });
+        }
+
+        tx.commit()?;
+        Ok(())
+    }
 }
