@@ -76,6 +76,7 @@ describe('BrowserBillingEngine & Billing Helpers', () => {
               archived: false,
               hourlyRate: vec.projectRate ?? null,
               currency: vec.projectCurrency ?? null,
+              billingCurrency: vec.projectBillingCurrency ?? undefined,
               billingRateCents: vec.projectBillingRateCents !== undefined ? BigInt(vec.projectBillingRateCents) : undefined,
             },
           ],

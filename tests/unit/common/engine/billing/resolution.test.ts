@@ -1,10 +1,74 @@
 import { describe, it, expect } from 'vitest';
 import {
+  normalizeCurrency,
+  resolveEffectiveCurrency,
   resolveEffectiveRate,
   calculateRangeBillingFromSnapshot,
 } from '@common/engine/billing/resolution';
 
 describe('Unit Tests: Pure Billing Resolution & Calculator', () => {
+  describe('normalizeCurrency', () => {
+    it('normalizes lowercase currency to uppercase', () => {
+      expect(normalizeCurrency('usd')).toBe('USD');
+      expect(normalizeCurrency('eur')).toBe('EUR');
+    });
+
+    it('trims surrounding whitespace and converts to uppercase', () => {
+      expect(normalizeCurrency('  usd  ')).toBe('USD');
+      expect(normalizeCurrency('   pln ')).toBe('PLN');
+    });
+
+    it('returns null for null, undefined, empty string, and whitespace-only', () => {
+      expect(normalizeCurrency(null)).toBeNull();
+      expect(normalizeCurrency(undefined)).toBeNull();
+      expect(normalizeCurrency('')).toBeNull();
+      expect(normalizeCurrency('   ')).toBeNull();
+      expect(normalizeCurrency('\t\n ')).toBeNull();
+    });
+  });
+
+  describe('resolveEffectiveCurrency precedence', () => {
+    it('respects task billingCurrency over task currency', () => {
+      const res = resolveEffectiveCurrency(
+        { billingCurrency: 'usd', currency: 'eur' },
+        { billingCurrency: 'pln', currency: 'gbp' }
+      );
+      expect(res).toBe('USD');
+    });
+
+    it('respects task currency over project billingCurrency', () => {
+      const res = resolveEffectiveCurrency(
+        { billingCurrency: '  ', currency: 'chf' },
+        { billingCurrency: 'pln', currency: 'gbp' }
+      );
+      expect(res).toBe('CHF');
+    });
+
+    it('respects project billingCurrency over project currency', () => {
+      const res = resolveEffectiveCurrency(
+        { billingCurrency: null, currency: '' },
+        { billingCurrency: 'cad', currency: 'gbp' }
+      );
+      expect(res).toBe('CAD');
+    });
+
+    it('falls back to project currency when other levels are absent or whitespace', () => {
+      const res = resolveEffectiveCurrency(
+        { billingCurrency: null, currency: '   ' },
+        { billingCurrency: '', currency: ' aud ' }
+      );
+      expect(res).toBe('AUD');
+    });
+
+    it('returns null when all levels are null or whitespace', () => {
+      const res = resolveEffectiveCurrency(
+        { billingCurrency: '  ', currency: '' },
+        { billingCurrency: null, currency: '   ' }
+      );
+      expect(res).toBeNull();
+    });
+  });
+
   describe('resolveEffectiveRate', () => {
     it('resolves task override directly without project', () => {
       const res = resolveEffectiveRate(
@@ -60,6 +124,25 @@ describe('Unit Tests: Pure Billing Resolution & Calculator', () => {
         status: 'unconfigured',
         source: 'none',
       });
+    });
+
+    it('returns normalized currency in EffectiveRateResult', () => {
+      const res = resolveEffectiveRate(
+        { hourlyRate: '150.00', currency: '  usd ' },
+        { currency: 'eur' }
+      );
+      expect(res.currency).toBe('USD');
+      expect(res.status).toBe('custom');
+      expect(res.rate).toBe('150.00');
+      expect(res.source).toBe('task');
+    });
+
+    it('returns null currency when task and project currencies are whitespace-only', () => {
+      const res = resolveEffectiveRate(
+        { hourlyRate: '150.00', currency: '   ' },
+        { currency: '  ' }
+      );
+      expect(res.currency).toBeNull();
     });
   });
 

@@ -94,21 +94,26 @@ pub fn calculate_bankers_amount(duration_seconds: u64, rate_cents: u64) -> u64 {
     }
 }
 
+pub fn normalize_currency(raw: Option<&str>) -> Option<String> {
+    raw.map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_ascii_uppercase())
+}
+
+pub fn resolve_effective_currency(task: &Task, project: Option<&Project>) -> Option<String> {
+    normalize_currency(task.billing_currency.as_deref())
+        .or_else(|| normalize_currency(task.currency.as_deref()))
+        .or_else(|| project.and_then(|p| normalize_currency(p.billing_currency.as_deref())))
+        .or_else(|| project.and_then(|p| normalize_currency(p.currency.as_deref())))
+}
+
 pub fn resolve_effective_rate(
     task: &Task,
     project: Option<&Project>,
     default_rate_cents: Option<u64>,
 ) -> EffectiveRateResult {
     // Currency resolution order: Task billing_currency/currency -> Project billing_currency/currency
-    let currency = task
-        .billing_currency
-        .clone()
-        .or_else(|| task.currency.clone())
-        .or_else(|| {
-            project
-                .as_ref()
-                .and_then(|p| p.billing_currency.clone().or_else(|| p.currency.clone()))
-        });
+    let currency = resolve_effective_currency(task, project);
 
     // Level 1: Task override
     let task_cents = if let Some(cents) = task.billing_rate_cents {
@@ -194,7 +199,7 @@ pub fn resolve_effective_rate(
         };
     }
 
-    // Level 4: Unconfigured / Unbillable fallback
+    // Level 4: Unconfigured fallback
     EffectiveRateResult {
         rate: None,
         currency,

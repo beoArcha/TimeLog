@@ -1,4 +1,4 @@
-import { Task } from '@bindings/Task';
+import { formatCents, parseRateToCents } from '@common/engine/billing/utils';
 
 export type TaskBillingFormMode = 'inherit' | 'non_billable' | 'custom';
 
@@ -7,21 +7,35 @@ export interface TaskBillingFormState {
   readonly customRate: string;
 }
 
+export interface TaskBillingFormInput {
+  readonly hourlyRate?: string | null;
+  readonly billingRateCents?: bigint | number | null;
+}
+
 /**
  * Maps task billing data to initial UI form state, identifying non-billable zero rates
  * and separating custom amounts from inheritance mode.
+ *
+ * Respects canonical `billingRateCents` over legacy `hourlyRate` with the same
+ * precedence and normalization rules as the billing engine resolver.
  */
 export function getTaskBillingFormInitialState(
-  task: Pick<Task, 'hourlyRate'>
+  task: TaskBillingFormInput
 ): TaskBillingFormState {
-  if (task.hourlyRate === null || task.hourlyRate === undefined) {
+  let taskCents: number | null = null;
+  if (task.billingRateCents !== undefined && task.billingRateCents !== null) {
+    taskCents = Number(task.billingRateCents);
+  } else if (task.hourlyRate && task.hourlyRate.trim().length > 0) {
+    taskCents = parseRateToCents(task.hourlyRate);
+  }
+
+  if (taskCents === null) {
     return { mode: 'inherit', customRate: '' };
   }
-  const trimmed = task.hourlyRate.trim();
-  if (trimmed === '0' || trimmed === '0.00') {
+  if (taskCents === 0) {
     return { mode: 'non_billable', customRate: '' };
   }
-  return { mode: 'custom', customRate: task.hourlyRate };
+  return { mode: 'custom', customRate: formatCents(taskCents) };
 }
 
 /**

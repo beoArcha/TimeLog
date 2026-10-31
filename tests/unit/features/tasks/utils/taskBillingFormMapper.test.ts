@@ -45,6 +45,98 @@ describe('Unit Tests: taskBillingFormMapper', () => {
         customRate: '150.00',
       });
     });
+
+    it('returns custom mode when billingRateCents is present and hourlyRate is missing', () => {
+      const state = getTaskBillingFormInitialState({
+        billingRateCents: 25000,
+        hourlyRate: null,
+      });
+      expect(state).toEqual({
+        mode: 'custom',
+        customRate: '250.00',
+      });
+    });
+
+    it('supports bigint billingRateCents when hourlyRate is missing', () => {
+      const state = getTaskBillingFormInitialState({
+        billingRateCents: 18550n,
+        hourlyRate: undefined,
+      });
+      expect(state).toEqual({
+        mode: 'custom',
+        customRate: '185.50',
+      });
+    });
+
+    it('prioritizes canonical billingRateCents over conflicting hourlyRate', () => {
+      const state = getTaskBillingFormInitialState({
+        billingRateCents: 30000,
+        hourlyRate: '99.00',
+      });
+      expect(state).toEqual({
+        mode: 'custom',
+        customRate: '300.00',
+      });
+    });
+
+    it('returns custom mode when both values are present and consistent', () => {
+      const state = getTaskBillingFormInitialState({
+        billingRateCents: 15000,
+        hourlyRate: '150.00',
+      });
+      expect(state).toEqual({
+        mode: 'custom',
+        customRate: '150.00',
+      });
+    });
+
+    it('returns inherit mode when both values are absent', () => {
+      const state = getTaskBillingFormInitialState({});
+      expect(state).toEqual({
+        mode: 'inherit',
+        customRate: '',
+      });
+    });
+
+    it('returns inherit mode when both values are explicit null', () => {
+      const state = getTaskBillingFormInitialState({
+        hourlyRate: null,
+        billingRateCents: null,
+      });
+      expect(state).toEqual({
+        mode: 'inherit',
+        customRate: '',
+      });
+    });
+
+    it('returns non_billable mode when billingRateCents is explicit zero', () => {
+      const state = getTaskBillingFormInitialState({
+        billingRateCents: 0,
+        hourlyRate: null,
+      });
+      expect(state).toEqual({
+        mode: 'non_billable',
+        customRate: '',
+      });
+    });
+
+    it('returns non_billable mode when billingRateCents is bigint zero', () => {
+      const state = getTaskBillingFormInitialState({
+        billingRateCents: 0n,
+        hourlyRate: '100.00', // canonical zero takes precedence
+      });
+      expect(state).toEqual({
+        mode: 'non_billable',
+        customRate: '',
+      });
+    });
+
+    it('distinguishes explicit zero rate (non-billable) from missing rate (inherit)', () => {
+      const zeroState = getTaskBillingFormInitialState({ billingRateCents: 0 });
+      const missingState = getTaskBillingFormInitialState({ billingRateCents: null });
+      expect(zeroState.mode).toBe('non_billable');
+      expect(missingState.mode).toBe('inherit');
+    });
   });
 
   describe('mapBillingFormToHourlyRate', () => {

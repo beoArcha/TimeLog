@@ -1,5 +1,6 @@
 use oxy_flow::engine::billing::{
-    calculate_bankers_amount, format_cents, parse_rate_or_cents, parse_rate_to_cents,
+    calculate_bankers_amount, format_cents, normalize_currency, parse_rate_or_cents,
+    parse_rate_to_cents, resolve_effective_currency, resolve_effective_rate,
     validate_and_parse_rate, validate_currency_code,
 };
 use oxy_flow::engine::Engine;
@@ -321,4 +322,168 @@ fn test_range_billing_calculation() {
     assert_eq!(usd_summary.non_billable_duration_seconds, 1800);
 
     let _ = std::fs::remove_file(db_path);
+}
+
+#[test]
+fn test_normalize_currency_parity() {
+    assert_eq!(normalize_currency(Some("usd")), Some("USD".to_string()));
+    assert_eq!(normalize_currency(Some("  eur  ")), Some("EUR".to_string()));
+    assert_eq!(normalize_currency(Some("")), None);
+    assert_eq!(normalize_currency(Some("   ")), None);
+    assert_eq!(normalize_currency(None), None);
+
+    // Precedence: task billingCurrency > task currency > project billingCurrency > project currency
+    let mut task = Task::new("t1".to_string(), "p1".to_string(), None, "T1".to_string());
+    let mut project = Project::new(
+        "p1".to_string(),
+        "P1".to_string(),
+        "#000".to_string(),
+        None,
+        None,
+        None,
+        None,
+    );
+
+    // Project currency fallback
+    project.currency = Some("  usd  ".to_string());
+    assert_eq!(
+        resolve_effective_currency(&task, Some(&project)),
+        Some("USD".to_string())
+    );
+
+    // Project billingCurrency overrides project currency
+    project.billing_currency = Some("eur".to_string());
+    assert_eq!(
+        resolve_effective_currency(&task, Some(&project)),
+        Some("EUR".to_string())
+    );
+
+    // Task currency overrides project billingCurrency
+    task.currency = Some("  gbp  ".to_string());
+    assert_eq!(
+        resolve_effective_currency(&task, Some(&project)),
+        Some("GBP".to_string())
+    );
+
+    // Task billingCurrency overrides task currency
+    task.billing_currency = Some("chf".to_string());
+    assert_eq!(
+        resolve_effective_currency(&task, Some(&project)),
+        Some("CHF".to_string())
+    );
+
+    // Whitespace-only task billingCurrency falls through to task currency
+    task.billing_currency = Some("   ".to_string());
+    assert_eq!(
+        resolve_effective_currency(&task, Some(&project)),
+        Some("GBP".to_string())
+    );
+
+    // None when everything is empty or whitespace
+    task.currency = Some("".to_string());
+    project.billing_currency = Some("  ".to_string());
+    project.currency = None;
+    assert_eq!(resolve_effective_currency(&task, Some(&project)), None);
+}
+
+#[test]
+fn test_parity_vectors_shared_fixture() {
+    let fixture_str = include_str!("../../../../tests/fixtures/billing-parity-vectors.json");
+    let fixture: serde_json::Value =
+        serde_json::from_str(fixture_str).expect("parse shared fixture");
+
+    // 1. Test rounding vectors
+    for vec in fixture["roundingVectors"].as_array().unwrap() {
+        let desc = vec["description"].as_str().unwrap();
+        let duration = vec["durationSeconds"].as_u64().unwrap();
+        let rate_str = vec["rate"].as_str().unwrap();
+        let expected_amount = vec["expectedAmount"].as_str().unwrap();
+        let rate_cents = parse_rate_to_cents(rate_str).expect("valid rate");
+        let calculated = calculate_bankers_amount(duration, rate_cents);
+        assert_eq!(
+            format_cents(calculated),
+            expected_amount,
+            "Rounding parity failure for: {desc}"
+        );
+    }
+
+    // 2. Test rate parsing vectors
+    for vec in fixture["rateParsingVectors"].as_array().unwrap() {
+        let desc = vec["description"].as_str().unwrap();
+        let input = vec["input"].as_str().unwrap();
+        let expected_cents = vec["expectedCents"].as_u64();
+        let valid = vec["valid"].as_bool().unwrap();
+
+        let parsed = parse_rate_to_cents(input);
+        if valid {
+            assert_eq!(parsed, expected_cents, "Parsed cents mismatch for {desc}");
+        } else {
+            assert_eq!(parsed, None, "Expected invalid for {desc}");
+        }
+    }
+
+    // 3. Test rate resolution vectors
+    for vec in fixture["rateResolutionVectors"].as_array().unwrap() {
+        let desc = vec["description"].as_str().unwrap();
+        let task_rate = vec["taskRate"].as_str().map(|s| s.to_string());
+        let task_billing_rate_cents = vec["taskBillingRateCents"].as_i64();
+        let task_currency = vec["taskCurrency"].as_str().map(|s| s.to_string());
+        let task_billing_currency = vec["taskBillingCurrency"].as_str().map(|s| s.to_string());
+
+        let mut task = Task::new("t1".to_string(), "p1".to_string(), None, "T1".to_string());
+        task.hourly_rate = task_rate;
+        task.billing_rate_cents = task_billing_rate_cents;
+        task.currency = task_currency;
+        task.billing_currency = task_billing_currency;
+
+        let mut project = Project::new(
+            "p1".to_string(),
+            "P1".to_string(),
+            "#000".to_string(),
+            None,
+            None,
+            None,
+            None,
+        );
+        project.hourly_rate = vec["projectRate"].as_str().map(|s| s.to_string());
+        project.billing_rate_cents = vec["projectBillingRateCents"].as_i64();
+        project.currency = vec["projectCurrency"].as_str().map(|s| s.to_string());
+        project.billing_currency = vec["projectBillingCurrency"]
+            .as_str()
+            .map(|s| s.to_string());
+
+        let default_rate_cents = vec["runtimeDefaultRate"]
+            .as_str()
+            .and_then(parse_rate_to_cents);
+
+        let res = resolve_effective_rate(&task, Some(&project), default_rate_cents);
+
+        let expected_status = vec["expectedStatus"].as_str().unwrap();
+        let expected_rate = vec["expectedRate"].as_str();
+        let expected_currency = vec["expectedCurrency"].as_str();
+        let expected_source = vec["expectedSource"].as_str().unwrap();
+
+        let actual_status_str = match res.status {
+            RateStatus::Custom => "custom",
+            RateStatus::Inherited => "inherited",
+            RateStatus::NonBillable => "non_billable",
+            RateStatus::Unconfigured => "unconfigured",
+        };
+
+        assert_eq!(
+            actual_status_str, expected_status,
+            "Status mismatch for {desc}"
+        );
+        assert_eq!(
+            res.rate.as_deref(),
+            expected_rate,
+            "Rate mismatch for {desc}"
+        );
+        assert_eq!(
+            res.currency.as_deref(),
+            expected_currency,
+            "Currency mismatch for {desc}"
+        );
+        assert_eq!(res.source, expected_source, "Source mismatch for {desc}");
+    }
 }

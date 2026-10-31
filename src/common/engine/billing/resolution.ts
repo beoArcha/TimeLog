@@ -15,13 +15,13 @@ export interface BillingRateEntity {
   billingCurrency?: string | null;
 }
 
-function normalizeCurrency(raw?: string | null): string | null {
+export function normalizeCurrency(raw?: string | null): string | null {
   if (!raw) return null;
   const trimmed = raw.trim();
   return trimmed.length > 0 ? trimmed.toUpperCase() : null;
 }
 
-function resolveEffectiveCurrency(
+export function resolveEffectiveCurrency(
   task: BillingRateEntity,
   project?: BillingRateEntity | null
 ): string | null {

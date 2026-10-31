@@ -152,6 +152,85 @@
       "expectedRate": "0.00",
       "expectedCurrency": "USD",
       "expectedSource": "default"
+    },
+    {
+      "description": "Currency normalization: lowercase code to uppercase",
+      "taskRate": "150.00",
+      "taskCurrency": "usd",
+      "projectRate": "100.00",
+      "projectCurrency": "eur",
+      "expectedStatus": "custom",
+      "expectedRate": "150.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Currency normalization: surrounding whitespace trimmed and uppercased",
+      "taskRate": "150.00",
+      "taskCurrency": "  gbp  ",
+      "projectRate": "100.00",
+      "projectCurrency": "USD",
+      "expectedStatus": "custom",
+      "expectedRate": "150.00",
+      "expectedCurrency": "GBP",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Currency normalization: whitespace-only task currency falls back to project currency",
+      "taskRate": "150.00",
+      "taskCurrency": "   ",
+      "projectRate": "100.00",
+      "projectCurrency": " pln ",
+      "expectedStatus": "custom",
+      "expectedRate": "150.00",
+      "expectedCurrency": "PLN",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Currency normalization: empty task currency falls back to project billing currency",
+      "taskRate": "150.00",
+      "taskCurrency": "",
+      "projectRate": "100.00",
+      "projectBillingCurrency": "chf",
+      "expectedStatus": "custom",
+      "expectedRate": "150.00",
+      "expectedCurrency": "CHF",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Currency normalization: null and empty currency across task and project resolves to null",
+      "taskRate": "150.00",
+      "taskCurrency": "   ",
+      "projectRate": "100.00",
+      "projectCurrency": "",
+      "expectedStatus": "custom",
+      "expectedRate": "150.00",
+      "expectedCurrency": null,
+      "expectedSource": "task"
+    },
+    {
+      "description": "Currency precedence: task billingCurrency overrides task currency and project currencies",
+      "taskRate": "100.00",
+      "taskBillingCurrency": " cad ",
+      "taskCurrency": "eur",
+      "projectRate": "100.00",
+      "projectBillingCurrency": "gbp",
+      "projectCurrency": "usd",
+      "expectedStatus": "custom",
+      "expectedRate": "100.00",
+      "expectedCurrency": "CAD",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Canonical rate: billingRateCents present and hourlyRate missing",
+      "taskRate": null,
+      "taskBillingRateCents": 27500,
+      "projectRate": "100.00",
+      "projectCurrency": "USD",
+      "expectedStatus": "custom",
+      "expectedRate": "275.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "task"
     }
   ],
   "rateParsingVectors": [
