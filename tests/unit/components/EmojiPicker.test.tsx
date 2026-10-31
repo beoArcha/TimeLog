@@ -338,4 +338,28 @@ describe('EmojiPicker', () => {
     // Assert
     expect(onChangeMock).toHaveBeenCalledWith('');
   });
+
+  it('should render category labels directly from translation without string fallbacks', () => {
+    // Arrange
+    const customTranslations = {
+      project: {
+        EmojiCategoryAll: 'CustomAll',
+        EmojiCategoryWork: 'CustomWork',
+      },
+    };
+
+    render(
+      <MockProviders state={{ locale: 'custom', customTranslations }}>
+        <EmojiPicker onChange={vi.fn()} />
+      </MockProviders>
+    );
+
+    // Act
+    fireEvent.click(screen.getByTestId('emoji-picker-trigger'));
+
+    // Assert
+    expect(screen.getByTestId('emoji-picker-category-all').textContent).toBe('CustomAll');
+    expect(screen.getByTestId('emoji-picker-category-work').textContent).toBe('CustomWork');
+  });
 });
+

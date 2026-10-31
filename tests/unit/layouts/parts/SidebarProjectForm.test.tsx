@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, cleanup, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { SidebarProjectForm } from '@layouts/parts/sidebar/SidebarProjectForm';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
@@ -46,7 +46,8 @@ describe('SidebarProjectForm', () => {
     // Assert
     expect(container.querySelector('#sidebar-project-advanced-drawer')).not.toBeNull();
     expect(container.querySelector('#sidebar-project-description-input')).not.toBeNull();
-    expect(container.querySelector('#sidebar-project-icon-input')).not.toBeNull();
+    expect(container.querySelector('[data-testid="sidebar-project-emoji-picker-trigger"]')).not.toBeNull();
+    expect(container.querySelector('#sidebar-project-icon-input')).toBeNull();
     expect(container.querySelector('#sidebar-project-tags-input')).not.toBeNull();
     expect(container.querySelector('#new-project-concurrency')).not.toBeNull();
     expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
@@ -107,14 +108,16 @@ describe('SidebarProjectForm', () => {
     fireEvent.click(toggleBtn);
 
     const descInput = container.querySelector('#sidebar-project-description-input') as HTMLTextAreaElement;
-    const iconInput = container.querySelector('#sidebar-project-icon-input') as HTMLInputElement;
+    const emojiTrigger = container.querySelector('[data-testid="sidebar-project-emoji-picker-trigger"]') as HTMLButtonElement;
     const tagsInput = container.querySelector('#sidebar-project-tags-input') as HTMLInputElement;
     const switchBtn = container.querySelector('#new-project-concurrency') as HTMLElement;
     const addBtn = container.querySelector('#add-project-btn') as HTMLButtonElement;
 
     // Act
     fireEvent.change(descInput, { target: { value: 'Deep architecture description' } });
-    fireEvent.change(iconInput, { target: { value: '🚀' } });
+    fireEvent.click(emojiTrigger);
+    const emojiBtn = screen.getByTestId('sidebar-project-emoji-picker-emoji-🚀');
+    fireEvent.click(emojiBtn);
     fireEvent.change(tagsInput, { target: { value: 'frontend, ui, core' } });
     fireEvent.click(switchBtn);
     fireEvent.click(addBtn);
@@ -276,4 +279,109 @@ describe('SidebarProjectForm', () => {
       false
     );
   });
+
+  it('should append tag suggestion to empty tags input when chip is clicked', () => {
+    // Arrange
+    const existingProjects = [
+      {
+        id: 'p1',
+        name: 'Project 1',
+        color: 'teal',
+        archived: false,
+        createdAt: '2026-01-01',
+        description: null,
+        icon: null,
+        tags: ['frontend', 'react'],
+        allowConcurrency: false,
+      },
+    ];
+
+    const { container } = render(
+      <MockProviders dataState={{ projects: existingProjects }}>
+        <SidebarProjectForm onAddProject={vi.fn()} locale="en" />
+      </MockProviders>
+    );
+
+    const toggleBtn = container.querySelector('#sidebar-project-toggle-advanced') as HTMLButtonElement;
+    fireEvent.click(toggleBtn);
+    const tagsInput = container.querySelector('#sidebar-project-tags-input') as HTMLInputElement;
+    const chip = screen.getByTestId('tag-suggestion-frontend');
+
+    // Act
+    fireEvent.click(chip);
+
+    // Assert
+    expect(tagsInput.value).toBe('frontend');
+  });
+
+  it('should append tag suggestion to non-empty tags input without replacing existing tags when chip is clicked', () => {
+    // Arrange
+    const existingProjects = [
+      {
+        id: 'p1',
+        name: 'Project 1',
+        color: 'teal',
+        archived: false,
+        createdAt: '2026-01-01',
+        description: null,
+        icon: null,
+        tags: ['frontend', 'backend'],
+        allowConcurrency: false,
+      },
+    ];
+
+    const { container } = render(
+      <MockProviders dataState={{ projects: existingProjects }}>
+        <SidebarProjectForm onAddProject={vi.fn()} locale="en" />
+      </MockProviders>
+    );
+
+    const toggleBtn = container.querySelector('#sidebar-project-toggle-advanced') as HTMLButtonElement;
+    fireEvent.click(toggleBtn);
+    const tagsInput = container.querySelector('#sidebar-project-tags-input') as HTMLInputElement;
+    fireEvent.change(tagsInput, { target: { value: 'core' } });
+    const chip = screen.getByTestId('tag-suggestion-frontend');
+
+    // Act
+    fireEvent.click(chip);
+
+    // Assert
+    expect(tagsInput.value).toBe('core, frontend');
+  });
+
+  it('should not duplicate tag suggestion when clicking chip of already selected tag', () => {
+    // Arrange
+    const existingProjects = [
+      {
+        id: 'p1',
+        name: 'Project 1',
+        color: 'teal',
+        archived: false,
+        createdAt: '2026-01-01',
+        description: null,
+        icon: null,
+        tags: ['frontend'],
+        allowConcurrency: false,
+      },
+    ];
+
+    const { container } = render(
+      <MockProviders dataState={{ projects: existingProjects }}>
+        <SidebarProjectForm onAddProject={vi.fn()} locale="en" />
+      </MockProviders>
+    );
+
+    const toggleBtn = container.querySelector('#sidebar-project-toggle-advanced') as HTMLButtonElement;
+    fireEvent.click(toggleBtn);
+    const tagsInput = container.querySelector('#sidebar-project-tags-input') as HTMLInputElement;
+    fireEvent.change(tagsInput, { target: { value: 'frontend, ui' } });
+    const chip = screen.getByTestId('tag-suggestion-frontend');
+
+    // Act
+    fireEvent.click(chip);
+
+    // Assert
+    expect(tagsInput.value).toBe('frontend, ui');
+  });
 });
+
