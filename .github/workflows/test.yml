@@ -3,6 +3,12 @@ name: Tests
 on:
   push:
     branches: [main, release]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '**/*.md'
+      - '*.mdx'
+      - '**/*.mdx'
 
   workflow_call:
     inputs:
