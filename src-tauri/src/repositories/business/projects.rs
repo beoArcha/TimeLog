@@ -4,17 +4,25 @@ use crate::repositories::shared::errors::{RepositoryError, Result};
 use crate::types::{Project, ProjectEditHistory};
 use rusqlite::{params, OptionalExtension};
 
-fn validate_row_billing_rate_cents(row: &rusqlite::Row, index: usize) -> rusqlite::Result<Option<i64>> {
+fn validate_row_billing_rate_cents(
+    row: &rusqlite::Row,
+    index: usize,
+) -> rusqlite::Result<Option<i64>> {
     let cents: Option<i64> = row.get(index)?;
     if let Some(value) = cents {
         if crate::engine::billing::validate_stored_billing_rate_cents(value).is_err() {
-            return Err(rusqlite::Error::FromSqlConversionFailure(index, rusqlite::types::Type::Integer,
-                Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "billing_rate_cents is negative or exceeds the supported safe-integer range"))));
+            return Err(rusqlite::Error::FromSqlConversionFailure(
+                index,
+                rusqlite::types::Type::Integer,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "billing_rate_cents is negative or exceeds the supported safe-integer range",
+                )),
+            ));
         }
     }
     Ok(cents)
 }
-
 
 impl BusinessRepository {
     pub fn create_project(&self, project: &Project) -> Result<()> {
@@ -44,7 +52,13 @@ impl BusinessRepository {
         let effective_hourly_rate: Option<String> = project
             .hourly_rate
             .clone()
-            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(u64::try_from(c).expect("validated billing cents"))));
+            .or_else(|| {
+                effective_cents.map(|c| {
+                    crate::engine::billing::format_cents(
+                        u64::try_from(c).expect("validated billing cents"),
+                    )
+                })
+            });
         let effective_currency: Option<String> = project
             .currency
             .clone()

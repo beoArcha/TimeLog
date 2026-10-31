@@ -17,28 +17,84 @@ pub fn validate_currency_code(s: &str) -> Result<String, EngineError> {
 }
 
 pub const MAX_BILLING_RATE_CENTS: u64 = 9_007_199_254_740_991;
+
 pub fn validate_billing_rate_cents(cents: u64) -> Result<u64, EngineError> {
-    if cents > MAX_BILLING_RATE_CENTS { return Err(EngineError::Validation(format!("Billing rate exceeds the supported maximum of {} cents", MAX_BILLING_RATE_CENTS))); }
+    if cents > MAX_BILLING_RATE_CENTS {
+        return Err(EngineError::Validation(format!(
+            "Billing rate exceeds the supported maximum of {} cents",
+            MAX_BILLING_RATE_CENTS
+        )));
+    }
     Ok(cents)
 }
+
 pub fn checked_billing_rate_to_i64(cents: u64) -> Result<i64, EngineError> {
-    i64::try_from(validate_billing_rate_cents(cents)?).map_err(|_| EngineError::Validation("Billing rate exceeds the supported storage range".to_string()))
+    i64::try_from(validate_billing_rate_cents(cents)?).map_err(|_| {
+        EngineError::Validation("Billing rate exceeds the supported storage range".to_string())
+    })
 }
+
 pub fn validate_stored_billing_rate_cents(cents: i64) -> Result<u64, EngineError> {
-    validate_billing_rate_cents(u64::try_from(cents).map_err(|_| EngineError::Validation("Stored billing rate cannot be negative".to_string()))?)
+    let cents = u64::try_from(cents).map_err(|_| {
+        EngineError::Validation("Stored billing rate cannot be negative".to_string())
+    })?;
+    validate_billing_rate_cents(cents)
 }
+
 pub fn validate_and_parse_rate(s: &str) -> Result<u64, EngineError> {
     let trimmed = s.trim();
-    if trimmed.is_empty() { return Err(EngineError::Validation("Hourly rate cannot be empty".to_string())); }
+    if trimmed.is_empty() {
+        return Err(EngineError::Validation(
+            "Hourly rate cannot be empty".to_string(),
+        ));
+    }
     let cents = if let Some((whole_str, frac_str)) = trimmed.split_once('.') {
-        if whole_str.is_empty() || !whole_str.chars().all(|c| c.is_ascii_digit()) { return Err(EngineError::Validation(format!("Invalid rate format: '{}'", s))); }
-        let whole = whole_str.parse::<u64>().map_err(|_| EngineError::Validation(format!("Invalid whole rate component: '{}'", whole_str)))?;
-        if frac_str.len() > 2 || !frac_str.chars().all(|c| c.is_ascii_digit()) { return Err(EngineError::Validation(format!("Rate fraction can have at most 2 decimal places: '{}'", s))); }
-        let frac = match frac_str.len() { 0 => 0, 1 => frac_str.parse::<u64>().unwrap() * 10, _ => frac_str.parse::<u64>().unwrap() };
-        whole.checked_mul(100).and_then(|w| w.checked_add(frac)).ok_or_else(|| EngineError::Validation(format!("Rate value '{}' exceeds supported range", s)))?
+        if whole_str.is_empty() || !whole_str.chars().all(|c| c.is_ascii_digit()) {
+            return Err(EngineError::Validation(format!(
+                "Invalid rate format: '{}'",
+                s
+            )));
+        }
+        let whole = whole_str.parse::<u64>().map_err(|_| {
+            EngineError::Validation(format!(
+                "Invalid whole rate component: '{}'",
+                whole_str
+            ))
+        })?;
+        if frac_str.len() > 2 || !frac_str.chars().all(|c| c.is_ascii_digit()) {
+            return Err(EngineError::Validation(format!(
+                "Rate fraction can have at most 2 decimal places: '{}'",
+                s
+            )));
+        }
+        let frac = match frac_str.len() {
+            0 => 0,
+            1 => frac_str.parse::<u64>().unwrap() * 10,
+            _ => frac_str.parse::<u64>().unwrap(),
+        };
+        whole
+            .checked_mul(100)
+            .and_then(|w| w.checked_add(frac))
+            .ok_or_else(|| {
+                EngineError::Validation(format!(
+                    "Rate value '{}' exceeds supported range",
+                    s
+                ))
+            })?
     } else {
-        if !trimmed.chars().all(|c| c.is_ascii_digit()) { return Err(EngineError::Validation(format!("Invalid rate: '{}'", s))); }
-        trimmed.parse::<u64>().map_err(|_| EngineError::Validation(format!("Invalid rate: '{}'", s)))?.checked_mul(100).ok_or_else(|| EngineError::Validation(format!("Rate value '{}' exceeds supported range", s)))?
+        if !trimmed.chars().all(|c| c.is_ascii_digit()) {
+            return Err(EngineError::Validation(format!("Invalid rate: '{}'", s)));
+        }
+        trimmed
+            .parse::<u64>()
+            .map_err(|_| EngineError::Validation(format!("Invalid rate: '{}'", s)))?
+            .checked_mul(100)
+            .ok_or_else(|| {
+                EngineError::Validation(format!(
+                    "Rate value '{}' exceeds supported range",
+                    s
+                ))
+            })?
     };
     validate_billing_rate_cents(cents)
 }
@@ -49,14 +105,24 @@ pub fn parse_rate_to_cents(s: &str) -> Option<u64> {
 
 pub fn parse_rate_or_cents(s: &str) -> Option<u64> {
     let trimmed = s.trim();
-    if trimmed.is_empty() { return None; }
-    let cents = if let Some(value) = trimmed.strip_suffix('c').or_else(|| trimmed.strip_suffix('¢')) {
+    if trimmed.is_empty() {
+        return None;
+    }
+    let cents = if let Some(value) = trimmed
+        .strip_suffix('c')
+        .or_else(|| trimmed.strip_suffix('¢'))
+    {
         let value = value.trim();
-        if value.is_empty() || !value.chars().all(|c| c.is_ascii_digit()) { return None; }
+        if value.is_empty() || !value.chars().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
         value.parse::<u64>().ok()?
-    } else if trimmed.contains('.') { return parse_rate_to_cents(trimmed); }
-    else {
-        if !trimmed.chars().all(|c| c.is_ascii_digit()) { return None; }
+    } else if trimmed.contains('.') {
+        return parse_rate_to_cents(trimmed);
+    } else {
+        if !trimmed.chars().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
         trimmed.parse::<u64>().ok()?.checked_mul(100)?
     };
     validate_billing_rate_cents(cents).ok()
