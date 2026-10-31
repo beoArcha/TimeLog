@@ -30,6 +30,7 @@ impl NormalizedBillingCreation {
         }
 
         let (hourly_rate, billing_rate_cents) = if let Some(cents) = rate_cents {
+            crate::engine::billing::validate_billing_rate_cents(cents).map_err(CliError::Engine)?;
             let cents_i64 = i64::try_from(cents).map_err(|_| {
                 CliError::Engine(crate::engine::EngineError::Validation(format!(
                     "Rate cents value '{}' exceeds supported range",
@@ -45,6 +46,7 @@ impl NormalizedBillingCreation {
                     trimmed
                 )))
             })?;
+            crate::engine::billing::validate_billing_rate_cents(cents).map_err(CliError::Engine)?;
             let cents_i64 = i64::try_from(cents).map_err(|_| {
                 CliError::Engine(crate::engine::EngineError::Validation(format!(
                     "Rate cents value '{}' exceeds supported range",
@@ -94,6 +96,7 @@ impl NormalizedBillingUpdate {
         }
 
         let (rate_action, rate_cents_action) = if let Some(cents) = rate_cents {
+            crate::engine::billing::validate_billing_rate_cents(cents).map_err(CliError::Engine)?;
             let cents_i64 = i64::try_from(cents).map_err(|_| {
                 CliError::Engine(crate::engine::EngineError::Validation(format!(
                     "Rate cents value '{}' exceeds supported range",
@@ -118,7 +121,8 @@ impl NormalizedBillingUpdate {
                         trimmed
                     )))
                 })?;
-                let cents_i64 = i64::try_from(cents).map_err(|_| {
+                crate::engine::billing::validate_billing_rate_cents(cents).map_err(CliError::Engine)?;
+            let cents_i64 = i64::try_from(cents).map_err(|_| {
                     CliError::Engine(crate::engine::EngineError::Validation(format!(
                         "Rate cents value '{}' exceeds supported range",
                         cents

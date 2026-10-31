@@ -100,7 +100,7 @@ pub fn add_project(
         if !trimmed.is_empty() {
             let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
             project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-            project.billing_rate_cents = Some(cents as i64);
+            project.billing_rate_cents = Some(crate::engine::billing::checked_billing_rate_to_i64(cents)?);
         }
     }
     if let Some(curr_str) = input.currency {
@@ -160,7 +160,7 @@ pub fn update_project_details(
                 let trimmed = rate_str.trim();
                 let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
                 project.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-                project.billing_rate_cents = Some(cents as i64);
+                project.billing_rate_cents = Some(crate::engine::billing::checked_billing_rate_to_i64(cents)?);
             }
             None => {
                 project.hourly_rate = None;
