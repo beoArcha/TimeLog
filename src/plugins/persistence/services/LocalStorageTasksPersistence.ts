@@ -23,6 +23,7 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
     projectId: string;
     name: string;
     parentTaskId: string | null;
+    hourlyRate?: string | null;
   }): Promise<TimerRepositoryState> {
     return this.store.mutate((current) => {
       try {
@@ -43,6 +44,7 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
         createdAt: now,
         completed: false,
         status: 'Todo' as TaskStatus,
+        hourlyRate: input.hourlyRate ?? undefined,
       };
       current.tasks.push(newTask);
     });
@@ -53,7 +55,8 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
     name: string,
     parentTaskId: string | null,
     status: TaskStatus | null,
-    completed: boolean | null
+    completed: boolean | null,
+    hourlyRate?: string | null
   ): Promise<TimerRepositoryState> {
     return this.store.mutate((current) => {
       try {
@@ -83,6 +86,10 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
       } else if (status !== null) {
         task.status = status;
         task.completed = status === 'Done';
+      }
+
+      if (hourlyRate !== undefined) {
+        task.hourlyRate = hourlyRate ?? undefined;
       }
     });
   }

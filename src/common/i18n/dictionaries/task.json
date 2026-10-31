@@ -24,7 +24,13 @@
     "StatusTodo": "TODO",
     "StatusInProgress": "In Progress",
     "StatusDone": "Done",
-    "StatusBlocked": "Blocked"
+    "StatusBlocked": "Blocked",
+    "BillingRate": "Billing Rate",
+    "RateInherit": "Inherit from project",
+    "RateCustom": "Custom rate",
+    "RateNonBillable": "Non-billable (0.00)",
+    "RateCustomLabel": "Custom hourly rate",
+    "RatePlaceholder": "0.00"
   },
   "pl": {
     "AddTask": "Dodaj zadanie",
@@ -51,7 +57,13 @@
     "StatusTodo": "Do zrobienia",
     "StatusInProgress": "W toku",
     "StatusDone": "Ukończone",
-    "StatusBlocked": "Zablokowane"
+    "StatusBlocked": "Zablokowane",
+    "BillingRate": "Stawka rozliczeniowa",
+    "RateInherit": "Dziedzicz z projektu",
+    "RateCustom": "Własna stawka",
+    "RateNonBillable": "Nierozliczalne (0.00)",
+    "RateCustomLabel": "Własna stawka godzinowa",
+    "RatePlaceholder": "0.00"
   },
   "de": {
     "AddTask": "Aufgabe hinzufügen",
@@ -78,7 +90,13 @@
     "StatusTodo": "Zu erledigen",
     "StatusInProgress": "In Bearbeitung",
     "StatusDone": "Erledigt",
-    "StatusBlocked": "Blockiert"
+    "StatusBlocked": "Blockiert",
+    "BillingRate": "Abrechnungssatz",
+    "RateInherit": "Vom Projekt erben",
+    "RateCustom": "Benutzerdefinierter Satz",
+    "RateNonBillable": "Nicht abrechenbar (0.00)",
+    "RateCustomLabel": "Eigener Stundensatz",
+    "RatePlaceholder": "0.00"
   },
   "es": {
     "AddTask": "Agregar Tarea",
@@ -105,7 +123,13 @@
     "StatusTodo": "Por hacer",
     "StatusInProgress": "En curso",
     "StatusDone": "Hecho",
-    "StatusBlocked": "Bloqueado"
+    "StatusBlocked": "Bloqueado",
+    "BillingRate": "Tarifa de facturación",
+    "RateInherit": "Heredar del proyecto",
+    "RateCustom": "Tarifa personalizada",
+    "RateNonBillable": "No facturable (0.00)",
+    "RateCustomLabel": "Tarifa por hora personalizada",
+    "RatePlaceholder": "0.00"
   },
   "fr": {
     "AddTask": "Ajouter une Tâche",
@@ -132,7 +156,13 @@
     "StatusTodo": "À faire",
     "StatusInProgress": "En cours",
     "StatusDone": "Terminé",
-    "StatusBlocked": "Bloqué"
+    "StatusBlocked": "Bloqué",
+    "BillingRate": "Taux de facturation",
+    "RateInherit": "Hériter du projet",
+    "RateCustom": "Taux personnalisé",
+    "RateNonBillable": "Non facturable (0.00)",
+    "RateCustomLabel": "Taux horaire personnalisé",
+    "RatePlaceholder": "0.00"
   },
   "pt-br": {
     "AddTask": "Adicionar Tarefa",
@@ -159,6 +189,12 @@
     "StatusTodo": "A fazer",
     "StatusInProgress": "Em progresso",
     "StatusDone": "Concluído",
-    "StatusBlocked": "Bloqueado"
+    "StatusBlocked": "Bloqueado",
+    "BillingRate": "Taxa de cobrança",
+    "RateInherit": "Herdar do projeto",
+    "RateCustom": "Taxa personalizada",
+    "RateNonBillable": "Não faturável (0.00)",
+    "RateCustomLabel": "Taxa horária personalizada",
+    "RatePlaceholder": "0.00"
   }
 }

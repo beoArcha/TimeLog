@@ -30,7 +30,8 @@ impl BusinessRepository {
                 task.original_completed.unwrap_or(false) as i32,
                 edit_history_str,
                 task.archived.unwrap_or(false) as i32,
-                status_str
+                status_str,
+                task.hourly_rate
             ],
         )?;
         Ok(())
@@ -59,7 +60,8 @@ impl BusinessRepository {
                 task.original_completed.unwrap_or(false) as i32,
                 edit_history_str,
                 task.archived.unwrap_or(false) as i32,
-                status_str
+                status_str,
+                task.hourly_rate
             ],
         )?;
         if affected == 0 {
@@ -125,6 +127,7 @@ impl BusinessRepository {
             edit_history,
             archived: Some(archived_int == 1),
             status,
+            hourly_rate: row.get(11)?,
         })
     }
 

@@ -23,7 +23,9 @@ export interface SidebarProjectFormProps {
     description: string | null,
     icon: string | null,
     tags: string[] | null,
-    allowConcurrency?: boolean | null
+    allowConcurrency?: boolean | null,
+    hourlyRate?: string | null,
+    currency?: string | null
   ) => void;
   isLoading?: boolean;
   locale: Locale;
@@ -53,6 +55,8 @@ export function SidebarProjectForm({
   const [description, setDescription] = React.useState('');
   const [icon, setIcon] = React.useState('');
   const [tags, setTags] = React.useState('');
+  const [hourlyRate, setHourlyRate] = React.useState('');
+  const [currency, setCurrency] = React.useState('');
   const [allowConcurrencyOverride, setAllowConcurrencyOverride] = React.useState<boolean | null>(null);
   const allowConcurrency = allowConcurrencyOverride ?? defaultConcurrency;
   const colorInputRef = React.useRef<HTMLInputElement>(null);
@@ -99,7 +103,9 @@ export function SidebarProjectForm({
       description.trim() || null,
       icon.trim() || null,
       tagsArr.length > 0 ? tagsArr : null,
-      allowConcurrency
+      allowConcurrency,
+      hourlyRate.trim() || null,
+      currency.trim() || null
     );
 
     handleNameChange('');
@@ -108,6 +114,8 @@ export function SidebarProjectForm({
     setDescription('');
     setIcon('');
     setTags('');
+    setHourlyRate('');
+    setCurrency('');
     setAllowConcurrencyOverride(null);
     setShowAdvanced(false);
   };
@@ -308,6 +316,30 @@ export function SidebarProjectForm({
               onChange={e => setDescription(e.target.value)}
               className="w-full px-2 py-1 text-xs min-h-[40px] h-10 resize-none"
             />
+
+            <HStack gap="xs" className="w-full">
+              <Input
+                id="sidebar-project-hourly-rate"
+                data-testid="sidebar-project-hourly-rate"
+                type="text"
+                placeholder={translate(locale, 'project', 'HourlyRatePlaceholder', customTranslations)}
+                aria-label={translate(locale, 'project', 'HourlyRate', customTranslations)}
+                value={hourlyRate}
+                onChange={e => setHourlyRate(e.target.value)}
+                className="flex-1 px-2 py-1 text-xs"
+              />
+              <Input
+                id="sidebar-project-currency"
+                data-testid="sidebar-project-currency"
+                type="text"
+                placeholder={translate(locale, 'project', 'CurrencyPlaceholder', customTranslations)}
+                aria-label={translate(locale, 'project', 'Currency', customTranslations)}
+                value={currency}
+                onChange={e => setCurrency(e.target.value.toUpperCase())}
+                maxLength={4}
+                className="w-20 px-2 py-1 text-xs uppercase"
+              />
+            </HStack>
 
             <HStack justify="between" align="center" className="w-full pt-1">
               <VStack gap="none">

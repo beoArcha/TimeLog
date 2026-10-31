@@ -2,4 +2,4 @@
 import type { TaskEditHistory } from "./TaskEditHistory";
 import type { TaskStatus } from "./TaskStatus";
 
-export type Task = { id: string, projectId: string, parentTaskId?: string, name: string, createdAt: string, completed: boolean, status?: TaskStatus, originalName?: string, originalCompleted?: boolean, editHistory?: Array<TaskEditHistory>, archived?: boolean, };
+export type Task = { id: string, projectId: string, parentTaskId?: string, name: string, createdAt: string, completed: boolean, status?: TaskStatus, originalName?: string, originalCompleted?: boolean, editHistory?: Array<TaskEditHistory>, archived?: boolean, hourlyRate?: string, };

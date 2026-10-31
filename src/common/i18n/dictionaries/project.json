@@ -58,7 +58,12 @@
     "DeleteProjectWarningTasks": "This project contains {count} task(s). Are you sure you want to delete this project and all its tasks?",
     "CannotDeleteProjectWithTimeLogs": "Projects with recorded time logs cannot be deleted. Archive the project instead.",
     "CustomColorPicker": "Custom Color",
-    "TagSuggestionsLabel": "Existing Tags"
+    "TagSuggestionsLabel": "Existing Tags",
+    "HourlyRate": "Hourly Rate",
+    "HourlyRatePlaceholder": "e.g. 150.00",
+    "Currency": "Currency",
+    "CurrencyPlaceholder": "USD, EUR, PLN...",
+    "RateInvalid": "Rate must be a non-negative number"
   },
   "pl": {
     "NewProject": "Nowy Projekt",
@@ -119,7 +124,12 @@
     "DeleteProjectWarningTasks": "Ten projekt zawiera {count} zadań. Czy na pewno chcesz usunąć ten projekt wraz ze wszystkimi zadaniami?",
     "CannotDeleteProjectWithTimeLogs": "Projekty z zarejestrowanym czasem pracy nie mogą zostać usunięte. Zamiast tego zarchiwizuj projekt.",
     "CustomColorPicker": "Kolor niestandardowy",
-    "TagSuggestionsLabel": "Istniejące tagi"
+    "TagSuggestionsLabel": "Istniejące tagi",
+    "HourlyRate": "Stawka godzinowa",
+    "HourlyRatePlaceholder": "np. 150.00",
+    "Currency": "Waluta",
+    "CurrencyPlaceholder": "PLN, EUR, USD...",
+    "RateInvalid": "Stawka musi być liczbą nieujemną"
   },
   "de": {
     "NewProject": "Neues Projekt",
@@ -180,7 +190,12 @@
     "DeleteProjectWarningTasks": "Dieses Projekt enthält {count} Aufgabe(n). Sind Sie sicher, dass Sie dieses Projekt und alle seine Aufgaben löschen möchten?",
     "CannotDeleteProjectWithTimeLogs": "Projekte mit erfassten Zeiteinträgen können nicht gelöscht werden. Archivieren Sie stattdessen das Projekt.",
     "CustomColorPicker": "Benutzerdefinierte Farbe",
-    "TagSuggestionsLabel": "Bestehende Tags"
+    "TagSuggestionsLabel": "Bestehende Tags",
+    "HourlyRate": "Stundensatz",
+    "HourlyRatePlaceholder": "z.B. 150.00",
+    "Currency": "Währung",
+    "CurrencyPlaceholder": "EUR, USD, CHF...",
+    "RateInvalid": "Der Satz muss eine nicht-negative Zahl sein"
   },
   "es": {
     "NewProject": "Nuevo Proyecto",
@@ -241,7 +256,12 @@
     "DeleteProjectWarningTasks": "Este proyecto contiene {count} tarea(s). ¿Está seguro de que desea eliminar este proyecto y todas sus tareas?",
     "CannotDeleteProjectWithTimeLogs": "Los proyectos con registros de tiempo no se pueden eliminar. En su lugar, archive el proyecto.",
     "CustomColorPicker": "Color personalizado",
-    "TagSuggestionsLabel": "Etiquetas existentes"
+    "TagSuggestionsLabel": "Etiquetas existentes",
+    "HourlyRate": "Tarifa por hora",
+    "HourlyRatePlaceholder": "ej. 150.00",
+    "Currency": "Moneda",
+    "CurrencyPlaceholder": "EUR, USD, MXN...",
+    "RateInvalid": "La tarifa debe ser un número no negativo"
   },
   "fr": {
     "NewProject": "Nouveau Projet",
@@ -302,7 +322,12 @@
     "DeleteProjectWarningTasks": "Ce projet contient {count} tâche(s). Êtes-vous sûr de vouloir supprimer ce projet et toutes ses tâches ?",
     "CannotDeleteProjectWithTimeLogs": "Les projets avec des journaux de temps enregistrés ne peuvent pas être supprimés. Archivez plutôt le projet.",
     "CustomColorPicker": "Couleur personnalisée",
-    "TagSuggestionsLabel": "Balises existantes"
+    "TagSuggestionsLabel": "Balises existantes",
+    "HourlyRate": "Taux horaire",
+    "HourlyRatePlaceholder": "ex. 150.00",
+    "Currency": "Devise",
+    "CurrencyPlaceholder": "EUR, USD, CHF...",
+    "RateInvalid": "Le taux doit être un nombre non négatif"
   },
   "pt-br": {
     "NewProject": "Novo Projeto",
@@ -363,6 +388,11 @@
     "DeleteProjectWarningTasks": "Este projeto contém {count} tarefa(s). Tem certeza de que deseja excluir este projeto e todas as suas tarefas?",
     "CannotDeleteProjectWithTimeLogs": "Projetos com registros de tempo gravados não podem ser excluídos. Em vez disso, arquive o projeto.",
     "CustomColorPicker": "Cor personalizada",
-    "TagSuggestionsLabel": "Tags existentes"
+    "TagSuggestionsLabel": "Tags existentes",
+    "HourlyRate": "Taxa horária",
+    "HourlyRatePlaceholder": "ex. 150.00",
+    "Currency": "Moeda",
+    "CurrencyPlaceholder": "BRL, USD, EUR...",
+    "RateInvalid": "A taxa deve ser um número não negativo"
   }
 }

@@ -43,6 +43,8 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     icon?: string | null;
     tags?: string[] | null;
     allowConcurrency?: boolean | null;
+    hourlyRate?: string | null;
+    currency?: string | null;
   }): Promise<TimerRepositoryState> {
     return this.store.mutate((current) => {
       const newProject: Project = {
@@ -55,6 +57,8 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
         icon: input.icon ?? undefined,
         tags: input.tags ?? undefined,
         allowConcurrency: input.allowConcurrency ?? undefined,
+        hourlyRate: input.hourlyRate ?? undefined,
+        currency: input.currency ?? undefined,
       };
       current.projects.push(newProject);
     });
@@ -73,7 +77,9 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     description: string | null,
     icon: string | null,
     tags: string[] | null,
-    allowConcurrency?: boolean | null
+    allowConcurrency?: boolean | null,
+    hourlyRate?: string | null,
+    currency?: string | null
   ): Promise<TimerRepositoryState> {
     return this.mutateProject(projectId, (project) => {
       project.name = name;
@@ -82,6 +88,8 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
       project.icon = icon ?? undefined;
       project.tags = tags ?? undefined;
       project.allowConcurrency = allowConcurrency ?? undefined;
+      project.hourlyRate = hourlyRate !== undefined ? (hourlyRate ?? undefined) : project.hourlyRate;
+      project.currency = currency !== undefined ? (currency ?? undefined) : project.currency;
     });
   }
 

@@ -13,6 +13,8 @@ pub struct ProjectInput {
     pub icon: Option<String>,
     pub tags: Option<Vec<String>>,
     pub allow_concurrency: Option<bool>,
+    pub hourly_rate: Option<String>,
+    pub currency: Option<String>,
 }
 
 struct ValidatedProjectData {
@@ -64,7 +66,7 @@ pub fn add_project(
     let engine = Engine::new(persistence);
     let validated = validate_project_input(&engine, &input, None)?;
 
-    let project = Project::new(
+    let mut project = Project::new(
         format!("proj_{}", chrono::Utc::now().timestamp_millis()),
         validated.name,
         input.color,
@@ -73,6 +75,8 @@ pub fn add_project(
         validated.tags,
         input.allow_concurrency,
     );
+    project.hourly_rate = input.hourly_rate;
+    project.currency = input.currency;
     persistence.projects.create(project)?;
     Ok(engine.get_state()?)
 }
@@ -109,6 +113,8 @@ pub fn update_project_details(
     project.icon = input.icon;
     project.tags = validated.tags;
     project.allow_concurrency = input.allow_concurrency;
+    project.hourly_rate = input.hourly_rate;
+    project.currency = input.currency;
     persistence.projects.patch(project)?;
 
     Ok(engine.get_state()?)
@@ -136,6 +142,8 @@ pub fn add(
     icon: Option<String>,
     tags: Option<Vec<String>>,
     allow_concurrency: Option<bool>,
+    hourly_rate: Option<String>,
+    currency: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     add_project(
@@ -147,6 +155,8 @@ pub fn add(
             icon,
             tags,
             allow_concurrency,
+            hourly_rate,
+            currency,
         },
     )
 }
@@ -160,6 +170,7 @@ pub fn toggle_archive(
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateProjectDto {
     pub project_id: String,
     pub name: String,
@@ -168,6 +179,8 @@ pub struct UpdateProjectDto {
     pub icon: Option<String>,
     pub tags: Option<Vec<String>>,
     pub allow_concurrency: Option<bool>,
+    pub hourly_rate: Option<String>,
+    pub currency: Option<String>,
 }
 
 #[tauri::command]
@@ -185,6 +198,8 @@ pub fn update_project(
             icon: input.icon,
             tags: input.tags,
             allow_concurrency: input.allow_concurrency,
+            hourly_rate: input.hourly_rate,
+            currency: input.currency,
         },
     )
 }

@@ -12,12 +12,14 @@ export class TauriTasksPersistence implements ITasksPersistence {
     projectId: string;
     name: string;
     parentTaskId: string | null;
+    hourlyRate?: string | null;
   }): Promise<TimerRepositoryState> {
     const cmd: TasksPersistenceCommand = 'create';
     return invoke<TimerRepositoryState>(cmd, {
       projectId: input.projectId,
       name: input.name,
       parentTaskId: input.parentTaskId,
+      hourlyRate: input.hourlyRate ?? null,
     });
   }
 
@@ -26,7 +28,8 @@ export class TauriTasksPersistence implements ITasksPersistence {
     name: string,
     parentTaskId: string | null,
     status: TaskStatus | null,
-    completed: boolean | null
+    completed: boolean | null,
+    hourlyRate?: string | null
   ): Promise<TimerRepositoryState> {
     const cmd: TasksPersistenceCommand = 'update_task';
     return invoke<TimerRepositoryState>(cmd, {
@@ -35,6 +38,7 @@ export class TauriTasksPersistence implements ITasksPersistence {
       parentTaskId,
       status,
       completed,
+      hourlyRate: hourlyRate !== undefined ? hourlyRate : null,
     });
   }
 

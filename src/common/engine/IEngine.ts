@@ -8,6 +8,16 @@ import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 
+import {
+  IBillingEngine,
+  RangeBillingResult,
+  EffectiveRateResult,
+  TaskBillingSummary,
+  CurrencyBillingSummary,
+  RateStatus,
+  RateMode,
+} from './billing/types';
+
 export {
   type EngineComputedMetrics,
   type TaskComputedMetrics,
@@ -15,6 +25,13 @@ export {
   type ElapsedRangeFilter,
   type RangeMetricsResult,
   type ClampedTimeLog,
+  type IBillingEngine,
+  type RangeBillingResult,
+  type EffectiveRateResult,
+  type TaskBillingSummary,
+  type CurrencyBillingSummary,
+  type RateStatus,
+  type RateMode,
 };
 
 export interface ITimerEngine {
@@ -64,4 +81,5 @@ export interface IEngine {
   readonly metrics: IMetricsEngine;
   readonly timeLogs: ITimeLogsEngine;
   readonly validation: IValidationEngine;
+  readonly billing: IBillingEngine;
 }

@@ -45,6 +45,8 @@ pub struct Task {
     pub edit_history: Option<Vec<TaskEditHistory>>,
     #[ts(optional)]
     pub archived: Option<bool>,
+    #[ts(optional)]
+    pub hourly_rate: Option<String>,
 }
 
 impl Task {
@@ -66,6 +68,7 @@ impl Task {
             original_completed: None,
             edit_history: None,
             archived: Some(false),
+            hourly_rate: None,
         }
     }
 }

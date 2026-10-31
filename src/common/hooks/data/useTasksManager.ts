@@ -14,6 +14,7 @@ export interface TaskInputData {
   projectId: string;
   name: string;
   parentTaskId?: string | null;
+  hourlyRate?: string | null;
 }
 
 export interface TaskUpdateData {
@@ -21,6 +22,7 @@ export interface TaskUpdateData {
   parentTaskId?: string | null;
   status?: TaskStatus | null;
   completed?: boolean | null;
+  hourlyRate?: string | null;
 }
 
 export interface UseTasksManagerOptions {
@@ -96,12 +98,13 @@ export const useTasksManager = ({
   const handleAddTask = async (
     projectIdOrInput: string | TaskInputData,
     name = '',
-    parentTaskId: string | null = null
+    parentTaskId: string | null = null,
+    hourlyRate: string | null = null
   ) => {
     const input: TaskInputData =
       typeof projectIdOrInput === 'object'
         ? projectIdOrInput
-        : { projectId: projectIdOrInput, name, parentTaskId };
+        : { projectId: projectIdOrInput, name, parentTaskId, hourlyRate };
 
     await actionRunner.runAction('Failed to add task', async () => {
       await engineRouter.validation.validateTaskName(input.name);
@@ -114,6 +117,7 @@ export const useTasksManager = ({
         projectId: input.projectId,
         name: input.name,
         parentTaskId: input.parentTaskId ?? null,
+        hourlyRate: input.hourlyRate ?? null,
       });
       await syncState(nextState);
     });
@@ -124,12 +128,13 @@ export const useTasksManager = ({
     nameOrInput: string | TaskUpdateData,
     parentTaskId: string | null = null,
     status: TaskStatus | null = null,
-    completed: boolean | null = null
+    completed: boolean | null = null,
+    hourlyRate?: string | null
   ) => {
     const input: TaskUpdateData =
       typeof nameOrInput === 'object'
         ? nameOrInput
-        : { name: nameOrInput, parentTaskId, status, completed };
+        : { name: nameOrInput, parentTaskId, status, completed, hourlyRate };
 
     await actionRunner.runAction('Failed to update task', async () => {
       const isCompleting = input.completed === true || input.status === 'Done';
@@ -157,7 +162,8 @@ export const useTasksManager = ({
         input.name,
         input.parentTaskId ?? null,
         input.status ?? null,
-        input.completed ?? null
+        input.completed ?? null,
+        input.hourlyRate !== undefined ? input.hourlyRate : null
       );
       await syncState(nextState);
     });

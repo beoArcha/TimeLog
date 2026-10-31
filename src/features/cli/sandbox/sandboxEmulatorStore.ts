@@ -25,6 +25,7 @@ import {
 } from './store/sandboxProjectOps';
 import {
   addTaskOp,
+  setTaskRateOp,
   renameTaskOp,
   toggleTaskCompleteOp,
   archiveTaskOp,
@@ -162,14 +163,32 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     this.persist();
   }
 
-  public handleAddProject(name: string, color = 'indigo'): Project {
-    const project = addProjectOp(this.projects, `sb_p${++this.nextIdCounter}`, name, color);
+  public handleAddProject(
+    name: string,
+    color = 'indigo',
+    hourlyRate?: string | null,
+    currency?: string | null
+  ): Project {
+    const project = addProjectOp(
+      this.projects,
+      `sb_p${++this.nextIdCounter}`,
+      name,
+      color,
+      hourlyRate,
+      currency
+    );
     this.persist();
     return project;
   }
 
-  public handleRenameProject(projectId: string, newName: string, color?: string): boolean {
-    const success = renameProjectOp(this.projects, projectId, newName, color);
+  public handleRenameProject(
+    projectId: string,
+    newName: string,
+    color?: string,
+    hourlyRate?: string | null,
+    currency?: string | null
+  ): boolean {
+    const success = renameProjectOp(this.projects, projectId, newName, color, hourlyRate, currency);
     if (success) this.persist();
     return success;
   }
@@ -180,10 +199,28 @@ export class SandboxEmulatorStore implements ISandboxStoreBridge {
     return success;
   }
 
-  public handleAddTask(projectId: string, name: string, parentTaskId: string | null = null): Task {
-    const task = addTaskOp(this.tasks, `sb_t${++this.nextIdCounter}`, projectId, name, parentTaskId);
+  public handleAddTask(
+    projectId: string,
+    name: string,
+    parentTaskId: string | null = null,
+    hourlyRate?: string | null
+  ): Task {
+    const task = addTaskOp(
+      this.tasks,
+      `sb_t${++this.nextIdCounter}`,
+      projectId,
+      name,
+      parentTaskId,
+      hourlyRate
+    );
     this.persist();
     return task;
+  }
+
+  public handleSetTaskRate(taskId: string, hourlyRate: string | null): boolean {
+    const success = setTaskRateOp(this.tasks, taskId, hourlyRate);
+    if (success) this.persist();
+    return success;
   }
 
   public handleRenameTask(taskId: string, newName: string): boolean {

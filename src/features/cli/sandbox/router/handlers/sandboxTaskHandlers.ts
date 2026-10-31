@@ -115,9 +115,41 @@ export function handleTaskAdd(
     targetProjectId = firstProj.id;
   }
 
-  const task = store.handleAddTask(targetProjectId, name, parentTaskId);
+  const rate = flags['rate'] ? String(flags['rate']) : undefined;
+  const task = store.handleAddTask(targetProjectId, name, parentTaskId, rate);
   const typeLabel = parentTaskId ? 'Subtask' : 'Task';
   output.success(`${typeLabel} created: "${task.name}" [ID: ${task.id}]`);
+}
+
+export function handleTaskRate(
+  positionals: string[],
+  store: SandboxEmulatorStore,
+  output: TerminalOutput
+): void {
+  const target = positionals[0];
+  const rateArg = positionals[1];
+
+  if (!target || rateArg === undefined) {
+    output.error('Error: Task target and rate required. Usage: task rate <target> <rate|inherit>', 'CLI_SYNTAX_INVALID_ARGS', 2);
+    return;
+  }
+
+  const tasks = store.getTasks();
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  if (!resolve.entity) {
+    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    return;
+  }
+
+  const rate =
+    rateArg.toLowerCase() === 'inherit' ||
+    rateArg.toLowerCase() === 'none' ||
+    rateArg.toLowerCase() === 'clear'
+      ? null
+      : rateArg;
+
+  store.handleSetTaskRate(resolve.entity.id, rate);
+  output.success(`Updated billing rate for task "${resolve.entity.name}" [ID: ${resolve.entity.id}] to ${rate ?? 'inherited'}.`);
 }
 
 export function handleTaskDone(

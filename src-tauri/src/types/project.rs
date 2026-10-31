@@ -38,6 +38,10 @@ pub struct Project {
     pub tags: Option<Vec<String>>,
     #[ts(optional)]
     pub allow_concurrency: Option<bool>,
+    #[ts(optional)]
+    pub hourly_rate: Option<String>,
+    #[ts(optional)]
+    pub currency: Option<String>,
 }
 
 impl Project {
@@ -63,6 +67,8 @@ impl Project {
             icon,
             tags,
             allow_concurrency,
+            hourly_rate: None,
+            currency: None,
         }
     }
 }

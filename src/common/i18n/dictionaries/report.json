@@ -43,7 +43,14 @@
     "DownloadFile": "Download File",
     "CopyToClipboard": "Copy to Clipboard",
     "ExportEntriesCount": "entries",
-    "Close": "Close"
+    "Close": "Close",
+    "BillingSummary": "Billing Summary",
+    "TotalAmount": "Total Amount",
+    "TotalBillableTime": "Billable Time",
+    "UnconfiguredTime": "Unconfigured Rate",
+    "NonBillableTime": "Non-billable Time",
+    "EffectiveRate": "Effective Rate",
+    "ByCurrency": "By Currency"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -89,7 +96,14 @@
     "DownloadFile": "Pobierz plik",
     "CopyToClipboard": "Kopiuj do schowka",
     "ExportEntriesCount": "wpisów",
-    "Close": "Zamknij"
+    "Close": "Zamknij",
+    "BillingSummary": "Podsumowanie rozliczeń",
+    "TotalAmount": "Łączna kwota",
+    "TotalBillableTime": "Czas rozliczalny",
+    "UnconfiguredTime": "Nieskonfigurowana stawka",
+    "NonBillableTime": "Czas nierozliczalny",
+    "EffectiveRate": "Stawka efektywna",
+    "ByCurrency": "Według waluty"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -135,7 +149,14 @@
     "DownloadFile": "Datei herunterladen",
     "CopyToClipboard": "In die Zwischenablage kopieren",
     "ExportEntriesCount": "Einträge",
-    "Close": "Schließen"
+    "Close": "Schließen",
+    "BillingSummary": "Abrechnungsübersicht",
+    "TotalAmount": "Gesamtbetrag",
+    "TotalBillableTime": "Abrechenbare Zeit",
+    "UnconfiguredTime": "Nicht konfigurierter Satz",
+    "NonBillableTime": "Nicht abrechenbare Zeit",
+    "EffectiveRate": "Effektiver Satz",
+    "ByCurrency": "Nach Währung"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -181,7 +202,14 @@
     "DownloadFile": "Descargar archivo",
     "CopyToClipboard": "Copiar al portapapeles",
     "ExportEntriesCount": "entradas",
-    "Close": "Cerrar"
+    "Close": "Cerrar",
+    "BillingSummary": "Resumen de facturación",
+    "TotalAmount": "Monto total",
+    "TotalBillableTime": "Tiempo facturable",
+    "UnconfiguredTime": "Tarifa no configurada",
+    "NonBillableTime": "Tiempo no facturable",
+    "EffectiveRate": "Tarifa efectiva",
+    "ByCurrency": "Por moneda"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -227,7 +255,14 @@
     "DownloadFile": "Télécharger le fichier",
     "CopyToClipboard": "Copier dans le presse-papiers",
     "ExportEntriesCount": "entrées",
-    "Close": "Fermer"
+    "Close": "Fermer",
+    "BillingSummary": "Résumé de facturation",
+    "TotalAmount": "Montant total",
+    "TotalBillableTime": "Temps facturable",
+    "UnconfiguredTime": "Taux non configuré",
+    "NonBillableTime": "Temps non facturable",
+    "EffectiveRate": "Taux effectif",
+    "ByCurrency": "Par devise"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -273,6 +308,13 @@
     "DownloadFile": "Baixar arquivo",
     "CopyToClipboard": "Copiar para área de transferência",
     "ExportEntriesCount": "entradas",
-    "Close": "Fechar"
+    "Close": "Fechar",
+    "BillingSummary": "Resumo de faturamento",
+    "TotalAmount": "Valor total",
+    "TotalBillableTime": "Tempo faturável",
+    "UnconfiguredTime": "Taxa não configurada",
+    "NonBillableTime": "Tempo não faturável",
+    "EffectiveRate": "Taxa efetiva",
+    "ByCurrency": "Por moeda"
   }
 }

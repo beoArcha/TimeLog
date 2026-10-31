@@ -2,6 +2,7 @@
 // Structs and enums in this module are used for exporting TypeScript bindings to the frontend via ts-rs.
 #![allow(unused_imports)]
 
+pub mod billing;
 pub mod cli;
 pub mod commands;
 pub mod external_api;
@@ -18,6 +19,10 @@ pub mod timelog;
 pub mod webhook_queue;
 pub mod workflow;
 
+pub use billing::{
+    CurrencyBillingSummary, EffectiveRateResult, RangeBillingResult, RateMode, RateStatus,
+    TaskBillingSummary,
+};
 pub use cli::{CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, LocalizedUserMessage};
 pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,

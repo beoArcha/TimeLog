@@ -23,6 +23,8 @@ impl Default for ProjectBuilder {
                 icon: None,
                 tags: None,
                 allow_concurrency: None,
+                hourly_rate: None,
+                currency: None,
             },
         }
     }
@@ -78,6 +80,16 @@ impl ProjectBuilder {
         self
     }
 
+    pub fn with_hourly_rate(mut self, rate: impl Into<String>) -> Self {
+        self.project.hourly_rate = Some(rate.into());
+        self
+    }
+
+    pub fn with_currency(mut self, currency: impl Into<String>) -> Self {
+        self.project.currency = Some(currency.into());
+        self
+    }
+
     pub fn build(self) -> Project {
         self.project
     }
@@ -103,6 +115,7 @@ impl Default for TaskBuilder {
                 original_completed: None,
                 edit_history: None,
                 archived: Some(false),
+                hourly_rate: None,
             },
         }
     }
@@ -111,6 +124,11 @@ impl Default for TaskBuilder {
 impl TaskBuilder {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn with_hourly_rate(mut self, rate: impl Into<String>) -> Self {
+        self.task.hourly_rate = Some(rate.into());
+        self
     }
 
     pub fn with_id(mut self, id: impl Into<String>) -> Self {

@@ -23,6 +23,10 @@ pub enum ProjectSubcommand {
             help = "Hex or semantic color (e.g. '#3b82f6' or 'indigo')"
         )]
         color: Option<String>,
+        #[arg(long, help = "Hourly billing rate (e.g. '150.00')")]
+        rate: Option<String>,
+        #[arg(long, help = "Currency code (e.g. 'USD', 'PLN', 'EUR')")]
+        currency: Option<String>,
     },
     #[command(alias = "ren", about = "Rename or recolor an existing project")]
     Rename {
@@ -36,6 +40,10 @@ pub enum ProjectSubcommand {
             help = "Hex or semantic color (e.g. '#3b82f6' or 'indigo')"
         )]
         color: Option<String>,
+        #[arg(long, help = "Hourly billing rate (e.g. '150.00' or 'none' to clear)")]
+        rate: Option<String>,
+        #[arg(long, help = "Currency code (e.g. 'USD', 'PLN', 'EUR')")]
+        currency: Option<String>,
     },
     #[command(alias = "rm", about = "Archive a project")]
     Archive {
@@ -71,6 +79,8 @@ pub enum TaskSubcommand {
         project: Option<String>,
         #[arg(short = 'P', long, help = "Parent task to make this a subtask")]
         parent: Option<String>,
+        #[arg(long, help = "Task hourly billing rate (e.g. '200.00', '0.00' for non-billable)")]
+        rate: Option<String>,
     },
     #[command(alias = "complete", about = "Mark task as done / completed")]
     Done {
@@ -83,6 +93,13 @@ pub enum TaskSubcommand {
         target: String,
         #[arg(help = "New task title")]
         new_name: String,
+    },
+    #[command(about = "Set task billing rate override (or 'inherit'/'none' to clear)")]
+    Rate {
+        #[arg(help = "Target task (by ID, prefix, or name)")]
+        target: String,
+        #[arg(help = "Hourly rate (e.g. '150.00', '0.00' for non-billable, or 'inherit'/'none')")]
+        rate: String,
     },
     #[command(about = "Change the parent of a task (or promote to root with 'none')")]
     Reparent {

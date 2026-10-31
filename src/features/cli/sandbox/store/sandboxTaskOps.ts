@@ -5,7 +5,8 @@ export function addTaskOp(
   nextId: string,
   projectId: string,
   name: string,
-  parentTaskId: string | null = null
+  parentTaskId: string | null = null,
+  hourlyRate?: string | null
 ): Task {
   const newTask: Task = {
     id: nextId,
@@ -15,9 +16,21 @@ export function addTaskOp(
     createdAt: new Date().toISOString(),
     status: null,
     parentTaskId,
+    hourlyRate: hourlyRate ?? null,
   };
   tasks.push(newTask);
   return newTask;
+}
+
+export function setTaskRateOp(
+  tasks: Task[],
+  taskId: string,
+  hourlyRate: string | null
+): boolean {
+  const task = tasks.find((t) => t.id === taskId);
+  if (!task) return false;
+  task.hourlyRate = hourlyRate;
+  return true;
 }
 
 export function renameTaskOp(

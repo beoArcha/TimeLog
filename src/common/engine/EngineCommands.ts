@@ -7,6 +7,7 @@ import {
   EngineComputedMetrics,
   ElapsedRangeFilter,
 } from './IEngine';
+import { IBillingEngine } from './billing/types';
 import { ProjectStatistics } from '@bindings/ProjectStatistics';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
@@ -14,18 +15,21 @@ import { TauriTimerEngine } from './commands/TauriTimerEngine';
 import { TauriMetricsEngine } from './commands/TauriMetricsEngine';
 import { TauriTimeLogsEngine } from './commands/TauriTimeLogsEngine';
 import { TauriValidationEngine } from './commands/TauriValidationEngine';
+import { TauriBillingEngine } from './commands/TauriBillingEngine';
 
 export class EngineCommands implements IEngine {
   readonly timer: ITimerEngine;
   readonly metrics: IMetricsEngine;
   readonly timeLogs: ITimeLogsEngine;
   readonly validation: IValidationEngine;
+  readonly billing: IBillingEngine;
 
   constructor(services?: Partial<IEngine>) {
     this.timer = services?.timer ?? new TauriTimerEngine();
     this.metrics = services?.metrics ?? new TauriMetricsEngine();
     this.timeLogs = services?.timeLogs ?? new TauriTimeLogsEngine();
     this.validation = services?.validation ?? new TauriValidationEngine();
+    this.billing = services?.billing ?? new TauriBillingEngine();
   }
 
   async startTimer(taskId: string): Promise<void> {

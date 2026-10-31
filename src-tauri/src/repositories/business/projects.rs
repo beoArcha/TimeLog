@@ -31,7 +31,9 @@ impl BusinessRepository {
                 project.description,
                 project.icon,
                 tags_str,
-                project.allow_concurrency.unwrap_or(false) as i32
+                project.allow_concurrency.unwrap_or(false) as i32,
+                project.hourly_rate,
+                project.currency
             ],
         )?;
         Ok(())
@@ -62,7 +64,9 @@ impl BusinessRepository {
                 project.description,
                 project.icon,
                 tags_str,
-                project.allow_concurrency.unwrap_or(false) as i32
+                project.allow_concurrency.unwrap_or(false) as i32,
+                project.hourly_rate,
+                project.currency
             ],
         )?;
         if affected == 0 {
@@ -109,6 +113,8 @@ impl BusinessRepository {
             icon: row.get(9)?,
             tags,
             allow_concurrency: allow_concurrency_int.map(|v| v == 1),
+            hourly_rate: row.get(12)?,
+            currency: row.get(13)?,
         })
     }
 

@@ -11,6 +11,7 @@ pub struct TaskUpdateInput {
     pub parent_task_id: Option<String>,
     pub status: Option<TaskStatus>,
     pub completed: Option<bool>,
+    pub hourly_rate: Option<String>,
 }
 
 fn get_task_or_fail(persistence: &Persistence, task_id: &str) -> Result<Task, AppError> {
@@ -76,6 +77,7 @@ pub fn create_task(
     project_id: &str,
     name: &str,
     parent_task_id: Option<&str>,
+    hourly_rate: Option<String>,
 ) -> Result<TimerRepositoryState, AppError> {
     let engine = Engine::new(persistence);
     let valid_name = engine.validate_task_name(name)?;
@@ -83,12 +85,13 @@ pub fn create_task(
         engine.validate_task_hierarchy(None, parent_task_id)?;
     }
 
-    let task = Task::new(
+    let mut task = Task::new(
         format!("task_{}", chrono::Utc::now().timestamp_millis()),
         project_id.to_string(),
         parent_task_id.map(str::to_string),
         valid_name,
     );
+    task.hourly_rate = hourly_rate;
 
     if task.parent_task_id.is_some() {
         persistence.tasks.create_subtask(task)?;
@@ -119,6 +122,8 @@ pub fn update_task_details(
     if task.completed {
         stop_active_timer_if_matching_task(&engine, &task.id)?;
     }
+
+    task.hourly_rate = input.hourly_rate;
 
     persistence.tasks.patch(task)?;
     Ok(engine.get_state()?)
@@ -191,6 +196,7 @@ pub fn create(
     project_id: String,
     name: String,
     parent_task_id: Option<String>,
+    hourly_rate: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     create_task(
@@ -198,6 +204,7 @@ pub fn create(
         &project_id,
         &name,
         parent_task_id.as_deref(),
+        hourly_rate,
     )
 }
 
@@ -208,6 +215,7 @@ pub fn update_task(
     parent_task_id: Option<String>,
     status: Option<TaskStatus>,
     completed: Option<bool>,
+    hourly_rate: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     update_task_details(
@@ -218,6 +226,7 @@ pub fn update_task(
             parent_task_id,
             status,
             completed,
+            hourly_rate,
         },
     )
 }

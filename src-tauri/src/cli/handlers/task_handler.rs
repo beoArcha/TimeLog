@@ -31,10 +31,14 @@ pub fn handle(
             name,
             project,
             parent,
-        } => add_task(persistence, name, project, parent, is_machine),
+            rate,
+        } => add_task(persistence, name, project, parent, rate, is_machine),
         TaskSubcommand::Done { target } => complete_task(persistence, &target, is_machine),
         TaskSubcommand::Rename { target, new_name } => {
             rename_task(persistence, &target, new_name, is_machine)
+        }
+        TaskSubcommand::Rate { target, rate } => {
+            set_task_rate(persistence, &target, rate, is_machine)
         }
         TaskSubcommand::Reparent { target, new_parent } => {
             reparent_task(persistence, &target, &new_parent, is_machine)
@@ -220,6 +224,7 @@ fn add_task(
     name: String,
     project: Option<String>,
     parent: Option<String>,
+    rate: Option<String>,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
     let engine = Engine::new(persistence);
@@ -256,7 +261,8 @@ fn add_task(
 
     let parent_task_id = parent_task.map(|p| p.id);
     let id = generate_id();
-    let task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
+    let mut task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
+    task.hourly_rate = rate;
 
     persistence.tasks.create(task)?;
     if is_machine {
@@ -270,6 +276,47 @@ fn add_task(
         ));
     }
     Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
+}
+
+fn set_task_rate(
+    persistence: &Persistence,
+    target: &str,
+    rate: String,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
+    validate_id(target)?;
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let mut task = resolver.resolve_task(target)?;
+
+    let trimmed = rate.trim();
+    if trimmed.eq_ignore_ascii_case("inherit")
+        || trimmed.eq_ignore_ascii_case("none")
+        || trimmed.eq_ignore_ascii_case("clear")
+    {
+        task.hourly_rate = None;
+    } else {
+        task.hourly_rate = Some(trimmed.to_string());
+    }
+
+    persistence.tasks.patch(task.clone())?;
+
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": task.id,
+                "hourly_rate": task.hourly_rate,
+                "action": "rate_updated"
+            })
+            .to_string(),
+        ));
+    }
+
+    let rate_display = task.hourly_rate.as_deref().unwrap_or("inherited");
+    Ok(CliOutput::Success(format!(
+        "Updated billing rate for task '{}' ({}) to {}.",
+        task.name, task.id, rate_display
+    )))
 }
 
 fn resolve_default_project_id(persistence: &Persistence) -> Result<String, CliError> {

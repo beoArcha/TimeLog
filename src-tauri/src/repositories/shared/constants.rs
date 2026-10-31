@@ -81,8 +81,11 @@ pub const ALTER_PROJECTS_ADD_ICON: &str = "ALTER TABLE projects ADD COLUMN icon 
 pub const ALTER_PROJECTS_ADD_TAGS: &str = "ALTER TABLE projects ADD COLUMN tags TEXT";
 pub const ALTER_PROJECTS_ADD_ALLOW_CONCURRENCY: &str =
     "ALTER TABLE projects ADD COLUMN allow_concurrency INTEGER DEFAULT 0";
+pub const ALTER_PROJECTS_ADD_HOURLY_RATE: &str = "ALTER TABLE projects ADD COLUMN hourly_rate TEXT";
+pub const ALTER_PROJECTS_ADD_CURRENCY: &str = "ALTER TABLE projects ADD COLUMN currency TEXT";
 
 pub const ALTER_TASKS_ADD_STATUS: &str = "ALTER TABLE tasks ADD COLUMN status TEXT DEFAULT 'Todo'";
+pub const ALTER_TASKS_ADD_HOURLY_RATE: &str = "ALTER TABLE tasks ADD COLUMN hourly_rate TEXT";
 
 pub const CREATE_RUNTIME_CONFIGS_TABLE: &str = "
     CREATE TABLE IF NOT EXISTS runtime_configs (

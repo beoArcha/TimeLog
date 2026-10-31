@@ -102,6 +102,8 @@ impl BusinessRepository {
                     p.icon,
                     tags_str,
                     p.allow_concurrency.unwrap_or(false) as i32,
+                    p.hourly_rate,
+                    p.currency,
                 ],
             )?;
         }
@@ -150,6 +152,7 @@ impl BusinessRepository {
                     edit_history_str,
                     t.archived.unwrap_or(false) as i32,
                     status_str,
+                    t.hourly_rate,
                 ],
             )?;
         }
@@ -180,6 +183,8 @@ impl BusinessRepository {
                     p.icon,
                     tags_str,
                     p.allow_concurrency.unwrap_or(false) as i32,
+                    p.hourly_rate,
+                    p.currency,
                 ],
             )?;
         }
@@ -213,6 +218,7 @@ impl BusinessRepository {
                     edit_history_str,
                     t.archived.unwrap_or(false) as i32,
                     status_str,
+                    t.hourly_rate,
                 ],
             )?;
         }
