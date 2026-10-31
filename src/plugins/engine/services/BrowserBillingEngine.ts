@@ -45,13 +45,14 @@ export function calculateBankersAmount(durationSeconds: number, rateCents: numbe
   const doubleR = r * 2n;
   if (doubleR > divisor) {
     return Number(q + 1n);
-  } else if (doubleR < divisor) {
-    return Number(q);
-  } else if (q % 2n !== 0n) {
-    return Number(q + 1n);
-  } else {
+  }
+  if (doubleR < divisor) {
     return Number(q);
   }
+  if (q % 2n !== 0n) {
+    return Number(q + 1n);
+  }
+  return Number(q);
 }
 
 export class BrowserBillingEngine implements IBillingEngine {
@@ -87,15 +88,15 @@ export class BrowserBillingEngine implements IBillingEngine {
 
     if (task.hourlyRate && task.hourlyRate.trim().length > 0) {
       const cents = parseRateToCents(task.hourlyRate);
+      if (cents === 0) {
+        return {
+          rate: '0.00',
+          currency,
+          status: 'non_billable',
+          source: 'task',
+        };
+      }
       if (cents !== null) {
-        if (cents === 0) {
-          return {
-            rate: '0.00',
-            currency,
-            status: 'non_billable',
-            source: 'task',
-          };
-        }
         return {
           rate: formatCents(cents),
           currency,
@@ -107,15 +108,15 @@ export class BrowserBillingEngine implements IBillingEngine {
 
     if (project?.hourlyRate && project.hourlyRate.trim().length > 0) {
       const cents = parseRateToCents(project.hourlyRate);
+      if (cents === 0) {
+        return {
+          rate: '0.00',
+          currency,
+          status: 'non_billable',
+          source: 'project',
+        };
+      }
       if (cents !== null) {
-        if (cents === 0) {
-          return {
-            rate: '0.00',
-            currency,
-            status: 'non_billable',
-            source: 'project',
-          };
-        }
         return {
           rate: formatCents(cents),
           currency,
@@ -178,7 +179,7 @@ export class BrowserBillingEngine implements IBillingEngine {
       const currKey = currency ?? 'UNKNOWN';
 
       const effective = await this.resolveEffectiveTaskRate(taskId);
-      let amountStr: string | null = null;
+      let amountStr: string | null;
 
       if (effective.status === 'non_billable') {
         totalNonBillableSeconds += durationSeconds;

@@ -23,6 +23,7 @@ describe('Unit Tests: PersistenceCommands - Tasks', () => {
         projectId: 'p1',
         name: 'Task 1',
         parentTaskId: null,
+        hourlyRate: null,
       });
     });
 
@@ -41,6 +42,7 @@ describe('Unit Tests: PersistenceCommands - Tasks', () => {
         parentTaskId: null,
         status: 'Todo',
         completed: false,
+        hourlyRate: null,
       });
       expect(mockInvoke).toHaveBeenCalledWith('rename_task', {
         taskId: 't1',

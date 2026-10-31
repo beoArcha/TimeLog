@@ -31,6 +31,8 @@ describe('TauriProjectsPersistence', () => {
       icon: 'folder',
       tags: ['tag1'],
       allowConcurrency: null,
+      hourlyRate: null,
+      currency: null,
     });
   });
 
@@ -69,6 +71,8 @@ describe('TauriProjectsPersistence', () => {
         icon: 'star',
         tags: ['new-tag'],
         allowConcurrency: null,
+        hourlyRate: null,
+        currency: null,
       },
     });
   });

@@ -55,7 +55,7 @@ pub fn calculate_bankers_amount(duration_seconds: u64, rate_cents: u64) -> u64 {
         (q + 1) as u64
     } else if double_r < 3600 {
         q as u64
-    } else if q % 2 != 0 {
+    } else if !q.is_multiple_of(2) {
         (q + 1) as u64
     } else {
         q as u64
@@ -153,29 +153,8 @@ impl<'a> Engine<'a> {
         }
 
         // Level 3: Default system / runtime configuration rate
-        if let Ok(configs) = self.persistence.settings.get_runtime_configs() {
-            if let Some(cfg) = configs.iter().find(|c| {
-                c.id == "default_billing_rate"
-                    || c.id == "default_rate"
-                    || c.runtime == "billing_default"
-            }) {
-                if let Some(cents) = parse_rate_to_cents(&cfg.config) {
-                    if cents == 0 {
-                        return Ok(EffectiveRateResult {
-                            rate: Some("0.00".to_string()),
-                            currency,
-                            status: RateStatus::NonBillable,
-                            source: "default".to_string(),
-                        });
-                    }
-                    return Ok(EffectiveRateResult {
-                        rate: Some(format_cents(cents)),
-                        currency,
-                        status: RateStatus::Inherited,
-                        source: "default".to_string(),
-                    });
-                }
-            }
+        if let Some(res) = self.resolve_default_rate(currency.clone())? {
+            return Ok(res);
         }
 
         // Level 4: Unconfigured / Unbillable fallback
@@ -187,6 +166,39 @@ impl<'a> Engine<'a> {
         })
     }
 
+    fn resolve_default_rate(
+        &self,
+        currency: Option<String>,
+    ) -> Result<Option<EffectiveRateResult>, EngineError> {
+        let Ok(configs) = self.persistence.settings.get_runtime_configs() else {
+            return Ok(None);
+        };
+        let Some(cfg) = configs.iter().find(|c| {
+            c.id == "default_billing_rate"
+                || c.id == "default_rate"
+                || c.runtime == "billing_default"
+        }) else {
+            return Ok(None);
+        };
+        let Some(cents) = parse_rate_to_cents(&cfg.config) else {
+            return Ok(None);
+        };
+        if cents == 0 {
+            return Ok(Some(EffectiveRateResult {
+                rate: Some("0.00".to_string()),
+                currency,
+                status: RateStatus::NonBillable,
+                source: "default".to_string(),
+            }));
+        }
+        Ok(Some(EffectiveRateResult {
+            rate: Some(format_cents(cents)),
+            currency,
+            status: RateStatus::Inherited,
+            source: "default".to_string(),
+        }))
+    }
+
     pub fn calculate_range_billing(
         &self,
         filter: &ElapsedRangeFilter,
@@ -194,7 +206,8 @@ impl<'a> Engine<'a> {
     ) -> Result<RangeBillingResult, EngineError> {
         let metrics = self.calculate_range_metrics(filter, now_iso)?;
         let all_tasks = self.persistence.tasks.get_all()?;
-        let task_map: HashMap<String, _> = all_tasks.into_iter().map(|t| (t.id.clone(), t)).collect();
+        let task_map: HashMap<String, _> =
+            all_tasks.into_iter().map(|t| (t.id.clone(), t)).collect();
 
         let all_projects = self.persistence.projects.get_all()?;
         let project_map: HashMap<String, _> = all_projects
@@ -233,17 +246,22 @@ impl<'a> Engine<'a> {
             let amount_str = match effective.status {
                 RateStatus::NonBillable => {
                     total_non_billable_seconds += duration_seconds;
-                    *currency_non_billable_secs.entry(curr_key.clone()).or_insert(0) += duration_seconds;
+                    *currency_non_billable_secs
+                        .entry(curr_key.clone())
+                        .or_insert(0) += duration_seconds;
                     Some("0.00".to_string())
                 }
                 RateStatus::Unconfigured => {
                     total_unconfigured_seconds += duration_seconds;
-                    *currency_unconfigured_secs.entry(curr_key.clone()).or_insert(0) += duration_seconds;
+                    *currency_unconfigured_secs
+                        .entry(curr_key.clone())
+                        .or_insert(0) += duration_seconds;
                     None
                 }
                 RateStatus::Custom | RateStatus::Inherited => {
                     total_billable_seconds += duration_seconds;
-                    *currency_billable_secs.entry(curr_key.clone()).or_insert(0) += duration_seconds;
+                    *currency_billable_secs.entry(curr_key.clone()).or_insert(0) +=
+                        duration_seconds;
                     let cents = effective
                         .rate
                         .as_deref()
@@ -268,7 +286,8 @@ impl<'a> Engine<'a> {
         }
 
         // Build by_currency
-        let mut all_curr_keys: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        let mut all_curr_keys: std::collections::BTreeSet<String> =
+            std::collections::BTreeSet::new();
         all_curr_keys.extend(currency_cents.keys().cloned());
         all_curr_keys.extend(currency_billable_secs.keys().cloned());
         all_curr_keys.extend(currency_non_billable_secs.keys().cloned());
@@ -283,8 +302,12 @@ impl<'a> Engine<'a> {
                     currency: curr.clone(),
                     total_amount: format_cents(total_cents),
                     billable_duration_seconds: *currency_billable_secs.get(&curr).unwrap_or(&0),
-                    non_billable_duration_seconds: *currency_non_billable_secs.get(&curr).unwrap_or(&0),
-                    unconfigured_duration_seconds: *currency_unconfigured_secs.get(&curr).unwrap_or(&0),
+                    non_billable_duration_seconds: *currency_non_billable_secs
+                        .get(&curr)
+                        .unwrap_or(&0),
+                    unconfigured_duration_seconds: *currency_unconfigured_secs
+                        .get(&curr)
+                        .unwrap_or(&0),
                 },
             );
         }
@@ -393,34 +416,55 @@ mod tests {
         persistence.projects.create(proj).expect("create proj");
 
         // Task 1: Level 1 Custom override rate
-        let mut t1 = Task::new("t1".to_string(), "p1".to_string(), None, "Custom Task".to_string());
+        let mut t1 = Task::new(
+            "t1".to_string(),
+            "p1".to_string(),
+            None,
+            "Custom Task".to_string(),
+        );
         t1.hourly_rate = Some("200.00".to_string());
         t1.billing_rate_cents = Some(20000);
         persistence.tasks.create(t1).expect("create t1");
 
-        let res1 = engine.resolve_effective_task_rate("t1").expect("resolve t1");
+        let res1 = engine
+            .resolve_effective_task_rate("t1")
+            .expect("resolve t1");
         assert_eq!(res1.status, RateStatus::Custom);
         assert_eq!(res1.rate.as_deref(), Some("200.00"));
         assert_eq!(res1.currency.as_deref(), Some("USD"));
         assert_eq!(res1.source, "task");
 
         // Task 2: Level 1 Explicit Zero NonBillable
-        let mut t2 = Task::new("t2".to_string(), "p1".to_string(), None, "Pro Bono Task".to_string());
+        let mut t2 = Task::new(
+            "t2".to_string(),
+            "p1".to_string(),
+            None,
+            "Pro Bono Task".to_string(),
+        );
         t2.hourly_rate = Some("0.00".to_string());
         t2.billing_rate_cents = Some(0);
         persistence.tasks.create(t2).expect("create t2");
 
-        let res2 = engine.resolve_effective_task_rate("t2").expect("resolve t2");
+        let res2 = engine
+            .resolve_effective_task_rate("t2")
+            .expect("resolve t2");
         assert_eq!(res2.status, RateStatus::NonBillable);
         assert_eq!(res2.rate.as_deref(), Some("0.00"));
         assert_eq!(res2.currency.as_deref(), Some("USD"));
         assert_eq!(res2.source, "task");
 
         // Task 3: Level 2 Project Inheritance
-        let t3 = Task::new("t3".to_string(), "p1".to_string(), None, "Inheriting Task".to_string());
+        let t3 = Task::new(
+            "t3".to_string(),
+            "p1".to_string(),
+            None,
+            "Inheriting Task".to_string(),
+        );
         persistence.tasks.create(t3).expect("create t3");
 
-        let res3 = engine.resolve_effective_task_rate("t3").expect("resolve t3");
+        let res3 = engine
+            .resolve_effective_task_rate("t3")
+            .expect("resolve t3");
         assert_eq!(res3.status, RateStatus::Inherited);
         assert_eq!(res3.rate.as_deref(), Some("120.00"));
         assert_eq!(res3.currency.as_deref(), Some("USD"));
@@ -440,10 +484,17 @@ mod tests {
         persistence.projects.create(proj2).expect("create proj2");
 
         // Task 4: Level 4 Unconfigured (before Level 3 default is added)
-        let t4 = Task::new("t4".to_string(), "p2".to_string(), None, "Unconfigured Task".to_string());
+        let t4 = Task::new(
+            "t4".to_string(),
+            "p2".to_string(),
+            None,
+            "Unconfigured Task".to_string(),
+        );
         persistence.tasks.create(t4).expect("create t4");
 
-        let res4 = engine.resolve_effective_task_rate("t4").expect("resolve t4");
+        let res4 = engine
+            .resolve_effective_task_rate("t4")
+            .expect("resolve t4");
         assert_eq!(res4.status, RateStatus::Unconfigured);
         assert_eq!(res4.rate, None);
         assert_eq!(res4.currency.as_deref(), Some("EUR"));
@@ -461,7 +512,9 @@ mod tests {
             .save_runtime_config(default_config)
             .expect("save default rate");
 
-        let res4_default = engine.resolve_effective_task_rate("t4").expect("resolve t4 with default");
+        let res4_default = engine
+            .resolve_effective_task_rate("t4")
+            .expect("resolve t4 with default");
         assert_eq!(res4_default.status, RateStatus::Inherited);
         assert_eq!(res4_default.rate.as_deref(), Some("80.00"));
         assert_eq!(res4_default.currency.as_deref(), Some("EUR"));
@@ -488,31 +541,47 @@ mod tests {
         proj.hourly_rate = Some("150.00".to_string());
         persistence.projects.create(proj).expect("create proj");
 
-        let mut t1 = Task::new("t1".to_string(), "p1".to_string(), None, "Billable Task".to_string());
+        let mut t1 = Task::new(
+            "t1".to_string(),
+            "p1".to_string(),
+            None,
+            "Billable Task".to_string(),
+        );
         t1.hourly_rate = Some("150.00".to_string());
         persistence.tasks.create(t1).expect("create t1");
 
-        let mut t2 = Task::new("t2".to_string(), "p1".to_string(), None, "NonBillable Task".to_string());
+        let mut t2 = Task::new(
+            "t2".to_string(),
+            "p1".to_string(),
+            None,
+            "NonBillable Task".to_string(),
+        );
         t2.hourly_rate = Some("0.00".to_string());
         persistence.tasks.create(t2).expect("create t2");
 
         // Log 1: 3600 seconds on t1 (150.00 USD)
-        persistence.time_logs.insert_full(&NewTimeLog {
-            id: "l1".to_string(),
-            task_id: "t1".to_string(),
-            start_time: "2026-10-31T10:00:00Z".to_string(),
-            end_time: Some("2026-10-31T11:00:00Z".to_string()),
-            note: None,
-        }).expect("log 1");
+        persistence
+            .time_logs
+            .insert_full(&NewTimeLog {
+                id: "l1".to_string(),
+                task_id: "t1".to_string(),
+                start_time: "2026-10-31T10:00:00Z".to_string(),
+                end_time: Some("2026-10-31T11:00:00Z".to_string()),
+                note: None,
+            })
+            .expect("log 1");
 
         // Log 2: 1800 seconds on t2 (NonBillable)
-        persistence.time_logs.insert_full(&NewTimeLog {
-            id: "l2".to_string(),
-            task_id: "t2".to_string(),
-            start_time: "2026-10-31T11:00:00Z".to_string(),
-            end_time: Some("2026-10-31T11:30:00Z".to_string()),
-            note: None,
-        }).expect("log 2");
+        persistence
+            .time_logs
+            .insert_full(&NewTimeLog {
+                id: "l2".to_string(),
+                task_id: "t2".to_string(),
+                start_time: "2026-10-31T11:00:00Z".to_string(),
+                end_time: Some("2026-10-31T11:30:00Z".to_string()),
+                note: None,
+            })
+            .expect("log 2");
 
         let filter = ElapsedRangeFilter {
             from: Some("2026-10-31T00:00:00Z".to_string()),
@@ -522,7 +591,9 @@ mod tests {
             include_patches: Some(false),
         };
 
-        let result = engine.calculate_range_billing(&filter, None).expect("calc billing");
+        let result = engine
+            .calculate_range_billing(&filter, None)
+            .expect("calc billing");
         assert_eq!(result.total_billable_seconds, 3600);
         assert_eq!(result.total_non_billable_seconds, 1800);
         assert_eq!(result.total_unconfigured_seconds, 0);
@@ -535,4 +606,3 @@ mod tests {
         let _ = std::fs::remove_file(db_path);
     }
 }
-

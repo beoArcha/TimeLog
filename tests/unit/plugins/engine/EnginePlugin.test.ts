@@ -138,17 +138,27 @@ describe('Unit Tests: EnginePlugin Compliance with Desktop Runtime', () => {
     PersistenceRouter.resetForTesting();
   });
 
-  const getNormalizedState = (state: TimerRepositoryState | null) => {
+  const getNormalizedState = (state: (TimerRepositoryState & { schemaVersion?: number }) | null) => {
     if (!state) return null;
+    const { schemaVersion: _sv, ...rest } = state;
     return {
-      ...state,
-      logs: state.logs.map(log => ({
+      ...rest,
+      projects: (rest.projects || []).map(p => ({
+        ...p,
+        hourlyRate: p.hourlyRate ?? null,
+        currency: p.currency ?? null,
+      })),
+      tasks: (rest.tasks || []).map(t => ({
+        ...t,
+        hourlyRate: t.hourlyRate ?? null,
+      })),
+      logs: (rest.logs || []).map(log => ({
         ...log,
         id: log.id.startsWith('log_') ? 'log_normalized' : log.id,
       })),
-      activeLog: state.activeLog ? {
-        ...state.activeLog,
-        id: state.activeLog.id.startsWith('log_') ? 'log_normalized' : state.activeLog.id,
+      activeLog: rest.activeLog ? {
+        ...rest.activeLog,
+        id: rest.activeLog.id.startsWith('log_') ? 'log_normalized' : rest.activeLog.id,
       } : null,
     };
   };

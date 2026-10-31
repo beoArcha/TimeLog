@@ -107,8 +107,8 @@ fn test_given_legacy_database_with_existing_columns_when_migrating_then_safely_b
 }
 
 #[test]
-fn test_given_database_when_migrated_then_projects_and_tasks_have_billing_rate_and_currency_columns()
-{
+fn test_given_database_when_migrated_then_projects_and_tasks_have_billing_rate_and_currency_columns(
+) {
     // Given
     let conn = Connection::open_in_memory().expect("in-memory db open should succeed");
 
@@ -131,20 +131,44 @@ fn test_given_database_when_migrated_then_projects_and_tasks_have_billing_rate_a
         found
     };
 
-    assert!(check_column("projects", "hourly_rate"), "projects.hourly_rate must exist");
-    assert!(check_column("projects", "currency"), "projects.currency must exist");
-    assert!(check_column("projects", "billing_rate_cents"), "projects.billing_rate_cents must exist");
-    assert!(check_column("projects", "billing_currency"), "projects.billing_currency must exist");
+    assert!(
+        check_column("projects", "hourly_rate"),
+        "projects.hourly_rate must exist"
+    );
+    assert!(
+        check_column("projects", "currency"),
+        "projects.currency must exist"
+    );
+    assert!(
+        check_column("projects", "billing_rate_cents"),
+        "projects.billing_rate_cents must exist"
+    );
+    assert!(
+        check_column("projects", "billing_currency"),
+        "projects.billing_currency must exist"
+    );
 
-    assert!(check_column("tasks", "hourly_rate"), "tasks.hourly_rate must exist");
-    assert!(check_column("tasks", "currency"), "tasks.currency must exist");
-    assert!(check_column("tasks", "billing_rate_cents"), "tasks.billing_rate_cents must exist");
-    assert!(check_column("tasks", "billing_currency"), "tasks.billing_currency must exist");
+    assert!(
+        check_column("tasks", "hourly_rate"),
+        "tasks.hourly_rate must exist"
+    );
+    assert!(
+        check_column("tasks", "currency"),
+        "tasks.currency must exist"
+    );
+    assert!(
+        check_column("tasks", "billing_rate_cents"),
+        "tasks.billing_rate_cents must exist"
+    );
+    assert!(
+        check_column("tasks", "billing_currency"),
+        "tasks.billing_currency must exist"
+    );
 }
 
 #[test]
-fn test_given_legacy_db_with_existing_records_when_migrating_to_v7_then_preserves_records_and_allows_billing_updates()
-{
+fn test_given_legacy_db_with_existing_records_when_migrating_to_v7_then_preserves_records_and_allows_billing_updates(
+) {
     // Given - an existing legacy database up to migration 6
     let conn = Connection::open_in_memory().expect("in-memory db open should succeed");
     initialize_database(&conn).expect("initial migrations succeed");
@@ -164,12 +188,14 @@ fn test_given_legacy_db_with_existing_records_when_migrating_to_v7_then_preserve
     conn.execute(
         "UPDATE projects SET billing_rate_cents = 15000, billing_currency = 'USD' WHERE id = 'p1'",
         [],
-    ).expect("updating project billing columns should succeed");
+    )
+    .expect("updating project billing columns should succeed");
 
     conn.execute(
         "UPDATE tasks SET billing_rate_cents = 12000, billing_currency = 'USD' WHERE id = 't1'",
         [],
-    ).expect("updating task billing columns should succeed");
+    )
+    .expect("updating task billing columns should succeed");
 
     // Then
     let (p_cents, p_curr): (Option<i64>, Option<String>) = conn

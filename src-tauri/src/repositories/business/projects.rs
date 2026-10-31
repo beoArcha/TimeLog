@@ -25,9 +25,10 @@ impl BusinessRepository {
                 .and_then(crate::engine::billing::parse_rate_to_cents)
                 .map(|c| c as i64)
         });
-        let effective_hourly_rate: Option<String> = project.hourly_rate.clone().or_else(|| {
-            effective_cents.map(|c| crate::engine::billing::format_cents(c as u64))
-        });
+        let effective_hourly_rate: Option<String> = project
+            .hourly_rate
+            .clone()
+            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(c as u64)));
         let effective_currency: Option<String> = project
             .currency
             .clone()
@@ -81,9 +82,10 @@ impl BusinessRepository {
                 .and_then(crate::engine::billing::parse_rate_to_cents)
                 .map(|c| c as i64)
         });
-        let effective_hourly_rate: Option<String> = project.hourly_rate.clone().or_else(|| {
-            effective_cents.map(|c| crate::engine::billing::format_cents(c as u64))
-        });
+        let effective_hourly_rate: Option<String> = project
+            .hourly_rate
+            .clone()
+            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(c as u64)));
         let effective_currency: Option<String> = project
             .currency
             .clone()

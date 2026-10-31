@@ -77,18 +77,27 @@ export function handleProjectRename(
 
   const project = resolve.entity;
   const finalName = newName || project.name;
-  const finalRate =
-    rateFlag && (rateFlag.toLowerCase() === 'none' || rateFlag.toLowerCase() === 'clear')
-      ? null
-      : rateFlag !== undefined
-      ? rateFlag
-      : undefined;
-  const finalCurrency =
-    currencyFlag && (currencyFlag.toLowerCase() === 'none' || currencyFlag.toLowerCase() === 'clear')
-      ? null
-      : currencyFlag !== undefined
-      ? currencyFlag
-      : undefined;
+
+  let finalRate: string | null | undefined;
+  if (rateFlag !== undefined) {
+    const lower = rateFlag.toLowerCase();
+    if (lower === 'none' || lower === 'clear') {
+      finalRate = null;
+    } else {
+      finalRate = rateFlag;
+    }
+  }
+
+  let finalCurrency: string | null | undefined;
+  if (currencyFlag !== undefined) {
+    const lower = currencyFlag.toLowerCase();
+    if (lower === 'none' || lower === 'clear') {
+      finalCurrency = null;
+    } else {
+      finalCurrency = currencyFlag;
+    }
+  }
+
   store.handleRenameProject(project.id, finalName, color, finalRate, finalCurrency);
   output.success(`Project updated: "${finalName}" [ID: ${project.id}]`);
 }

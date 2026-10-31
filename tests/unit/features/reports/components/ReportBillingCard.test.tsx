@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import ReportBillingCard from '@features/reports/components/ReportBillingCard';
 import { EngineRouter } from '@common/engine/EngineRouter';
 import { RangeBillingResult } from '@common/engine/billing/types';

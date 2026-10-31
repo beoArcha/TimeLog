@@ -19,15 +19,15 @@ impl BusinessRepository {
         };
 
         let effective_cents: Option<i64> = task.billing_rate_cents.or_else(|| {
-            task
-                .hourly_rate
+            task.hourly_rate
                 .as_deref()
                 .and_then(crate::engine::billing::parse_rate_to_cents)
                 .map(|c| c as i64)
         });
-        let effective_hourly_rate: Option<String> = task.hourly_rate.clone().or_else(|| {
-            effective_cents.map(|c| crate::engine::billing::format_cents(c as u64))
-        });
+        let effective_hourly_rate: Option<String> = task
+            .hourly_rate
+            .clone()
+            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(c as u64)));
         let effective_currency: Option<String> = task
             .currency
             .clone()
@@ -73,15 +73,15 @@ impl BusinessRepository {
         };
 
         let effective_cents: Option<i64> = task.billing_rate_cents.or_else(|| {
-            task
-                .hourly_rate
+            task.hourly_rate
                 .as_deref()
                 .and_then(crate::engine::billing::parse_rate_to_cents)
                 .map(|c| c as i64)
         });
-        let effective_hourly_rate: Option<String> = task.hourly_rate.clone().or_else(|| {
-            effective_cents.map(|c| crate::engine::billing::format_cents(c as u64))
-        });
+        let effective_hourly_rate: Option<String> = task
+            .hourly_rate
+            .clone()
+            .or_else(|| effective_cents.map(|c| crate::engine::billing::format_cents(c as u64)));
         let effective_currency: Option<String> = task
             .currency
             .clone()

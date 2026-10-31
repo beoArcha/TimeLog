@@ -135,6 +135,7 @@ pub fn rename_project_name(
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub fn add(
     name: String,
     color: String,

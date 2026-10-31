@@ -34,13 +34,20 @@ describe('Unit Tests: PersistencePlugin - Core, Settings & RuntimeConfigs', () =
       const state = await plugin.core.load();
 
       // Assert
-      expect(state).toEqual({ projects: [], tasks: [], logs: [], activeLog: null });
+      expect(state).toEqual({
+        schemaVersion: 2,
+        projects: [],
+        tasks: [],
+        logs: [],
+        activeLog: null,
+      });
     });
 
     it('should load state from localstorage', async () => {
       // Arrange
       const mockState = {
-        projects: [{ id: 'p1', name: 'Project 1', color: '#000', createdAt: 'date' }],
+        schemaVersion: 2,
+        projects: [{ id: 'p1', name: 'Project 1', color: '#000', createdAt: 'date', hourlyRate: null, currency: null }],
         tasks: [],
         logs: [],
         activeLog: null,

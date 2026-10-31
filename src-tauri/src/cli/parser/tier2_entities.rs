@@ -28,7 +28,11 @@ pub enum ProjectSubcommand {
         #[arg(long, help = "Currency code (e.g. 'USD', 'PLN', 'EUR')")]
         currency: Option<String>,
     },
-    #[command(alias = "ren", alias = "update", about = "Rename, update, or recolor an existing project")]
+    #[command(
+        alias = "ren",
+        alias = "update",
+        about = "Rename, update, or recolor an existing project"
+    )]
     Rename {
         #[arg(help = "Target project (by ID, prefix, or name)")]
         target: String,
@@ -79,7 +83,10 @@ pub enum TaskSubcommand {
         project: Option<String>,
         #[arg(short = 'P', long, help = "Parent task to make this a subtask")]
         parent: Option<String>,
-        #[arg(long, help = "Task hourly billing rate (e.g. '200.00', '0.00' for non-billable)")]
+        #[arg(
+            long,
+            help = "Task hourly billing rate (e.g. '200.00', '0.00' for non-billable)"
+        )]
         rate: Option<String>,
     },
     #[command(alias = "complete", about = "Mark task as done / completed")]
@@ -98,7 +105,9 @@ pub enum TaskSubcommand {
     Rate {
         #[arg(help = "Target task (by ID, prefix, or name)")]
         target: String,
-        #[arg(help = "Hourly rate in cents or decimal (e.g. '15000', '150.00', '0.00' for non-billable, or 'inherit'/'none')")]
+        #[arg(
+            help = "Hourly rate in cents or decimal (e.g. '15000', '150.00', '0.00' for non-billable, or 'inherit'/'none')"
+        )]
         rate: String,
         #[arg(long, help = "Currency code override (e.g. 'USD', 'PLN', 'EUR')")]
         currency: Option<String>,

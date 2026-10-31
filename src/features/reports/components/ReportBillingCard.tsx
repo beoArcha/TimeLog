@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Coins, Clock, DollarSign } from 'lucide-react';
+import { Coins, DollarSign } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { StatCard } from '@components/StatCard';
 import { useTranslation } from '@common/i18n/translator';
@@ -9,6 +9,14 @@ import { RangeBillingResult, CurrencyBillingSummary } from '@common/engine/billi
 import { getRangeFilterForPeriod } from '../utils/periodRanges';
 import { Settings } from '@bindings/Settings';
 import { Badge } from '@components/ui/badge';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@components/ui/table';
 
 export interface ReportBillingCardProps {
   reportPeriod: string;
@@ -17,6 +25,20 @@ export interface ReportBillingCardProps {
   nowIso?: string;
   selectedProjectId?: string | null;
   sysSettings?: Settings | null;
+}
+
+function formatDisplayRate(
+  effectiveRate: string | null,
+  currency: string | null,
+  rateStatus: string
+): string {
+  if (effectiveRate) {
+    return `${effectiveRate} ${currency ?? ''}`.trim();
+  }
+  if (rateStatus === 'non_billable') {
+    return '0.00';
+  }
+  return '-';
 }
 
 export default function ReportBillingCard({
@@ -129,39 +151,35 @@ export default function ReportBillingCard({
 
           {billingResult && billingResult.byTask.length > 0 && (
             <div className="mt-2 overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead>
-                  <tr className="border-b border-border/60 text-muted-foreground">
-                    <th className="py-2 px-3 font-medium">Task</th>
-                    <th className="py-2 px-3 font-medium">Rate</th>
-                    <th className="py-2 px-3 font-medium">Duration</th>
-                    <th className="py-2 px-3 font-medium text-right">{t('Amount')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/30">
+              <Table className="w-full text-xs text-left">
+                <TableHeader>
+                  <TableRow className="border-b border-border/60 text-muted-foreground">
+                    <TableHead className="py-2 px-3 font-medium">Task</TableHead>
+                    <TableHead className="py-2 px-3 font-medium">Rate</TableHead>
+                    <TableHead className="py-2 px-3 font-medium">Duration</TableHead>
+                    <TableHead className="py-2 px-3 font-medium text-right">{t('Amount')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-border/30">
                   {billingResult.byTask.map((task) => (
-                    <tr key={task.taskId} className="hover:bg-muted/30">
-                      <td className="py-2 px-3 font-medium text-foreground">{task.taskName}</td>
-                      <td className="py-2 px-3 text-muted-foreground">
-                        {task.effectiveRate
-                          ? `${task.effectiveRate} ${task.currency ?? ''}`
-                          : task.rateStatus === 'non_billable'
-                          ? '0.00'
-                          : '-'}
+                    <TableRow key={task.taskId} className="hover:bg-muted/30">
+                      <TableCell className="py-2 px-3 font-medium text-foreground">{task.taskName}</TableCell>
+                      <TableCell className="py-2 px-3 text-muted-foreground">
+                        {formatDisplayRate(task.effectiveRate, task.currency, task.rateStatus)}
                         <Badge variant="outline" size="xs" className="ml-2 uppercase text-[10px]">
                           {task.rateStatus}
                         </Badge>
-                      </td>
-                      <td className="py-2 px-3 font-mono text-muted-foreground">
+                      </TableCell>
+                      <TableCell className="py-2 px-3 font-mono text-muted-foreground">
                         {formatSeconds(task.durationSeconds)}
-                      </td>
-                      <td className="py-2 px-3 font-mono font-semibold text-right text-foreground">
+                      </TableCell>
+                      <TableCell className="py-2 px-3 font-mono font-semibold text-right text-foreground">
                         {task.amount ? `${task.amount} ${task.currency ?? ''}` : '-'}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
         </div>

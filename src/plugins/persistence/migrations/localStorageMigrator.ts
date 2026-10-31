@@ -20,6 +20,29 @@ export interface VersionedState extends Omit<TimerRepositoryState, 'projects' | 
   _migrated?: boolean;
 }
 
+function migrateProject(project: unknown): VersionedProject {
+  if (!project || typeof project !== 'object') {
+    return project as VersionedProject;
+  }
+  const p = project as unknown as Record<string, unknown>;
+  return {
+    ...p,
+    hourlyRate: typeof p.hourlyRate === 'string' ? p.hourlyRate : null,
+    currency: typeof p.currency === 'string' ? p.currency : null,
+  } as VersionedProject;
+}
+
+function migrateTask(task: unknown): VersionedTask {
+  if (!task || typeof task !== 'object') {
+    return task as VersionedTask;
+  }
+  const t = task as unknown as Record<string, unknown>;
+  return {
+    ...t,
+    hourlyRate: typeof t.hourlyRate === 'string' ? t.hourlyRate : null,
+  } as VersionedTask;
+}
+
 /**
  * Versioned migrator for active browser LocalStorage state.
  * Upgrades legacy state shapes while preserving existing records and unknown properties.
@@ -41,28 +64,11 @@ export function migrateLocalStorageState(raw: unknown): VersionedState {
 
   if (currentVersion < 2) {
     if (Array.isArray(state.projects)) {
-      state.projects = state.projects.map((project) => {
-        if (!project || typeof project !== 'object') return project as VersionedProject;
-        const p = project as unknown as Record<string, unknown>;
-        return {
-          ...p,
-          hourlyRate: typeof p.hourlyRate === 'string' ? p.hourlyRate : null,
-          currency: typeof p.currency === 'string' ? p.currency : null,
-        } as VersionedProject;
-      });
-      didMigrate = true;
+      state.projects = state.projects.map(migrateProject);
     }
 
     if (Array.isArray(state.tasks)) {
-      state.tasks = state.tasks.map((task) => {
-        if (!task || typeof task !== 'object') return task as VersionedTask;
-        const t = task as unknown as Record<string, unknown>;
-        return {
-          ...t,
-          hourlyRate: typeof t.hourlyRate === 'string' ? t.hourlyRate : null,
-        } as VersionedTask;
-      });
-      didMigrate = true;
+      state.tasks = state.tasks.map(migrateTask);
     }
 
     state.schemaVersion = CURRENT_LOCAL_STORAGE_SCHEMA_VERSION;

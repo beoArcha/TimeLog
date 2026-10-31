@@ -77,7 +77,12 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
       const migrated = migrateLocalStorageState(parsed);
       if (migrated._migrated) {
         delete migrated._migrated;
-        localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(migrated));
+        try {
+          localStorage.setItem(STORAGE_KEYS.STORAGE_KEY, JSON.stringify(migrated));
+        } catch {
+          // Ignore quota or write errors during passive migration write-back;
+          // return in-memory migrated state.
+        }
       }
       return migrated as TimerRepositoryState;
     } catch (e) {

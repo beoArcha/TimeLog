@@ -372,7 +372,14 @@ fn test_given_log_domain_commands_when_parsing_cli_then_parses_duration_and_note
 fn test_given_billing_cli_commands_when_parsing_then_binds_rate_and_currency() {
     // Project add with rate and currency
     let proj_add = CliArgs::try_parse_from(vec![
-        "oxy", "project", "add", "ClientX", "--rate", "15000", "--currency", "USD",
+        "oxy",
+        "project",
+        "add",
+        "ClientX",
+        "--rate",
+        "15000",
+        "--currency",
+        "USD",
     ])
     .expect("project add with rate and currency");
 
@@ -395,7 +402,14 @@ fn test_given_billing_cli_commands_when_parsing_then_binds_rate_and_currency() {
 
     // Project update alias with rate and currency
     let proj_update = CliArgs::try_parse_from(vec![
-        "oxy", "project", "update", "ClientX", "--rate", "12000", "--currency", "EUR",
+        "oxy",
+        "project",
+        "update",
+        "ClientX",
+        "--rate",
+        "12000",
+        "--currency",
+        "EUR",
     ])
     .expect("project update with rate and currency");
 
@@ -417,10 +431,8 @@ fn test_given_billing_cli_commands_when_parsing_then_binds_rate_and_currency() {
     }
 
     // Task rate command with cents only
-    let task_rate = CliArgs::try_parse_from(vec![
-        "oxy", "task", "rate", "t-123", "18000",
-    ])
-    .expect("task rate command");
+    let task_rate = CliArgs::try_parse_from(vec!["oxy", "task", "rate", "t-123", "18000"])
+        .expect("task rate command");
 
     match task_rate.command {
         Some(CliCommand::Task(args)) => {
@@ -440,7 +452,13 @@ fn test_given_billing_cli_commands_when_parsing_then_binds_rate_and_currency() {
 
     // Task rate command with cents and currency override
     let task_rate_curr = CliArgs::try_parse_from(vec![
-        "oxy", "task", "rate", "t-123", "20000", "--currency", "GBP",
+        "oxy",
+        "task",
+        "rate",
+        "t-123",
+        "20000",
+        "--currency",
+        "GBP",
     ])
     .expect("task rate command with currency");
 

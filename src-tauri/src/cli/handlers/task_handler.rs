@@ -37,9 +37,11 @@ pub fn handle(
         TaskSubcommand::Rename { target, new_name } => {
             rename_task(persistence, &target, new_name, is_machine)
         }
-        TaskSubcommand::Rate { target, rate, currency } => {
-            set_task_rate(persistence, &target, rate, currency, is_machine)
-        }
+        TaskSubcommand::Rate {
+            target,
+            rate,
+            currency,
+        } => set_task_rate(persistence, &target, rate, currency, is_machine),
         TaskSubcommand::Reparent { target, new_parent } => {
             reparent_task(persistence, &target, &new_parent, is_machine)
         }

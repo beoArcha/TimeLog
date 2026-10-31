@@ -33,7 +33,15 @@ pub fn handle(
             color,
             rate,
             currency,
-        } => rename_project(persistence, &target, new_name, color, rate, currency, is_machine),
+        } => rename_project(
+            persistence,
+            &target,
+            new_name,
+            color,
+            rate,
+            currency,
+            is_machine,
+        ),
         ProjectSubcommand::Archive { target } => archive_project(persistence, &target, is_machine),
     }
 }
@@ -158,6 +166,9 @@ fn rename_project(
     let mut project = resolver.resolve_project(target)?;
 
     let has_new_name = new_name.is_some();
+    let has_color = color.is_some();
+    let has_rate = rate.is_some();
+    let has_currency = currency.is_some();
     if let Some(ref name) = new_name {
         let engine = Engine::new(persistence);
         project.name = engine.validate_project_name(name, Some(&project.id))?;
@@ -191,7 +202,13 @@ fn rename_project(
     persistence.projects.patch(project.clone())?;
 
     if is_machine {
-        let action = if has_new_name { "renamed" } else { "updated" };
+        let action = if has_new_name {
+            "renamed"
+        } else if has_color && !has_rate && !has_currency {
+            "recolored"
+        } else {
+            "updated"
+        };
         return Ok(CliOutput::Json(
             serde_json::json!({
                 "status": "ok",

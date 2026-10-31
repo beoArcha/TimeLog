@@ -23,7 +23,10 @@ describe('BrowserBillingEngine & Billing Helpers', () => {
 
   describe('Rate Resolution & Billing Calculation', () => {
     let billingEngine: BrowserBillingEngine;
-    let mockPersistence: any;
+    let mockPersistence: {
+      core: { load: ReturnType<typeof vi.fn> };
+      patches: { getAll: ReturnType<typeof vi.fn> };
+    };
 
     beforeEach(() => {
       mockPersistence = {

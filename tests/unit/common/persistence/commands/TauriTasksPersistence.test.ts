@@ -27,6 +27,7 @@ describe('TauriTasksPersistence', () => {
       projectId: 'proj-1',
       name: 'Task 1',
       parentTaskId: null,
+      hourlyRate: null,
     });
   });
 
@@ -44,6 +45,7 @@ describe('TauriTasksPersistence', () => {
       parentTaskId: 'parent-1',
       status: 'InProgress',
       completed: false,
+      hourlyRate: null,
     });
   });
 
