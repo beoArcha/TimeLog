@@ -10,50 +10,13 @@ import {
 } from '@common/engine/billing/types';
 import { calculateRangeMetrics } from '../elapsed';
 
-export function parseRateToCents(s: string): number | null {
-  const trimmed = s.trim();
-  if (!trimmed) return null;
-  const parts = trimmed.split('.');
-  if (parts.length > 2) return null;
-  const whole = Number(parts[0]);
-  if (isNaN(whole) || whole < 0 || !Number.isInteger(whole)) return null;
-  if (parts.length === 2) {
-    const fracStr = parts[1];
-    if (!/^\d*$/.test(fracStr)) return null;
-    let frac = 0;
-    if (fracStr.length === 1) {
-      frac = Number(fracStr) * 10;
-    } else if (fracStr.length >= 2) {
-      frac = Number(fracStr.slice(0, 2));
-    }
-    return whole * 100 + frac;
-  }
-  return whole * 100;
-}
+import {
+  parseRateToCents,
+  formatCents,
+  calculateBankersAmount,
+} from '@common/engine/billing/utils';
 
-export function formatCents(cents: number): string {
-  const whole = Math.floor(cents / 100);
-  const frac = cents % 100;
-  return `${whole}.${frac.toString().padStart(2, '0')}`;
-}
-
-export function calculateBankersAmount(durationSeconds: number, rateCents: number): number {
-  const product = BigInt(durationSeconds) * BigInt(rateCents);
-  const divisor = 3600n;
-  const q = product / divisor;
-  const r = product % divisor;
-  const doubleR = r * 2n;
-  if (doubleR > divisor) {
-    return Number(q + 1n);
-  }
-  if (doubleR < divisor) {
-    return Number(q);
-  }
-  if (q % 2n !== 0n) {
-    return Number(q + 1n);
-  }
-  return Number(q);
-}
+export { parseRateToCents, formatCents, calculateBankersAmount };
 
 export class BrowserBillingEngine implements IBillingEngine {
   private persistence: PersistenceRouter;
@@ -84,11 +47,24 @@ export class BrowserBillingEngine implements IBillingEngine {
     }
 
     const project = state.projects.find((p) => p.id === task.projectId);
-    const currency = project?.currency ?? null;
 
-    if (task.hourlyRate && task.hourlyRate.trim().length > 0) {
-      const cents = parseRateToCents(task.hourlyRate);
-      if (cents === 0) {
+    // Currency resolution order: Task billingCurrency/currency -> Project billingCurrency/currency
+    const currency =
+      task.billingCurrency ||
+      task.currency ||
+      (project ? project.billingCurrency || project.currency : null) ||
+      null;
+
+    // Level 1: Task override
+    let taskCents: number | null = null;
+    if (task.billingRateCents !== undefined && task.billingRateCents !== null) {
+      taskCents = Number(task.billingRateCents);
+    } else if (task.hourlyRate && task.hourlyRate.trim().length > 0) {
+      taskCents = parseRateToCents(task.hourlyRate);
+    }
+
+    if (taskCents !== null) {
+      if (taskCents === 0) {
         return {
           rate: '0.00',
           currency,
@@ -96,19 +72,26 @@ export class BrowserBillingEngine implements IBillingEngine {
           source: 'task',
         };
       }
-      if (cents !== null) {
-        return {
-          rate: formatCents(cents),
-          currency,
-          status: 'custom',
-          source: 'task',
-        };
+      return {
+        rate: formatCents(taskCents),
+        currency,
+        status: 'custom',
+        source: 'task',
+      };
+    }
+
+    // Level 2: Project rate inheritance
+    let projCents: number | null = null;
+    if (project) {
+      if (project.billingRateCents !== undefined && project.billingRateCents !== null) {
+        projCents = Number(project.billingRateCents);
+      } else if (project.hourlyRate && project.hourlyRate.trim().length > 0) {
+        projCents = parseRateToCents(project.hourlyRate);
       }
     }
 
-    if (project?.hourlyRate && project.hourlyRate.trim().length > 0) {
-      const cents = parseRateToCents(project.hourlyRate);
-      if (cents === 0) {
+    if (projCents !== null) {
+      if (projCents === 0) {
         return {
           rate: '0.00',
           currency,
@@ -116,16 +99,40 @@ export class BrowserBillingEngine implements IBillingEngine {
           source: 'project',
         };
       }
-      if (cents !== null) {
-        return {
-          rate: formatCents(cents),
-          currency,
-          status: 'inherited',
-          source: 'project',
-        };
-      }
+      return {
+        rate: formatCents(projCents),
+        currency,
+        status: 'inherited',
+        source: 'project',
+      };
     }
 
+    // Level 3: Default system / runtime configuration rate
+    try {
+      const configs = await this.persistence.runtimeConfigs?.getAll();
+      const cfg = configs?.find(
+        (c) =>
+          c.id === 'default_billing_rate' ||
+          c.id === 'default_rate' ||
+          c.runtime === 'billing_default'
+      );
+      if (cfg?.config) {
+        const cents = parseRateToCents(cfg.config);
+        if (cents !== null) {
+          const isZero = cents === 0;
+          return {
+            rate: isZero ? '0.00' : formatCents(cents),
+            currency,
+            status: isZero ? 'non_billable' : 'inherited',
+            source: 'default',
+          };
+        }
+      }
+    } catch {
+      // Fall through on config lookup errors
+    }
+
+    // Level 4: Unconfigured fallback
     return {
       rate: null,
       currency,
@@ -153,7 +160,6 @@ export class BrowserBillingEngine implements IBillingEngine {
     const metrics = calculateRangeMetrics(range, state.tasks, state.logs, nowIso, patches);
 
     const taskMap = new Map(state.tasks.map((t) => [t.id, t]));
-    const projectMap = new Map(state.projects.map((p) => [p.id, p]));
 
     const byTask: TaskBillingSummary[] = [];
     const currencyCents = new Map<string, number>();
@@ -174,11 +180,10 @@ export class BrowserBillingEngine implements IBillingEngine {
       const task = taskMap.get(taskId);
       if (!task) continue;
 
-      const project = projectMap.get(task.projectId);
-      const currency = project?.currency ?? null;
+      const effective = await this.resolveEffectiveTaskRate(taskId);
+      const currency = effective.currency;
       const currKey = currency ?? 'UNKNOWN';
 
-      const effective = await this.resolveEffectiveTaskRate(taskId);
       let amountStr: string | null;
 
       if (effective.status === 'non_billable') {

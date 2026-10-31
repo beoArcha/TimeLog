@@ -5,6 +5,7 @@ import { TaskStatus } from '@bindings/TaskStatus';
 import { PersistenceException } from '@common/exceptions';
 import { validateTaskHierarchy } from '../../engine/validation';
 import { ILocalStorageStateStore } from './LocalStorageStateStore';
+import { parseRateToCents } from '@common/engine/billing/utils';
 
 function resolveStatusAfterCompletionToggle(completed: boolean, currentStatus: TaskStatus): TaskStatus {
   if (completed) {
@@ -36,6 +37,11 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
         );
       }
       const now = new Date().toISOString();
+      let cents: bigint | undefined;
+      if (input.hourlyRate && input.hourlyRate.trim().length > 0) {
+        const parsed = parseRateToCents(input.hourlyRate);
+        if (parsed !== null) cents = BigInt(parsed);
+      }
       const newTask = {
         id: crypto.randomUUID(),
         projectId: input.projectId,
@@ -45,6 +51,7 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
         completed: false,
         status: 'Todo' as TaskStatus,
         hourlyRate: input.hourlyRate ?? undefined,
+        billingRateCents: cents,
       };
       current.tasks.push(newTask);
     });
@@ -90,6 +97,12 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
 
       if (hourlyRate !== undefined) {
         task.hourlyRate = hourlyRate ?? undefined;
+        if (hourlyRate && hourlyRate.trim().length > 0) {
+          const cents = parseRateToCents(hourlyRate);
+          task.billingRateCents = cents !== null ? BigInt(cents) : undefined;
+        } else {
+          task.billingRateCents = undefined;
+        }
       }
     });
   }
@@ -119,22 +132,22 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
         );
       }
 
-      const idsToDelete = new Set<string>([id]);
+      const toDelete = new Set<string>([id]);
       let added: boolean;
       do {
         added = false;
         current.tasks.forEach((t) => {
-          if (t.parentTaskId && idsToDelete.has(t.parentTaskId) && !idsToDelete.has(t.id)) {
-            idsToDelete.add(t.id);
+          if (t.parentTaskId && toDelete.has(t.parentTaskId) && !toDelete.has(t.id)) {
+            toDelete.add(t.id);
             added = true;
           }
         });
       } while (added);
 
-      current.tasks = current.tasks.filter((t) => !idsToDelete.has(t.id));
-      current.logs = current.logs.filter((l) => !idsToDelete.has(l.taskId));
+      current.tasks = current.tasks.filter((t) => !toDelete.has(t.id));
+      current.logs = current.logs.filter((l) => !toDelete.has(l.taskId));
 
-      if (current.activeLog && idsToDelete.has(current.activeLog.taskId)) {
+      if (current.activeLog && toDelete.has(current.activeLog.taskId)) {
         current.activeLog = null;
       }
     });
@@ -151,21 +164,25 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
         );
       }
       task.completed = !task.completed;
-      task.status = task.completed ? 'Done' : 'Todo';
+      task.status = resolveStatusAfterCompletionToggle(task.completed, task.status);
+
       if (task.completed && current.activeLog?.taskId === taskId) {
         const now = new Date().toISOString();
         current.activeLog.endTime = now;
-        current.logs = current.logs.map((l) =>
-          l.id === current.activeLog?.id ? { ...l, endTime: now } : l
-        );
+        const existingIdx = current.logs.findIndex((l) => l.id === current.activeLog?.id);
+        if (existingIdx !== -1) {
+          current.logs[existingIdx] = { ...current.activeLog };
+        } else {
+          current.logs.push({ ...current.activeLog });
+        }
         current.activeLog = null;
       }
     });
   }
 
   async getProjectId(taskId: string): Promise<string> {
-    const current = await this.store.getStateOrDefault();
-    const task = current.tasks.find((t) => t.id === taskId);
+    const state = await this.store.getStateOrDefault();
+    const task = state.tasks.find((t) => t.id === taskId);
     if (!task) {
       throw new PersistenceException(
         `Task ${taskId} not found`,
@@ -176,8 +193,8 @@ export class LocalStorageTasksPersistence implements ITasksPersistence {
     return task.projectId;
   }
 
-  async getSubtasks(taskId: string): Promise<Task[]> {
-    const current = await this.store.getStateOrDefault();
-    return current.tasks.filter((t) => t.parentTaskId === taskId);
+  async getSubtasks(parentTaskId: string): Promise<Task[]> {
+    const state = await this.store.getStateOrDefault();
+    return state.tasks.filter((t) => t.parentTaskId === parentTaskId);
   }
 }

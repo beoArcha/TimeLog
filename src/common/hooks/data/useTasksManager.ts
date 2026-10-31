@@ -163,7 +163,7 @@ export const useTasksManager = ({
         input.parentTaskId ?? null,
         input.status ?? null,
         input.completed ?? null,
-        input.hourlyRate !== undefined ? input.hourlyRate : null
+        input.hourlyRate
       );
       await syncState(nextState);
     });

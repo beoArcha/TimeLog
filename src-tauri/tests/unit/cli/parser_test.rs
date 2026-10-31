@@ -442,6 +442,7 @@ fn test_given_billing_cli_commands_when_parsing_then_binds_rate_and_currency() {
                     ref target,
                     ref rate,
                     ref currency,
+                    ..
                 } if target == "t-123"
                     && rate == "18000"
                     && currency.is_none()
@@ -470,6 +471,7 @@ fn test_given_billing_cli_commands_when_parsing_then_binds_rate_and_currency() {
                     ref target,
                     ref rate,
                     ref currency,
+                    ..
                 } if target == "t-123"
                     && rate == "20000"
                     && currency.as_deref() == Some("GBP")

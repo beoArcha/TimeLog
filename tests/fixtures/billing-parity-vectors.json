@@ -45,6 +45,7 @@
       "projectCurrency": "USD",
       "expectedStatus": "inherited",
       "expectedRate": "120.00",
+      "expectedCurrency": "USD",
       "expectedSource": "project"
     },
     {
@@ -54,6 +55,7 @@
       "projectCurrency": "EUR",
       "expectedStatus": "custom",
       "expectedRate": "200.00",
+      "expectedCurrency": "EUR",
       "expectedSource": "task"
     },
     {
@@ -63,6 +65,7 @@
       "projectCurrency": "PLN",
       "expectedStatus": "non_billable",
       "expectedRate": "0.00",
+      "expectedCurrency": "PLN",
       "expectedSource": "task"
     },
     {
@@ -72,6 +75,7 @@
       "projectCurrency": "GBP",
       "expectedStatus": "non_billable",
       "expectedRate": "0.00",
+      "expectedCurrency": "GBP",
       "expectedSource": "project"
     },
     {
@@ -81,7 +85,73 @@
       "projectCurrency": "USD",
       "expectedStatus": "unconfigured",
       "expectedRate": null,
+      "expectedCurrency": "USD",
       "expectedSource": "none"
+    },
+    {
+      "description": "Task overrides currency independently of project currency",
+      "taskRate": "150.00",
+      "taskCurrency": "EUR",
+      "projectRate": "100.00",
+      "projectCurrency": "USD",
+      "expectedStatus": "custom",
+      "expectedRate": "150.00",
+      "expectedCurrency": "EUR",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Task uses canonical billingRateCents over legacy hourlyRate",
+      "taskRate": "99.00",
+      "taskBillingRateCents": 25000,
+      "projectRate": "100.00",
+      "projectCurrency": "USD",
+      "expectedStatus": "custom",
+      "expectedRate": "250.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Project uses canonical billingRateCents over legacy hourlyRate",
+      "taskRate": null,
+      "projectRate": "99.00",
+      "projectBillingRateCents": 18000,
+      "projectCurrency": "USD",
+      "expectedStatus": "inherited",
+      "expectedRate": "180.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "project"
+    },
+    {
+      "description": "Task uses billingCurrency field override",
+      "taskRate": "100.00",
+      "taskBillingCurrency": "PLN",
+      "projectCurrency": "USD",
+      "expectedStatus": "custom",
+      "expectedRate": "100.00",
+      "expectedCurrency": "PLN",
+      "expectedSource": "task"
+    },
+    {
+      "description": "Runtime config default rate tier 3 billable",
+      "taskRate": null,
+      "projectRate": null,
+      "projectCurrency": "USD",
+      "runtimeDefaultRate": "50.00",
+      "expectedStatus": "inherited",
+      "expectedRate": "50.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "default"
+    },
+    {
+      "description": "Runtime config default rate tier 3 zero non-billable",
+      "taskRate": null,
+      "projectRate": null,
+      "projectCurrency": "USD",
+      "runtimeDefaultRate": "0.00",
+      "expectedStatus": "non_billable",
+      "expectedRate": "0.00",
+      "expectedCurrency": "USD",
+      "expectedSource": "default"
     }
   ]
 }

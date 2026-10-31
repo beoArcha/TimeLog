@@ -45,7 +45,24 @@ describe('TauriTasksPersistence', () => {
       parentTaskId: 'parent-1',
       status: 'InProgress',
       completed: false,
-      hourlyRate: null,
+    });
+  });
+
+  it('should invoke update_task command with hourlyRate when provided', async () => {
+    // Arrange
+    mockInvoke.mockResolvedValueOnce({ projects: [], tasks: [], logs: [], activeLog: null });
+
+    // Act
+    await tasksPersistence.update('task-1', 'Updated Task', 'parent-1', 'InProgress', false, '150.00');
+
+    // Assert
+    expect(mockInvoke).toHaveBeenCalledWith('update_task', {
+      taskId: 'task-1',
+      name: 'Updated Task',
+      parentTaskId: 'parent-1',
+      status: 'InProgress',
+      completed: false,
+      hourlyRate: '150.00',
     });
   });
 

@@ -4,6 +4,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { PersistenceException } from '@common/exceptions';
 import { ILocalStorageStateStore } from './LocalStorageStateStore';
+import { parseRateToCents } from '@common/engine/billing/utils';
 
 export class ValidationException extends PersistenceException {
   constructor(message: string, code = 'ERR_PERSISTENCE_VALIDATION', cause?: unknown) {
@@ -47,6 +48,12 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     currency?: string | null;
   }): Promise<TimerRepositoryState> {
     return this.store.mutate((current) => {
+      let cents: bigint | undefined;
+      if (input.hourlyRate && input.hourlyRate.trim().length > 0) {
+        const parsed = parseRateToCents(input.hourlyRate);
+        if (parsed !== null) cents = BigInt(parsed);
+      }
+      const curr = input.currency ? input.currency.trim().toUpperCase() : undefined;
       const newProject: Project = {
         id: crypto.randomUUID(),
         name: input.name,
@@ -58,7 +65,9 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
         tags: input.tags ?? undefined,
         allowConcurrency: input.allowConcurrency ?? undefined,
         hourlyRate: input.hourlyRate ?? undefined,
-        currency: input.currency ?? undefined,
+        currency: curr,
+        billingRateCents: cents,
+        billingCurrency: curr,
       };
       current.projects.push(newProject);
     });
@@ -88,8 +97,19 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
       project.icon = icon ?? undefined;
       project.tags = tags ?? undefined;
       project.allowConcurrency = allowConcurrency ?? undefined;
-      project.hourlyRate = hourlyRate !== undefined ? (hourlyRate ?? undefined) : project.hourlyRate;
-      project.currency = currency !== undefined ? (currency ?? undefined) : project.currency;
+      if (hourlyRate !== undefined) {
+        project.hourlyRate = hourlyRate ?? undefined;
+        if (hourlyRate && hourlyRate.trim().length > 0) {
+          const cents = parseRateToCents(hourlyRate);
+          project.billingRateCents = cents !== null ? BigInt(cents) : undefined;
+        } else {
+          project.billingRateCents = undefined;
+        }
+      }
+      if (currency !== undefined) {
+        project.currency = currency ? currency.trim().toUpperCase() : undefined;
+        project.billingCurrency = project.currency;
+      }
     });
   }
 
@@ -169,17 +189,16 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
 
       current.projects = current.projects.filter((p) => p.id !== projectId);
       current.tasks = current.tasks.filter((t) => !projectTaskIds.has(t.id));
-      if (current.logs) {
-        current.logs = current.logs.filter(
-          (l) => l.projectId !== projectId && !projectTaskIds.has(l.taskId)
-        );
-      }
-      if ((current as { timeLogs?: TimeLog[] }).timeLogs) {
-        (current as { timeLogs?: TimeLog[] }).timeLogs = (
-          current as { timeLogs?: TimeLog[] }
-        ).timeLogs!.filter(
-          (l) => l.projectId !== projectId && !projectTaskIds.has(l.taskId)
-        );
+      current.logs = current.logs.filter(
+        (l) => l.projectId !== projectId && !projectTaskIds.has(l.taskId)
+      );
+
+      if (
+        current.activeLog &&
+        (current.activeLog.projectId === projectId ||
+          projectTaskIds.has(current.activeLog.taskId))
+      ) {
+        current.activeLog = null;
       }
     });
   }

@@ -83,8 +83,8 @@ export const useProjectsManager = ({
     icon: string | null = null,
     tags: string[] | null = null,
     allowConcurrency: boolean | null = null,
-    hourlyRate: string | null = null,
-    currency: string | null = null
+    hourlyRate?: string | null,
+    currency?: string | null
   ) => {
     const input: ProjectInputData =
       typeof nameOrInput === 'object'
@@ -101,8 +101,8 @@ export const useProjectsManager = ({
         input.icon ?? null,
         input.tags ?? null,
         input.allowConcurrency ?? null,
-        input.hourlyRate ?? null,
-        input.currency ?? null
+        input.hourlyRate,
+        input.currency
       );
       await syncState(nextState);
     });

@@ -1,7 +1,7 @@
 use crate::common::AppError;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{Task, TaskStatus, TimerRepositoryState};
+use crate::types::{Task, TaskStatus, TimerRepositoryState, TriState};
 use crate::AppState;
 use tauri::State;
 
@@ -11,7 +11,7 @@ pub struct TaskUpdateInput {
     pub parent_task_id: Option<String>,
     pub status: Option<TaskStatus>,
     pub completed: Option<bool>,
-    pub hourly_rate: Option<String>,
+    pub hourly_rate: TriState<String>,
 }
 
 fn get_task_or_fail(persistence: &Persistence, task_id: &str) -> Result<Task, AppError> {
@@ -91,7 +91,14 @@ pub fn create_task(
         parent_task_id.map(str::to_string),
         valid_name,
     );
-    task.hourly_rate = hourly_rate;
+    if let Some(rate_str) = hourly_rate {
+        let trimmed = rate_str.trim();
+        if !trimmed.is_empty() {
+            let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
+            task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+            task.billing_rate_cents = Some(cents as i64);
+        }
+    }
 
     if task.parent_task_id.is_some() {
         persistence.tasks.create_subtask(task)?;
@@ -123,7 +130,20 @@ pub fn update_task_details(
         stop_active_timer_if_matching_task(&engine, &task.id)?;
     }
 
-    task.hourly_rate = input.hourly_rate;
+    if let Some(rate_opt) = input.hourly_rate.as_set() {
+        match rate_opt {
+            Some(rate_str) => {
+                let trimmed = rate_str.trim();
+                let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
+                task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+                task.billing_rate_cents = Some(cents as i64);
+            }
+            None => {
+                task.hourly_rate = None;
+                task.billing_rate_cents = None;
+            }
+        }
+    }
 
     persistence.tasks.patch(task)?;
     Ok(engine.get_state()?)
@@ -215,7 +235,7 @@ pub fn update_task(
     parent_task_id: Option<String>,
     status: Option<TaskStatus>,
     completed: Option<bool>,
-    hourly_rate: Option<String>,
+    hourly_rate: TriState<String>,
     state: State<'_, AppState>,
 ) -> Result<TimerRepositoryState, AppError> {
     update_task_details(

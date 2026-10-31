@@ -46,19 +46,22 @@ export class TauriProjectsPersistence implements IProjectsPersistence {
     currency?: string | null
   ): Promise<TimerRepositoryState> {
     const cmd: ProjectsPersistenceCommand = 'update_project';
-    return invoke<TimerRepositoryState>(cmd, {
-      input: {
-        projectId,
-        name,
-        color,
-        description,
-        icon,
-        tags,
-        allowConcurrency: allowConcurrency ?? null,
-        hourlyRate: hourlyRate ?? null,
-        currency: currency ?? null,
-      },
-    });
+    const input: Record<string, unknown> = {
+      projectId,
+      name,
+      color,
+      description,
+      icon,
+      tags,
+      allowConcurrency: allowConcurrency ?? null,
+    };
+    if (hourlyRate !== undefined) {
+      input.hourlyRate = hourlyRate;
+    }
+    if (currency !== undefined) {
+      input.currency = currency;
+    }
+    return invoke<TimerRepositoryState>(cmd, { input });
   }
 
   async rename(projectId: string, name: string): Promise<TimerRepositoryState> {

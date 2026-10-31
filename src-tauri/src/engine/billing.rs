@@ -5,23 +5,56 @@ use crate::types::{
 };
 use std::collections::HashMap;
 
-pub fn parse_rate_to_cents(s: &str) -> Option<u64> {
+pub fn validate_currency_code(s: &str) -> Result<String, EngineError> {
+    let trimmed = s.trim();
+    if trimmed.len() != 3 || !trimmed.chars().all(|c| c.is_ascii_alphabetic()) {
+        return Err(EngineError::Validation(format!(
+            "Invalid currency code '{}'. Must be a 3-letter ISO code.",
+            s
+        )));
+    }
+    Ok(trimmed.to_ascii_uppercase())
+}
+
+pub fn validate_and_parse_rate(s: &str) -> Result<u64, EngineError> {
     let trimmed = s.trim();
     if trimmed.is_empty() {
-        return None;
+        return Err(EngineError::Validation(
+            "Hourly rate cannot be empty".to_string(),
+        ));
     }
     if let Some((whole_str, frac_str)) = trimmed.split_once('.') {
-        let whole: u64 = whole_str.parse().ok()?;
+        if whole_str.is_empty() {
+            return Err(EngineError::Validation(format!(
+                "Invalid rate format: '{}'",
+                s
+            )));
+        }
+        let whole = whole_str.parse::<u64>().map_err(|_| {
+            EngineError::Validation(format!("Invalid whole rate component: '{}'", whole_str))
+        })?;
+        if frac_str.len() > 2 || !frac_str.chars().all(|c| c.is_ascii_digit()) {
+            return Err(EngineError::Validation(format!(
+                "Rate fraction can have at most 2 decimal places: '{}'",
+                s
+            )));
+        }
         let frac_padded = match frac_str.len() {
             0 => 0,
-            1 => frac_str.parse::<u64>().ok()? * 10,
-            _ => frac_str[..2].parse::<u64>().ok()?,
+            1 => frac_str.parse::<u64>().unwrap() * 10,
+            _ => frac_str.parse::<u64>().unwrap(),
         };
-        Some(whole * 100 + frac_padded)
+        Ok(whole * 100 + frac_padded)
     } else {
-        let whole: u64 = trimmed.parse().ok()?;
-        Some(whole * 100)
+        let whole = trimmed
+            .parse::<u64>()
+            .map_err(|_| EngineError::Validation(format!("Invalid rate: '{}'", s)))?;
+        Ok(whole * 100)
     }
+}
+
+pub fn parse_rate_to_cents(s: &str) -> Option<u64> {
+    validate_and_parse_rate(s).ok()
 }
 
 pub fn parse_rate_or_cents(s: &str) -> Option<u64> {
@@ -29,16 +62,15 @@ pub fn parse_rate_or_cents(s: &str) -> Option<u64> {
     if trimmed.is_empty() {
         return None;
     }
-    if trimmed.contains('.') {
+    if let Some(cents_str) = trimmed
+        .strip_suffix('c')
+        .or_else(|| trimmed.strip_suffix('¢'))
+    {
+        cents_str.trim().parse::<u64>().ok()
+    } else if trimmed.contains('.') {
         parse_rate_to_cents(trimmed)
-    } else if let Ok(val) = trimmed.parse::<u64>() {
-        if val >= 1000 {
-            Some(val)
-        } else {
-            Some(val * 100)
-        }
     } else {
-        None
+        trimmed.parse::<u64>().ok().map(|val| val * 100)
     }
 }
 

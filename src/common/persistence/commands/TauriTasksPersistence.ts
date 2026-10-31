@@ -32,14 +32,17 @@ export class TauriTasksPersistence implements ITasksPersistence {
     hourlyRate?: string | null
   ): Promise<TimerRepositoryState> {
     const cmd: TasksPersistenceCommand = 'update_task';
-    return invoke<TimerRepositoryState>(cmd, {
+    const payload: Record<string, unknown> = {
       taskId,
       name,
       parentTaskId,
       status,
       completed,
-      hourlyRate: hourlyRate !== undefined ? hourlyRate : null,
-    });
+    };
+    if (hourlyRate !== undefined) {
+      payload.hourlyRate = hourlyRate;
+    }
+    return invoke<TimerRepositoryState>(cmd, payload);
   }
 
   async rename(taskId: string, name: string): Promise<TimerRepositoryState> {

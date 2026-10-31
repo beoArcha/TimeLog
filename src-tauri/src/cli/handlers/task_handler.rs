@@ -7,7 +7,7 @@ use super::constants::{
     MSG_TASK_CREATED, MSG_TASK_DETACHED, MSG_TASK_MOVED, MSG_TASK_RENAMED, MSG_TASK_REPARENTED,
     SYMBOL_TASK_DONE, SYMBOL_TASK_TODO,
 };
-use crate::cli::error::{BusinessRuleViolation, CliError};
+use crate::cli::error::{BusinessRuleViolation, CliError, CliSyntaxError};
 use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
@@ -32,7 +32,16 @@ pub fn handle(
             project,
             parent,
             rate,
-        } => add_task(persistence, name, project, parent, rate, is_machine),
+            rate_cents,
+        } => add_task(
+            persistence,
+            name,
+            project,
+            parent,
+            rate,
+            rate_cents,
+            is_machine,
+        ),
         TaskSubcommand::Done { target } => complete_task(persistence, &target, is_machine),
         TaskSubcommand::Rename { target, new_name } => {
             rename_task(persistence, &target, new_name, is_machine)
@@ -41,7 +50,8 @@ pub fn handle(
             target,
             rate,
             currency,
-        } => set_task_rate(persistence, &target, rate, currency, is_machine),
+            cents,
+        } => set_task_rate(persistence, &target, rate, currency, cents, is_machine),
         TaskSubcommand::Reparent { target, new_parent } => {
             reparent_task(persistence, &target, &new_parent, is_machine)
         }
@@ -227,8 +237,14 @@ fn add_task(
     project: Option<String>,
     parent: Option<String>,
     rate: Option<String>,
+    rate_cents: Option<u64>,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
+    if rate.is_some() && rate_cents.is_some() {
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            "Cannot specify both --rate and --rate-cents".to_string(),
+        )));
+    }
     let engine = Engine::new(persistence);
     let valid_name = engine.validate_task_name(&name)?;
 
@@ -264,7 +280,15 @@ fn add_task(
     let parent_task_id = parent_task.map(|p| p.id);
     let id = generate_id();
     let mut task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
-    task.hourly_rate = rate;
+    if let Some(cents) = rate_cents {
+        task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+        task.billing_rate_cents = Some(cents as i64);
+    } else if let Some(r) = rate {
+        let trimmed = r.trim();
+        let cents = crate::engine::billing::validate_and_parse_rate(trimmed)?;
+        task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
+        task.billing_rate_cents = Some(cents as i64);
+    }
 
     persistence.tasks.create(task)?;
     if is_machine {
@@ -285,6 +309,7 @@ fn set_task_rate(
     target: &str,
     rate: String,
     currency: Option<String>,
+    cents: bool,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
@@ -298,11 +323,19 @@ fn set_task_rate(
     {
         task.hourly_rate = None;
         task.billing_rate_cents = None;
-    } else if let Some(cents) = crate::engine::billing::parse_rate_or_cents(trimmed) {
-        task.hourly_rate = Some(crate::engine::billing::format_cents(cents));
-        task.billing_rate_cents = Some(cents as i64);
+    } else if cents {
+        let parsed_cents = trimmed.parse::<u64>().map_err(|_| {
+            crate::engine::EngineError::Validation(format!("Invalid cents rate: '{}'", rate))
+        })?;
+        task.hourly_rate = Some(crate::engine::billing::format_cents(parsed_cents));
+        task.billing_rate_cents = Some(parsed_cents as i64);
+    } else if let Some(cents_val) = crate::engine::billing::parse_rate_or_cents(trimmed) {
+        task.hourly_rate = Some(crate::engine::billing::format_cents(cents_val));
+        task.billing_rate_cents = Some(cents_val as i64);
     } else {
-        task.hourly_rate = Some(trimmed.to_string());
+        return Err(
+            crate::engine::EngineError::Validation(format!("Invalid rate: '{}'", rate)).into(),
+        );
     }
 
     if let Some(curr) = currency {
@@ -314,8 +347,9 @@ fn set_task_rate(
             task.currency = None;
             task.billing_currency = None;
         } else {
-            task.currency = Some(trimmed_curr.to_string());
-            task.billing_currency = Some(trimmed_curr.to_string());
+            let validated = crate::engine::billing::validate_currency_code(trimmed_curr)?;
+            task.currency = Some(validated.clone());
+            task.billing_currency = Some(validated);
         }
     }
 

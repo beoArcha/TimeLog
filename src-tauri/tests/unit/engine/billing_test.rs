@@ -1,5 +1,6 @@
 use oxy_flow::engine::billing::{
     calculate_bankers_amount, format_cents, parse_rate_or_cents, parse_rate_to_cents,
+    validate_and_parse_rate, validate_currency_code,
 };
 use oxy_flow::engine::Engine;
 use oxy_flow::persistence::{Persistence, PersistenceConfig};
@@ -29,7 +30,7 @@ fn setup_test_persistence() -> (Persistence, std::path::PathBuf) {
 }
 
 #[test]
-fn test_parse_rate() {
+fn test_parse_rate_and_boundaries() {
     assert_eq!(parse_rate_to_cents("150"), Some(15000));
     assert_eq!(parse_rate_to_cents("150.00"), Some(15000));
     assert_eq!(parse_rate_to_cents("150.5"), Some(15050));
@@ -39,9 +40,45 @@ fn test_parse_rate() {
     assert_eq!(parse_rate_to_cents(""), None);
     assert_eq!(parse_rate_to_cents("-10"), None);
 
-    assert_eq!(parse_rate_or_cents("15000"), Some(15000));
+    // Boundary tests on both sides of 1000 for major units
+    assert_eq!(parse_rate_or_cents("999"), Some(99900));
+    assert_eq!(parse_rate_or_cents("1000"), Some(100000));
+    assert_eq!(parse_rate_or_cents("1001"), Some(100100));
     assert_eq!(parse_rate_or_cents("150.00"), Some(15000));
     assert_eq!(parse_rate_or_cents("150"), Some(15000));
+
+    // Boundary tests on both sides of 1000 for explicit cents suffix
+    assert_eq!(parse_rate_or_cents("500c"), Some(500));
+    assert_eq!(parse_rate_or_cents("999c"), Some(999));
+    assert_eq!(parse_rate_or_cents("1000c"), Some(1000));
+    assert_eq!(parse_rate_or_cents("1001c"), Some(1001));
+    assert_eq!(parse_rate_or_cents("15000c"), Some(15000));
+}
+
+#[test]
+fn test_validation_rate_and_currency() {
+    // Valid rates
+    assert_eq!(validate_and_parse_rate("150.00").unwrap(), 15000);
+    assert_eq!(validate_and_parse_rate("999").unwrap(), 99900);
+    assert_eq!(validate_and_parse_rate("1000").unwrap(), 100000);
+    assert_eq!(validate_and_parse_rate("0.00").unwrap(), 0);
+
+    // Invalid rates
+    assert!(validate_and_parse_rate("").is_err());
+    assert!(validate_and_parse_rate("-10").is_err());
+    assert!(validate_and_parse_rate("150.555").is_err()); // > 2 decimal places
+    assert!(validate_and_parse_rate("abc").is_err());
+
+    // Valid currencies
+    assert_eq!(validate_currency_code("USD").unwrap(), "USD");
+    assert_eq!(validate_currency_code("eur").unwrap(), "EUR");
+    assert_eq!(validate_currency_code(" pln ").unwrap(), "PLN");
+
+    // Invalid currencies
+    assert!(validate_currency_code("").is_err());
+    assert!(validate_currency_code("US").is_err());
+    assert!(validate_currency_code("USDD").is_err());
+    assert!(validate_currency_code("123").is_err());
 }
 
 #[test]

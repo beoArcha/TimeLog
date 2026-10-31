@@ -16,8 +16,11 @@ pub mod project;
 pub mod settings;
 pub mod sinks;
 pub mod timelog;
+pub mod tristate;
 pub mod webhook_queue;
 pub mod workflow;
+
+pub use tristate::TriState;
 
 pub use billing::{
     CurrencyBillingSummary, EffectiveRateResult, RangeBillingResult, RateMode, RateStatus,

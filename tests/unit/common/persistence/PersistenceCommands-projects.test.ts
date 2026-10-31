@@ -70,8 +70,6 @@ describe('Unit Tests: PersistenceCommands - Projects', () => {
           icon: null,
           tags: null,
           allowConcurrency: null,
-          hourlyRate: null,
-          currency: null,
         },
       });
       expect(mockInvoke).toHaveBeenCalledWith('rename_project', {

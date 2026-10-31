@@ -8,7 +8,7 @@ export interface EffectiveRateResult {
   readonly rate: string | null;
   readonly currency: string | null;
   readonly status: RateStatus;
-  readonly source: 'task' | 'project' | 'none';
+  readonly source: 'task' | 'project' | 'default' | 'none';
 }
 
 export interface TaskBillingSummary {

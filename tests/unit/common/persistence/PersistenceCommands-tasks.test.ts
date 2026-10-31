@@ -42,7 +42,6 @@ describe('Unit Tests: PersistenceCommands - Tasks', () => {
         parentTaskId: null,
         status: 'Todo',
         completed: false,
-        hourlyRate: null,
       });
       expect(mockInvoke).toHaveBeenCalledWith('rename_task', {
         taskId: 't1',
