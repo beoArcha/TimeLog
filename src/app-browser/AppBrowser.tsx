@@ -15,7 +15,9 @@ export default function AppBrowser() {
       supportsAutoStart: false,
       isPwaInstallable: true,
       hasNativeDaemon: false,
-      canUseCli: typeof window !== 'undefined' && window.location.search.includes('debug=1'),
+      canUseCli:
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('debug') === '1',
       storageEngineName: 'localStorage',
     }),
     []

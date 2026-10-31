@@ -247,3 +247,88 @@ fn test_given_nonexistent_project_when_delete_attempted_then_returns_not_found()
         other => panic!("Expected PersistenceError::NotFound, got {:?}", other),
     }
 }
+
+#[test]
+fn test_given_project_when_repeatedly_deleted_then_second_attempt_returns_not_found() {
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("unit_delete_proj_repeated");
+    let persistence = Persistence::new(&config).unwrap();
+    let project = ProjectBuilder::new()
+        .with_id("proj_repeat")
+        .with_name("Repeat Project")
+        .build();
+    persistence.projects.create(project).unwrap();
+
+    // Act
+    let first = delete_project_by_id(&persistence, "proj_repeat");
+    assert!(first.is_ok());
+
+    let second = delete_project_by_id(&persistence, "proj_repeat");
+
+    // Assert
+    assert!(second.is_err());
+    match second.unwrap_err() {
+        AppError::Persistence(oxy_flow::persistence::PersistenceError::NotFound { entity, id }) => {
+            assert_eq!(entity, "Project");
+            assert_eq!(id, "proj_repeat");
+        }
+        other => panic!("Expected NotFound on second delete, got {:?}", other),
+    }
+}
+
+#[test]
+fn test_given_concurrent_time_log_creation_and_project_deletion_then_project_with_time_is_never_deleted() {
+    use std::sync::Arc;
+    use std::thread;
+
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("unit_delete_concurrent_time");
+    let persistence = Arc::new(Persistence::new(&config).unwrap());
+
+    let project = ProjectBuilder::new()
+        .with_id("proj_concurrent")
+        .with_name("Concurrent Project")
+        .build();
+    persistence.projects.create(project).unwrap();
+
+    let task = TaskBuilder::new()
+        .with_id("task_concurrent")
+        .with_project_id("proj_concurrent")
+        .with_name("Concurrent Task")
+        .build();
+    persistence.tasks.create(task).unwrap();
+
+    let p1 = Arc::clone(&persistence);
+    let p2 = Arc::clone(&persistence);
+
+    // Act: Spawn concurrent threads for time log insertion and project deletion
+    let t1 = thread::spawn(move || {
+        let log = NewTimeLog {
+            id: "log_concurrent_1".to_string(),
+            task_id: "task_concurrent".to_string(),
+            start_time: "2026-06-22T10:00:00Z".to_string(),
+            end_time: Some("2026-06-22T11:00:00Z".to_string()),
+            note: None,
+        };
+        p1.time_logs.insert_full(&log)
+    });
+
+    let t2 = thread::spawn(move || {
+        delete_project_by_id(&p2, "proj_concurrent")
+    });
+
+    let _ = t1.join().unwrap();
+    let del_res = t2.join().unwrap();
+
+    // Assert: Invariant verification
+    let remaining_project = persistence.projects.get("proj_concurrent").unwrap();
+    let remaining_logs = persistence.time_logs.get_all().unwrap();
+    let project_has_logs = remaining_logs.iter().any(|l| l.task_id == "task_concurrent");
+
+    if project_has_logs {
+        assert!(remaining_project.is_some(), "Project with tracked time must never be deleted!");
+        assert!(del_res.is_err(), "Delete must fail when time exists!");
+    } else if del_res.is_ok() {
+        assert!(remaining_project.is_none(), "Project without time must be deleted cleanly!");
+    }
+}

@@ -23,6 +23,7 @@ describe('LocalStorageProjectsPersistence', () => {
         logs: [],
         activeLog: null,
       }),
+      runExclusive: vi.fn().mockImplementation((fn: () => unknown) => fn()),
     };
     projectsPersistence = new LocalStorageProjectsPersistence(storeMock);
   });

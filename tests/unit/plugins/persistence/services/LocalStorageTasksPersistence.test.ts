@@ -20,6 +20,7 @@ describe('LocalStorageTasksPersistence', () => {
         logs: [],
         activeLog: null,
       }),
+      runExclusive: vi.fn().mockImplementation((fn: () => unknown) => fn()),
     };
     tasksPersistence = new LocalStorageTasksPersistence(storeMock);
   });

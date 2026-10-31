@@ -2,7 +2,7 @@ use super::constants;
 use super::BusinessRepository;
 use crate::repositories::shared::errors::{RepositoryError, Result};
 use crate::types::{Project, ProjectEditHistory};
-use rusqlite::params;
+use rusqlite::{params, OptionalExtension};
 
 impl BusinessRepository {
     pub fn create_project(&self, project: &Project) -> Result<()> {
@@ -143,13 +143,48 @@ impl BusinessRepository {
 
     pub fn delete_project(&self, id: &str) -> Result<()> {
         let mut conn = self.connect()?;
-        let tx = conn.transaction()?;
+        let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
 
-        tx.execute(
-            "DELETE FROM tasks WHERE project_id = ?1 AND parent_task_id IS NOT NULL",
+        let project_exists: bool = tx
+            .query_row(constants::SELECT_PROJECT_BY_ID, params![id], |_| {
+                Ok(true)
+            })
+            .optional()?
+            .unwrap_or(false);
+
+        if !project_exists {
+            return Err(RepositoryError::NotFound {
+                entity: "Project",
+                id: id.to_string(),
+            });
+        }
+
+        let active_count: i64 = tx.query_row(
+            constants::COUNT_PROJECT_ACTIVE_TIMERS,
             params![id],
+            |row| row.get(0),
         )?;
-        tx.execute("DELETE FROM tasks WHERE project_id = ?1", params![id])?;
+
+        if active_count > 0 {
+            return Err(RepositoryError::Validation(
+                "Cannot delete project with active timer. Stop timer first".to_string(),
+            ));
+        }
+
+        let logs_count: i64 = tx.query_row(
+            constants::COUNT_PROJECT_LOGGED_TIME,
+            params![id],
+            |row| row.get(0),
+        )?;
+
+        if logs_count > 0 {
+            return Err(RepositoryError::Validation(
+                "Cannot delete project with logged time".to_string(),
+            ));
+        }
+
+        tx.execute(constants::DELETE_SUBTASKS_BY_PROJECT, params![id])?;
+        tx.execute(constants::DELETE_TASKS_BY_PROJECT, params![id])?;
 
         let affected = tx.execute(constants::DELETE_PROJECT_BY_ID, params![id])?;
         if affected == 0 {

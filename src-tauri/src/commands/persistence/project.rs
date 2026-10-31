@@ -202,11 +202,13 @@ pub fn delete_project_by_id(
     persistence: &Persistence,
     project_id: &str,
 ) -> Result<TimerRepositoryState, AppError> {
-    get_project_or_fail(persistence, project_id)?;
+    persistence.projects.delete(project_id).map_err(|err| match err {
+        crate::persistence::PersistenceError::Validation(msg) => {
+            AppError::Engine(crate::engine::EngineError::Validation(msg))
+        }
+        other => AppError::Persistence(other),
+    })?;
     let engine = Engine::new(persistence);
-    engine.validate_project_deletion(project_id)?;
-
-    persistence.projects.delete(project_id)?;
     Ok(engine.get_state()?)
 }
 

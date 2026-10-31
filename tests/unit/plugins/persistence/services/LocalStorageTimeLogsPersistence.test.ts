@@ -20,6 +20,7 @@ describe('LocalStorageTimeLogsPersistence', () => {
         logs: [],
         activeLog: null,
       }),
+      runExclusive: vi.fn().mockImplementation((fn: () => unknown) => fn()),
     };
     timeLogsPersistence = new LocalStorageTimeLogsPersistence(storeMock);
   });

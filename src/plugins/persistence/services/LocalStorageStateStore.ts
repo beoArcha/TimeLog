@@ -14,6 +14,7 @@ export interface ILocalStorageStateStore {
   save(state: TimerRepositoryState): Promise<TimerRepositoryState>;
   reset(scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState>;
   getStateOrDefault(): Promise<TimerRepositoryState>;
+  runExclusive<T>(operation: () => Promise<T>): Promise<T>;
 }
 
 function resolveResetDomains(scope: StorageResetScope | StorageDomain[]): StorageDomain[] {
@@ -28,6 +29,16 @@ function resolveResetDomains(scope: StorageResetScope | StorageDomain[]): Storag
 
 export class LocalStorageStateStore implements ILocalStorageStateStore {
   private isCorrupted = false;
+  private transactionQueue: Promise<unknown> = Promise.resolve();
+
+  async runExclusive<T>(operation: () => Promise<T>): Promise<T> {
+    const next = this.transactionQueue.then(operation, operation);
+    this.transactionQueue = next.then(
+      () => {},
+      () => {}
+    );
+    return next;
+  }
 
   async load(): Promise<TimerRepositoryState | null> {
     const data = localStorage.getItem(STORAGE_KEYS.STORAGE_KEY);
