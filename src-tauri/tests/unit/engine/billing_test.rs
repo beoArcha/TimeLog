@@ -551,3 +551,70 @@ fn test_billing_rate_cents_safe_integer_contract() {
         MAX_BILLING_RATE_CENTS
     );
 }
+
+
+#[test]
+fn test_persistence_rejects_negative_billing_rate_cents() {
+    let (persistence, db_path) = setup_test_persistence();
+
+    let mut project = Project::new(
+        "p-invalid-rate".to_string(),
+        "Invalid Rate Project".to_string(),
+        "#123456".to_string(),
+        None,
+        None,
+        None,
+        None,
+    );
+    project.billing_rate_cents = Some(-1);
+    assert!(persistence.projects.create(project).is_err());
+
+    let mut valid_project = Project::new(
+        "p-valid-rate".to_string(),
+        "Valid Rate Project".to_string(),
+        "#123456".to_string(),
+        None,
+        None,
+        None,
+        None,
+    );
+    valid_project.billing_rate_cents = Some(10000);
+    persistence.projects.create(valid_project).unwrap();
+
+    let mut task = Task::new(
+        "t-invalid-rate".to_string(),
+        "p-valid-rate".to_string(),
+        None,
+        "Invalid Rate Task".to_string(),
+    );
+    task.billing_rate_cents = Some(-1);
+    assert!(persistence.tasks.create(task).is_err());
+
+    let mut valid_task = Task::new(
+        "t-valid-rate".to_string(),
+        "p-valid-rate".to_string(),
+        None,
+        "Valid Rate Task".to_string(),
+    );
+    valid_task.billing_rate_cents = Some(10000);
+    persistence.tasks.create(valid_task).unwrap();
+
+    let connection = rusqlite::Connection::open(&db_path).unwrap();
+    connection
+        .execute(
+            "UPDATE projects SET billing_rate_cents = -1 WHERE id = ?1",
+            rusqlite::params!["p-valid-rate"],
+        )
+        .unwrap();
+    connection
+        .execute(
+            "UPDATE tasks SET billing_rate_cents = -1 WHERE id = ?1",
+            rusqlite::params!["t-valid-rate"],
+        )
+        .unwrap();
+
+    assert!(persistence.projects.get("p-valid-rate").is_err());
+    assert!(persistence.tasks.get("t-valid-rate").is_err());
+
+    let _ = std::fs::remove_file(db_path);
+}
