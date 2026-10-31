@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Pencil, Paintbrush } from 'lucide-react';
+import { isValidHexColor, normalizeHexColor } from '@common/utils/colorUtils';
 import {
   Dialog,
   DialogContent,
@@ -11,12 +12,14 @@ import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Textarea } from '@components/ui/textarea';
 import { Label } from '@components/ui/label';
+import { Caption } from '@components/ui/typography';
 import { Switch } from '@components/ui/switch';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 import type { Project } from '@bindings/Project';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
-import { EmojiPicker, getFirstGrapheme } from '@components/ui/emoji-picker';
+import { EmojiPicker } from '@components/ui/emoji-picker';
+import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
 
 export type ProjectToEdit = Pick<Project, 'id' | 'name' | 'color' | 'description' | 'icon' | 'tags' | 'allowConcurrency'>;
 
@@ -55,12 +58,34 @@ function EditProjectDialogForm({
   locale = 'en',
   customTranslations,
 }: EditProjectDialogFormProps) {
+  const availableTags = useAllProjectTags();
   const [name, setName] = useState(project.name);
   const [color, setColor] = useState(project.color);
   const [description, setDescription] = useState(project.description || '');
   const [icon, setIcon] = useState(project.icon || '');
   const [tags, setTags] = useState(project.tags ? project.tags.join(', ') : '');
   const [allowConcurrency, setAllowConcurrency] = useState(Boolean(project.allowConcurrency));
+  const colorInputRef = useRef<HTMLInputElement>(null);
+  const isCustomColor = isValidHexColor(color);
+
+  const handleAddTagSuggestion = (tagToAdd: string) => {
+    const currentTags = tags
+      .split(',')
+      .map(t => t.trim())
+      .filter(Boolean);
+    if (!currentTags.includes(tagToAdd)) {
+      const updated = [...currentTags, tagToAdd].join(', ');
+      setTags(updated);
+    }
+  };
+
+  const handleCustomColorClick = () => {
+    if (!isCustomColor) {
+      const currentHex = colorInputRef.current?.value || '#8b5cf6';
+      setColor(currentHex);
+    }
+    colorInputRef.current?.click();
+  };
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -109,7 +134,7 @@ function EditProjectDialogForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="edit-project-icon-input" className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
+            <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
               {translate(locale, 'project', 'EmojiIcon', customTranslations)}
             </Label>
             <div className="flex items-center gap-2">
@@ -117,14 +142,6 @@ function EditProjectDialogForm({
                 value={icon}
                 onChange={setIcon}
                 testId="edit-project-emoji-picker"
-              />
-              <Input
-                id="edit-project-icon-input"
-                type="text"
-                placeholder="🚀"
-                value={icon}
-                onChange={e => setIcon(getFirstGrapheme(e.target.value))}
-                className="w-full text-center text-xl"
               />
             </div>
           </div>
@@ -136,6 +153,8 @@ function EditProjectDialogForm({
             <div className="flex flex-wrap gap-1.5 mt-1">
               {PROJECT_COLORS.map(col => (
                 <Button
+                  id={`edit-project-color-picker-${col.name}`}
+                  data-testid={`edit-project-color-picker-${col.name}`}
                   key={col.name}
                   type="button"
                   variant="ghost"
@@ -151,6 +170,36 @@ function EditProjectDialogForm({
                   )}
                 </Button>
               ))}
+
+              <Button
+                id="edit-project-color-picker-custom"
+                data-testid="edit-project-color-picker-custom"
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={handleCustomColorClick}
+                aria-label={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
+                title={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
+                style={isCustomColor ? { backgroundColor: color } : undefined}
+                className={`w-5 h-5 rounded-full border border-border transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${
+                  isCustomColor
+                    ? 'ring-2 ring-primary ring-offset-2 scale-105 text-white'
+                    : 'opacity-85 bg-muted/60 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Paintbrush className="w-2.5 h-2.5" />
+              </Button>
+              <Input
+                ref={colorInputRef}
+                id="edit-project-custom-color-input"
+                data-testid="edit-project-custom-color-input"
+                type="color"
+                value={isCustomColor ? normalizeHexColor(color) : '#8b5cf6'}
+                onChange={e => setColor(e.target.value)}
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
             </div>
           </div>
         </div>
@@ -180,6 +229,28 @@ function EditProjectDialogForm({
             onChange={e => setTags(e.target.value)}
             className="w-full"
           />
+          {availableTags.length > 0 && (
+            <div className="mt-2 flex flex-col gap-1" data-testid="edit-project-tag-suggestions">
+              <Caption size="xs" variant="muted" className="font-mono text-[10px] uppercase tracking-wider block">
+                {translate(locale, 'project', 'TagSuggestionsLabel', customTranslations)}
+              </Caption>
+              <div className="flex flex-wrap gap-1">
+                {availableTags.map(tag => (
+                  <Button
+                    key={tag}
+                    type="button"
+                    variant="outline"
+                    size="xs"
+                    onClick={() => handleAddTagSuggestion(tag)}
+                    data-testid={`tag-suggestion-${tag}`}
+                    className="h-5 px-2 py-0 text-[10px] rounded-full font-normal cursor-pointer"
+                  >
+                    {tag}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card/50">

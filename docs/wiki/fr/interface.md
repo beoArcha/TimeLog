@@ -32,6 +32,34 @@ En complément des dispositions, oXyFlow propose trois paliers de mise à l'éch
 
 ---
 
+## Formulaire de Projet à Deux Niveaux
+
+La barre latérale propose un formulaire adaptatif de création de projets structuré en deux niveaux : une ligne principale compacte et un volet déroulant d'options avancées :
+
+### Ligne Principale (Niveau 1)
+- **Nom du Projet** : Champ de saisie directe (la touche Entrée crée immédiatement le projet).
+- **Palette Prédéfinie** : Six nuances prédéfinies (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
+- **Sélecteur de Couleur Personnalisée (Paintbrush)** : L'icône de pinceau (Paintbrush) située à l'extrémité de la palette ouvre un nuancier acceptant tout code couleur HEX (par exemple `#8B5CF6`).
+- **Bouton d'Options Avancées** : Bouton fléché (**Plus d'options** / **Masquer les options**) permettant de déployer ou masquer le tiroir d'options.
+- **Bouton Ajouter un Projet** : Bouton principal de confirmation et d'enregistrement.
+
+### Tiroir Déroulant Avancé (Niveau 2)
+- **Sélecteur d'Emoji** : Menu contextuel pour associer une icône emoji au projet.
+- **Nuage de Suggestions de Tags** : Champ de saisie de tags séparés par des virgules accompagné d'un nuage de suggestions scannant les projets existants. Cliquer sur un tag l'ajoute directement au champ sans saisie manuelle.
+- **Description du Projet** : Zone de texte libre pour documenter le périmètre du projet.
+- **Basculement de Concurrence** : Détermine si les tâches de ce projet peuvent s'exécuter simultanément avec celles d'autres projets.
+
+---
+
+## Cycle de Vie du Projet : Suppression vs Archivage
+
+Afin de garantir l'intégrité des relevés d'heures et d'éviter toute perte de données d'audit :
+
+- **Projets Sans Temps Enregistré (`00:00:00`)** : Les projets sans aucune session enregistrée et sans chronomètre actif affichent une icône de corbeille (Trash2). La suppression élimine définitivement le projet du stockage.
+- **Projets Avec Temps Enregistré (`> 00:00:00`)** : Le moteur de validation bloque la suppression (`validate_project_deletion`). L'interface remplace automatiquement l'icône de corbeille par le bouton **Archiver**. L'archivage masque le projet des barres latérales et sélecteurs actifs tout en conservant l'intégralité des sessions, tâches et historiques dans les rapports.
+
+---
+
 ## Thèmes Intégrés
 
 oXyFlow intègre trois thèmes officiels gérés par le `ThemeRegistry` :

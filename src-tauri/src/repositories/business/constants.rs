@@ -194,6 +194,19 @@ pub const SELECT_ALL_PROJECTS: &str = "
 
 pub const DELETE_ALL_PROJECTS: &str = "DELETE FROM projects";
 pub const DELETE_PROJECT_BY_ID: &str = "DELETE FROM projects WHERE id = ?1";
+pub const COUNT_PROJECT_ACTIVE_TIMERS: &str = "
+    SELECT COUNT(*) FROM time_logs tl
+    JOIN tasks t ON tl.task_id = t.id
+    WHERE t.project_id = ?1 AND tl.end_time IS NULL
+";
+pub const COUNT_PROJECT_LOGGED_TIME: &str = "
+    SELECT COUNT(*) FROM time_logs tl
+    JOIN tasks t ON tl.task_id = t.id
+    WHERE t.project_id = ?1
+";
+pub const DELETE_SUBTASKS_BY_PROJECT: &str =
+    "DELETE FROM tasks WHERE project_id = ?1 AND parent_task_id IS NOT NULL";
+pub const DELETE_TASKS_BY_PROJECT: &str = "DELETE FROM tasks WHERE project_id = ?1";
 pub const SELECT_ALL_PROJECT_IDS: &str = "SELECT id FROM projects";
 pub const UPSERT_PROJECT: &str = "
     INSERT INTO projects (id, name, color, created_at, archived, original_name, original_color, edit_history, description, icon, tags, allow_concurrency)

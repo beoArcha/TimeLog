@@ -9,6 +9,7 @@ import { WorkflowConfig, WorkflowStatus, DEFAULT_WORKFLOW_CONFIG } from '@common
 import { toast } from 'sonner';
 import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { WorkflowException } from '@common/exceptions/AppExceptions';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { AutomationDaemonStatusRow } from './automation/AutomationDaemonStatusRow';
 import { AutomationHoursLimitSection } from './automation/AutomationHoursLimitSection';
 import { AutomationDailyBoundarySection } from './automation/AutomationDailyBoundarySection';
@@ -17,6 +18,7 @@ import { AutomationWarningSection } from './automation/AutomationWarningSection'
 
 export default function AutomationSettings() {
   const { locale, customTranslations } = useLocale();
+  const { hasNativeDaemon } = usePlatformCapabilities();
   const [config, setConfig] = useState<WorkflowConfig>(DEFAULT_WORKFLOW_CONFIG);
   const [status, setStatus] = useState<WorkflowStatus | null>(null);
   const [isChecking, setIsChecking] = useState(false);
@@ -86,11 +88,13 @@ export default function AutomationSettings() {
           {translate(locale, 'settings', 'AutomationDesc', customTranslations)}
         </Caption>
 
-        <AutomationDaemonStatusRow
-          isDaemonRunning={!!status?.isDaemonRunning}
-          isChecking={isChecking}
-          onCheckRules={handleManualCheck}
-        />
+        {hasNativeDaemon !== false && (
+          <AutomationDaemonStatusRow
+            isDaemonRunning={!!status?.isDaemonRunning}
+            isChecking={isChecking}
+            onCheckRules={handleManualCheck}
+          />
+        )}
 
         <AutomationHoursLimitSection
           enabled={config.autoStopHoursLimitEnabled}

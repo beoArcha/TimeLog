@@ -66,4 +66,10 @@ impl ProjectsPersistence {
     pub fn get_all(&self) -> PersistenceResult<Vec<Project>> {
         Ok(self.shared.business_repo.get_all_projects()?)
     }
+
+    pub fn delete(&self, id: &str) -> PersistenceResult<()> {
+        self.shared.business_repo.delete_project(id)?;
+        self.shared.cache.clear();
+        Ok(())
+    }
 }

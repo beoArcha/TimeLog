@@ -9,6 +9,7 @@ import { SidebarProjectItem } from '@layouts/parts/sidebar/SidebarProjectItem';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { aProject } from '@tests/shared/builders/entity-builders';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import { EngineComputedMetrics } from '@bindings/EngineComputedMetrics';
 
 function createMockGuiState(overrides: Partial<GuiState> = {}): GuiState {
   const p1 = aProject({ id: 'proj-1', name: 'Alpha Project', color: 'orange' });
@@ -97,6 +98,50 @@ describe('Sidebar', () => {
 
     // Assert
     expect(onAddProject).toHaveBeenCalledWith('Delta Project', 'violet', null, null, null, false);
+  });
+
+  it('should render delete button for project with 0 seconds and archive button for project with logged time', () => {
+    // Arrange
+    const state = createMockGuiState({
+      metrics: {
+        snapshotNowIso: new Date().toISOString(),
+        tasks: {},
+        projects: {
+          'proj-1': {
+            projectId: 'proj-1',
+            totalElapsedSeconds: 0,
+            todayElapsedSeconds: 0,
+            thisWeekElapsedSeconds: 0,
+            activeTaskCount: 0,
+            completedTaskCount: 0,
+            isRunning: false,
+          },
+          'proj-2': {
+            projectId: 'proj-2',
+            totalElapsedSeconds: 120,
+            todayElapsedSeconds: 0,
+            thisWeekElapsedSeconds: 0,
+            activeTaskCount: 0,
+            completedTaskCount: 0,
+            isRunning: false,
+          },
+        },
+      } as unknown as EngineComputedMetrics,
+    });
+
+    // Act
+    const { container } = render(
+      <MockProviders>
+        <Sidebar state={state} />
+      </MockProviders>
+    );
+
+    // Assert
+    expect(container.querySelector('#delete-project-btn-proj-1')).not.toBeNull();
+    expect(container.querySelector('#archive-project-btn-proj-1')).toBeNull();
+
+    expect(container.querySelector('#archive-project-btn-proj-2')).not.toBeNull();
+    expect(container.querySelector('#delete-project-btn-proj-2')).toBeNull();
   });
 });
 

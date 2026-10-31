@@ -29,6 +29,7 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
         toggleArchive: vi.fn().mockResolvedValue(state),
         update: vi.fn().mockResolvedValue(state),
         rename: vi.fn().mockResolvedValue(state),
+        delete: vi.fn().mockResolvedValue(state),
       },
       tasks: {
         add: vi.fn().mockResolvedValue(state),

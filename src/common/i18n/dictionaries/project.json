@@ -52,7 +52,13 @@
     "EmojiCategoryCreative": "Creative",
     "EmojiCategoryLife": "Life",
     "UseCustomEmoji": "Use \"{emoji}\"",
-    "NoEmojiFound": "No emoji found"
+    "NoEmojiFound": "No emoji found",
+    "DeleteProject": "Delete Project",
+    "ConfirmDeleteProjectTitle": "Delete Project",
+    "DeleteProjectWarningTasks": "This project contains {count} task(s). Are you sure you want to delete this project and all its tasks?",
+    "CannotDeleteProjectWithTimeLogs": "Projects with recorded time logs cannot be deleted. Archive the project instead.",
+    "CustomColorPicker": "Custom Color",
+    "TagSuggestionsLabel": "Existing Tags"
   },
   "pl": {
     "NewProject": "Nowy Projekt",
@@ -107,7 +113,13 @@
     "EmojiCategoryCreative": "Kreatywne",
     "EmojiCategoryLife": "Życie",
     "UseCustomEmoji": "Użyj \"{emoji}\"",
-    "NoEmojiFound": "Nie znaleziono emoji"
+    "NoEmojiFound": "Nie znaleziono emoji",
+    "DeleteProject": "Usuń projekt",
+    "ConfirmDeleteProjectTitle": "Usuń projekt",
+    "DeleteProjectWarningTasks": "Ten projekt zawiera {count} zadań. Czy na pewno chcesz usunąć ten projekt wraz ze wszystkimi zadaniami?",
+    "CannotDeleteProjectWithTimeLogs": "Projekty z zarejestrowanym czasem pracy nie mogą zostać usunięte. Zamiast tego zarchiwizuj projekt.",
+    "CustomColorPicker": "Kolor niestandardowy",
+    "TagSuggestionsLabel": "Istniejące tagi"
   },
   "de": {
     "NewProject": "Neues Projekt",
@@ -162,7 +174,13 @@
     "EmojiCategoryCreative": "Kreativ",
     "EmojiCategoryLife": "Leben",
     "UseCustomEmoji": "\"{emoji}\" verwenden",
-    "NoEmojiFound": "Kein Emoji gefunden"
+    "NoEmojiFound": "Kein Emoji gefunden",
+    "DeleteProject": "Projekt löschen",
+    "ConfirmDeleteProjectTitle": "Projekt löschen",
+    "DeleteProjectWarningTasks": "Dieses Projekt enthält {count} Aufgabe(n). Sind Sie sicher, dass Sie dieses Projekt und alle seine Aufgaben löschen möchten?",
+    "CannotDeleteProjectWithTimeLogs": "Projekte mit erfassten Zeiteinträgen können nicht gelöscht werden. Archivieren Sie stattdessen das Projekt.",
+    "CustomColorPicker": "Benutzerdefinierte Farbe",
+    "TagSuggestionsLabel": "Bestehende Tags"
   },
   "es": {
     "NewProject": "Nuevo Proyecto",
@@ -217,7 +235,13 @@
     "EmojiCategoryCreative": "Creativo",
     "EmojiCategoryLife": "Vida",
     "UseCustomEmoji": "Usar \"{emoji}\"",
-    "NoEmojiFound": "No se encontró ningún emoji"
+    "NoEmojiFound": "No se encontró ningún emoji",
+    "DeleteProject": "Eliminar proyecto",
+    "ConfirmDeleteProjectTitle": "Eliminar proyecto",
+    "DeleteProjectWarningTasks": "Este proyecto contiene {count} tarea(s). ¿Está seguro de que desea eliminar este proyecto y todas sus tareas?",
+    "CannotDeleteProjectWithTimeLogs": "Los proyectos con registros de tiempo no se pueden eliminar. En su lugar, archive el proyecto.",
+    "CustomColorPicker": "Color personalizado",
+    "TagSuggestionsLabel": "Etiquetas existentes"
   },
   "fr": {
     "NewProject": "Nouveau Projet",
@@ -272,7 +296,13 @@
     "EmojiCategoryCreative": "Créatif",
     "EmojiCategoryLife": "Vie",
     "UseCustomEmoji": "Utiliser \"{emoji}\"",
-    "NoEmojiFound": "Aucun émoji trouvé"
+    "NoEmojiFound": "Aucun émoji trouvé",
+    "DeleteProject": "Supprimer le projet",
+    "ConfirmDeleteProjectTitle": "Supprimer le projet",
+    "DeleteProjectWarningTasks": "Ce projet contient {count} tâche(s). Êtes-vous sûr de vouloir supprimer ce projet et toutes ses tâches ?",
+    "CannotDeleteProjectWithTimeLogs": "Les projets avec des journaux de temps enregistrés ne peuvent pas être supprimés. Archivez plutôt le projet.",
+    "CustomColorPicker": "Couleur personnalisée",
+    "TagSuggestionsLabel": "Balises existantes"
   },
   "pt-br": {
     "NewProject": "Novo Projeto",
@@ -327,6 +357,12 @@
     "EmojiCategoryCreative": "Criativo",
     "EmojiCategoryLife": "Vida",
     "UseCustomEmoji": "Usar \"{emoji}\"",
-    "NoEmojiFound": "Nenhum emoji encontrado"
+    "NoEmojiFound": "Nenhum emoji encontrado",
+    "DeleteProject": "Excluir projeto",
+    "ConfirmDeleteProjectTitle": "Excluir projeto",
+    "DeleteProjectWarningTasks": "Este projeto contém {count} tarefa(s). Tem certeza de que deseja excluir este projeto e todas as suas tarefas?",
+    "CannotDeleteProjectWithTimeLogs": "Projetos com registros de tempo gravados não podem ser excluídos. Em vez disso, arquive o projeto.",
+    "CustomColorPicker": "Cor personalizada",
+    "TagSuggestionsLabel": "Tags existentes"
   }
 }

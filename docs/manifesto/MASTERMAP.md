@@ -144,16 +144,15 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] **E2E Terminal Journey**: Add `cli-terminal-workflow.spec.ts` in Playwright and eliminate copywriting locators across all specs
 - [x] **CI Quality Gate**: Establish unified `bun run test:quality` validating zero test warnings, 100% Vitest pass, and 100% Cargo test pass
 
-### Phase 10 — Decoupled Native CLI & Modular Subsystems 🚧 (In Progress)
+### Phase 10 — Decoupled Native CLI & Modular Subsystems 🔒 (Closed)
+
+> Closed with open items redistributed: Machine Locale Config → Phase 17 (Group D), Additional Export Formats → Phase 18 (Group E), CLI Crate Extraction → Phase 19 (Group A).
 
 - [x] **CLI Module Boundary**: `src-tauri/src/cli/` has zero Tauri GUI dependencies (enforced by `tauri_isolation_test.rs`) and consumes `Engine` and `Persistence` directly.
-- [ ] **CLI Crate Extraction**: Move the CLI into a standalone crate (`crates/oxy-cli`).
 - [x] **Dual-Layer Error Architecture**: Namespaced semantic error codes (`CLI_SYNTAX_*`, `DOM_ENTITY_*`, `STO_*`, `ENG_*`, `SNK_*`), technical English envelopes on `stderr`, localized user messages and semantic exit codes `0`..`5` (`src-tauri/src/cli/error/`), with pure deterministic single-line JSON envelopes emitted in `--machine` mode with interactive suggestion blocks omitted.
 - [x] **Typed Error Classification & Boundary Isolation**: Derive error codes strictly from typed `CliError` and `PersistenceError` variants without string matching or layer leakage; `RepositoryError` strictly encapsulated within persistence.
 - [x] **Machine & Automated Mode**: `--machine` and `--json` flags with deterministic JSON output on stdout and structured JSON envelopes on stderr.
-- [ ] **Machine Locale Config**: `cli_machine_locale` SQLite config key.
 - [x] **Power User Reporting**: Hierarchical Unicode report tree (`--tree`), flexible date ranges (`--from`, `--to`, `-p`, `-t`), and report exports in HTML, JSON and CSV.
-- [ ] **Additional Export Formats**: XML, ODS and XLSX exports.
 - [x] **Beginner Interactive Guidance**: Levenshtein "Did you mean?" suggestions, missing-argument prompts in TTY mode, daily summary (`oxy today`, alias `summary`).
 - [x] **Sinks & Action Masks Subsystem**: `oxy sink set csv|webhook`, `oxy sink test`, persistent action masks (`oxy mask set`, `oxy mask ls`, `oxy mask rm`) with runtime `$1..$9` token substitution.
 - [x] **System Diagnostics & Database Tooling**: `oxy doctor` system/schema health verification, `oxy db backup`, `oxy db restore` via SQLite Online Backup API, and explicit database routing (`--db <path>`, `OXY_DB_PATH`).
@@ -217,27 +216,27 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ---
 
-### Phase 15 — PWA Capabilities Gating, Environmental Purity & Project Lifecycle Form 🚧 (In Progress)
+### Phase 15 — PWA Capabilities Gating, Environmental Purity & Project Lifecycle Form ✅ (Completed)
 
 #### Group A (Parallel Track) — PWA Capabilities Gating & Runtime Purity
-- [ ] **PWA Wording & Storage Abstraction**: Detect runtime environment in [`AppFooter.tsx`](../../src/layouts/components/AppFooter.tsx), [`Header.tsx`](../../src/layouts/components/Header.tsx), and [`TaskItem.tsx`](../../src/features/tasks/components/TaskItem/TaskItem.tsx); display `LocalStorage Engine` instead of `SQLite MicroORM`, `Storage Ready` instead of `SQL Ready`, and `Entity #id` instead of `SQLite table entry`.
-- [ ] **Daemon Status & Indicator Gating**: Gate [`StatusIndicator.tsx`](../../src/layouts/components/StatusIndicator.tsx) and [`DaemonStatusBar.tsx`](../../src/layouts/components/DaemonStatusBar.tsx) behind `usePlatformCapabilities()`, showing `PWA READY` or `ONLINE` without desktop daemon connection messages.
-- [ ] **Desktop Settings Gating**: Hide Tauri-specific settings in [`EngineConfig.tsx`](../../src/features/settings/components/EngineConfig.tsx) and [`AutomationSettings.tsx`](../../src/features/settings/components/AutomationSettings.tsx) (Autostart, Minimize to Tray, Always on Top, Daemon status row) when running in browser mode.
-- [ ] **CLI Drawer Gating**: Hide the CLI tab in [`TabBar.tsx`](../../src/layouts/components/TabBar.tsx) and [`MediumTabBar.tsx`](../../src/layouts/parts/MediumTabBar.tsx) in browser runtimes unless explicit debug mode is enabled (`?debug=1`).
+- [x] **PWA Wording & Storage Abstraction**: Detect runtime environment in [`AppFooter.tsx`](../../src/layouts/components/AppFooter.tsx), [`Header.tsx`](../../src/layouts/components/Header.tsx), and [`TaskItem.tsx`](../../src/features/tasks/components/TaskItem/TaskItem.tsx); display `LocalStorage Engine` instead of `SQLite MicroORM`, `Storage Ready` instead of `SQL Ready`, and `Entity #id` instead of `SQLite table entry`.
+- [x] **Daemon Status & Indicator Gating**: Gate [`StatusIndicator.tsx`](../../src/layouts/components/StatusIndicator.tsx) and [`DaemonStatusBar.tsx`](../../src/layouts/components/DaemonStatusBar.tsx) behind `usePlatformCapabilities()`, showing `PWA READY` or `ONLINE` without desktop daemon connection messages.
+- [x] **Desktop Settings Gating**: Hide Tauri-specific settings in [`EngineConfig.tsx`](../../src/features/settings/components/EngineConfig.tsx) and [`AutomationSettings.tsx`](../../src/features/settings/components/AutomationSettings.tsx) (Autostart, Minimize to Tray, Always on Top, Daemon status row) when running in browser mode.
+- [x] **CLI Drawer Gating**: Hide the CLI tab in [`TabBar.tsx`](../../src/layouts/components/TabBar.tsx) and [`MediumTabBar.tsx`](../../src/layouts/parts/MediumTabBar.tsx) in browser runtimes unless explicit debug mode is enabled (`?debug=1`).
 
 #### Group B (Parallel Track) — Adaptive User Guides & Documentation
-- [ ] **Manual Tab PWA Customization**: Conditionally hide desktop C++/Rust compilation guides ([`CompilationGuideCard.tsx`](../../src/features/settings/components/CompilationGuideCard.tsx)) and daemon keyboard shortcuts in [`ManualTab.tsx`](../../src/features/settings/ManualTab.tsx) in browser mode.
-- [ ] **Web-First User Guidance**: Add documentation for PWA installation, offline browser storage, and JSON backup/restore flows.
+- [x] **Manual Tab PWA Customization**: Conditionally hide desktop C++/Rust compilation guides ([`CompilationGuideCard.tsx`](../../src/features/settings/components/CompilationGuideCard.tsx)) and daemon keyboard shortcuts in [`ManualTab.tsx`](../../src/features/settings/ManualTab.tsx) in browser mode.
+- [x] **Web-First User Guidance**: Add documentation for PWA installation, offline browser storage, and JSON backup/restore flows.
 
 #### Group C (Parallel Track) — Adaptive Sidebar Project Form & Interactive Controls
-- [ ] **Two-Tier Form Composition (Basic + Collapsible Drawer)**: Refactor [`SidebarProjectForm.tsx`](../../src/layouts/parts/sidebar/SidebarProjectForm.tsx) into a compact primary row (Project Name, color swatches, Save button, and a Chevron toggle) and an expandable drawer containing advanced options.
-- [ ] **Color Palette Paintbrush Picker**: Add an interactive `Paintbrush` icon to the final palette swatch in [`SidebarProjectForm.tsx`](../../src/layouts/parts/sidebar/SidebarProjectForm.tsx) opening an HTML5 native/popover hex color picker.
-- [ ] **Lightweight Emoji Picker**: Replace raw text input with a dedicated Base UI popover emoji selector in [`src/components/ui/emoji-picker/`](../../src/components/ui/emoji-picker/).
-- [ ] **Smart Tag Suggestion Cloud**: Implement `useAllProjectTags()` hook extracting unique tags across existing projects, rendering clickable chip suggestions below the tag input.
+- [x] **Two-Tier Form Composition (Basic + Collapsible Drawer)**: Refactor [`SidebarProjectForm.tsx`](../../src/layouts/parts/sidebar/SidebarProjectForm.tsx) into a compact primary row (Project Name, color swatches, Save button, and a Chevron toggle) and an expandable drawer containing advanced options.
+- [x] **Color Palette Paintbrush Picker**: Add an interactive `Paintbrush` icon to the final palette swatch in [`SidebarProjectForm.tsx`](../../src/layouts/parts/sidebar/SidebarProjectForm.tsx) opening an HTML5 native/popover hex color picker.
+- [x] **Lightweight Emoji Picker**: Replace raw text input with a dedicated Base UI popover emoji selector in [`src/components/ui/emoji-picker/`](../../src/components/ui/emoji-picker/).
+- [x] **Smart Tag Suggestion Cloud**: Implement `useAllProjectTags()` hook extracting unique tags across existing projects, rendering clickable chip suggestions below the tag input.
 
 #### Group D (Parallel Track) — Project Deletion vs Archival Lifecycle & Parity
-- [ ] **Conditional Project Deletion Invariant**: Restrict project deletion (`Trash2`) in [`SidebarProjectItem.tsx`](../../src/layouts/parts/sidebar/SidebarProjectItem.tsx) and [`useProjectLifecycle.ts`](../../src/features/tasks/hooks/useProjectLifecycle.ts) to projects with exactly `00:00:00` logged time; enforce `Archive` for projects with logged history (`> 00:00:00`).
-- [ ] **Cross-Runtime Lifecycle Parity**: Enforce matching deletion invariants across Rust command `delete_project` in `src-tauri/src/commands/persistence/project.rs` and browser persistence in `src/plugins/implementations/LocalStorageProjectsPersistence.ts`.
+- [x] **Conditional Project Deletion Invariant**: Restrict project deletion (`Trash2`) in [`SidebarProjectItem.tsx`](../../src/layouts/parts/sidebar/SidebarProjectItem.tsx) and [`useProjectLifecycle.ts`](../../src/features/tasks/hooks/useProjectLifecycle.ts) to projects with exactly `00:00:00` logged time; enforce `Archive` for projects with logged history (`> 00:00:00`).
+- [x] **Cross-Runtime Lifecycle Parity**: Enforce matching deletion invariants across Rust command `delete_project` in `src-tauri/src/commands/persistence/project.rs` and browser persistence in `src/plugins/implementations/LocalStorageProjectsPersistence.ts`.
 
 ---
 
@@ -277,6 +276,9 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [ ] **MCP Chrome Preview Validation**: Execute automated visual regression and translation completeness audits across all locales using Chrome MCP (`preview_*`).
 - [ ] **Layout & Boundary Verification**: Verify that labels in German (`de`), Japanese (`ja`), and Dutch (`nl`) do not cause button overflow, text wrapping defects, or clipping across Compact, Medium, and Full layouts.
 
+#### Group D (Parallel Track) — Machine Locale Config (moved from Phase 10)
+- [ ] **Machine Locale Config**: `cli_machine_locale` SQLite config key, so CLI machine output stays locale-independent.
+
 ---
 
 ### Phase 18 — Reports Suite Modernization, Financial Analytics & Credits 🚧 (Planned)
@@ -298,3 +300,28 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [ ] **Print / PDF Stylesheet**: Implement `@media print` CSS rules formatting [`ReportView.tsx`](../../src/features/reports/ReportView.tsx) into a clean, client-facing PDF document, stripping navigation sidebars, buttons, and decorative badges.
 - [ ] **PWA Analytics Badge Cleanup**: Update [`ReportView.tsx`](../../src/features/reports/ReportView.tsx) to display `ANALIZY STATYSTYCZNE` (without `SQL`) when running in browser mode.
 - [ ] **Credits & Technology Stack Refresh**: Update [`CreditsModal.tsx`](../../src/layouts/components/CreditsModal.tsx) to incorporate current core dependencies (React 19, @base-ui/react, Tauri v2, Recharts, Sonner, Geist Font Family, Google GenAI) and update author notes regarding Vibe Coding architecture practices.
+
+#### Group E (Parallel Track) — Additional Export Formats (moved from Phase 10)
+- [ ] **Additional Export Formats**: XML, ODS and XLSX exports.
+
+---
+
+### Phase 19 — Engine Parity, CLI Modularity & Structural Hygiene 🚧 (Planned)
+
+Architecture debt identified by reviewing the codebase at `62877c4`. Each group is an architecture change and must be approved separately from feature work (see `AGENTS.md`, Refactoring scope).
+
+#### Group A (Parallel Track) — CLI Crate Extraction (moved from Phase 10)
+- [ ] **CLI Crate Extraction**: Move the CLI into a standalone crate (`crates/oxy-cli`).
+
+#### Group B (Parallel Track) — Engine Parity: Validation
+- [ ] **Native Validation via IPC**: `TauriValidationEngine` currently delegates to the browser implementation in `@plugins/engine/validation`. Route validation through `src-tauri/src/engine/validation.rs` via Tauri commands and confirm the cross-runtime parity matrix covers it.
+
+#### Group C (Parallel Track) — Sandbox Delegation to Engine
+- [ ] **Sandbox Engine Delegation**: `sandboxTimerOps`, `sandboxTaskOps`, `sandboxProjectOps` and `sandboxMetricsCalculator.ts` re-implement timer and metrics logic. Delegate to `IEngine` so each runtime keeps a single implementation.
+
+#### Group D (Parallel Track) — Structural Hygiene
+- [ ] **File Length Decomposition**: Split files above ~300 LOC: `DataTableViewer.tsx` (758), `ActiveTimerBanner.tsx` (377), `useTauriWindow.ts` (315), `MediumProjectSelector.tsx` (313), `sandboxEmulatorStore.ts` (307), and Rust `cli/handlers/log_handler.rs` (581), `task_handler.rs` (517), `flow_handler.rs` (487), `report_handler.rs` (400), `resolver/entity_resolver.rs` (361), `error/cli_error.rs` (356).
+- [ ] **Production unwrap Removal**: Replace the six `.unwrap()` calls in production Rust code (`app/builder.rs`, `engine/metrics/computed.rs`, `workflows/daemon.rs`, `cli/resolver/prompter.rs`, `cli/resolver/entity_resolver.rs`) with typed error handling.
+
+#### Group E (Parallel Track) — Webhook Dispatch Verification
+- [ ] **Single Webhook Dispatch Path**: Confirm whether `src/common/sinks/WebhookDispatcher.ts` and `src-tauri/src/sinks/` both dispatch in the desktop runtime. Keep one path and document it in `ENGINEERING.md`.

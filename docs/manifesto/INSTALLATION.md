@@ -7,20 +7,25 @@ Welcome to the installation and deployment guide for **oXyFlow**, an ultra-light
 ## Table of Contents
 
 - [1. Quick Download Matrix](#1-quick-download-matrix)
-- [2. Windows Installation](#2-windows-installation)
-  - [2.1 NSIS Setup Wizard vs Portable Executable](#21-nsis-setup-wizard-vs-portable-executable)
-  - [2.2 Windows SmartScreen Warning](#22-windows-smartscreen-warning)
-  - [2.3 Antivirus & Heuristic False Positives](#23-antivirus--heuristic-false-positives)
-- [3. macOS Installation](#3-macos-installation)
-  - [3.1 Universal DMG Package](#31-universal-dmg-package)
-  - [3.2 Apple Gatekeeper Quarantine Bypass](#32-apple-gatekeeper-quarantine-bypass)
-- [4. Linux Installation](#4-linux-installation)
-  - [4.1 AppImage](#41-appimage)
-  - [4.2 Debian / Ubuntu (.deb)](#42-debian--ubuntu-deb)
-  - [4.3 Fedora / RHEL (.rpm)](#43-fedora--rhel-rpm)
-  - [4.4 Required System Libraries](#44-required-system-libraries)
-- [5. Cryptographic Verification (SHA-256)](#5-cryptographic-verification-sha-256)
-- [6. Building from Source](#6-building-from-source)
+- [2. Web Application & Progressive Web App (PWA)](#2-web-application--progressive-web-app-pwa)
+  - [2.1 Browser Support & Zero-Install Access](#21-browser-support--zero-install-access)
+  - [2.2 Installing as a PWA](#22-installing-as-a-pwa)
+  - [2.3 Storage Architecture: LocalStorage vs Desktop SQLite](#23-storage-architecture-localstorage-vs-desktop-sqlite)
+  - [2.4 Browser Cache Persistence & Backup Strategy](#24-browser-cache-persistence--backup-strategy)
+- [3. Windows Installation](#3-windows-installation)
+  - [3.1 NSIS Setup Wizard vs Portable Executable](#31-nsis-setup-wizard-vs-portable-executable)
+  - [3.2 Windows SmartScreen Warning](#32-windows-smartscreen-warning)
+  - [3.3 Antivirus & Heuristic False Positives](#33-antivirus--heuristic-false-positives)
+- [4. macOS Installation](#4-macos-installation)
+  - [4.1 Universal DMG Package](#41-universal-dmg-package)
+  - [4.2 Apple Gatekeeper Quarantine Bypass](#42-apple-gatekeeper-quarantine-bypass)
+- [5. Linux Installation](#5-linux-installation)
+  - [5.1 AppImage](#51-appimage)
+  - [5.2 Debian / Ubuntu (.deb)](#52-debian--ubuntu-deb)
+  - [5.3 Fedora / RHEL (.rpm)](#53-fedora--rhel-rpm)
+  - [5.4 Required System Libraries](#54-required-system-libraries)
+- [6. Cryptographic Verification (SHA-256)](#6-cryptographic-verification-sha-256)
+- [7. Building from Source](#7-building-from-source)
 
 ---
 
@@ -41,9 +46,48 @@ All official production builds are published on the GitHub Releases page:
 
 ---
 
-## 2. Windows Installation
+## 2. Web Application & Progressive Web App (PWA)
 
-### 2.1 NSIS Setup Wizard vs Portable Executable
+oXyFlow is available as a zero-installation Progressive Web App (PWA) accessible in all modern web browsers:
+
+👉 **[Launch Web App](https://beoarcha.github.io/TimeLog/app/)**
+
+### 2.1 Browser Support & Zero-Install Access
+
+The web edition runs client-side in Chromium, Firefox, Safari, and Edge. It operates locally without backend account synchronization, user tracking, or telemetry.
+
+### 2.2 Installing as a PWA
+
+To install oXyFlow as a standalone application on desktop or mobile platforms:
+- **Chromium / Google Chrome / Microsoft Edge**: Click the **Install** icon on the right side of the URL address bar, or select **Install oXyFlow** from the browser menu.
+- **Safari (macOS / iOS)**: Open the **Share** menu and select **Add to Dock** (macOS Sonoma+) or **Add to Home Screen** (iOS / iPadOS).
+- **Android (Chrome / Firefox)**: Tap the browser overflow menu and select **Install app** or **Add to Home screen**.
+
+The installed PWA runs in a dedicated application window with offline caching provided by Service Workers.
+
+### 2.3 Storage Architecture: LocalStorage vs Desktop SQLite
+
+oXyFlow uses separate persistence engines tailored to the runtime environment:
+
+| Runtime Dimension | Desktop (Tauri v2) | Web Browser (PWA) |
+| :--- | :--- | :--- |
+| **Persistence Engine** | SQLite MicroORM | LocalStorage Engine |
+| **Physical Location** | Local filesystem (`oxytime.db`) | Browser origin-isolated storage |
+| **Filesystem Access** | Direct OS file read/write | Restricted by browser security sandbox |
+| **Raw `.sqlite` Export** | Available (copy file from disk) | Not available (no SQLite file exists) |
+| **Universal JSON Backup** | Supported (`Export Backup JSON`) | Supported (`Export Backup JSON`) |
+
+### 2.4 Browser Cache Persistence & Backup Strategy
+
+Because web browsers isolate storage per domain:
+- **Cache Eviction Risk**: Executing browser actions such as "Clear browsing data", clearing site cookies/storage, or using Private/Incognito windows will delete all stored timer entries.
+- **Backup Routine**: Create regular JSON snapshots in **Settings → Backup → Export Backup JSON**. This produces a portable `OxyFlow_Backup_YYYY-MM-DD.json` file. Use **Restore / Import Backup JSON** to recover your projects and timesheets or migrate data to desktop installations.
+
+---
+
+## 3. Windows Installation
+
+### 3.1 NSIS Setup Wizard vs Portable Executable
 
 - **NSIS Setup Wizard (`OxyFlow-Setup-x64.exe`)**:
   - Installs into your user profile directory (`%LOCALAPPDATA%\Programs\OxyFlow`).
@@ -54,7 +98,7 @@ All official production builds are published on the GitHub Releases page:
   - No installer needed. Place it anywhere (e.g. `C:\Tools\OxyFlow.exe` or on a USB drive).
   - Your SQLite database and settings are saved automatically in `%APPDATA%\com.oxytime.oxyflow`.
 
-### 2.2 Windows SmartScreen Warning
+### 3.2 Windows SmartScreen Warning
 
 Because oXyFlow is a free community open-source project and is not signed with an expensive corporate Extended Validation (EV) certificate, Windows SmartScreen may display an initial warning:
 
@@ -66,18 +110,18 @@ Because oXyFlow is a free community open-source project and is not signed with a
 2. Click the button **"Run anyway"** at the bottom.
 3. The app will launch normally. Windows remembers your approval for future launches.
 
-### 2.3 Antivirus & Heuristic False Positives
+### 3.3 Antivirus & Heuristic False Positives
 
 Occasionally, third-party antivirus engines flag freshly compiled Rust / Tauri binaries because the executable is compact and contains bundled webview integration. If your antivirus raises a warning:
 
-- Verify the file's SHA-256 hash against the official `SHA256SUMS.txt` (see [Section 5](#5-cryptographic-verification-sha-256)).
+- Verify the file's SHA-256 hash against the official `SHA256SUMS.txt` (see [Section 6](#6-cryptographic-verification-sha-256)).
 - Add an exception in your antivirus software for `OxyFlow.exe`.
 
 ---
 
-## 3. macOS Installation
+## 4. macOS Installation
 
-### 3.1 Universal DMG Package
+### 4.1 Universal DMG Package
 
 oXyFlow for macOS is distributed as a **Universal Binary**, natively supporting both Apple Silicon (M1, M2, M3, M4) and Intel (x86_64) Macs.
 
@@ -86,7 +130,7 @@ oXyFlow for macOS is distributed as a **Universal Binary**, natively supporting 
 3. Drag the **OxyFlow** app icon into your **Applications** folder.
 4. Eject the mounted disk image.
 
-### 3.2 Apple Gatekeeper Quarantine Bypass
+### 4.2 Apple Gatekeeper Quarantine Bypass
 
 Because community open-source binaries are not notarized through Apple's paid developer program, macOS Gatekeeper may display a message:
 
@@ -109,9 +153,9 @@ xattr -d com.apple.quarantine /Applications/OxyFlow.app
 
 ---
 
-## 4. Linux Installation
+## 5. Linux Installation
 
-### 4.1 AppImage
+### 5.1 AppImage
 
 The AppImage package runs on virtually all modern 64-bit Linux distributions without requiring root permissions.
 
@@ -134,7 +178,7 @@ The AppImage package runs on virtually all modern 64-bit Linux distributions wit
 > - Ubuntu / Debian: `sudo apt install libfuse2`
 > - Fedora: `sudo dnf install fuse-libs`
 
-### 4.2 Debian / Ubuntu (.deb)
+### 5.2 Debian / Ubuntu (.deb)
 
 Install via `dpkg` or `apt`:
 
@@ -149,7 +193,7 @@ Or with `apt` directly:
 sudo apt install ./oxyflow_amd64.deb
 ```
 
-### 4.3 Fedora / RHEL (.rpm)
+### 5.3 Fedora / RHEL (.rpm)
 
 Install via `dnf`:
 
@@ -157,7 +201,7 @@ Install via `dnf`:
 sudo dnf install ./oxyflow.x86_64.rpm
 ```
 
-### 4.4 Required System Libraries
+### 5.4 Required System Libraries
 
 OxyFlow relies on WebKitGTK for rendering the desktop UI on Linux. These libraries are installed automatically by `.deb` and `.rpm` packages, but are listed below for minimal Linux environments:
 
@@ -167,7 +211,7 @@ OxyFlow relies on WebKitGTK for rendering the desktop UI on Linux. These librari
 
 ---
 
-## 5. Cryptographic Verification (SHA-256)
+## 6. Cryptographic Verification (SHA-256)
 
 Every release includes an official `SHA256SUMS.txt` file generated during the automated build pipeline. You can verify the integrity and authenticity of your downloaded package before running it.
 
@@ -201,7 +245,7 @@ shasum -a 256 OxyFlow-Universal.dmg
 
 ---
 
-## 6. Building from Source
+## 7. Building from Source
 
 If you prefer compiling oXyFlow directly from source:
 

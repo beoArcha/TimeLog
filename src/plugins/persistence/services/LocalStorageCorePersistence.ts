@@ -11,15 +11,16 @@ export class LocalStorageCorePersistence implements ICorePersistence {
   }
 
   async overrideState(state: Partial<TimerRepositoryState>): Promise<TimerRepositoryState> {
-    const current = await this.store.getStateOrDefault();
-    const newState: TimerRepositoryState = { ...current, ...state };
-    if (state.activeLog === undefined && newState.activeLog) {
-      const activeStillExists = newState.logs.some((l) => l.id === newState.activeLog?.id);
-      if (!activeStillExists) {
-        newState.activeLog = newState.logs.find((l) => !l.endTime) || null;
+    return this.store.mutate((current) => {
+      const newState: TimerRepositoryState = { ...current, ...state };
+      if (state.activeLog === undefined && newState.activeLog) {
+        const activeStillExists = newState.logs.some((l) => l.id === newState.activeLog?.id);
+        if (!activeStillExists) {
+          newState.activeLog = newState.logs.find((l) => !l.endTime) || null;
+        }
       }
-    }
-    return this.store.save(newState);
+      return newState;
+    });
   }
 
   async reset(scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState> {

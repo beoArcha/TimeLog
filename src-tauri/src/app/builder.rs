@@ -39,6 +39,7 @@ pub fn create_builder() -> tauri::Builder<tauri::Wry> {
             project::toggle_archive,
             project::update_project,
             project::rename_project,
+            project::delete_project,
             task::create,
             task::update_task,
             task::delete,

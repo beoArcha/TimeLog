@@ -61,4 +61,28 @@ describe('BrowserTimerEngine', () => {
     expect(result).toEqual(['log-active-1']);
     expect(routerMock.timeLogs.queryActive).toHaveBeenCalledTimes(1);
   });
+
+  it('delegates to startTimerSession when available on timeLogs persistence', async () => {
+    const startTimerSessionMock = vi.fn().mockResolvedValue(undefined);
+    (routerMock.timeLogs as { startTimerSession?: unknown }).startTimerSession = startTimerSessionMock;
+
+    await engine.startTimer('task-atomic');
+
+    expect(startTimerSessionMock).toHaveBeenCalledTimes(1);
+    expect(startTimerSessionMock).toHaveBeenCalledWith('task-atomic', expect.any(String), expect.stringMatching(/^log_/));
+    expect(routerMock.tasks.getProjectId).not.toHaveBeenCalled();
+    expect(routerMock.timeLogs.closeActiveByProject).not.toHaveBeenCalled();
+  });
+
+  it('delegates to switchTimerSession when available on timeLogs persistence', async () => {
+    const switchTimerSessionMock = vi.fn().mockResolvedValue(undefined);
+    (routerMock.timeLogs as { switchTimerSession?: unknown }).switchTimerSession = switchTimerSessionMock;
+
+    await engine.switchTimer('task-atomic');
+
+    expect(switchTimerSessionMock).toHaveBeenCalledTimes(1);
+    expect(switchTimerSessionMock).toHaveBeenCalledWith('task-atomic', expect.any(String), expect.stringMatching(/^log_/));
+    expect(routerMock.timeLogs.closeAllActive).not.toHaveBeenCalled();
+    expect(routerMock.timeLogs.insert).not.toHaveBeenCalled();
+  });
 });

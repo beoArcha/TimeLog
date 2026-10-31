@@ -57,6 +57,7 @@ export interface IProjectsPersistence {
     allowConcurrency?: boolean | null
   ): Promise<TimerRepositoryState>;
   rename(projectId: string, name: string): Promise<TimerRepositoryState>;
+  delete(projectId: string): Promise<TimerRepositoryState>;
 }
 
 export interface ITasksPersistence {
@@ -128,6 +129,8 @@ export interface ITimeLogsPersistence {
   queryActive(): Promise<string[]>;
   getAll(): Promise<TimeLog[]>;
   delete(logId: string): Promise<void>;
+  startTimerSession?(taskId: string, now: string, logId: string): Promise<void>;
+  switchTimerSession?(taskId: string, now: string, logId: string): Promise<void>;
 }
 
 export interface IPersistence {

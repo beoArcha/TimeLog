@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { PROJECT_COLORS } from '@common/constants/projectColors';
+import { resolveProjectColor } from '@common/utils/colorUtils';
 
 export interface ProjectBadgeProps {
   name: string;
@@ -26,16 +26,7 @@ export function ProjectBadge({
   dotClassName,
   textClassName,
 }: ProjectBadgeProps) {
-  const matchedColor = PROJECT_COLORS.find((c) => c.name === color);
-  const colorBg = matchedColor?.bg;
-  const resolveInlineBg = (col: string | undefined): string | undefined => {
-    if (!col) return undefined;
-    if (col.startsWith('#') || col.startsWith('rgb')) {
-      return col;
-    }
-    return `var(--tw-color-${col}-500, #f97316)`;
-  };
-  const inlineBg = !colorBg ? resolveInlineBg(color) : undefined;
+  const resolvedColor = resolveProjectColor(color);
 
   const dotSizeClasses = {
     xs: 'w-1.5 h-1.5',
@@ -65,10 +56,10 @@ export function ProjectBadge({
           className={cn(
             'rounded-full shrink-0 shadow-xs ring-1 ring-white/10',
             dotSizeClasses,
-            colorBg ?? 'bg-orange-500',
+            resolvedColor.bgClass,
             dotClassName
           )}
-          style={inlineBg ? { backgroundColor: inlineBg } : undefined}
+          style={resolvedColor.bgStyle}
           aria-hidden="true"
         />
       )}

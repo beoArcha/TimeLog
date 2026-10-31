@@ -14,6 +14,11 @@ export default function AppBrowser() {
       supportsAlwaysOnTop: false,
       supportsAutoStart: false,
       isPwaInstallable: true,
+      hasNativeDaemon: false,
+      canUseCli:
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('debug') === '1',
+      storageEngineName: 'localStorage',
     }),
     []
   );

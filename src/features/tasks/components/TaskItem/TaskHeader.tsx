@@ -135,7 +135,7 @@ export function TaskHeader({
           )}
 
           <Caption size="2xs" className="font-mono block mt-0.5 truncate leading-tight">
-            ID: {rootTask.id} • SQLite table entry {isCurrentRunning || isChildRunning ? '(Active timing)' : ''}
+            Entity #{rootTask.id} {isCurrentRunning || isChildRunning ? '(Active timing)' : ''}
           </Caption>
         </div>
 
