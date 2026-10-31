@@ -15,6 +15,9 @@ export interface ILocalStorageStateStore {
   reset(scope?: StorageResetScope | StorageDomain[]): Promise<TimerRepositoryState>;
   getStateOrDefault(): Promise<TimerRepositoryState>;
   runExclusive<T>(operation: () => Promise<T>): Promise<T>;
+  mutate<T = void>(
+    mutator: (state: TimerRepositoryState) => Promise<T> | T
+  ): Promise<T extends void ? TimerRepositoryState : T>;
 }
 
 function resolveResetDomains(scope: StorageResetScope | StorageDomain[]): StorageDomain[] {
@@ -38,6 +41,25 @@ export class LocalStorageStateStore implements ILocalStorageStateStore {
       () => {}
     );
     return next;
+  }
+
+  async mutate<T = void>(
+    mutator: (state: TimerRepositoryState) => Promise<T> | T
+  ): Promise<T extends void ? TimerRepositoryState : T> {
+    return this.runExclusive(async () => {
+      const state = await this.getStateOrDefault();
+      const result = await mutator(state);
+      const stateToSave =
+        result &&
+        typeof result === 'object' &&
+        'projects' in result &&
+        'tasks' in result &&
+        'logs' in result
+          ? ((result as unknown) as TimerRepositoryState)
+          : state;
+      await this.save(stateToSave);
+      return (result !== undefined ? result : stateToSave) as T extends void ? TimerRepositoryState : T;
+    });
   }
 
   async load(): Promise<TimerRepositoryState | null> {

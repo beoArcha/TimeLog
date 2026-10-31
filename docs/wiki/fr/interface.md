@@ -38,7 +38,7 @@ La barre latérale propose un formulaire adaptatif de création de projets struc
 
 ### Ligne Principale (Niveau 1)
 - **Nom du Projet** : Champ de saisie directe (la touche Entrée crée immédiatement le projet).
-- **Palette Prédéfinie** : Dix nuances prédéfinies (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Palette Prédéfinie** : Six nuances prédéfinies (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
 - **Sélecteur de Couleur Personnalisée (Paintbrush)** : L'icône de pinceau (Paintbrush) située à l'extrémité de la palette ouvre un nuancier acceptant tout code couleur HEX (par exemple `#8B5CF6`).
 - **Bouton d'Options Avancées** : Bouton fléché (**Plus d'options** / **Masquer les options**) permettant de déployer ou masquer le tiroir d'options.
 - **Bouton Ajouter un Projet** : Bouton principal de confirmation et d'enregistrement.

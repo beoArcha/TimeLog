@@ -38,7 +38,7 @@ La barra lateral incluye un formulario adaptable de creación de proyectos estru
 
 ### Fila Principal (Nivel 1)
 - **Nombre del Proyecto**: Campo de texto directo (al pulsar Intro se crea el proyecto de inmediato).
-- **Paleta Predefinida**: Diez muestras de color (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Paleta Predefinida**: Seis muestras de color (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
 - **Selector de Color Personalizado (Paintbrush)**: El botón con el icono de pincel (Paintbrush) al final de la paleta abre un selector interactivo que admite cualquier código de color HEX (por ejemplo, `#8B5CF6`).
 - **Selector de Opciones Avanzadas**: Botón de flecha (**Más opciones** / **Ocultar opciones**) para desplegar o plegar el panel adicional.
 - **Botón Añadir Proyecto**: Botón principal para confirmar y guardar el proyecto.

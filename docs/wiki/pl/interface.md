@@ -38,7 +38,7 @@ Pasek boczny zawiera adaptacyjny, dwupoziomowy formularz tworzenia projektu z wi
 
 ### Wiersz Podstawowy (Poziom 1)
 - **Nazwa Projektu**: Pole tekstowe do natychmiastowego wpisania nazwy (naciśnięcie Enter od razu tworzy projekt).
-- **Zdefiniowana Paleta**: Dziesięć gotowych próbek kolorów (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Zdefiniowana Paleta**: Sześć gotowych próbek kolorów (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
 - **Wybór Niestandardowego Koloru (Paintbrush)**: Przycisk z ikoną Paintbrush (pędzel) na końcu palety otwiera próbnik kolorów obsługujący dowolny kod HEX (np. `#8B5CF6`).
 - **Przełącznik Opcji Zaawansowanych**: Przycisk ze strzałką (**Więcej opcji** / **Ukryj opcje**) rozwijający i zwijający szufladę.
 - **Przycisk Dodawania Projektu**: Przycisk zatwierdzający i zapisujący nowy projekt.

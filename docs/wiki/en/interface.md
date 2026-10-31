@@ -40,7 +40,7 @@ The sidebar provides an adaptive two-tier project creation form with a compact p
 
 ### Primary Row (Tier 1)
 - **Project Name**: Direct text input (pressing Enter creates the project immediately).
-- **Curated Palette**: Ten default color swatches (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Curated Palette**: Six default color swatches (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
 - **Custom Color Picker (Paintbrush)**: The Paintbrush button at the end of the palette swatches opens an interactive color picker accepting any valid HEX color code (e.g. `#8B5CF6`).
 - **More Options Toggle**: Chevron button (**More Options** / **Hide Options**) to expand or collapse the advanced drawer.
 - **Add Project Button**: Primary confirmation button to create and persist the project.

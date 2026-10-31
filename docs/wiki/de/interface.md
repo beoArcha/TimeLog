@@ -38,7 +38,7 @@ Die Seitenleiste enthält ein adaptives, zweistufiges Formular zur Projekterstel
 
 ### Hauptzeile (Stufe 1)
 - **Projektname**: Textfeld zur direkten Eingabe (Drücken der Eingabetaste erstellt das Projekt sofort).
-- **Farbpalette**: Zehn vordefinierte Farbmuster (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Farbpalette**: Sechs vordefinierte Farbmuster (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
 - **Benutzerdefinierte Farbwahl (Paintbrush)**: Die Pinselschaltfläche (Paintbrush) am Ende der Palette öffnet eine Farbauswahl für beliebige HEX-Farbcodes (z. B. `#8B5CF6`).
 - **Schaltfläche für Erweiterte Optionen**: Pfeilschaltfläche (**Mehr Optionen** / **Optionen ausblenden**) zum Ein- und Ausklappen der erweiterten Optionen.
 - **Projekt Hinzufügen**: Primäre Schaltfläche zum Bestätigen und Speichern.

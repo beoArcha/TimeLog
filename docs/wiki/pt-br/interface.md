@@ -38,7 +38,7 @@ A barra lateral disponibiliza um formulário adaptativo de criação de projetos
 
 ### Linha Principal (Nível 1)
 - **Nome do Projeto**: Campo de texto direto (pressionar Enter cria o projeto imediatamente).
-- **Paleta Predefinida**: Dez amostras de cores selecionadas (`slate`, `rose`, `orange`, `amber`, `emerald`, `teal`, `blue`, `indigo`, `violet`, `fuchsia`).
+- **Paleta Predefinida**: Seis amostras de cores selecionadas (`rose`, `teal`, `amber`, `violet`, `indigo`, `emerald`).
 - **Seletor de Cor Personalizada (Paintbrush)**: O botão com ícone de pincel (Paintbrush) ao final da paleta abre um seletor interativo compatível com qualquer código de cor HEX (por exemplo, `#8B5CF6`).
 - **Alternador de Opções Avançadas**: Botão de seta (**Mais opções** / **Ocultar opções**) para expandir ou recolher a gaveta de opções.
 - **Botão Adicionar Projeto**: Botão principal para confirmar e salvar o projeto.

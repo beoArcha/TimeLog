@@ -24,6 +24,14 @@ describe('LocalStorageProjectsPersistence', () => {
         activeLog: null,
       }),
       runExclusive: vi.fn().mockImplementation((fn: () => unknown) => fn()),
+      mutate: vi.fn().mockImplementation(async (mutator) => {
+        const state = await storeMock.getStateOrDefault();
+        const res = await mutator(state);
+        const stateToSave =
+          res && typeof res === 'object' && 'projects' in res ? res : state;
+        await storeMock.save(stateToSave);
+        return res !== undefined ? res : stateToSave;
+      }),
     };
     projectsPersistence = new LocalStorageProjectsPersistence(storeMock);
   });

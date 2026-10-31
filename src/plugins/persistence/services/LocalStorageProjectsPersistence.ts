@@ -30,11 +30,9 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     projectId: string,
     mutator: (project: Project) => void
   ): Promise<TimerRepositoryState> {
-    return this.store.runExclusive(async () => {
-      const current = await this.store.getStateOrDefault();
+    return this.store.mutate((current) => {
       const project = this.findProjectOrThrow(current.projects, projectId);
       mutator(project);
-      return this.store.save(current);
     });
   }
 
@@ -46,20 +44,20 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
     tags?: string[] | null;
     allowConcurrency?: boolean | null;
   }): Promise<TimerRepositoryState> {
-    const current = await this.store.getStateOrDefault();
-    const newProject: Project = {
-      id: crypto.randomUUID(),
-      name: input.name,
-      color: input.color,
-      createdAt: new Date().toISOString(),
-      archived: false,
-      description: input.description ?? undefined,
-      icon: input.icon ?? undefined,
-      tags: input.tags ?? undefined,
-      allowConcurrency: input.allowConcurrency ?? undefined,
-    };
-    current.projects.push(newProject);
-    return this.store.save(current);
+    return this.store.mutate((current) => {
+      const newProject: Project = {
+        id: crypto.randomUUID(),
+        name: input.name,
+        color: input.color,
+        createdAt: new Date().toISOString(),
+        archived: false,
+        description: input.description ?? undefined,
+        icon: input.icon ?? undefined,
+        tags: input.tags ?? undefined,
+        allowConcurrency: input.allowConcurrency ?? undefined,
+      };
+      current.projects.push(newProject);
+    });
   }
 
   async toggleArchive(projectId: string): Promise<TimerRepositoryState> {
@@ -94,8 +92,7 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
   }
 
   async delete(projectId: string): Promise<TimerRepositoryState> {
-    return this.store.runExclusive(async () => {
-      const current = await this.store.getStateOrDefault();
+    return this.store.mutate((current) => {
       this.findProjectOrThrow(current.projects, projectId);
 
       const projectTaskIds = new Set<string>();
@@ -176,8 +173,6 @@ export class LocalStorageProjectsPersistence implements IProjectsPersistence {
           (l) => l.projectId !== projectId && !projectTaskIds.has(l.taskId)
         );
       }
-
-      return this.store.save(current);
     });
   }
 }

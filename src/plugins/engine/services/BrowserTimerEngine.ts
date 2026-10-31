@@ -12,8 +12,15 @@ export class BrowserTimerEngine implements ITimerEngine {
   }
 
   async startTimer(taskId: string): Promise<void> {
-    const projectId = await this.persistence.tasks.getProjectId(taskId);
     const now = new Date().toISOString();
+    const logId = `log_${Date.now()}_${logCounter++}`;
+
+    if (this.persistence.timeLogs.startTimerSession) {
+      await this.persistence.timeLogs.startTimerSession(taskId, now, logId);
+      return;
+    }
+
+    const projectId = await this.persistence.tasks.getProjectId(taskId);
 
     await this.persistence.timeLogs.closeActiveByProject(now, projectId);
 
@@ -26,7 +33,6 @@ export class BrowserTimerEngine implements ITimerEngine {
       await this.closeOtherNonConcurrentProjects(projectId, projects, now);
     }
 
-    const logId = `log_${Date.now()}_${logCounter++}`;
     await this.persistence.timeLogs.insert(logId, taskId, now);
   }
 
@@ -63,10 +69,16 @@ export class BrowserTimerEngine implements ITimerEngine {
   }
 
   async switchTimer(taskId: string): Promise<void> {
-    await this.persistence.tasks.getProjectId(taskId);
     const now = new Date().toISOString();
-    await this.persistence.timeLogs.closeAllActive(now);
     const logId = `log_${Date.now()}_${logCounter++}`;
+
+    if (this.persistence.timeLogs.switchTimerSession) {
+      await this.persistence.timeLogs.switchTimerSession(taskId, now, logId);
+      return;
+    }
+
+    await this.persistence.tasks.getProjectId(taskId);
+    await this.persistence.timeLogs.closeAllActive(now);
     await this.persistence.timeLogs.insert(logId, taskId, now);
   }
 
