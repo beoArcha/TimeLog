@@ -1,5 +1,5 @@
 use crate::cli::error::{CliError, CliSyntaxError};
-use crate::engine::billing::{format_cents, validate_and_parse_rate, validate_currency_code};
+use crate::engine::billing::{format_cents, parse_rate_or_cents, validate_currency_code};
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum BillingValueAction<T> {
@@ -30,11 +30,28 @@ impl NormalizedBillingCreation {
         }
 
         let (hourly_rate, billing_rate_cents) = if let Some(cents) = rate_cents {
-            (Some(format_cents(cents)), Some(cents as i64))
+            let cents_i64 = i64::try_from(cents).map_err(|_| {
+                CliError::Engine(crate::engine::EngineError::Validation(format!(
+                    "Rate cents value '{}' exceeds supported range",
+                    cents
+                )))
+            })?;
+            (Some(format_cents(cents)), Some(cents_i64))
         } else if let Some(r) = rate {
             let trimmed = r.trim();
-            let cents = validate_and_parse_rate(trimmed)?;
-            (Some(format_cents(cents)), Some(cents as i64))
+            let cents = parse_rate_or_cents(trimmed).ok_or_else(|| {
+                CliError::Engine(crate::engine::EngineError::Validation(format!(
+                    "Invalid rate format: '{}'",
+                    trimmed
+                )))
+            })?;
+            let cents_i64 = i64::try_from(cents).map_err(|_| {
+                CliError::Engine(crate::engine::EngineError::Validation(format!(
+                    "Rate cents value '{}' exceeds supported range",
+                    cents
+                )))
+            })?;
+            (Some(format_cents(cents)), Some(cents_i64))
         } else {
             (None, None)
         };
@@ -77,9 +94,15 @@ impl NormalizedBillingUpdate {
         }
 
         let (rate_action, rate_cents_action) = if let Some(cents) = rate_cents {
+            let cents_i64 = i64::try_from(cents).map_err(|_| {
+                CliError::Engine(crate::engine::EngineError::Validation(format!(
+                    "Rate cents value '{}' exceeds supported range",
+                    cents
+                )))
+            })?;
             (
                 BillingValueAction::Set(format_cents(cents)),
-                BillingValueAction::Set(cents as i64),
+                BillingValueAction::Set(cents_i64),
             )
         } else if let Some(r) = rate {
             let trimmed = r.trim();
@@ -89,10 +112,21 @@ impl NormalizedBillingUpdate {
             {
                 (BillingValueAction::Clear, BillingValueAction::Clear)
             } else {
-                let cents = validate_and_parse_rate(trimmed)?;
+                let cents = parse_rate_or_cents(trimmed).ok_or_else(|| {
+                    CliError::Engine(crate::engine::EngineError::Validation(format!(
+                        "Invalid rate format: '{}'",
+                        trimmed
+                    )))
+                })?;
+                let cents_i64 = i64::try_from(cents).map_err(|_| {
+                    CliError::Engine(crate::engine::EngineError::Validation(format!(
+                        "Rate cents value '{}' exceeds supported range",
+                        cents
+                    )))
+                })?;
                 (
                     BillingValueAction::Set(format_cents(cents)),
-                    BillingValueAction::Set(cents as i64),
+                    BillingValueAction::Set(cents_i64),
                 )
             }
         } else {

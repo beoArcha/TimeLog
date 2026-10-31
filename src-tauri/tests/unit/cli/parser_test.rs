@@ -479,4 +479,25 @@ fn test_given_billing_cli_commands_when_parsing_then_binds_rate_and_currency() {
         }
         other => panic!("Expected Task Rate with currency, got: {:?}", other),
     }
+
+    // Task rate command with 'c' suffix
+    let task_rate_c = CliArgs::try_parse_from(vec!["oxy", "task", "rate", "t-123", "15000c"])
+        .expect("task rate command with c suffix");
+
+    match task_rate_c.command {
+        Some(CliCommand::Task(args)) => {
+            assert!(matches!(
+                args.command,
+                TaskSubcommand::Rate {
+                    ref target,
+                    ref rate,
+                    ref currency,
+                    ..
+                } if target == "t-123"
+                    && rate == "15000c"
+                    && currency.is_none()
+            ));
+        }
+        other => panic!("Expected Task Rate with c suffix, got: {:?}", other),
+    }
 }

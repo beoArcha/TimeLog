@@ -42,6 +42,14 @@ fn test_parse_rate_and_boundaries() {
     assert_eq!(parse_rate_to_cents("150.1234"), None);
     assert_eq!(parse_rate_to_cents(""), None);
     assert_eq!(parse_rate_to_cents("-10"), None);
+    assert_eq!(parse_rate_to_cents(".5"), None);
+    assert_eq!(parse_rate_to_cents("1e2"), None);
+    assert_eq!(parse_rate_to_cents("0x10"), None);
+    assert_eq!(parse_rate_to_cents("-0"), None);
+    assert_eq!(parse_rate_to_cents("-0.00"), None);
+    assert_eq!(parse_rate_to_cents("+150.00"), None);
+    assert_eq!(parse_rate_to_cents("150."), Some(15000));
+    assert_eq!(parse_rate_to_cents("  125.75  "), Some(12575));
 
     // Boundary tests on both sides of 1000 for major units
     assert_eq!(parse_rate_or_cents("999"), Some(99900));
@@ -56,6 +64,15 @@ fn test_parse_rate_and_boundaries() {
     assert_eq!(parse_rate_or_cents("1000c"), Some(1000));
     assert_eq!(parse_rate_or_cents("1001c"), Some(1001));
     assert_eq!(parse_rate_or_cents("15000c"), Some(15000));
+    assert_eq!(parse_rate_or_cents("15000¢"), Some(15000));
+    assert_eq!(parse_rate_or_cents("0c"), Some(0));
+    assert_eq!(parse_rate_or_cents("15000cc"), None);
+    assert_eq!(parse_rate_or_cents("-15000c"), None);
+    assert_eq!(parse_rate_or_cents(".5c"), None);
+    assert_eq!(parse_rate_or_cents(".5"), None);
+    assert_eq!(parse_rate_or_cents("1e2"), None);
+    assert_eq!(parse_rate_or_cents("0x10"), None);
+    assert_eq!(parse_rate_or_cents("-0"), None);
 }
 
 #[test]
@@ -65,10 +82,17 @@ fn test_validation_rate_and_currency() {
     assert_eq!(validate_and_parse_rate("999").unwrap(), 99900);
     assert_eq!(validate_and_parse_rate("1000").unwrap(), 100000);
     assert_eq!(validate_and_parse_rate("0.00").unwrap(), 0);
+    assert_eq!(validate_and_parse_rate("150.").unwrap(), 15000);
 
     // Invalid rates
     assert!(validate_and_parse_rate("").is_err());
     assert!(validate_and_parse_rate("-10").is_err());
+    assert!(validate_and_parse_rate(".5").is_err());
+    assert!(validate_and_parse_rate("1e2").is_err());
+    assert!(validate_and_parse_rate("0x10").is_err());
+    assert!(validate_and_parse_rate("-0").is_err());
+    assert!(validate_and_parse_rate("-0.00").is_err());
+    assert!(validate_and_parse_rate("+150.00").is_err());
     assert!(validate_and_parse_rate("150.555").is_err()); // > 2 decimal places
     assert!(validate_and_parse_rate("150.999").is_err()); // > 2 decimal places
     assert!(validate_and_parse_rate("abc").is_err());
@@ -485,5 +509,22 @@ fn test_parity_vectors_shared_fixture() {
             "Currency mismatch for {desc}"
         );
         assert_eq!(res.source, expected_source, "Source mismatch for {desc}");
+    }
+
+    // 4. Test rate or cents parsing vectors
+    if let Some(rate_or_cents_vecs) = fixture["rateOrCentsParsingVectors"].as_array() {
+        for vec in rate_or_cents_vecs {
+            let desc = vec["description"].as_str().unwrap();
+            let input = vec["input"].as_str().unwrap();
+            let expected_cents = vec["expectedCents"].as_u64();
+            let valid = vec["valid"].as_bool().unwrap();
+
+            let parsed = parse_rate_or_cents(input);
+            if valid {
+                assert_eq!(parsed, expected_cents, "Parsed cents mismatch for {desc}");
+            } else {
+                assert_eq!(parsed, None, "Expected invalid for {desc}");
+            }
+        }
     }
 }

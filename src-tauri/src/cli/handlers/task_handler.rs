@@ -319,7 +319,11 @@ fn set_task_rate(
         {
             (Some(rate), None)
         } else {
-            let parsed_cents = trimmed.parse::<u64>().map_err(|_| {
+            let stripped = trimmed
+                .strip_suffix('c')
+                .or_else(|| trimmed.strip_suffix('¢'))
+                .unwrap_or(trimmed);
+            let parsed_cents = stripped.trim().parse::<u64>().map_err(|_| {
                 crate::engine::EngineError::Validation(format!("Invalid cents rate: '{}'", rate))
             })?;
             (None, Some(parsed_cents))

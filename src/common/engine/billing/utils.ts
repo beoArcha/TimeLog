@@ -3,21 +3,45 @@ export function parseRateToCents(s: string): number | null {
   if (!trimmed) return null;
   const parts = trimmed.split('.');
   if (parts.length > 2) return null;
-  const whole = Number(parts[0]);
-  if (isNaN(whole) || whole < 0 || !Number.isInteger(whole)) return null;
+
+  const wholeStr = parts[0];
+  if (!/^\d+$/.test(wholeStr)) return null;
+  const whole = Number(wholeStr);
+  if (!Number.isSafeInteger(whole)) return null;
+
   if (parts.length === 2) {
     const fracStr = parts[1];
-    if (!/^\d*$/.test(fracStr)) return null;
-    if (fracStr.length > 2) return null;
+    if (!/^\d*$/.test(fracStr) || fracStr.length > 2) return null;
     let frac = 0;
     if (fracStr.length === 1) {
       frac = Number(fracStr) * 10;
     } else if (fracStr.length === 2) {
       frac = Number(fracStr);
     }
-    return whole * 100 + frac;
+    const total = whole * 100 + frac;
+    return Number.isSafeInteger(total) ? total : null;
   }
-  return whole * 100;
+
+  const total = whole * 100;
+  return Number.isSafeInteger(total) ? total : null;
+}
+
+export function parseRateOrCents(s: string): number | null {
+  const trimmed = s.trim();
+  if (!trimmed) return null;
+  if (trimmed.endsWith('c') || trimmed.endsWith('¢')) {
+    const centsStr = trimmed.slice(0, -1).trim();
+    if (!/^\d+$/.test(centsStr)) return null;
+    const cents = Number(centsStr);
+    return Number.isSafeInteger(cents) ? cents : null;
+  }
+  if (trimmed.includes('.')) {
+    return parseRateToCents(trimmed);
+  }
+  if (!/^\d+$/.test(trimmed)) return null;
+  const whole = Number(trimmed);
+  const total = whole * 100;
+  return Number.isSafeInteger(total) ? total : null;
 }
 
 export function formatCents(cents: number): string {

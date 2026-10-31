@@ -24,7 +24,7 @@ pub fn validate_and_parse_rate(s: &str) -> Result<u64, EngineError> {
         ));
     }
     if let Some((whole_str, frac_str)) = trimmed.split_once('.') {
-        if whole_str.is_empty() {
+        if whole_str.is_empty() || !whole_str.chars().all(|c| c.is_ascii_digit()) {
             return Err(EngineError::Validation(format!(
                 "Invalid rate format: '{}'",
                 s
@@ -44,12 +44,22 @@ pub fn validate_and_parse_rate(s: &str) -> Result<u64, EngineError> {
             1 => frac_str.parse::<u64>().unwrap() * 10,
             _ => frac_str.parse::<u64>().unwrap(),
         };
-        Ok(whole * 100 + frac_padded)
+        whole
+            .checked_mul(100)
+            .and_then(|w| w.checked_add(frac_padded))
+            .ok_or_else(|| {
+                EngineError::Validation(format!("Rate value '{}' exceeds supported range", s))
+            })
     } else {
+        if !trimmed.chars().all(|c| c.is_ascii_digit()) {
+            return Err(EngineError::Validation(format!("Invalid rate: '{}'", s)));
+        }
         let whole = trimmed
             .parse::<u64>()
             .map_err(|_| EngineError::Validation(format!("Invalid rate: '{}'", s)))?;
-        Ok(whole * 100)
+        whole.checked_mul(100).ok_or_else(|| {
+            EngineError::Validation(format!("Rate value '{}' exceeds supported range", s))
+        })
     }
 }
 
@@ -66,11 +76,21 @@ pub fn parse_rate_or_cents(s: &str) -> Option<u64> {
         .strip_suffix('c')
         .or_else(|| trimmed.strip_suffix('¢'))
     {
-        cents_str.trim().parse::<u64>().ok()
+        let cents_trimmed = cents_str.trim();
+        if cents_trimmed.is_empty() || !cents_trimmed.chars().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
+        cents_trimmed.parse::<u64>().ok()
     } else if trimmed.contains('.') {
         parse_rate_to_cents(trimmed)
     } else {
-        trimmed.parse::<u64>().ok().map(|val| val * 100)
+        if !trimmed.chars().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
+        trimmed
+            .parse::<u64>()
+            .ok()
+            .and_then(|val| val.checked_mul(100))
     }
 }
 

@@ -259,6 +259,24 @@
       "valid": true
     },
     {
+      "description": "Valid integer zero rate",
+      "input": "0",
+      "expectedCents": 0,
+      "valid": true
+    },
+    {
+      "description": "Valid rate with trailing dot",
+      "input": "150.",
+      "expectedCents": 15000,
+      "valid": true
+    },
+    {
+      "description": "Valid rate with surrounding whitespace",
+      "input": "  125.75  ",
+      "expectedCents": 12575,
+      "valid": true
+    },
+    {
       "description": "Reject rate with three decimal places",
       "input": "150.999",
       "expectedCents": null,
@@ -278,6 +296,164 @@
     },
     {
       "description": "Reject non-numeric string",
+      "input": "abc",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject missing whole component (leading dot)",
+      "input": ".5",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject scientific notation",
+      "input": "1e2",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject hexadecimal notation",
+      "input": "0x10",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject negative zero",
+      "input": "-0",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject negative zero decimal",
+      "input": "-0.00",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject explicit positive sign",
+      "input": "+150.00",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject empty string",
+      "input": "",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject whitespace only",
+      "input": "   ",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Supported boundary integer rate",
+      "input": "90071992547409",
+      "expectedCents": 9007199254740900,
+      "valid": true
+    },
+    {
+      "description": "Reject rate beyond supported integer boundary",
+      "input": "999999999999999999999999999999999999",
+      "expectedCents": null,
+      "valid": false
+    }
+  ],
+  "rateOrCentsParsingVectors": [
+    {
+      "description": "Cents with 'c' suffix",
+      "input": "15000c",
+      "expectedCents": 15000,
+      "valid": true
+    },
+    {
+      "description": "Cents with unicode cent suffix",
+      "input": "15000¢",
+      "expectedCents": 15000,
+      "valid": true
+    },
+    {
+      "description": "Zero cents with 'c' suffix",
+      "input": "0c",
+      "expectedCents": 0,
+      "valid": true
+    },
+    {
+      "description": "Cents with surrounding whitespace and 'c' suffix",
+      "input": "  2500c  ",
+      "expectedCents": 2500,
+      "valid": true
+    },
+    {
+      "description": "Decimal rate parsed as cents",
+      "input": "150.00",
+      "expectedCents": 15000,
+      "valid": true
+    },
+    {
+      "description": "Integer major units parsed as cents",
+      "input": "150",
+      "expectedCents": 15000,
+      "valid": true
+    },
+    {
+      "description": "Zero major units parsed as cents",
+      "input": "0",
+      "expectedCents": 0,
+      "valid": true
+    },
+    {
+      "description": "Reject double suffix 'cc'",
+      "input": "15000cc",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject negative cents",
+      "input": "-15000c",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject fractional cents with suffix",
+      "input": ".5c",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject leading dot in decimal rate",
+      "input": ".5",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject scientific notation in rate or cents",
+      "input": "1e2",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject hex notation in rate or cents",
+      "input": "0x10",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject negative zero in rate or cents",
+      "input": "-0",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject precision greater than 2 decimal places in rate or cents",
+      "input": "150.999",
+      "expectedCents": null,
+      "valid": false
+    },
+    {
+      "description": "Reject non-numeric string in rate or cents",
       "input": "abc",
       "expectedCents": null,
       "valid": false
