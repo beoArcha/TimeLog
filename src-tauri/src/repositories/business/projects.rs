@@ -10,7 +10,7 @@ fn validate_row_billing_rate_cents(
 ) -> rusqlite::Result<Option<i64>> {
     let cents: Option<i64> = row.get(index)?;
     if let Some(value) = cents {
-        if crate::engine::billing::validate_stored_billing_rate_cents(value).is_err() {
+        if crate::types::billing::validate_stored_billing_rate_cents(value).is_err() {
             return Err(rusqlite::Error::FromSqlConversionFailure(
                 index,
                 rusqlite::types::Type::Integer,
@@ -39,19 +39,19 @@ impl BusinessRepository {
             .transpose()?;
 
         if let Some(cents) = project.billing_rate_cents {
-            crate::engine::billing::validate_stored_billing_rate_cents(cents)
+            crate::types::billing::validate_stored_billing_rate_cents(cents)
                 .map_err(|error| RepositoryError::Validation(error.to_string()))?;
         }
         let effective_cents: Option<i64> = project.billing_rate_cents.or_else(|| {
             project
                 .hourly_rate
                 .as_deref()
-                .and_then(crate::engine::billing::parse_rate_to_cents)
+                .and_then(crate::types::billing::parse_rate_to_cents)
                 .map(|c| i64::try_from(c).expect("validated billing cents fit SQLite INTEGER"))
         });
         let effective_hourly_rate: Option<String> = project.hourly_rate.clone().or_else(|| {
             effective_cents.map(|c| {
-                crate::engine::billing::format_cents(
+                crate::types::billing::format_cents(
                     u64::try_from(c).expect("validated billing cents"),
                 )
             })
@@ -103,19 +103,19 @@ impl BusinessRepository {
             .transpose()?;
 
         if let Some(cents) = project.billing_rate_cents {
-            crate::engine::billing::validate_stored_billing_rate_cents(cents)
+            crate::types::billing::validate_stored_billing_rate_cents(cents)
                 .map_err(|error| RepositoryError::Validation(error.to_string()))?;
         }
         let effective_cents: Option<i64> = project.billing_rate_cents.or_else(|| {
             project
                 .hourly_rate
                 .as_deref()
-                .and_then(crate::engine::billing::parse_rate_to_cents)
+                .and_then(crate::types::billing::parse_rate_to_cents)
                 .map(|c| i64::try_from(c).expect("validated billing cents fit SQLite INTEGER"))
         });
         let effective_hourly_rate: Option<String> = project.hourly_rate.clone().or_else(|| {
             effective_cents.map(|c| {
-                crate::engine::billing::format_cents(
+                crate::types::billing::format_cents(
                     u64::try_from(c).expect("validated billing cents"),
                 )
             })
@@ -187,7 +187,7 @@ impl BusinessRepository {
 
         if hourly_rate.is_none() {
             if let Some(cents) = billing_rate_cents {
-                hourly_rate = Some(crate::engine::billing::format_cents(
+                hourly_rate = Some(crate::types::billing::format_cents(
                     u64::try_from(cents).expect("validated billing cents"),
                 ));
             }

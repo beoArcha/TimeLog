@@ -23,8 +23,10 @@ pub mod workflow;
 pub use tristate::TriState;
 
 pub use billing::{
+    checked_billing_rate_to_i64, format_cents, parse_rate_or_cents, parse_rate_to_cents,
+    validate_billing_rate_cents, validate_stored_billing_rate_cents, BillingError,
     CurrencyBillingSummary, EffectiveRateResult, RangeBillingResult, RateMode, RateStatus,
-    TaskBillingSummary,
+    TaskBillingSummary, MAX_BILLING_RATE_CENTS,
 };
 pub use cli::{CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, LocalizedUserMessage};
 pub use commands::{

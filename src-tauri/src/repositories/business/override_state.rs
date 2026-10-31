@@ -90,13 +90,14 @@ impl BusinessRepository {
             let effective_cents: Option<i64> = p.billing_rate_cents.or_else(|| {
                 p.hourly_rate
                     .as_deref()
-                    .and_then(crate::engine::billing::parse_rate_to_cents)
+                    .and_then(crate::types::billing::parse_rate_to_cents)
                     .map(|c| c as i64)
             });
             let effective_currency = p.currency.clone().or_else(|| p.billing_currency.clone());
-            let effective_hourly_rate: Option<String> = p.hourly_rate.clone().or_else(|| {
-                effective_cents.map(|c| crate::engine::billing::format_cents(c as u64))
-            });
+            let effective_hourly_rate: Option<String> = p
+                .hourly_rate
+                .clone()
+                .or_else(|| effective_cents.map(|c| crate::types::billing::format_cents(c as u64)));
             tx.execute(
                 constants::UPSERT_PROJECT,
                 params![
@@ -152,13 +153,14 @@ impl BusinessRepository {
             let effective_cents: Option<i64> = t.billing_rate_cents.or_else(|| {
                 t.hourly_rate
                     .as_deref()
-                    .and_then(crate::engine::billing::parse_rate_to_cents)
+                    .and_then(crate::types::billing::parse_rate_to_cents)
                     .map(|c| c as i64)
             });
             let effective_currency = t.currency.clone().or_else(|| t.billing_currency.clone());
-            let effective_hourly_rate: Option<String> = t.hourly_rate.clone().or_else(|| {
-                effective_cents.map(|c| crate::engine::billing::format_cents(c as u64))
-            });
+            let effective_hourly_rate: Option<String> = t
+                .hourly_rate
+                .clone()
+                .or_else(|| effective_cents.map(|c| crate::types::billing::format_cents(c as u64)));
 
             tx.execute(
                 constants::UPSERT_TASK,
@@ -196,13 +198,14 @@ impl BusinessRepository {
             let effective_cents: Option<i64> = p.billing_rate_cents.or_else(|| {
                 p.hourly_rate
                     .as_deref()
-                    .and_then(crate::engine::billing::parse_rate_to_cents)
+                    .and_then(crate::types::billing::parse_rate_to_cents)
                     .map(|c| c as i64)
             });
             let effective_currency = p.currency.clone().or_else(|| p.billing_currency.clone());
-            let effective_hourly_rate: Option<String> = p.hourly_rate.clone().or_else(|| {
-                effective_cents.map(|c| crate::engine::billing::format_cents(c as u64))
-            });
+            let effective_hourly_rate: Option<String> = p
+                .hourly_rate
+                .clone()
+                .or_else(|| effective_cents.map(|c| crate::types::billing::format_cents(c as u64)));
             tx.execute(
                 constants::INSERT_PROJECT,
                 params![
@@ -243,13 +246,14 @@ impl BusinessRepository {
             let effective_cents: Option<i64> = t.billing_rate_cents.or_else(|| {
                 t.hourly_rate
                     .as_deref()
-                    .and_then(crate::engine::billing::parse_rate_to_cents)
+                    .and_then(crate::types::billing::parse_rate_to_cents)
                     .map(|c| c as i64)
             });
             let effective_currency = t.currency.clone().or_else(|| t.billing_currency.clone());
-            let effective_hourly_rate: Option<String> = t.hourly_rate.clone().or_else(|| {
-                effective_cents.map(|c| crate::engine::billing::format_cents(c as u64))
-            });
+            let effective_hourly_rate: Option<String> = t
+                .hourly_rate
+                .clone()
+                .or_else(|| effective_cents.map(|c| crate::types::billing::format_cents(c as u64)));
 
             tx.execute(
                 constants::INSERT_TASK,
