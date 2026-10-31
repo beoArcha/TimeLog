@@ -4,7 +4,7 @@
   <p class="landing-lead">A calm, capable workspace for tracking time, organizing projects and understanding where your work goes. Ready when you are — on desktop or in your browser.</p>
   <div class="landing-actions">
     <a class="landing-button landing-button-primary" href="https://beoarcha.github.io/TimeLog/app/">Open TimeLog <span aria-hidden="true">↗</span></a>
-    <a class="landing-button landing-button-secondary" href="/en/README.md">Explore the documentation <span aria-hidden="true">→</span></a>
+    <a class="landing-button landing-button-secondary" href="#/en/README.md">Explore the documentation <span aria-hidden="true">→</span></a>
   </div>
   <p class="landing-note">Local-first by design · No account required · Open source</p>
 </div>
@@ -94,9 +94,9 @@
   <h2>Find your way around.</h2>
   <p>Whether you are setting up your first project or exploring the system architecture, the documentation is a good place to begin.</p>
   <div class="landing-doc-links">
-    <a href="/en/README.md"><strong>User guide</strong><span>Get started, track time and shape your workspace.</span><b>→</b></a>
-    <a href="/en/cli.md"><strong>CLI reference</strong><span>Bring time tracking into your terminal and scripts.</span><b>→</b></a>
-    <a href="/en/architecture.md"><strong>System architecture</strong><span>Explore the engine, runtime boundaries and storage.</span><b>→</b></a>
+    <a href="#/en/README.md"><strong>User guide</strong><span>Get started, track time and shape your workspace.</span><b>→</b></a>
+    <a href="#/en/cli.md"><strong>CLI reference</strong><span>Bring time tracking into your terminal and scripts.</span><b>→</b></a>
+    <a href="#/en/architecture.md"><strong>System architecture</strong><span>Explore the engine, runtime boundaries and storage.</span><b>→</b></a>
     <a href="https://github.com/beoArcha/TimeLog"><strong>Open source project</strong><span>Browse the code, releases and project activity.</span><b>↗</b></a>
   </div>
   <p class="landing-footer">Engineered for deep flow. Built around your time.</p>
