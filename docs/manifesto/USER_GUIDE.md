@@ -12,7 +12,7 @@ Your data never leaves your computer. There are no cloud subscriptions, no force
 - [2. The Desktop & Web App](#2-the-desktop--web-app)
   - [2.1 Projects & Tasks Hierarchy](#21-projects--tasks-hierarchy)
   - [2.2 Two-Tier Project Creation & Form Controls](#22-two-tier-project-creation--form-controls)
-  - [2.3 Billing Rates & Currency](#23-billing-rates--currency)
+  - [2.3 Billing Rates and Currency](#23-billing-rates-and-currency)
   - [2.4 Tracking Time](#24-tracking-time)
   - [2.5 Reports & Progress](#25-reports--progress)
   - [2.6 Customization: Themes & Scale](#26-customization-themes--scale)
@@ -83,7 +83,7 @@ oXyFlow provides an adaptive two-tier creation form in the sidebar:
   - **Project Description**: Optional notes and scope summary for the project.
   - **Allow Concurrency Toggle**: Controls whether multiple tasks under this project can run simultaneously with other projects.
 
-### 2.3 Billing Rates & Currency
+### 2.3 Billing Rates and Currency
 
 Billing configuration is optional. It lets the Reports view estimate billable amounts from tracked task durations and hourly rates.
 
