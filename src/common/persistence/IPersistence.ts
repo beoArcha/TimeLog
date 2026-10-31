@@ -57,6 +57,7 @@ export interface IProjectsPersistence {
     allowConcurrency?: boolean | null
   ): Promise<TimerRepositoryState>;
   rename(projectId: string, name: string): Promise<TimerRepositoryState>;
+  delete(projectId: string): Promise<TimerRepositoryState>;
 }
 
 export interface ITasksPersistence {
