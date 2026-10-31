@@ -192,4 +192,88 @@ describe('SidebarProjectForm', () => {
     expect(container.querySelector('#sidebar-project-advanced-drawer')).toBeNull();
     expect(toggleBtn.getAttribute('aria-expanded')).toBe('false');
   });
+
+  it('should render Paintbrush custom color swatch and hidden color input', () => {
+    // Arrange & Act
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectForm onAddProject={vi.fn()} locale="en" />
+      </MockProviders>
+    );
+
+    // Assert
+    const customSwatch = container.querySelector('#color-picker-custom');
+    const customInput = container.querySelector('#custom-color-input') as HTMLInputElement;
+
+    expect(customSwatch).not.toBeNull();
+    expect(customInput).not.toBeNull();
+    expect(customSwatch?.getAttribute('aria-label')).toBe('Custom Color');
+    expect(customInput?.type).toBe('color');
+  });
+
+  it('should allow picking arbitrary HEX color via custom color input and submit it', () => {
+    // Arrange
+    const onAdd = vi.fn();
+    const onColorChange = vi.fn();
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectForm
+          onAddProject={onAdd}
+          onColorChange={onColorChange}
+          locale="en"
+        />
+      </MockProviders>
+    );
+
+    const input = container.querySelector('#new-project-input') as HTMLInputElement;
+    const customInput = container.querySelector('#custom-color-input') as HTMLInputElement;
+    const addBtn = container.querySelector('#add-project-btn') as HTMLButtonElement;
+
+    // Act: enter name, select custom hex color, and submit
+    fireEvent.change(input, { target: { value: 'Custom Color Project' } });
+    fireEvent.change(customInput, { target: { value: '#3b82f6' } });
+    fireEvent.click(addBtn);
+
+    // Assert
+    expect(onColorChange).toHaveBeenCalledWith('#3b82f6');
+    expect(onAdd).toHaveBeenCalledWith(
+      'Custom Color Project',
+      '#3b82f6',
+      null,
+      null,
+      null,
+      false
+    );
+  });
+
+  it('should switch back to palette color after selecting custom color', () => {
+    // Arrange
+    const onAdd = vi.fn();
+    const { container } = render(
+      <MockProviders>
+        <SidebarProjectForm onAddProject={onAdd} locale="en" />
+      </MockProviders>
+    );
+
+    const input = container.querySelector('#new-project-input') as HTMLInputElement;
+    const customInput = container.querySelector('#custom-color-input') as HTMLInputElement;
+    const emeraldSwatch = container.querySelector('#color-picker-emerald') as HTMLButtonElement;
+    const addBtn = container.querySelector('#add-project-btn') as HTMLButtonElement;
+
+    // Act
+    fireEvent.change(input, { target: { value: 'Switched Project' } });
+    fireEvent.change(customInput, { target: { value: '#ff4400' } });
+    fireEvent.click(emeraldSwatch);
+    fireEvent.click(addBtn);
+
+    // Assert
+    expect(onAdd).toHaveBeenCalledWith(
+      'Switched Project',
+      'emerald',
+      null,
+      null,
+      null,
+      false
+    );
+  });
 });

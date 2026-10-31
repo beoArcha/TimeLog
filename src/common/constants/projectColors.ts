@@ -13,3 +13,7 @@ export const PROJECT_COLORS: readonly ProjectColorDefinition[] = [
   { name: 'indigo', bg: 'bg-indigo-500', hex: '#6366f1', text: 'text-indigo-500' },
   { name: 'emerald', bg: 'bg-emerald-500', hex: '#10b981', text: 'text-emerald-500' },
 ] as const;
+
+export const DEFAULT_PROJECT_COLOR = 'rose' as const;
+export const DEFAULT_PROJECT_COLOR_HEX = '#f43f5e' as const;
+export const HEX_COLOR_REGEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;

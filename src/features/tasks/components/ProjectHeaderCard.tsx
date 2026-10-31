@@ -2,6 +2,7 @@ import React from "react";
 import { Plus, TrendingUp, Clock, ListTodo, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "@common/i18n/translator";
 import { formatSeconds } from "@/src/features/timelogs/utils/TimelogUtils";
+import { resolveProjectColor } from "@common/utils/colorUtils";
 import { Project } from "@bindings/Project";
 import { ProjectStatistics } from "@bindings/ProjectStatistics";
 import { StatsSkeleton } from "@components/ui/Skeletons";
@@ -38,6 +39,7 @@ export default function ProjectHeaderCard({
   const { t: tProject } = useTranslation("project");
   const { t: tCommon } = useTranslation("common");
   const { t: tTask } = useTranslation("task");
+  const resolvedColor = resolveProjectColor(selectedProject.color);
 
   return (
     <div>
@@ -61,12 +63,9 @@ export default function ProjectHeaderCard({
               className="font-sans font-bold flex items-center gap-2 text-title text-foreground"
             >
               <span
-                className="w-3.5 h-3.5 rounded-full bg-[var(--project-color,orange)] shrink-0 shadow-md"
-                style={{
-                  backgroundColor: selectedProject.color
-                    ? `var(--tw-color-${selectedProject.color}-500)`
-                    : undefined,
-                }}
+                data-testid="project-header-color-dot"
+                className={`w-3.5 h-3.5 rounded-full shrink-0 shadow-md ${resolvedColor.bgClass}`}
+                style={resolvedColor.bgStyle}
               />
               <span className="truncate" title={selectedProject.name}>
                 {selectedProject.name}
