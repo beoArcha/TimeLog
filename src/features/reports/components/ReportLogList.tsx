@@ -59,6 +59,7 @@ export default function ReportLogList({
                 </div>
                 <ProgressBar
                   value={widthPct}
+                  variant="orange"
                   aria-label={pc.name}
                 />
                 {pc.tasks.length > 0 && (
