@@ -4,7 +4,7 @@ trigger: always_on
 
 # Multi-Agent Development Workflow Standards
 
-How AI orchestrators and specialist subagents collaborate, delegate tasks, manage semantic git branches, enforce single-commit pull requests, and ensure quality gates in oXyFlow.
+How AI orchestrators and specialist subagents collaborate, delegate tasks, manage semantic git branches, preserve focused development commits, enforce squash-merge results, and ensure quality gates in oXyFlow.
 
 ## 0. Rules Are Requirements
 
@@ -181,7 +181,7 @@ For multiple workers contributing to one logical delivery, Main integrates their
 - Main defines the branch strategy before dispatch and records it in the task registry.
 - A worker with a dedicated task branch must not push to another worker's branch or to `main`.
 - For independently releasable tasks, each worker branch may become its own PR after Main's review.
-- For tasks contributing to one logical change, workers use separate task branches/workspaces. Main owns the integration branch, incorporates only reviewed commits, resolves integration conflicts, runs integration verification, and creates the single-commit PR.
+- For tasks contributing to one logical change, workers use separate task branches/workspaces. Main owns the integration branch, incorporates only reviewed commits while preserving meaningful commit boundaries, resolves integration conflicts, runs integration verification, and opens the PR. The PR is squash-merged only after review and explicit user approval.
 - Main must not cherry-pick or merge an unreviewed worker result into the integration branch.
 - If the host environment cannot provide isolated workspaces/branches, Main must serialize conflicting tasks or stop and explain the limitation; it must not claim isolation that does not exist.
 
