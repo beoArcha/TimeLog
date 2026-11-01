@@ -7,7 +7,7 @@ This file is the single entry point. Detailed, topic-specific rules live in `.ag
 | File | Scope |
 | --- | --- |
 | [`.agents/rules/development_workflow_standards.md`](.agents/rules/development_workflow_standards.md) | Single-agent execution, multi-phase tasks, phase gates, review protocol |
-| [`.agents/rules/multi_agent_workflow_standards.md`](.agents/rules/multi_agent_workflow_standards.md) | Multi-agent orchestration, delegation briefs, semantic git branches, single-commit PRs, sequential merge |
+| [`.agents/rules/multi_agent_workflow_standards.md`](.agents/rules/multi_agent_workflow_standards.md) | Multi-agent orchestration, delegation briefs, semantic git branches, development commits and squash-merge policy, sequential merge |
 | [`.agents/rules/frontend_engineering_standards.md`](.agents/rules/frontend_engineering_standards.md) | React, hooks, contexts, design system, theming, i18n, a11y |
 | [`.agents/rules/backend_rust_engineering_standards.md`](.agents/rules/backend_rust_engineering_standards.md) | Rust domain modeling, errors, CLI exit codes, handler structure |
 | [`.agents/rules/testing_standards.md`](.agents/rules/testing_standards.md) | Test tiers, naming, AAA / BDT, builders, decoupling, timeouts |
