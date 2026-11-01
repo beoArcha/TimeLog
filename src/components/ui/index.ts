@@ -1,5 +1,6 @@
 export * from './button';
 export * from './input';
+export * from './input-variants';
 export * from './checkbox';
 export * from './radio-group';
 export * from './select';
@@ -39,4 +40,8 @@ export * from './form-variants';
 export * from './area';
 export * from './area-variants';
 export * from './popover';
-export * from './emoji-picker';
+export * from './search-input';
+export * from './kbd';
+export * from './kbd-variants';
+export * from './pagination';
+export * from './time-input';

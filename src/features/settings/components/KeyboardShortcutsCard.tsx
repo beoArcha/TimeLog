@@ -3,6 +3,7 @@ import { Terminal } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Caption, MonoText } from '@components/ui/typography';
 import { HStack } from '@components/ui/stack';
+import { Kbd } from '@components/ui/kbd';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
@@ -25,38 +26,38 @@ export function KeyboardShortcutsCard() {
         <ShortcutTile
           label={translate(locale, 'help', 'ShortcutToggleInterface', customTranslations)}
           shortcut={
-            <kbd className="text-xs font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">
+            <Kbd>
               ESC / X
-            </kbd>
+            </Kbd>
           }
         />
         <ShortcutTile
           label={translate(locale, 'help', 'ShortcutGlobalReturn', customTranslations)}
           shortcut={
-            <kbd className="text-xs font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">
+            <Kbd>
               CTRL + SHIFT + O
-            </kbd>
+            </Kbd>
           }
         />
         <ShortcutTile
           variant="danger"
           label={translate(locale, 'help', 'ShortcutEmergencyStop', customTranslations)}
           shortcut={
-            <kbd className="text-xs font-mono px-2 py-1 rounded border border-rose-500/30 bg-rose-500/10 text-rose-400">
+            <Kbd variant="destructive">
               CTRL + SHIFT + X
-            </kbd>
+            </Kbd>
           }
         />
         <ShortcutTile
           label={translate(locale, 'help', 'ShortcutToggleTimer', customTranslations)}
           shortcut={
             <HStack gap="xs">
-              <kbd className="text-xs font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">
+              <Kbd>
                 SPACE
-              </kbd>
-              <kbd className="text-xs font-mono px-2 py-1 rounded border border-border bg-muted text-foreground">
+              </Kbd>
+              <Kbd>
                 CTRL + SPACE
-              </kbd>
+              </Kbd>
             </HStack>
           }
         />

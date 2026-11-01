@@ -9,7 +9,7 @@ export interface NoRawHtmlPrimitivesOptions {
 
 const FORBIDDEN_HTML_TAGS: Record<string, string> = {
   button: 'Use <Button> from @components/ui/button',
-  input: 'Use <Input> from @components/ui/input or <SearchInput> from @components',
+  input: 'Use <Input> from @components/ui/input or <SearchInput> from @components/ui/search-input',
   select: 'Use <Select> from @components/ui/select or <SegmentedControl> from @components',
   textarea: 'Use <Textarea> from @components/ui/textarea',
   label: 'Use <Label> from @components/ui/label',

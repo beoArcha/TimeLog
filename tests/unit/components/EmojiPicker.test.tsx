@@ -2,8 +2,8 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { EmojiPicker } from '@components/ui/emoji-picker/EmojiPicker';
-import { getFirstGrapheme, isEmoji } from '@components/ui/emoji-picker/emojiData';
+import { EmojiPicker } from '@components/EmojiPicker/EmojiPicker';
+import { getFirstGrapheme, isEmoji } from '@components/EmojiPicker/emojiData';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 
 describe('getFirstGrapheme', () => {

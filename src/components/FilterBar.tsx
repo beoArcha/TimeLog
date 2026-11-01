@@ -1,6 +1,6 @@
 import React from 'react';
 import { HStack, VStack, InlineCluster } from '@components/ui/stack';
-import { SearchInput } from './SearchInput';
+import { SearchInput } from '@components/ui/search-input';
 import { cn } from '@/lib/utils';
 
 export interface FilterBarSearchProps {

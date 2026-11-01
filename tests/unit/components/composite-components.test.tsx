@@ -6,7 +6,7 @@ import { StatCard } from '@components/StatCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { PromptDialog } from '@components/PromptDialog';
 import { SegmentedControl } from '@components/SegmentedControl';
-import { SearchInput } from '@components/SearchInput';
+import { SearchInput } from '@components/ui/search-input';
 import { EmptyState } from '@components/EmptyState';
 import { DataTable } from '@components/DataTable';
 import { ViewHeader } from '@components/ViewHeader';
