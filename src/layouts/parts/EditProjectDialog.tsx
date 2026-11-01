@@ -18,7 +18,7 @@ import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 import type { Project } from '@bindings/Project';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
-import { EmojiPicker } from '@components/ui/emoji-picker';
+import { EmojiPicker } from '@components/EmojiPicker';
 import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
 
 export type ProjectToEdit = Pick<

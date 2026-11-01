@@ -7,7 +7,7 @@ import TasksTable from './components/TasksTable';
 import TimeLogsTable from './components/TimeLogsTable';
 import HolidaysLeavesTable from './components/HolidaysLeavesTable';
 import PatchLogsTable from './components/PatchLogsTable';
-import { TableSkeleton } from '@components/ui/Skeletons';
+import { TableSkeleton } from '@components/ui/skeleton';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';

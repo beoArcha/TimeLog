@@ -12,7 +12,7 @@ import { Switch } from '@components/ui/switch';
 import { Label } from '@components/ui/label';
 import { Caption } from '@components/ui/typography';
 import { VStack, HStack, InlineCluster } from '@components/ui/stack';
-import { EmojiPicker } from '@components/ui/emoji-picker';
+import { EmojiPicker } from '@components/EmojiPicker';
 import { useSettingsSafe } from '@common/hooks/SettingsContext';
 import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
 

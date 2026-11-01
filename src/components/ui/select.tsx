@@ -2,29 +2,29 @@ import * as React from "react";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { selectTriggerVariants, type InputSize } from "./input-variants";
 
 const Select = SelectPrimitive.Root;
 const SelectGroup = SelectPrimitive.Group;
 const SelectValue = SelectPrimitive.Value;
 
+interface SelectTriggerProps extends SelectPrimitive.Trigger.Props {
+  size?: InputSize;
+}
+
 /**
- * Trigger element opening the select dropdown.
+ * Trigger element opening the select dropdown with scalable UiSize variants.
  */
 function SelectTrigger({
   className,
+  size = "md",
   children,
   ...props
-}: SelectPrimitive.Trigger.Props) {
+}: SelectTriggerProps) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
-      className={cn(
-        "flex h-8 w-full items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-all outline-none",
-        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        "data-[placeholder]:text-muted-foreground",
-        className
-      )}
+      className={cn(selectTriggerVariants({ size }), className)}
       {...props}
     >
       {children}
@@ -140,4 +140,5 @@ export {
   SelectItem,
   SelectLabel,
   NativeSelect,
+  type SelectTriggerProps,
 };
