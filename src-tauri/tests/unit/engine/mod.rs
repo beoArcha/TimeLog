@@ -1,3 +1,4 @@
+pub mod billing_test;
 pub mod engine_computed_test;
 pub mod engine_elapsed_test;
 pub mod engine_lifecycle_test;

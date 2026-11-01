@@ -10,6 +10,7 @@ import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import { ExportPayload, ExportDataRow } from '@plugins/contracts/IExporterPlugin';
 import ReportStatsCards from './components/ReportStatsCards';
+import ReportBillingCard from './components/ReportBillingCard';
 import ReportPeriodSelector from './components/ReportPeriodSelector';
 import StackedBarActivityChart from './components/StackedBarActivityChart';
 import ProjectDonutChart from './components/ProjectDonutChart';
@@ -129,6 +130,15 @@ export default function ReportView({ state }: { state: GuiState }) {
         periodTotalSec={periodTotalSec}
         dailyAverageSec={dailyAverageSec}
         topProject={topProject}
+      />
+
+      <ReportBillingCard
+        reportPeriod={reportPeriod}
+        customFrom={customFrom}
+        customTo={customTo}
+        nowIso={nowIso}
+        selectedProjectId={selectedProjectId}
+        sysSettings={sysSettings}
       />
 
       <ReportPeriodSelector

@@ -186,10 +186,62 @@ fn apply_migration_6(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+fn apply_migration_7(conn: &Connection) -> Result<()> {
+    add_column_if_missing(
+        conn,
+        "projects",
+        "hourly_rate",
+        constants::ALTER_PROJECTS_ADD_HOURLY_RATE,
+    )?;
+    add_column_if_missing(
+        conn,
+        "projects",
+        "currency",
+        constants::ALTER_PROJECTS_ADD_CURRENCY,
+    )?;
+    add_column_if_missing(
+        conn,
+        "projects",
+        "billing_rate_cents",
+        constants::ALTER_PROJECTS_ADD_BILLING_RATE_CENTS,
+    )?;
+    add_column_if_missing(
+        conn,
+        "projects",
+        "billing_currency",
+        constants::ALTER_PROJECTS_ADD_BILLING_CURRENCY,
+    )?;
+    add_column_if_missing(
+        conn,
+        "tasks",
+        "hourly_rate",
+        constants::ALTER_TASKS_ADD_HOURLY_RATE,
+    )?;
+    add_column_if_missing(
+        conn,
+        "tasks",
+        "currency",
+        constants::ALTER_TASKS_ADD_CURRENCY,
+    )?;
+    add_column_if_missing(
+        conn,
+        "tasks",
+        "billing_rate_cents",
+        constants::ALTER_TASKS_ADD_BILLING_RATE_CENTS,
+    )?;
+    add_column_if_missing(
+        conn,
+        "tasks",
+        "billing_currency",
+        constants::ALTER_TASKS_ADD_BILLING_CURRENCY,
+    )?;
+    Ok(())
+}
+
 pub fn initialize_database(conn: &Connection) -> Result<()> {
     conn.execute(constants::CREATE_SCHEMA_MIGRATIONS_TABLE, [])?;
 
-    let migrations: [Migration; 6] = [
+    let migrations: [Migration; 7] = [
         Migration {
             version: 1,
             apply: apply_migration_1,
@@ -213,6 +265,10 @@ pub fn initialize_database(conn: &Connection) -> Result<()> {
         Migration {
             version: 6,
             apply: apply_migration_6,
+        },
+        Migration {
+            version: 7,
+            apply: apply_migration_7,
         },
     ];
 

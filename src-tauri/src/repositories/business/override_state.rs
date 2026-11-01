@@ -87,6 +87,17 @@ impl BusinessRepository {
                 .map(serde_json::to_string)
                 .transpose()?;
             let tags_str = p.tags.as_ref().map(serde_json::to_string).transpose()?;
+            let effective_cents: Option<i64> = p.billing_rate_cents.or_else(|| {
+                p.hourly_rate
+                    .as_deref()
+                    .and_then(crate::types::billing::parse_rate_to_cents)
+                    .map(|c| c as i64)
+            });
+            let effective_currency = p.currency.clone().or_else(|| p.billing_currency.clone());
+            let effective_hourly_rate: Option<String> = p
+                .hourly_rate
+                .clone()
+                .or_else(|| effective_cents.map(|c| crate::types::billing::format_cents(c as u64)));
             tx.execute(
                 constants::UPSERT_PROJECT,
                 params![
@@ -102,6 +113,10 @@ impl BusinessRepository {
                     p.icon,
                     tags_str,
                     p.allow_concurrency.unwrap_or(false) as i32,
+                    effective_hourly_rate,
+                    effective_currency.clone(),
+                    effective_cents,
+                    effective_currency,
                 ],
             )?;
         }
@@ -135,6 +150,17 @@ impl BusinessRepository {
                 .map(serde_json::to_string)
                 .transpose()?;
             let status_str = Self::task_status_to_str(t.status.as_ref());
+            let effective_cents: Option<i64> = t.billing_rate_cents.or_else(|| {
+                t.hourly_rate
+                    .as_deref()
+                    .and_then(crate::types::billing::parse_rate_to_cents)
+                    .map(|c| c as i64)
+            });
+            let effective_currency = t.currency.clone().or_else(|| t.billing_currency.clone());
+            let effective_hourly_rate: Option<String> = t
+                .hourly_rate
+                .clone()
+                .or_else(|| effective_cents.map(|c| crate::types::billing::format_cents(c as u64)));
 
             tx.execute(
                 constants::UPSERT_TASK,
@@ -150,6 +176,10 @@ impl BusinessRepository {
                     edit_history_str,
                     t.archived.unwrap_or(false) as i32,
                     status_str,
+                    effective_hourly_rate,
+                    effective_cents,
+                    effective_currency.clone(),
+                    effective_currency,
                 ],
             )?;
         }
@@ -165,6 +195,17 @@ impl BusinessRepository {
                 .map(serde_json::to_string)
                 .transpose()?;
             let tags_str = p.tags.as_ref().map(serde_json::to_string).transpose()?;
+            let effective_cents: Option<i64> = p.billing_rate_cents.or_else(|| {
+                p.hourly_rate
+                    .as_deref()
+                    .and_then(crate::types::billing::parse_rate_to_cents)
+                    .map(|c| c as i64)
+            });
+            let effective_currency = p.currency.clone().or_else(|| p.billing_currency.clone());
+            let effective_hourly_rate: Option<String> = p
+                .hourly_rate
+                .clone()
+                .or_else(|| effective_cents.map(|c| crate::types::billing::format_cents(c as u64)));
             tx.execute(
                 constants::INSERT_PROJECT,
                 params![
@@ -180,6 +221,10 @@ impl BusinessRepository {
                     p.icon,
                     tags_str,
                     p.allow_concurrency.unwrap_or(false) as i32,
+                    effective_hourly_rate,
+                    effective_currency.clone(),
+                    effective_cents,
+                    effective_currency,
                 ],
             )?;
         }
@@ -198,6 +243,17 @@ impl BusinessRepository {
                 .map(serde_json::to_string)
                 .transpose()?;
             let status_str = Self::task_status_to_str(t.status.as_ref());
+            let effective_cents: Option<i64> = t.billing_rate_cents.or_else(|| {
+                t.hourly_rate
+                    .as_deref()
+                    .and_then(crate::types::billing::parse_rate_to_cents)
+                    .map(|c| c as i64)
+            });
+            let effective_currency = t.currency.clone().or_else(|| t.billing_currency.clone());
+            let effective_hourly_rate: Option<String> = t
+                .hourly_rate
+                .clone()
+                .or_else(|| effective_cents.map(|c| crate::types::billing::format_cents(c as u64)));
 
             tx.execute(
                 constants::INSERT_TASK,
@@ -213,6 +269,10 @@ impl BusinessRepository {
                     edit_history_str,
                     t.archived.unwrap_or(false) as i32,
                     status_str,
+                    effective_hourly_rate,
+                    effective_cents,
+                    effective_currency.clone(),
+                    effective_currency,
                 ],
             )?;
         }

@@ -6,6 +6,7 @@ import {
   ITimeLogsEngine,
   IValidationEngine,
 } from './IEngine';
+import { IBillingEngine } from './billing/types';
 import { EngineCommands } from './EngineCommands';
 import { EnginePlugin } from '@plugins/engine/EnginePlugin';
 import { IRouter } from '../types/routing';
@@ -51,5 +52,9 @@ export class EngineRouter implements IEngine, IRouter<IEngine> {
 
   get validation(): IValidationEngine {
     return this.implementation.validation;
+  }
+
+  get billing(): IBillingEngine {
+    return this.implementation.billing;
   }
 }

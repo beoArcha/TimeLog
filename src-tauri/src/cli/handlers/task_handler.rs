@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use super::billing_input::{NormalizedBillingCreation, NormalizedBillingUpdate};
 use super::constants::{
     ERR_REPARENT_DIFFERENT_PROJECT, ERR_REPARENT_SELF, FORMAT_TASK_ORPHAN_ROW,
     FORMAT_TASK_ROOT_ROW, FORMAT_TASK_SUBTASK_ROW, HEADER_TASKS, LABEL_SUBTASK_BADGE,
@@ -7,7 +8,7 @@ use super::constants::{
     MSG_TASK_CREATED, MSG_TASK_DETACHED, MSG_TASK_MOVED, MSG_TASK_RENAMED, MSG_TASK_REPARENTED,
     SYMBOL_TASK_DONE, SYMBOL_TASK_TODO,
 };
-use crate::cli::error::{BusinessRuleViolation, CliError};
+use crate::cli::error::{BusinessRuleViolation, CliError, CliSyntaxError};
 use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
@@ -31,11 +32,27 @@ pub fn handle(
             name,
             project,
             parent,
-        } => add_task(persistence, name, project, parent, is_machine),
+            rate,
+            rate_cents,
+        } => add_task(
+            persistence,
+            name,
+            project,
+            parent,
+            rate,
+            rate_cents,
+            is_machine,
+        ),
         TaskSubcommand::Done { target } => complete_task(persistence, &target, is_machine),
         TaskSubcommand::Rename { target, new_name } => {
             rename_task(persistence, &target, new_name, is_machine)
         }
+        TaskSubcommand::Rate {
+            target,
+            rate,
+            currency,
+            cents,
+        } => set_task_rate(persistence, &target, rate, currency, cents, is_machine),
         TaskSubcommand::Reparent { target, new_parent } => {
             reparent_task(persistence, &target, &new_parent, is_machine)
         }
@@ -220,8 +237,15 @@ fn add_task(
     name: String,
     project: Option<String>,
     parent: Option<String>,
+    rate: Option<String>,
+    rate_cents: Option<u64>,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
+    if rate.is_some() && rate_cents.is_some() {
+        return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
+            "Cannot specify both --rate and --rate-cents".to_string(),
+        )));
+    }
     let engine = Engine::new(persistence);
     let valid_name = engine.validate_task_name(&name)?;
 
@@ -254,9 +278,12 @@ fn add_task(
         },
     };
 
+    let billing = NormalizedBillingCreation::parse(rate, rate_cents, None)?;
     let parent_task_id = parent_task.map(|p| p.id);
     let id = generate_id();
-    let task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
+    let mut task = Task::new(id.clone(), project_id, parent_task_id, valid_name);
+    task.hourly_rate = billing.hourly_rate;
+    task.billing_rate_cents = billing.billing_rate_cents;
 
     persistence.tasks.create(task)?;
     if is_machine {
@@ -270,6 +297,71 @@ fn add_task(
         ));
     }
     Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
+}
+
+fn set_task_rate(
+    persistence: &Persistence,
+    target: &str,
+    rate: String,
+    currency: Option<String>,
+    cents: bool,
+    is_machine: bool,
+) -> Result<CliOutput, CliError> {
+    validate_id(target)?;
+    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let mut task = resolver.resolve_task(target)?;
+
+    let trimmed = rate.trim();
+    let (rate_arg, rate_cents_arg) = if cents {
+        if trimmed.eq_ignore_ascii_case("inherit")
+            || trimmed.eq_ignore_ascii_case("none")
+            || trimmed.eq_ignore_ascii_case("clear")
+        {
+            (Some(rate), None)
+        } else {
+            let stripped = trimmed
+                .strip_suffix('c')
+                .or_else(|| trimmed.strip_suffix('¢'))
+                .unwrap_or(trimmed);
+            let parsed_cents = stripped.trim().parse::<u64>().map_err(|_| {
+                crate::engine::EngineError::Validation(format!("Invalid cents rate: '{}'", rate))
+            })?;
+            (None, Some(parsed_cents))
+        }
+    } else {
+        (Some(rate), None)
+    };
+
+    let billing_update = NormalizedBillingUpdate::parse(rate_arg, rate_cents_arg, currency)?;
+    billing_update.apply_to_task(&mut task);
+
+    persistence.tasks.patch(task.clone())?;
+
+    if is_machine {
+        return Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "id": task.id,
+                "hourly_rate": task.hourly_rate,
+                "billing_rate_cents": task.billing_rate_cents,
+                "currency": task.currency,
+                "billing_currency": task.billing_currency,
+                "action": "rate_updated"
+            })
+            .to_string(),
+        ));
+    }
+
+    let rate_display = task.hourly_rate.as_deref().unwrap_or("inherited");
+    let curr_display = task
+        .currency
+        .as_deref()
+        .map(|c| format!(" ({})", c))
+        .unwrap_or_default();
+    Ok(CliOutput::Success(format!(
+        "Updated billing rate for task '{}' ({}) to {}{}.",
+        task.name, task.id, rate_display, curr_display
+    )))
 }
 
 fn resolve_default_project_id(persistence: &Persistence) -> Result<String, CliError> {

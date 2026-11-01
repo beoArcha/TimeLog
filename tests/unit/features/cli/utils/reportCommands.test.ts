@@ -60,6 +60,10 @@ describe('Unit Tests: ReportCommands', () => {
         validateProjectName: vi.fn(),
         validateTaskName: vi.fn(),
         validateTaskHierarchy: vi.fn()
+      },
+      billing: {
+        resolveEffectiveTaskRate: vi.fn(),
+        calculateRangeBilling: vi.fn()
       }
     };
 

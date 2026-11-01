@@ -240,26 +240,47 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ---
 
-### Phase 16 — Cross-Runtime Billing Engine, Dynamic Currencies & Rate Inheritance 🚧 (Planned)
+### Phase 16 — Cross-Runtime Billing Engine, Dynamic Currencies & Rate Inheritance 🚧 (In Progress)
 
-#### Group A (Parallel Track) — Cross-Runtime Data Models & Type Generation
-- [ ] **Rust Domain Extensions**: Extend `Project` struct with `pub hourly_rate: Option<f64>` and `pub currency: Option<String>` in [`src-tauri/src/types/project.rs`](../../src-tauri/src/types/project.rs); extend `Task` struct with `pub hourly_rate: Option<f64>` in [`src-tauri/src/types/task.rs`](../../src-tauri/src/types/task.rs). Note: currency is maintained strictly at the Project level.
-- [ ] **Type Synchronization**: Re-export updated bindings via `ts-rs` into [`src/bindings/Project.ts`](../../src/bindings/Project.ts) and [`src/bindings/Task.ts`](../../src/bindings/Task.ts).
-- [ ] **SQLite Repository Migration**: Update table migrations and queries in `src-tauri/src/repositories/business/projects.rs` and `src-tauri/src/repositories/business/tasks.rs` to persist `hourly_rate` and `currency` fields.
+#### Group A — Rust Backend & Native Persistence
+- [x] **Billing Domain Models**: Extend the Project and Task domain models with billing configuration, preserving the distinction between an unset task rate (inheritance) and an explicit zero rate.
+- [x] **SQLite Repositories**: Extend Project and Task repositories to persist, update, retrieve, and map billing configuration through their existing CRUD operations.
+- [x] **Database Migrations**: Introduce versioned, backward-compatible SQLite migrations for billing fields, preserving existing user data and supporting safe upgrades from previous schema versions.
+- [x] **Native Billing Engine**: Implement the Rust Billing domain for effective-rate resolution and billing calculations, keeping business rules out of repositories and command handlers.
+- [x] **Native Integration**: Expose the required Billing Engine and persistence capabilities through the existing Tauri command and runtime architecture.
+- [x] **Type Bindings**: Synchronize Rust domain contracts with the generated TypeScript bindings via `ts-rs`.
 
-#### Group B (Parallel Track) — Dual-Persistence & Zero-Override Rate Resolver Engine
-- [ ] **Effective Rate Resolver**: Implement `resolveEffectiveHourlyRate(task, project): number` in [`src/features/reports/utils/billingCalculator.ts`](../../src/features/reports/utils/billingCalculator.ts).
-- [ ] **Strict Zero-Override Rate Rule**: Guarantee that explicit `task.hourlyRate === 0` (e.g. non-billable / pro-bono work) evaluates strictly to `0` and never falls back to the parent project's hourly rate.
-- [ ] **Default Inheritance Mode**: Treat `null` or `undefined` on task as default inheritance from `project.hourlyRate` (falling back to `0` if undefined).
-- [ ] **Browser Storage Persistence**: Update `LocalStorageProjectsPersistence.ts` and `LocalStorageTasksPersistence.ts` to serialize and restore rate and currency properties.
+#### Group B — PWA Backend & Plugins
+- [x] **Browser Persistence**: Extend the Project and Task Persistence plugins to store and restore billing configuration in LocalStorage.
+- [x] **LocalStorage Migrations**: Introduce versioned, backward-compatible migrations for existing browser data, preserving records that predate billing configuration.
+- [x] **Browser Billing Engine**: Implement the Browser Billing Engine with the same domain behavior and calculation rules as the native Rust implementation.
+- [x] **Shared Contracts & Routing**: Extend the common Engine contracts and `EngineRouter` to expose the Billing domain consistently across Browser and Tauri runtimes.
+- [x] **Plugin Integration**: Register and integrate the Billing Engine and Persistence capabilities through the existing plugin architecture without moving business rules into plugins.
+- [x] **Cross-Runtime Parity**: Verify that equivalent billing inputs produce equivalent domain results in Browser and Tauri implementations.
 
-#### Group C (Parallel Track) — Locale-Driven & Custom Currency Project Configuration
-- [ ] **Locale-Aware Default Currency**: Automatically determine initial currency defaults based on active application locale (`pl` -> `PLN`, `en` -> `USD` or `GBP`, `de`/`fr`/`es`/`it`/`nl` -> `EUR`, `ja` -> `JPY`, `pt-br` -> `BRL`).
-- [ ] **Custom Currency Extension**: Support selection from predefined suggestions (`PLN`, `EUR`, `USD`, `GBP`, `CHF`, `BRL`, `JPY`) plus arbitrary user input of custom currency codes/symbols, appending new values to user's currency selection list.
-- [ ] **Project Rate UI**: Integrate hourly rate input and currency controls into [`SidebarProjectForm.tsx`](../../src/layouts/parts/sidebar/SidebarProjectForm.tsx) (advanced drawer) and [`EditProjectDialog.tsx`](../../src/features/projects/components/EditProjectDialog.tsx).
-- [ ] **Task Rate Selector & Override Modes**: Integrate rate controls into task item details/popover in [`TaskItem.tsx`](../../src/features/tasks/components/TaskItem/TaskItem.tsx) with three explicit modes: Default (inherit project rate), Custom numeric rate, and Explicit 0 (non-billable / pro-bono).
+#### Group C — React Frontend & Billing UI
+- [x] **Project Billing Configuration**: Provide Project-level hourly rate and currency configuration in project creation and editing flows.
+- [x] **Task Rate Configuration**: Provide explicit task rate modes: inherit the Project rate, use a custom rate, or set an explicit zero rate.
+- [x] **Currency Selection**: Provide locale-informed currency suggestions, predefined currency options, and support for custom currency configuration while keeping currency identity separate from its display symbol.
+- [x] **Billing Presentation**: Integrate Billing Engine results into Reports and relevant application views, including appropriate currency-aware formatting.
+- [x] **Presentation Boundary**: Keep billing calculations, rate inheritance, and other billing business rules inside the Engine; React remains responsible for configuration and presentation.
+- [x] **Frontend Verification**: Cover Project and Task configuration, inheritance states, validation, and report presentation with component and integration tests.
 
----
+#### Group D — CLI & Billing Operations
+- [x] **CLI Billing Configuration**: Extend the native CLI and Browser CLI implementation to inspect and manage Project and Task billing configuration.
+- [x] **Rate Operations**: Support setting and clearing Project and Task rates, configuring Project currency, inheriting the Project rate, and explicitly setting a zero rate.
+- [ ] **Billing Reports**: Provide CLI operations for calculating and reporting billing values for supported Projects, Tasks, and time ranges. The existing CLI report handler still reports elapsed-time metrics rather than `calculate_range_billing()` results.
+- [x] **Machine-Readable Output**: Support stable structured output for automation while preserving the existing CLI output and error conventions.
+- [x] **Shared Domain Logic**: Reuse the Billing Engine contracts and implementations; CLI handlers must not duplicate rate resolution or billing calculations.
+- [x] **CLI Parity**: Extend the existing CLI parity suite to verify consistent syntax, results, and error behavior across native and Browser CLI runtimes.
+
+#### Phase 16 Completion Criteria
+- [x] Billing configuration is persisted and restored correctly by both SQLite and LocalStorage implementations.
+- [x] Existing user data is preserved and upgraded through backward-compatible, versioned migrations.
+- [x] Native and Browser Billing Engines implement the same rate inheritance, explicit-zero, currency, and calculation rules.
+- [x] React consumes Billing capabilities through the existing routers and contains no duplicated billing business logic.
+- [ ] Native and Browser CLI implementations expose consistent billing operations and machine-readable results, including billing-specific report operations.
+- [ ] Relevant unit, repository, migration, integration, cross-runtime parity, frontend, and CLI tests pass.
 
 ### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🚧 (Planned)
 

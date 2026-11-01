@@ -5,6 +5,26 @@ use crate::repositories::shared::errors::Result;
 use crate::types::{Task, TaskEditHistory};
 use rusqlite::params;
 
+fn validate_row_billing_rate_cents(
+    row: &rusqlite::Row,
+    index: usize,
+) -> rusqlite::Result<Option<i64>> {
+    let cents: Option<i64> = row.get(index)?;
+    if let Some(value) = cents {
+        if crate::types::billing::validate_stored_billing_rate_cents(value).is_err() {
+            return Err(rusqlite::Error::FromSqlConversionFailure(
+                index,
+                rusqlite::types::Type::Integer,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "billing_rate_cents is negative or exceeds the supported safe-integer range",
+                )),
+            ));
+        }
+    }
+    Ok(cents)
+}
+
 impl BusinessRepository {
     pub fn create_task(&self, task: &Task) -> Result<()> {
         let conn = self.connect()?;
@@ -17,6 +37,33 @@ impl BusinessRepository {
             Some(s) => serde_json::to_string(s)?.trim_matches('"').to_string(),
             None => "Todo".to_string(),
         };
+
+        if let Some(cents) = task.billing_rate_cents {
+            crate::types::billing::validate_stored_billing_rate_cents(cents)
+                .map_err(|error| RepositoryError::Validation(error.to_string()))?;
+        }
+        let effective_cents: Option<i64> = task.billing_rate_cents.or_else(|| {
+            task.hourly_rate
+                .as_deref()
+                .and_then(crate::types::billing::parse_rate_to_cents)
+                .map(|c| i64::try_from(c).expect("validated billing cents fit SQLite INTEGER"))
+        });
+        let effective_hourly_rate: Option<String> = task.hourly_rate.clone().or_else(|| {
+            effective_cents.map(|c| {
+                crate::types::billing::format_cents(
+                    u64::try_from(c).expect("validated billing cents"),
+                )
+            })
+        });
+        let effective_currency: Option<String> = task
+            .currency
+            .clone()
+            .or_else(|| task.billing_currency.clone());
+        let effective_billing_currency: Option<String> = task
+            .billing_currency
+            .clone()
+            .or_else(|| task.currency.clone());
+
         conn.execute(
             constants::INSERT_TASK,
             params![
@@ -30,7 +77,11 @@ impl BusinessRepository {
                 task.original_completed.unwrap_or(false) as i32,
                 edit_history_str,
                 task.archived.unwrap_or(false) as i32,
-                status_str
+                status_str,
+                effective_hourly_rate,
+                effective_cents,
+                effective_billing_currency,
+                effective_currency
             ],
         )?;
         Ok(())
@@ -47,6 +98,33 @@ impl BusinessRepository {
             Some(s) => serde_json::to_string(s)?.trim_matches('"').to_string(),
             None => "Todo".to_string(),
         };
+
+        if let Some(cents) = task.billing_rate_cents {
+            crate::types::billing::validate_stored_billing_rate_cents(cents)
+                .map_err(|error| RepositoryError::Validation(error.to_string()))?;
+        }
+        let effective_cents: Option<i64> = task.billing_rate_cents.or_else(|| {
+            task.hourly_rate
+                .as_deref()
+                .and_then(crate::types::billing::parse_rate_to_cents)
+                .map(|c| i64::try_from(c).expect("validated billing cents fit SQLite INTEGER"))
+        });
+        let effective_hourly_rate: Option<String> = task.hourly_rate.clone().or_else(|| {
+            effective_cents.map(|c| {
+                crate::types::billing::format_cents(
+                    u64::try_from(c).expect("validated billing cents"),
+                )
+            })
+        });
+        let effective_currency: Option<String> = task
+            .currency
+            .clone()
+            .or_else(|| task.billing_currency.clone());
+        let effective_billing_currency: Option<String> = task
+            .billing_currency
+            .clone()
+            .or_else(|| task.currency.clone());
+
         let affected = conn.execute(
             constants::UPDATE_TASK,
             params![
@@ -59,7 +137,11 @@ impl BusinessRepository {
                 task.original_completed.unwrap_or(false) as i32,
                 edit_history_str,
                 task.archived.unwrap_or(false) as i32,
-                status_str
+                status_str,
+                effective_hourly_rate,
+                effective_cents,
+                effective_billing_currency,
+                effective_currency
             ],
         )?;
         if affected == 0 {
@@ -113,6 +195,22 @@ impl BusinessRepository {
             }
         };
 
+        let mut hourly_rate: Option<String> = row.get(11)?;
+        let billing_rate_cents = validate_row_billing_rate_cents(row, 12)?;
+        let billing_currency: Option<String> = row.get(13).ok().flatten();
+        let mut currency: Option<String> = row.get(14).ok().flatten();
+
+        if hourly_rate.is_none() {
+            if let Some(cents) = billing_rate_cents {
+                hourly_rate = Some(crate::types::billing::format_cents(
+                    u64::try_from(cents).expect("validated billing cents"),
+                ));
+            }
+        }
+        if currency.is_none() {
+            currency = billing_currency.clone();
+        }
+
         Ok(Task {
             id: row.get(0)?,
             project_id: row.get(1)?,
@@ -125,6 +223,10 @@ impl BusinessRepository {
             edit_history,
             archived: Some(archived_int == 1),
             status,
+            hourly_rate,
+            currency,
+            billing_rate_cents,
+            billing_currency,
         })
     }
 

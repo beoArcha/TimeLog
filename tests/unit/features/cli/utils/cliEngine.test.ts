@@ -65,6 +65,10 @@ describe('Unit Tests: CliEngine', () => {
         validateProjectName: vi.fn(),
         validateTaskName: vi.fn(),
         validateTaskHierarchy: vi.fn()
+      },
+      billing: {
+        resolveEffectiveTaskRate: vi.fn(),
+        calculateRangeBilling: vi.fn()
       }
     };
     EngineRouter.getInstance().setImplementationForTesting(mockEngine);

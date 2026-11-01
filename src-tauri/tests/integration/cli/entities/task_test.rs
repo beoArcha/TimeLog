@@ -626,3 +626,170 @@ fn test_given_task_when_move_in_machine_mode_then_returns_json_envelope() {
     assert_eq!(parsed["id"], "t-to-move");
     assert_eq!(parsed["project_id"], "p-dst");
 }
+
+#[test]
+fn test_given_task_when_setting_rate_with_cents_suffix_then_persists_correctly() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_rate_c_suffix");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-rate-1")
+        .with_name("Rate Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-rate-1")
+        .with_project_id("p-rate-1")
+        .with_name("Rate Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args = CliArgs::try_parse_from(["oxy", "task", "rate", "Rate Task", "15000c"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let task_in_db = persistence.tasks.get("t-rate-1").unwrap().unwrap();
+    assert_eq!(task_in_db.hourly_rate.as_deref(), Some("150.00"));
+    assert_eq!(task_in_db.billing_rate_cents, Some(15000));
+}
+
+#[test]
+fn test_given_task_when_setting_rate_with_decimal_then_persists_correctly() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_rate_decimal");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-rate-2")
+        .with_name("Decimal Rate Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-rate-2")
+        .with_project_id("p-rate-2")
+        .with_name("Decimal Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args = CliArgs::try_parse_from(["oxy", "task", "rate", "Decimal Task", "125.50"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let task_in_db = persistence.tasks.get("t-rate-2").unwrap().unwrap();
+    assert_eq!(task_in_db.hourly_rate.as_deref(), Some("125.50"));
+    assert_eq!(task_in_db.billing_rate_cents, Some(12550));
+}
+
+#[test]
+fn test_given_task_when_setting_invalid_rate_then_returns_validation_error() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_rate_invalid");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-rate-3")
+        .with_name("Invalid Rate Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-rate-3")
+        .with_project_id("p-rate-3")
+        .with_name("Invalid Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args = CliArgs::try_parse_from(["oxy", "task", "rate", "Invalid Task", "abc"]).unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().exit_code(), 1);
+}
+
+#[test]
+fn test_given_task_when_setting_rate_with_cents_flag_and_c_suffix_then_persists_correctly() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_rate_cents_flag");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-rate-4")
+        .with_name("Cents Flag Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-rate-4")
+        .with_project_id("p-rate-4")
+        .with_name("Cents Flag Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args = CliArgs::try_parse_from([
+        "oxy",
+        "task",
+        "rate",
+        "Cents Flag Task",
+        "18000c",
+        "--cents",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let task_in_db = persistence.tasks.get("t-rate-4").unwrap().unwrap();
+    assert_eq!(task_in_db.hourly_rate.as_deref(), Some("180.00"));
+    assert_eq!(task_in_db.billing_rate_cents, Some(18000));
+}
+
+#[test]
+fn test_given_task_when_setting_rate_overflowing_i64_then_returns_validation_error() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_task_rate_overflow");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-rate-5")
+        .with_name("Overflow Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-rate-5")
+        .with_project_id("p-rate-5")
+        .with_name("Overflow Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let args = CliArgs::try_parse_from([
+        "oxy",
+        "task",
+        "rate",
+        "Overflow Task",
+        "18446744073709551615",
+        "--cents",
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().exit_code(), 1);
+}

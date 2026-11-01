@@ -84,6 +84,8 @@ describe('Given PersistenceRouter wired to PersistenceCommands (Tauri IPC)', () 
         icon: null,
         tags: null,
         allowConcurrency: null,
+        hourlyRate: null,
+        currency: null,
       });
       expect(result).toEqual(mockState);
     });
