@@ -92,6 +92,16 @@ Full verification suite:
 - Update `docs/manifesto/MASTERMAP.md` and other affected documentation.
 - Present the final summary, including anything skipped or failing.
 
+### 2.7. Git Commits and Pull Request History
+
+- **Separate development commits**: Keep each meaningful implementation unit, completed phase, and review-fix batch in its own focused commit. A single-agent task or PR may therefore contain multiple commits. Do not combine unrelated features, refactors, or architecture changes in one commit.
+- **Phase-gate approval**: At the phase gate, prepare and present the proposed Conventional Commit message and its scope. Create the commit only after the user confirms the phase/sign-off, consistent with the approval gate in section 2.3. Do not create commits merely because a subphase ended.
+- **Review fixes**: After the user reviews the PR or phase and requests changes, implement the fixes and record them as additional focused commits. Re-run the relevant verification and report the actual results; do not rewrite or squash the earlier development history just to keep the PR commit count at one.
+- **PR history**: Keep meaningful commits visible in the open PR so implementation steps and review corrections remain traceable. The one-commit requirement applies to the resulting `main` history, not to the open PR's commit count.
+- **Final merge**: After explicit user approval, use **Squash and merge** (or an equivalent squash operation). The target branch must receive exactly one Conventional Commit representing the complete PR. Present the proposed squash commit message with the PR review summary.
+- **Small changes**: The same rule applies to a small single-agent fix opened as a PR: one or more focused development commits are acceptable; squash-merge the approved PR into one commit on `main`.
+
+
 ## 3. Refactoring Scope
 
 - Clean up the code you touch: unclear names, dead code, magic strings and rule violations on the lines you change.
