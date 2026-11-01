@@ -1,7 +1,7 @@
 [package]
 name = "oxy-flow"
 default-run = "timelog"
-version = "1.12.6"
+version = "1.12.7"
 edition = "2021"
 description = "oXyFlow TimeLog — Lightweight, local-first work timer and task tracker built with Rust, Tauri v2, SQLite, and React 19."
 authors = ["Marcin 'beoArcha' Stefan"]
