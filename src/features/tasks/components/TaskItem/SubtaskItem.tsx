@@ -91,7 +91,7 @@ export function SubtaskItem({
       justify="between"
       gap="lg"
       className={`py-2 px-3 rounded-xl group/sub transition-all ${isSubRunning
-        ? 'bg-orange-500/10 border border-orange-500/20'
+        ? 'bg-primary/10 border border-primary/20'
         : 'hover:bg-muted/80 border border-transparent text-foreground'
         }`}
     >
@@ -104,10 +104,10 @@ export function SubtaskItem({
           aria-checked={subTask.completed}
           onClick={() => onToggleTaskComplete(subTask.id)}
           aria-label={`${subTask.completed ? tCommon('Edit') : tCommon('Confirm')} ${subTask.name}`}
-          className="text-muted-foreground hover:text-orange-500 transition-colors cursor-pointer mt-0.5 sm:mt-0 shrink-0 p-0 h-auto"
+          className="text-muted-foreground hover:text-primary transition-colors cursor-pointer mt-0.5 sm:mt-0 shrink-0 p-0 h-auto"
         >
           {subTask.completed ? (
-            <CheckSquare className="w-4 h-4 text-orange-500 fill-orange-500/10" />
+            <CheckSquare className="w-4 h-4 text-primary fill-primary/10" />
           ) : (
             <EmptySquare className="w-4 h-4" />
           )}
@@ -189,7 +189,7 @@ export function SubtaskItem({
             aria-label={tTimer('StopMeasurement')}
             className="p-2 transition-colors cursor-pointer animate-pulse shrink-0"
           >
-            <Square className="w-3.5 h-3.5 fill-white text-white" />
+            <Square className="w-3.5 h-3.5 fill-current" />
           </Button>
         ) : (
           <Button
@@ -200,7 +200,7 @@ export function SubtaskItem({
             disabled={subTask.completed}
             title={tTimer('StartMeasurement')}
             aria-label={tTimer('StartMeasurement')}
-            className="text-muted-foreground hover:text-white rounded-lg p-2 transition-all cursor-pointer shrink-0 bg-muted hover:bg-teal-500 group-hover/sub:bg-teal-500 text-foreground"
+            className="text-muted-foreground hover:text-primary-foreground rounded-lg p-2 transition-all cursor-pointer shrink-0 bg-muted hover:bg-primary group-hover/sub:bg-primary group-hover/sub:text-primary-foreground text-foreground"
           >
             <Play className="w-3.5 h-3.5 fill-current shrink-0" />
           </Button>

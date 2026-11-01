@@ -68,11 +68,11 @@ export default function TasksTable() {
       <CollapsibleCard
       title={`${translate(locale, 'database', 'TasksTableTitle', customTranslations)} (${tasks.length} ${translate(locale, 'database', 'RecordsPlural', customTranslations)})`}
       icon={Database}
-      iconColor="text-teal-400"
-      titleColor="text-teal-400"
+      iconColor="text-primary"
+      titleColor="text-primary"
       defaultExpanded={true}
       wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
-      headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-teal-400"
+      headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-primary"
     >
       <DataTable<Task>
         columns={columns}
@@ -87,7 +87,7 @@ export default function TasksTable() {
           return (
             <React.Fragment key={t.id}>
               <TableRow className="border-b border-border/50 hover:bg-muted/50">
-                <TableCell className="py-3.5 px-4 font-bold text-teal-400">{t.id}</TableCell>
+                <TableCell className="py-3.5 px-4 font-bold text-primary">{t.id}</TableCell>
                 <TableCell className="py-3.5 px-4 text-muted-foreground">{t.projectId}</TableCell>
                 <TableCell className="py-3.5 px-4">
                   {isEditing ? (
@@ -96,7 +96,7 @@ export default function TasksTable() {
                       value={taskForm.name} 
                       onChange={e => setTaskForm(prev => ({ ...prev, name: e.target.value }))}
                       aria-label={translate(locale, 'task', 'TaskName', customTranslations)}
-                      className="bg-black/35 border border-white/20 px-2 py-1 h-7 rounded max-w-sm text-white"
+                      className="bg-background border border-border px-2 py-1 h-7 rounded max-w-sm text-foreground"
                     />
                   ) : (
                     <span className={t.completed ? 'line-through text-muted-foreground' : 'font-semibold'}>{t.name}</span>
@@ -111,7 +111,7 @@ export default function TasksTable() {
                       className="w-4 h-4 rounded"
                     />
                   ) : (
-                    <Badge variant={t.completed ? 'emerald' : 'rose'} size="xs" as="span">
+                    <Badge variant={t.completed ? 'success' : 'destructive'} size="xs" as="span">
                       {t.completed ? 'TRUE' : 'FALSE'}
                     </Badge>
                   )}
@@ -132,7 +132,7 @@ export default function TasksTable() {
                         variant="ghost"
                         size="icon-xs"
                         onClick={() => setShowHistoryRecordId(showHistoryRecordId === t.id ? null : t.id)}
-                        className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20 cursor-pointer"
+                        className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer"
                         title={translate(locale, 'database', 'RevisionHistory', customTranslations)}
                         aria-label={translate(locale, 'database', 'RevisionHistory', customTranslations)}
                       >
@@ -153,7 +153,7 @@ export default function TasksTable() {
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => saveEditTask(t.id)} 
-                          className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-400 cursor-pointer"
+                          className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 text-success cursor-pointer"
                           title={translate(locale, 'common', 'Save', customTranslations)}
                           aria-label={translate(locale, 'common', 'Save', customTranslations)}
                         >
@@ -163,7 +163,7 @@ export default function TasksTable() {
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => setEditingTaskId(null)} 
-                          className="p-1.5 rounded-lg bg-rose-500/25 hover:bg-rose-500/35 text-rose-450 cursor-pointer"
+                          className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive cursor-pointer"
                           title={translate(locale, 'common', 'Cancel', customTranslations)}
                           aria-label={translate(locale, 'common', 'Cancel', customTranslations)}
                         >
@@ -186,7 +186,7 @@ export default function TasksTable() {
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => setDeleteTargetTaskId(t.id)} 
-                          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
+                          className="p-1.5 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive cursor-pointer"
                           title={translate(locale, 'common', 'Delete', customTranslations)}
                           aria-label={translate(locale, 'common', 'Delete', customTranslations)}
                         >
@@ -201,15 +201,15 @@ export default function TasksTable() {
               {showHistoryRecordId === t.id && t.editHistory && (
                 <TableRow>
                   <TableCell colSpan={6} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
-                    <div className="flex flex-col gap-1.2 border-l-2 border-teal-500 pl-4 py-1">
-                      <Overline className="text-teal-400 flex items-center gap-1.5">
+                    <div className="flex flex-col gap-1.2 border-l-2 border-primary pl-4 py-1">
+                      <Overline className="text-primary flex items-center gap-1.5">
                         <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}
                       </Overline>
                       {t.editHistory.map((h, hIdx) => (
                         <Caption key={hIdx} size="xs" className="text-muted-foreground mt-1 block">
                           <span>[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
                           {translate(locale, 'database', 'OriginalPrevName', customTranslations)} <strong className="text-foreground">"{h.prevName}"</strong> ({translate(locale, 'database', 'Completed', customTranslations)} {h.prevCompleted ? translate(locale, 'common', 'Yes', customTranslations) : translate(locale, 'common', 'No', customTranslations)}) &rarr;{' '}
-                          {translate(locale, 'database', 'ReasonForCorrection', customTranslations)} <em className="text-teal-300">"{h.reason}"</em>
+                          {translate(locale, 'database', 'ReasonForCorrection', customTranslations)} <em className="text-foreground">"{h.reason}"</em>
                         </Caption>
                       ))}
                     </div>

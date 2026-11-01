@@ -197,7 +197,7 @@ export default function DbExplorer() {
 
       <div className="flex flex-col gap-8">
         {isLoading ? (
-          <div className="bg-slate-900/10 border border-white/5 rounded-3xl p-6 shadow-xl">
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-xl">
             <TableSkeleton rows={8} />
           </div>
         ) : (

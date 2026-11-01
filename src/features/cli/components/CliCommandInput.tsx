@@ -30,11 +30,7 @@ export const CliCommandInput: React.FC<CliCommandInputProps> = ({
 
   const promptColorClass = isSandbox
     ? 'text-amber-500'
-    : 'text-orange-500';
-
-  const buttonGradientClass = isSandbox
-    ? 'bg-gradient-to-tr from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
-    : 'bg-gradient-to-tr from-orange-400 to-rose-500 hover:from-orange-500 hover:to-rose-600';
+    : 'text-primary';
 
   return (
     <Form
@@ -60,8 +56,9 @@ export const CliCommandInput: React.FC<CliCommandInputProps> = ({
       <Button
         id="cli-submit-btn"
         type="submit"
+        variant={isSandbox ? 'secondary' : 'accent'}
         aria-label={submitLabel}
-        className={`${buttonGradientClass} text-white rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md h-auto`}
+        className="rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md h-auto"
       >
         {submitLabel} <Send className="w-3 h-3" />
       </Button>
