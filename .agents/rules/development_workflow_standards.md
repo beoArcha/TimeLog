@@ -2,9 +2,9 @@
 trigger: always_on
 ---
 
-# Development Workflow Standards
+# Single-Agent Development Workflow Standards
 
-How AI assistants plan, execute and hand over work in oXyFlow. The default flow for every task is defined in `AGENTS.md`; this file adds the process for multi-phase work and reviews.
+How a single AI assistant plans, executes, and hands over work in oXyFlow when working autonomously without subagent delegation. The default flow for every task is defined in `AGENTS.md`; this file adds the process for multi-phase work and reviews for single-agent tasks. For tasks delegated across multiple subagents, refer to [`multi_agent_workflow_standards.md`](multi_agent_workflow_standards.md).
 
 ## 0. Rules Are Requirements
 
@@ -12,7 +12,12 @@ Passing tests and a clean compiler are a prerequisite, not proof of compliance. 
 
 ## 1. When This Process Applies
 
-Use the phase-gate process for roadmap phases, large features and refactors spanning several modules. Small fixes and single-concern changes follow only the default flow in `AGENTS.md`.
+Use this single-agent phase-gate process when:
+- The user requests direct execution without delegation (*"implement phase 1"*, *"fix issue X"*, *"refactor module Y"*).
+- A single assistant executes all phases and subphases within the primary workspace.
+- Small fixes and single-concern changes follow the default flow in `AGENTS.md`.
+
+*Note*: If the task requires decomposition and delegation across multiple subagents or dedicated pull requests per work stream, use [`.agents/rules/multi_agent_workflow_standards.md`](multi_agent_workflow_standards.md) instead.
 
 ```text
 1. Discovery (analytical artifact as source of truth)
