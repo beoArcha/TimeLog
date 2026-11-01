@@ -52,7 +52,7 @@ export function TaskMetrics({
     >
       <span
         className={`text-xs font-mono font-extrabold px-3 py-1.5 rounded-full border transition-all ${isAnyRunning
-          ? 'bg-orange-500/20 border-orange-500/30 text-orange-600 dark:text-orange-300 shadow-md scale-105 animate-pulse'
+          ? 'bg-primary/10 border-primary/20 text-primary shadow-md scale-105 animate-pulse'
           : 'bg-muted border-border text-foreground'
           }`}
       >
@@ -70,23 +70,23 @@ export function TaskMetrics({
             title={tTimer('StopMeasurement')}
             aria-label={tTimer('StopMeasurement')}
           >
-            <Square className="w-3.5 h-3.5 fill-white" />
+            <Square className="w-3.5 h-3.5 fill-current" />
           </Button>
         ) : (
           <Button
             id={`start-btn-${rootTask.id}`}
-            variant="ghost"
+            variant={rootTask.completed ? 'ghost' : 'default'}
             size="icon-xs"
             onClick={() => !rootTask.completed && onStartTimer(rootTask.id)}
             disabled={rootTask.completed}
             className={`rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer ${rootTask.completed
               ? 'bg-card/5 text-muted-foreground border border-transparent cursor-not-allowed opacity-50'
-              : 'bg-teal-500 hover:bg-teal-600 text-white shadow-lg'
+              : 'shadow-md'
               }`}
             title={tTimer('StartMeasurement')}
             aria-label={tTimer('StartMeasurement')}
           >
-            <Play className="w-3.5 h-3.5 fill-white text-white" />
+            <Play className="w-3.5 h-3.5 fill-current" />
           </Button>
         )}
 
@@ -101,7 +101,7 @@ export function TaskMetrics({
           title={tTask('AddSubtask')}
           aria-label={tTask('AddSubtask')}
         >
-          <Plus className="w-3.5 h-3.5 text-orange-500" />{' '}
+          <Plus className="w-3.5 h-3.5 text-primary" />{' '}
           <span className={isCondensed ? 'hidden xs:inline' : ''}>
             {tTask('SubtaskLabel')}
           </span>

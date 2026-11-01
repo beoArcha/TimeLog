@@ -69,7 +69,7 @@ export const CliQuickShortcuts: React.FC<CliQuickShortcutsProps> = ({
         variant="outline"
         size="sm"
         onClick={() => onExecute('pause')}
-        className="px-2.5 py-1 rounded transition-all h-auto bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/20"
+        className="px-2.5 py-1 rounded transition-all h-auto bg-card hover:bg-muted text-primary border border-border"
       >
         pause
       </Button>
@@ -79,17 +79,17 @@ export const CliQuickShortcuts: React.FC<CliQuickShortcutsProps> = ({
         variant="outline"
         size="sm"
         onClick={() => onExecute('break 5m')}
-        className="px-2.5 py-1 rounded transition-all h-auto bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/20"
+        className="px-2.5 py-1 rounded transition-all h-auto bg-card hover:bg-muted text-primary border border-border"
       >
         break 5m
       </Button>
       <Button
         id="cmd-stop-btn"
         type="button"
-        variant="outline"
+        variant="destructive"
         size="sm"
         onClick={() => onExecute('stop')}
-        className="px-2.5 py-1 rounded transition-all h-auto bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20"
+        className="px-2.5 py-1 rounded transition-all h-auto shadow-xs"
       >
         stop
       </Button>

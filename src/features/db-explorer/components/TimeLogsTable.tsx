@@ -95,11 +95,11 @@ export default function TimeLogsTable() {
       <CollapsibleCard
       title={`time_logs table (${logs.length} ${translate(locale, 'database', 'Records', customTranslations)})`}
       icon={Database}
-      iconColor="text-indigo-400"
-      titleColor="text-indigo-400"
+      iconColor="text-primary"
+      titleColor="text-primary"
       defaultExpanded={true}
       wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
-      headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-indigo-400 text-left"
+      headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-primary text-left"
       headerRight={
         <Button
           variant="accent"

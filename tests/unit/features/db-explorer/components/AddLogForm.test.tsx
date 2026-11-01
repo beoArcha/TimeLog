@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { toast } from 'sonner';
 import AddLogForm from '@features/db-explorer/components/AddLogForm';
 import { aProject, aTask } from '@tests/shared/builders/entity-builders';
 
@@ -67,9 +68,9 @@ describe('Unit Tests: AddLogForm', () => {
     expect(onCancelMock).toHaveBeenCalledTimes(1);
   });
 
-  it('should alert and prevent submission when taskId is empty', () => {
+  it('should show error toast and prevent submission when taskId is empty', () => {
     // Arrange
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const toastErrorSpy = vi.spyOn(toast, 'error').mockImplementation(() => 'toast-id');
     render(<AddLogForm {...mockProps} tasks={[]} />);
 
     // Act
@@ -77,7 +78,7 @@ describe('Unit Tests: AddLogForm', () => {
     fireEvent.click(submitBtn);
 
     // Assert
-    expect(alertSpy).toHaveBeenCalled();
+    expect(toastErrorSpy).toHaveBeenCalled();
     expect(onSubmitMock).not.toHaveBeenCalled();
   });
 });

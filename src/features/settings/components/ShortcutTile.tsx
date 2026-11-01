@@ -15,13 +15,13 @@ export function ShortcutTile({
 }: ShortcutTileProps) {
   const containerStyle = {
     default: 'border-border bg-card',
-    danger: 'border-rose-500/20 bg-rose-500/5',
+    danger: 'border-destructive/20 bg-destructive/5',
     warning: 'border-amber-500/20 bg-amber-500/5',
   }[variant];
 
   const labelColor = {
     default: 'text-card-foreground',
-    danger: 'text-rose-500',
+    danger: 'text-destructive',
     warning: 'text-amber-500',
   }[variant];
 

@@ -20,6 +20,15 @@ import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Caption, Overline } from '@components/ui/typography';
 
+const PROJECT_COLOR_MAP: Record<string, string> = {
+  rose: 'bg-rose-500',
+  teal: 'bg-teal-500',
+  amber: 'bg-amber-500',
+  violet: 'bg-violet-500',
+  indigo: 'bg-indigo-500',
+  emerald: 'bg-emerald-500',
+};
+
 export default function ProjectsTable() {
   const { locale, customTranslations } = useLocale();
   const { projects, handleUpdateProject, handleToggleProjectArchive } = useData();
@@ -72,11 +81,11 @@ export default function ProjectsTable() {
       <CollapsibleCard
       title={`${translate(locale, 'database', 'ProjectsTableTitle', customTranslations)} (${projects.length} ${translate(locale, 'database', 'Records', customTranslations)})`}
       icon={Database}
-      iconColor="text-orange-400"
-      titleColor="text-orange-400"
+      iconColor="text-primary"
+      titleColor="text-primary"
       defaultExpanded={true}
       wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
-      headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-orange-400"
+      headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-primary"
     >
       <DataTable<Project>
         columns={columns}
@@ -91,7 +100,7 @@ export default function ProjectsTable() {
           return (
                 <React.Fragment key={p.id}>
                   <TableRow className="border-b border-border/50 hover:bg-muted/50">
-                    <TableCell className="py-3.5 px-4 font-bold text-orange-500">{p.id}</TableCell>
+                    <TableCell className="py-3.5 px-4 font-bold text-primary">{p.id}</TableCell>
                     <TableCell className="py-3.5 px-4">
                       {isEditing ? (
                         <Input 
@@ -126,7 +135,7 @@ export default function ProjectsTable() {
                         </div>
                       ) : (
                         <span className="flex items-center gap-1.5 capitalize">
-                          <span className={`inline-block w-2.5 h-2.5 rounded-full bg-${p.color}-500 shadow-md`} />
+                          <span className={`inline-block w-2.5 h-2.5 rounded-full ${PROJECT_COLOR_MAP[p.color] ?? 'bg-primary'} shadow-md`} />
                           {p.color}
                         </span>
                       )}
@@ -148,7 +157,7 @@ export default function ProjectsTable() {
                             variant="ghost"
                             size="icon-xs"
                             onClick={() => setShowHistoryRecordId(showHistoryRecordId === p.id ? null : p.id)}
-                            className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20 cursor-pointer"
+                            className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer"
                             title={translate(locale, 'database', 'RevisionHistory', customTranslations)}
                             aria-label={translate(locale, 'database', 'RevisionHistory', customTranslations)}
                           >
@@ -171,7 +180,7 @@ export default function ProjectsTable() {
                               variant="ghost"
                               size="icon-xs"
                               onClick={() => saveEditProj(p.id)} 
-                              className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-400 cursor-pointer"
+                              className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 text-success cursor-pointer"
                               title={translate(locale, 'common', 'Save', customTranslations)}
                               aria-label={translate(locale, 'common', 'Save', customTranslations)}
                             >
@@ -181,7 +190,7 @@ export default function ProjectsTable() {
                               variant="ghost"
                               size="icon-xs"
                               onClick={() => setEditingProjId(null)} 
-                              className="p-1.5 rounded-lg bg-rose-500/25 hover:bg-rose-500/35 text-rose-450 cursor-pointer" 
+                              className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive cursor-pointer" 
                               title={translate(locale, 'common', 'Cancel', customTranslations)}
                               aria-label={translate(locale, 'common', 'Cancel', customTranslations)}
                             >
@@ -204,7 +213,7 @@ export default function ProjectsTable() {
                               variant="ghost"
                               size="icon-xs"
                               onClick={() => setDeleteTargetProjId(p.id)} 
-                              className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer" 
+                              className="p-1.5 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive cursor-pointer" 
                               title={translate(locale, 'common', 'Delete', customTranslations)}
                               aria-label={translate(locale, 'common', 'Delete', customTranslations)}
                             >
@@ -219,15 +228,15 @@ export default function ProjectsTable() {
                   {showHistoryRecordId === p.id && p.editHistory && (
                     <TableRow>
                       <TableCell colSpan={5} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
-                        <div className="flex flex-col gap-1.5 border-l-2 border-teal-500 pl-4 py-1">
-                          <Overline className="text-teal-400 flex items-center gap-1.5">
+                        <div className="flex flex-col gap-1.5 border-l-2 border-primary pl-4 py-1">
+                          <Overline className="text-primary flex items-center gap-1.5">
                             <History className="w-3" /> {translate(locale, 'database', 'AuditTrail', customTranslations)}
                           </Overline>
                           {p.editHistory.map((h, hIdx) => (
                             <Caption key={hIdx} size="xs" className="text-muted-foreground mt-1 block">
                               <span>[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
                               {translate(locale, 'database', 'ChangeFromName', customTranslations)} <strong className="text-foreground">"{h.prevName}"</strong> ({translate(locale, 'common', 'Color', customTranslations)} {h.prevColor}) &rarr;{' '}
-                              {translate(locale, 'database', 'Reason', customTranslations)} <em className="text-teal-300">"{h.reason}"</em>
+                              {translate(locale, 'database', 'Reason', customTranslations)} <em className="text-foreground">"{h.reason}"</em>
                             </Caption>
                           ))}
                         </div>
