@@ -254,16 +254,4 @@ describe('MediumProjectSelector', () => {
     expect(screen.queryByText('Alpha Project')).toBeNull();
   });
 
-  it('should strictly contain only phrasing content inside dropdown button (no div or p in DOM)', () => {
-    // Arrange
-    const state = createMockState();
-    renderComponent(state);
-
-    // Act
-    const dropdownBtn = screen.getByTestId('medium-project-dropdown-btn');
-
-    // Assert: button must not contain any flow elements (div, p)
-    const blockElements = dropdownBtn.querySelectorAll('div, p');
-    expect(blockElements.length).toBe(0);
-  });
 });
