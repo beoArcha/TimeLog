@@ -81,11 +81,11 @@ export default function HolidaysLeavesTable({
       <CollapsibleCard
         title={`holidays_leaves table (${holidays.length} ${translate(locale, 'database', 'RecordsPlural', customTranslations)})`}
         icon={Database}
-        iconColor="text-rose-400"
-        titleColor="text-rose-400"
+        iconColor="text-primary"
+        titleColor="text-primary"
         defaultExpanded={true}
         wrapperClassName={wrapperClassName}
-        headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-rose-400"
+        headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-primary"
         headerRight={
           hideAddButton ? null : (
             <Button
@@ -130,7 +130,7 @@ export default function HolidaysLeavesTable({
                             className="bg-background border border-border px-2 py-1 h-7 rounded text-foreground"
                           />
                         ) : (
-                          <span className="font-bold text-orange-500 dark:text-orange-400">{h.date}</span>
+                          <span className="font-bold text-foreground">{h.date}</span>
                         )}
                       </TableCell>
                       <TableCell className="py-3.5 px-4">
@@ -146,7 +146,7 @@ export default function HolidaysLeavesTable({
                             </NativeSelect>
                           </div>
                         ) : (
-                          <span className="text-indigo-400">{h.type}</span>
+                          <span className="text-muted-foreground">{h.type}</span>
                         )}
                       </TableCell>
                       <TableCell className="py-3.5 px-4 text-foreground">
@@ -177,7 +177,7 @@ export default function HolidaysLeavesTable({
                               variant="ghost"
                               size="icon-xs"
                               onClick={() => setShowHistoryRecordId(showHistoryRecordId === h.id ? null : h.id)}
-                              className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20 cursor-pointer"
+                              className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer"
                               title={translate(locale, 'database', 'RevisionHistory', customTranslations)}
                               aria-label={translate(locale, 'database', 'RevisionHistory', customTranslations)}
                             >
@@ -198,7 +198,7 @@ export default function HolidaysLeavesTable({
                                 variant="ghost"
                                 size="icon-xs"
                                 onClick={() => saveEditHoliday(h.id)}
-                                className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-400 cursor-pointer"
+                                className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 text-success cursor-pointer"
                                 title={translate(locale, 'common', 'Save', customTranslations)}
                                 aria-label={translate(locale, 'common', 'Save', customTranslations)}
                               >
@@ -208,7 +208,7 @@ export default function HolidaysLeavesTable({
                                 variant="ghost"
                                 size="icon-xs"
                                 onClick={() => setEditingHolidayId(null)}
-                                className="p-1.5 rounded-lg bg-rose-500/25 hover:bg-rose-500/35 text-rose-450 cursor-pointer"
+                                className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive cursor-pointer"
                                 title={translate(locale, 'common', 'Cancel', customTranslations)}
                                 aria-label={translate(locale, 'common', 'Cancel', customTranslations)}
                               >
@@ -237,7 +237,7 @@ export default function HolidaysLeavesTable({
                                     handleDeleteHoliday(h.id);
                                   }
                                 }}
-                                className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
+                                className="p-1.5 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive cursor-pointer"
                                 title={translate(locale, 'common', 'Delete', customTranslations)}
                                 aria-label={translate(locale, 'common', 'Delete', customTranslations)}
                               >
@@ -252,15 +252,15 @@ export default function HolidaysLeavesTable({
                     {showHistoryRecordId === h.id && h.editHistory && (
                       <TableRow>
                         <TableCell colSpan={6} className="py-3 px-5 bg-muted/30 border-b border-border/50 rounded-b-2xl">
-                          <div className="flex flex-col gap-1.2 border-l-2 border-teal-500 pl-4 py-1">
-                            <Overline className="text-teal-400 flex items-center gap-1.5">
+                          <div className="flex flex-col gap-1.2 border-l-2 border-primary pl-4 py-1">
+                            <Overline className="text-primary flex items-center gap-1.5">
                               <History className="w-3" /> {translate(locale, 'database', 'AuditTrailHolidays', customTranslations)}
                             </Overline>
                             {h.editHistory.map((x, idx) => (
                               <Caption key={idx} size="xs" className="text-muted-foreground mt-1 block">
                                 <span>[{new Date(x.editedAt).toLocaleString()}]</span>{' '}
                                 {translate(locale, 'database', 'ModificationFrom', customTranslations)} <strong className="text-foreground">"{x.prevName}"</strong> ({x.prevDate}, {translate(locale, 'common', 'Type', customTranslations)} {x.prevType}) &rarr;{' '}
-                                {translate(locale, 'database', 'ReasonForModification', customTranslations)} <em className="text-teal-300">"{x.reason}"</em>
+                                {translate(locale, 'database', 'ReasonForModification', customTranslations)} <em className="text-foreground">"{x.reason}"</em>
                               </Caption>
                             ))}
                           </div>

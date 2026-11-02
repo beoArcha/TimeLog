@@ -63,7 +63,7 @@ export default function PatchLogsTable() {
     {
       key: 'id',
       header: 'id',
-      className: 'font-bold text-emerald-400',
+      className: 'font-bold text-primary',
       render: (p) => p.id,
     },
     {
@@ -95,7 +95,7 @@ export default function PatchLogsTable() {
       render: (p) => (
         <>
           {p.patchNote}{' '}
-          {p.isSystemEvent && <span className="text-emerald-500 font-bold ml-1">[SYSTEM]</span>}
+          {p.isSystemEvent && <span className="text-success font-bold ml-1">[SYSTEM]</span>}
         </>
       ),
     },
@@ -108,7 +108,7 @@ export default function PatchLogsTable() {
           variant="ghost"
           size="icon-xs"
           onClick={() => setDeleteTargetPatchId(p.id)}
-          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 cursor-pointer"
+          className="p-1.5 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive cursor-pointer"
           title={translate(locale, 'common', 'Delete', customTranslations)}
           aria-label={translate(locale, 'common', 'Delete', customTranslations)}
         >
@@ -191,11 +191,11 @@ export default function PatchLogsTable() {
       <CollapsibleCard
         title={`${translate(locale, 'database', 'PatchLogsTableTitle', customTranslations)} (${patches?.length || 0} ${translate(locale, 'database', 'Records', customTranslations)})`}
         icon={Database}
-        iconColor="text-emerald-400"
-        titleColor="text-emerald-400"
+        iconColor="text-primary"
+        titleColor="text-primary"
         defaultExpanded={true}
         wrapperClassName="p-6 rounded-3xl border border-border bg-card shadow-xl"
-        headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400 text-left"
+        headerClassName="text-xs font-mono font-bold uppercase tracking-widest text-primary text-left"
         headerRight={
           <Button
             variant="accent"

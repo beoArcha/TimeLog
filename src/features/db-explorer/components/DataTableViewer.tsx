@@ -287,7 +287,7 @@ export function DataTableViewerCell({
             variant="ghost"
             size="xs"
             onClick={onSave}
-            className="h-6 w-6 p-0 text-emerald-500"
+            className="h-6 w-6 p-0 text-success"
           >
             <Check className="w-3.5 h-3.5" />
           </Button>
@@ -295,7 +295,7 @@ export function DataTableViewerCell({
             variant="ghost"
             size="xs"
             onClick={onCancel}
-            className="h-6 w-6 p-0 text-rose-500"
+            className="h-6 w-6 p-0 text-destructive"
           >
             <X className="w-3.5 h-3.5" />
           </Button>
