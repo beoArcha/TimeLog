@@ -114,7 +114,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
         <div className="flex flex-col sm:flex-row gap-3 w-full">
           <Button
             id="tray-restore-btn"
-            variant="accent"
+            variant="default"
             onClick={onRestore}
             className="flex-1 font-semibold py-3 rounded-2xl text-sm transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] h-auto"
           >

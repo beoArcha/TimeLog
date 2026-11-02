@@ -1,12 +1,15 @@
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import TrayWidgetView from '@features/tray/TrayWidgetView';
 import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: TrayWidgetView', () => {
+  afterEach(() => {
+    cleanup();
+  });
   const onRestoreMock = vi.fn();
   const onStopAllMock = vi.fn();
 
@@ -77,4 +80,31 @@ describe('Unit Tests: TrayWidgetView', () => {
     expect(palDot).toBeDefined();
     expect(palDot.className).toContain('bg-teal-500');
   });
+
+  it.each(['dark', 'light', 'high-contrast'] as const)(
+    'should render tray-restore-btn with semantic default variant and without gradient in %s theme',
+    (theme) => {
+      const themeState: OxyFlowState = {
+        ...mockState,
+        resolvedTheme: theme,
+      };
+
+      render(
+        <MockProviders state={themeState}>
+          <TrayWidgetView
+            onRestore={onRestoreMock}
+            onStopAll={onStopAllMock}
+            showToast={vi.fn()}
+          />
+        </MockProviders>
+      );
+
+      const restoreBtn = screen.getByRole('button', { name: /Restore GUI/i });
+      expect(restoreBtn).toBeDefined();
+      expect(restoreBtn.className).toContain('bg-primary');
+      expect(restoreBtn.className).toContain('text-primary-foreground');
+      expect(restoreBtn.className).not.toContain('bg-gradient-to-tr');
+      expect(restoreBtn.className).not.toContain('from-orange-400');
+    }
+  );
 });
