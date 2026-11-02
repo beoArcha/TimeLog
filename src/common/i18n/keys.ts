@@ -317,6 +317,8 @@ export type EngineKey =
   | 'SearchingPid'
   | 'SqlReset'
   | 'SqliteThread'
+  | 'StatusConnecting'
+  | 'StatusDaemonRunning'
   | 'SyncStatusError'
   | 'SyncStatusOk'
   | 'SyncStatusQueued'
@@ -693,6 +695,8 @@ export const I18N_KEYS = {
     EnvironmentSqlite: 'EnvironmentSqlite',
     EnvironmentLocalStorage: 'EnvironmentLocalStorage',
     PwaOnlineReady: 'PwaOnlineReady',
+    StatusConnecting: 'StatusConnecting',
+    StatusDaemonRunning: 'StatusDaemonRunning',
   },
 } as const;
 

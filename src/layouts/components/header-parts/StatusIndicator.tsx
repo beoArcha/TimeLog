@@ -32,7 +32,7 @@ export const StatusIndicator: React.FC = () => {
   }
 
   const isSearching = engineState === 'searching';
-  const label = isSearching ? 'CONNECTING' : 'DAEMON RUNNING';
+  const label = isSearching ? t('StatusConnecting') : t('StatusDaemonRunning');
 
   return (
     <HStack gap="xs" title={label}>

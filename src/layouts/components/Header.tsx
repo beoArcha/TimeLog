@@ -7,6 +7,7 @@ import { ThemeSelector } from './header-parts/ThemeSelector';
 import { LanguageSelector } from './header-parts/LanguageSelector';
 import { StatusIndicator } from './header-parts/StatusIndicator';
 import { useSettings } from '@common/hooks/SettingsContext';
+import { HStack } from '@components/ui/stack';
 
 export default function Header() {
   const { dragRegionProps } = usePlatformCapabilities();
@@ -22,29 +23,34 @@ export default function Header() {
         isMediumMode ? 'flex-col gap-2' : 'flex-col md:flex-row md:items-center'
       } justify-between md:gap-3`}
     >
-      <div className="flex items-center justify-between gap-2 w-full md:w-auto">
+      <HStack justify="between" align="center" gap="sm" className="w-full md:w-auto">
         <AppLogo />
-        <div className={`flex ${isMediumMode ? '' : 'md:hidden'} items-center gap-1.5`}>
+        <HStack align="center" gap="xs" className={isMediumMode ? '' : 'md:hidden'}>
           <StatusIndicator />
           <LayoutSelector />
-        </div>
-      </div>
+        </HStack>
+      </HStack>
 
-      <div className={`flex items-center justify-between ${isMediumMode ? '' : 'md:justify-end'} gap-1.5 sm:gap-2 flex-wrap w-full md:w-auto`}>
+      <HStack
+        align="center"
+        justify="between"
+        wrap
+        className={`gap-1.5 sm:gap-2 w-full md:w-auto ${isMediumMode ? '' : 'md:justify-end'}`}
+      >
         {!isMediumMode && (
-          <div className="hidden md:flex items-center">
+          <HStack align="center" className="hidden md:flex">
             <LayoutSelector />
-          </div>
+          </HStack>
         )}
         <ThemeSelector />
         <TextScaleSelector />
         <LanguageSelector />
         {!isMediumMode && (
-          <div className="hidden md:flex items-center">
+          <HStack align="center" className="hidden md:flex">
             <StatusIndicator />
-          </div>
+          </HStack>
         )}
-      </div>
+      </HStack>
     </header>
   );
 }
