@@ -18,6 +18,7 @@ import {
 } from '@components/ui/select';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
+import { StatusDot } from '@components/ui/status-dot';
 import { Caption, Overline } from '@components/ui/typography';
 import { resolveProjectColor } from '@common/utils/colorUtils';
 import { cn } from '@/lib/utils';
@@ -146,7 +147,7 @@ export default function ProjectsTable() {
                     <TableCell className="py-3.5 px-4">
                       {hasHistory ? (
                         <Badge variant="amber" size="sm" as="span" className="flex items-center gap-1.5 w-max">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                          <StatusDot variant="amber" size="2xs" ping />
                           {translate(locale, 'database', 'OriginalLabel', customTranslations)}: {p.originalName || p.name}
                         </Badge>
                       ) : (

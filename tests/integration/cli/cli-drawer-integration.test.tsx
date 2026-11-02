@@ -44,8 +44,8 @@ describe('Given CliSessionContext with live business data', () => {
         </MockProviders>
       );
 
-      const drawerInput = container.querySelector('#cli-drawer-container #cli-input-field') as HTMLInputElement;
-      const drawerSubmit = container.querySelector('#cli-drawer-container #cli-submit-btn');
+      const drawerInput = document.querySelector('#cli-drawer-container #cli-input-field') as HTMLInputElement;
+      const drawerSubmit = document.querySelector('#cli-drawer-container #cli-submit-btn');
       expect(drawerInput).not.toBeNull();
       expect(drawerSubmit).not.toBeNull();
 
@@ -79,7 +79,7 @@ describe('Given Sandbox Emulator mode activated', () => {
       const liveProject = aProject({ id: 'live_1', name: 'Production Database Project' });
       const addProjectMock = vi.fn();
 
-      const { container } = render(
+      render(
         <MockProviders
           dataState={{
             projects: [liveProject],
@@ -92,8 +92,8 @@ describe('Given Sandbox Emulator mode activated', () => {
         </MockProviders>
       );
 
-      const input = container.querySelector('#cli-drawer-container #cli-input-field') as HTMLInputElement;
-      const submit = container.querySelector('#cli-drawer-container #cli-submit-btn');
+      const input = document.querySelector('#cli-drawer-container #cli-input-field') as HTMLInputElement;
+      const submit = document.querySelector('#cli-drawer-container #cli-submit-btn');
 
       // When
       fireEvent.change(input, { target: { value: 'addproject "Isolated Sandbox Proj"' } });
@@ -125,7 +125,7 @@ describe('Given CliDrawer open in windowed mode', () => {
       // Given
       const onCloseMock = vi.fn();
 
-      const { container } = render(
+      render(
         <MockProviders>
           <CliSessionProvider initialDrawerOpen={true}>
             <CliDrawer onClose={onCloseMock} />
@@ -133,7 +133,7 @@ describe('Given CliDrawer open in windowed mode', () => {
         </MockProviders>
       );
 
-      expect(container.querySelector('#cli-drawer-container')).not.toBeNull();
+      expect(document.querySelector('#cli-drawer-container')).not.toBeNull();
 
       // When
       fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
@@ -174,7 +174,7 @@ describe('Given application running in CompactLayout mode', () => {
         return <CliDrawer />;
       };
 
-      const { container } = render(
+      render(
         <MockProviders>
           <SettingsContext.Provider value={mockSettings}>
             <CliSessionProvider initialDrawerOpen={false}>
@@ -184,7 +184,7 @@ describe('Given application running in CompactLayout mode', () => {
         </MockProviders>
       );
 
-      expect(container.querySelector('#cli-drawer-container')).toBeNull();
+      expect(document.querySelector('#cli-drawer-container')).toBeNull();
 
       // When
       fireEvent.keyDown(window, {
@@ -220,7 +220,7 @@ describe('Given an active timer running on a task', () => {
       const task1 = aTask({ id: 't1', projectId: 'p1', name: 'First Task' });
       const task2 = aTask({ id: 't2', projectId: 'p1', name: 'Second Task' });
 
-      const { container } = render(
+      render(
         <MockProviders
           dataState={{
             projects: [proj],
@@ -235,8 +235,8 @@ describe('Given an active timer running on a task', () => {
         </MockProviders>
       );
 
-      const input = container.querySelector('#cli-drawer-container #cli-input-field') as HTMLInputElement;
-      const submit = container.querySelector('#cli-drawer-container #cli-submit-btn');
+      const input = document.querySelector('#cli-drawer-container #cli-input-field') as HTMLInputElement;
+      const submit = document.querySelector('#cli-drawer-container #cli-submit-btn');
 
       // When
       fireEvent.change(input, { target: { value: 'switch t2' } });

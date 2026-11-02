@@ -6,6 +6,7 @@ import { TaskNameEditor } from './TaskNameEditor';
 import { TaskActions } from './TaskActions';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
+import { StatusDot } from '@components/ui/status-dot';
 import { Caption } from '@components/ui/typography';
 import { useTasksSafe } from '@common/hooks/DataContext';
 import { useTaskEditing } from '../../context/TaskEditingContext';
@@ -119,7 +120,7 @@ export function TaskHeader({
               />
               {isChildRunning && runningSubtask && (
                 <Badge variant="amber" size="sm" as="span" className="font-mono animate-pulse shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+                  <StatusDot variant="amber" size="2xs" ping className="shrink-0" />
                   <span className="truncate max-w-[120px]" title={runningSubtask.name}>
                     {tTask('SubtaskLabel')}: {runningSubtask.name}
                   </span>
@@ -127,7 +128,7 @@ export function TaskHeader({
               )}
               {isCurrentRunning && (
                 <Badge variant="emerald" size="sm" as="span" className="font-mono animate-pulse shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                  <StatusDot variant="emerald" size="2xs" ping className="shrink-0" />
                   {tTask('InProgressLabel')}
                 </Badge>
               )}
