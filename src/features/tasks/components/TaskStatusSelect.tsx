@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 const STATUS_BADGE_STYLE_MAP: Record<TaskStatus, string> = {
   Done: badgeVariants({ variant: 'success' }),
-  InProgress: badgeVariants({ variant: 'outline' }),
+  InProgress: badgeVariants({ variant: 'default' }),
   Blocked: badgeVariants({ variant: 'destructive' }),
   Todo: badgeVariants({ variant: 'secondary' }),
 };
@@ -65,7 +65,7 @@ export function TaskStatusSelect({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="Todo" className="text-xs">{statusLabels.Todo}</SelectItem>
-          <SelectItem value="InProgress" className="text-xs text-foreground">{statusLabels.InProgress}</SelectItem>
+          <SelectItem value="InProgress" className="text-xs text-primary font-medium">{statusLabels.InProgress}</SelectItem>
           <SelectItem value="Done" className="text-xs text-success">{statusLabels.Done}</SelectItem>
           <SelectItem value="Blocked" className="text-xs text-destructive">{statusLabels.Blocked}</SelectItem>
         </SelectContent>

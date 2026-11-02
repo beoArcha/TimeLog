@@ -56,7 +56,7 @@ export const CliCommandInput: React.FC<CliCommandInputProps> = ({
       <Button
         id="cli-submit-btn"
         type="submit"
-        variant={isSandbox ? 'secondary' : 'accent'}
+        variant={isSandbox ? 'secondary' : 'default'}
         aria-label={submitLabel}
         className="rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md h-auto"
       >

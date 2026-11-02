@@ -43,6 +43,8 @@ describe('Unit Tests: CliInterface', () => {
 
     const inputField = screen.getByPlaceholderText(/Enter command/i) as HTMLInputElement;
     const submitBtn = screen.getByRole('button', { name: /Send/i });
+    expect(submitBtn.className).toContain('bg-primary');
+    expect(submitBtn.className).not.toContain('bg-gradient-to-tr');
 
     // Act
     fireEvent.change(inputField, { target: { value: 'help' } });

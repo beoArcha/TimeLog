@@ -8,21 +8,14 @@ import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Heading, Overline, Text, Caption } from '@components/ui/typography';
+import { resolveProjectColor } from '@common/utils/colorUtils';
+import { cn } from '@/lib/utils';
 
 interface TrayWidgetProps {
   onRestore: () => void;
   onStopAll: () => void;
   showToast: (msg: string) => void;
 }
-
-const PROJECT_COLOR_MAP: Record<string, string> = {
-  rose: 'bg-rose-500',
-  teal: 'bg-teal-500',
-  amber: 'bg-amber-500',
-  violet: 'bg-violet-500',
-  indigo: 'bg-indigo-500',
-  emerald: 'bg-emerald-500',
-};
 
 export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps) {
   const { projects, tasks, logs, computedMetrics } = useData();
@@ -83,6 +76,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
               {activeRunningLogs.map(l => {
                 const proj = projects.find(p => p.id === l.projectId);
                 const taskObj = tasks.find(t => t.id === l.taskId);
+                const resolvedColor = resolveProjectColor(proj?.color);
                 const start = new Date(l.startTime).getTime();
                 const taskMetric = computedMetrics?.tasks?.[l.taskId];
                 const fallbackElapsed = nowIso ? Math.max(0, Math.floor((new Date(nowIso).getTime() - start) / 1000)) : 0;
@@ -96,7 +90,15 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
                 return (
                   <div key={l.id} className="flex items-center justify-between text-xs p-2.5 rounded-xl border border-border bg-card text-card-foreground">
                     <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${PROJECT_COLOR_MAP[proj?.color || 'rose'] ?? 'bg-rose-500'} shadow-md`} />
+                      <span
+                        data-testid={`tray-project-color-${l.id}`}
+                        className={cn(
+                          'w-2.5 h-2.5 rounded-full shadow-md shrink-0',
+                          resolvedColor.bgClass
+                        )}
+                        style={resolvedColor.bgStyle}
+                        aria-hidden="true"
+                      />
                       <span className="font-semibold truncate max-w-[140px] sm:max-w-xs">{taskObj?.name}</span>
                     </div>
                     <span className="font-mono text-success font-bold bg-success/15 px-2.5 py-1 rounded-md">

@@ -38,4 +38,43 @@ describe('Unit Tests: TrayWidgetView', () => {
 
     expect(onRestoreMock).toHaveBeenCalled();
   });
+
+  it('should preserve custom HEX colors and resolve palette classes without fallback to rose', () => {
+    const customState: OxyFlowState = {
+      ...mockState,
+      projects: [
+        { id: 'p-hex', name: 'Hex Project', color: '#0ea5e9', archived: false, createdAt: '2026-01-01' },
+        { id: 'p-palette', name: 'Palette Project', color: 'teal', archived: false, createdAt: '2026-01-01' },
+      ],
+      tasks: [
+        { id: 't-hex', projectId: 'p-hex', name: 'Task Hex', completed: false, status: 'InProgress', createdAt: '2026-01-01' },
+        { id: 't-pal', projectId: 'p-palette', name: 'Task Palette', completed: false, status: 'InProgress', createdAt: '2026-01-01' },
+      ],
+      logs: [
+        { id: 'log-hex', taskId: 't-hex', projectId: 'p-hex', startTime: '2026-06-15T12:00:00Z', endTime: null, note: null, editHistory: null },
+        { id: 'log-pal', taskId: 't-pal', projectId: 'p-palette', startTime: '2026-06-15T12:00:00Z', endTime: null, note: null, editHistory: null },
+      ],
+    };
+
+    render(
+      <MockProviders state={customState}>
+        <TrayWidgetView
+          onRestore={onRestoreMock}
+          onStopAll={onStopAllMock}
+          showToast={vi.fn()}
+        />
+      </MockProviders>
+    );
+
+    // Verify HEX project color dot
+    const hexDot = screen.getByTestId('tray-project-color-log-hex');
+    expect(hexDot).toBeDefined();
+    expect(hexDot.style.backgroundColor).toBe('rgb(14, 165, 233)'); // #0ea5e9 in rgb
+    expect(hexDot.className).not.toContain('bg-rose-500');
+
+    // Verify palette project color dot
+    const palDot = screen.getByTestId('tray-project-color-log-pal');
+    expect(palDot).toBeDefined();
+    expect(palDot.className).toContain('bg-teal-500');
+  });
 });

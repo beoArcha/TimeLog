@@ -19,15 +19,8 @@ import {
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Caption, Overline } from '@components/ui/typography';
-
-const PROJECT_COLOR_MAP: Record<string, string> = {
-  rose: 'bg-rose-500',
-  teal: 'bg-teal-500',
-  amber: 'bg-amber-500',
-  violet: 'bg-violet-500',
-  indigo: 'bg-indigo-500',
-  emerald: 'bg-emerald-500',
-};
+import { resolveProjectColor } from '@common/utils/colorUtils';
+import { cn } from '@/lib/utils';
 
 export default function ProjectsTable() {
   const { locale, customTranslations } = useLocale();
@@ -133,12 +126,22 @@ export default function ProjectsTable() {
                             </SelectContent>
                           </Select>
                         </div>
-                      ) : (
-                        <span className="flex items-center gap-1.5 capitalize">
-                          <span className={`inline-block w-2.5 h-2.5 rounded-full ${PROJECT_COLOR_MAP[p.color] ?? 'bg-primary'} shadow-md`} />
-                          {p.color}
-                        </span>
-                      )}
+                      ) : (() => {
+                        const resolvedColor = resolveProjectColor(p.color);
+                        return (
+                          <span className="flex items-center gap-1.5 capitalize">
+                            <span
+                              className={cn(
+                                'inline-block w-2.5 h-2.5 rounded-full shadow-md shrink-0',
+                                resolvedColor.bgClass
+                              )}
+                              style={resolvedColor.bgStyle}
+                              aria-hidden="true"
+                            />
+                            {p.color}
+                          </span>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="py-3.5 px-4">
                       {hasHistory ? (
