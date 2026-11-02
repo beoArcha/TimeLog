@@ -136,6 +136,16 @@ LayoutVariant defines application composition: page composition, column layout, 
 
 Builders (`src/layouts/builders/`) only compose views. They never calculate sizes, detect the runtime or contain business logic. A new layout means a new builder registered in `LayoutManager`; runtimes stay unchanged.
 
+### Semantic Layout Primitives and Shared Forms
+
+Layout components use the shared primitives in `src/components/ui/` rather than recreating flex and surface behavior in individual views:
+
+- `Area` provides a polymorphic semantic surface/container with tokenized variant, padding, radius, and elevation.
+- `Stack` is the base horizontal/vertical flex primitive. Use `HStack` and `VStack` for directional composition, and `InlineCluster` for wrapping inline groups.
+- These primitives own presentation only. They do not decide runtime capabilities, application state, or business behavior.
+
+Project form inputs live in `src/features/projects/components/ProjectFormFields.tsx`. The shared fields cover identity, metadata, tags, billing rates, and concurrency. Each consumer owns its form state and persistence callback; the shared components do not introduce a project-specific state manager.
+
 ### TextAndIconSize
 
 TextAndIconSize (`small`, `medium`, `large`) defines visual scale: typography, icon sizes, spacing, paddings, border radius. It is implemented purely as CSS design tokens and never changes layout composition. A new scale means new token values; components stay unchanged.
@@ -148,7 +158,7 @@ CSS owns presentation. `LayoutManager` exposes application state as data attribu
 padding: var(--spacing-card);
 ```
 
-Themes follow dependency inversion: components never know the active theme. `ThemeRegistry` (`src/styles/themeRegistry.ts`) holds the built-in themes (`light`, `dark`, `high-contrast`) and custom ones, and applies a theme by setting `data-theme` on `document.documentElement`.
+Themes follow dependency inversion: components never know the active theme. `ThemeRegistry` (`src/styles/themeRegistry.ts`) holds the built-in themes (`light`, `dark`, `high-contrast`) and custom ones, and applies a theme by setting `data-theme` on `document.documentElement`. Layout components do not pass theme values through props; visual differences are expressed through semantic CSS tokens and theme-scoped variables.
 
 ### Contexts
 

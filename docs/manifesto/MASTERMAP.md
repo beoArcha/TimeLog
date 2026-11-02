@@ -191,6 +191,14 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] **Unified Leave Management**: Unified `HolidaysLeavesView` and `HolidaysLeavesTable` into a single shared source of truth.
 - [x] **Quality Gate & Coverage Verification**: 100% Vitest pass across 195 test files (1,160 tests), 0 ESLint warnings, 0 typecheck errors, and global test coverage exceeding 87% (all coverage thresholds met).
 
+#### Group D — Shared Form Fields, Semantic Layouts & UI Pattern Consolidation
+- [x] **Shared Project Field Components**: Consolidate project name, emoji, color, description, tags, billing rates, and concurrency controls in ProjectFormFields, reused by project creation and editing surfaces.
+- [x] **Semantic Layout Primitives**: Adopt Area, HStack, VStack, and InlineCluster for consistent semantic structure and flex composition in application layouts.
+- [x] **Theme-Independent Layout Contracts**: Remove unused theme props from layout components and orchestration; keep theme selection in the theme registry and presentation tokens.
+- [x] **Reusable Status and Empty-State Patterns**: Standardize empty states, status indicators, and icon containers; base animated drawer behavior on the accessible Base UI Dialog lifecycle.
+- [x] **Database Explorer Composition**: Remove redundant table rendering and support toggling the active table selection to return to the domain overview.
+- [x] **Localized Runtime Status**: Replace hardcoded connection and daemon status labels with translation keys synchronized across all six supported locales.
+
 ### Phase 14 — Critical Defect Remediation, Destructive Action Safety & Tiered PR Workflow ✅ (Completed)
 
 #### Group A — Layout & Visual Collision Fixes (PR #6 & PR #9)
