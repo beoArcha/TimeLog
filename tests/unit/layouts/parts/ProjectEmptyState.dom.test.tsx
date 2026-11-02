@@ -1,24 +1,10 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, vi, afterEach } from 'vitest';
 import { ProjectEmptyState } from '@/src/layouts/parts/ProjectEmptyState';
 import { STARTER_TEMPLATES } from '@common/templates/starterTemplates';
-
-const FLOW_CONTENT_SELECTOR = [
-  'address', 'article', 'aside', 'blockquote', 'details', 'dialog', 'div', 'dl',
-  'fieldset', 'figcaption', 'figure', 'footer', 'form',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'header', 'hr', 'main', 'menu', 'nav', 'ol', 'p', 'pre', 'search',
-  'section', 'table', 'ul',
-].join(', ');
-
-function expectNoFlowContent(container: Element) {
-  const invalidElements = Array.from(container.querySelectorAll(FLOW_CONTENT_SELECTOR))
-    .map((element) => element.tagName.toLowerCase());
-
-  expect(invalidElements).toEqual([]);
-}
+import { expectNoFlowContent } from '@tests/shared/html-content-model';
 
 describe('ProjectEmptyState DOM content model', () => {
   afterEach(() => {

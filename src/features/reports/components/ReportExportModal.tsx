@@ -144,7 +144,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                     <span className="flex items-center gap-3">
                       {getFormatIcon(exp.id)}
                       <span className="block">
-                        <Caption as="span" size="xs" className="block font-semibold">
+                        <Caption as="span" className="block font-semibold">
                           {exp.name}
                         </Caption>
                         <Caption as="span" size="2xs" className="block opacity-75 font-mono">

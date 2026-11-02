@@ -6,24 +6,17 @@ import { Checkbox } from '@components/ui/checkbox';
 import { Label } from '@components/ui/label';
 import { HStack, VStack } from '@components/ui/stack';
 import { Caption, Heading, Text } from '@components/ui/typography';
-
-const FLOW_CONTENT_SELECTOR = [
-  'address', 'article', 'aside', 'blockquote', 'details', 'dialog', 'div', 'dl',
-  'fieldset', 'figcaption', 'figure', 'footer', 'form',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'header', 'hr', 'main', 'menu', 'nav', 'ol', 'p', 'pre', 'search',
-  'section', 'table', 'ul',
-].join(', ');
-
-function expectNoFlowContent(container: Element) {
-  const invalidElements = Array.from(container.querySelectorAll(FLOW_CONTENT_SELECTOR))
-    .map((element) => element.tagName.toLowerCase());
-
-  expect(invalidElements).toEqual([]);
-}
+import { expectNoFlowContent, FLOW_CONTENT_SELECTOR } from '@tests/shared/html-content-model';
 
 describe('Design System phrasing-content compositions', () => {
   afterEach(() => cleanup());
+
+  it('includes required flow-only elements such as hgroup, li, dt, dd, summary, div, p in FLOW_CONTENT_SELECTOR', () => {
+    const requiredTags = ['hgroup', 'li', 'dt', 'dd', 'summary', 'div', 'p', 'ul', 'ol', 'section', 'article'];
+    for (const tag of requiredTags) {
+      expect(FLOW_CONTENT_SELECTOR).toContain(tag);
+    }
+  });
 
   it('keeps Heading children within the heading phrasing-content model', () => {
     render(
@@ -38,20 +31,32 @@ describe('Design System phrasing-content compositions', () => {
     expectNoFlowContent(screen.getByTestId('semantic-heading'));
   });
 
-  it('keeps Label children within the label phrasing-content model', () => {
+  it('keeps Label children within the label phrasing-content model and binds accessible name/description via aria attributes', () => {
     render(
       <Label htmlFor="reset-scope" data-testid="semantic-label">
-        <Checkbox id="reset-scope" />
+        <Checkbox
+          id="reset-scope"
+          aria-labelledby="reset-scope-title"
+          aria-describedby="reset-scope-desc"
+        />
         <VStack as="span" gap="none" className="flex flex-col">
-          <Text as="span">Reset all data</Text>
-          <Caption as="span">This action cannot be undone.</Caption>
+          <Text id="reset-scope-title" as="span">Reset all data</Text>
+          <Caption id="reset-scope-desc" as="span">This action cannot be undone.</Caption>
         </VStack>
       </Label>
     );
 
     expectNoFlowContent(screen.getByTestId('semantic-label'));
-    expect(screen.getByRole('checkbox', {
-      name: /Reset all data This action cannot be undone/,
-    })).toBeTruthy();
+
+    // Accessible name is strictly the title, not concatenated with description
+    const checkbox = screen.getByRole('checkbox', { name: 'Reset all data' }) as HTMLInputElement;
+    expect(checkbox).toBeTruthy();
+    expect(checkbox.getAttribute('aria-labelledby')).toBe('reset-scope-title');
+    expect(checkbox.getAttribute('aria-describedby')).toBe('reset-scope-desc');
+
+    const titleEl = screen.getByText('Reset all data');
+    const descEl = screen.getByText('This action cannot be undone.');
+    expect(titleEl.id).toBe('reset-scope-title');
+    expect(descEl.id).toBe('reset-scope-desc');
   });
 });

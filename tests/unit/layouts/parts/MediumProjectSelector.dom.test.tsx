@@ -1,26 +1,12 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { describe, it, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import MediumProjectSelector from '@layouts/parts/MediumProjectSelector';
 import type { GuiState } from '@layouts/hooks/useGuiLogic';
 import { aProject, aTask } from '@tests/shared/builders/entity-builders';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-
-const FLOW_CONTENT_SELECTOR = [
-  'address', 'article', 'aside', 'blockquote', 'details', 'dialog', 'div', 'dl',
-  'fieldset', 'figcaption', 'figure', 'footer', 'form',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'header', 'hr', 'main', 'menu', 'nav', 'ol', 'p', 'pre', 'search',
-  'section', 'table', 'ul',
-].join(', ');
-
-function expectNoFlowContent(container: Element) {
-  const invalidElements = Array.from(container.querySelectorAll(FLOW_CONTENT_SELECTOR))
-    .map((element) => element.tagName.toLowerCase());
-
-  expect(invalidElements).toEqual([]);
-}
+import { expectNoFlowContent } from '@tests/shared/html-content-model';
 
 describe('MediumProjectSelector DOM content model', () => {
   const project1 = aProject({ id: 'p1', name: 'Alpha Project', color: 'orange' });
