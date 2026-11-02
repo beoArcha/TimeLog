@@ -32,6 +32,7 @@ export function AnimatedDrawer({
   backdropClassName,
   containerId = 'animated-drawer-container',
   backdropId = 'animated-drawer-backdrop',
+  wrapperId = 'animated-drawer-wrapper',
   portalContainer,
 }: AnimatedDrawerProps) {
   return (
@@ -45,6 +46,7 @@ export function AnimatedDrawer({
     >
       <DrawerContent
         id={containerId}
+        wrapperId={wrapperId}
         side="top"
         showClose={false}
         backdropId={backdropId}

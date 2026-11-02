@@ -18,7 +18,7 @@ function DrawerBackdrop({
     <DialogPrimitive.Backdrop
       data-slot="drawer-backdrop"
       className={cn(
-        'fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-all animate-in fade-in-0 duration-200',
+        'fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-all duration-200 animate-in fade-in-0 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 data-[ending-style]:animate-out data-[ending-style]:fade-out-0',
         className
       )}
       {...props}
@@ -32,6 +32,7 @@ export interface DrawerContentProps
   showClose?: boolean;
   backdropClassName?: string;
   backdropId?: string;
+  wrapperId?: string;
   onBackdropClick?: React.MouseEventHandler<HTMLDivElement>;
   portalContainer?: HTMLElement | ShadowRoot | React.RefObject<HTMLElement | ShadowRoot | null> | null;
 }
@@ -43,12 +44,13 @@ function DrawerContent({
   showClose = true,
   backdropClassName,
   backdropId,
+  wrapperId,
   onBackdropClick,
   portalContainer,
   ...props
 }: DrawerContentProps) {
   return (
-    <DrawerPortal container={portalContainer}>
+    <DrawerPortal id={wrapperId} container={portalContainer}>
       <DrawerBackdrop
         id={backdropId}
         className={backdropClassName}

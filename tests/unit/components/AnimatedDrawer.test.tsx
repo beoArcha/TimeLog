@@ -96,4 +96,41 @@ describe('AnimatedDrawer', () => {
     // Assert
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it('should render wrapperId, containerId and backdropId when open', () => {
+    // Arrange & Act
+    render(
+      <AnimatedDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        wrapperId="custom-drawer-wrapper"
+        containerId="custom-drawer-container"
+        backdropId="custom-drawer-backdrop"
+      >
+        <div>Content</div>
+      </AnimatedDrawer>
+    );
+
+    // Assert
+    expect(document.querySelector('#custom-drawer-wrapper')).not.toBeNull();
+    expect(document.querySelector('#custom-drawer-container')).not.toBeNull();
+    expect(document.querySelector('#custom-drawer-backdrop')).not.toBeNull();
+  });
+
+  it('should apply exit animation classes for data-ending-style', () => {
+    // Arrange & Act
+    render(
+      <AnimatedDrawer isOpen={true} onClose={vi.fn()} title="CLI Terminal">
+        <div>Content</div>
+      </AnimatedDrawer>
+    );
+
+    const dialog = screen.getByRole('dialog');
+    const backdrop = document.querySelector('[data-slot="drawer-backdrop"]');
+
+    // Assert
+    expect(dialog.className).toContain('data-[ending-style]:-translate-y-full');
+    expect(dialog.className).toContain('data-[ending-style]:opacity-0');
+    expect(backdrop?.className).toContain('data-[ending-style]:opacity-0');
+  });
 });
