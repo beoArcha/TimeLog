@@ -39,7 +39,7 @@ describe('AnimatedDrawer', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('should call onClose when backdrop is clicked', () => {
+  it('should call onClose exactly once when backdrop is clicked without duplicate triggers', () => {
     // Arrange
     const onClose = vi.fn();
     render(
@@ -61,7 +61,7 @@ describe('AnimatedDrawer', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onClose when Escape key is pressed', () => {
+  it('should call onClose exactly once when Escape key is pressed without duplicate triggers', () => {
     // Arrange
     const onClose = vi.fn();
     render(
@@ -71,7 +71,7 @@ describe('AnimatedDrawer', () => {
     );
 
     // Act
-    fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
+    fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
 
     // Assert
     expect(onClose).toHaveBeenCalledTimes(1);
