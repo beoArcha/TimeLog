@@ -68,17 +68,18 @@ export function TableExample() {
 import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { DataTable } from '@components/DataTable';
+import { Area } from '@components/ui/area';
 
 export function CleanComponent() {
   return (
     <div className="container">
       <span className="text">Text</span>
-      <section>
-        <article>Content</article>
+      <Area as="section">
+        <Area as="article">Content</Area>
         <Button>Click</Button>
         <Input placeholder="Enter" />
         <DataTable columns={[]} data={[]} />
-      </section>
+      </Area>
     </div>
   );
 }
@@ -165,5 +166,63 @@ export function FormAsideComponent() {
     expect(violations[0].message).toContain('Use <Area as="aside">');
     expect(violations[1].target).toBe('form');
     expect(violations[1].message).toContain('Use <Form>');
+  });
+
+  it('should flag semantic heading, list, code, and kbd tags while allowing native strong and em', () => {
+    const code = `
+export function TypographyExample() {
+  return (
+    <div>
+      <h1>Heading 1</h1>
+      <h2>Heading 2</h2>
+      <h3>Heading 3</h3>
+      <h4>Heading 4</h4>
+      <h5>Heading 5</h5>
+      <h6>Heading 6</h6>
+      <ul>
+        <li>Item</li>
+      </ul>
+      <ol>
+        <li>Ordered Item</li>
+      </ol>
+      <strong>Bold</strong>
+      <em>Italic</em>
+      <code>inline code</code>
+      <kbd>Ctrl</kbd>
+    </div>
+  );
+}
+`;
+    const violations = rule.scanAst(code, 'features/example/TypographyExample.tsx');
+    expect(violations.length).toBe(12);
+    const tags = violations.map(v => v.target);
+    expect(tags).toEqual([
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'li', 'ol', 'li',
+      'code', 'kbd',
+    ]);
+    expect(tags).not.toContain('strong');
+    expect(tags).not.toContain('em');
+  });
+
+  it('should flag semantic layout containers and code block', () => {
+    const code = `
+export function LayoutExample() {
+  return (
+    <main>
+      <header>Header</header>
+      <nav>Nav</nav>
+      <section>Section</section>
+      <article>Article</article>
+      <pre>Preformatted</pre>
+      <footer>Footer</footer>
+    </main>
+  );
+}
+`;
+    const violations = rule.scanAst(code, 'features/example/LayoutExample.tsx');
+    expect(violations.length).toBe(7);
+    const tags = violations.map(v => v.target);
+    expect(tags).toEqual(['main', 'header', 'nav', 'section', 'article', 'pre', 'footer']);
   });
 });

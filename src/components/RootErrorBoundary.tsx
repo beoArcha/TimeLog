@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert';
 import { Button } from '@components/ui/button';
+import { Code } from '@components/ui/code';
 import { AlertTriangle } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
 
@@ -71,10 +72,10 @@ export class RootErrorBoundary extends ReactComponent {
             </Alert>
 
             {this.state.error && (
-              <pre className="p-3 bg-muted rounded-md text-xs font-mono overflow-auto max-h-56 border border-border text-foreground">
+              <Code block className="p-3 bg-muted rounded-md text-xs font-mono overflow-auto max-h-56 border border-border text-foreground">
                 {this.state.error.message}
                 {this.state.error.stack ? `\n\n${this.state.error.stack}` : ''}
-              </pre>
+              </Code>
             )}
 
             <div className="flex justify-end pt-2">
