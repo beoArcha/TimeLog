@@ -6,7 +6,16 @@ import { gridVariants } from "./grid-variants";
 export interface GridProps
   extends React.HTMLAttributes<HTMLElement>,
     VariantProps<typeof gridVariants> {
+  /**
+   * The HTML tag to render the grid container as.
+   * Constrained to semantic block containers ('div', 'section', 'article').
+   */
   as?: "div" | "section" | "article";
+  /**
+   * Number of columns in the grid.
+   * Supported variants: 1, 2, 3, 4, 6, 12.
+   */
+  cols?: 1 | 2 | 3 | 4 | 6 | 12;
 }
 
 export const Grid = React.forwardRef<HTMLElement, GridProps>(

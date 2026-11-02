@@ -18,6 +18,7 @@ const VALID_CONTENT_CATEGORIES: ContentCategory[] = [
   'table-structure',
   'form-option',
   'transparent',
+  'text',
 ];
 
 const VALID_COMPONENT_CATEGORIES: ComponentCategory[] = [
@@ -187,7 +188,8 @@ describe('Component Registry Consistency', () => {
       expect(optionMeta.category).toBe('form');
       expect(optionMeta.defaultTag).toBe('option');
       expect(optionMeta.selfCategory).toBe('form-option');
-      expect(optionMeta.allowedChildCategories).toEqual(['phrasing', 'transparent']);
+      expect(optionMeta.allowedChildCategories).toEqual(['text']);
+      expect(optionMeta.forbiddenChildTags).toBeUndefined();
 
       const optGroupMeta = COMPONENT_REGISTRY.NativeOptGroup;
       expect(optGroupMeta).toBeDefined();

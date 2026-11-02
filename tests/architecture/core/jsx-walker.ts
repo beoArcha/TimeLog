@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { COMPONENT_REGISTRY } from '../registry/component-registry';
+import { COMPONENT_REGISTRY, getEffectiveContentCategory } from '../registry/component-registry';
 
 /**
  * Classification of JSX element types to distinguish HTML primitives,
@@ -84,8 +84,10 @@ export interface JsxElementContext {
   as?: string;
   /** True if the `as` prop was passed as a dynamic expression or identifier */
   isDynamicAs: boolean;
-  /** The effective HTML/DOM or component tag after resolving `as` and defaultTag. Set to 'dynamic' when as is dynamic. */
-  effectiveTag: string | 'dynamic';
+  /** Resolution state of the explicit polymorphic `as` prop. */
+  asStatus: AsPropStatus;
+  /** The effective tag, or an explicit sentinel when `as` cannot be safely resolved. */
+  effectiveTag: string | 'dynamic' | 'invalid' | 'unsupported';
   /** True if this is a custom React component (capitalized or member access) */
   isComponent: boolean;
   /** Explicit classification of JSX element kind */
@@ -106,6 +108,8 @@ export type AsPropResult =
   | { kind: 'static'; tag: string }
   | { kind: 'dynamic' }
   | { kind: 'invalid' };
+
+export type AsPropStatus = 'none' | 'resolved' | 'dynamic' | 'invalid' | 'unsupported';
 
 /**
  * Extracts string representation of tag name from JSX opening or self-closing element.
@@ -218,33 +222,38 @@ export function classifyElement(tag: string, externalIdentifiers?: Set<string>):
  * Computes effective tag based on explicit `as` prop, COMPONENT_REGISTRY lookup,
  * or raw tag name fallback.
  */
-function computeEffectiveTag(
+export function computeEffectiveTag(
   tag: string,
   asResult: AsPropResult
-): { effectiveTag: string | 'dynamic'; as?: string; isDynamicAs: boolean } {
+): {
+  effectiveTag: string | 'dynamic' | 'invalid' | 'unsupported';
+  as?: string;
+  isDynamicAs: boolean;
+  asStatus: AsPropStatus;
+} {
   if (asResult.kind === 'static') {
-    return {
-      effectiveTag: asResult.tag,
-      as: asResult.tag,
-      isDynamicAs: false,
-    };
+    const registryEntry = COMPONENT_REGISTRY[tag];
+    if (registryEntry) {
+      if (!registryEntry.supportedAs || !registryEntry.supportedAs.includes(asResult.tag)) {
+        return { effectiveTag: 'unsupported', as: asResult.tag, isDynamicAs: false, asStatus: 'unsupported' };
+      }
+      return { effectiveTag: asResult.tag, as: asResult.tag, isDynamicAs: false, asStatus: 'resolved' };
+    }
+
+    return { effectiveTag: asResult.tag, as: asResult.tag, isDynamicAs: false, asStatus: 'resolved' };
   }
 
   if (asResult.kind === 'dynamic') {
-    return {
-      effectiveTag: 'dynamic',
-      as: 'dynamic',
-      isDynamicAs: true,
-    };
+    return { effectiveTag: 'dynamic', as: 'dynamic', isDynamicAs: true, asStatus: 'dynamic' };
+  }
+
+  if (asResult.kind === 'invalid') {
+    return { effectiveTag: 'invalid', as: undefined, isDynamicAs: false, asStatus: 'invalid' };
   }
 
   const registryEntry = COMPONENT_REGISTRY[tag];
   const fallbackTag = registryEntry?.defaultTag ?? tag;
-  return {
-    effectiveTag: fallbackTag,
-    as: undefined,
-    isDynamicAs: false,
-  };
+  return { effectiveTag: fallbackTag, as: undefined, isDynamicAs: false, asStatus: 'none' };
 }
 
 /**
@@ -367,7 +376,7 @@ export function walkJsxTree(
       }
 
       const asResult = extractAsProp(node.openingElement.attributes, sourceFile);
-      const { effectiveTag, as: asProp, isDynamicAs } = computeEffectiveTag(tag, asResult);
+      const { effectiveTag, as: asProp, isDynamicAs, asStatus } = computeEffectiveTag(tag, asResult);
       const elementKind = classifyElement(tag, externalIdentifiers);
       const isComponent = elementKind !== 'native-html';
       const { line, character } = sourceFile.getLineAndCharacterOfPosition(
@@ -378,6 +387,7 @@ export function walkJsxTree(
         tag,
         as: asProp,
         isDynamicAs,
+        asStatus,
         effectiveTag,
         isComponent,
         elementKind,
@@ -407,7 +417,7 @@ export function walkJsxTree(
       }
 
       const asResult = extractAsProp(node.attributes, sourceFile);
-      const { effectiveTag, as: asProp, isDynamicAs } = computeEffectiveTag(tag, asResult);
+      const { effectiveTag, as: asProp, isDynamicAs, asStatus } = computeEffectiveTag(tag, asResult);
       const elementKind = classifyElement(tag, externalIdentifiers);
       const isComponent = elementKind !== 'native-html';
       const { line, character } = sourceFile.getLineAndCharacterOfPosition(
@@ -418,6 +428,7 @@ export function walkJsxTree(
         tag,
         as: asProp,
         isDynamicAs,
+        asStatus,
         effectiveTag,
         isComponent,
         elementKind,
@@ -570,4 +581,161 @@ export function walkJsxTree(
   }
 
   visitRoot(sourceFile);
+}
+
+export interface JsxValidationError {
+  line: number;
+  column: number;
+  tag: string;
+  parentTag: string | null;
+  rule: 'unsupported-as' | 'invalid-as' | 'invalid-nesting' | 'forbidden-child';
+  message: string;
+}
+
+/**
+ * Validates a JSX AST tree against Design System component metadata and HTML content models.
+ */
+export function validateJsxTree(
+  sourceFile: ts.SourceFile,
+  options?: WalkJsxOptions
+): JsxValidationError[] {
+  const violations: JsxValidationError[] = [];
+
+  walkJsxTree(
+    sourceFile,
+    (parent, child) => {
+      // 1. Validate polymorphic 'as' prop
+      if (child.asStatus === 'unsupported') {
+        violations.push({
+          line: child.line,
+          column: child.column,
+          tag: child.tag,
+          parentTag: parent ? parent.tag : null,
+          rule: 'unsupported-as',
+          message: `Component <${child.tag}> does not declare or support polymorphic as="${child.as}".`,
+        });
+      } else if (child.asStatus === 'invalid') {
+        violations.push({
+          line: child.line,
+          column: child.column,
+          tag: child.tag,
+          parentTag: parent ? parent.tag : null,
+          rule: 'invalid-as',
+          message: `Invalid polymorphic 'as' prop passed to <${child.tag}>.`,
+        });
+      }
+
+      // 2. Validate hierarchy / nesting constraints
+      const childMeta = COMPONENT_REGISTRY[child.tag];
+
+      // Form option constraints: NativeOption and NativeOptGroup must be inside NativeSelect (or NativeOptGroup for NativeOption)
+      if (
+        childMeta?.selfCategory === 'form-option' ||
+        child.tag === 'NativeOption' ||
+        child.tag === 'NativeOptGroup'
+      ) {
+        if (!parent) {
+          violations.push({
+            line: child.line,
+            column: child.column,
+            tag: child.tag,
+            parentTag: null,
+            rule: 'invalid-nesting',
+            message: `<${child.tag}> cannot be used at root level; it must be nested inside <NativeSelect>.`,
+          });
+        } else {
+          const isParentValidForOption =
+            parent.tag === 'NativeSelect' ||
+            (child.tag === 'NativeOption' && parent.tag === 'NativeOptGroup') ||
+            parent.effectiveTag === 'select' ||
+            (child.tag === 'NativeOption' && parent.effectiveTag === 'optgroup');
+
+          if (!isParentValidForOption) {
+            violations.push({
+              line: child.line,
+              column: child.column,
+              tag: child.tag,
+              parentTag: parent.tag,
+              rule: 'invalid-nesting',
+              message: `<${child.tag}> cannot be placed inside <${parent.tag}>; it must be inside <NativeSelect>.`,
+            });
+          }
+        }
+      }
+
+      if (parent) {
+        const parentMeta = COMPONENT_REGISTRY[parent.tag];
+
+        if (parentMeta) {
+          // Check forbidden child tags
+          if (
+            parentMeta.forbiddenChildTags?.includes(child.tag) ||
+            parentMeta.forbiddenChildTags?.includes(child.effectiveTag)
+          ) {
+            violations.push({
+              line: child.line,
+              column: child.column,
+              tag: child.tag,
+              parentTag: parent.tag,
+              rule: 'forbidden-child',
+              message: `<${child.tag}> is forbidden inside <${parent.tag}>.`,
+            });
+          }
+
+          // Check allowed child tags
+          if (parentMeta.allowedChildTags && parentMeta.allowedChildTags.length > 0) {
+            const isTagAllowed =
+              parentMeta.allowedChildTags.includes(child.tag) ||
+              parentMeta.allowedChildTags.includes(child.effectiveTag);
+            if (!isTagAllowed) {
+              violations.push({
+                line: child.line,
+                column: child.column,
+                tag: child.tag,
+                parentTag: parent.tag,
+                rule: 'invalid-nesting',
+                message: `<${child.tag}> is not allowed inside <${parent.tag}>. Allowed tags: ${parentMeta.allowedChildTags.join(', ')}.`,
+              });
+            }
+          }
+
+          // Check allowed child categories
+          if (parentMeta.allowedChildCategories) {
+            // Text-only content model (e.g. NativeOption)
+            if (
+              parentMeta.allowedChildCategories.length === 1 &&
+              parentMeta.allowedChildCategories[0] === 'text'
+            ) {
+              violations.push({
+                line: child.line,
+                column: child.column,
+                tag: child.tag,
+                parentTag: parent.tag,
+                rule: 'invalid-nesting',
+                message: `<${parent.tag}> accepts text content only; element <${child.tag}> is not allowed.`,
+              });
+            } else if (childMeta) {
+              const childCategory = getEffectiveContentCategory(childMeta, child.as);
+              if (
+                childCategory !== 'transparent' &&
+                !parentMeta.allowedChildCategories.includes(childCategory)
+              ) {
+                violations.push({
+                  line: child.line,
+                  column: child.column,
+                  tag: child.tag,
+                  parentTag: parent.tag,
+                  rule: 'invalid-nesting',
+                  message: `<${child.tag}> (${childCategory}) is not allowed inside <${parent.tag}> (allowed categories: ${parentMeta.allowedChildCategories.join(', ')}).`,
+                });
+              }
+            }
+          }
+        }
+      }
+    },
+    options
+  );
+
+  return violations;
 }

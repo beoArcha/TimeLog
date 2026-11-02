@@ -13,7 +13,8 @@ export type ContentCategory =
   | 'embedded'
   | 'table-structure'
   | 'form-option'
-  | 'transparent';
+  | 'transparent'
+  | 'text';
 
 export type ComponentCategory =
   | 'layout'
@@ -247,25 +248,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     category: 'form',
     defaultTag: 'option',
     selfCategory: 'form-option',
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: [
-      'div',
-      'VStack',
-      'HStack',
-      'Grid',
-      'Area',
-      'Table',
-      'p',
-      'Text',
-      'Heading',
-      'Button',
-      'NativeSelect',
-      'NativeOption',
-      'NativeOptGroup',
-      'select',
-      'option',
-      'optgroup',
-    ],
+    allowedChildCategories: ['text'],
   },
   NativeOptGroup: {
     name: 'NativeOptGroup',
