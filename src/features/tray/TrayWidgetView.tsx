@@ -8,6 +8,8 @@ import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Heading, Overline, Text, Caption } from '@components/ui/typography';
+import { IconBox } from '@components/ui/icon-box';
+import { StatusDot } from '@components/ui/status-dot';
 import { resolveProjectColor } from '@common/utils/colorUtils';
 import { cn } from '@/lib/utils';
 
@@ -39,13 +41,18 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
         <div className="ambient-gradients absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500" />
 
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-primary text-primary-foreground shadow-2xl flex items-center justify-center transform hover:rotate-6 transition-transform">
+          <IconBox
+            size="lg"
+            className="w-16 h-16 rounded-3xl bg-primary text-primary-foreground shadow-2xl transform hover:rotate-6 transition-transform"
+          >
             <Layers className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <span className="absolute -top-1 -right-1 flex h-5 w-5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-5 w-5 bg-success border-2 border-background"></span>
-          </span>
+          </IconBox>
+          <StatusDot
+            variant="success"
+            size="xl"
+            ping
+            className="absolute -top-1 -right-1 border-2 border-background"
+          />
         </div>
 
         <div>

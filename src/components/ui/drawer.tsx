@@ -30,6 +30,10 @@ export interface DrawerContentProps
   extends DialogPrimitive.Popup.Props,
     VariantProps<typeof drawerVariants> {
   showClose?: boolean;
+  backdropClassName?: string;
+  backdropId?: string;
+  onBackdropClick?: React.MouseEventHandler<HTMLDivElement>;
+  portalContainer?: HTMLElement | ShadowRoot | React.RefObject<HTMLElement | ShadowRoot | null> | null;
 }
 
 function DrawerContent({
@@ -37,11 +41,19 @@ function DrawerContent({
   children,
   side = 'top',
   showClose = true,
+  backdropClassName,
+  backdropId,
+  onBackdropClick,
+  portalContainer,
   ...props
 }: DrawerContentProps) {
   return (
-    <DrawerPortal>
-      <DrawerBackdrop />
+    <DrawerPortal container={portalContainer}>
+      <DrawerBackdrop
+        id={backdropId}
+        className={backdropClassName}
+        onClick={onBackdropClick}
+      />
       <DialogPrimitive.Popup
         data-slot="drawer-content"
         className={cn(drawerVariants({ side }), 'p-4 sm:p-6 overflow-hidden', className)}

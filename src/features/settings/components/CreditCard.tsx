@@ -3,6 +3,8 @@ import type { LucideIcon } from 'lucide-react';
 import { AnimatedCard } from '@components/AnimatedCard';
 import { HStack, VStack } from '@components/ui/stack';
 import { Heading } from '@components/ui/typography';
+import { IconBox } from '@components/ui/icon-box';
+import { cn } from '@/lib/utils';
 
 export interface CreditCardProps {
   title: React.ReactNode;
@@ -26,9 +28,14 @@ export function CreditCard({
   return (
     <AnimatedCard delay={delay} className="flex flex-col h-full">
       <HStack gap="sm" className="mb-3">
-        <HStack justify="center" align="center" className={`w-8 h-8 rounded-full ${iconBgClass} shrink-0`}>
+        <IconBox
+          variant="ghost"
+          size="sm"
+          rounded="full"
+          className={cn('shrink-0', iconBgClass)}
+        >
           <Icon className={`w-4 h-4 ${iconColorClass}`} />
-        </HStack>
+        </IconBox>
         <Heading level={3} className="text-sm font-bold text-foreground">
           {title}
         </Heading>

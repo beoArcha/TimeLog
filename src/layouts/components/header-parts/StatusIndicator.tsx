@@ -3,6 +3,7 @@ import { useDataLifecycleState } from '@common/hooks/DataContext';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { useTranslation } from '@common/i18n/translator';
 import { Badge } from '@components/ui/badge';
+import { StatusDot } from '@components/ui/status-dot';
 import { HStack } from '@components/ui/stack';
 
 export const StatusIndicator: React.FC = () => {
@@ -15,7 +16,7 @@ export const StatusIndicator: React.FC = () => {
     return (
       <HStack gap="xs" title={label}>
         <div className="sm:hidden flex items-center justify-center p-1">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30" />
+          <StatusDot variant="emerald" size="xs" className="ring-2 ring-emerald-500/30" />
         </div>
 
         <Badge
@@ -36,9 +37,12 @@ export const StatusIndicator: React.FC = () => {
   return (
     <HStack gap="xs" title={label}>
       <div className="sm:hidden flex items-center justify-center p-1">
-        <span className={`w-2 h-2 rounded-full ${
-          isSearching ? 'bg-amber-500 animate-ping' : 'bg-emerald-500 ring-2 ring-emerald-500/30'
-        }`} />
+        <StatusDot
+          variant={isSearching ? 'amber' : 'emerald'}
+          size="xs"
+          ping={isSearching}
+          className={!isSearching ? 'ring-2 ring-emerald-500/30' : undefined}
+        />
       </div>
 
       <Badge

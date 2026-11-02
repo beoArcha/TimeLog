@@ -1,5 +1,9 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+} from '@components/ui/drawer';
 import { cn } from '@/lib/utils';
 
 export interface AnimatedDrawerProps {
@@ -12,10 +16,12 @@ export interface AnimatedDrawerProps {
   containerId?: string;
   backdropId?: string;
   wrapperId?: string;
+  portalContainer?: HTMLElement | ShadowRoot | React.RefObject<HTMLElement | ShadowRoot | null> | null;
 }
 
 /**
  * Slide-down modal sheet drawer with backdrop blur overlay and smooth transitions.
+ * Accessible drawer composite wrapping Base UI Drawer primitive.
  */
 export function AnimatedDrawer({
   isOpen,
@@ -26,41 +32,35 @@ export function AnimatedDrawer({
   backdropClassName,
   containerId = 'animated-drawer-container',
   backdropId = 'animated-drawer-backdrop',
-  wrapperId = 'animated-drawer-wrapper',
+  portalContainer,
 }: AnimatedDrawerProps) {
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div id={wrapperId} className="fixed inset-0 z-50 flex flex-col justify-start pointer-events-auto">
-          <motion.div
-            id={backdropId}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={onClose}
-            className={cn('fixed inset-0 bg-black/40 backdrop-blur-xs z-40', backdropClassName)}
-          />
-
-          <motion.div
-            id={containerId}
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            initial={{ y: '-100%', opacity: 0.5 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '-100%', opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className={cn(
-              'relative z-50 w-full max-h-[82vh] flex flex-col bg-card/95 backdrop-blur-xl border-b border-border shadow-2xl p-4 sm:p-6 text-foreground overflow-hidden',
-              className
-            )}
-          >
-            {children}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <Drawer
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
+      <DrawerContent
+        id={containerId}
+        side="top"
+        showClose={false}
+        backdropId={backdropId}
+        backdropClassName={backdropClassName}
+        portalContainer={portalContainer}
+        aria-label={title}
+        aria-modal="true"
+        className={cn(
+          'w-full max-h-[82vh] flex flex-col p-4 sm:p-6 text-foreground overflow-hidden',
+          className
+        )}
+      >
+        {title && <DrawerTitle className="sr-only">{title}</DrawerTitle>}
+        {children}
+      </DrawerContent>
+    </Drawer>
   );
 }
 

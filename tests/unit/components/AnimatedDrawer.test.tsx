@@ -42,7 +42,7 @@ describe('AnimatedDrawer', () => {
   it('should call onClose when backdrop is clicked', () => {
     // Arrange
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <AnimatedDrawer
         isOpen={true}
         onClose={onClose}
@@ -53,7 +53,7 @@ describe('AnimatedDrawer', () => {
     );
 
     // Act
-    const backdrop = container.querySelector('#custom-backdrop');
+    const backdrop = document.querySelector('#custom-backdrop');
     expect(backdrop).not.toBeNull();
     fireEvent.click(backdrop!);
 
