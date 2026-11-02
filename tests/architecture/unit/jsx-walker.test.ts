@@ -25,6 +25,7 @@ interface VisitRecord {
   childEffectiveTag: string;
   childAs?: string;
   isDynamicAs: boolean;
+  asStatus: string;
   isComponent: boolean;
   elementKind: ElementKind;
 }
@@ -43,6 +44,7 @@ function collectWalk(code: string, options?: WalkJsxOptions): VisitRecord[] {
         childEffectiveTag: child.effectiveTag,
         childAs: child.as,
         isDynamicAs: child.isDynamicAs,
+        asStatus: child.asStatus,
         isComponent: child.isComponent,
         elementKind: child.elementKind,
       });
@@ -116,6 +118,7 @@ describe('AST JSX Walker', () => {
         childEffectiveTag: 'button',
         childAs: undefined,
         isDynamicAs: false,
+        asStatus: 'none',
         isComponent: true,
         elementKind: 'registered-ds',
       });
@@ -325,7 +328,7 @@ describe('AST JSX Walker', () => {
       });
     });
 
-    it('handles invalid as prop values safely by falling back to defaultTag without guessing', () => {
+    it('preserves invalid as prop values as an explicit invalid state', () => {
       const code = `
         <div>
           <VStack as />
@@ -343,7 +346,8 @@ describe('AST JSX Walker', () => {
         childTag: 'VStack',
         childAs: undefined,
         isDynamicAs: false,
-        childEffectiveTag: 'div',
+        asStatus: 'invalid',
+        childEffectiveTag: 'invalid',
       });
 
       // 2. <VStack as={123} />
@@ -351,7 +355,8 @@ describe('AST JSX Walker', () => {
         childTag: 'VStack',
         childAs: undefined,
         isDynamicAs: false,
-        childEffectiveTag: 'div',
+        asStatus: 'invalid',
+        childEffectiveTag: 'invalid',
       });
 
       // 3. <Button as={true} />
@@ -359,7 +364,8 @@ describe('AST JSX Walker', () => {
         childTag: 'Button',
         childAs: undefined,
         isDynamicAs: false,
-        childEffectiveTag: 'button',
+        asStatus: 'invalid',
+        childEffectiveTag: 'invalid',
       });
 
       // 4. <Text as="" />
@@ -367,7 +373,8 @@ describe('AST JSX Walker', () => {
         childTag: 'Text',
         childAs: undefined,
         isDynamicAs: false,
-        childEffectiveTag: 'p',
+        asStatus: 'invalid',
+        childEffectiveTag: 'invalid',
       });
 
       // 5. <Text as="   " />
@@ -375,7 +382,8 @@ describe('AST JSX Walker', () => {
         childTag: 'Text',
         childAs: undefined,
         isDynamicAs: false,
-        childEffectiveTag: 'p',
+        asStatus: 'invalid',
+        childEffectiveTag: 'invalid',
       });
 
       // 6. <Heading as={null} />
@@ -383,7 +391,45 @@ describe('AST JSX Walker', () => {
         childTag: 'Heading',
         childAs: undefined,
         isDynamicAs: false,
-        childEffectiveTag: 'h2',
+        asStatus: 'invalid',
+        childEffectiveTag: 'invalid',
+      });
+    });
+  });
+
+  describe('supported as prop validation', () => {
+    it('accepts static overrides declared in the component registry', () => {
+      const records = collectWalk(`
+        <VStack as="section" />
+        <Heading as="h1" />
+        <Text as="span" />
+      `);
+      expect(records.map(record => [record.asStatus, record.childEffectiveTag])).toEqual([
+        ['resolved', 'section'], ['resolved', 'h1'], ['resolved', 'span'],
+      ]);
+    });
+
+    it('marks registered components with unsupported static overrides explicitly', () => {
+      const records = collectWalk(`
+        <VStack as="table" />
+        <Button as="a" />
+      `);
+      expect(records.map(record => [record.asStatus, record.childEffectiveTag])).toEqual([
+        ['unsupported', 'unsupported'], ['unsupported', 'unsupported'],
+      ]);
+      expect(records[0].childAs).toBe('table');
+      expect(records[1].childAs).toBe('a');
+    });
+
+    it('allows an explicit default tag when no supportedAs list exists', () => {
+      const records = collectWalk(`<Button as="button" />`);
+      expect(records[0]).toMatchObject({ asStatus: 'resolved', childEffectiveTag: 'button' });
+    });
+
+    it('does not apply Design System restrictions to unresolved components', () => {
+      const records = collectWalk(`<CustomWidget as="article" />`);
+      expect(records[0]).toMatchObject({
+        asStatus: 'resolved', childEffectiveTag: 'article', elementKind: 'unresolved-component',
       });
     });
   });

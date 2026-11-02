@@ -84,8 +84,10 @@ export interface JsxElementContext {
   as?: string;
   /** True if the `as` prop was passed as a dynamic expression or identifier */
   isDynamicAs: boolean;
-  /** The effective HTML/DOM or component tag after resolving `as` and defaultTag. Set to 'dynamic' when as is dynamic. */
-  effectiveTag: string | 'dynamic';
+  /** Resolution state of the explicit polymorphic `as` prop. */
+  asStatus: AsPropStatus;
+  /** The effective tag, or an explicit sentinel when `as` cannot be safely resolved. */
+  effectiveTag: string | 'dynamic' | 'invalid' | 'unsupported';
   /** True if this is a custom React component (capitalized or member access) */
   isComponent: boolean;
   /** Explicit classification of JSX element kind */
@@ -106,6 +108,8 @@ export type AsPropResult =
   | { kind: 'static'; tag: string }
   | { kind: 'dynamic' }
   | { kind: 'invalid' };
+
+export type AsPropStatus = 'none' | 'resolved' | 'dynamic' | 'invalid' | 'unsupported';
 
 /**
  * Extracts string representation of tag name from JSX opening or self-closing element.
@@ -221,30 +225,36 @@ export function classifyElement(tag: string, externalIdentifiers?: Set<string>):
 function computeEffectiveTag(
   tag: string,
   asResult: AsPropResult
-): { effectiveTag: string | 'dynamic'; as?: string; isDynamicAs: boolean } {
+): {
+  effectiveTag: string | 'dynamic' | 'invalid' | 'unsupported';
+  as?: string;
+  isDynamicAs: boolean;
+  asStatus: AsPropStatus;
+} {
   if (asResult.kind === 'static') {
-    return {
-      effectiveTag: asResult.tag,
-      as: asResult.tag,
-      isDynamicAs: false,
-    };
+    const registryEntry = COMPONENT_REGISTRY[tag];
+    const allowedAs = registryEntry
+      ? registryEntry.supportedAs ?? [registryEntry.defaultTag]
+      : undefined;
+
+    if (allowedAs && !allowedAs.includes(asResult.tag)) {
+      return { effectiveTag: 'unsupported', as: asResult.tag, isDynamicAs: false, asStatus: 'unsupported' };
+    }
+
+    return { effectiveTag: asResult.tag, as: asResult.tag, isDynamicAs: false, asStatus: 'resolved' };
   }
 
   if (asResult.kind === 'dynamic') {
-    return {
-      effectiveTag: 'dynamic',
-      as: 'dynamic',
-      isDynamicAs: true,
-    };
+    return { effectiveTag: 'dynamic', as: 'dynamic', isDynamicAs: true, asStatus: 'dynamic' };
+  }
+
+  if (asResult.kind === 'invalid') {
+    return { effectiveTag: 'invalid', as: undefined, isDynamicAs: false, asStatus: 'invalid' };
   }
 
   const registryEntry = COMPONENT_REGISTRY[tag];
   const fallbackTag = registryEntry?.defaultTag ?? tag;
-  return {
-    effectiveTag: fallbackTag,
-    as: undefined,
-    isDynamicAs: false,
-  };
+  return { effectiveTag: fallbackTag, as: undefined, isDynamicAs: false, asStatus: 'none' };
 }
 
 /**
@@ -367,7 +377,7 @@ export function walkJsxTree(
       }
 
       const asResult = extractAsProp(node.openingElement.attributes, sourceFile);
-      const { effectiveTag, as: asProp, isDynamicAs } = computeEffectiveTag(tag, asResult);
+      const { effectiveTag, as: asProp, isDynamicAs, asStatus } = computeEffectiveTag(tag, asResult);
       const elementKind = classifyElement(tag, externalIdentifiers);
       const isComponent = elementKind !== 'native-html';
       const { line, character } = sourceFile.getLineAndCharacterOfPosition(
@@ -378,6 +388,7 @@ export function walkJsxTree(
         tag,
         as: asProp,
         isDynamicAs,
+        asStatus,
         effectiveTag,
         isComponent,
         elementKind,
@@ -407,7 +418,7 @@ export function walkJsxTree(
       }
 
       const asResult = extractAsProp(node.attributes, sourceFile);
-      const { effectiveTag, as: asProp, isDynamicAs } = computeEffectiveTag(tag, asResult);
+      const { effectiveTag, as: asProp, isDynamicAs, asStatus } = computeEffectiveTag(tag, asResult);
       const elementKind = classifyElement(tag, externalIdentifiers);
       const isComponent = elementKind !== 'native-html';
       const { line, character } = sourceFile.getLineAndCharacterOfPosition(
@@ -418,6 +429,7 @@ export function walkJsxTree(
         tag,
         as: asProp,
         isDynamicAs,
+        asStatus,
         effectiveTag,
         isComponent,
         elementKind,
