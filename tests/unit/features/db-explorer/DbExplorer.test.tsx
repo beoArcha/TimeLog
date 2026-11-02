@@ -79,4 +79,26 @@ describe('Unit Tests: DbExplorer', () => {
 
     expect(createObjectURLMock).toHaveBeenCalled();
   });
+
+  it('should toggle table selection when clicking table selector button', () => {
+    render(
+      <MockProviders state={mockState}>
+        <DbExplorer />
+      </MockProviders>
+    );
+
+    // Initial state: no active table -> 5 domain tables rendered
+    expect(screen.getByTestId('mock-projects-table')).not.toBeNull();
+
+    // Select projects table
+    const projectsBtn = screen.getByTestId('select-table-projects');
+    fireEvent.click(projectsBtn);
+
+    // Active table selected -> domain tables hidden
+    expect(screen.queryByTestId('mock-projects-table')).toBeNull();
+
+    // Click projects table again -> deselects active table and brings back domain tables
+    fireEvent.click(projectsBtn);
+    expect(screen.getByTestId('mock-projects-table')).not.toBeNull();
+  });
 });

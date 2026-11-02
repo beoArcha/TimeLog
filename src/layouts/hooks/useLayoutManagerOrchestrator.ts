@@ -25,7 +25,6 @@ export const useLayoutManagerOrchestrator = () => {
 
   const {
     layoutVariant,
-    resolvedTheme,
     textAndIconSize,
     activeLargeTab,
     setActiveLargeTab,
@@ -153,7 +152,6 @@ export const useLayoutManagerOrchestrator = () => {
     nowIso,
     locale,
     customTranslations,
-    theme: resolvedTheme,
     textAndIconSize,
     selectedTaskId,
     setSelectedTaskId,

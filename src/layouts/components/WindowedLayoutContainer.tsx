@@ -10,6 +10,8 @@ import { GuiState } from '../hooks/useGuiLogic';
 import { AppTabId } from '@common/types/navigation';
 import { LayoutVariant } from '@bindings/LayoutVariant';
 import { isMediumLayout, isFullLayout } from '@common/constants/layoutVariants';
+import { Area } from '@components/ui/area';
+import { VStack } from '@components/ui/stack';
 
 export interface WindowedLayoutContainerProps {
   layoutVariant: LayoutVariant;
@@ -59,16 +61,18 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
       exit={{ opacity: 0, scale: 0.98 }}
       className="flex-1 flex flex-col w-full min-h-0 overflow-hidden"
     >
-      <div className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex flex-col flex-1 min-h-0 border border-border transition-all duration-300 bg-card/50 backdrop-blur-2xl ${
-        isMedium
-          ? `w-full md:max-w-4xl lg:max-w-[500px] xl:max-w-[540px] ${
-              mediumDockPosition === 'left'
-                ? 'md:mx-auto lg:ml-4 lg:mr-auto xl:ml-8'
-                : 'md:mx-auto lg:mr-4 lg:ml-auto xl:mr-8'
-            }`
-          : 'w-full'
-      }`}>
-
+      <VStack
+        gap="none"
+        className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex-1 min-h-0 border border-border transition-all duration-300 bg-card/50 backdrop-blur-2xl ${
+          isMedium
+            ? `w-full md:max-w-4xl lg:max-w-[500px] xl:max-w-[540px] ${
+                mediumDockPosition === 'left'
+                  ? 'md:mx-auto lg:ml-4 lg:mr-auto xl:ml-8'
+                  : 'md:mx-auto lg:mr-4 lg:ml-auto xl:mr-8'
+              }`
+            : 'w-full'
+        }`}
+      >
         <Header />
 
         {isFull && (
@@ -80,17 +84,23 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
           />
         )}
 
-        <main className={`flex-1 min-h-0 w-full z-10 flex flex-col ${
-          isMedium
-            ? 'p-2.5 sm:p-4 md:p-5 overflow-hidden'
-            : 'w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 gap-5 overflow-y-auto overflow-x-hidden'
-        }`}>
-
+        <Area
+          as="main"
+          className={`flex-1 min-h-0 w-full z-10 flex flex-col ${
+            isMedium
+              ? 'p-2.5 sm:p-4 md:p-5 overflow-hidden'
+              : 'w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 gap-5 overflow-y-auto overflow-x-hidden'
+          }`}
+        >
           <div className="shrink-0 mb-1">
             <DaemonStatusBar />
           </div>
 
-          <div id="tab-viewport" className={isMedium ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'w-full min-w-0 min-h-[480px] flex-1 flex flex-col'}>
+          <VStack
+            id="tab-viewport"
+            gap="none"
+            className={isMedium ? 'flex-1 min-h-0 overflow-hidden' : 'w-full min-w-0 min-h-[480px] flex-1'}
+          >
             {isMedium && (
               <MediumLayoutBuilder
                 state={guiState}
@@ -105,8 +115,8 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
                 sharedProps={sharedProps}
               />
             )}
-          </div>
-        </main>
+          </VStack>
+        </Area>
 
         <div className={isMedium ? 'hidden sm:block shrink-0' : 'shrink-0'}>
           <AppFooter
@@ -116,8 +126,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
             setShowCreditsModal={setShowCreditsModal}
           />
         </div>
-
-      </div>
+      </VStack>
     </AnimatedFade>
   );
 };

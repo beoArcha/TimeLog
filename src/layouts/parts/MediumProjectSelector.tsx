@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { GuiState } from '../hooks/useGuiLogic';
-import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { translate } from '@common/i18n/translator';
 import { ProjectBadge } from '@features/projects/components/ProjectBadge';
+import { ProjectFormFields } from '@features/projects/components/ProjectFormFields';
 import { MediumHeaderActions } from './MediumHeaderActions';
 import { Button } from '@components/ui/button';
-import { Input } from '@components/ui/input';
 import { Form } from '@components/ui/form';
 import { Text, MonoText, Caption, Overline } from '@components/ui/typography';
-import { HStack, VStack, InlineCluster } from '@components/ui/stack';
+import { HStack, VStack } from '@components/ui/stack';
 import { TimerDisplay } from '@features/timelogs/components/TimerDisplay';
 import {
   Folder,
@@ -227,34 +226,25 @@ export default function MediumProjectSelector({
               <Caption weight="semibold" className="mb-2 text-orange-500 block">
                 {translate(locale, 'project', 'NewProject', customTranslations)}
               </Caption>
-              <Input
-                type="text"
-                data-testid="medium-new-project-input"
+              <ProjectFormFields.Name
+                idPrefix="medium"
+                dataTestId="medium-new-project-input"
                 value={newProjectName}
-                onChange={e => setNewProjectName(e.target.value)}
+                onChange={setNewProjectName}
                 placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
                 autoFocus
                 required
                 className="w-full mb-2"
               />
-              <InlineCluster gap="xs" className="mb-3">
-                {PROJECT_COLORS.map(c => (
-                  <Button
-                    key={c.name}
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => setNewProjectColor(c.name)}
-                    className={`w-5 h-5 rounded-full transition-transform cursor-pointer p-0 ${
-                      newProjectColor === c.name
-                        ? 'scale-125 ring-2 ring-orange-400'
-                        : 'opacity-70 hover:opacity-100'
-                    }`}
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  />
-                ))}
-              </InlineCluster>
+              <div className="mb-3">
+                <ProjectFormFields.ColorPalette
+                  idPrefix="medium"
+                  color={newProjectColor}
+                  onChange={setNewProjectColor}
+                  locale={locale}
+                  customTranslations={customTranslations}
+                />
+              </div>
               <HStack justify="end" gap="xs">
                 <Button
                   type="button"

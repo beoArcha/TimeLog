@@ -61,6 +61,10 @@ export default function DbExplorer() {
 
   const [activeTable, setActiveTable] = useState('');
 
+  const handleSelectTable = (tableId: string) => {
+    setActiveTable((prev) => (prev === tableId ? '' : tableId));
+  };
+
   const currentTableData = useMemo<Record<string, unknown>[]>(() => {
     switch (activeTable) {
       case 'projects':
@@ -205,7 +209,7 @@ export default function DbExplorer() {
             <DataTableViewer
               tables={DB_TABLE_OPTIONS}
               activeTable={activeTable}
-              onSelectTable={setActiveTable}
+              onSelectTable={handleSelectTable}
               data={currentTableData}
               onCellEdit={handleCellEdit}
             >
@@ -214,15 +218,23 @@ export default function DbExplorer() {
                 <DataTableViewer.TableSelector />
                 <DataTableViewer.Search />
               </DataTableViewer.Toolbar>
-              <DataTableViewer.Table />
-              <DataTableViewer.Pagination />
-              <DataTableViewer.DetailModal />
+              {Boolean(activeTable) && (
+                <>
+                  <DataTableViewer.Table />
+                  <DataTableViewer.Pagination />
+                  <DataTableViewer.DetailModal />
+                </>
+              )}
             </DataTableViewer>
-            <ProjectsTable />
-            <TasksTable />
-            <TimeLogsTable />
-            <HolidaysLeavesTable />
-            <PatchLogsTable />
+            {!activeTable && (
+              <>
+                <ProjectsTable />
+                <TasksTable />
+                <TimeLogsTable />
+                <HolidaysLeavesTable />
+                <PatchLogsTable />
+              </>
+            )}
           </>
         )}
       </div>

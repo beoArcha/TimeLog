@@ -56,7 +56,6 @@ export interface LayoutCommonProps {
   nowIso?: string;
   locale: Locale;
   customTranslations?: Partial<TranslationDictionary>;
-  theme?: string;
   textAndIconSize?: TextAndIconSize;
 
   selectedTaskId: string | null;
