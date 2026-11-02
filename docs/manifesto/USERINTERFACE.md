@@ -222,6 +222,8 @@ Atomic, domain-agnostic headless primitives built on top of Radix / Base-UI and 
 - `TimerDisplay`: Monospace timer display with design tokens and active live states.
 - `Form`: Semantic Form component with standardized vertical/horizontal layouts, token gaps, automated `preventDefault`, and `role="form"`.
 - `Area`: Polymorphic surface and layout container primitive (`variant`, `padding`, `radius`, `elevation`, `as?: 'aside' | 'section' | 'main' | ...`).
+- `Stack`, `HStack`, `VStack`, and `InlineCluster`: Semantic flex-layout primitives. `Stack` supports horizontal or vertical direction; `HStack` and `VStack` provide the corresponding defaults; `InlineCluster` wraps inline groups such as tags, badges, and action controls.
+- `StatusDot`: Token-based status indicator with semantic color and size variants, including an optional ping state.
 - `Progress` / `ProgressBar`: Accessible progress indicators with design token colors and size variants.
 - `Code`: Semantic inline and block code formatting container.
 - `Drawer`: Semantic edge-sliding modal sheet with focus trap and accessibility attributes.
@@ -238,6 +240,17 @@ Higher-level UX building blocks composed entirely of UI primitives:
 - `SegmentedControl`: Compact option switcher replacing ad-hoc button groups.
 - `EmptyState`: Standardized empty view displaying icon, message, and call-to-action button.
 - `DataTable`: Unified table wrapper featuring scrollable viewport and tokenized layout.
+- `AnimatedDrawer`: Modal drawer composed with Base UI Dialog primitives; focus management, Escape/backdrop dismissal, and CSS entry/exit transitions are owned by the dialog lifecycle.
+
+#### Shared Project Form Fields (`src/features/projects/components/ProjectFormFields.tsx`)
+
+Project-specific inputs are implemented once and composed by their consumers:
+
+- `Name`, `Emoji`, and `ColorPalette` for project identity.
+- `Description` and `Tags` for project metadata, including suggestions from existing project tags.
+- `Rates` and `Concurrency` for billing configuration and execution policy.
+
+The sidebar creation form, edit dialog, and Medium project-creation flow select the fields they need. Consumers retain control of form state, validation, translations, layout, and save behavior; the shared fields do not own project persistence.
 
 ---
 
