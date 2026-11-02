@@ -55,4 +55,30 @@ describe('Drawer', () => {
     expect(screen.queryByText('Hidden title')).toBeNull();
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it.each([
+    ['top', 'data-[starting-style]:-translate-y-full', 'data-[ending-style]:-translate-y-full'],
+    ['bottom', 'data-[starting-style]:translate-y-full', 'data-[ending-style]:translate-y-full'],
+    ['left', 'data-[starting-style]:-translate-x-full', 'data-[ending-style]:-translate-x-full'],
+    ['right', 'data-[starting-style]:translate-x-full', 'data-[ending-style]:translate-x-full'],
+  ] as const)('should apply correct transition classes for side %s', (side, startingClass, endingClass) => {
+    // Arrange & Act
+    render(
+      <Drawer open={true}>
+        <DrawerContent side={side}>
+          <DrawerTitle>{side} drawer</DrawerTitle>
+        </DrawerContent>
+      </Drawer>
+    );
+
+    const dialog = screen.getByRole('dialog');
+
+    // Assert
+    expect(dialog.className).toContain(startingClass);
+    expect(dialog.className).toContain(endingClass);
+    expect(dialog.className).toContain('data-[starting-style]:opacity-0');
+    expect(dialog.className).toContain('data-[ending-style]:opacity-0');
+    expect(dialog.className).not.toContain('animate-in');
+    expect(dialog.className).not.toContain('animate-out');
+  });
 });
