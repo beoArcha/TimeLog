@@ -34,12 +34,36 @@ export function AnimatedDrawer({
   backdropId = 'animated-drawer-backdrop',
   portalContainer,
 }: AnimatedDrawerProps) {
+  const lastCloseTimestampRef = React.useRef(0);
+
+  const handleClose = React.useCallback(() => {
+    const now = Date.now();
+    if (now - lastCloseTimestampRef.current < 50) {
+      return;
+    }
+    lastCloseTimestampRef.current = now;
+    onClose();
+  }, [onClose]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleClose]);
+
   return (
     <Drawer
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          onClose();
+          handleClose();
         }
       }}
     >
@@ -49,6 +73,7 @@ export function AnimatedDrawer({
         showClose={false}
         backdropId={backdropId}
         backdropClassName={backdropClassName}
+        onBackdropClick={handleClose}
         portalContainer={portalContainer}
         aria-label={title}
         aria-modal="true"

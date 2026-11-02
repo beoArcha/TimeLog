@@ -60,4 +60,40 @@ describe('AnimatedDrawer', () => {
     // Assert
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('should call onClose when Escape key is pressed', () => {
+    // Arrange
+    const onClose = vi.fn();
+    render(
+      <AnimatedDrawer isOpen={true} onClose={onClose} title="CLI Terminal">
+        <div>Content</div>
+      </AnimatedDrawer>
+    );
+
+    // Act
+    fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
+
+    // Assert
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('should respect controlled isOpen prop updates', () => {
+    // Arrange
+    const { rerender } = render(
+      <AnimatedDrawer isOpen={true} onClose={vi.fn()} title="CLI Terminal">
+        <div>Content</div>
+      </AnimatedDrawer>
+    );
+    expect(screen.getByRole('dialog')).toBeTruthy();
+
+    // Act
+    rerender(
+      <AnimatedDrawer isOpen={false} onClose={vi.fn()} title="CLI Terminal">
+        <div>Content</div>
+      </AnimatedDrawer>
+    );
+
+    // Assert
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
 });
