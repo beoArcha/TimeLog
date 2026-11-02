@@ -9,7 +9,7 @@ import {
 } from "@components/ui/dialog";
 import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";
-import { Overline, MonoText, MetricText } from "@components/ui/typography";
+import { Caption, Overline, MonoText, MetricText } from "@components/ui/typography";
 import { useTranslation } from "@common/i18n/translator";
 import { PluginRegistry } from "@plugins/PluginRegistry";
 import { registerDefaultExporters } from "@plugins/exporters";
@@ -144,14 +144,17 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                     <span className="flex items-center gap-3">
                       {getFormatIcon(exp.id)}
                       <span className="block">
-                        <span className="text-xs text-muted-foreground block font-semibold">{exp.name}</span>
-                        <span className="text-xs text-muted-foreground block opacity-75 font-mono">
+                        <Caption as="span" size="xs" className="block font-semibold">
+                          {exp.name}
+                        </Caption>
+                        <Caption as="span" size="2xs" className="block opacity-75 font-mono">
                           .{exp.fileExtension}
-                        </span>
+                        </Caption>
                       </span>
                     </span>
                     {isSelected && (
                       <Badge
+                        as="span"
                         variant="secondary"
                         size="sm"
                         className="font-mono"

@@ -64,9 +64,9 @@ export function ProjectEmptyState({
                 <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
               </span>
 
-              <span className="text-xs text-muted-foreground line-clamp-2 block text-left">
+              <Caption as="span" className="line-clamp-2 block text-left">
                 {resolved.description}
-              </span>
+              </Caption>
 
               <span className="flex items-center gap-1 mt-1">
                 <span
