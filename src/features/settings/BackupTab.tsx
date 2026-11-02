@@ -18,7 +18,7 @@ export default function BackupTab() {
           {translate(locale, 'settings', 'TabBackup', customTranslations)}
         </Badge>
         <Heading level={2} className="font-sans font-bold text-2xl mt-1.5 text-foreground">
-          <HStack gap="sm">
+          <HStack as="span" gap="sm">
             <UploadCloud className="w-6 h-6 text-emerald-400" />
             <span>{translate(locale, 'settings', 'TabBackup', customTranslations)}</span>
           </HStack>

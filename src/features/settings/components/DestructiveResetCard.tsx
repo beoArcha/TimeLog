@@ -98,11 +98,11 @@ export function DestructiveResetCard() {
                 checked={allSelected}
                 onCheckedChange={toggleSelectAll}
               />
-              <VStack gap="none" className="text-left">
-                <Text size="sm" className="font-semibold">
+              <VStack as="span" gap="none" className="text-left flex flex-col">
+                <Text as="span" size="sm" className="font-semibold block">
                   {translate(locale, 'engine', 'ResetDomainAll', customTranslations)}
                 </Text>
-                <Caption size="2xs" variant="muted">
+                <Caption as="span" size="2xs" variant="muted" className="block">
                   {translate(locale, 'engine', 'ResetDomainAllDesc', customTranslations)}
                 </Caption>
               </VStack>
@@ -116,11 +116,11 @@ export function DestructiveResetCard() {
                   checked={selectedDomains.includes('BUSINESS')}
                   onCheckedChange={() => toggleDomain('BUSINESS')}
                 />
-                <VStack gap="none" className="text-left">
-                  <Text size="xs" className="font-medium">
+                <VStack as="span" gap="none" className="text-left flex flex-col">
+                  <Text as="span" size="xs" className="font-semibold block">
                     {translate(locale, 'engine', 'ResetDomainBusiness', customTranslations)}
                   </Text>
-                  <Caption size="2xs" variant="muted">
+                  <Caption as="span" size="2xs" variant="muted" className="block">
                     {translate(locale, 'engine', 'ResetDomainBusinessDesc', customTranslations)}
                   </Caption>
                 </VStack>
@@ -133,11 +133,11 @@ export function DestructiveResetCard() {
                   checked={selectedDomains.includes('SETTINGS')}
                   onCheckedChange={() => toggleDomain('SETTINGS')}
                 />
-                <VStack gap="none" className="text-left">
-                  <Text size="xs" className="font-medium">
+                <VStack as="span" gap="none" className="text-left flex flex-col">
+                  <Text as="span" size="xs" className="font-semibold block">
                     {translate(locale, 'engine', 'ResetDomainSettings', customTranslations)}
                   </Text>
-                  <Caption size="2xs" variant="muted">
+                  <Caption as="span" size="2xs" variant="muted" className="block">
                     {translate(locale, 'engine', 'ResetDomainSettingsDesc', customTranslations)}
                   </Caption>
                 </VStack>
@@ -150,11 +150,11 @@ export function DestructiveResetCard() {
                   checked={selectedDomains.includes('SYSTEM')}
                   onCheckedChange={() => toggleDomain('SYSTEM')}
                 />
-                <VStack gap="none" className="text-left">
-                  <Text size="xs" className="font-medium">
+                <VStack as="span" gap="none" className="text-left flex flex-col">
+                  <Text as="span" size="xs" className="font-semibold block">
                     {translate(locale, 'engine', 'ResetDomainSystem', customTranslations)}
                   </Text>
-                  <Caption size="2xs" variant="muted">
+                  <Caption as="span" size="2xs" variant="muted" className="block">
                     {translate(locale, 'engine', 'ResetDomainSystemDesc', customTranslations)}
                   </Caption>
                 </VStack>

@@ -151,7 +151,7 @@ export default function MediumProjectSelector({
             size="md"
             showName={false}
           />
-          <div className="min-w-0 flex-1">
+          <span className="min-w-0 flex-1 block text-left">
             <HStack gap="xs" align="center">
               <Text weight="bold" size="sm" as="span" className="truncate block">
                 {selectedProject?.name ||
@@ -181,7 +181,7 @@ export default function MediumProjectSelector({
                 </Caption>
               </HStack>
             )}
-          </div>
+          </span>
         </Button>
 
         <MediumHeaderActions
