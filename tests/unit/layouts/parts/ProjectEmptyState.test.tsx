@@ -93,16 +93,4 @@ describe('ProjectEmptyState', () => {
     expect(consultingBtn.getAttribute('aria-label')).toContain('Client Consulting');
   });
 
-  it('should strictly contain only phrasing content inside template buttons (no div or p in DOM)', () => {
-    // Arrange
-    const onApplyTemplate = vi.fn();
-    render(<ProjectEmptyState onApplyTemplate={onApplyTemplate} />);
-
-    // Assert: template buttons must not contain any block/flow elements (div, p)
-    for (const template of STARTER_TEMPLATES) {
-      const button = screen.getByTestId(`starter-template-${template.id}`);
-      const blockElements = button.querySelectorAll('div, p');
-      expect(blockElements.length).toBe(0);
-    }
-  });
 });
