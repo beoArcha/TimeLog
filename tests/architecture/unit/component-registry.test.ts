@@ -55,6 +55,8 @@ const TAG_CATEGORY_MAP: Record<string, ContentCategory> = {
   kbd: 'phrasing',
   button: 'interactive',
   select: 'interactive',
+  option: 'form-option',
+  optgroup: 'form-option',
   label: 'phrasing',
   table: 'flow',
   thead: 'table-structure',
@@ -163,16 +165,61 @@ describe('Component Registry Consistency', () => {
     });
   });
 
+  describe('Grid layout metadata consistency', () => {
+    it('declares selfCategory as flow matching its defaultTag div', () => {
+      const grid = COMPONENT_REGISTRY.Grid;
+      expect(grid.defaultTag).toBe('div');
+      expect(grid.selfCategory).toBe('flow');
+    });
+
+    it('contains exactly div, section, and article in supportedAs and does not allow ul or ol', () => {
+      const grid = COMPONENT_REGISTRY.Grid;
+      expect(grid.supportedAs).toEqual(['div', 'section', 'article']);
+      expect(grid.supportedAs).not.toContain('ul');
+      expect(grid.supportedAs).not.toContain('ol');
+    });
+  });
+
+  describe('NativeOption and NativeOptGroup form metadata consistency', () => {
+    it('registers NativeOption and NativeOptGroup in form category with selfCategory form-option', () => {
+      const optionMeta = COMPONENT_REGISTRY.NativeOption;
+      expect(optionMeta).toBeDefined();
+      expect(optionMeta.category).toBe('form');
+      expect(optionMeta.defaultTag).toBe('option');
+      expect(optionMeta.selfCategory).toBe('form-option');
+      expect(optionMeta.allowedChildCategories).toEqual(['phrasing', 'transparent']);
+
+      const optGroupMeta = COMPONENT_REGISTRY.NativeOptGroup;
+      expect(optGroupMeta).toBeDefined();
+      expect(optGroupMeta.category).toBe('form');
+      expect(optGroupMeta.defaultTag).toBe('optgroup');
+      expect(optGroupMeta.selfCategory).toBe('form-option');
+      expect(optGroupMeta.allowedChildCategories).toEqual(['form-option', 'transparent']);
+      expect(optGroupMeta.allowedChildTags).toEqual(['option', 'NativeOption']);
+    });
+
+    it('verifies NativeSelect only permits form-option components as children', () => {
+      const selectMeta = COMPONENT_REGISTRY.NativeSelect;
+      expect(selectMeta.allowedChildCategories).toContain('form-option');
+      expect(selectMeta.allowedChildTags).toContain('NativeOption');
+      expect(selectMeta.allowedChildTags).toContain('NativeOptGroup');
+    });
+  });
+
   describe('helper functions', () => {
     it('getComponentMetadata returns metadata for registered components', () => {
       expect(getComponentMetadata('VStack')).toBeDefined();
       expect(getComponentMetadata('Button')?.defaultTag).toBe('button');
+      expect(getComponentMetadata('NativeOption')?.defaultTag).toBe('option');
+      expect(getComponentMetadata('NativeOptGroup')?.defaultTag).toBe('optgroup');
       expect(getComponentMetadata('NonExistent')).toBeUndefined();
     });
 
     it('isDesignSystemComponent correctly identifies members', () => {
       expect(isDesignSystemComponent('VStack')).toBe(true);
       expect(isDesignSystemComponent('Badge')).toBe(true);
+      expect(isDesignSystemComponent('NativeOption')).toBe(true);
+      expect(isDesignSystemComponent('NativeOptGroup')).toBe(true);
       expect(isDesignSystemComponent('div')).toBe(false);
       expect(isDesignSystemComponent('CustomWidget')).toBe(false);
     });

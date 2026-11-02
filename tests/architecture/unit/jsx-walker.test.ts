@@ -820,4 +820,164 @@ describe('AST JSX Walker', () => {
       expect(headingRecord?.parentTag).toBe('Area');
     });
   });
+
+  describe('NativeSelect, NativeOption, and NativeOptGroup content model and nesting validation', () => {
+    it('recognizes NativeOption and NativeOptGroup as registered Design System components', () => {
+      const code = `
+        <NativeSelect>
+          <NativeOption value="1">Option 1</NativeOption>
+          <NativeOptGroup label="Group">
+            <NativeOption value="2">Option 2</NativeOption>
+          </NativeOptGroup>
+        </NativeSelect>
+      `;
+      const records = collectWalk(code);
+
+      const optionRecords = records.filter(
+        r => r.childTag === 'NativeOption' || r.childTag === 'NativeOptGroup' || r.childTag === 'NativeSelect'
+      );
+      expect(optionRecords).toHaveLength(4);
+      for (const rec of optionRecords) {
+        expect(rec.elementKind).toBe('registered-ds');
+        expect(rec.isComponent).toBe(true);
+      }
+    });
+
+    it('validates correct nesting hierarchy for NativeOption and NativeOptGroup inside NativeSelect', () => {
+      const code = `
+        <NativeSelect>
+          <NativeOption value="a">A</NativeOption>
+          <NativeOptGroup label="Group B">
+            <NativeOption value="b">B</NativeOption>
+          </NativeOptGroup>
+        </NativeSelect>
+      `;
+      const records = collectWalk(code);
+
+      // NativeSelect has null parent
+      expect(records[0]).toMatchObject({
+        parentTag: null,
+        childTag: 'NativeSelect',
+        childEffectiveTag: 'select',
+      });
+
+      // Direct NativeOption under NativeSelect
+      expect(records[1]).toMatchObject({
+        parentTag: 'NativeSelect',
+        childTag: 'NativeOption',
+        childEffectiveTag: 'option',
+      });
+
+      // NativeOptGroup under NativeSelect
+      expect(records[2]).toMatchObject({
+        parentTag: 'NativeSelect',
+        childTag: 'NativeOptGroup',
+        childEffectiveTag: 'optgroup',
+      });
+
+      // NativeOption under NativeOptGroup
+      expect(records[3]).toMatchObject({
+        parentTag: 'NativeOptGroup',
+        childTag: 'NativeOption',
+        childEffectiveTag: 'option',
+      });
+
+      // Verify content model rules against metadata
+      const selectMeta = getComponentMetadata('NativeSelect')!;
+      const optionMeta = getComponentMetadata('NativeOption')!;
+      const optGroupMeta = getComponentMetadata('NativeOptGroup')!;
+
+      // Children of NativeSelect must match allowedChildTags or allowedChildCategories
+      expect(selectMeta.allowedChildTags).toContain('NativeOption');
+      expect(selectMeta.allowedChildTags).toContain('NativeOptGroup');
+      expect(selectMeta.allowedChildCategories).toContain(optionMeta.selfCategory);
+      expect(selectMeta.allowedChildCategories).toContain(optGroupMeta.selfCategory);
+
+      // Children of NativeOptGroup must only be option/NativeOption
+      expect(optGroupMeta.allowedChildTags).toContain('NativeOption');
+      expect(optGroupMeta.allowedChildCategories).toContain(optionMeta.selfCategory);
+    });
+
+    it('rejects invalid nesting: NativeOption or NativeOptGroup used outside NativeSelect', () => {
+      const code = `
+        <div>
+          <NativeOption value="orphan">Orphan Option</NativeOption>
+          <NativeOptGroup label="Orphan Group">
+            <NativeOption value="nested">Nested</NativeOption>
+          </NativeOptGroup>
+        </div>
+      `;
+      const records = collectWalk(code);
+
+      const invalidOption = records.find(r => r.childTag === 'NativeOption' && r.parentTag === 'div');
+      expect(invalidOption).toBeDefined();
+
+      const invalidOptGroup = records.find(r => r.childTag === 'NativeOptGroup' && r.parentTag === 'div');
+      expect(invalidOptGroup).toBeDefined();
+
+      // Div allows flow/phrasing/transparent, but option is form-option
+      const divMeta = getComponentMetadata('VStack')!; // standard flow container
+      const optionMeta = getComponentMetadata('NativeOption')!;
+      expect(divMeta.allowedChildCategories).not.toContain(optionMeta.selfCategory);
+
+      // Verify that NativeOption is not a permitted child of general layout/interactive components
+      const buttonMeta = getComponentMetadata('Button')!;
+      expect(buttonMeta.allowedChildCategories).not.toContain(optionMeta.selfCategory);
+
+      const headingMeta = getComponentMetadata('Heading')!;
+      expect(headingMeta.allowedChildCategories).not.toContain(optionMeta.selfCategory);
+    });
+
+    it('rejects invalid nesting: structural flow/interactive children inside NativeOption', () => {
+      const code = `
+        <NativeSelect>
+          <NativeOption value="bad">
+            <div>Invalid Block Child</div>
+            <Button>Invalid Button Child</Button>
+            <Heading>Invalid Heading Child</Heading>
+          </NativeOption>
+        </NativeSelect>
+      `;
+      const records = collectWalk(code);
+
+      const childrenOfOption = records.filter(r => r.parentTag === 'NativeOption');
+      expect(childrenOfOption).toHaveLength(3);
+
+      const optionMeta = getComponentMetadata('NativeOption')!;
+      for (const invalidChild of childrenOfOption) {
+        expect(optionMeta.forbiddenChildTags).toContain(invalidChild.childTag);
+      }
+    });
+
+    it('rejects invalid nesting: non-option children inside NativeOptGroup', () => {
+      const code = `
+        <NativeSelect>
+          <NativeOptGroup label="Invalid">
+            <div>Invalid div</div>
+            <Button>Invalid Button</Button>
+            <NativeOptGroup label="Nested group (invalid)">
+              <NativeOption value="1">1</NativeOption>
+            </NativeOptGroup>
+          </NativeOptGroup>
+        </NativeSelect>
+      `;
+      const records = collectWalk(code);
+
+      const childrenOfOptGroup = records.filter(r => r.parentTag === 'NativeOptGroup');
+      const optGroupMeta = getComponentMetadata('NativeOptGroup')!;
+
+      const invalidDiv = childrenOfOptGroup.find(r => r.childTag === 'div');
+      expect(invalidDiv).toBeDefined();
+      expect(optGroupMeta.forbiddenChildTags).toContain('div');
+
+      const invalidButton = childrenOfOptGroup.find(r => r.childTag === 'Button');
+      expect(invalidButton).toBeDefined();
+      expect(optGroupMeta.forbiddenChildTags).toContain('Button');
+
+      // Nested optgroup inside optgroup is forbidden by HTML5
+      const invalidNestedGroup = childrenOfOptGroup.find(r => r.childTag === 'NativeOptGroup');
+      expect(invalidNestedGroup).toBeDefined();
+      expect(optGroupMeta.forbiddenChildTags).toContain('NativeOptGroup');
+    });
+  });
 });
