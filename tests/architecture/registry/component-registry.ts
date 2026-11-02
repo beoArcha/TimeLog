@@ -59,8 +59,8 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     category: 'layout',
     defaultTag: 'div',
     supportedAs: ['div', 'span'],
-    selfCategory: 'phrasing',
-    allowedChildCategories: ['phrasing', 'transparent'],
+    selfCategory: 'flow',
+    allowedChildCategories: ['phrasing', 'flow', 'transparent'],
     forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table'],
   },
   Grid: {
@@ -136,7 +136,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     category: 'inline',
     defaultTag: 'div',
     supportedAs: ['div', 'span'],
-    selfCategory: 'phrasing',
+    selfCategory: 'flow',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
   StatusDot: {
@@ -331,7 +331,13 @@ export function getEffectiveContentCategory(
   metadata: ComponentMetadata,
   asProp?: string
 ): ContentCategory {
-  if ((metadata.name === 'Text' || metadata.name === 'Caption') && asProp === 'span') {
+  if (
+    (metadata.name === 'Text' ||
+      metadata.name === 'Caption' ||
+      metadata.name === 'Badge' ||
+      metadata.name === 'InlineCluster') &&
+    asProp === 'span'
+  ) {
     return 'phrasing';
   }
   return metadata.selfCategory;

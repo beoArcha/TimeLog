@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import ts from 'typescript';
-import { walkJsxTree, JsxElementContext } from '../core/jsx-walker';
+import {
+  walkJsxTree,
+  JsxElementContext,
+  ElementKind,
+  WalkJsxOptions,
+  classifyElement,
+} from '../core/jsx-walker';
 import {
   COMPONENT_REGISTRY,
   getComponentMetadata,
@@ -18,23 +24,31 @@ interface VisitRecord {
   childTag: string;
   childEffectiveTag: string;
   childAs?: string;
+  isDynamicAs: boolean;
   isComponent: boolean;
+  elementKind: ElementKind;
 }
 
-function collectWalk(code: string): VisitRecord[] {
+function collectWalk(code: string, options?: WalkJsxOptions): VisitRecord[] {
   const sourceFile = parseSource(code);
   const records: VisitRecord[] = [];
 
-  walkJsxTree(sourceFile, (parent, child) => {
-    records.push({
-      parentTag: parent ? parent.tag : null,
-      parentEffectiveTag: parent ? parent.effectiveTag : null,
-      childTag: child.tag,
-      childEffectiveTag: child.effectiveTag,
-      childAs: child.as,
-      isComponent: child.isComponent,
-    });
-  });
+  walkJsxTree(
+    sourceFile,
+    (parent, child) => {
+      records.push({
+        parentTag: parent ? parent.tag : null,
+        parentEffectiveTag: parent ? parent.effectiveTag : null,
+        childTag: child.tag,
+        childEffectiveTag: child.effectiveTag,
+        childAs: child.as,
+        isDynamicAs: child.isDynamicAs,
+        isComponent: child.isComponent,
+        elementKind: child.elementKind,
+      });
+    },
+    options
+  );
 
   return records;
 }
@@ -79,6 +93,10 @@ describe('Component Metadata Registry', () => {
     expect(getEffectiveContentCategory(captionMeta)).toBe('flow');
     expect(getEffectiveContentCategory(captionMeta, 'span')).toBe('phrasing');
 
+    const badgeMeta = COMPONENT_REGISTRY.Badge;
+    expect(getEffectiveContentCategory(badgeMeta)).toBe('flow');
+    expect(getEffectiveContentCategory(badgeMeta, 'span')).toBe('phrasing');
+
     const vstackMeta = COMPONENT_REGISTRY.VStack;
     expect(getEffectiveContentCategory(vstackMeta, 'span')).toBe('flow');
   });
@@ -97,7 +115,9 @@ describe('AST JSX Walker', () => {
         childTag: 'Button',
         childEffectiveTag: 'button',
         childAs: undefined,
+        isDynamicAs: false,
         isComponent: true,
+        elementKind: 'registered-ds',
       });
     });
 
@@ -115,12 +135,14 @@ describe('AST JSX Walker', () => {
         childTag: 'div',
         childEffectiveTag: 'div',
         isComponent: false,
+        elementKind: 'native-html',
       });
       expect(records[1]).toMatchObject({
         parentTag: 'div',
         childTag: 'span',
         childEffectiveTag: 'span',
         isComponent: false,
+        elementKind: 'native-html',
       });
     });
 
@@ -147,13 +169,7 @@ describe('AST JSX Walker', () => {
   describe('nested layouts and parent stack tracking', () => {
     it('tracks nested hierarchy across multiple layers', () => {
       const code = `
-        <VStack>
-          <HStack>
-            <Badge>New</Badge>
-            <Text>Label</Text>
-          </HStack>
-          <Button>Action</Button>
-        </VStack>
+        <VStack>\n          <HStack>\n            <Badge>New</Badge>\n            <Text>Label</Text>\n          </HStack>\n          <Button>Action</Button>\n        </VStack>
       `;
       const records = collectWalk(code);
 
@@ -164,6 +180,7 @@ describe('AST JSX Walker', () => {
         parentTag: null,
         childTag: 'VStack',
         childEffectiveTag: 'div',
+        elementKind: 'registered-ds',
       });
 
       // 2. HStack under VStack
@@ -172,6 +189,7 @@ describe('AST JSX Walker', () => {
         parentEffectiveTag: 'div',
         childTag: 'HStack',
         childEffectiveTag: 'div',
+        elementKind: 'registered-ds',
       });
 
       // 3. Badge under HStack
@@ -180,6 +198,7 @@ describe('AST JSX Walker', () => {
         parentEffectiveTag: 'div',
         childTag: 'Badge',
         childEffectiveTag: 'div',
+        elementKind: 'registered-ds',
       });
 
       // 4. Text under HStack
@@ -188,6 +207,7 @@ describe('AST JSX Walker', () => {
         parentEffectiveTag: 'div',
         childTag: 'Text',
         childEffectiveTag: 'p',
+        elementKind: 'registered-ds',
       });
 
       // 5. Button under VStack (after HStack is popped)
@@ -196,12 +216,13 @@ describe('AST JSX Walker', () => {
         parentEffectiveTag: 'div',
         childTag: 'Button',
         childEffectiveTag: 'button',
+        elementKind: 'registered-ds',
       });
     });
   });
 
-  describe('as prop detection and effective tag resolution', () => {
-    it('extracts string literal as prop and overrides effectiveTag', () => {
+  describe('as prop detection and safe effective tag resolution', () => {
+    it('extracts static string literal as prop and overrides effectiveTag', () => {
       const code = `
         <VStack as="section">
           <Heading as="h1">Title</Heading>
@@ -213,6 +234,7 @@ describe('AST JSX Walker', () => {
       expect(records[0]).toMatchObject({
         childTag: 'VStack',
         childAs: 'section',
+        isDynamicAs: false,
         childEffectiveTag: 'section',
       });
 
@@ -221,6 +243,7 @@ describe('AST JSX Walker', () => {
         parentEffectiveTag: 'section',
         childTag: 'Heading',
         childAs: 'h1',
+        isDynamicAs: false,
         childEffectiveTag: 'h1',
       });
 
@@ -229,30 +252,259 @@ describe('AST JSX Walker', () => {
         parentEffectiveTag: 'section',
         childTag: 'Text',
         childAs: 'span',
+        isDynamicAs: false,
         childEffectiveTag: 'span',
       });
     });
 
-    it('extracts JSX expression as prop (e.g. as={"aside"})', () => {
+    it('extracts static JSX string expression as prop (e.g. as={"aside"})', () => {
       const code = `<Area as={"aside"} />`;
       const records = collectWalk(code);
 
       expect(records[0]).toMatchObject({
         childTag: 'Area',
         childAs: 'aside',
+        isDynamicAs: false,
         childEffectiveTag: 'aside',
       });
     });
 
-    it('extracts identifier or member expression as prop (e.g. as={motion.div})', () => {
-      const code = `<Area as={motion.div} />`;
+    it('resolves dynamic identifiers as explicit "dynamic" state without guessing tag', () => {
+      const code = `<Area as={layoutTag} />`;
       const records = collectWalk(code);
 
       expect(records[0]).toMatchObject({
         childTag: 'Area',
-        childAs: 'motion.div',
-        childEffectiveTag: 'motion.div',
+        childAs: 'dynamic',
+        isDynamicAs: true,
+        childEffectiveTag: 'dynamic',
       });
+    });
+
+    it('resolves dynamic ternary expressions as "dynamic"', () => {
+      const code = `<Heading as={isHeader ? "h1" : "h2"} />`;
+      const records = collectWalk(code);
+
+      expect(records[0]).toMatchObject({
+        childTag: 'Heading',
+        childAs: 'dynamic',
+        isDynamicAs: true,
+        childEffectiveTag: 'dynamic',
+      });
+    });
+
+    it('resolves member expressions and call expressions in as prop as "dynamic"', () => {
+      const code = `
+        <div>
+          <Area as={motion.div} />
+          <VStack as={getTag()} />
+          <HStack as={components[type]} />
+        </div>
+      `;
+      const records = collectWalk(code);
+
+      expect(records[1]).toMatchObject({
+        childTag: 'Area',
+        childAs: 'dynamic',
+        isDynamicAs: true,
+        childEffectiveTag: 'dynamic',
+      });
+
+      expect(records[2]).toMatchObject({
+        childTag: 'VStack',
+        childAs: 'dynamic',
+        isDynamicAs: true,
+        childEffectiveTag: 'dynamic',
+      });
+
+      expect(records[3]).toMatchObject({
+        childTag: 'HStack',
+        childAs: 'dynamic',
+        isDynamicAs: true,
+        childEffectiveTag: 'dynamic',
+      });
+    });
+
+    it('handles invalid as prop values safely by falling back to defaultTag without guessing', () => {
+      const code = `
+        <div>
+          <VStack as />
+          <VStack as={123} />
+          <Button as={true} />
+          <Text as="" />
+          <Text as="   " />
+          <Heading as={null} />
+        </div>
+      `;
+      const records = collectWalk(code);
+
+      // 1. <VStack as />
+      expect(records[1]).toMatchObject({
+        childTag: 'VStack',
+        childAs: undefined,
+        isDynamicAs: false,
+        childEffectiveTag: 'div',
+      });
+
+      // 2. <VStack as={123} />
+      expect(records[2]).toMatchObject({
+        childTag: 'VStack',
+        childAs: undefined,
+        isDynamicAs: false,
+        childEffectiveTag: 'div',
+      });
+
+      // 3. <Button as={true} />
+      expect(records[3]).toMatchObject({
+        childTag: 'Button',
+        childAs: undefined,
+        isDynamicAs: false,
+        childEffectiveTag: 'button',
+      });
+
+      // 4. <Text as="" />
+      expect(records[4]).toMatchObject({
+        childTag: 'Text',
+        childAs: undefined,
+        isDynamicAs: false,
+        childEffectiveTag: 'p',
+      });
+
+      // 5. <Text as="   " />
+      expect(records[5]).toMatchObject({
+        childTag: 'Text',
+        childAs: undefined,
+        isDynamicAs: false,
+        childEffectiveTag: 'p',
+      });
+
+      // 6. <Heading as={null} />
+      expect(records[6]).toMatchObject({
+        childTag: 'Heading',
+        childAs: undefined,
+        isDynamicAs: false,
+        childEffectiveTag: 'h2',
+      });
+    });
+  });
+
+  describe('elementKind classification', () => {
+    it('classifies native HTML lowercase elements as "native-html"', () => {
+      const code = `
+        <div>
+          <span>Text</span>
+          <h2>Heading</h2>
+          <section><p>Para</p></section>
+        </div>
+      `;
+      const records = collectWalk(code);
+
+      for (const rec of records) {
+        expect(rec.elementKind).toBe('native-html');
+        expect(rec.isComponent).toBe(false);
+      }
+    });
+
+    it('classifies registered Design System components as "registered-ds"', () => {
+      const code = `
+        <VStack>
+          <HStack>
+            <Badge>New</Badge>
+            <Text>Content</Text>
+          </HStack>
+          <Button>Click</Button>
+          <Table />
+        </VStack>
+      `;
+      const records = collectWalk(code);
+
+      for (const rec of records) {
+        expect(rec.elementKind).toBe('registered-ds');
+        expect(rec.isComponent).toBe(true);
+      }
+    });
+
+    it('classifies known third-party external components as "known-external"', () => {
+      const code = `
+        <div>
+          <Smile />
+          <BarChart />
+          <ResponsiveContainer />
+          <motion.div />
+          <AnimatePresence />
+        </div>
+      `;
+      const records = collectWalk(code);
+
+      const smileRec = records.find(r => r.childTag === 'Smile');
+      expect(smileRec?.elementKind).toBe('known-external');
+      expect(smileRec?.isComponent).toBe(true);
+
+      const chartRec = records.find(r => r.childTag === 'BarChart');
+      expect(chartRec?.elementKind).toBe('known-external');
+
+      const motionRec = records.find(r => r.childTag === 'motion.div');
+      expect(motionRec?.elementKind).toBe('known-external');
+    });
+
+    it('classifies imported external library components as "known-external"', () => {
+      const code = `
+        import { CustomIcon } from 'lucide-react';
+        import * as Recharts from 'recharts';
+        import { Toaster } from 'sonner';
+
+        <div>
+          <CustomIcon />
+          <Recharts.PieChart />
+          <Toaster />
+        </div>
+      `;
+      const records = collectWalk(code);
+
+      const iconRec = records.find(r => r.childTag === 'CustomIcon');
+      expect(iconRec?.elementKind).toBe('known-external');
+      expect(iconRec?.isComponent).toBe(true);
+
+      const pieRec = records.find(r => r.childTag === 'Recharts.PieChart');
+      expect(pieRec?.elementKind).toBe('known-external');
+
+      const toastRec = records.find(r => r.childTag === 'Toaster');
+      expect(toastRec?.elementKind).toBe('known-external');
+    });
+
+    it('does NOT classify unknown custom components as native HTML', () => {
+      const code = `
+        <div>
+          <CustomWidget />
+          <UserCard />
+          <UnresolvedDashboardHeader />
+        </div>
+      `;
+      const records = collectWalk(code);
+
+      const customWidget = records.find(r => r.childTag === 'CustomWidget');
+      expect(customWidget?.elementKind).toBe('unresolved-component');
+      expect(customWidget?.elementKind).not.toBe('native-html');
+      expect(customWidget?.isComponent).toBe(true);
+
+      const userCard = records.find(r => r.childTag === 'UserCard');
+      expect(userCard?.elementKind).toBe('unresolved-component');
+      expect(userCard?.elementKind).not.toBe('native-html');
+
+      const dashboardHeader = records.find(r => r.childTag === 'UnresolvedDashboardHeader');
+      expect(dashboardHeader?.elementKind).toBe('unresolved-component');
+      expect(dashboardHeader?.elementKind).not.toBe('native-html');
+    });
+
+    it('classifyElement helper directly returns expected elementKind', () => {
+      expect(classifyElement('div')).toBe('native-html');
+      expect(classifyElement('span')).toBe('native-html');
+      expect(classifyElement('VStack')).toBe('registered-ds');
+      expect(classifyElement('Button')).toBe('registered-ds');
+      expect(classifyElement('Smile')).toBe('known-external');
+      expect(classifyElement('motion.div')).toBe('known-external');
+      expect(classifyElement('CustomWidget')).toBe('unresolved-component');
+      expect(classifyElement('MyCustomProfile')).toBe('unresolved-component');
     });
   });
 
@@ -345,8 +597,8 @@ describe('AST JSX Walker', () => {
     });
   });
 
-  describe('array mapping unwrapping', () => {
-    it('unwraps concise arrow function array mappings', () => {
+  describe('rendered slot and callback analysis (.map vs non-render callbacks)', () => {
+    it('unwraps concise arrow function array mappings as rendered children', () => {
       const code = `
         <TableBody>
           {items.map(item => (
@@ -366,7 +618,7 @@ describe('AST JSX Walker', () => {
       });
     });
 
-    it('unwraps block body arrow function with return statement', () => {
+    it('unwraps block body arrow function with return statement in .map()', () => {
       const code = `
         <VStack>
           {items.map(item => {
@@ -432,6 +684,47 @@ describe('AST JSX Walker', () => {
         parentTag: 'TableRow',
         childTag: 'TableCell',
       });
+    });
+
+    it('NEGATIVE: does NOT traverse arbitrary callbacks like onClick or useEffect returning JSX', () => {
+      const code = `
+        <VStack>
+          <Button onClick={() => <ModalDialog />}>Open Modal</Button>
+          {useEffect(() => {
+            return () => <UnmountedCleanupView />;
+          })}
+          {someArbitraryHelper(() => <HelperElement />)}
+          <Text>Always Rendered</Text>
+        </VStack>
+      `;
+      const records = collectWalk(code);
+
+      const tagNames = records.map(r => r.childTag);
+
+      // Verified present:
+      expect(tagNames).toContain('VStack');
+      expect(tagNames).toContain('Button');
+      expect(tagNames).toContain('Text');
+
+      // Verified NOT traversed (non-render callbacks):
+      expect(tagNames).not.toContain('ModalDialog');
+      expect(tagNames).not.toContain('UnmountedCleanupView');
+      expect(tagNames).not.toContain('HelperElement');
+    });
+
+    it('NEGATIVE: does NOT traverse event handler props returning JSX (e.g. onKeyDown, onChange)', () => {
+      const code = `
+        <div onKeyDown={() => <TooltipContent />} onChange={() => { return <PopupView />; }}>
+          <span>Input</span>
+        </div>
+      `;
+      const records = collectWalk(code);
+
+      const tagNames = records.map(r => r.childTag);
+      expect(tagNames).toContain('div');
+      expect(tagNames).toContain('span');
+      expect(tagNames).not.toContain('TooltipContent');
+      expect(tagNames).not.toContain('PopupView');
     });
   });
 
@@ -503,8 +796,8 @@ describe('AST JSX Walker', () => {
     });
   });
 
-  describe('attributes with embedded JSX', () => {
-    it('processes JSX inside props as root elements with independent stack', () => {
+  describe('attributes with embedded JSX slots', () => {
+    it('processes static JSX inside props as root elements with independent stack', () => {
       const code = `
         <Area trigger={<Button><Text>Open</Text></Button>}>
           <Heading>Content</Heading>
