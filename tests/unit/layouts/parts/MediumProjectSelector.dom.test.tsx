@@ -7,6 +7,21 @@ import type { GuiState } from '@layouts/hooks/useGuiLogic';
 import { aProject, aTask } from '@tests/shared/builders/entity-builders';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 
+const FLOW_CONTENT_SELECTOR = [
+  'address', 'article', 'aside', 'blockquote', 'details', 'dialog', 'div', 'dl',
+  'fieldset', 'figcaption', 'figure', 'footer', 'form',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'header', 'hr', 'main', 'menu', 'nav', 'ol', 'p', 'pre', 'search',
+  'section', 'table', 'ul',
+].join(', ');
+
+function expectNoFlowContent(container: Element) {
+  const invalidElements = Array.from(container.querySelectorAll(FLOW_CONTENT_SELECTOR))
+    .map((element) => element.tagName.toLowerCase());
+
+  expect(invalidElements).toEqual([]);
+}
+
 describe('MediumProjectSelector DOM content model', () => {
   const project1 = aProject({ id: 'p1', name: 'Alpha Project', color: 'orange' });
   const project2 = aProject({ id: 'p2', name: 'Beta Project', color: 'teal' });
@@ -43,7 +58,7 @@ describe('MediumProjectSelector DOM content model', () => {
     cleanup();
   });
 
-  it('ensures dropdown button contains no block-level elements (div, p) in its DOM tree', () => {
+  it('renders phrasing-only content inside the dropdown button when a project is selected', () => {
     const state = createMockState();
     render(
       <MockProviders state={state}>
@@ -55,12 +70,10 @@ describe('MediumProjectSelector DOM content model', () => {
       </MockProviders>
     );
 
-    const dropdownBtn = screen.getByTestId('medium-project-dropdown-btn');
-    const blockElements = dropdownBtn.querySelectorAll('div, p');
-    expect(blockElements.length).toBe(0);
+    expectNoFlowContent(screen.getByTestId('medium-project-dropdown-btn'));
   });
 
-  it('ensures dropdown button with no project selected also contains no block-level elements', () => {
+  it('renders phrasing-only content inside the dropdown button without a selected project', () => {
     const state = createMockState({
       selectedProjectId: null,
       selectedProject: null,
@@ -75,8 +88,6 @@ describe('MediumProjectSelector DOM content model', () => {
       </MockProviders>
     );
 
-    const dropdownBtn = screen.getByTestId('medium-project-dropdown-btn');
-    const blockElements = dropdownBtn.querySelectorAll('div, p');
-    expect(blockElements.length).toBe(0);
+    expectNoFlowContent(screen.getByTestId('medium-project-dropdown-btn'));
   });
 });
