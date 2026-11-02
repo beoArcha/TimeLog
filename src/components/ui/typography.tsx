@@ -100,4 +100,82 @@ function ListItem({ className, ...props }: React.LiHTMLAttributes<HTMLLIElement>
   );
 }
 
-export { Heading, Text, Caption, Overline, MonoText, MetricText, List, ListItem };
+/**
+ * Phrasing semantic wrappers that inherit parent typography size/line-height.
+ */
+function Strong({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <strong
+      data-slot="strong"
+      className={cn("font-semibold text-foreground", className)}
+      {...props}
+    />
+  );
+}
+
+function Em({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <em
+      data-slot="em"
+      className={cn("italic text-foreground", className)}
+      {...props}
+    />
+  );
+}
+
+function Mark({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <mark
+      data-slot="mark"
+      className={cn("bg-primary/20 text-foreground rounded-xs px-1", className)}
+      {...props}
+    />
+  );
+}
+
+function Del({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <del
+      data-slot="del"
+      className={cn("line-through text-muted-foreground", className)}
+      {...props}
+    />
+  );
+}
+
+function Ins({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <ins
+      data-slot="ins"
+      className={cn("underline text-foreground decoration-emerald-500", className)}
+      {...props}
+    />
+  );
+}
+
+function Abbr({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <abbr
+      data-slot="abbr"
+      className={cn("underline decoration-dotted cursor-help", className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Heading,
+  Text,
+  Caption,
+  Overline,
+  MonoText,
+  MetricText,
+  List,
+  ListItem,
+  Strong,
+  Em,
+  Mark,
+  Del,
+  Ins,
+  Abbr,
+};

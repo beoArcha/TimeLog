@@ -108,10 +108,42 @@ function SelectLabel({
   );
 }
 
-export type NativeSelectProps = React.SelectHTMLAttributes<HTMLSelectElement>;
+interface NativeSelectOption {
+  value: string | number;
+  label: string;
+  disabled?: boolean;
+}
+
+interface NativeSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  options?: NativeSelectOption[];
+}
+
+const NativeOption = React.forwardRef<
+  HTMLOptionElement,
+  React.OptionHTMLAttributes<HTMLOptionElement>
+>(({ className, children, ...props }, ref) => {
+  return (
+    <option ref={ref} data-slot="native-option" className={className} {...props}>
+      {children}
+    </option>
+  );
+});
+NativeOption.displayName = "NativeOption";
+
+const NativeOptGroup = React.forwardRef<
+  HTMLOptGroupElement,
+  React.OptgroupHTMLAttributes<HTMLOptGroupElement>
+>(({ className, children, ...props }, ref) => {
+  return (
+    <optgroup ref={ref} data-slot="native-optgroup" className={className} {...props}>
+      {children}
+    </optgroup>
+  );
+});
+NativeOptGroup.displayName = "NativeOptGroup";
 
 const NativeSelect = React.forwardRef<HTMLSelectElement, NativeSelectProps>(
-  ({ className, children, ...props }, ref) => {
+  ({ className, children, options, ...props }, ref) => {
     return (
       <select
         ref={ref}
@@ -124,7 +156,12 @@ const NativeSelect = React.forwardRef<HTMLSelectElement, NativeSelectProps>(
         )}
         {...props}
       >
-        {children}
+        {children ??
+          options?.map((opt) => (
+            <NativeOption key={opt.value} value={opt.value} disabled={opt.disabled}>
+              {opt.label}
+            </NativeOption>
+          ))}
       </select>
     );
   }
@@ -140,5 +177,9 @@ export {
   SelectItem,
   SelectLabel,
   NativeSelect,
+  NativeOption,
+  NativeOptGroup,
   type SelectTriggerProps,
+  type NativeSelectProps,
+  type NativeSelectOption,
 };
