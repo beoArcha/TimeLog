@@ -1,5 +1,10 @@
 import ts from 'typescript';
-import { COMPONENT_REGISTRY, getEffectiveContentCategory } from '../registry/component-registry';
+import {
+  COMPONENT_REGISTRY,
+  ContentCategory,
+  getEffectiveContentCategory,
+  getNativeHtmlElementCategory,
+} from '../registry/component-registry';
 
 /**
  * Classification of JSX element types to distinguish HTML primitives,
@@ -593,6 +598,60 @@ export interface JsxValidationError {
 }
 
 /**
+ * Resolves the effective content category of a JSX element, covering both
+ * registered Design System components and standard native HTML elements.
+ * Returns undefined when category is unknown or polymorphic `as` is dynamic.
+ */
+export function getElementContentCategory(
+  element: JsxElementContext
+): ContentCategory | undefined {
+  if (element.asStatus === 'dynamic') {
+    return undefined;
+  }
+
+  const meta = COMPONENT_REGISTRY[element.tag];
+  if (meta) {
+    return getEffectiveContentCategory(meta, element.as);
+  }
+
+  if (element.elementKind === 'native-html') {
+    return getNativeHtmlElementCategory(element.effectiveTag);
+  }
+
+  return undefined;
+}
+
+/**
+ * Checks whether a child's content category is compatible with the parent's allowed categories,
+ * adhering to HTML5 content model hierarchy where flow content encompasses heading, sectioning,
+ * phrasing, interactive, embedded, and text content.
+ */
+export function isCategoryAllowed(
+  allowedCategories: ContentCategory[],
+  childCategory: ContentCategory
+): boolean {
+  if (allowedCategories.includes(childCategory)) {
+    return true;
+  }
+
+  if (allowedCategories.includes('flow')) {
+    const isFlowContent =
+      childCategory === 'flow' ||
+      childCategory === 'phrasing' ||
+      childCategory === 'heading' ||
+      childCategory === 'sectioning' ||
+      childCategory === 'interactive' ||
+      childCategory === 'embedded' ||
+      childCategory === 'text';
+    if (isFlowContent) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Validates a JSX AST tree against Design System component metadata and HTML content models.
  */
 export function validateJsxTree(
@@ -714,11 +773,12 @@ export function validateJsxTree(
                 rule: 'invalid-nesting',
                 message: `<${parent.tag}> accepts text content only; element <${child.tag}> is not allowed.`,
               });
-            } else if (childMeta) {
-              const childCategory = getEffectiveContentCategory(childMeta, child.as);
+            } else {
+              const childCategory = getElementContentCategory(child);
               if (
+                childCategory &&
                 childCategory !== 'transparent' &&
-                !parentMeta.allowedChildCategories.includes(childCategory)
+                !isCategoryAllowed(parentMeta.allowedChildCategories, childCategory)
               ) {
                 violations.push({
                   line: child.line,

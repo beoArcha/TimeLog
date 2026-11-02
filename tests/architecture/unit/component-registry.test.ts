@@ -3,8 +3,10 @@ import {
   COMPONENT_REGISTRY,
   ContentCategory,
   ComponentCategory,
+  HTML_ELEMENT_CATEGORY_MAP,
   getComponentMetadata,
   getEffectiveContentCategory,
+  getNativeHtmlElementCategory,
   isDesignSystemComponent,
 } from '../registry/component-registry';
 
@@ -31,42 +33,6 @@ const VALID_COMPONENT_CATEGORIES: ComponentCategory[] = [
   'feedback',
   'interactive',
 ];
-
-/**
- * Expected category mapping according to standard HTML semantic model:
- * Ensures components do not declare contradictory categories for their rendered HTML tags.
- */
-const TAG_CATEGORY_MAP: Record<string, ContentCategory> = {
-  div: 'flow',
-  p: 'flow',
-  span: 'phrasing',
-  h1: 'heading',
-  h2: 'heading',
-  h3: 'heading',
-  h4: 'heading',
-  h5: 'heading',
-  h6: 'heading',
-  strong: 'phrasing',
-  em: 'phrasing',
-  mark: 'phrasing',
-  del: 'phrasing',
-  ins: 'phrasing',
-  abbr: 'phrasing',
-  code: 'phrasing',
-  kbd: 'phrasing',
-  button: 'interactive',
-  select: 'interactive',
-  option: 'form-option',
-  optgroup: 'form-option',
-  label: 'phrasing',
-  table: 'flow',
-  thead: 'table-structure',
-  tbody: 'table-structure',
-  tfoot: 'table-structure',
-  tr: 'table-structure',
-  th: 'table-structure',
-  td: 'table-structure',
-};
 
 describe('Component Registry Consistency', () => {
   it('contains registered design system components', () => {
@@ -115,7 +81,7 @@ describe('Component Registry Consistency', () => {
         }
 
         it('has no contradictions between defaultTag and selfCategory', () => {
-          const expectedCategory = TAG_CATEGORY_MAP[meta.defaultTag];
+          const expectedCategory = HTML_ELEMENT_CATEGORY_MAP[meta.defaultTag];
           if (expectedCategory) {
             expect(
               meta.selfCategory,
@@ -224,6 +190,29 @@ describe('Component Registry Consistency', () => {
       expect(isDesignSystemComponent('NativeOptGroup')).toBe(true);
       expect(isDesignSystemComponent('div')).toBe(false);
       expect(isDesignSystemComponent('CustomWidget')).toBe(false);
+    });
+
+    it('getEffectiveContentCategory returns undefined when asProp is dynamic', () => {
+      const textMeta = COMPONENT_REGISTRY.Text;
+      const badgeMeta = COMPONENT_REGISTRY.Badge;
+      const vstackMeta = COMPONENT_REGISTRY.VStack;
+
+      expect(getEffectiveContentCategory(textMeta, 'dynamic')).toBeUndefined();
+      expect(getEffectiveContentCategory(badgeMeta, 'dynamic')).toBeUndefined();
+      expect(getEffectiveContentCategory(vstackMeta, 'dynamic')).toBeUndefined();
+    });
+
+    it('getNativeHtmlElementCategory classifies standard native HTML elements', () => {
+      expect(getNativeHtmlElementCategory('a')).toBe('interactive');
+      expect(getNativeHtmlElementCategory('button')).toBe('interactive');
+      expect(getNativeHtmlElementCategory('input')).toBe('interactive');
+      expect(getNativeHtmlElementCategory('span')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('div')).toBe('flow');
+      expect(getNativeHtmlElementCategory('h1')).toBe('heading');
+      expect(getNativeHtmlElementCategory('section')).toBe('sectioning');
+      expect(getNativeHtmlElementCategory('option')).toBe('form-option');
+      expect(getNativeHtmlElementCategory('tr')).toBe('table-structure');
+      expect(getNativeHtmlElementCategory('custom-unknown-element')).toBeUndefined();
     });
   });
 });

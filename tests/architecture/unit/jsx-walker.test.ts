@@ -91,17 +91,21 @@ describe('Component Metadata Registry', () => {
     expect(getEffectiveContentCategory(textMeta)).toBe('flow');
     expect(getEffectiveContentCategory(textMeta, 'span')).toBe('phrasing');
     expect(getEffectiveContentCategory(textMeta, 'p')).toBe('flow');
+    expect(getEffectiveContentCategory(textMeta, 'dynamic')).toBeUndefined();
 
     const captionMeta = COMPONENT_REGISTRY.Caption;
     expect(getEffectiveContentCategory(captionMeta)).toBe('flow');
     expect(getEffectiveContentCategory(captionMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(captionMeta, 'dynamic')).toBeUndefined();
 
     const badgeMeta = COMPONENT_REGISTRY.Badge;
     expect(getEffectiveContentCategory(badgeMeta)).toBe('flow');
     expect(getEffectiveContentCategory(badgeMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(badgeMeta, 'dynamic')).toBeUndefined();
 
     const vstackMeta = COMPONENT_REGISTRY.VStack;
     expect(getEffectiveContentCategory(vstackMeta, 'span')).toBe('flow');
+    expect(getEffectiveContentCategory(vstackMeta, 'dynamic')).toBeUndefined();
   });
 });
 
@@ -1015,6 +1019,99 @@ describe('AST JSX Walker', () => {
 
       expect(asErrors).toHaveLength(3);
       expect(asErrors.map(e => e.tag)).toEqual(['VStack', 'Button', 'NativeSelect']);
+    });
+
+    describe('Regression: Native HTML element and dynamic as validation', () => {
+      it('rejects native <a /> inside <Button> as an invalid-nesting violation', () => {
+        const code = `<Button><a href="/dest">Link</a></Button>`;
+        const errors = getValidationErrors(code);
+
+        expect(errors.length).toBeGreaterThan(0);
+        expect(
+          errors.some(
+            e =>
+              e.rule === 'invalid-nesting' &&
+              e.tag === 'a' &&
+              e.parentTag === 'Button' &&
+              e.message.includes('interactive')
+          )
+        ).toBe(true);
+      });
+
+      it('rejects native <input /> inside <Button> as a violation', () => {
+        const code = `<Button><input type="text" /></Button>`;
+        const errors = getValidationErrors(code);
+
+        expect(errors.length).toBeGreaterThan(0);
+        expect(
+          errors.some(
+            e =>
+              (e.rule === 'invalid-nesting' || e.rule === 'forbidden-child') &&
+              e.tag === 'input' &&
+              e.parentTag === 'Button'
+          )
+        ).toBe(true);
+      });
+
+      it('allows valid phrasing native <span /> inside <Button>', () => {
+        const code = `<Button><span>Click me</span></Button>`;
+        const errors = getValidationErrors(code);
+
+        expect(errors).toEqual([]);
+      });
+
+      it('does not infer effective content category from default tag when as is dynamic', () => {
+        // Text defaults to tag 'p' (flow), which is normally forbidden inside Button (phrasing).
+        // With dynamic as={dynamicTag}, the category is unknown and must not be assumed as flow.
+        const dynamicCode = `
+          <Button>
+            <Text as={dynamicTag}>Dynamic Text</Text>
+          </Button>
+        `;
+        const dynamicErrors = getValidationErrors(dynamicCode);
+        const textCategoryErrors = dynamicErrors.filter(
+          e => e.tag === 'Text' && e.parentTag === 'Button' && e.rule === 'invalid-nesting'
+        );
+        expect(textCategoryErrors).toEqual([]);
+
+        // In contrast, static Text without as defaults to p (flow) and MUST produce an invalid-nesting error inside Button
+        const staticCode = `
+          <Button>
+            <Text>Static Flow Text</Text>
+          </Button>
+        `;
+        const staticErrors = getValidationErrors(staticCode);
+        expect(
+          staticErrors.some(
+            e =>
+              e.tag === 'Text' &&
+              e.parentTag === 'Button' &&
+              e.rule === 'invalid-nesting' &&
+              e.message.includes('flow')
+          )
+        ).toBe(true);
+      });
+
+      it('rejects disallowed native HTML elements inside NativeOptGroup', () => {
+        const code = `
+          <NativeSelect>
+            <NativeOptGroup label="Test Group">
+              <span />
+              <input />
+              <p>Disallowed paragraph</p>
+              <NativeOption value="ok">Valid Option</NativeOption>
+            </NativeOptGroup>
+          </NativeSelect>
+        `;
+        const errors = getValidationErrors(code);
+        const optGroupErrors = errors.filter(e => e.parentTag === 'NativeOptGroup');
+
+        expect(optGroupErrors.length).toBeGreaterThanOrEqual(3);
+        expect(optGroupErrors.some(e => e.tag === 'span')).toBe(true);
+        expect(optGroupErrors.some(e => e.tag === 'input')).toBe(true);
+        expect(optGroupErrors.some(e => e.tag === 'p')).toBe(true);
+        expect(optGroupErrors.some(e => e.tag === 'NativeOption')).toBe(false);
+      });
     });
   });
 });
