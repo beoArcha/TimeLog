@@ -103,65 +103,89 @@ function ListItem({ className, ...props }: React.LiHTMLAttributes<HTMLLIElement>
 /**
  * Phrasing semantic wrappers that inherit parent typography size/line-height.
  */
-function Strong({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-  return (
-    <strong
-      data-slot="strong"
-      className={cn("font-semibold text-foreground", className)}
-      {...props}
-    />
-  );
-}
+const Strong = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <strong
+        ref={ref}
+        data-slot="strong"
+        className={cn("font-semibold", className)}
+        {...props}
+      />
+    );
+  }
+);
+Strong.displayName = "Strong";
 
-function Em({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-  return (
-    <em
-      data-slot="em"
-      className={cn("italic text-foreground", className)}
-      {...props}
-    />
-  );
-}
+const Em = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <em
+        ref={ref}
+        data-slot="em"
+        className={cn("italic", className)}
+        {...props}
+      />
+    );
+  }
+);
+Em.displayName = "Em";
 
-function Mark({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-  return (
-    <mark
-      data-slot="mark"
-      className={cn("bg-primary/20 text-foreground rounded-xs px-1", className)}
-      {...props}
-    />
-  );
-}
+const Mark = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <mark
+        ref={ref}
+        data-slot="mark"
+        className={cn("bg-primary/20 text-foreground rounded-xs px-1", className)}
+        {...props}
+      />
+    );
+  }
+);
+Mark.displayName = "Mark";
 
-function Del({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-  return (
-    <del
-      data-slot="del"
-      className={cn("line-through text-muted-foreground", className)}
-      {...props}
-    />
-  );
-}
+const Del = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <del
+        ref={ref}
+        data-slot="del"
+        className={cn("line-through text-muted-foreground", className)}
+        {...props}
+      />
+    );
+  }
+);
+Del.displayName = "Del";
 
-function Ins({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-  return (
-    <ins
-      data-slot="ins"
-      className={cn("underline text-foreground decoration-emerald-500", className)}
-      {...props}
-    />
-  );
-}
+const Ins = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <ins
+        ref={ref}
+        data-slot="ins"
+        className={cn("underline text-foreground decoration-emerald-500", className)}
+        {...props}
+      />
+    );
+  }
+);
+Ins.displayName = "Ins";
 
-function Abbr({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
-  return (
-    <abbr
-      data-slot="abbr"
-      className={cn("underline decoration-dotted cursor-help", className)}
-      {...props}
-    />
-  );
-}
+const Abbr = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <abbr
+        ref={ref}
+        data-slot="abbr"
+        className={cn("underline decoration-dotted cursor-help", className)}
+        {...props}
+      />
+    );
+  }
+);
+Abbr.displayName = "Abbr";
 
 export {
   Heading,

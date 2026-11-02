@@ -83,7 +83,7 @@ describe('Unit Tests: Grid Primitive', () => {
   });
 
   it('should render polymorphic elements via as prop', () => {
-    const asElements = ['section', 'article', 'ul', 'ol'] as const;
+    const asElements = ['div', 'section', 'article', 'ul', 'ol'] as const;
     asElements.forEach((asTag) => {
       cleanup();
       const { container } = render(
@@ -95,6 +95,23 @@ describe('Unit Tests: Grid Primitive', () => {
       expect(element).toBeTruthy();
       expect(element?.tagName.toLowerCase()).toBe(asTag);
     });
+  });
+
+  it('should test explicit as override from default div to section, article, ul, ol', () => {
+    // Default renders as div
+    const { container: defaultContainer } = render(<Grid>Default</Grid>);
+    const defaultEl = defaultContainer.querySelector('[data-slot="grid"]');
+    expect(defaultEl?.tagName.toLowerCase()).toBe('div');
+
+    // Explicit override to section
+    const { container: sectionContainer } = render(<Grid as="section">Section</Grid>);
+    const sectionEl = sectionContainer.querySelector('[data-slot="grid"]');
+    expect(sectionEl?.tagName.toLowerCase()).toBe('section');
+
+    // Explicit override to ul
+    const { container: ulContainer } = render(<Grid as="ul"><li>List item</li></Grid>);
+    const ulEl = ulContainer.querySelector('[data-slot="grid"]');
+    expect(ulEl?.tagName.toLowerCase()).toBe('ul');
   });
 
   it('should forward ref to the underlying element', () => {

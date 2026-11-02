@@ -45,17 +45,45 @@ describe('Unit Tests: NativeSelect Options and Primitives', () => {
       expect(ref.current?.value).toBe('ref-opt');
     });
 
-    it('should support disabled state', () => {
+    it('should pass disabled, value, label, and native HTMLOptionElement attributes', () => {
+      const ref = React.createRef<HTMLOptionElement>();
       render(
         <select>
-          <NativeOption value="disabled-opt" disabled>
-            Disabled Option
+          <NativeOption
+            ref={ref}
+            value="detailed-opt"
+            label="Detailed Label"
+            disabled
+            id="opt-custom-id"
+            title="Option Title"
+            aria-label="Accessible Option"
+          >
+            Detailed Child
           </NativeOption>
         </select>
       );
 
-      const option = screen.getByRole('option', { name: 'Disabled Option' }) as HTMLOptionElement;
+      const option = ref.current as HTMLOptionElement;
+      expect(option).toBeTruthy();
+      expect(option.value).toBe('detailed-opt');
+      expect(option.label).toBe('Detailed Label');
       expect(option.disabled).toBe(true);
+      expect(option.getAttribute('id')).toBe('opt-custom-id');
+      expect(option.getAttribute('title')).toBe('Option Title');
+      expect(option.getAttribute('aria-label')).toBe('Accessible Option');
+    });
+
+    it('should fallback to label attribute when children are not provided', () => {
+      render(
+        <select>
+          <NativeOption value="label-fallback" label="Fallback Text" />
+        </select>
+      );
+
+      const option = screen.getByRole('option', { name: 'Fallback Text' }) as HTMLOptionElement;
+      expect(option).toBeTruthy();
+      expect(option.textContent).toBe('Fallback Text');
+      expect(option.label).toBe('Fallback Text');
     });
   });
 
@@ -79,29 +107,38 @@ describe('Unit Tests: NativeSelect Options and Primitives', () => {
       expect(option).toBeTruthy();
     });
 
-    it('should forward ref to HTMLOptGroupElement', () => {
+    it('should forward ref and pass disabled, label, and native HTMLOptGroupElement attributes', () => {
       const ref = React.createRef<HTMLOptGroupElement>();
       render(
         <select>
-          <NativeOptGroup ref={ref} label="Ref Group">
-            <NativeOption value="1">Option</NativeOption>
+          <NativeOptGroup
+            ref={ref}
+            label="Disabled Group"
+            disabled
+            id="grp-custom-id"
+            aria-label="Accessible Group"
+          >
+            <NativeOption value="1">Option in group</NativeOption>
           </NativeOptGroup>
         </select>
       );
 
       expect(ref.current).toBeInstanceOf(HTMLOptGroupElement);
-      expect(ref.current?.label).toBe('Ref Group');
+      expect(ref.current?.label).toBe('Disabled Group');
+      expect(ref.current?.disabled).toBe(true);
+      expect(ref.current?.getAttribute('id')).toBe('grp-custom-id');
+      expect(ref.current?.getAttribute('aria-label')).toBe('Accessible Group');
     });
   });
 
-  describe('NativeSelect with options prop', () => {
+  describe('NativeSelect Precedence and Rendering Contracts', () => {
     const mockOptions: NativeSelectOption[] = [
       { value: 'apple', label: 'Apple' },
       { value: 'banana', label: 'Banana', disabled: true },
       { value: 42, label: 'Number Value' },
     ];
 
-    it('should render options from options prop when children is not provided', () => {
+    it('should render options via options prop when children is not provided', () => {
       render(<NativeSelect options={mockOptions} defaultValue="apple" />);
 
       const select = screen.getByRole('combobox');
@@ -123,15 +160,42 @@ describe('Unit Tests: NativeSelect Options and Primitives', () => {
       expect(numOpt.value).toBe('42');
     });
 
-    it('should prefer children over options prop when children is provided', () => {
+    it('should render via children (<NativeOption>, <NativeOptGroup>) when options is omitted', () => {
       render(
-        <NativeSelect options={mockOptions}>
-          <NativeOption value="override">Override Child</NativeOption>
+        <NativeSelect defaultValue="child2">
+          <NativeOptGroup label="Fruit Group">
+            <NativeOption value="child1">Child 1</NativeOption>
+            <NativeOption value="child2">Child 2</NativeOption>
+          </NativeOptGroup>
         </NativeSelect>
       );
 
-      expect(screen.getByRole('option', { name: 'Override Child' })).toBeTruthy();
-      expect(screen.queryByRole('option', { name: 'Apple' })).toBeNull();
+      const optGroup = screen.getByRole('group') as HTMLOptGroupElement;
+      expect(optGroup).toBeTruthy();
+      expect(optGroup.label).toBe('Fruit Group');
+      expect(screen.getByRole('option', { name: 'Child 1' })).toBeTruthy();
+      expect(screen.getByRole('option', { name: 'Child 2' })).toBeTruthy();
+    });
+
+    it('should give precedence to options prop when both options and children are present', () => {
+      render(
+        <NativeSelect options={mockOptions}>
+          <NativeOption value="override-child">Ignored Child Option</NativeOption>
+          <NativeOptGroup label="Ignored Group">
+            <NativeOption value="nested">Ignored Nested</NativeOption>
+          </NativeOptGroup>
+        </NativeSelect>
+      );
+
+      // options prop takes precedence
+      expect(screen.getByRole('option', { name: 'Apple' })).toBeTruthy();
+      expect(screen.getByRole('option', { name: 'Banana' })).toBeTruthy();
+      expect(screen.getByRole('option', { name: 'Number Value' })).toBeTruthy();
+
+      // children should not be rendered
+      expect(screen.queryByRole('option', { name: 'Ignored Child Option' })).toBeNull();
+      expect(screen.queryByRole('group')).toBeNull();
+      expect(screen.queryByRole('option', { name: 'Ignored Nested' })).toBeNull();
     });
 
     it('should render empty select when neither children nor options is provided', () => {
@@ -141,10 +205,24 @@ describe('Unit Tests: NativeSelect Options and Primitives', () => {
       expect(select?.children.length).toBe(0);
     });
 
-    it('should forward ref to HTMLSelectElement', () => {
+    it('should forward ref and native select attributes (disabled, name, id)', () => {
       const ref = React.createRef<HTMLSelectElement>();
-      render(<NativeSelect ref={ref} options={mockOptions} />);
+      render(
+        <NativeSelect
+          ref={ref}
+          options={mockOptions}
+          disabled
+          name="select-name"
+          id="select-id"
+          aria-label="Fruit Select"
+        />
+      );
+
       expect(ref.current).toBeInstanceOf(HTMLSelectElement);
+      expect(ref.current?.disabled).toBe(true);
+      expect(ref.current?.name).toBe('select-name');
+      expect(ref.current?.id).toBe('select-id');
+      expect(ref.current?.getAttribute('aria-label')).toBe('Fruit Select');
     });
   });
 });
