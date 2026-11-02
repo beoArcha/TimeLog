@@ -6,7 +6,7 @@ import { gridVariants } from "./grid-variants";
 export interface GridProps
   extends React.HTMLAttributes<HTMLElement>,
     VariantProps<typeof gridVariants> {
-  as?: "div" | "section" | "article" | "ul" | "ol";
+  as?: "div" | "section" | "article";
 }
 
 export const Grid = React.forwardRef<HTMLElement, GridProps>(
