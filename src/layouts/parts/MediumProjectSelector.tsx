@@ -152,7 +152,7 @@ export default function MediumProjectSelector({
             showName={false}
           />
           <span className="min-w-0 flex-1 block text-left">
-            <HStack gap="xs" align="center">
+            <HStack as="span" gap="xs" align="center">
               <Text weight="bold" size="sm" as="span" className="truncate block">
                 {selectedProject?.name ||
                   translate(locale, 'project', 'SelectProjectPlaceholder', customTranslations)}
@@ -165,7 +165,7 @@ export default function MediumProjectSelector({
               />
             </HStack>
             {selectedProject && (
-              <HStack gap="xs" align="center" className="text-xs font-mono text-muted-foreground">
+              <HStack as="span" gap="xs" align="center" className="text-xs font-mono text-muted-foreground">
                 <TimerDisplay
                   value={selectedProjectSeconds}
                   isRunning={isSelectedProjectRunning}
