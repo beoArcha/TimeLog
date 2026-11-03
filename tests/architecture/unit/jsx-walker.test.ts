@@ -974,6 +974,13 @@ describe('AST JSX Walker', () => {
         </div>
       `;
       expect(getValidationErrors(code)).toEqual([]);
+
+      const invalidTableCellErrors = getValidationErrors('<table><td>Invalid direct cell</td></table>');
+      expect(
+        invalidTableCellErrors.filter(
+          error => error.rule === 'invalid-nesting' && error.tag === 'td' && error.parentTag === 'table'
+        )
+      ).toHaveLength(1);
     });
 
     it('detects root-level NativeOption outside any select container', () => {
