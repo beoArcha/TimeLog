@@ -62,7 +62,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['div', 'span'],
     selfCategory: 'flow',
     allowedChildCategories: ['phrasing', 'flow', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table'],
   },
   Grid: {
     name: 'Grid',
@@ -89,7 +88,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
     selfCategory: 'heading',
     allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text'],
   },
   Text: {
     name: 'Text',
@@ -98,7 +96,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['p', 'span', 'div', 'small', 'strong', 'label'],
     selfCategory: 'flow',
     allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p'],
   },
   Caption: {
     name: 'Caption',
@@ -107,12 +104,12 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['p', 'span'],
     selfCategory: 'flow',
     allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p'],
   },
   Overline: {
     name: 'Overline',
     category: 'typography',
     defaultTag: 'span',
+    supportedAs: ['span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'small', 'strong', 'label'],
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
@@ -120,6 +117,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     name: 'MonoText',
     category: 'typography',
     defaultTag: 'span',
+    supportedAs: ['span', 'p', 'div', 'small', 'strong', 'label'],
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
@@ -127,8 +125,25 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     name: 'MetricText',
     category: 'typography',
     defaultTag: 'span',
+    supportedAs: ['span', 'p', 'div', 'small', 'strong', 'label'],
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
+  },
+  List: {
+    name: 'List',
+    category: 'typography',
+    defaultTag: 'ul',
+    supportedAs: ['ul', 'ol'],
+    selfCategory: 'flow',
+    allowedChildCategories: ['flow', 'phrasing', 'transparent'],
+  },
+  ListItem: {
+    name: 'ListItem',
+    category: 'typography',
+    defaultTag: 'li',
+    supportedAs: ['li'],
+    selfCategory: 'flow',
+    allowedChildCategories: ['flow', 'phrasing', 'transparent'],
   },
 
   // Inline
@@ -219,12 +234,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
       'Select',
       'NativeSelect',
       'select',
-      'div',
-      'VStack',
-      'HStack',
-      'Grid',
-      'Area',
-      'Table',
+      'textarea',
     ],
   },
   Label: {
@@ -233,7 +243,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'label',
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text'],
   },
   NativeSelect: {
     name: 'NativeSelect',
@@ -241,7 +250,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'select',
     selfCategory: 'interactive',
     allowedChildCategories: ['form-option', 'transparent'],
-    allowedChildTags: ['option', 'optgroup', 'NativeOption', 'NativeOptGroup'],
   },
   NativeOption: {
     name: 'NativeOption',
@@ -256,23 +264,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'optgroup',
     selfCategory: 'form-option',
     allowedChildCategories: ['form-option', 'transparent'],
-    allowedChildTags: ['option', 'NativeOption'],
-    forbiddenChildTags: [
-      'div',
-      'VStack',
-      'HStack',
-      'Grid',
-      'Area',
-      'Table',
-      'p',
-      'Text',
-      'Heading',
-      'Button',
-      'NativeSelect',
-      'NativeOptGroup',
-      'optgroup',
-      'select',
-    ],
   },
 
   // Table
@@ -282,16 +273,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'table',
     selfCategory: 'flow',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: [
-      'TableHeader',
-      'TableBody',
-      'TableFooter',
-      'TableCaption',
-      'thead',
-      'tbody',
-      'tfoot',
-      'caption',
-    ],
   },
   TableHeader: {
     name: 'TableHeader',
@@ -299,7 +280,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'thead',
     selfCategory: 'table-structure',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
   },
   TableBody: {
     name: 'TableBody',
@@ -307,7 +287,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'tbody',
     selfCategory: 'table-structure',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
   },
   TableFooter: {
     name: 'TableFooter',
@@ -315,7 +294,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'tfoot',
     selfCategory: 'table-structure',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
   },
   TableRow: {
     name: 'TableRow',
@@ -323,7 +301,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'tr',
     selfCategory: 'table-structure',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableCell', 'TableHead', 'td', 'th'],
   },
   TableHead: {
     name: 'TableHead',
@@ -356,8 +333,8 @@ export function isDesignSystemComponent(tag: string): boolean {
 }
 
 /**
- * Canonical mapping of standard native HTML elements to their HTML5 content categories.
- * Independent of the Design System component registry.
+ * Canonical mapping of standard native HTML elements to their HTML content categories.
+ * Contains only elements relevant to application JSX validation.
  */
 export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>> = {
   // Flow containers / block elements
@@ -366,49 +343,40 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   ul: 'flow',
   ol: 'flow',
   li: 'flow',
-  dl: 'flow',
-  dt: 'flow',
-  dd: 'flow',
   header: 'flow',
   footer: 'flow',
   main: 'flow',
-  figure: 'flow',
-  figcaption: 'flow',
-  blockquote: 'flow',
-  pre: 'flow',
-  hr: 'flow',
-  address: 'flow',
   form: 'flow',
-  fieldset: 'flow',
-  legend: 'flow',
   table: 'flow',
+  pre: 'flow',
+  blockquote: 'flow',
+  details: 'flow',
+  dialog: 'flow',
+  search: 'flow',
+  menu: 'flow',
+
+  // Sectioning content
+  article: 'sectioning',
+  aside: 'sectioning',
+  nav: 'sectioning',
+  section: 'sectioning',
 
   // Phrasing content
   span: 'phrasing',
   strong: 'phrasing',
   em: 'phrasing',
-  mark: 'phrasing',
-  del: 'phrasing',
-  ins: 'phrasing',
-  abbr: 'phrasing',
   code: 'phrasing',
   kbd: 'phrasing',
   label: 'phrasing',
   b: 'phrasing',
   i: 'phrasing',
-  u: 'phrasing',
-  s: 'phrasing',
   small: 'phrasing',
-  sub: 'phrasing',
-  sup: 'phrasing',
-  cite: 'phrasing',
-  q: 'phrasing',
+  mark: 'phrasing',
+  del: 'phrasing',
+  ins: 'phrasing',
+  abbr: 'phrasing',
   time: 'phrasing',
-  var: 'phrasing',
-  samp: 'phrasing',
-  bdo: 'phrasing',
-  bdi: 'phrasing',
-  wbr: 'phrasing',
+  summary: 'phrasing',
   br: 'phrasing',
 
   // Heading content
@@ -418,13 +386,6 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   h4: 'heading',
   h5: 'heading',
   h6: 'heading',
-  hgroup: 'heading',
-
-  // Sectioning content
-  article: 'sectioning',
-  aside: 'sectioning',
-  nav: 'sectioning',
-  section: 'sectioning',
 
   // Interactive content
   a: 'interactive',
@@ -432,19 +393,14 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   input: 'interactive',
   select: 'interactive',
   textarea: 'interactive',
-  details: 'interactive',
-  summary: 'interactive',
 
   // Embedded content
   img: 'embedded',
+  svg: 'embedded',
+  canvas: 'embedded',
   video: 'embedded',
   audio: 'embedded',
-  canvas: 'embedded',
-  svg: 'embedded',
   iframe: 'embedded',
-  embed: 'embedded',
-  object: 'embedded',
-  picture: 'embedded',
 
   // Form options
   option: 'form-option',
@@ -458,9 +414,107 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   th: 'table-structure',
   td: 'table-structure',
   caption: 'table-structure',
-  colgroup: 'table-structure',
-  col: 'table-structure',
 };
+
+/**
+ * Context-restricted elements that can only be placed as direct children of specific parents.
+ * Covers essential structural relationships: lists, tables, and select structures.
+ */
+export const CONTEXT_RESTRICTED_ELEMENTS: Readonly<Record<string, readonly string[]>> = {
+  // Lists
+  li: ['ul', 'ol', 'menu', 'List'],
+  ListItem: ['ul', 'ol', 'menu', 'List'],
+
+  // Tables
+  caption: ['table', 'Table'],
+  TableCaption: ['table', 'Table'],
+  thead: ['table', 'Table'],
+  TableHeader: ['table', 'Table'],
+  tbody: ['table', 'Table'],
+  TableBody: ['table', 'Table'],
+  tfoot: ['table', 'Table'],
+  TableFooter: ['table', 'Table'],
+  tr: ['table', 'thead', 'tbody', 'tfoot', 'Table', 'TableHeader', 'TableBody', 'TableFooter'],
+  TableRow: ['table', 'thead', 'tbody', 'tfoot', 'Table', 'TableHeader', 'TableBody', 'TableFooter'],
+  th: ['tr', 'TableRow'],
+  td: ['tr', 'TableRow'],
+  TableCell: ['tr', 'TableRow'],
+  TableHead: ['tr', 'TableRow'],
+
+  // Select / Option
+  optgroup: ['select', 'NativeSelect'],
+  NativeOptGroup: ['select', 'NativeSelect'],
+  option: ['select', 'NativeSelect', 'optgroup', 'NativeOptGroup'],
+  NativeOption: ['select', 'NativeSelect', 'optgroup', 'NativeOptGroup'],
+};
+
+/**
+ * Returns parent tags that are permitted for a context-restricted element, or undefined if unrestricted.
+ */
+export function getContextRestrictedParents(tag: string): readonly string[] | undefined {
+  return CONTEXT_RESTRICTED_ELEMENTS[tag];
+}
+
+/**
+ * Returns restricted children for a parent tag, derived from the canonical child-to-parent map.
+ */
+export function getContextRestrictedChildren(tag: string): string[] | undefined {
+  const children = Object.entries(CONTEXT_RESTRICTED_ELEMENTS)
+    .filter(([, allowedParents]) => allowedParents.includes(tag))
+    .map(([child]) => child);
+
+  return children.length > 0 ? children : undefined;
+}
+
+/**
+ * Structural and content category constraints derived directly from native HTML elements.
+ * Focused on essential architectural rules: list structures, phrasing-only containers, tables, and selects.
+ */
+export interface ElementConstraints {
+  allowedChildCategories?: ContentCategory[];
+  allowedChildTags?: string[];
+  forbiddenChildTags?: string[];
+}
+
+export const HTML_ELEMENT_CONSTRAINTS: Readonly<Record<string, ElementConstraints>> = {
+  // Phrasing-only containers (block elements forbidden by phrasing category)
+  span: {
+    allowedChildCategories: ['phrasing', 'transparent', 'text'],
+  },
+
+  // Restrict selected nested form controls; this is not a complete interactive-content validator.
+  button: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: [
+      'button',
+      'Button',
+      'input',
+      'Input',
+      'select',
+      'NativeSelect',
+      'textarea',
+    ],
+  },
+
+  // Structural child tags are derived from CONTEXT_RESTRICTED_ELEMENTS.
+  table: { allowedChildCategories: ['table-structure', 'transparent'] },
+  thead: { allowedChildCategories: ['table-structure', 'transparent'] },
+  tbody: { allowedChildCategories: ['table-structure', 'transparent'] },
+  tfoot: { allowedChildCategories: ['table-structure', 'transparent'] },
+  tr: { allowedChildCategories: ['table-structure', 'transparent'] },
+  select: { allowedChildCategories: ['form-option', 'transparent'] },
+  optgroup: { allowedChildCategories: ['form-option', 'transparent'] },
+  option: {
+    allowedChildCategories: ['text'],
+  },
+};
+
+/**
+ * Returns the structural/content constraints of a native HTML element tag, or undefined if unconstrained.
+ */
+export function getHtmlElementConstraints(tag: string): ElementConstraints | undefined {
+  return HTML_ELEMENT_CONSTRAINTS[tag.toLowerCase()];
+}
 
 /**
  * Returns the content category of a native HTML element tag, or undefined if unknown.
@@ -471,7 +525,7 @@ export function getNativeHtmlElementCategory(tag: string): ContentCategory | und
 
 /**
  * Computes the effective content category for a component, taking into account
- * polymorphic overrides (e.g. Text as="span" is phrasing, while default as="p" is flow).
+ * polymorphic overrides (e.g. Text as=\"span\" is phrasing, while default as=\"p\" is flow).
  * When asProp is 'dynamic', the effective category cannot be determined statically
  * and remains undefined to avoid assuming default component tags.
  */
@@ -482,14 +536,8 @@ export function getEffectiveContentCategory(
   if (asProp === 'dynamic') {
     return undefined;
   }
-  if (
-    (metadata.name === 'Text' ||
-      metadata.name === 'Caption' ||
-      metadata.name === 'Badge' ||
-      metadata.name === 'InlineCluster') &&
-    asProp === 'span'
-  ) {
-    return 'phrasing';
+  if (asProp) {
+    return getNativeHtmlElementCategory(asProp) ?? metadata.selfCategory;
   }
   return metadata.selfCategory;
 }

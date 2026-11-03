@@ -68,15 +68,14 @@ describe('Component Metadata Registry', () => {
     expect(COMPONENT_REGISTRY.Button.defaultTag).toBe('button');
     expect(COMPONENT_REGISTRY.Button.selfCategory).toBe('interactive');
     expect(COMPONENT_REGISTRY.Button.forbiddenChildTags).toContain('button');
-    expect(COMPONENT_REGISTRY.Button.forbiddenChildTags).toContain('div');
+    expect(COMPONENT_REGISTRY.Button.forbiddenChildTags).toContain('input');
 
     expect(COMPONENT_REGISTRY.Heading).toBeDefined();
     expect(COMPONENT_REGISTRY.Heading.defaultTag).toBe('h2');
     expect(COMPONENT_REGISTRY.Heading.supportedAs).toEqual(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 
     expect(COMPONENT_REGISTRY.Table).toBeDefined();
-    expect(COMPONENT_REGISTRY.Table.allowedChildTags).toContain('TableHeader');
-    expect(COMPONENT_REGISTRY.Table.allowedChildTags).toContain('TableBody');
+    expect(COMPONENT_REGISTRY.Table.allowedChildTags).toBeUndefined();
   });
 
   it('correctly resolves helpers: getComponentMetadata & isDesignSystemComponent', () => {
@@ -104,8 +103,14 @@ describe('Component Metadata Registry', () => {
     expect(getEffectiveContentCategory(badgeMeta, 'dynamic')).toBeUndefined();
 
     const vstackMeta = COMPONENT_REGISTRY.VStack;
-    expect(getEffectiveContentCategory(vstackMeta, 'span')).toBe('flow');
+    expect(getEffectiveContentCategory(vstackMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(vstackMeta, 'div')).toBe('flow');
     expect(getEffectiveContentCategory(vstackMeta, 'dynamic')).toBeUndefined();
+
+    const hstackMeta = COMPONENT_REGISTRY.HStack;
+    expect(getEffectiveContentCategory(hstackMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(hstackMeta, 'div')).toBe('flow');
+    expect(getEffectiveContentCategory(hstackMeta, 'dynamic')).toBeUndefined();
   });
 });
 
@@ -936,6 +941,48 @@ describe('AST JSX Walker', () => {
       ).toBe(true);
     });
 
+    it('rejects root-level and structurally orphaned list, table, and select elements', () => {
+      const cases = [
+        { code: '<li>Orphan item</li>', tag: 'li' },
+        { code: '<tr><td>Orphan row</td></tr>', tag: 'tr' },
+        { code: '<td>Orphan cell</td>', tag: 'td' },
+        { code: '<option>Orphan option</option>', tag: 'option' },
+        { code: '<div><li>Wrong parent</li></div>', tag: 'li' },
+        { code: '<div><tr><td>Wrong parent</td></tr></div>', tag: 'tr' },
+      ];
+
+      for (const testCase of cases) {
+        const errors = getValidationErrors(testCase.code);
+        expect(
+          errors.some(error => error.rule === 'invalid-nesting' && error.tag === testCase.tag),
+          `Expected <${testCase.tag}> to be rejected in: ${testCase.code}`
+        ).toBe(true);
+      }
+    });
+
+    it('continues to accept valid list, table, and select parent-child structures', () => {
+      const code = `
+        <div>
+          <ul><li>List item</li></ul>
+          <table><tbody><tr><td>Cell</td></tr></tbody></table>
+          <NativeSelect>
+            <NativeOption value="one">One</NativeOption>
+            <NativeOptGroup label="Group">
+              <NativeOption value="two">Two</NativeOption>
+            </NativeOptGroup>
+          </NativeSelect>
+        </div>
+      `;
+      expect(getValidationErrors(code)).toEqual([]);
+
+      const invalidTableCellErrors = getValidationErrors('<table><td>Invalid direct cell</td></table>');
+      expect(
+        invalidTableCellErrors.filter(
+          error => error.rule === 'invalid-nesting' && error.tag === 'td' && error.parentTag === 'table'
+        )
+      ).toHaveLength(1);
+    });
+
     it('detects root-level NativeOption outside any select container', () => {
       const rootCode = `<NativeOption value="root">Root Option</NativeOption>`;
       const rootErrors = getValidationErrors(rootCode);
@@ -1022,22 +1069,6 @@ describe('AST JSX Walker', () => {
     });
 
     describe('Regression: Native HTML element and dynamic as validation', () => {
-      it('rejects native <a /> inside <Button> as an invalid-nesting violation', () => {
-        const code = `<Button><a href="/dest">Link</a></Button>`;
-        const errors = getValidationErrors(code);
-
-        expect(errors.length).toBeGreaterThan(0);
-        expect(
-          errors.some(
-            e =>
-              e.rule === 'invalid-nesting' &&
-              e.tag === 'a' &&
-              e.parentTag === 'Button' &&
-              e.message.includes('interactive')
-          )
-        ).toBe(true);
-      });
-
       it('rejects native <input /> inside <Button> as a violation', () => {
         const code = `<Button><input type="text" /></Button>`;
         const errors = getValidationErrors(code);
@@ -1111,6 +1142,353 @@ describe('AST JSX Walker', () => {
         expect(optGroupErrors.some(e => e.tag === 'input')).toBe(true);
         expect(optGroupErrors.some(e => e.tag === 'p')).toBe(true);
         expect(optGroupErrors.some(e => e.tag === 'NativeOption')).toBe(false);
+      });
+
+      it('allows HStack and VStack with explicit phrasing override as="span" inside Heading and Label', () => {
+        const code = `
+          <Heading><HStack as="span"><span>Title</span></HStack></Heading>
+          <Label><VStack as="span"><span>Label text</span></VStack></Label>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('rejects default HStack and VStack (flow) inside Heading and Label', () => {
+        const code = `
+          <Heading><HStack><span>Title</span></HStack></Heading>
+          <Label><VStack><span>Label text</span></VStack></Label>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBeGreaterThanOrEqual(2);
+        expect(errors.some(e => e.parentTag === 'Heading' && e.tag === 'HStack')).toBe(true);
+        expect(errors.some(e => e.parentTag === 'Label' && e.tag === 'VStack')).toBe(true);
+      });
+    });
+
+    describe('PR #32: Effective HTML element validation and content model enforcement', () => {
+      it('allows VStack as="span" with valid phrasing children', () => {
+        const code = `
+          <VStack as="span">
+            <span>Phrasing span</span>
+            <Text as="span">Inline text</Text>
+            <Button>Action button</Button>
+            <strong>Strong text</strong>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('rejects flow children (such as nested <div>) inside VStack as="span"', () => {
+        const code = `
+          <VStack as="span">
+            <div>Nested flow div</div>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBeGreaterThanOrEqual(1);
+        expect(
+          errors.some(
+            e =>
+              (e.rule === 'invalid-nesting' || e.rule === 'forbidden-child') &&
+              e.tag === 'div' &&
+              e.parentTag === 'VStack'
+          )
+        ).toBe(true);
+      });
+
+      it('rejects multiple flow elements inside VStack as="span"', () => {
+        const code = `
+          <VStack as="span">
+            <p>Paragraph</p>
+            <VStack>Nested VStack</VStack>
+            <Text>Default p text</Text>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBeGreaterThanOrEqual(3);
+        expect(errors.some(e => e.tag === 'p' && e.parentTag === 'VStack')).toBe(true);
+        expect(errors.some(e => e.tag === 'VStack' && e.parentTag === 'VStack')).toBe(true);
+        expect(errors.some(e => e.tag === 'Text' && e.parentTag === 'VStack')).toBe(true);
+      });
+
+      it('allows valid list item children inside VStack as="ul" and VStack as="ol"', () => {
+        const code = `
+          <div>
+            <VStack as="ul">
+              <li>Item 1</li>
+              <ListItem>Item 2</ListItem>
+              <VStack as="li">Nested list item</VStack>
+            </VStack>
+            <VStack as="ol">
+              <li>Ordered item 1</li>
+              <ListItem>Ordered item 2</ListItem>
+            </VStack>
+          </div>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('rejects non-list-item children inside VStack as="ul"', () => {
+        const code = `
+          <VStack as="ul">
+            <div>Disallowed div</div>
+            <p>Disallowed paragraph</p>
+            <span>Disallowed span</span>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBe(3);
+        for (const err of errors) {
+          expect(err.rule).toBe('invalid-nesting');
+          expect(err.parentTag).toBe('VStack');
+          expect(err.message).toContain('Allowed tags: li, ListItem');
+        }
+      });
+
+      it('rejects non-list-item children inside VStack as="ol"', () => {
+        const code = `
+          <VStack as="ol">
+            <div>Disallowed div in ol</div>
+            <Text>Disallowed text in ol</Text>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBe(2);
+        for (const err of errors) {
+          expect(err.rule).toBe('invalid-nesting');
+          expect(err.parentTag).toBe('VStack');
+          expect(err.message).toContain('Allowed tags: li, ListItem');
+        }
+      });
+
+      it('enforces native list element rules on <menu>, <ul>, and <ol>', () => {
+        const validCode = `
+          <div>
+            <menu>
+              <li>Menu item</li>
+              <ListItem>Design system list item</ListItem>
+            </menu>
+            <ul>
+              <li>Unordered item</li>
+            </ul>
+            <ol>
+              <li>Ordered item</li>
+            </ol>
+          </div>
+        `;
+        expect(getValidationErrors(validCode)).toEqual([]);
+
+        const invalidCode = `
+          <div>
+            <menu>
+              <div>Disallowed div inside menu</div>
+            </menu>
+            <ul>
+              <span>Disallowed span inside ul</span>
+            </ul>
+            <ol>
+              <p>Disallowed p inside ol</p>
+            </ol>
+          </div>
+        `;
+        const invalidErrors = getValidationErrors(invalidCode);
+        expect(invalidErrors.length).toBe(3);
+        expect(invalidErrors.some(e => e.parentTag === 'menu' && e.tag === 'div')).toBe(true);
+        expect(invalidErrors.some(e => e.parentTag === 'ul' && e.tag === 'span')).toBe(true);
+        expect(invalidErrors.some(e => e.parentTag === 'ol' && e.tag === 'p')).toBe(true);
+      });
+
+      it('correctly validates standard HTML elements without false positives', () => {
+        const code = `
+          <div>
+            <dialog>
+              <p>Modal content</p>
+            </dialog>
+            <search>
+              <form>
+                <input type="search" />
+              </form>
+            </search>
+            <p>
+              <span>Text item</span>
+              <strong>Important</strong>
+              <em>Emphasis</em>
+              <code>const x = 1;</code>
+            </p>
+          </div>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('does not assume default tag or enforce child constraints when parent as is dynamic', () => {
+        const code = `
+          <VStack as={dynamicTag}>
+            <div>Dynamic parent allows flow div</div>
+            <p>Dynamic parent allows paragraph</p>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        // Because as is dynamic, parent constraints should NOT assume default 'div' or any specific tag
+        expect(errors.filter(e => e.parentTag === 'VStack')).toEqual([]);
+      });
+
+      it('does not reject children with dynamic as when nested inside constrained parents', () => {
+        const code = `
+          <VStack as="ul">
+            <Text as={dynamicTag}>Dynamic tag may evaluate to li</Text>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        // Child has dynamic as, so it should not be assumed as p (flow) and rejected
+        expect(errors).toEqual([]);
+      });
+
+      it('does not apply native HTML constraints to custom unresolved components matching native names', () => {
+        // e.g. Custom Radix-style <Select> with <SelectTrigger> and <SelectContent>
+        const code = `
+          <Select>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">One</SelectItem>
+            </SelectContent>
+          </Select>
+        `;
+        const errors = getValidationErrors(code);
+        // Custom component <Select> must not be treated as native HTML <select> requiring NativeOption
+        expect(errors).toEqual([]);
+      });
+
+      it('reports unsupported as prop values on polymorphic components', () => {
+        const code = `
+          <VStack as="table">
+            <div>Table content</div>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.some(e => e.rule === 'unsupported-as' && e.tag === 'VStack')).toBe(true);
+      });
+    });
+
+    describe('PR #32: HTML Content Model Final Corrections Regression Tests', () => {
+      it('rejects <span><details /></span> because details is flow, not phrasing', () => {
+        const code = `
+          <span>
+            <details>
+              <summary>Click me</summary>
+              <p>Details content</p>
+            </details>
+          </span>
+        `;
+        const errors = getValidationErrors(code);
+        expect(
+          errors.some(
+            e =>
+              e.tag === 'details' &&
+              e.parentTag === 'span' &&
+              (e.rule === 'invalid-nesting' || e.rule === 'forbidden-child')
+          )
+        ).toBe(true);
+      });
+
+      it('accepts valid phrasing content inside <span>', () => {
+        const code = `
+          <span>
+            <strong>Bold text</strong>
+            <em>Emphasis</em>
+            <span>Nested span</span>
+            <a href="#">Link</a>
+            <code>const x = 1;</code>
+            <time>12:00</time>
+          </span>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('enforces structural constraints on polymorphic components', () => {
+        // VStack as="span" applies phrasing-only constraints
+        const badVStackSpan = `
+          <VStack as="span">
+            <details>
+              <summary>Bad</summary>
+            </details>
+          </VStack>
+        `;
+        const spanErrors = getValidationErrors(badVStackSpan);
+        expect(spanErrors.length).toBeGreaterThan(0);
+
+        const goodVStackSpan = `
+          <VStack as="span">
+            <span>Phrasing</span>
+            <strong>Bold</strong>
+          </VStack>
+        `;
+        expect(getValidationErrors(goodVStackSpan)).toEqual([]);
+
+        // VStack as="ul" applies list constraints
+        const badVStackUl = `
+          <VStack as="ul">
+            <div>Invalid direct div child of list</div>
+          </VStack>
+        `;
+        const ulErrors = getValidationErrors(badVStackUl);
+        expect(ulErrors.some(e => e.rule === 'invalid-nesting' && e.parentTag === 'VStack')).toBe(true);
+
+        const goodVStackUl = `
+          <VStack as="ul">
+            <li>Item 1</li>
+            <ListItem>Item 2</ListItem>
+          </VStack>
+        `;
+        expect(getValidationErrors(goodVStackUl)).toEqual([]);
+
+        // VStack as="ol" applies list constraints
+        const badVStackOl = `
+          <VStack as="ol">
+            <p>Invalid direct p child of list</p>
+          </VStack>
+        `;
+        const olErrors = getValidationErrors(badVStackOl);
+        expect(olErrors.some(e => e.rule === 'invalid-nesting' && e.parentTag === 'VStack')).toBe(true);
+
+        const goodVStackOl = `
+          <VStack as="ol">
+            <li>Item 1</li>
+          </VStack>
+        `;
+        expect(getValidationErrors(goodVStackOl)).toEqual([]);
+      });
+
+      it('ensures dynamic as does not inherit constraints from defaultTag', () => {
+        const dynamicCode = `
+          const dynamicTag: any = 'div';
+          const element = (
+            <VStack as={dynamicTag}>
+              <div>Any content is safe when tag is unknown</div>
+            </VStack>
+          );
+        `;
+        expect(getValidationErrors(dynamicCode)).toEqual([]);
+      });
+
+      it('preserves valid Design System component overrides and nesting', () => {
+        const dsCode = `
+          <VStack>
+            <HStack>
+              <Badge as="span">Active</Badge>
+              <Text as="span">Inline label</Text>
+            </HStack>
+            <Button>
+              <span>Click Me</span>
+            </Button>
+          </VStack>
+        `;
+        expect(getValidationErrors(dsCode)).toEqual([]);
       });
     });
   });

@@ -2,7 +2,11 @@ import ts from 'typescript';
 import {
   COMPONENT_REGISTRY,
   ContentCategory,
+  ElementConstraints,
+  getContextRestrictedParents,
+  getContextRestrictedChildren,
   getEffectiveContentCategory,
+  getHtmlElementConstraints,
   getNativeHtmlElementCategory,
 } from '../registry/component-registry';
 
@@ -622,9 +626,8 @@ export function getElementContentCategory(
 }
 
 /**
- * Checks whether a child's content category is compatible with the parent's allowed categories,
- * adhering to HTML5 content model hierarchy where flow content encompasses heading, sectioning,
- * phrasing, interactive, embedded, and text content.
+ * Checks whether a child's content category is compatible with the parent's allowed categories.
+ * Flow content encompasses heading, sectioning, phrasing, interactive, embedded, and text content.
  */
 export function isCategoryAllowed(
   allowedCategories: ContentCategory[],
@@ -635,24 +638,82 @@ export function isCategoryAllowed(
   }
 
   if (allowedCategories.includes('flow')) {
-    const isFlowContent =
+    return (
       childCategory === 'flow' ||
       childCategory === 'phrasing' ||
       childCategory === 'heading' ||
       childCategory === 'sectioning' ||
       childCategory === 'interactive' ||
       childCategory === 'embedded' ||
-      childCategory === 'text';
-    if (isFlowContent) {
-      return true;
-    }
+      childCategory === 'text'
+    );
+  }
+
+  if (allowedCategories.includes('phrasing')) {
+    return (
+      childCategory === 'phrasing' ||
+      childCategory === 'interactive' ||
+      childCategory === 'embedded' ||
+      childCategory === 'text'
+    );
   }
 
   return false;
 }
 
 /**
- * Validates a JSX AST tree against Design System component metadata and HTML content models.
+ * Resolves the effective structural and content constraints for a parent JSX element.
+ * Constraints are derived from the actual rendered HTML element (taking polymorphic `as` into account)
+ * as well as Design System component metadata.
+ * Returns undefined when `as` is dynamic or invalid, preventing inaccurate assumptions.
+ */
+export function getEffectiveParentConstraints(
+  parent: JsxElementContext
+): ElementConstraints | undefined {
+  if (
+    parent.asStatus === 'dynamic' ||
+    parent.asStatus === 'invalid' ||
+    parent.asStatus === 'unsupported'
+  ) {
+    return undefined;
+  }
+
+  // If the parent is an unresolved or external component without an explicit static `as` override,
+  // do not introduce assumptions about its internal rendered HTML structure.
+  if (
+    (parent.elementKind === 'unresolved-component' || parent.elementKind === 'known-external') &&
+    parent.asStatus === 'none'
+  ) {
+    return undefined;
+  }
+
+  const effectiveTag = parent.effectiveTag;
+  if (
+    !effectiveTag ||
+    effectiveTag === 'dynamic' ||
+    effectiveTag === 'invalid' ||
+    effectiveTag === 'unsupported'
+  ) {
+    return undefined;
+  }
+
+  const componentMeta = COMPONENT_REGISTRY[parent.tag];
+  const htmlConstraints = getHtmlElementConstraints(effectiveTag);
+
+  const restrictedChildren = getContextRestrictedChildren(effectiveTag);
+  if (!componentMeta && !htmlConstraints && !restrictedChildren) {
+    return undefined;
+  }
+
+  return {
+    allowedChildTags: restrictedChildren ?? componentMeta?.allowedChildTags,
+    allowedChildCategories: htmlConstraints?.allowedChildCategories ?? componentMeta?.allowedChildCategories,
+    forbiddenChildTags: componentMeta?.forbiddenChildTags ?? htmlConstraints?.forbiddenChildTags,
+  };
+}
+
+/**
+ * Validates JSX trees against Design System contracts and essential structural constraints.
  */
 export function validateJsxTree(
   sourceFile: ts.SourceFile,
@@ -685,14 +746,14 @@ export function validateJsxTree(
       }
 
       // 2. Validate hierarchy / nesting constraints
-      const childMeta = COMPONENT_REGISTRY[child.tag];
+      const childCategory = getElementContentCategory(child);
 
-      // Form option constraints: NativeOption and NativeOptGroup must be inside NativeSelect (or NativeOptGroup for NativeOption)
-      if (
-        childMeta?.selfCategory === 'form-option' ||
-        child.tag === 'NativeOption' ||
-        child.tag === 'NativeOptGroup'
-      ) {
+      // Context-restricted elements validation (e.g. li, tables, select options)
+      const allowedParents =
+        getContextRestrictedParents(child.tag) ??
+        (child.effectiveTag ? getContextRestrictedParents(child.effectiveTag) : undefined);
+
+      if (allowedParents !== undefined) {
         if (!parent) {
           violations.push({
             line: child.line,
@@ -700,36 +761,36 @@ export function validateJsxTree(
             tag: child.tag,
             parentTag: null,
             rule: 'invalid-nesting',
-            message: `<${child.tag}> cannot be used at root level; it must be nested inside <NativeSelect>.`,
+            message: `<${child.tag}> cannot be used at root level; it requires a valid structural parent: <${allowedParents.join(', ')}>.`,
           });
-        } else {
-          const isParentValidForOption =
-            parent.tag === 'NativeSelect' ||
-            (child.tag === 'NativeOption' && parent.tag === 'NativeOptGroup') ||
-            parent.effectiveTag === 'select' ||
-            (child.tag === 'NativeOption' && parent.effectiveTag === 'optgroup');
+        } else if (parent.asStatus !== 'dynamic') {
+          const isParentValid =
+            allowedParents.includes(parent.tag) ||
+            allowedParents.includes(parent.effectiveTag);
 
-          if (!isParentValidForOption) {
+          if (!isParentValid) {
             violations.push({
               line: child.line,
               column: child.column,
               tag: child.tag,
               parentTag: parent.tag,
               rule: 'invalid-nesting',
-              message: `<${child.tag}> cannot be placed inside <${parent.tag}>; it must be inside <NativeSelect>.`,
+              message: `<${child.tag}> cannot be placed inside <${parent.tag}>; it must be inside <${allowedParents.join(', ')}>.`,
             });
           }
         }
       }
 
       if (parent) {
-        const parentMeta = COMPONENT_REGISTRY[parent.tag];
+        const constraints = getEffectiveParentConstraints(parent);
 
-        if (parentMeta) {
-          // Check forbidden child tags
+        if (constraints) {
+          // Check forbidden child tags (e.g. Button cannot nest interactive elements)
           if (
-            parentMeta.forbiddenChildTags?.includes(child.tag) ||
-            parentMeta.forbiddenChildTags?.includes(child.effectiveTag)
+            !child.isDynamicAs &&
+            constraints.forbiddenChildTags &&
+            (constraints.forbiddenChildTags.includes(child.tag) ||
+              constraints.forbiddenChildTags.includes(child.effectiveTag))
           ) {
             violations.push({
               line: child.line,
@@ -742,10 +803,17 @@ export function validateJsxTree(
           }
 
           // Check allowed child tags
-          if (parentMeta.allowedChildTags && parentMeta.allowedChildTags.length > 0) {
+          // Child-to-parent validation already handles context-restricted elements.
+          // Apply the reverse lookup only to children without their own parent contract.
+          if (
+            allowedParents === undefined &&
+            constraints.allowedChildTags &&
+            constraints.allowedChildTags.length > 0
+          ) {
             const isTagAllowed =
-              parentMeta.allowedChildTags.includes(child.tag) ||
-              parentMeta.allowedChildTags.includes(child.effectiveTag);
+              child.asStatus === 'dynamic' ||
+              constraints.allowedChildTags.includes(child.tag) ||
+              constraints.allowedChildTags.includes(child.effectiveTag);
             if (!isTagAllowed) {
               violations.push({
                 line: child.line,
@@ -753,17 +821,17 @@ export function validateJsxTree(
                 tag: child.tag,
                 parentTag: parent.tag,
                 rule: 'invalid-nesting',
-                message: `<${child.tag}> is not allowed inside <${parent.tag}>. Allowed tags: ${parentMeta.allowedChildTags.join(', ')}.`,
+                message: `<${child.tag}> is not allowed inside <${parent.tag}>. Allowed tags: ${constraints.allowedChildTags.join(', ')}.`,
               });
             }
           }
 
           // Check allowed child categories
-          if (parentMeta.allowedChildCategories) {
+          if (constraints.allowedChildCategories) {
             // Text-only content model (e.g. NativeOption)
             if (
-              parentMeta.allowedChildCategories.length === 1 &&
-              parentMeta.allowedChildCategories[0] === 'text'
+              constraints.allowedChildCategories.length === 1 &&
+              constraints.allowedChildCategories[0] === 'text'
             ) {
               violations.push({
                 line: child.line,
@@ -774,11 +842,10 @@ export function validateJsxTree(
                 message: `<${parent.tag}> accepts text content only; element <${child.tag}> is not allowed.`,
               });
             } else {
-              const childCategory = getElementContentCategory(child);
               if (
                 childCategory &&
                 childCategory !== 'transparent' &&
-                !isCategoryAllowed(parentMeta.allowedChildCategories, childCategory)
+                !isCategoryAllowed(constraints.allowedChildCategories, childCategory)
               ) {
                 violations.push({
                   line: child.line,
@@ -786,7 +853,7 @@ export function validateJsxTree(
                   tag: child.tag,
                   parentTag: parent.tag,
                   rule: 'invalid-nesting',
-                  message: `<${child.tag}> (${childCategory}) is not allowed inside <${parent.tag}> (allowed categories: ${parentMeta.allowedChildCategories.join(', ')}).`,
+                  message: `<${child.tag}> (${childCategory}) is not allowed inside <${parent.tag}> (allowed categories: ${constraints.allowedChildCategories.join(', ')}).`,
                 });
               }
             }

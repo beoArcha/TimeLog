@@ -7,7 +7,10 @@ import {
   getComponentMetadata,
   getEffectiveContentCategory,
   getNativeHtmlElementCategory,
+  getHtmlElementConstraints,
   isDesignSystemComponent,
+  getContextRestrictedParents,
+  getContextRestrictedChildren,
 } from '../registry/component-registry';
 
 const VALID_CONTENT_CATEGORIES: ContentCategory[] = [
@@ -132,6 +135,49 @@ describe('Component Registry Consistency', () => {
     });
   });
 
+  describe('HStack and VStack semantic and category consistency', () => {
+    it('declares selfCategory as flow matching their defaultTag div', () => {
+      expect(COMPONENT_REGISTRY.HStack.defaultTag).toBe('div');
+      expect(COMPONENT_REGISTRY.HStack.selfCategory).toBe('flow');
+      expect(COMPONENT_REGISTRY.VStack.defaultTag).toBe('div');
+      expect(COMPONENT_REGISTRY.VStack.selfCategory).toBe('flow');
+    });
+
+    it('becomes phrasing when polymorphic as="span" is applied', () => {
+      const hstack = COMPONENT_REGISTRY.HStack;
+      const vstack = COMPONENT_REGISTRY.VStack;
+      expect(getEffectiveContentCategory(hstack)).toBe('flow');
+      expect(getEffectiveContentCategory(hstack, 'div')).toBe('flow');
+      expect(getEffectiveContentCategory(hstack, 'span')).toBe('phrasing');
+
+      expect(getEffectiveContentCategory(vstack)).toBe('flow');
+      expect(getEffectiveContentCategory(vstack, 'div')).toBe('flow');
+      expect(getEffectiveContentCategory(vstack, 'span')).toBe('phrasing');
+    });
+  });
+
+  describe('Typography components supportedAs metadata consistency', () => {
+    it('declares valid supportedAs for Overline, MonoText, and MetricText', () => {
+      expect(COMPONENT_REGISTRY.Overline.supportedAs).toContain('span');
+      expect(COMPONENT_REGISTRY.Overline.supportedAs).toContain('p');
+      expect(COMPONENT_REGISTRY.Overline.supportedAs).toContain('h4');
+
+      expect(COMPONENT_REGISTRY.MonoText.supportedAs).toContain('span');
+      expect(COMPONENT_REGISTRY.MonoText.supportedAs).toContain('p');
+
+      expect(COMPONENT_REGISTRY.MetricText.supportedAs).toContain('span');
+      expect(COMPONENT_REGISTRY.MetricText.supportedAs).toContain('p');
+    });
+
+    it('computes effective content category for polymorphic typography components', () => {
+      const overline = COMPONENT_REGISTRY.Overline;
+      expect(getEffectiveContentCategory(overline)).toBe('phrasing');
+      expect(getEffectiveContentCategory(overline, 'span')).toBe('phrasing');
+      expect(getEffectiveContentCategory(overline, 'p')).toBe('flow');
+      expect(getEffectiveContentCategory(overline, 'h4')).toBe('heading');
+    });
+  });
+
   describe('Grid layout metadata consistency', () => {
     it('declares selfCategory as flow matching its defaultTag div', () => {
       const grid = COMPONENT_REGISTRY.Grid;
@@ -163,14 +209,16 @@ describe('Component Registry Consistency', () => {
       expect(optGroupMeta.defaultTag).toBe('optgroup');
       expect(optGroupMeta.selfCategory).toBe('form-option');
       expect(optGroupMeta.allowedChildCategories).toEqual(['form-option', 'transparent']);
-      expect(optGroupMeta.allowedChildTags).toEqual(['option', 'NativeOption']);
+      expect(optGroupMeta.allowedChildTags).toBeUndefined();
+      expect(getContextRestrictedChildren('optgroup')).toEqual(['option', 'NativeOption']);
     });
 
     it('verifies NativeSelect only permits form-option components as children', () => {
       const selectMeta = COMPONENT_REGISTRY.NativeSelect;
       expect(selectMeta.allowedChildCategories).toContain('form-option');
-      expect(selectMeta.allowedChildTags).toContain('NativeOption');
-      expect(selectMeta.allowedChildTags).toContain('NativeOptGroup');
+      expect(selectMeta.allowedChildTags).toBeUndefined();
+      expect(getContextRestrictedChildren('select')).toContain('NativeOption');
+      expect(getContextRestrictedChildren('select')).toContain('NativeOptGroup');
     });
   });
 
@@ -203,16 +251,94 @@ describe('Component Registry Consistency', () => {
     });
 
     it('getNativeHtmlElementCategory classifies standard native HTML elements', () => {
+      // Flow content
+      expect(getNativeHtmlElementCategory('div')).toBe('flow');
+      expect(getNativeHtmlElementCategory('p')).toBe('flow');
+      expect(getNativeHtmlElementCategory('ul')).toBe('flow');
+      expect(getNativeHtmlElementCategory('menu')).toBe('flow');
+      expect(getNativeHtmlElementCategory('dialog')).toBe('flow');
+      expect(getNativeHtmlElementCategory('search')).toBe('flow');
+      expect(getNativeHtmlElementCategory('details')).toBe('flow');
+
+      // Phrasing content
+      expect(getNativeHtmlElementCategory('span')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('strong')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('em')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('code')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('kbd')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('label')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('time')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('summary')).toBe('phrasing');
+
+      // Embedded content
+      expect(getNativeHtmlElementCategory('img')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('svg')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('canvas')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('video')).toBe('embedded');
+
+      // Interactive content
       expect(getNativeHtmlElementCategory('a')).toBe('interactive');
       expect(getNativeHtmlElementCategory('button')).toBe('interactive');
       expect(getNativeHtmlElementCategory('input')).toBe('interactive');
-      expect(getNativeHtmlElementCategory('span')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('div')).toBe('flow');
+      expect(getNativeHtmlElementCategory('select')).toBe('interactive');
+
+      // Heading, Sectioning, Form Option, Table
       expect(getNativeHtmlElementCategory('h1')).toBe('heading');
       expect(getNativeHtmlElementCategory('section')).toBe('sectioning');
       expect(getNativeHtmlElementCategory('option')).toBe('form-option');
       expect(getNativeHtmlElementCategory('tr')).toBe('table-structure');
       expect(getNativeHtmlElementCategory('custom-unknown-element')).toBeUndefined();
+    });
+
+    it('getHtmlElementConstraints returns structural constraints for list containers and phrasing elements', () => {
+      expect(getHtmlElementConstraints('ul')).toBeUndefined();
+      expect(getHtmlElementConstraints('ol')).toBeUndefined();
+      expect(getHtmlElementConstraints('menu')).toBeUndefined();
+      expect(getContextRestrictedChildren('ul')).toEqual(['li', 'ListItem']);
+      expect(getContextRestrictedChildren('ol')).toEqual(['li', 'ListItem']);
+      expect(getContextRestrictedChildren('menu')).toEqual(['li', 'ListItem']);
+
+      const spanConstraints = getHtmlElementConstraints('span');
+      expect(spanConstraints).toBeDefined();
+      expect(spanConstraints?.allowedChildCategories).toContain('phrasing');
+
+      expect(getHtmlElementConstraints('div')).toBeUndefined();
+      expect(getHtmlElementConstraints('unknown-element')).toBeUndefined();
+    });
+
+    it('registers List and ListItem components with correct metadata', () => {
+      const listMeta = COMPONENT_REGISTRY.List;
+      expect(listMeta).toBeDefined();
+      expect(listMeta.defaultTag).toBe('ul');
+      expect(listMeta.supportedAs).toEqual(['ul', 'ol']);
+      expect(listMeta.selfCategory).toBe('flow');
+      expect(listMeta.allowedChildTags).toBeUndefined();
+      expect(getContextRestrictedChildren('ul')).toEqual(['li', 'ListItem']);
+
+      const listItemMeta = COMPONENT_REGISTRY.ListItem;
+      expect(listItemMeta).toBeDefined();
+      expect(listItemMeta.defaultTag).toBe('li');
+      expect(listItemMeta.supportedAs).toEqual(['li']);
+      expect(listItemMeta.selfCategory).toBe('flow');
+    });
+
+    it('classifies details and summary with straightforward content categories', () => {
+      // details: flow (not phrasing)
+      expect(getNativeHtmlElementCategory('details')).toBe('flow');
+
+      // summary: phrasing
+      expect(getNativeHtmlElementCategory('summary')).toBe('phrasing');
+    });
+
+    it('defines essential context-restricted elements', () => {
+      expect(getContextRestrictedParents('li')).toEqual(['ul', 'ol', 'menu', 'List']);
+      expect(getContextRestrictedParents('tr')).toContain('table');
+      expect(getContextRestrictedParents('td')).toEqual(['tr', 'TableRow']);
+      expect(getContextRestrictedParents('th')).toEqual(['tr', 'TableRow']);
+      expect(getContextRestrictedParents('option')).toContain('select');
+      expect(getContextRestrictedChildren('table')).toContain('TableHeader');
+      expect(getContextRestrictedChildren('tr')).toContain('TableCell');
+      expect(getContextRestrictedParents('optgroup')).toEqual(['select', 'NativeSelect']);
     });
   });
 });
