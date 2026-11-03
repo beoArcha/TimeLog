@@ -10,6 +10,7 @@ import {
   getHtmlElementConstraints,
   isDesignSystemComponent,
   getContextRestrictedParents,
+  getContextRestrictedChildren,
 } from '../registry/component-registry';
 
 const VALID_CONTENT_CATEGORIES: ContentCategory[] = [
@@ -208,14 +209,16 @@ describe('Component Registry Consistency', () => {
       expect(optGroupMeta.defaultTag).toBe('optgroup');
       expect(optGroupMeta.selfCategory).toBe('form-option');
       expect(optGroupMeta.allowedChildCategories).toEqual(['form-option', 'transparent']);
-      expect(optGroupMeta.allowedChildTags).toEqual(['option', 'NativeOption']);
+      expect(optGroupMeta.allowedChildTags).toBeUndefined();
+      expect(getContextRestrictedChildren('optgroup')).toEqual(['option', 'NativeOption']);
     });
 
     it('verifies NativeSelect only permits form-option components as children', () => {
       const selectMeta = COMPONENT_REGISTRY.NativeSelect;
       expect(selectMeta.allowedChildCategories).toContain('form-option');
-      expect(selectMeta.allowedChildTags).toContain('NativeOption');
-      expect(selectMeta.allowedChildTags).toContain('NativeOptGroup');
+      expect(selectMeta.allowedChildTags).toBeUndefined();
+      expect(getContextRestrictedChildren('select')).toContain('NativeOption');
+      expect(getContextRestrictedChildren('select')).toContain('NativeOptGroup');
     });
   });
 
@@ -288,17 +291,12 @@ describe('Component Registry Consistency', () => {
     });
 
     it('getHtmlElementConstraints returns structural constraints for list containers and phrasing elements', () => {
-      const ulConstraints = getHtmlElementConstraints('ul');
-      expect(ulConstraints).toBeDefined();
-      expect(ulConstraints?.allowedChildTags).toEqual(['li', 'ListItem']);
-
-      const olConstraints = getHtmlElementConstraints('ol');
-      expect(olConstraints).toBeDefined();
-      expect(olConstraints?.allowedChildTags).toEqual(['li', 'ListItem']);
-
-      const menuConstraints = getHtmlElementConstraints('menu');
-      expect(menuConstraints).toBeDefined();
-      expect(menuConstraints?.allowedChildTags).toEqual(['li', 'ListItem']);
+      expect(getHtmlElementConstraints('ul')).toBeUndefined();
+      expect(getHtmlElementConstraints('ol')).toBeUndefined();
+      expect(getHtmlElementConstraints('menu')).toBeUndefined();
+      expect(getContextRestrictedChildren('ul')).toEqual(['li', 'ListItem']);
+      expect(getContextRestrictedChildren('ol')).toEqual(['li', 'ListItem']);
+      expect(getContextRestrictedChildren('menu')).toEqual(['li', 'ListItem']);
 
       const spanConstraints = getHtmlElementConstraints('span');
       expect(spanConstraints).toBeDefined();
@@ -314,7 +312,8 @@ describe('Component Registry Consistency', () => {
       expect(listMeta.defaultTag).toBe('ul');
       expect(listMeta.supportedAs).toEqual(['ul', 'ol']);
       expect(listMeta.selfCategory).toBe('flow');
-      expect(listMeta.allowedChildTags).toEqual(['li', 'ListItem']);
+      expect(listMeta.allowedChildTags).toBeUndefined();
+      expect(getContextRestrictedChildren('ul')).toEqual(['li', 'ListItem']);
 
       const listItemMeta = COMPONENT_REGISTRY.ListItem;
       expect(listItemMeta).toBeDefined();
@@ -337,6 +336,8 @@ describe('Component Registry Consistency', () => {
       expect(getContextRestrictedParents('td')).toEqual(['tr', 'TableRow']);
       expect(getContextRestrictedParents('th')).toEqual(['tr', 'TableRow']);
       expect(getContextRestrictedParents('option')).toContain('select');
+      expect(getContextRestrictedChildren('table')).toContain('TableHeader');
+      expect(getContextRestrictedChildren('tr')).toContain('TableCell');
       expect(getContextRestrictedParents('optgroup')).toEqual(['select', 'NativeSelect']);
     });
   });
