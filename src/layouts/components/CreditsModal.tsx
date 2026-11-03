@@ -9,6 +9,7 @@ import {
 } from '@components/ui/dialog';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
+import { Grid } from '@components/ui/grid';
 import { Overline, List, ListItem, Text, Caption, MonoText } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
@@ -45,7 +46,7 @@ export default function CreditsModal() {
         </Button>
 
         <DialogHeader className="border-b pb-4 border-border">
-          <Badge variant="orange" size="sm" as="span" className="w-fit">
+          <Badge variant="orange" size="sm" className="w-fit">
             {translate(locale, 'help', 'CreditsBadge', customTranslations)}
           </Badge>
           <DialogTitle
@@ -71,7 +72,7 @@ export default function CreditsModal() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+        <Grid cols={1} gap="lg" className="md:grid-cols-2 my-2">
           <div className="flex flex-col gap-2">
             <Overline as="h4" size="xs" className="font-mono">
               💖 {translate(locale, 'help', 'ComponentCreatorsAcknowledgement', customTranslations)}
@@ -110,7 +111,7 @@ export default function CreditsModal() {
               </MonoText>
             </div>
           </div>
-        </div>
+        </Grid>
 
         <DialogFooter className="border-t pt-4 border-border mt-2">
           <Button

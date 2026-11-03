@@ -11,6 +11,7 @@ import { Switch } from '@components/ui/switch';
 import { Label } from '@components/ui/label';
 import { Caption } from '@components/ui/typography';
 import { HStack, VStack, InlineCluster } from '@components/ui/stack';
+import { Grid } from '@components/ui/grid';
 import { EmojiPicker } from '@components/EmojiPicker';
 import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
 
@@ -543,7 +544,7 @@ export function ProjectRatesInput({
 
   if (containerLayout === 'grid') {
     return (
-      <div className="grid grid-cols-2 gap-4">
+      <Grid cols={2} gap="lg">
         <div>
           {showLabels && (
             <Label
@@ -585,7 +586,7 @@ export function ProjectRatesInput({
             className={currencyClassName ?? 'w-full'}
           />
         </div>
-      </div>
+      </Grid>
     );
   }
 

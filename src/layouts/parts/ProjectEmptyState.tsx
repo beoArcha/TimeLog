@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@components/ui/button';
+import { Grid } from '@components/ui/grid';
 import { Caption, MonoText } from '@components/ui/typography';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
@@ -36,7 +37,7 @@ export function ProjectEmptyState({
         {translate(locale, 'project', 'StarterTemplatesSubheading', customTranslations)}
       </Caption>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+      <Grid cols={1} gap="sm" className="sm:grid-cols-2 mt-1">
         {STARTER_TEMPLATES.map((tmpl) => {
           const resolved = resolveStarterTemplate(tmpl, locale, customTranslations);
           const colorDef =
@@ -80,7 +81,7 @@ export function ProjectEmptyState({
             </Button>
           );
         })}
-      </div>
+      </Grid>
     </div>
   );
 }

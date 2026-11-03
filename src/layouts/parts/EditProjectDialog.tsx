@@ -9,6 +9,7 @@ import {
 } from '@components/ui/dialog';
 import { Button } from '@components/ui/button';
 import { Label } from '@components/ui/label';
+import { Grid } from '@components/ui/grid';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 import type { Project } from '@bindings/Project';
@@ -109,7 +110,7 @@ function EditProjectDialogForm({
           className="w-full"
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <Grid cols={2} gap="lg">
           <ProjectFormFields.Emoji
             idPrefix="edit-project"
             showLabel
@@ -133,7 +134,7 @@ function EditProjectDialogForm({
               className="flex flex-wrap gap-1.5 mt-1"
             />
           </div>
-        </div>
+        </Grid>
 
         <ProjectFormFields.Description
           idPrefix="edit-project"

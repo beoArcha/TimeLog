@@ -9,6 +9,7 @@ import {
 } from "@components/ui/dialog";
 import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";
+import { Grid } from "@components/ui/grid";
 import { Caption, Overline, MonoText, MetricText } from "@components/ui/typography";
 import { useTranslation } from "@common/i18n/translator";
 import { PluginRegistry } from "@plugins/PluginRegistry";
@@ -129,7 +130,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
             <span className="text-xs font-semibold text-foreground">
               {t("SelectFormat")}
             </span>
-            <div className="grid grid-cols-1 gap-2">
+            <Grid cols={1} gap="sm">
               {exporters.map((exp) => {
                 const isSelected = exp.id === activeSelectedId;
                 return (
@@ -164,7 +165,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                   </Button>
                 );
               })}
-            </div>
+            </Grid>
           </div>
         </div>
 
