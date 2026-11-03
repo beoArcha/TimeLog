@@ -8,7 +8,7 @@ import {
 } from '../rules/jsx-content-model.rule';
 import { ModuleGraph } from '../core/types';
 
-describe('Architecture: JSX Content Model and HTML Semantics', () => {
+describe('Architecture: JSX Structural Constraints', () => {
   let graph: ModuleGraph;
   let srcRoot: string;
   const rule = new JsxContentModelRule();
@@ -18,7 +18,7 @@ describe('Architecture: JSX Content Model and HTML Semantics', () => {
     graph = DependencyGraphBuilder.buildGraph(srcRoot);
   });
 
-  it('enforces HTML5 content model across views with legacy migration allowlist', () => {
+  it('enforces supported JSX structural constraints across views with legacy migration allowlist', () => {
     const violations = rule.check(graph);
 
     if (violations.length > 0) {
@@ -27,7 +27,7 @@ describe('Architecture: JSX Content Model and HTML Semantics', () => {
         .join('\n');
       expect.fail(
         `Found ${violations.length} JSX content model violation(s):\n${details}\n` +
-          `Ensure child elements conform to parent HTML5 content models or use polymorphic as="span" overrides.`
+          `Ensure child elements conform to supported structural constraints and Design System contracts.`
       );
     }
 
