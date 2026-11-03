@@ -100,4 +100,106 @@ function ListItem({ className, ...props }: React.LiHTMLAttributes<HTMLLIElement>
   );
 }
 
-export { Heading, Text, Caption, Overline, MonoText, MetricText, List, ListItem };
+/**
+ * Phrasing semantic wrappers that inherit parent typography size/line-height.
+ */
+const Strong = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <strong
+        ref={ref}
+        data-slot="strong"
+        className={cn("font-semibold", className)}
+        {...props}
+      />
+    );
+  }
+);
+Strong.displayName = "Strong";
+
+const Em = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <em
+        ref={ref}
+        data-slot="em"
+        className={cn("italic", className)}
+        {...props}
+      />
+    );
+  }
+);
+Em.displayName = "Em";
+
+const Mark = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <mark
+        ref={ref}
+        data-slot="mark"
+        className={cn("bg-primary/20 text-foreground rounded-xs px-1", className)}
+        {...props}
+      />
+    );
+  }
+);
+Mark.displayName = "Mark";
+
+const Del = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <del
+        ref={ref}
+        data-slot="del"
+        className={cn("line-through text-muted-foreground", className)}
+        {...props}
+      />
+    );
+  }
+);
+Del.displayName = "Del";
+
+const Ins = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <ins
+        ref={ref}
+        data-slot="ins"
+        className={cn("underline text-foreground decoration-emerald-500", className)}
+        {...props}
+      />
+    );
+  }
+);
+Ins.displayName = "Ins";
+
+const Abbr = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <abbr
+        ref={ref}
+        data-slot="abbr"
+        className={cn("underline decoration-dotted cursor-help", className)}
+        {...props}
+      />
+    );
+  }
+);
+Abbr.displayName = "Abbr";
+
+export {
+  Heading,
+  Text,
+  Caption,
+  Overline,
+  MonoText,
+  MetricText,
+  List,
+  ListItem,
+  Strong,
+  Em,
+  Mark,
+  Del,
+  Ins,
+  Abbr,
+};

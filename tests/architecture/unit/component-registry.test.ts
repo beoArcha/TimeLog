@@ -3,8 +3,10 @@ import {
   COMPONENT_REGISTRY,
   ContentCategory,
   ComponentCategory,
+  HTML_ELEMENT_CATEGORY_MAP,
   getComponentMetadata,
   getEffectiveContentCategory,
+  getNativeHtmlElementCategory,
   isDesignSystemComponent,
 } from '../registry/component-registry';
 
@@ -18,6 +20,7 @@ const VALID_CONTENT_CATEGORIES: ContentCategory[] = [
   'table-structure',
   'form-option',
   'transparent',
+  'text',
 ];
 
 const VALID_COMPONENT_CATEGORIES: ComponentCategory[] = [
@@ -30,40 +33,6 @@ const VALID_COMPONENT_CATEGORIES: ComponentCategory[] = [
   'feedback',
   'interactive',
 ];
-
-/**
- * Expected category mapping according to standard HTML semantic model:
- * Ensures components do not declare contradictory categories for their rendered HTML tags.
- */
-const TAG_CATEGORY_MAP: Record<string, ContentCategory> = {
-  div: 'flow',
-  p: 'flow',
-  span: 'phrasing',
-  h1: 'heading',
-  h2: 'heading',
-  h3: 'heading',
-  h4: 'heading',
-  h5: 'heading',
-  h6: 'heading',
-  strong: 'phrasing',
-  em: 'phrasing',
-  mark: 'phrasing',
-  del: 'phrasing',
-  ins: 'phrasing',
-  abbr: 'phrasing',
-  code: 'phrasing',
-  kbd: 'phrasing',
-  button: 'interactive',
-  select: 'interactive',
-  label: 'phrasing',
-  table: 'flow',
-  thead: 'table-structure',
-  tbody: 'table-structure',
-  tfoot: 'table-structure',
-  tr: 'table-structure',
-  th: 'table-structure',
-  td: 'table-structure',
-};
 
 describe('Component Registry Consistency', () => {
   it('contains registered design system components', () => {
@@ -112,7 +81,7 @@ describe('Component Registry Consistency', () => {
         }
 
         it('has no contradictions between defaultTag and selfCategory', () => {
-          const expectedCategory = TAG_CATEGORY_MAP[meta.defaultTag];
+          const expectedCategory = HTML_ELEMENT_CATEGORY_MAP[meta.defaultTag];
           if (expectedCategory) {
             expect(
               meta.selfCategory,
@@ -163,18 +132,87 @@ describe('Component Registry Consistency', () => {
     });
   });
 
+  describe('Grid layout metadata consistency', () => {
+    it('declares selfCategory as flow matching its defaultTag div', () => {
+      const grid = COMPONENT_REGISTRY.Grid;
+      expect(grid.defaultTag).toBe('div');
+      expect(grid.selfCategory).toBe('flow');
+    });
+
+    it('contains exactly div, section, and article in supportedAs and does not allow ul or ol', () => {
+      const grid = COMPONENT_REGISTRY.Grid;
+      expect(grid.supportedAs).toEqual(['div', 'section', 'article']);
+      expect(grid.supportedAs).not.toContain('ul');
+      expect(grid.supportedAs).not.toContain('ol');
+    });
+  });
+
+  describe('NativeOption and NativeOptGroup form metadata consistency', () => {
+    it('registers NativeOption and NativeOptGroup in form category with selfCategory form-option', () => {
+      const optionMeta = COMPONENT_REGISTRY.NativeOption;
+      expect(optionMeta).toBeDefined();
+      expect(optionMeta.category).toBe('form');
+      expect(optionMeta.defaultTag).toBe('option');
+      expect(optionMeta.selfCategory).toBe('form-option');
+      expect(optionMeta.allowedChildCategories).toEqual(['text']);
+      expect(optionMeta.forbiddenChildTags).toBeUndefined();
+
+      const optGroupMeta = COMPONENT_REGISTRY.NativeOptGroup;
+      expect(optGroupMeta).toBeDefined();
+      expect(optGroupMeta.category).toBe('form');
+      expect(optGroupMeta.defaultTag).toBe('optgroup');
+      expect(optGroupMeta.selfCategory).toBe('form-option');
+      expect(optGroupMeta.allowedChildCategories).toEqual(['form-option', 'transparent']);
+      expect(optGroupMeta.allowedChildTags).toEqual(['option', 'NativeOption']);
+    });
+
+    it('verifies NativeSelect only permits form-option components as children', () => {
+      const selectMeta = COMPONENT_REGISTRY.NativeSelect;
+      expect(selectMeta.allowedChildCategories).toContain('form-option');
+      expect(selectMeta.allowedChildTags).toContain('NativeOption');
+      expect(selectMeta.allowedChildTags).toContain('NativeOptGroup');
+    });
+  });
+
   describe('helper functions', () => {
     it('getComponentMetadata returns metadata for registered components', () => {
       expect(getComponentMetadata('VStack')).toBeDefined();
       expect(getComponentMetadata('Button')?.defaultTag).toBe('button');
+      expect(getComponentMetadata('NativeOption')?.defaultTag).toBe('option');
+      expect(getComponentMetadata('NativeOptGroup')?.defaultTag).toBe('optgroup');
       expect(getComponentMetadata('NonExistent')).toBeUndefined();
     });
 
     it('isDesignSystemComponent correctly identifies members', () => {
       expect(isDesignSystemComponent('VStack')).toBe(true);
       expect(isDesignSystemComponent('Badge')).toBe(true);
+      expect(isDesignSystemComponent('NativeOption')).toBe(true);
+      expect(isDesignSystemComponent('NativeOptGroup')).toBe(true);
       expect(isDesignSystemComponent('div')).toBe(false);
       expect(isDesignSystemComponent('CustomWidget')).toBe(false);
+    });
+
+    it('getEffectiveContentCategory returns undefined when asProp is dynamic', () => {
+      const textMeta = COMPONENT_REGISTRY.Text;
+      const badgeMeta = COMPONENT_REGISTRY.Badge;
+      const vstackMeta = COMPONENT_REGISTRY.VStack;
+
+      expect(getEffectiveContentCategory(textMeta, 'dynamic')).toBeUndefined();
+      expect(getEffectiveContentCategory(badgeMeta, 'dynamic')).toBeUndefined();
+      expect(getEffectiveContentCategory(vstackMeta, 'dynamic')).toBeUndefined();
+    });
+
+    it('getNativeHtmlElementCategory classifies standard native HTML elements', () => {
+      expect(getNativeHtmlElementCategory('a')).toBe('interactive');
+      expect(getNativeHtmlElementCategory('button')).toBe('interactive');
+      expect(getNativeHtmlElementCategory('input')).toBe('interactive');
+      expect(getNativeHtmlElementCategory('span')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('div')).toBe('flow');
+      expect(getNativeHtmlElementCategory('h1')).toBe('heading');
+      expect(getNativeHtmlElementCategory('section')).toBe('sectioning');
+      expect(getNativeHtmlElementCategory('option')).toBe('form-option');
+      expect(getNativeHtmlElementCategory('tr')).toBe('table-structure');
+      expect(getNativeHtmlElementCategory('custom-unknown-element')).toBeUndefined();
     });
   });
 });

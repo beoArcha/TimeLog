@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import ts from 'typescript';
 import {
   walkJsxTree,
+  validateJsxTree,
   JsxElementContext,
   ElementKind,
   WalkJsxOptions,
@@ -90,17 +91,21 @@ describe('Component Metadata Registry', () => {
     expect(getEffectiveContentCategory(textMeta)).toBe('flow');
     expect(getEffectiveContentCategory(textMeta, 'span')).toBe('phrasing');
     expect(getEffectiveContentCategory(textMeta, 'p')).toBe('flow');
+    expect(getEffectiveContentCategory(textMeta, 'dynamic')).toBeUndefined();
 
     const captionMeta = COMPONENT_REGISTRY.Caption;
     expect(getEffectiveContentCategory(captionMeta)).toBe('flow');
     expect(getEffectiveContentCategory(captionMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(captionMeta, 'dynamic')).toBeUndefined();
 
     const badgeMeta = COMPONENT_REGISTRY.Badge;
     expect(getEffectiveContentCategory(badgeMeta)).toBe('flow');
     expect(getEffectiveContentCategory(badgeMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(badgeMeta, 'dynamic')).toBeUndefined();
 
     const vstackMeta = COMPONENT_REGISTRY.VStack;
     expect(getEffectiveContentCategory(vstackMeta, 'span')).toBe('flow');
+    expect(getEffectiveContentCategory(vstackMeta, 'dynamic')).toBeUndefined();
   });
 });
 
@@ -172,7 +177,13 @@ describe('AST JSX Walker', () => {
   describe('nested layouts and parent stack tracking', () => {
     it('tracks nested hierarchy across multiple layers', () => {
       const code = `
-        <VStack>\n          <HStack>\n            <Badge>New</Badge>\n            <Text>Label</Text>\n          </HStack>\n          <Button>Action</Button>\n        </VStack>
+        <VStack>
+          <HStack>
+            <Badge>New</Badge>
+            <Text>Label</Text>
+          </HStack>
+          <Button>Action</Button>
+        </VStack>
       `;
       const records = collectWalk(code);
 
@@ -238,6 +249,7 @@ describe('AST JSX Walker', () => {
         childTag: 'VStack',
         childAs: 'section',
         isDynamicAs: false,
+        asStatus: 'resolved',
         childEffectiveTag: 'section',
       });
 
@@ -247,6 +259,7 @@ describe('AST JSX Walker', () => {
         childTag: 'Heading',
         childAs: 'h1',
         isDynamicAs: false,
+        asStatus: 'resolved',
         childEffectiveTag: 'h1',
       });
 
@@ -256,6 +269,7 @@ describe('AST JSX Walker', () => {
         childTag: 'Text',
         childAs: 'span',
         isDynamicAs: false,
+        asStatus: 'resolved',
         childEffectiveTag: 'span',
       });
     });
@@ -268,6 +282,7 @@ describe('AST JSX Walker', () => {
         childTag: 'Area',
         childAs: 'aside',
         isDynamicAs: false,
+        asStatus: 'resolved',
         childEffectiveTag: 'aside',
       });
     });
@@ -280,6 +295,7 @@ describe('AST JSX Walker', () => {
         childTag: 'Area',
         childAs: 'dynamic',
         isDynamicAs: true,
+        asStatus: 'dynamic',
         childEffectiveTag: 'dynamic',
       });
     });
@@ -292,6 +308,7 @@ describe('AST JSX Walker', () => {
         childTag: 'Heading',
         childAs: 'dynamic',
         isDynamicAs: true,
+        asStatus: 'dynamic',
         childEffectiveTag: 'dynamic',
       });
     });
@@ -310,6 +327,7 @@ describe('AST JSX Walker', () => {
         childTag: 'Area',
         childAs: 'dynamic',
         isDynamicAs: true,
+        asStatus: 'dynamic',
         childEffectiveTag: 'dynamic',
       });
 
@@ -317,6 +335,7 @@ describe('AST JSX Walker', () => {
         childTag: 'VStack',
         childAs: 'dynamic',
         isDynamicAs: true,
+        asStatus: 'dynamic',
         childEffectiveTag: 'dynamic',
       });
 
@@ -324,6 +343,7 @@ describe('AST JSX Walker', () => {
         childTag: 'HStack',
         childAs: 'dynamic',
         isDynamicAs: true,
+        asStatus: 'dynamic',
         childEffectiveTag: 'dynamic',
       });
     });
@@ -405,7 +425,9 @@ describe('AST JSX Walker', () => {
         <Text as="span" />
       `);
       expect(records.map(record => [record.asStatus, record.childEffectiveTag])).toEqual([
-        ['resolved', 'section'], ['resolved', 'h1'], ['resolved', 'span'],
+        ['resolved', 'section'],
+        ['resolved', 'h1'],
+        ['resolved', 'span'],
       ]);
     });
 
@@ -415,21 +437,34 @@ describe('AST JSX Walker', () => {
         <Button as="a" />
       `);
       expect(records.map(record => [record.asStatus, record.childEffectiveTag])).toEqual([
-        ['unsupported', 'unsupported'], ['unsupported', 'unsupported'],
+        ['unsupported', 'unsupported'],
+        ['unsupported', 'unsupported'],
       ]);
       expect(records[0].childAs).toBe('table');
       expect(records[1].childAs).toBe('a');
     });
 
-    it('allows an explicit default tag when no supportedAs list exists', () => {
-      const records = collectWalk(`<Button as="button" />`);
-      expect(records[0]).toMatchObject({ asStatus: 'resolved', childEffectiveTag: 'button' });
+    it('rejects static as on components that do not declare supportedAs in registry', () => {
+      const records = collectWalk(`
+        <Button as="button" />
+        <Button as="div" />
+        <NativeSelect as="select" />
+        <NativeOption as="option" />
+      `);
+      expect(records.map(record => [record.asStatus, record.childEffectiveTag])).toEqual([
+        ['unsupported', 'unsupported'],
+        ['unsupported', 'unsupported'],
+        ['unsupported', 'unsupported'],
+        ['unsupported', 'unsupported'],
+      ]);
     });
 
     it('does not apply Design System restrictions to unresolved components', () => {
       const records = collectWalk(`<CustomWidget as="article" />`);
       expect(records[0]).toMatchObject({
-        asStatus: 'resolved', childEffectiveTag: 'article', elementKind: 'unresolved-component',
+        asStatus: 'resolved',
+        childEffectiveTag: 'article',
+        elementKind: 'unresolved-component',
       });
     });
   });
@@ -864,6 +899,219 @@ describe('AST JSX Walker', () => {
       const headingRecord = records.find(r => r.childTag === 'Heading');
       expect(headingRecord).toBeDefined();
       expect(headingRecord?.parentTag).toBe('Area');
+    });
+  });
+
+  describe('JSX validator and content model enforcement', () => {
+    function getValidationErrors(code: string) {
+      const sourceFile = parseSource(code);
+      return validateJsxTree(sourceFile);
+    }
+
+    it('confirms correct NativeSelect with NativeOption and NativeOptGroup produces no errors', () => {
+      const code = `
+        <NativeSelect>
+          <NativeOption value="a">A</NativeOption>
+          <NativeOptGroup label="Group B">
+            <NativeOption value="b">B</NativeOption>
+          </NativeOptGroup>
+        </NativeSelect>
+      `;
+      const errors = getValidationErrors(code);
+      expect(errors).toEqual([]);
+    });
+
+    it('detects NativeOption outside NativeSelect as invalid nesting', () => {
+      const code = `
+        <div>
+          <NativeOption value="orphan">Orphan Option</NativeOption>
+        </div>
+      `;
+      const errors = getValidationErrors(code);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(
+        errors.some(
+          e => e.rule === 'invalid-nesting' && e.tag === 'NativeOption' && e.parentTag === 'div'
+        )
+      ).toBe(true);
+    });
+
+    it('detects root-level NativeOption outside any select container', () => {
+      const rootCode = `<NativeOption value="root">Root Option</NativeOption>`;
+      const rootErrors = getValidationErrors(rootCode);
+      expect(rootErrors.length).toBeGreaterThan(0);
+      expect(
+        rootErrors.some(
+          e => e.rule === 'invalid-nesting' && e.tag === 'NativeOption' && e.parentTag === null
+        )
+      ).toBe(true);
+    });
+
+    it('detects NativeOptGroup outside NativeSelect as invalid nesting', () => {
+      const code = `
+        <VStack>
+          <NativeOptGroup label="Orphan Group">
+            <NativeOption value="nested">Nested</NativeOption>
+          </NativeOptGroup>
+        </VStack>
+      `;
+      const errors = getValidationErrors(code);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(
+        errors.some(
+          e => e.rule === 'invalid-nesting' && e.tag === 'NativeOptGroup' && e.parentTag === 'VStack'
+        )
+      ).toBe(true);
+    });
+
+    it('detects block elements, interactive components, and typography inside NativeOption', () => {
+      const code = `
+        <NativeSelect>
+          <NativeOption value="bad">
+            <div>Invalid Block Child</div>
+            <Button>Invalid Button Child</Button>
+            <Heading>Invalid Heading Child</Heading>
+            <span>Invalid Span Child</span>
+          </NativeOption>
+        </NativeSelect>
+      `;
+      const errors = getValidationErrors(code);
+      const optionChildErrors = errors.filter(e => e.parentTag === 'NativeOption');
+
+      expect(optionChildErrors).toHaveLength(4);
+      for (const err of optionChildErrors) {
+        expect(err.rule).toBe('invalid-nesting');
+        expect(err.message).toContain('accepts text content only');
+      }
+    });
+
+    it('detects disallowed non-option children inside NativeOptGroup', () => {
+      const code = `
+        <NativeSelect>
+          <NativeOptGroup label="Invalid Group">
+            <div>Invalid div</div>
+            <Button>Invalid Button</Button>
+            <NativeOptGroup label="Nested group (invalid)">
+              <NativeOption value="1">1</NativeOption>
+            </NativeOptGroup>
+          </NativeOptGroup>
+        </NativeSelect>
+      `;
+      const errors = getValidationErrors(code);
+      const optGroupErrors = errors.filter(e => e.parentTag === 'NativeOptGroup');
+
+      expect(optGroupErrors.length).toBeGreaterThanOrEqual(3);
+      expect(optGroupErrors.some(e => e.tag === 'div')).toBe(true);
+      expect(optGroupErrors.some(e => e.tag === 'Button')).toBe(true);
+      expect(optGroupErrors.some(e => e.tag === 'NativeOptGroup')).toBe(true);
+    });
+
+    it('detects unsupported as prop values as validation errors', () => {
+      const code = `
+        <div>
+          <VStack as="table" />
+          <Button as="div" />
+          <NativeSelect as="input" />
+        </div>
+      `;
+      const errors = getValidationErrors(code);
+      const asErrors = errors.filter(e => e.rule === 'unsupported-as');
+
+      expect(asErrors).toHaveLength(3);
+      expect(asErrors.map(e => e.tag)).toEqual(['VStack', 'Button', 'NativeSelect']);
+    });
+
+    describe('Regression: Native HTML element and dynamic as validation', () => {
+      it('rejects native <a /> inside <Button> as an invalid-nesting violation', () => {
+        const code = `<Button><a href="/dest">Link</a></Button>`;
+        const errors = getValidationErrors(code);
+
+        expect(errors.length).toBeGreaterThan(0);
+        expect(
+          errors.some(
+            e =>
+              e.rule === 'invalid-nesting' &&
+              e.tag === 'a' &&
+              e.parentTag === 'Button' &&
+              e.message.includes('interactive')
+          )
+        ).toBe(true);
+      });
+
+      it('rejects native <input /> inside <Button> as a violation', () => {
+        const code = `<Button><input type="text" /></Button>`;
+        const errors = getValidationErrors(code);
+
+        expect(errors.length).toBeGreaterThan(0);
+        expect(
+          errors.some(
+            e =>
+              (e.rule === 'invalid-nesting' || e.rule === 'forbidden-child') &&
+              e.tag === 'input' &&
+              e.parentTag === 'Button'
+          )
+        ).toBe(true);
+      });
+
+      it('allows valid phrasing native <span /> inside <Button>', () => {
+        const code = `<Button><span>Click me</span></Button>`;
+        const errors = getValidationErrors(code);
+
+        expect(errors).toEqual([]);
+      });
+
+      it('does not infer effective content category from default tag when as is dynamic', () => {
+        // Text defaults to tag 'p' (flow), which is normally forbidden inside Button (phrasing).
+        // With dynamic as={dynamicTag}, the category is unknown and must not be assumed as flow.
+        const dynamicCode = `
+          <Button>
+            <Text as={dynamicTag}>Dynamic Text</Text>
+          </Button>
+        `;
+        const dynamicErrors = getValidationErrors(dynamicCode);
+        const textCategoryErrors = dynamicErrors.filter(
+          e => e.tag === 'Text' && e.parentTag === 'Button' && e.rule === 'invalid-nesting'
+        );
+        expect(textCategoryErrors).toEqual([]);
+
+        // In contrast, static Text without as defaults to p (flow) and MUST produce an invalid-nesting error inside Button
+        const staticCode = `
+          <Button>
+            <Text>Static Flow Text</Text>
+          </Button>
+        `;
+        const staticErrors = getValidationErrors(staticCode);
+        expect(
+          staticErrors.some(
+            e =>
+              e.tag === 'Text' &&
+              e.parentTag === 'Button' &&
+              e.rule === 'invalid-nesting' &&
+              e.message.includes('flow')
+          )
+        ).toBe(true);
+      });
+
+      it('rejects disallowed native HTML elements inside NativeOptGroup', () => {
+        const code = `
+          <NativeSelect>
+            <NativeOptGroup label="Test Group">
+              <span />
+              <input />
+              <p>Disallowed paragraph</p>
+              <NativeOption value="ok">Valid Option</NativeOption>
+            </NativeOptGroup>
+          </NativeSelect>
+        `;
+        const errors = getValidationErrors(code);
+        const optGroupErrors = errors.filter(e => e.parentTag === 'NativeOptGroup');
+
+        expect(optGroupErrors.length).toBeGreaterThanOrEqual(3);
+        expect(optGroupErrors.some(e => e.tag === 'span')).toBe(true);
+        expect(optGroupErrors.some(e => e.tag === 'input')).toBe(true);
+        expect(optGroupErrors.some(e => e.tag === 'p')).toBe(true);
+        expect(optGroupErrors.some(e => e.tag === 'NativeOption')).toBe(false);
+      });
     });
   });
 });

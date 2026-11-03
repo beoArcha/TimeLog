@@ -13,7 +13,8 @@ export type ContentCategory =
   | 'embedded'
   | 'table-structure'
   | 'form-option'
-  | 'transparent';
+  | 'transparent'
+  | 'text';
 
 export type ComponentCategory =
   | 'layout'
@@ -67,7 +68,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     name: 'Grid',
     category: 'layout',
     defaultTag: 'div',
-    supportedAs: ['div', 'section', 'article', 'ul', 'ol'],
+    supportedAs: ['div', 'section', 'article'],
     selfCategory: 'flow',
     allowedChildCategories: ['flow', 'phrasing', 'transparent'],
   },
@@ -242,6 +243,37 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     allowedChildCategories: ['form-option', 'transparent'],
     allowedChildTags: ['option', 'optgroup', 'NativeOption', 'NativeOptGroup'],
   },
+  NativeOption: {
+    name: 'NativeOption',
+    category: 'form',
+    defaultTag: 'option',
+    selfCategory: 'form-option',
+    allowedChildCategories: ['text'],
+  },
+  NativeOptGroup: {
+    name: 'NativeOptGroup',
+    category: 'form',
+    defaultTag: 'optgroup',
+    selfCategory: 'form-option',
+    allowedChildCategories: ['form-option', 'transparent'],
+    allowedChildTags: ['option', 'NativeOption'],
+    forbiddenChildTags: [
+      'div',
+      'VStack',
+      'HStack',
+      'Grid',
+      'Area',
+      'Table',
+      'p',
+      'Text',
+      'Heading',
+      'Button',
+      'NativeSelect',
+      'NativeOptGroup',
+      'optgroup',
+      'select',
+    ],
+  },
 
   // Table
   Table: {
@@ -324,13 +356,132 @@ export function isDesignSystemComponent(tag: string): boolean {
 }
 
 /**
+ * Canonical mapping of standard native HTML elements to their HTML5 content categories.
+ * Independent of the Design System component registry.
+ */
+export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>> = {
+  // Flow containers / block elements
+  div: 'flow',
+  p: 'flow',
+  ul: 'flow',
+  ol: 'flow',
+  li: 'flow',
+  dl: 'flow',
+  dt: 'flow',
+  dd: 'flow',
+  header: 'flow',
+  footer: 'flow',
+  main: 'flow',
+  figure: 'flow',
+  figcaption: 'flow',
+  blockquote: 'flow',
+  pre: 'flow',
+  hr: 'flow',
+  address: 'flow',
+  form: 'flow',
+  fieldset: 'flow',
+  legend: 'flow',
+  table: 'flow',
+
+  // Phrasing content
+  span: 'phrasing',
+  strong: 'phrasing',
+  em: 'phrasing',
+  mark: 'phrasing',
+  del: 'phrasing',
+  ins: 'phrasing',
+  abbr: 'phrasing',
+  code: 'phrasing',
+  kbd: 'phrasing',
+  label: 'phrasing',
+  b: 'phrasing',
+  i: 'phrasing',
+  u: 'phrasing',
+  s: 'phrasing',
+  small: 'phrasing',
+  sub: 'phrasing',
+  sup: 'phrasing',
+  cite: 'phrasing',
+  q: 'phrasing',
+  time: 'phrasing',
+  var: 'phrasing',
+  samp: 'phrasing',
+  bdo: 'phrasing',
+  bdi: 'phrasing',
+  wbr: 'phrasing',
+  br: 'phrasing',
+
+  // Heading content
+  h1: 'heading',
+  h2: 'heading',
+  h3: 'heading',
+  h4: 'heading',
+  h5: 'heading',
+  h6: 'heading',
+  hgroup: 'heading',
+
+  // Sectioning content
+  article: 'sectioning',
+  aside: 'sectioning',
+  nav: 'sectioning',
+  section: 'sectioning',
+
+  // Interactive content
+  a: 'interactive',
+  button: 'interactive',
+  input: 'interactive',
+  select: 'interactive',
+  textarea: 'interactive',
+  details: 'interactive',
+  summary: 'interactive',
+
+  // Embedded content
+  img: 'embedded',
+  video: 'embedded',
+  audio: 'embedded',
+  canvas: 'embedded',
+  svg: 'embedded',
+  iframe: 'embedded',
+  embed: 'embedded',
+  object: 'embedded',
+  picture: 'embedded',
+
+  // Form options
+  option: 'form-option',
+  optgroup: 'form-option',
+
+  // Table structure
+  thead: 'table-structure',
+  tbody: 'table-structure',
+  tfoot: 'table-structure',
+  tr: 'table-structure',
+  th: 'table-structure',
+  td: 'table-structure',
+  caption: 'table-structure',
+  colgroup: 'table-structure',
+  col: 'table-structure',
+};
+
+/**
+ * Returns the content category of a native HTML element tag, or undefined if unknown.
+ */
+export function getNativeHtmlElementCategory(tag: string): ContentCategory | undefined {
+  return HTML_ELEMENT_CATEGORY_MAP[tag.toLowerCase()];
+}
+
+/**
  * Computes the effective content category for a component, taking into account
  * polymorphic overrides (e.g. Text as="span" is phrasing, while default as="p" is flow).
+ * When asProp is 'dynamic', the effective category cannot be determined statically
+ * and remains undefined to avoid assuming default component tags.
  */
 export function getEffectiveContentCategory(
   metadata: ComponentMetadata,
   asProp?: string
-): ContentCategory {
+): ContentCategory | undefined {
+  if (asProp === 'dynamic') {
+    return undefined;
+  }
   if (
     (metadata.name === 'Text' ||
       metadata.name === 'Caption' ||
