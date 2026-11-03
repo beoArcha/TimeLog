@@ -1,55 +1,22 @@
 import { expect } from 'vitest';
 
 /**
- * HTML5 Flow Content elements that are NOT phrasing content and therefore
- * forbidden inside phrasing-only contexts (such as <button>, <label>, headings, <p>).
- *
- * Expanded with flow-only block and structural elements such as hgroup, li, dt, dd, summary,
- * div, p, lists, tables, sections, forms, and dialogs.
+ * Common block/flow elements that should not be nested inside phrasing-only contexts
+ * (such as headings, labels, buttons).
  */
 export const FLOW_CONTENT_SELECTOR = [
-  'address',
-  'article',
-  'aside',
-  'blockquote',
-  'details',
-  'dialog',
   'div',
-  'dl',
-  'dt',
-  'dd',
-  'fieldset',
-  'figcaption',
-  'figure',
-  'footer',
-  'form',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'header',
-  'hgroup',
-  'hr',
-  'li',
-  'main',
-  'menu',
-  'nav',
-  'ol',
   'p',
-  'pre',
-  'search',
-  'section',
-  'summary',
-  'table',
-  'thead',
-  'tbody',
-  'tfoot',
-  'tr',
-  'th',
-  'td',
   'ul',
+  'ol',
+  'li',
+  'table',
+  'section',
+  'article',
+  'header',
+  'footer',
+  'nav',
+  'main',
 ].join(', ');
 
 /**

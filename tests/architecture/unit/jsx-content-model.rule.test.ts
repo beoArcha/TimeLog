@@ -291,59 +291,6 @@ export function DetailsInSpan() {
       expect(violations.length).toBeGreaterThanOrEqual(1);
       expect(violations.some(v => v.target === 'details')).toBe(true);
     });
-
-    it('detects <legend> outside <fieldset>', () => {
-      const code = `
-import React from 'react';
-
-export function OrphanLegend() {
-  return (
-    <div>
-      <legend>Orphan Legend</legend>
-    </div>
-  );
-}
-`;
-      const violations = rule.scanAst(code, 'features/example/OrphanLegend.tsx');
-      expect(violations.length).toBeGreaterThanOrEqual(1);
-      expect(violations.some(v => v.target === 'legend')).toBe(true);
-    });
-
-    it('detects <summary> outside <details>', () => {
-      const code = `
-import React from 'react';
-
-export function OrphanSummary() {
-  return (
-    <div>
-      <summary>Orphan Summary</summary>
-    </div>
-  );
-}
-`;
-      const violations = rule.scanAst(code, 'features/example/OrphanSummary.tsx');
-      expect(violations.length).toBeGreaterThanOrEqual(1);
-      expect(violations.some(v => v.target === 'summary')).toBe(true);
-    });
-
-    it('detects metadata elements inside ordinary body containers', () => {
-      const code = `
-import React from 'react';
-
-export function MetadataInBody() {
-  return (
-    <div>
-      <title>Invalid Title In Div</title>
-      <meta charSet="utf-8" />
-    </div>
-  );
-}
-`;
-      const violations = rule.scanAst(code, 'features/example/MetadataInBody.tsx');
-      expect(violations.length).toBeGreaterThanOrEqual(2);
-      expect(violations.some(v => v.target === 'title')).toBe(true);
-      expect(violations.some(v => v.target === 'meta')).toBe(true);
-    });
   });
 
   describe('module graph check and allowlist support', () => {

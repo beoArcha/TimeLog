@@ -14,8 +14,7 @@ export type ContentCategory =
   | 'table-structure'
   | 'form-option'
   | 'transparent'
-  | 'text'
-  | 'metadata';
+  | 'text';
 
 export type ComponentCategory =
   | 'layout'
@@ -505,201 +504,22 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   script: 'phrasing',
   noscript: 'phrasing',
 
-  // Document & Metadata
+  // Document
   html: 'flow',
   body: 'flow',
-  head: 'metadata',
-  title: 'metadata',
-  base: 'metadata',
-  meta: 'metadata',
-  link: 'metadata',
-  style: 'metadata',
-};
-
-/**
- * Detailed HTML5 element specification distinguishing primary category,
- * multiple content categories, interactive behavior, embedded content,
- * metadata status, and context restrictions.
- */
-export interface HtmlElementDefinition {
-  tag: string;
-  category: ContentCategory;
-  categories: readonly ContentCategory[];
-  isInteractive?: boolean;
-  isEmbedded?: boolean;
-  isMetadata?: boolean;
-  allowedParents?: readonly string[];
-}
-
-/**
- * Registry of HTML5 element definitions capturing multi-category membership,
- * interactive traits, embedded content, and parent context restrictions.
- */
-export const HTML_ELEMENT_DEFINITIONS: Readonly<Record<string, HtmlElementDefinition>> = {
-  // Document Structure
-  html: { tag: 'html', category: 'flow', categories: [], allowedParents: [] },
-  head: { tag: 'head', category: 'metadata', categories: ['metadata'], isMetadata: true, allowedParents: ['html'] },
-  body: { tag: 'body', category: 'flow', categories: ['flow'], allowedParents: ['html'] },
-
-  // Metadata elements
-  title: { tag: 'title', category: 'metadata', categories: ['metadata'], isMetadata: true, allowedParents: ['head'] },
-  base: { tag: 'base', category: 'metadata', categories: ['metadata'], isMetadata: true, allowedParents: ['head'] },
-  meta: { tag: 'meta', category: 'metadata', categories: ['metadata'], isMetadata: true, allowedParents: ['head'] },
-  link: { tag: 'link', category: 'metadata', categories: ['metadata'], isMetadata: true, allowedParents: ['head'] },
-  style: { tag: 'style', category: 'metadata', categories: ['metadata'], isMetadata: true, allowedParents: ['head'] },
-  script: { tag: 'script', category: 'phrasing', categories: ['metadata', 'flow', 'phrasing'] },
-  noscript: { tag: 'noscript', category: 'phrasing', categories: ['metadata', 'flow', 'phrasing'] },
-
-  // Flow Containers
-  div: { tag: 'div', category: 'flow', categories: ['flow'] },
-  p: { tag: 'p', category: 'flow', categories: ['flow'] },
-  ul: { tag: 'ul', category: 'flow', categories: ['flow'] },
-  ol: { tag: 'ol', category: 'flow', categories: ['flow'] },
-  li: { tag: 'li', category: 'flow', categories: ['flow'], allowedParents: ['ul', 'ol', 'menu', 'List'] },
-  dl: { tag: 'dl', category: 'flow', categories: ['flow'] },
-  dt: { tag: 'dt', category: 'flow', categories: ['flow'], allowedParents: ['dl'] },
-  dd: { tag: 'dd', category: 'flow', categories: ['flow'], allowedParents: ['dl'] },
-  header: { tag: 'header', category: 'flow', categories: ['flow'] },
-  footer: { tag: 'footer', category: 'flow', categories: ['flow'] },
-  main: { tag: 'main', category: 'flow', categories: ['flow'] },
-  figure: { tag: 'figure', category: 'flow', categories: ['flow'] },
-  figcaption: { tag: 'figcaption', category: 'flow', categories: ['flow'], allowedParents: ['figure'] },
-  blockquote: { tag: 'blockquote', category: 'flow', categories: ['flow'] },
-  pre: { tag: 'pre', category: 'flow', categories: ['flow'] },
-  hr: { tag: 'hr', category: 'flow', categories: ['flow'] },
-  address: { tag: 'address', category: 'flow', categories: ['flow'] },
-  form: { tag: 'form', category: 'flow', categories: ['flow'] },
-  fieldset: { tag: 'fieldset', category: 'flow', categories: ['flow'] },
-  menu: { tag: 'menu', category: 'flow', categories: ['flow'] },
-  dialog: { tag: 'dialog', category: 'flow', categories: ['flow'] },
-  search: { tag: 'search', category: 'flow', categories: ['flow'] },
-  table: { tag: 'table', category: 'flow', categories: ['flow'] },
-  details: { tag: 'details', category: 'flow', categories: ['flow', 'interactive'], isInteractive: true },
-
-  // Sectioning
-  article: { tag: 'article', category: 'sectioning', categories: ['sectioning', 'flow'] },
-  aside: { tag: 'aside', category: 'sectioning', categories: ['sectioning', 'flow'] },
-  nav: { tag: 'nav', category: 'sectioning', categories: ['sectioning', 'flow'] },
-  section: { tag: 'section', category: 'sectioning', categories: ['sectioning', 'flow'] },
-
-  // Heading
-  h1: { tag: 'h1', category: 'heading', categories: ['heading', 'flow'] },
-  h2: { tag: 'h2', category: 'heading', categories: ['heading', 'flow'] },
-  h3: { tag: 'h3', category: 'heading', categories: ['heading', 'flow'] },
-  h4: { tag: 'h4', category: 'heading', categories: ['heading', 'flow'] },
-  h5: { tag: 'h5', category: 'heading', categories: ['heading', 'flow'] },
-  h6: { tag: 'h6', category: 'heading', categories: ['heading', 'flow'] },
-  hgroup: { tag: 'hgroup', category: 'heading', categories: ['heading', 'flow'] },
-
-  // Phrasing
-  span: { tag: 'span', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  strong: { tag: 'strong', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  em: { tag: 'em', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  mark: { tag: 'mark', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  del: { tag: 'del', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  ins: { tag: 'ins', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  abbr: { tag: 'abbr', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  code: { tag: 'code', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  kbd: { tag: 'kbd', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  b: { tag: 'b', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  i: { tag: 'i', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  u: { tag: 'u', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  s: { tag: 's', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  small: { tag: 'small', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  sub: { tag: 'sub', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  sup: { tag: 'sup', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  cite: { tag: 'cite', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  q: { tag: 'q', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  time: { tag: 'time', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  var: { tag: 'var', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  samp: { tag: 'samp', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  bdo: { tag: 'bdo', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  bdi: { tag: 'bdi', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  wbr: { tag: 'wbr', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  br: { tag: 'br', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  data: { tag: 'data', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  dfn: { tag: 'dfn', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  output: { tag: 'output', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  progress: { tag: 'progress', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  meter: { tag: 'meter', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  ruby: { tag: 'ruby', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  rt: { tag: 'rt', category: 'phrasing', categories: ['phrasing'], allowedParents: ['ruby'] },
-  rp: { tag: 'rp', category: 'phrasing', categories: ['phrasing'], allowedParents: ['ruby'] },
-  datalist: { tag: 'datalist', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  map: { tag: 'map', category: 'phrasing', categories: ['phrasing', 'flow'] },
-  area: { tag: 'area', category: 'phrasing', categories: ['phrasing'], allowedParents: ['map'] },
-  legend: { tag: 'legend', category: 'phrasing', categories: ['phrasing'], allowedParents: ['fieldset'] },
-  summary: { tag: 'summary', category: 'phrasing', categories: ['phrasing'], allowedParents: ['details'] },
-
-  // Interactive content (also phrasing and flow)
-  a: { tag: 'a', category: 'interactive', categories: ['interactive', 'phrasing', 'flow'], isInteractive: true },
-  button: { tag: 'button', category: 'interactive', categories: ['interactive', 'phrasing', 'flow'], isInteractive: true },
-  input: { tag: 'input', category: 'interactive', categories: ['interactive', 'phrasing', 'flow'], isInteractive: true },
-  select: { tag: 'select', category: 'interactive', categories: ['interactive', 'phrasing', 'flow'], isInteractive: true },
-  textarea: { tag: 'textarea', category: 'interactive', categories: ['interactive', 'phrasing', 'flow'], isInteractive: true },
-  label: { tag: 'label', category: 'phrasing', categories: ['interactive', 'phrasing', 'flow'], isInteractive: true },
-
-  // Embedded content (also phrasing and flow)
-  img: { tag: 'img', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  video: { tag: 'video', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  audio: { tag: 'audio', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  canvas: { tag: 'canvas', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  svg: { tag: 'svg', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  iframe: { tag: 'iframe', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  embed: { tag: 'embed', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  object: { tag: 'object', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  picture: { tag: 'picture', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  math: { tag: 'math', category: 'embedded', categories: ['embedded', 'phrasing', 'flow'], isEmbedded: true },
-  source: { tag: 'source', category: 'embedded', categories: ['embedded'], isEmbedded: true, allowedParents: ['picture', 'audio', 'video'] },
-  track: { tag: 'track', category: 'embedded', categories: ['embedded'], isEmbedded: true, allowedParents: ['audio', 'video'] },
-
-  // Form options
-  option: {
-    tag: 'option',
-    category: 'form-option',
-    categories: ['form-option'],
-    allowedParents: ['select', 'NativeSelect', 'optgroup', 'NativeOptGroup', 'datalist'],
-  },
-  optgroup: {
-    tag: 'optgroup',
-    category: 'form-option',
-    categories: ['form-option'],
-    allowedParents: ['select', 'NativeSelect'],
-  },
-
-  // Table structure
-  caption: { tag: 'caption', category: 'table-structure', categories: ['table-structure'], allowedParents: ['table', 'Table'] },
-  colgroup: { tag: 'colgroup', category: 'table-structure', categories: ['table-structure'], allowedParents: ['table', 'Table'] },
-  col: { tag: 'col', category: 'table-structure', categories: ['table-structure'], allowedParents: ['colgroup', 'table', 'Table'] },
-  thead: { tag: 'thead', category: 'table-structure', categories: ['table-structure'], allowedParents: ['table', 'Table'] },
-  tbody: { tag: 'tbody', category: 'table-structure', categories: ['table-structure'], allowedParents: ['table', 'Table'] },
-  tfoot: { tag: 'tfoot', category: 'table-structure', categories: ['table-structure'], allowedParents: ['table', 'Table'] },
-  tr: {
-    tag: 'tr',
-    category: 'table-structure',
-    categories: ['table-structure'],
-    allowedParents: ['table', 'thead', 'tbody', 'tfoot', 'Table', 'TableHeader', 'TableBody', 'TableFooter'],
-  },
-  th: { tag: 'th', category: 'table-structure', categories: ['table-structure'], allowedParents: ['tr', 'TableRow'] },
-  td: { tag: 'td', category: 'table-structure', categories: ['table-structure'], allowedParents: ['tr', 'TableRow'] },
-
-  // Transparent / Supporting
-  template: { tag: 'template', category: 'transparent', categories: ['transparent', 'metadata', 'flow', 'phrasing'] },
-  slot: { tag: 'slot', category: 'transparent', categories: ['transparent', 'flow', 'phrasing'] },
+  head: 'flow',
+  title: 'phrasing',
+  base: 'phrasing',
+  meta: 'phrasing',
+  link: 'phrasing',
+  style: 'phrasing',
 };
 
 /**
  * Context-restricted elements that can only be placed as direct children of specific parents.
- * Covers both native HTML tags and their corresponding Design System component names.
+ * Covers essential structural relationships: lists, tables, definition lists, and select structures.
  */
 export const CONTEXT_RESTRICTED_ELEMENTS: Readonly<Record<string, readonly string[]>> = {
-  // Summary & Legend
-  summary: ['details'],
-  legend: ['fieldset'],
-
-  // Area
-  area: ['map'],
-
   // Lists
   li: ['ul', 'ol', 'menu', 'List'],
   ListItem: ['ul', 'ol', 'menu', 'List'],
@@ -728,29 +548,6 @@ export const CONTEXT_RESTRICTED_ELEMENTS: Readonly<Record<string, readonly strin
   NativeOptGroup: ['select', 'NativeSelect'],
   option: ['select', 'NativeSelect', 'optgroup', 'NativeOptGroup', 'datalist'],
   NativeOption: ['select', 'NativeSelect', 'optgroup', 'NativeOptGroup'],
-
-  // Media
-  source: ['picture', 'audio', 'video'],
-  track: ['audio', 'video'],
-
-  // Ruby
-  rt: ['ruby'],
-  rp: ['ruby'],
-
-  // Figures
-  figcaption: ['figure'],
-
-  // Document structure
-  html: [], // root only (no parent)
-  head: ['html'],
-  body: ['html'],
-
-  // Metadata only
-  title: ['head'],
-  base: ['head'],
-  meta: ['head'],
-  link: ['head'],
-  style: ['head'],
 };
 
 /**
@@ -761,42 +558,8 @@ export function getContextRestrictedParents(tag: string): readonly string[] | un
 }
 
 /**
- * Returns the HTML5 element definition for a native tag, or undefined if unknown.
- */
-export function getHtmlElementDefinition(tag: string): HtmlElementDefinition | undefined {
-  return HTML_ELEMENT_DEFINITIONS[tag.toLowerCase()];
-}
-
-/**
- * Returns all HTML5 content categories for a native HTML element.
- */
-export function getNativeHtmlElementCategories(tag: string): readonly ContentCategory[] {
-  return HTML_ELEMENT_DEFINITIONS[tag.toLowerCase()]?.categories ?? [];
-}
-
-/**
- * Returns true if the native HTML element is an interactive element.
- */
-export function isNativeInteractiveElement(tag: string): boolean {
-  return HTML_ELEMENT_DEFINITIONS[tag.toLowerCase()]?.isInteractive === true;
-}
-
-/**
- * Returns true if the native HTML element is an embedded element.
- */
-export function isNativeEmbeddedElement(tag: string): boolean {
-  return HTML_ELEMENT_DEFINITIONS[tag.toLowerCase()]?.isEmbedded === true;
-}
-
-/**
- * Returns true if the native HTML element is a metadata-only element.
- */
-export function isNativeMetadataElement(tag: string): boolean {
-  return HTML_ELEMENT_DEFINITIONS[tag.toLowerCase()]?.isMetadata === true;
-}
-
-/**
  * Structural and content category constraints derived directly from native HTML5 elements.
+ * Focused on essential architectural rules: list structures, phrasing-only containers, tables, and selects.
  */
 export interface ElementConstraints {
   allowedChildCategories?: ContentCategory[];
@@ -816,95 +579,10 @@ export const HTML_ELEMENT_CONSTRAINTS: Readonly<Record<string, ElementConstraint
     allowedChildTags: ['li', 'ListItem'],
   },
 
-  // Phrasing-only containers
+  // Phrasing-only containers (block elements forbidden)
   span: {
     allowedChildCategories: ['phrasing', 'transparent', 'text'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'details'],
-  },
-  p: {
-    allowedChildCategories: ['phrasing', 'transparent', 'text'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'details'],
-  },
-  h1: {
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'details'],
-  },
-  h2: {
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'details'],
-  },
-  h3: {
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'details'],
-  },
-  h4: {
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'details'],
-  },
-  h5: {
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'details'],
-  },
-  h6: {
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'details'],
-  },
-  button: {
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: [
-      'Button',
-      'button',
-      'Input',
-      'input',
-      'Select',
-      'NativeSelect',
-      'select',
-      'textarea',
-      'Textarea',
-      'a',
-      'details',
-      'div',
-      'VStack',
-      'HStack',
-      'Grid',
-      'Area',
-      'Table',
-    ],
-  },
-  label: {
-    allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'label', 'Label', 'details'],
-  },
-
-  // Legend & Summary - phrasing and heading only, no flow blocks
-  legend: {
-    allowedChildCategories: ['phrasing', 'heading', 'text', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'details'],
-  },
-  summary: {
-    allowedChildCategories: ['phrasing', 'heading', 'text', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'details'],
-  },
-
-  // Details - allows summary and flow content
-  details: {
-    allowedChildCategories: ['flow', 'phrasing', 'transparent', 'text'],
-  },
-
-  // Fieldset - allows legend and flow content
-  fieldset: {
-    allowedChildCategories: ['flow', 'phrasing', 'transparent', 'text'],
-  },
-
-  // Metadata container
-  head: {
-    allowedChildCategories: ['metadata', 'transparent'],
-    allowedChildTags: ['title', 'base', 'link', 'style', 'meta', 'script', 'noscript', 'template'],
-  },
-
-  // Definition lists
-  dl: {
-    allowedChildTags: ['dt', 'dd', 'div'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text'],
   },
 
   // Tables

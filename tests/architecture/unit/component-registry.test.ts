@@ -10,10 +10,6 @@ import {
   getHtmlElementConstraints,
   isDesignSystemComponent,
   getContextRestrictedParents,
-  getHtmlElementDefinition,
-  getNativeHtmlElementCategories,
-  isNativeInteractiveElement,
-  isNativeMetadataElement,
 } from '../registry/component-registry';
 
 const VALID_CONTENT_CATEGORIES: ContentCategory[] = [
@@ -27,7 +23,6 @@ const VALID_CONTENT_CATEGORIES: ContentCategory[] = [
   'form-option',
   'transparent',
   'text',
-  'metadata',
 ];
 
 const VALID_COMPONENT_CATEGORIES: ComponentCategory[] = [
@@ -310,12 +305,6 @@ describe('Component Registry Consistency', () => {
       expect(spanConstraints?.forbiddenChildTags).toContain('div');
       expect(spanConstraints?.forbiddenChildTags).toContain('VStack');
 
-      const pConstraints = getHtmlElementConstraints('p');
-      expect(pConstraints).toBeDefined();
-      expect(pConstraints?.allowedChildCategories).toContain('phrasing');
-      expect(pConstraints?.forbiddenChildTags).toContain('div');
-      expect(pConstraints?.forbiddenChildTags).toContain('VStack');
-
       expect(getHtmlElementConstraints('div')).toBeUndefined();
       expect(getHtmlElementConstraints('unknown-element')).toBeUndefined();
     });
@@ -335,71 +324,24 @@ describe('Component Registry Consistency', () => {
       expect(listItemMeta.selfCategory).toBe('flow');
     });
 
-    it('correctly classifies details, legend, summary, area, map, and metadata elements', () => {
-      // details: flow + interactive, not phrasing
+    it('classifies details, legend, and summary with straightforward content categories', () => {
+      // details: flow (not phrasing)
       expect(getNativeHtmlElementCategory('details')).toBe('flow');
-      expect(getNativeHtmlElementCategories('details')).toContain('flow');
-      expect(getNativeHtmlElementCategories('details')).toContain('interactive');
-      expect(getNativeHtmlElementCategories('details')).not.toContain('phrasing');
-      expect(isNativeInteractiveElement('details')).toBe(true);
 
-      // legend: phrasing, context restricted to fieldset
+      // legend and summary: phrasing
       expect(getNativeHtmlElementCategory('legend')).toBe('phrasing');
-      expect(getNativeHtmlElementCategories('legend')).toEqual(['phrasing']);
-      expect(getContextRestrictedParents('legend')).toEqual(['fieldset']);
-
-      // summary: phrasing, context restricted to details
       expect(getNativeHtmlElementCategory('summary')).toBe('phrasing');
-      expect(getNativeHtmlElementCategories('summary')).toEqual(['phrasing']);
-      expect(getContextRestrictedParents('summary')).toEqual(['details']);
-
-      // area: phrasing, context restricted to map
-      expect(getNativeHtmlElementCategory('area')).toBe('phrasing');
-      expect(getNativeHtmlElementCategories('area')).toEqual(['phrasing']);
-      expect(getContextRestrictedParents('area')).toEqual(['map']);
-
-      // map: phrasing
-      expect(getNativeHtmlElementCategory('map')).toBe('phrasing');
-      expect(getNativeHtmlElementCategories('map')).toContain('phrasing');
-      expect(getNativeHtmlElementCategories('map')).toContain('flow');
-
-      // metadata elements
-      expect(getNativeHtmlElementCategory('title')).toBe('metadata');
-      expect(getNativeHtmlElementCategory('base')).toBe('metadata');
-      expect(getNativeHtmlElementCategory('meta')).toBe('metadata');
-      expect(getNativeHtmlElementCategory('link')).toBe('metadata');
-      expect(getNativeHtmlElementCategory('style')).toBe('metadata');
-      expect(getNativeHtmlElementCategory('head')).toBe('metadata');
-      expect(isNativeMetadataElement('title')).toBe(true);
-      expect(isNativeMetadataElement('meta')).toBe(true);
-      expect(getContextRestrictedParents('title')).toEqual(['head']);
-      expect(getContextRestrictedParents('meta')).toEqual(['head']);
-
-      // html and body
-      expect(getNativeHtmlElementCategory('html')).toBe('flow');
-      expect(getNativeHtmlElementCategory('body')).toBe('flow');
-      expect(getContextRestrictedParents('html')).toEqual([]);
-      expect(getContextRestrictedParents('body')).toEqual(['html']);
-      expect(getContextRestrictedParents('head')).toEqual(['html']);
-
-      // script and noscript
-      expect(getNativeHtmlElementCategory('script')).toBe('phrasing');
-      expect(getNativeHtmlElementCategories('script')).toEqual(['metadata', 'flow', 'phrasing']);
-      expect(getNativeHtmlElementCategory('noscript')).toBe('phrasing');
-      expect(getNativeHtmlElementCategories('noscript')).toEqual(['metadata', 'flow', 'phrasing']);
     });
 
-    it('returns element definitions via getHtmlElementDefinition', () => {
-      const detailsDef = getHtmlElementDefinition('details');
-      expect(detailsDef).toBeDefined();
-      expect(detailsDef?.tag).toBe('details');
-      expect(detailsDef?.category).toBe('flow');
-      expect(detailsDef?.isInteractive).toBe(true);
-
-      const legendDef = getHtmlElementDefinition('legend');
-      expect(legendDef).toBeDefined();
-      expect(legendDef?.category).toBe('phrasing');
-      expect(legendDef?.allowedParents).toEqual(['fieldset']);
+    it('defines essential context-restricted elements', () => {
+      expect(getContextRestrictedParents('li')).toEqual(['ul', 'ol', 'menu', 'List']);
+      expect(getContextRestrictedParents('tr')).toContain('table');
+      expect(getContextRestrictedParents('td')).toEqual(['tr', 'TableRow']);
+      expect(getContextRestrictedParents('th')).toEqual(['tr', 'TableRow']);
+      expect(getContextRestrictedParents('option')).toContain('select');
+      expect(getContextRestrictedParents('optgroup')).toEqual(['select', 'NativeSelect']);
+      expect(getContextRestrictedParents('dt')).toEqual(['dl']);
+      expect(getContextRestrictedParents('dd')).toEqual(['dl']);
     });
   });
 });

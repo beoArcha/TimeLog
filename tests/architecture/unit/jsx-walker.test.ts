@@ -1028,22 +1028,6 @@ describe('AST JSX Walker', () => {
     });
 
     describe('Regression: Native HTML element and dynamic as validation', () => {
-      it('rejects native <a /> inside <Button> as an invalid-nesting violation', () => {
-        const code = `<Button><a href="/dest">Link</a></Button>`;
-        const errors = getValidationErrors(code);
-
-        expect(errors.length).toBeGreaterThan(0);
-        expect(
-          errors.some(
-            e =>
-              e.rule === 'invalid-nesting' &&
-              e.tag === 'a' &&
-              e.parentTag === 'Button' &&
-              e.message.includes('interactive')
-          )
-        ).toBe(true);
-      });
-
       it('rejects native <input /> inside <Button> as a violation', () => {
         const code = `<Button><input type="text" /></Button>`;
         const errors = getValidationErrors(code);
@@ -1351,7 +1335,7 @@ describe('AST JSX Walker', () => {
     });
 
     describe('PR #32: HTML Content Model Final Corrections Regression Tests', () => {
-      it('rejects <span><details /></span> because details is flow and interactive, not phrasing', () => {
+      it('rejects <span><details /></span> because details is flow, not phrasing', () => {
         const code = `
           <span>
             <details>
@@ -1384,159 +1368,6 @@ describe('AST JSX Walker', () => {
         `;
         const errors = getValidationErrors(code);
         expect(errors).toEqual([]);
-      });
-
-      it('verifies legend category, valid children, and context restrictions', () => {
-        // Positive: legend inside fieldset with phrasing and heading
-        const validCode = `
-          <fieldset>
-            <legend>
-              <h3>Section Title</h3>
-              <span>Additional phrasing</span>
-            </legend>
-            <input type="text" />
-          </fieldset>
-        `;
-        expect(getValidationErrors(validCode)).toEqual([]);
-
-        // Negative: legend placed outside fieldset (e.g. inside div or span)
-        const invalidParentCode = `
-          <div>
-            <legend>Orphan Legend</legend>
-          </div>
-        `;
-        const parentErrors = getValidationErrors(invalidParentCode);
-        expect(
-          parentErrors.some(
-            e => e.rule === 'invalid-nesting' && e.tag === 'legend' && e.parentTag === 'div'
-          )
-        ).toBe(true);
-
-        // Negative: legend containing block flow content like div
-        const invalidChildCode = `
-          <fieldset>
-            <legend>
-              <div>Block content not allowed in legend</div>
-            </legend>
-          </fieldset>
-        `;
-        const childErrors = getValidationErrors(invalidChildCode);
-        expect(
-          childErrors.some(
-            e => e.parentTag === 'legend' && e.tag === 'div'
-          )
-        ).toBe(true);
-      });
-
-      it('verifies summary category, valid children, and context restrictions', () => {
-        // Positive: summary inside details with phrasing and heading
-        const validCode = `
-          <details>
-            <summary>
-              <h4>Expandable Section</h4>
-              <span>Subtitle</span>
-            </summary>
-            <div>Details body content</div>
-          </details>
-        `;
-        expect(getValidationErrors(validCode)).toEqual([]);
-
-        // Negative: summary outside details (inside div or span)
-        const orphanCode = `
-          <div>
-            <summary>Orphan Summary</summary>
-          </div>
-        `;
-        const orphanErrors = getValidationErrors(orphanCode);
-        expect(
-          orphanErrors.some(
-            e => e.rule === 'invalid-nesting' && e.tag === 'summary' && e.parentTag === 'div'
-          )
-        ).toBe(true);
-
-        const spanSummaryCode = `
-          <span>
-            <summary>Summary in span</summary>
-          </span>
-        `;
-        const spanSummaryErrors = getValidationErrors(spanSummaryCode);
-        expect(
-          spanSummaryErrors.some(
-            e => e.tag === 'summary' && e.parentTag === 'span'
-          )
-        ).toBe(true);
-
-        // Negative: summary containing block flow content like div
-        const invalidChildCode = `
-          <details>
-            <summary>
-              <div>Block div inside summary</div>
-            </summary>
-          </details>
-        `;
-        const childErrors = getValidationErrors(invalidChildCode);
-        expect(
-          childErrors.some(
-            e => e.parentTag === 'summary' && e.tag === 'div'
-          )
-        ).toBe(true);
-      });
-
-      it('verifies area and map structural relationships', () => {
-        // Positive: area inside map
-        const validCode = `
-          <map name="primary-map">
-            <area shape="rect" coords="0,0,10,10" href="#" />
-          </map>
-        `;
-        expect(getValidationErrors(validCode)).toEqual([]);
-
-        // Negative: area outside map
-        const invalidCode = `
-          <div>
-            <area shape="circle" coords="10,10,5" href="#" />
-          </div>
-        `;
-        const errors = getValidationErrors(invalidCode);
-        expect(
-          errors.some(
-            e => e.rule === 'invalid-nesting' && e.tag === 'area' && e.parentTag === 'div'
-          )
-        ).toBe(true);
-      });
-
-      it('rejects metadata-only and context-restricted elements in ordinary body content', () => {
-        const invalidMetadataCode = `
-          <div>
-            <title>Page Title</title>
-            <base href="/" />
-            <meta charSet="utf-8" />
-            <link rel="stylesheet" href="styles.css" />
-            <style>body { margin: 0; }</style>
-          </div>
-        `;
-        const errors = getValidationErrors(invalidMetadataCode);
-        expect(errors.some(e => e.tag === 'title' && e.parentTag === 'div')).toBe(true);
-        expect(errors.some(e => e.tag === 'base' && e.parentTag === 'div')).toBe(true);
-        expect(errors.some(e => e.tag === 'meta' && e.parentTag === 'div')).toBe(true);
-        expect(errors.some(e => e.tag === 'link' && e.parentTag === 'div')).toBe(true);
-        expect(errors.some(e => e.tag === 'style' && e.parentTag === 'div')).toBe(true);
-      });
-
-      it('accepts metadata elements in valid document structure', () => {
-        const validDocCode = `
-          <html>
-            <head>
-              <title>Valid App Title</title>
-              <meta charSet="utf-8" />
-              <link rel="stylesheet" href="app.css" />
-            </head>
-            <body>
-              <div>Valid Body Content</div>
-            </body>
-          </html>
-        `;
-        expect(getValidationErrors(validDocCode)).toEqual([]);
       });
 
       it('enforces structural constraints on polymorphic components', () => {

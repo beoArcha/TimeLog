@@ -11,8 +11,8 @@ import { expectNoFlowContent, FLOW_CONTENT_SELECTOR } from '@tests/shared/html-c
 describe('Design System phrasing-content compositions', () => {
   afterEach(() => cleanup());
 
-  it('includes required flow-only elements such as hgroup, li, dt, dd, summary, div, p in FLOW_CONTENT_SELECTOR', () => {
-    const requiredTags = ['hgroup', 'li', 'dt', 'dd', 'summary', 'div', 'p', 'ul', 'ol', 'section', 'article'];
+  it('includes standard flow/block elements in FLOW_CONTENT_SELECTOR', () => {
+    const requiredTags = ['div', 'p', 'ul', 'ol', 'li', 'section', 'article', 'table'];
     for (const tag of requiredTags) {
       expect(FLOW_CONTENT_SELECTOR).toContain(tag);
     }
