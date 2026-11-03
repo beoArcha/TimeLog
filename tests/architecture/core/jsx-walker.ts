@@ -3,8 +3,10 @@ import {
   COMPONENT_REGISTRY,
   ContentCategory,
   ElementConstraints,
+  getContextRestrictedParents,
   getEffectiveContentCategory,
   getHtmlElementConstraints,
+  getNativeHtmlElementCategories,
   getNativeHtmlElementCategory,
 } from '../registry/component-registry';
 
@@ -624,29 +626,75 @@ export function getElementContentCategory(
 }
 
 /**
+ * Resolves all HTML5 content categories applicable to a JSX element.
+ */
+export function getElementContentCategories(
+  element: JsxElementContext
+): readonly ContentCategory[] {
+  if (element.asStatus === 'dynamic') {
+    return [];
+  }
+
+  const meta = COMPONENT_REGISTRY[element.tag];
+  if (meta) {
+    const singleCat = getEffectiveContentCategory(meta, element.as);
+    const nativeCategories = getNativeHtmlElementCategories(element.effectiveTag);
+    if (nativeCategories.length > 0) {
+      const set = new Set<ContentCategory>(nativeCategories);
+      if (singleCat) {
+        set.add(singleCat);
+      }
+      return Array.from(set);
+    }
+    return singleCat ? [singleCat] : [];
+  }
+
+  if (element.elementKind === 'native-html') {
+    const categories = getNativeHtmlElementCategories(element.effectiveTag);
+    if (categories.length > 0) {
+      return categories;
+    }
+    const singleCat = getNativeHtmlElementCategory(element.effectiveTag);
+    return singleCat ? [singleCat] : [];
+  }
+
+  return [];
+}
+
+/**
  * Checks whether a child's content category is compatible with the parent's allowed categories,
  * adhering to HTML5 content model hierarchy where flow content encompasses heading, sectioning,
  * phrasing, interactive, embedded, and text content.
  */
 export function isCategoryAllowed(
   allowedCategories: ContentCategory[],
-  childCategory: ContentCategory
+  childCategory: ContentCategory,
+  childCategories?: readonly ContentCategory[]
 ): boolean {
-  if (allowedCategories.includes(childCategory)) {
-    return true;
+  const categoriesToCheck =
+    childCategories && childCategories.length > 0
+      ? childCategories
+      : [childCategory];
+
+  for (const cat of categoriesToCheck) {
+    if (allowedCategories.includes(cat)) {
+      return true;
+    }
   }
 
   if (allowedCategories.includes('flow')) {
-    const isFlowContent =
-      childCategory === 'flow' ||
-      childCategory === 'phrasing' ||
-      childCategory === 'heading' ||
-      childCategory === 'sectioning' ||
-      childCategory === 'interactive' ||
-      childCategory === 'embedded' ||
-      childCategory === 'text';
-    if (isFlowContent) {
-      return true;
+    for (const cat of categoriesToCheck) {
+      const isFlowContent =
+        cat === 'flow' ||
+        cat === 'phrasing' ||
+        cat === 'heading' ||
+        cat === 'sectioning' ||
+        cat === 'interactive' ||
+        cat === 'embedded' ||
+        cat === 'text';
+      if (isFlowContent) {
+        return true;
+      }
     }
   }
 
@@ -767,41 +815,58 @@ export function validateJsxTree(
       // 2. Validate hierarchy / nesting constraints
       const childMeta = COMPONENT_REGISTRY[child.tag];
       const childCategory = getElementContentCategory(child);
+      const childCategories = getElementContentCategories(child);
 
-      // Form option constraints: NativeOption and NativeOptGroup must be inside NativeSelect (or NativeOptGroup for NativeOption)
-      if (
-        childMeta?.selfCategory === 'form-option' ||
-        childCategory === 'form-option' ||
-        child.tag === 'NativeOption' ||
-        child.tag === 'NativeOptGroup' ||
-        child.tag === 'option' ||
-        child.tag === 'optgroup'
-      ) {
+      // Context-restricted elements validation (e.g. summary, legend, area, li, dt, dd, tables, select options, metadata)
+      const allowedParents =
+        getContextRestrictedParents(child.tag) ??
+        (child.effectiveTag ? getContextRestrictedParents(child.effectiveTag) : undefined);
+
+      if (allowedParents !== undefined) {
         if (!parent) {
-          violations.push({
-            line: child.line,
-            column: child.column,
-            tag: child.tag,
-            parentTag: null,
-            rule: 'invalid-nesting',
-            message: `<${child.tag}> cannot be used at root level; it must be nested inside <NativeSelect>.`,
-          });
-        } else {
-          const isParentValidForOption =
-            parent.tag === 'NativeSelect' ||
-            ((child.tag === 'NativeOption' || child.effectiveTag === 'option') &&
-              (parent.tag === 'NativeOptGroup' || parent.effectiveTag === 'optgroup')) ||
-            parent.effectiveTag === 'select';
+          const isSelectOption =
+            childMeta?.selfCategory === 'form-option' ||
+            childCategory === 'form-option' ||
+            child.tag === 'NativeOption' ||
+            child.tag === 'NativeOptGroup' ||
+            child.tag === 'option' ||
+            child.tag === 'optgroup';
 
-          if (!isParentValidForOption) {
+          if (isSelectOption) {
+            violations.push({
+              line: child.line,
+              column: child.column,
+              tag: child.tag,
+              parentTag: null,
+              rule: 'invalid-nesting',
+              message: `<${child.tag}> cannot be used at root level; it must be nested inside <NativeSelect>.`,
+            });
+          }
+        } else if (parent.asStatus !== 'dynamic') {
+          if (child.tag === 'html') {
             violations.push({
               line: child.line,
               column: child.column,
               tag: child.tag,
               parentTag: parent.tag,
               rule: 'invalid-nesting',
-              message: `<${child.tag}> cannot be placed inside <${parent.tag}>; it must be inside <NativeSelect>.`,
+              message: `<html> cannot be placed inside <${parent.tag}>; it can only be used at document root.`,
             });
+          } else {
+            const isParentValid =
+              allowedParents.includes(parent.tag) ||
+              allowedParents.includes(parent.effectiveTag);
+
+            if (!isParentValid) {
+              violations.push({
+                line: child.line,
+                column: child.column,
+                tag: child.tag,
+                parentTag: parent.tag,
+                rule: 'invalid-nesting',
+                message: `<${child.tag}> cannot be placed inside <${parent.tag}>; it must be inside <${allowedParents.join(', ')}>.`,
+              });
+            }
           }
         }
       }
@@ -811,7 +876,8 @@ export function validateJsxTree(
 
         if (constraints) {
           const isExplicitPhrasingOverride =
-            child.effectiveTag === 'span' && childCategory === 'phrasing';
+            child.effectiveTag === 'span' &&
+            (childCategory === 'phrasing' || childCategories.includes('phrasing'));
 
           // Check forbidden child tags
           const isChildTagForbidden =
@@ -820,6 +886,7 @@ export function validateJsxTree(
             constraints.forbiddenChildTags?.includes(child.tag);
 
           const isEffectiveTagForbidden =
+            !child.isDynamicAs &&
             constraints.forbiddenChildTags?.includes(child.effectiveTag);
 
           if (isChildTagForbidden || isEffectiveTagForbidden) {
@@ -867,18 +934,38 @@ export function validateJsxTree(
                 message: `<${parent.tag}> accepts text content only; element <${child.tag}> is not allowed.`,
               });
             } else {
-              if (
-                childCategory &&
-                childCategory !== 'transparent' &&
-                !isCategoryAllowed(constraints.allowedChildCategories, childCategory)
-              ) {
+              const isParentButtonOrLink =
+                parent.tag === 'Button' ||
+                parent.effectiveTag === 'button' ||
+                parent.effectiveTag === 'a';
+
+              const isChildInteractive =
+                childCategory === 'interactive' ||
+                childCategories.includes('interactive') ||
+                child.tag === 'Button' ||
+                child.effectiveTag === 'button' ||
+                child.effectiveTag === 'a' ||
+                child.effectiveTag === 'input';
+
+              const categoryAllowed =
+                isParentButtonOrLink && isChildInteractive
+                  ? false
+                  : isCategoryAllowed(
+                      constraints.allowedChildCategories,
+                      childCategory,
+                      childCategories
+                    );
+
+              if (childCategory && childCategory !== 'transparent' && !categoryAllowed) {
+                const reportedCategory =
+                  isParentButtonOrLink && isChildInteractive ? 'interactive' : childCategory;
                 violations.push({
                   line: child.line,
                   column: child.column,
                   tag: child.tag,
                   parentTag: parent.tag,
                   rule: 'invalid-nesting',
-                  message: `<${child.tag}> (${childCategory}) is not allowed inside <${parent.tag}> (allowed categories: ${constraints.allowedChildCategories.join(', ')}).`,
+                  message: `<${child.tag}> (${reportedCategory}) is not allowed inside <${parent.tag}> (allowed categories: ${constraints.allowedChildCategories.join(', ')}).`,
                 });
               }
             }
