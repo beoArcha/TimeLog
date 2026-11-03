@@ -5,6 +5,7 @@ import { useTranslation } from '@common/i18n/translator';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Area } from '@components/ui/area';
+import { Grid } from '@components/ui/grid';
 import { ViewHeader } from '@components/ViewHeader';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
@@ -152,7 +153,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         setCustomTo={setCustomTo}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Grid cols={1} gap="xl" className="lg:grid-cols-2">
         <StackedBarActivityChart
           clampedLogs={clampedLogs}
           projects={projects}
@@ -163,7 +164,7 @@ export default function ReportView({ state }: { state: GuiState }) {
           selectedProjectId={selectedProjectId}
           onSelectProject={setSelectedProjectId}
         />
-      </div>
+      </Grid>
 
       <ReportLogList
         filteredLogs={filteredLogs}

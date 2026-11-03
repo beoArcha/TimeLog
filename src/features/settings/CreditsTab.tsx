@@ -5,6 +5,7 @@ import { useLocale } from '@common/hooks/LocaleProvider';
 import { Heading, Caption, Text, MonoText } from '@components/ui/typography';
 import { Badge } from '@components/ui/badge';
 import { HStack, VStack, InlineCluster } from '@components/ui/stack';
+import { Grid } from '@components/ui/grid';
 import { CreditCard } from './components/CreditCard';
 
 const OPEN_SOURCE_STACK = ['React', 'Tauri', 'Rust', 'SQLite', 'TailwindCSS', 'Bun'] as const;
@@ -26,7 +27,7 @@ export default function CreditsTab() {
         </Text>
       </VStack>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <Grid cols={1} gap="lg" className="lg:grid-cols-2">
         <CreditCard
           title={translate(locale, 'help', 'ZoukTitle', customTranslations)}
           icon={HeartHandshake}
@@ -113,7 +114,7 @@ export default function CreditsTab() {
             </VStack>
           </VStack>
         </CreditCard>
-      </div>
+      </Grid>
     </VStack>
   );
 }

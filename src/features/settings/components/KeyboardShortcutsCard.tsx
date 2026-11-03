@@ -3,6 +3,7 @@ import { Terminal } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Caption, MonoText } from '@components/ui/typography';
 import { HStack } from '@components/ui/stack';
+import { Grid } from '@components/ui/grid';
 import { Kbd } from '@components/ui/kbd';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
@@ -22,7 +23,7 @@ export function KeyboardShortcutsCard() {
       <Caption size="xs" className="leading-relaxed font-sans">
         {translate(locale, 'help', 'ShortcutsDesc', customTranslations)}
       </Caption>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <Grid cols={1} gap="lg" className="md:grid-cols-2 mt-2">
         <ShortcutTile
           label={translate(locale, 'help', 'ShortcutToggleInterface', customTranslations)}
           shortcut={
@@ -72,7 +73,7 @@ export function KeyboardShortcutsCard() {
             }
           />
         )}
-      </div>
+      </Grid>
     </CollapsibleCard>
   );
 }
