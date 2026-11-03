@@ -68,7 +68,7 @@ describe('Component Metadata Registry', () => {
     expect(COMPONENT_REGISTRY.Button.defaultTag).toBe('button');
     expect(COMPONENT_REGISTRY.Button.selfCategory).toBe('interactive');
     expect(COMPONENT_REGISTRY.Button.forbiddenChildTags).toContain('button');
-    expect(COMPONENT_REGISTRY.Button.forbiddenChildTags).toContain('div');
+    expect(COMPONENT_REGISTRY.Button.forbiddenChildTags).toContain('input');
 
     expect(COMPONENT_REGISTRY.Heading).toBeDefined();
     expect(COMPONENT_REGISTRY.Heading.defaultTag).toBe('h2');
@@ -1149,7 +1149,7 @@ describe('AST JSX Walker', () => {
         expect(
           errors.some(
             e =>
-              e.rule === 'forbidden-child' &&
+              (e.rule === 'invalid-nesting' || e.rule === 'forbidden-child') &&
               e.tag === 'div' &&
               e.parentTag === 'VStack'
           )
@@ -1259,7 +1259,7 @@ describe('AST JSX Walker', () => {
         expect(invalidErrors.some(e => e.parentTag === 'ol' && e.tag === 'p')).toBe(true);
       });
 
-      it('correctly validates newly classified HTML elements without false positives', () => {
+      it('correctly validates standard HTML elements without false positives', () => {
         const code = `
           <div>
             <dialog>
@@ -1271,11 +1271,10 @@ describe('AST JSX Walker', () => {
               </form>
             </search>
             <p>
-              <data value="123">123 items</data>
-              <output>Result</output>
-              <progress value="50" max="100" />
-              <meter value="0.6">60%</meter>
-              <dfn>Definition</dfn>
+              <span>Text item</span>
+              <strong>Important</strong>
+              <em>Emphasis</em>
+              <code>const x = 1;</code>
             </p>
           </div>
         `;

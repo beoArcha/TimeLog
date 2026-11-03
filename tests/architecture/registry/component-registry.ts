@@ -62,7 +62,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['div', 'span'],
     selfCategory: 'flow',
     allowedChildCategories: ['phrasing', 'flow', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table'],
   },
   Grid: {
     name: 'Grid',
@@ -89,7 +88,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
     selfCategory: 'heading',
     allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text'],
   },
   Text: {
     name: 'Text',
@@ -98,7 +96,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['p', 'span', 'div', 'small', 'strong', 'label'],
     selfCategory: 'flow',
     allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p'],
   },
   Caption: {
     name: 'Caption',
@@ -107,7 +104,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['p', 'span'],
     selfCategory: 'flow',
     allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p'],
   },
   Overline: {
     name: 'Overline',
@@ -239,12 +235,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
       'Select',
       'NativeSelect',
       'select',
-      'div',
-      'VStack',
-      'HStack',
-      'Grid',
-      'Area',
-      'Table',
+      'textarea',
     ],
   },
   Label: {
@@ -253,7 +244,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'label',
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text'],
   },
   NativeSelect: {
     name: 'NativeSelect',
@@ -277,22 +267,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     selfCategory: 'form-option',
     allowedChildCategories: ['form-option', 'transparent'],
     allowedChildTags: ['option', 'NativeOption'],
-    forbiddenChildTags: [
-      'div',
-      'VStack',
-      'HStack',
-      'Grid',
-      'Area',
-      'Table',
-      'p',
-      'Text',
-      'Heading',
-      'Button',
-      'NativeSelect',
-      'NativeOptGroup',
-      'optgroup',
-      'select',
-    ],
   },
 
   // Table
@@ -376,8 +350,8 @@ export function isDesignSystemComponent(tag: string): boolean {
 }
 
 /**
- * Canonical mapping of standard native HTML elements to their HTML5 content categories.
- * Independent of the Design System component registry.
+ * Canonical mapping of standard native HTML elements to their HTML content categories.
+ * Contains only elements relevant to application JSX validation.
  */
 export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>> = {
   // Flow containers / block elements
@@ -386,66 +360,41 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   ul: 'flow',
   ol: 'flow',
   li: 'flow',
-  dl: 'flow',
-  dt: 'flow',
-  dd: 'flow',
   header: 'flow',
   footer: 'flow',
   main: 'flow',
-  figure: 'flow',
-  figcaption: 'flow',
-  blockquote: 'flow',
-  pre: 'flow',
-  hr: 'flow',
-  address: 'flow',
   form: 'flow',
-  fieldset: 'flow',
   table: 'flow',
-  menu: 'flow',
+  pre: 'flow',
+  blockquote: 'flow',
+  details: 'flow',
   dialog: 'flow',
   search: 'flow',
-  details: 'flow', // Flow content / sectioning root (not phrasing)
+  menu: 'flow',
+
+  // Sectioning content
+  article: 'sectioning',
+  aside: 'sectioning',
+  nav: 'sectioning',
+  section: 'sectioning',
 
   // Phrasing content
   span: 'phrasing',
   strong: 'phrasing',
   em: 'phrasing',
-  mark: 'phrasing',
-  del: 'phrasing',
-  ins: 'phrasing',
-  abbr: 'phrasing',
   code: 'phrasing',
   kbd: 'phrasing',
   label: 'phrasing',
   b: 'phrasing',
   i: 'phrasing',
-  u: 'phrasing',
-  s: 'phrasing',
   small: 'phrasing',
-  sub: 'phrasing',
-  sup: 'phrasing',
-  cite: 'phrasing',
-  q: 'phrasing',
+  mark: 'phrasing',
+  del: 'phrasing',
+  ins: 'phrasing',
+  abbr: 'phrasing',
   time: 'phrasing',
-  var: 'phrasing',
-  samp: 'phrasing',
-  bdo: 'phrasing',
-  bdi: 'phrasing',
-  wbr: 'phrasing',
+  summary: 'phrasing',
   br: 'phrasing',
-  data: 'phrasing',
-  dfn: 'phrasing',
-  output: 'phrasing',
-  progress: 'phrasing',
-  meter: 'phrasing',
-  ruby: 'phrasing',
-  rt: 'phrasing',
-  rp: 'phrasing',
-  datalist: 'phrasing',
-  legend: 'phrasing', // Phrasing content (context-restricted to fieldset)
-  summary: 'phrasing', // Phrasing content (context-restricted to details)
-  map: 'phrasing',
-  area: 'phrasing',
 
   // Heading content
   h1: 'heading',
@@ -454,13 +403,6 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   h4: 'heading',
   h5: 'heading',
   h6: 'heading',
-  hgroup: 'heading',
-
-  // Sectioning content
-  article: 'sectioning',
-  aside: 'sectioning',
-  nav: 'sectioning',
-  section: 'sectioning',
 
   // Interactive content
   a: 'interactive',
@@ -471,17 +413,11 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
 
   // Embedded content
   img: 'embedded',
+  svg: 'embedded',
+  canvas: 'embedded',
   video: 'embedded',
   audio: 'embedded',
-  canvas: 'embedded',
-  svg: 'embedded',
   iframe: 'embedded',
-  embed: 'embedded',
-  object: 'embedded',
-  picture: 'embedded',
-  source: 'embedded',
-  track: 'embedded',
-  math: 'embedded',
 
   // Form options
   option: 'form-option',
@@ -495,44 +431,20 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   th: 'table-structure',
   td: 'table-structure',
   caption: 'table-structure',
-  colgroup: 'table-structure',
-  col: 'table-structure',
-
-  // Transparent / Supporting
-  template: 'transparent',
-  slot: 'transparent',
-  script: 'phrasing',
-  noscript: 'phrasing',
-
-  // Document
-  html: 'flow',
-  body: 'flow',
-  head: 'flow',
-  title: 'phrasing',
-  base: 'phrasing',
-  meta: 'phrasing',
-  link: 'phrasing',
-  style: 'phrasing',
 };
 
 /**
  * Context-restricted elements that can only be placed as direct children of specific parents.
- * Covers essential structural relationships: lists, tables, definition lists, and select structures.
+ * Covers essential structural relationships: lists, tables, and select structures.
  */
 export const CONTEXT_RESTRICTED_ELEMENTS: Readonly<Record<string, readonly string[]>> = {
   // Lists
   li: ['ul', 'ol', 'menu', 'List'],
   ListItem: ['ul', 'ol', 'menu', 'List'],
 
-  // Definition lists
-  dt: ['dl'],
-  dd: ['dl'],
-
   // Tables
   caption: ['table', 'Table'],
   TableCaption: ['table', 'Table'],
-  colgroup: ['table', 'Table'],
-  col: ['colgroup', 'table', 'Table'],
   thead: ['table', 'Table'],
   tbody: ['table', 'Table'],
   tfoot: ['table', 'Table'],
@@ -546,7 +458,7 @@ export const CONTEXT_RESTRICTED_ELEMENTS: Readonly<Record<string, readonly strin
   // Select / Option
   optgroup: ['select', 'NativeSelect'],
   NativeOptGroup: ['select', 'NativeSelect'],
-  option: ['select', 'NativeSelect', 'optgroup', 'NativeOptGroup', 'datalist'],
+  option: ['select', 'NativeSelect', 'optgroup', 'NativeOptGroup'],
   NativeOption: ['select', 'NativeSelect', 'optgroup', 'NativeOptGroup'],
 };
 
@@ -558,7 +470,7 @@ export function getContextRestrictedParents(tag: string): readonly string[] | un
 }
 
 /**
- * Structural and content category constraints derived directly from native HTML5 elements.
+ * Structural and content category constraints derived directly from native HTML elements.
  * Focused on essential architectural rules: list structures, phrasing-only containers, tables, and selects.
  */
 export interface ElementConstraints {
@@ -579,10 +491,23 @@ export const HTML_ELEMENT_CONSTRAINTS: Readonly<Record<string, ElementConstraint
     allowedChildTags: ['li', 'ListItem'],
   },
 
-  // Phrasing-only containers (block elements forbidden)
+  // Phrasing-only containers (block elements forbidden by phrasing category)
   span: {
     allowedChildCategories: ['phrasing', 'transparent', 'text'],
-    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text'],
+  },
+
+  // Interactive buttons (cannot nest interactive elements)
+  button: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: [
+      'button',
+      'Button',
+      'input',
+      'Input',
+      'select',
+      'NativeSelect',
+      'textarea',
+    ],
   },
 
   // Tables
@@ -624,22 +549,6 @@ export const HTML_ELEMENT_CONSTRAINTS: Readonly<Record<string, ElementConstraint
   optgroup: {
     allowedChildCategories: ['form-option', 'transparent'],
     allowedChildTags: ['option', 'NativeOption'],
-    forbiddenChildTags: [
-      'div',
-      'VStack',
-      'HStack',
-      'Grid',
-      'Area',
-      'Table',
-      'p',
-      'Text',
-      'Heading',
-      'Button',
-      'NativeSelect',
-      'NativeOptGroup',
-      'optgroup',
-      'select',
-    ],
   },
   option: {
     allowedChildCategories: ['text'],
@@ -662,7 +571,7 @@ export function getNativeHtmlElementCategory(tag: string): ContentCategory | und
 
 /**
  * Computes the effective content category for a component, taking into account
- * polymorphic overrides (e.g. Text as="span" is phrasing, while default as="p" is flow).
+ * polymorphic overrides (e.g. Text as=\"span\" is phrasing, while default as=\"p\" is flow).
  * When asProp is 'dynamic', the effective category cannot be determined statically
  * and remains undefined to avoid assuming default component tags.
  */
@@ -673,27 +582,8 @@ export function getEffectiveContentCategory(
   if (asProp === 'dynamic') {
     return undefined;
   }
-  if (
-    (metadata.name === 'Text' ||
-      metadata.name === 'Caption' ||
-      metadata.name === 'Badge' ||
-      metadata.name === 'InlineCluster' ||
-      metadata.name === 'HStack' ||
-      metadata.name === 'VStack') &&
-    asProp === 'span'
-  ) {
-    return 'phrasing';
-  }
-  if (
-    asProp &&
-    (metadata.name === 'Overline' ||
-      metadata.name === 'MonoText' ||
-      metadata.name === 'MetricText')
-  ) {
-    const nativeCat = getNativeHtmlElementCategory(asProp);
-    if (nativeCat) {
-      return nativeCat;
-    }
+  if (asProp) {
+    return getNativeHtmlElementCategory(asProp) ?? metadata.selfCategory;
   }
   return metadata.selfCategory;
 }

@@ -21,12 +21,12 @@ export const LEGACY_JSX_CONTENT_MODEL_ALLOWLIST = new Set<string>([
 ]);
 
 /**
- * Architectural Rule: Enforces HTML5 content models, nesting rules, and polymorphic 'as' prop constraints.
+ * Architectural Rule: Enforces structural JSX constraints, content category compatibility, and polymorphic 'as' prop contracts.
  */
 export class JsxContentModelRule implements ArchitectureRule<JsxContentModelOptions> {
   public readonly name = 'jsx-content-model';
   public readonly description =
-    'Enforces HTML5 content models, nesting rules, and polymorphic as prop constraints for JSX elements and Design System primitives.';
+    'Enforces structural JSX constraints, content category compatibility, and polymorphic as prop contracts for Design System primitives and key HTML elements.';
 
   public check(graph: ModuleGraph, options?: JsxContentModelOptions): RuleViolation[] {
     const violations: RuleViolation[] = [];

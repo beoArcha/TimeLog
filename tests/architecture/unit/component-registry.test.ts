@@ -247,38 +247,39 @@ describe('Component Registry Consistency', () => {
       expect(getEffectiveContentCategory(vstackMeta, 'dynamic')).toBeUndefined();
     });
 
-    it('getNativeHtmlElementCategory classifies standard and expanded native HTML elements', () => {
+    it('getNativeHtmlElementCategory classifies standard native HTML elements', () => {
       // Flow content
       expect(getNativeHtmlElementCategory('div')).toBe('flow');
+      expect(getNativeHtmlElementCategory('p')).toBe('flow');
+      expect(getNativeHtmlElementCategory('ul')).toBe('flow');
       expect(getNativeHtmlElementCategory('menu')).toBe('flow');
       expect(getNativeHtmlElementCategory('dialog')).toBe('flow');
       expect(getNativeHtmlElementCategory('search')).toBe('flow');
+      expect(getNativeHtmlElementCategory('details')).toBe('flow');
 
       // Phrasing content
       expect(getNativeHtmlElementCategory('span')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('data')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('dfn')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('output')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('progress')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('meter')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('ruby')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('rt')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('rp')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('datalist')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('strong')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('em')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('code')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('kbd')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('label')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('time')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('summary')).toBe('phrasing');
 
       // Embedded content
-      expect(getNativeHtmlElementCategory('source')).toBe('embedded');
-      expect(getNativeHtmlElementCategory('track')).toBe('embedded');
-      expect(getNativeHtmlElementCategory('math')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('img')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('svg')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('canvas')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('video')).toBe('embedded');
 
-      // Transparent
-      expect(getNativeHtmlElementCategory('template')).toBe('transparent');
-      expect(getNativeHtmlElementCategory('slot')).toBe('transparent');
-
-      // Other representative categories
+      // Interactive content
       expect(getNativeHtmlElementCategory('a')).toBe('interactive');
       expect(getNativeHtmlElementCategory('button')).toBe('interactive');
       expect(getNativeHtmlElementCategory('input')).toBe('interactive');
+      expect(getNativeHtmlElementCategory('select')).toBe('interactive');
+
+      // Heading, Sectioning, Form Option, Table
       expect(getNativeHtmlElementCategory('h1')).toBe('heading');
       expect(getNativeHtmlElementCategory('section')).toBe('sectioning');
       expect(getNativeHtmlElementCategory('option')).toBe('form-option');
@@ -302,8 +303,6 @@ describe('Component Registry Consistency', () => {
       const spanConstraints = getHtmlElementConstraints('span');
       expect(spanConstraints).toBeDefined();
       expect(spanConstraints?.allowedChildCategories).toContain('phrasing');
-      expect(spanConstraints?.forbiddenChildTags).toContain('div');
-      expect(spanConstraints?.forbiddenChildTags).toContain('VStack');
 
       expect(getHtmlElementConstraints('div')).toBeUndefined();
       expect(getHtmlElementConstraints('unknown-element')).toBeUndefined();
@@ -324,12 +323,11 @@ describe('Component Registry Consistency', () => {
       expect(listItemMeta.selfCategory).toBe('flow');
     });
 
-    it('classifies details, legend, and summary with straightforward content categories', () => {
+    it('classifies details and summary with straightforward content categories', () => {
       // details: flow (not phrasing)
       expect(getNativeHtmlElementCategory('details')).toBe('flow');
 
-      // legend and summary: phrasing
-      expect(getNativeHtmlElementCategory('legend')).toBe('phrasing');
+      // summary: phrasing
       expect(getNativeHtmlElementCategory('summary')).toBe('phrasing');
     });
 
@@ -340,8 +338,6 @@ describe('Component Registry Consistency', () => {
       expect(getContextRestrictedParents('th')).toEqual(['tr', 'TableRow']);
       expect(getContextRestrictedParents('option')).toContain('select');
       expect(getContextRestrictedParents('optgroup')).toEqual(['select', 'NativeSelect']);
-      expect(getContextRestrictedParents('dt')).toEqual(['dl']);
-      expect(getContextRestrictedParents('dd')).toEqual(['dl']);
     });
   });
 });

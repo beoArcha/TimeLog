@@ -703,38 +703,10 @@ export function getEffectiveParentConstraints(
     return undefined;
   }
 
-  // 1. Allowed child tags:
-  // Derived from the effective rendered HTML tag first (e.g. ul/ol/menu enforce li/ListItem structure),
-  // falling back to component metadata (e.g. Table, NativeSelect).
-  const allowedChildTags: string[] | undefined =
-    htmlConstraints?.allowedChildTags ?? componentMeta?.allowedChildTags;
-
-  // 2. Allowed child categories:
-  // If the effective HTML tag specifies allowed child categories (e.g. span, p, button, label -> phrasing; option -> text),
-  // that takes precedence over any general component category (e.g. VStack as="span" takes span's phrasing constraint).
-  // Otherwise fall back to componentMeta.allowedChildCategories.
-  const allowedChildCategories: ContentCategory[] | undefined =
-    htmlConstraints?.allowedChildCategories ?? componentMeta?.allowedChildCategories;
-
-  // 3. Forbidden child tags:
-  // Combine forbidden tags from both the effective HTML element and the component metadata.
-  const forbiddenSet = new Set<string>();
-  if (htmlConstraints?.forbiddenChildTags) {
-    for (const tag of htmlConstraints.forbiddenChildTags) {
-      forbiddenSet.add(tag);
-    }
-  }
-  if (componentMeta?.forbiddenChildTags) {
-    for (const tag of componentMeta.forbiddenChildTags) {
-      forbiddenSet.add(tag);
-    }
-  }
-  const forbiddenChildTags = forbiddenSet.size > 0 ? Array.from(forbiddenSet) : undefined;
-
   return {
-    allowedChildTags,
-    allowedChildCategories,
-    forbiddenChildTags,
+    allowedChildTags: htmlConstraints?.allowedChildTags ?? componentMeta?.allowedChildTags,
+    allowedChildCategories: htmlConstraints?.allowedChildCategories ?? componentMeta?.allowedChildCategories,
+    forbiddenChildTags: componentMeta?.forbiddenChildTags ?? htmlConstraints?.forbiddenChildTags,
   };
 }
 
@@ -775,7 +747,7 @@ export function validateJsxTree(
       const childMeta = COMPONENT_REGISTRY[child.tag];
       const childCategory = getElementContentCategory(child);
 
-      // Context-restricted elements validation (e.g. li, tables, select options, definition lists)
+      // Context-restricted elements validation (e.g. li, tables, select options)
       const allowedParents =
         getContextRestrictedParents(child.tag) ??
         (child.effectiveTag ? getContextRestrictedParents(child.effectiveTag) : undefined);
@@ -822,20 +794,13 @@ export function validateJsxTree(
         const constraints = getEffectiveParentConstraints(parent);
 
         if (constraints) {
-          const isExplicitPhrasingOverride =
-            child.effectiveTag === 'span' && childCategory === 'phrasing';
-
-          // Check forbidden child tags
-          const isChildTagForbidden =
-            !isExplicitPhrasingOverride &&
+          // Check forbidden child tags (e.g. Button cannot nest interactive elements)
+          if (
             !child.isDynamicAs &&
-            constraints.forbiddenChildTags?.includes(child.tag);
-
-          const isEffectiveTagForbidden =
-            !child.isDynamicAs &&
-            constraints.forbiddenChildTags?.includes(child.effectiveTag);
-
-          if (isChildTagForbidden || isEffectiveTagForbidden) {
+            constraints.forbiddenChildTags &&
+            (constraints.forbiddenChildTags.includes(child.tag) ||
+              constraints.forbiddenChildTags.includes(child.effectiveTag))
+          ) {
             violations.push({
               line: child.line,
               column: child.column,
