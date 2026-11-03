@@ -136,7 +136,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['ul', 'ol'],
     selfCategory: 'flow',
     allowedChildCategories: ['flow', 'phrasing', 'transparent'],
-    allowedChildTags: ['li', 'ListItem'],
   },
   ListItem: {
     name: 'ListItem',
@@ -251,7 +250,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'select',
     selfCategory: 'interactive',
     allowedChildCategories: ['form-option', 'transparent'],
-    allowedChildTags: ['option', 'optgroup', 'NativeOption', 'NativeOptGroup'],
   },
   NativeOption: {
     name: 'NativeOption',
@@ -266,7 +264,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'optgroup',
     selfCategory: 'form-option',
     allowedChildCategories: ['form-option', 'transparent'],
-    allowedChildTags: ['option', 'NativeOption'],
   },
 
   // Table
@@ -276,16 +273,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'table',
     selfCategory: 'flow',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: [
-      'TableHeader',
-      'TableBody',
-      'TableFooter',
-      'TableCaption',
-      'thead',
-      'tbody',
-      'tfoot',
-      'caption',
-    ],
   },
   TableHeader: {
     name: 'TableHeader',
@@ -293,7 +280,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'thead',
     selfCategory: 'table-structure',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
   },
   TableBody: {
     name: 'TableBody',
@@ -301,7 +287,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'tbody',
     selfCategory: 'table-structure',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
   },
   TableFooter: {
     name: 'TableFooter',
@@ -309,7 +294,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'tfoot',
     selfCategory: 'table-structure',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
   },
   TableRow: {
     name: 'TableRow',
@@ -317,7 +301,6 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     defaultTag: 'tr',
     selfCategory: 'table-structure',
     allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableCell', 'TableHead', 'td', 'th'],
   },
   TableHead: {
     name: 'TableHead',
@@ -470,6 +453,17 @@ export function getContextRestrictedParents(tag: string): readonly string[] | un
 }
 
 /**
+ * Returns restricted children for a parent tag, derived from the canonical child-to-parent map.
+ */
+export function getContextRestrictedChildren(tag: string): string[] | undefined {
+  const children = Object.entries(CONTEXT_RESTRICTED_ELEMENTS)
+    .filter(([, allowedParents]) => allowedParents.includes(tag))
+    .map(([child]) => child);
+
+  return children.length > 0 ? children : undefined;
+}
+
+/**
  * Structural and content category constraints derived directly from native HTML elements.
  * Focused on essential architectural rules: list structures, phrasing-only containers, tables, and selects.
  */
@@ -480,23 +474,12 @@ export interface ElementConstraints {
 }
 
 export const HTML_ELEMENT_CONSTRAINTS: Readonly<Record<string, ElementConstraints>> = {
-  // Lists - strict list-item structure
-  ul: {
-    allowedChildTags: ['li', 'ListItem'],
-  },
-  ol: {
-    allowedChildTags: ['li', 'ListItem'],
-  },
-  menu: {
-    allowedChildTags: ['li', 'ListItem'],
-  },
-
   // Phrasing-only containers (block elements forbidden by phrasing category)
   span: {
     allowedChildCategories: ['phrasing', 'transparent', 'text'],
   },
 
-  // Interactive buttons (cannot nest interactive elements)
+  // Restrict selected nested form controls; this is not a complete interactive-content validator.
   button: {
     allowedChildCategories: ['phrasing', 'transparent'],
     forbiddenChildTags: [
@@ -510,46 +493,14 @@ export const HTML_ELEMENT_CONSTRAINTS: Readonly<Record<string, ElementConstraint
     ],
   },
 
-  // Tables
-  table: {
-    allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: [
-      'TableHeader',
-      'TableBody',
-      'TableFooter',
-      'TableCaption',
-      'thead',
-      'tbody',
-      'tfoot',
-      'caption',
-    ],
-  },
-  thead: {
-    allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
-  },
-  tbody: {
-    allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
-  },
-  tfoot: {
-    allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableRow', 'tr'],
-  },
-  tr: {
-    allowedChildCategories: ['table-structure', 'transparent'],
-    allowedChildTags: ['TableCell', 'TableHead', 'td', 'th'],
-  },
-
-  // Select / Option
-  select: {
-    allowedChildCategories: ['form-option', 'transparent'],
-    allowedChildTags: ['option', 'optgroup', 'NativeOption', 'NativeOptGroup'],
-  },
-  optgroup: {
-    allowedChildCategories: ['form-option', 'transparent'],
-    allowedChildTags: ['option', 'NativeOption'],
-  },
+  // Structural child tags are derived from CONTEXT_RESTRICTED_ELEMENTS.
+  table: { allowedChildCategories: ['table-structure', 'transparent'] },
+  thead: { allowedChildCategories: ['table-structure', 'transparent'] },
+  tbody: { allowedChildCategories: ['table-structure', 'transparent'] },
+  tfoot: { allowedChildCategories: ['table-structure', 'transparent'] },
+  tr: { allowedChildCategories: ['table-structure', 'transparent'] },
+  select: { allowedChildCategories: ['form-option', 'transparent'] },
+  optgroup: { allowedChildCategories: ['form-option', 'transparent'] },
   option: {
     allowedChildCategories: ['text'],
   },
