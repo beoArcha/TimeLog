@@ -70,7 +70,7 @@ function MediumDropdownProjectItem({
         size="sm"
         className="flex-1"
       />
-      <HStack gap="xs" align="center" className="shrink-0 font-mono text-xs text-muted-foreground">
+      <HStack as="span" gap="xs" align="center" className="shrink-0 font-mono text-xs text-muted-foreground">
         <TimerDisplay
           value={elapsedSeconds}
           isRunning={isRunning}

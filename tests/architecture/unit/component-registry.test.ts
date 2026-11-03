@@ -132,6 +132,49 @@ describe('Component Registry Consistency', () => {
     });
   });
 
+  describe('HStack and VStack semantic and category consistency', () => {
+    it('declares selfCategory as flow matching their defaultTag div', () => {
+      expect(COMPONENT_REGISTRY.HStack.defaultTag).toBe('div');
+      expect(COMPONENT_REGISTRY.HStack.selfCategory).toBe('flow');
+      expect(COMPONENT_REGISTRY.VStack.defaultTag).toBe('div');
+      expect(COMPONENT_REGISTRY.VStack.selfCategory).toBe('flow');
+    });
+
+    it('becomes phrasing when polymorphic as="span" is applied', () => {
+      const hstack = COMPONENT_REGISTRY.HStack;
+      const vstack = COMPONENT_REGISTRY.VStack;
+      expect(getEffectiveContentCategory(hstack)).toBe('flow');
+      expect(getEffectiveContentCategory(hstack, 'div')).toBe('flow');
+      expect(getEffectiveContentCategory(hstack, 'span')).toBe('phrasing');
+
+      expect(getEffectiveContentCategory(vstack)).toBe('flow');
+      expect(getEffectiveContentCategory(vstack, 'div')).toBe('flow');
+      expect(getEffectiveContentCategory(vstack, 'span')).toBe('phrasing');
+    });
+  });
+
+  describe('Typography components supportedAs metadata consistency', () => {
+    it('declares valid supportedAs for Overline, MonoText, and MetricText', () => {
+      expect(COMPONENT_REGISTRY.Overline.supportedAs).toContain('span');
+      expect(COMPONENT_REGISTRY.Overline.supportedAs).toContain('p');
+      expect(COMPONENT_REGISTRY.Overline.supportedAs).toContain('h4');
+
+      expect(COMPONENT_REGISTRY.MonoText.supportedAs).toContain('span');
+      expect(COMPONENT_REGISTRY.MonoText.supportedAs).toContain('p');
+
+      expect(COMPONENT_REGISTRY.MetricText.supportedAs).toContain('span');
+      expect(COMPONENT_REGISTRY.MetricText.supportedAs).toContain('p');
+    });
+
+    it('computes effective content category for polymorphic typography components', () => {
+      const overline = COMPONENT_REGISTRY.Overline;
+      expect(getEffectiveContentCategory(overline)).toBe('phrasing');
+      expect(getEffectiveContentCategory(overline, 'span')).toBe('phrasing');
+      expect(getEffectiveContentCategory(overline, 'p')).toBe('flow');
+      expect(getEffectiveContentCategory(overline, 'h4')).toBe('heading');
+    });
+  });
+
   describe('Grid layout metadata consistency', () => {
     it('declares selfCategory as flow matching its defaultTag div', () => {
       const grid = COMPONENT_REGISTRY.Grid;

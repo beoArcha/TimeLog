@@ -727,10 +727,18 @@ export function validateJsxTree(
 
         if (parentMeta) {
           // Check forbidden child tags
-          if (
-            parentMeta.forbiddenChildTags?.includes(child.tag) ||
-            parentMeta.forbiddenChildTags?.includes(child.effectiveTag)
-          ) {
+          const childCategory = getElementContentCategory(child);
+          const isExplicitPhrasingOverride =
+            child.effectiveTag === 'span' && childCategory === 'phrasing';
+
+          const isChildTagForbidden =
+            !isExplicitPhrasingOverride &&
+            parentMeta.forbiddenChildTags?.includes(child.tag);
+
+          const isEffectiveTagForbidden =
+            parentMeta.forbiddenChildTags?.includes(child.effectiveTag);
+
+          if (isChildTagForbidden || isEffectiveTagForbidden) {
             violations.push({
               line: child.line,
               column: child.column,

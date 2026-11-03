@@ -104,8 +104,14 @@ describe('Component Metadata Registry', () => {
     expect(getEffectiveContentCategory(badgeMeta, 'dynamic')).toBeUndefined();
 
     const vstackMeta = COMPONENT_REGISTRY.VStack;
-    expect(getEffectiveContentCategory(vstackMeta, 'span')).toBe('flow');
+    expect(getEffectiveContentCategory(vstackMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(vstackMeta, 'div')).toBe('flow');
     expect(getEffectiveContentCategory(vstackMeta, 'dynamic')).toBeUndefined();
+
+    const hstackMeta = COMPONENT_REGISTRY.HStack;
+    expect(getEffectiveContentCategory(hstackMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(hstackMeta, 'div')).toBe('flow');
+    expect(getEffectiveContentCategory(hstackMeta, 'dynamic')).toBeUndefined();
   });
 });
 
@@ -1111,6 +1117,26 @@ describe('AST JSX Walker', () => {
         expect(optGroupErrors.some(e => e.tag === 'input')).toBe(true);
         expect(optGroupErrors.some(e => e.tag === 'p')).toBe(true);
         expect(optGroupErrors.some(e => e.tag === 'NativeOption')).toBe(false);
+      });
+
+      it('allows HStack and VStack with explicit phrasing override as="span" inside Heading and Label', () => {
+        const code = `
+          <Heading><HStack as="span"><span>Title</span></HStack></Heading>
+          <Label><VStack as="span"><span>Label text</span></VStack></Label>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('rejects default HStack and VStack (flow) inside Heading and Label', () => {
+        const code = `
+          <Heading><HStack><span>Title</span></HStack></Heading>
+          <Label><VStack><span>Label text</span></VStack></Label>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBeGreaterThanOrEqual(2);
+        expect(errors.some(e => e.parentTag === 'Heading' && e.tag === 'HStack')).toBe(true);
+        expect(errors.some(e => e.parentTag === 'Label' && e.tag === 'VStack')).toBe(true);
       });
     });
   });

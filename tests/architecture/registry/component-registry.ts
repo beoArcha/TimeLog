@@ -113,6 +113,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     name: 'Overline',
     category: 'typography',
     defaultTag: 'span',
+    supportedAs: ['span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'small', 'strong', 'label'],
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
@@ -120,6 +121,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     name: 'MonoText',
     category: 'typography',
     defaultTag: 'span',
+    supportedAs: ['span', 'p', 'div', 'small', 'strong', 'label'],
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
@@ -127,6 +129,7 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     name: 'MetricText',
     category: 'typography',
     defaultTag: 'span',
+    supportedAs: ['span', 'p', 'div', 'small', 'strong', 'label'],
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
@@ -486,10 +489,23 @@ export function getEffectiveContentCategory(
     (metadata.name === 'Text' ||
       metadata.name === 'Caption' ||
       metadata.name === 'Badge' ||
-      metadata.name === 'InlineCluster') &&
+      metadata.name === 'InlineCluster' ||
+      metadata.name === 'HStack' ||
+      metadata.name === 'VStack') &&
     asProp === 'span'
   ) {
     return 'phrasing';
+  }
+  if (
+    asProp &&
+    (metadata.name === 'Overline' ||
+      metadata.name === 'MonoText' ||
+      metadata.name === 'MetricText')
+  ) {
+    const nativeCat = getNativeHtmlElementCategory(asProp);
+    if (nativeCat) {
+      return nativeCat;
+    }
   }
   return metadata.selfCategory;
 }
