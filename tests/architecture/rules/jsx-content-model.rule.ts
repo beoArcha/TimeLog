@@ -65,7 +65,7 @@ export class JsxContentModelRule implements ArchitectureRule<JsxContentModelOpti
   }
 
   /**
-   * Scans a TSX source string for HTML5 content model violations using validateJsxTree.
+   * Scans a TSX source string for structural JSX constraints using validateJsxTree.
    */
   public scanAst(sourceText: string, filePath: string): RuleViolation[] {
     const sourceFile = ts.createSourceFile(
