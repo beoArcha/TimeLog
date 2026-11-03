@@ -4,6 +4,7 @@ import {
   ContentCategory,
   ElementConstraints,
   getContextRestrictedParents,
+  getContextRestrictedChildren,
   getEffectiveContentCategory,
   getHtmlElementConstraints,
   getNativeHtmlElementCategory,
@@ -699,19 +700,20 @@ export function getEffectiveParentConstraints(
   const componentMeta = COMPONENT_REGISTRY[parent.tag];
   const htmlConstraints = getHtmlElementConstraints(effectiveTag);
 
-  if (!componentMeta && !htmlConstraints) {
+  const restrictedChildren = getContextRestrictedChildren(effectiveTag);
+  if (!componentMeta && !htmlConstraints && !restrictedChildren) {
     return undefined;
   }
 
   return {
-    allowedChildTags: htmlConstraints?.allowedChildTags ?? componentMeta?.allowedChildTags,
+    allowedChildTags: restrictedChildren ?? componentMeta?.allowedChildTags,
     allowedChildCategories: htmlConstraints?.allowedChildCategories ?? componentMeta?.allowedChildCategories,
     forbiddenChildTags: componentMeta?.forbiddenChildTags ?? htmlConstraints?.forbiddenChildTags,
   };
 }
 
 /**
- * Validates a JSX AST tree against Design System component metadata and HTML content models.
+ * Validates JSX trees against Design System contracts and essential structural constraints.
  */
 export function validateJsxTree(
   sourceFile: ts.SourceFile,
@@ -744,7 +746,6 @@ export function validateJsxTree(
       }
 
       // 2. Validate hierarchy / nesting constraints
-      const childMeta = COMPONENT_REGISTRY[child.tag];
       const childCategory = getElementContentCategory(child);
 
       // Context-restricted elements validation (e.g. li, tables, select options)
@@ -754,24 +755,14 @@ export function validateJsxTree(
 
       if (allowedParents !== undefined) {
         if (!parent) {
-          const isSelectOption =
-            childMeta?.selfCategory === 'form-option' ||
-            childCategory === 'form-option' ||
-            child.tag === 'NativeOption' ||
-            child.tag === 'NativeOptGroup' ||
-            child.tag === 'option' ||
-            child.tag === 'optgroup';
-
-          if (isSelectOption) {
-            violations.push({
-              line: child.line,
-              column: child.column,
-              tag: child.tag,
-              parentTag: null,
-              rule: 'invalid-nesting',
-              message: `<${child.tag}> cannot be used at root level; it must be nested inside <NativeSelect>.`,
-            });
-          }
+          violations.push({
+            line: child.line,
+            column: child.column,
+            tag: child.tag,
+            parentTag: null,
+            rule: 'invalid-nesting',
+            message: `<${child.tag}> cannot be used at root level; it requires a valid structural parent: <${allowedParents.join(', ')}>.`,
+          });
         } else if (parent.asStatus !== 'dynamic') {
           const isParentValid =
             allowedParents.includes(parent.tag) ||
