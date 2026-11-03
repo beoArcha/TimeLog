@@ -18,7 +18,7 @@ export default function SettingsTab() {
       <div className="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <Heading level={2} className="text-lg font-bold text-foreground">
-            <HStack gap="sm">
+            <HStack as="span" gap="sm">
               <Settings className="w-5 h-5 text-amber-500 animate-spin-slow" />
               <span>{translate(locale, 'settings', 'Title', customTranslations)}</span>
             </HStack>

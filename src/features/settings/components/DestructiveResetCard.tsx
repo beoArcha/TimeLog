@@ -97,12 +97,14 @@ export function DestructiveResetCard() {
                 data-testid="reset-scope-all"
                 checked={allSelected}
                 onCheckedChange={toggleSelectAll}
+                aria-labelledby="reset-scope-all-label"
+                aria-describedby="reset-scope-all-desc"
               />
-              <VStack gap="none" className="text-left">
-                <Text size="sm" className="font-semibold">
+              <VStack as="span" gap="none" className="text-left flex flex-col">
+                <Text id="reset-scope-all-label" as="span" size="sm" className="font-semibold block">
                   {translate(locale, 'engine', 'ResetDomainAll', customTranslations)}
                 </Text>
-                <Caption size="2xs" variant="muted">
+                <Caption id="reset-scope-all-desc" as="span" size="2xs" variant="muted" className="block">
                   {translate(locale, 'engine', 'ResetDomainAllDesc', customTranslations)}
                 </Caption>
               </VStack>
@@ -115,12 +117,14 @@ export function DestructiveResetCard() {
                   data-testid="reset-scope-business"
                   checked={selectedDomains.includes('BUSINESS')}
                   onCheckedChange={() => toggleDomain('BUSINESS')}
+                  aria-labelledby="reset-scope-business-label"
+                  aria-describedby="reset-scope-business-desc"
                 />
-                <VStack gap="none" className="text-left">
-                  <Text size="xs" className="font-medium">
+                <VStack as="span" gap="none" className="text-left flex flex-col">
+                  <Text id="reset-scope-business-label" as="span" size="xs" className="font-medium block">
                     {translate(locale, 'engine', 'ResetDomainBusiness', customTranslations)}
                   </Text>
-                  <Caption size="2xs" variant="muted">
+                  <Caption id="reset-scope-business-desc" as="span" size="2xs" variant="muted" className="block">
                     {translate(locale, 'engine', 'ResetDomainBusinessDesc', customTranslations)}
                   </Caption>
                 </VStack>
@@ -132,12 +136,14 @@ export function DestructiveResetCard() {
                   data-testid="reset-scope-settings"
                   checked={selectedDomains.includes('SETTINGS')}
                   onCheckedChange={() => toggleDomain('SETTINGS')}
+                  aria-labelledby="reset-scope-settings-label"
+                  aria-describedby="reset-scope-settings-desc"
                 />
-                <VStack gap="none" className="text-left">
-                  <Text size="xs" className="font-medium">
+                <VStack as="span" gap="none" className="text-left flex flex-col">
+                  <Text id="reset-scope-settings-label" as="span" size="xs" className="font-medium block">
                     {translate(locale, 'engine', 'ResetDomainSettings', customTranslations)}
                   </Text>
-                  <Caption size="2xs" variant="muted">
+                  <Caption id="reset-scope-settings-desc" as="span" size="2xs" variant="muted" className="block">
                     {translate(locale, 'engine', 'ResetDomainSettingsDesc', customTranslations)}
                   </Caption>
                 </VStack>
@@ -149,12 +155,14 @@ export function DestructiveResetCard() {
                   data-testid="reset-scope-system"
                   checked={selectedDomains.includes('SYSTEM')}
                   onCheckedChange={() => toggleDomain('SYSTEM')}
+                  aria-labelledby="reset-scope-system-label"
+                  aria-describedby="reset-scope-system-desc"
                 />
-                <VStack gap="none" className="text-left">
-                  <Text size="xs" className="font-medium">
+                <VStack as="span" gap="none" className="text-left flex flex-col">
+                  <Text id="reset-scope-system-label" as="span" size="xs" className="font-medium block">
                     {translate(locale, 'engine', 'ResetDomainSystem', customTranslations)}
                   </Text>
-                  <Caption size="2xs" variant="muted">
+                  <Caption id="reset-scope-system-desc" as="span" size="2xs" variant="muted" className="block">
                     {translate(locale, 'engine', 'ResetDomainSystemDesc', customTranslations)}
                   </Caption>
                 </VStack>

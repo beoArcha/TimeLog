@@ -92,4 +92,5 @@ describe('ProjectEmptyState', () => {
     const consultingBtn = screen.getByTestId('starter-template-client-consulting');
     expect(consultingBtn.getAttribute('aria-label')).toContain('Client Consulting');
   });
+
 });
