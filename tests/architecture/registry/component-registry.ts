@@ -133,6 +133,23 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
+  List: {
+    name: 'List',
+    category: 'typography',
+    defaultTag: 'ul',
+    supportedAs: ['ul', 'ol'],
+    selfCategory: 'flow',
+    allowedChildCategories: ['flow', 'phrasing', 'transparent'],
+    allowedChildTags: ['li', 'ListItem'],
+  },
+  ListItem: {
+    name: 'ListItem',
+    category: 'typography',
+    defaultTag: 'li',
+    supportedAs: ['li'],
+    selfCategory: 'flow',
+    allowedChildCategories: ['flow', 'phrasing', 'transparent'],
+  },
 
   // Inline
   Badge: {
@@ -385,6 +402,9 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   fieldset: 'flow',
   legend: 'flow',
   table: 'flow',
+  menu: 'flow',
+  dialog: 'flow',
+  search: 'flow',
 
   // Phrasing content
   span: 'phrasing',
@@ -413,6 +433,15 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   bdi: 'phrasing',
   wbr: 'phrasing',
   br: 'phrasing',
+  data: 'phrasing',
+  dfn: 'phrasing',
+  output: 'phrasing',
+  progress: 'phrasing',
+  meter: 'phrasing',
+  ruby: 'phrasing',
+  rt: 'phrasing',
+  rp: 'phrasing',
+  datalist: 'phrasing',
 
   // Heading content
   h1: 'heading',
@@ -448,6 +477,9 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   embed: 'embedded',
   object: 'embedded',
   picture: 'embedded',
+  source: 'embedded',
+  track: 'embedded',
+  math: 'embedded',
 
   // Form options
   option: 'form-option',
@@ -463,7 +495,159 @@ export const HTML_ELEMENT_CATEGORY_MAP: Readonly<Record<string, ContentCategory>
   caption: 'table-structure',
   colgroup: 'table-structure',
   col: 'table-structure',
+
+  // Transparent / Supporting
+  template: 'transparent',
+  slot: 'transparent',
 };
+
+/**
+ * Structural and content category constraints derived directly from native HTML5 elements.
+ */
+export interface ElementConstraints {
+  allowedChildCategories?: ContentCategory[];
+  allowedChildTags?: string[];
+  forbiddenChildTags?: string[];
+}
+
+export const HTML_ELEMENT_CONSTRAINTS: Readonly<Record<string, ElementConstraints>> = {
+  // Lists - strict list-item structure
+  ul: {
+    allowedChildTags: ['li', 'ListItem'],
+  },
+  ol: {
+    allowedChildTags: ['li', 'ListItem'],
+  },
+  menu: {
+    allowedChildTags: ['li', 'ListItem'],
+  },
+
+  // Phrasing-only containers
+  span: {
+    allowedChildCategories: ['phrasing', 'interactive', 'embedded', 'text', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text'],
+  },
+  p: {
+    allowedChildCategories: ['phrasing', 'interactive', 'embedded', 'text', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p'],
+  },
+  h1: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+  },
+  h2: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+  },
+  h3: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+  },
+  h4: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+  },
+  h5: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+  },
+  h6: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'Heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+  },
+  button: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: [
+      'Button',
+      'button',
+      'Input',
+      'input',
+      'Select',
+      'NativeSelect',
+      'select',
+      'textarea',
+      'Textarea',
+      'a',
+      'div',
+      'VStack',
+      'HStack',
+      'Grid',
+      'Area',
+      'Table',
+    ],
+  },
+  label: {
+    allowedChildCategories: ['phrasing', 'transparent'],
+    forbiddenChildTags: ['div', 'VStack', 'HStack', 'Grid', 'Area', 'Table', 'p', 'Text', 'label', 'Label'],
+  },
+
+  // Tables
+  table: {
+    allowedChildCategories: ['table-structure', 'transparent'],
+    allowedChildTags: [
+      'TableHeader',
+      'TableBody',
+      'TableFooter',
+      'TableCaption',
+      'thead',
+      'tbody',
+      'tfoot',
+      'caption',
+    ],
+  },
+  thead: {
+    allowedChildCategories: ['table-structure', 'transparent'],
+    allowedChildTags: ['TableRow', 'tr'],
+  },
+  tbody: {
+    allowedChildCategories: ['table-structure', 'transparent'],
+    allowedChildTags: ['TableRow', 'tr'],
+  },
+  tfoot: {
+    allowedChildCategories: ['table-structure', 'transparent'],
+    allowedChildTags: ['TableRow', 'tr'],
+  },
+  tr: {
+    allowedChildCategories: ['table-structure', 'transparent'],
+    allowedChildTags: ['TableCell', 'TableHead', 'td', 'th'],
+  },
+
+  // Select / Option
+  select: {
+    allowedChildCategories: ['form-option', 'transparent'],
+    allowedChildTags: ['option', 'optgroup', 'NativeOption', 'NativeOptGroup'],
+  },
+  optgroup: {
+    allowedChildCategories: ['form-option', 'transparent'],
+    allowedChildTags: ['option', 'NativeOption'],
+    forbiddenChildTags: [
+      'div',
+      'VStack',
+      'HStack',
+      'Grid',
+      'Area',
+      'Table',
+      'p',
+      'Text',
+      'Heading',
+      'Button',
+      'NativeSelect',
+      'NativeOptGroup',
+      'optgroup',
+      'select',
+    ],
+  },
+  option: {
+    allowedChildCategories: ['text'],
+  },
+};
+
+/**
+ * Returns the structural/content constraints of a native HTML element tag, or undefined if unconstrained.
+ */
+export function getHtmlElementConstraints(tag: string): ElementConstraints | undefined {
+  return HTML_ELEMENT_CONSTRAINTS[tag.toLowerCase()];
+}
 
 /**
  * Returns the content category of a native HTML element tag, or undefined if unknown.

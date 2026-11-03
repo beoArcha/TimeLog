@@ -91,6 +91,30 @@ export function ValidSelect() {
       const violations = rule.scanAst(code, 'features/example/ValidSelect.tsx');
       expect(violations).toEqual([]);
     });
+
+    it('allows valid children according to effective HTML element on polymorphic components', () => {
+      const code = `
+import React from 'react';
+import { VStack } from '@components/ui/stack';
+import { ListItem } from '@components/ui/typography';
+
+export function EffectiveTagValid() {
+  return (
+    <div>
+      <VStack as="span">
+        <span>Valid phrasing span</span>
+      </VStack>
+      <VStack as="ul">
+        <li>Valid native list item</li>
+        <ListItem>Valid design system list item</ListItem>
+      </VStack>
+    </div>
+  );
+}
+`;
+      const violations = rule.scanAst(code, 'features/example/EffectiveTagValid.tsx');
+      expect(violations).toEqual([]);
+    });
   });
 
   describe('invalid JSX content model structures (negative cases)', () => {
@@ -210,6 +234,42 @@ export function UnsupportedAs() {
       expect(violations.length).toBeGreaterThanOrEqual(2);
       expect(violations.some(v => v.target === 'Button')).toBe(true);
       expect(violations.some(v => v.target === 'VStack')).toBe(true);
+    });
+
+    it('detects flow elements inside polymorphic phrasing containers (e.g. VStack as="span")', () => {
+      const code = `
+import React from 'react';
+import { VStack } from '@components/ui/stack';
+
+export function InvalidSpanNesting() {
+  return (
+    <VStack as="span">
+      <div>Invalid Flow Div</div>
+    </VStack>
+  );
+}
+`;
+      const violations = rule.scanAst(code, 'features/example/InvalidSpanNesting.tsx');
+      expect(violations.length).toBeGreaterThanOrEqual(1);
+      expect(violations.some(v => v.target === 'div')).toBe(true);
+    });
+
+    it('detects non-list elements inside polymorphic list containers (e.g. VStack as="ul")', () => {
+      const code = `
+import React from 'react';
+import { VStack } from '@components/ui/stack';
+
+export function InvalidListNesting() {
+  return (
+    <VStack as="ul">
+      <div>Invalid Div Inside List</div>
+    </VStack>
+  );
+}
+`;
+      const violations = rule.scanAst(code, 'features/example/InvalidListNesting.tsx');
+      expect(violations.length).toBeGreaterThanOrEqual(1);
+      expect(violations.some(v => v.target === 'div')).toBe(true);
     });
   });
 

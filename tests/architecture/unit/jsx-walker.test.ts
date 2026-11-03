@@ -1139,5 +1139,215 @@ describe('AST JSX Walker', () => {
         expect(errors.some(e => e.parentTag === 'Label' && e.tag === 'VStack')).toBe(true);
       });
     });
+
+    describe('PR #32: Effective HTML element validation and content model enforcement', () => {
+      it('allows VStack as="span" with valid phrasing children', () => {
+        const code = `
+          <VStack as="span">
+            <span>Phrasing span</span>
+            <Text as="span">Inline text</Text>
+            <Button>Action button</Button>
+            <strong>Strong text</strong>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('rejects flow children (such as nested <div>) inside VStack as="span"', () => {
+        const code = `
+          <VStack as="span">
+            <div>Nested flow div</div>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBeGreaterThanOrEqual(1);
+        expect(
+          errors.some(
+            e =>
+              e.rule === 'forbidden-child' &&
+              e.tag === 'div' &&
+              e.parentTag === 'VStack'
+          )
+        ).toBe(true);
+      });
+
+      it('rejects multiple flow elements inside VStack as="span"', () => {
+        const code = `
+          <VStack as="span">
+            <p>Paragraph</p>
+            <VStack>Nested VStack</VStack>
+            <Text>Default p text</Text>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBeGreaterThanOrEqual(3);
+        expect(errors.some(e => e.tag === 'p' && e.parentTag === 'VStack')).toBe(true);
+        expect(errors.some(e => e.tag === 'VStack' && e.parentTag === 'VStack')).toBe(true);
+        expect(errors.some(e => e.tag === 'Text' && e.parentTag === 'VStack')).toBe(true);
+      });
+
+      it('allows valid list item children inside VStack as="ul" and VStack as="ol"', () => {
+        const code = `
+          <div>
+            <VStack as="ul">
+              <li>Item 1</li>
+              <ListItem>Item 2</ListItem>
+              <VStack as="li">Nested list item</VStack>
+            </VStack>
+            <VStack as="ol">
+              <li>Ordered item 1</li>
+              <ListItem>Ordered item 2</ListItem>
+            </VStack>
+          </div>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('rejects non-list-item children inside VStack as="ul"', () => {
+        const code = `
+          <VStack as="ul">
+            <div>Disallowed div</div>
+            <p>Disallowed paragraph</p>
+            <span>Disallowed span</span>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBe(3);
+        for (const err of errors) {
+          expect(err.rule).toBe('invalid-nesting');
+          expect(err.parentTag).toBe('VStack');
+          expect(err.message).toContain('Allowed tags: li, ListItem');
+        }
+      });
+
+      it('rejects non-list-item children inside VStack as="ol"', () => {
+        const code = `
+          <VStack as="ol">
+            <div>Disallowed div in ol</div>
+            <Text>Disallowed text in ol</Text>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.length).toBe(2);
+        for (const err of errors) {
+          expect(err.rule).toBe('invalid-nesting');
+          expect(err.parentTag).toBe('VStack');
+          expect(err.message).toContain('Allowed tags: li, ListItem');
+        }
+      });
+
+      it('enforces native list element rules on <menu>, <ul>, and <ol>', () => {
+        const validCode = `
+          <div>
+            <menu>
+              <li>Menu item</li>
+              <ListItem>Design system list item</ListItem>
+            </menu>
+            <ul>
+              <li>Unordered item</li>
+            </ul>
+            <ol>
+              <li>Ordered item</li>
+            </ol>
+          </div>
+        `;
+        expect(getValidationErrors(validCode)).toEqual([]);
+
+        const invalidCode = `
+          <div>
+            <menu>
+              <div>Disallowed div inside menu</div>
+            </menu>
+            <ul>
+              <span>Disallowed span inside ul</span>
+            </ul>
+            <ol>
+              <p>Disallowed p inside ol</p>
+            </ol>
+          </div>
+        `;
+        const invalidErrors = getValidationErrors(invalidCode);
+        expect(invalidErrors.length).toBe(3);
+        expect(invalidErrors.some(e => e.parentTag === 'menu' && e.tag === 'div')).toBe(true);
+        expect(invalidErrors.some(e => e.parentTag === 'ul' && e.tag === 'span')).toBe(true);
+        expect(invalidErrors.some(e => e.parentTag === 'ol' && e.tag === 'p')).toBe(true);
+      });
+
+      it('correctly validates newly classified HTML elements without false positives', () => {
+        const code = `
+          <div>
+            <dialog>
+              <p>Modal content</p>
+            </dialog>
+            <search>
+              <form>
+                <input type="search" />
+              </form>
+            </search>
+            <p>
+              <data value="123">123 items</data>
+              <output>Result</output>
+              <progress value="50" max="100" />
+              <meter value="0.6">60%</meter>
+              <dfn>Definition</dfn>
+            </p>
+          </div>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors).toEqual([]);
+      });
+
+      it('does not assume default tag or enforce child constraints when parent as is dynamic', () => {
+        const code = `
+          <VStack as={dynamicTag}>
+            <div>Dynamic parent allows flow div</div>
+            <p>Dynamic parent allows paragraph</p>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        // Because as is dynamic, parent constraints should NOT assume default 'div' or any specific tag
+        expect(errors.filter(e => e.parentTag === 'VStack')).toEqual([]);
+      });
+
+      it('does not reject children with dynamic as when nested inside constrained parents', () => {
+        const code = `
+          <VStack as="ul">
+            <Text as={dynamicTag}>Dynamic tag may evaluate to li</Text>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        // Child has dynamic as, so it should not be assumed as p (flow) and rejected
+        expect(errors).toEqual([]);
+      });
+
+      it('does not apply native HTML constraints to custom unresolved components matching native names', () => {
+        // e.g. Custom Radix-style <Select> with <SelectTrigger> and <SelectContent>
+        const code = `
+          <Select>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">One</SelectItem>
+            </SelectContent>
+          </Select>
+        `;
+        const errors = getValidationErrors(code);
+        // Custom component <Select> must not be treated as native HTML <select> requiring NativeOption
+        expect(errors).toEqual([]);
+      });
+
+      it('reports unsupported as prop values on polymorphic components', () => {
+        const code = `
+          <VStack as="table">
+            <div>Table content</div>
+          </VStack>
+        `;
+        const errors = getValidationErrors(code);
+        expect(errors.some(e => e.rule === 'unsupported-as' && e.tag === 'VStack')).toBe(true);
+      });
+    });
   });
 });

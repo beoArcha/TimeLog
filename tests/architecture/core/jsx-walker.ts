@@ -2,7 +2,9 @@ import ts from 'typescript';
 import {
   COMPONENT_REGISTRY,
   ContentCategory,
+  ElementConstraints,
   getEffectiveContentCategory,
+  getHtmlElementConstraints,
   getNativeHtmlElementCategory,
 } from '../registry/component-registry';
 
@@ -652,6 +654,84 @@ export function isCategoryAllowed(
 }
 
 /**
+ * Resolves the effective structural and content constraints for a parent JSX element.
+ * Constraints are derived from the actual rendered HTML element (taking polymorphic `as` into account)
+ * as well as Design System component metadata.
+ * Returns undefined when `as` is dynamic or invalid, preventing inaccurate assumptions.
+ */
+export function getEffectiveParentConstraints(
+  parent: JsxElementContext
+): ElementConstraints | undefined {
+  if (
+    parent.asStatus === 'dynamic' ||
+    parent.asStatus === 'invalid' ||
+    parent.asStatus === 'unsupported'
+  ) {
+    return undefined;
+  }
+
+  // If the parent is an unresolved or external component without an explicit static `as` override,
+  // do not introduce assumptions about its internal rendered HTML structure.
+  if (
+    (parent.elementKind === 'unresolved-component' || parent.elementKind === 'known-external') &&
+    parent.asStatus === 'none'
+  ) {
+    return undefined;
+  }
+
+  const effectiveTag = parent.effectiveTag;
+  if (
+    !effectiveTag ||
+    effectiveTag === 'dynamic' ||
+    effectiveTag === 'invalid' ||
+    effectiveTag === 'unsupported'
+  ) {
+    return undefined;
+  }
+
+  const componentMeta = COMPONENT_REGISTRY[parent.tag];
+  const htmlConstraints = getHtmlElementConstraints(effectiveTag);
+
+  if (!componentMeta && !htmlConstraints) {
+    return undefined;
+  }
+
+  // 1. Allowed child tags:
+  // Derived from the effective rendered HTML tag first (e.g. ul/ol/menu enforce li/ListItem structure),
+  // falling back to component metadata (e.g. Table, NativeSelect).
+  const allowedChildTags: string[] | undefined =
+    htmlConstraints?.allowedChildTags ?? componentMeta?.allowedChildTags;
+
+  // 2. Allowed child categories:
+  // If the effective HTML tag specifies allowed child categories (e.g. span, p, button, label -> phrasing; option -> text),
+  // that takes precedence over any general component category (e.g. VStack as="span" takes span's phrasing constraint).
+  // Otherwise fall back to componentMeta.allowedChildCategories.
+  const allowedChildCategories: ContentCategory[] | undefined =
+    htmlConstraints?.allowedChildCategories ?? componentMeta?.allowedChildCategories;
+
+  // 3. Forbidden child tags:
+  // Combine forbidden tags from both the effective HTML element and the component metadata.
+  const forbiddenSet = new Set<string>();
+  if (htmlConstraints?.forbiddenChildTags) {
+    for (const tag of htmlConstraints.forbiddenChildTags) {
+      forbiddenSet.add(tag);
+    }
+  }
+  if (componentMeta?.forbiddenChildTags) {
+    for (const tag of componentMeta.forbiddenChildTags) {
+      forbiddenSet.add(tag);
+    }
+  }
+  const forbiddenChildTags = forbiddenSet.size > 0 ? Array.from(forbiddenSet) : undefined;
+
+  return {
+    allowedChildTags,
+    allowedChildCategories,
+    forbiddenChildTags,
+  };
+}
+
+/**
  * Validates a JSX AST tree against Design System component metadata and HTML content models.
  */
 export function validateJsxTree(
@@ -686,12 +766,16 @@ export function validateJsxTree(
 
       // 2. Validate hierarchy / nesting constraints
       const childMeta = COMPONENT_REGISTRY[child.tag];
+      const childCategory = getElementContentCategory(child);
 
       // Form option constraints: NativeOption and NativeOptGroup must be inside NativeSelect (or NativeOptGroup for NativeOption)
       if (
         childMeta?.selfCategory === 'form-option' ||
+        childCategory === 'form-option' ||
         child.tag === 'NativeOption' ||
-        child.tag === 'NativeOptGroup'
+        child.tag === 'NativeOptGroup' ||
+        child.tag === 'option' ||
+        child.tag === 'optgroup'
       ) {
         if (!parent) {
           violations.push({
@@ -705,9 +789,9 @@ export function validateJsxTree(
         } else {
           const isParentValidForOption =
             parent.tag === 'NativeSelect' ||
-            (child.tag === 'NativeOption' && parent.tag === 'NativeOptGroup') ||
-            parent.effectiveTag === 'select' ||
-            (child.tag === 'NativeOption' && parent.effectiveTag === 'optgroup');
+            ((child.tag === 'NativeOption' || child.effectiveTag === 'option') &&
+              (parent.tag === 'NativeOptGroup' || parent.effectiveTag === 'optgroup')) ||
+            parent.effectiveTag === 'select';
 
           if (!isParentValidForOption) {
             violations.push({
@@ -723,20 +807,20 @@ export function validateJsxTree(
       }
 
       if (parent) {
-        const parentMeta = COMPONENT_REGISTRY[parent.tag];
+        const constraints = getEffectiveParentConstraints(parent);
 
-        if (parentMeta) {
-          // Check forbidden child tags
-          const childCategory = getElementContentCategory(child);
+        if (constraints) {
           const isExplicitPhrasingOverride =
             child.effectiveTag === 'span' && childCategory === 'phrasing';
 
+          // Check forbidden child tags
           const isChildTagForbidden =
             !isExplicitPhrasingOverride &&
-            parentMeta.forbiddenChildTags?.includes(child.tag);
+            !child.isDynamicAs &&
+            constraints.forbiddenChildTags?.includes(child.tag);
 
           const isEffectiveTagForbidden =
-            parentMeta.forbiddenChildTags?.includes(child.effectiveTag);
+            constraints.forbiddenChildTags?.includes(child.effectiveTag);
 
           if (isChildTagForbidden || isEffectiveTagForbidden) {
             violations.push({
@@ -750,10 +834,11 @@ export function validateJsxTree(
           }
 
           // Check allowed child tags
-          if (parentMeta.allowedChildTags && parentMeta.allowedChildTags.length > 0) {
+          if (constraints.allowedChildTags && constraints.allowedChildTags.length > 0) {
             const isTagAllowed =
-              parentMeta.allowedChildTags.includes(child.tag) ||
-              parentMeta.allowedChildTags.includes(child.effectiveTag);
+              child.asStatus === 'dynamic' ||
+              constraints.allowedChildTags.includes(child.tag) ||
+              constraints.allowedChildTags.includes(child.effectiveTag);
             if (!isTagAllowed) {
               violations.push({
                 line: child.line,
@@ -761,17 +846,17 @@ export function validateJsxTree(
                 tag: child.tag,
                 parentTag: parent.tag,
                 rule: 'invalid-nesting',
-                message: `<${child.tag}> is not allowed inside <${parent.tag}>. Allowed tags: ${parentMeta.allowedChildTags.join(', ')}.`,
+                message: `<${child.tag}> is not allowed inside <${parent.tag}>. Allowed tags: ${constraints.allowedChildTags.join(', ')}.`,
               });
             }
           }
 
           // Check allowed child categories
-          if (parentMeta.allowedChildCategories) {
+          if (constraints.allowedChildCategories) {
             // Text-only content model (e.g. NativeOption)
             if (
-              parentMeta.allowedChildCategories.length === 1 &&
-              parentMeta.allowedChildCategories[0] === 'text'
+              constraints.allowedChildCategories.length === 1 &&
+              constraints.allowedChildCategories[0] === 'text'
             ) {
               violations.push({
                 line: child.line,
@@ -782,11 +867,10 @@ export function validateJsxTree(
                 message: `<${parent.tag}> accepts text content only; element <${child.tag}> is not allowed.`,
               });
             } else {
-              const childCategory = getElementContentCategory(child);
               if (
                 childCategory &&
                 childCategory !== 'transparent' &&
-                !isCategoryAllowed(parentMeta.allowedChildCategories, childCategory)
+                !isCategoryAllowed(constraints.allowedChildCategories, childCategory)
               ) {
                 violations.push({
                   line: child.line,
@@ -794,7 +878,7 @@ export function validateJsxTree(
                   tag: child.tag,
                   parentTag: parent.tag,
                   rule: 'invalid-nesting',
-                  message: `<${child.tag}> (${childCategory}) is not allowed inside <${parent.tag}> (allowed categories: ${parentMeta.allowedChildCategories.join(', ')}).`,
+                  message: `<${child.tag}> (${childCategory}) is not allowed inside <${parent.tag}> (allowed categories: ${constraints.allowedChildCategories.join(', ')}).`,
                 });
               }
             }

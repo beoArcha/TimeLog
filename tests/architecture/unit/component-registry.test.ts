@@ -7,6 +7,7 @@ import {
   getComponentMetadata,
   getEffectiveContentCategory,
   getNativeHtmlElementCategory,
+  getHtmlElementConstraints,
   isDesignSystemComponent,
 } from '../registry/component-registry';
 
@@ -245,17 +246,87 @@ describe('Component Registry Consistency', () => {
       expect(getEffectiveContentCategory(vstackMeta, 'dynamic')).toBeUndefined();
     });
 
-    it('getNativeHtmlElementCategory classifies standard native HTML elements', () => {
+    it('getNativeHtmlElementCategory classifies standard and expanded native HTML elements', () => {
+      // Flow content
+      expect(getNativeHtmlElementCategory('div')).toBe('flow');
+      expect(getNativeHtmlElementCategory('menu')).toBe('flow');
+      expect(getNativeHtmlElementCategory('dialog')).toBe('flow');
+      expect(getNativeHtmlElementCategory('search')).toBe('flow');
+
+      // Phrasing content
+      expect(getNativeHtmlElementCategory('span')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('data')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('dfn')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('output')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('progress')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('meter')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('ruby')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('rt')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('rp')).toBe('phrasing');
+      expect(getNativeHtmlElementCategory('datalist')).toBe('phrasing');
+
+      // Embedded content
+      expect(getNativeHtmlElementCategory('source')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('track')).toBe('embedded');
+      expect(getNativeHtmlElementCategory('math')).toBe('embedded');
+
+      // Transparent
+      expect(getNativeHtmlElementCategory('template')).toBe('transparent');
+      expect(getNativeHtmlElementCategory('slot')).toBe('transparent');
+
+      // Other representative categories
       expect(getNativeHtmlElementCategory('a')).toBe('interactive');
       expect(getNativeHtmlElementCategory('button')).toBe('interactive');
       expect(getNativeHtmlElementCategory('input')).toBe('interactive');
-      expect(getNativeHtmlElementCategory('span')).toBe('phrasing');
-      expect(getNativeHtmlElementCategory('div')).toBe('flow');
       expect(getNativeHtmlElementCategory('h1')).toBe('heading');
       expect(getNativeHtmlElementCategory('section')).toBe('sectioning');
       expect(getNativeHtmlElementCategory('option')).toBe('form-option');
       expect(getNativeHtmlElementCategory('tr')).toBe('table-structure');
       expect(getNativeHtmlElementCategory('custom-unknown-element')).toBeUndefined();
+    });
+
+    it('getHtmlElementConstraints returns structural constraints for list containers and phrasing elements', () => {
+      const ulConstraints = getHtmlElementConstraints('ul');
+      expect(ulConstraints).toBeDefined();
+      expect(ulConstraints?.allowedChildTags).toEqual(['li', 'ListItem']);
+
+      const olConstraints = getHtmlElementConstraints('ol');
+      expect(olConstraints).toBeDefined();
+      expect(olConstraints?.allowedChildTags).toEqual(['li', 'ListItem']);
+
+      const menuConstraints = getHtmlElementConstraints('menu');
+      expect(menuConstraints).toBeDefined();
+      expect(menuConstraints?.allowedChildTags).toEqual(['li', 'ListItem']);
+
+      const spanConstraints = getHtmlElementConstraints('span');
+      expect(spanConstraints).toBeDefined();
+      expect(spanConstraints?.allowedChildCategories).toContain('phrasing');
+      expect(spanConstraints?.forbiddenChildTags).toContain('div');
+      expect(spanConstraints?.forbiddenChildTags).toContain('VStack');
+
+      const pConstraints = getHtmlElementConstraints('p');
+      expect(pConstraints).toBeDefined();
+      expect(pConstraints?.allowedChildCategories).toContain('phrasing');
+      expect(pConstraints?.forbiddenChildTags).toContain('div');
+      expect(pConstraints?.forbiddenChildTags).toContain('VStack');
+
+      expect(getHtmlElementConstraints('div')).toBeUndefined();
+      expect(getHtmlElementConstraints('unknown-element')).toBeUndefined();
+    });
+
+    it('registers List and ListItem components with correct metadata', () => {
+      const listMeta = COMPONENT_REGISTRY.List;
+      expect(listMeta).toBeDefined();
+      expect(listMeta.defaultTag).toBe('ul');
+      expect(listMeta.supportedAs).toEqual(['ul', 'ol']);
+      expect(listMeta.selfCategory).toBe('flow');
+      expect(listMeta.allowedChildTags).toEqual(['li', 'ListItem']);
+
+      const listItemMeta = COMPONENT_REGISTRY.ListItem;
+      expect(listItemMeta).toBeDefined();
+      expect(listItemMeta.defaultTag).toBe('li');
+      expect(listItemMeta.supportedAs).toEqual(['li']);
+      expect(listItemMeta.selfCategory).toBe('flow');
     });
   });
 });
