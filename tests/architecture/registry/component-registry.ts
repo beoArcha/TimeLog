@@ -58,9 +58,9 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
   InlineCluster: {
     name: 'InlineCluster',
     category: 'layout',
-    defaultTag: 'div',
+    defaultTag: 'span',
     supportedAs: ['div', 'span'],
-    selfCategory: 'flow',
+    selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'flow', 'transparent'],
   },
   Grid: {
@@ -150,9 +150,9 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
   Badge: {
     name: 'Badge',
     category: 'inline',
-    defaultTag: 'div',
+    defaultTag: 'span',
     supportedAs: ['div', 'span'],
-    selfCategory: 'flow',
+    selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
   StatusDot: {

@@ -158,7 +158,7 @@ export function SidebarProjectItem({
           ) : (
             <Text weight="semibold" className="text-main truncate text-foreground">
               {project.archived && (
-                <Badge variant="destructive" size="xs" as="span" className="mr-1 uppercase leading-none">
+                <Badge variant="destructive" size="xs" className="mr-1 uppercase leading-none">
                   {translate(locale, 'common', 'ArchiveNoun', customTranslations)}
                 </Badge>
               )}
@@ -175,12 +175,12 @@ export function SidebarProjectItem({
           {(project.allowConcurrency || (project.tags && project.tags.length > 0)) && (
             <InlineCluster gap="xs" className="mt-1">
               {project.allowConcurrency && (
-                <Badge variant="outline" size="xs" as="span" className="font-sans leading-none text-emerald-500 border-emerald-500/30">
+                <Badge variant="outline" size="xs" className="font-sans leading-none text-emerald-500 border-emerald-500/30">
                   {translate(locale, 'project', 'ConcurrencyBadge', customTranslations)}
                 </Badge>
               )}
               {project.tags && project.tags.map(t => (
-                <Badge key={t} variant="orange" size="xs" as="span" className="font-sans leading-none">
+                <Badge key={t} variant="orange" size="xs" className="font-sans leading-none">
                   {t}
                 </Badge>
               ))}

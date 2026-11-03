@@ -163,7 +163,7 @@ export default function HolidaysLeavesTable({
                       </TableCell>
                       <TableCell className="py-3.5 px-4">
                         {hasHistory ? (
-                          <Badge variant="amber" size="sm" as="span">
+                          <Badge variant="amber" size="sm">
                             {translate(locale, 'database', 'OriginalLabel', customTranslations)}: {h.originalName || h.name} ({h.originalDate})
                           </Badge>
                         ) : (

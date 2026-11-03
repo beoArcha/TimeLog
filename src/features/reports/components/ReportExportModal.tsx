@@ -154,7 +154,6 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                     </span>
                     {isSelected && (
                       <Badge
-                        as="span"
                         variant="secondary"
                         size="sm"
                         className="font-mono"

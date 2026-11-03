@@ -86,7 +86,7 @@ export default function ReportPeriodSelector({
 
       {reportPeriod === 'custom' && (
         <InlineCluster data-testid="custom-date-range-panel" gap="lg" className="pt-3 border-t border-border/50 text-xs w-full">
-          <HStack gap="sm">
+          <HStack as="span" gap="sm">
             <span className="font-mono text-muted-foreground">{tReport('DateFrom')}:</span>
             <Input
               data-testid="custom-from-input"
@@ -97,7 +97,7 @@ export default function ReportPeriodSelector({
               aria-label={tReport('DateFrom')}
             />
           </HStack>
-          <HStack gap="sm">
+          <HStack as="span" gap="sm">
             <span className="font-mono text-muted-foreground">{tReport('DateTo')}:</span>
             <Input
               data-testid="custom-to-input"

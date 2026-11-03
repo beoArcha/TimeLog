@@ -106,30 +106,30 @@ describe('Component Registry Consistency', () => {
   });
 
   describe('Badge semantic and category consistency', () => {
-    it('declares selfCategory as flow matching its defaultTag div', () => {
+    it('declares selfCategory as phrasing matching its defaultTag span', () => {
       const badge = COMPONENT_REGISTRY.Badge;
-      expect(badge.defaultTag).toBe('div');
-      expect(badge.selfCategory).toBe('flow');
+      expect(badge.defaultTag).toBe('span');
+      expect(badge.selfCategory).toBe('phrasing');
     });
 
-    it('becomes phrasing only when polymorphic as="span" is applied', () => {
+    it('becomes flow when polymorphic as="div" is applied', () => {
       const badge = COMPONENT_REGISTRY.Badge;
-      expect(getEffectiveContentCategory(badge)).toBe('flow');
+      expect(getEffectiveContentCategory(badge)).toBe('phrasing');
       expect(getEffectiveContentCategory(badge, 'div')).toBe('flow');
       expect(getEffectiveContentCategory(badge, 'span')).toBe('phrasing');
     });
   });
 
   describe('InlineCluster semantic and category consistency', () => {
-    it('declares selfCategory as flow matching its defaultTag div', () => {
+    it('declares selfCategory as phrasing matching its defaultTag span', () => {
       const cluster = COMPONENT_REGISTRY.InlineCluster;
-      expect(cluster.defaultTag).toBe('div');
-      expect(cluster.selfCategory).toBe('flow');
+      expect(cluster.defaultTag).toBe('span');
+      expect(cluster.selfCategory).toBe('phrasing');
     });
 
-    it('becomes phrasing when polymorphic as="span" is applied', () => {
+    it('becomes flow when polymorphic as="div" is applied', () => {
       const cluster = COMPONENT_REGISTRY.InlineCluster;
-      expect(getEffectiveContentCategory(cluster)).toBe('flow');
+      expect(getEffectiveContentCategory(cluster)).toBe('phrasing');
       expect(getEffectiveContentCategory(cluster, 'div')).toBe('flow');
       expect(getEffectiveContentCategory(cluster, 'span')).toBe('phrasing');
     });

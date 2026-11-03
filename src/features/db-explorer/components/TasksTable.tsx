@@ -111,14 +111,14 @@ export default function TasksTable() {
                       className="w-4 h-4 rounded"
                     />
                   ) : (
-                    <Badge variant={t.completed ? 'success' : 'destructive'} size="xs" as="span">
+                    <Badge variant={t.completed ? 'success' : 'destructive'} size="xs">
                       {t.completed ? 'TRUE' : 'FALSE'}
                     </Badge>
                   )}
                 </TableCell>
                 <TableCell className="py-3.5 px-4">
                   {hasHistory ? (
-                    <Badge variant="amber" size="sm" as="span">
+                    <Badge variant="amber" size="sm">
                       {translate(locale, 'database', 'OriginalLabel', customTranslations)}: {t.originalName || t.name} ({t.originalCompleted ? translate(locale, 'common', 'Yes', customTranslations) : translate(locale, 'common', 'No', customTranslations)})
                     </Badge>
                   ) : (
