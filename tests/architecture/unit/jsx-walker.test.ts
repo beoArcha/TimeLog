@@ -75,8 +75,7 @@ describe('Component Metadata Registry', () => {
     expect(COMPONENT_REGISTRY.Heading.supportedAs).toEqual(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 
     expect(COMPONENT_REGISTRY.Table).toBeDefined();
-    expect(COMPONENT_REGISTRY.Table.allowedChildTags).toContain('TableHeader');
-    expect(COMPONENT_REGISTRY.Table.allowedChildTags).toContain('TableBody');
+    expect(COMPONENT_REGISTRY.Table.allowedChildTags).toBeUndefined();
   });
 
   it('correctly resolves helpers: getComponentMetadata & isDesignSystemComponent', () => {
@@ -940,6 +939,41 @@ describe('AST JSX Walker', () => {
           e => e.rule === 'invalid-nesting' && e.tag === 'NativeOption' && e.parentTag === 'div'
         )
       ).toBe(true);
+    });
+
+    it('rejects root-level and structurally orphaned list, table, and select elements', () => {
+      const cases = [
+        { code: '<li>Orphan item</li>', tag: 'li' },
+        { code: '<tr><td>Orphan row</td></tr>', tag: 'tr' },
+        { code: '<td>Orphan cell</td>', tag: 'td' },
+        { code: '<option>Orphan option</option>', tag: 'option' },
+        { code: '<div><li>Wrong parent</li></div>', tag: 'li' },
+        { code: '<div><tr><td>Wrong parent</td></tr></div>', tag: 'tr' },
+      ];
+
+      for (const testCase of cases) {
+        const errors = getValidationErrors(testCase.code);
+        expect(
+          errors.some(error => error.rule === 'invalid-nesting' && error.tag === testCase.tag),
+          `Expected <${testCase.tag}> to be rejected in: ${testCase.code}`
+        ).toBe(true);
+      }
+    });
+
+    it('continues to accept valid list, table, and select parent-child structures', () => {
+      const code = `
+        <div>
+          <ul><li>List item</li></ul>
+          <table><tbody><tr><td>Cell</td></tr></tbody></table>
+          <NativeSelect>
+            <NativeOption value="one">One</NativeOption>
+            <NativeOptGroup label="Group">
+              <NativeOption value="two">Two</NativeOption>
+            </NativeOptGroup>
+          </NativeSelect>
+        </div>
+      `;
+      expect(getValidationErrors(code)).toEqual([]);
     });
 
     it('detects root-level NativeOption outside any select container', () => {
