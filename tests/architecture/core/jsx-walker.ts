@@ -803,7 +803,13 @@ export function validateJsxTree(
           }
 
           // Check allowed child tags
-          if (constraints.allowedChildTags && constraints.allowedChildTags.length > 0) {
+          // Child-to-parent validation already handles context-restricted elements.
+          // Apply the reverse lookup only to children without their own parent contract.
+          if (
+            allowedParents === undefined &&
+            constraints.allowedChildTags &&
+            constraints.allowedChildTags.length > 0
+          ) {
             const isTagAllowed =
               child.asStatus === 'dynamic' ||
               constraints.allowedChildTags.includes(child.tag) ||
