@@ -12,7 +12,7 @@ export function HolidaysLeavesCard() {
   return (
     <div className="mt-2">
       <Heading level={3} className="text-lg font-bold mb-4">
-        <HStack gap="sm">
+        <HStack as="span" gap="sm">
           <CalendarDays className="w-5 h-5 text-orange-400" />
           <span>{translate(locale, 'settings', 'HolidaysTitle', customTranslations)}</span>
         </HStack>

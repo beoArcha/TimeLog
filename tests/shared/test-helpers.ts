@@ -11,3 +11,4 @@ export * from './mocks/backend-handlers';
 export * from './mocks/tauri-ipc-mock';
 export * from './mocks/oxy-state-mock';
 export * from './builders/entity-builders';
+export * from './html-content-model';

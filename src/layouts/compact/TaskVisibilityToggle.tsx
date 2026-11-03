@@ -31,12 +31,12 @@ export function TaskVisibilityToggle({
         className="w-full py-1 h-auto rounded-xl transition-all font-mono uppercase font-bold tracking-wider flex items-center justify-center gap-1.5 cursor-pointer bg-secondary hover:bg-secondary/80 text-secondary-foreground"
       >
         <span>{label}</span>
-        <div className="w-4 h-4 rounded-full bg-orange-500/10 flex items-center justify-center">
+        <span className="block w-4 h-4 rounded-full bg-orange-500/10 flex items-center justify-center">
           <ChevronDown
             className={`w-3 h-3 transition-transform duration-300 text-orange-400 ${isExpanded ? 'rotate-180' : ''
               }`}
           />
-        </div>
+        </span>
       </Button>
     </div>
   );
