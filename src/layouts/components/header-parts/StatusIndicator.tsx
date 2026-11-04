@@ -22,7 +22,6 @@ export const StatusIndicator: React.FC = () => {
         <Badge
           variant="emerald"
           size="xs"
-          as="span"
           className="hidden sm:inline-flex whitespace-nowrap"
         >
           {label}
@@ -48,7 +47,6 @@ export const StatusIndicator: React.FC = () => {
       <Badge
         variant={isSearching ? 'amber' : 'emerald'}
         size="xs"
-        as="span"
         className="hidden sm:inline-flex whitespace-nowrap"
       >
         {label}

@@ -11,14 +11,10 @@ export interface JsxContentModelOptions {
 /**
  * Migration allowlist of views scheduled for refactoring in upcoming phases:
  * - DataTableViewer.tsx, TimeLogTableRow.tsx (custom row and cell subcomponents inside TableBody and TableRow)
- * - ReportPeriodSelector.tsx, CreditsTab.tsx, TrayWidgetView.tsx (awaiting PR #5 Badge/InlineCluster span refactor)
  */
 export const LEGACY_JSX_CONTENT_MODEL_ALLOWLIST = new Set<string>([
   'features/db-explorer/components/DataTableViewer.tsx',
   'features/db-explorer/components/TimeLogTableRow.tsx',
-  'features/reports/components/ReportPeriodSelector.tsx',
-  'features/settings/CreditsTab.tsx',
-  'features/tray/TrayWidgetView.tsx',
 ]);
 
 /**

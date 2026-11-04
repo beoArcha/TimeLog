@@ -40,7 +40,7 @@ export default function DbInspector({ state, isCondensed }: { state: GuiState; i
 
         <HStack gap="md">
           {showDbInspector && (
-            <Badge variant="outline" size="sm" as="span" className="hidden sm:inline-block font-mono">
+            <Badge variant="outline" size="sm" className="hidden sm:inline-block font-mono">
               ONLINE
             </Badge>
           )}

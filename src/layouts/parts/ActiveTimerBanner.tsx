@@ -91,7 +91,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             </IconBox>
             <div className="min-w-0">
               <InlineCluster gap="xs">
-                <Badge variant="amber" size="xs" as="span" className="whitespace-nowrap uppercase">
+                <Badge variant="amber" size="xs" className="whitespace-nowrap uppercase">
                   {translate(locale, 'timer', 'BreakInProgress', customTranslations)}
                 </Badge>
                 {breakProject && (
@@ -189,7 +189,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             </IconBox>
             <div className="min-w-0">
               <InlineCluster gap="xs">
-                <Badge variant="orange" size="xs" as="span" className="whitespace-nowrap uppercase">
+                <Badge variant="orange" size="xs" className="whitespace-nowrap uppercase">
                   {translate(locale, 'timer', 'ActiveTracker', customTranslations)}
                 </Badge>
                 {activeProject && (
@@ -295,7 +295,7 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
           {lastTask ? (
             <div className="min-w-0 flex-1">
               <InlineCluster gap="xs">
-                <Badge variant="outline" size="xs" as="span" className="whitespace-nowrap uppercase">
+                <Badge variant="outline" size="xs" className="whitespace-nowrap uppercase">
                   {translate(locale, 'timer', 'LastTrackedTask', customTranslations)}
                 </Badge>
                 {lastProject && (
@@ -364,7 +364,6 @@ export default function ActiveTimerBanner({ state, isCondensed }: { state: GuiSt
             <Badge
               variant="outline"
               size="sm"
-              as="span"
               className="font-mono font-medium whitespace-nowrap bg-muted/40 text-foreground"
             >
               {translate(locale, 'engine', 'IdleSqlReady', customTranslations)}

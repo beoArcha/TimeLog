@@ -146,7 +146,7 @@ export default function ProjectsTable() {
                     </TableCell>
                     <TableCell className="py-3.5 px-4">
                       {hasHistory ? (
-                        <Badge variant="amber" size="sm" as="span" className="flex items-center gap-1.5 w-max">
+                        <Badge variant="amber" size="sm" className="flex items-center gap-1.5 w-max">
                           <StatusDot variant="amber" size="2xs" ping />
                           {translate(locale, 'database', 'OriginalLabel', customTranslations)}: {p.originalName || p.name}
                         </Badge>

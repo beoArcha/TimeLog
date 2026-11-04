@@ -6,6 +6,7 @@ import {
   getContextRestrictedParents,
   getContextRestrictedChildren,
   getEffectiveContentCategory,
+  getEffectiveAllowedChildCategories,
   getHtmlElementConstraints,
   getNativeHtmlElementCategory,
 } from '../registry/component-registry';
@@ -705,9 +706,13 @@ export function getEffectiveParentConstraints(
     return undefined;
   }
 
+  const componentAllowedCategories = componentMeta
+    ? getEffectiveAllowedChildCategories(componentMeta, effectiveTag)
+    : undefined;
+
   return {
     allowedChildTags: restrictedChildren ?? componentMeta?.allowedChildTags,
-    allowedChildCategories: htmlConstraints?.allowedChildCategories ?? componentMeta?.allowedChildCategories,
+    allowedChildCategories: htmlConstraints?.allowedChildCategories ?? componentAllowedCategories,
     forbiddenChildTags: componentMeta?.forbiddenChildTags ?? htmlConstraints?.forbiddenChildTags,
   };
 }

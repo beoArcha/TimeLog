@@ -44,7 +44,7 @@ export function TaskStatusSelect({
   };
 
   return (
-    <InlineCluster as="span" onClick={(e) => e.stopPropagation()} className="inline-flex shrink-0">
+    <InlineCluster onClick={(e) => e.stopPropagation()} className="inline-flex shrink-0">
       <Select
         value={currentStatus}
         onValueChange={(val) => {

@@ -33,6 +33,7 @@ export interface ComponentMetadata {
   supportedAs?: string[];
   selfCategory: ContentCategory;
   allowedChildCategories: ContentCategory[];
+  allowedChildCategoriesByTag?: Record<string, ContentCategory[]>;
   allowedChildTags?: string[];
   forbiddenChildTags?: string[];
 }
@@ -46,6 +47,9 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['div', 'span', 'header', 'footer', 'section', 'nav', 'main', 'aside', 'ul', 'ol', 'li'],
     selfCategory: 'flow',
     allowedChildCategories: ['flow', 'phrasing', 'transparent'],
+    allowedChildCategoriesByTag: {
+      span: ['phrasing', 'transparent'],
+    },
   },
   HStack: {
     name: 'HStack',
@@ -54,14 +58,21 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
     supportedAs: ['div', 'span', 'header', 'footer', 'section', 'nav', 'main', 'aside', 'ul', 'ol', 'li'],
     selfCategory: 'flow',
     allowedChildCategories: ['flow', 'phrasing', 'transparent'],
+    allowedChildCategoriesByTag: {
+      span: ['phrasing', 'transparent'],
+    },
   },
   InlineCluster: {
     name: 'InlineCluster',
     category: 'layout',
-    defaultTag: 'div',
+    defaultTag: 'span',
     supportedAs: ['div', 'span'],
-    selfCategory: 'flow',
-    allowedChildCategories: ['phrasing', 'flow', 'transparent'],
+    selfCategory: 'phrasing',
+    allowedChildCategories: ['phrasing', 'transparent'],
+    allowedChildCategoriesByTag: {
+      span: ['phrasing', 'transparent'],
+      div: ['flow', 'phrasing', 'transparent'],
+    },
   },
   Grid: {
     name: 'Grid',
@@ -150,9 +161,9 @@ export const COMPONENT_REGISTRY: Record<string, ComponentMetadata> = {
   Badge: {
     name: 'Badge',
     category: 'inline',
-    defaultTag: 'div',
+    defaultTag: 'span',
     supportedAs: ['div', 'span'],
-    selfCategory: 'flow',
+    selfCategory: 'phrasing',
     allowedChildCategories: ['phrasing', 'transparent'],
   },
   StatusDot: {
@@ -541,3 +552,19 @@ export function getEffectiveContentCategory(
   }
   return metadata.selfCategory;
 }
+
+/**
+ * Returns the effective allowed child categories for a component, taking into
+ * account its rendered effective tag (e.g. InlineCluster defaults to span -> phrasing,
+ * but with polymorphic as="div" allows flow children).
+ */
+export function getEffectiveAllowedChildCategories(
+  metadata: ComponentMetadata,
+  effectiveTag?: string
+): ContentCategory[] | undefined {
+  if (effectiveTag && metadata.allowedChildCategoriesByTag?.[effectiveTag.toLowerCase()]) {
+    return metadata.allowedChildCategoriesByTag[effectiveTag.toLowerCase()];
+  }
+  return metadata.allowedChildCategories;
+}
+

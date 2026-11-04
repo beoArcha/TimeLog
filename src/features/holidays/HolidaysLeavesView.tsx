@@ -10,6 +10,7 @@ import { Input } from '@components/ui/input';
 import { NativeSelect } from '@components/ui/select';
 import { Area } from '@components/ui/area';
 import { Form } from '@components/ui/form';
+import { Grid } from '@components/ui/grid';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { HolidayType } from '@bindings/HolidayType';
@@ -52,7 +53,7 @@ export default function HolidaysLeavesView() {
         headerClassName="text-xs font-bold font-mono tracking-wide text-foreground"
       >
         <Form onSubmit={handleAddHolidaySubmit} layout="vertical" gap="lg" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Grid cols={1} gap="lg" className="md:grid-cols-3">
             <div className="flex flex-col gap-1.5">
               <Overline>{translate(locale, 'common', 'Date', customTranslations)}</Overline>
               <Input type="date" value={newHolidayDate} onChange={e => setNewHolidayDate(e.target.value)} required className="w-full font-mono" />
@@ -68,7 +69,7 @@ export default function HolidaysLeavesView() {
               <Overline>{translate(locale, 'calendar', 'DescriptionCause', customTranslations)}</Overline>
               <Input type="text" value={newHolidayName} onChange={e => setNewHolidayName(e.target.value)} placeholder={translate(locale, 'calendar', 'EGVibeDancingLeave', customTranslations)} required className="w-full font-sans" />
             </div>
-          </div>
+          </Grid>
           <Button
             type="submit"
             variant="accent"

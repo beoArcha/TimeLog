@@ -70,7 +70,7 @@ VStack.displayName = "VStack";
  * Inline horizontal cluster with wrapping enabled by default. Ideal for badges, tags, chip lists, button clusters.
  */
 export const InlineCluster = React.forwardRef<HTMLElement, Omit<StackProps, "direction" | "inline">>(
-  ({ className, align = "center", wrap = true, as = "div", ...props }, ref) => {
+  ({ className, align = "center", wrap = true, as = "span", ...props }, ref) => {
     return (
       <Stack
         ref={ref}

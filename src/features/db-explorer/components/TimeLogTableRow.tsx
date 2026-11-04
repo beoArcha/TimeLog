@@ -105,7 +105,7 @@ export default function TimeLogTableRow({
         </TableCell>
         <TableCell className="py-3.5 px-4">
           {hasHistory ? (
-            <Badge variant="amber" size="sm" as="span" className="w-max">
+            <Badge variant="amber" size="sm" className="w-max">
               {translate(locale, 'database', 'OriginalStart', customTranslations)} {getOriginalStartTime() ? new Date(getOriginalStartTime()).toLocaleTimeString() : 'N/A'}
             </Badge>
           ) : (

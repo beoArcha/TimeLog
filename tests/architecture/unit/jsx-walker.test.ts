@@ -81,7 +81,7 @@ describe('Component Metadata Registry', () => {
   it('correctly resolves helpers: getComponentMetadata & isDesignSystemComponent', () => {
     expect(isDesignSystemComponent('HStack')).toBe(true);
     expect(isDesignSystemComponent('div')).toBe(false);
-    expect(getComponentMetadata('Badge')?.defaultTag).toBe('div');
+    expect(getComponentMetadata('Badge')?.defaultTag).toBe('span');
     expect(getComponentMetadata('Unknown')).toBeUndefined();
   });
 
@@ -98,8 +98,9 @@ describe('Component Metadata Registry', () => {
     expect(getEffectiveContentCategory(captionMeta, 'dynamic')).toBeUndefined();
 
     const badgeMeta = COMPONENT_REGISTRY.Badge;
-    expect(getEffectiveContentCategory(badgeMeta)).toBe('flow');
+    expect(getEffectiveContentCategory(badgeMeta)).toBe('phrasing');
     expect(getEffectiveContentCategory(badgeMeta, 'span')).toBe('phrasing');
+    expect(getEffectiveContentCategory(badgeMeta, 'div')).toBe('flow');
     expect(getEffectiveContentCategory(badgeMeta, 'dynamic')).toBeUndefined();
 
     const vstackMeta = COMPONENT_REGISTRY.VStack;
@@ -216,7 +217,7 @@ describe('AST JSX Walker', () => {
         parentTag: 'HStack',
         parentEffectiveTag: 'div',
         childTag: 'Badge',
-        childEffectiveTag: 'div',
+        childEffectiveTag: 'span',
         elementKind: 'registered-ds',
       });
 
