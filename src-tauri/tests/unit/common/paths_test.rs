@@ -49,3 +49,57 @@ fn test_get_default_csv_dir_resolves_child_folder() {
     // Assert
     assert_eq!(csv_dir, Path::new("C:/test_dir/sub/csv"));
 }
+
+#[test]
+fn test_resolve_os_data_dir_windows() {
+    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("windows", |key| {
+        if key == "APPDATA" {
+            Some("C:\\Users\\User\\AppData\\Roaming".to_string())
+        } else {
+            None
+        }
+    });
+    assert_eq!(
+        dir,
+        std::path::PathBuf::from("C:\\Users\\User\\AppData\\Roaming")
+    );
+}
+
+#[test]
+fn test_resolve_os_data_dir_macos() {
+    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("macos", |key| {
+        if key == "HOME" {
+            Some("/Users/User".to_string())
+        } else {
+            None
+        }
+    });
+    assert_eq!(
+        dir,
+        std::path::PathBuf::from("/Users/User/Library/Application Support")
+    );
+}
+
+#[test]
+fn test_resolve_os_data_dir_linux_xdg() {
+    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("linux", |key| {
+        if key == "XDG_DATA_HOME" {
+            Some("/custom/xdg/share".to_string())
+        } else {
+            None
+        }
+    });
+    assert_eq!(dir, std::path::PathBuf::from("/custom/xdg/share"));
+}
+
+#[test]
+fn test_resolve_os_data_dir_linux_fallback() {
+    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("linux", |key| {
+        if key == "HOME" {
+            Some("/home/user".to_string())
+        } else {
+            None
+        }
+    });
+    assert_eq!(dir, std::path::PathBuf::from("/home/user/.local/share"));
+}
