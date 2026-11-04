@@ -1,5 +1,5 @@
-use oxy_flow::tray::localization::{get_text, TrayItem};
-use oxy_flow::types::Locale;
+use oxyflow_timelog::tray::localization::{get_text, TrayItem};
+use oxyflow_timelog::types::Locale;
 
 #[test]
 fn test_en_fallback_for_system_locale() {

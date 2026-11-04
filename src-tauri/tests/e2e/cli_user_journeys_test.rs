@@ -1,5 +1,5 @@
-use oxy_flow::cli::shared::constants::EXIT_CODE_ENTITY_ERROR;
-use oxy_flow::cli::CliErrorEnvelope;
+use oxyflow_timelog::cli::shared::constants::EXIT_CODE_ENTITY_ERROR;
+use oxyflow_timelog::cli::CliErrorEnvelope;
 use std::path::PathBuf;
 use std::process::Command;
 

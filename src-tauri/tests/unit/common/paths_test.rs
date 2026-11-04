@@ -1,5 +1,7 @@
-use oxy_flow::common::constants::DEFAULT_DB_NAME;
-use oxy_flow::common::paths::{get_default_csv_dir, get_default_db_path, try_get_default_db_path};
+use oxyflow_timelog::common::constants::DEFAULT_DB_NAME;
+use oxyflow_timelog::common::paths::{
+    get_default_csv_dir, get_default_db_path, try_get_default_db_path,
+};
 use std::path::Path;
 
 #[test]

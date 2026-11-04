@@ -1,9 +1,9 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxy_flow::cli::{handle_cli, CliArgs};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::{handle_cli, CliArgs};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_given_target_task_when_log_add_invoked_then_creates_retroactive_entry_with_duration() {

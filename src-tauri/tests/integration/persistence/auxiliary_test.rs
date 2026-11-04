@@ -1,7 +1,9 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder, TimeLogBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::{ExternalApiSettings, HolidayLeave, HolidayType, PatchLog, TaskStatus};
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::{
+    ExternalApiSettings, HolidayLeave, HolidayType, PatchLog, TaskStatus,
+};
 
 #[test]
 fn test_given_empty_auxiliary_when_saving_current_project_and_variant_then_retrieves_matching_state(

@@ -1,4 +1,4 @@
-use oxy_flow::cli::resolver::levenshtein_distance;
+use oxyflow_timelog::cli::resolver::levenshtein_distance;
 
 #[test]
 fn test_given_identical_strings_when_calculating_distance_then_returns_zero() {

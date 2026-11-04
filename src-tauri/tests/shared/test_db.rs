@@ -1,4 +1,4 @@
-use oxy_flow::repositories::shared::initialize_database;
+use oxyflow_timelog::repositories::shared::initialize_database;
 use rusqlite::Connection;
 use std::path::PathBuf;
 
@@ -20,7 +20,7 @@ pub fn setup_persistence_test(
     db_name: &str,
 ) -> (
     Connection,
-    oxy_flow::persistence::PersistenceConfig,
+    oxyflow_timelog::persistence::PersistenceConfig,
     TempCsvDir,
 ) {
     let db_path = PathBuf::from(format!("file:{}?mode=memory&cache=shared", db_name));
@@ -43,7 +43,7 @@ pub fn setup_persistence_test(
     }
     std::fs::create_dir_all(&csv_dir).unwrap();
 
-    let config = oxy_flow::persistence::PersistenceConfig {
+    let config = oxyflow_timelog::persistence::PersistenceConfig {
         db_path,
         csv_directory: csv_dir.clone(),
     };

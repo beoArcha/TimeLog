@@ -1,7 +1,7 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::TaskStatus;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::TaskStatus;
 
 #[test]
 fn test_given_configured_persistence_when_creating_project_and_task_then_entities_and_csv_sink_are_created(

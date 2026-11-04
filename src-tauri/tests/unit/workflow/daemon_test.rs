@@ -1,6 +1,6 @@
 use chrono::Utc;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::workflows::WorkflowDaemon;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::workflows::WorkflowDaemon;
 use std::sync::Arc;
 
 use crate::shared::builders::WorkflowConfigBuilder;
@@ -93,7 +93,7 @@ fn test_parse_now_iso_accepts_valid_rfc3339() {
     let valid_iso = Some("2026-10-24T12:00:00Z".to_string());
 
     // Act
-    let res = oxy_flow::commands::workflow::parse_now_iso(valid_iso);
+    let res = oxyflow_timelog::commands::workflow::parse_now_iso(valid_iso);
 
     // Assert
     assert!(res.is_ok());
@@ -106,7 +106,7 @@ fn test_parse_now_iso_none_returns_ok_none() {
     let no_iso = None;
 
     // Act
-    let res = oxy_flow::commands::workflow::parse_now_iso(no_iso);
+    let res = oxyflow_timelog::commands::workflow::parse_now_iso(no_iso);
 
     // Assert
     assert!(res.is_ok());
@@ -119,7 +119,7 @@ fn test_parse_now_iso_rejects_invalid_rfc3339_with_parse_time_error() {
     let invalid_iso = Some("not-a-valid-timestamp".to_string());
 
     // Act
-    let res = oxy_flow::commands::workflow::parse_now_iso(invalid_iso);
+    let res = oxyflow_timelog::commands::workflow::parse_now_iso(invalid_iso);
 
     // Assert
     assert!(res.is_err());

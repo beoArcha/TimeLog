@@ -1,10 +1,10 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxy_flow::cli::{handle_cli, CliArgs, CliOutput};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::NewTimeLog;
+use oxyflow_timelog::cli::{handle_cli, CliArgs, CliOutput};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::NewTimeLog;
 
 #[test]
 fn test_given_clean_database_when_executing_full_cli_lifecycle_then_entities_and_timer_transition_correctly(

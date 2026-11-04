@@ -1,5 +1,5 @@
-use oxy_flow::repositories::config::ConfigRepository;
-use oxy_flow::types::WebhookQueueItem;
+use oxyflow_timelog::repositories::config::ConfigRepository;
+use oxyflow_timelog::types::WebhookQueueItem;
 use std::path::PathBuf;
 
 fn setup_test_repo(test_name: &str) -> (ConfigRepository, PathBuf) {
