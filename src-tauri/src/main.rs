@@ -21,9 +21,11 @@ fn main() -> ExitCode {
         let db_path = match oxyflow_timelog::common::paths::resolve_db_path(cli_args.db.as_deref()) {
             Ok(path) => path,
             Err(e) => {
-                let err = cli::CliError::Storage(oxyflow_timelog::persistence::error::PersistenceError::Storage(
-                    format!("Failed to resolve database path: {e}"),
-                ));
+                let err = cli::CliError::Storage(
+                    oxyflow_timelog::persistence::error::PersistenceError::Storage(format!(
+                        "Failed to resolve database path: {e}"
+                    )),
+                );
                 let envelope = err.to_envelope_with_mode(is_machine, None);
                 envelope.render_stderr(is_machine);
                 return envelope.to_exit_code();
