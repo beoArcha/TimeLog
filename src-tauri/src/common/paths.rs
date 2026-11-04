@@ -90,9 +90,7 @@ where
                 } else {
                     Err(std::io::Error::new(
                         std::io::ErrorKind::InvalidInput,
-                        format!(
-                            "Resolved macOS HOME directory is not an absolute path: '{home}'"
-                        ),
+                        format!("Resolved macOS HOME directory is not an absolute path: '{home}'"),
                     ))
                 }
             } else {
