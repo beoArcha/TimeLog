@@ -1,12 +1,36 @@
 use crate::common::constants::{APPDATA, BUNDLE_IDENTIFIER, DEFAULT_DB_NAME};
 use std::path::{Path, PathBuf};
 
-/// Helper to verify if a path is absolute across platforms, including Unix paths on Windows test hosts.
+/// Checks whether a path is absolute according to the specified target operating system.
+pub fn is_path_absolute_for_os(path: &Path, target_os: &str) -> bool {
+    let Some(value) = path.to_str() else {
+        return false;
+    };
+
+    match target_os {
+        "windows" => {
+            let bytes = value.as_bytes();
+            let has_drive_prefix = bytes.len() >= 3
+                && bytes[0].is_ascii_alphabetic()
+                && bytes[1] == b':'
+                && matches!(bytes[2], b'\\' | b'/');
+
+            let unc_parts = value
+                .strip_prefix("\\\\")
+                .or_else(|| value.strip_prefix("//"))
+                .map(|unc| unc.split(['\\\\', '/']).filter(|part| !part.is_empty()).collect::<Vec<_>>());
+
+            has_drive_prefix
+                || unc_parts.is_some_and(|parts| parts.len() >= 2)
+        }
+        "linux" | "macos" => value.starts_with('/'),
+        _ => path.is_absolute(),
+    }
+}
+
+/// Checks absoluteness using the current host operating system.
 pub fn is_path_absolute(path: &Path) -> bool {
-    path.is_absolute()
-        || path
-            .to_str()
-            .map_or(false, |s| s.starts_with('/') || s.starts_with('\\'))
+    is_path_absolute_for_os(path, std::env::consts::OS)
 }
 
 /// Resolves the base data directory for a specific operating system, reading environment variables via `get_env`.
@@ -34,7 +58,7 @@ where
 
             if let Some(dir) = app_data {
                 let p = PathBuf::from(&dir);
-                if is_path_absolute(&p) {
+                if is_path_absolute_for_os(&p, "windows") {
                     Ok(p)
                 } else {
                     Err(std::io::Error::new(
@@ -56,7 +80,7 @@ where
 
             if let Some(home) = home {
                 let p = PathBuf::from(&home);
-                if is_path_absolute(&p) {
+                if is_path_absolute_for_os(&p, "macos") {
                     Ok(p.join("Library").join("Application Support"))
                 } else {
                     Err(std::io::Error::new(
@@ -75,7 +99,7 @@ where
             if let Some(xdg) = get_env("XDG_DATA_HOME") {
                 let trimmed = xdg.trim();
                 let p = Path::new(trimmed);
-                if !trimmed.is_empty() && is_path_absolute(p) {
+                if !trimmed.is_empty() && is_path_absolute_for_os(p, target_os) {
                     return Ok(PathBuf::from(trimmed));
                 }
             }
@@ -86,7 +110,7 @@ where
 
             if let Some(home) = home {
                 let p = PathBuf::from(&home);
-                if is_path_absolute(&p) {
+                if is_path_absolute_for_os(&p, target_os) {
                     Ok(p.join(".local").join("share"))
                 } else {
                     Err(std::io::Error::new(
@@ -119,7 +143,7 @@ where
     let base_dir = resolve_os_data_dir_with_env(target_os, get_env)?;
     let app_dir = base_dir.join(BUNDLE_IDENTIFIER);
     let db_path = app_dir.join(DEFAULT_DB_NAME);
-    if !is_path_absolute(&db_path) {
+    if !is_path_absolute_for_os(&db_path, target_os) {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
             "Resolved default database path is not absolute",
