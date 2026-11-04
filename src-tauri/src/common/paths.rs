@@ -19,7 +19,7 @@ pub fn is_path_absolute_for_os(path: &Path, target_os: &str) -> bool {
                 .strip_prefix("\\\\")
                 .or_else(|| value.strip_prefix("//"))
                 .map(|unc| {
-                    unc.split(['\\\\', '/'])
+                    unc.split(|character| character == '\\' || character == '/')
                         .filter(|part| !part.is_empty())
                         .collect::<Vec<_>>()
                 });
