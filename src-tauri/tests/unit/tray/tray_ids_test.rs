@@ -1,5 +1,5 @@
-use oxy_flow::tray::ids::TrayMenuId;
-use oxy_flow::types::Locale;
+use oxyflow_timelog::tray::ids::TrayMenuId;
+use oxyflow_timelog::types::Locale;
 
 #[test]
 fn test_from_str_round_trip() {

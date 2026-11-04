@@ -1,5 +1,5 @@
-use oxy_flow::repositories::config::ConfigRepository;
-use oxy_flow::types::{
+use oxyflow_timelog::repositories::config::ConfigRepository;
+use oxyflow_timelog::types::{
     WorkflowConfig, DEFAULT_AUTO_STOP_DAILY_BOUNDARY_TIME, DEFAULT_AUTO_STOP_HOURS_LIMIT,
 };
 use std::path::PathBuf;

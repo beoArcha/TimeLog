@@ -1,5 +1,5 @@
-use oxy_flow::app::get_cli_db_path;
-use oxy_flow::common::constants::DEFAULT_DB_NAME;
+use oxyflow_timelog::app::get_cli_db_path;
+use oxyflow_timelog::common::constants::DEFAULT_DB_NAME;
 
 #[test]
 fn test_get_cli_db_path() {

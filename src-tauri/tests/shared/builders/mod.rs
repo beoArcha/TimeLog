@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use oxy_flow::types::{Project, Task, TaskStatus, TimeLog, WorkflowConfig};
+use oxyflow_timelog::types::{Project, Task, TaskStatus, TimeLog, WorkflowConfig};
 
 /// Test Data Builder for `Project` domain entity.
 pub struct ProjectBuilder {
@@ -240,7 +240,10 @@ impl TimeLogBuilder {
         self
     }
 
-    pub fn with_edit_history(mut self, history: Vec<oxy_flow::types::TimeLogEditHistory>) -> Self {
+    pub fn with_edit_history(
+        mut self,
+        history: Vec<oxyflow_timelog::types::TimeLogEditHistory>,
+    ) -> Self {
         self.log.edit_history = Some(history);
         self
     }

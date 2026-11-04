@@ -1,11 +1,11 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxy_flow::cli::error::CliErrorCode;
-use oxy_flow::cli::shared::constants::{EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENTITY_ERROR};
-use oxy_flow::cli::{handle_cli, CliArgs, CliError};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::error::CliErrorCode;
+use oxyflow_timelog::cli::shared::constants::{EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENTITY_ERROR};
+use oxyflow_timelog::cli::{handle_cli, CliArgs, CliError};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 use rusqlite::Connection;
 
 fn setup(db_name: &str) -> (Persistence, Connection, crate::shared::test_db::TempCsvDir) {

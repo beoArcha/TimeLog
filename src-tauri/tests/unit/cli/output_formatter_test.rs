@@ -1,4 +1,4 @@
-use oxy_flow::cli::CliOutput;
+use oxyflow_timelog::cli::CliOutput;
 
 #[test]
 fn test_given_json_output_when_formatted_then_emits_raw_parseable_json_without_success_badge() {

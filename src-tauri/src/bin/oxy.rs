@@ -1,8 +1,8 @@
 use clap::Parser;
-use oxy_flow::cli::{self, CliArgs, CliError};
-use oxy_flow::common::paths::{get_default_csv_dir, resolve_db_path};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::{Persistence, PersistenceConfig};
+use oxyflow_timelog::cli::{self, CliArgs, CliError};
+use oxyflow_timelog::common::paths::{get_default_csv_dir, resolve_db_path};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::{Persistence, PersistenceConfig};
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -23,9 +23,11 @@ fn main() -> ExitCode {
     let db_path = match resolve_db_path(early_db.as_deref()) {
         Ok(path) => path,
         Err(e) => {
-            let err = CliError::Storage(oxy_flow::persistence::error::PersistenceError::Storage(
-                format!("Failed to resolve database path: {e}"),
-            ));
+            let err = CliError::Storage(
+                oxyflow_timelog::persistence::error::PersistenceError::Storage(format!(
+                    "Failed to resolve database path: {e}"
+                )),
+            );
             let envelope = err.to_envelope_with_mode(is_machine, None);
             envelope.render_stderr(is_machine);
             return envelope.to_exit_code();

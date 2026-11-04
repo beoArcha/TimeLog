@@ -1,6 +1,6 @@
 use crate::shared::builders::ProjectBuilder;
-use oxy_flow::repositories::business::BusinessRepository;
-use oxy_flow::types::{HolidayLeave, HolidayType, PatchLog};
+use oxyflow_timelog::repositories::business::BusinessRepository;
+use oxyflow_timelog::types::{HolidayLeave, HolidayType, PatchLog};
 
 #[test]
 fn test_holidays_repository_crud() {

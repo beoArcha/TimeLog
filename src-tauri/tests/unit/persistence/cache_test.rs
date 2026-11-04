@@ -1,6 +1,6 @@
 use crate::shared::builders::ProjectBuilder;
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_persistence_cache_serves_cached_project_after_direct_db_update() {

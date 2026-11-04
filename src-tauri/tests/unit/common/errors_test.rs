@@ -1,7 +1,7 @@
-use oxy_flow::common::errors::AppError;
-use oxy_flow::engine::EngineError;
-use oxy_flow::persistence::PersistenceError;
-use oxy_flow::repositories::shared::errors::RepositoryError;
+use oxyflow_timelog::common::errors::AppError;
+use oxyflow_timelog::engine::EngineError;
+use oxyflow_timelog::persistence::PersistenceError;
+use oxyflow_timelog::repositories::shared::errors::RepositoryError;
 
 #[test]
 fn test_app_error_serialization() {
@@ -24,14 +24,15 @@ fn test_app_error_serialization() {
     let serialized_parse_time = serde_json::to_string(&parse_time_err).unwrap();
     let serialized_not_found = serde_json::to_string(&not_found_err).unwrap();
 
-    let payload: oxy_flow::types::IpcErrorPayload = serde_json::from_str(&serialized).unwrap();
-    let payload_db: oxy_flow::types::IpcErrorPayload =
+    let payload: oxyflow_timelog::types::IpcErrorPayload =
+        serde_json::from_str(&serialized).unwrap();
+    let payload_db: oxyflow_timelog::types::IpcErrorPayload =
         serde_json::from_str(&serialized_db).unwrap();
-    let payload_constraint: oxy_flow::types::IpcErrorPayload =
+    let payload_constraint: oxyflow_timelog::types::IpcErrorPayload =
         serde_json::from_str(&serialized_constraint).unwrap();
-    let payload_parse_time: oxy_flow::types::IpcErrorPayload =
+    let payload_parse_time: oxyflow_timelog::types::IpcErrorPayload =
         serde_json::from_str(&serialized_parse_time).unwrap();
-    let payload_not_found: oxy_flow::types::IpcErrorPayload =
+    let payload_not_found: oxyflow_timelog::types::IpcErrorPayload =
         serde_json::from_str(&serialized_not_found).unwrap();
 
     // Assert

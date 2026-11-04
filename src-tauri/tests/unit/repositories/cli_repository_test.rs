@@ -1,5 +1,5 @@
-use oxy_flow::repositories::config::ConfigRepository;
-use oxy_flow::types::{CliAlias, CliSink};
+use oxyflow_timelog::repositories::config::ConfigRepository;
+use oxyflow_timelog::types::{CliAlias, CliSink};
 
 #[test]
 fn test_cli_aliases_crud_operations() {

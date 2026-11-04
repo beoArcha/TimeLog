@@ -1,5 +1,5 @@
 [package]
-name = "oxy-flow"
+name = "oxyflow-timelog"
 default-run = "timelog"
 version = "1.12.7"
 edition = "2021"

@@ -1,4 +1,4 @@
-use oxy_flow::repositories::shared::{establish_connection, initialize_database};
+use oxyflow_timelog::repositories::shared::{establish_connection, initialize_database};
 use rusqlite::{params, Connection};
 use std::path::Path;
 

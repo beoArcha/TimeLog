@@ -1,5 +1,5 @@
-use oxy_flow::common::constants::{BUNDLE_IDENTIFIER, DEFAULT_DB_NAME};
-use oxy_flow::common::paths::{
+use oxyflow_timelog::common::constants::{BUNDLE_IDENTIFIER, DEFAULT_DB_NAME};
+use oxyflow_timelog::common::paths::{
     get_default_csv_dir, get_default_db_path, is_path_absolute, is_path_absolute_for_os,
     resolve_db_path_with_env, resolve_default_db_path_with_env, resolve_os_data_dir_with_env,
     try_get_default_db_path, ENV_OXYTIME_DB_PATH, ENV_OXY_DB_PATH,

@@ -1,9 +1,9 @@
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxy_flow::cli::handlers::mask_handler::expand_mask_template;
-use oxy_flow::cli::{handle_cli, CliArgs};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::handlers::mask_handler::expand_mask_template;
+use oxyflow_timelog::cli::{handle_cli, CliArgs};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_given_configured_persistence_when_mask_set_and_list_executed_then_macro_is_registered() {
@@ -88,7 +88,7 @@ fn test_given_configured_persistence_when_mask_rm_non_existent_alias_then_fails_
     let err = result.unwrap_err();
     assert_eq!(
         err.exit_code(),
-        oxy_flow::cli::shared::constants::EXIT_CODE_CLI_SYNTAX
+        oxyflow_timelog::cli::shared::constants::EXIT_CODE_CLI_SYNTAX
     );
     let envelope = err.to_envelope(None);
     assert_eq!(envelope.code, "MSK_ALIAS_NOT_FOUND");

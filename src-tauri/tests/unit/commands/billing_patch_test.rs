@@ -1,9 +1,9 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::commands::persistence::project::{update_project_details, ProjectUpdateInput};
-use oxy_flow::commands::persistence::task::{update_task_details, TaskUpdateInput};
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::{TaskStatus, TriState};
+use oxyflow_timelog::commands::persistence::project::{update_project_details, ProjectUpdateInput};
+use oxyflow_timelog::commands::persistence::task::{update_task_details, TaskUpdateInput};
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::{TaskStatus, TriState};
 
 #[test]
 fn test_task_update_preserves_custom_rate_on_status_or_name_change() {

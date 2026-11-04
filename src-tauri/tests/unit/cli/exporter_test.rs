@@ -1,6 +1,6 @@
-use oxy_flow::cli::exporters::{export_csv, export_html, export_json, export_to_file};
-use oxy_flow::cli::formatters::{ReportProjectDto, ReportTaskDto, ReportTreeDto};
-use oxy_flow::cli::parser::ExportFormat;
+use oxyflow_timelog::cli::exporters::{export_csv, export_html, export_json, export_to_file};
+use oxyflow_timelog::cli::formatters::{ReportProjectDto, ReportTaskDto, ReportTreeDto};
+use oxyflow_timelog::cli::parser::ExportFormat;
 use std::fs;
 
 fn create_sample_tree() -> ReportTreeDto {
