@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow inclui um utilitário de terminal nativo chamado `oxy`, que se conecta diretamente ao banco de dados local SQLite (`oxytime.db`). Funciona de maneira autônoma, sem necessidade da janela gráfica aberta, ideal para automações, rotinas de shell e esteiras de CI/CD.
+TimeLog inclui um utilitário de terminal nativo chamado `oxy`, que se conecta diretamente ao banco de dados local SQLite (`oxytime.db`). Funciona de maneira autônoma, sem necessidade da janela gráfica aberta, ideal para automações, rotinas de shell e esteiras de CI/CD.
 
 ---
 

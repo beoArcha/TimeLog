@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow implementiert eine Clean Architecture mit strikter Schichtentrennung, die durch automatisierte AST-Architekturtests im TypeScript-Frontend (`tests/architecture/`) und im Rust-Backend (`src-tauri/tests/architecture/`) erzwungen wird.
+TimeLog implementiert eine Clean Architecture mit strikter Schichtentrennung, die durch automatisierte AST-Architekturtests im TypeScript-Frontend (`tests/architecture/`) und im Rust-Backend (`src-tauri/tests/architecture/`) erzwungen wird.
 
 ---
 
@@ -73,7 +73,7 @@ Das native CLI-Binary (`src-tauri/src/cli/`) kommuniziert ausschließlich direkt
 
 ### 5. Schichtenkapselung & Fehlerkontrakt
 
-oXyFlow erzwingt eine unidirektionale, streng typisierte Fehlerweiterleitung über alle Architekturgrenzen hinweg:
+TimeLog erzwingt eine unidirektionale, streng typisierte Fehlerweiterleitung über alle Architekturgrenzen hinweg:
 
 ```text
 Repositories (RepositoryError)

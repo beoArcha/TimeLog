@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow realizuje wzorzec Czystej Architektury (Clean Architecture) ze ścisłą izolacją warstw, weryfikowaną automatycznymi testami architektonicznymi skanującymi drzewa AST w TypeScript (`tests/architecture/`) oraz Rust (`src-tauri/tests/architecture/`).
+TimeLog realizuje wzorzec Czystej Architektury (Clean Architecture) ze ścisłą izolacją warstw, weryfikowaną automatycznymi testami architektonicznymi skanującymi drzewa AST w TypeScript (`tests/architecture/`) oraz Rust (`src-tauri/tests/architecture/`).
 
 ---
 
@@ -73,7 +73,7 @@ Natywny plik wykonywalny CLI (`src-tauri/src/cli/`) komunikuje się bezpośredni
 
 ### 5. Enkapsulacja Warstw i Kontrakt Błędów
 
-oXyFlow wymusza jednokierunkową, silnie typowaną propagację błędów na wszystkich granicach architektonicznych:
+TimeLog wymusza jednokierunkową, silnie typowaną propagację błędów na wszystkich granicach architektonicznych:
 
 ```text
 Repozytoria (RepositoryError)

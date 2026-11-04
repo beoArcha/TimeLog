@@ -145,7 +145,7 @@ Dans les environnements d'intégration continue ou les scripts de validation pr�
 ```bash
 # Vérifier l'intégrité de SQLite et la disponibilité des tables dans un pipeline CI
 if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
-    echo "Échec du diagnostic de la base de données oXyFlow" >&2
+    echo "Échec du diagnostic de la base de données TimeLog" >&2
     exit 1
 fi
 ```

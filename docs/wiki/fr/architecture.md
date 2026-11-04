@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow applique une Clean Architecture avec une stricte séparation des couches, contrôlée par des suites de tests d'architecture AST dans le frontend TypeScript (`tests/architecture/`) et le backend Rust (`src-tauri/tests/architecture/`).
+TimeLog applique une Clean Architecture avec une stricte séparation des couches, contrôlée par des suites de tests d'architecture AST dans le frontend TypeScript (`tests/architecture/`) et le backend Rust (`src-tauri/tests/architecture/`).
 
 ---
 
@@ -73,7 +73,7 @@ Le binaire `oxy` (`src-tauri/src/cli/`) communique exclusivement avec les contra
 
 ### 5. Encapsulation des Couches et Contrat d'Erreurs
 
-oXyFlow applique une propagation d'erreurs unidirectionnelle et strictement typée à travers toutes les frontières architecturales :
+TimeLog applique une propagation d'erreurs unidirectionnelle et strictement typée à travers toutes les frontières architecturales :
 
 ```text
 Dépôts / Repositories (RepositoryError)

@@ -4,7 +4,7 @@
 
 ---
 
-Interfejs użytkownika oXyFlow opiera się na czterech odseparowanych wymiarach wizualnych: środowisku uruchomieniowym, wariancie układu, skali interfejsu oraz motywie kolorystycznym.
+Interfejs użytkownika TimeLog opiera się na czterech odseparowanych wymiarach wizualnych: środowisku uruchomieniowym, wariancie układu, skali interfejsu oraz motywie kolorystycznym.
 
 ---
 
@@ -24,7 +24,7 @@ Wariant układu można przełączać z poziomu górnego paska narzędzi lub w za
 
 ## Skalowanie Typografii i Ikon
 
-Poza układem okna oXyFlow obsługuje trzy niezależne poziomy skalowania kontrolowane za pomocą tokenów CSS:
+Poza układem okna TimeLog obsługuje trzy niezależne poziomy skalowania kontrolowane za pomocą tokenów CSS:
 
 - **Mały (Small)**: Zwiększona gęstość informacji, polecana przy rozbudowanych drzewach zadań.
 - **Średni (Medium)**: Domyślna, zbalansowana skala dla standardowych monitorów desktopowych.
@@ -62,7 +62,7 @@ W celu ochrony spójności ewidencji czasu pracy i zapobiegania utracie danych a
 
 ## Wbudowane Motywy Kolorystyczne
 
-oXyFlow oferuje trzy zweryfikowane motywy zarządzane przez `ThemeRegistry`:
+TimeLog oferuje trzy zweryfikowane motywy zarządzane przez `ThemeRegistry`:
 
 | Identyfikator | Nazwa Wyświetlana | Charakterystyka |
 | :--- | :--- | :--- |

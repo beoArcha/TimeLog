@@ -145,7 +145,7 @@ In Continuous-Integration-Pipelines oder vor automatisierten Deployments prüft 
 ```bash
 # SQLite-Integrität und Tabellenverfügbarkeit in Pipelines verifizieren
 if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
-    echo "Fehler bei der Überprüfung der oXyFlow-Datenbank" >&2
+    echo "Fehler bei der Überprüfung der TimeLog-Datenbank" >&2
     exit 1
 fi
 ```

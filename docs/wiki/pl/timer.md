@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow zarządza sesjami pomiaru czasu przy użyciu natywnego silnika napisanego w Rust, który gwarantuje integralność danych temporalnych i eliminuje dryfowanie zegara.
+TimeLog zarządza sesjami pomiaru czasu przy użyciu natywnego silnika napisanego w Rust, który gwarantuje integralność danych temporalnych i eliminuje dryfowanie zegara.
 
 ---
 
@@ -29,7 +29,7 @@ Możesz weryfikować i poprawiać zarejestrowane sesje z poziomu widoku **Wpisy 
 
 ## Walidacja Nakładania się Wpisów
 
-Aby zachować pełną zgodność audytową, silnik oXyFlow wymusza zakaz nakładania się wpisów czasu (`TemporalOverlapDetected`):
+Aby zachować pełną zgodność audytową, silnik TimeLog wymusza zakaz nakładania się wpisów czasu (`TemporalOverlapDetected`):
 
 - Żadne dwa wpisy czasu w obrębie tego samego projektu nie mogą mieć pokrywających się zakresów czasowych.
 - W przypadku próby zapisania wpisu kolidującego z istniejącą sesją, edytor zgłosi błąd walidacji i poprosi o skorygowanie przedziału czasowego.

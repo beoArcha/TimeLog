@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow incluye un subsistema persistente de **Sinks**, que registra y despacha eventos de tiempo en tiempo real cada vez que se finaliza una sesión de trabajo.
+TimeLog incluye un subsistema persistente de **Sinks**, que registra y despacha eventos de tiempo en tiempo real cada vez que se finaliza una sesión de trabajo.
 
 ---
 
