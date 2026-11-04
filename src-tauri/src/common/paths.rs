@@ -18,10 +18,13 @@ pub fn is_path_absolute_for_os(path: &Path, target_os: &str) -> bool {
             let unc_parts = value
                 .strip_prefix("\\\\")
                 .or_else(|| value.strip_prefix("//"))
-                .map(|unc| unc.split(['\\\\', '/']).filter(|part| !part.is_empty()).collect::<Vec<_>>());
+                .map(|unc| {
+                    unc.split(['\\\\', '/'])
+                        .filter(|part| !part.is_empty())
+                        .collect::<Vec<_>>()
+                });
 
-            has_drive_prefix
-                || unc_parts.is_some_and(|parts| parts.len() >= 2)
+            has_drive_prefix || unc_parts.map_or(false, |parts| parts.len() >= 2)
         }
         "linux" | "macos" => value.starts_with('/'),
         _ => path.is_absolute(),
@@ -63,7 +66,9 @@ where
                 } else {
                     Err(std::io::Error::new(
                         std::io::ErrorKind::InvalidInput,
-                        format!("Resolved Windows AppData directory is not an absolute path: '{dir}'"),
+                        format!(
+                            "Resolved Windows AppData directory is not an absolute path: '{dir}'"
+                        ),
                     ))
                 }
             } else {
@@ -85,7 +90,9 @@ where
                 } else {
                     Err(std::io::Error::new(
                         std::io::ErrorKind::InvalidInput,
-                        format!("Resolved macOS HOME directory is not an absolute path: '{home}'"),
+                        format!(
+                            "Resolved macOS HOME directory is not an absolute path: '{home}'"
+                        ),
                     ))
                 }
             } else {
@@ -115,7 +122,9 @@ where
                 } else {
                     Err(std::io::Error::new(
                         std::io::ErrorKind::InvalidInput,
-                        format!("Resolved Linux/Unix HOME directory is not an absolute path: '{home}'"),
+                        format!(
+                            "Resolved Linux/Unix HOME directory is not an absolute path: '{home}'"
+                        ),
                     ))
                 }
             } else {
