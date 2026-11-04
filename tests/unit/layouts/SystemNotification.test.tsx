@@ -4,7 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import SystemNotification from '@layouts/components/SystemNotification';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
+import { getMockOXyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
 describe('SystemNotification', () => {
   beforeEach(() => {
@@ -17,7 +17,7 @@ describe('SystemNotification', () => {
 
   it('should render nothing when trayNotification is null', () => {
     // Arrange
-    const mockState = getMockOxyFlowState();
+    const mockState = getMockOXyFlowState();
     mockState.trayNotification = null;
 
     // Act
@@ -33,7 +33,7 @@ describe('SystemNotification', () => {
 
   it('should display notification message and dismiss when close button is clicked', () => {
     // Arrange
-    const mockState = getMockOxyFlowState();
+    const mockState = getMockOXyFlowState();
     mockState.trayNotification = 'Sync complete!';
     mockState.setTrayNotification = vi.fn();
 

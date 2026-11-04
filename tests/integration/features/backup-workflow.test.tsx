@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import BackupTab from '@features/settings/BackupTab';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { setupMatchMediaMock, getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { setupMatchMediaMock, getMockOXyFlowState } from '@tests/shared/test-helpers';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 
 describe('Given BackupTab component in settings', () => {
@@ -24,7 +24,7 @@ describe('Given BackupTab component in settings', () => {
     it('Then it should trigger JSON blob creation and simulated download link', () => {
       // Given
       const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>
@@ -46,7 +46,7 @@ describe('Given BackupTab component in settings', () => {
   describe('When a valid JSON backup file is uploaded', () => {
     it('Then it should parse JSON payload and restore full entity state', async () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>
@@ -95,7 +95,7 @@ describe('Given BackupTab component in settings', () => {
   describe('When an invalid or malformed JSON file is imported', () => {
     it('Then it should reject import without updating state and notify user', async () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>
@@ -121,7 +121,7 @@ describe('Given BackupTab component in settings', () => {
   describe('When API push integration section is expanded and toggled', () => {
     it('Then it should update logToApi preference via state coordinator', () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>

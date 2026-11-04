@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import TaskListView from "@features/tasks/TaskListView";
-import { getMockOxyFlowState } from "@tests/shared/test-helpers";
+import { getMockOXyFlowState } from "@tests/shared/test-helpers";
 import { EngineRouter } from "@common/engine/EngineRouter";
 import { IEngine } from "@common/engine/IEngine";
 import { aProject, aTask } from "@tests/shared/builders/entity-builders";
@@ -56,7 +56,7 @@ describe("Unit Tests: TaskListView", () => {
   });
 
   const mockState = {
-    ...getMockOxyFlowState(),
+    ...getMockOXyFlowState(),
     tasks: [],
     logs: [],
     nowIso: "2026-06-15T12:00:00Z",

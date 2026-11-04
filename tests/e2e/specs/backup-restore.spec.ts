@@ -65,7 +65,7 @@ test.describe('Backup and Restore E2E Suite', () => {
     await exportBtn.click();
     const download = await downloadPromise;
 
-    expect(download.suggestedFilename()).toMatch(/^OxyFlow_Backup_.*\.json$/);
+    expect(download.suggestedFilename()).toMatch(/^TimeLog_Backup_.*\.json$/);
 
     const stream = await download.createReadStream();
     const chunks: Buffer[] = [];
@@ -104,7 +104,7 @@ test.describe('Backup and Restore E2E Suite', () => {
 
     const importInput = page.locator('[data-testid="import-backup-input"]');
     await importInput.setInputFiles({
-      name: 'OxyFlow_Backup_Test.json',
+      name: 'TimeLog_Backup_Test.json',
       mimeType: 'application/json',
       buffer: backupJsonBuffer,
     });

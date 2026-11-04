@@ -5,7 +5,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import SystemNotification from '@layouts/components/SystemNotification';
 import RestoreButton from '@layouts/components/RestoreButton';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: SystemNotification & RestoreButton', () => {
   afterEach(() => {
@@ -15,7 +15,7 @@ describe('Unit Tests: SystemNotification & RestoreButton', () => {
 
   describe('SystemNotification', () => {
     it('Given trayNotification is null, When rendered, Then it should not show notification', () => {
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       const stateProp = {
         ...mockState,
         trayNotification: null,
@@ -31,7 +31,7 @@ describe('Unit Tests: SystemNotification & RestoreButton', () => {
     });
 
     it('Given trayNotification exists, When rendered, Then it should show notification and call setTrayNotification on close click', () => {
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       const setTrayNotificationSpy = vi.fn();
       const stateProp = {
         ...mockState,
@@ -56,7 +56,7 @@ describe('Unit Tests: SystemNotification & RestoreButton', () => {
 
   describe('RestoreButton', () => {
     it('Given RestoreButton rendered, When clicked, Then it should call setIsMinimized and showToast', () => {
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       const setIsMinimizedSpy = vi.fn();
       const showToastSpy = vi.fn();
 

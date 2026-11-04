@@ -4,7 +4,7 @@ import { render, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ReportExportModal } from '@features/reports/components/ReportExportModal';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 import { expectNoFlowContent } from '@tests/shared/html-content-model';
 import type { ExportPayload } from '@plugins/contracts/IExporterPlugin';
 
@@ -24,7 +24,7 @@ describe('ReportExportModal DOM content model', () => {
 
   it('ensures format option buttons contain only phrasing content in rendered DOM', () => {
     const mockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       locale: 'en',
       customTranslations: {},
     };

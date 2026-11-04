@@ -4,7 +4,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import TrayWidgetView from '@features/tray/TrayWidgetView';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: TrayWidgetView', () => {
   afterEach(() => {
@@ -13,8 +13,8 @@ describe('Unit Tests: TrayWidgetView', () => {
   const onRestoreMock = vi.fn();
   const onStopAllMock = vi.fn();
 
-  const mockState: OxyFlowState = {
-    ...getMockOxyFlowState(),
+  const mockState: OXyFlowState = {
+    ...getMockOXyFlowState(),
     locale: 'en',
     customTranslations: {},
     resolvedTheme: 'dark',
@@ -34,7 +34,7 @@ describe('Unit Tests: TrayWidgetView', () => {
       </MockProviders>
     );
 
-    expect(screen.getByText(/OxyFlow Engine/i)).not.toBeNull();
+    expect(screen.getByText(/oXyFlow Engine/i)).not.toBeNull();
 
     const restoreBtn = screen.getByRole('button', { name: /Restore GUI/i });
     fireEvent.click(restoreBtn);
@@ -43,7 +43,7 @@ describe('Unit Tests: TrayWidgetView', () => {
   });
 
   it('should preserve custom HEX colors and resolve palette classes without fallback to rose', () => {
-    const customState: OxyFlowState = {
+    const customState: OXyFlowState = {
       ...mockState,
       projects: [
         { id: 'p-hex', name: 'Hex Project', color: '#0ea5e9', archived: false, createdAt: '2026-01-01' },
@@ -84,7 +84,7 @@ describe('Unit Tests: TrayWidgetView', () => {
   it.each(['dark', 'light', 'high-contrast'] as const)(
     'should render tray-restore-btn with semantic default variant and without gradient in %s theme',
     (theme) => {
-      const themeState: OxyFlowState = {
+      const themeState: OXyFlowState = {
         ...mockState,
         resolvedTheme: theme,
       };

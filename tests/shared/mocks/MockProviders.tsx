@@ -4,14 +4,14 @@ import { SettingsContext, SettingsState } from '@common/hooks/SettingsContext';
 import { DataContext, DataState } from '@common/hooks/DataContext';
 import { WindowShellContext, WindowShellState } from '@common/contexts/WindowShellContext';
 import { PlatformCapabilities, PlatformCapabilitiesContext } from '@common/contexts/PlatformCapabilitiesContext';
-import { OxyFlowState, getMockOxyFlowState } from './oxy-state-mock';
+import { OXyFlowState, getMockOXyFlowState } from './oxy-state-mock';
 
 import { CliSessionProvider } from '@features/cli/context/CliSessionProvider';
 
 type LocaleContextType = React.ContextType<typeof LocaleContext>;
 
 export interface MockProvidersProps {
-  state?: OxyFlowState;
+  state?: OXyFlowState;
   dataState?: Partial<DataState>;
   settingsState?: Partial<SettingsState>;
   windowShellState?: Partial<WindowShellState>;
@@ -53,7 +53,7 @@ export const MockProviders: React.FC<MockProvidersProps> = ({
   capabilitiesState,
   children,
 }) => {
-  const merged = state ?? getMockOxyFlowState();
+  const merged = state ?? getMockOXyFlowState();
   const effectiveData = dataState ? { ...merged, ...dataState } : merged;
   const effectiveSettings = settingsState ? { ...merged, ...settingsState } : merged;
   const effectiveWindow = windowShellState ? { ...merged, ...windowShellState } : merged;

@@ -4,7 +4,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import DaemonStatusBar from '@layouts/components/DaemonStatusBar';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 describe('DaemonStatusBar', () => {
   afterEach(() => {
@@ -15,7 +15,7 @@ describe('DaemonStatusBar', () => {
   it('should render the tray minimize button when supportsTray is true and handleMinimizeToTray is provided', () => {
     // Arrange
     const handleMinimizeToTray = vi.fn();
-    const mockState = getMockOxyFlowState();
+    const mockState = getMockOXyFlowState();
 
     // Act
     render(
@@ -35,7 +35,7 @@ describe('DaemonStatusBar', () => {
   it('should omit the tray minimize button when supportsTray is false', () => {
     // Arrange
     const handleMinimizeToTray = vi.fn();
-    const mockState = getMockOxyFlowState();
+    const mockState = getMockOXyFlowState();
 
     // Act
     render(

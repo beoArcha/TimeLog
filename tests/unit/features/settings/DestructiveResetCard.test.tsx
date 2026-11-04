@@ -4,7 +4,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DestructiveResetCard from '@features/settings/components/DestructiveResetCard';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 import { toast } from 'sonner';
 
 vi.mock('sonner', () => ({
@@ -15,13 +15,13 @@ vi.mock('sonner', () => ({
 }));
 
 describe('DestructiveResetCard', () => {
-  let mockState: OxyFlowState;
+  let mockState: OXyFlowState;
   const handleResetLocalStorageMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       locale: 'en',
       customTranslations: {},
       handleResetLocalStorage: handleResetLocalStorageMock,

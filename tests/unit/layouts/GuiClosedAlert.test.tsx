@@ -4,11 +4,11 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import GuiClosedAlert from '@layouts/components/GuiClosedAlert';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/mocks/oxy-state-mock';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/mocks/oxy-state-mock';
 
-function createMockState(overrides: Partial<OxyFlowState> = {}): OxyFlowState {
+function createMockState(overrides: Partial<OXyFlowState> = {}): OXyFlowState {
   return {
-    ...getMockOxyFlowState(),
+    ...getMockOXyFlowState(),
     ...overrides,
   };
 }

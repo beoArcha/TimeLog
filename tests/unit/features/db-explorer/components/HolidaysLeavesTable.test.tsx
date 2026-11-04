@@ -4,7 +4,7 @@ import React from "react";
 import { render, fireEvent, cleanup, within } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import HolidaysLeavesTable from "@features/db-explorer/components/HolidaysLeavesTable";
-import { getMockOxyFlowState, OxyFlowState } from "@tests/shared/test-helpers";
+import { getMockOXyFlowState, OXyFlowState } from "@tests/shared/test-helpers";
 import { HolidayLeave } from "@bindings/HolidayLeave";
 
 describe("Unit Tests: HolidaysLeavesTable", () => {
@@ -41,8 +41,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
   ];
 
   it("should render holidays list table in default theme", () => {
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: "dark",
     };
@@ -58,8 +58,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
   });
 
   it("should render correctly in light theme and high-contrast theme", () => {
-    const mockStateLight: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockStateLight: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: "light",
     };
@@ -72,8 +72,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
 
     expect(within(container).getByText("Summer Holiday")).not.toBeNull();
 
-    const mockStateHighContrast: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockStateHighContrast: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       resolvedTheme: "high-contrast",
     };
@@ -89,8 +89,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
 
   it("should add a new holiday entity on clicking add button", () => {
     const handleAddHolidayMock = vi.fn();
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       handleAddHoliday: handleAddHolidayMock,
     };
@@ -117,8 +117,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
 
   it("should start editing, modify values, and save holiday with audit history update", () => {
     const handleUpdateHolidayMock = vi.fn();
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       handleUpdateHoliday: handleUpdateHolidayMock,
     };
@@ -173,8 +173,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
   });
 
   it("should cancel edit on clicking cancel (X) button", () => {
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
     };
 
@@ -205,8 +205,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
 
   it("should close editing without modifying if no changes made when saving", () => {
     const handleUpdateHolidayMock = vi.fn();
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       handleUpdateHoliday: handleUpdateHolidayMock,
     };
@@ -232,8 +232,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
 
   it("should append to existing edit history when editing a record that already has history", () => {
     const handleUpdateHolidayMock = vi.fn();
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       handleUpdateHoliday: handleUpdateHolidayMock,
     };
@@ -282,8 +282,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
 
   it("should delete a holiday when clicking delete button and confirming in dialog", () => {
     const handleDeleteHolidayMock = vi.fn();
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       handleDeleteHoliday: handleDeleteHolidayMock,
     };
@@ -311,8 +311,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
   });
 
   it("should toggle history details row when clicking history icon button", () => {
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
     };
 
@@ -336,8 +336,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
 
   it("should save edit with default reason when reason input is cleared to empty string", () => {
     const handleUpdateHolidayMock = vi.fn();
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: getMockHolidays(),
       handleUpdateHoliday: handleUpdateHolidayMock,
     };
@@ -389,8 +389,8 @@ describe("Unit Tests: HolidaysLeavesTable", () => {
       },
     ];
 
-    const mockState: OxyFlowState = {
-      ...getMockOxyFlowState(),
+    const mockState: OXyFlowState = {
+      ...getMockOXyFlowState(),
       holidays: holidaysWithMissingOriginalName,
     };
 

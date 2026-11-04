@@ -57,7 +57,7 @@ export default function TrayWidgetView({ onRestore, onStopAll }: TrayWidgetProps
 
         <div>
           <Heading level={1} className="font-heading font-extrabold text-2xl tracking-tight flex items-center gap-2 justify-center text-foreground">
-            OxyFlow Engine
+            oXyFlow Engine
             <Badge variant="success" size="sm" className="font-mono tracking-wider uppercase">
               {tEngine('EngineRunningBackground')}
             </Badge>

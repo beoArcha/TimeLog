@@ -13,7 +13,7 @@ describe('Unit Tests: CliDrawerHeader Component (Strict AAA)', () => {
     const onCloseMock = vi.fn();
     render(
       <CliDrawerHeader
-        title="OxyFlow CLI Terminal"
+        title="oXyFlow CLI Terminal"
         closeLabel="Close"
         isSandbox={false}
         liveBadge="LIVE ENGINE"
@@ -23,7 +23,7 @@ describe('Unit Tests: CliDrawerHeader Component (Strict AAA)', () => {
     );
 
     // Act
-    const heading = screen.getByText('OxyFlow CLI Terminal');
+    const heading = screen.getByText('oXyFlow CLI Terminal');
     const badge = screen.getByText('[LIVE ENGINE]');
     const closeBtn = screen.getByRole('button', { name: 'Close' });
     fireEvent.click(closeBtn);
@@ -39,7 +39,7 @@ describe('Unit Tests: CliDrawerHeader Component (Strict AAA)', () => {
     const onCloseMock = vi.fn();
     render(
       <CliDrawerHeader
-        title="OxyFlow CLI Terminal"
+        title="oXyFlow CLI Terminal"
         closeLabel="Close"
         isSandbox={true}
         liveBadge="LIVE ENGINE"

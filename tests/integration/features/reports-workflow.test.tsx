@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ReportView from '@features/reports/ReportView';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
-import { getMockOxyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 
 describe('Given ReportView and reporting analytics workflow', () => {
@@ -24,7 +24,7 @@ describe('Given ReportView and reporting analytics workflow', () => {
   describe('When ReportView renders with historical time logs', () => {
     it('Then it computes period metrics, project distribution and renders charts', () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       const projectA = aProject({ id: 'p1', name: 'Alpha Corp', color: 'rose' });
       const projectB = aProject({ id: 'p2', name: 'Beta Dynamics', color: 'indigo' });
       const taskA = aTask({ id: 't1', projectId: 'p1', name: 'Frontend Refactor' });
@@ -76,7 +76,7 @@ describe('Given ReportView and reporting analytics workflow', () => {
     it('Then it notifies state coordinator to update reportPeriod', () => {
       // Given
       const setReportPeriodSpy = vi.fn();
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       const stateProp = {
         ...mockState,
@@ -104,7 +104,7 @@ describe('Given ReportView and reporting analytics workflow', () => {
   describe('When user opens export modal and downloads report', () => {
     it('Then it opens dialog and triggers simulated CSV download', async () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
       const stateProp = {

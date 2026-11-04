@@ -5,7 +5,7 @@ import {
   tauriEventRegistry,
   triggerTauriEvent,
   setupMatchMediaMock,
-  getMockOxyFlowState,
+  getMockOXyFlowState,
   setTauriDesktopEnvironment,
 } from '@tests/shared/test-helpers';
 
@@ -39,7 +39,7 @@ describe('Given Tauri desktop runtime environment', () => {
   describe('When application mounts with default layout', () => {
     it('Then it should trigger resize and resizability commands for full layout', async () => {
       // Given
-      const state = getMockOxyFlowState();
+      const state = getMockOXyFlowState();
 
       // When
       render(
@@ -65,7 +65,7 @@ describe('Given Tauri desktop runtime environment', () => {
       // Given
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -91,7 +91,7 @@ describe('Given Tauri desktop runtime environment', () => {
       // Given
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -117,7 +117,7 @@ describe('Given Tauri desktop runtime environment', () => {
       // Given
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -138,7 +138,7 @@ describe('Given Tauri desktop runtime environment', () => {
       // Given
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -164,7 +164,7 @@ describe('Given Tauri desktop runtime environment', () => {
       // Given
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -184,7 +184,7 @@ describe('Given Tauri desktop runtime environment', () => {
       // Given
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -210,7 +210,7 @@ describe('Given Tauri desktop runtime environment', () => {
 
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -240,7 +240,7 @@ describe('Given Tauri desktop runtime environment', () => {
 
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -266,7 +266,7 @@ describe('Given Tauri desktop runtime environment', () => {
 
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>
@@ -292,7 +292,7 @@ describe('Given Tauri desktop runtime environment', () => {
 
       render(
         <LocaleProvider>
-          <MockProviders state={getMockOxyFlowState()}>
+          <MockProviders state={getMockOXyFlowState()}>
             <App />
           </MockProviders>
         </LocaleProvider>

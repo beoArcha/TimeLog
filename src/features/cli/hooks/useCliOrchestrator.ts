@@ -25,7 +25,7 @@ export const useCliOrchestrator = (props?: Partial<CliEngineContext>) => {
 
   const [input, setInput] = useState('');
   const [localHistory, setLocalHistory] = useState<TerminalLine[]>([
-    { text: `LogTime by OxyFlow CLI Engine [Version ${metadata.version}]`, type: 'info' },
+    { text: `TimeLog by oXyFlow CLI Engine [Version ${metadata.version}]`, type: 'info' },
     { text: "Type 'help' to see available commands.", type: 'info' },
     { text: "Connected to local SQLite database in memory.", type: 'success' },
     { text: '', type: 'output' },

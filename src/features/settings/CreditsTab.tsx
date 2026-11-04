@@ -99,7 +99,7 @@ export default function CreditsTab() {
           <VStack gap="xs" className="p-4 rounded-xl border border-border bg-muted/30 text-muted-foreground leading-relaxed">
             <Text size="xs" weight="bold" className="mb-2 text-emerald-500 flex items-center gap-1">
               <FileSignature className="w-3 h-3 shrink-0" />
-              OxyFlow
+              oXyFlow
             </Text>
             <VStack gap="xs">
               {translate(locale, 'help', 'LicenseBody', customTranslations)

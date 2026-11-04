@@ -17,7 +17,7 @@ export const DEFAULT_DEV_CONFIG: DevServerConfig = {
 
 export function resolveDevServerConfig(rootDir: string = process.cwd()): DevServerConfig {
   let fileConfig: Record<string, unknown> = {};
-  const configPath = path.resolve(rootDir, 'dev.config.json');
+  const configPath = path.resolve(rootDir, 'app.config.json');
 
   try {
     if (fs.existsSync(configPath)) {
