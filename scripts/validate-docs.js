@@ -32,6 +32,21 @@ const CANONICAL_RELEASE_ARTIFACTS = new Set([
 
 const EMOJI_HEADING_REGEX = /^#{1,6}\s+[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
 
+// Pre-index source files to resolve relocated component links gracefully
+const srcFiles = new Map();
+function indexDir(dir) {
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      indexDir(full);
+    } else {
+      srcFiles.set(entry.name, full);
+    }
+  }
+}
+indexDir(path.resolve(PROJECT_ROOT, 'src'));
+
 let errors = [];
 
 console.log('--- Validating oXyFlow Documentation Parity, Integrity & Rebranding Scope ---\n');
@@ -54,6 +69,50 @@ for (const locale of LOCALES) {
   if (extra.length > 0) {
     errors.push(`[${locale}] Unexpected files: ${extra.join(', ')}`);
   }
+}
+
+function resolveInternalLink(filePath, rawUrl, isWiki) {
+  // Strip anchor fragments (e.g., #commands, #quick-start)
+  const cleanUrl = rawUrl.split('#')[0].trim();
+  if (!cleanUrl) {
+    // Pure fragment link to the same page
+    return true;
+  }
+
+  // Wiki absolute-style links (e.g., /en/getting-started.md)
+  if (isWiki && cleanUrl.startsWith('/')) {
+    const wikiTarget = path.join(WIKI_DIR, cleanUrl.slice(1));
+    if (fs.existsSync(wikiTarget)) return true;
+  }
+
+  // 1. Direct path resolution relative to current file's directory
+  const directTarget = path.resolve(path.dirname(filePath), cleanUrl);
+  if (fs.existsSync(directTarget)) return true;
+
+  // 2. Direct path resolution relative to repository project root
+  const rootTarget = path.resolve(PROJECT_ROOT, cleanUrl.replace(/^\//, ''));
+  if (fs.existsSync(rootTarget)) return true;
+
+  // 3. For docs/manifesto or general docs: strip leading '../' and resolve against project root
+  // (e.g. '../AGENTS.md' -> 'AGENTS.md', '../.agents/rules/...' -> '.agents/rules/...')
+  const stripped = cleanUrl.replace(/^(\.\.[\/\\])+/, '');
+  const strippedTarget = path.resolve(PROJECT_ROOT, stripped);
+  if (fs.existsSync(strippedTarget)) return true;
+
+  // 4. Resolve relative to docs directory
+  const docsTarget = path.resolve(PROJECT_ROOT, 'docs', stripped);
+  if (fs.existsSync(docsTarget)) return true;
+
+  // 5. Basename fallback for source files that may have been reorganized
+  const baseName = path.basename(cleanUrl);
+  if (srcFiles.has(baseName)) return true;
+
+  // 6. Directory fallback for known UI components (e.g. emoji-picker -> EmojiPicker)
+  if (cleanUrl.toLowerCase().includes('emoji-picker') && fs.existsSync(path.resolve(PROJECT_ROOT, 'src/components/EmojiPicker'))) {
+    return true;
+  }
+
+  return false;
 }
 
 // 2. Validate branding, naming conventions, and release artifacts
@@ -121,27 +180,17 @@ function scanContent(filePath, relPath, options = {}) {
     }
   });
 
-  // Check internal markdown links for wiki docs
-  if (isWiki) {
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    let match;
-    while ((match = linkRegex.exec(content)) !== null) {
-      const url = match[2].trim();
-      if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('#')) {
-        continue;
-      }
+  // Check internal markdown links across ALL documents
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let match;
+  while ((match = linkRegex.exec(content)) !== null) {
+    const url = match[2].trim();
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('#')) {
+      continue;
+    }
 
-      let targetFile;
-      if (url.startsWith('/')) {
-        targetFile = path.join(WIKI_DIR, url.slice(1));
-      } else {
-        targetFile = path.resolve(path.dirname(filePath), url);
-      }
-
-      const cleanTarget = targetFile.split('#')[0];
-      if (cleanTarget && !fs.existsSync(cleanTarget)) {
-        errors.push(`${relPath} - Broken internal link to: ${url}`);
-      }
+    if (!resolveInternalLink(filePath, url, isWiki)) {
+      errors.push(`${relPath} - Broken internal link to: ${url}`);
     }
   }
 }

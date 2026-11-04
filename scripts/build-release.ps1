@@ -136,7 +136,10 @@ if ($LASTEXITCODE -ne 0) {
 Write-Step "Release Artifacts Normalization & Summary"
 $ArtifactsFound = 0
 $NormalizedDir = Join-Path $ProjectRoot "artifacts-release"
-if (-not (Test-Path $NormalizedDir)) {
+if (Test-Path $NormalizedDir) {
+    Write-Host "Cleaning previous release artifacts in $NormalizedDir..."
+    Remove-Item -Path "$NormalizedDir\*" -Recurse -Force -ErrorAction SilentlyContinue
+} else {
     New-Item -ItemType Directory -Path $NormalizedDir -Force | Out-Null
 }
 
@@ -167,11 +170,34 @@ foreach ($file in $finalFiles) {
 
 if ($ChecksumLines.Count -gt 0) {
     $ChecksumFile = Join-Path $NormalizedDir "SHA256SUMS.txt"
-    $ChecksumLines | Out-File -FilePath $ChecksumFile -Encoding utf8
-    Write-Success "Generated SHA256SUMS.txt in $NormalizedDir"
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllLines($ChecksumFile, [string[]]$ChecksumLines, $utf8NoBom)
+    Write-Success "Generated SHA256SUMS.txt in $NormalizedDir (UTF-8 without BOM)"
 }
 
-if ($ArtifactsFound -eq 0) {
+# Verify release artifacts completeness
+$ExpectedArtifacts = @()
+if ($Bundle -eq "nsis") {
+    $ExpectedArtifacts += "oXyFlow_TimeLog-Setup-x64.exe"
+} elseif ($Bundle -eq "standalone") {
+    $ExpectedArtifacts += "oXyFlow_TimeLog-Standalone-x64.exe"
+} elseif ($Bundle -eq "all") {
+    $ExpectedArtifacts += @("oXyFlow_TimeLog-Setup-x64.exe", "oXyFlow_TimeLog-Standalone-x64.exe")
+}
+
+$MissingExpected = @()
+foreach ($expected in $ExpectedArtifacts) {
+    if (-not (Test-Path (Join-Path $NormalizedDir $expected))) {
+        $MissingExpected += $expected
+    }
+}
+
+if ($MissingExpected.Count -gt 0) {
+    Write-Failure "Completeness check failed: missing expected release artifact(s): $($MissingExpected -join ', ')"
+    exit 1
+}
+
+if ($ArtifactsFound -eq 0 -and $Bundle -ne "none") {
     Write-Host "Build completed, but no release executables were located in standard paths." -ForegroundColor Yellow
 } else {
     Write-Success "Release packaging completed successfully ($ArtifactsFound normalized artifacts in $NormalizedDir)."
