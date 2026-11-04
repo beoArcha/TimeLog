@@ -15,6 +15,10 @@ fn test_try_get_default_db_path_succeeds_and_creates_dir() {
         "Enclosing database directory must exist"
     );
     assert_eq!(
+        path.parent().unwrap().file_name().unwrap(),
+        "com.oxyflow.timelog"
+    );
+    assert_eq!(
         path.file_name().unwrap(),
         DEFAULT_DB_NAME,
         "Database filename must match DEFAULT_DB_NAME"
@@ -28,6 +32,10 @@ fn test_get_default_db_path_returns_same_as_try_get() {
 
     // Assert
     assert_eq!(path.file_name().unwrap(), DEFAULT_DB_NAME);
+    assert_eq!(
+        path.parent().unwrap().file_name().unwrap(),
+        "com.oxyflow.timelog"
+    );
 }
 
 #[test]

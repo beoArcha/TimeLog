@@ -1,4 +1,4 @@
-use crate::common::constants::{APPDATA, APP_NAME, CONFIG, DEFAULT_DB_NAME, HOME};
+use crate::common::constants::{APPDATA, BUNDLE_IDENTIFIER, CONFIG, DEFAULT_DB_NAME, HOME};
 use std::path::{Path, PathBuf};
 
 /// Resolves the default persistent SQLite database path for both native CLI and desktop instances.
@@ -10,7 +10,7 @@ pub fn try_get_default_db_path() -> std::io::Result<PathBuf> {
         .or_else(|_| std::env::var(HOME).map(|h| PathBuf::from(h).join(CONFIG)))
         .unwrap_or_else(|_| PathBuf::from("."));
 
-    let app_dir = base_dir.join(APP_NAME);
+    let app_dir = base_dir.join(BUNDLE_IDENTIFIER);
     std::fs::create_dir_all(&app_dir)?;
     Ok(app_dir.join(DEFAULT_DB_NAME))
 }
@@ -23,7 +23,7 @@ pub fn get_default_db_path() -> PathBuf {
             .map(PathBuf::from)
             .or_else(|_| std::env::var(HOME).map(|h| PathBuf::from(h).join(CONFIG)))
             .unwrap_or_else(|_| PathBuf::from("."));
-        base_dir.join(APP_NAME).join(DEFAULT_DB_NAME)
+        base_dir.join(BUNDLE_IDENTIFIER).join(DEFAULT_DB_NAME)
     })
 }
 

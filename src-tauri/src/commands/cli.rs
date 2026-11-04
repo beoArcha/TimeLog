@@ -16,7 +16,7 @@ fn normalize_command_tokens(command_line: &str) -> Vec<String> {
         return tokens;
     }
 
-    if tokens[0].eq_ignore_ascii_case("oxy") || tokens[0].eq_ignore_ascii_case("oxyflow") {
+    if tokens[0].eq_ignore_ascii_case("oxy") || tokens[0].eq_ignore_ascii_case("oxytime") {
         tokens[0] = "oxy".to_string();
     } else {
         tokens.insert(0, "oxy".to_string());
