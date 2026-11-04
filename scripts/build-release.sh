@@ -148,7 +148,12 @@ fi
 
 step "Release Artifacts Normalization & Summary"
 NORMALIZED_DIR="${PROJECT_ROOT}/artifacts-release"
-mkdir -p "${NORMALIZED_DIR}"
+if [ -d "${NORMALIZED_DIR}" ]; then
+    echo "Cleaning previous release artifacts in ${NORMALIZED_DIR}..."
+    rm -rf "${NORMALIZED_DIR:?}"/*
+else
+    mkdir -p "${NORMALIZED_DIR}"
+fi
 
 compute_hash() {
     if command -v sha256sum >/dev/null 2>&1; then
@@ -209,7 +214,50 @@ for file in "${NORMALIZED_DIR}"/*; do
     fi
 done
 
-if [ "${FOUND}" -eq 0 ]; then
+# Verify release artifacts completeness
+EXPECTED_ARTIFACTS=()
+case "${BUNDLE}" in
+    appimage)
+        EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-x86_64.AppImage")
+        ;;
+    deb)
+        EXPECTED_ARTIFACTS+=("timelog_amd64.deb")
+        ;;
+    rpm)
+        EXPECTED_ARTIFACTS+=("timelog.x86_64.rpm")
+        ;;
+    dmg)
+        EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-Universal.dmg")
+        ;;
+    nsis)
+        EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-Setup-x64.exe")
+        ;;
+    all)
+        OS="$(uname -s)"
+        case "${OS}" in
+            Darwin*)
+                EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-Universal.dmg")
+                ;;
+            Linux*)
+                EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-x86_64.AppImage" "timelog_amd64.deb" "timelog.x86_64.rpm")
+                ;;
+        esac
+        ;;
+esac
+
+MISSING_EXPECTED=()
+for expected in "${EXPECTED_ARTIFACTS[@]}"; do
+    if [ ! -f "${NORMALIZED_DIR}/${expected}" ]; then
+        MISSING_EXPECTED+=("${expected}")
+    fi
+done
+
+if [ ${#MISSING_EXPECTED[@]} -gt 0 ]; then
+    failure "Completeness check failed: missing expected release artifact(s): ${MISSING_EXPECTED[*]}"
+    exit 1
+fi
+
+if [ "${FOUND}" -eq 0 ] && [ "${BUNDLE}" != "none" ]; then
     echo "Build completed, but no release packages were located in standard bundle paths."
 else
     success "Release packaging completed successfully (${FOUND} normalized artifacts in ${NORMALIZED_DIR})."
