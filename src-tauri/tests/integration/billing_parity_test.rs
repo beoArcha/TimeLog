@@ -1,10 +1,10 @@
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::engine::billing::{
+use oxyflow_timelog::engine::billing::{
     calculate_bankers_amount, format_cents, parse_rate_or_cents, parse_rate_to_cents,
 };
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::{Project, RateStatus, RuntimeConfig, Task};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::{Project, RateStatus, RuntimeConfig, Task};
 
 #[test]
 fn test_given_shared_billing_fixture_when_run_in_rust_integration_then_satisfies_cross_runtime_parity(

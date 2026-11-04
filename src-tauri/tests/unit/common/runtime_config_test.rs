@@ -1,6 +1,6 @@
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::repositories::config::ConfigRepository;
-use oxy_flow::types::RuntimeConfig;
+use oxyflow_timelog::repositories::config::ConfigRepository;
+use oxyflow_timelog::types::RuntimeConfig;
 
 #[test]
 fn test_runtime_config_save_and_get() {

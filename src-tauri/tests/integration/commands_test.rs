@@ -1,8 +1,8 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::TaskStatus;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::TaskStatus;
 
 #[test]
 fn test_given_persistence_and_engine_when_project_and_task_created_then_engine_state_reflects_hierarchy(

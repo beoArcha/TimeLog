@@ -1,8 +1,8 @@
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxy_flow::cli::{handle_cli, CliArgs};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::{handle_cli, CliArgs};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_given_configured_persistence_when_creating_project_via_cli_then_project_is_persisted() {

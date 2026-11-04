@@ -1,9 +1,9 @@
 mod shared;
 
 use clap::Parser;
-use oxy_flow::cli::CliArgs;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::CliArgs;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 use shared::test_db::setup_persistence_test;
 
 #[test]

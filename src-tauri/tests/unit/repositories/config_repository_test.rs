@@ -1,5 +1,5 @@
-use oxy_flow::repositories::config::ConfigRepository;
-use oxy_flow::types::Settings;
+use oxyflow_timelog::repositories::config::ConfigRepository;
+use oxyflow_timelog::types::Settings;
 use rusqlite::params;
 
 #[test]

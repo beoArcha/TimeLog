@@ -1,7 +1,7 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_granular_project_rename_updates_engine_state() {

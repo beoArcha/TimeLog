@@ -1,4 +1,4 @@
-use oxy_flow::cli::handlers::mask_handler::expand_mask_template;
+use oxyflow_timelog::cli::handlers::mask_handler::expand_mask_template;
 
 #[test]
 fn test_given_positional_arguments_when_expanding_template_then_replaces_dollar_tokens() {
@@ -76,7 +76,7 @@ fn test_given_quoted_arguments_when_splitting_shell_args_then_preserves_spaces_i
     let cmd = "log add task-1 30m \"Review PR #42\"";
 
     // Act
-    let tokens = oxy_flow::cli::shared::utils::split_shell_args(cmd);
+    let tokens = oxyflow_timelog::cli::shared::utils::split_shell_args(cmd);
 
     // Assert
     assert_eq!(tokens, vec!["log", "add", "task-1", "30m", "Review PR #42"]);
@@ -88,7 +88,7 @@ fn test_given_single_quotes_and_multiple_spaces_when_splitting_then_normalizes_a
     let cmd = "task   add   'Feature development'   -p   p1";
 
     // Act
-    let tokens = oxy_flow::cli::shared::utils::split_shell_args(cmd);
+    let tokens = oxyflow_timelog::cli::shared::utils::split_shell_args(cmd);
 
     // Assert
     assert_eq!(

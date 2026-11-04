@@ -1,9 +1,9 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use chrono::Utc;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::AuditSource;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::AuditSource;
 
 #[test]
 fn test_validate_task_hierarchy_rejects_task_as_its_own_parent() {

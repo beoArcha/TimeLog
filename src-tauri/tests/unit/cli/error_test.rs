@@ -1,12 +1,14 @@
-use oxy_flow::cli::error::{BusinessRuleViolation, CliErrorCode, CliErrorEnvelope, CliSyntaxError};
-use oxy_flow::cli::resolver::{EntityType, ResolveError};
-use oxy_flow::cli::shared::constants::{
+use oxyflow_timelog::cli::error::{
+    BusinessRuleViolation, CliErrorCode, CliErrorEnvelope, CliSyntaxError,
+};
+use oxyflow_timelog::cli::resolver::{EntityType, ResolveError};
+use oxyflow_timelog::cli::shared::constants::{
     EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENGINE_ERROR, EXIT_CODE_ENTITY_ERROR,
     EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR,
 };
-use oxy_flow::cli::CliError;
-use oxy_flow::engine::EngineError;
-use oxy_flow::persistence::PersistenceError;
+use oxyflow_timelog::cli::CliError;
+use oxyflow_timelog::engine::EngineError;
+use oxyflow_timelog::persistence::PersistenceError;
 
 #[test]
 fn test_given_syntax_error_when_converting_to_envelope_then_maps_to_cli_syntax_and_exit_code_2() {
