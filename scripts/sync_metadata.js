@@ -67,6 +67,9 @@ syncJsonFile(path.join(rootDir, 'package.json'), (pkg) => {
 syncJsonFile(path.join(rootDir, 'src-tauri/tauri.conf.json'), (tauri) => {
   tauri.productName = shortName;
   tauri.version = version;
+  if (metadata.identifier) {
+    tauri.identifier = metadata.identifier;
+  }
   if (tauri.app?.windows?.[0]) {
     tauri.app.windows[0].title = longName;
   }
