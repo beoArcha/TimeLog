@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow intègre un sous-système persistant de **Sinks**, chargé d'enregistrer et de transmettre en temps réel les événements temporels lors de la clôture des sessions de travail.
+TimeLog intègre un sous-système persistant de **Sinks**, chargé d'enregistrer et de transmettre en temps réel les événements temporels lors de la clôture des sessions de travail.
 
 ---
 

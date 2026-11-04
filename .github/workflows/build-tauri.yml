@@ -84,29 +84,37 @@ jobs:
           ARTIFACT_DIR="artifacts-upload"
           mkdir -p "$ARTIFACT_DIR"
 
-          copy() {
-            find src-tauri/target -type f -path "$1" -exec cp {} "$ARTIFACT_DIR/" \;
-          }
-
           case "${{ matrix.platform }}" in
             ubuntu-22.04)
-              copy "*/bundle/deb/*.deb"
-              copy "*/bundle/rpm/*.rpm"
-              copy "*/bundle/appimage/*.AppImage"
-              copy "*/bundle/appimage/*.AppImage.tar.gz"
+              APPIMAGE_PATH=$(find src-tauri/target -type f -path "*/bundle/appimage/*.AppImage" | head -n 1)
+              [ -n "$APPIMAGE_PATH" ] || { echo "::error::Linux AppImage not found"; exit 1; }
+              cp "$APPIMAGE_PATH" "$ARTIFACT_DIR/oXyFlow_TimeLog-x86_64.AppImage"
+
+              DEB_PATH=$(find src-tauri/target -type f -path "*/bundle/deb/*.deb" | head -n 1)
+              [ -n "$DEB_PATH" ] || { echo "::error::Debian package not found"; exit 1; }
+              cp "$DEB_PATH" "$ARTIFACT_DIR/timelog_amd64.deb"
+
+              RPM_PATH=$(find src-tauri/target -type f -path "*/bundle/rpm/*.rpm" | head -n 1)
+              [ -n "$RPM_PATH" ] || { echo "::error::RPM package not found"; exit 1; }
+              cp "$RPM_PATH" "$ARTIFACT_DIR/timelog.x86_64.rpm"
               ;;
             windows-latest)
-              copy "*/bundle/nsis/*.exe"
+              NSIS_PATH=$(find src-tauri/target -type f -path "*/bundle/nsis/*.exe" | head -n 1)
+              [ -n "$NSIS_PATH" ] || { echo "::error::NSIS installer not found"; exit 1; }
+              cp "$NSIS_PATH" "$ARTIFACT_DIR/oXyFlow_TimeLog-Setup-x64.exe"
 
-              EXE_PATH=$(find src-tauri/target -maxdepth 4 -type f \( -name "TimeLog.exe" -o -name "timelog.exe" -o -name "OxyFlow.exe" -o -name "oxy-flow.exe" \) | head -n 1)
+              EXE_PATH=$(find src-tauri/target -maxdepth 4 -type f \( -name "TimeLog.exe" -o -name "timelog.exe" \) | head -n 1)
               if [ -n "$EXE_PATH" ]; then
-                cp "$EXE_PATH" "$ARTIFACT_DIR/OxyFlow-Standalone-x64-v${APP_VERSION}.exe"
+                cp "$EXE_PATH" "$ARTIFACT_DIR/oXyFlow_TimeLog-Standalone-x64.exe"
               else
-                echo "::warning::Standalone Windows executable not found"
+                echo "::error::Standalone Windows executable not found"
+                exit 1
               fi
               ;;
             macos-latest)
-              copy "*/bundle/dmg/*.dmg"
+              DMG_PATH=$(find src-tauri/target -type f -path "*/bundle/dmg/*.dmg" | head -n 1)
+              [ -n "$DMG_PATH" ] || { echo "::error::macOS Universal DMG not found"; exit 1; }
+              cp "$DMG_PATH" "$ARTIFACT_DIR/oXyFlow_TimeLog-Universal.dmg"
               ;;
           esac
 

@@ -1,12 +1,12 @@
-# Dokumentacja Techniczna oXyFlow
+# Dokumentacja Techniczna oXyFlow TimeLog
 
 > Język / Language: [English](/en/README.md) | **Polski** | [Deutsch](/de/README.md) | [Español](/es/README.md) | [Français](/fr/README.md) | [Português](/pt-br/README.md)
 
 ---
 
-oXyFlow to lokalny stoper i rejestrator zadań, dostępny jako natywna aplikacja desktopowa (Tauri v2, silnik Rust, lokalna baza SQLite) wraz z narzędziem CLI (`oxy`), a także jako **aplikacja webowa i Progressive Web App (PWA)** uruchamiana bezpośrednio z GitHub Pages.
+oXyFlow TimeLog to lokalny stoper i rejestrator zadań, dostępny jako natywna aplikacja desktopowa (Tauri v2, silnik Rust, lokalna baza SQLite) wraz z narzędziem CLI (`oxy`), a także jako **aplikacja webowa i Progressive Web App (PWA)** uruchamiana bezpośrednio z GitHub Pages.
 
-> 🚀 **Wersja Web / PWA**: Uruchom oXyFlow bezpośrednio w przeglądarce lub zainstaluj na urządzeniu pod adresem **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
+> 🚀 **Wersja Web / PWA**: Uruchom TimeLog bezpośrednio w przeglądarce lub zainstaluj na urządzeniu pod adresem **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
 
 ---
 
@@ -62,7 +62,7 @@ oXyFlow to lokalny stoper i rejestrator zadań, dostępny jako natywna aplikacja
 
 | Platforma | Typ Dystrybucji | Architektura | Odnośnik |
 | :--- | :--- | :--- | :--- |
-| **Web & PWA** | Aplikacja przeglądarkowa (bez instalacji) | Nowoczesne przeglądarki | [Otwórz oXyFlow Web](https://beoarcha.github.io/TimeLog/app/) |
+| **Web & PWA** | Aplikacja przeglądarkowa (bez instalacji) | Nowoczesne przeglądarki | [Otwórz TimeLog Web](https://beoarcha.github.io/TimeLog/app/) |
 | **Windows** | Instalator (`.exe`) | x86_64 | [Wydania GitHub](https://github.com/beoArcha/TimeLog/releases/latest) |
 | **Windows** | Wersja przenośna portable (`.exe`) | x86_64 | [Wydania GitHub](https://github.com/beoArcha/TimeLog/releases/latest) |
 | **macOS** | Obraz dysku Universal (`.dmg`) | Universal (Apple Silicon M1–M4 & Intel) | [Wydania GitHub](https://github.com/beoArcha/TimeLog/releases/latest) |

@@ -4,7 +4,7 @@
 
 ---
 
-Instruções para compilar, executar testes e desenvolver o oXyFlow localmente no Windows, macOS e Linux.
+Instruções para compilar, executar testes e desenvolver o TimeLog localmente no Windows, macOS e Linux.
 
 ---
 

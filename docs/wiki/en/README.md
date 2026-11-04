@@ -1,12 +1,12 @@
-# oXyFlow Documentation
+# oXyFlow TimeLog Documentation
 
 > **Language**: **English** | [Polski](/pl/README.md) | [Deutsch](/de/README.md) | [Español](/es/README.md) | [Français](/fr/README.md) | [Português](/pt-br/README.md)
 
 ---
 
-oXyFlow is a local-first work timer and task tracker available as a native desktop application (Tauri v2, Rust, SQLite) with a native CLI companion (`oxy`), as well as a standalone **Web Application & Progressive Web App (PWA)** hosted directly on GitHub Pages.
+oXyFlow TimeLog is a local-first work timer and task tracker available as a native desktop application (Tauri v2, Rust, SQLite) with a native CLI companion (`oxy`), as well as a standalone **Web Application & Progressive Web App (PWA)** hosted directly on GitHub Pages.
 
-> 🚀 **Live Web App**: Launch oXyFlow instantly in any browser or install it to your device at **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
+> 🚀 **Live Web App**: Launch TimeLog instantly in any browser or install it to your device at **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
 
 ---
 

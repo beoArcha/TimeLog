@@ -10,23 +10,23 @@ Todos los registros de tiempo, proyectos, tareas y configuraciones se almacenan 
 
 | Plataforma | Ruta de Almacenamiento |
 | :--- | :--- |
-| **Windows** | `%APPDATA%\com.oxytime.oxyflow\oxytime.db` |
-| **Linux** | `~/.local/share/com.oxytime.oxyflow/oxytime.db` |
-| **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db` |
+| **Windows** | `%APPDATA%\com.oxyflow.timelog\oxytime.db` |
+| **Linux** | `~/.local/share/com.oxyflow.timelog/oxytime.db` |
+| **macOS** | `~/Library/Application Support/com.oxyflow.timelog/oxytime.db` |
 
 En modo navegador (PWA), los datos se guardan en el `localStorage` de HTML5 en lugar de un archivo SQLite físico (consulte la pregunta 7 para más detalles).
 
 ---
 
-## 2. ¿Requiere oXyFlow conexión a Internet?
+## 2. ¿Requiere TimeLog conexión a Internet?
 
-**No.** oXyFlow opera de manera 100% local (offline-first). No existen conexiones obligatorias a la nube, beacons de telemetría ni servicios externos de autenticación. Todo el cálculo de tiempos y generación de informes lo ejecuta el motor nativo de Rust.
+**No.** TimeLog opera de manera 100% local (offline-first). No existen conexiones obligatorias a la nube, beacons de telemetría ni servicios externos de autenticación. Todo el cálculo de tiempos y generación de informes lo ejecuta el motor nativo de Rust.
 
 ---
 
 ## 3. ¿Por qué Windows Defender SmartScreen muestra una advertencia al inicio?
 
-Windows SmartScreen emite advertencias para archivos binarios descargados recientemente que no cuentan con un costoso certificado corporativo de firma de código (EV). oXyFlow es software libre distribuido bajo la licencia Mozilla Public License 2.0 (MPL-2.0).
+Windows SmartScreen emite advertencias para archivos binarios descargados recientemente que no cuentan con un costoso certificado corporativo de firma de código (EV). oXyFlow TimeLog es software libre distribuido bajo la licencia Mozilla Public License 2.0 (MPL-2.0).
 
 Para continuar:
 
@@ -48,7 +48,7 @@ La sesión activa continuará contando hasta que se detenga, pause o cambie manu
 ## 5. ¿Cómo realizo una copia de seguridad y restauración de mi base de datos?
 
 - **Copia de Seguridad Universal en JSON**: En **Ajustes → Copias de seguridad** (panel **Copia de base de datos y estado**):
-  - **Exportar**: Haga clic en **Exportar copia en JSON** (`data-testid="export-backup-btn"`) para descargar una captura JSON estructurada (`OxyFlow_Backup_YYYY-MM-DD.json`) con todos los proyectos, tareas, registros de tiempo y configuraciones.
+  - **Exportar**: Haga clic en **Exportar copia en JSON** (`data-testid="export-backup-btn"`) para descargar una captura JSON estructurada (`TimeLog_Backup_YYYY-MM-DD.json`) con todos los proyectos, tareas, registros de tiempo y configuraciones.
   - **Restaurar / Importar**: Haga clic en **Restaurar copia desde JSON** (`data-testid="import-backup-btn"`) y seleccione un archivo `.json` previo. El motor valida la estructura de los datos (`validateBackupPayload`) antes de restaurar el estado.
   - **Portabilidad entre Plataformas**: El formato JSON es universal. Puede exportar una copia desde la PWA web e importarla en la aplicación de escritorio, o viceversa.
 - **Copia Física de SQLite (Solo Escritorio)**: En versiones de escritorio, puede copiar el archivo `oxytime.db` directamente con la aplicación cerrada o ejecutar comandos de SQLite:
@@ -69,10 +69,10 @@ El binario de terminal (`oxy`) lee y escribe en el mismo archivo local de SQLite
 
 ## 7. ¿En qué se diferencia el almacenamiento de datos entre la versión de escritorio y la PWA web?
 
-oXyFlow emplea motores de persistencia adaptados a cada entorno de ejecución:
+TimeLog emplea motores de persistencia adaptados a cada entorno de ejecución:
 
 - **Escritorio (Tauri v2)**: Los datos se almacenan en un archivo SQLite local con soporte ACID (`oxytime.db`) en el sistema de archivos, permitiendo copias directas y sincronización con el CLI.
 - **Navegador (PWA)**: Los datos residen en el `localStorage` del navegador (`LocalStorage Engine`), aislado por dominio. El entorno de seguridad del navegador no permite acceso al disco, por lo que no se genera ningún archivo `.sqlite` físico.
 - **Advertencia sobre la Caché del Navegador**: Las acciones de limpieza del navegador ("Borrar datos de navegación", eliminar cookies o almacenamiento del sitio) o el uso de ventanas de incógnito borran de forma permanente todos los registros.
-- **Práctica Recomendada**: Si utiliza oXyFlow en el navegador web, realice exportaciones periódicas en JSON desde **Ajustes → Copias de seguridad → Exportar copia en JSON** para mantener sus datos a salvo en el disco.
+- **Práctica Recomendada**: Si utiliza TimeLog en el navegador web, realice exportaciones periódicas en JSON desde **Ajustes → Copias de seguridad → Exportar copia en JSON** para mantener sus datos a salvo en el disco.
 

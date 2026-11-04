@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow verwaltet Zeiterfassungssitzungen über eine native Rust-Engine, die Datenintegrität garantiert und Zeitdrifts zuverlässig ausschließt.
+TimeLog verwaltet Zeiterfassungssitzungen über eine native Rust-Engine, die Datenintegrität garantiert und Zeitdrifts zuverlässig ausschließt.
 
 ---
 

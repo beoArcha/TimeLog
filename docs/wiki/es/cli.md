@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow incluye una herramienta nativa para terminal llamada `oxy`, que se comunica directamente con la base de datos local SQLite (`oxytime.db`). Funciona de manera autónoma sin necesidad de abrir la ventana gráfica, ideal para entornos de servidor, scripts de shell y pipelines de CI/CD.
+TimeLog incluye una herramienta nativa para terminal llamada `oxy`, que se comunica directamente con la base de datos local SQLite (`oxytime.db`). Funciona de manera autónoma sin necesidad de abrir la ventana gráfica, ideal para entornos de servidor, scripts de shell y pipelines de CI/CD.
 
 ---
 

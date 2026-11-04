@@ -4,7 +4,7 @@
 
 ---
 
-Instrukcje dotyczące kompilacji, uruchamiania testów i lokalnego rozwoju oXyFlow w środowiskach Windows, macOS i Linux.
+Instrukcje dotyczące kompilacji, uruchamiania testów i lokalnego rozwoju TimeLog w środowiskach Windows, macOS i Linux.
 
 ---
 

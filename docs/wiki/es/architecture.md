@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow implementa una Clean Architecture con un aislamiento de capas estricto, verificado mediante suites automáticas de pruebas de arquitectura AST en el frontend en TypeScript (`tests/architecture/`) y en el backend en Rust (`src-tauri/tests/architecture/`).
+TimeLog implementa una Clean Architecture con un aislamiento de capas estricto, verificado mediante suites automáticas de pruebas de arquitectura AST en el frontend en TypeScript (`tests/architecture/`) y en el backend en Rust (`src-tauri/tests/architecture/`).
 
 ---
 
@@ -73,7 +73,7 @@ El binario de terminal (`src-tauri/src/cli/`) se comunica directamente con las i
 
 ### 5. Encapsulación de Capas y Contrato de Errores
 
-oXyFlow impone una propagación de errores unidireccional y fuertemente tipada en todos los límites arquitectónicos:
+TimeLog impone una propagación de errores unidireccional y fuertemente tipada en todos los límites arquitectónicos:
 
 ```text
 Repositorios (RepositoryError)
