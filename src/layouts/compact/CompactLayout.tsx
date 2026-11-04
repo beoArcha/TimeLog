@@ -7,6 +7,8 @@ import { CompactLayoutHeader } from './CompactLayoutHeader';
 import { ActiveProjectCard } from './ActiveProjectCard';
 import { TaskVisibilityToggle } from './TaskVisibilityToggle';
 import { TaskList } from './TaskList';
+import { Area } from '@components/ui/area';
+import { VStack } from '@components/ui/stack';
 
 type CompactLayoutProps = Omit<LayoutRouterProps, 'variant' | 'commonProps'> & { state: GuiState };
 
@@ -54,7 +56,7 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
       transition={{ duration: 0.25 }}
       className="w-full h-full flex flex-col p-1"
     >
-      <div
+      <Area
         className="rounded-2xl border border-border shadow-2xl p-3 flex flex-col gap-2.5 relative overflow-hidden transition-all duration-300 w-full h-full bg-card/95 backdrop-blur-xl text-foreground"
       >
         <div className="ambient-gradients absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 via-rose-500 to-indigo-500" />
@@ -89,21 +91,23 @@ export default function CompactLayout({ state, ...rest }: CompactLayoutProps) {
           isOpen={isCompactExpanded}
           data-testid="compact-tasks-drawer"
           duration={0.2}
-          className="flex flex-col gap-2 flex-1 overflow-y-auto pr-1 text-left"
+          className="flex-1 overflow-y-auto pr-1 text-left"
         >
-          <TaskList
-            activeProj={activeProj}
-            rootTasks={projectRootTasks}
-            allTasks={tasks}
-            activeLog={activeLog}
-            locale={locale}
-            customTranslations={customTranslations}
-            onStartTimer={handleStartTimer}
-            onStopTimer={handleStopTimer}
-            showToast={showToast}
-          />
+          <VStack gap="xs" className="w-full">
+            <TaskList
+              activeProj={activeProj}
+              rootTasks={projectRootTasks}
+              allTasks={tasks}
+              activeLog={activeLog}
+              locale={locale}
+              customTranslations={customTranslations}
+              onStartTimer={handleStartTimer}
+              onStopTimer={handleStopTimer}
+              showToast={showToast}
+            />
+          </VStack>
         </AnimatedCollapse>
-      </div>
+      </Area>
     </AnimatedFade>
   );
 }

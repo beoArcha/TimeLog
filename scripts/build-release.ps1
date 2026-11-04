@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Builds release packages for OxyFlow with automated pre-flight quality checks.
+    Builds release packages for oXyFlow TimeLog with automated pre-flight quality checks.
 
 .DESCRIPTION
     Compatible with Windows PowerShell 5.1 and PowerShell Core 7.x.
@@ -114,6 +114,14 @@ if ($DryRun) {
 
 Write-Step "Building Release Packages (Bundle: $Bundle)"
 
+if ($Bundle -in @("nsis", "all")) {
+    $NsisDir = Join-Path $ProjectRoot "src-tauri\target\release\bundle\nsis"
+    if (Test-Path $NsisDir) {
+        Write-Host "Cleaning previous NSIS bundle output in $NsisDir..."
+        Remove-Item -Path "$NsisDir\*" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 if ($Bundle -eq "none") {
     Write-Host "Building release binary without packaging bundle..."
     & cargo build --release --manifest-path src-tauri/Cargo.toml
@@ -133,30 +141,76 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Write-Step "Release Artifacts Summary"
+Write-Step "Release Artifacts Normalization & Summary"
 $ArtifactsFound = 0
-$CandidateDirs = @(
-    (Join-Path $ProjectRoot "src-tauri\target\release\bundle\nsis"),
-    (Join-Path $ProjectRoot "src-tauri\target\release")
-)
+$NormalizedDir = Join-Path $ProjectRoot "artifacts-release"
+if (Test-Path $NormalizedDir) {
+    Write-Host "Cleaning previous release artifacts in $NormalizedDir..."
+    Remove-Item -Path "$NormalizedDir\*" -Recurse -Force -ErrorAction SilentlyContinue
+} else {
+    New-Item -ItemType Directory -Path $NormalizedDir -Force | Out-Null
+}
 
-foreach ($dir in $CandidateDirs) {
-    if (Test-Path $dir) {
-        $files = Get-ChildItem -Path $dir -File -Filter "*.exe" -ErrorAction SilentlyContinue
-        foreach ($file in $files) {
-            $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash
-            $sizeMb = [math]::Round($file.Length / 1MB, 2)
-            Write-Host "Artifact: $($file.Name)" -ForegroundColor Green
-            Write-Host "  Path:   $($file.FullName)"
-            Write-Host "  Size:   $sizeMb MB"
-            Write-Host "  SHA256: $hash"
-            $ArtifactsFound++
-        }
+if ($Bundle -in @("nsis", "all")) {
+    $CandidateNsis = Get-ChildItem -Path (Join-Path $ProjectRoot "src-tauri\target\release\bundle\nsis") -File -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($CandidateNsis) {
+        $targetPath = Join-Path $NormalizedDir "oXyFlow_TimeLog-Setup-x64.exe"
+        Copy-Item -Path $CandidateNsis.FullName -Destination $targetPath -Force
     }
 }
 
-if ($ArtifactsFound -eq 0) {
+if ($Bundle -in @("standalone", "all")) {
+    $CandidateExe = Get-ChildItem -Path (Join-Path $ProjectRoot "src-tauri\target\release") -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @("TimeLog.exe", "timelog.exe") } | Select-Object -First 1
+    if ($CandidateExe) {
+        $targetPath = Join-Path $NormalizedDir "oXyFlow_TimeLog-Standalone-x64.exe"
+        Copy-Item -Path $CandidateExe.FullName -Destination $targetPath -Force
+    }
+}
+
+$ChecksumLines = @()
+$finalFiles = Get-ChildItem -Path $NormalizedDir -File -Filter "*.exe" -ErrorAction SilentlyContinue
+foreach ($file in $finalFiles) {
+    $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+    $sizeMb = [math]::Round($file.Length / 1MB, 2)
+    Write-Host "Artifact: $($file.Name)" -ForegroundColor Green
+    Write-Host "  Path:   $($file.FullName)"
+    Write-Host "  Size:   $sizeMb MB"
+    Write-Host "  SHA256: $hash"
+    $ChecksumLines += "$hash  $($file.Name)"
+    $ArtifactsFound++
+}
+
+if ($ChecksumLines.Count -gt 0) {
+    $ChecksumFile = Join-Path $NormalizedDir "SHA256SUMS.txt"
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllLines($ChecksumFile, [string[]]$ChecksumLines, $utf8NoBom)
+    Write-Success "Generated SHA256SUMS.txt in $NormalizedDir (UTF-8 without BOM)"
+}
+
+# Verify release artifacts completeness
+$ExpectedArtifacts = @()
+if ($Bundle -eq "nsis") {
+    $ExpectedArtifacts += "oXyFlow_TimeLog-Setup-x64.exe"
+} elseif ($Bundle -eq "standalone") {
+    $ExpectedArtifacts += "oXyFlow_TimeLog-Standalone-x64.exe"
+} elseif ($Bundle -eq "all") {
+    $ExpectedArtifacts += @("oXyFlow_TimeLog-Setup-x64.exe", "oXyFlow_TimeLog-Standalone-x64.exe")
+}
+
+$MissingExpected = @()
+foreach ($expected in $ExpectedArtifacts) {
+    if (-not (Test-Path (Join-Path $NormalizedDir $expected))) {
+        $MissingExpected += $expected
+    }
+}
+
+if ($MissingExpected.Count -gt 0) {
+    Write-Failure "Completeness check failed: missing expected release artifact(s): $($MissingExpected -join ', ')"
+    exit 1
+}
+
+if ($ArtifactsFound -eq 0 -and $Bundle -ne "none") {
     Write-Host "Build completed, but no release executables were located in standard paths." -ForegroundColor Yellow
 } else {
-    Write-Success "Release packaging completed successfully ($ArtifactsFound artifacts generated)."
+    Write-Success "Release packaging completed successfully ($ArtifactsFound normalized artifacts in $NormalizedDir)."
 }

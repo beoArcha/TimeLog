@@ -26,7 +26,7 @@ export class NoRawMotionRule implements ArchitectureRule {
           rule: this.name,
           file: filePath,
           line: idx + 1,
-          message: `Forbidden raw motion primitive on line ${idx + 1} in "${filePath}". Encapsulate animations into composite components in @components (such as AnimatedCard, AnimatedFade, AnimatedCollapse, AnimatedProgressBar, AnimatedDrawer).`,
+          message: `Forbidden raw motion primitive on line ${idx + 1} in "${filePath}". Encapsulate animations into composite components in @components (such as AnimatedCard, AnimatedFade, AnimatedCollapse, AnimatedDrawer).`,
         });
       }
     });

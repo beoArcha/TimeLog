@@ -1,6 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Pencil, Paintbrush } from 'lucide-react';
-import { isValidHexColor, normalizeHexColor } from '@common/utils/colorUtils';
+import React, { useState } from 'react';
+import { Pencil } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,17 +8,12 @@ import {
   DialogFooter,
 } from '@components/ui/dialog';
 import { Button } from '@components/ui/button';
-import { Input } from '@components/ui/input';
-import { Textarea } from '@components/ui/textarea';
 import { Label } from '@components/ui/label';
-import { Caption } from '@components/ui/typography';
-import { Switch } from '@components/ui/switch';
+import { Grid } from '@components/ui/grid';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
 import type { Project } from '@bindings/Project';
-import { PROJECT_COLORS } from '@common/constants/projectColors';
-import { EmojiPicker } from '@components/ui/emoji-picker';
-import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
+import { ProjectFormFields } from '@features/projects/components/ProjectFormFields';
 
 export type ProjectToEdit = Pick<
   Project,
@@ -63,7 +57,6 @@ function EditProjectDialogForm({
   locale = 'en',
   customTranslations,
 }: EditProjectDialogFormProps) {
-  const availableTags = useAllProjectTags();
   const [name, setName] = useState(project.name);
   const [color, setColor] = useState(project.color);
   const [description, setDescription] = useState(project.description || '');
@@ -72,27 +65,6 @@ function EditProjectDialogForm({
   const [allowConcurrency, setAllowConcurrency] = useState(Boolean(project.allowConcurrency));
   const [hourlyRate, setHourlyRate] = useState(project.hourlyRate ?? '');
   const [currency, setCurrency] = useState(project.currency ?? '');
-  const colorInputRef = useRef<HTMLInputElement>(null);
-  const isCustomColor = isValidHexColor(color);
-
-  const handleAddTagSuggestion = (tagToAdd: string) => {
-    const currentTags = tags
-      .split(',')
-      .map(t => t.trim())
-      .filter(Boolean);
-    if (!currentTags.includes(tagToAdd)) {
-      const updated = [...currentTags, tagToAdd].join(', ');
-      setTags(updated);
-    }
-  };
-
-  const handleCustomColorClick = () => {
-    if (!isCustomColor) {
-      const currentHex = colorInputRef.current?.value || '#8b5cf6';
-      setColor(currentHex);
-    }
-    colorInputRef.current?.click();
-  };
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -128,187 +100,85 @@ function EditProjectDialogForm({
       </DialogHeader>
 
       <div className="flex flex-col gap-4 my-2">
-        <div>
-          <Label htmlFor="edit-project-name-input" className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-            {translate(locale, 'project', 'ProjectName', customTranslations)}
-          </Label>
-          <Input
-            id="edit-project-name-input"
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="w-full"
-          />
-        </div>
+        <ProjectFormFields.Name
+          idPrefix="edit-project"
+          showLabel
+          value={name}
+          onChange={setName}
+          locale={locale}
+          customTranslations={customTranslations}
+          className="w-full"
+        />
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-              {translate(locale, 'project', 'EmojiIcon', customTranslations)}
-            </Label>
-            <div className="flex items-center gap-2">
-              <EmojiPicker
-                value={icon}
-                onChange={setIcon}
-                testId="edit-project-emoji-picker"
-              />
-            </div>
-          </div>
+        <Grid cols={2} gap="lg">
+          <ProjectFormFields.Emoji
+            idPrefix="edit-project"
+            showLabel
+            value={icon}
+            onChange={setIcon}
+            locale={locale}
+            customTranslations={customTranslations}
+          />
 
           <div>
             <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
               {translate(locale, 'project', 'ColorTheme', customTranslations)}
             </Label>
-            <div className="flex flex-wrap gap-1.5 mt-1">
-              {PROJECT_COLORS.map(col => (
-                <Button
-                  id={`edit-project-color-picker-${col.name}`}
-                  data-testid={`edit-project-color-picker-${col.name}`}
-                  key={col.name}
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={() => setColor(col.name)}
-                  aria-label={col.name}
-                  className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${
-                    color === col.name ? 'ring-2 ring-primary ring-offset-2 scale-105' : 'opacity-85'
-                  }`}
-                >
-                  {color === col.name && (
-                    <span className="w-1 h-1 bg-card rounded-full" />
-                  )}
-                </Button>
-              ))}
-
-              <Button
-                id="edit-project-color-picker-custom"
-                data-testid="edit-project-color-picker-custom"
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={handleCustomColorClick}
-                aria-label={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
-                title={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
-                style={isCustomColor ? { backgroundColor: color } : undefined}
-                className={`w-5 h-5 rounded-full border border-border transition-all duration-300 transform hover:scale-110 flex items-center justify-center p-0 ${
-                  isCustomColor
-                    ? 'ring-2 ring-primary ring-offset-2 scale-105 text-white'
-                    : 'opacity-85 bg-muted/60 text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Paintbrush className="w-2.5 h-2.5" />
-              </Button>
-              <Input
-                ref={colorInputRef}
-                id="edit-project-custom-color-input"
-                data-testid="edit-project-custom-color-input"
-                type="color"
-                value={isCustomColor ? normalizeHexColor(color) : '#8b5cf6'}
-                onChange={e => setColor(e.target.value)}
-                className="sr-only"
-                tabIndex={-1}
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="edit-project-desc-input" className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-            {translate(locale, 'project', 'Description', customTranslations)}
-          </Label>
-          <Textarea
-            id="edit-project-desc-input"
-            placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            className="w-full h-16 resize-none"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="edit-project-tags-input" className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-            {translate(locale, 'project', 'Tags', customTranslations)}
-          </Label>
-          <Input
-            id="edit-project-tags-input"
-            type="text"
-            placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
-            value={tags}
-            onChange={e => setTags(e.target.value)}
-            className="w-full"
-          />
-          {availableTags.length > 0 && (
-            <div className="mt-2 flex flex-col gap-1" data-testid="edit-project-tag-suggestions">
-              <Caption size="xs" variant="muted" className="font-mono text-[10px] uppercase tracking-wider block">
-                {translate(locale, 'project', 'TagSuggestionsLabel', customTranslations)}
-              </Caption>
-              <div className="flex flex-wrap gap-1">
-                {availableTags.map(tag => (
-                  <Button
-                    key={tag}
-                    type="button"
-                    variant="outline"
-                    size="xs"
-                    onClick={() => handleAddTagSuggestion(tag)}
-                    data-testid={`tag-suggestion-${tag}`}
-                    className="h-5 px-2 py-0 text-[10px] rounded-full font-normal cursor-pointer"
-                  >
-                    {tag}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="edit-project-hourly-rate" className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-              {translate(locale, 'project', 'HourlyRate', customTranslations)}
-            </Label>
-            <Input
-              id="edit-project-hourly-rate"
-              data-testid="edit-project-hourly-rate"
-              type="text"
-              placeholder={translate(locale, 'project', 'HourlyRatePlaceholder', customTranslations)}
-              value={hourlyRate}
-              onChange={e => setHourlyRate(e.target.value)}
-              className="w-full"
+            <ProjectFormFields.ColorPalette
+              idPrefix="edit-project"
+              color={color}
+              onChange={setColor}
+              selectedRingClass="ring-2 ring-primary ring-offset-2 scale-105"
+              locale={locale}
+              customTranslations={customTranslations}
+              className="flex flex-wrap gap-1.5 mt-1"
             />
           </div>
-          <div>
-            <Label htmlFor="edit-project-currency" className="text-xs font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-              {translate(locale, 'project', 'Currency', customTranslations)}
-            </Label>
-            <Input
-              id="edit-project-currency"
-              data-testid="edit-project-currency"
-              type="text"
-              placeholder={translate(locale, 'project', 'CurrencyPlaceholder', customTranslations)}
-              value={currency}
-              onChange={e => setCurrency(e.target.value.toUpperCase())}
-              maxLength={4}
-              className="w-full"
-            />
-          </div>
-        </div>
+        </Grid>
 
-        <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card/50">
-          <div className="flex flex-col gap-0.5">
-            <Label htmlFor="edit-project-concurrency-switch" className="text-sm font-medium cursor-pointer">
-              {translate(locale, 'project', 'AllowConcurrency', customTranslations)}
-            </Label>
-            <span className="text-xs text-muted-foreground">
-              {translate(locale, 'project', 'AllowConcurrencyDesc', customTranslations)}
-            </span>
-          </div>
-          <Switch
-            id="edit-project-concurrency-switch"
-            checked={allowConcurrency}
-            onCheckedChange={setAllowConcurrency}
-          />
-        </div>
+        <ProjectFormFields.Description
+          idPrefix="edit-project"
+          showLabel
+          value={description}
+          onChange={setDescription}
+          locale={locale}
+          customTranslations={customTranslations}
+          className="w-full h-16 resize-none"
+        />
+
+        <ProjectFormFields.Tags
+          idPrefix="edit-project"
+          showLabel
+          showSuggestions
+          value={tags}
+          onChange={setTags}
+          locale={locale}
+          customTranslations={customTranslations}
+          className="w-full"
+        />
+
+        <ProjectFormFields.Rates
+          idPrefix="edit-project"
+          showLabels
+          containerLayout="grid"
+          hourlyRate={hourlyRate}
+          onHourlyRateChange={setHourlyRate}
+          currency={currency}
+          onCurrencyChange={setCurrency}
+          locale={locale}
+          customTranslations={customTranslations}
+          rateClassName="w-full"
+          currencyClassName="w-full"
+        />
+
+        <ProjectFormFields.Concurrency
+          idPrefix="edit-project"
+          variant="boxed"
+          checked={allowConcurrency}
+          onCheckedChange={setAllowConcurrency}
+          locale={locale}
+          customTranslations={customTranslations}
+        />
       </div>
 
       <DialogFooter className="mt-2">

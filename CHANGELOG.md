@@ -1,36 +1,59 @@
 # Changelog
 
-All notable changes to **oXyFlow** will be documented in this file.
+All notable changes to **oXyFlow TimeLog** will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [1.12.3] - 2026-10-31
+## [Unreleased]
+
+### Breaking Changes
+
+- **Identity & OS Bundle Identifier**:
+  - Changed reverse-DNS identifier from `com.oxytime.timelog` / `com.oxytime.oxyflow` to `com.oxyflow.timelog`.
+  - Application data directory is now unified across GUI and CLI using native OS directories: Windows (`%APPDATA%\com.oxyflow.timelog`), Linux (`$XDG_DATA_HOME/com.oxyflow.timelog` with fallback to `~/.local/share/com.oxyflow.timelog`), and macOS (`~/Library/Application Support/com.oxyflow.timelog`). Previous data is not automatically migrated (manual migration via JSON backup export/import).
+- **CLI Binary & Alias Naming**:
+  - The actual executable and primary CLI command is `oxy`.
+  - `oxytime` is retained as a technical alias / helper shortcut.
+  - Legacy alias `oxyflow` is completely removed.
+- **Installer & Release Package Naming**:
+  - Release binaries and installer bundles use canonical, unversioned asset names matching `README.md` download links:
+    - Windows: `oXyFlow_TimeLog-Setup-x64.exe` (NSIS setup wizard) and `oXyFlow_TimeLog-Standalone-x64.exe` (portable standalone)
+    - macOS: `oXyFlow_TimeLog-Universal.dmg` (universal disk image for Apple Silicon & Intel)
+    - Linux: `oXyFlow_TimeLog-x86_64.AppImage`, `timelog_amd64.deb`, and `timelog.x86_64.rpm`
+  - Version numbers are omitted from release asset filenames because versioning is provided by the release tag. Legacy download links cease functioning.
+- **Configuration File Rename**:
+  - Renamed development/app server configuration file from `dev.config.json` to `app.config.json`.
+- **Rust Backend Crate Rename**:
+  - Renamed the core crate in `src-tauri/Cargo.toml` from `oxy-flow` to `oxyflow-timelog`, with internal library crate imports referencing `oxyflow_timelog::`.
+- **PWA Manifest Branding**:
+  - Updated web manifest application name to `TimeLog by oXyFlow` (`short_name`: `TimeLog`), adhering to group brand (`oXyFlow`) and product name (`TimeLog`) hierarchy.
+- **Canonical Architecture Governance**:
+  - Added authoritative specification `docs/manifesto/NAMING.md` establishing group (`oXyFlow`) vs. product (`TimeLog`) hierarchy and domain disambiguation.
 
 ### Added
 
-- **PWA Capabilities Gating & Environmental Purity**:
-  - Extended `PlatformCapabilitiesContext` with `hasNativeDaemon`, `canUseCli`, and `storageEngineName` (`'sqlite' | 'localStorage'`).
-  - Implemented environment-accurate runtime indicators across `AppFooter`, `TaskHeader`, `StatusIndicator`, `DaemonStatusBar`, `AutomationSettings`, and `TabBar`.
-  - Conditionally hid native C++/Rust compilation guide in `ManualTab` when running in browser / PWA runtime (`hasNativeDaemon === false`).
-- **Project Lifecycle Form & Advanced Options Drawer**:
-  - Redesigned `SidebarProjectForm` into a compact two-tier form (primary row with Enter-to-save, palette swatches, paintbrush picker, and drawer toggle).
-  - Implemented Paintbrush HEX color picker and universal `resolveProjectColor` supporting both Tailwind palette tokens and arbitrary `#RRGGBB` values.
-  - Integrated `useAllProjectTags` hook and interactive tag suggestion cloud for quick tag assignment.
-- **Destructive Deletion vs Archival Lifecycle Parity**:
-  - Implemented cross-runtime `delete_project` command across Tauri Rust IPC and browser `LocalStorageProjectsPersistence` with strict time guardrail (`> 00:00:00` forces archival).
-  - Added conditional `Trash2` (with modal `ConfirmDialog` and child task cascade) vs `Archive` button in `SidebarProjectItem`.
-- **Cross-Locale Wiki & Documentation Synchronization**:
-  - Synchronized Phase 15 feature documentation across all 6 locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`) in `docs/wiki/` (`interface.md` and `faq.md`).
-  - Updated `USER_GUIDE.md` and `INSTALLATION.md` with JSON backup portability and PWA storage characteristics.
+- **Shared Design System Components**:
+  - Added reusable empty-state, status-dot, and icon-box patterns for consistent status and empty-view presentation.
+  - Rebuilt the animated drawer on the accessible Base UI Dialog lifecycle, retaining Escape and backdrop dismissal and CSS entry/exit transitions.
+
+### Changed
+
+- **Theme-Safe UI Components**:
+  - Replaced hardcoded dark-theme colors in DbExplorer, CLI, task status, and tray views with semantic design tokens and shared project-color resolution for palette and custom HEX values.
+  - Removed unused theme props from layout components and orchestration; components now consume theme-independent semantic tokens.
+- **Shared Project Forms and Layout Composition**:
+  - Extracted reusable project fields for name, emoji, color, description, tags, rates, and concurrency across project creation and editing surfaces.
+  - Adopted semantic Area, HStack, VStack, and InlineCluster primitives in layout composition.
+  - Simplified DbExplorer table selection and rendering, and localized connection/daemon status labels across all six locales.
 
 ---
 
-## [1.12.2] - 2026-10-29
+## [1.12.7] - 2026-11-02
 
-### Added in Unreleased
+### Added in 1.12.7
 
 - **Accessible Emoji Selector & Unicode Grapheme Normalization**:
   - Implemented `EmojiPicker` (`@components/ui/emoji-picker`) based on `@base-ui/react/popover` with category navigation (`work`, `status`, `creative`, `life`), keyword search, and custom emoji support.
@@ -56,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added reusable GitHub Actions workflow `.github/workflows/build-web.yml` and unified Pages deployment in `.github/workflows/pages.yml` serving Docsify wiki at `/` and the PWA web app at `/app/`.
   - Gated desktop-specific features (`autoStart`, `minimizeToTray`, `alwaysOnTop`) and restricted selectable layouts strictly to `medium` and `full` in browser runtime via `PlatformCapabilitiesContext`.
 
-### Changed in Unreleased
+### Changed in 1.12.7
 
 - **Zero-Data Clean Slate Initial State & Storage Partitioning**:
   - Refactored `LocalStorageStateStore.load()` to initialize with clean empty collections (`projects: []`, `tasks: []`, `logs: []`) on fresh application launches, eliminating forced demo data pollution.
@@ -71,7 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Aligned desktop build output to short executable name `TimeLog.exe` / `timelog` with long window title `oXyFlow TimeLog`.
   - Added permanent `.learn` reference in `.agents/rules/project_metadata_standards.md` detailing step-by-step update procedures.
 
-### Removed in Unreleased
+### Removed in 1.12.7
 
 - **Redundant `src/versions.json`**:
   - Eliminated redundant `src/versions.json` in favor of direct imports from the root `metadata.json` SSOT across all frontend layouts and CLI components.

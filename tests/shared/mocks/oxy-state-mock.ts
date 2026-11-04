@@ -12,7 +12,7 @@ import type { Theme, ThemePreference } from '@common/types/ThemeTypes';
 import type { TranslationDictionary } from '@common/i18n/types';
 import { vi, type Mock } from 'vitest';
 
-export interface OxyFlowState {
+export interface OXyFlowState {
   customTranslations?: Partial<TranslationDictionary>;
   setCustomTranslations?: Mock | ((trans: Partial<TranslationDictionary> | ((prev: Partial<TranslationDictionary>) => Partial<TranslationDictionary>)) => void);
   projects?: Project[];
@@ -102,7 +102,7 @@ export interface OxyFlowState {
   showToast?: Mock | ((message: string) => void);
 }
 
-export const getMockOxyFlowState = (): OxyFlowState => ({
+export const getMockOXyFlowState = (): OXyFlowState => ({
   customTranslations: {},
   setCustomTranslations: vi.fn(),
   projects: [{ id: 'p1', name: 'Proj 1', color: 'red', createdAt: '2026', archived: false, description: null, icon: null, tags: null }],

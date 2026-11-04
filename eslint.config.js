@@ -71,7 +71,7 @@ export default [
             "no-restricted-syntax": [
                 "error",
                 {
-                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td|p|form|aside)$/]",
+                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td|p|form|aside|h1|h2|h3|h4|h5|h6|ul|ol|li|code|kbd|section|article|main|footer|header|nav|pre)$/]",
                     message: "Raw HTML element is forbidden. Use Design System primitives (@components/ui/*) or composite components (@components/*).",
                 },
             ],
@@ -85,7 +85,7 @@ export default [
             "no-restricted-syntax": [
                 "error",
                 {
-                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td|p|form|aside)$/]",
+                    selector: "JSXOpeningElement[name.name=/^(button|input|select|textarea|label|table|thead|tbody|tr|th|td|p|form|aside|h1|h2|h3|h4|h5|h6|ul|ol|li|code|kbd|section|article|main|footer|header|nav|pre)$/]",
                     message: "Raw HTML element is forbidden in composite components. Use Design System primitives (@components/ui/*).",
                 },
             ],

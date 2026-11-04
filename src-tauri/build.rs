@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn main() {
     println!("cargo:rerun-if-changed=../dist");
-    println!("cargo:rerun-if-changed=../dev.config.json");
+    println!("cargo:rerun-if-changed=../app.config.json");
 
     let profile = std::env::var("PROFILE").unwrap_or_default();
     let dist_index = Path::new("../dist/index.html");

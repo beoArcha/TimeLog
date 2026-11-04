@@ -17,7 +17,7 @@ export const DEFAULT_HOLIDAYS: HolidayLeave[] = OFFICIAL_STATUTORY_HOLIDAYS;
 
 // Optional sample / demo data for test fixtures and demonstration loading
 export const DEMO_PROJECTS: Project[] = [
-  { id: '1', name: 'LogTime by OxyFlow Backend Engine', color: 'violet', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), archived: false },
+  { id: '1', name: 'TimeLog by oXyFlow Backend Engine', color: 'violet', createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), archived: false },
   { id: '2', name: 'Zouk Flow UI System', color: 'rose', createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(), archived: false },
   { id: '3', name: 'CLI Daemon Integration', color: 'teal', createdAt: new Date().toISOString(), archived: false },
 ];

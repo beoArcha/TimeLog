@@ -4,7 +4,7 @@ import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import DbExplorer from '@features/db-explorer/DbExplorer';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 
 vi.mock('@features/db-explorer/components/ProjectsTable', () => ({
   default: () => <div data-testid="mock-projects-table">ProjectsTable</div>
@@ -23,8 +23,8 @@ vi.mock('@features/db-explorer/components/PatchLogsTable', () => ({
 }));
 
 describe('Unit Tests: DbExplorer', () => {
-  const mockState: OxyFlowState = {
-    ...getMockOxyFlowState(),
+  const mockState: OXyFlowState = {
+    ...getMockOXyFlowState(),
     projects: [
       { id: 'p1', name: 'Proj A', color: 'indigo', createdAt: '2026-06-15', archived: false, description: null, icon: null, tags: null }
     ],
@@ -78,5 +78,27 @@ describe('Unit Tests: DbExplorer', () => {
     fireEvent.click(exportBtn);
 
     expect(createObjectURLMock).toHaveBeenCalled();
+  });
+
+  it('should toggle table selection when clicking table selector button', () => {
+    render(
+      <MockProviders state={mockState}>
+        <DbExplorer />
+      </MockProviders>
+    );
+
+    // Initial state: no active table -> 5 domain tables rendered
+    expect(screen.getByTestId('mock-projects-table')).not.toBeNull();
+
+    // Select projects table
+    const projectsBtn = screen.getByTestId('select-table-projects');
+    fireEvent.click(projectsBtn);
+
+    // Active table selected -> domain tables hidden
+    expect(screen.queryByTestId('mock-projects-table')).toBeNull();
+
+    // Click projects table again -> deselects active table and brings back domain tables
+    fireEvent.click(projectsBtn);
+    expect(screen.getByTestId('mock-projects-table')).not.toBeNull();
   });
 });

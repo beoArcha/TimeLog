@@ -1,8 +1,8 @@
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxy_flow::cli::{handle_cli, CliArgs};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::{handle_cli, CliArgs};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 use std::fs;
 
 #[test]
@@ -81,13 +81,13 @@ fn test_given_unhealthy_sink_when_testing_sinks_then_fails_with_exit_code_1_and_
     let persistence = Persistence::new(&config).expect("failed to create persistence");
     let engine = Engine::new(&persistence);
 
-    let bad_sink = oxy_flow::types::CliSink {
+    let bad_sink = oxyflow_timelog::types::CliSink {
         name: "bad_webhook".to_string(),
         sink_type: "webhook".to_string(),
         target: "ftp://unsupported.domain/hook".to_string(),
         config: None,
         enabled: true,
-        created_at: oxy_flow::cli::shared::utils::current_timestamp(),
+        created_at: oxyflow_timelog::cli::shared::utils::current_timestamp(),
     };
     persistence.cli.save_sink(&bad_sink).unwrap();
 
@@ -105,7 +105,7 @@ fn test_given_unhealthy_sink_when_testing_sinks_then_fails_with_exit_code_1_and_
     assert_eq!(err.exit_code(), 1, "Failed sink test must exit with code 1");
     assert_eq!(
         err.error_code(),
-        oxy_flow::cli::error::CliErrorCode::SnkExternalIo
+        oxyflow_timelog::cli::error::CliErrorCode::SnkExternalIo
     );
 }
 

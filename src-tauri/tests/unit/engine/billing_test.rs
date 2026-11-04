@@ -1,11 +1,13 @@
-use oxy_flow::engine::billing::{
+use oxyflow_timelog::engine::billing::{
     calculate_bankers_amount, format_cents, normalize_currency, parse_rate_or_cents,
     parse_rate_to_cents, resolve_effective_currency, resolve_effective_rate,
     validate_and_parse_rate, validate_currency_code,
 };
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::{Persistence, PersistenceConfig};
-use oxy_flow::types::{ElapsedRangeFilter, NewTimeLog, Project, RateStatus, RuntimeConfig, Task};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::{Persistence, PersistenceConfig};
+use oxyflow_timelog::types::{
+    ElapsedRangeFilter, NewTimeLog, Project, RateStatus, RuntimeConfig, Task,
+};
 
 fn setup_test_persistence() -> (Persistence, std::path::PathBuf) {
     let db_path = std::env::temp_dir().join(format!(
@@ -531,7 +533,7 @@ fn test_parity_vectors_shared_fixture() {
 
 #[test]
 fn test_billing_rate_cents_safe_integer_contract() {
-    use oxy_flow::engine::billing::{
+    use oxyflow_timelog::engine::billing::{
         checked_billing_rate_to_i64, validate_billing_rate_cents,
         validate_stored_billing_rate_cents, MAX_BILLING_RATE_CENTS,
     };

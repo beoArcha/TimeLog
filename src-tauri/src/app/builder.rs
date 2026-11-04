@@ -122,10 +122,8 @@ pub enum AppSetupError {
 }
 
 fn setup_app(app: &mut tauri::App) -> Result<(), AppSetupError> {
-    let app_data_dir = app.path().app_data_dir()?;
-    std::fs::create_dir_all(&app_data_dir)?;
-    let db_path = app_data_dir.join(DEFAULT_DB_NAME);
-    let csv_directory = app_data_dir.join("csv");
+    let db_path = crate::common::paths::resolve_db_path(None)?;
+    let csv_directory = crate::common::paths::get_default_csv_dir(&db_path);
     std::fs::create_dir_all(&csv_directory)?;
 
     let persistence_config = crate::persistence::PersistenceConfig {

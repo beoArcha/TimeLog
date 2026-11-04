@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { translate } from '@common/i18n/translator';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
@@ -15,6 +16,7 @@ import {
 import { Button } from '@components/ui/button';
 import { Form } from '@components/ui/form';
 import { Caption } from '@components/ui/typography';
+import { Grid } from '@components/ui/grid';
 
 interface AddLogFormProps {
   tasks: Task[];
@@ -43,7 +45,7 @@ export default function AddLogForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.taskId) {
-      alert(translate(locale, 'task', 'TaskRequired', customTranslations));
+      toast.error(translate(locale, 'task', 'TaskRequired', customTranslations));
       return;
     }
     onSubmit(form.taskId, form.startTime, form.endTime, form.note);
@@ -54,9 +56,9 @@ export default function AddLogForm({
   const selectDisplay = selectedTask ? `${selectedProject?.name || ''} > ${selectedTask.name}` : translate(locale, 'task', 'SelectTaskPlaceholder', customTranslations);
 
   return (
-    <Form onSubmit={handleSubmit} layout="vertical" gap="md" className="mb-6 p-4 rounded-2xl bg-black/30 border border-white/5">
-      <Caption weight="bold" className="text-orange-400 uppercase tracking-wide">SQL Command: INSERT INTO time_logs</Caption>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
+    <Form onSubmit={handleSubmit} layout="vertical" gap="md" className="mb-6 p-4 rounded-2xl bg-card border border-border">
+      <Caption weight="bold" className="text-primary uppercase tracking-wide font-mono">SQL Command: INSERT INTO time_logs</Caption>
+      <Grid cols={1} className="md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
         <div>
           <Label htmlFor="add-log-task" className="block text-muted-foreground mb-1">{translate(locale, 'database', 'AssignToTask', customTranslations)}</Label>
           <Select
@@ -65,7 +67,7 @@ export default function AddLogForm({
               if (val) setForm(prev => ({ ...prev, taskId: val }));
             }}
           >
-            <SelectTrigger id="add-log-task" aria-label={translate(locale, 'database', 'AssignToTask', customTranslations)} className="w-full bg-slate-900 border border-white/10 p-2 text-white">
+            <SelectTrigger id="add-log-task" aria-label={translate(locale, 'database', 'AssignToTask', customTranslations)} className="w-full bg-background border border-border p-2 text-foreground">
               <SelectValue>{selectDisplay}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -85,7 +87,7 @@ export default function AddLogForm({
             type="text"
             value={form.startTime}
             onChange={e => setForm(prev => ({ ...prev, startTime: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 text-white"
+            className="w-full bg-background border border-border p-2 text-foreground"
             required
           />
         </div>
@@ -97,7 +99,7 @@ export default function AddLogForm({
             type="text"
             value={form.endTime}
             onChange={e => setForm(prev => ({ ...prev, endTime: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 text-white"
+            className="w-full bg-background border border-border p-2 text-foreground"
             placeholder="Enter ISO or leave blank"
           />
         </div>
@@ -109,11 +111,11 @@ export default function AddLogForm({
             type="text"
             value={form.note}
             onChange={e => setForm(prev => ({ ...prev, note: e.target.value }))}
-            className="w-full bg-slate-900 border border-white/10 p-2 text-white placeholder-slate-500"
+            className="w-full bg-background border border-border p-2 text-foreground placeholder:text-muted-foreground"
             placeholder="e.g. Added retrospectively"
           />
         </div>
-      </div>
+      </Grid>
       <div className="flex gap-2 justify-end mt-2">
         <Button type="submit" variant="accent" size="sm" aria-label={translate(locale, 'database', 'AddLogManually', customTranslations)}>
           {translate(locale, 'database', 'AddLogManually', customTranslations)}

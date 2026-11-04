@@ -1,12 +1,12 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxy_flow::cli::handlers::flow_handler::{handle_glance, handle_start_interactive};
-use oxy_flow::cli::parser::tier1_flow::StartArgs;
-use oxy_flow::cli::resolver::MockPrompter;
-use oxy_flow::cli::{handle_cli, CliArgs, CliOutput};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::handlers::flow_handler::{handle_glance, handle_start_interactive};
+use oxyflow_timelog::cli::parser::tier1_flow::StartArgs;
+use oxyflow_timelog::cli::resolver::MockPrompter;
+use oxyflow_timelog::cli::{handle_cli, CliArgs, CliOutput};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 use rusqlite::Connection;
 
 fn setup(db_name: &str) -> (Persistence, Connection, crate::shared::test_db::TempCsvDir) {
@@ -73,7 +73,7 @@ fn test_given_missing_start_target_when_prompter_cancels_then_returns_syntax_err
     // Then
     assert!(result.is_err());
     let err = result.unwrap_err();
-    assert!(matches!(err, oxy_flow::cli::CliError::Syntax(_)));
+    assert!(matches!(err, oxyflow_timelog::cli::CliError::Syntax(_)));
 }
 
 #[test]

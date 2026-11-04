@@ -16,7 +16,7 @@ pub fn resolve_authorized_dev_origin(config_path: Option<&Path>) -> String {
         return url;
     }
 
-    let default_path = Path::new("../dev.config.json");
+    let default_path = Path::new("../app.config.json");
     let target_path = config_path.unwrap_or(default_path);
 
     if let Ok(content) = std::fs::read_to_string(target_path) {

@@ -5,7 +5,7 @@ import { formatSeconds } from "@/src/features/timelogs/utils/TimelogUtils";
 import { resolveProjectColor } from "@common/utils/colorUtils";
 import { Project } from "@bindings/Project";
 import { ProjectStatistics } from "@bindings/ProjectStatistics";
-import { StatsSkeleton } from "@components/ui/Skeletons";
+import { StatsSkeleton } from "@components/ui/skeleton";
 import { StatCard } from "@components/StatCard";
 import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";

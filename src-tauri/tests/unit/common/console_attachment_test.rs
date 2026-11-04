@@ -1,4 +1,4 @@
-use oxy_flow::common::attach_parent_console;
+use oxyflow_timelog::common::attach_parent_console;
 
 #[test]
 fn test_attach_parent_console_invokes_without_panic() {

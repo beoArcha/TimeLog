@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatedProgressBar } from '@components/AnimatedProgressBar';
+import { ProgressBar } from '@components/ui/progress';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { TimeLog } from '@bindings/TimeLog';
@@ -57,8 +57,9 @@ export default function ReportLogList({
                   </span>
                   <span className="font-mono text-orange-500">{formatSeconds(pc.seconds)}</span>
                 </div>
-                <AnimatedProgressBar
+                <ProgressBar
                   value={widthPct}
+                  variant="orange"
                   aria-label={pc.name}
                 />
                 {pc.tasks.length > 0 && (

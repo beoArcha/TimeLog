@@ -31,6 +31,8 @@ export interface OxyFlowBridgeState {
   handleStopTimer?: (projectId?: string) => void;
 }
 
+export type OXyFlowBridgeState = OxyFlowBridgeState;
+
 export const GuiBridge = {
   sendIntent: async (intent: GuiIntent, oxyFlowState?: OxyFlowBridgeState): Promise<void> => {
     console.log('[GuiBridge] Sending intent:', intent);

@@ -53,13 +53,19 @@ export function CompilationGuideCard({
         </ListItem>
         <ListItem>
           {translate(locale, 'help', 'Step4', customTranslations)}
-          <CodeBlock className="mt-1 text-orange-500 font-bold group hover:border-orange-500/30 transition-colors">bun run tauri:dev</CodeBlock>
+          <CodeBlock className="mt-1 text-orange-500 font-bold group hover:border-orange-500/30 transition-colors">bun run tauri:build</CodeBlock>
         </ListItem>
         <ListItem>
           {translate(locale, 'help', 'Step5', customTranslations)}
-          {currentOs === 'windows' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/msi/OxyFlow_x64.msi</CodeBlock>}
-          {currentOs === 'linux' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/deb/oxyflow_amd64.deb</CodeBlock>}
-          {currentOs === 'macos' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/dmg/OxyFlow.dmg</CodeBlock>}
+          {currentOs === 'windows' && (
+            <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/nsis/*.exe</CodeBlock>
+          )}
+          {currentOs === 'linux' && (
+            <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/deb/*.deb</CodeBlock>
+          )}
+          {currentOs === 'macos' && (
+            <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/dmg/*.dmg</CodeBlock>
+          )}
         </ListItem>
       </List>
     </CollapsibleCard>

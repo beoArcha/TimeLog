@@ -34,7 +34,7 @@ export default function AppFooter({
     >
       <HStack gap="xs" className="sm:gap-2 shrink-0">
         <MonoText as="span" size="xs" weight="semibold" className="hidden sm:inline text-foreground">
-          OxyFlowOS
+          oXyFlowOS
         </MonoText>
         <Caption as="span" size="xs" className="hidden sm:inline text-muted-foreground/60">
           {environmentLabel}

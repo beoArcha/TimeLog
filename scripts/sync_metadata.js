@@ -18,13 +18,17 @@ const { shortName, longName, author, description, license, version, versions } =
 
 let hasDiff = false;
 
+function normalizeEol(str) {
+  return str.replace(/\r\n/g, '\n');
+}
+
 function syncJsonFile(filePath, updater) {
   if (!fs.existsSync(filePath)) return;
   const original = fs.readFileSync(filePath, UTF8);
   const data = JSON.parse(original);
   updater(data);
   const updated = JSON.stringify(data, null, 2) + '\n';
-  if (original !== updated) {
+  if (normalizeEol(original) !== normalizeEol(updated)) {
     hasDiff = true;
     if (!isCheck) {
       fs.writeFileSync(filePath, updated);
@@ -39,7 +43,7 @@ function syncTextFile(filePath, updater) {
   if (!fs.existsSync(filePath)) return;
   const original = fs.readFileSync(filePath, UTF8);
   const updated = updater(original);
-  if (original !== updated) {
+  if (normalizeEol(original) !== normalizeEol(updated)) {
     hasDiff = true;
     if (!isCheck) {
       fs.writeFileSync(filePath, updated);
@@ -63,6 +67,9 @@ syncJsonFile(path.join(rootDir, 'package.json'), (pkg) => {
 syncJsonFile(path.join(rootDir, 'src-tauri/tauri.conf.json'), (tauri) => {
   tauri.productName = shortName;
   tauri.version = version;
+  if (metadata.identifier) {
+    tauri.identifier = metadata.identifier;
+  }
   if (tauri.app?.windows?.[0]) {
     tauri.app.windows[0].title = longName;
   }
@@ -89,6 +96,35 @@ syncTextFile(path.join(rootDir, 'src-tauri/src/common/constants.rs'), (constants
 });
 
 if (isCheck) {
+  if (metadata.group !== 'oXyFlow') {
+    hasDiff = true;
+    console.error(`[OUT OF SYNC] metadata.json: expected group 'oXyFlow', found '${metadata.group}'`);
+  }
+  if (metadata.project !== 'TimeLog') {
+    hasDiff = true;
+    console.error(`[OUT OF SYNC] metadata.json: expected project 'TimeLog', found '${metadata.project}'`);
+  }
+  if (metadata.identifier !== 'com.oxyflow.timelog') {
+    hasDiff = true;
+    console.error(`[OUT OF SYNC] metadata.json: expected identifier 'com.oxyflow.timelog', found '${metadata.identifier}'`);
+  }
+
+  const tauriConfPath = path.join(rootDir, 'src-tauri/tauri.conf.json');
+  if (fs.existsSync(tauriConfPath)) {
+    try {
+      const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, UTF8));
+      if (tauriConf.identifier !== metadata.identifier) {
+        hasDiff = true;
+        console.error(
+          `[OUT OF SYNC] src-tauri/tauri.conf.json: identifier '${tauriConf.identifier}' does not match metadata.identifier '${metadata.identifier}'`
+        );
+      }
+    } catch (e) {
+      hasDiff = true;
+      console.error(`[ERROR] Failed to read src-tauri/tauri.conf.json: ${e.message}`);
+    }
+  }
+
   if (hasDiff) {
     console.error('\nMetadata check failed. Run "bun run metadata:sync" to synchronize files.');
     process.exit(1);

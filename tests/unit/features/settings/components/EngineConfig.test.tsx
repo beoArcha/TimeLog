@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import EngineConfig from '@/src/features/settings/components/EngineConfig';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 import { PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
 describe('EngineConfig', () => {
@@ -13,10 +13,10 @@ describe('EngineConfig', () => {
   });
 
   const renderEngineConfig = (
-    overrides: Partial<OxyFlowState> = {},
+    overrides: Partial<OXyFlowState> = {},
     capabilitiesOverrides: Partial<PlatformCapabilities> = {}
   ) => {
-    const baseState = getMockOxyFlowState();
+    const baseState = getMockOXyFlowState();
     const state = { ...baseState, ...overrides };
     return render(
       <MockProviders state={state} capabilitiesState={capabilitiesOverrides}>

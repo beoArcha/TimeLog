@@ -1,10 +1,10 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::commands::persistence::project::delete_project_by_id;
-use oxy_flow::common::AppError;
-use oxy_flow::engine::{Engine, EngineError};
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::NewTimeLog;
+use oxyflow_timelog::commands::persistence::project::delete_project_by_id;
+use oxyflow_timelog::common::AppError;
+use oxyflow_timelog::engine::{Engine, EngineError};
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::NewTimeLog;
 
 #[test]
 fn test_given_project_with_logged_time_when_delete_attempted_then_returns_validation_error() {
@@ -240,7 +240,10 @@ fn test_given_nonexistent_project_when_delete_attempted_then_returns_not_found()
     // Assert
     assert!(result.is_err());
     match result.unwrap_err() {
-        AppError::Persistence(oxy_flow::persistence::PersistenceError::NotFound { entity, id }) => {
+        AppError::Persistence(oxyflow_timelog::persistence::PersistenceError::NotFound {
+            entity,
+            id,
+        }) => {
             assert_eq!(entity, "Project");
             assert_eq!(id, "nonexistent_proj_id");
         }
@@ -268,7 +271,10 @@ fn test_given_project_when_repeatedly_deleted_then_second_attempt_returns_not_fo
     // Assert
     assert!(second.is_err());
     match second.unwrap_err() {
-        AppError::Persistence(oxy_flow::persistence::PersistenceError::NotFound { entity, id }) => {
+        AppError::Persistence(oxyflow_timelog::persistence::PersistenceError::NotFound {
+            entity,
+            id,
+        }) => {
             assert_eq!(entity, "Project");
             assert_eq!(id, "proj_repeat");
         }

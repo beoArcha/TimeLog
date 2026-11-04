@@ -4,15 +4,15 @@ import React from 'react';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 import CliInterface from '@features/cli/CliInterface';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 
 // Mock scrollIntoView globally
 beforeAll(() => {
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
-const mockState: OxyFlowState = {
-  ...getMockOxyFlowState(),
+const mockState: OXyFlowState = {
+  ...getMockOXyFlowState(),
   locale: 'en',
   customTranslations: {},
   resolvedTheme: 'dark',
@@ -30,7 +30,7 @@ describe('Unit Tests: CliInterface', () => {
       </MockProviders>
     );
 
-    expect(screen.getByText(/LogTime by OxyFlow CLI/i)).not.toBeNull();
+    expect(screen.getByText(/TimeLog by oXyFlow CLI/i)).not.toBeNull();
   });
 
   it('should handle terminal command input submission', async () => {
@@ -43,6 +43,8 @@ describe('Unit Tests: CliInterface', () => {
 
     const inputField = screen.getByPlaceholderText(/Enter command/i) as HTMLInputElement;
     const submitBtn = screen.getByRole('button', { name: /Send/i });
+    expect(submitBtn.className).toContain('bg-primary');
+    expect(submitBtn.className).not.toContain('bg-gradient-to-tr');
 
     // Act
     fireEvent.change(inputField, { target: { value: 'help' } });
@@ -82,14 +84,14 @@ describe('Unit Tests: CliInterface', () => {
     );
 
     const inputField = screen.getByPlaceholderText(/Enter command/i) as HTMLInputElement;
-    expect(screen.getByText(/LogTime by OxyFlow CLI/i)).not.toBeNull();
+    expect(screen.getByText(/TimeLog by oXyFlow CLI/i)).not.toBeNull();
 
     // Act
     fireEvent.keyDown(inputField, { key: 'l', ctrlKey: true });
 
     // Assert
     await vi.waitFor(() => {
-      expect(screen.queryByText(/LogTime by OxyFlow CLI/i)).toBeNull();
+      expect(screen.queryByText(/TimeLog by oXyFlow CLI/i)).toBeNull();
     });
   });
 

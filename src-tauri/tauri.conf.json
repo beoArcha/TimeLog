@@ -1,7 +1,7 @@
 {
   "productName": "TimeLog",
-  "version": "1.13.6",
-  "identifier": "com.oxytime.oxyflow",
+  "version": "1.14.0",
+  "identifier": "com.oxyflow.timelog",
   "build": {
     "beforeBuildCommand": "bun run build",
     "beforeDevCommand": "bun run dev",

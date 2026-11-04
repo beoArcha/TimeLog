@@ -1,7 +1,9 @@
 use clap::Parser;
-use oxy_flow::cli::parser::tier1_flow::{StartArgs, StopArgs, SwitchArgs};
-use oxy_flow::cli::parser::tier2_entities::{LogSubcommand, ProjectSubcommand, TaskSubcommand};
-use oxy_flow::cli::{CliArgs, CliCommand};
+use oxyflow_timelog::cli::parser::tier1_flow::{StartArgs, StopArgs, SwitchArgs};
+use oxyflow_timelog::cli::parser::tier2_entities::{
+    LogSubcommand, ProjectSubcommand, TaskSubcommand,
+};
+use oxyflow_timelog::cli::{CliArgs, CliCommand};
 
 #[test]
 fn test_given_no_subcommand_when_parsing_cli_then_command_is_none() {

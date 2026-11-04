@@ -2,6 +2,7 @@ import React from 'react';
 import { TrendingUp, Clock, BarChart3, Award, Calendar } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { StatCard } from '@components/StatCard';
+import { Grid } from '@components/ui/grid';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ReportTopProject } from '../types';
@@ -85,7 +86,7 @@ export default function ReportStatsCards({
       contentClassName="flex flex-col gap-4 mt-2"
     >
       {showActivePeriodStats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Grid cols={1} gap="xl" className="md:grid-cols-3">
           {activePeriodMetrics.map((metric) => (
             <StatCard
               key={metric.testId}
@@ -96,10 +97,10 @@ export default function ReportStatsCards({
               icon={metric.icon}
             />
           ))}
-        </div>
+        </Grid>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Grid cols={1} gap="xl" className="md:grid-cols-3">
         {baselineMetrics.map((metric) => (
           <StatCard
             key={metric.testId}
@@ -110,7 +111,7 @@ export default function ReportStatsCards({
             icon={metric.icon}
           />
         ))}
-      </div>
+      </Grid>
     </CollapsibleCard>
   );
 }

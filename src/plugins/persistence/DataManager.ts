@@ -43,7 +43,7 @@ export class LocalStorageDataManager implements IDataManager {
     } catch (err) {
       this.isCorrupted = true;
       const exception = new PersistenceException(
-        'Failed parsing local LogTime by OxyFlow store - state quarantined to prevent data loss',
+        'Failed parsing local TimeLog by oXyFlow store - state quarantined to prevent data loss',
         err,
         'ERR_PERSISTENCE_CORRUPT'
       );

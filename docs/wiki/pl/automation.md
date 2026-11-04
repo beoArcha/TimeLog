@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow zawiera trwały podsystem **Sinków (Sinks Subsystem)**, rejestrujący i wysyłający zdarzenia pomiaru czasu w czasie rzeczywistym przy każdym zakończeniu sesji roboczej.
+TimeLog zawiera trwały podsystem **Sinków (Sinks Subsystem)**, rejestrujący i wysyłający zdarzenia pomiaru czasu w czasie rzeczywistym przy każdym zakończeniu sesji roboczej.
 
 ---
 

@@ -5,6 +5,7 @@ import { Button } from '@components/ui/button';
 import { Input } from '@components/ui/input';
 import { Caption } from '@components/ui/typography';
 import { HStack, VStack } from '@components/ui/stack';
+import { Grid } from '@components/ui/grid';
 import { translate } from '@common/i18n/translator';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import {
@@ -153,7 +154,7 @@ export function EmojiPicker({
           </HStack>
         </VStack>
 
-        <div className="grid grid-cols-6 gap-1 p-1 max-h-44 overflow-y-auto rounded-xl bg-muted/20 border border-border/40">
+        <Grid cols={6} className="gap-1 p-1 max-h-44 overflow-y-auto rounded-xl bg-muted/20 border border-border/40">
           {filteredEmojis.map((item) => (
             <Button
               key={item.emoji}
@@ -197,7 +198,7 @@ export function EmojiPicker({
               )}
             </div>
           )}
-        </div>
+        </Grid>
 
         {value && (
           <HStack justify="between" align="center" className="pt-1 border-t border-border/50 px-1">

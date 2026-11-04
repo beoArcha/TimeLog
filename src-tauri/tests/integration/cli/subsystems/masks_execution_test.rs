@@ -1,10 +1,10 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::cli::preprocess_args;
-use oxy_flow::cli::shared::utils::current_timestamp;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::CliAlias;
+use oxyflow_timelog::cli::preprocess_args;
+use oxyflow_timelog::cli::shared::utils::current_timestamp;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::CliAlias;
 
 #[test]
 fn test_given_configured_alias_when_preprocessing_invoked_then_expands_to_target_subcommand() {
@@ -91,7 +91,7 @@ fn test_given_alias_with_last_task_when_preprocessing_then_substitutes_recent_ta
         .build();
     persistence.tasks.create(task).expect("create task");
 
-    let new_log = oxy_flow::types::NewTimeLog {
+    let new_log = oxyflow_timelog::types::NewTimeLog {
         id: "log_target".to_string(),
         task_id: "task-target-99".to_string(),
         start_time: "2026-10-24T12:00:00Z".to_string(),

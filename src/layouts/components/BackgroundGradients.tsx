@@ -1,13 +1,12 @@
 import React from 'react';
-import { Theme } from '@common/types/ThemeTypes';
 
 export interface BackgroundGradientsProps {
-  theme?: Theme;
+  className?: string;
 }
 
-export default function BackgroundGradients(_props: BackgroundGradientsProps = {}) {
+export default function BackgroundGradients({ className = '' }: BackgroundGradientsProps = {}) {
   return (
-    <div className="ambient-gradients pointer-events-none" aria-hidden="true">
+    <div className={`ambient-gradients pointer-events-none ${className}`} aria-hidden="true">
       <div
         className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[140px] pointer-events-none animate-pulse duration-[8000ms] bg-ambient-1"
       />

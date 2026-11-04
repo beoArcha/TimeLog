@@ -1,5 +1,5 @@
-use oxy_flow::repositories::config::ConfigRepository;
-use oxy_flow::types::ExternalApiSettings;
+use oxyflow_timelog::repositories::config::ConfigRepository;
+use oxyflow_timelog::types::ExternalApiSettings;
 
 #[test]
 fn test_auxiliary_repository_current_project_id_roundtrip() {

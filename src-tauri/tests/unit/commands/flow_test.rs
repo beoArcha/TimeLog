@@ -1,8 +1,8 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::{AuditSource, ElapsedRangeFilter, Settings};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::{AuditSource, ElapsedRangeFilter, Settings};
 
 #[test]
 fn test_settings_lifecycle_save_and_retrieve() {

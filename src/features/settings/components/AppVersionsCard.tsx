@@ -3,6 +3,7 @@ import { Info } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Caption, MonoText, Text } from '@components/ui/typography';
 import { HStack } from '@components/ui/stack';
+import { Grid } from '@components/ui/grid';
 import { translate } from '@common/i18n/translator';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import metadata from '@/metadata.json';
@@ -47,7 +48,7 @@ export function AppVersionsCard() {
           </MonoText>
         </HStack>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs mt-2">
+        <Grid cols={2} gap="md" className="md:grid-cols-4 text-center text-xs mt-2">
           <VersionTile
             label={translate(locale, 'settings', 'EngineComponent', customTranslations)}
             version={`${metadata.versions.major}.${metadata.versions.minor}.${metadata.versions.subversions.engine}`}
@@ -64,7 +65,7 @@ export function AppVersionsCard() {
             label={translate(locale, 'settings', 'TranslationsPack', customTranslations)}
             version={`${metadata.versions.major}.${metadata.versions.minor}.${metadata.versions.subversions.translations}`}
           />
-        </div>
+        </Grid>
       </div>
     </CollapsibleCard>
   );

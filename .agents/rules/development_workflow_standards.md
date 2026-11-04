@@ -2,9 +2,9 @@
 trigger: always_on
 ---
 
-# Development Workflow Standards
+# Single-Agent Development Workflow Standards
 
-How AI assistants plan, execute and hand over work in oXyFlow. The default flow for every task is defined in `AGENTS.md`; this file adds the process for multi-phase work and reviews.
+How a single AI assistant plans, executes, and hands over work in oXyFlow when working autonomously without subagent delegation. The default flow for every task is defined in `AGENTS.md`; this file adds the process for multi-phase work and reviews for single-agent tasks. For tasks delegated across multiple subagents, refer to [`multi_agent_workflow_standards.md`](multi_agent_workflow_standards.md).
 
 ## 0. Rules Are Requirements
 
@@ -12,7 +12,12 @@ Passing tests and a clean compiler are a prerequisite, not proof of compliance. 
 
 ## 1. When This Process Applies
 
-Use the phase-gate process for roadmap phases, large features and refactors spanning several modules. Small fixes and single-concern changes follow only the default flow in `AGENTS.md`.
+Use this single-agent phase-gate process when:
+- The user requests direct execution without delegation (*"implement phase 1"*, *"fix issue X"*, *"refactor module Y"*).
+- A single assistant executes all phases and subphases within the primary workspace.
+- Small fixes and single-concern changes follow the default flow in `AGENTS.md`.
+
+*Note*: If the task requires decomposition and delegation across multiple subagents or dedicated pull requests per work stream, use [`.agents/rules/multi_agent_workflow_standards.md`](multi_agent_workflow_standards.md) instead.
 
 ```text
 1. Discovery (analytical artifact as source of truth)
@@ -86,6 +91,16 @@ Full verification suite:
 
 - Update `docs/manifesto/MASTERMAP.md` and other affected documentation.
 - Present the final summary, including anything skipped or failing.
+
+### 2.7. Git Commits and Pull Request History
+
+- **Separate development commits**: Keep each meaningful implementation unit, completed phase, and review-fix batch in its own focused commit. A single-agent task or PR may therefore contain multiple commits. Do not combine unrelated features, refactors, or architecture changes in one commit.
+- **Phase-gate approval**: At the phase gate, prepare and present the proposed Conventional Commit message and its scope. Create the commit only after the user confirms the phase/sign-off, consistent with the approval gate in section 2.3. Do not create commits merely because a subphase ended.
+- **Review fixes**: After the user reviews the PR or phase and requests changes, implement the fixes and record them as additional focused commits. Re-run the relevant verification and report the actual results; do not rewrite or squash the earlier development history just to keep the PR commit count at one.
+- **PR history**: Keep meaningful commits visible in the open PR so implementation steps and review corrections remain traceable. The one-commit requirement applies to the resulting `main` history, not to the open PR's commit count.
+- **Final merge**: After explicit user approval, use **Squash and merge** (or an equivalent squash operation). The target branch must receive exactly one Conventional Commit representing the complete PR. Present the proposed squash commit message with the PR review summary.
+- **Small changes**: The same rule applies to a small single-agent fix opened as a PR: one or more focused development commits are acceptable; squash-merge the approved PR into one commit on `main`.
+
 
 ## 3. Refactoring Scope
 

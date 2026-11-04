@@ -8,12 +8,14 @@ Instructions and single source of truth rules for maintaining application identi
 
 | Dimension | Canonical Value | Target Usage |
 | :--- | :--- | :--- |
-| **Short Name** | `TimeLog` (lowercase `timelog`) | Built executable binary (`TimeLog.exe`), bundle package name (`package.json.name`), process identifier. |
+| **Short Name** | `TimeLog` (lowercase `timelog`) | Built executable binary (`timelog.exe`), bundle package name (`package.json.name`), process identifier. |
 | **Long Name** | `oXyFlow TimeLog` | Application window title, taskbar hover, credits dialog, documentation headings, user-facing branding. |
 | **Companion CLI** | `oxy` | Standalone native headless CLI binary and in-app terminal command (`oxy start`, `oxy status`, etc.). |
 | **Author** | `Marcin 'beoArcha' Stefan` | `package.json.author`, `Cargo.toml.authors`, copyright notices, and credits dialog. |
 | **License** | `MPL-2.0` | Mozilla Public License Version 2.0 across all packages. |
-| **Identifier** | `com.oxytime.timelog` / `com.oxytime.oxyflow` | OS bundle reverse-DNS identifier and local appdata directory. |
+| **Identifier** | `com.oxyflow.timelog` | OS bundle reverse-DNS identifier and local appdata directory. |
+
+See [`docs/manifesto/NAMING.md`](../../docs/manifesto/NAMING.md) for complete naming specifications, group vs. project definitions, allowed variants, and forbidden forms.
 
 ---
 
@@ -27,7 +29,9 @@ All metadata fields and version numbers are authored in a single file at the rep
   "name": "TimeLog",
   "shortName": "TimeLog",
   "longName": "oXyFlow TimeLog",
-  "identifier": "com.oxytime.timelog",
+  "group": "oXyFlow",
+  "project": "TimeLog",
+  "identifier": "com.oxyflow.timelog",
   "author": "Marcin 'beoArcha' Stefan",
   "description": "Ultra-lightweight, local-first work timer and task tracker built with Rust, Tauri v2, SQLite, and React 19.",
   "license": "MPL-2.0",

@@ -2,26 +2,21 @@ import * as React from "react";
 import { Input as InputPrimitive } from "@base-ui/react/input";
 
 import { cn } from "@/lib/utils";
+import { inputVariants, type InputSize } from "./input-variants";
 
-export type InputProps = React.ComponentProps<"input">;
+export interface InputProps extends Omit<React.ComponentProps<"input">, "size"> {
+  size?: InputSize;
+}
 
 /**
- * Single-line text input primitive component.
+ * Single-line text input primitive component with scalable UiSize variants.
  */
-function Input({ className, type = "text", ...props }: InputProps) {
+function Input({ className, type = "text", size = "md", ...props }: InputProps) {
   return (
     <InputPrimitive
       type={type}
       data-slot="input"
-      className={cn(
-        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-sm transition-all outline-none",
-        "file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-xs file:font-medium file:text-foreground",
-        "placeholder:text-muted-foreground",
-        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
-        "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/30",
-        "aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20",
-        className
-      )}
+      className={cn(inputVariants({ size }), className)}
       {...props}
     />
   );

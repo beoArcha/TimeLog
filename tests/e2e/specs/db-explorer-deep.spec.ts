@@ -76,7 +76,7 @@ test.describe('Database Explorer & Inspector Deep E2E Suite', () => {
     await dbExplorerPage.exportDbBtn.click();
     const download = await downloadPromise;
 
-    expect(download.suggestedFilename()).toMatch(/^OxyFlow_Backup_.*\.json$/);
+    expect(download.suggestedFilename()).toMatch(/^TimeLog_Backup_.*\.json$/);
   });
 
   test('should toggle database inspector preview panel on main layout', async ({

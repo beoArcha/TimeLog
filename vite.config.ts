@@ -20,7 +20,7 @@ export default defineConfig(() => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'icons/*.png'],
         manifest: {
-          name: 'LogTime by OxyFlow',
+          name: 'TimeLog by oXyFlow',
           short_name: 'TimeLog',
           description: 'Lightweight, local-first work timer and task tracker',
           theme_color: '#090d16',

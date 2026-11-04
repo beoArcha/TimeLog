@@ -7,7 +7,7 @@ import TasksTable from './components/TasksTable';
 import TimeLogsTable from './components/TimeLogsTable';
 import HolidaysLeavesTable from './components/HolidaysLeavesTable';
 import PatchLogsTable from './components/PatchLogsTable';
-import { TableSkeleton } from '@components/ui/Skeletons';
+import { TableSkeleton } from '@components/ui/skeleton';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useData } from '@common/hooks/DataContext';
 import { useWindowShell } from '@common/contexts/WindowShellContext';
@@ -60,6 +60,10 @@ export default function DbExplorer() {
   } = useData();
 
   const [activeTable, setActiveTable] = useState('');
+
+  const handleSelectTable = (tableId: string) => {
+    setActiveTable((prev) => (prev === tableId ? '' : tableId));
+  };
 
   const currentTableData = useMemo<Record<string, unknown>[]>(() => {
     switch (activeTable) {
@@ -197,7 +201,7 @@ export default function DbExplorer() {
 
       <div className="flex flex-col gap-8">
         {isLoading ? (
-          <div className="bg-slate-900/10 border border-white/5 rounded-3xl p-6 shadow-xl">
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-xl">
             <TableSkeleton rows={8} />
           </div>
         ) : (
@@ -205,7 +209,7 @@ export default function DbExplorer() {
             <DataTableViewer
               tables={DB_TABLE_OPTIONS}
               activeTable={activeTable}
-              onSelectTable={setActiveTable}
+              onSelectTable={handleSelectTable}
               data={currentTableData}
               onCellEdit={handleCellEdit}
             >
@@ -214,15 +218,23 @@ export default function DbExplorer() {
                 <DataTableViewer.TableSelector />
                 <DataTableViewer.Search />
               </DataTableViewer.Toolbar>
-              <DataTableViewer.Table />
-              <DataTableViewer.Pagination />
-              <DataTableViewer.DetailModal />
+              {Boolean(activeTable) && (
+                <>
+                  <DataTableViewer.Table />
+                  <DataTableViewer.Pagination />
+                  <DataTableViewer.DetailModal />
+                </>
+              )}
             </DataTableViewer>
-            <ProjectsTable />
-            <TasksTable />
-            <TimeLogsTable />
-            <HolidaysLeavesTable />
-            <PatchLogsTable />
+            {!activeTable && (
+              <>
+                <ProjectsTable />
+                <TasksTable />
+                <TimeLogsTable />
+                <HolidaysLeavesTable />
+                <PatchLogsTable />
+              </>
+            )}
           </>
         )}
       </div>

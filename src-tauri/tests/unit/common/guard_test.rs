@@ -1,4 +1,4 @@
-use oxy_flow::app::guard::{
+use oxyflow_timelog::app::guard::{
     is_authorized_origin, resolve_authorized_dev_origin, validate_or_fallback_url, DEFAULT_DEV_URL,
 };
 use std::fs::{create_dir_all, remove_dir_all, File};
@@ -9,7 +9,7 @@ fn test_resolve_authorized_dev_origin_falls_back_when_file_missing() {
     // Arrange
     let dir = std::env::temp_dir().join(format!("guard_test_{}", uuid::Uuid::new_v4()));
     create_dir_all(&dir).unwrap();
-    let non_existent_config = dir.join("dev.config.json");
+    let non_existent_config = dir.join("app.config.json");
 
     // Act
     let origin = resolve_authorized_dev_origin(Some(&non_existent_config));
@@ -25,7 +25,7 @@ fn test_resolve_authorized_dev_origin_reads_valid_config() {
     // Arrange
     let dir = std::env::temp_dir().join(format!("guard_test_{}", uuid::Uuid::new_v4()));
     create_dir_all(&dir).unwrap();
-    let config_path = dir.join("dev.config.json");
+    let config_path = dir.join("app.config.json");
     let mut file = File::create(&config_path).unwrap();
     writeln!(
         file,

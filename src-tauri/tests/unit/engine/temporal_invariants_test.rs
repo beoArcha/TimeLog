@@ -1,10 +1,10 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use chrono::{DateTime, Utc};
-use oxy_flow::engine::metrics::clamping::{clamp_interval, IntervalInput};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::ElapsedRangeFilter;
+use oxyflow_timelog::engine::metrics::clamping::{clamp_interval, IntervalInput};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::ElapsedRangeFilter;
 
 #[test]
 fn test_given_spring_dst_jump_when_calculating_metrics_then_measures_exactly_7200_seconds() {

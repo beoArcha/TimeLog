@@ -11,12 +11,17 @@ export const statusDotVariants = cva(
         orange: 'bg-orange-500',
         blue: 'bg-blue-500',
         muted: 'bg-muted-foreground',
+        success: 'bg-success',
+        destructive: 'bg-destructive',
+        primary: 'bg-primary',
       },
       size: {
         '2xs': 'w-1.5 h-1.5',
         xs: 'w-2 h-2',
         sm: 'w-2.5 h-2.5',
         md: 'w-3 h-3',
+        lg: 'w-4 h-4',
+        xl: 'w-5 h-5',
       },
     },
     defaultVariants: {
@@ -37,6 +42,9 @@ export const statusDotPingVariants = cva(
         orange: 'bg-orange-400',
         blue: 'bg-blue-400',
         muted: 'bg-muted-foreground/75',
+        success: 'bg-success opacity-75',
+        destructive: 'bg-destructive opacity-75',
+        primary: 'bg-primary opacity-75',
       },
     },
     defaultVariants: {

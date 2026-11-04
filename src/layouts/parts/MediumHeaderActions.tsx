@@ -7,7 +7,6 @@ import { TranslationDictionary } from '@common/i18n/types';
 import { Button } from '@components/ui/button';
 
 export interface MediumHeaderActionsProps {
-  theme?: string;
   dockPosition: 'right' | 'left';
   onToggleDock: () => void;
   onOpenCreateProject: () => void;

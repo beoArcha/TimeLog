@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Search, X } from 'lucide-react';
-import { Input, type InputProps } from '@components/ui/input';
-import { Button } from '@components/ui/button';
+import { Input, type InputProps } from './input';
+import { Button } from './button';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
 import { cn } from '@/lib/utils';

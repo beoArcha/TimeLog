@@ -5,13 +5,13 @@ import { badgeVariants } from "./badge-variants";
 
 export type BadgeProps = React.HTMLAttributes<HTMLElement> &
   VariantProps<typeof badgeVariants> & {
-    as?: "div" | "span";
+    as?: "span" | "div";
   };
 
 /**
  * Visual status indicator badge primitive.
  */
-function Badge({ className, variant, size, as = "div", ...props }: BadgeProps) {
+function Badge({ className, variant, size, as = "span", ...props }: BadgeProps) {
   const Component = as;
   return (
     <Component

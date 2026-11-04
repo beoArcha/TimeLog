@@ -18,7 +18,7 @@ function DrawerBackdrop({
     <DialogPrimitive.Backdrop
       data-slot="drawer-backdrop"
       className={cn(
-        'fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-all animate-in fade-in-0 duration-200',
+        'fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-all duration-300 ease-out data-[starting-style]:opacity-0 data-[ending-style]:opacity-0',
         className
       )}
       {...props}
@@ -30,6 +30,11 @@ export interface DrawerContentProps
   extends DialogPrimitive.Popup.Props,
     VariantProps<typeof drawerVariants> {
   showClose?: boolean;
+  backdropClassName?: string;
+  backdropId?: string;
+  wrapperId?: string;
+  onBackdropClick?: React.MouseEventHandler<HTMLDivElement>;
+  portalContainer?: HTMLElement | ShadowRoot | React.RefObject<HTMLElement | ShadowRoot | null> | null;
 }
 
 function DrawerContent({
@@ -37,11 +42,20 @@ function DrawerContent({
   children,
   side = 'top',
   showClose = true,
+  backdropClassName,
+  backdropId,
+  wrapperId,
+  onBackdropClick,
+  portalContainer,
   ...props
 }: DrawerContentProps) {
   return (
-    <DrawerPortal>
-      <DrawerBackdrop />
+    <DrawerPortal id={wrapperId} container={portalContainer}>
+      <DrawerBackdrop
+        id={backdropId}
+        className={backdropClassName}
+        onClick={onBackdropClick}
+      />
       <DialogPrimitive.Popup
         data-slot="drawer-content"
         className={cn(drawerVariants({ side }), 'p-4 sm:p-6 overflow-hidden', className)}

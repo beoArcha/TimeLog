@@ -5,7 +5,9 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { Button } from '@components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
 import { Input } from '@components/ui/input';
-import { Skeleton, StatsSkeleton, TableSkeleton } from '@components/ui/Skeletons';
+import { Textarea } from '@components/ui/textarea';
+import { Select, SelectTrigger } from '@components/ui/select';
+import { Skeleton, StatsSkeleton, CardSkeleton, TableSkeleton } from '@components/ui/skeleton';
 import { Checkbox } from '@components/ui/checkbox';
 import { Badge } from '@components/ui/badge';
 import { Separator } from '@components/ui/separator';
@@ -51,6 +53,52 @@ describe('Unit Tests: UI Primitives', () => {
       render(<Input type="text" placeholder="Enter name" />);
       expect(screen.getByPlaceholderText('Enter name')).toBeTruthy();
     });
+
+    it('should apply UiSize scale variants (sm, md, lg)', () => {
+      const { rerender } = render(<Input placeholder="size-test" size="sm" />);
+      let input = screen.getByPlaceholderText('size-test');
+      expect(input.className).toContain('h-7');
+
+      rerender(<Input placeholder="size-test" size="md" />);
+      input = screen.getByPlaceholderText('size-test');
+      expect(input.className).toContain('h-8');
+
+      rerender(<Input placeholder="size-test" size="lg" />);
+      input = screen.getByPlaceholderText('size-test');
+      expect(input.className).toContain('h-9');
+    });
+  });
+
+  describe('Textarea Component', () => {
+    it('should render textarea with UiSize scale variants', () => {
+      const { rerender } = render(<Textarea placeholder="notes" size="sm" />);
+      let textarea = screen.getByPlaceholderText('notes');
+      expect(textarea.className).toContain('min-h-[60px]');
+
+      rerender(<Textarea placeholder="notes" size="lg" />);
+      textarea = screen.getByPlaceholderText('notes');
+      expect(textarea.className).toContain('min-h-[100px]');
+    });
+  });
+
+  describe('SelectTrigger Component', () => {
+    it('should render select trigger with UiSize scale variants', () => {
+      const { rerender } = render(
+        <Select>
+          <SelectTrigger size="sm">Choose</SelectTrigger>
+        </Select>
+      );
+      let trigger = screen.getByRole('combobox');
+      expect(trigger.className).toContain('h-7');
+
+      rerender(
+        <Select>
+          <SelectTrigger size="lg">Choose</SelectTrigger>
+        </Select>
+      );
+      trigger = screen.getByRole('combobox');
+      expect(trigger.className).toContain('h-9');
+    });
   });
 
   describe('Skeletons', () => {
@@ -73,6 +121,18 @@ describe('Unit Tests: UI Primitives', () => {
       expect(wrapper).not.toBeNull();
       expect(wrapper.className).toContain('animate-pulse');
       expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should render CardSkeleton with semantic theme tokens and pulse', () => {
+      // Arrange & Act
+      const { container } = render(<CardSkeleton />);
+
+      // Assert
+      const card = container.firstChild as HTMLElement;
+      expect(card).not.toBeNull();
+      expect(card.className).toContain('animate-pulse');
+      expect(card.className).toContain('border-border');
+      expect(card.className).toContain('bg-muted/60');
     });
 
     it('should render TableSkeleton with header and requested number of rows', () => {

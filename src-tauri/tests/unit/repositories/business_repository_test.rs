@@ -1,6 +1,6 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
-use oxy_flow::repositories::business::BusinessRepository;
-use oxy_flow::repositories::shared::errors::RepositoryError;
+use oxyflow_timelog::repositories::business::BusinessRepository;
+use oxyflow_timelog::repositories::shared::errors::RepositoryError;
 
 #[test]
 fn test_business_repository_create_and_patch_project() {

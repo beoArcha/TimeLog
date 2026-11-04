@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import TrayWidgetView from '@features/tray/TrayWidgetView';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
-import { getMockOxyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
 
 describe('Given TrayWidgetView in desktop minimized state', () => {
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe('Given TrayWidgetView in desktop minimized state', () => {
   describe('When user clicks restore button', () => {
     it('Then it should invoke onRestore callback to expand main window', () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       const onRestoreSpy = vi.fn();
       const onStopAllSpy = vi.fn();
 
@@ -45,7 +45,7 @@ describe('Given TrayWidgetView in desktop minimized state', () => {
   describe('When running timer exists and user clicks stop all', () => {
     it('Then it should invoke onStopAll callback to stop background threads', () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       const project = aProject({ id: 'p1', name: 'Background Project' });
       const task = aTask({ id: 't1', projectId: 'p1', name: 'Background Task' });
       const activeLog = aTimeLog({

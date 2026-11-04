@@ -16,7 +16,7 @@ import {
   aProject,
   aTask,
 } from "@tests/shared/builders/entity-builders";
-import { getMockOxyFlowState, OxyFlowState } from "@tests/shared/test-helpers";
+import { getMockOXyFlowState, OXyFlowState } from "@tests/shared/test-helpers";
 import { TimeLog } from "@bindings/TimeLog";
 
 describe("Unit Tests: TimeLogsTable", () => {
@@ -27,9 +27,9 @@ describe("Unit Tests: TimeLogsTable", () => {
 
   const createMockState = (
     customLogs?: TimeLog[],
-    overrides?: Partial<OxyFlowState>,
-  ): OxyFlowState => ({
-    ...getMockOxyFlowState(),
+    overrides?: Partial<OXyFlowState>,
+  ): OXyFlowState => ({
+    ...getMockOXyFlowState(),
     projects: [aProject({ id: "p1", name: "Project Alpha" })],
     tasks: [aTask({ id: "t1", projectId: "p1", name: "Task Alpha" })],
     logs: customLogs ?? [

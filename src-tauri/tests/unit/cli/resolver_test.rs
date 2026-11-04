@@ -1,7 +1,7 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::cli::resolver::{EntityResolver, ResolveError};
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::resolver::{EntityResolver, ResolveError};
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_given_exact_id_when_resolving_task_then_returns_task() {
@@ -204,7 +204,7 @@ fn test_given_substring_when_resolving_project_then_finds_project() {
 #[test]
 fn test_given_resolve_error_variants_when_formatted_then_outputs_expected_string() {
     // Arrange
-    use oxy_flow::cli::resolver::EntityType;
+    use oxyflow_timelog::cli::resolver::EntityType;
 
     let not_found = ResolveError::NotFound {
         target: "my-task".into(),

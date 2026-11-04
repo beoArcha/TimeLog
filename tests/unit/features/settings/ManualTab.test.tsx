@@ -4,15 +4,15 @@ import React from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
 import ManualTab from '@features/settings/ManualTab';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: ManualTab', () => {
   afterEach(() => {
     cleanup();
   });
 
-  const mockState: OxyFlowState = {
-    ...getMockOxyFlowState(),
+  const mockState: OXyFlowState = {
+    ...getMockOXyFlowState(),
     locale: 'en',
     customTranslations: {},
     resolvedTheme: 'dark',

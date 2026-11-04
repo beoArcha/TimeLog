@@ -57,8 +57,8 @@ The CLI is built around **strict architectural decoupling**: it lives as an isol
 
 1. **Zero Tauri GUI Coupling:** The Rust CLI module (`src-tauri/src/cli/`) must NEVER import `AppState`, `tauri::AppHandle`, `tauri::WebviewWindow`, `tauri::Manager`, or UI tray controllers. It must remain purely headless.
 2. **Direct Domain Contract Invocation:** The CLI interacts with the application exclusively through:
-   - `oxy_flow::engine::Engine` (timers, metrics calculation, temporal validation)
-   - `oxy_flow::persistence::Persistence` (repositories: projects, tasks, subtasks, config, holidays, patches)
+   - `oxyflow_timelog::engine::Engine` (timers, metrics calculation, temporal validation)
+   - `oxyflow_timelog::persistence::Persistence` (repositories: projects, tasks, subtasks, config, holidays, patches)
 3. **Library & Workspace Decoupling Roadmap:** The CLI is structured so it can cleanly transition into a standalone crate/library:
 
    ```text
@@ -313,7 +313,7 @@ The CLI supports a dedicated in-memory sandbox emulator (`src/features/cli/sandb
 
 ## 🧪 Testing Architecture & Segregation
 
-CLI tests are kept in dedicated directories (structure and naming rules: [`testing_standards.md`](../.agents/rules/testing_standards.md)):
+CLI tests are kept in dedicated directories (structure and naming rules: [`testing_standards.md`](../../.agents/rules/testing_standards.md)):
 
 ```text
 TimeLog/

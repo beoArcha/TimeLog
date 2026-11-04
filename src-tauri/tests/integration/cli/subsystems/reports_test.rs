@@ -1,11 +1,11 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxy_flow::cli::formatters::ReportTreeDto;
-use oxy_flow::cli::{handle_cli, CliArgs, CliOutput};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::NewTimeLog;
+use oxyflow_timelog::cli::formatters::ReportTreeDto;
+use oxyflow_timelog::cli::{handle_cli, CliArgs, CliOutput};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::NewTimeLog;
 use rusqlite::Connection;
 use std::fs;
 

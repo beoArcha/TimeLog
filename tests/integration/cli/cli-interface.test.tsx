@@ -125,7 +125,7 @@ describe('Integration Tests: CliInterface Component', () => {
     const { container } = setup();
 
     // Then
-    expect(container.textContent).toContain('LogTime by OxyFlow CLI Engine');
+    expect(container.textContent).toContain('TimeLog by oXyFlow CLI Engine');
   });
 
   it('Given idle state, When status command is executed, Then it reports idle', async () => {
@@ -257,7 +257,7 @@ describe('Integration Tests: CliInterface Component', () => {
 
     // Then
     await vi.waitFor(() => {
-      expect(container.textContent).not.toContain('LogTime by OxyFlow CLI Engine [Version');
+      expect(container.textContent).not.toContain('TimeLog by oXyFlow CLI Engine [Version');
     });
   });
 

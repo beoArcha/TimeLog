@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@components/ui/button';
+import { Grid } from '@components/ui/grid';
 import { Caption, MonoText } from '@components/ui/typography';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@/src/bindings/Locale';
@@ -36,7 +37,7 @@ export function ProjectEmptyState({
         {translate(locale, 'project', 'StarterTemplatesSubheading', customTranslations)}
       </Caption>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+      <Grid cols={1} gap="sm" className="sm:grid-cols-2 mt-1">
         {STARTER_TEMPLATES.map((tmpl) => {
           const resolved = resolveStarterTemplate(tmpl, locale, customTranslations);
           const colorDef =
@@ -52,23 +53,23 @@ export function ProjectEmptyState({
               aria-label={`${resolved.name} - ${resolved.description}`}
               className="group h-auto p-2.5 rounded-xl border border-border/80 bg-muted/40 hover:bg-muted/80 hover:border-orange-500/40 text-left flex flex-col items-start gap-1 transition-all duration-200 cursor-pointer"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-1.5 min-w-0">
+              <span className="flex items-center justify-between w-full">
+                <span className="flex items-center gap-1.5 min-w-0">
                   <span className="text-base shrink-0 leading-none" role="img" aria-hidden="true">
                     {resolved.icon}
                   </span>
                   <span className="font-semibold text-xs text-foreground truncate group-hover:text-orange-500 transition-colors">
                     {resolved.name}
                   </span>
-                </div>
+                </span>
                 <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
-              </div>
+              </span>
 
-              <Caption className="line-clamp-2">
+              <Caption as="span" className="line-clamp-2 block text-left">
                 {resolved.description}
               </Caption>
 
-              <div className="flex items-center gap-1 mt-1">
+              <span className="flex items-center gap-1 mt-1">
                 <span
                   className={`w-2 h-2 rounded-full ${colorDef.bg} shrink-0`}
                   aria-hidden="true"
@@ -76,11 +77,11 @@ export function ProjectEmptyState({
                 <MonoText size="3xs">
                   #{resolved.tags[0]}
                 </MonoText>
-              </div>
+              </span>
             </Button>
           );
         })}
-      </div>
+      </Grid>
     </div>
   );
 }

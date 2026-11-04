@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow includes a persistent **Sinks Subsystem** that records and dispatches time tracking events in real time whenever timer entries are recorded or stopped.
+TimeLog includes a persistent **Sinks Subsystem** that records and dispatches time tracking events in real time whenever timer entries are recorded or stopped.
 
 ---
 

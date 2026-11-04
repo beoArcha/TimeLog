@@ -9,6 +9,7 @@ import { RangeBillingResult, CurrencyBillingSummary } from '@common/engine/billi
 import { getRangeFilterForPeriod } from '../utils/periodRanges';
 import { Settings } from '@bindings/Settings';
 import { Badge } from '@components/ui/badge';
+import { Grid } from '@components/ui/grid';
 import {
   Table,
   TableHeader,
@@ -115,7 +116,7 @@ export default function ReportBillingCard({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-testid="report-billing-currencies">
+          <Grid cols={1} gap="xl" className="md:grid-cols-3" data-testid="report-billing-currencies">
             {currencies.map((curr) => (
               <StatCard
                 key={curr.currency}
@@ -126,9 +127,9 @@ export default function ReportBillingCard({
                 icon={DollarSign}
               />
             ))}
-          </div>
+          </Grid>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-border/40 text-xs">
+          <Grid cols={1} gap="lg" className="sm:grid-cols-3 pt-2 border-t border-border/40 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">{t('BillableTime')}:</span>
               <span className="font-mono font-medium text-foreground">
@@ -147,7 +148,7 @@ export default function ReportBillingCard({
                 {formatSeconds(billingResult?.totalUnconfiguredSeconds ?? 0)}
               </span>
             </div>
-          </div>
+          </Grid>
 
           {billingResult && billingResult.byTask.length > 0 && (
             <div className="mt-2 overflow-x-auto">

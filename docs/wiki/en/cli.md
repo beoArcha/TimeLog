@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow includes a native terminal executable named `oxy` that interfaces directly with the local SQLite database (`oxytime.db`). The CLI operates independently of the graphical window and can run in headless terminal environments, automated build pipelines, or CI/CD runners.
+TimeLog includes a native terminal executable named `oxy` that interfaces directly with the local SQLite database (`oxytime.db`). The CLI operates independently of the graphical window and can run in headless terminal environments, automated build pipelines, or CI/CD runners.
 
 ---
 

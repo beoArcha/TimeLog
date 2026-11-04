@@ -1,6 +1,7 @@
 import React from 'react';
 import { Terminal, ShieldCheck, Sparkles } from 'lucide-react';
 import { Badge } from '@components/ui/badge';
+import { StatusDot } from '@components/ui/status-dot';
 import { SegmentedControl, type SegmentedControlOption } from '@components/SegmentedControl';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
@@ -18,9 +19,6 @@ export const CliHeader: React.FC<CliHeaderProps> = ({
   onToggleSandbox,
 }) => {
   const { locale, customTranslations } = useSafeLocale();
-
-  const pingColor = isSandbox ? 'bg-amber-400' : 'bg-emerald-400';
-  const dotColor = isSandbox ? 'bg-amber-500' : 'bg-emerald-500';
 
   const liveLabel = translate(locale, 'cli', 'CliModeLive', customTranslations);
   const sandboxLabel = translate(locale, 'cli', 'CliModeSandbox', customTranslations);
@@ -40,14 +38,16 @@ export const CliHeader: React.FC<CliHeaderProps> = ({
         </div>
         <span className="text-xs font-mono flex items-center gap-1.5 ml-2 text-muted-foreground">
           <Terminal className="w-3.5 h-3.5 text-orange-500" />
-          LogTime by OxyFlow Engine CLI Shell (127.0.0.1) v{version}
+          TimeLog by oXyFlow Engine CLI Shell (127.0.0.1) v{version}
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="flex h-2 w-2 relative" aria-hidden="true">
-          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${pingColor} opacity-75`} />
-          <span className={`relative inline-flex rounded-full h-2 w-2 ${dotColor}`} />
-        </span>
+        <StatusDot
+          variant={isSandbox ? 'amber' : 'emerald'}
+          size="xs"
+          ping
+          aria-hidden="true"
+        />
         {onToggleSandbox ? (
           <div id="cli-mode-toggle" className="font-mono text-xs">
             <SegmentedControl

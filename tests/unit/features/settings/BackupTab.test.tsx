@@ -4,11 +4,11 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import BackupTab from '@features/settings/BackupTab';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 import { ErrorHandler } from '@common/exceptions';
 
 describe('Unit Tests: BackupTab', () => {
-  let mockState: OxyFlowState;
+  let mockState: OXyFlowState;
   const handleRestoreStateMock = vi.fn();
   const setProjectsMock = vi.fn();
   const setTasksMock = vi.fn();
@@ -24,7 +24,7 @@ describe('Unit Tests: BackupTab', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       locale: 'en',
       customTranslations: {},
       resolvedTheme: 'dark',
@@ -174,7 +174,7 @@ describe('Unit Tests: BackupTab', () => {
   });
 
   it('should toggle API push logging and expand webhook configuration fields', () => {
-    const stateWithApiPush: OxyFlowState = {
+    const stateWithApiPush: OXyFlowState = {
       ...mockState,
       logToApi: true,
       apiUrl: 'https://api.example.com/logs',

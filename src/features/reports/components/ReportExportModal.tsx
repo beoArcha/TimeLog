@@ -9,7 +9,8 @@ import {
 } from "@components/ui/dialog";
 import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";
-import { Overline, MonoText, MetricText, Caption } from "@components/ui/typography";
+import { Grid } from "@components/ui/grid";
+import { Caption, Overline, MonoText, MetricText } from "@components/ui/typography";
 import { useTranslation } from "@common/i18n/translator";
 import { PluginRegistry } from "@plugins/PluginRegistry";
 import { registerDefaultExporters } from "@plugins/exporters";
@@ -129,7 +130,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
             <span className="text-xs font-semibold text-foreground">
               {t("SelectFormat")}
             </span>
-            <div className="grid grid-cols-1 gap-2">
+            <Grid cols={1} gap="sm">
               {exporters.map((exp) => {
                 const isSelected = exp.id === activeSelectedId;
                 return (
@@ -141,15 +142,17 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                     onClick={() => setSelectedId(exp.id)}
                     className="w-full justify-between h-auto py-2.5 px-3.5 rounded-xl border transition-all text-left"
                   >
-                    <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-3">
                       {getFormatIcon(exp.id)}
-                      <div>
-                        <Caption weight="semibold">{exp.name}</Caption>
-                        <Caption size="2xs" className="opacity-75 font-mono">
+                      <span className="block">
+                        <Caption as="span" className="block font-semibold">
+                          {exp.name}
+                        </Caption>
+                        <Caption as="span" size="2xs" className="block opacity-75 font-mono">
                           .{exp.fileExtension}
                         </Caption>
-                      </div>
-                    </div>
+                      </span>
+                    </span>
                     {isSelected && (
                       <Badge
                         variant="secondary"
@@ -162,7 +165,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                   </Button>
                 );
               })}
-            </div>
+            </Grid>
           </div>
         </div>
 

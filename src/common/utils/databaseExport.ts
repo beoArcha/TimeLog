@@ -13,7 +13,7 @@ export interface DatabaseExportData {
   patches?: PatchLog[];
 }
 
-export function exportDatabaseAsJson(data: DatabaseExportData, filenamePrefix: string = 'OxyFlow_Backup'): void {
+export function exportDatabaseAsJson(data: DatabaseExportData, filenamePrefix: string = 'TimeLog_Backup'): void {
   const payload = {
     version: data.version ?? 1,
     projects: data.projects,

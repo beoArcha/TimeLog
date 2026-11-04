@@ -1,7 +1,7 @@
 # Notice
 
-oXyFlow (LogTime by OxyFlow)
-Copyright (c) 2026 LogTime by OxyFlow Team
+oXyFlow (TimeLog by oXyFlow)
+Copyright (c) 2026 oXyFlow TimeLog Team
 
 This project is licensed under the Mozilla Public License Version 2.0 (MPL-2.0).
 See LICENSE.md for the full license text.

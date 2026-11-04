@@ -9,7 +9,7 @@ export interface NoRawHtmlPrimitivesOptions {
 
 const FORBIDDEN_HTML_TAGS: Record<string, string> = {
   button: 'Use <Button> from @components/ui/button',
-  input: 'Use <Input> from @components/ui/input or <SearchInput> from @components',
+  input: 'Use <Input> from @components/ui/input or <SearchInput> from @components/ui/search-input',
   select: 'Use <Select> from @components/ui/select or <SegmentedControl> from @components',
   textarea: 'Use <Textarea> from @components/ui/textarea',
   label: 'Use <Label> from @components/ui/label',
@@ -22,6 +22,24 @@ const FORBIDDEN_HTML_TAGS: Record<string, string> = {
   p: 'Use <Text> or <Caption> from @components/ui/typography',
   form: 'Use <Form> from @components/ui/form',
   aside: 'Use <Area as="aside"> from @components/ui/area',
+  h1: 'Use <Heading level={1}> from @components/ui/typography',
+  h2: 'Use <Heading level={2}> from @components/ui/typography',
+  h3: 'Use <Heading level={3}> from @components/ui/typography',
+  h4: 'Use <Heading level={4}> from @components/ui/typography',
+  h5: 'Use <Heading level={5}> from @components/ui/typography',
+  h6: 'Use <Heading level={6}> from @components/ui/typography',
+  ul: 'Use <List> from @components/ui/typography',
+  ol: 'Use <List ordered> from @components/ui/typography',
+  li: 'Use <ListItem> from @components/ui/typography',
+  code: 'Use <Code> from @components/ui/code',
+  kbd: 'Use <Kbd> from @components/ui/kbd',
+  section: 'Use <Area as="section"> from @components/ui/area',
+  article: 'Use <Area as="article"> from @components/ui/area',
+  main: 'Use <Area as="main"> from @components/ui/area',
+  footer: 'Use <Area as="footer"> from @components/ui/area',
+  header: 'Use <Area as="header"> from @components/ui/area',
+  nav: 'Use <Area as="nav"> from @components/ui/area',
+  pre: 'Use <Code block> from @components/ui/code',
 };
 
 export const LEGACY_RAW_HTML_ALLOWLIST = new Set<string>();

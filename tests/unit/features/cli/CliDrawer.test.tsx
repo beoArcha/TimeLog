@@ -35,7 +35,7 @@ describe('Unit Tests: CliDrawer Component (Strict AAA)', () => {
 
   it('should render dialog when drawer is open with input, history and close button', () => {
     // Arrange & Act
-    const { container } = render(
+    render(
       <MockProviders>
         <CliSessionProvider initialDrawerOpen={true}>
           <CliDrawer />
@@ -45,14 +45,14 @@ describe('Unit Tests: CliDrawer Component (Strict AAA)', () => {
 
     // Assert
     expect(screen.getByRole('dialog')).toBeDefined();
-    expect(container.querySelector('#cli-input-field')).not.toBeNull();
-    expect(container.querySelector('#cli-drawer-close-btn')).not.toBeNull();
+    expect(document.querySelector('#cli-input-field')).not.toBeNull();
+    expect(document.querySelector('#cli-drawer-close-btn')).not.toBeNull();
   });
 
   it('should call onClose callback when close button is clicked', () => {
     // Arrange
     const onCloseMock = vi.fn();
-    const { container } = render(
+    render(
       <MockProviders>
         <CliSessionProvider initialDrawerOpen={true}>
           <CliDrawer onClose={onCloseMock} />
@@ -61,7 +61,7 @@ describe('Unit Tests: CliDrawer Component (Strict AAA)', () => {
     );
 
     // Act
-    const closeBtn = container.querySelector('#cli-drawer-close-btn');
+    const closeBtn = document.querySelector('#cli-drawer-close-btn');
     expect(closeBtn).not.toBeNull();
     fireEvent.click(closeBtn!);
 
@@ -89,7 +89,7 @@ describe('Unit Tests: CliDrawer Component (Strict AAA)', () => {
 
   it('should submit command on form submission and clear input field', async () => {
     // Arrange
-    const { container } = render(
+    render(
       <MockProviders>
         <CliSessionProvider initialDrawerOpen={true}>
           <CliDrawer />
@@ -97,14 +97,14 @@ describe('Unit Tests: CliDrawer Component (Strict AAA)', () => {
       </MockProviders>
     );
 
-    const inputField = container.querySelector('#cli-input-field') as HTMLInputElement;
+    const inputField = document.querySelector('#cli-input-field') as HTMLInputElement;
     expect(inputField).not.toBeNull();
 
     // Act
     fireEvent.change(inputField, { target: { value: 'help' } });
     expect(inputField.value).toBe('help');
 
-    const submitBtn = container.querySelector('#cli-submit-btn');
+    const submitBtn = document.querySelector('#cli-submit-btn');
     expect(submitBtn).not.toBeNull();
     fireEvent.click(submitBtn!);
 
@@ -116,7 +116,7 @@ describe('Unit Tests: CliDrawer Component (Strict AAA)', () => {
 
   it('should display sandbox badge in mode indicator when sandbox is active', () => {
     // Arrange
-    const { container } = render(
+    render(
       <MockProviders>
         <CliSessionProvider initialDrawerOpen={true} initialSandbox={true}>
           <CliDrawer />
@@ -125,7 +125,7 @@ describe('Unit Tests: CliDrawer Component (Strict AAA)', () => {
     );
 
     // Act
-    const badgeContainer = container.querySelector('#cli-drawer-mode-badge');
+    const badgeContainer = document.querySelector('#cli-drawer-mode-badge');
 
     // Assert
     expect(badgeContainer).not.toBeNull();

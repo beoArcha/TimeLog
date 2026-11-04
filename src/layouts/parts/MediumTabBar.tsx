@@ -4,6 +4,7 @@ import { translate, TranslationDictionary } from "@common/i18n/translator";
 import { Locale } from "@/src/bindings/Locale";
 import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { Caption } from "@components/ui/typography";
+import { Area } from "@components/ui/area";
 import { MediumTabId } from "@common/types/navigation";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +46,8 @@ export default function MediumTabBar({
   ];
 
   return (
-    <nav
+    <Area
+      as="nav"
       id="medium-bottom-nav"
       className="shrink-0 mt-2 z-30"
       aria-label="Navigation Tabs"
@@ -89,6 +91,6 @@ export default function MediumTabBar({
           })}
         </TabsList>
       </Tabs>
-    </nav>
+    </Area>
   );
 }

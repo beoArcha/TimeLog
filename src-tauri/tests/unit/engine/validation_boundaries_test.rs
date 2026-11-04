@@ -1,11 +1,11 @@
 use crate::shared::builders::ProjectBuilder;
 use crate::shared::test_db::setup_persistence_test;
 use chrono::Utc;
-use oxy_flow::engine::validation::{
+use oxyflow_timelog::engine::validation::{
     sanitize_text, MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, MAX_TAG_LENGTH,
 };
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_sanitize_text_strips_control_characters_and_handles_newlines() {

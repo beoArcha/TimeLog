@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow implements a Clean Architecture with strict layer isolation enforced by automated AST-scanning architecture test suites on both the TypeScript frontend (`tests/architecture/`) and Rust native backend (`src-tauri/tests/architecture/`).
+TimeLog implements a Clean Architecture with strict layer isolation enforced by automated AST-scanning architecture test suites on both the TypeScript frontend (`tests/architecture/`) and Rust native backend (`src-tauri/tests/architecture/`).
 
 ---
 
@@ -73,7 +73,7 @@ The native CLI binary (`src-tauri/src/cli/`) communicates directly with `Engine`
 
 ### 5. Layer Encapsulation & Error Contract
 
-oXyFlow enforces unidirectional, strictly typed error propagation across all architectural boundaries:
+TimeLog enforces unidirectional, strictly typed error propagation across all architectural boundaries:
 
 ```text
 Repositories (RepositoryError)

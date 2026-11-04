@@ -253,4 +253,5 @@ describe('MediumProjectSelector', () => {
     expect(dropdownBtn).not.toBeNull();
     expect(screen.queryByText('Alpha Project')).toBeNull();
   });
+
 });

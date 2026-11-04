@@ -7,7 +7,7 @@ import ActiveTimerBanner from '@layouts/parts/ActiveTimerBanner';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 /**
  * Smoke Harness: Mounts TabBar and ActiveTimerBanner to verify fundamental navigation and timer rendering.
@@ -29,7 +29,7 @@ function SmokeHarness({
     : null;
 
   const mockState = {
-    ...getMockOxyFlowState(),
+    ...getMockOXyFlowState(),
     projects: [project],
     tasks: [task],
     activeLog,

@@ -6,7 +6,7 @@ import DbExplorer from '@features/db-explorer/DbExplorer';
 import { LocaleProvider } from '@common/hooks/LocaleProvider';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Given DbExplorer developer inspection tool', () => {
   beforeEach(() => {
@@ -23,7 +23,7 @@ describe('Given DbExplorer developer inspection tool', () => {
   describe('When DbExplorer mounts with repository state', () => {
     it('Then it should render driver banner and entity tables', () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       mockState.projects = [aProject({ id: 'proj-1', name: 'Alpha Proj' })];
       mockState.tasks = [aTask({ id: 'task-1', projectId: 'proj-1', name: 'Alpha Task' })];
       mockState.logs = [aTimeLog({ id: 'log-1', projectId: 'proj-1', taskId: 'task-1' })];
@@ -47,7 +47,7 @@ describe('Given DbExplorer developer inspection tool', () => {
   describe('When user triggers database export', () => {
     it('Then it should generate backup payload and trigger blob download', () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
       render(

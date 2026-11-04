@@ -1,20 +1,12 @@
 import React from 'react';
-import { Plus, ChevronDown, ChevronUp, Paintbrush } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { translate, TranslationDictionary } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
-import { PROJECT_COLORS } from '@common/constants/projectColors';
-import { isValidHexColor, normalizeHexColor } from '@common/utils/colorUtils';
 import { Button } from '@components/ui/button';
-import { Input } from '@components/ui/input';
 import { Form } from '@components/ui/form';
-import { Textarea } from '@components/ui/textarea';
-import { Switch } from '@components/ui/switch';
-import { Label } from '@components/ui/label';
-import { Caption } from '@components/ui/typography';
-import { VStack, HStack, InlineCluster } from '@components/ui/stack';
-import { EmojiPicker } from '@components/ui/emoji-picker';
+import { VStack, HStack } from '@components/ui/stack';
 import { useSettingsSafe } from '@common/hooks/SettingsContext';
-import { useAllProjectTags } from '@common/hooks/useAllProjectTags';
+import { ProjectFormFields } from '@features/projects/components/ProjectFormFields';
 
 export interface SidebarProjectFormProps {
   onAddProject: (
@@ -48,7 +40,6 @@ export function SidebarProjectForm({
 }: SidebarProjectFormProps) {
   const settings = useSettingsSafe();
   const defaultConcurrency = settings?.defaultProjectConcurrency ?? false;
-  const availableTags = useAllProjectTags();
   const [name, setNameLocal] = React.useState(initialName);
   const [color, setColorLocal] = React.useState(initialColor);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
@@ -59,19 +50,6 @@ export function SidebarProjectForm({
   const [currency, setCurrency] = React.useState('');
   const [allowConcurrencyOverride, setAllowConcurrencyOverride] = React.useState<boolean | null>(null);
   const allowConcurrency = allowConcurrencyOverride ?? defaultConcurrency;
-  const colorInputRef = React.useRef<HTMLInputElement>(null);
-  const isCustomColor = isValidHexColor(color);
-
-  const handleAddTagSuggestion = (tagToAdd: string) => {
-    const currentTags = tags
-      .split(',')
-      .map(t => t.trim())
-      .filter(Boolean);
-    if (!currentTags.includes(tagToAdd)) {
-      const updated = [...currentTags, tagToAdd].join(', ');
-      setTags(updated);
-    }
-  };
 
   const handleNameChange = (val: string) => {
     setNameLocal(val);
@@ -81,14 +59,6 @@ export function SidebarProjectForm({
   const handleColorChange = (val: string) => {
     setColorLocal(val);
     onColorChange?.(val);
-  };
-
-  const handleCustomColorClick = () => {
-    if (!isCustomColor) {
-      const currentHex = colorInputRef.current?.value || '#8b5cf6';
-      handleColorChange(currentHex);
-    }
-    colorInputRef.current?.click();
   };
 
   const handleSubmit = (e?: React.SyntheticEvent) => {
@@ -136,72 +106,24 @@ export function SidebarProjectForm({
       <VStack gap="xs" className="w-full">
         {/* Tier 1: Primary Level (Compact Main Row & Color Palette) */}
         <VStack gap="xs" className="w-full">
-          <Input
+          <ProjectFormFields.Name
             id="new-project-input"
-            data-testid="new-project-input"
-            type="text"
-            placeholder={translate(locale, 'project', 'EnterProjectName', customTranslations)}
-            aria-label={translate(locale, 'project', 'ProjectName', customTranslations)}
+            dataTestId="new-project-input"
             value={name}
-            onChange={e => handleNameChange(e.target.value)}
+            onChange={handleNameChange}
             onKeyDown={handleKeyDown}
+            locale={locale}
+            customTranslations={customTranslations}
             className="w-full border border-input bg-card text-foreground placeholder:text-muted-foreground px-3 input-py rounded-section text-main focus:outline-none focus:ring-2 focus:ring-orange-400 font-sans transition-all"
           />
 
           <HStack justify="between" align="center" wrap className="gap-2 pt-0.5">
-            <InlineCluster gap="xs" align="center">
-              {PROJECT_COLORS.map(col => {
-                const isSelected = color === col.name;
-                return (
-                  <Button
-                    id={`color-picker-${col.name}`}
-                    data-testid={`color-picker-${col.name}`}
-                    key={col.name}
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => handleColorChange(col.name)}
-                    aria-label={col.name}
-                    title={col.name}
-                    className={`w-5 h-5 rounded-full ${col.bg} transition-all duration-200 transform hover:scale-110 flex items-center justify-center p-0 ${
-                      isSelected ? 'ring-2 ring-orange-500 ring-offset-2 scale-105' : 'opacity-85'
-                    }`}
-                  >
-                    {isSelected && <span className="w-1.5 h-1.5 bg-card rounded-full" />}
-                  </Button>
-                );
-              })}
-
-              <Button
-                id="color-picker-custom"
-                data-testid="color-picker-custom"
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={handleCustomColorClick}
-                aria-label={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
-                title={translate(locale, 'project', 'CustomColorPicker', customTranslations)}
-                style={isCustomColor ? { backgroundColor: color } : undefined}
-                className={`w-5 h-5 rounded-full border border-border transition-all duration-200 transform hover:scale-110 flex items-center justify-center p-0 ${
-                  isCustomColor
-                    ? 'ring-2 ring-orange-500 ring-offset-2 scale-105 text-white'
-                    : 'opacity-85 bg-muted/60 text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Paintbrush className="w-2.5 h-2.5" />
-              </Button>
-              <Input
-                ref={colorInputRef}
-                id="custom-color-input"
-                data-testid="custom-color-input"
-                type="color"
-                value={isCustomColor ? normalizeHexColor(color) : '#8b5cf6'}
-                onChange={e => handleColorChange(e.target.value)}
-                className="sr-only"
-                tabIndex={-1}
-                aria-hidden="true"
-              />
-            </InlineCluster>
+            <ProjectFormFields.ColorPalette
+              color={color}
+              onChange={handleColorChange}
+              locale={locale}
+              customTranslations={customTranslations}
+            />
 
             <HStack gap="xs" align="center">
               <Button
@@ -267,96 +189,59 @@ export function SidebarProjectForm({
             className="mt-2 pt-2 border-t border-border/40 animate-in fade-in slide-in-from-top-2 duration-300"
           >
             <HStack gap="xs" className="w-full items-center">
-              <EmojiPicker
+              <ProjectFormFields.Emoji
                 value={icon}
                 onChange={setIcon}
                 testId="sidebar-project-emoji-picker"
               />
-              <Input
+              <ProjectFormFields.Tags
                 id="sidebar-project-tags-input"
-                data-testid="sidebar-project-tags-input"
-                type="text"
-                placeholder={translate(locale, 'project', 'TagsPlaceholder', customTranslations)}
-                aria-label={translate(locale, 'project', 'Tags', customTranslations)}
+                dataTestId="sidebar-project-tags-input"
+                showSuggestions={false}
                 value={tags}
-                onChange={e => setTags(e.target.value)}
+                onChange={setTags}
+                locale={locale}
+                customTranslations={customTranslations}
                 className="flex-1 px-2 py-1 text-xs"
               />
             </HStack>
 
-            {availableTags.length > 0 && (
-              <VStack gap="2xs" className="w-full">
-                <Caption size="xs" variant="muted" className="font-mono text-[10px] uppercase tracking-wider">
-                  {translate(locale, 'project', 'TagSuggestionsLabel', customTranslations)}
-                </Caption>
-                <div className="flex flex-wrap gap-1" data-testid="sidebar-project-tag-suggestions">
-                  {availableTags.map(tag => (
-                    <Button
-                      key={tag}
-                      type="button"
-                      variant="outline"
-                      size="xs"
-                      onClick={() => handleAddTagSuggestion(tag)}
-                      data-testid={`tag-suggestion-${tag}`}
-                      className="h-5 px-2 py-0 text-[10px] rounded-full font-normal cursor-pointer"
-                    >
-                      {tag}
-                    </Button>
-                  ))}
-                </div>
-              </VStack>
-            )}
+            <ProjectFormFields.TagSuggestions
+              value={tags}
+              onChange={setTags}
+              testId="sidebar-project-tag-suggestions"
+              locale={locale}
+              customTranslations={customTranslations}
+            />
 
-            <Textarea
+            <ProjectFormFields.Description
               id="sidebar-project-description-input"
-              data-testid="sidebar-project-description-input"
-              placeholder={translate(locale, 'project', 'DescriptionPlaceholder', customTranslations)}
-              aria-label={translate(locale, 'project', 'Description', customTranslations)}
+              dataTestId="sidebar-project-description-input"
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={setDescription}
+              locale={locale}
+              customTranslations={customTranslations}
               className="w-full px-2 py-1 text-xs min-h-[40px] h-10 resize-none"
             />
 
-            <HStack gap="xs" className="w-full">
-              <Input
-                id="sidebar-project-hourly-rate"
-                data-testid="sidebar-project-hourly-rate"
-                type="text"
-                placeholder={translate(locale, 'project', 'HourlyRatePlaceholder', customTranslations)}
-                aria-label={translate(locale, 'project', 'HourlyRate', customTranslations)}
-                value={hourlyRate}
-                onChange={e => setHourlyRate(e.target.value)}
-                className="flex-1 px-2 py-1 text-xs"
-              />
-              <Input
-                id="sidebar-project-currency"
-                data-testid="sidebar-project-currency"
-                type="text"
-                placeholder={translate(locale, 'project', 'CurrencyPlaceholder', customTranslations)}
-                aria-label={translate(locale, 'project', 'Currency', customTranslations)}
-                value={currency}
-                onChange={e => setCurrency(e.target.value.toUpperCase())}
-                maxLength={4}
-                className="w-20 px-2 py-1 text-xs uppercase"
-              />
-            </HStack>
+            <ProjectFormFields.Rates
+              hourlyRate={hourlyRate}
+              onHourlyRateChange={setHourlyRate}
+              currency={currency}
+              onCurrencyChange={setCurrency}
+              idPrefix="sidebar-project"
+              locale={locale}
+              customTranslations={customTranslations}
+            />
 
-            <HStack justify="between" align="center" className="w-full pt-1">
-              <VStack gap="none">
-                <Label htmlFor="new-project-concurrency" className="text-xs font-medium cursor-pointer">
-                  {translate(locale, 'project', 'AllowConcurrency', customTranslations)}
-                </Label>
-                <Caption size="xs" variant="muted">
-                  {translate(locale, 'project', 'AllowConcurrencyDesc', customTranslations)}
-                </Caption>
-              </VStack>
-              <Switch
-                id="new-project-concurrency"
-                data-testid="new-project-concurrency"
-                checked={allowConcurrency}
-                onCheckedChange={setAllowConcurrencyOverride}
-              />
-            </HStack>
+            <ProjectFormFields.Concurrency
+              id="new-project-concurrency"
+              dataTestId="new-project-concurrency"
+              checked={allowConcurrency}
+              onCheckedChange={setAllowConcurrencyOverride}
+              locale={locale}
+              customTranslations={customTranslations}
+            />
           </VStack>
         )}
       </VStack>
