@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow zawiera natywny program wiersza poleceń `oxy`, który komunikuje się bezpośrednio z lokalną bazą danych SQLite (`oxytime.db`). CLI działa niezależnie od interfejsu graficznego i może być uruchamiane w środowiskach bezgłowych, skryptach powłoki oraz potokach CI/CD.
+TimeLog zawiera natywny program wiersza poleceń `oxy`, który komunikuje się bezpośrednio z lokalną bazą danych SQLite (`oxytime.db`). CLI działa niezależnie od interfejsu graficznego i może być uruchamiane w środowiskach bezgłowych, skryptach powłoki oraz potokach CI/CD.
 
 ---
 

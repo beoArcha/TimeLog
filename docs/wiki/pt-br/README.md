@@ -1,12 +1,12 @@
-# Documentação Técnica oXyFlow
+# Documentação Técnica oXyFlow TimeLog
 
 > Idioma / Language: [English](/en/README.md) | [Polski](/pl/README.md) | [Deutsch](/de/README.md) | [Español](/es/README.md) | [Français](/fr/README.md) | **Português (BR)**
 
 ---
 
-oXyFlow é um aplicativo local de controle de tempo e rastreamento de tarefas, disponível como aplicação nativa para desktop (Tauri v2, Rust, SQLite) acompanhada pelo utilitário CLI (`oxy`), bem como uma **aplicação Web e Progressive Web App (PWA)** hospedada diretamente no GitHub Pages.
+oXyFlow TimeLog é um aplicativo local de controle de tempo e rastreamento de tarefas, disponível como aplicação nativa para desktop (Tauri v2, Rust, SQLite) acompanhada pelo utilitário CLI (`oxy`), bem como uma **aplicação Web e Progressive Web App (PWA)** hospedada diretamente no GitHub Pages.
 
-> 🚀 **Aplicativo Web ao Vivo**: Inicie o oXyFlow imediatamente no seu navegador ou instale com capacidade offline em **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
+> 🚀 **Aplicativo Web ao Vivo**: Inicie o TimeLog imediatamente no seu navegador ou instale com capacidade offline em **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)**.
 
 ---
 

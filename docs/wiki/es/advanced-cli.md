@@ -145,7 +145,7 @@ En entornos de integración continua o secuencias de comandos de verificación p
 ```bash
 # Verificar la integridad de SQLite y la disponibilidad de tablas en un flujo de CI
 if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
-    echo "Fallo en la comprobación de la base de datos de oXyFlow" >&2
+    echo "Fallo en la comprobación de la base de datos de TimeLog" >&2
     exit 1
 fi
 ```

@@ -4,7 +4,7 @@
 
 ---
 
-O oXyFlow aplica os padrões da Clean Architecture com rigoroso isolamento de camadas, auditado por testes automáticos de arquitetura via análise de AST no frontend em TypeScript (`tests/architecture/`) e no backend em Rust (`src-tauri/tests/architecture/`).
+O TimeLog aplica os padrões da Clean Architecture com rigoroso isolamento de camadas, auditado por testes automáticos de arquitetura via análise de AST no frontend em TypeScript (`tests/architecture/`) e no backend em Rust (`src-tauri/tests/architecture/`).
 
 ---
 
@@ -73,7 +73,7 @@ O binário de terminal (`src-tauri/src/cli/`) comunica-se diretamente com os con
 
 ### 5. Encapsulamento de Camadas e Contrato de Erros
 
-oXyFlow impõe uma propagação de erros unidirecional e estritamente tipada em todas as fronteiras arquiteturais:
+TimeLog impõe uma propagação de erros unidirecional e estritamente tipada em todas as fronteiras arquiteturais:
 
 ```text
 Repositórios (RepositoryError)

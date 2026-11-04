@@ -4,7 +4,7 @@
 
 ---
 
-Die Benutzeroberfläche von oXyFlow basiert auf vier voneinander entkoppelten visuellen Dimensionen: Laufzeitumgebung, Layout-Variante, Skalierungsfaktor und Farb-Theme.
+Die Benutzeroberfläche von TimeLog basiert auf vier voneinander entkoppelten visuellen Dimensionen: Laufzeitumgebung, Layout-Variante, Skalierungsfaktor und Farb-Theme.
 
 ---
 
@@ -24,7 +24,7 @@ Die Layout-Variante kann über die obere Menüleiste oder unter **Einstellungen 
 
 ## Skalierung von Typografie und Symbolen
 
-Ergänzend zu den Layout-Varianten unterstützt oXyFlow drei unabhängige Skalierungsstufen über CSS-Design-Tokens:
+Ergänzend zu den Layout-Varianten unterstützt TimeLog drei unabhängige Skalierungsstufen über CSS-Design-Tokens:
 
 - **Klein (Small)**: Hohe Informationsdichte für Power-User mit großen Aufgabenbäumen.
 - **Mittel (Medium)**: Standardmäßige, ausgewogene Skalierung für reguläre Bildschirme.
@@ -62,7 +62,7 @@ Um die Integrität der Zeiterfassung zu sichern und Datenverlust zu verhindern:
 
 ## Integrierte Themes
 
-oXyFlow stellt drei über die `ThemeRegistry` verwaltete Themes bereit:
+TimeLog stellt drei über die `ThemeRegistry` verwaltete Themes bereit:
 
 | Theme-ID | Anzeigename | Eigenschaften |
 | :--- | :--- | :--- |
