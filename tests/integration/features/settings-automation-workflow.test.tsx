@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import SettingsTab from '@features/settings/SettingsTab';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
 import { WorkflowRouter } from '@common/workflows/WorkflowRouter';
 import { aWorkflowConfig } from '@tests/shared/builders/entity-builders';
 import { IWorkflow, WorkflowStatus, WorkflowConfig } from '@common/workflows/IWorkflow';
@@ -58,7 +58,7 @@ describe('Given SettingsTab and Workflow Automation settings', () => {
   describe('When user toggles auto-start in engine config card', () => {
     it('Then it should persist updated configuration to system settings', async () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>
@@ -81,7 +81,7 @@ describe('Given SettingsTab and Workflow Automation settings', () => {
   describe('When user toggles and adjusts daily boundary automation rule', () => {
     it('Then it should update boundary time and persist to WorkflowRouter', async () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>
@@ -108,7 +108,7 @@ describe('Given SettingsTab and Workflow Automation settings', () => {
   describe('When user adjusts working hours limit and triggers manual check', () => {
     it('Then it should persist updated limit and evaluate rules via WorkflowRouter', async () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>
@@ -141,7 +141,7 @@ describe('Given SettingsTab and Workflow Automation settings', () => {
   describe('When user initiates destructive reset with confirmation keyword', () => {
     it('Then it should delegate storage reset to handleResetLocalStorage', async () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>

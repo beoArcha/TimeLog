@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import HolidaysLeavesView from '@features/holidays/HolidaysLeavesView';
 import { aHolidayLeave } from '@tests/shared/builders/entity-builders';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, setupMatchMediaMock } from '@tests/shared/test-helpers';
 
 describe('Given HolidaysLeavesView registration and management', () => {
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe('Given HolidaysLeavesView registration and management', () => {
   describe('When user fills and submits the day-off registration form', () => {
     it('Then it should invoke handleAddHoliday on DataContext coordinator', () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
 
       render(
         <MockProviders state={mockState}>
@@ -48,7 +48,7 @@ describe('Given HolidaysLeavesView registration and management', () => {
   describe('When HolidaysLeavesView renders with registered holidays', () => {
     it('Then it renders the holiday entries in the table list', () => {
       // Given
-      const mockState = getMockOxyFlowState();
+      const mockState = getMockOXyFlowState();
       mockState.holidays = [
         aHolidayLeave({
           id: 'h1',

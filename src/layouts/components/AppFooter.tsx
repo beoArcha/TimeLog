@@ -34,7 +34,7 @@ export default function AppFooter({
     >
       <HStack gap="xs" className="sm:gap-2 shrink-0">
         <MonoText as="span" size="xs" weight="semibold" className="hidden sm:inline text-foreground">
-          OxyFlowOS
+          oXyFlowOS
         </MonoText>
         <Caption as="span" size="xs" className="hidden sm:inline text-muted-foreground/60">
           {environmentLabel}
@@ -49,7 +49,7 @@ export default function AppFooter({
           onClick={() => setShowCreditsModal(true)}
           className="text-primary hover:text-primary/80 font-bold underline transition-colors cursor-pointer p-0 h-auto"
         >
-          {translate(locale, 'help', 'MplLicenseCreditsOxyFlow', customTranslations)}
+          {translate(locale, 'help', 'MplLicenseCreditsOXyFlow', customTranslations)}
         </Button>
       </HStack>
       <HStack gap="sm" className="sm:gap-4 shrink-0">

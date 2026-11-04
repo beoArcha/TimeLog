@@ -12,7 +12,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import PatchLogsTable from "@features/db-explorer/components/PatchLogsTable";
 import { MockProviders } from "@tests/shared/mocks/MockProviders";
 import { aPatchLog, aProject } from "@tests/shared/builders/entity-builders";
-import { getMockOxyFlowState, OxyFlowState } from "@tests/shared/test-helpers";
+import { getMockOXyFlowState, OXyFlowState } from "@tests/shared/test-helpers";
 import { PatchLog } from "@bindings/PatchLog";
 
 describe("Unit Tests: PatchLogsTable", () => {
@@ -23,9 +23,9 @@ describe("Unit Tests: PatchLogsTable", () => {
 
   const createMockState = (
     patches: PatchLog[],
-    overrides?: Partial<OxyFlowState>,
-  ): OxyFlowState => ({
-    ...getMockOxyFlowState(),
+    overrides?: Partial<OXyFlowState>,
+  ): OXyFlowState => ({
+    ...getMockOXyFlowState(),
     projects: [aProject({ id: "p1", name: "Project Alpha" })],
     patches,
     locale: "en",

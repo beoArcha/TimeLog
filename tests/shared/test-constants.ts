@@ -23,7 +23,7 @@ export const TEST_CONSTANTS = {
   TASK_ID_1021: '1021',
 
   // Tauri Window Tests
-  TOAST_FULL: 'LogTime by OxyFlow interface window maximized.',
+  TOAST_FULL: 'TimeLog by oXyFlow interface window maximized.',
   TOAST_GUI_PREFIX: 'Interface size changed to: ',
   TOAST_ALWAYS_ON_TOP_ON: 'Always on top: ON',
   TOAST_ALWAYS_ON_TOP_OFF: 'Always on top: OFF',

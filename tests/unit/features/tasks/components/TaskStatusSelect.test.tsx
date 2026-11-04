@@ -3,14 +3,14 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { TaskStatusSelect } from '@features/tasks/components/TaskStatusSelect';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: TaskStatusSelect', () => {
   afterEach(() => {
     cleanup();
   });
   const defaultState = {
-    ...getMockOxyFlowState(),
+    ...getMockOXyFlowState(),
     locale: 'en' as const,
     customTranslations: {},
     resolvedTheme: 'dark' as const,

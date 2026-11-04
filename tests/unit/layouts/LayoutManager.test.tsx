@@ -4,7 +4,7 @@ import { render, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LayoutManager from '@layouts/manager/LayoutManager';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { aTimeLog } from '@tests/shared/builders/entity-builders';
 
@@ -38,7 +38,7 @@ vi.mock('@features/settings/BackupTab', () => ({
   default: () => <div data-testid="mock-backup-tab">BackupTab</div>,
 }));
 
-let activeMockState: OxyFlowState;
+let activeMockState: OXyFlowState;
 
 vi.mock('@layouts/manager/AppProviders', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
@@ -58,7 +58,7 @@ describe('LayoutManager', () => {
   it('should render CompactLayoutBuilder when layoutVariant is compact', () => {
     // Arrange
     activeMockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       layoutVariant: 'compact',
       isGuiClosed: false,
       isMinimized: false,
@@ -76,7 +76,7 @@ describe('LayoutManager', () => {
   it('should render MediumLayoutBuilder and Header when layoutVariant is medium', () => {
     // Arrange
     activeMockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       layoutVariant: 'medium',
       isGuiClosed: false,
       isMinimized: false,
@@ -95,7 +95,7 @@ describe('LayoutManager', () => {
   it('should render FullLayoutBuilder and TabBar when layoutVariant is full and active tab is tasks', () => {
     // Arrange
     activeMockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       layoutVariant: 'full',
       activeLargeTab: 'tasks',
       isGuiClosed: false,
@@ -115,7 +115,7 @@ describe('LayoutManager', () => {
   it('should render data-runtime, data-layout-variant, and data-text-size attributes on root container', () => {
     // Arrange
     activeMockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       layoutVariant: 'medium',
       textAndIconSize: 'large',
       isGuiClosed: false,
@@ -138,7 +138,7 @@ describe('LayoutManager', () => {
     const user = userEvent.setup();
     const setIsGuiClosedMock = vi.fn();
     activeMockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       layoutVariant: 'medium',
       isGuiClosed: true,
       setIsGuiClosed: setIsGuiClosedMock,
@@ -169,7 +169,7 @@ describe('LayoutManager', () => {
     const runningLog = aTimeLog({ id: 'log_active', endTime: null });
 
     activeMockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       layoutVariant: 'medium',
       isGuiClosed: false,
       isMinimized: true,
@@ -212,7 +212,7 @@ describe('LayoutManager', () => {
 
     for (const tab of tabs) {
       activeMockState = {
-        ...getMockOxyFlowState(),
+        ...getMockOXyFlowState(),
         layoutVariant: 'full',
         activeLargeTab: tab.tabName,
         isGuiClosed: false,
@@ -231,7 +231,7 @@ describe('LayoutManager', () => {
   it('should render SystemNotification when trayNotification is provided', () => {
     // Arrange
     activeMockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       layoutVariant: 'medium',
       isGuiClosed: false,
       isMinimized: false,

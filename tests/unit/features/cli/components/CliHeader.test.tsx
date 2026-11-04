@@ -18,7 +18,7 @@ describe('Unit Tests: CliHeader Component (Strict AAA)', () => {
     );
 
     // Act
-    const shellTitle = screen.getByText(/LogTime by OxyFlow Engine CLI Shell \(127\.0\.0\.1\) v1\.2\.3/i);
+    const shellTitle = screen.getByText(/TimeLog by oXyFlow Engine CLI Shell \(127\.0\.0\.1\) v1\.2\.3/i);
     const badge = screen.getByText('Rust CLI client emulator');
 
     // Assert

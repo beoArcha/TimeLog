@@ -17,7 +17,7 @@ export type GuiIntent =
   | { type: 'start_timer'; payload: { taskId: string } }
   | { type: 'stop_timer'; payload: { projectId: string | null } };
 
-export interface OxyFlowBridgeState {
+export interface OXyFlowBridgeState {
   layoutVariant?: LayoutVariant;
   setLayoutVariant?: (variant: LayoutVariant) => void;
   setTextAndIconSize?: (size: TextAndIconSize) => void;
@@ -32,7 +32,7 @@ export interface OxyFlowBridgeState {
 }
 
 export const GuiBridge = {
-  sendIntent: async (intent: GuiIntent, oxyFlowState?: OxyFlowBridgeState): Promise<void> => {
+  sendIntent: async (intent: GuiIntent, oxyFlowState?: OXyFlowBridgeState): Promise<void> => {
     console.log('[GuiBridge] Sending intent:', intent);
     if (!oxyFlowState) return;
 

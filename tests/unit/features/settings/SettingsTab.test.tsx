@@ -4,7 +4,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import SettingsTab from '@features/settings/SettingsTab';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 import { toast } from 'sonner';
 
 vi.mock('sonner', () => ({
@@ -15,7 +15,7 @@ vi.mock('sonner', () => ({
 }));
 
 describe('Unit Tests: SettingsTab', () => {
-  let mockState: OxyFlowState;
+  let mockState: OXyFlowState;
   const setSysSettingsMock = vi.fn();
   const setProjectsMock = vi.fn();
   const setTasksMock = vi.fn();
@@ -25,7 +25,7 @@ describe('Unit Tests: SettingsTab', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       locale: 'en',
       customTranslations: {},
       resolvedTheme: 'dark',
@@ -162,6 +162,6 @@ describe('Unit Tests: SettingsTab', () => {
       </MockProviders>
     );
 
-    expect(screen.getByText(/OxyFlow Versions/i)).not.toBeNull();
+    expect(screen.getByText(/oXyFlow Versions/i)).not.toBeNull();
   });
 });

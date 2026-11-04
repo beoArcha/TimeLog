@@ -21,7 +21,7 @@ describe('resolveDevServerConfig', () => {
     delete process.env.DEV_PROTOCOL;
   });
 
-  it('should return default fallback config when dev.config.json is absent', () => {
+  it('should return default fallback config when app.config.json is absent', () => {
     // Arrange: Empty temporary directory with no config file
 
     // Act
@@ -34,14 +34,14 @@ describe('resolveDevServerConfig', () => {
     expect(config.url).toBe(DEFAULT_DEV_CONFIG.url);
   });
 
-  it('should parse custom host and port from dev.config.json', () => {
+  it('should parse custom host and port from app.config.json', () => {
     // Arrange
     const customConfig = {
       protocol: 'http',
       host: '127.0.0.1',
       port: 3008,
     };
-    fs.writeFileSync(path.join(tempDir, 'dev.config.json'), JSON.stringify(customConfig), 'utf-8');
+    fs.writeFileSync(path.join(tempDir, 'app.config.json'), JSON.stringify(customConfig), 'utf-8');
 
     // Act
     const config = resolveDevServerConfig(tempDir);
@@ -59,7 +59,7 @@ describe('resolveDevServerConfig', () => {
       host: '127.0.0.1',
       port: 3000,
     };
-    fs.writeFileSync(path.join(tempDir, 'dev.config.json'), JSON.stringify(fileConfig), 'utf-8');
+    fs.writeFileSync(path.join(tempDir, 'app.config.json'), JSON.stringify(fileConfig), 'utf-8');
     process.env.DEV_PORT = '3005';
     process.env.DEV_HOST = '127.0.0.1';
 
@@ -72,9 +72,9 @@ describe('resolveDevServerConfig', () => {
     expect(config.url).toBe('http://127.0.0.1:3005/');
   });
 
-  it('should gracefully fallback when dev.config.json contains malformed JSON', () => {
+  it('should gracefully fallback when app.config.json contains malformed JSON', () => {
     // Arrange
-    fs.writeFileSync(path.join(tempDir, 'dev.config.json'), '{ malformed json: true, ', 'utf-8');
+    fs.writeFileSync(path.join(tempDir, 'app.config.json'), '{ malformed json: true, ', 'utf-8');
 
     // Act
     const config = resolveDevServerConfig(tempDir);

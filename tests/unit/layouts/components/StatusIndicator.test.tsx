@@ -4,7 +4,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
 import { StatusIndicator } from '@layouts/components/header-parts/StatusIndicator';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: StatusIndicator', () => {
   afterEach(() => {
@@ -13,7 +13,7 @@ describe('Unit Tests: StatusIndicator', () => {
 
   it('should render connecting status when engine is searching in English locale', () => {
     const state = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       locale: 'en' as const,
       engineState: 'searching' as const,
     };
@@ -29,7 +29,7 @@ describe('Unit Tests: StatusIndicator', () => {
 
   it('should render daemon running status when engine is active in Polish locale', () => {
     const state = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       locale: 'pl' as const,
       engineState: 'synced' as const,
     };
@@ -45,7 +45,7 @@ describe('Unit Tests: StatusIndicator', () => {
 
   it('should render localized status connecting when engine is searching in German locale', () => {
     const state = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       locale: 'de' as const,
       engineState: 'searching' as const,
     };

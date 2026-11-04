@@ -4,14 +4,14 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ActiveTimerBanner from '@layouts/parts/ActiveTimerBanner';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
 
 describe('Given ActiveTimerBanner component', () => {
-  let mockState: ReturnType<typeof getMockOxyFlowState>;
+  let mockState: ReturnType<typeof getMockOXyFlowState>;
 
   beforeEach(() => {
-    mockState = getMockOxyFlowState();
+    mockState = getMockOXyFlowState();
     const task = aTask({ id: 'task_1', projectId: 'proj_1', parentTaskId: null, name: 'Active Task', completed: false });
     const project = aProject({ id: 'proj_1', name: 'Active Project', color: 'rose' });
     mockState.tasks = [task];

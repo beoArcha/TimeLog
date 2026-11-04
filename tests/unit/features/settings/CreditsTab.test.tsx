@@ -4,11 +4,11 @@ import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
 import CreditsTab from '@features/settings/CreditsTab';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: CreditsTab', () => {
   const mockState = {
-    ...getMockOxyFlowState(),
+    ...getMockOXyFlowState(),
     locale: 'en' as const,
     customTranslations: {},
     resolvedTheme: 'dark',

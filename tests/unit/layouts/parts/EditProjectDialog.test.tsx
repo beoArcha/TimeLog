@@ -4,7 +4,7 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { EditProjectDialog } from '@/src/layouts/parts/EditProjectDialog';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: EditProjectDialog', () => {
   afterEach(() => {
@@ -23,7 +23,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should render dialog when open with initial project details populated', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
 
     // Act
     render(
@@ -51,7 +51,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should call onSave with trimmed values and close dialog when Save button is clicked', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
     const onSave = vi.fn();
     const onOpenChange = vi.fn();
 
@@ -87,7 +87,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should allow modifying name, color, description and tags', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
     const onSave = vi.fn();
 
     render(
@@ -133,7 +133,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should allow modifying hourlyRate and currency and submitting them', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
     const onSave = vi.fn();
 
     render(
@@ -168,7 +168,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should support picking and saving multi-byte compound emoji without truncation', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
     const onSave = vi.fn();
 
     render(
@@ -203,7 +203,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should allow typing multi-byte compound emoji via picker search without truncation', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
     const onSave = vi.fn();
 
     render(
@@ -240,7 +240,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should close dialog when Cancel button is clicked', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
     const onOpenChange = vi.fn();
 
     render(
@@ -264,7 +264,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should disable Save button when project name is empty', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
 
     render(
       <MockProviders state={state}>
@@ -286,7 +286,7 @@ describe('Unit Tests: EditProjectDialog', () => {
 
   it('should allow picking and saving a custom HEX color', () => {
     // Arrange
-    const state = getMockOxyFlowState();
+    const state = getMockOXyFlowState();
     const onSave = vi.fn();
 
     render(

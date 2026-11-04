@@ -5,7 +5,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Settings } from 'lucide-react';
-import { getMockOxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
 describe('Unit Tests: CollapsibleCard', () => {
   afterEach(() => {
@@ -13,7 +13,7 @@ describe('Unit Tests: CollapsibleCard', () => {
     vi.restoreAllMocks();
   });
 
-  const mockState = getMockOxyFlowState();
+  const mockState = getMockOXyFlowState();
 
   it('Given defaultExpanded = true, When rendered, Then it should show children and expand icon', () => {
     render(

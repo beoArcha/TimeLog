@@ -57,9 +57,9 @@ export function CompilationGuideCard({
         </ListItem>
         <ListItem>
           {translate(locale, 'help', 'Step5', customTranslations)}
-          {currentOs === 'windows' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/msi/OxyFlow_x64.msi</CodeBlock>}
+          {currentOs === 'windows' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/msi/oXyFlow_TimeLog_x64.msi</CodeBlock>}
           {currentOs === 'linux' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/deb/oxyflow_amd64.deb</CodeBlock>}
-          {currentOs === 'macos' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/dmg/OxyFlow.dmg</CodeBlock>}
+          {currentOs === 'macos' && <CodeBlock inline className="ml-1 text-emerald-400">src-tauri/target/release/bundle/dmg/oXyFlow_TimeLog.dmg</CodeBlock>}
         </ListItem>
       </List>
     </CollapsibleCard>

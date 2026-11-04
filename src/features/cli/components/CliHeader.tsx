@@ -38,7 +38,7 @@ export const CliHeader: React.FC<CliHeaderProps> = ({
         </div>
         <span className="text-xs font-mono flex items-center gap-1.5 ml-2 text-muted-foreground">
           <Terminal className="w-3.5 h-3.5 text-orange-500" />
-          LogTime by OxyFlow Engine CLI Shell (127.0.0.1) v{version}
+          TimeLog by oXyFlow Engine CLI Shell (127.0.0.1) v{version}
         </span>
       </div>
       <div className="flex items-center gap-2">

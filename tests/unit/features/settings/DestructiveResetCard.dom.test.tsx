@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DestructiveResetCard from '@features/settings/components/DestructiveResetCard';
-import { getMockOxyFlowState, OxyFlowState } from '@tests/shared/test-helpers';
+import { getMockOXyFlowState, OXyFlowState } from '@tests/shared/test-helpers';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { expectNoFlowContent } from '@tests/shared/html-content-model';
 
@@ -15,12 +15,12 @@ vi.mock('sonner', () => ({
 }));
 
 describe('DestructiveResetCard DOM content model', () => {
-  let mockState: OxyFlowState;
+  let mockState: OXyFlowState;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockState = {
-      ...getMockOxyFlowState(),
+      ...getMockOXyFlowState(),
       locale: 'en',
       customTranslations: {},
       handleResetLocalStorage: vi.fn(),
