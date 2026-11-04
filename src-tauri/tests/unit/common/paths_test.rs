@@ -233,19 +233,28 @@ fn test_resolve_db_path_preserves_cli_flag_and_env_vars() {
     .expect("OXYTIME_DB_PATH should resolve");
     assert_eq!(res, env_oxytime);
 
-    // 4. Default path when neither CLI nor env vars are set
+    // 4. Default path when neither CLI nor env vars are set.
+    // Use a writable temporary HOME because resolve_db_path_with_env creates
+    // the parent directory for the resolved database path.
+    let test_home = tmp.join(format!("timelog-resolver-home-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&test_home);
+    std::fs::create_dir_all(&test_home).expect("Temporary HOME should be writable");
+    let home_str = test_home.to_str().expect("Temporary HOME should be valid UTF-8");
+
     let res = resolve_db_path_with_env(None, "linux", |k| match k {
-        "HOME" => Some("/home/testuser".to_string()),
+        "HOME" => Some(home_str.to_string()),
         _ => None,
     })
     .expect("Default linux path should resolve");
     assert_eq!(
         res,
-        std::path::PathBuf::from(format!(
-            "/home/testuser/.local/share/{}/{}",
-            BUNDLE_IDENTIFIER, DEFAULT_DB_NAME
-        ))
+        test_home.join(".local").join("share").join(BUNDLE_IDENTIFIER).join(DEFAULT_DB_NAME)
     );
+    assert!(
+        res.parent().expect("Database parent should exist").is_dir(),
+        "Resolver should create the default database directory"
+    );
+    std::fs::remove_dir_all(&test_home).expect("Temporary HOME should be removable");
 
     // 5. When env vars are missing and OS defaults cannot be resolved, an explicit Err is returned
     let res = resolve_db_path_with_env(None, "linux", |_| None);
