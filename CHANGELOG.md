@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- **Identity & OS Bundle Identifier**:
+  - Changed reverse-DNS identifier from `com.oxytime.timelog` / `com.oxytime.oxyflow` to `com.oxyflow.timelog`.
+  - Application data directory is now unified across GUI and CLI under `<data_dir>/com.oxyflow.timelog` (e.g. `%APPDATA%\com.oxyflow.timelog`). Previous data is not automatically migrated.
+- **CLI Alias Deprecation**:
+  - Deprecated and removed legacy CLI alias `oxyflow`. Use `oxy` or technical shortcut `oxytime`.
+- **Installer & Release Package Naming**:
+  - Release binaries and installer bundles are renamed from `OxyFlow-*` to `oXyFlow_TimeLog-*` (`oXyFlow_TimeLog-Setup-x64.exe`, `oXyFlow_TimeLog-Standalone-x64.exe`, `oXyFlow_TimeLog-Universal.dmg`, `oXyFlow_TimeLog-x86_64.AppImage`, `timelog_amd64.deb`, `timelog.x86_64.rpm`). Legacy download links cease functioning.
+- **Configuration File Rename**:
+  - Renamed development/app server configuration file from `dev.config.json` to `app.config.json`.
+- **Rust Backend Crate Rename**:
+  - Renamed the core crate in `src-tauri/Cargo.toml` from `oxy-flow` to `oxyflow-timelog`, with internal library crate imports referencing `oxyflow_timelog::`.
+- **PWA Manifest Branding**:
+  - Updated web manifest application name to `TimeLog by oXyFlow`.
+- **Canonical Architecture Governance**:
+  - Added authoritative specification `docs/manifesto/NAMING.md` establishing group (`oXyFlow`) vs. product (`TimeLog`) hierarchy and domain disambiguation.
+
 ### Added
 
 - **Shared Design System Components**:
