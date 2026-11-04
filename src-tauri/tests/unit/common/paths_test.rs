@@ -54,7 +54,7 @@ fn test_get_default_csv_dir_resolves_child_folder() {
 
 #[test]
 fn test_resolve_os_data_dir_windows() {
-    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("windows", |key| {
+    let dir = oxyflow_timelog::common::paths::resolve_os_data_dir_with_env("windows", |key| {
         if key == "APPDATA" {
             Some("C:\\Users\\User\\AppData\\Roaming".to_string())
         } else {
@@ -69,7 +69,7 @@ fn test_resolve_os_data_dir_windows() {
 
 #[test]
 fn test_resolve_os_data_dir_macos() {
-    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("macos", |key| {
+    let dir = oxyflow_timelog::common::paths::resolve_os_data_dir_with_env("macos", |key| {
         if key == "HOME" {
             Some("/Users/User".to_string())
         } else {
@@ -84,7 +84,7 @@ fn test_resolve_os_data_dir_macos() {
 
 #[test]
 fn test_resolve_os_data_dir_linux_xdg() {
-    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("linux", |key| {
+    let dir = oxyflow_timelog::common::paths::resolve_os_data_dir_with_env("linux", |key| {
         if key == "XDG_DATA_HOME" {
             Some("/custom/xdg/share".to_string())
         } else {
@@ -96,7 +96,7 @@ fn test_resolve_os_data_dir_linux_xdg() {
 
 #[test]
 fn test_resolve_os_data_dir_linux_fallback() {
-    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("linux", |key| {
+    let dir = oxyflow_timelog::common::paths::resolve_os_data_dir_with_env("linux", |key| {
         if key == "HOME" {
             Some("/home/user".to_string())
         } else {
