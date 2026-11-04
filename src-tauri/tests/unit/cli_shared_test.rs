@@ -1,8 +1,8 @@
 use chrono::DateTime;
-use oxy_flow::cli::shared::output::CliOutput;
-use oxy_flow::cli::shared::utils::{current_timestamp, generate_id};
-use oxy_flow::cli::shared::validation::validate_id;
-use oxy_flow::cli::CliError;
+use oxyflow_timelog::cli::shared::output::CliOutput;
+use oxyflow_timelog::cli::shared::utils::{current_timestamp, generate_id};
+use oxyflow_timelog::cli::shared::validation::validate_id;
+use oxyflow_timelog::cli::CliError;
 use uuid::Uuid;
 
 #[test]
@@ -32,7 +32,9 @@ fn test_validate_id_empty() {
         // Assert
         assert_eq!(
             res,
-            Err(CliError::Syntax(oxy_flow::cli::CliSyntaxError::EmptyId))
+            Err(CliError::Syntax(
+                oxyflow_timelog::cli::CliSyntaxError::EmptyId
+            ))
         );
     }
 }

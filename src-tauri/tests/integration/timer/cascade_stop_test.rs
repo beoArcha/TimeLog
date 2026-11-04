@@ -1,9 +1,9 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::commands::persistence::project::toggle_project_archive;
-use oxy_flow::commands::persistence::task::delete_task;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::commands::persistence::project::toggle_project_archive;
+use oxyflow_timelog::commands::persistence::task::delete_task;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_given_active_timer_on_project_task_when_project_archived_then_stops_timer_and_commits_log()

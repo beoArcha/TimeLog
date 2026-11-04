@@ -1,7 +1,7 @@
 use crate::shared::builders::{TimeLogBuilder, WorkflowConfigBuilder};
 use chrono::{Duration, Local, TimeZone, Utc};
-use oxy_flow::types::{TimeLog, REASON_DAILY_BOUNDARY, REASON_HOURS_LIMIT};
-use oxy_flow::workflows::evaluate_rules;
+use oxyflow_timelog::types::{TimeLog, REASON_DAILY_BOUNDARY, REASON_HOURS_LIMIT};
+use oxyflow_timelog::workflows::evaluate_rules;
 
 #[test]
 fn test_evaluate_rules_returns_empty_when_no_active_logs() {

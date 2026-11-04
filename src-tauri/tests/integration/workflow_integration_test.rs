@@ -1,10 +1,12 @@
 use std::sync::{Arc, Mutex};
 
 use chrono::{Duration, Local, TimeZone, Utc};
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::{TaskStatus, WorkflowCheckResult, REASON_DAILY_BOUNDARY, REASON_HOURS_LIMIT};
-use oxy_flow::workflows::WorkflowDaemon;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::{
+    TaskStatus, WorkflowCheckResult, REASON_DAILY_BOUNDARY, REASON_HOURS_LIMIT,
+};
+use oxyflow_timelog::workflows::WorkflowDaemon;
 
 use crate::shared::builders::{ProjectBuilder, TaskBuilder, WorkflowConfigBuilder};
 use crate::shared::test_db::setup_persistence_test;

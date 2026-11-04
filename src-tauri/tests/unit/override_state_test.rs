@@ -1,6 +1,6 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder, TimeLogBuilder};
-use oxy_flow::repositories::business::BusinessRepository;
-use oxy_flow::types::{TaskStatus, TimeLogEditHistory};
+use oxyflow_timelog::repositories::business::BusinessRepository;
+use oxyflow_timelog::types::{TaskStatus, TimeLogEditHistory};
 
 #[test]
 fn test_business_repository_override_state_full_hierarchy() {

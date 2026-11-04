@@ -1,11 +1,11 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxy_flow::cli::handlers::flow_handler::handle_start_interactive;
-use oxy_flow::cli::parser::tier1_flow::StartArgs;
-use oxy_flow::cli::resolver::{EntityResolver, MockPrompter, Prompter, ResolveError};
-use oxy_flow::cli::CliOutput;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
+use oxyflow_timelog::cli::handlers::flow_handler::handle_start_interactive;
+use oxyflow_timelog::cli::parser::tier1_flow::StartArgs;
+use oxyflow_timelog::cli::resolver::{EntityResolver, MockPrompter, Prompter, ResolveError};
+use oxyflow_timelog::cli::CliOutput;
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
 
 #[test]
 fn test_given_non_terminal_when_prompt_selection_invoked_then_returns_none() {

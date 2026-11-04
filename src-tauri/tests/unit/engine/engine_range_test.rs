@@ -1,9 +1,9 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use chrono::Utc;
-use oxy_flow::engine::Engine;
-use oxy_flow::persistence::Persistence;
-use oxy_flow::types::{ElapsedRangeFilter, PatchLog};
+use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::persistence::Persistence;
+use oxyflow_timelog::types::{ElapsedRangeFilter, PatchLog};
 
 #[test]
 fn test_engine_calculate_elapsed_range_clamps_to_window() {
@@ -268,7 +268,7 @@ fn test_engine_calculate_range_metrics_propagates_persistence_error_on_subtask_q
         "range metrics must fail when subtask query fails"
     );
     match result.unwrap_err() {
-        oxy_flow::engine::EngineError::Persistence(_) => (),
+        oxyflow_timelog::engine::EngineError::Persistence(_) => (),
         other => panic!("expected EngineError::Persistence, got {:?}", other),
     }
 }

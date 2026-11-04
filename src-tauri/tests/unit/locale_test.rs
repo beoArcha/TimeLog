@@ -1,4 +1,4 @@
-use oxy_flow::types::Locale;
+use oxyflow_timelog::types::Locale;
 
 #[test]
 fn test_locale_from_sys_lang_resolves_all_locales_and_falls_back_to_en() {

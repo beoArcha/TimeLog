@@ -1,4 +1,4 @@
-use oxy_flow::types::{
+use oxyflow_timelog::types::{
     AlwaysOnTopConfig, FrontendEvent, LayoutVariant, TextAndIconSize, WindowDimensions,
 };
 

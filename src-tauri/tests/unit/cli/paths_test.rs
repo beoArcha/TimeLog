@@ -1,5 +1,5 @@
-use oxy_flow::common::constants::DEFAULT_DB_NAME;
-use oxy_flow::common::paths::{resolve_db_path, ENV_OXYTIME_DB_PATH, ENV_OXY_DB_PATH};
+use oxyflow_timelog::common::constants::DEFAULT_DB_NAME;
+use oxyflow_timelog::common::paths::{resolve_db_path, ENV_OXYTIME_DB_PATH, ENV_OXY_DB_PATH};
 use std::sync::Mutex;
 
 // Process-wide environment variables require synchronization across parallel test threads.

@@ -1,4 +1,4 @@
-use oxy_flow::app::guard::{
+use oxyflow_timelog::app::guard::{
     is_authorized_origin, resolve_authorized_dev_origin, validate_or_fallback_url, DEFAULT_DEV_URL,
 };
 use std::fs::{create_dir_all, remove_dir_all, File};

@@ -1,4 +1,4 @@
-use oxy_flow::types::*;
+use oxyflow_timelog::types::*;
 use ts_rs::TS;
 
 const BINDINGS_DIR: &str = "../src/bindings/";

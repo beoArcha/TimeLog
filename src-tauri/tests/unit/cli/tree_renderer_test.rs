@@ -1,5 +1,5 @@
-use oxy_flow::cli::formatters::constants::MSG_NO_REPORT_DATA;
-use oxy_flow::cli::formatters::{
+use oxyflow_timelog::cli::formatters::constants::MSG_NO_REPORT_DATA;
+use oxyflow_timelog::cli::formatters::{
     format_duration, render_progress_bar, render_tree_string, ReportProjectDto, ReportSubtaskDto,
     ReportTaskDto, ReportTreeDto,
 };

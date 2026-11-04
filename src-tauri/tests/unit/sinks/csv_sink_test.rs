@@ -1,6 +1,6 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
-use oxy_flow::sinks::csv::CsvSink;
-use oxy_flow::types::PersistenceEvent;
+use oxyflow_timelog::sinks::csv::CsvSink;
+use oxyflow_timelog::types::PersistenceEvent;
 use std::fs::File;
 use std::io::Read;
 
