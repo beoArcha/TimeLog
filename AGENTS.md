@@ -15,7 +15,7 @@ This file is the single entry point. Detailed, topic-specific rules live in `.ag
 | [`.agents/rules/documentation_standards.md`](.agents/rules/documentation_standards.md) | Analytical artifacts, implementation plans, manifesto, multilingual wiki, AI humanizer |
 | [`.agents/rules/project_metadata_standards.md`](.agents/rules/project_metadata_standards.md) | Canonical naming, Single Source of Truth (`metadata.json`), author attribution, version sync |
 
-Architecture background for humans and agents: [`docs/manifesto/ENGINEERING.md`](docs/manifesto/ENGINEERING.md). Roadmap and status: [`docs/manifesto/MASTERMAP.md`](docs/manifesto/MASTERMAP.md). CLI contract: [`docs/manifesto/CLI.md`](docs/manifesto/CLI.md). UI and UX principles: [`docs/manifesto/USERINTERFACE.md`](docs/manifesto/USERINTERFACE.md), [`docs/manifesto/USEREXPERIENCE.md`](docs/manifesto/USEREXPERIENCE.md).
+Architecture background for humans and agents: [`docs/manifesto/ENGINEERING.md`](docs/manifesto/ENGINEERING.md). Naming and product identity: [`docs/manifesto/NAMING.md`](docs/manifesto/NAMING.md). Roadmap and status: [`docs/manifesto/MASTERMAP.md`](docs/manifesto/MASTERMAP.md). CLI contract: [`docs/manifesto/CLI.md`](docs/manifesto/CLI.md). UI and UX principles: [`docs/manifesto/USERINTERFACE.md`](docs/manifesto/USERINTERFACE.md), [`docs/manifesto/USEREXPERIENCE.md`](docs/manifesto/USEREXPERIENCE.md).
 
 When two documents disagree, this precedence applies: `AGENTS.md` → `.agents/rules/*` → `docs/manifesto/ENGINEERING.md` → other docs. Report the conflict to the user instead of silently picking one.
 
@@ -143,6 +143,7 @@ Update documentation in the same change when you:
 | Change | Update |
 | --- | --- |
 | Architecture, layers, contracts | `docs/manifesto/ENGINEERING.md`, and `AGENTS.md` if a rule changes |
+| Naming and product identity | `docs/manifesto/NAMING.md`, `metadata.json` |
 | Roadmap phase completed or started | `docs/manifesto/MASTERMAP.md` (Strategic roadmap/plan only; NEVER use as a changelog) |
 | Feature, bug fix, or version delivered | `CHANGELOG.md` (Keep a Changelog format with version suffixes: `Added in X.Y.Z`, `Changed in X.Y.Z`, `Fixed in X.Y.Z`, `Removed in X.Y.Z`) |
 | CLI command, flag, error code or exit code | `docs/manifesto/CLI.md` |

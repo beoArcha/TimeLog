@@ -37,12 +37,12 @@ All official production builds are published on the GitHub Releases page:
 | Operating System / Platform | Recommended Package | Target Architecture | Description |
 | :--- | :--- | :--- | :--- |
 | **Web & PWA** | Web Application (Zero Install) | Modern Web Browsers | [Launch Web App](https://beoarcha.github.io/TimeLog/app/) — Runs 100% locally in browser, offline-capable PWA |
-| **Windows** | `OxyFlow-Setup-x64.exe` | x86_64 (Intel/AMD) | NSIS setup wizard with start menu & tray integration |
-| **Windows (Portable)** | `OxyFlow-Standalone-x64.exe` | x86_64 (Intel/AMD) | Single standalone `.exe` without installer |
-| **macOS** | `OxyFlow-Universal.dmg` | Universal (M1–M4 & Intel) | Drag-and-drop macOS disk image |
-| **Linux (Universal)** | `OxyFlow-x86_64.AppImage` | x86_64 | Self-contained, portable Linux executable |
-| **Linux (Debian/Ubuntu)** | `oxyflow_amd64.deb` | x86_64 | Native Debian package for `apt` / `dpkg` |
-| **Linux (Fedora/RHEL)** | `oxyflow.x86_64.rpm` | x86_64 | Native RPM package for `dnf` / `rpm` |
+| **Windows** | `oXyFlow_TimeLog-Setup-x64.exe` | x86_64 (Intel/AMD) | NSIS setup wizard with start menu & tray integration |
+| **Windows (Portable)** | `oXyFlow_TimeLog-Standalone-x64.exe` | x86_64 (Intel/AMD) | Single standalone `.exe` without installer |
+| **macOS** | `oXyFlow_TimeLog-Universal.dmg` | Universal (M1–M4 & Intel) | Drag-and-drop macOS disk image |
+| **Linux (Universal)** | `oXyFlow_TimeLog-x86_64.AppImage` | x86_64 | Self-contained, portable Linux executable |
+| **Linux (Debian/Ubuntu)** | `timelog_amd64.deb` | x86_64 | Native Debian package for `apt` / `dpkg` |
+| **Linux (Fedora/RHEL)** | `timelog.x86_64.rpm` | x86_64 | Native RPM package for `dnf` / `rpm` |
 
 ---
 
@@ -81,7 +81,7 @@ oXyFlow uses separate persistence engines tailored to the runtime environment:
 
 Because web browsers isolate storage per domain:
 - **Cache Eviction Risk**: Executing browser actions such as "Clear browsing data", clearing site cookies/storage, or using Private/Incognito windows will delete all stored timer entries.
-- **Backup Routine**: Create regular JSON snapshots in **Settings → Backup → Export Backup JSON**. This produces a portable `OxyFlow_Backup_YYYY-MM-DD.json` file. Use **Restore / Import Backup JSON** to recover your projects and timesheets or migrate data to desktop installations.
+- **Backup Routine**: Create regular JSON snapshots in **Settings → Backup → Export Backup JSON**. This produces a portable `TimeLog_Backup_YYYY-MM-DD.json` file. Use **Restore / Import Backup JSON** to recover your projects and timesheets or migrate data to desktop installations.
 
 ---
 
@@ -89,14 +89,14 @@ Because web browsers isolate storage per domain:
 
 ### 3.1 NSIS Setup Wizard vs Portable Executable
 
-- **NSIS Setup Wizard (`OxyFlow-Setup-x64.exe`)**:
-  - Installs into your user profile directory (`%LOCALAPPDATA%\Programs\OxyFlow`).
+- **NSIS Setup Wizard (`oXyFlow_TimeLog-Setup-x64.exe`)**:
+  - Installs into your user profile directory (`%LOCALAPPDATA%\Programs\TimeLog`).
   - Creates a desktop shortcut and a Start Menu shortcut.
   - Automatically configures auto-start with Windows (if enabled in app settings).
   - Clean uninstallation via Windows Settings $\to$ Apps $\to$ Installed Apps.
-- **Portable Standalone (`OxyFlow-Standalone-x64.exe`)**:
-  - No installer needed. Place it anywhere (e.g. `C:\Tools\OxyFlow.exe` or on a USB drive).
-  - Your SQLite database and settings are saved automatically in `%APPDATA%\com.oxytime.oxyflow`.
+- **Portable Standalone (`oXyFlow_TimeLog-Standalone-x64.exe`)**:
+  - No installer needed. Place it anywhere (e.g. `C:\Tools\timelog.exe` or on a USB drive).
+  - Your SQLite database and settings are saved automatically in `%APPDATA%\com.oxyflow.timelog`.
 
 ### 3.2 Windows SmartScreen Warning
 
@@ -115,7 +115,7 @@ Because oXyFlow is a free community open-source project and is not signed with a
 Occasionally, third-party antivirus engines flag freshly compiled Rust / Tauri binaries because the executable is compact and contains bundled webview integration. If your antivirus raises a warning:
 
 - Verify the file's SHA-256 hash against the official `SHA256SUMS.txt` (see [Section 6](#6-cryptographic-verification-sha-256)).
-- Add an exception in your antivirus software for `OxyFlow.exe`.
+- Add an exception in your antivirus software for `timelog.exe`.
 
 ---
 
@@ -125,22 +125,22 @@ Occasionally, third-party antivirus engines flag freshly compiled Rust / Tauri b
 
 oXyFlow for macOS is distributed as a **Universal Binary**, natively supporting both Apple Silicon (M1, M2, M3, M4) and Intel (x86_64) Macs.
 
-1. Download `OxyFlow-Universal.dmg` from the latest release.
+1. Download `oXyFlow_TimeLog-Universal.dmg` from the latest release.
 2. Double-click the `.dmg` file to mount the disk image.
-3. Drag the **OxyFlow** app icon into your **Applications** folder.
+3. Drag the **TimeLog** app icon into your **Applications** folder.
 4. Eject the mounted disk image.
 
 ### 4.2 Apple Gatekeeper Quarantine Bypass
 
 Because community open-source binaries are not notarized through Apple's paid developer program, macOS Gatekeeper may display a message:
 
-> *““OxyFlow” can’t be opened because Apple cannot check it for malicious software.”*
+> *““TimeLog” can’t be opened because Apple cannot check it for malicious software.”*
 
 #### Method A: Graphical Approval (Recommended)
 
 1. Open **System Settings** $\to$ **Privacy & Security**.
 2. Scroll down to the **Security** section.
-3. You will see a notice: *"OxyFlow was blocked from use because it is not from an identified developer."*
+3. You will see a notice: *"TimeLog was blocked from use because it is not from an identified developer."*
 4. Click **Open Anyway** and enter your macOS administrator password.
 
 #### Method B: Terminal Command (Instant)
@@ -148,7 +148,7 @@ Because community open-source binaries are not notarized through Apple's paid de
 Alternatively, open your Terminal and remove the quarantine attribute:
 
 ```bash
-xattr -d com.apple.quarantine /Applications/OxyFlow.app
+xattr -d com.apple.quarantine /Applications/TimeLog.app
 ```
 
 ---
@@ -159,17 +159,17 @@ xattr -d com.apple.quarantine /Applications/OxyFlow.app
 
 The AppImage package runs on virtually all modern 64-bit Linux distributions without requiring root permissions.
 
-1. Download `OxyFlow-x86_64.AppImage`.
+1. Download `oXyFlow_TimeLog-x86_64.AppImage`.
 2. Open a terminal in your download folder and grant executable permission:
 
    ```bash
-   chmod +x OxyFlow-x86_64.AppImage
+   chmod +x oXyFlow_TimeLog-x86_64.AppImage
    ```
 
 3. Run the application:
 
    ```bash
-   ./OxyFlow-x86_64.AppImage
+   ./oXyFlow_TimeLog-x86_64.AppImage
    ```
 
 > **Note for Ubuntu 22.04+ & Fedora**:
@@ -183,14 +183,14 @@ The AppImage package runs on virtually all modern 64-bit Linux distributions wit
 Install via `dpkg` or `apt`:
 
 ```bash
-sudo dpkg -i oxyflow_amd64.deb
+sudo dpkg -i timelog_amd64.deb
 sudo apt-get install -f   # Fixes any missing dependencies automatically
 ```
 
 Or with `apt` directly:
 
 ```bash
-sudo apt install ./oxyflow_amd64.deb
+sudo apt install ./timelog_amd64.deb
 ```
 
 ### 5.3 Fedora / RHEL (.rpm)
@@ -198,12 +198,12 @@ sudo apt install ./oxyflow_amd64.deb
 Install via `dnf`:
 
 ```bash
-sudo dnf install ./oxyflow.x86_64.rpm
+sudo dnf install ./timelog.x86_64.rpm
 ```
 
 ### 5.4 Required System Libraries
 
-OxyFlow relies on WebKitGTK for rendering the desktop UI on Linux. These libraries are installed automatically by `.deb` and `.rpm` packages, but are listed below for minimal Linux environments:
+oXyFlow TimeLog relies on WebKitGTK for rendering the desktop UI on Linux. These libraries are installed automatically by `.deb` and `.rpm` packages, but are listed below for minimal Linux environments:
 
 - `libwebkit2gtk-4.1-0` (or `webkit2gtk4.1`)
 - `libgtk-3-0`
@@ -218,7 +218,7 @@ Every release includes an official `SHA256SUMS.txt` file generated during the au
 ### On Windows (PowerShell)
 
 ```powershell
-Get-FileHash .\OxyFlow-Setup-x64.exe -Algorithm SHA256
+Get-FileHash .\oXyFlow_TimeLog-Setup-x64.exe -Algorithm SHA256
 ```
 
 Compare the output `Hash` with the corresponding line in `SHA256SUMS.txt`.
@@ -234,13 +234,13 @@ sha256sum --ignore-missing -c SHA256SUMS.txt
 You should see:
 
 ```text
-OxyFlow-x86_64.AppImage: OK
+oXyFlow_TimeLog-x86_64.AppImage: OK
 ```
 
 ### On macOS
 
 ```bash
-shasum -a 256 OxyFlow-Universal.dmg
+shasum -a 256 oXyFlow_TimeLog-Universal.dmg
 ```
 
 ---

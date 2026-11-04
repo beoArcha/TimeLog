@@ -256,9 +256,9 @@ oXyFlow operates on a local-first architecture, but physical storage differs bet
 
 On Windows, Linux, and macOS, data resides in an ACID-compliant, local SQLite database file (`oxytime.db`):
 
-- **Windows**: `%APPDATA%\com.oxytime.oxyflow\oxytime.db`
-- **Linux**: `~/.local/share/com.oxytime.oxyflow/oxytime.db`
-- **macOS**: `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db`
+- **Windows**: `%APPDATA%\com.oxyflow.timelog\oxytime.db`
+- **Linux**: `~/.local/share/com.oxyflow.timelog/oxytime.db`
+- **macOS**: `~/Library/Application Support/com.oxyflow.timelog/oxytime.db`
 
 Because it is a standard filesystem SQLite database, you have full ownership of your data and can copy or back up the database file directly via your operating system.
 
@@ -274,7 +274,7 @@ The Progressive Web App operates within the browser security model:
 
 In **Settings → Backup** (under the **Database & State Backup** card):
 
-- **Export Backup JSON** (`data-testid="export-backup-btn"`): Generates an unencrypted, structured JSON snapshot (`OxyFlow_Backup_YYYY-MM-DD.json`) capturing all projects, tasks, time logs, holidays, and patch records.
+- **Export Backup JSON** (`data-testid="export-backup-btn"`): Generates an unencrypted, structured JSON snapshot (`TimeLog_Backup_YYYY-MM-DD.json`) capturing all projects, tasks, time logs, holidays, and patch records.
 - **Restore / Import Backup JSON** (`data-testid="import-backup-btn"`): Reads a `.json` backup file, validates its structure with `validateBackupPayload`, and restores the complete database state.
 - **Cross-Runtime Mobility**: The JSON backup format is universal. You can export a JSON backup from the browser PWA and import it into the desktop application, or export from desktop and import into the web app.
 - **Physical SQLite Backup (Desktop Only)**: Desktop users can also make direct filesystem copies of `oxytime.db`. In web runtimes, raw SQLite export is not available; the JSON backup is the universal backup format.
