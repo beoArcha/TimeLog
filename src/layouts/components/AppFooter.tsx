@@ -49,7 +49,7 @@ export default function AppFooter({
           onClick={() => setShowCreditsModal(true)}
           className="text-primary hover:text-primary/80 font-bold underline transition-colors cursor-pointer p-0 h-auto"
         >
-          {translate(locale, 'help', 'MplLicenseCreditsOXyFlow', customTranslations)}
+          {translate(locale, 'help', 'MplLicenseCreditsOxyFlow', customTranslations)}
         </Button>
       </HStack>
       <HStack gap="sm" className="sm:gap-4 shrink-0">

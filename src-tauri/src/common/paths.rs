@@ -16,18 +16,17 @@ pub fn is_path_absolute_for_os(path: &Path, target_os: &str) -> bool {
                 && matches!(bytes[2], b'\\' | b'/');
 
             let unc_parts = value
-                .strip_prefix("\\\\")
+                .strip_prefix(r"\\")
                 .or_else(|| value.strip_prefix("//"))
                 .map(|unc| {
-                    unc.split(|character| character == '\\' || character == '/')
+                    unc.split(['\\', '/'])
                         .filter(|part| !part.is_empty())
                         .collect::<Vec<_>>()
                 });
 
-            has_drive_prefix || unc_parts.map_or(false, |parts| parts.len() >= 2)
+            has_drive_prefix || unc_parts.is_some_and(|parts| parts.len() >= 2)
         }
-        "linux" | "macos" => value.starts_with('/'),
-        _ => path.is_absolute(),
+        _ => value.starts_with('/'),
     }
 }
 
@@ -90,9 +89,7 @@ where
                 } else {
                     Err(std::io::Error::new(
                         std::io::ErrorKind::InvalidInput,
-                        format!(
-                            "Resolved macOS HOME directory is not an absolute path: '{home}'"
-                        ),
+                        format!("Resolved macOS HOME directory is not an absolute path: '{home}'"),
                     ))
                 }
             } else {
@@ -225,13 +222,19 @@ where
         }
     }
 
-    if let Some(env_path) = get_env(ENV_OXY_DB_PATH).or_else(|| get_env(ENV_OXYTIME_DB_PATH)) {
-        let trimmed = env_path.trim();
-        if !trimmed.is_empty() {
-            let path = PathBuf::from(trimmed);
-            ensure_parent_dir_exists(&path)?;
-            return Ok(path);
-        }
+    let env_path = get_env(ENV_OXY_DB_PATH)
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .or_else(|| {
+            get_env(ENV_OXYTIME_DB_PATH)
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+        });
+
+    if let Some(path_str) = env_path {
+        let path = PathBuf::from(path_str);
+        ensure_parent_dir_exists(&path)?;
+        return Ok(path);
     }
 
     let default_path = resolve_default_db_path_with_env(target_os, get_env)?;
