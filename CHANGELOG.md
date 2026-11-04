@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **oXyFlow** will be documented in this file.
+All notable changes to **oXyFlow TimeLog** will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [Unreleased]
+
+### Breaking Changes
+
+- **Identity & OS Bundle Identifier**:
+  - Changed reverse-DNS identifier from `com.oxytime.timelog` / `com.oxytime.oxyflow` to `com.oxyflow.timelog`.
+  - Application data directory is now unified across GUI and CLI using native OS directories: Windows (`%APPDATA%\com.oxyflow.timelog`), Linux (`$XDG_DATA_HOME/com.oxyflow.timelog` with fallback to `~/.local/share/com.oxyflow.timelog`), and macOS (`~/Library/Application Support/com.oxyflow.timelog`). Previous data is not automatically migrated (manual migration via JSON backup export/import).
+- **CLI Binary & Alias Naming**:
+  - The actual executable and primary CLI command is `oxy`.
+  - `oxytime` is retained as a technical alias / helper shortcut.
+  - Legacy alias `oxyflow` is completely removed.
+- **Installer & Release Package Naming**:
+  - Release binaries and installer bundles use canonical, unversioned asset names matching `README.md` download links:
+    - Windows: `oXyFlow_TimeLog-Setup-x64.exe` (NSIS setup wizard) and `oXyFlow_TimeLog-Standalone-x64.exe` (portable standalone)
+    - macOS: `oXyFlow_TimeLog-Universal.dmg` (universal disk image for Apple Silicon & Intel)
+    - Linux: `oXyFlow_TimeLog-x86_64.AppImage`, `timelog_amd64.deb`, and `timelog.x86_64.rpm`
+  - Version numbers are omitted from release asset filenames because versioning is provided by the release tag. Legacy download links cease functioning.
+- **Configuration File Rename**:
+  - Renamed development/app server configuration file from `dev.config.json` to `app.config.json`.
+- **Rust Backend Crate Rename**:
+  - Renamed the core crate in `src-tauri/Cargo.toml` from `oxy-flow` to `oxyflow-timelog`, with internal library crate imports referencing `oxyflow_timelog::`.
+- **PWA Manifest Branding**:
+  - Updated web manifest application name to `TimeLog by oXyFlow` (`short_name`: `TimeLog`), adhering to group brand (`oXyFlow`) and product name (`TimeLog`) hierarchy.
+- **Canonical Architecture Governance**:
+  - Added authoritative specification `docs/manifesto/NAMING.md` establishing group (`oXyFlow`) vs. product (`TimeLog`) hierarchy and domain disambiguation.
 
 ### Added
 
