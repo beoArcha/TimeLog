@@ -16,18 +16,17 @@ pub fn is_path_absolute_for_os(path: &Path, target_os: &str) -> bool {
                 && matches!(bytes[2], b'\\' | b'/');
 
             let unc_parts = value
-                .strip_prefix("\\\\")
+                .strip_prefix(r"\\")
                 .or_else(|| value.strip_prefix("//"))
                 .map(|unc| {
-                    unc.split(|character| character == '\\' || character == '/')
+                    unc.split(['\\', '/'])
                         .filter(|part| !part.is_empty())
                         .collect::<Vec<_>>()
                 });
 
-            has_drive_prefix || unc_parts.map_or(false, |parts| parts.len() >= 2)
+            has_drive_prefix || unc_parts.is_some_and(|parts| parts.len() >= 2)
         }
-        "linux" | "macos" => value.starts_with('/'),
-        _ => path.is_absolute(),
+        _ => value.starts_with('/'),
     }
 }
 

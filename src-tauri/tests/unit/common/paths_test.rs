@@ -97,7 +97,7 @@ fn test_resolve_os_data_dir_macos() {
         dir,
         std::path::PathBuf::from("/Users/User/Library/Application Support")
     );
-    assert!(is_path_absolute(&dir));
+    assert!(is_path_absolute_for_os(&dir, "macos"));
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn test_resolve_os_data_dir_linux_xdg() {
     })
     .expect("Linux XDG_DATA_HOME should resolve");
     assert_eq!(dir, std::path::PathBuf::from("/custom/xdg/share"));
-    assert!(is_path_absolute(&dir));
+    assert!(is_path_absolute_for_os(&dir, "linux"));
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn test_resolve_os_data_dir_linux_fallback() {
     })
     .expect("Linux HOME fallback should resolve");
     assert_eq!(dir, std::path::PathBuf::from("/home/user/.local/share"));
-    assert!(is_path_absolute(&dir));
+    assert!(is_path_absolute_for_os(&dir, "linux"));
 }
 
 #[test]
@@ -144,7 +144,7 @@ fn test_resolve_linux_xdg_relative_path_rejected_and_falls_back_to_home() {
             BUNDLE_IDENTIFIER, DEFAULT_DB_NAME
         ))
     );
-    assert!(is_path_absolute(&db_path));
+    assert!(is_path_absolute_for_os(&db_path, "linux"));
 }
 
 #[test]
