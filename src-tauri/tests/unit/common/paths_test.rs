@@ -248,6 +248,30 @@ fn test_resolve_db_path_preserves_cli_flag_and_env_vars() {
 }
 
 #[test]
+fn test_resolve_os_data_dir_rejects_backslash_relative_paths_on_unix() {
+    let windows_result = resolve_os_data_dir_with_env("windows", |key| {
+        if key == "APPDATA" {
+            Some("\\relative\\appdata".to_string())
+        } else {
+            None
+        }
+    });
+    assert_eq!(
+        windows_result.unwrap_err().kind(),
+        std::io::ErrorKind::InvalidInput
+    );
+
+    let linux_dir = resolve_os_data_dir_with_env("linux", |key| match key {
+        "XDG_DATA_HOME" => Some("\\relative\\data".to_string()),
+        "HOME" => Some("/home/user".to_string()),
+        _ => None,
+    })
+    .expect("Backslash-relative XDG_DATA_HOME must be ignored");
+
+    assert_eq!(linux_dir, Path::new("/home/user/.local/share"));
+}
+
+#[test]
 fn test_is_path_absolute_uses_target_os_semantics() {
     // Unix paths are absolute only when rooted with '/'.
     assert!(is_path_absolute_for_os(Path::new("/home/user/file"), "linux"));
@@ -266,5 +290,8 @@ fn test_is_path_absolute_uses_target_os_semantics() {
     assert!(!is_path_absolute_for_os(Path::new("C:relative"), "windows"));
     assert!(!is_path_absolute_for_os(Path::new("\\\\server"), "windows"));
 
-    assert_eq!(is_path_absolute(Path::new("/home/user/file")), cfg!(unix));
+    assert_eq!(
+        is_path_absolute(Path::new("/home/user/file")),
+        cfg!(unix)
+    );
 }
