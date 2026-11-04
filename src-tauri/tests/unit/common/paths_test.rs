@@ -1,5 +1,8 @@
 use oxy_flow::common::constants::DEFAULT_DB_NAME;
-use oxy_flow::common::paths::{get_default_csv_dir, get_default_db_path, try_get_default_db_path};
+use oxy_flow::common::paths::{
+    get_default_csv_dir, get_default_db_path, resolve_default_db_path_with_env,
+    resolve_os_data_dir_with_env, try_get_default_db_path,
+};
 use std::path::Path;
 
 #[test]
@@ -52,13 +55,14 @@ fn test_get_default_csv_dir_resolves_child_folder() {
 
 #[test]
 fn test_resolve_os_data_dir_windows() {
-    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("windows", |key| {
+    let dir = resolve_os_data_dir_with_env("windows", |key| {
         if key == "APPDATA" {
             Some("C:\\Users\\User\\AppData\\Roaming".to_string())
         } else {
             None
         }
-    });
+    })
+    .expect("Windows APPDATA should resolve");
     assert_eq!(
         dir,
         std::path::PathBuf::from("C:\\Users\\User\\AppData\\Roaming")
@@ -67,13 +71,14 @@ fn test_resolve_os_data_dir_windows() {
 
 #[test]
 fn test_resolve_os_data_dir_macos() {
-    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("macos", |key| {
+    let dir = resolve_os_data_dir_with_env("macos", |key| {
         if key == "HOME" {
             Some("/Users/User".to_string())
         } else {
             None
         }
-    });
+    })
+    .expect("macOS HOME should resolve");
     assert_eq!(
         dir,
         std::path::PathBuf::from("/Users/User/Library/Application Support")
@@ -82,24 +87,60 @@ fn test_resolve_os_data_dir_macos() {
 
 #[test]
 fn test_resolve_os_data_dir_linux_xdg() {
-    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("linux", |key| {
+    let dir = resolve_os_data_dir_with_env("linux", |key| {
         if key == "XDG_DATA_HOME" {
             Some("/custom/xdg/share".to_string())
         } else {
             None
         }
-    });
+    })
+    .expect("Linux XDG_DATA_HOME should resolve");
     assert_eq!(dir, std::path::PathBuf::from("/custom/xdg/share"));
 }
 
 #[test]
 fn test_resolve_os_data_dir_linux_fallback() {
-    let dir = oxy_flow::common::paths::resolve_os_data_dir_with_env("linux", |key| {
+    let dir = resolve_os_data_dir_with_env("linux", |key| {
         if key == "HOME" {
             Some("/home/user".to_string())
         } else {
             None
         }
-    });
+    })
+    .expect("Linux HOME fallback should resolve");
     assert_eq!(dir, std::path::PathBuf::from("/home/user/.local/share"));
+}
+
+#[test]
+fn test_resolve_linux_xdg_relative_path_rejected_and_falls_back_to_home() {
+    let db_path = resolve_default_db_path_with_env("linux", |key| match key {
+        "XDG_DATA_HOME" => Some("relative/data".to_string()),
+        "HOME" => Some("/home/user".to_string()),
+        _ => None,
+    })
+    .expect("Relative XDG_DATA_HOME must be ignored and fallback to HOME");
+
+    assert_eq!(
+        db_path,
+        std::path::PathBuf::from("/home/user/.local/share/com.oxyflow.timelog/oxytime.db")
+    );
+}
+
+#[test]
+fn test_resolve_os_data_dir_missing_env_returns_error_without_current_dir_fallback() {
+    for os in &["windows", "macos", "linux"] {
+        let res = resolve_os_data_dir_with_env(os, |_| None);
+        assert!(
+            res.is_err(),
+            "Resolver for {os} must return Err when environment variables are missing"
+        );
+        let err = res.unwrap_err();
+        assert_eq!(err.kind(), std::io::ErrorKind::NotFound);
+
+        let db_res = resolve_default_db_path_with_env(os, |_| None);
+        assert!(
+            db_res.is_err(),
+            "Default DB path resolver for {os} must return Err when environment variables are missing"
+        );
+    }
 }
