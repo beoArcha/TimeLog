@@ -17,15 +17,24 @@ fn main() -> ExitCode {
             }
         };
 
-        let db_path = oxyflow_timelog::common::paths::get_default_db_path();
+        let is_machine = cli_args.machine || cli_args.json;
+        let db_path = match oxyflow_timelog::common::paths::resolve_db_path(cli_args.db.as_deref()) {
+            Ok(path) => path,
+            Err(e) => {
+                let err = cli::CliError::Storage(oxyflow_timelog::persistence::error::PersistenceError::Storage(
+                    format!("Failed to resolve database path: {e}"),
+                ));
+                let envelope = err.to_envelope_with_mode(is_machine, None);
+                envelope.render_stderr(is_machine);
+                return envelope.to_exit_code();
+            }
+        };
         let csv_directory = oxyflow_timelog::common::paths::get_default_csv_dir(&db_path);
         let persistence_config = oxyflow_timelog::persistence::PersistenceConfig {
             db_path,
             csv_directory,
         };
-        let is_machine = cli_args.machine || cli_args.json;
-        let persistence = match oxyflow_timelog::persistence::Persistence::new(&persistence_config)
-        {
+        let persistence = match oxyflow_timelog::persistence::Persistence::new(&persistence_config) {
             Ok(p) => p,
             Err(e) => {
                 let err = cli::CliError::from(e);
