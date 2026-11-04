@@ -74,12 +74,20 @@ Only the product naming and group attribution are affected by rebranding. Domain
 
 The transition to unified naming introduces breaking changes that are accepted without automated backward-compatibility migrations:
 
-1. **Identifier Change**:
-   - Old directory: `%APPDATA%\com.oxytime.oxyflow` (or `com.oxytime.timelog`)
-   - New directory: `%APPDATA%\com.oxyflow.timelog`
-   - Linux: `~/.local/share/com.oxyflow.timelog`
-   - macOS: `~/Library/Application Support/com.oxyflow.timelog`
-   - *Impact*: Fresh installations create a new empty database. Users migrating historical data must use **Settings → Backup → Export Backup JSON** before upgrading, then import the JSON file into the new installation.
+1. **Identifier Change & Application Data Directory**:
+   - Old directory:
+     - Windows: `%APPDATA%\com.oxytime.oxyflow` (or `%APPDATA%\com.oxytime.timelog`)
+     - Linux: `~/.local/share/com.oxytime.oxyflow`
+     - macOS: `~/Library/Application Support/com.oxytime.oxyflow`
+   - New directory:
+     - Windows: `%APPDATA%\com.oxyflow.timelog`
+     - Linux: `$XDG_DATA_HOME/com.oxyflow.timelog` (default: `~/.local/share/com.oxyflow.timelog`)
+     - macOS: `~/Library/Application Support/com.oxyflow.timelog`
+   - **No Automated Migration**: Automated migration of historical data directories is deliberately **not supported**. The application initializes a fresh, empty SQLite database (`oxytime.db`) in the new directory.
+   - **Manual Migration Procedure**:
+     1. In the previous installation, navigate to **Settings → Backup → Export Backup JSON** and save `TimeLog_Backup_YYYY-MM-DD.json`.
+     2. Install or launch the upgraded application (`com.oxyflow.timelog`).
+     3. Navigate to **Settings → Backup → Restore / Import Backup JSON** and import the backup snapshot to restore all projects, tasks, time entries, and settings.
 2. **CLI Alias `oxyflow` Removed**:
    - The legacy `oxyflow` command alias is deprecated and removed. Users must invoke the native CLI via `oxy` (or technical alias `oxytime`).
 3. **Installer Artifact Names Changed**:

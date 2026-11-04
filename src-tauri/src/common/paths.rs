@@ -1,15 +1,56 @@
-use crate::common::constants::{APPDATA, BUNDLE_IDENTIFIER, CONFIG, DEFAULT_DB_NAME, HOME};
+use crate::common::constants::{APPDATA, BUNDLE_IDENTIFIER, DEFAULT_DB_NAME};
 use std::path::{Path, PathBuf};
+
+/// Resolves the base data directory for a specific operating system, reading environment variables via `get_env`.
+///
+/// Precedence per OS:
+/// - Windows: `%APPDATA%` (AppData\Roaming)
+/// - macOS: `$HOME/Library/Application Support`
+/// - Linux & Unix: `$XDG_DATA_HOME` falling back to `$HOME/.local/share`
+pub fn resolve_os_data_dir_with_env<F>(target_os: &str, get_env: F) -> PathBuf
+where
+    F: Fn(&str) -> Option<String>,
+{
+    match target_os {
+        "windows" => get_env(APPDATA)
+            .or_else(|| get_env("AppData"))
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from(".")),
+        "macos" => {
+            if let Some(home) = get_env("HOME") {
+                PathBuf::from(home)
+                    .join("Library")
+                    .join("Application Support")
+            } else {
+                PathBuf::from(".")
+            }
+        }
+        _ => {
+            if let Some(xdg) = get_env("XDG_DATA_HOME") {
+                let trimmed = xdg.trim();
+                if !trimmed.is_empty() {
+                    return PathBuf::from(trimmed);
+                }
+            }
+            if let Some(home) = get_env("HOME") {
+                PathBuf::from(home).join(".local").join("share")
+            } else {
+                PathBuf::from(".")
+            }
+        }
+    }
+}
+
+/// Resolves the current operating system's native base user data directory.
+pub fn resolve_system_data_dir() -> PathBuf {
+    let os = std::env::consts::OS;
+    resolve_os_data_dir_with_env(os, |k| std::env::var(k).ok())
+}
 
 /// Resolves the default persistent SQLite database path for both native CLI and desktop instances.
 /// Ensures the enclosing directory is created if not already present, propagating I/O errors.
 pub fn try_get_default_db_path() -> std::io::Result<PathBuf> {
-    let base_dir = std::env::var(APPDATA)
-        .or_else(|_| std::env::var("AppData"))
-        .map(PathBuf::from)
-        .or_else(|_| std::env::var(HOME).map(|h| PathBuf::from(h).join(CONFIG)))
-        .unwrap_or_else(|_| PathBuf::from("."));
-
+    let base_dir = resolve_system_data_dir();
     let app_dir = base_dir.join(BUNDLE_IDENTIFIER);
     std::fs::create_dir_all(&app_dir)?;
     Ok(app_dir.join(DEFAULT_DB_NAME))
@@ -18,11 +59,7 @@ pub fn try_get_default_db_path() -> std::io::Result<PathBuf> {
 /// Resolves the default persistent SQLite database path, falling back if directory creation fails.
 pub fn get_default_db_path() -> PathBuf {
     try_get_default_db_path().unwrap_or_else(|_| {
-        let base_dir = std::env::var(APPDATA)
-            .or_else(|_| std::env::var("AppData"))
-            .map(PathBuf::from)
-            .or_else(|_| std::env::var(HOME).map(|h| PathBuf::from(h).join(CONFIG)))
-            .unwrap_or_else(|_| PathBuf::from("."));
+        let base_dir = resolve_system_data_dir();
         base_dir.join(BUNDLE_IDENTIFIER).join(DEFAULT_DB_NAME)
     })
 }
