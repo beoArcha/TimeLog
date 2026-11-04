@@ -234,21 +234,40 @@ fn test_resolve_db_path_preserves_cli_flag_and_env_vars() {
     assert_eq!(res, env_oxytime);
 
     // 4. Default path when neither CLI nor env vars are set.
-    // Use a writable temporary HOME because resolve_db_path_with_env creates
-    // the parent directory for the resolved database path.
+    // Use a writable temporary data directory for the host OS because resolve_db_path_with_env
+    // creates the parent directory for the resolved database path.
     let test_home = tmp.join(format!("timelog-resolver-home-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&test_home);
     std::fs::create_dir_all(&test_home).expect("Temporary HOME should be writable");
-    let home_str = test_home.to_str().expect("Temporary HOME should be valid UTF-8");
+    let home_str = test_home
+        .to_str()
+        .expect("Temporary HOME should be valid UTF-8");
 
-    let res = resolve_db_path_with_env(None, "linux", |k| match k {
-        "HOME" => Some(home_str.to_string()),
-        _ => None,
+    let host_os = std::env::consts::OS;
+    let (env_key, expected_data_dir) = if host_os == "windows" {
+        ("APPDATA", test_home.clone())
+    } else if host_os == "macos" {
+        (
+            "HOME",
+            test_home.join("Library").join("Application Support"),
+        )
+    } else {
+        ("HOME", test_home.join(".local").join("share"))
+    };
+
+    let res = resolve_db_path_with_env(None, host_os, |k| {
+        if k == env_key {
+            Some(home_str.to_string())
+        } else {
+            None
+        }
     })
-    .expect("Default linux path should resolve");
+    .expect("Default host OS path should resolve");
     assert_eq!(
         res,
-        test_home.join(".local").join("share").join(BUNDLE_IDENTIFIER).join(DEFAULT_DB_NAME)
+        expected_data_dir
+            .join(BUNDLE_IDENTIFIER)
+            .join(DEFAULT_DB_NAME)
     );
     assert!(
         res.parent().expect("Database parent should exist").is_dir(),
@@ -262,6 +281,69 @@ fn test_resolve_db_path_preserves_cli_flag_and_env_vars() {
         res.is_err(),
         "Must return Err when data dir cannot be determined"
     );
+}
+
+#[test]
+fn test_resolve_db_path_env_fallback_matrix() {
+    let tmp = std::env::temp_dir();
+    let oxy_db = tmp.join("oxy_custom.db");
+    let oxytime_db = tmp.join("oxytime_custom.db");
+    let oxy_str = oxy_db.to_str().unwrap().to_string();
+    let oxytime_str = oxytime_db.to_str().unwrap().to_string();
+
+    let host_os = std::env::consts::OS;
+    let (env_key, default_base) = if host_os == "windows" {
+        ("APPDATA", tmp.clone())
+    } else if host_os == "macos" {
+        ("HOME", tmp.join("Library").join("Application Support"))
+    } else {
+        ("HOME", tmp.join(".local").join("share"))
+    };
+    let default_db = default_base.join(BUNDLE_IDENTIFIER).join(DEFAULT_DB_NAME);
+    let tmp_str = tmp.to_str().unwrap().to_string();
+
+    let cases = vec![
+        (
+            Some(oxy_str.clone()),
+            Some(oxytime_str.clone()),
+            true,
+            false,
+        ), // valid path, valid path -> OXY_DB_PATH
+        (Some("".to_string()), Some(oxytime_str.clone()), false, true), // empty, valid path -> OXYTIME_DB_PATH
+        (
+            Some("   ".to_string()),
+            Some(oxytime_str.clone()),
+            false,
+            true,
+        ), // whitespace, valid path -> OXYTIME_DB_PATH
+        (None, Some(oxytime_str.clone()), false, true), // missing, valid path -> OXYTIME_DB_PATH
+        (Some(oxy_str), Some("".to_string()), true, false), // valid path, empty -> OXY_DB_PATH
+        (Some("".to_string()), Some("".to_string()), false, false), // empty, empty -> default path
+        (None, None, false, false),                     // missing, missing -> default path
+    ];
+
+    for (oxy_val, oxytime_val, expect_oxy, expect_oxytime) in cases {
+        let res = resolve_db_path_with_env(None, host_os, |k| {
+            if k == ENV_OXY_DB_PATH {
+                oxy_val.clone()
+            } else if k == ENV_OXYTIME_DB_PATH {
+                oxytime_val.clone()
+            } else if k == env_key {
+                Some(tmp_str.clone())
+            } else {
+                None
+            }
+        })
+        .expect("Database path should resolve");
+
+        if expect_oxy {
+            assert_eq!(res, oxy_db, "Should use OXY_DB_PATH");
+        } else if expect_oxytime {
+            assert_eq!(res, oxytime_db, "Should use OXYTIME_DB_PATH");
+        } else {
+            assert_eq!(res, default_db, "Should fallback to default database path");
+        }
+    }
 }
 
 #[test]

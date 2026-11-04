@@ -222,13 +222,19 @@ where
         }
     }
 
-    if let Some(env_path) = get_env(ENV_OXY_DB_PATH).or_else(|| get_env(ENV_OXYTIME_DB_PATH)) {
-        let trimmed = env_path.trim();
-        if !trimmed.is_empty() {
-            let path = PathBuf::from(trimmed);
-            ensure_parent_dir_exists(&path)?;
-            return Ok(path);
-        }
+    let env_path = get_env(ENV_OXY_DB_PATH)
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .or_else(|| {
+            get_env(ENV_OXYTIME_DB_PATH)
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+        });
+
+    if let Some(path_str) = env_path {
+        let path = PathBuf::from(path_str);
+        ensure_parent_dir_exists(&path)?;
+        return Ok(path);
     }
 
     let default_path = resolve_default_db_path_with_env(target_os, get_env)?;
