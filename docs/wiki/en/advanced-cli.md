@@ -147,7 +147,7 @@ In continuous integration environments or pre-flight deployment scripts, `oxy do
 ```bash
 # Verify SQLite integrity and schema availability in automated pipeline
 if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
-    echo "oXyFlow database or sink check failed" >&2
+    echo "TimeLog database or sink check failed" >&2
     exit 1
 fi
 ```

@@ -4,7 +4,7 @@
 
 ---
 
-The oXyFlow user interface is built on four decoupled visual dimensions: runtime environment, layout variant, scaling factor, and color theme.
+The TimeLog user interface is built on four decoupled visual dimensions: runtime environment, layout variant, scaling factor, and color theme.
 
 ---
 
@@ -24,7 +24,7 @@ Layout variants can be switched from the top navigation bar or under **Settings 
 
 ## Typography and Icon Scaling
 
-In addition to layout variants, oXyFlow supports three independent scaling tiers controlled strictly via CSS design tokens:
+In addition to layout variants, TimeLog supports three independent scaling tiers controlled strictly via CSS design tokens:
 
 - **Small**: High-density display suited for power users managing large task hierarchies.
 - **Medium**: Default balanced scale designed for standard desktop displays.
@@ -64,7 +64,7 @@ To safeguard timesheet integrity and prevent accidental data loss:
 
 ## Built-In Themes
 
-oXyFlow provides three verified built-in themes managed by the `ThemeRegistry`:
+TimeLog provides three verified built-in themes managed by the `ThemeRegistry`:
 
 | Theme ID | Display Name | Characteristics |
 | :--- | :--- | :--- |

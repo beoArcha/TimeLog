@@ -10,23 +10,23 @@ Wszystkie wpisy czasu, projekty, zadania i konfiguracja zapisywane są w lokalny
 
 | System Operacyjny | Ścieżka do Bazy Danych |
 | :--- | :--- |
-| **Windows** | `%APPDATA%\com.oxytime.oxyflow\oxytime.db` |
-| **Linux** | `~/.local/share/com.oxytime.oxyflow/oxytime.db` |
-| **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db` |
+| **Windows** | `%APPDATA%\com.oxyflow.timelog\oxytime.db` |
+| **Linux** | `~/.local/share/com.oxyflow.timelog/oxytime.db` |
+| **macOS** | `~/Library/Application Support/com.oxyflow.timelog/oxytime.db` |
 
 W trybie przeglądarkowym (PWA) dane są zapisywane w pamięci `localStorage` przeglądarki zamiast fizycznego pliku SQLite (szczegóły w pytaniu 7).
 
 ---
 
-## 2. Czy oXyFlow wymaga połączenia z internetem?
+## 2. Czy TimeLog wymaga połączenia z internetem?
 
-**Nie.** oXyFlow działa w 100% lokalnie (offline-first). Brak zależności chmurowych, zewnętrznych systemów logowania czy telemetrii w tle. Obliczenia czasu, zapytania bazodanowe i generowanie raportów wykonuje wbudowany silnik Rust.
+**Nie.** TimeLog działa w 100% lokalnie (offline-first). Brak zależności chmurowych, zewnętrznych systemów logowania czy telemetrii w tle. Obliczenia czasu, zapytania bazodanowe i generowanie raportów wykonuje wbudowany silnik Rust.
 
 ---
 
 ## 3. Dlaczego Windows SmartScreen wyświetla ostrzeżenie przy instalacji?
 
-System Windows Defender SmartScreen wyświetla ostrzeżenie dla świeżo pobranych plików instalacyjnych, które nie posiadają drogiego komercyjnego certyfikatu korporacyjnego (EV). oXyFlow to darmowy projekt open-source na licencji Mozilla Public License 2.0 (MPL-2.0).
+System Windows Defender SmartScreen wyświetla ostrzeżenie dla świeżo pobranych plików instalacyjnych, które nie posiadają drogiego komercyjnego certyfikatu korporacyjnego (EV). oXyFlow TimeLog to darmowy projekt open-source na licencji Mozilla Public License 2.0 (MPL-2.0).
 
 Aby uruchomić aplikację:
 
@@ -49,7 +49,7 @@ Aktywny wpis czasu mierzy czas do momentu ręcznego zatrzymania, zapauzowania lu
 ## 5. Jak wykonać i przywrócić kopię zapasową bazy danych?
 
 - **Uniwersalna Kopia JSON**: W zakładce **Ustawienia → Kopia zapasowa** (karta **Baza danych i kopie zapasowe**):
-  - **Eksport**: Kliknij **Eksportuj kopię JSON** (`data-testid="export-backup-btn"`), aby pobrać niezaszyfrowany, czytelny plik `.json` (`OxyFlow_Backup_YYYY-MM-DD.json`) zawierający wszystkie projekty, zadania, wpisy czasu i konfigurację.
+  - **Eksport**: Kliknij **Eksportuj kopię JSON** (`data-testid="export-backup-btn"`), aby pobrać niezaszyfrowany, czytelny plik `.json` (`TimeLog_Backup_YYYY-MM-DD.json`) zawierający wszystkie projekty, zadania, wpisy czasu i konfigurację.
   - **Import / Przywracanie**: Kliknij **Przywróć / Importuj kopię JSON** (`data-testid="import-backup-btn"`) i wskaż wcześniej wyeksportowany plik `.json`. Silnik weryfikuje strukturę danych (`validateBackupPayload`) przed przywróceniem stanu bazy.
   - **Przenośność Między Środowiskami**: Format JSON jest w pełni uniwersalny. Kopię wyeksportowaną z przeglądarki PWA można zaimportować do aplikacji desktopowej i odwrotnie.
 - **Fizyczna Kopia SQLite (Tylko Desktop)**: W wersji desktopowej można skopiować plik `oxytime.db` bezpośrednio przy wyłączonej aplikacji lub użyć polecenia SQLite:
@@ -70,10 +70,10 @@ Plik wykonywalny CLI (`oxy`) odczytuje i modyfikuje dokładnie ten sam lokalny p
 
 ## 7. Czym różni się zapis danych w wersji przeglądarkowej PWA od wersji desktopowej?
 
-oXyFlow stosuje odrębne silniki zapisu dostosowane do środowiska uruchomieniowego:
+TimeLog stosuje odrębne silniki zapisu dostosowane do środowiska uruchomieniowego:
 
 - **Desktop (Tauri v2)**: Dane zapisywane są w pliku lokalnej bazy danych SQLite (`oxytime.db`) w systemie plików z pełną zgodnością ACID. Użytkownik ma bezpośredni dostęp do pliku bazy i synchronizacji z narzędziem CLI.
 - **Przeglądarka (PWA)**: Dane przechowywane są w pamięci `localStorage` przeglądarki (`LocalStorage Engine`) odizolowanej dla danej domeny. Piaskownica przeglądarki uniemożliwia bezpośredni dostęp do dysku, dlatego w trybie web nie powstaje żaden fizyczny plik `.sqlite`.
 - **Ostrzeżenie o Pamięci Przeglądarki**: Czyszczenie danych przeglądarki („Wyczyść dane przeglądania”, usuwanie ciasteczek i magazynu witryny) oraz korzystanie z trybu incognito powoduje trwałe usunięcie wpisów czasu.
-- **Zalecana Praktyka**: Korzystając z oXyFlow w przeglądarce, wykonuj regularne kopie zapasowe JSON w menu **Ustawienia → Kopia zapasowa → Eksportuj kopię JSON**.
+- **Zalecana Praktyka**: Korzystając z TimeLog w przeglądarce, wykonuj regularne kopie zapasowe JSON w menu **Ustawienia → Kopia zapasowa → Eksportuj kopię JSON**.
 

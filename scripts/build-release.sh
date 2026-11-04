@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Builds release packages for OxyFlow with automated pre-flight quality checks.
+# Builds release packages for oXyFlow TimeLog with automated pre-flight quality checks.
 # POSIX-compliant, supports Linux and macOS developer environments.
 # ==============================================================================
 
@@ -146,8 +146,14 @@ else
     bun x tauri build --bundles "${BUNDLE}"
 fi
 
-step "Release Artifacts Summary"
-ARTIFACTS_DIR="${PROJECT_ROOT}/src-tauri/target/release/bundle"
+step "Release Artifacts Normalization & Summary"
+NORMALIZED_DIR="${PROJECT_ROOT}/artifacts-release"
+if [ -d "${NORMALIZED_DIR}" ]; then
+    echo "Cleaning previous release artifacts in ${NORMALIZED_DIR}..."
+    rm -rf "${NORMALIZED_DIR:?}"/*
+else
+    mkdir -p "${NORMALIZED_DIR}"
+fi
 
 compute_hash() {
     if command -v sha256sum >/dev/null 2>&1; then
@@ -159,23 +165,100 @@ compute_hash() {
     fi
 }
 
-FOUND=0
-if [ -d "${ARTIFACTS_DIR}" ]; then
-    while IFS= read -r file; do
-        if [ -f "${file}" ]; then
-            HASH="$(compute_hash "${file}")"
-            SIZE="$(ls -lh "${file}" | awk '{print $5}')"
-            echo "Artifact: $(basename "${file}")"
-            echo "  Path:   ${file}"
-            echo "  Size:   ${SIZE}"
-            echo "  SHA256: ${HASH}"
-            FOUND=$((FOUND + 1))
-        fi
-    done < <(find "${ARTIFACTS_DIR}" -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.dmg" -o -name "*.exe" \))
+# Normalize known bundle formats
+APPIMAGE_PATH=$(find src-tauri/target/release/bundle/appimage -type f -name "*.AppImage" 2>/dev/null | head -n 1 || true)
+if [ -n "${APPIMAGE_PATH}" ]; then
+    cp "${APPIMAGE_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-x86_64.AppImage"
 fi
 
-if [ "${FOUND}" -eq 0 ]; then
+DEB_PATH=$(find src-tauri/target/release/bundle/deb -type f -name "*.deb" 2>/dev/null | head -n 1 || true)
+if [ -n "${DEB_PATH}" ]; then
+    cp "${DEB_PATH}" "${NORMALIZED_DIR}/timelog_amd64.deb"
+fi
+
+RPM_PATH=$(find src-tauri/target/release/bundle/rpm -type f -name "*.rpm" 2>/dev/null | head -n 1 || true)
+if [ -n "${RPM_PATH}" ]; then
+    cp "${RPM_PATH}" "${NORMALIZED_DIR}/timelog.x86_64.rpm"
+fi
+
+DMG_PATH=$(find src-tauri/target/release/bundle/dmg -type f -name "*.dmg" 2>/dev/null | head -n 1 || true)
+if [ -n "${DMG_PATH}" ]; then
+    cp "${DMG_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Universal.dmg"
+fi
+
+NSIS_PATH=$(find src-tauri/target/release/bundle/nsis -type f -name "*.exe" 2>/dev/null | head -n 1 || true)
+if [ -n "${NSIS_PATH}" ]; then
+    cp "${NSIS_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Setup-x64.exe"
+fi
+
+EXE_PATH=$(find src-tauri/target/release -maxdepth 1 -type f \( -name "TimeLog.exe" -o -name "timelog.exe" -o -name "timelog" \) 2>/dev/null | head -n 1 || true)
+if [ -n "${EXE_PATH}" ] && [[ "${EXE_PATH}" == *.exe ]]; then
+    cp "${EXE_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Standalone-x64.exe"
+fi
+
+FOUND=0
+CHECKSUM_FILE="${NORMALIZED_DIR}/SHA256SUMS.txt"
+rm -f "${CHECKSUM_FILE}"
+
+for file in "${NORMALIZED_DIR}"/*; do
+    if [ -f "${file}" ] && [ "$(basename "${file}")" != "SHA256SUMS.txt" ]; then
+        BASENAME="$(basename "${file}")"
+        HASH="$(compute_hash "${file}")"
+        SIZE="$(ls -lh "${file}" | awk '{print $5}')"
+        echo "Artifact: ${BASENAME}"
+        echo "  Path:   ${file}"
+        echo "  Size:   ${SIZE}"
+        echo "  SHA256: ${HASH}"
+        echo "${HASH}  ${BASENAME}" >> "${CHECKSUM_FILE}"
+        FOUND=$((FOUND + 1))
+    fi
+done
+
+# Verify release artifacts completeness
+EXPECTED_ARTIFACTS=()
+case "${BUNDLE}" in
+    appimage)
+        EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-x86_64.AppImage")
+        ;;
+    deb)
+        EXPECTED_ARTIFACTS+=("timelog_amd64.deb")
+        ;;
+    rpm)
+        EXPECTED_ARTIFACTS+=("timelog.x86_64.rpm")
+        ;;
+    dmg)
+        EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-Universal.dmg")
+        ;;
+    nsis)
+        EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-Setup-x64.exe")
+        ;;
+    all)
+        OS="$(uname -s)"
+        case "${OS}" in
+            Darwin*)
+                EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-Universal.dmg")
+                ;;
+            Linux*)
+                EXPECTED_ARTIFACTS+=("oXyFlow_TimeLog-x86_64.AppImage" "timelog_amd64.deb" "timelog.x86_64.rpm")
+                ;;
+        esac
+        ;;
+esac
+
+MISSING_EXPECTED=()
+for expected in "${EXPECTED_ARTIFACTS[@]}"; do
+    if [ ! -f "${NORMALIZED_DIR}/${expected}" ]; then
+        MISSING_EXPECTED+=("${expected}")
+    fi
+done
+
+if [ ${#MISSING_EXPECTED[@]} -gt 0 ]; then
+    failure "Completeness check failed: missing expected release artifact(s): ${MISSING_EXPECTED[*]}"
+    exit 1
+fi
+
+if [ "${FOUND}" -eq 0 ] && [ "${BUNDLE}" != "none" ]; then
     echo "Build completed, but no release packages were located in standard bundle paths."
 else
-    success "Release packaging completed successfully (${FOUND} artifacts generated)."
+    success "Release packaging completed successfully (${FOUND} normalized artifacts in ${NORMALIZED_DIR})."
 fi

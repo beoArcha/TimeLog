@@ -4,7 +4,7 @@
 
 ---
 
-L'interface utilisateur d'oXyFlow s'articule autour de quatre dimensions visuelles indépendantes : environnement d'exécution, variante de disposition, échelle visuelle et thème graphique.
+L'interface utilisateur de TimeLog s'articule autour de quatre dimensions visuelles indépendantes : environnement d'exécution, variante de disposition, échelle visuelle et thème graphique.
 
 ---
 
@@ -24,7 +24,7 @@ La disposition se modifie via la barre supérieure ou dans **Paramètres → Int
 
 ## Échelle Typographique et des Icônes
 
-En complément des dispositions, oXyFlow propose trois paliers de mise à l'échelle gérés par des jetons CSS :
+En complément des dispositions, TimeLog propose trois paliers de mise à l'échelle gérés par des jetons CSS :
 
 - **Petit (Small)** : Densité maximale, adaptée aux grandes hiérarchies de tâches.
 - **Moyen (Medium)** : Échelle standard équilibrée pour moniteurs classiques.
@@ -62,7 +62,7 @@ Afin de garantir l'intégrité des relevés d'heures et d'éviter toute perte de
 
 ## Thèmes Intégrés
 
-oXyFlow intègre trois thèmes officiels gérés par le `ThemeRegistry` :
+TimeLog intègre trois thèmes officiels gérés par le `ThemeRegistry` :
 
 | Identifiant | Nom | Caractéristiques |
 | :--- | :--- | :--- |

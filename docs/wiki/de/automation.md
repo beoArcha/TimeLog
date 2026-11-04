@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow enthält ein persistentes **Sinks-Subsystem**, das Zeiterfassungsereignisse beim Beenden einer Sitzung in Echtzeit erfasst und weiterleitet.
+TimeLog enthält ein persistentes **Sinks-Subsystem**, das Zeiterfassungsereignisse beim Beenden einer Sitzung in Echtzeit erfasst und weiterleitet.
 
 ---
 

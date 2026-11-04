@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow orchestre vos sessions de travail grâce à un moteur natif en Rust garantissant la précision temporelle et empêchant toute dérive d'horloge.
+TimeLog orchestre vos sessions de travail grâce à un moteur natif en Rust garantissant la précision temporelle et empêchant toute dérive d'horloge.
 
 ---
 

@@ -119,6 +119,30 @@ jobs:
           ls -la release-assets
           [ -n "$(ls -A release-assets)" ] || { echo "::error::No assets to publish"; exit 1; }
 
+          REQUIRED_ASSETS=(
+            "oXyFlow_TimeLog-Setup-x64.exe"
+            "oXyFlow_TimeLog-Standalone-x64.exe"
+            "oXyFlow_TimeLog-Universal.dmg"
+            "oXyFlow_TimeLog-x86_64.AppImage"
+            "timelog_amd64.deb"
+            "timelog.x86_64.rpm"
+          )
+
+          MISSING=0
+          for asset in "${REQUIRED_ASSETS[@]}"; do
+            if [ ! -f "release-assets/$asset" ]; then
+              echo "::error::Missing required release asset: $asset"
+              MISSING=1
+            else
+              echo "Verified release asset: $asset"
+            fi
+          done
+
+          if [ "$MISSING" -ne 0 ]; then
+            echo "::error::Release asset verification failed! Not all required artifacts are present."
+            exit 1
+          fi
+
       - name: Generate SHA256 Checksums
         shell: bash
         run: |
@@ -148,7 +172,7 @@ jobs:
           gh release create "$TAG" release-assets/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$SHA" \
-            --title "OxyFlow v${VERSION}" \
+            --title "oXyFlow TimeLog v${VERSION}" \
             --generate-notes
 
           {
