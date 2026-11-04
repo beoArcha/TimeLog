@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow enthält das native Terminal-Tool `oxy`, das direkt mit der lokalen SQLite-Datenbank (`oxytime.db`) interagiert. Das CLI funktioniert vollständig unabhängig von der grafischen Oberfläche und eignet sich für Terminal-Workflows, Shell-Skripte und CI/CD-Pipelines.
+TimeLog enthält das native Terminal-Tool `oxy`, das direkt mit der lokalen SQLite-Datenbank (`oxytime.db`) interagiert. Das CLI funktioniert vollständig unabhängig von der grafischen Oberfläche und eignet sich für Terminal-Workflows, Shell-Skripte und CI/CD-Pipelines.
 
 ---
 

@@ -18,15 +18,15 @@ Im Browser-Modus (PWA) werden die Daten im HTML5-`localStorage` anstelle einer p
 
 ---
 
-## 2. Benötigt oXyFlow eine Internetverbindung?
+## 2. Benötigt TimeLog eine Internetverbindung?
 
-**Nein.** oXyFlow arbeitet strikt lokal (Offline-First). Es gibt weder Cloud-Zwangsanbindungen noch Telemetrie-Dienste oder externe Authentifizierungsaufrufe. Alle Zeitberechnungen, Datenbankabfragen und Berichte führt die native Rust-Engine lokal aus.
+**Nein.** TimeLog arbeitet strikt lokal (Offline-First). Es gibt weder Cloud-Zwangsanbindungen noch Telemetrie-Dienste oder externe Authentifizierungsaufrufe. Alle Zeitberechnungen, Datenbankabfragen und Berichte führt die native Rust-Engine lokal aus.
 
 ---
 
 ## 3. Warum zeigt Windows Defender SmartScreen beim Start eine Warnung?
 
-Windows Defender SmartScreen warnt vor neu heruntergeladenen Binärdateien, die nicht mit einem kostenintensiven kommerziellen EV-Code-Signing-Zertifikat versehen sind. oXyFlow ist Open-Source-Software unter der Mozilla Public License 2.0 (MPL-2.0).
+Windows Defender SmartScreen warnt vor neu heruntergeladenen Binärdateien, die nicht mit einem kostenintensiven kommerziellen EV-Code-Signing-Zertifikat versehen sind. oXyFlow TimeLog ist Open-Source-Software unter der Mozilla Public License 2.0 (MPL-2.0).
 
 Vorgehensweise:
 
@@ -69,7 +69,7 @@ Das CLI-Binary (`oxy`) greift auf dieselbe lokale SQLite-Datei (`oxytime.db`) zu
 
 ## 7. Wie unterscheidet sich die Datenspeicherung zwischen Desktop-App und Browser-PWA?
 
-oXyFlow nutzt an die jeweilige Laufzeitumgebung angepasste Persistenz-Engines:
+TimeLog nutzt an die jeweilige Laufzeitumgebung angepasste Persistenz-Engines:
 
 - **Desktop (Tauri v2)**: Die Daten werden in einer ACID-konformen lokalen SQLite-Datei (`oxytime.db`) im Dateisystem gespeichert. Nutzer haben direkten Zugriff auf die Datei für manuelle Backups und den CLI-Abgleich.
 - **Browser (PWA)**: Die Daten liegen im herkunftsisolierten `localStorage` des Browsers (`LocalStorage Engine`). Da Webbrowser in einer Sicherheits-Sandbox ohne Dateisystemzugriff arbeiten, wird kein physisches `.sqlite`-File erstellt oder exportiert.

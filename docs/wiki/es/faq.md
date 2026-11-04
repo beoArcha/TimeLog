@@ -18,15 +18,15 @@ En modo navegador (PWA), los datos se guardan en el `localStorage` de HTML5 en l
 
 ---
 
-## 2. ¿Requiere oXyFlow conexión a Internet?
+## 2. ¿Requiere TimeLog conexión a Internet?
 
-**No.** oXyFlow opera de manera 100% local (offline-first). No existen conexiones obligatorias a la nube, beacons de telemetría ni servicios externos de autenticación. Todo el cálculo de tiempos y generación de informes lo ejecuta el motor nativo de Rust.
+**No.** TimeLog opera de manera 100% local (offline-first). No existen conexiones obligatorias a la nube, beacons de telemetría ni servicios externos de autenticación. Todo el cálculo de tiempos y generación de informes lo ejecuta el motor nativo de Rust.
 
 ---
 
 ## 3. ¿Por qué Windows Defender SmartScreen muestra una advertencia al inicio?
 
-Windows SmartScreen emite advertencias para archivos binarios descargados recientemente que no cuentan con un costoso certificado corporativo de firma de código (EV). oXyFlow es software libre distribuido bajo la licencia Mozilla Public License 2.0 (MPL-2.0).
+Windows SmartScreen emite advertencias para archivos binarios descargados recientemente que no cuentan con un costoso certificado corporativo de firma de código (EV). oXyFlow TimeLog es software libre distribuido bajo la licencia Mozilla Public License 2.0 (MPL-2.0).
 
 Para continuar:
 
@@ -69,10 +69,10 @@ El binario de terminal (`oxy`) lee y escribe en el mismo archivo local de SQLite
 
 ## 7. ¿En qué se diferencia el almacenamiento de datos entre la versión de escritorio y la PWA web?
 
-oXyFlow emplea motores de persistencia adaptados a cada entorno de ejecución:
+TimeLog emplea motores de persistencia adaptados a cada entorno de ejecución:
 
 - **Escritorio (Tauri v2)**: Los datos se almacenan en un archivo SQLite local con soporte ACID (`oxytime.db`) en el sistema de archivos, permitiendo copias directas y sincronización con el CLI.
 - **Navegador (PWA)**: Los datos residen en el `localStorage` del navegador (`LocalStorage Engine`), aislado por dominio. El entorno de seguridad del navegador no permite acceso al disco, por lo que no se genera ningún archivo `.sqlite` físico.
 - **Advertencia sobre la Caché del Navegador**: Las acciones de limpieza del navegador ("Borrar datos de navegación", eliminar cookies o almacenamiento del sitio) o el uso de ventanas de incógnito borran de forma permanente todos los registros.
-- **Práctica Recomendada**: Si utiliza oXyFlow en el navegador web, realice exportaciones periódicas en JSON desde **Ajustes → Copias de seguridad → Exportar copia en JSON** para mantener sus datos a salvo en el disco.
+- **Práctica Recomendada**: Si utiliza TimeLog en el navegador web, realice exportaciones periódicas en JSON desde **Ajustes → Copias de seguridad → Exportar copia en JSON** para mantener sus datos a salvo en el disco.
 

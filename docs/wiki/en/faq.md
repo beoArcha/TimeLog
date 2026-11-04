@@ -18,15 +18,15 @@ In browser runtime mode (PWA), data is persisted in HTML5 `localStorage` instead
 
 ---
 
-## 2. Does oXyFlow require an internet connection?
+## 2. Does TimeLog require an internet connection?
 
-**No.** oXyFlow is strictly offline-first. There are no mandatory cloud accounts, external telemetry beacons, or third-party authentication services. All timer calculations, data querying, and report generation execute locally inside the native Rust engine.
+**No.** TimeLog is strictly offline-first. There are no mandatory cloud accounts, external telemetry beacons, or third-party authentication services. All timer calculations, data querying, and report generation execute locally inside the native Rust engine.
 
 ---
 
 ## 3. Why does Windows SmartScreen display an alert on initial launch?
 
-Windows SmartScreen issues a warning for freshly downloaded executables that lack an expensive commercial Extended Validation (EV) code signing certificate. oXyFlow is open-source software distributed under the Mozilla Public License 2.0 (MPL-2.0).
+Windows SmartScreen issues a warning for freshly downloaded executables that lack an expensive commercial Extended Validation (EV) code signing certificate. oXyFlow TimeLog is open-source software distributed under the Mozilla Public License 2.0 (MPL-2.0).
 
 To proceed:
 
@@ -70,10 +70,10 @@ The CLI companion binary (`oxy`) connects directly to the same local SQLite data
 
 ## 7. How does data storage work in the browser PWA compared to the desktop app?
 
-oXyFlow uses separate persistence engines tailored to each runtime environment:
+TimeLog uses separate persistence engines tailored to each runtime environment:
 
 - **Desktop (Tauri v2)**: Data is stored in an ACID-compliant local SQLite database file (`oxytime.db`) on the filesystem. Users retain direct file access for manual filesystem backups and CLI companion synchronization.
 - **Browser (PWA)**: Data resides in origin-isolated `localStorage` (`LocalStorage Engine`). Because browsers run in a secure sandbox without direct filesystem access, no physical `.sqlite` file is created or exportable in web mode.
 - **Browser Cache Warning**: Executing browser cleanup routines ("Clear browsing data", "Clear site storage and cookies") or using Private/Incognito windows will permanently erase your stored timesheets.
-- **Recommended Practice**: When using oXyFlow in web browsers, generate regular JSON backups via **Settings → Backup → Export Backup JSON** to keep a persistent record on your local disk.
+- **Recommended Practice**: When using TimeLog in web browsers, generate regular JSON backups via **Settings → Backup → Export Backup JSON** to keep a persistent record on your local disk.
 

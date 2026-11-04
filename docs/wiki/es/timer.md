@@ -4,7 +4,7 @@
 
 ---
 
-oXyFlow gestiona las sesiones de tiempo mediante un motor nativo en Rust que garantiza la integridad temporal y elimina las desviaciones de reloj.
+TimeLog gestiona las sesiones de tiempo mediante un motor nativo en Rust que garantiza la integridad temporal y elimina las desviaciones de reloj.
 
 ---
 

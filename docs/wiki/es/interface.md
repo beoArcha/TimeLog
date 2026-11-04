@@ -4,7 +4,7 @@
 
 ---
 
-La interfaz de usuario de oXyFlow se articula en torno a cuatro dimensiones visuales desacopladas: entorno de ejecución, variante de diseño, escala visual y tema de color.
+La interfaz de usuario de TimeLog se articula en torno a cuatro dimensiones visuales desacopladas: entorno de ejecución, variante de diseño, escala visual y tema de color.
 
 ---
 
@@ -24,7 +24,7 @@ La variante de diseño se puede cambiar desde la barra de navegación superior o
 
 ## Escala de Tipografía e Iconos
 
-Además de las variantes de diseño, oXyFlow admite tres niveles de escala independientes controlados mediante tokens de diseño CSS:
+Además de las variantes de diseño, TimeLog admite tres niveles de escala independientes controlados mediante tokens de diseño CSS:
 
 - **Pequeño (Small)**: Mayor densidad de información, ideal para jerarquías extensas de tareas.
 - **Medio (Medium)**: Escala equilibrada por defecto para monitores convencionales.
@@ -62,7 +62,7 @@ Para proteger la integridad de las hojas de horas y evitar la pérdida de datos 
 
 ## Temas Integrados
 
-oXyFlow incluye tres temas integrados gestionados a través de `ThemeRegistry`:
+TimeLog incluye tres temas integrados gestionados a través de `ThemeRegistry`:
 
 | ID del Tema | Nombre | Características |
 | :--- | :--- | :--- |

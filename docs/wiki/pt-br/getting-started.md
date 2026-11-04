@@ -4,17 +4,17 @@
 
 ---
 
-Este guia orienta você no acesso ao oXyFlow via Web / PWA ou na instalação do aplicativo desktop, na preparação do ambiente e no registro de sua primeira sessão de tempo.
+Este guia orienta você no acesso ao TimeLog via Web / PWA ou na instalação do aplicativo desktop, na preparação do ambiente e no registro de sua primeira sessão de tempo.
 
 ---
 
 ## Aplicação Web e PWA (Sem Instalação)
 
-Você pode usar o oXyFlow imediatamente sem a necessidade de baixar instaladores:
+Você pode usar o TimeLog imediatamente sem a necessidade de baixar instaladores:
 
 1. Acesse **[beoarcha.github.io/TimeLog/app/](https://beoarcha.github.io/TimeLog/app/)** em qualquer navegador moderno (Chrome, Edge, Firefox, Safari).
 2. Todo o timer e os dados operam e persistem 100% localmente no armazenamento privado do navegador.
-3. **Instalação como PWA**: Em navegadores compatíveis, clique em **Instalar aplicativo** na barra de endereços para instalar o oXyFlow como um aplicativo independente com suporte offline no seu computador ou celular.
+3. **Instalação como PWA**: Em navegadores compatíveis, clique em **Instalar aplicativo** na barra de endereços para instalar o TimeLog como um aplicativo independente com suporte offline no seu computador ou celular.
 
 ---
 
@@ -51,7 +51,7 @@ oxy --version
 
 ## Criando um Projeto e uma Tarefa
 
-1. Abra o **oXyFlow** (versão desktop ou web).
+1. Abra o **TimeLog** (versão desktop ou web).
 2. Clique no botão **"+ Novo Projeto"** na barra lateral.
 3. Digite o nome do projeto (ex.: `Portal do Cliente`) e selecione uma cor de identificação. Clique em **Salvar**.
 4. Dentro do projeto criado, clique em **"+ Adicionar tarefa"**. Digite o título (ex.: `Implementação da API`) e pressione **Enter**.
