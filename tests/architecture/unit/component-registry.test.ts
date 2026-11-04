@@ -6,6 +6,7 @@ import {
   HTML_ELEMENT_CATEGORY_MAP,
   getComponentMetadata,
   getEffectiveContentCategory,
+  getEffectiveAllowedChildCategories,
   getNativeHtmlElementCategory,
   getHtmlElementConstraints,
   isDesignSystemComponent,
@@ -125,6 +126,7 @@ describe('Component Registry Consistency', () => {
       const cluster = COMPONENT_REGISTRY.InlineCluster;
       expect(cluster.defaultTag).toBe('span');
       expect(cluster.selfCategory).toBe('phrasing');
+      expect(cluster.allowedChildCategories).toEqual(['phrasing', 'transparent']);
     });
 
     it('becomes flow when polymorphic as="div" is applied', () => {
@@ -132,6 +134,13 @@ describe('Component Registry Consistency', () => {
       expect(getEffectiveContentCategory(cluster)).toBe('phrasing');
       expect(getEffectiveContentCategory(cluster, 'div')).toBe('flow');
       expect(getEffectiveContentCategory(cluster, 'span')).toBe('phrasing');
+    });
+
+    it('adjusts allowed child categories based on effective tag', () => {
+      const cluster = COMPONENT_REGISTRY.InlineCluster;
+      expect(getEffectiveAllowedChildCategories(cluster)).toEqual(['phrasing', 'transparent']);
+      expect(getEffectiveAllowedChildCategories(cluster, 'span')).toEqual(['phrasing', 'transparent']);
+      expect(getEffectiveAllowedChildCategories(cluster, 'div')).toEqual(['flow', 'phrasing', 'transparent']);
     });
   });
 

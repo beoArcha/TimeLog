@@ -95,8 +95,9 @@ export function ValidSelect() {
     it('allows valid children according to effective HTML element on polymorphic components', () => {
       const code = `
 import React from 'react';
-import { VStack } from '@components/ui/stack';
+import { VStack, InlineCluster } from '@components/ui/stack';
 import { ListItem } from '@components/ui/typography';
+import { Badge } from '@components/ui/badge';
 
 export function EffectiveTagValid() {
   return (
@@ -108,6 +109,13 @@ export function EffectiveTagValid() {
         <li>Valid native list item</li>
         <ListItem>Valid design system list item</ListItem>
       </VStack>
+      <InlineCluster>
+        <Badge>Valid phrasing badge</Badge>
+        <span>Valid phrasing text</span>
+      </InlineCluster>
+      <InlineCluster as="div">
+        <VStack>Valid flow block in div cluster</VStack>
+      </InlineCluster>
     </div>
   );
 }
@@ -290,6 +298,24 @@ export function DetailsInSpan() {
       const violations = rule.scanAst(code, 'features/example/DetailsInSpan.tsx');
       expect(violations.length).toBeGreaterThanOrEqual(1);
       expect(violations.some(v => v.target === 'details')).toBe(true);
+    });
+
+    it('detects flow elements inside default InlineCluster (rendered as span)', () => {
+      const code = `
+import React from 'react';
+import { InlineCluster, VStack } from '@components/ui/stack';
+
+export function FlowInDefaultInlineCluster() {
+  return (
+    <InlineCluster>
+      <VStack>Invalid Flow in Span Cluster</VStack>
+    </InlineCluster>
+  );
+}
+`;
+      const violations = rule.scanAst(code, 'features/example/FlowInDefaultInlineCluster.tsx');
+      expect(violations.length).toBeGreaterThanOrEqual(1);
+      expect(violations.some(v => v.target === 'VStack')).toBe(true);
     });
   });
 
