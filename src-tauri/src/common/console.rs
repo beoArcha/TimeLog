@@ -1,6 +1,6 @@
 #[cfg(target_os = "windows")]
 pub fn attach_parent_console() -> bool {
-    // When OxyFlow is built with the windows subsystem in release mode,
+    // When oXyFlow TimeLog is built with the windows subsystem in release mode,
     // stdout/stderr are detached from the caller's console. Attach to the
     // parent process console so terminal executions can print output.
     unsafe {

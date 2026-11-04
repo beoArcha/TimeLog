@@ -24,6 +24,6 @@ pub struct AppState {
     pub workflow_daemon: Arc<WorkflowDaemon>,
 }
 
-pub fn get_cli_db_path() -> PathBuf {
+pub fn get_cli_db_path() -> std::io::Result<PathBuf> {
     crate::common::paths::get_default_db_path()
 }

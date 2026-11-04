@@ -8,3 +8,4 @@ pub const CONFIG_FOLDER: &str = ".config";
 pub const DEFAULT_DB_NAME: &str = "oxytime.db";
 pub const APP_NAME: &str = "oXyFlow TimeLog";
 pub const APP_ERROR: &str = "error while running tauri application";
+pub const BUNDLE_IDENTIFIER: &str = "com.oxyflow.timelog";
