@@ -7,59 +7,104 @@ use std::path::{Path, PathBuf};
 /// - Windows: `%APPDATA%` (AppData\Roaming)
 /// - macOS: `$HOME/Library/Application Support`
 /// - Linux & Unix: `$XDG_DATA_HOME` falling back to `$HOME/.local/share`
-pub fn resolve_os_data_dir_with_env<F>(target_os: &str, get_env: F) -> PathBuf
+///
+/// According to the XDG Base Directory Specification: if `$XDG_DATA_HOME` is either not set, empty,
+/// or not an absolute path, it must be ignored, and the default `$HOME/.local/share` must be used instead.
+///
+/// If native data directories cannot be determined (e.g. required environment variables are missing or empty),
+/// this function returns an explicit `Err` rather than falling back to the current directory (`.`).
+pub fn resolve_os_data_dir_with_env<F>(target_os: &str, get_env: F) -> std::io::Result<PathBuf>
 where
     F: Fn(&str) -> Option<String>,
 {
     match target_os {
-        "windows" => get_env(APPDATA)
-            .or_else(|| get_env("AppData"))
-            .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from(".")),
-        "macos" => {
-            if let Some(home) = get_env("HOME") {
-                PathBuf::from(home)
-                    .join("Library")
-                    .join("Application Support")
+        "windows" => {
+            let app_data = get_env(APPDATA)
+                .or_else(|| get_env("AppData"))
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty());
+
+            if let Some(dir) = app_data {
+                Ok(PathBuf::from(dir))
             } else {
-                PathBuf::from(".")
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "Failed to resolve Windows AppData directory: %APPDATA% environment variable is not set or empty",
+                ))
+            }
+        }
+        "macos" => {
+            let home = get_env("HOME")
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty());
+
+            if let Some(home) = home {
+                Ok(PathBuf::from(home)
+                    .join("Library")
+                    .join("Application Support"))
+            } else {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "Failed to resolve macOS Application Support directory: $HOME environment variable is not set or empty",
+                ))
             }
         }
         _ => {
             if let Some(xdg) = get_env("XDG_DATA_HOME") {
                 let trimmed = xdg.trim();
-                if !trimmed.is_empty() {
-                    return PathBuf::from(trimmed);
+                if !trimmed.is_empty()
+                    && (Path::new(trimmed).is_absolute() || trimmed.starts_with('/'))
+                {
+                    return Ok(PathBuf::from(trimmed));
                 }
             }
-            if let Some(home) = get_env("HOME") {
-                PathBuf::from(home).join(".local").join("share")
+
+            let home = get_env("HOME")
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty());
+
+            if let Some(home) = home {
+                Ok(PathBuf::from(home).join(".local").join("share"))
             } else {
-                PathBuf::from(".")
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "Failed to resolve Linux/Unix data directory: neither $XDG_DATA_HOME is valid absolute path nor $HOME is set",
+                ))
             }
         }
     }
 }
 
 /// Resolves the current operating system's native base user data directory.
-pub fn resolve_system_data_dir() -> PathBuf {
+pub fn resolve_system_data_dir() -> std::io::Result<PathBuf> {
     let os = std::env::consts::OS;
     resolve_os_data_dir_with_env(os, |k| std::env::var(k).ok())
+}
+
+/// Resolves the default persistent SQLite database path for a specific operating system,
+/// reading environment variables via `get_env`.
+pub fn resolve_default_db_path_with_env<F>(target_os: &str, get_env: F) -> std::io::Result<PathBuf>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    let base_dir = resolve_os_data_dir_with_env(target_os, get_env)?;
+    Ok(base_dir.join(BUNDLE_IDENTIFIER).join(DEFAULT_DB_NAME))
 }
 
 /// Resolves the default persistent SQLite database path for both native CLI and desktop instances.
 /// Ensures the enclosing directory is created if not already present, propagating I/O errors.
 pub fn try_get_default_db_path() -> std::io::Result<PathBuf> {
-    let base_dir = resolve_system_data_dir();
+    let base_dir = resolve_system_data_dir()?;
     let app_dir = base_dir.join(BUNDLE_IDENTIFIER);
     std::fs::create_dir_all(&app_dir)?;
     Ok(app_dir.join(DEFAULT_DB_NAME))
 }
 
-/// Resolves the default persistent SQLite database path, falling back if directory creation fails.
+/// Resolves the default persistent SQLite database path, falling back to uncreated path if directory creation fails.
 pub fn get_default_db_path() -> PathBuf {
     try_get_default_db_path().unwrap_or_else(|_| {
-        let base_dir = resolve_system_data_dir();
+        let base_dir = resolve_system_data_dir()
+            .unwrap_or_else(|_| PathBuf::from(BUNDLE_IDENTIFIER));
         base_dir.join(BUNDLE_IDENTIFIER).join(DEFAULT_DB_NAME)
     })
 }
@@ -83,18 +128,25 @@ fn ensure_parent_dir_exists(path: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-/// Resolves the SQLite database path based on the precedence hierarchy:
+/// Resolves the SQLite database path based on the precedence hierarchy with custom environment provider:
 /// 1. CLI explicit flag `--db <path>`
 /// 2. Environment variable `OXY_DB_PATH`
 /// 3. Operating system default user data directory
-pub fn resolve_db_path(cli_override: Option<&str>) -> std::io::Result<PathBuf> {
+pub fn resolve_db_path_with_env<F>(
+    cli_override: Option<&str>,
+    target_os: &str,
+    get_env: F,
+) -> std::io::Result<PathBuf>
+where
+    F: Fn(&str) -> Option<String>,
+{
     if let Some(path_str) = cli_override {
         let path = PathBuf::from(path_str);
         ensure_parent_dir_exists(&path)?;
         return Ok(path);
     }
 
-    if let Ok(env_path) = std::env::var(ENV_OXY_DB_PATH) {
+    if let Some(env_path) = get_env(ENV_OXY_DB_PATH) {
         let trimmed = env_path.trim();
         if !trimmed.is_empty() {
             let path = PathBuf::from(trimmed);
@@ -103,5 +155,17 @@ pub fn resolve_db_path(cli_override: Option<&str>) -> std::io::Result<PathBuf> {
         }
     }
 
-    try_get_default_db_path()
+    let default_path = resolve_default_db_path_with_env(target_os, get_env)?;
+    ensure_parent_dir_exists(&default_path)?;
+    Ok(default_path)
+}
+
+/// Resolves the SQLite database path based on the precedence hierarchy:
+/// 1. CLI explicit flag `--db <path>`
+/// 2. Environment variable `OXY_DB_PATH`
+/// 3. Operating system default user data directory
+pub fn resolve_db_path(cli_override: Option<&str>) -> std::io::Result<PathBuf> {
+    resolve_db_path_with_env(cli_override, std::env::consts::OS, |k| {
+        std::env::var(k).ok()
+    })
 }
