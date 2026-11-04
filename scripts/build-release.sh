@@ -135,6 +135,17 @@ fi
 
 step "Building Release Packages (Bundle: ${BUNDLE})"
 
+if [ "${BUNDLE}" = "all" ]; then
+    BUNDLE_DIR="${PROJECT_ROOT}/src-tauri/target/release/bundle"
+    if [ -d "${BUNDLE_DIR}" ]; then
+        echo "Cleaning previous bundle output in ${BUNDLE_DIR}..."
+        rm -rf "${BUNDLE_DIR:?}"/*
+    fi
+elif [ -d "${PROJECT_ROOT}/src-tauri/target/release/bundle/${BUNDLE}" ]; then
+    echo "Cleaning previous ${BUNDLE} bundle output in src-tauri/target/release/bundle/${BUNDLE}..."
+    rm -rf "${PROJECT_ROOT}/src-tauri/target/release/bundle/${BUNDLE:?}"/*
+fi
+
 if [ "${BUNDLE}" = "none" ]; then
     echo "Building release binary without packaging bundle..."
     cargo build --release --manifest-path src-tauri/Cargo.toml
@@ -166,34 +177,46 @@ compute_hash() {
 }
 
 # Normalize known bundle formats
-APPIMAGE_PATH=$(find src-tauri/target/release/bundle/appimage -type f -name "*.AppImage" 2>/dev/null | head -n 1 || true)
-if [ -n "${APPIMAGE_PATH}" ]; then
-    cp "${APPIMAGE_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-x86_64.AppImage"
+if [ "${BUNDLE}" = "appimage" ] || [ "${BUNDLE}" = "all" ]; then
+    APPIMAGE_PATH=$(find src-tauri/target/release/bundle/appimage -type f -name "*.AppImage" 2>/dev/null | head -n 1 || true)
+    if [ -n "${APPIMAGE_PATH}" ]; then
+        cp "${APPIMAGE_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-x86_64.AppImage"
+    fi
 fi
 
-DEB_PATH=$(find src-tauri/target/release/bundle/deb -type f -name "*.deb" 2>/dev/null | head -n 1 || true)
-if [ -n "${DEB_PATH}" ]; then
-    cp "${DEB_PATH}" "${NORMALIZED_DIR}/timelog_amd64.deb"
+if [ "${BUNDLE}" = "deb" ] || [ "${BUNDLE}" = "all" ]; then
+    DEB_PATH=$(find src-tauri/target/release/bundle/deb -type f -name "*.deb" 2>/dev/null | head -n 1 || true)
+    if [ -n "${DEB_PATH}" ]; then
+        cp "${DEB_PATH}" "${NORMALIZED_DIR}/timelog_amd64.deb"
+    fi
 fi
 
-RPM_PATH=$(find src-tauri/target/release/bundle/rpm -type f -name "*.rpm" 2>/dev/null | head -n 1 || true)
-if [ -n "${RPM_PATH}" ]; then
-    cp "${RPM_PATH}" "${NORMALIZED_DIR}/timelog.x86_64.rpm"
+if [ "${BUNDLE}" = "rpm" ] || [ "${BUNDLE}" = "all" ]; then
+    RPM_PATH=$(find src-tauri/target/release/bundle/rpm -type f -name "*.rpm" 2>/dev/null | head -n 1 || true)
+    if [ -n "${RPM_PATH}" ]; then
+        cp "${RPM_PATH}" "${NORMALIZED_DIR}/timelog.x86_64.rpm"
+    fi
 fi
 
-DMG_PATH=$(find src-tauri/target/release/bundle/dmg -type f -name "*.dmg" 2>/dev/null | head -n 1 || true)
-if [ -n "${DMG_PATH}" ]; then
-    cp "${DMG_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Universal.dmg"
+if [ "${BUNDLE}" = "dmg" ] || [ "${BUNDLE}" = "all" ]; then
+    DMG_PATH=$(find src-tauri/target/release/bundle/dmg -type f -name "*.dmg" 2>/dev/null | head -n 1 || true)
+    if [ -n "${DMG_PATH}" ]; then
+        cp "${DMG_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Universal.dmg"
+    fi
 fi
 
-NSIS_PATH=$(find src-tauri/target/release/bundle/nsis -type f -name "*.exe" 2>/dev/null | head -n 1 || true)
-if [ -n "${NSIS_PATH}" ]; then
-    cp "${NSIS_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Setup-x64.exe"
+if [ "${BUNDLE}" = "nsis" ] || [ "${BUNDLE}" = "all" ]; then
+    NSIS_PATH=$(find src-tauri/target/release/bundle/nsis -type f -name "*.exe" 2>/dev/null | head -n 1 || true)
+    if [ -n "${NSIS_PATH}" ]; then
+        cp "${NSIS_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Setup-x64.exe"
+    fi
 fi
 
-EXE_PATH=$(find src-tauri/target/release -maxdepth 1 -type f \( -name "TimeLog.exe" -o -name "timelog.exe" -o -name "timelog" \) 2>/dev/null | head -n 1 || true)
-if [ -n "${EXE_PATH}" ] && [[ "${EXE_PATH}" == *.exe ]]; then
-    cp "${EXE_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Standalone-x64.exe"
+if [ "${BUNDLE}" = "standalone" ] || [ "${BUNDLE}" = "all" ]; then
+    EXE_PATH=$(find src-tauri/target/release -maxdepth 1 -type f \( -name "TimeLog.exe" -o -name "timelog.exe" -o -name "timelog" \) 2>/dev/null | head -n 1 || true)
+    if [ -n "${EXE_PATH}" ] && [[ "${EXE_PATH}" == *.exe ]]; then
+        cp "${EXE_PATH}" "${NORMALIZED_DIR}/oXyFlow_TimeLog-Standalone-x64.exe"
+    fi
 fi
 
 FOUND=0

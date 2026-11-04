@@ -12,7 +12,7 @@ oXyFlow is built around a **single business domain model** with **multiple runti
 > For UI spatial logic and design tokens, see [`USERINTERFACE.md`](./USERINTERFACE.md).  
 > For UX principles, see [`USEREXPERIENCE.md`](./USEREXPERIENCE.md).  
 > For CLI architecture, modular engine contracts, and persona operations, see [`CLI.md`](./CLI.md).  
-> For AI operational guardrails, see [`../AGENTS.md`](../AGENTS.md).
+> For AI operational guardrails, see [`../../AGENTS.md`](../../AGENTS.md).
 
 ---
 

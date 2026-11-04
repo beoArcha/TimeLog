@@ -313,7 +313,7 @@ The CLI supports a dedicated in-memory sandbox emulator (`src/features/cli/sandb
 
 ## 🧪 Testing Architecture & Segregation
 
-CLI tests are kept in dedicated directories (structure and naming rules: [`testing_standards.md`](../.agents/rules/testing_standards.md)):
+CLI tests are kept in dedicated directories (structure and naming rules: [`testing_standards.md`](../../.agents/rules/testing_standards.md)):
 
 ```text
 TimeLog/

@@ -269,7 +269,7 @@ Raw HTML form, layout, and table tags are strictly forbidden outside `src/compon
 
 The interface is fully keyboard-operable and localized in 6 languages (`en`, `pl`, `de`, `es`, `fr`, `pt-br`). Translations are resolved by `translate(locale, domain, key, customTranslations)` / `useTranslation`; dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/`, each containing all 6 locales, with keys typed in `src/common/i18n/keys.ts`.
 
-The mandatory a11y and i18n rules are in [`frontend_engineering_standards.md`](../.agents/rules/frontend_engineering_standards.md) (sections 7 and 8).
+The mandatory a11y and i18n rules are in [`frontend_engineering_standards.md`](../../.agents/rules/frontend_engineering_standards.md) (sections 7 and 8).
 
 ---
 

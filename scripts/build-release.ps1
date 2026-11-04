@@ -114,6 +114,14 @@ if ($DryRun) {
 
 Write-Step "Building Release Packages (Bundle: $Bundle)"
 
+if ($Bundle -in @("nsis", "all")) {
+    $NsisDir = Join-Path $ProjectRoot "src-tauri\target\release\bundle\nsis"
+    if (Test-Path $NsisDir) {
+        Write-Host "Cleaning previous NSIS bundle output in $NsisDir..."
+        Remove-Item -Path "$NsisDir\*" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 if ($Bundle -eq "none") {
     Write-Host "Building release binary without packaging bundle..."
     & cargo build --release --manifest-path src-tauri/Cargo.toml
@@ -143,16 +151,20 @@ if (Test-Path $NormalizedDir) {
     New-Item -ItemType Directory -Path $NormalizedDir -Force | Out-Null
 }
 
-$CandidateNsis = Get-ChildItem -Path (Join-Path $ProjectRoot "src-tauri\target\release\bundle\nsis") -File -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($CandidateNsis) {
-    $targetPath = Join-Path $NormalizedDir "oXyFlow_TimeLog-Setup-x64.exe"
-    Copy-Item -Path $CandidateNsis.FullName -Destination $targetPath -Force
+if ($Bundle -in @("nsis", "all")) {
+    $CandidateNsis = Get-ChildItem -Path (Join-Path $ProjectRoot "src-tauri\target\release\bundle\nsis") -File -Filter "*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($CandidateNsis) {
+        $targetPath = Join-Path $NormalizedDir "oXyFlow_TimeLog-Setup-x64.exe"
+        Copy-Item -Path $CandidateNsis.FullName -Destination $targetPath -Force
+    }
 }
 
-$CandidateExe = Get-ChildItem -Path (Join-Path $ProjectRoot "src-tauri\target\release") -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @("TimeLog.exe", "timelog.exe") } | Select-Object -First 1
-if ($CandidateExe) {
-    $targetPath = Join-Path $NormalizedDir "oXyFlow_TimeLog-Standalone-x64.exe"
-    Copy-Item -Path $CandidateExe.FullName -Destination $targetPath -Force
+if ($Bundle -in @("standalone", "all")) {
+    $CandidateExe = Get-ChildItem -Path (Join-Path $ProjectRoot "src-tauri\target\release") -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @("TimeLog.exe", "timelog.exe") } | Select-Object -First 1
+    if ($CandidateExe) {
+        $targetPath = Join-Path $NormalizedDir "oXyFlow_TimeLog-Standalone-x64.exe"
+        Copy-Item -Path $CandidateExe.FullName -Destination $targetPath -Force
+    }
 }
 
 $ChecksumLines = @()

@@ -18,7 +18,8 @@ fn main() -> ExitCode {
         };
 
         let is_machine = cli_args.machine || cli_args.json;
-        let db_path = match oxyflow_timelog::common::paths::resolve_db_path(cli_args.db.as_deref()) {
+        let db_path = match oxyflow_timelog::common::paths::resolve_db_path(cli_args.db.as_deref())
+        {
             Ok(path) => path,
             Err(e) => {
                 let err = cli::CliError::Storage(
@@ -36,7 +37,8 @@ fn main() -> ExitCode {
             db_path,
             csv_directory,
         };
-        let persistence = match oxyflow_timelog::persistence::Persistence::new(&persistence_config) {
+        let persistence = match oxyflow_timelog::persistence::Persistence::new(&persistence_config)
+        {
             Ok(p) => p,
             Err(e) => {
                 let err = cli::CliError::from(e);

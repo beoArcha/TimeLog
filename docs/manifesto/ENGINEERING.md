@@ -4,7 +4,7 @@
 
 This document describes the architecture, layer responsibilities and engineering principles of oXyFlow. It is the reference for contributors and reviewers.
 
-Mandatory rules for day-to-day work (AI assistants and humans alike) are in [`../AGENTS.md`](../AGENTS.md) and the topic files in [`../.agents/rules/`](../.agents/rules/). This document explains the architecture those rules protect and does not repeat them.
+Mandatory rules for day-to-day work (AI assistants and humans alike) are in [`../../AGENTS.md`](../../AGENTS.md) and the topic files in [`../../.agents/rules/`](../../.agents/rules/). This document explains the architecture those rules protect and does not repeat them.
 
 ---
 
@@ -202,7 +202,7 @@ The in-app CLI (`src/features/cli/`) is integrated through `CliRouter` (`src/com
 | Parity | Engine and CLI behavior identical across Rust and browser |
 | Mutation | Stryker on core logic |
 
-Test structure, naming and isolation rules: [`testing_standards.md`](../.agents/rules/testing_standards.md).
+Test structure, naming and isolation rules: [`testing_standards.md`](../../.agents/rules/testing_standards.md).
 
 Architecture tests (TypeScript: `tests/architecture/`):
 
@@ -246,7 +246,7 @@ Pull requests are verified automatically by `.github/workflows/pr-checks.yml`:
 
 ## Toolchain
 
-Bun is the only JavaScript package manager and script runner (`bun install`, `bun run <script>`, `bun x <binary>`); `bun.lock` is the only lockfile. Commands are listed in [`../AGENTS.md`](../AGENTS.md#commands).
+Bun is the only JavaScript package manager and script runner (`bun install`, `bun run <script>`, `bun x <binary>`); `bun.lock` is the only lockfile. Commands are listed in [`../../AGENTS.md`](../../AGENTS.md#commands).
 
 ---
 

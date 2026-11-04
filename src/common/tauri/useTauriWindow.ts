@@ -271,7 +271,7 @@ export const useTauriWindow = ({
     } else {
       if (minimizeToTray) {
         setIsMinimized(true);
-        showToast(translate(locale, 'app', 'OXyFlowMinimizedToTray', customTranslations));
+        showToast(translate(locale, 'app', 'OxyFlowMinimizedToTray', customTranslations));
       } else {
         setIsGuiClosed(true);
         showToast(translate(locale, 'app', 'GuiClosedEngineKeepRunning', customTranslations));
