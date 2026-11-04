@@ -1,6 +1,7 @@
 use oxy_flow::common::constants::{BUNDLE_IDENTIFIER, DEFAULT_DB_NAME};
 use oxy_flow::common::paths::{
-    get_default_csv_dir, get_default_db_path, is_path_absolute, resolve_db_path_with_env,
+    get_default_csv_dir, get_default_db_path, is_path_absolute, is_path_absolute_for_os,
+    resolve_db_path_with_env,
     resolve_default_db_path_with_env, resolve_os_data_dir_with_env, try_get_default_db_path,
     ENV_OXYTIME_DB_PATH, ENV_OXY_DB_PATH,
 };
@@ -80,7 +81,7 @@ fn test_resolve_os_data_dir_windows() {
         dir,
         std::path::PathBuf::from("C:\\Users\\User\\AppData\\Roaming")
     );
-    assert!(is_path_absolute(&dir));
+    assert!(is_path_absolute_for_os(&dir, "windows"));
 }
 
 #[test]
@@ -247,11 +248,23 @@ fn test_resolve_db_path_preserves_cli_flag_and_env_vars() {
 }
 
 #[test]
-fn test_is_path_absolute() {
-    assert!(is_path_absolute(Path::new("/home/user/file")));
-    assert!(is_path_absolute(Path::new("\\windows\\path")));
-    assert!(is_path_absolute(Path::new("C:\\Users\\User")));
-    assert!(!is_path_absolute(Path::new("relative/path")));
-    assert!(!is_path_absolute(Path::new("file.txt")));
-    assert!(!is_path_absolute(Path::new("")));
+fn test_is_path_absolute_uses_target_os_semantics() {
+    // Unix paths are absolute only when rooted with '/'.
+    assert!(is_path_absolute_for_os(Path::new("/home/user/file"), "linux"));
+    assert!(is_path_absolute_for_os(Path::new("/Users/user/data"), "macos"));
+    assert!(!is_path_absolute_for_os(Path::new("\\relative\\data"), "linux"));
+    assert!(!is_path_absolute_for_os(Path::new("\\relative\\data"), "macos"));
+    assert!(!is_path_absolute_for_os(Path::new("relative/path"), "linux"));
+
+    // Windows requires a drive root or a complete UNC server/share path.
+    assert!(is_path_absolute_for_os(Path::new("C:\\Users\\User"), "windows"));
+    assert!(is_path_absolute_for_os(Path::new("C:/Users/User"), "windows"));
+    assert!(is_path_absolute_for_os(Path::new("\\\\server\\share"), "windows"));
+    assert!(is_path_absolute_for_os(Path::new("//server/share"), "windows"));
+    assert!(!is_path_absolute_for_os(Path::new("relative\\data"), "windows"));
+    assert!(!is_path_absolute_for_os(Path::new("\\relative"), "windows"));
+    assert!(!is_path_absolute_for_os(Path::new("C:relative"), "windows"));
+    assert!(!is_path_absolute_for_os(Path::new("\\\\server"), "windows"));
+
+    assert_eq!(is_path_absolute(Path::new("/home/user/file")), cfg!(unix));
 }
