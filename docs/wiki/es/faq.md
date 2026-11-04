@@ -10,9 +10,9 @@ Todos los registros de tiempo, proyectos, tareas y configuraciones se almacenan 
 
 | Plataforma | Ruta de Almacenamiento |
 | :--- | :--- |
-| **Windows** | `%APPDATA%\com.oxytime.oxyflow\oxytime.db` |
-| **Linux** | `~/.local/share/com.oxytime.oxyflow/oxytime.db` |
-| **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db` |
+| **Windows** | `%APPDATA%\com.oxyflow.timelog\oxytime.db` |
+| **Linux** | `~/.local/share/com.oxyflow.timelog/oxytime.db` |
+| **macOS** | `~/Library/Application Support/com.oxyflow.timelog/oxytime.db` |
 
 En modo navegador (PWA), los datos se guardan en el `localStorage` de HTML5 en lugar de un archivo SQLite físico (consulte la pregunta 7 para más detalles).
 
@@ -48,7 +48,7 @@ La sesión activa continuará contando hasta que se detenga, pause o cambie manu
 ## 5. ¿Cómo realizo una copia de seguridad y restauración de mi base de datos?
 
 - **Copia de Seguridad Universal en JSON**: En **Ajustes → Copias de seguridad** (panel **Copia de base de datos y estado**):
-  - **Exportar**: Haga clic en **Exportar copia en JSON** (`data-testid="export-backup-btn"`) para descargar una captura JSON estructurada (`OxyFlow_Backup_YYYY-MM-DD.json`) con todos los proyectos, tareas, registros de tiempo y configuraciones.
+  - **Exportar**: Haga clic en **Exportar copia en JSON** (`data-testid="export-backup-btn"`) para descargar una captura JSON estructurada (`TimeLog_Backup_YYYY-MM-DD.json`) con todos los proyectos, tareas, registros de tiempo y configuraciones.
   - **Restaurar / Importar**: Haga clic en **Restaurar copia desde JSON** (`data-testid="import-backup-btn"`) y seleccione un archivo `.json` previo. El motor valida la estructura de los datos (`validateBackupPayload`) antes de restaurar el estado.
   - **Portabilidad entre Plataformas**: El formato JSON es universal. Puede exportar una copia desde la PWA web e importarla en la aplicación de escritorio, o viceversa.
 - **Copia Física de SQLite (Solo Escritorio)**: En versiones de escritorio, puede copiar el archivo `oxytime.db` directamente con la aplicación cerrada o ejecutar comandos de SQLite:

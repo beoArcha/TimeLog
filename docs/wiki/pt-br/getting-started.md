@@ -22,14 +22,14 @@ Você pode usar o oXyFlow imediatamente sem a necessidade de baixar instaladores
 
 Baixe o pacote apropriado para seu sistema operacional na [página de versões do GitHub](https://github.com/beoArcha/TimeLog/releases/latest):
 
-- **Windows**: Execute o instalador `OxyFlow-Setup-x64.exe` ou utilize a versão portátil `OxyFlow-Standalone-x64.exe`.
-- **macOS**: Abra o arquivo de imagem de disco `OxyFlow-Universal.dmg` e arraste o aplicativo `OxyFlow.app` para a pasta `/Applications`.
-- **Linux**: Conceda permissão de execução para `OxyFlow-x86_64.AppImage` (`chmod +x OxyFlow-x86_64.AppImage`) ou instale o pacote `.deb` / `.rpm`:
+- **Windows**: Execute o instalador `oXyFlow_TimeLog-Setup-x64.exe` ou utilize a versão portátil `oXyFlow_TimeLog-Standalone-x64.exe`.
+- **macOS**: Abra o arquivo de imagem de disco `oXyFlow_TimeLog-Universal.dmg` e arraste o aplicativo `TimeLog.app` para a pasta `/Applications`.
+- **Linux**: Conceda permissão de execução para `oXyFlow_TimeLog-x86_64.AppImage` (`chmod +x oXyFlow_TimeLog-x86_64.AppImage`) ou instale o pacote `.deb` / `.rpm`:
 
   ```bash
-  sudo dpkg -i oxyflow_amd64.deb
+  sudo dpkg -i timelog_amd64.deb
   # ou no Fedora/RHEL:
-  sudo rpm -i oxyflow.x86_64.rpm
+  sudo rpm -i timelog.x86_64.rpm
   ```
 
 ---
@@ -38,7 +38,7 @@ Baixe o pacote apropriado para seu sistema operacional na [página de versões d
 
 Os instaladores de desktop também disponibilizam o utilitário CLI chamado `oxy`. Para executar `oxy` diretamente no seu terminal (PowerShell, Bash, Zsh), confirme se o diretório de instalação está configurado na sua variável `PATH`:
 
-- **Windows**: `%LOCALAPPDATA%\Programs\oXyFlow\`
+- **Windows**: `%LOCALAPPDATA%\Programs\TimeLog\`
 - **Linux / macOS**: `/usr/local/bin/` ou `~/.local/bin/`
 
 Confirme o funcionamento no terminal:

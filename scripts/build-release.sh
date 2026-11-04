@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Builds release packages for OxyFlow with automated pre-flight quality checks.
+# Builds release packages for oXyFlow TimeLog with automated pre-flight quality checks.
 # POSIX-compliant, supports Linux and macOS developer environments.
 # ==============================================================================
 

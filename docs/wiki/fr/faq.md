@@ -10,9 +10,9 @@ Tous les temps enregistrés, projets, tâches et réglages sont stockés dans un
 
 | Plateforme | Emplacement de Stockage |
 | :--- | :--- |
-| **Windows** | `%APPDATA%\com.oxytime.oxyflow\oxytime.db` |
-| **Linux** | `~/.local/share/com.oxytime.oxyflow/oxytime.db` |
-| **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db` |
+| **Windows** | `%APPDATA%\com.oxyflow.timelog\oxytime.db` |
+| **Linux** | `~/.local/share/com.oxyflow.timelog/oxytime.db` |
+| **macOS** | `~/Library/Application Support/com.oxyflow.timelog/oxytime.db` |
 
 En mode web (PWA), les données sont conservées dans le `localStorage` HTML5 au lieu d'un fichier SQLite physique (voir la question 7 pour les détails d'architecture).
 
@@ -48,7 +48,7 @@ La session continue d'enregistrer jusqu'à ce qu'elle soit arrêtée, mise en pa
 ## 5. Comment sauvegarder et restaurer ma base de données ?
 
 - **Sauvegarde Universelle JSON** : Dans **Paramètres → Sauvegardes** (carte **Sauvegarde de la base et de l'état**) :
-  - **Exporter** : Cliquez sur **Exporter la sauvegarde JSON** (`data-testid="export-backup-btn"`) pour générer un instantané structuré (`OxyFlow_Backup_YYYY-MM-DD.json`) comprenant l'ensemble des projets, tâches, entrées de temps et paramètres.
+  - **Exporter** : Cliquez sur **Exporter la sauvegarde JSON** (`data-testid="export-backup-btn"`) pour générer un instantané structuré (`TimeLog_Backup_YYYY-MM-DD.json`) comprenant l'ensemble des projets, tâches, entrées de temps et paramètres.
   - **Restaurer / Importer** : Cliquez sur **Restaurer la sauvegarde JSON** (`data-testid="import-backup-btn"`) et sélectionnez un fichier `.json` exporté au préalable. Le moteur valide le schéma des données (`validateBackupPayload`) avant d'appliquer la restauration.
   - **Portabilité Multi-Environnement** : Le format JSON est universel. Vous pouvez exporter une sauvegarde depuis la PWA web et l'importer dans l'application de bureau, ou inversement.
 - **Sauvegarde Physique SQLite (Bureau Uniquement)** : Sur l'application de bureau, copiez directement le fichier `oxytime.db` lorsque l'application est fermée ou utilisez les commandes SQLite :

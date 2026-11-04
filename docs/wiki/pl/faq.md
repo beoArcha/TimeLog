@@ -10,9 +10,9 @@ Wszystkie wpisy czasu, projekty, zadania i konfiguracja zapisywane są w lokalny
 
 | System Operacyjny | Ścieżka do Bazy Danych |
 | :--- | :--- |
-| **Windows** | `%APPDATA%\com.oxytime.oxyflow\oxytime.db` |
-| **Linux** | `~/.local/share/com.oxytime.oxyflow/oxytime.db` |
-| **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db` |
+| **Windows** | `%APPDATA%\com.oxyflow.timelog\oxytime.db` |
+| **Linux** | `~/.local/share/com.oxyflow.timelog/oxytime.db` |
+| **macOS** | `~/Library/Application Support/com.oxyflow.timelog/oxytime.db` |
 
 W trybie przeglądarkowym (PWA) dane są zapisywane w pamięci `localStorage` przeglądarki zamiast fizycznego pliku SQLite (szczegóły w pytaniu 7).
 
@@ -49,7 +49,7 @@ Aktywny wpis czasu mierzy czas do momentu ręcznego zatrzymania, zapauzowania lu
 ## 5. Jak wykonać i przywrócić kopię zapasową bazy danych?
 
 - **Uniwersalna Kopia JSON**: W zakładce **Ustawienia → Kopia zapasowa** (karta **Baza danych i kopie zapasowe**):
-  - **Eksport**: Kliknij **Eksportuj kopię JSON** (`data-testid="export-backup-btn"`), aby pobrać niezaszyfrowany, czytelny plik `.json` (`OxyFlow_Backup_YYYY-MM-DD.json`) zawierający wszystkie projekty, zadania, wpisy czasu i konfigurację.
+  - **Eksport**: Kliknij **Eksportuj kopię JSON** (`data-testid="export-backup-btn"`), aby pobrać niezaszyfrowany, czytelny plik `.json` (`TimeLog_Backup_YYYY-MM-DD.json`) zawierający wszystkie projekty, zadania, wpisy czasu i konfigurację.
   - **Import / Przywracanie**: Kliknij **Przywróć / Importuj kopię JSON** (`data-testid="import-backup-btn"`) i wskaż wcześniej wyeksportowany plik `.json`. Silnik weryfikuje strukturę danych (`validateBackupPayload`) przed przywróceniem stanu bazy.
   - **Przenośność Między Środowiskami**: Format JSON jest w pełni uniwersalny. Kopię wyeksportowaną z przeglądarki PWA można zaimportować do aplikacji desktopowej i odwrotnie.
 - **Fizyczna Kopia SQLite (Tylko Desktop)**: W wersji desktopowej można skopiować plik `oxytime.db` bezpośrednio przy wyłączonej aplikacji lub użyć polecenia SQLite:

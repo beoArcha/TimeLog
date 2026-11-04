@@ -148,7 +148,7 @@ jobs:
           gh release create "$TAG" release-assets/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$SHA" \
-            --title "OxyFlow v${VERSION}" \
+            --title "oXyFlow TimeLog v${VERSION}" \
             --generate-notes
 
           {

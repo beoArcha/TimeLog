@@ -10,9 +10,9 @@ All time logs, projects, tasks, and configurations are persisted in a local SQLi
 
 | Platform | Storage Path |
 | :--- | :--- |
-| **Windows** | `%APPDATA%\com.oxytime.oxyflow\oxytime.db` |
-| **Linux** | `~/.local/share/com.oxytime.oxyflow/oxytime.db` |
-| **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db` |
+| **Windows** | `%APPDATA%\com.oxyflow.timelog\oxytime.db` |
+| **Linux** | `~/.local/share/com.oxyflow.timelog/oxytime.db` |
+| **macOS** | `~/Library/Application Support/com.oxyflow.timelog/oxytime.db` |
 
 In browser runtime mode (PWA), data is persisted in HTML5 `localStorage` instead of a physical SQLite file (see question 7 for architectural details).
 
@@ -49,7 +49,7 @@ The active time log continues recording until manually paused, stopped, or switc
 ## 5. How do I backup and restore my database?
 
 - **Universal JSON Backup**: Under **Settings → Backup** (in the **Database & State Backup** card):
-  - **Export**: Click **Export Backup JSON** (`data-testid="export-backup-btn"`) to generate an unencrypted, portable JSON snapshot (`OxyFlow_Backup_YYYY-MM-DD.json`) capturing all projects, tasks, time entries, and settings.
+  - **Export**: Click **Export Backup JSON** (`data-testid="export-backup-btn"`) to generate an unencrypted, portable JSON snapshot (`TimeLog_Backup_YYYY-MM-DD.json`) capturing all projects, tasks, time entries, and settings.
   - **Restore / Import**: Click **Restore / Import Backup JSON** (`data-testid="import-backup-btn"`) and select a previously exported `.json` file. The engine validates the payload structure (`validateBackupPayload`) before restoring state.
   - **Cross-Platform Mobility**: The JSON format is universal across runtimes. You can export a backup from the web PWA and import it into the desktop application, or export from desktop and restore in the browser.
 - **Physical SQLite Backup (Desktop Only)**: On desktop installations, you can copy the `oxytime.db` file directly while the app is closed, or run SQLite backup commands:

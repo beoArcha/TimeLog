@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Builds release packages for OxyFlow with automated pre-flight quality checks.
+    Builds release packages for oXyFlow TimeLog with automated pre-flight quality checks.
 
 .DESCRIPTION
     Compatible with Windows PowerShell 5.1 and PowerShell Core 7.x.

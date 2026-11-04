@@ -29,12 +29,12 @@ Production packages and portable binaries are published with cryptographic SHA-2
 | Operating System / Platform | Package Type | Target Architecture | Link |
 | :--- | :--- | :--- | :--- |
 | **Web & PWA** | Web Application (Zero Install) | Modern Web Browsers | [Launch Web App](https://beoarcha.github.io/TimeLog/app/) |
-| **Windows** | Setup Wizard (`.exe`) | x86_64 | [Download Setup](https://github.com/beoArcha/TimeLog/releases/latest/download/OxyFlow-Setup-x64.exe) |
-| **Windows** | Portable Executable (`.exe`) | x86_64 | [Download Standalone](https://github.com/beoArcha/TimeLog/releases/latest/download/OxyFlow-Standalone-x64.exe) |
-| **macOS** | Universal DMG (`.dmg`) | Apple Silicon (M1–M4) & Intel | [Download DMG](https://github.com/beoArcha/TimeLog/releases/latest/download/OxyFlow-Universal.dmg) |
-| **Linux (Universal)** | AppImage (`.AppImage`) | x86_64 | [Download AppImage](https://github.com/beoArcha/TimeLog/releases/latest/download/OxyFlow-x86_64.AppImage) |
-| **Linux (Debian/Ubuntu)** | DEB Package (`.deb`) | amd64 | [Download DEB](https://github.com/beoArcha/TimeLog/releases/latest/download/oxyflow_amd64.deb) |
-| **Linux (Fedora/RHEL)** | RPM Package (`.rpm`) | x86_64 | [Download RPM](https://github.com/beoArcha/TimeLog/releases/latest/download/oxyflow.x86_64.rpm) |
+| **Windows** | Setup Wizard (`.exe`) | x86_64 | [Download Setup](https://github.com/beoArcha/TimeLog/releases/latest/download/oXyFlow_TimeLog-Setup-x64.exe) |
+| **Windows** | Portable Executable (`.exe`) | x86_64 | [Download Standalone](https://github.com/beoArcha/TimeLog/releases/latest/download/oXyFlow_TimeLog-Standalone-x64.exe) |
+| **macOS** | Universal DMG (`.dmg`) | Apple Silicon (M1–M4) & Intel | [Download DMG](https://github.com/beoArcha/TimeLog/releases/latest/download/oXyFlow_TimeLog-Universal.dmg) |
+| **Linux (Universal)** | AppImage (`.AppImage`) | x86_64 | [Download AppImage](https://github.com/beoArcha/TimeLog/releases/latest/download/oXyFlow_TimeLog-x86_64.AppImage) |
+| **Linux (Debian/Ubuntu)** | DEB Package (`.deb`) | amd64 | [Download DEB](https://github.com/beoArcha/TimeLog/releases/latest/download/timelog_amd64.deb) |
+| **Linux (Fedora/RHEL)** | RPM Package (`.rpm`) | x86_64 | [Download RPM](https://github.com/beoArcha/TimeLog/releases/latest/download/timelog.x86_64.rpm) |
 
 > For installation troubleshooting, SmartScreen guidance, or macOS Gatekeeper bypass, see the [Installation & Platform Trust Guide](docs/manifesto/INSTALLATION.md).
 
@@ -210,6 +210,7 @@ Comprehensive engineering manifests, user manuals, and technical specifications:
 | Document | Purpose |
 | :--- | :--- |
 | [**User Guide**](docs/manifesto/USER_GUIDE.md) | Complete end-user manual: GUI workflows, active timer controls, and shortcuts |
+| [**Product Naming & Identity**](docs/manifesto/NAMING.md) | Canonical naming rules, group vs product hierarchy, and allowed variants |
 | [**Installation Guide**](docs/manifesto/INSTALLATION.md) | OS package installation, SmartScreen trust, and SHA-256 verification |
 | [**CLI Specification**](docs/manifesto/CLI.md) | CLI architecture, personas, commands, exit codes, and error envelopes |
 | [**System Architecture**](docs/manifesto/ENGINEERING.md) | Architecture boundaries, layer decoupling, and reference engine invariants |

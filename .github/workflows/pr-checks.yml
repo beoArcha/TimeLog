@@ -52,7 +52,7 @@ jobs:
               - 'vite.config.*'
               - 'eslint.config.*'
               - 'components.json'
-              - 'dev.config.json'
+              - 'app.config.json'
               - 'stryker.config.*'
               - 'scripts/**'
             rust:

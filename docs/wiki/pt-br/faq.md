@@ -10,9 +10,9 @@ Todas as informações de tempo, projetos, tarefas e configurações são salvas
 
 | Plataforma | Caminho no Disco |
 | :--- | :--- |
-| **Windows** | `%APPDATA%\com.oxytime.oxyflow\oxytime.db` |
-| **Linux** | `~/.local/share/com.oxytime.oxyflow/oxytime.db` |
-| **macOS** | `~/Library/Application Support/com.oxytime.oxyflow/oxytime.db` |
+| **Windows** | `%APPDATA%\com.oxyflow.timelog\oxytime.db` |
+| **Linux** | `~/.local/share/com.oxyflow.timelog/oxytime.db` |
+| **macOS** | `~/Library/Application Support/com.oxyflow.timelog/oxytime.db` |
 
 No modo navegador (PWA), os dados são gravados no `localStorage` do HTML5 em vez de um arquivo SQLite físico (consulte a pergunta 7 para mais detalhes).
 
@@ -48,7 +48,7 @@ A sessão continuará registrando até ser pausada, interrompida ou alternada ma
 ## 5. Como faço para criar e restaurar backups do banco de dados?
 
 - **Backup Universal em JSON**: Em **Configurações → Backup** (no cartão **Backup de Estado e Banco de Dados**):
-  - **Exportar**: Clique em **Exportar Backup JSON** (`data-testid="export-backup-btn"`) para gerar um snapshot estruturado (`OxyFlow_Backup_YYYY-MM-DD.json`) contendo todos os projetos, tarefas, registros de tempo e preferências.
+  - **Exportar**: Clique em **Exportar Backup JSON** (`data-testid="export-backup-btn"`) para gerar um snapshot estruturado (`TimeLog_Backup_YYYY-MM-DD.json`) contendo todos os projetos, tarefas, registros de tempo e preferências.
   - **Restaurar / Importar**: Clique em **Restaurar / Importar Backup JSON** (`data-testid="import-backup-btn"`) e selecione um arquivo `.json` previamente salvo. O sistema valida o esquema (`validateBackupPayload`) antes de restaurar o estado.
   - **Portabilidade entre Plataformas**: O formato JSON é universal. Você pode exportar uma cópia da PWA web e importá-la no aplicativo desktop (ou o caminho inverso).
 - **Backup Físico do SQLite (Apenas Desktop)**: No desktop, você pode copiar o arquivo `oxytime.db` diretamente com o aplicativo fechado ou utilizar utilitários SQLite:
