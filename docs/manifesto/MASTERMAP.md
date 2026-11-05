@@ -359,3 +359,91 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 #### Group F (Parallel Track) — CLI Billing Reports (moved from Phase 16)
 - [ ] **CLI Billing Reports**: Provide CLI operations (`oxy report billing` / `report --billing`) for calculating and reporting billing values for supported Projects, Tasks, and time ranges using `calculate_range_billing()`, exposing consistent machine-readable results and cross-runtime parity.
 
+---
+
+### Phase 20 — Native CLI → Desktop Reactive State Propagation 🚧 (Planned)
+
+**Goal:** Changes made by an external oxy CLI process become visible immediately in every relevant Tauri window, without polling and without coupling the CLI to Tauri GUI APIs.
+
+#### Group A — Outbound Event Contract & IPC Transport
+- [ ] **Typed State-Change Contract**: Define a versioned, typed notification contract for successful CLI operations. Include the operation/source, affected entity types and IDs, and a revision or equivalent ordering information where available. Treat notifications as state invalidation signals, not as authoritative copies of application state.
+- [ ] **CLI → Desktop IPC**: Add an outbound IPC client for the standalone CLI and a receiver owned by the Tauri runtime. Select the transport after checking the existing runtime and platform constraints; preserve the CLI's strict isolation from Tauri GUI types (tauri_isolation_test.rs).
+- [ ] **Commit-Before-Notify Semantics**: Publish a notification only after the corresponding persistence transaction succeeds. Failed operations and rolled-back transactions must never produce success notifications.
+- [ ] **Shared Operation Path**: Keep CLI, in-app terminal and GUI actions on the existing native Engine / command path. Where an operation is exposed through more than one interface, reuse the same operation implementation rather than creating CLI-specific or GUI-specific business logic.
+- [ ] **Local IPC Safeguards**: Restrict the local endpoint to the current user/session, validate incoming messages, handle unavailable or restarting GUI instances, and avoid exposing arbitrary command execution through the notification channel.
+
+#### Group B — Reactive Tauri → React Synchronization
+- [ ] **Tauri Event Forwarding**: Translate accepted IPC notifications into typed Tauri events and deliver them to all relevant windows, including the main window and Compact Timer.
+- [ ] **React State Refresh**: Subscribe through the runtime-specific integration and refresh the affected data using the existing data lifecycle (DataContext / targeted refresh mechanisms). Do not make event payloads a second source of truth.
+- [ ] **In-App CLI Alignment**: Align the existing cli_execute → DataContext.refreshData() flow with the same state-change semantics, avoiding duplicate refreshes or parallel event systems.
+- [ ] **Delivery Resilience**: Handle duplicate, delayed and missed notifications safely. Reconcile from persisted state after reconnect/startup; do not rely on event delivery as durable storage.
+- [ ] **SQLite Watcher Boundary**: Keep database/WAL observation, if needed, as a narrowly scoped recovery mechanism rather than the primary application event bus.
+
+#### Group C — Verification & Architecture Guardrails
+- [ ] **IPC Contract Tests**: Cover serialization, validation, unsupported versions, malformed messages, unavailable receivers and transport failures.
+- [ ] **Process Integration Tests**: Execute the compiled oxy process against a temporary database while the Tauri-side receiver is active; verify that a committed change reaches the GUI and a failed operation does not.
+- [ ] **Multi-Window E2E**: Verify synchronization in the main window and Compact Timer, including timer start/stop/switch and project/task changes.
+- [ ] **Architecture Tests**: Enforce that CLI, Engine and Persistence remain free of Tauri GUI dependencies and that notifications are emitted only from the appropriate post-commit boundary.
+- [ ] **Error & Logging Coverage**: Use typed errors, log transport and delivery failures with useful context, and distinguish expected operational failures from infrastructure failures. Never silently discard an error.
+
+**Phase Gate:** An external CLI operation updates the running Desktop UI reactively; CLI behavior remains correct when Desktop is closed or IPC is unavailable; all relevant tests and architecture rules pass.
+
+---
+
+### Phase 21 — Native MCP for CLI & Desktop + Generated Contracts 🚧 (Planned)
+
+**Depends on:** Phase 20.  
+**Goal:** Expose the native TimeLog capabilities to AI agents through one consistent MCP interface, usable with the standalone CLI and the Desktop runtime, without duplicating business logic.
+
+#### Group A — Canonical MCP Contracts & TypeScript Bindings
+- [ ] **MCP Contract Source of Truth**: Define typed MCP tool inputs, outputs, resource payloads and error envelopes in the native contract layer. Keep contracts separate from Engine and Persistence implementation details.
+- [ ] **Generated TypeScript Bindings**: Export the contract types into src/bindings/ using the existing ts-rs binding pipeline. Generated files are never edited manually.
+- [ ] **JSON Schema Generation**: Generate JSON Schemas for MCP inputs and outputs from the same contract definitions (e.g. via schemars), so Rust and TypeScript adapters do not maintain separate handwritten schemas.
+- [ ] **Build & CI Integration**: Extend the existing binding-generation workflow to produce and verify MCP contract artifacts. CI must fail when generated bindings/schemas are stale or differ from the committed output.
+- [ ] **Contract Compatibility Tests**: Verify required/optional fields, enum values, nullability, serialization and schema compatibility across Rust and TypeScript.
+
+#### Group B — Native MCP Server & CLI Entry Point
+- [ ] **MCP Server Lifecycle**: Add an oxy mcp entry point using the native Rust MCP SDK (e.g. rmcp) and stdio transport, with clean separation between protocol handling and application operations.
+- [ ] **Tool Surface**: Expose a deliberately small set of typed, atomic operations for timer/session control, project/task management and reporting. Finalize exact tool names and parameters during discovery against the existing CLI and Engine contracts.
+- [ ] **Read-Only Resources**: Expose useful contextual resources (for example, active session/state and project/task structure) without leaking persistence internals.
+- [ ] **Shared Execution Path**: MCP tools must invoke the same native operations used by oxy CLI and Desktop commands. Do not implement a second timer/task engine, shell out to arbitrary CLI strings, or expose a generic raw-command execution tool.
+- [ ] **Typed MCP Errors**: Map existing typed CLI, Engine and Persistence failures into stable MCP error categories and structured messages. Preserve the distinction between invalid user actions, missing entities, business conflicts and infrastructure failures.
+- [ ] **Observability**: Log tool invocation outcomes and unexpected failures with operation/source context; never swallow errors or return raw internal error details as the public contract.
+
+#### Group C — Desktop Compatibility, Safety & Verification
+- [ ] **Desktop State Propagation**: When an MCP operation changes native state while Desktop is running, reuse the Phase 20 notification path so all relevant windows refresh through the normal React data lifecycle.
+- [ ] **Local Access & Safeguards**: Define local process access, tool permissions and confirmation requirements for destructive or historical-data operations. Reuse existing Time Safeguards; do not let MCP bypass them.
+- [ ] **Protocol Tests**: Cover MCP initialization, stdio request/response flow, tool discovery/calls, resources, malformed arguments, unsupported methods and graceful shutdown.
+- [ ] **Behavioral Parity**: Verify that equivalent CLI, MCP and Desktop operations produce the same persisted state and domain outcomes.
+- [ ] **Failure-Path Tests**: Verify typed error mapping, logging, transaction rollback and absence of success notifications after failed operations.
+- [ ] **Documentation & Agent Setup**: Document oxy mcp invocation, supported tools/resources, permissions, configuration examples and troubleshooting in the CLI/MCP documentation.
+
+**Phase Gate:** An external MCP client can discover and invoke the supported native tools with Desktop either open or closed; Desktop reflects successful changes reactively; generated contracts are current and all protocol, parity, security and error-path tests pass.
+
+---
+
+### Phase 22 — PWA WebMCP Adapter & Browser Agent Integration 🚧 (Planned)
+
+**Depends on:** Phase 21 contract definitions.  
+**Goal:** Expose the supported TimeLog capabilities to browser-context AI agents from PWA, using TypeScript and the Browser runtime. No Rust runtime or native stdio server is required in PWA.
+
+#### Group A — Browser Adapter & Runtime Integration
+- [ ] **PWA MCP Adapter**: Implement a TypeScript adapter in the Browser runtime that exposes the canonical MCP tool semantics through the supported WebMCP browser API (e.g. navigator.modelContext, subject to browser/API availability).
+- [ ] **Capability Detection**: Feature-detect WebMCP support and register tools only when the browser provides the required capability. Unsupported browsers must retain normal PWA behavior without startup failures.
+- [ ] **Browser Application Path**: Route tool calls through the existing Browser Engine / Persistence implementations and their established application operations. Do not import Rust/Tauri modules or access LocalStorage directly from the adapter when an existing router/plugin API owns the operation.
+- [ ] **Generated Contract Reuse**: Consume the generated src/bindings/ types and generated JSON Schemas from Phase 21. Avoid independently maintained tool definitions, payload types or error codes.
+
+#### Group B — Tool Parity, Permissions & State Consistency
+- [ ] **Supported Tool Parity**: Expose the same semantic operations as native MCP wherever the Browser runtime supports them. Document intentional capability differences rather than silently changing tool behavior.
+- [ ] **Typed Browser Errors**: Map Browser Engine and Persistence failures to the canonical MCP error contract; log unexpected failures and never return unhandled/raw exceptions to the agent.
+- [ ] **Permission & Confirmation Rules**: Apply the same safety policy for destructive actions and historical data changes. Use browser-appropriate user confirmation where required; an agent must not silently bypass user-facing safeguards.
+- [ ] **Reactive PWA Updates**: Ensure tool calls update the same React state/data lifecycle as normal PWA actions, without duplicate state stores or manual component-level mutations.
+- [ ] **No Native Transport Assumption**: WebMCP serves agents operating in the browser context. A remote/desktop MCP client connecting to a PWA tab is a separate bridge/transport concern and is explicitly out of scope unless approved as a follow-up.
+
+#### Group C — Browser Verification & Documentation
+- [ ] **Contract Conformance Tests**: Run shared contract vectors against native MCP and the PWA adapter to verify tool names, schemas, outputs and error semantics.
+- [ ] **Browser Capability Tests**: Verify registration when WebMCP is available, graceful degradation when unavailable, and no Rust/Tauri dependency leakage into Browser bundles.
+- [ ] **PWA E2E Journeys**: Verify read and write tool calls, confirmation flows, persisted state and reactive UI updates in supported browser environments.
+- [ ] **Documentation**: Document browser requirements, supported tools, capability limitations, permission behavior and the distinction between WebMCP and the native oxy mcp stdio server.
+
+**Phase Gate:** PWA exposes the agreed tool contract through WebMCP when supported, uses only Browser runtime operations, degrades safely when unsupported, and passes shared contract-conformance and browser E2E tests.
