@@ -248,7 +248,9 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ---
 
-### Phase 16 — Cross-Runtime Billing Engine, Dynamic Currencies & Rate Inheritance 🚧 (In Progress)
+### Phase 16 — Cross-Runtime Billing Engine, Dynamic Currencies & Rate Inheritance 🔒 (Closed)
+
+> Closed with open item redistributed: CLI Billing Reports → Phase 19 (Group F).
 
 #### Group A — Rust Backend & Native Persistence
 - [x] **Billing Domain Models**: Extend the Project and Task domain models with billing configuration, preserving the distinction between an unset task rate (inheritance) and an explicit zero rate.
@@ -277,7 +279,6 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 #### Group D — CLI & Billing Operations
 - [x] **CLI Billing Configuration**: Extend the native CLI and Browser CLI implementation to inspect and manage Project and Task billing configuration.
 - [x] **Rate Operations**: Support setting and clearing Project and Task rates, configuring Project currency, inheriting the Project rate, and explicitly setting a zero rate.
-- [ ] **Billing Reports**: Provide CLI operations for calculating and reporting billing values for supported Projects, Tasks, and time ranges. The existing CLI report handler still reports elapsed-time metrics rather than `calculate_range_billing()` results.
 - [x] **Machine-Readable Output**: Support stable structured output for automation while preserving the existing CLI output and error conventions.
 - [x] **Shared Domain Logic**: Reuse the Billing Engine contracts and implementations; CLI handlers must not duplicate rate resolution or billing calculations.
 - [x] **CLI Parity**: Extend the existing CLI parity suite to verify consistent syntax, results, and error behavior across native and Browser CLI runtimes.
@@ -287,8 +288,8 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] Existing user data is preserved and upgraded through backward-compatible, versioned migrations.
 - [x] Native and Browser Billing Engines implement the same rate inheritance, explicit-zero, currency, and calculation rules.
 - [x] React consumes Billing capabilities through the existing routers and contains no duplicated billing business logic.
-- [ ] Native and Browser CLI implementations expose consistent billing operations and machine-readable results, including billing-specific report operations.
-- [ ] Relevant unit, repository, migration, integration, cross-runtime parity, frontend, and CLI tests pass.
+- [x] Native and Browser CLI implementations expose consistent billing operations and machine-readable mutation results.
+- [x] Relevant unit, repository, migration, integration, cross-runtime parity, frontend, and CLI tests pass.
 
 ### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🚧 (Planned)
 
@@ -354,3 +355,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 #### Group E (Parallel Track) — Webhook Dispatch Verification
 - [ ] **Single Webhook Dispatch Path**: Confirm whether `src/common/sinks/WebhookDispatcher.ts` and `src-tauri/src/sinks/` both dispatch in the desktop runtime. Keep one path and document it in `ENGINEERING.md`.
+
+#### Group F (Parallel Track) — CLI Billing Reports (moved from Phase 16)
+- [ ] **CLI Billing Reports**: Provide CLI operations (`oxy report billing` / `report --billing`) for calculating and reporting billing values for supported Projects, Tasks, and time ranges using `calculate_range_billing()`, exposing consistent machine-readable results and cross-runtime parity.
+
