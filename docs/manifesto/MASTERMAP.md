@@ -447,3 +447,147 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Documentation**: Document browser requirements, supported tools, capability limitations, permission behavior and the distinction between WebMCP and the native oxy mcp stdio server.
 
 **Phase Gate:** PWA exposes the agreed tool contract through WebMCP when supported, uses only Browser runtime operations, degrades safely when unsupported, and passes shared contract-conformance and browser E2E tests.
+
+
+---
+
+### Phase 23 — Centralized Rust Error Handling & Diagnostic Logging 🚧 (Planned)
+
+**Goal:** Establish consistent native error handling and diagnostic logging across Rust/Tauri so failures are classified, handled, reported and never silently discarded.
+
+#### Group A — Centralized Typed Error Handling
+- [ ] **Error Handling Audit**: Audit Rust error definitions, propagation and handling paths across Engine, Persistence, Repositories, CLI, Tauri commands, workflows and sinks.
+- [ ] **Canonical Error Classification**: Define consistent categories and severity semantics for domain, validation, configuration, persistence, network, infrastructure, unexpected and critical failures.
+- [ ] **Central Error Handling**: Establish shared policies for error classification, application reaction and reporting without collapsing domain-specific error types into generic errors.
+- [ ] **Boundary Error Mapping**: Preserve typed error semantics when mapping Rust failures into Tauri IPC and frontend-facing error contracts.
+- [ ] **No Silent Error Loss**: Eliminate ignored Results, discarded errors and unhandled failure paths; explicitly justify any intentionally ignored result.
+- [ ] **Compatibility**: Preserve established CLI error codes, exit codes and machine-readable error envelopes.
+
+#### Group B — Native Diagnostic Logging
+- [ ] **Structured File Logging**: Add centralized native logging to structured JSONL files, independent of domain Event Sinks.
+- [ ] **Severity & Filtering**: Support TRACE, DEBUG, INFO, WARN, ERROR and FATAL levels with appropriate production defaults.
+- [ ] **Contextual Logging**: Include UTC timestamps, component, operation, error category and correlation identifiers where available.
+- [ ] **Log Rotation & Retention**: Bound log file size and retention to prevent uncontrolled disk usage.
+- [ ] **Sensitive Data Protection**: Redact credentials, JWT tokens and sensitive application data from diagnostic output.
+- [ ] **Ad Hoc Diagnostic Export**: Allow users to export a diagnostic bundle containing relevant logs and environment metadata without exposing secrets.
+- [ ] **Logging Failure Isolation**: Prevent recursive logging and ensure a file logging failure cannot destabilize core application operations.
+
+#### Group C — Error Handling Architecture & Verification
+- [ ] **Typed Error Enforcement**: Extend Rust architecture tests to prevent generic error types and unapproved error representations.
+- [ ] **Propagation Checks**: Detect ignored Results, raw error propagation and missing boundary mapping where statically verifiable.
+- [ ] **Failure-Path Tests**: Verify classification, propagation, logging and controlled responses for expected, unexpected, infrastructure and critical failures.
+- [ ] **Logging Tests**: Verify relevant errors reach the intended diagnostic path without recursive reporting.
+
+**Phase Gate:** Rust failures follow a consistent typed handling strategy, important errors are not silently lost, diagnostic logs are bounded and exportable, and architecture tests enforce the agreed rules.
+
+---
+
+### Phase 24 — Sink Stabilization, Event Journal & Recovery 🚧 (Planned)
+
+**Goal:** Repair and consolidate existing sinks into a consistent domain-event delivery architecture with replayable history, durable delivery state and recovery procedures.
+
+#### Group A — Existing Sink Audit & Refactoring
+- [ ] **CSV Sink Audit**: Verify event coverage, serialization, persistence integration, failure handling and concurrency behavior.
+- [ ] **Webhook Audit**: Verify the frontend dispatcher, Tauri SQLite queue, Browser LocalStorage queue and native CLI sink configuration as one end-to-end flow.
+- [ ] **Configuration Alignment**: Align sink configuration and status semantics across GUI, CLI, Tauri and Browser runtimes.
+- [ ] **Dispatch Boundary**: Separate domain event creation, dispatch decisions, serialization and sink-specific delivery.
+- [ ] **Failure Isolation**: Ensure sink failures do not silently invalidate successful core persistence operations or lose the event requiring delivery.
+- [ ] **Typed Sink Errors**: Use explicit sink error categories and route diagnostic failures through Phase 23 logging.
+
+#### Group B — Canonical Domain Event Journal
+- [ ] **Domain Event Contract**: Define a canonical event envelope for Project, Task, Subtask and TimeLog lifecycle operations.
+- [ ] **Replayable Payloads**: Include sufficient deterministic data to reconstruct domain state, including updates, deletion, archival and relationship changes.
+- [ ] **Event Identity & Ordering**: Include unique `event_id`, sequence, UTC timestamp and correlation identifiers.
+- [ ] **Event Integrity**: Implement a SHA-256 hash chain over canonical event serialization, including the previous event hash.
+- [ ] **Event Validation**: Detect missing events, sequence gaps, duplicates, invalid hashes, reordering and incomplete payloads.
+- [ ] **Event Replay**: Support audit replay and controlled state reconstruction from a validated event history.
+
+#### Group C — CSV Journal & Delivery Reliability
+- [ ] **CSV Event Journal**: Complete CSV serialization using the canonical event contract while preserving replay semantics.
+- [ ] **Durable Delivery State**: Preserve pending sink operations across application restarts and interrupted writes or deliveries.
+- [ ] **Retry & Deduplication**: Implement safe retries and stable event identity to prevent duplicate processing where the receiver supports idempotency.
+- [ ] **Sink Recovery**: Rebuild or reconcile missing and failed sink output from validated journal events.
+- [ ] **Repair Reporting**: Report detected inconsistencies, repair actions and unresolved failures.
+
+#### Group D — Sink Verification
+- [ ] **Serialization Tests**: Cover escaping, malformed records, payload completeness and deterministic serialization.
+- [ ] **Integrity Tests**: Cover tampering, missing or duplicated records, reordering and invalid hash chains.
+- [ ] **Recovery Tests**: Cover interrupted writes, restart recovery, retries and replay.
+- [ ] **Cross-Runtime Tests**: Verify Browser and Tauri queue behavior and configuration consistency.
+- [ ] **Concurrency Tests**: Verify safe queue processing and dispatch under concurrent operations.
+
+**Phase Gate:** Existing sinks use aligned contracts and configuration, CSV provides a verifiable replayable event journal, and failed or interrupted delivery can be diagnosed and recovered without losing domain operations.
+
+---
+
+### Phase 25 — Sink Expansion & Remote Delivery 🚧 (Planned)
+
+**Depends on:** Phase 24.  
+**Goal:** Add additional event formats and configurable remote delivery on top of the stabilized event contract and recovery mechanisms.
+
+#### Group A — JSONL Event Sink
+- [ ] **JSONL Serialization**: Implement a JSON Lines sink using the canonical Domain Event contract from Phase 24.
+- [ ] **Semantic Parity**: Ensure CSV and JSONL represent the same events and preserve equivalent replay semantics.
+- [ ] **Integrity Verification**: Preserve sequence and hash-chain verification in JSONL output.
+- [ ] **Journal Import & Export**: Support controlled import/export with schema and integrity validation.
+
+#### Group B — Remote API Sink
+- [ ] **HTTP Delivery Client**: Implement configurable HTTP/HTTPS delivery to an external event collection endpoint.
+- [ ] **JWT Bearer Authentication**: Support manually supplied JWT tokens and secure credential storage.
+- [ ] **Proxy Support**: Support system proxy configuration and explicit proxy settings.
+- [ ] **Transport Security**: Require TLS for remote credentials and validate certificates.
+- [ ] **Connection Configuration**: Support endpoint, timeout and connection-test settings.
+- [ ] **Response Classification**: Distinguish authentication failures, permanent client errors, rate limiting and transient server failures.
+- [ ] **Retry Policy**: Implement bounded retry with exponential backoff and `Retry-After` handling.
+- [ ] **Idempotent Delivery**: Send stable event identifiers so receivers can deduplicate retried events.
+
+#### Group C — Delivery Diagnostics & Recovery
+- [ ] **Delivery Status**: Expose pending, delivered, failed and dead-letter states.
+- [ ] **Dead Letter Queue**: Preserve events that exhaust retry policy or fail permanently for inspection and controlled reprocessing.
+- [ ] **Manual Retry & Replay**: Allow selected failed deliveries to be inspected and retried.
+- [ ] **Remote Diagnostics**: Expose endpoint health, last successful delivery, failure reasons and queue statistics.
+- [ ] **Recovery Verification**: Verify that retries and replay do not duplicate domain operations.
+
+**Phase Gate:** CSV, JSONL and Remote Sink share event semantics; remote delivery supports secure JWT and proxy configuration; failed deliveries can be inspected and recovered.
+
+---
+
+### Phase 26 — Google Drive Storage, Synchronization & Data Recovery 🚧 (Planned)
+
+**Goal:** Introduce Google Drive as the first supported cloud storage provider and provide coordinated synchronization, integrity validation and repair for application data, local/remote storage and sink delivery state.
+
+#### Group A — Google Drive Provider
+- [ ] **Google Drive API Integration**: Implement Google Drive as the first cloud storage provider, keeping provider-specific API behavior behind a focused integration boundary.
+- [ ] **Authentication**: Implement Google account authorization and secure token lifecycle management.
+- [ ] **Remote File Management**: Support folder selection, upload, download, metadata inspection and remote version tracking.
+- [ ] **Storage Configuration**: Allow users to configure and inspect the selected Google Drive location.
+- [ ] **Mounted Drive Support Assessment**: Support a mounted Google Drive filesystem only where SQLite locking, WAL behavior and provider semantics can be verified as safe; clearly report unsupported or unsafe configurations.
+
+#### Group B — SQLite Storage & Cross-Device Synchronization
+- [ ] **SQLite Storage Modes**: Define supported local database, mounted-location and cloud snapshot modes, including their concurrency and availability constraints.
+- [ ] **Consistent Database Snapshots**: Create and transfer SQLite snapshots using SQLite-aware backup/checkpoint procedures rather than copying a live database and its WAL files independently.
+- [ ] **Cross-Device Synchronization**: Synchronize changes between independent local databases through controlled data/event transfer, not concurrent writes to one cloud-hosted SQLite file.
+- [ ] **Change Tracking**: Reuse durable event history and synchronization checkpoints to identify changes requiring transfer.
+- [ ] **Conflict Detection**: Detect concurrent changes, divergent histories, duplicate operations and incompatible schema versions.
+- [ ] **Conflict Resolution**: Apply deterministic resolution only where semantics are safe; otherwise preserve both versions and require an explicit user decision.
+- [ ] **Resumable Synchronization**: Recover from interrupted transfers without losing or duplicating applied changes.
+
+#### Group C — Unified Integrity & Recovery
+- [ ] **Data Integrity & Recovery Manager**: Coordinate specialized validators and recovery procedures for SQLite, Google Drive objects, event journals and sink queues.
+- [ ] **SQLite Validation**: Verify database integrity, schema compatibility, snapshot consistency and recoverability.
+- [ ] **Cloud Validation**: Verify remote object versions, checksums and synchronization metadata.
+- [ ] **Journal & Sink Validation**: Verify event sequence, hash chains, queue state and delivery consistency.
+- [ ] **Recovery Planning**: Identify the last known-good snapshot and determine which validated events or sink operations can be replayed.
+- [ ] **Database Recovery**: Restore a verified snapshot and replay subsequent events where the available history supports deterministic reconstruction.
+- [ ] **Sink Recovery**: Rebuild missing or inconsistent sink output from the validated journal and reconcile delivery state.
+- [ ] **Controlled Repair**: Support safe automatic repairs and user-confirmed repairs, preserving the last known-good copy before destructive replacement.
+- [ ] **Recovery Reports**: Record detected problems, recovery points, repair actions and post-repair verification results.
+
+#### Group D — Synchronization & Recovery Verification
+- [ ] **Multi-Device Tests**: Verify synchronization across independent local databases using Google Drive as the remote provider.
+- [ ] **Failure Simulation**: Cover interrupted transfers, unavailable storage, stale versions, concurrent changes and conflicting histories.
+- [ ] **Recovery Tests**: Verify snapshot restoration, journal replay, sink queue reconstruction and repair rollback behavior.
+- [ ] **Data Loss Prevention**: Verify that repair never overwrites the only known-good copy.
+- [ ] **Operational Diagnostics**: Expose sync status, last successful synchronization, pending changes, conflicts and recovery state.
+
+**Phase Gate:** Google Drive is supported as the first cloud provider; data can be synchronized safely between devices; SQLite, cloud objects, event journals and sink delivery state can be validated and recovered through explicit, verifiable procedures.
