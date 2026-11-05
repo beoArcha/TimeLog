@@ -55,7 +55,22 @@ fn main() -> ExitCode {
     let effective_args = match cli::preprocess_args(&raw_args, &persistence, &engine) {
         Ok(args) => args,
         Err(err) => {
-            let envelope = err.to_envelope_with_mode(is_machine, None);
+            let machine_locale = if is_machine {
+                match cli::resolve_machine_locale(&persistence) {
+                    Ok(loc) => Some(loc),
+                    Err(e) => {
+                        let envelope = e.to_envelope_with_mode(
+                            is_machine,
+                            Some(cli::DEFAULT_CLI_MACHINE_LOCALE),
+                        );
+                        envelope.render_stderr(is_machine);
+                        return envelope.to_exit_code();
+                    }
+                }
+            } else {
+                None
+            };
+            let envelope = err.to_envelope_with_mode(is_machine, machine_locale.as_deref());
             envelope.render_stderr(is_machine);
             return envelope.to_exit_code();
         }

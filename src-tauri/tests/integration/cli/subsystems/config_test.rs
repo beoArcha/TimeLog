@@ -145,3 +145,215 @@ fn test_given_configured_persistence_when_config_set_in_machine_mode_then_return
     assert_eq!(parsed["key"], "locale");
     assert_eq!(parsed["value"], "pl");
 }
+
+#[test]
+fn test_given_configured_persistence_when_setting_valid_cli_machine_locale_then_persists_and_gets()
+{
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_subsystem_cli_machine_locale_valid");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    // When setting valid locale 'de'
+    let set_args =
+        CliArgs::try_parse_from(["oxy", "config", "set", "cli_machine_locale", "de"]).unwrap();
+    let set_result = handle_cli(set_args, &persistence, &engine);
+
+    // Then
+    assert!(set_result.is_ok());
+
+    let get_args = CliArgs::try_parse_from(["oxy", "config", "get", "cli_machine_locale"]).unwrap();
+    let get_result = handle_cli(get_args, &persistence, &engine).unwrap();
+    assert!(format!("{}", get_result).contains("de"));
+
+    let val_in_db = persistence
+        .cli
+        .get_config_value("cli_machine_locale")
+        .unwrap();
+    assert_eq!(val_in_db.as_deref(), Some("de"));
+
+    // Verify all supported locales can be set
+    let supported = [
+        "pl", "en", "de", "es", "pt-br", "fr", "uk", "ja", "nl", "it",
+    ];
+    for loc in supported {
+        let args =
+            CliArgs::try_parse_from(["oxy", "config", "set", "cli_machine_locale", loc]).unwrap();
+        assert!(handle_cli(args, &persistence, &engine).is_ok());
+        let resolved = oxyflow_timelog::cli::resolve_machine_locale(&persistence).unwrap();
+        assert_eq!(resolved, loc);
+    }
+}
+
+#[test]
+fn test_given_configured_persistence_when_setting_invalid_cli_machine_locale_then_fails_with_syntax_error(
+) {
+    // Given
+    let (_conn, config, _temp) =
+        setup_persistence_test("test_subsystem_cli_machine_locale_invalid");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    // Explicitly reject system
+    let args_system =
+        CliArgs::try_parse_from(["oxy", "config", "set", "cli_machine_locale", "system"]).unwrap();
+    let res_system = handle_cli(args_system, &persistence, &engine);
+    assert!(res_system.is_err());
+    let err_system = res_system.unwrap_err();
+    assert_eq!(err_system.exit_code(), 2);
+    let env_system = err_system.to_envelope(None);
+    assert_eq!(env_system.code, "CLI_SYNTAX_INVALID_ARGS");
+
+    // Explicitly reject custom
+    let args_custom =
+        CliArgs::try_parse_from(["oxy", "config", "set", "cli_machine_locale", "custom"]).unwrap();
+    let res_custom = handle_cli(args_custom, &persistence, &engine);
+    assert!(res_custom.is_err());
+    let err_custom = res_custom.unwrap_err();
+    assert_eq!(err_custom.exit_code(), 2);
+    let env_custom = err_custom.to_envelope(None);
+    assert_eq!(env_custom.code, "CLI_SYNTAX_INVALID_ARGS");
+
+    // Reject unknown string
+    let args_unknown =
+        CliArgs::try_parse_from(["oxy", "config", "set", "cli_machine_locale", "klingon"]).unwrap();
+    let res_unknown = handle_cli(args_unknown, &persistence, &engine);
+    assert!(res_unknown.is_err());
+    let err_unknown = res_unknown.unwrap_err();
+    assert_eq!(err_unknown.exit_code(), 2);
+}
+
+#[test]
+fn test_given_unset_cli_machine_locale_when_resolved_or_get_then_defaults_to_en() {
+    // Given
+    let (_conn, config, _temp) =
+        setup_persistence_test("test_subsystem_cli_machine_locale_default");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    // When unset, resolve_machine_locale must return "en"
+    let resolved = oxyflow_timelog::cli::resolve_machine_locale(&persistence).unwrap();
+    assert_eq!(resolved, "en");
+
+    // Getting unset cli_machine_locale returns documented default "en"
+    let get_args = CliArgs::try_parse_from(["oxy", "config", "get", "cli_machine_locale"]).unwrap();
+    let get_result = handle_cli(get_args, &persistence, &engine).unwrap();
+    assert!(format!("{}", get_result).contains("en"));
+
+    // Machine mode get returns json with default "en"
+    let get_m_args =
+        CliArgs::try_parse_from(["oxy", "--machine", "config", "get", "cli_machine_locale"])
+            .unwrap();
+    let get_m_result = handle_cli(get_m_args, &persistence, &engine).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&format!("{}", get_m_result)).unwrap();
+    assert_eq!(parsed["key"], "cli_machine_locale");
+    assert_eq!(parsed["value"], "en");
+}
+
+#[test]
+fn test_given_configured_persistence_when_gui_locale_set_then_cli_machine_locale_remains_independent(
+) {
+    // Given
+    let (_conn, config, _temp) =
+        setup_persistence_test("test_subsystem_cli_machine_locale_independent");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    // Set GUI locale preference to Polish
+    persistence
+        .locale
+        .save_locale_pref("pl".to_string())
+        .unwrap();
+    persistence.locale.save_locale("pl".to_string()).unwrap();
+
+    // CLI machine locale must still resolve to default "en"
+    let cli_locale = oxyflow_timelog::cli::resolve_machine_locale(&persistence).unwrap();
+    assert_eq!(cli_locale, "en");
+
+    // Now set CLI machine locale to German
+    let set_cli_args =
+        CliArgs::try_parse_from(["oxy", "config", "set", "cli_machine_locale", "de"]).unwrap();
+    assert!(handle_cli(set_cli_args, &persistence, &engine).is_ok());
+
+    // Verify GUI preferences remain completely unchanged
+    assert_eq!(persistence.locale.get_locale_pref().unwrap(), "pl");
+    assert_eq!(persistence.locale.get_locale().unwrap(), "pl");
+
+    // Verify CLI machine locale is German
+    assert_eq!(
+        oxyflow_timelog::cli::resolve_machine_locale(&persistence).unwrap(),
+        "de"
+    );
+}
+
+#[test]
+fn test_given_custom_machine_locale_configured_when_cli_error_in_machine_mode_then_envelope_is_backward_compatible(
+) {
+    // Given
+    let (_conn, config, _temp) =
+        setup_persistence_test("test_subsystem_cli_machine_locale_envelope");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    // Set cli_machine_locale to 'ja'
+    persistence
+        .cli
+        .set_config_value("cli_machine_locale", "ja")
+        .unwrap();
+
+    // Trigger an entity not found error in machine mode
+    let start_args =
+        CliArgs::try_parse_from(["oxy", "--machine", "start", "nonexistent-task-abc"]).unwrap();
+    let result = handle_cli(start_args, &persistence, &engine);
+
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert_eq!(err.exit_code(), 4);
+
+    let resolved_locale = oxyflow_timelog::cli::resolve_machine_locale(&persistence).unwrap();
+    assert_eq!(resolved_locale, "ja");
+
+    let envelope = err.to_envelope_with_mode(true, Some(&resolved_locale));
+    let json_str = serde_json::to_string(&envelope).expect("valid serialization");
+    let parsed: serde_json::Value = serde_json::from_str(&json_str).expect("valid json parse");
+
+    // Invariant contracts: exact field names and types
+    assert_eq!(parsed["code"], "DOM_ENTITY_NOT_FOUND");
+    assert_eq!(parsed["category"], "entity");
+    assert_eq!(parsed["exit_code"], 4);
+    assert!(parsed["timestamp"].is_string());
+    assert!(parsed["technical"].is_string());
+    // In machine mode, user is None and omitted from serialized json
+    assert!(parsed.get("user").is_none());
+}
+
+#[test]
+fn test_given_multiple_databases_when_cli_machine_locale_configured_then_respects_active_database()
+{
+    // Given two isolated databases
+    let (_conn1, config1, _temp1) = setup_persistence_test("test_cli_machine_locale_db1");
+    let (_conn2, config2, _temp2) = setup_persistence_test("test_cli_machine_locale_db2");
+
+    let persistence1 = Persistence::new(&config1).unwrap();
+    let persistence2 = Persistence::new(&config2).unwrap();
+
+    // Set db1 to 'de' and db2 to 'fr'
+    persistence1
+        .cli
+        .set_config_value("cli_machine_locale", "de")
+        .unwrap();
+    persistence2
+        .cli
+        .set_config_value("cli_machine_locale", "fr")
+        .unwrap();
+
+    // Verify each resolves to its own active DB configuration
+    assert_eq!(
+        oxyflow_timelog::cli::resolve_machine_locale(&persistence1).unwrap(),
+        "de"
+    );
+    assert_eq!(
+        oxyflow_timelog::cli::resolve_machine_locale(&persistence2).unwrap(),
+        "fr"
+    );
+}

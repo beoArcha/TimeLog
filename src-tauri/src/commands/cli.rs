@@ -41,7 +41,12 @@ pub fn execute_command_string(
     let preprocessed = match preprocess_args(&tokens, persistence, &engine) {
         Ok(args) => args,
         Err(err) => {
-            let envelope = err.to_envelope_with_mode(is_machine_flag, None);
+            let machine_locale = if is_machine_flag {
+                crate::cli::resolve_machine_locale(persistence).ok()
+            } else {
+                None
+            };
+            let envelope = err.to_envelope_with_mode(is_machine_flag, machine_locale.as_deref());
             let stdout = envelope.render_to_string(is_machine_flag);
             return Err(CliExecutionResult {
                 success: false,
@@ -68,8 +73,13 @@ pub fn execute_command_string(
                 });
             }
 
+            let machine_locale = if is_machine_flag {
+                crate::cli::resolve_machine_locale(persistence).ok()
+            } else {
+                None
+            };
             let envelope = CliError::syntax_invalid_args(rendered.clone())
-                .to_envelope_with_mode(is_machine_flag, None);
+                .to_envelope_with_mode(is_machine_flag, machine_locale.as_deref());
 
             return Err(CliExecutionResult {
                 success: false,
@@ -89,7 +99,12 @@ pub fn execute_command_string(
             envelope: None,
         }),
         Err(err) => {
-            let envelope = err.to_envelope_with_mode(is_machine, None);
+            let machine_locale = if is_machine {
+                crate::cli::resolve_machine_locale(persistence).ok()
+            } else {
+                None
+            };
+            let envelope = err.to_envelope_with_mode(is_machine, machine_locale.as_deref());
             let stdout = envelope.render_to_string(is_machine);
             Err(CliExecutionResult {
                 success: false,
