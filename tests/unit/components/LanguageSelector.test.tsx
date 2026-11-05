@@ -121,7 +121,7 @@ describe('Unit Tests: LanguageSelector', () => {
 
       const customBtn = screen.getByTestId('lang-btn-custom');
       expect(customBtn).toBeTruthy();
-      expect(customBtn.textContent).toContain('CUSTOM');
+      expect(customBtn.textContent).toContain('Custom Language');
     });
   });
 
