@@ -49,6 +49,7 @@ export type SettingsKey =
   | 'ResolvedSystemLocale'
   | 'RestoreImportJson'
   | 'RestoreSuccess'
+  | 'RemoveOverrideAria'
   | 'SaveCustomTranslation'
   | 'SendLogsToApi'
   | 'SystemDefault'

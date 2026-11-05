@@ -27,15 +27,23 @@ export const LanguageSelector: React.FC = () => {
       : SUPPORTED_LOCALES;
   }, [isCustomActive]);
 
-  const segmentedOptions: SegmentedControlOption<Locale>[] = useMemo(() => {
-    return availableLocales.map((l) => ({
-      value: l,
-      label: l === 'custom' ? 'CUSTOM' : l,
-      testId: `lang-btn-${l}`,
-      ariaLabel: LOCALE_METADATA[l]?.nativeName || l,
-      title: LOCALE_METADATA[l]?.nativeName || l,
-    }));
-  }, [availableLocales]);
+  const getLocaleLabel = (code: Locale): string => {
+    if (code === 'system') {
+      return translate(locale, 'settings', 'SystemDefault', customTranslations);
+    }
+    if (code === 'custom') {
+      return translate(locale, 'settings', 'CustomLanguageTitle', customTranslations);
+    }
+    return LOCALE_METADATA[code]?.nativeName || code;
+  };
+
+  const segmentedOptions: SegmentedControlOption<Locale>[] = availableLocales.map((l) => ({
+    value: l,
+    label: l === 'custom' ? getLocaleLabel(l) : l,
+    testId: `lang-btn-${l}`,
+    ariaLabel: getLocaleLabel(l),
+    title: getLocaleLabel(l),
+  }));
 
   return (
     <div
@@ -67,9 +75,9 @@ export const LanguageSelector: React.FC = () => {
                 className="text-xs uppercase flex items-center justify-between"
               >
                 <span>{l.toUpperCase()}</span>
-                {LOCALE_METADATA[l]?.nativeName && (
+                {getLocaleLabel(l) && (
                   <span className="text-muted-foreground text-2xs ml-2 normal-case">
-                    ({LOCALE_METADATA[l].nativeName})
+                    ({getLocaleLabel(l)})
                   </span>
                 )}
               </SelectItem>

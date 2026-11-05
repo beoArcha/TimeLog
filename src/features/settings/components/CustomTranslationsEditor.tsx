@@ -131,7 +131,7 @@ export function CustomTranslationsEditor() {
                 size="icon"
                 onClick={() => handleRemoveOverride(entry.domain, entry.key)}
                 data-testid={`remove-override-${entry.domain}-${entry.key}`}
-                aria-label={`Remove override ${entry.domain}.${entry.key}`}
+                aria-label={translate(locale, 'settings', 'RemoveOverrideAria', customTranslations, { name: `${entry.domain}.${entry.key}` })}
                 className="size-6 text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />

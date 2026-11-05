@@ -69,7 +69,8 @@
     "ValidationValueRequired": "Translation value cannot be empty",
     "KeyPlaceholder": "e.g. Save",
     "ValuePlaceholder": "Custom translated text",
-    "LanguageSelectionAria": "Language selection"
+    "LanguageSelectionAria": "Language selection",
+    "RemoveOverrideAria": "Remove translation override {name}"
   },
   "pl": {
     "Title": "Ustawienia Interfejsu i Aplikacji",
@@ -141,7 +142,8 @@
     "ValidationValueRequired": "Wartość tłumaczenia nie może być pusta",
     "KeyPlaceholder": "np. Save",
     "ValuePlaceholder": "Niestandardowy tekst tłumaczenia",
-    "LanguageSelectionAria": "Wybór języka"
+    "LanguageSelectionAria": "Wybór języka",
+    "RemoveOverrideAria": "Usuń nadpisanie tłumaczenia {name}"
   },
   "de": {
     "Title": "Schnittstellen- & Anwendungseinstellungen",
@@ -213,7 +215,8 @@
     "ValidationValueRequired": "Übersetzungswert darf nicht leer sein",
     "KeyPlaceholder": "z.B. Save",
     "ValuePlaceholder": "Benutzerdefinierter Übersetzungstext",
-    "LanguageSelectionAria": "Sprachauswahl"
+    "LanguageSelectionAria": "Sprachauswahl",
+    "RemoveOverrideAria": "Übersetzungsüberschreibung {name} entfernen"
   },
   "es": {
     "Title": "Configuración de Interfaz y Aplicación",
@@ -285,7 +288,8 @@
     "ValidationValueRequired": "El valor de traducción no puede estar vacío",
     "KeyPlaceholder": "p.ej. Save",
     "ValuePlaceholder": "Texto de traducción personalizado",
-    "LanguageSelectionAria": "Selección de idioma"
+    "LanguageSelectionAria": "Selección de idioma",
+    "RemoveOverrideAria": "Eliminar la sobrescritura de traducción {name}"
   },
   "pt-br": {
     "Title": "Configurações de Interface e Aplicativo",
@@ -357,7 +361,8 @@
     "ValidationValueRequired": "O valor de tradução não pode estar vazio",
     "KeyPlaceholder": "ex.: Save",
     "ValuePlaceholder": "Texto de tradução personalizado",
-    "LanguageSelectionAria": "Seleção de idioma"
+    "LanguageSelectionAria": "Seleção de idioma",
+    "RemoveOverrideAria": "Remover substituição de tradução {name}"
   },
   "fr": {
     "Title": "Paramètres de l'Interface et de l'Application",
@@ -429,7 +434,8 @@
     "ValidationValueRequired": "La valeur de traduction ne peut pas être vide",
     "KeyPlaceholder": "ex. Save",
     "ValuePlaceholder": "Texte de traduction personnalisé",
-    "LanguageSelectionAria": "Sélection de la langue"
+    "LanguageSelectionAria": "Sélection de la langue",
+    "RemoveOverrideAria": "Supprimer la surcharge de traduction {name}"
   },
   "uk": {
     "Title": "Налаштування інтерфейсу та програми",
@@ -501,7 +507,8 @@
     "ValidationValueRequired": "Значення перекладу не може бути порожнім",
     "KeyPlaceholder": "напр. Save",
     "ValuePlaceholder": "Власний текст перекладу",
-    "LanguageSelectionAria": "Вибір мови"
+    "LanguageSelectionAria": "Вибір мови",
+    "RemoveOverrideAria": "Видалити перевизначення перекладу {name}"
   },
   "ja": {
     "Title": "インターフェース & アプリケーション設定",
@@ -573,7 +580,8 @@
     "ValidationValueRequired": "翻訳値を空にすることはできません",
     "KeyPlaceholder": "例: Save",
     "ValuePlaceholder": "カスタム翻訳テキスト",
-    "LanguageSelectionAria": "言語の選択"
+    "LanguageSelectionAria": "言語の選択",
+    "RemoveOverrideAria": "翻訳の上書き {name} を削除"
   },
   "nl": {
     "Title": "Interface & Applicatie-instellingen",
@@ -645,7 +653,8 @@
     "ValidationValueRequired": "Vertaalwaarde mag niet leeg zijn",
     "KeyPlaceholder": "bijv. Save",
     "ValuePlaceholder": "Aangepaste vertaalde tekst",
-    "LanguageSelectionAria": "Taalselectie"
+    "LanguageSelectionAria": "Taalselectie",
+    "RemoveOverrideAria": "Vertaaloverschrijving {name} verwijderen"
   },
   "it": {
     "Title": "Impostazioni interfaccia e applicazione",
@@ -717,6 +726,7 @@
     "ValidationValueRequired": "Il valore di traduzione non può essere vuoto",
     "KeyPlaceholder": "es. Save",
     "ValuePlaceholder": "Testo tradotto personalizzato",
-    "LanguageSelectionAria": "Selezione della lingua"
+    "LanguageSelectionAria": "Selezione della lingua",
+    "RemoveOverrideAria": "Rimuovi la sovrascrittura della traduzione {name}"
   }
 }

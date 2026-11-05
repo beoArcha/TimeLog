@@ -51,7 +51,9 @@ export function LanguageSettingsCard() {
                 <Text size="base" weight="bold" className="text-foreground truncate">
                   {localePref === 'system'
                     ? translate(locale, 'settings', 'SystemDefault', customTranslations)
-                    : `${currentMeta.nativeName} (${currentMeta.englishName})`}
+                    : localePref === 'custom'
+                      ? translate(locale, 'settings', 'CustomLanguageTitle', customTranslations)
+                      : `${currentMeta.nativeName} (${currentMeta.englishName})`}
                 </Text>
                 <Badge variant={localePref === 'system' ? 'outline' : 'default'} className="font-mono text-2xs uppercase">
                   {localePref}
@@ -67,7 +69,9 @@ export function LanguageSettingsCard() {
                 </Caption>
               ) : (
                 <Caption variant="muted" size="xs">
-                  {translate(locale, 'settings', 'LanguageLockedToPreference', customTranslations)}
+                  {localePref === 'custom'
+                    ? translate(locale, 'settings', 'CustomLanguageDesc', customTranslations)
+                    : translate(locale, 'settings', 'LanguageLockedToPreference', customTranslations)}
                 </Caption>
               )}
             </VStack>

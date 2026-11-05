@@ -212,7 +212,7 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
                 subtitle={translate(locale, 'settings', 'CustomLanguageDesc', customTranslations)}
                 badge={
                   <Badge variant="secondary" className="text-2xs font-mono shrink-0 ml-2">
-                    CUSTOM
+                    {translate(locale, 'settings', 'CustomLanguageTitle', customTranslations)}
                   </Badge>
                 }
                 className="col-span-1 sm:col-span-2"
