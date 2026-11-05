@@ -128,3 +128,11 @@ Rust has no nested `describe`, so the scenario goes into the function name: `tes
 ## 10. Temporary Tool Directories
 
 Directories created by test or mutation tools (`.stryker-tmp/`, `.stryker-sandbox/`, `reports/`) must be excluded in `vite.config.ts` (`test.exclude`), `eslint.config.js` (`ignores`) and `.gitignore`.
+
+## 11. Non-Testable Scope & Documentation PRs (Test Suite Bypass)
+
+- When a change touches solely non-testable files (`docs/**`, `.agents/**`, `*.md`, `*.mdx`, `.markdownlint*`), running application test suites (Vitest unit/integration, Cargo unit/integration/arch, Playwright E2E, Smoke tests) is **completely unnecessary and strictly bypassed**.
+- Required verification for non-testable scopes is limited to:
+  1. Documentation integrity & link parity: `bun run docs:validate`.
+  2. Markdown / formatting linters where applicable.
+- Neither AI orchestrators, subagents, nor CI pipelines should execute heavy compilation or test suites when no executable application code, types, or dependencies have been modified.

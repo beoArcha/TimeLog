@@ -268,6 +268,7 @@ Workers must never invent requirements, create speculative fallbacks, or bypass 
    - Main lists any remaining risks or skipped checks.
    - Main **STOPS completely** and awaits explicit user approval.
 5. **Merge & Progression**: Only upon explicit user sign-off does Main squash-merge the PR into `main`, producing exactly one target-branch commit. Dependent work may then branch from the updated `main`. Independent work may continue in parallel only when its branch and file ownership remain valid.
+6. **Non-Testable & Documentation Verification Scope**: When a task or PR touches solely non-executable files (`docs/**`, `.agents/**`, `*.md`, `*.mdx`, `.markdownlint*`), running compilation, typecheck, and application test suites (Vitest, Cargo, E2E) is strictly bypassed. Verification is scoped exclusively to documentation integrity (`bun run docs:validate`) and markdown formatting. Do not waste agent sessions or CI runner resources on test suites that cannot be impacted by the changes.
 
 A task is not **Integrated** until the integration target contains the reviewed change and integration verification has passed. A PR is not approved merely because all workers report Completed.
 
