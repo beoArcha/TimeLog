@@ -424,3 +424,97 @@ fn test_given_multiple_databases_when_cli_machine_locale_configured_then_respect
         "fr"
     );
 }
+
+#[test]
+fn test_given_different_db_flags_when_commands_executed_then_resolves_and_applies_respective_database_end_to_end(
+) {
+    use oxyflow_timelog::commands::cli::execute_command_string;
+
+    // Given two distinct isolated databases
+    let (_conn_a, config_a, _temp_a) = setup_persistence_test("test_cli_db_flag_a");
+    let (_conn_b, config_b, _temp_b) = setup_persistence_test("test_cli_db_flag_b");
+
+    let persistence_a = Persistence::new(&config_a).expect("init db a");
+    let persistence_b = Persistence::new(&config_b).expect("init db b");
+
+    // 1. Create temp DB A with cli_machine_locale = "de"
+    persistence_a
+        .cli
+        .set_config_value("cli_machine_locale", "de")
+        .unwrap();
+
+    // 2. Create temp DB B with cli_machine_locale = "ja"
+    persistence_b
+        .cli
+        .set_config_value("cli_machine_locale", "ja")
+        .unwrap();
+
+    let db_a_str = config_a.db_path.to_str().unwrap();
+    let db_b_str = config_b.db_path.to_str().unwrap();
+
+    // Fallback/dummy persistence that has default "en"
+    let (_conn_dummy, config_dummy, _temp_dummy) = setup_persistence_test("test_cli_db_flag_dummy");
+    let dummy_persistence = Persistence::new(&config_dummy).expect("init dummy");
+
+    // 3. Verify passing --db <DB_A> loads DB A and resolves "de"
+    let cmd_a = format!("oxy --db \"{}\" config get cli_machine_locale", db_a_str);
+    let res_a = execute_command_string(&cmd_a, &dummy_persistence).expect("execute cmd with DB A");
+    assert!(res_a.success);
+    assert_eq!(res_a.exit_code, 0);
+    assert!(res_a.stdout.contains("de"));
+
+    let cmd_a_machine = format!(
+        "oxy --machine --db \"{}\" config get cli_machine_locale",
+        db_a_str
+    );
+    let res_a_m = execute_command_string(&cmd_a_machine, &dummy_persistence)
+        .expect("execute machine cmd with DB A");
+    assert!(res_a_m.success);
+    let parsed_a: serde_json::Value =
+        serde_json::from_str(&res_a_m.stdout).expect("valid json from DB A");
+    assert_eq!(parsed_a["key"], "cli_machine_locale");
+    assert_eq!(parsed_a["value"], "de");
+
+    // Verify passing --db <DB_B> loads DB B and resolves "ja"
+    let cmd_b = format!("oxy --db \"{}\" config get cli_machine_locale", db_b_str);
+    let res_b = execute_command_string(&cmd_b, &dummy_persistence).expect("execute cmd with DB B");
+    assert!(res_b.success);
+    assert_eq!(res_b.exit_code, 0);
+    assert!(res_b.stdout.contains("ja"));
+
+    // Also verify --db=<path> syntax
+    let cmd_b_eq = format!("oxy --db=\"{}\" config get cli_machine_locale", db_b_str);
+    let res_b_eq =
+        execute_command_string(&cmd_b_eq, &dummy_persistence).expect("execute cmd with DB B via =");
+    assert!(res_b_eq.success);
+    assert!(res_b_eq.stdout.contains("ja"));
+
+    let cmd_b_machine = format!(
+        "oxy --machine --db \"{}\" config get cli_machine_locale",
+        db_b_str
+    );
+    let res_b_m = execute_command_string(&cmd_b_machine, &dummy_persistence)
+        .expect("execute machine cmd with DB B");
+    assert!(res_b_m.success);
+    let parsed_b: serde_json::Value =
+        serde_json::from_str(&res_b_m.stdout).expect("valid json from DB B");
+    assert_eq!(parsed_b["key"], "cli_machine_locale");
+    assert_eq!(parsed_b["value"], "ja");
+
+    // Verify error handling in machine mode resolves machine locale from the respective database
+    let cmd_err_a = format!(
+        "oxy --machine --db \"{}\" start nonexistent-task-x",
+        db_a_str
+    );
+    let err_res_a = execute_command_string(&cmd_err_a, &dummy_persistence).unwrap_err();
+    assert_eq!(err_res_a.exit_code, 4);
+    assert!(err_res_a.envelope.is_some());
+
+    let cmd_err_b = format!(
+        "oxy --machine --db \"{}\" start nonexistent-task-x",
+        db_b_str
+    );
+    let err_res_b = execute_command_string(&cmd_err_b, &dummy_persistence).unwrap_err();
+    assert_eq!(err_res_b.exit_code, 4);
+    assert!(err_res_b.envelope.is_some());
+}
