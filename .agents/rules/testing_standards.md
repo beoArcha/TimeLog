@@ -109,6 +109,9 @@ Rust has no nested `describe`, so the scenario goes into the function name: `tes
 - Meaningful behavior: form submission, keyboard shortcuts (`Enter`, `Escape`), confirmation dialogs, error states, toggles, state transitions.
 - Mount-only tests and snapshots without interaction are not acceptable as the only coverage of a component.
 - Rules and strategies are tested individually; evaluators are tested with stub rules injected through the constructor.
+- **Distinguish Data Validation vs Infrastructure Failures**: Testing an invalid string/format in a database does NOT substitute for testing database read/write failures. Corrupted records and database infrastructure errors (`CliError::Storage`) must be tested with distinct, dedicated test cases.
+- **Real Subprocess CLI Testing**: In addition to internal command dispatcher tests (`execute_command_string()`), integration suites must test the standalone compiled binary process (`oxy`) using `std::process::Command`. Verify argument formats (both `--db <path>` and `--db=<path>`), exit codes, and stdout/stderr separation.
+- **Machine Protocol & Stdout Purity**: Tests asserting `--machine` or `--json` outputs must strictly verify that `stdout` contains ONLY valid, parsable JSON without diagnostic logs, panic hooks, or banner text. Diagnostic logs must be directed to `stderr`.
 
 ## 8. Cross-Runtime Parity
 

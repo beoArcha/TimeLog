@@ -10,7 +10,8 @@ Rules for TypeScript and React code in `src/`. Testing rules live in `testing_st
 
 - **React** owns rendering, interaction, local UI state and composition. It never owns business rules, persistence, runtime selection or visual scaling.
 - **Hooks** coordinate UI: they may call routers, prepare view models and coordinate interaction. They never duplicate Engine logic or access storage directly.
-- **Components** stay small and single-purpose. Event listeners, keyboard shortcuts and state synchronization live in dedicated hooks (`use<Feature>Orchestrator`), so `.tsx` files remain declarative orchestrators (typically under 100 lines).
+- **Components** stay small and single-purpose. Event listeners, keyboard shortcuts and state synchronization live in dedicated hooks (`use<Feature>Orchestrator`), so `.tsx` files remain declarative orchestrators (typically under 100–150 lines).
+- **Proactive Decomposition (SRP)**: Container components (e.g. settings cards, dashboard tabs) must not embed complex sub-features (such as dictionary override editors, form CRUD handlers, or nested list managers). Extract distinct feature concerns into dedicated child components (e.g. `CustomTranslationsEditor.tsx`).
 
 ## 2. Routers and Runtime Isolation
 
@@ -41,6 +42,10 @@ Consume the narrowest context that provides what you need.
 
 - Primitives live in `src/components/ui/` (`Button`, `Input`, `Label`, `Select`, `Checkbox`, `Card`, `Table`, `Tabs`, `SearchInput`, ...). Composites live in `src/components/` (`StatCard`, `CollapsibleCard`, `ConfirmDialog`, `PromptDialog`, `SegmentedControl`, `EmptyState`, `DataTable`).
 - Raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>` are allowed only inside `src/components/ui/`. *(enforced: `no-raw-html-primitives.arch.test.ts` + ESLint `no-restricted-syntax`)*
+- **Button with Icon Standardization**: Use the `Button` component with `icon` / `iconPlacement` props rather than manually assembling icons, spans, and classes inside buttons.
+- **No Raw HTML Clickable Containers**: Never use a raw `<div onClick>` for selectable cards (e.g. radio cards, language selectors). Use accessible primitives or extract a proper composite (e.g. `RadioGroupCard`, `LanguageRadioCard`) that manages keyboard focus (`Enter`, `Space`, arrow navigation) and ARIA attributes.
+- **Semantic Typography**: Never use `<Label>` as section headers or card titles; use `Overline`, `Heading`, or `Text`. `<Label>` is strictly for linking form controls via `htmlFor`.
+- **Layout Primitives**: Prefer `HStack`, `VStack`, `ScrollArea`, `InlineCluster`, and `Grid` over raw `flex flex-col` and manual `overflow-y-auto` divs.
 - Reuse an existing primitive or composite before creating a new one.
 
 ## 6. Styling, Scale and Theme
@@ -55,7 +60,9 @@ Consume the narrowest context that provides what you need.
 
 - All user-facing text, titles, placeholders and accessible names use `translate(...)` or `useTranslation`.
 - Never write `translate(...) || 'Fallback'`; `translator.ts` already falls back to `en`.
-- Dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/` (e.g. `timer.json`), each containing all 6 locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`). A new key is added to every locale in the relevant file and registered in `src/common/i18n/keys.ts`.
+- Dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/` (e.g. `timer.json`), each containing all 10 standard locales (`en`, `pl`, `de`, `es`, `pt-br`, `fr`, `uk`, `ja`, `nl`, `it`). A new key is added to every locale in the relevant file and registered in `src/common/i18n/keys.ts`.
+- **Truthful System Resolution**: "System default" UI indicators must always display the genuine system/browser detected locale (`resolveSystemLocale()`), never mirroring the user's explicit preference when locked to another language.
+- **Domain Validation & Form Feedback**: Custom translation or key overrides must validate against known domains (`DomainKeys`) using a typed `<Select>` rather than open text fields, and provide visual form validation feedback instead of silent returns (`return;`).
 
 ## 8. Accessibility
 

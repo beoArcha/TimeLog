@@ -60,10 +60,25 @@ The single source of truth is `src-tauri/src/cli/shared/constants.rs`, mapped in
 
 Changing a code or its mapping is a breaking change of the CLI contract: update `docs/manifesto/CLI.md` and the parity fixtures in the same change.
 
-## 5. Handler Structure
+### 4.4. Zero Silent Fallbacks & Infrastructure Error Handling
+
+- **Never Swallow Infrastructure Errors**: Never convert database/storage errors to `None` or silent fallbacks using `.ok()`, `unwrap_or_default()`, or empty catch handlers.
+- **Distinguish Missing Config vs Storage Failure**: A missing record is `Ok(None)` (which may legitimately fall back to an effective default); an infrastructure or query failure is `Err(CliError::Storage(...))` and must be propagated or explicitly logged.
+- **Error Preservation in Envelope Lifecycle**: When resolving locale or context for error envelopes:
+  - If resolving configuration fails due to an infrastructure error, log it via `log::error!`.
+  - Use a safe fallback envelope format (`"en"`).
+  - **Never replace the primary CLI command failure** with the secondary locale resolution error. The original error remains the primary error envelope payload.
+
+### 4.5. Diagnostic Logging & Stdout Purity
+
+- **Logger Backend Initialized**: Both CLI binary entrypoints (`src-tauri/src/main.rs` and `src-tauri/src/bin/oxy.rs`) must have an active, initialized logger backend. Calling `log::error!` without an initialized logger is an unobservable defect.
+- **Strict Stdout Purity in Machine Mode**: Diagnostic logs must **never pollute stdout** when `--machine` or `--json` is active. Diagnostic messages and logs go strictly to `stderr` or diagnostic log files. `stdout` is reserved exclusively for the valid JSON envelope contract.
+
+## 5. Handler Structure & Configuration Semantics
 
 - Top-level command handlers (`match cmd { ... }`) are thin dispatchers, around 30 lines at most.
 - Each subcommand branch delegates to a dedicated function (`create_task(...)`, `archive_task(...)`); no complex logic inline in match arms.
+- **Effective Defaults vs Stored Records**: When implementing configuration subsystems, `config get <key>` returns the effective runtime default (e.g. `"en"` for unconfigured `cli_machine_locale`), while `config ls` lists only explicitly persisted database entries. Do not mutate persistence merely to display defaults in `ls`.
 
 ## 6. General
 

@@ -157,24 +157,26 @@ Branches and pull requests must carry durable technical and business meaning. Ar
   - `refactor/shared-patterns-and-accessible-drawer`
   - `refactor/project-form-fields-and-layout-primitives`
 
-### 3.2. Single-Commit Result via Squash Merge
+### 3.2. PR Commit Discipline & Single-Commit Squash Result
 
-A pull request must contribute **exactly one commit to the target branch** after merge. This is a requirement for the final repository history, not a restriction on the working history of the PR.
+A pull request must contribute **exactly one commit to the target branch** after merge. This enforces clean, bisectable history on `main` while maintaining clear auditability during code review:
 
-1. **Development history**: Workers and Main may create multiple focused, atomic commits while implementing the change, addressing review feedback, and running verification. Do not squash these commits prematurely merely to keep the PR's visible commit count at one.
-2. **PR title**: Follows Conventional Commits with a clear scope and imperative mood (e.g. `feat(design-system): standardize UI primitives and clean up component hierarchy`).
-3. **PR body**: Contains 3–6 concise, bulleted explanations covering both **technical improvements** (e.g. AST rule compliance, token usage, a11y) and **business value** (e.g. theme readability, developer ergonomics, elimination of code duplication).
-4. **Pre-merge review**: Keep commits separate and meaningful during review so changes remain traceable. Follow-up fixes may be additional commits; do not rewrite history solely to hide intermediate development steps.
-5. **Final integration**: Merge using **Squash and merge** (or an equivalent explicit squash operation) so all PR commits become one commit on the target branch. The squash commit message should follow Conventional Commits and represent the complete PR.
+1. **Initial PR Creation (Exactly 1 Initial Commit)**: When opening a PR on GitHub, the branch must contain **exactly 1 initial commit** representing the baseline implementation. Do not open PRs with messy work-in-progress commit histories.
+2. **Review Fixes (Separate Atomic Commits)**: When code review requests changes (e.g. FIX-01, FIX-02), all fixes must be pushed as **separate, descriptive commits** (e.g. `fix(cli): prevent swallowing SQLite errors (FIX-01)`). **Never amend, rebase, or squash commits during active PR review** — keeping review fixes separate is required so human and automated reviewers can easily verify incremental corrections.
+3. **PR Title & Description**: PR title follows Conventional Commits with a clear scope and imperative mood. The PR description contains bulleted technical details, architectural context, test verification evidence, and linked issues/contracts.
+4. **Final Integration (Squash and Merge)**: Once all checks pass and explicit human approval is received, the PR is merged into `main` exclusively via **Squash and merge**. The resulting single commit on `main` summarizes the entire PR scope.
 
-For multiple workers contributing to one logical delivery, Main integrates their reviewed commits and retains meaningful commit boundaries during development/review. The final PR is squash-merged into one commit. Independently releasable tasks may use separate PRs, each of which must also be squash-merged to one target-branch commit.
+### 3.3. PR Chaining & Concurrency Discipline
 
-### 3.3. Sequential Merge Strategy
-
-- PRs must be merged sequentially into `main`.
-- Parallel merging of interdependent feature branches is forbidden to prevent merge conflicts and database/lock contention.
-- Subsequent worker tasks that depend on merged work must branch from the newly updated `main` (or explicitly rebased tip) after the preceding PR is approved and merged.
-- Independent workers may implement concurrently, but concurrency does not authorize concurrent merges or bypass the integration gate.
+1. **Strict Prohibition of Unnecessary PR Chaining**:
+   - Creating dependent branch chains (`branch B` branched off unmerged `branch A`) is **strictly forbidden** unless Task B explicitly and unavoidably depends on code or type contracts introduced in Task A.
+   - Independent tasks must always branch from the latest common `main`. This guarantees that independent PRs can be reviewed, tested, and merged without blocking each other.
+2. **Worker Slot Re-use upon Merge**:
+   - As soon as a PR is merged into `main`, that worker's capacity is immediately freed.
+   - Main must immediately detect merged PRs and dispatch the next eligible task from the plan to the newly available worker without waiting for unrelated branches.
+3. **Sequential Merge Order with Human Sign-off**:
+   - While implementation runs in parallel, merges into `main` must occur sequentially according to the defined plan order to prevent merge conflicts.
+   - Every merge into `main` strictly requires explicit human confirmation or user-initiated merge on GitHub. Main never automatically merges PRs without human approval.
 
 ### 3.4. Branch and Integration Ownership
 
