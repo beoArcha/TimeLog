@@ -100,3 +100,83 @@ fn test_locale_serialization_and_deserialization() {
         );
     }
 }
+
+#[test]
+fn test_all_supported_translation_locales_are_valid_lowercase_strings() {
+    // Arrange: 10 supported translation locales according to contract
+    let supported_locales = [
+        (Locale::Pl, "pl"),
+        (Locale::En, "en"),
+        (Locale::De, "de"),
+        (Locale::Es, "es"),
+        (Locale::PtBr, "pt-br"),
+        (Locale::Fr, "fr"),
+        (Locale::Uk, "uk"),
+        (Locale::Ja, "ja"),
+        (Locale::Nl, "nl"),
+        (Locale::It, "it"),
+    ];
+
+    assert_eq!(
+        supported_locales.len(),
+        10,
+        "Contract requires exactly 10 supported translation locales"
+    );
+
+    for (locale, expected_str) in supported_locales {
+        // Act
+        let serialized = serde_json::to_string(&locale).expect("Failed to serialize locale");
+        let inner = serialized.trim_matches('"');
+
+        // Assert: valid lowercase string with optional hyphens
+        assert_eq!(
+            inner, expected_str,
+            "Unexpected serialization for {:?}",
+            locale
+        );
+        assert_eq!(
+            inner,
+            inner.to_lowercase(),
+            "Locale string must be strictly lowercase: {}",
+            inner
+        );
+        assert!(!inner.is_empty(), "Locale string must not be empty");
+        assert!(
+            inner.chars().all(|c| c.is_ascii_lowercase() || c == '-'),
+            "Locale string must contain only lowercase ASCII letters and hyphens: {}",
+            inner
+        );
+    }
+}
+
+#[test]
+fn test_locale_serde_rejects_invalid_or_uppercase_strings() {
+    // Arrange: corrupted or invalid locale strings
+    let invalid_cases = [
+        "\"EN\"",
+        "\"PL\"",
+        "\"pt_br\"",
+        "\"pt_BR\"",
+        "\"PT-BR\"",
+        "\"JA\"",
+        "\"NL\"",
+        "\"IT\"",
+        "\"uk-UA\"",
+        "\"unknown\"",
+        "\"\"",
+        "\"   \"",
+        "\"123\"",
+    ];
+
+    for invalid in invalid_cases {
+        // Act
+        let result: Result<Locale, _> = serde_json::from_str(invalid);
+
+        // Assert
+        assert!(
+            result.is_err(),
+            "Expected deserialization error for invalid input: {}",
+            invalid
+        );
+    }
+}
