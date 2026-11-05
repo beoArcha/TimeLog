@@ -34,6 +34,7 @@ jobs:
           filters: |
             documentation:
               - 'docs/**'
+              - '.agents/**'
               - '*.md'
               - '**/*.md'
               - '.markdownlint*'
@@ -43,6 +44,7 @@ jobs:
               - 'tests/**'
               - '!tests/e2e/**'
               - '!docs/**'
+              - '!.agents/**'
               - '!*.md'
               - '!**/*.md'
               - 'package.json'

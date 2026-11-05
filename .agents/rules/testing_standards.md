@@ -109,6 +109,9 @@ Rust has no nested `describe`, so the scenario goes into the function name: `tes
 - Meaningful behavior: form submission, keyboard shortcuts (`Enter`, `Escape`), confirmation dialogs, error states, toggles, state transitions.
 - Mount-only tests and snapshots without interaction are not acceptable as the only coverage of a component.
 - Rules and strategies are tested individually; evaluators are tested with stub rules injected through the constructor.
+- **Distinguish Data Validation vs Infrastructure Failures**: Testing an invalid string/format in a database does NOT substitute for testing database read/write failures. Corrupted records and database infrastructure errors (`CliError::Storage`) must be tested with distinct, dedicated test cases.
+- **Real Subprocess CLI Testing**: In addition to internal command dispatcher tests (`execute_command_string()`), integration suites must test the standalone compiled binary process (`oxy`) using `std::process::Command`. Verify argument formats (both `--db <path>` and `--db=<path>`), exit codes, and stdout/stderr separation.
+- **Machine Protocol & Stdout Purity**: Tests asserting `--machine` or `--json` outputs must strictly verify that `stdout` contains ONLY valid, parsable JSON without diagnostic logs, panic hooks, or banner text. Diagnostic logs must be directed to `stderr`.
 
 ## 8. Cross-Runtime Parity
 
@@ -125,3 +128,30 @@ Rust has no nested `describe`, so the scenario goes into the function name: `tes
 ## 10. Temporary Tool Directories
 
 Directories created by test or mutation tools (`.stryker-tmp/`, `.stryker-sandbox/`, `reports/`) must be excluded in `vite.config.ts` (`test.exclude`), `eslint.config.js` (`ignores`) and `.gitignore`.
+
+## 11. Non-Testable Scope & Documentation PRs (Test Suite Bypass)
+
+- When a change touches solely non-testable files (`docs/**`, `.agents/**`, `*.md`, `*.mdx`, `.markdownlint*`), running application test suites (Vitest unit/integration, Cargo unit/integration/arch, Playwright E2E, Smoke tests) is **completely unnecessary and strictly bypassed**.
+- Required verification for non-testable scopes is limited to:
+  1. Documentation integrity & link parity: `bun run docs:validate`.
+  2. Markdown / formatting linters where applicable.
+- Neither AI orchestrators, subagents, nor CI pipelines should execute heavy compilation or test suites when no executable application code, types, or dependencies have been modified.
+
+## 12. Architecture Rule Enforcement
+
+Architecture tests enforce explicit project-wide constraints, not subjective code style preferences.
+
+- Every architecture rule must have a clearly defined scope, measurable condition and actionable failure message.
+- A rule must not silently inspect generated files, dependencies, build output or unrelated artifacts.
+- Static analysis must distinguish syntactic patterns from actual semantic violations. Do not reject valid code solely because it contains a particular token or method name.
+- Rules that enforce LOC thresholds must follow `.agents/rules/code_quality_standards.md`.
+- Rules that inspect error handling must distinguish:
+  - Expected domain outcomes and validation failures.
+  - Missing optional data.
+  - Recoverable operational failures.
+  - Infrastructure failures.
+  - Unexpected or critical failures.
+- Do not treat every `.ok()`, `unwrap_or_default()` or caught exception as automatically invalid. Inspect whether the operation is intentionally best-effort, whether failure is observable, and whether the fallback preserves the operation's contract.
+- Architecture tests must include positive cases for valid patterns and negative cases for prohibited patterns.
+- When a rule uses AST analysis, prefer syntax-aware inspection over broad regular expressions whenever practical.
+- Architecture tests must themselves remain maintainable and follow the project's code quality standards.
