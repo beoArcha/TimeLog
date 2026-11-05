@@ -251,6 +251,73 @@ fn test_given_unset_cli_machine_locale_when_resolved_or_get_then_defaults_to_en(
 }
 
 #[test]
+fn test_given_corrupted_cli_machine_locale_in_db_when_config_get_then_fails_with_typed_syntax_error() {
+    // Given
+    let (_conn, config, _temp) =
+        setup_persistence_test("test_subsystem_cli_machine_locale_corrupted_get");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    // Corrupted arbitrary value in SQLite
+    persistence
+        .cli
+        .set_config_value("cli_machine_locale", "corrupted_klingon")
+        .unwrap();
+
+    let get_args =
+        CliArgs::try_parse_from(["oxy", "config", "get", "cli_machine_locale"]).unwrap();
+    let res = handle_cli(get_args, &persistence, &engine);
+    assert!(res.is_err());
+    let err = res.unwrap_err();
+    assert_eq!(err.exit_code(), 2);
+    let env = err.to_envelope(None);
+    assert_eq!(env.code, "CLI_SYNTAX_INVALID_ARGS");
+
+    // "system" stored directly in SQLite
+    persistence
+        .cli
+        .set_config_value("cli_machine_locale", "system")
+        .unwrap();
+    let res_system = handle_cli(
+        CliArgs::try_parse_from(["oxy", "config", "get", "cli_machine_locale"]).unwrap(),
+        &persistence,
+        &engine,
+    );
+    assert!(res_system.is_err());
+    let err_system = res_system.unwrap_err();
+    assert_eq!(err_system.exit_code(), 2);
+    assert_eq!(err_system.to_envelope(None).code, "CLI_SYNTAX_INVALID_ARGS");
+
+    // "custom" stored directly in SQLite
+    persistence
+        .cli
+        .set_config_value("cli_machine_locale", "custom")
+        .unwrap();
+    let res_custom = handle_cli(
+        CliArgs::try_parse_from(["oxy", "config", "get", "cli_machine_locale"]).unwrap(),
+        &persistence,
+        &engine,
+    );
+    assert!(res_custom.is_err());
+    let err_custom = res_custom.unwrap_err();
+    assert_eq!(err_custom.exit_code(), 2);
+    assert_eq!(err_custom.to_envelope(None).code, "CLI_SYNTAX_INVALID_ARGS");
+
+    // Valid value stored in SQLite
+    persistence
+        .cli
+        .set_config_value("cli_machine_locale", "de")
+        .unwrap();
+    let res_valid = handle_cli(
+        CliArgs::try_parse_from(["oxy", "config", "get", "cli_machine_locale"]).unwrap(),
+        &persistence,
+        &engine,
+    );
+    assert!(res_valid.is_ok());
+    assert!(format!("{}", res_valid.unwrap()).contains("de"));
+}
+
+#[test]
 fn test_given_configured_persistence_when_gui_locale_set_then_cli_machine_locale_remains_independent(
 ) {
     // Given

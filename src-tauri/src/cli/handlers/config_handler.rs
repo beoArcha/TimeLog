@@ -62,7 +62,13 @@ fn get_config(
     let val = persistence.cli.get_config_value(trimmed_key)?;
 
     let value = match val {
-        Some(v) => v,
+        Some(v) => {
+            if trimmed_key == CONFIG_KEY_CLI_MACHINE_LOCALE {
+                validate_cli_machine_locale(&v)?.to_string()
+            } else {
+                v
+            }
+        }
         None if trimmed_key == CONFIG_KEY_CLI_MACHINE_LOCALE => {
             DEFAULT_CLI_MACHINE_LOCALE.to_string()
         }
