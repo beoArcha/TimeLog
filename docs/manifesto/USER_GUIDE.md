@@ -16,7 +16,7 @@ Your data never leaves your computer. There are no cloud subscriptions, no force
   - [2.4 Tracking Time](#24-tracking-time)
   - [2.5 Reports & Progress](#25-reports--progress)
   - [2.6 Customization: Themes & Scale](#26-customization-themes--scale)
-  - [2.7 Language Selection](#27-language-selection)
+  - [2.7 Language Selection & Custom Overrides](#27-language-selection--custom-overrides)
 - [3. The Terminal Companion (Basic CLI)](#3-the-terminal-companion-basic-cli)
   - [3.1 Starting a Timer](#31-starting-a-timer)
   - [3.2 Stopping a Timer](#32-stopping-a-timer)
@@ -24,6 +24,7 @@ Your data never leaves your computer. There are no cloud subscriptions, no force
   - [3.4 Today's Work Summary](#34-todays-work-summary)
   - [3.5 Adding Projects and Tasks from Terminal](#35-adding-projects-and-tasks-from-terminal)
   - [3.6 Billing Configuration from CLI](#36-billing-configuration-from-cli)
+  - [3.7 CLI Machine Locale Configuration](#37-cli-machine-locale-configuration)
 - [4. Data Safety, Backups & Sinks](#4-data-safety-backups--sinks)
   - [4.1 Storage Architecture: Desktop SQLite vs Browser LocalStorage](#41-storage-architecture-desktop-sqlite-vs-browser-localstorage)
   - [4.2 Universal JSON Backups & State Restoration](#42-universal-json-backups--state-restoration)
@@ -149,18 +150,40 @@ In **Settings**, adjust the UI scale to fit your screen resolution:
 - **Medium**: Sidebar plus main timer dashboard.
 - **Full**: Comprehensive view with project list, task hierarchy, calendar, and analytics visible side-by-side.
 
-### 2.7 Language Selection
+### 2.7 Language Selection & Custom Overrides
 
-oXyFlow is fully localized in 6 languages:
+oXyFlow is fully localized in 10 languages across all application views and domains:
 
-- **English** (en)
-- **Polski** (pl)
-- **Deutsch** (de)
-- **Español** (es)
-- **Français** (fr)
-- **Português do Brasil** (pt-br)
+- **English** (`en`)
+- **Polski** (`pl`)
+- **Deutsch** (`de`)
+- **Español** (`es`)
+- **Português do Brasil** (`pt-br`)
+- **Français** (`fr`)
+- **Українська** (`uk`)
+- **日本語** (`ja`)
+- **Nederlands** (`nl`)
+- **Italiano** (`it`)
 
-You can change the language anytime in **Settings $\to$ Language**, or let oXyFlow automatically match your system's operating system locale.
+#### System Language Matching (`system`)
+
+By default, oXyFlow uses **System default**, matching your operating system locale automatically with intelligent fallback to English. The active system resolution (e.g. `Polski (pl)`) is displayed dynamically in the language settings.
+
+#### Language Selection Modal
+
+In **Settings $\to$ Language**, click the **Configure Language** button (`SlidersHorizontal` icon) to open the accessible **Language Selection Modal**. The modal provides:
+- Single-owner keyboard navigation via Base UI `RadioGroup`.
+- Quick visual indicators for native and English names.
+- Operating system resolution badges.
+- Confirmation (`Save`) and cancellation controls to safely preview selections.
+
+#### Custom Translation Overrides (`custom`)
+
+Under **Custom Translation Overrides** in Settings, you can customize or override any system string without modifying JSON dictionary files:
+1. Select the translation domain (e.g. `common`, `settings`, `task`, `project`, `timer`).
+2. Enter the target translation key (e.g. `Save`, `Title`).
+3. Enter your custom translation text and click **"+"** to save.
+4. Overrides persist immediately across restarts and can be removed individually at any time with the delete icon.
 
 ---
 
@@ -245,6 +268,25 @@ oxy task rate "Implementation" inherit
 Use `--rate-cents` for integer cents on Project/Task creation and Project updates, or `--cents` with `oxy task rate`. The `inherit`, `none`, and `clear` Task values remove the Task override; `0.00` explicitly marks the Task as non-billable. The CLI does not yet provide billing-specific report output; use the application's Reports view for billing summaries.
 
 For the full command reference and machine-mode behavior, see the [Advanced CLI Guide](./CLI.md).
+
+### 3.7 CLI Machine Locale Configuration
+
+For automated headless pipelines, scripts, and CI/CD environments, `oxy` defaults to outputting error messages and machine metadata in English (`en`). You can configure the persistent machine locale using the configuration commands:
+
+```bash
+# Check the current machine locale (defaults to 'en' if unset)
+oxy config get cli_machine_locale
+
+# Configure a specific locale for machine operations
+oxy config set cli_machine_locale de
+
+# Verify persisted configuration keys
+oxy config ls
+```
+
+Machine output streams exclusively to `stdout` (`--machine`, `--json`), while structured diagnostic logs and error envelopes stream to `stderr`.
+
+---
 
 ## 4. Data Safety, Backups & Sinks
 

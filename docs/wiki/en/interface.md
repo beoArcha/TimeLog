@@ -120,3 +120,14 @@ ThemeRegistry.getInstance().register({
   },
 });
 ```
+
+---
+
+## Language Selection and Custom Overrides
+
+TimeLog provides 10 supported interface languages (`en`, `pl`, `de`, `es`, `pt-br`, `fr`, `uk`, `ja`, `nl`, `it`), automatic operating system locale resolution, and custom in-app string overrides:
+
+- **Quick Selector**: Rapid single-click language switching from the header or settings grid.
+- **Language Selection Modal**: Full accessible dialog (`LanguageSelectionModal`) with keyboard navigation (`RadioGroup`), native language labels, and active operating system resolution badges.
+- **Custom Translation Overrides**: Override individual system translation keys per domain (`common`, `settings`, `task`, etc.) directly from Settings without modifying dictionary files.
+

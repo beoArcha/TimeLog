@@ -118,3 +118,14 @@ ThemeRegistry.getInstance().register({
   },
 });
 ```
+
+---
+
+## Wybór języka i własne tłumaczenia
+
+TimeLog oferuje 10 w pełni wspieranych języków interfejsu (`en`, `pl`, `de`, `es`, `pt-br`, `fr`, `uk`, `ja`, `nl`, `it`), automatyczne dopasowywanie do języka systemu operacyjnego oraz możliwość nadpisywania pojedynczych fraz:
+
+- **Szybki selektor**: Błyskawiczna zmiana języka jednym kliknięciem z poziomu nagłówka lub siatki w Ustawieniach.
+- **Modal wyboru języka**: Dostępny modal (`LanguageSelectionModal`) z pełną obsługą klawiatury (`RadioGroup`), rodzimymi nazwami języków i wskaźnikami aktywnego rozstrzygnięcia systemowego.
+- **Własne nadpisania tłumaczeń**: Możliwość nadpisania dowolnego klucza systemowego w wybranej domenie (`common`, `settings`, `task` itp.) bezpośrednio w Ustawieniach bez edytowania plików słowników.
+

@@ -299,15 +299,15 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] **Canonical Type Aggregation**: Retain in `src/common/i18n/keys.ts` solely aggregated re-exports and the canonical `export interface DomainKeys` contract.
 
 #### Group B (Parallel Track) — Extended Locales Integration (`ja`, `nl`, `it`)
-- [ ] **Language Selection Modal**: Maintain clean primary quick-select bar while introducing full language selection dialog (`LanguageSelectionModal`) in settings supporting extended locales: Japanese (`ja`), Dutch (`nl`), and Italian (`it`).
-- [ ] **Dictionary Schema Generation**: Scaffold matching dictionary json files for new locales across all domain dictionaries (`src/common/i18n/dictionaries/`).
+- [x] **Language Selection Modal & Custom Overrides**: Introduced accessible language selection dialog (`LanguageSelectionModal`) with Base UI `RadioGroup`, quick-select buttons, active system resolution badges, and custom translation overrides editor (`CustomTranslationsEditor`) supporting extended locales: Japanese (`ja`), Dutch (`nl`), Italian (`it`), and complete Ukrainian (`uk`).
+- [x] **Dictionary Schema Generation & Quality Guardrails**: Added complete dictionary JSON files across all 12 domain dictionaries (`src/common/i18n/dictionaries/`) with automated `I18nQualityRule` tests enforcing 100% key and placeholder parity across all 10 locales.
 
 #### Group C (Parallel Track) — Automated Multi-Locale MCP Validation
 - [ ] **MCP Chrome Preview Validation**: Execute automated visual regression and translation completeness audits across all locales using Chrome MCP (`preview_*`).
 - [ ] **Layout & Boundary Verification**: Verify that labels in German (`de`), Japanese (`ja`), and Dutch (`nl`) do not cause button overflow, text wrapping defects, or clipping across Compact, Medium, and Full layouts.
 
 #### Group D (Parallel Track) — Machine Locale Config (moved from Phase 10)
-- [ ] **Machine Locale Config**: `cli_machine_locale` SQLite config key, so CLI machine output stays locale-independent.
+- [x] **Machine Locale Config**: Persistent `cli_machine_locale` SQLite config key (`oxy config set/get cli_machine_locale`) and centralized error envelope resolution, ensuring CLI machine output stays deterministic in English by default.
 
 ---
 
