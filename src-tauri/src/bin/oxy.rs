@@ -6,6 +6,7 @@ use oxyflow_timelog::persistence::{Persistence, PersistenceConfig};
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
+    cli::init_cli_logger();
     let raw_args: Vec<String> = std::env::args().collect();
     let is_machine = raw_args
         .iter()
@@ -19,7 +20,8 @@ fn main() -> ExitCode {
         }
     }
 
-    let early_db = extract_early_db_flag(&raw_args);
+    // Stage A: Before DB open
+    let early_db = cli::extract_early_db_flag(&raw_args);
     let db_path = match resolve_db_path(early_db.as_deref()) {
         Ok(path) => path,
         Err(e) => {
@@ -28,7 +30,7 @@ fn main() -> ExitCode {
                     "Failed to resolve database path: {e}"
                 )),
             );
-            let envelope = err.to_envelope_with_mode(is_machine, None);
+            let envelope = cli::build_error_envelope(&err, is_machine, None);
             envelope.render_stderr(is_machine);
             return envelope.to_exit_code();
         }
@@ -44,7 +46,7 @@ fn main() -> ExitCode {
         Ok(p) => p,
         Err(e) => {
             let err = CliError::from(e);
-            let envelope = err.to_envelope_with_mode(is_machine, None);
+            let envelope = cli::build_error_envelope(&err, is_machine, None);
             envelope.render_stderr(is_machine);
             return envelope.to_exit_code();
         }
@@ -52,10 +54,11 @@ fn main() -> ExitCode {
 
     let engine = Engine::new(&persistence);
 
+    // Stage B & C: After DB open
     let effective_args = match cli::preprocess_args(&raw_args, &persistence, &engine) {
         Ok(args) => args,
         Err(err) => {
-            let envelope = err.to_envelope_with_mode(is_machine, None);
+            let envelope = cli::build_error_envelope(&err, is_machine, Some(&persistence));
             envelope.render_stderr(is_machine);
             return envelope.to_exit_code();
         }
@@ -69,17 +72,4 @@ fn main() -> ExitCode {
     };
 
     cli::run(cli_args, &persistence, &engine)
-}
-
-fn extract_early_db_flag(args: &[String]) -> Option<String> {
-    let mut iter = args.iter().skip(1);
-    while let Some(arg) = iter.next() {
-        if arg == "--db" {
-            return iter.next().cloned();
-        }
-        if let Some(stripped) = arg.strip_prefix("--db=") {
-            return Some(stripped.to_string());
-        }
-    }
-    None
 }

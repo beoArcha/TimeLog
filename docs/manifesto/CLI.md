@@ -100,9 +100,10 @@ graph TD
 ### 2. The Automated System / Daemon (Machine / CI / Git Hooks)
 
 - **Primary Goal:** Headless event triggers, deterministic non-interactive execution, zero ambiguity.
-- **Strict Invariant:** Always outputs in **English** (`en`), even if the user has configured Polish (`pl`), German (`de`), or Spanish (`es`) in the desktop GUI.
-- **Key Commands:** `oxy timer start <id> --machine --json`, `oxy status --machine --json`.
-- **Stream Discipline:** Clean data to `stdout`, structured JSON errors to `stderr`, non-zero POSIX exit codes (`1`..`5`).
+- **Strict Invariant:** Always outputs in **English** (`en`) by default, even if the user has configured Polish (`pl`), German (`de`), or Spanish (`es`) in the desktop GUI. Machine locale can be explicitly configured via `cli_machine_locale`.
+- **Default Locale Semantics:** `en` is the active, effective default. If `cli_machine_locale` is absent from SQLite, `oxy config get cli_machine_locale` returns `en`. `oxy config ls` lists only physically persisted database keys, meaning absence in `config ls` does not indicate an unconfigured or broken locale.
+- **Key Commands:** `oxy timer start <id> --machine --json`, `oxy status --machine --json`, `oxy config get cli_machine_locale`.
+- **Stream Discipline:** Clean machine data exclusively to `stdout`, structured JSON error envelopes and diagnostic logs (`env_logger`) strictly to `stderr`, non-zero POSIX exit codes (`1`..`5`). Logs never pollute `stdout`.
 
 ### 3. The Beginner User (Maya — Junior Developer)
 
@@ -147,6 +148,9 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
 | **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
 | **Database** | Restore | `oxy db restore <path>` | Restores state with schema integrity verification | Confirms restored database |
+| **Config** | Set | `oxy config set <key> <val>` | Sets SQLite config entry (e.g. `cli_machine_locale`) | Validates supported keys and values |
+| **Config** | Get | `oxy config get <key>` | Gets effective config value (defaults to `en` for `cli_machine_locale`) | Displays active configuration value |
+| **Config** | List | `oxy config ls` | Lists physically persisted SQLite configuration entries | Displays table of saved config pairs |
 | **Sink** | Set CSV | `oxy sink set csv --dir <path>` | Configures local CSV audit log | Prompts for directory path |
 | **Sink** | Set API | `oxy sink set webhook --url <url> -t <token>` | Updates external webhook target | Tests connectivity and saves |
 | **Sink** | Test | `oxy sink test` | Synthetic event verification | Displays green checkmarks for active sinks |
@@ -307,7 +311,12 @@ The CLI supports a dedicated in-memory sandbox emulator (`src/features/cli/sandb
 - **Atomic Task Switching**: `switch <target-task-id>` stops any currently active timer and starts the new timer in a single transaction, eliminating race conditions or manual multi-step stop/start actions.
 - **Language Disciplines**:
   - Command outputs (`stdout` / success logs / tabular summaries) are **strictly English** to ensure deterministic parsing, copy-pasting, and scripting.
-  - Interactive help (`help`), usage tips, error diagnoses, and remediation advice adapt to the active user locale dictionary (`en`, `pl`, `de`, `es`, `fr`, `pt-br`).
+  - Interactive help (`help`), usage tips, error diagnoses, and remediation advice adapt to the active user locale dictionary (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `ja`, `nl`, `it`).
+  - **Machine Locale Configuration (`cli_machine_locale`)**:
+    - The CLI reads its machine envelope locale from the SQLite `config` key `cli_machine_locale`.
+    - **Effective Default:** When `cli_machine_locale` is absent from SQLite, `en` is the guaranteed effective default. `oxy config get cli_machine_locale` explicitly evaluates and returns `en`.
+    - **Database Listing (`config ls` vs `config get`):** `oxy config ls` lists only keys physically written to SQLite. If `cli_machine_locale` has not been set via `oxy config set cli_machine_locale <val>`, it will not appear in `config ls`. This is intentional and does not signify an unconfigured or broken locale.
+    - **Validation & Fallback:** Validated against supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `ja`, `nl`, `it`). In the event of SQLite storage failure or corrupted values, the CLI logs the error via `log::error!` (directed to `stderr`) and safely falls back to `en`, preserving the primary error envelope and exit code.
 
 ---
 

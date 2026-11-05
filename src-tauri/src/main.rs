@@ -8,6 +8,7 @@ fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() > 1 {
+        cli::init_cli_logger();
         oxyflow_timelog::common::attach_parent_console();
 
         let cli_args = match cli::CliArgs::try_parse() {
@@ -27,7 +28,7 @@ fn main() -> ExitCode {
                         "Failed to resolve database path: {e}"
                     )),
                 );
-                let envelope = err.to_envelope_with_mode(is_machine, None);
+                let envelope = cli::build_error_envelope(&err, is_machine, None);
                 envelope.render_stderr(is_machine);
                 return envelope.to_exit_code();
             }
@@ -42,7 +43,7 @@ fn main() -> ExitCode {
             Ok(p) => p,
             Err(e) => {
                 let err = cli::CliError::from(e);
-                let envelope = err.to_envelope_with_mode(is_machine, None);
+                let envelope = cli::build_error_envelope(&err, is_machine, None);
                 envelope.render_stderr(is_machine);
                 return envelope.to_exit_code();
             }

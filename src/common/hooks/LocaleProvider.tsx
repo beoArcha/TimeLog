@@ -17,16 +17,10 @@ export interface LocaleContextProps {
 
 export const LocaleContext = createContext<LocaleContextProps | undefined>(undefined);
 
-function resolveSystemLocale(): Locale {
-  const browserLang = navigator.language.toLowerCase();
-  if (browserLang.startsWith('pl')) return 'pl';
-  if (browserLang.startsWith('de')) return 'de';
-  if (browserLang.startsWith('es')) return 'es';
-  if (browserLang.startsWith('pt')) return 'pt-br';
-  if (browserLang.startsWith('fr')) return 'fr';
-  if (browserLang.startsWith('uk')) return 'uk';
-  return 'en';
-}
+import { resolveSystemLocale } from '@common/i18n/locales';
+
+export { resolveSystemLocale };
+
 
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [localePref, setLocalePref] = useState<Locale>('system');

@@ -1,10 +1,11 @@
 use super::constants::{
-    ERR_CONFIG_EMPTY_KEY, FORMAT_CONFIG_LIST_ITEM, HEADER_CONFIG, MSG_CONFIG_SET,
-    MSG_NO_CONFIG_ENTRIES,
+    CONFIG_KEY_CLI_MACHINE_LOCALE, DEFAULT_CLI_MACHINE_LOCALE, ERR_CONFIG_EMPTY_KEY,
+    FORMAT_CONFIG_LIST_ITEM, HEADER_CONFIG, MSG_CONFIG_SET, MSG_NO_CONFIG_ENTRIES,
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{ConfigArgs, ConfigSubcommand};
 use crate::cli::shared::output::CliOutput;
+use crate::cli::shared::validation::validate_cli_machine_locale;
 use crate::persistence::Persistence;
 use serde_json::json;
 use std::collections::BTreeMap;
@@ -60,13 +61,25 @@ fn get_config(
 
     let val = persistence.cli.get_config_value(trimmed_key)?;
 
-    let Some(value) = val else {
-        return Err(CliError::Entity(
-            crate::cli::resolver::ResolveError::NotFound {
-                target: trimmed_key.to_string(),
-                entity_type: crate::cli::resolver::EntityType::ConfigKey,
-            },
-        ));
+    let value = match val {
+        Some(v) => {
+            if trimmed_key == CONFIG_KEY_CLI_MACHINE_LOCALE {
+                validate_cli_machine_locale(&v)?.to_string()
+            } else {
+                v
+            }
+        }
+        None if trimmed_key == CONFIG_KEY_CLI_MACHINE_LOCALE => {
+            DEFAULT_CLI_MACHINE_LOCALE.to_string()
+        }
+        None => {
+            return Err(CliError::Entity(
+                crate::cli::resolver::ResolveError::NotFound {
+                    target: trimmed_key.to_string(),
+                    entity_type: crate::cli::resolver::EntityType::ConfigKey,
+                },
+            ));
+        }
     };
 
     if is_machine {
@@ -91,17 +104,25 @@ fn set_config(
         )));
     }
 
-    persistence.cli.set_config_value(trimmed_key, &value)?;
+    let normalized_value = if trimmed_key == CONFIG_KEY_CLI_MACHINE_LOCALE {
+        validate_cli_machine_locale(&value)?.to_string()
+    } else {
+        value
+    };
+
+    persistence
+        .cli
+        .set_config_value(trimmed_key, &normalized_value)?;
 
     if is_machine {
         return Ok(CliOutput::Json(
-            json!({ "status": "ok", "key": trimmed_key, "value": value }).to_string(),
+            json!({ "status": "ok", "key": trimmed_key, "value": normalized_value }).to_string(),
         ));
     }
 
     Ok(CliOutput::Success(
         MSG_CONFIG_SET
             .replacen("{}", trimmed_key, 1)
-            .replacen("{}", &value, 1),
+            .replacen("{}", &normalized_value, 1),
     ))
 }

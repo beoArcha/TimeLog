@@ -60,10 +60,34 @@ The single source of truth is `src-tauri/src/cli/shared/constants.rs`, mapped in
 
 Changing a code or its mapping is a breaking change of the CLI contract: update `docs/manifesto/CLI.md` and the parity fixtures in the same change.
 
-## 5. Handler Structure
+### 4.4. Zero Silent Fallbacks & Infrastructure Error Handling
+
+- **Never Swallow Infrastructure Errors**: Never convert database, storage, filesystem or other infrastructure failures into `None`, empty values or silent defaults using `.ok()`, `unwrap_or_default()` or empty catch handlers.
+- **Distinguish Missing Data from Failed Operations**:
+  - `Ok(None)` means that the requested record or optional value does not exist. A documented default may be applied where the domain contract allows it.
+  - `Err(...)` means that the operation failed. Infrastructure failures must remain distinguishable from missing data and must be propagated or explicitly handled.
+- **No Implicit Recovery**: A fallback is allowed only when it is an intentional part of the domain or protocol contract. It must not conceal an operation failure or make an unsuccessful operation appear successful.
+- **Secondary Error Preservation**: When resolving locale, configuration or context for an error response:
+  - Preserve the original command failure as the primary error.
+  - Use a safe fallback representation only when required to produce a valid response.
+  - Do not replace, discard or downgrade the primary error because preparation of the error response also failed.
+  - Preserve secondary failure information through the diagnostic mechanism available at the current project phase.
+- **Explicit Best-Effort Operations**: Operations that are intentionally best-effort must make that intent visible in the code and must not silently discard failures that affect data integrity, user-visible outcomes or system reliability.
+
+### 4.5. Diagnostic Handling & Stdout Purity
+
+- **No Unobservable Error Handling**: Do not treat a diagnostic logging call as proof that an error was recorded. Follow the diagnostic mechanism currently available in the project.
+- **Preserve Diagnostic Context**: Important failures must retain enough structured context to identify the failing operation and its origin, without exposing credentials or sensitive payloads.
+- **Strict Stdout Purity in Machine Mode**: When `--machine` or `--json` is active, stdout is reserved exclusively for the documented machine-readable response contract. Diagnostic output must never corrupt or precede the JSON response.
+- **Current Logging Scope**: Do not introduce or mandate a new logging backend, global logger initialization strategy, file format, rotation policy or retention mechanism as part of an unrelated feature.
+- **Centralized Logging Roadmap**: Native Rust error handling and diagnostic logging implementation details are governed by Phase 23 of `docs/manifesto/MASTERMAP.md`. Changes that implement or advance that phase must follow its architecture and acceptance criteria.
+- **Current Machine-Mode Stream Contract**: Until Phase 23 is implemented, follow the current tested CLI contract in `testing_standards.md`: machine-readable stdout must remain pure and diagnostics are directed to stderr. Any change to stderr behavior must be migrated together with Phase 23 and its subprocess tests.
+
+## 5. Handler Structure & Configuration Semantics
 
 - Top-level command handlers (`match cmd { ... }`) are thin dispatchers, around 30 lines at most.
 - Each subcommand branch delegates to a dedicated function (`create_task(...)`, `archive_task(...)`); no complex logic inline in match arms.
+- **Effective Defaults vs Stored Records**: When implementing configuration subsystems, `config get <key>` returns the effective runtime default (e.g. `"en"` for unconfigured `cli_machine_locale`), while `config ls` lists only explicitly persisted database entries. Do not mutate persistence merely to display defaults in `ls`.
 
 ## 6. General
 

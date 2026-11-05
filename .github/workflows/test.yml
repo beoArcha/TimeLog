@@ -5,6 +5,7 @@ on:
     branches: [main, release]
     paths-ignore:
       - 'docs/**'
+      - '.agents/**'
       - '*.md'
       - '**/*.md'
       - '*.mdx'

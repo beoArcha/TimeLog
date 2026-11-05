@@ -10,7 +10,13 @@ Rules for TypeScript and React code in `src/`. Testing rules live in `testing_st
 
 - **React** owns rendering, interaction, local UI state and composition. It never owns business rules, persistence, runtime selection or visual scaling.
 - **Hooks** coordinate UI: they may call routers, prepare view models and coordinate interaction. They never duplicate Engine logic or access storage directly.
-- **Components** stay small and single-purpose. Event listeners, keyboard shortcuts and state synchronization live in dedicated hooks (`use<Feature>Orchestrator`), so `.tsx` files remain declarative orchestrators (typically under 100 lines).
+- **Components** stay small and single-purpose. Event listeners, keyboard shortcuts and state synchronization live in dedicated hooks (`use<Feature>Orchestrator`), so `.tsx` files remain declarative orchestrators.
+- **Proactive Decomposition (SRP)**: Components must have a clear and cohesive responsibility. A container must not absorb independently meaningful sub-features, such as dictionary override editors, complex CRUD workflows or nested list management.
+  - Extract a sub-feature when it has its own business or presentation responsibility, independent state or interaction lifecycle, reusable behavior, or meaningful independent test coverage.
+  - Keep tightly coupled presentation fragments inside their parent component when extraction would only move JSX without creating a clearer responsibility boundary.
+  - Do not introduce wrapper components, pass-through components or additional abstraction layers solely to reduce file length.
+  - Component decomposition must improve cohesion, readability or testability, not merely satisfy a LOC threshold.
+  - Apply the shared LOC policy from `.agents/rules/code_quality_standards.md`.
 
 ## 2. Routers and Runtime Isolation
 
@@ -41,6 +47,15 @@ Consume the narrowest context that provides what you need.
 
 - Primitives live in `src/components/ui/` (`Button`, `Input`, `Label`, `Select`, `Checkbox`, `Card`, `Table`, `Tabs`, `SearchInput`, ...). Composites live in `src/components/` (`StatCard`, `CollapsibleCard`, `ConfirmDialog`, `PromptDialog`, `SegmentedControl`, `EmptyState`, `DataTable`).
 - Raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<table>`, `<thead>`, `<tbody>`, `<tr>`, `<th>`, `<td>`, `<label>` are allowed only inside `src/components/ui/`. *(enforced: `no-raw-html-primitives.arch.test.ts` + ESLint `no-restricted-syntax`)*
+- **Button with Icon Standardization**: Use the `Button` component with `icon` / `iconPlacement` props rather than manually assembling icons, spans, and classes inside buttons.
+- **No Raw HTML Clickable Containers**: Never use a raw `<div onClick>` or another non-semantic clickable container for selectable cards (e.g. radio cards, language selectors). Prefer native radio inputs or an existing accessible radio-group primitive.
+  - A custom radio-card composite must expose correct `radiogroup` and `radio` semantics, including `aria-checked`, accessible labels and the selected state.
+  - The group must behave as one keyboard interaction unit: Tab enters and leaves the group, arrow keys move between options, and Space selects the focused option. Enter may be supported consistently with the underlying interaction pattern.
+  - Focus indication must remain visible, and disabled options must not be selectable.
+  - Selection state must be available to assistive technology and must not rely on color or visual styling alone.
+  - Do not create a custom accessibility implementation when an existing project primitive already provides the required behavior.
+- **Semantic Typography**: Never use `<Label>` as section headers or card titles; use `Overline`, `Heading`, or `Text`. `<Label>` is strictly for linking form controls via `htmlFor`.
+- **Layout Primitives**: Prefer `HStack`, `VStack`, `ScrollArea`, `InlineCluster`, and `Grid` over raw `flex flex-col` and manual `overflow-y-auto` divs.
 - Reuse an existing primitive or composite before creating a new one.
 
 ## 6. Styling, Scale and Theme
@@ -55,7 +70,10 @@ Consume the narrowest context that provides what you need.
 
 - All user-facing text, titles, placeholders and accessible names use `translate(...)` or `useTranslation`.
 - Never write `translate(...) || 'Fallback'`; `translator.ts` already falls back to `en`.
-- Dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/` (e.g. `timer.json`), each containing all 6 locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`). A new key is added to every locale in the relevant file and registered in `src/common/i18n/keys.ts`.
+- Dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/` (e.g. `timer.json`), each containing all 6 currently supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`). A new key must be added to every supported locale in the relevant dictionary and registered in `src/common/i18n/keys.ts`.
+- Do not introduce additional locales or change the supported locale set through an isolated feature change. A locale-set change requires an explicit product decision and synchronized updates to dictionaries, validation, tests and project documentation.
+- **Truthful System Resolution**: "System default" UI indicators must always display the genuine system/browser detected locale (`resolveSystemLocale()`), never mirroring the user's explicit preference when locked to another language.
+- **Domain Validation & Form Feedback**: Custom translation or key overrides must validate against known domains (`DomainKeys`) using a typed `<Select>` rather than open text fields, and provide visual form validation feedback instead of silent returns (`return;`).
 
 ## 8. Accessibility
 

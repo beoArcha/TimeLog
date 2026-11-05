@@ -35,11 +35,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Extended Locales & 10-Language i18n Suite** (PR #45, #46, #47):
+  - Expanded supported language suite from 6 to 10 locales: added full translation dictionaries for Japanese (`ja`), Dutch (`nl`), Italian (`it`), and completed Ukrainian (`uk`) across all 12 translation domains.
+  - Introduced `LanguageSelectionModal` in Settings (`@features/settings/components/LanguageSelectionModal`) with accessible Base UI `RadioGroup` keyboard navigation, active system resolution badges, and custom override status indicator.
+  - Decoupled `LanguageSettingsCard` and implemented `CustomTranslationsEditor`, allowing users to define, persist, and delete granular key-value translation overrides per domain directly from the settings interface without modifying dictionary files.
+  - Centralized locale constants and OS locale resolution (`resolveSystemLocale`) in `@common/i18n/locales.ts` (`STANDARD_LOCALES`, `SUPPORTED_LOCALES`, `LOCALE_METADATA`).
+  - Added modular domain key union definitions in `src/common/i18n/keys/` (`app.ts`, `settings.ts`, etc.) and synchronized type contracts.
+  - Enforced automated `I18nQualityRule` architectural guardrails and quality gates verifying 100% key parity, zero empty strings, and placeholder parity (`{name}`, `{code}`, `{count}`) across all 12 domains in 10 languages.
+- **CLI Machine Locale Configuration & Diagnostic Stream Separation** (PR #44):
+  - Added persistent `cli_machine_locale` SQLite configuration key manageable via `oxy config set cli_machine_locale <locale>` and `oxy config get cli_machine_locale`.
+  - Machine and automation runs default to English (`en`) for predictable automated ingestion, while respecting user-configured `cli_machine_locale` overrides.
+  - Centralized error envelope locale resolution (`resolve_envelope_locale`) and configured logger backend (`env_logger`) writing exclusively to `stderr`, preserving deterministic machine-readable stdout streams (`--machine`, `--json`).
+- **Multi-Agent Workflow Standards & Review Governance** (PR #48):
+  - Codified PR commit discipline, atomic branch ownership, review chaining protocols, and test exemption guidelines for non-code artifacts (`.agents/`, `docs/`, `*.md`) in `.agents/rules/`.
 - **Shared Design System Components**:
   - Added reusable empty-state, status-dot, and icon-box patterns for consistent status and empty-view presentation.
   - Rebuilt the animated drawer on the accessible Base UI Dialog lifecycle, retaining Escape and backdrop dismissal and CSS entry/exit transitions.
 
 ### Changed
+
+- **Accessible Radio Semantics & Localized Settings**:
+  - Refactored `LanguageSelectionModal` to delegate radio semantics, keyboard arrow navigation, and roving focus exclusively to the Base UI `RadioGroupItem` primitive, eliminating redundant wrapper roles and focus traps.
+  - Localized all settings modal labels, descriptions, validation alerts, and placeholders across all 10 locales using `translate()`.
 
 - **Theme-Safe UI Components**:
   - Replaced hardcoded dark-theme colors in DbExplorer, CLI, task status, and tray views with semantic design tokens and shared project-color resolution for palette and custom HEX values.
