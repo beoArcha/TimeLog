@@ -132,14 +132,21 @@ pub struct ConfigArgs {
 
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
 pub enum ConfigSubcommand {
-    #[command(alias = "ls", about = "List all SQLite configuration keys")]
+    #[command(
+        alias = "ls",
+        about = "List physically stored configuration keys in SQLite. Note: Absence of 'cli_machine_locale' means the effective default ('en') is active."
+    )]
     List,
-    #[command(about = "Get configuration value by key")]
+    #[command(
+        about = "Get configuration value by key. For 'cli_machine_locale', returns effective default 'en' when not explicitly set in SQLite."
+    )]
     Get {
         #[arg(help = "Configuration key")]
         key: String,
     },
-    #[command(about = "Set configuration key to value")]
+    #[command(
+        about = "Set configuration key to value. For 'cli_machine_locale', validates supported locales (en, pl, de, es, fr, pt-br, ja, nl, it)."
+    )]
     Set {
         #[arg(help = "Configuration key")]
         key: String,

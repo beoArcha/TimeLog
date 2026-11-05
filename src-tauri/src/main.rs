@@ -8,6 +8,7 @@ fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() > 1 {
+        cli::init_cli_logger();
         oxyflow_timelog::common::attach_parent_console();
 
         let cli_args = match cli::CliArgs::try_parse() {

@@ -518,3 +518,174 @@ fn test_given_different_db_flags_when_commands_executed_then_resolves_and_applie
     assert_eq!(err_res_b.exit_code, 4);
     assert!(err_res_b.envelope.is_some());
 }
+
+#[test]
+fn test_given_compiled_oxy_binary_process_when_executed_with_db_flags_then_respects_isolation_and_streams(
+) {
+    use rusqlite::Connection;
+    use std::process::Command;
+
+    let oxy_bin = env!("CARGO_BIN_EXE_oxy");
+
+    let temp_dir =
+        std::env::temp_dir().join(format!("timelog_oxy_bin_test_{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+
+    let db_path_a = temp_dir.join("test_a.db");
+    let db_path_b = temp_dir.join("test_b.db");
+
+    // Initialize two distinct databases with different locales
+    {
+        let conn_a = Connection::open(&db_path_a).expect("open db a");
+        oxyflow_timelog::repositories::shared::initialize_database(&conn_a).expect("init db a");
+        conn_a
+            .execute(
+                "INSERT OR REPLACE INTO config (key, value) VALUES ('cli_machine_locale', 'de')",
+                [],
+            )
+            .expect("set locale de");
+
+        let conn_b = Connection::open(&db_path_b).expect("open db b");
+        oxyflow_timelog::repositories::shared::initialize_database(&conn_b).expect("init db b");
+        conn_b
+            .execute(
+                "INSERT OR REPLACE INTO config (key, value) VALUES ('cli_machine_locale', 'ja')",
+                [],
+            )
+            .expect("set locale ja");
+    }
+
+    let db_a_str = db_path_a.to_str().unwrap();
+    let db_b_str = db_path_b.to_str().unwrap();
+
+    // 1. Test oxy --db <path> config get cli_machine_locale (human mode)
+    let out_a = Command::new(oxy_bin)
+        .args(["--db", db_a_str, "config", "get", "cli_machine_locale"])
+        .output()
+        .expect("run oxy --db a");
+    assert_eq!(out_a.status.code(), Some(0));
+    let stdout_a = String::from_utf8_lossy(&out_a.stdout);
+    assert!(stdout_a.contains("de"));
+
+    // 2. Test oxy --db=<path> config get cli_machine_locale (human mode with = syntax)
+    let out_b = Command::new(oxy_bin)
+        .arg(format!("--db={}", db_b_str))
+        .args(["config", "get", "cli_machine_locale"])
+        .output()
+        .expect("run oxy --db=b");
+    assert_eq!(out_b.status.code(), Some(0));
+    let stdout_b = String::from_utf8_lossy(&out_b.stdout);
+    assert!(stdout_b.contains("ja"));
+
+    // 3. Test machine mode: --machine --db <path> config get cli_machine_locale
+    let out_a_m = Command::new(oxy_bin)
+        .args([
+            "--machine",
+            "--db",
+            db_a_str,
+            "config",
+            "get",
+            "cli_machine_locale",
+        ])
+        .output()
+        .expect("run oxy machine a");
+    assert_eq!(out_a_m.status.code(), Some(0));
+    let stdout_a_m = String::from_utf8_lossy(&out_a_m.stdout);
+    let parsed_a: serde_json::Value =
+        serde_json::from_str(stdout_a_m.trim()).expect("valid json in machine mode");
+    assert_eq!(parsed_a["key"], "cli_machine_locale");
+    assert_eq!(parsed_a["value"], "de");
+    // In successful machine mode, stderr must not contain error logs
+    let stderr_a_m = String::from_utf8_lossy(&out_a_m.stderr);
+    assert!(!stderr_a_m.contains("ERROR"));
+
+    // 4. Test machine mode with --db=: --machine --db=<path> config get cli_machine_locale
+    let out_b_m = Command::new(oxy_bin)
+        .args([
+            "--machine",
+            &format!("--db={}", db_b_str),
+            "config",
+            "get",
+            "cli_machine_locale",
+        ])
+        .output()
+        .expect("run oxy machine b");
+    assert_eq!(out_b_m.status.code(), Some(0));
+    let stdout_b_m = String::from_utf8_lossy(&out_b_m.stdout);
+    let parsed_b: serde_json::Value =
+        serde_json::from_str(stdout_b_m.trim()).expect("valid json in machine mode");
+    assert_eq!(parsed_b["key"], "cli_machine_locale");
+    assert_eq!(parsed_b["value"], "ja");
+
+    // 5. Test machine mode error handling and stream discipline (stderr has envelope, stdout clean)
+    let out_err = Command::new(oxy_bin)
+        .args([
+            "--machine",
+            "--db",
+            db_a_str,
+            "start",
+            "nonexistent-task-abc",
+        ])
+        .output()
+        .expect("run oxy start error");
+    assert_eq!(out_err.status.code(), Some(4)); // DOM_ENTITY_NOT_FOUND exit code
+    let stdout_err = String::from_utf8_lossy(&out_err.stdout);
+    assert!(
+        stdout_err.trim().is_empty(),
+        "Machine mode stdout must be empty on error, got: {}",
+        stdout_err
+    );
+    let stderr_err = String::from_utf8_lossy(&out_err.stderr);
+    let envelope: serde_json::Value =
+        serde_json::from_str(stderr_err.trim()).expect("stderr contains valid JSON envelope");
+    assert_eq!(envelope["code"], "DOM_ENTITY_NOT_FOUND");
+    assert_eq!(envelope["exit_code"], 4);
+
+    // 6. Test Stage C error logging with real binary: corrupted locale in DB
+    let db_path_c = temp_dir.join("test_c.db");
+    {
+        let conn_c = Connection::open(&db_path_c).expect("open db c");
+        oxyflow_timelog::repositories::shared::initialize_database(&conn_c).expect("init db c");
+        conn_c
+            .execute(
+                "INSERT OR REPLACE INTO config (key, value) VALUES ('cli_machine_locale', 'corrupted_val')",
+                [],
+            )
+            .expect("set corrupted locale");
+    }
+    let db_c_str = db_path_c.to_str().unwrap();
+
+    let out_corrupt = Command::new(oxy_bin)
+        .args([
+            "--machine",
+            "--db",
+            db_c_str,
+            "start",
+            "nonexistent-task-xyz",
+        ])
+        .output()
+        .expect("run oxy corrupt locale");
+    assert_eq!(out_corrupt.status.code(), Some(4));
+    let stdout_corrupt = String::from_utf8_lossy(&out_corrupt.stdout);
+    assert!(
+        stdout_corrupt.trim().is_empty(),
+        "Stdout must not receive logs or errors, got: {}",
+        stdout_corrupt
+    );
+    let stderr_corrupt = String::from_utf8_lossy(&out_corrupt.stderr);
+    // Stderr must contain the log::error! output from resolve_envelope_locale
+    assert!(
+        stderr_corrupt.contains("Failed to resolve machine locale from database"),
+        "Expected stderr to log locale failure, got: {}",
+        stderr_corrupt
+    );
+    // Stderr must also contain the error envelope JSON
+    assert!(
+        stderr_corrupt.contains("DOM_ENTITY_NOT_FOUND"),
+        "Expected stderr to contain JSON error envelope, got: {}",
+        stderr_corrupt
+    );
+
+    // Cleanup
+    let _ = std::fs::remove_dir_all(&temp_dir);
+}

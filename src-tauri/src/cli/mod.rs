@@ -24,6 +24,17 @@ use crate::engine::Engine;
 use crate::persistence::Persistence;
 use std::process::ExitCode;
 
+/// Initializes the CLI logger to write diagnostics strictly to stderr.
+///
+/// Log output is directed to `stderr` so stdout remains completely clean
+/// and unpolluted for machine-readable JSON envelopes and CLI contracts (`--machine`, `--json`).
+/// Defaults to the `error` log level if `RUST_LOG` is unset.
+pub fn init_cli_logger() {
+    let _ = env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("error"))
+        .target(env_logger::Target::Stderr)
+        .try_init();
+}
+
 pub fn resolve_machine_locale(persistence: &Persistence) -> Result<String, CliError> {
     match persistence
         .cli

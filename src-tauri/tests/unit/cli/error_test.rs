@@ -373,3 +373,44 @@ fn test_given_stage_b_and_c_when_building_envelope_then_preserves_primary_error_
     assert_eq!(envelope_c.code, "CLI_SYNTAX_EMPTY_ID");
     assert_eq!(envelope_c.exit_code, 2);
 }
+
+#[test]
+fn test_given_sqlite_storage_failure_during_locale_resolution_when_building_envelope_then_logs_and_falls_back_to_en_preserving_primary_error(
+) {
+    use crate::shared::test_db::setup_persistence_test;
+    use oxyflow_timelog::cli::{
+        build_error_envelope, init_cli_logger, resolve_envelope_locale, resolve_machine_locale,
+    };
+    use oxyflow_timelog::persistence::Persistence;
+
+    init_cli_logger();
+
+    let (conn, config, _temp_dir) =
+        setup_persistence_test("unit_error_envelope_sqlite_storage_failure");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+
+    // Simulate an actual SQLite operational failure by dropping the config table
+    conn.execute("DROP TABLE config", [])
+        .expect("drop table failed");
+
+    // 1. Verify that resolve_machine_locale directly fails with CliError::Storage
+    let res = resolve_machine_locale(&persistence);
+    assert!(res.is_err());
+    let err = res.unwrap_err();
+    match err {
+        CliError::Storage(_) => (),
+        other => panic!("expected CliError::Storage, got {:?}", other),
+    }
+
+    // 2. Primary CLI error that caused the envelope generation
+    let primary_error = CliError::Syntax(CliSyntaxError::EmptyId);
+
+    // 3. Verify resolve_envelope_locale logs error, falls back safely to "en"
+    let resolved_locale = resolve_envelope_locale(true, Some(&persistence));
+    assert_eq!(resolved_locale, Some("en".to_string()));
+
+    // 4. Verify build_error_envelope preserves primary error code and exit code
+    let envelope = build_error_envelope(&primary_error, true, Some(&persistence));
+    assert_eq!(envelope.code, "CLI_SYNTAX_EMPTY_ID");
+    assert_eq!(envelope.exit_code, 2);
+}

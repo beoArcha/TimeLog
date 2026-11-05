@@ -6,6 +6,7 @@ use oxyflow_timelog::persistence::{Persistence, PersistenceConfig};
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
+    cli::init_cli_logger();
     let raw_args: Vec<String> = std::env::args().collect();
     let is_machine = raw_args
         .iter()

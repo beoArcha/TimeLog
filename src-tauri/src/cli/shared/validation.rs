@@ -38,11 +38,43 @@ mod tests {
 
     #[test]
     fn test_validate_cli_machine_locale_rejected_values() {
-        assert!(validate_cli_machine_locale("system").is_err());
-        assert!(validate_cli_machine_locale("custom").is_err());
-        assert!(validate_cli_machine_locale("").is_err());
-        assert!(validate_cli_machine_locale("   ").is_err());
-        assert!(validate_cli_machine_locale("unsupported_string").is_err());
-        assert!(validate_cli_machine_locale("klingon").is_err());
+        let rejected_cases = [
+            "system",
+            "custom",
+            "",
+            "   ",
+            "\t",
+            "\n",
+            "\r\n",
+            "język",
+            "日本語",
+            "русский",
+            "français",
+            "en_US",
+            "en/US",
+            "en.US",
+            "en\\US",
+            "!@#",
+            "en_gb",
+            "de/DE",
+            "unsupported_string",
+            "klingon",
+        ];
+
+        for &val in &rejected_cases {
+            let res = validate_cli_machine_locale(val);
+            assert!(
+                res.is_err(),
+                "Expected validation to reject '{val}', but got Ok"
+            );
+            if let Err(CliError::Syntax(CliSyntaxError::InvalidArgs(msg))) = res {
+                assert!(
+                    msg.contains("Invalid machine locale"),
+                    "Expected error message for '{val}' to contain 'Invalid machine locale', got: {msg}"
+                );
+            } else {
+                panic!("Expected CliError::Syntax(InvalidArgs) for '{val}'");
+            }
+        }
     }
 }
