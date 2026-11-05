@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Languages, Check, Globe } from 'lucide-react';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import type { Locale } from '@bindings/Locale';
-import { STANDARD_LOCALES, LOCALE_METADATA } from '@common/i18n/locales';
+import { STANDARD_LOCALES, LOCALE_METADATA, resolveSystemLocale } from '@common/i18n/locales';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,85 @@ import { HStack, VStack } from '@components/ui/stack';
 import { Caption, MonoText } from '@components/ui/typography';
 import { translate } from '@common/i18n/translator';
 import { cn } from '@/lib/utils';
+
+export interface LanguageRadioItemProps {
+  key?: React.Key;
+  id: string;
+  value: Locale;
+  checked: boolean;
+  onSelect: (value: Locale) => void;
+  testId?: string;
+  ariaLabel?: string;
+  title: string;
+  subtitle?: string;
+  badge?: React.ReactNode;
+  icon?: React.ReactNode;
+  className?: string;
+}
+
+export function LanguageRadioItem({
+  id,
+  value,
+  checked,
+  onSelect,
+  testId,
+  ariaLabel,
+  title,
+  subtitle,
+  badge,
+  icon,
+  className,
+}: LanguageRadioItemProps) {
+  return (
+    <div
+      role="radio"
+      aria-checked={checked}
+      tabIndex={0}
+      onClick={() => onSelect(value)}
+      onKeyDown={(e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          onSelect(value);
+        }
+      }}
+      className={cn(
+        'p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between select-none outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        checked
+          ? 'border-primary bg-primary/10 shadow-xs'
+          : 'border-border bg-muted/20 hover:bg-muted/40',
+        className
+      )}
+    >
+      <HStack align="center" gap="md" className="min-w-0">
+        <RadioGroupItem
+          value={value}
+          id={id}
+          data-testid={testId}
+          aria-label={ariaLabel || title}
+        />
+        <VStack gap="none" className="min-w-0">
+          <HStack align="center" gap="xs">
+            {icon}
+            <Label
+              htmlFor={id}
+              className="font-bold text-sm text-foreground truncate cursor-pointer select-none"
+            >
+              {title}
+            </Label>
+          </HStack>
+          {subtitle && (
+            <Caption variant="muted" size="xs" className="truncate">
+              {subtitle}
+            </Caption>
+          )}
+        </VStack>
+      </HStack>
+      {badge}
+    </div>
+  );
+
+
+}
 
 export interface LanguageSelectionModalProps {
   open: boolean;
@@ -51,10 +130,11 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
     onOpenChange(false);
   };
 
-  // Resolved system language metadata
-  const resolvedLocaleInfo = LOCALE_METADATA[locale] || {
-    nativeName: locale.toUpperCase(),
-    englishName: locale.toUpperCase(),
+  // Resolved operating system language metadata (independent of active localePref)
+  const systemResolvedLocale = resolveSystemLocale();
+  const systemResolvedInfo = LOCALE_METADATA[systemResolvedLocale] || {
+    nativeName: systemResolvedLocale.toUpperCase(),
+    englishName: systemResolvedLocale.toUpperCase(),
   };
 
   const hasCustomOverrides = Object.keys(customTranslations || {}).length > 0;
@@ -85,117 +165,66 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
             aria-label="Available languages"
           >
             {/* System Default Option */}
-            <div
-              onClick={() => setPendingSelection('system')}
-              className={cn(
-                'col-span-1 sm:col-span-2 p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between',
-                activeSelection === 'system'
-                  ? 'border-primary bg-primary/10 shadow-xs'
-                  : 'border-border bg-muted/20 hover:bg-muted/40'
-              )}
-            >
-              <HStack align="center" gap="md" className="min-w-0">
-                <RadioGroupItem
-                  value="system"
-                  id="modal-lang-system"
-                  data-testid="modal-lang-system"
-                  aria-label="System default language"
-                />
-                <VStack gap="none" className="min-w-0">
-                  <HStack align="center" gap="xs">
-                    <Globe className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
-                    <Label
-                      htmlFor="modal-lang-system"
-                      className="font-bold text-sm cursor-pointer select-none text-foreground"
-                    >
-                      System default
-                    </Label>
-                  </HStack>
-                  <Caption variant="muted" size="xs">
-                    Match operating system locale
-                  </Caption>
-                </VStack>
-              </HStack>
-              <Badge variant="outline" className="text-2xs font-mono shrink-0 ml-2">
-                Resolved: {resolvedLocaleInfo.nativeName} ({locale})
-              </Badge>
-            </div>
+            <LanguageRadioItem
+              id="modal-lang-system"
+              value="system"
+              checked={activeSelection === 'system'}
+              onSelect={setPendingSelection}
+              testId="modal-lang-system"
+              ariaLabel="System default language"
+              icon={<Globe className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />}
+              title="System default"
+              subtitle="Match operating system locale"
+              badge={
+                <Badge variant="outline" className="text-2xs font-mono shrink-0 ml-2">
+                  Resolved: {systemResolvedInfo.nativeName} ({systemResolvedLocale})
+                </Badge>
+              }
+              className="col-span-1 sm:col-span-2"
+            />
 
             {/* Standard 10 Locales */}
             {STANDARD_LOCALES.map((code) => {
               const meta = LOCALE_METADATA[code];
               const isSelected = activeSelection === code;
               return (
-                <div
+                <LanguageRadioItem
                   key={code}
-                  onClick={() => setPendingSelection(code)}
-                  className={cn(
-                    'p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between',
-                    isSelected
-                      ? 'border-primary bg-primary/10 shadow-xs'
-                      : 'border-border bg-muted/20 hover:bg-muted/40'
-                  )}
-                >
-                  <HStack align="center" gap="md" className="min-w-0">
-                    <RadioGroupItem
-                      value={code}
-                      id={`modal-lang-${code}`}
-                      data-testid={`modal-lang-${code}`}
-                      aria-label={`${meta.nativeName} (${meta.englishName})`}
-                    />
-                    <VStack gap="none" className="min-w-0">
-                      <Label
-                        htmlFor={`modal-lang-${code}`}
-                        className="font-bold text-sm cursor-pointer select-none text-foreground truncate"
-                      >
-                        {meta.nativeName}
-                      </Label>
-                      <Caption variant="muted" size="xs" className="truncate">
-                        {meta.englishName}
-                      </Caption>
-                    </VStack>
-                  </HStack>
-                  <MonoText size="xs" variant="muted" className="shrink-0 uppercase font-bold ml-2">
-                    {code}
-                  </MonoText>
-                </div>
+                  id={`modal-lang-${code}`}
+                  value={code}
+                  checked={isSelected}
+                  onSelect={setPendingSelection}
+                  testId={`modal-lang-${code}`}
+                  ariaLabel={`${meta.nativeName} (${meta.englishName})`}
+                  title={meta.nativeName}
+                  subtitle={meta.englishName}
+                  badge={
+                    <MonoText size="xs" variant="muted" className="shrink-0 uppercase font-bold ml-2">
+                      {code}
+                    </MonoText>
+                  }
+                />
               );
             })}
 
             {/* Custom Locale Option (when configured or selected) */}
             {(hasCustomOverrides || activeSelection === 'custom') && (
-              <div
-                onClick={() => setPendingSelection('custom')}
-                className={cn(
-                  'col-span-1 sm:col-span-2 p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between',
-                  activeSelection === 'custom'
-                    ? 'border-primary bg-primary/10 shadow-xs'
-                    : 'border-border bg-muted/20 hover:bg-muted/40'
-                )}
-              >
-                <HStack align="center" gap="md" className="min-w-0">
-                  <RadioGroupItem
-                    value="custom"
-                    id="modal-lang-custom"
-                    data-testid="modal-lang-custom"
-                    aria-label="Custom translation overrides"
-                  />
-                  <VStack gap="none" className="min-w-0">
-                    <Label
-                      htmlFor="modal-lang-custom"
-                      className="font-bold text-sm cursor-pointer select-none text-foreground"
-                    >
-                      {translate(locale, 'settings', 'CustomLanguageTitle', customTranslations)}
-                    </Label>
-                    <Caption variant="muted" size="xs">
-                      User-configured string overrides
-                    </Caption>
-                  </VStack>
-                </HStack>
-                <Badge variant="secondary" className="text-2xs font-mono shrink-0 ml-2">
-                  CUSTOM
-                </Badge>
-              </div>
+              <LanguageRadioItem
+                id="modal-lang-custom"
+                value="custom"
+                checked={activeSelection === 'custom'}
+                onSelect={setPendingSelection}
+                testId="modal-lang-custom"
+                ariaLabel="Custom translation overrides"
+                title={translate(locale, 'settings', 'CustomLanguageTitle', customTranslations)}
+                subtitle="User-configured string overrides"
+                badge={
+                  <Badge variant="secondary" className="text-2xs font-mono shrink-0 ml-2">
+                    CUSTOM
+                  </Badge>
+                }
+                className="col-span-1 sm:col-span-2"
+              />
             )}
           </RadioGroup>
         </div>
@@ -214,9 +243,8 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
             variant="default"
             onClick={handleConfirm}
             data-testid="modal-confirm-btn"
-            className="gap-1.5"
+            icon={Check}
           >
-            <Check className="w-4 h-4" aria-hidden="true" />
             <span>{translate(locale, 'common', 'Save', customTranslations)}</span>
           </Button>
         </DialogFooter>
@@ -226,3 +254,4 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
 }
 
 export default LanguageSelectionModal;
+

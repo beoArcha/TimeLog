@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Languages } from 'lucide-react';
 import { useLocale } from '@common/hooks/LocaleProvider';
 import { useSettings } from '@common/hooks/SettingsContext';
@@ -13,26 +13,28 @@ import {
 } from '@components/ui/select';
 import { SUPPORTED_LOCALES, LOCALE_METADATA } from '@common/i18n/locales';
 
-export { SUPPORTED_LOCALES };
-
 export const LanguageSelector: React.FC = () => {
   const { localePref, setLocalePref } = useLocale();
   const { layoutVariant } = useSettings();
 
   const showExpanded = layoutVariant === 'full';
 
-  const selectOptions: readonly Locale[] =
-    localePref === 'custom' && !(SUPPORTED_LOCALES as readonly string[]).includes('custom')
+  const isCustomActive = localePref === 'custom';
+  const availableLocales: readonly Locale[] = useMemo(() => {
+    return isCustomActive
       ? [...SUPPORTED_LOCALES, 'custom']
       : SUPPORTED_LOCALES;
+  }, [isCustomActive]);
 
-  const options: SegmentedControlOption<Locale>[] = SUPPORTED_LOCALES.map((l) => ({
-    value: l as Locale,
-    label: l,
-    testId: `lang-btn-${l}`,
-    ariaLabel: LOCALE_METADATA[l]?.nativeName || l,
-    title: LOCALE_METADATA[l]?.nativeName || l,
-  }));
+  const segmentedOptions: SegmentedControlOption<Locale>[] = useMemo(() => {
+    return availableLocales.map((l) => ({
+      value: l,
+      label: l === 'custom' ? 'CUSTOM' : l,
+      testId: `lang-btn-${l}`,
+      ariaLabel: LOCALE_METADATA[l]?.nativeName || l,
+      title: LOCALE_METADATA[l]?.nativeName || l,
+    }));
+  }, [availableLocales]);
 
   return (
     <div
@@ -56,7 +58,7 @@ export const LanguageSelector: React.FC = () => {
             <SelectValue>{localePref.toUpperCase()}</SelectValue>
           </SelectTrigger>
           <SelectContent className="max-h-64 overflow-y-auto">
-            {selectOptions.map((l) => (
+            {availableLocales.map((l) => (
               <SelectItem
                 key={l}
                 value={l}
@@ -78,9 +80,9 @@ export const LanguageSelector: React.FC = () => {
       {showExpanded && (
         <div className="hidden lg:flex items-center overflow-x-auto max-w-full">
           <SegmentedControl
-            value={localePref as Locale}
+            value={localePref}
             onChange={setLocalePref}
-            options={options}
+            options={segmentedOptions}
             size="xs"
             className="border-0 bg-transparent p-0 flex-nowrap"
           />
@@ -89,3 +91,4 @@ export const LanguageSelector: React.FC = () => {
     </div>
   );
 };
+

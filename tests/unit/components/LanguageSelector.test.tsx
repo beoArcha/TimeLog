@@ -28,11 +28,21 @@ describe('Unit Tests: LanguageSelector', () => {
       'it',
     ]);
     expect(SUPPORTED_LOCALES).toHaveLength(11);
-    expect(SUPPORTED_LOCALES).toContain('ja');
-    expect(SUPPORTED_LOCALES).toContain('nl');
-    expect(SUPPORTED_LOCALES).toContain('it');
-    expect(SUPPORTED_LOCALES).toContain('system');
+    expect(SUPPORTED_LOCALES).toEqual([
+      'en',
+      'pl',
+      'de',
+      'es',
+      'pt-br',
+      'fr',
+      'uk',
+      'ja',
+      'nl',
+      'it',
+      'system',
+    ]);
   });
+
 
   describe('When layoutVariant is full (expanded desktop layout)', () => {
     it('Then it should render quick-selector buttons for all supported locales', () => {
@@ -94,7 +104,27 @@ describe('Unit Tests: LanguageSelector', () => {
       fireEvent.click(sysBtn);
       expect(setLocalePrefMock).toHaveBeenCalledWith('system');
     });
+
+    it('Then it should render the custom button in SegmentedControl when localePref is custom', () => {
+      render(
+        <MockProviders
+          settingsState={{ layoutVariant: 'full' }}
+          localeState={{
+            localePref: 'custom' as Locale,
+            locale: 'en',
+            setLocalePref: vi.fn(),
+          }}
+        >
+          <LanguageSelector />
+        </MockProviders>
+      );
+
+      const customBtn = screen.getByTestId('lang-btn-custom');
+      expect(customBtn).toBeTruthy();
+      expect(customBtn.textContent).toContain('CUSTOM');
+    });
   });
+
 
   describe('When layoutVariant is compact or medium (compact viewports)', () => {
     it('Then it should render a clean dropdown Select trigger', () => {

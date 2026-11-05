@@ -113,6 +113,11 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
 
   describe('When interacting with LanguageSelectionModal', () => {
     it('Then clicking the modal trigger button opens an accessible dialog with all native language names', () => {
+      Object.defineProperty(navigator, 'language', {
+        value: 'de-DE',
+        configurable: true,
+      });
+
       render(
         <MockProviders
           localeState={{
@@ -146,6 +151,33 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
       // System default option shows active resolution
       expect(screen.getByTestId('modal-lang-system')).toBeTruthy();
       expect(screen.getByText(/Resolved: Deutsch \(de\)/i)).toBeTruthy();
+    });
+
+    it('Then system default card displays actual operating system locale when localePref is explicitly set to de', () => {
+      Object.defineProperty(navigator, 'language', {
+        value: 'pl-PL',
+        configurable: true,
+      });
+
+      render(
+        <MockProviders
+          localeState={{
+            localePref: 'de',
+            locale: 'de',
+            setLocalePref: vi.fn(),
+            customTranslations: {},
+          }}
+        >
+          <SettingsTab />
+        </MockProviders>
+      );
+
+      // Open the modal
+      fireEvent.click(screen.getByTestId('open-language-modal-btn'));
+
+      // Even though localePref is 'de', System default must show Polski (pl) resolved from navigator.language
+      expect(screen.getByTestId('modal-lang-system')).toBeTruthy();
+      expect(screen.getByText(/Resolved: Polski \(pl\)/i)).toBeTruthy();
     });
 
     it('Then selecting a language and confirming persists the selection and closes modal', () => {
@@ -235,11 +267,9 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
       expect(screen.getByText('"Custom Save Text"')).toBeTruthy();
 
       // Enter new override
-      const domainInput = screen.getByTestId('override-domain-input');
       const keyInput = screen.getByTestId('override-key-input');
       const valueInput = screen.getByTestId('override-value-input');
 
-      fireEvent.change(domainInput, { target: { value: 'settings' } });
       fireEvent.change(keyInput, { target: { value: 'Title' } });
       fireEvent.change(valueInput, { target: { value: 'My Custom Title' } });
 
@@ -251,7 +281,66 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
       fireEvent.click(removeBtn);
       expect(setCustomTranslationsMock).toHaveBeenCalled();
     });
+
+    it('Then it rejects empty key or empty value with a clear validation error', () => {
+      const setCustomTranslationsMock = vi.fn();
+
+      render(
+        <MockProviders
+          localeState={{
+            localePref: 'en',
+            locale: 'en',
+            setLocalePref: vi.fn(),
+            customTranslations: {},
+            setCustomTranslations: setCustomTranslationsMock,
+          }}
+        >
+          <SettingsTab />
+        </MockProviders>
+      );
+
+      // Attempt to save with empty key and value
+      fireEvent.click(screen.getByTestId('save-custom-override-btn'));
+      expect(setCustomTranslationsMock).not.toHaveBeenCalled();
+      expect(screen.getByTestId('custom-override-validation-error')).toBeTruthy();
+      expect(screen.getByText('Translation key cannot be empty')).toBeTruthy();
+
+      // Enter key but leave value empty
+      const keyInput = screen.getByTestId('override-key-input');
+      fireEvent.change(keyInput, { target: { value: 'Save' } });
+      fireEvent.click(screen.getByTestId('save-custom-override-btn'));
+      expect(setCustomTranslationsMock).not.toHaveBeenCalled();
+      expect(screen.getByText('Translation value cannot be empty')).toBeTruthy();
+
+      // Enter value and save
+      const valueInput = screen.getByTestId('override-value-input');
+      fireEvent.change(valueInput, { target: { value: 'Zapisz' } });
+      fireEvent.click(screen.getByTestId('save-custom-override-btn'));
+      expect(setCustomTranslationsMock).toHaveBeenCalled();
+      expect(screen.queryByTestId('custom-override-validation-error')).toBeNull();
+    });
+
+    it('Then user can select domain from the domain select dropdown', () => {
+      render(
+        <MockProviders
+          localeState={{
+            localePref: 'en',
+            locale: 'en',
+            setLocalePref: vi.fn(),
+            customTranslations: {},
+          }}
+        >
+          <SettingsTab />
+        </MockProviders>
+      );
+
+      // Verify domain select trigger exists with initial default 'common'
+      const trigger = screen.getByTestId('override-domain-select');
+      expect(trigger).toBeTruthy();
+      expect(trigger.textContent).toContain('common');
+    });
   });
+
 
   describe('When running with real LocaleProvider and PersistenceRouter', () => {
     it('Then selecting a new locale persists preference across restarts', async () => {
