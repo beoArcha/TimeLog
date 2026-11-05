@@ -1,0 +1,18 @@
+export type CalendarKey =
+  | 'AddLeave'
+  | 'DeleteSqlDelete'
+  | 'DescriptionCause'
+  | 'EGVibeDancingLeave'
+  | 'Holiday'
+  | 'HolidaysLeaves'
+  | 'HolidaysVacations'
+  | 'NoEntriesFound'
+  | 'OfficialHoliday'
+  | 'RecordName'
+  | 'RegisterNewDayOff'
+  | 'ResourceDatabaseTable'
+  | 'ScheduledDate'
+  | 'SqliteHolidaysTableRows'
+  | 'Vacation'
+  | 'VacationLeave'
+  | 'Weekday';
