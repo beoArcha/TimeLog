@@ -22,3 +22,28 @@ pub fn validate_cli_machine_locale(locale: &str) -> Result<&'static str, CliErro
         ERR_CONFIG_INVALID_MACHINE_LOCALE.replacen("{}", locale.trim(), 1),
     )))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_cli_machine_locale_supported_and_normalization() {
+        assert_eq!(validate_cli_machine_locale("de").unwrap(), "de");
+        assert_eq!(validate_cli_machine_locale("DE").unwrap(), "de");
+        assert_eq!(validate_cli_machine_locale(" De ").unwrap(), "de");
+        assert_eq!(validate_cli_machine_locale("pt-br").unwrap(), "pt-br");
+        assert_eq!(validate_cli_machine_locale("PT-BR").unwrap(), "pt-br");
+    }
+
+    #[test]
+    fn test_validate_cli_machine_locale_rejected_values() {
+        assert!(validate_cli_machine_locale("system").is_err());
+        assert!(validate_cli_machine_locale("custom").is_err());
+        assert!(validate_cli_machine_locale("").is_err());
+        assert!(validate_cli_machine_locale("   ").is_err());
+        assert!(validate_cli_machine_locale("unsupported_string").is_err());
+        assert!(validate_cli_machine_locale("klingon").is_err());
+    }
+}
+
