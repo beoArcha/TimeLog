@@ -50,18 +50,9 @@ export function LanguageRadioItem({
 }: LanguageRadioItemProps) {
   return (
     <div
-      role="radio"
-      aria-checked={checked}
-      tabIndex={0}
       onClick={() => onSelect(value)}
-      onKeyDown={(e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          onSelect(value);
-        }
-      }}
       className={cn(
-        'p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between select-none outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        'p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between select-none outline-none focus-within:ring-2 focus-within:ring-primary/40',
         checked
           ? 'border-primary bg-primary/10 shadow-xs'
           : 'border-border bg-muted/20 hover:bg-muted/40',
@@ -80,7 +71,7 @@ export function LanguageRadioItem({
             {icon}
             <Label
               htmlFor={id}
-              className="font-bold text-sm text-foreground truncate cursor-pointer select-none"
+              className="font-bold text-sm text-foreground truncate cursor-pointer select-none font-normal"
             >
               {title}
             </Label>
@@ -95,8 +86,6 @@ export function LanguageRadioItem({
       {badge}
     </div>
   );
-
-
 }
 
 export interface LanguageSelectionModalProps {
@@ -144,7 +133,7 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
       <DialogContent
         data-testid="language-selection-modal"
         role="dialog"
-        aria-label="Language selection"
+        aria-label={translate(locale, 'settings', 'LanguageSelectionAria', customTranslations)}
         className="max-w-xl p-6 bg-card border-border text-card-foreground shadow-2xl"
       >
         <DialogHeader>
@@ -162,7 +151,7 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
             value={activeSelection}
             onValueChange={(val) => setPendingSelection(val as Locale)}
             className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto pr-1"
-            aria-label="Available languages"
+            aria-label={translate(locale, 'settings', 'LanguageSelectionAria', customTranslations)}
           >
             {/* System Default Option */}
             <LanguageRadioItem
@@ -171,13 +160,16 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
               checked={activeSelection === 'system'}
               onSelect={setPendingSelection}
               testId="modal-lang-system"
-              ariaLabel="System default language"
+              ariaLabel={translate(locale, 'settings', 'SystemLanguageAria', customTranslations)}
               icon={<Globe className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />}
-              title="System default"
-              subtitle="Match operating system locale"
+              title={translate(locale, 'settings', 'SystemDefault', customTranslations)}
+              subtitle={translate(locale, 'settings', 'SystemLanguageDesc', customTranslations)}
               badge={
                 <Badge variant="outline" className="text-2xs font-mono shrink-0 ml-2">
-                  Resolved: {systemResolvedInfo.nativeName} ({systemResolvedLocale})
+                  {translate(locale, 'settings', 'ResolvedSystemLocale', customTranslations, {
+                    name: systemResolvedInfo.nativeName,
+                    code: systemResolvedLocale,
+                  })}
                 </Badge>
               }
               className="col-span-1 sm:col-span-2"
@@ -215,9 +207,9 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
                 checked={activeSelection === 'custom'}
                 onSelect={setPendingSelection}
                 testId="modal-lang-custom"
-                ariaLabel="Custom translation overrides"
+                ariaLabel={translate(locale, 'settings', 'CustomLanguageTitle', customTranslations)}
                 title={translate(locale, 'settings', 'CustomLanguageTitle', customTranslations)}
-                subtitle="User-configured string overrides"
+                subtitle={translate(locale, 'settings', 'CustomLanguageDesc', customTranslations)}
                 badge={
                   <Badge variant="secondary" className="text-2xs font-mono shrink-0 ml-2">
                     CUSTOM
@@ -254,4 +246,3 @@ export function LanguageSelectionModal({ open, onOpenChange }: LanguageSelection
 }
 
 export default LanguageSelectionModal;
-

@@ -50,7 +50,7 @@ export function LanguageSettingsCard() {
                 <Globe className="w-5 h-5 text-indigo-500 shrink-0" aria-hidden="true" />
                 <Text size="base" weight="bold" className="text-foreground truncate">
                   {localePref === 'system'
-                    ? 'System default'
+                    ? translate(locale, 'settings', 'SystemDefault', customTranslations)
                     : `${currentMeta.nativeName} (${currentMeta.englishName})`}
                 </Text>
                 <Badge variant={localePref === 'system' ? 'outline' : 'default'} className="font-mono text-2xs uppercase">
@@ -60,14 +60,14 @@ export function LanguageSettingsCard() {
 
               {localePref === 'system' ? (
                 <Caption variant="muted" size="xs">
-                  Active system resolution:{' '}
-                  <span className="font-semibold text-foreground">
-                    {resolvedMeta.nativeName} ({locale})
-                  </span>
+                  {translate(locale, 'settings', 'ActiveSystemResolution', customTranslations, {
+                    name: resolvedMeta.nativeName,
+                    code: locale,
+                  })}
                 </Caption>
               ) : (
                 <Caption variant="muted" size="xs">
-                  Language explicitly locked to user preference.
+                  {translate(locale, 'settings', 'LanguageLockedToPreference', customTranslations)}
                 </Caption>
               )}
             </VStack>
@@ -88,7 +88,7 @@ export function LanguageSettingsCard() {
           {/* Quick Language Selector Grid */}
           <VStack gap="xs">
             <Overline className="font-bold tracking-wider">
-              Quick Language Selection
+              {translate(locale, 'settings', 'QuickLanguageSelection', customTranslations)}
             </Overline>
             <Grid cols={2} gap="sm" className="sm:grid-cols-4 md:grid-cols-6">
               {/* System button */}
@@ -100,7 +100,9 @@ export function LanguageSettingsCard() {
                 data-testid="quick-lang-system"
                 className="justify-between px-3 h-9"
               >
-                <span className="truncate">System</span>
+                <span className="truncate">
+                  {translate(locale, 'settings', 'SystemDefault', customTranslations)}
+                </span>
                 <MonoText size="2xs" variant="muted" className="ml-1 uppercase">
                   SYS
                 </MonoText>

@@ -143,7 +143,7 @@ describe('Unit Tests: LanguageSelector', () => {
 
       const trigger = screen.getByTestId('lang-select-trigger');
       expect(trigger).toBeTruthy();
-      expect(trigger.getAttribute('aria-label')).toBe('Language selection');
+      expect(trigger.getAttribute('aria-label')).toBe('Sprachauswahl');
       expect(trigger.textContent).toContain('DE');
     });
 

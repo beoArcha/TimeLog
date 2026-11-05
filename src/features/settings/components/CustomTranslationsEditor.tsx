@@ -31,14 +31,14 @@ export function CustomTranslationsEditor() {
     e.preventDefault();
 
     if (!overrideKey.trim()) {
-      const errorMsg = 'Translation key cannot be empty';
+      const errorMsg = translate(locale, 'settings', 'ValidationKeyRequired', customTranslations);
       setValidationError(errorMsg);
       toast.error(errorMsg);
       return;
     }
 
     if (!overrideValue.trim()) {
-      const errorMsg = 'Translation value cannot be empty';
+      const errorMsg = translate(locale, 'settings', 'ValidationValueRequired', customTranslations);
       setValidationError(errorMsg);
       toast.error(errorMsg);
       return;
@@ -91,12 +91,14 @@ export function CustomTranslationsEditor() {
             {translate(locale, 'settings', 'CustomLanguageTitle', customTranslations)}
           </Text>
           <Caption variant="muted" size="xs">
-            Override specific system translation keys without modifying dictionaries.
+            {translate(locale, 'settings', 'CustomTranslationsDesc', customTranslations)}
           </Caption>
         </VStack>
         {overrideEntries.length > 0 && (
           <Badge variant="secondary" className="font-mono text-2xs">
-            {overrideEntries.length} override{overrideEntries.length > 1 ? 's' : ''}
+            {translate(locale, 'settings', 'CustomOverridesCount', customTranslations, {
+              count: overrideEntries.length,
+            })}
           </Badge>
         )}
       </HStack>
@@ -148,7 +150,7 @@ export function CustomTranslationsEditor() {
       >
         <div>
           <Label htmlFor="override-domain-select" className="text-2xs text-muted-foreground block mb-1">
-            Domain
+            {translate(locale, 'settings', 'DomainLabel', customTranslations)}
           </Label>
           <Select
             value={overrideDomain}
@@ -193,7 +195,7 @@ export function CustomTranslationsEditor() {
               setOverrideKey(e.target.value);
               if (validationError) setValidationError(null);
             }}
-            placeholder="e.g. Save"
+            placeholder={translate(locale, 'settings', 'KeyPlaceholder', customTranslations)}
             size="sm"
           />
         </div>
@@ -211,7 +213,7 @@ export function CustomTranslationsEditor() {
                 setOverrideValue(e.target.value);
                 if (validationError) setValidationError(null);
               }}
-              placeholder="Custom translated text"
+              placeholder={translate(locale, 'settings', 'ValuePlaceholder', customTranslations)}
               size="sm"
               className="flex-1"
             />

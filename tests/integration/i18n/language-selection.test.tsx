@@ -106,7 +106,7 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
       );
 
       // Active system resolution should show Polski (pl)
-      expect(screen.getByText(/Active system resolution:/i)).toBeTruthy();
+      expect(screen.getByText(/Aktywne rozpoznanie systemowe:|Active system resolution:/i)).toBeTruthy();
       expect(screen.getByText(/Polski \(pl\)/i)).toBeTruthy();
     });
   });
@@ -139,7 +139,7 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
       const modal = screen.getByTestId('language-selection-modal');
       expect(modal).toBeTruthy();
       expect(modal.getAttribute('role')).toBe('dialog');
-      expect(modal.getAttribute('aria-label')).toBe('Language selection');
+      expect(modal.getAttribute('aria-label')).toBe('Sprachauswahl');
 
       // All 10 standard locales with native names must be listed in the modal
       for (const code of STANDARD_LOCALES) {
@@ -150,7 +150,7 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
 
       // System default option shows active resolution
       expect(screen.getByTestId('modal-lang-system')).toBeTruthy();
-      expect(screen.getByText(/Resolved: Deutsch \(de\)/i)).toBeTruthy();
+      expect(screen.getByText(/Aufgelöst: Deutsch \(de\)|Resolved: Deutsch \(de\)/i)).toBeTruthy();
     });
 
     it('Then system default card displays actual operating system locale when localePref is explicitly set to de', () => {
@@ -177,7 +177,7 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
 
       // Even though localePref is 'de', System default must show Polski (pl) resolved from navigator.language
       expect(screen.getByTestId('modal-lang-system')).toBeTruthy();
-      expect(screen.getByText(/Resolved: Polski \(pl\)/i)).toBeTruthy();
+      expect(screen.getByText(/Aufgelöst: Polski \(pl\)|Resolved: Polski \(pl\)/i)).toBeTruthy();
     });
 
     it('Then selecting a language and confirming persists the selection and closes modal', () => {
@@ -239,6 +239,32 @@ describe('Integration Tests: Language Selection Experience & Modal Integration',
 
       expect(setLocalePrefMock).not.toHaveBeenCalled();
       expect(screen.queryByTestId('language-selection-modal')).toBeNull();
+    });
+
+    it('Then only RadioGroupItem primitives hold radio role without duplicated semantic wrappers', () => {
+      render(
+        <MockProviders
+          localeState={{
+            localePref: 'en',
+            locale: 'en',
+            setLocalePref: vi.fn(),
+            customTranslations: {},
+          }}
+        >
+          <SettingsTab />
+        </MockProviders>
+      );
+
+      // Open modal
+      fireEvent.click(screen.getByTestId('open-language-modal-btn'));
+
+      // Check all elements with role="radio"
+      const radios = screen.getAllByRole('radio');
+      // Exactly 11 radios (10 standard + system default)
+      expect(radios.length).toBe(11);
+      radios.forEach((r) => {
+        expect(r.getAttribute('data-slot')).toBe('radio-group-item');
+      });
     });
   });
 

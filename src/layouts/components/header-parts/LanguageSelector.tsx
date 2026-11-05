@@ -12,9 +12,10 @@ import {
   SelectValue,
 } from '@components/ui/select';
 import { SUPPORTED_LOCALES, LOCALE_METADATA } from '@common/i18n/locales';
+import { translate } from '@common/i18n/translator';
 
 export const LanguageSelector: React.FC = () => {
-  const { localePref, setLocalePref } = useLocale();
+  const { localePref, setLocalePref, locale, customTranslations } = useLocale();
   const { layoutVariant } = useSettings();
 
   const showExpanded = layoutVariant === 'full';
@@ -53,7 +54,7 @@ export const LanguageSelector: React.FC = () => {
           <SelectTrigger
             data-testid="lang-select-trigger"
             className="h-6 border-0 bg-transparent px-1.5 py-0.5 font-bold uppercase shadow-none focus-visible:ring-1"
-            aria-label="Language selection"
+            aria-label={translate(locale, 'settings', 'LanguageSelectionAria', customTranslations)}
           >
             <SelectValue>{localePref.toUpperCase()}</SelectValue>
           </SelectTrigger>
@@ -92,3 +93,4 @@ export const LanguageSelector: React.FC = () => {
   );
 };
 
+export default LanguageSelector;
