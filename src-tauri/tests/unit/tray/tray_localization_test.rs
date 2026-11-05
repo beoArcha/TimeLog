@@ -12,6 +12,9 @@ fn test_en_fallback_for_system_locale() {
         "Quit Completely"
     );
     assert_eq!(get_text(TrayItem::QuitApp, Locale::En), "Quit Completely");
+    assert_eq!(get_text(TrayItem::QuitApp, Locale::Ja), "Quit Completely");
+    assert_eq!(get_text(TrayItem::QuitApp, Locale::Nl), "Quit Completely");
+    assert_eq!(get_text(TrayItem::QuitApp, Locale::It), "Quit Completely");
 }
 
 #[test]
@@ -34,6 +37,10 @@ fn test_all_items_across_all_locales() {
         Locale::Fr,
         Locale::Es,
         Locale::PtBr,
+        Locale::Uk,
+        Locale::Ja,
+        Locale::Nl,
+        Locale::It,
         Locale::System,
         Locale::Custom,
     ];
