@@ -148,6 +148,9 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
 | **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
 | **Database** | Restore | `oxy db restore <path>` | Restores state with schema integrity verification | Confirms restored database |
+| **Config** | Set | `oxy config set <key> <val>` | Sets SQLite config entry (e.g. `cli_machine_locale`) | Validates supported keys and values |
+| **Config** | Get | `oxy config get <key>` | Gets effective config value (defaults to `en` for `cli_machine_locale`) | Displays active configuration value |
+| **Config** | List | `oxy config ls` | Lists physically persisted SQLite configuration entries | Displays table of saved config pairs |
 | **Sink** | Set CSV | `oxy sink set csv --dir <path>` | Configures local CSV audit log | Prompts for directory path |
 | **Sink** | Set API | `oxy sink set webhook --url <url> -t <token>` | Updates external webhook target | Tests connectivity and saves |
 | **Sink** | Test | `oxy sink test` | Synthetic event verification | Displays green checkmarks for active sinks |

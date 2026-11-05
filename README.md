@@ -96,7 +96,7 @@ Most modern productivity tools suffer from bloated runtimes, slow cold starts, a
 
 ### 🌍 Multilingual by Design
 
-* 100% translated across 6 supported languages: **English**, **Polski**, **Deutsch**, **Español**, **Français**, and **Português (Brasil)**.
+* 100% translated across 10 supported languages: **English**, **Polski**, **Deutsch**, **Español**, **Français**, **Português (Brasil)**, **Українська**, **日本語**, **Nederlands**, and **Italiano**, featuring operating system language matching and custom in-app translation overrides.
 
 ---
 
