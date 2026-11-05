@@ -11,6 +11,7 @@ This file is the single entry point. Detailed, topic-specific rules live in `.ag
 | [`.agents/rules/frontend_engineering_standards.md`](.agents/rules/frontend_engineering_standards.md) | React, hooks, contexts, design system, theming, i18n, a11y |
 | [`.agents/rules/backend_rust_engineering_standards.md`](.agents/rules/backend_rust_engineering_standards.md) | Rust domain modeling, errors, CLI exit codes, handler structure |
 | [`.agents/rules/testing_standards.md`](.agents/rules/testing_standards.md) | Test tiers, naming, AAA / BDT, builders, decoupling, timeouts |
+| [`.agents/rules/code_quality_standards.md`](.agents/rules/code_quality_standards.md) | Shared LOC thresholds, review criteria and architecture-test enforcement |
 | [`.agents/rules/code_commenting_standards.md`](.agents/rules/code_commenting_standards.md) | When and how to write comments |
 | [`.agents/rules/documentation_standards.md`](.agents/rules/documentation_standards.md) | Analytical artifacts, implementation plans, manifesto, multilingual wiki, AI humanizer |
 | [`.agents/rules/project_metadata_standards.md`](.agents/rules/project_metadata_standards.md) | Canonical naming, Single Source of Truth (`metadata.json`), author attribution, version sync |
@@ -130,7 +131,7 @@ Large features and roadmap phases follow the phase-gate process in [`development
 ### Refactoring scope
 
 - Small cleanups inside code you are already changing are expected: rename unclear identifiers, remove dead code, replace a magic string, fix a rule violation on the touched lines.
-- Proactive decomposition: Keep files focused and lean (aim for ≤300 LOC). If a touched file expands beyond single responsibility or healthy size, decompose it into domain submodules within the current task.
+- Proactive decomposition: Follow `.agents/rules/code_quality_standards.md` for LOC thresholds and exceptions. Treat LOC as a warning and review signal, not as an instruction to split files mechanically. Decompose when responsibilities, cohesion or maintainability justify it.
 - Unrelated structural refactors across distant subsystems or contracts are proposed and done as a separate task or commit after approval.
 - Never mix a feature, an unrelated refactor and an architecture change in one commit.
 

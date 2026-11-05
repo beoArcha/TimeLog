@@ -136,3 +136,22 @@ Directories created by test or mutation tools (`.stryker-tmp/`, `.stryker-sandbo
   1. Documentation integrity & link parity: `bun run docs:validate`.
   2. Markdown / formatting linters where applicable.
 - Neither AI orchestrators, subagents, nor CI pipelines should execute heavy compilation or test suites when no executable application code, types, or dependencies have been modified.
+
+## 12. Architecture Rule Enforcement
+
+Architecture tests enforce explicit project-wide constraints, not subjective code style preferences.
+
+- Every architecture rule must have a clearly defined scope, measurable condition and actionable failure message.
+- A rule must not silently inspect generated files, dependencies, build output or unrelated artifacts.
+- Static analysis must distinguish syntactic patterns from actual semantic violations. Do not reject valid code solely because it contains a particular token or method name.
+- Rules that enforce LOC thresholds must follow `.agents/rules/code_quality_standards.md`.
+- Rules that inspect error handling must distinguish:
+  - Expected domain outcomes and validation failures.
+  - Missing optional data.
+  - Recoverable operational failures.
+  - Infrastructure failures.
+  - Unexpected or critical failures.
+- Do not treat every `.ok()`, `unwrap_or_default()` or caught exception as automatically invalid. Inspect whether the operation is intentionally best-effort, whether failure is observable, and whether the fallback preserves the operation's contract.
+- Architecture tests must include positive cases for valid patterns and negative cases for prohibited patterns.
+- When a rule uses AST analysis, prefer syntax-aware inspection over broad regular expressions whenever practical.
+- Architecture tests must themselves remain maintainable and follow the project's code quality standards.

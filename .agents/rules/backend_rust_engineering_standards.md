@@ -62,17 +62,26 @@ Changing a code or its mapping is a breaking change of the CLI contract: update 
 
 ### 4.4. Zero Silent Fallbacks & Infrastructure Error Handling
 
-- **Never Swallow Infrastructure Errors**: Never convert database/storage errors to `None` or silent fallbacks using `.ok()`, `unwrap_or_default()`, or empty catch handlers.
-- **Distinguish Missing Config vs Storage Failure**: A missing record is `Ok(None)` (which may legitimately fall back to an effective default); an infrastructure or query failure is `Err(CliError::Storage(...))` and must be propagated or explicitly logged.
-- **Error Preservation in Envelope Lifecycle**: When resolving locale or context for error envelopes:
-  - If resolving configuration fails due to an infrastructure error, log it via `log::error!`.
-  - Use a safe fallback envelope format (`"en"`).
-  - **Never replace the primary CLI command failure** with the secondary locale resolution error. The original error remains the primary error envelope payload.
+- **Never Swallow Infrastructure Errors**: Never convert database, storage, filesystem or other infrastructure failures into `None`, empty values or silent defaults using `.ok()`, `unwrap_or_default()` or empty catch handlers.
+- **Distinguish Missing Data from Failed Operations**:
+  - `Ok(None)` means that the requested record or optional value does not exist. A documented default may be applied where the domain contract allows it.
+  - `Err(...)` means that the operation failed. Infrastructure failures must remain distinguishable from missing data and must be propagated or explicitly handled.
+- **No Implicit Recovery**: A fallback is allowed only when it is an intentional part of the domain or protocol contract. It must not conceal an operation failure or make an unsuccessful operation appear successful.
+- **Secondary Error Preservation**: When resolving locale, configuration or context for an error response:
+  - Preserve the original command failure as the primary error.
+  - Use a safe fallback representation only when required to produce a valid response.
+  - Do not replace, discard or downgrade the primary error because preparation of the error response also failed.
+  - Preserve secondary failure information through the diagnostic mechanism available at the current project phase.
+- **Explicit Best-Effort Operations**: Operations that are intentionally best-effort must make that intent visible in the code and must not silently discard failures that affect data integrity, user-visible outcomes or system reliability.
 
-### 4.5. Diagnostic Logging & Stdout Purity
+### 4.5. Diagnostic Handling & Stdout Purity
 
-- **Logger Backend Initialized**: Both CLI binary entrypoints (`src-tauri/src/main.rs` and `src-tauri/src/bin/oxy.rs`) must have an active, initialized logger backend. Calling `log::error!` without an initialized logger is an unobservable defect.
-- **Strict Stdout Purity in Machine Mode**: Diagnostic logs must **never pollute stdout** when `--machine` or `--json` is active. Diagnostic messages and logs go strictly to `stderr` or diagnostic log files. `stdout` is reserved exclusively for the valid JSON envelope contract.
+- **No Unobservable Error Handling**: Do not treat a diagnostic logging call as proof that an error was recorded. Follow the diagnostic mechanism currently available in the project.
+- **Preserve Diagnostic Context**: Important failures must retain enough structured context to identify the failing operation and its origin, without exposing credentials or sensitive payloads.
+- **Strict Stdout Purity in Machine Mode**: When `--machine` or `--json` is active, stdout is reserved exclusively for the documented machine-readable response contract. Diagnostic output must never corrupt or precede the JSON response.
+- **Current Logging Scope**: Do not introduce or mandate a new logging backend, global logger initialization strategy, file format, rotation policy or retention mechanism as part of an unrelated feature.
+- **Centralized Logging Roadmap**: Native Rust error handling and diagnostic logging implementation details are governed by Phase 23 of `docs/manifesto/MASTERMAP.md`. Changes that implement or advance that phase must follow its architecture and acceptance criteria.
+- **Current Machine-Mode Stream Contract**: Until Phase 23 is implemented, follow the current tested CLI contract in `testing_standards.md`: machine-readable stdout must remain pure and diagnostics are directed to stderr. Any change to stderr behavior must be migrated together with Phase 23 and its subprocess tests.
 
 ## 5. Handler Structure & Configuration Semantics
 

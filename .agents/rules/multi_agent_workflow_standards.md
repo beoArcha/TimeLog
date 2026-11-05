@@ -172,8 +172,10 @@ A pull request must contribute **exactly one commit to the target branch** after
    - Creating dependent branch chains (`branch B` branched off unmerged `branch A`) is **strictly forbidden** unless Task B explicitly and unavoidably depends on code or type contracts introduced in Task A.
    - Independent tasks must always branch from the latest common `main`. This guarantees that independent PRs can be reviewed, tested, and merged without blocking each other.
 2. **Worker Slot Re-use upon Merge**:
-   - As soon as a PR is merged into `main`, that worker's capacity is immediately freed.
-   - Main must immediately detect merged PRs and dispatch the next eligible task from the plan to the newly available worker without waiting for unrelated branches.
+   - As soon as a PR is merged into `main`, that worker's capacity becomes available.
+   - Main must check whether another task is ready for assignment, considering its dependencies, file ownership and integration order.
+   - If an eligible independent task exists, Main should assign it without waiting for unrelated branches.
+   - Main must not assign blocked, dependent or insufficiently specified work merely to keep a worker occupied.
 3. **Sequential Merge Order with Human Sign-off**:
    - While implementation runs in parallel, merges into `main` must occur sequentially according to the defined plan order to prevent merge conflicts.
    - Every merge into `main` strictly requires explicit human confirmation or user-initiated merge on GitHub. Main never automatically merges PRs without human approval.
@@ -200,9 +202,11 @@ When delegating a task to a worker, Main must provide an explicit **Task Brief**
 7. **Architectural Invariants**:
    - Zero raw HTML form/table tags outside `src/components/ui/` (`no-raw-html-primitives`).
    - Zero theme branching or hardcoded color classes (`no-inline-theme-ternaries`).
-   - All user-facing strings localized across all 6 locales via `translate(...)`.
-   - Max nested `if` statements <= 2 (Rule of 3 Ifs).
-   - Target file size <= 300 LOC (proactive decomposition).
+   - All user-facing strings use `translate(...)` and cover every locale defined in the current project localization contract.
+   - Maximum nested `if` depth is 2 (`max-nested-ifs`).
+   - LOC thresholds and exception handling follow `.agents/rules/code_quality_standards.md` (`>200 LOC` warning; `>400 LOC` error unless an explicitly reviewed exception is accepted).
+   - Error handling follows the frontend/backend engineering standards and preserves the distinction between expected domain outcomes, missing data and operational failures.
+   - Test structure and architecture enforcement follow `.agents/rules/testing_standards.md`.
 8. **Exact Verification Commands**: Specific test suites and linters required for green status.
 9. **Commit Message Format**: Commit messages follow the project's Conventional Commits convention. The final squash commit message must describe the complete PR.
 10. **Reporting Contract**: Required completion report fields and the channel/session for reporting blockers to Main.
