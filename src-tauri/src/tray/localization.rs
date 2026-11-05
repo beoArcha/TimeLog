@@ -7,13 +7,7 @@ pub fn get_text(item: TrayItem, locale: Locale) -> &'static str {
         Locale::Fr => fr(item),
         Locale::Es => es(item),
         Locale::PtBr => pt_br(item),
-        Locale::En
-        | Locale::Uk
-        | Locale::Ja
-        | Locale::Nl
-        | Locale::It
-        | Locale::Custom
-        | Locale::System => en(item),
+        _ => en(item),
     }
 }
 
