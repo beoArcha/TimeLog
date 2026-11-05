@@ -31,6 +31,41 @@ export function LanguageSettingsCard() {
     englishName: locale,
   };
 
+  const getActiveLanguageDisplay = (): string => {
+    if (localePref === 'system') {
+      return translate(locale, 'settings', 'SystemDefault', customTranslations);
+    }
+    if (localePref === 'custom') {
+      return translate(locale, 'settings', 'CustomLanguageTitle', customTranslations);
+    }
+    return `${currentMeta.nativeName} (${currentMeta.englishName})`;
+  };
+
+  const getLanguageStatusCaption = (): React.ReactNode => {
+    if (localePref === 'system') {
+      return (
+        <Caption variant="muted" size="xs">
+          {translate(locale, 'settings', 'ActiveSystemResolution', customTranslations, {
+            name: resolvedMeta.nativeName,
+            code: locale,
+          })}
+        </Caption>
+      );
+    }
+    if (localePref === 'custom') {
+      return (
+        <Caption variant="muted" size="xs">
+          {translate(locale, 'settings', 'CustomLanguageDesc', customTranslations)}
+        </Caption>
+      );
+    }
+    return (
+      <Caption variant="muted" size="xs">
+        {translate(locale, 'settings', 'LanguageLockedToPreference', customTranslations)}
+      </Caption>
+    );
+  };
+
   return (
     <>
       <CollapsibleCard
@@ -49,31 +84,14 @@ export function LanguageSettingsCard() {
               <HStack align="center" gap="sm">
                 <Globe className="w-5 h-5 text-indigo-500 shrink-0" aria-hidden="true" />
                 <Text size="base" weight="bold" className="text-foreground truncate">
-                  {localePref === 'system'
-                    ? translate(locale, 'settings', 'SystemDefault', customTranslations)
-                    : localePref === 'custom'
-                      ? translate(locale, 'settings', 'CustomLanguageTitle', customTranslations)
-                      : `${currentMeta.nativeName} (${currentMeta.englishName})`}
+                  {getActiveLanguageDisplay()}
                 </Text>
                 <Badge variant={localePref === 'system' ? 'outline' : 'default'} className="font-mono text-2xs uppercase">
                   {localePref}
                 </Badge>
               </HStack>
 
-              {localePref === 'system' ? (
-                <Caption variant="muted" size="xs">
-                  {translate(locale, 'settings', 'ActiveSystemResolution', customTranslations, {
-                    name: resolvedMeta.nativeName,
-                    code: locale,
-                  })}
-                </Caption>
-              ) : (
-                <Caption variant="muted" size="xs">
-                  {localePref === 'custom'
-                    ? translate(locale, 'settings', 'CustomLanguageDesc', customTranslations)
-                    : translate(locale, 'settings', 'LanguageLockedToPreference', customTranslations)}
-                </Caption>
-              )}
+              {getLanguageStatusCaption()}
             </VStack>
 
             <Button
