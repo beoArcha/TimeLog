@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
@@ -8,16 +9,38 @@ import { buttonVariants } from "./button-variants";
 export type ButtonProps = ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> & {
     loading?: boolean;
+    icon?: React.ComponentType<{ className?: string }> | React.ReactNode;
+    iconPlacement?: "left" | "right";
   };
 
+function renderButtonIcon(
+  icon: React.ComponentType<{ className?: string }> | React.ReactNode,
+  className?: string
+) {
+  if (!icon) return null;
+  if (React.isValidElement(icon)) {
+    return icon;
+  }
+  if (
+    typeof icon === "function" ||
+    (typeof icon === "object" && icon !== null && "render" in icon)
+  ) {
+    const IconComponent = icon as React.ComponentType<{ className?: string }>;
+    return <IconComponent className={cn("size-4 shrink-0", className)} aria-hidden="true" />;
+  }
+  return <>{icon}</>;
+}
+
 /**
- * Button component supporting variants, sizes, and loading state.
+ * Button component supporting variants, sizes, icon placement, and loading state.
  */
 function Button({
   className,
   variant = "default",
   size = "default",
   loading = false,
+  icon,
+  iconPlacement = "left",
   disabled,
   children,
   ...props
@@ -35,7 +58,11 @@ function Button({
           <span className="opacity-80">{children}</span>
         </>
       ) : (
-        children
+        <>
+          {icon && iconPlacement === "left" && renderButtonIcon(icon)}
+          {children}
+          {icon && iconPlacement === "right" && renderButtonIcon(icon)}
+        </>
       )}
     </ButtonPrimitive>
   );

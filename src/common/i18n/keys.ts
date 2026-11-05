@@ -62,3 +62,20 @@ export const I18N_KEYS = {
 export type I18nKeysContract = typeof I18N_KEYS;
 export type I18nProjectKeys = typeof I18N_KEYS.project;
 export type I18nEngineKeys = typeof I18N_KEYS.engine;
+
+export const I18N_DOMAINS = [
+  'common',
+  'app',
+  'project',
+  'task',
+  'timer',
+  'engine',
+  'report',
+  'database',
+  'calendar',
+  'settings',
+  'cli',
+  'help',
+] as const satisfies readonly (keyof DomainKeys)[];
+
+export type I18nDomain = (typeof I18N_DOMAINS)[number];
