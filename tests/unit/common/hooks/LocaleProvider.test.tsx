@@ -63,7 +63,11 @@ describe('LocaleProvider & useLocale', () => {
       ['es-ES', 'es'],
       ['pt-BR', 'pt-br'],
       ['fr-FR', 'fr'],
-      ['it-IT', 'en'], // unsupported falls back to 'en'
+      ['uk-UA', 'uk'],
+      ['ja-JP', 'ja'],
+      ['nl-NL', 'nl'],
+      ['it-IT', 'it'],
+      ['sv-SE', 'en'], // unsupported falls back to 'en'
     ];
 
     for (const [browserLang, expectedLocale] of testCases) {

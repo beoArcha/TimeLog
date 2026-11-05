@@ -14,6 +14,9 @@ pub enum Locale {
     PtBr,
     Fr,
     Uk,
+    Ja,
+    Nl,
+    It,
     Custom,
     System,
 }
@@ -28,6 +31,9 @@ impl Locale {
             "fr" => Locale::Fr,
             "pt" => Locale::PtBr,
             "uk" => Locale::Uk,
+            "ja" => Locale::Ja,
+            "nl" => Locale::Nl,
+            "it" => Locale::It,
             _ => Locale::En,
         }
     }
@@ -40,6 +46,9 @@ impl Locale {
             Locale::Fr => "fr",
             Locale::PtBr => "pt",
             Locale::Uk => "uk",
+            Locale::Ja => "ja",
+            Locale::Nl => "nl",
+            Locale::It => "it",
             _ => "en",
         }
     }
