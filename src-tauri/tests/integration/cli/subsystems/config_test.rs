@@ -251,7 +251,8 @@ fn test_given_unset_cli_machine_locale_when_resolved_or_get_then_defaults_to_en(
 }
 
 #[test]
-fn test_given_corrupted_cli_machine_locale_in_db_when_config_get_then_fails_with_typed_syntax_error() {
+fn test_given_corrupted_cli_machine_locale_in_db_when_config_get_then_fails_with_typed_syntax_error(
+) {
     // Given
     let (_conn, config, _temp) =
         setup_persistence_test("test_subsystem_cli_machine_locale_corrupted_get");
@@ -264,8 +265,7 @@ fn test_given_corrupted_cli_machine_locale_in_db_when_config_get_then_fails_with
         .set_config_value("cli_machine_locale", "corrupted_klingon")
         .unwrap();
 
-    let get_args =
-        CliArgs::try_parse_from(["oxy", "config", "get", "cli_machine_locale"]).unwrap();
+    let get_args = CliArgs::try_parse_from(["oxy", "config", "get", "cli_machine_locale"]).unwrap();
     let res = handle_cli(get_args, &persistence, &engine);
     assert!(res.is_err());
     let err = res.unwrap_err();

@@ -38,6 +38,57 @@ pub fn resolve_machine_locale(persistence: &Persistence) -> Result<String, CliEr
     }
 }
 
+pub fn extract_early_db_flag(args: &[String]) -> Option<String> {
+    let mut iter = args.iter().skip(1);
+    while let Some(arg) = iter.next() {
+        if arg == "--db" {
+            return iter.next().cloned();
+        }
+        if let Some(stripped) = arg.strip_prefix("--db=") {
+            return Some(stripped.to_string());
+        }
+    }
+    None
+}
+
+/// Resolves the locale to use for error envelope formatting based on lifecycle stages:
+/// - Stage A (before DB open / persistence is None): uses explicit "en" fallback.
+/// - Stage B (after DB open): resolves locale from persistence via `resolve_machine_locale`.
+/// - Stage C (locale resolution failure): logs error via `log::error!`, preserves primary error,
+///   and returns explicit "en" fallback safely.
+pub fn resolve_envelope_locale(
+    is_machine: bool,
+    persistence: Option<&Persistence>,
+) -> Option<String> {
+    if !is_machine {
+        return None;
+    }
+    match persistence {
+        Some(p) => match resolve_machine_locale(p) {
+            Ok(loc) => Some(loc),
+            Err(e) => {
+                log::error!("Failed to resolve machine locale from database: {e}");
+                Some(DEFAULT_CLI_MACHINE_LOCALE.to_string())
+            }
+        },
+        None => Some(DEFAULT_CLI_MACHINE_LOCALE.to_string()),
+    }
+}
+
+/// Builds an error envelope adhering to CLI lifecycle stages (Stage A, Stage B, Stage C):
+/// - Stage A: When `persistence` is `None` (pre-DB open, e.g. path resolution or DB init error).
+/// - Stage B: When `persistence` is `Some` and machine locale resolves successfully from DB.
+/// - Stage C: When `persistence` is `Some` but machine locale resolution fails (infrastructure
+///   or corruption); logs the failure, preserves the primary `err`, and uses safe fallback envelope.
+pub fn build_error_envelope(
+    err: &CliError,
+    is_machine: bool,
+    persistence: Option<&Persistence>,
+) -> CliErrorEnvelope {
+    let locale = resolve_envelope_locale(is_machine, persistence);
+    err.to_envelope_with_mode(is_machine, locale.as_deref())
+}
+
 pub fn handle_cli(
     args: CliArgs,
     persistence: &Persistence,
@@ -62,20 +113,7 @@ pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCod
             ExitCode::from(EXIT_CODE_SUCCESS)
         }
         Err(err) => {
-            let machine_locale = if is_machine {
-                match resolve_machine_locale(persistence) {
-                    Ok(loc) => Some(loc),
-                    Err(e) => {
-                        let envelope =
-                            e.to_envelope_with_mode(is_machine, Some(DEFAULT_CLI_MACHINE_LOCALE));
-                        envelope.render_stderr(is_machine);
-                        return envelope.to_exit_code();
-                    }
-                }
-            } else {
-                None
-            };
-            let envelope = err.to_envelope_with_mode(is_machine, machine_locale.as_deref());
+            let envelope = build_error_envelope(&err, is_machine, Some(persistence));
             envelope.render_stderr(is_machine);
             envelope.to_exit_code()
         }

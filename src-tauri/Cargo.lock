@@ -2353,6 +2353,7 @@ dependencies = [
  "clap",
  "comfy-table",
  "csv",
+ "log",
  "rusqlite",
  "serde",
  "serde_json",

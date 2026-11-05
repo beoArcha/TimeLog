@@ -46,4 +46,3 @@ mod tests {
         assert!(validate_cli_machine_locale("klingon").is_err());
     }
 }
-

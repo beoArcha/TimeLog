@@ -315,3 +315,61 @@ fn test_given_serde_json_error_when_converting_to_cli_error_then_maps_to_storage
         other => panic!("expected CliError::Storage(Serialization), got {:?}", other),
     }
 }
+
+#[test]
+fn test_given_stage_a_before_db_open_when_building_envelope_then_uses_explicit_en_fallback() {
+    use oxyflow_timelog::cli::build_error_envelope;
+
+    let error = CliError::Storage(PersistenceError::Storage("Connection refused".to_string()));
+
+    // Stage A: persistence is None
+    let envelope = build_error_envelope(&error, true, None);
+    assert_eq!(envelope.code, "STO_SQLITE_QUERY");
+    assert_eq!(envelope.exit_code, 3);
+    assert!(envelope.user.is_none()); // In machine mode, user is None
+
+    // Human mode Stage A
+    let envelope_human = build_error_envelope(&error, false, None);
+    assert_eq!(envelope_human.code, "STO_SQLITE_QUERY");
+    assert!(envelope_human.user.is_some());
+    assert_eq!(envelope_human.user.unwrap().locale, "en");
+}
+
+#[test]
+fn test_given_stage_b_and_c_when_building_envelope_then_preserves_primary_error_and_handles_locale_failures(
+) {
+    use crate::shared::test_db::setup_persistence_test;
+    use oxyflow_timelog::cli::{build_error_envelope, resolve_envelope_locale};
+    use oxyflow_timelog::persistence::Persistence;
+
+    let (_conn, config, _temp_dir) = setup_persistence_test("unit_error_envelope_lifecycle");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+
+    // Stage B: persistence is available and cli_machine_locale is configured to "ja"
+    persistence
+        .cli
+        .set_config_value("cli_machine_locale", "ja")
+        .unwrap();
+
+    let primary_error = CliError::Syntax(CliSyntaxError::EmptyId);
+    let resolved_b = resolve_envelope_locale(true, Some(&persistence));
+    assert_eq!(resolved_b, Some("ja".to_string()));
+
+    let envelope_b = build_error_envelope(&primary_error, true, Some(&persistence));
+    assert_eq!(envelope_b.code, "CLI_SYNTAX_EMPTY_ID");
+    assert_eq!(envelope_b.exit_code, 2);
+
+    // Stage C: persistence is available, but locale config has corrupted value
+    persistence
+        .cli
+        .set_config_value("cli_machine_locale", "corrupted_val")
+        .unwrap();
+
+    // Locale resolution failure must log error, return "en" fallback, and preserve primary error
+    let resolved_c = resolve_envelope_locale(true, Some(&persistence));
+    assert_eq!(resolved_c, Some("en".to_string()));
+
+    let envelope_c = build_error_envelope(&primary_error, true, Some(&persistence));
+    assert_eq!(envelope_c.code, "CLI_SYNTAX_EMPTY_ID");
+    assert_eq!(envelope_c.exit_code, 2);
+}
