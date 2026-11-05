@@ -294,9 +294,9 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 ### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🚧 (Planned)
 
 #### Group A (Parallel Track) — Modular Domain Keys & Type Aggregation
-- [ ] **Decomposition of `keys.ts`**: Decompose [`src/common/i18n/keys.ts`](../../src/common/i18n/keys.ts) by extracting domain key union types into dedicated modules under `src/common/i18n/keys/`:
+- [x] **Decomposition of `keys.ts`**: Decompose [`src/common/i18n/keys.ts`](../../src/common/i18n/keys.ts) by extracting domain key union types into dedicated modules under `src/common/i18n/keys/`:
   - `app.ts` (`AppKey`), `calendar.ts` (`CalendarKey`), `cli.ts` (`CliKey`), `common.ts` (`CommonKey`), `database.ts` (`DatabaseKey`), `engine.ts` (`EngineKey`), `help.ts` (`HelpKey`), `project.ts` (`ProjectKey`), `report.ts` (`ReportKey`), `settings.ts` (`SettingsKey`), `task.ts` (`TaskKey`), `timer.ts` (`TimerKey`).
-- [ ] **Canonical Type Aggregation**: Retain in `src/common/i18n/keys.ts` solely aggregated re-exports and the canonical `export interface DomainKeys` contract.
+- [x] **Canonical Type Aggregation**: Retain in `src/common/i18n/keys.ts` solely aggregated re-exports and the canonical `export interface DomainKeys` contract.
 
 #### Group B (Parallel Track) — Extended Locales Integration (`ja`, `nl`, `it`)
 - [ ] **Language Selection Modal**: Maintain clean primary quick-select bar while introducing full language selection dialog (`LanguageSelectionModal`) in settings supporting extended locales: Japanese (`ja`), Dutch (`nl`), and Italian (`it`).
