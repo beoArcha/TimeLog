@@ -73,6 +73,13 @@ pub const FORMAT_CONFIG_LIST_ITEM: &str = " • {} = \"{}\"\n";
 pub const MSG_CONFIG_SET: &str = "Set configuration '{}' = \"{}\"";
 pub const ERR_CONFIG_KEY_NOT_FOUND: &str = "Configuration key '{}' not found.";
 pub const ERR_CONFIG_EMPTY_KEY: &str = "Configuration key cannot be empty.";
+pub const CONFIG_KEY_CLI_MACHINE_LOCALE: &str = "cli_machine_locale";
+pub const DEFAULT_CLI_MACHINE_LOCALE: &str = "en";
+pub const SUPPORTED_CLI_MACHINE_LOCALES: &[&str] = &[
+    "pl", "en", "de", "es", "pt-br", "fr", "uk", "ja", "nl", "it",
+];
+pub const ERR_CONFIG_INVALID_MACHINE_LOCALE: &str =
+    "Invalid machine locale '{}'. Supported values are: pl, en, de, es, pt-br, fr, uk, ja, nl, it (system and custom are not allowed for machine output).";
 
 pub const HEADER_PROJECTS: &str =
     "📂 Projects:\n──────────────────────────────────────────────────\n";
