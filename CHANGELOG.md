@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **SQLite Time Log History Migration Compatibility**:
+  - Added migration 9 to rebuild legacy `time_logs_history` tables where `reason` is still `NOT NULL`, making the column nullable without losing existing audit records or the `time_logs` foreign-key cascade.
+  - Added migration regression coverage for v8 databases, NULL-reason inserts, history preservation, foreign-key cascade behavior, and idempotent initialization.
 - **Playwright CI Browser Installation**:
   - Removed the unnecessary Google Chrome download and aligned the E2E project with Playwright-managed Chromium.
   - Separated Linux browser dependencies from browser installation, increased the download connection timeout, and added bounded retries for transient download failures.
