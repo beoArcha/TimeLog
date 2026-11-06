@@ -43,24 +43,13 @@ function Button({
   iconPlacement = "left",
   disabled,
   children,
-  onKeyDown,
   ...props
 }: ButtonProps) {
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    onKeyDown?.(event);
-    props.onKeyDown?.(event);
-    if ((event.key === " " || event.key === "Space") && !event.defaultPrevented && event.target === event.currentTarget) {
-      event.preventDefault();
-      event.currentTarget.click();
-    }
-  };
-
   return (
     <ButtonPrimitive
       data-slot="button"
       disabled={disabled || loading}
       className={cn(buttonVariants({ variant, size, className }))}
-      onKeyDown={handleKeyDown}
       {...props}
     >
       {loading ? (
