@@ -34,6 +34,7 @@ export function calculateReportStatistics({
   sysSettings,
   customFrom,
   customTo,
+  selectedProjectId,
 }: {
   logs: TimeLog[];
   patches: PatchLog[];
@@ -45,6 +46,7 @@ export function calculateReportStatistics({
   sysSettings?: Settings | null;
   customFrom?: string;
   customTo?: string;
+  selectedProjectId?: string | null;
 }): ReportStatisticsResult {
   const now = nowIso ? new Date(nowIso) : new Date();
   const includePatches = !!sysSettings?.includePatchesInReports;
@@ -53,6 +55,12 @@ export function calculateReportStatistics({
   const todayRange = getRangeFilterForPeriod('today', now, undefined, undefined, includePatches);
   const weekRange = getRangeFilterForPeriod('week', now, undefined, undefined, includePatches);
   const monthRange = getRangeFilterForPeriod('month', now, undefined, undefined, includePatches);
+
+  if (selectedProjectId) {
+    todayRange.filter.projectId = selectedProjectId;
+    weekRange.filter.projectId = selectedProjectId;
+    monthRange.filter.projectId = selectedProjectId;
+  }
 
   const todayResult = calculateRangeMetrics(todayRange.filter, tasks, logs, nowIso, includePatches ? patches : []);
   const weekResult = calculateRangeMetrics(weekRange.filter, tasks, logs, nowIso, includePatches ? patches : []);
@@ -64,6 +72,9 @@ export function calculateReportStatistics({
 
   // 2. Delegate active period metrics to engine
   const activeRange = getRangeFilterForPeriod(reportPeriod, now, customFrom, customTo, includePatches);
+  if (selectedProjectId) {
+    activeRange.filter.projectId = selectedProjectId;
+  }
   const activeResult = calculateRangeMetrics(activeRange.filter, tasks, logs, nowIso, includePatches ? patches : []);
 
   const periodTotalSec = activeResult.totalSeconds;
