@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
-import { BarChart3, Download } from 'lucide-react';
+import { BarChart3, Download, Printer } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Area } from '@components/ui/area';
 import { Grid } from '@components/ui/grid';
+import { InlineCluster } from '@components/ui/stack';
 import { ViewHeader } from '@components/ViewHeader';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
@@ -30,6 +32,7 @@ export default function ReportView({ state }: { state: GuiState }) {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
+  const { isDesktop } = usePlatformCapabilities();
   const { t } = useTranslation('report');
   const {
     todaySec, weekSec, monthSec,
@@ -103,24 +106,37 @@ export default function ReportView({ state }: { state: GuiState }) {
       <ViewHeader
         badge={
           <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
-            {t('SqlAnalyticsEngine')}
+            {isDesktop ? t('SqlAnalyticsEngine') : t('AnalyticsEngine')}
           </Badge>
         }
         title={t('TimeSummariesReports')}
         icon={BarChart3}
         iconColor="text-primary"
         actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            data-testid="report-export-button"
-            onClick={() => setIsExportModalOpen(true)}
-            className="gap-2 self-start sm:self-auto rounded-xl"
-          >
-            <Download className="w-4 h-4 text-primary" />
-            {t('Export')}
-          </Button>
+          <InlineCluster gap="sm" className="no-print print:hidden">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="report-print-button"
+              onClick={() => window.print()}
+              className="gap-2 self-start sm:self-auto rounded-xl"
+            >
+              <Printer className="w-4 h-4 text-primary" />
+              {t('Print')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="report-export-button"
+              onClick={() => setIsExportModalOpen(true)}
+              className="gap-2 self-start sm:self-auto rounded-xl"
+            >
+              <Download className="w-4 h-4 text-primary" />
+              {t('Export')}
+            </Button>
+          </InlineCluster>
         }
       />
 

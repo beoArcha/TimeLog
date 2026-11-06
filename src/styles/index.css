@@ -479,3 +479,119 @@
 [data-runtime="browser"] {
   overscroll-behavior-y: none;
 }
+
+/* Print / PDF Stylesheet (TASK-18-D1) */
+@media print {
+  /* Hide interactive layout controls, navigation sidebars, headers, footers, toolbars and modals */
+  header,
+  nav,
+  aside,
+  footer,
+  [data-slot="sidebar"],
+  #projects-sidebar,
+  [data-testid="layout-header"],
+  [data-testid="report-period-selector"],
+  [data-testid="report-print-button"],
+  [data-testid="report-export-button"],
+  [data-testid*="tag-chip"],
+  [data-tag-chip],
+  .tag-chip,
+  .no-print,
+  .print\:hidden,
+  #engine-connecting-status-bar,
+  #active-timer-banner,
+  [data-slot="tabs"],
+  [role="tablist"],
+  button,
+  dialog,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* Reset layout constraints and page styling for clean document printing */
+  html,
+  body,
+  #root,
+  #app-root-container {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Expand main containers to full width when sidebar is hidden */
+  #gui-container,
+  #tasks-main,
+  #tab-viewport,
+  #reports-panel {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Clean contrast: black text, white background, no shadows, no backdrop-blur */
+  body,
+  p,
+  span,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  div,
+  td,
+  th,
+  strong,
+  caption {
+    color: #000000 !important;
+  }
+
+  * {
+    text-shadow: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Ensure card borders remain clean and crisp on paper */
+  [data-slot="area"],
+  [data-slot="card"],
+  .border {
+    border-color: #e5e7eb !important;
+    background: #ffffff !important;
+  }
+
+  /* Prevent awkward page breaks inside cards and tables */
+  table,
+  tbody,
+  tr,
+  td,
+  th,
+  figure,
+  [data-slot="card"],
+  [data-slot="area"],
+  .break-inside-avoid,
+  #reports-panel > * {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  @page {
+    margin: 1.5cm;
+    size: auto;
+  }
+}

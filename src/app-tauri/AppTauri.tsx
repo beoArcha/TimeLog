@@ -17,6 +17,7 @@ export default function AppTauri() {
       hasNativeDaemon: true,
       canUseCli: true,
       storageEngineName: 'sqlite',
+      isDesktop: true,
     }),
     []
   );

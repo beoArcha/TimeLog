@@ -35,6 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Report Print / PDF Stylesheet & PWA Analytics Clean-Up** (Phase 18 Group D):
+  - Added dedicated `@media print` CSS rules in `src/styles/index.css` stripping navigation sidebars, headers, period filters, and action buttons, while forcing clean contrast (black text, white background, no drop-shadows or backdrops, avoid-break inside tables and cards) for client-ready PDF generation.
+  - Added "Print / PDF" action button with `Printer` icon in `ReportView` `ViewHeader` triggering native `window.print()`.
+  - Switched hardcoded `SqlAnalyticsEngine` badge in `ReportView` to dynamically resolve via `usePlatformCapabilities().isDesktop`, displaying `SqlAnalyticsEngine` on desktop and `AnalyticsEngine` (without "SQL") in browser/PWA mode.
+  - Added and synchronized `Print` and `AnalyticsEngine` i18n keys across all 10 supported locales (`en`, `pl`, `de`, `es`, `pt-br`, `fr`, `uk`, `ja`, `nl`, `it`).
+- **Credits & Technology Stack Modernization** (Phase 18 Group D):
+  - Refreshed `CreditsModal.tsx` dependency acknowledgements to reflect the current core tech stack: React 19, @base-ui/react, Tauri v2, Recharts, Sonner, Geist Font Family, Google GenAI, Motion, and Tailwind CSS v4.
+  - Updated author notes with architectural principles and Vibe Coding practices (clean boundary separation, dual-runtime parity, contract-driven architecture, and rigorous quality guardrails).
+  - Added and synchronized all tech stack and architecture i18n keys across all 10 translation dictionaries.
+
 - **Extended Locales & 10-Language i18n Suite** (PR #45, #46, #47):
   - Expanded supported language suite from 6 to 10 locales: added full translation dictionaries for Japanese (`ja`), Dutch (`nl`), Italian (`it`), and completed Ukrainian (`uk`) across all 12 translation domains.
   - Introduced `LanguageSelectionModal` in Settings (`@features/settings/components/LanguageSelectionModal`) with accessible Base UI `RadioGroup` keyboard navigation, active system resolution badges, and custom override status indicator.

@@ -1,6 +1,7 @@
 export type ReportKey =
   | 'AccumulatedMonthSeconds'
   | 'Amount'
+  | 'AnalyticsEngine'
   | 'BillableTime'
   | 'BillingSummary'
   | 'ByCurrency'
@@ -38,6 +39,7 @@ export type ReportKey =
   | 'PeriodReport'
   | 'PeriodTotal'
   | 'PlainDump'
+  | 'Print'
   | 'ProjectShare'
   | 'SelectFormat'
   | 'SelectedPeriodTotalDesc'

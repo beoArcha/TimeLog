@@ -52,7 +52,9 @@
     "EffectiveRate": "Effective Rate",
     "ByCurrency": "By Currency",
     "BillableTime": "Billable Time",
-    "Amount": "Amount"
+    "Amount": "Amount",
+    "AnalyticsEngine": "Analytics engine",
+    "Print": "Print / PDF"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -107,7 +109,9 @@
     "EffectiveRate": "Stawka efektywna",
     "ByCurrency": "Według waluty",
     "BillableTime": "Czas rozliczany",
-    "Amount": "Kwota"
+    "Amount": "Kwota",
+    "AnalyticsEngine": "Analizy Statystyczne",
+    "Print": "Drukuj / PDF"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -162,7 +166,9 @@
     "EffectiveRate": "Effektiver Satz",
     "ByCurrency": "Nach Währung",
     "BillableTime": "Abrechenbare Zeit",
-    "Amount": "Betrag"
+    "Amount": "Betrag",
+    "AnalyticsEngine": "Analyse-Motor",
+    "Print": "Drucken / PDF"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -217,7 +223,9 @@
     "EffectiveRate": "Tarifa efectiva",
     "ByCurrency": "Por moneda",
     "BillableTime": "Tiempo facturable",
-    "Amount": "Monto"
+    "Amount": "Monto",
+    "AnalyticsEngine": "Motor de análisis",
+    "Print": "Imprimir / PDF"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -272,7 +280,9 @@
     "EffectiveRate": "Taxa efetiva",
     "ByCurrency": "Por moeda",
     "BillableTime": "Tempo faturável",
-    "Amount": "Valor"
+    "Amount": "Valor",
+    "AnalyticsEngine": "Motor de análise",
+    "Print": "Imprimir / PDF"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -327,7 +337,9 @@
     "EffectiveRate": "Taux effectif",
     "ByCurrency": "Par devise",
     "BillableTime": "Temps facturable",
-    "Amount": "Montant"
+    "Amount": "Montant",
+    "AnalyticsEngine": "Moteur d'analyse",
+    "Print": "Imprimer / PDF"
   },
   "uk": {
     "Title": "Журнал звітів",
@@ -382,7 +394,9 @@
     "NonBillableTime": "Неоплачуваний час",
     "EffectiveRate": "Ефективна ставка",
     "ByCurrency": "За валютою",
-    "Amount": "Сума"
+    "Amount": "Сума",
+    "AnalyticsEngine": "Аналітичний рушій",
+    "Print": "Друк / PDF"
   },
   "ja": {
     "Title": "レポートログ",
@@ -437,7 +451,9 @@
     "EffectiveRate": "実効レート",
     "ByCurrency": "通貨別",
     "BillableTime": "請求対象時間",
-    "Amount": "金額"
+    "Amount": "金額",
+    "AnalyticsEngine": "分析エンジン",
+    "Print": "印刷 / PDF"
   },
   "nl": {
     "Title": "Rapportagelogs",
@@ -492,7 +508,9 @@
     "EffectiveRate": "Effectief tarief",
     "ByCurrency": "Per valuta",
     "BillableTime": "Facturabele tijd",
-    "Amount": "Bedrag"
+    "Amount": "Bedrag",
+    "AnalyticsEngine": "Analytics-engine",
+    "Print": "Afdrukken / PDF"
   },
   "it": {
     "Title": "Rapporti e Registri",
@@ -547,6 +565,8 @@
     "EffectiveRate": "Tariffa effettiva",
     "ByCurrency": "Per valuta",
     "BillableTime": "Tempo fatturabile",
-    "Amount": "Importo"
+    "Amount": "Importo",
+    "AnalyticsEngine": "Motore di analisi",
+    "Print": "Stampa / PDF"
   }
 }
