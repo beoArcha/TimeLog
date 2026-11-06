@@ -67,7 +67,7 @@ describe('Unit Tests: ReportPeriodSelector', () => {
   });
 
   it('should trigger setReportPeriod when each period button is clicked', () => {
-    render(
+    const { rerender } = render(
       <MockProviders>
         <ReportPeriodSelector
           reportPeriod="today"
@@ -86,6 +86,17 @@ describe('Unit Tests: ReportPeriodSelector', () => {
 
     fireEvent.click(screen.getByTestId('period-btn-all'));
     expect(setReportPeriodMock).toHaveBeenCalledWith('all');
+
+    rerender(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="all"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+        />
+      </MockProviders>
+    );
 
     fireEvent.click(screen.getByTestId('period-btn-today'));
     expect(setReportPeriodMock).toHaveBeenCalledWith('today');

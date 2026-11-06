@@ -67,6 +67,7 @@ export const MockProviders: React.FC<MockProvidersProps> = ({
     supportsAlwaysOnTop: true,
     supportsAutoStart: true,
     isPwaInstallable: false,
+    isDesktop: true,
     ...capabilitiesState,
   };
 

@@ -87,7 +87,15 @@
     "CreatorAppCreatedBy": "Engineered and crafted by Marcin 'beoArcha' Stefan.",
     "CreatorBio": "A passionate dancer of Brazilian Zouk, Kizomba, Bachata, and Salsa NY. With over 10+ years of active software developer experience, currently operating as a software architect and IT team lead.",
     "PoweredByPassionCaffeine": "Powered by passion & caffeine",
-    "Step2WinBuildTools": "C++ Build Tools for Visual Studio 2022. Components: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
+    "Step2WinBuildTools": "C++ Build Tools for Visual Studio 2022. Components: 'C++ CMake tools for Windows', 'Windows 11 SDK'.",
+    "CreatorVibeArchitecture": "Vibe Coding in oXyFlow combines human architectural vision with AI pair-programming: clean boundary separation, dual-runtime parity (Desktop Tauri & Web PWA), contract-driven architecture, and rigorous quality guardrails.",
+    "ForReact19": "For concurrent rendering, state transitions, and responsive reactivity.",
+    "ForBaseUiReact": "For unstyled, accessible modern UI primitives.",
+    "ForTauriV2": "For ultra-lightweight native desktop shell and IPC bridge.",
+    "ForRecharts": "For composable charts and visual time distribution.",
+    "ForSonner": "For sleek, non-intrusive toast notifications.",
+    "ForGeistFontFamily": "For modern geometric typography and monospace precision.",
+    "ForGoogleGenAi": "For next-generation multimodal generative AI capabilities."
   },
   "pl": {
     "HowToCompileTitle": "Pomoc Kompilacji i Asystent",
@@ -177,7 +185,15 @@
     "CreatorAppCreatedBy": "Zaprojektowane i stworzone przez Marcina 'beoArcha' Stefana.",
     "CreatorBio": "Pasjonat tańca brazylijskiego Zouk, Kizomby, Bachaty oraz Salsy NY. Posiada ponad 10+ lat doświadczenia jako programista, pracując jako architekt oprogramowania i lider zespołu IT.",
     "PoweredByPassionCaffeine": "Napędzane pasją i kofeiną",
-    "Step2WinBuildTools": "C++ Build Tools dla Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
+    "Step2WinBuildTools": "C++ Build Tools dla Visual Studio 2022. Komponenty: 'C++ CMake tools for Windows', 'Windows 11 SDK'.",
+    "CreatorVibeArchitecture": "Vibe Coding w oXyFlow łączy ludzką wizję architektoniczną z programowaniem w asyście AI: czysty podział warstw, parytet dwuśrodowiskowy (Desktop Tauri i Web PWA), architektura oparta na kontraktach oraz rygorystyczne testy jakości.",
+    "ForReact19": "Dla współbieżnego renderowania, płynnych przejść stanu i wysokiej responsywności.",
+    "ForBaseUiReact": "Dla dostępnych, nieostylowanych nowoczesnych prymitywów UI.",
+    "ForTauriV2": "Dla ultralekkiej powłoki desktopowej i mostka komunikacji IPC.",
+    "ForRecharts": "Dla kompozytowych wykresów i wizualnego rozkładu czasu.",
+    "ForSonner": "Dla eleganckich, nieinwazyjnych powiadomień toast.",
+    "ForGeistFontFamily": "Dla nowoczesnej typografii geometrycznej i precyzji monospace.",
+    "ForGoogleGenAi": "Dla zaawansowanych możliwości multimodalnej generatywnej sztucznej inteligencji."
   },
   "de": {
     "HowToCompileTitle": "Kompilierung & Support (Tauri-Assistent)",
@@ -267,7 +283,15 @@
     "StepDebugDesc": "Starten Sie die Anwendung im Debug-Modus für die Entwicklung. Dies aktiviert Hot-Reload für die Benutzeroberfläche und Deep Debugging für die Engine.",
     "StepDebugCmd": "npm run dev",
     "WhyTauriTitle": "Warum TimeLog by oXyFlow mit Tauri?",
-    "WhyTauriDesc": "Weil Tauri den enormen RAM-Overhead der Chromium-Engine vermeidet. Die TimeLog by oXyFlow-Engine benötigt im SQLite-Speicher nur ca. 8 MB RAM als Hintergrund-Daemon!"
+    "WhyTauriDesc": "Weil Tauri den enormen RAM-Overhead der Chromium-Engine vermeidet. Die TimeLog by oXyFlow-Engine benötigt im SQLite-Speicher nur ca. 8 MB RAM als Hintergrund-Daemon!",
+    "CreatorVibeArchitecture": "Vibe Coding in oXyFlow verbindet menschliche Architekturvision mit KI-Pair-Programming: saubere Schichtentrennung, Dual-Runtime-Parität (Desktop Tauri und Web PWA), vertragsgestützte Architektur und strenge Qualitätsrichtlinien.",
+    "ForReact19": "Für gleichzeitiges Rendern, Zustandsübergänge und hohe Reaktionsfähigkeit.",
+    "ForBaseUiReact": "Für ungestylte, barrierefreie moderne UI-Primitive.",
+    "ForTauriV2": "Für ultraleichte native Desktop-Shell und IPC-Brücke.",
+    "ForRecharts": "Für zusammensetzbare Diagramme und visuelle Zeitverteilung.",
+    "ForSonner": "Für elegante, unaufdringliche Toast-Benachrichtigungen.",
+    "ForGeistFontFamily": "Für moderne geometrische Typografie und Monospace-Präzision.",
+    "ForGoogleGenAi": "Für multimodale generative KI-Funktionen der nächsten Generation."
   },
   "es": {
     "HowToCompileTitle": "Compilación y Soporte",
@@ -357,7 +381,15 @@
     "StepDebugDesc": "Inicie la aplicación en modo depuración para el desarrollo con recarga rápida y depuración profunda del motor.",
     "StepDebugCmd": "npm run dev",
     "WhyTauriTitle": "¿Por qué TimeLog by oXyFlow con Tauri?",
-    "WhyTauriDesc": "Porque Tauri evita la sobrecarga masiva de RAM del motor Chromium. ¡El motor TimeLog by oXyFlow consume solo ~8 MB de RAM en SQLite como daemon en segundo plano!"
+    "WhyTauriDesc": "Porque Tauri evita la sobrecarga masiva de RAM del motor Chromium. ¡El motor TimeLog by oXyFlow consume solo ~8 MB de RAM en SQLite como daemon en segundo plano!",
+    "CreatorVibeArchitecture": "Vibe Coding en oXyFlow combina la visión arquitectónica humana con programación asistida por IA: separación limpia de capas, paridad entre entornos (Desktop Tauri y Web PWA), arquitectura basada en contratos y rigurosas pruebas de calidad.",
+    "ForReact19": "Para renderizado concurrente, transiciones de estado y alta reactividad.",
+    "ForBaseUiReact": "Para primitivas de interfaz modernas, accesibles y sin estilos.",
+    "ForTauriV2": "Para shell de escritorio nativo ultraligero y puente IPC.",
+    "ForRecharts": "Para gráficos componibles y distribución visual del tiempo.",
+    "ForSonner": "Para notificaciones toast elegantes y no intrusivas.",
+    "ForGeistFontFamily": "Para tipografía geométrica moderna y precisión monoespaciada.",
+    "ForGoogleGenAi": "Para capacidades avanzadas de IA generativa multimodal de próxima generación."
   },
   "pt-br": {
     "HowToCompileTitle": "Compilação & Suporte",
@@ -447,7 +479,15 @@
     "StepDebugDesc": "Inicie o aplicativo no modo de depuração com hot-reload na interface e depuração profunda no motor nativo.",
     "StepDebugCmd": "npm run dev",
     "WhyTauriTitle": "Por que TimeLog by oXyFlow com Tauri?",
-    "WhyTauriDesc": "Porque o Tauri elimina o alto consumo de memória do Chromium. O motor TimeLog by oXyFlow ocupa apenas ~8 MB de RAM no SQLite como daemon em segundo plano!"
+    "WhyTauriDesc": "Porque o Tauri elimina o alto consumo de memória do Chromium. O motor TimeLog by oXyFlow ocupa apenas ~8 MB de RAM no SQLite como daemon em segundo plano!",
+    "CreatorVibeArchitecture": "Vibe Coding no oXyFlow combina a visão arquitetônica humana com programação assistida por IA: separação limpa de camadas, paridade entre ambientes (Desktop Tauri e Web PWA), arquitetura orientada a contratos e testes rigorosos de qualidade.",
+    "ForReact19": "Para renderização concorrente, transições de estado e alta reatividade.",
+    "ForBaseUiReact": "Para primitivas de interface modernas, acessíveis e sem estilos.",
+    "ForTauriV2": "Para shell de desktop nativo ultraleve e ponte IPC.",
+    "ForRecharts": "Para gráficos componíveis e distribuição visual do tempo.",
+    "ForSonner": "Para notificações toast elegantes e não invasivas.",
+    "ForGeistFontFamily": "Para tipografia geométrica moderna e precisão monoespaçada.",
+    "ForGoogleGenAi": "Para recursos avançados de IA generativa multimodal de última geração."
   },
   "fr": {
     "HowToCompileTitle": "Compilation & Support",
@@ -537,7 +577,15 @@
     "StepDebugDesc": "Démarrez l'application en mode débogage pour le développement avec rechargement à chaud et débogage du moteur.",
     "StepDebugCmd": "npm run dev",
     "WhyTauriTitle": "Pourquoi TimeLog by oXyFlow avec Tauri ?",
-    "WhyTauriDesc": "Parce que Tauri évite la surcharge mémoire massive du moteur Chromium. Le moteur TimeLog by oXyFlow ne consomme que ~8 Mo de RAM avec SQLite en arrière-plan !"
+    "WhyTauriDesc": "Parce que Tauri évite la surcharge mémoire massive du moteur Chromium. Le moteur TimeLog by oXyFlow ne consomme que ~8 Mo de RAM avec SQLite en arrière-plan !",
+    "CreatorVibeArchitecture": "Le Vibe Coding dans oXyFlow combine la vision architecturale humaine avec la programmation assistée par IA : séparation stricte des couches, parité multi-environnements (Desktop Tauri et Web PWA), architecture guidée par les contrats et garde-fous de qualité rigoureux.",
+    "ForReact19": "Pour le rendu simultané, les transitions d'état et une haute réactivité.",
+    "ForBaseUiReact": "Pour des primitives d'interface modernes, accessibles et non stylisées.",
+    "ForTauriV2": "Pour un conteneur de bureau natif ultra-léger et pont IPC.",
+    "ForRecharts": "Pour des graphiques modulaires et la distribution visuelle du temps.",
+    "ForSonner": "Pour des notifications toast soignées et non intrusives.",
+    "ForGeistFontFamily": "Pour une typographie géométrique moderne et la précision à chasse fixe.",
+    "ForGoogleGenAi": "Pour les capacités d'IA générative multimodale de nouvelle génération."
   },
   "uk": {
     "HowToCompileTitle": "Компіляція та підтримка (Майстер Tauri)",
@@ -627,7 +675,15 @@
     "CreatorAppCreatedBy": "Розроблено та створено Марціном 'beoArcha' Стефанським.",
     "CreatorBio": "Пристрасний танцюрист Brazilian Zouk, Kizomba, Bachata та Salsa NY. З більш ніж 10-річним активним досвідом розробки програмного забезпечення, наразі працює як архітектор ПЗ та керівник IT-команди.",
     "PoweredByPassionCaffeine": "Працює на пристрасті та кофеїні",
-    "Step2WinBuildTools": "C++ Build Tools для Visual Studio 2022. Компоненти: 'C++ CMake tools for Windows', 'Windows 11 SDK'."
+    "Step2WinBuildTools": "C++ Build Tools для Visual Studio 2022. Компоненти: 'C++ CMake tools for Windows', 'Windows 11 SDK'.",
+    "CreatorVibeArchitecture": "Vibe Coding в oXyFlow поєднує людське архітектурне бачення із парним програмуванням за допомогою ШІ: чистий поділ шарів, паритет двох середовищ (Desktop Tauri та Web PWA), контрактна архітектура та суворий контроль якості.",
+    "ForReact19": "Для конкурентного рендерингу, переходів станів та високої чуйності.",
+    "ForBaseUiReact": "Для доступних, нестилізованих сучасних примітивів інтерфейсу.",
+    "ForTauriV2": "Для ультралегкої нативної десктопної оболонки та моста IPC.",
+    "ForRecharts": "Для гнучких графіків та візуального розподілу часу.",
+    "ForSonner": "Для елегантних, ненав'язливих спливаючих сповіщень.",
+    "ForGeistFontFamily": "Для сучасної геометричної типографіки та точності monospace.",
+    "ForGoogleGenAi": "Для можливостей мультимодального генеративного ШІ нового покоління."
   },
   "ja": {
     "HowToCompileTitle": "コンパイル & サポート (Tauriウィザード)",
@@ -717,7 +773,15 @@
     "CreatorAppCreatedBy": "Marcin 'beoArcha' Stefan によって設計および制作されました。",
     "CreatorBio": "ブラジリアンズーク、キゾンバ、バチャータ、サルサNYの情熱的なダンサー。10年以上のソフトウェア開発経験を持ち、現在はソフトウェアアーキテクトおよびITチームリードとして活動中。",
     "PoweredByPassionCaffeine": "情熱とカフェインで駆動",
-    "Step2WinBuildTools": "Visual Studio 2022用C++ Build Tools。コンポーネント: 'Windows用 C++ CMakeツール', 'Windows 11 SDK'。"
+    "Step2WinBuildTools": "Visual Studio 2022用C++ Build Tools。コンポーネント: 'Windows用 C++ CMakeツール', 'Windows 11 SDK'。",
+    "CreatorVibeArchitecture": "oXyFlowにおけるVibe Codingは、人間のアーキテクチャビジョンとAIペアプログラミングを融合しています。明確な責務分離、デュアルランタイム（Desktop TauriとWeb PWA）の同等性、契約駆動型アーキテクチャ、そして厳格な品質ガードレールを実現しています。",
+    "ForReact19": "並行レンダリング、状態遷移、および俊敏なリアクティビティを提供。",
+    "ForBaseUiReact": "スタイル非依存のアクセシブルな最新UIプリミティブを提供。",
+    "ForTauriV2": "超軽量なネイティブデスクトップシェルおよびIPCブリッジを提供。",
+    "ForRecharts": "柔軟なチャート構成と時間の視覚的分布表示を実現。",
+    "ForSonner": "洗練された控えめなトースト通知を提供。",
+    "ForGeistFontFamily": "現代的な幾何学タイポグラフィと等幅フォントの精密さを実現。",
+    "ForGoogleGenAi": "次世代のマルチモーダル生成AI機能を提供。"
   },
   "nl": {
     "HowToCompileTitle": "Compilatie & Ondersteuning (Tauri Wizard)",
@@ -807,7 +871,15 @@
     "CreatorAppCreatedBy": "Ontworpen en ontwikkeld door Marcin 'beoArcha' Stefan.",
     "CreatorBio": "Een gepassioneerd danser van Braziliaanse Zouk, Kizomba, Bachata en Salsa NY. Met meer dan 10 jaar actieve ervaring als softwareontwikkelaar, momenteel werkzaam als softwarearchitect en IT-teamlead.",
     "PoweredByPassionCaffeine": "Aangedreven door passie & cafeïne",
-    "Step2WinBuildTools": "C++ Build Tools voor Visual Studio 2022. Componenten: 'C++ CMake tools voor Windows', 'Windows 11 SDK'."
+    "Step2WinBuildTools": "C++ Build Tools voor Visual Studio 2022. Componenten: 'C++ CMake tools voor Windows', 'Windows 11 SDK'.",
+    "CreatorVibeArchitecture": "Vibe Coding in oXyFlow combineert menselijke architectuurvisie met AI-pair-programming: duidelijke scheiding van lagen, pariteit tussen runtime-omgevingen (Desktop Tauri en Web PWA), contractgedreven architectuur en strenge kwaliteitsbewaking.",
+    "ForReact19": "Voor gelijktijdige rendering, toestandsovergangen en hoge reactiviteit.",
+    "ForBaseUiReact": "Voor stijlvrije, toegankelijke moderne UI-basiscomponenten.",
+    "ForTauriV2": "Voor ultralichte native desktop-shell en IPC-bridge.",
+    "ForRecharts": "Voor samenstelbare grafieken en visuele tijdsverdeling.",
+    "ForSonner": "Voor strakke, niet-opdringerige toast-meldingen.",
+    "ForGeistFontFamily": "Voor moderne geometrische typografie en monospace-precisie.",
+    "ForGoogleGenAi": "Voor geavanceerde multimodale generatieve AI-mogelijkheden van de volgende generatie."
   },
   "it": {
     "HowToCompileTitle": "Compilazione e Supporto (Procedura guidata Tauri)",
@@ -897,6 +969,14 @@
     "CreatorAppCreatedBy": "Progettato e realizzato da Marcin 'beoArcha' Stefan.",
     "CreatorBio": "Ballerino appassionato di Brazilian Zouk, Kizomba, Bachata e Salsa NY. Con oltre 10 anni di esperienza attiva come sviluppatore software, attualmente operativo come software architect e IT team lead.",
     "PoweredByPassionCaffeine": "Alimentato da passione e caffeina",
-    "Step2WinBuildTools": "C++ Build Tools per Visual Studio 2022. Componenti: 'Strumenti CMake C++ per Windows', 'SDK di Windows 11'."
+    "Step2WinBuildTools": "C++ Build Tools per Visual Studio 2022. Componenti: 'Strumenti CMake C++ per Windows', 'SDK di Windows 11'.",
+    "CreatorVibeArchitecture": "Il Vibe Coding in oXyFlow unisce la visione architetturale umana alla programmazione assistita da IA: netta separazione dei livelli, parità tra ambienti (Desktop Tauri e Web PWA), architettura guidata dai contratti e rigorosi standard di qualità.",
+    "ForReact19": "Per rendering concorrente, transizioni di stato e alta reattività.",
+    "ForBaseUiReact": "Per primitive di interfaccia moderne, accessibili e non stilizzate.",
+    "ForTauriV2": "Per shell desktop nativo ultraleggero e ponte IPC.",
+    "ForRecharts": "Per grafici componibili e distribuzione visiva del tempo.",
+    "ForSonner": "Per notifiche toast fluide e non invasive.",
+    "ForGeistFontFamily": "Per tipografia geometrica moderna e precisione monospazio.",
+    "ForGoogleGenAi": "Per funzionalità di IA generativa multimodale di nuova generazione."
   }
 }

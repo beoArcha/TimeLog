@@ -53,6 +53,8 @@ export default function ReportPeriodSelector({
 
   return (
     <FilterBar
+      testId="report-period-selector"
+      className="no-print print:hidden"
       rightActions={
         <HStack gap="sm" className="shrink-0">
           <span className="text-xs font-mono text-muted-foreground">{tReport('SortBy')}</span>
