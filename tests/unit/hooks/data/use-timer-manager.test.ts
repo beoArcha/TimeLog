@@ -144,17 +144,18 @@ describe('Unit Tests: useTimerManager Hook', () => {
     const editSpy = vi.spyOn(engine.timeLogs, 'editTimeLog').mockResolvedValue();
     vi.spyOn(router.core, 'load').mockRejectedValue(new Error('Repository reload failed'));
 
-    const runActionMock = vi.fn() as unknown as typeof mockActionRunner.runAction;
-    runActionMock
-      .mockImplementationOnce(async (_message, action) => action())
-      .mockImplementationOnce(async (_message, action) => {
+    const runActionMock = vi.fn()
+      .mockImplementationOnce(async (_message: string, action: () => Promise<unknown>) => action())
+      .mockImplementationOnce(async (_message: string, action: () => Promise<unknown>) => {
         try {
           return await action();
         } catch {
           return undefined;
         }
       });
-    const actionRunner = createMockActionRunner({ runAction: runActionMock });
+    const actionRunner = createMockActionRunner({
+      runAction: runActionMock as unknown as typeof mockActionRunner.runAction,
+    });
 
     const { result } = renderHook(() =>
       useTimerManager({
