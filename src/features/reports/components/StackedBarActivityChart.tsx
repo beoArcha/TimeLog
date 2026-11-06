@@ -18,7 +18,7 @@ import type { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import type { Project } from '@bindings/Project';
 import type { Task } from '@bindings/Task';
 import type { Locale } from '@bindings/Locale';
-import { formatChartDate, getUtcDateKey } from '@features/reports/utils/reportDateUtils';
+import { formatChartDate, getUtcDateKey, detectDateSpan } from '@features/reports/utils/reportDateUtils';
 
 export interface StackedBarActivityChartProps {
   clampedLogs: ClampedTimeLog[];
@@ -71,13 +71,17 @@ export default function StackedBarActivityChart({
     }
 
     const sortedDates = Array.from(dayMap.keys()).sort();
+    const { hasMultipleMonths, hasMultipleYears } = detectDateSpan(sortedDates);
 
     const data: DailyProjectDataPoint[] = sortedDates.map((dateKey) => {
       const dayTotals = dayMap.get(dateKey) || {};
       let totalSeconds = 0;
       const point: DailyProjectDataPoint = {
         dateKey,
-        displayDate: formatChartDate(dateKey, activeLocale),
+        displayDate: formatChartDate(dateKey, activeLocale, {
+          includeMonth: hasMultipleMonths,
+          includeYear: hasMultipleYears,
+        }),
         totalSeconds: 0,
       };
 

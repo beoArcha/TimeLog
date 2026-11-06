@@ -9,6 +9,7 @@ import {
   getUtcDateKey,
   resolveDateTimeLocale,
   getChartDateFormatter,
+  detectDateSpan,
 } from '@features/reports/utils/reportDateUtils';
 import { aProject, aClampedTimeLog } from '@tests/shared/builders/entity-builders';
 import { MockLocaleProvider } from '@tests/shared/mocks/MockProviders';
@@ -233,25 +234,25 @@ describe('Unit Tests: StackedBarActivityChart', () => {
     expect(textNodes).not.toContain('wt., 15');
   });
 
-  it('should handle month and year boundaries in chart datasets', () => {
-    // Arrange: Spanning across month and year boundaries
+  it('should disambiguate dates with month labels when date range spans multiple months in pl', () => {
+    // Arrange: 2026-09-10 (Thursday) and 2026-10-10 (Saturday)
     const logs = [
       aClampedTimeLog({
-        id: 'cl-dec31',
+        id: 'cl-sep10',
         projectId: 'p1',
-        clampedStartTime: '2026-12-31T23:00:00.000Z',
+        clampedStartTime: '2026-09-10T08:00:00.000Z',
         clampedDurationSeconds: 3600,
       }),
       aClampedTimeLog({
-        id: 'cl-jan01',
+        id: 'cl-oct10',
         projectId: 'p2',
-        clampedStartTime: '2027-01-01T01:00:00.000Z',
+        clampedStartTime: '2026-10-10T08:00:00.000Z',
         clampedDurationSeconds: 3600,
       }),
     ];
 
     // Act
-    render(
+    const { container } = render(
       <StackedBarActivityChart
         clampedLogs={logs}
         projects={mockProjects}
@@ -259,8 +260,211 @@ describe('Unit Tests: StackedBarActivityChart', () => {
       />
     );
 
-    // Assert
+    // Assert: Formatted labels include abbreviated month to prevent identical '10' collision
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+    expect(textNodes).toContain('czw., 10 wrz');
+    expect(textNodes).toContain('sob., 10 paź');
+    expect(textNodes).not.toContain('czw., 10');
+    expect(textNodes).not.toContain('sob., 10');
+  });
+
+  it('should disambiguate dates with month labels when date range spans multiple months in en', () => {
+    // Arrange: 2026-09-10 (Thursday) and 2026-10-10 (Saturday)
+    const logs = [
+      aClampedTimeLog({
+        id: 'cl-sep10-en',
+        projectId: 'p1',
+        clampedStartTime: '2026-09-10T08:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+      aClampedTimeLog({
+        id: 'cl-oct10-en',
+        projectId: 'p2',
+        clampedStartTime: '2026-10-10T08:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+    ];
+
+    // Act
+    const { container } = render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="en"
+      />
+    );
+
+    // Assert: English format includes month (Thu, Sep 10 and Sat, Oct 10)
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+    expect(textNodes).toContain('Thu, Sep 10');
+    expect(textNodes).toContain('Sat, Oct 10');
+    expect(textNodes).not.toContain('10 Thu');
+    expect(textNodes).not.toContain('10 Sat');
+  });
+
+  it('should disambiguate dates with month labels when date range spans multiple months in de', () => {
+    // Arrange: 2026-09-10 (Thursday) and 2026-10-10 (Saturday)
+    const logs = [
+      aClampedTimeLog({
+        id: 'cl-sep10-de',
+        projectId: 'p1',
+        clampedStartTime: '2026-09-10T08:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+      aClampedTimeLog({
+        id: 'cl-oct10-de',
+        projectId: 'p2',
+        clampedStartTime: '2026-10-10T08:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+    ];
+
+    // Act
+    const { container } = render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="de"
+      />
+    );
+
+    // Assert: German format includes month (Do., 10. Sept. and Sa., 10. Okt.)
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+    expect(textNodes).toContain('Do., 10. Sept.');
+    expect(textNodes).toContain('Sa., 10. Okt.');
+    expect(textNodes).not.toContain('Do., 10.');
+    expect(textNodes).not.toContain('Sa., 10.');
+  });
+
+  it('should disambiguate dates with month and year across multi-year transitions in pl', () => {
+    // Arrange: Spanning across month and year boundaries (2026-12-31 and 2027-01-01)
+    const logs = [
+      aClampedTimeLog({
+        id: 'cl-dec31-pl',
+        projectId: 'p1',
+        clampedStartTime: '2026-12-31T23:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+      aClampedTimeLog({
+        id: 'cl-jan01-pl',
+        projectId: 'p2',
+        clampedStartTime: '2027-01-01T01:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+    ];
+
+    // Act
+    const { container } = render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="pl"
+      />
+    );
+
+    // Assert: Labels contain weekday, day, month, and 4-digit year in Polish
     expect(screen.getByTestId('stacked-bar-activity-chart')).not.toBeNull();
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+    expect(textNodes).toContain('czw., 31 gru 2026');
+    expect(textNodes).toContain('pt., 1 sty 2027');
+  });
+
+  it('should disambiguate dates with month and year across multi-year transitions in en', () => {
+    // Arrange: 2026-12-31 and 2027-01-01 in en
+    const logs = [
+      aClampedTimeLog({
+        id: 'cl-dec31-en',
+        projectId: 'p1',
+        clampedStartTime: '2026-12-31T23:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+      aClampedTimeLog({
+        id: 'cl-jan01-en',
+        projectId: 'p2',
+        clampedStartTime: '2027-01-01T01:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+    ];
+
+    // Act
+    const { container } = render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="en"
+      />
+    );
+
+    // Assert: English format includes month and year
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+    expect(textNodes).toContain('Thu, Dec 31, 2026');
+    expect(textNodes).toContain('Fri, Jan 1, 2027');
+  });
+
+  it('should disambiguate dates with month and year across multi-year transitions in de', () => {
+    // Arrange: 2026-12-31 and 2027-01-01 in de
+    const logs = [
+      aClampedTimeLog({
+        id: 'cl-dec31-de',
+        projectId: 'p1',
+        clampedStartTime: '2026-12-31T23:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+      aClampedTimeLog({
+        id: 'cl-jan01-de',
+        projectId: 'p2',
+        clampedStartTime: '2027-01-01T01:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+    ];
+
+    // Act
+    const { container } = render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="de"
+      />
+    );
+
+    // Assert: German format includes month and year
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+    expect(textNodes).toContain('Do., 31. Dez. 2026');
+    expect(textNodes).toContain('Fr., 1. Jan. 2027');
+  });
+
+  it('should keep compact labels without month or year when range is within a single month', () => {
+    // Arrange: 2026-09-10 and 2026-09-11 (both in September 2026)
+    const logs = [
+      aClampedTimeLog({
+        id: 'cl-sep10-single',
+        projectId: 'p1',
+        clampedStartTime: '2026-09-10T08:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+      aClampedTimeLog({
+        id: 'cl-sep11-single',
+        projectId: 'p2',
+        clampedStartTime: '2026-09-11T08:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+    ];
+
+    // Act
+    const { container } = render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="pl"
+      />
+    );
+
+    // Assert: Compact format (no month name, no year)
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+    expect(textNodes).toContain('czw., 10');
+    expect(textNodes).toContain('pt., 11');
+    expect(textNodes).not.toContain('wrz');
+    expect(textNodes).not.toContain('2026');
   });
 
   it('should ignore entries with invalid clampedStartTime and not include them in chart data', () => {
@@ -361,12 +565,106 @@ describe('Unit Tests: StackedBarActivityChart', () => {
 });
 
 describe('Unit Tests: reportDateUtils', () => {
+  describe('detectDateSpan', () => {
+    it('should return false for hasMultipleMonths and hasMultipleYears when dates array is empty or has single entry', () => {
+      expect(detectDateSpan([])).toEqual({
+        hasMultipleMonths: false,
+        hasMultipleYears: false,
+      });
+
+      expect(detectDateSpan(['2026-09-10'])).toEqual({
+        hasMultipleMonths: false,
+        hasMultipleYears: false,
+      });
+
+      expect(detectDateSpan([new Date(Date.UTC(2026, 8, 10))])).toEqual({
+        hasMultipleMonths: false,
+        hasMultipleYears: false,
+      });
+    });
+
+    it('should return false for hasMultipleMonths and hasMultipleYears when all dates are within the same month and year', () => {
+      expect(detectDateSpan(['2026-09-01', '2026-09-10', '2026-09-30'])).toEqual({
+        hasMultipleMonths: false,
+        hasMultipleYears: false,
+      });
+    });
+
+    it('should detect multiple months within the same year', () => {
+      expect(detectDateSpan(['2026-09-10', '2026-10-10'])).toEqual({
+        hasMultipleMonths: true,
+        hasMultipleYears: false,
+      });
+    });
+
+    it('should detect multiple years across year boundaries and imply multiple months', () => {
+      expect(detectDateSpan(['2026-12-31', '2027-01-01'])).toEqual({
+        hasMultipleMonths: true,
+        hasMultipleYears: true,
+      });
+    });
+
+    it('should detect multiple years even if month index is identical (e.g. May 2026 to May 2027)', () => {
+      expect(detectDateSpan(['2026-05-10', '2027-05-10'])).toEqual({
+        hasMultipleMonths: true,
+        hasMultipleYears: true,
+      });
+    });
+
+    it('should safely ignore invalid dates', () => {
+      expect(detectDateSpan(['invalid-date', '2026-09-10', '2026-09-15'])).toEqual({
+        hasMultipleMonths: false,
+        hasMultipleYears: false,
+      });
+
+      expect(detectDateSpan(['invalid-1', 'invalid-2'])).toEqual({
+        hasMultipleMonths: false,
+        hasMultipleYears: false,
+      });
+    });
+  });
+
   describe('formatChartDate', () => {
-    it('should format dates for pl, en, and de correctly', () => {
+    it('should format dates for pl, en, and de correctly with default options (compact)', () => {
       // 2026-09-10 is Thursday
       expect(formatChartDate('2026-09-10', 'pl')).toBe('czw., 10');
       expect(formatChartDate('2026-09-10', 'en')).toBe('10 Thu');
       expect(formatChartDate('2026-09-10', 'de')).toBe('Do., 10.');
+    });
+
+    it('should format dates with includeMonth option for pl, en, and de', () => {
+      // 2026-09-10: Thursday, Sep 10
+      expect(formatChartDate('2026-09-10', 'pl', { includeMonth: true })).toBe('czw., 10 wrz');
+      expect(formatChartDate('2026-09-10', 'en', { includeMonth: true })).toBe('Thu, Sep 10');
+      expect(formatChartDate('2026-09-10', 'de', { includeMonth: true })).toBe('Do., 10. Sept.');
+
+      // 2026-10-10: Saturday, Oct 10
+      expect(formatChartDate('2026-10-10', 'pl', { includeMonth: true })).toBe('sob., 10 paź');
+      expect(formatChartDate('2026-10-10', 'en', { includeMonth: true })).toBe('Sat, Oct 10');
+      expect(formatChartDate('2026-10-10', 'de', { includeMonth: true })).toBe('Sa., 10. Okt.');
+    });
+
+    it('should format dates with includeYear option (4-digit numeric default) for pl, en, and de', () => {
+      // 2026-12-31 and 2027-01-01
+      expect(formatChartDate('2026-12-31', 'pl', { includeYear: true })).toBe('czw., 31 gru 2026');
+      expect(formatChartDate('2027-01-01', 'pl', { includeYear: true })).toBe('pt., 1 sty 2027');
+
+      expect(formatChartDate('2026-12-31', 'en', { includeYear: true })).toBe('Thu, Dec 31, 2026');
+      expect(formatChartDate('2027-01-01', 'en', { includeYear: true })).toBe('Fri, Jan 1, 2027');
+
+      expect(formatChartDate('2026-12-31', 'de', { includeYear: true })).toBe('Do., 31. Dez. 2026');
+      expect(formatChartDate('2027-01-01', 'de', { includeYear: true })).toBe('Fr., 1. Jan. 2027');
+    });
+
+    it('should format dates with yearFormat 2-digit for pl, en, and de', () => {
+      expect(formatChartDate('2026-12-31', 'pl', { includeYear: true, yearFormat: '2-digit' })).toBe('czw., 31 gru 26');
+      expect(formatChartDate('2027-01-01', 'pl', { includeYear: true, yearFormat: '2-digit' })).toBe('pt., 1 sty 27');
+
+      expect(formatChartDate('2026-12-31', 'en', { includeYear: true, yearFormat: '2-digit' })).toBe('Thu, Dec 31, 26');
+      expect(formatChartDate('2027-01-01', 'en', { includeYear: true, yearFormat: '2-digit' })).toBe('Fri, Jan 1, 27');
+
+      expect(formatChartDate('2026-12-31', 'de', { includeYear: true, yearFormat: '2-digit' })).toBe('Do., 31. Dez. 26');
+      expect(formatChartDate('2027-01-01', 'de', { includeYear: true, yearFormat: '2-digit' })).toBe('Fr., 1. Jan. 27');
     });
 
     it('should format month boundary correctly (February 28 to March 1)', () => {
@@ -616,10 +914,26 @@ describe('Unit Tests: reportDateUtils', () => {
       expect(formatter.format(date)).toBe('10 Thu');
     });
 
-    it('should cache Intl.DateTimeFormat instances for identical locales', () => {
+    it('should cache Intl.DateTimeFormat instances for identical locales and identical options', () => {
       const formatter1 = getChartDateFormatter('pl');
       const formatter2 = getChartDateFormatter('pl');
       expect(formatter1).toBe(formatter2);
+
+      const formatterMonth1 = getChartDateFormatter('pl', { includeMonth: true });
+      const formatterMonth2 = getChartDateFormatter('pl', { includeMonth: true });
+      expect(formatterMonth1).toBe(formatterMonth2);
+    });
+
+    it('should create and cache distinct formatters when formatting options differ', () => {
+      const compactFormatter = getChartDateFormatter('pl');
+      const monthFormatter = getChartDateFormatter('pl', { includeMonth: true });
+      const yearFormatter = getChartDateFormatter('pl', { includeYear: true });
+      const twoDigitYearFormatter = getChartDateFormatter('pl', { includeYear: true, yearFormat: '2-digit' });
+
+      expect(compactFormatter).not.toBe(monthFormatter);
+      expect(compactFormatter).not.toBe(yearFormatter);
+      expect(monthFormatter).not.toBe(yearFormatter);
+      expect(yearFormatter).not.toBe(twoDigitYearFormatter);
     });
   });
 });

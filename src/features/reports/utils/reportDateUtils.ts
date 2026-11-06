@@ -171,30 +171,85 @@ export function getUtcDateKey(dateInput: string | Date): string | null {
   return `${year}-${month}-${day}`;
 }
 
+export interface FormatChartDateOptions {
+  includeMonth?: boolean;
+  includeYear?: boolean;
+  yearFormat?: 'numeric' | '2-digit';
+}
+
+export interface DateRangeSpan {
+  hasMultipleMonths: boolean;
+  hasMultipleYears: boolean;
+}
+
 /**
- * Retrieves or caches an Intl.DateTimeFormat instance configured for short weekday
- * and numeric day formatting in the UTC time zone.
+ * Detects whether a set of dates spans across multiple calendar months
+ * or multiple calendar years in UTC.
+ */
+export function detectDateSpan(dates: (string | Date)[]): DateRangeSpan {
+  let firstYear: number | null = null;
+  let firstMonth: number | null = null;
+  let hasMultipleMonths = false;
+  let hasMultipleYears = false;
+
+  for (const date of dates) {
+    const parsed = parseUtcCalendarDate(date);
+    if (!parsed) continue;
+    const y = parsed.getUTCFullYear();
+    const m = parsed.getUTCMonth();
+
+    if (firstYear === null || firstMonth === null) {
+      firstYear = y;
+      firstMonth = m;
+    } else {
+      if (y !== firstYear) {
+        hasMultipleYears = true;
+        hasMultipleMonths = true;
+      }
+      if (m !== firstMonth) {
+        hasMultipleMonths = true;
+      }
+    }
+  }
+
+  return { hasMultipleMonths, hasMultipleYears };
+}
+
+/**
+ * Retrieves or caches an Intl.DateTimeFormat instance configured for short weekday,
+ * day, and optional month/year formatting in the UTC time zone.
  * Falls back safely to 'en' when an invalid locale causes a RangeError.
  */
-export function getChartDateFormatter(locale?: string | Locale): Intl.DateTimeFormat {
+export function getChartDateFormatter(
+  locale?: string | Locale,
+  options?: FormatChartDateOptions
+): Intl.DateTimeFormat {
   const resolvedLocale = resolveDateTimeLocale(locale);
-  const cacheKey = resolvedLocale;
+  const includeYear = Boolean(options?.includeYear);
+  const includeMonth = options?.includeMonth ?? includeYear;
+  const yearFormat = options?.yearFormat ?? 'numeric';
+
+  const cacheKey = `${resolvedLocale}:${includeMonth ? 'M' : ''}:${includeYear ? yearFormat : ''}`;
 
   let formatter = formatterCache.get(cacheKey);
   if (!formatter) {
+    const intlOptions: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    };
+    if (includeMonth) {
+      intlOptions.month = 'short';
+    }
+    if (includeYear) {
+      intlOptions.year = yearFormat;
+    }
+
     try {
-      formatter = new Intl.DateTimeFormat(resolvedLocale, {
-        weekday: 'short',
-        day: 'numeric',
-        timeZone: 'UTC',
-      });
+      formatter = new Intl.DateTimeFormat(resolvedLocale, intlOptions);
     } catch (err) {
       if (err instanceof RangeError) {
-        formatter = new Intl.DateTimeFormat('en', {
-          weekday: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
-        });
+        formatter = new Intl.DateTimeFormat('en', intlOptions);
       } else {
         throw err;
       }
@@ -207,8 +262,10 @@ export function getChartDateFormatter(locale?: string | Locale): Intl.DateTimeFo
 
 /**
  * Formats a calendar date key for the XAxis of activity charts into a localized
- * short weekday and day label (e.g. 'czw., 10' for pl, '10 Thu' for en, 'Do., 10.' for de)
- * in UTC to prevent timezone day-shifting.
+ * label (e.g. 'czw., 10' for pl, '10 Thu' for en, 'Do., 10.' for de) in UTC to prevent
+ * timezone day-shifting.
+ *
+ * Supports optional month and year inclusion for disambiguating multi-month or multi-year ranges.
  *
  * Falls back safely to the raw input string (or empty string for invalid Date instances)
  * when parsing fails or when a RangeError occurs during formatting. Non-RangeError exceptions
@@ -216,7 +273,8 @@ export function getChartDateFormatter(locale?: string | Locale): Intl.DateTimeFo
  */
 export function formatChartDate(
   dateKey: string | Date,
-  locale?: string | Locale
+  locale?: string | Locale,
+  options?: FormatChartDateOptions
 ): string {
   const parsedDate = parseUtcCalendarDate(dateKey);
   if (!parsedDate) {
@@ -224,7 +282,7 @@ export function formatChartDate(
   }
 
   try {
-    const formatter = getChartDateFormatter(locale);
+    const formatter = getChartDateFormatter(locale, options);
     return formatter.format(parsedDate);
   } catch (err) {
     if (err instanceof RangeError) {
@@ -234,4 +292,5 @@ export function formatChartDate(
     throw err;
   }
 }
+
 
