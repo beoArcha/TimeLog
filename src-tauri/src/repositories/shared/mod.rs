@@ -238,6 +238,16 @@ fn apply_migration_7(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+fn apply_migration_8(conn: &Connection) -> Result<()> {
+    add_column_if_missing(
+        conn,
+        "time_logs_history",
+        "audit_source",
+        constants::ALTER_TIME_LOGS_HISTORY_ADD_AUDIT_SOURCE,
+    )?;
+    Ok(())
+}
+
 fn column_is_not_null(conn: &Connection, table: &str, column: &str) -> Result<bool> {
     let pragma_sql = format!("PRAGMA table_info({table})");
     let mut stmt = conn.prepare(&pragma_sql)?;
@@ -264,16 +274,6 @@ fn apply_migration_9(conn: &Connection) -> Result<()> {
     conn.execute(constants::DROP_TIME_LOGS_HISTORY_MIGRATION_9, [])?;
     conn.execute(constants::RENAME_TIME_LOGS_HISTORY_MIGRATION_9, [])?;
 
-    Ok(())
-}
-
-fn apply_migration_8(conn: &Connection) -> Result<()> {
-    add_column_if_missing(
-        conn,
-        "time_logs_history",
-        "audit_source",
-        constants::ALTER_TIME_LOGS_HISTORY_ADD_AUDIT_SOURCE,
-    )?;
     Ok(())
 }
 
