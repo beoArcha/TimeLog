@@ -56,6 +56,7 @@ function ReportLogEditForm({
   const [reason, setReason] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
 
   const handleSave = async () => {
     const trimmedReason = reason.trim();
@@ -86,32 +87,36 @@ function ReportLogEditForm({
     setIsSaving(true);
     setErrorMessage(null);
 
-    try {
-      await EngineRouter.getInstance().timeLogs.editTimeLog(
-        log.id,
-        log.taskId,
-        startTime.trim(),
-        trimmedEnd ? trimmedEnd : null,
-        note.trim() ? note.trim() : null,
-        trimmedReason
-      );
-    } catch (err) {
-      console.error('[ReportLogEditModal] Mutation failed:', err);
-      setErrorMessage(err instanceof Error ? err.message : tCommon('ErrGeneric'));
-      setIsSaving(false);
-      return;
+    if (!isSaved) {
+      try {
+        await EngineRouter.getInstance().timeLogs.editTimeLog(
+          log.id,
+          log.taskId,
+          startTime.trim(),
+          trimmedEnd ? trimmedEnd : null,
+          note.trim() ? note.trim() : null,
+          trimmedReason
+        );
+        setIsSaved(true);
+      } catch (err) {
+        console.error('[ReportLogEditModal] Mutation failed:', err);
+        setErrorMessage(tCommon('ErrGeneric'));
+        setIsSaving(false);
+        return;
+      }
     }
 
     try {
       if (dataContext?.refreshData) {
         await dataContext.refreshData();
       }
-    } catch (refreshErr) {
-      console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
-    } finally {
-      setIsSaving(false);
       onSaveSuccess?.(log.id);
       onClose();
+    } catch (refreshErr) {
+      console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
+      setErrorMessage(tCommon('ErrGeneric'));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -153,7 +158,10 @@ function ReportLogEditForm({
             data-testid="audit-edit-start-time"
             type="text"
             value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
+            onChange={(e) => {
+              setStartTime(e.target.value);
+              setIsSaved(false);
+            }}
             className="h-8 text-xs font-mono bg-background"
           />
         </VStack>
@@ -167,7 +175,10 @@ function ReportLogEditForm({
             data-testid="audit-edit-end-time"
             type="text"
             value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
+            onChange={(e) => {
+              setEndTime(e.target.value);
+              setIsSaved(false);
+            }}
             className="h-8 text-xs font-mono bg-background"
           />
         </VStack>
@@ -181,7 +192,10 @@ function ReportLogEditForm({
             data-testid="audit-edit-note"
             type="text"
             value={note}
-            onChange={(e) => setNote(e.target.value)}
+            onChange={(e) => {
+              setNote(e.target.value);
+              setIsSaved(false);
+            }}
             className="h-8 text-xs bg-background"
           />
         </VStack>
@@ -194,7 +208,10 @@ function ReportLogEditForm({
             id="audit-edit-reason"
             data-testid="audit-edit-reason"
             value={reason}
-            onChange={(e) => setReason(e.target.value)}
+            onChange={(e) => {
+              setReason(e.target.value);
+              setIsSaved(false);
+            }}
             placeholder={tReport('AuditReasonPlaceholder')}
             rows={2}
             className="text-xs bg-background resize-none border-primary/50 focus:border-primary"

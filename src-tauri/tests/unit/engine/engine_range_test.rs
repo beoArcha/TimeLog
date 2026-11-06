@@ -278,3 +278,176 @@ fn test_engine_calculate_range_metrics_propagates_persistence_error_on_subtask_q
         other => panic!("expected EngineError::Persistence, got {:?}", other),
     }
 }
+
+#[test]
+fn test_engine_calculate_range_metrics_filters_by_project_ids_for_logs_and_patches() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_range_project_ids_filter");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let project_a = ProjectBuilder::new()
+        .with_id("p_included")
+        .with_name("Project Included")
+        .with_color("green")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    let project_b = ProjectBuilder::new()
+        .with_id("p_excluded")
+        .with_name("Project Excluded")
+        .with_color("red")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    persistence.projects.create(project_a).unwrap();
+    persistence.projects.create(project_b).unwrap();
+
+    let task_a = TaskBuilder::new()
+        .with_id("t_included")
+        .with_project_id("p_included")
+        .with_name("Task Included")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    let task_b = TaskBuilder::new()
+        .with_id("t_excluded")
+        .with_project_id("p_excluded")
+        .with_name("Task Excluded")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    persistence.tasks.create(task_a).unwrap();
+    persistence.tasks.create(task_b).unwrap();
+
+    // 10:00 to 11:00 (3600s) for included project
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, ?)",
+        [
+            "l_inc",
+            "t_included",
+            "2026-06-15T10:00:00Z",
+            "2026-06-15T11:00:00Z",
+        ],
+    )
+    .unwrap();
+
+    // 10:00 to 11:00 (3600s) for excluded project
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, ?)",
+        [
+            "l_exc",
+            "t_excluded",
+            "2026-06-15T10:00:00Z",
+            "2026-06-15T11:00:00Z",
+        ],
+    )
+    .unwrap();
+
+    // Patch for included project: 11:00 to 12:00 (3600s)
+    let patch_inc = PatchLog {
+        id: "patch_inc".to_string(),
+        project_id: "p_included".to_string(),
+        task_id: Some("t_included".to_string()),
+        start_time: "2026-06-15T11:00:00Z".to_string(),
+        end_time: "2026-06-15T12:00:00Z".to_string(),
+        patch_note: "Included adjustment".to_string(),
+        is_system_event: Some(false),
+    };
+    // Patch for excluded project: 11:00 to 12:00 (3600s)
+    let patch_exc = PatchLog {
+        id: "patch_exc".to_string(),
+        project_id: "p_excluded".to_string(),
+        task_id: Some("t_excluded".to_string()),
+        start_time: "2026-06-15T11:00:00Z".to_string(),
+        end_time: "2026-06-15T12:00:00Z".to_string(),
+        patch_note: "Excluded adjustment".to_string(),
+        is_system_event: Some(false),
+    };
+    persistence.patches.save(vec![patch_inc, patch_exc]).unwrap();
+
+    let filter = ElapsedRangeFilter {
+        task_id: None,
+        project_id: None,
+        project_ids: Some(vec!["p_included".to_string()]),
+        from: Some("2026-06-15T00:00:00Z".to_string()),
+        to: Some("2026-06-15T23:59:59Z".to_string()),
+        include_patches: Some(true),
+    };
+
+    // Act
+    let result = engine.calculate_range_metrics(&filter, None).unwrap();
+    let elapsed = engine.calculate_elapsed_range(&filter).unwrap();
+
+    // Assert
+    // Only entries from "p_included" should be present: 3600s log + 3600s patch = 7200s
+    assert_eq!(result.total_seconds, 7200);
+    assert_eq!(elapsed.as_secs(), 7200);
+    assert_eq!(result.clamped_logs.len(), 2);
+    assert_eq!(result.project_elapsed.get("p_included"), Some(&7200));
+    assert_eq!(result.project_elapsed.get("p_excluded"), None);
+    assert!(result.clamped_logs.iter().all(|l| l.project_id == "p_included"));
+}
+
+#[test]
+fn test_engine_calculate_range_metrics_empty_project_ids_returns_no_logs_or_patches() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_range_empty_project_ids");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let project = ProjectBuilder::new()
+        .with_id("p_any")
+        .with_name("Any Project")
+        .with_color("blue")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    persistence.projects.create(project).unwrap();
+
+    let task = TaskBuilder::new()
+        .with_id("t_any")
+        .with_project_id("p_any")
+        .with_name("Any Task")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    persistence.tasks.create(task).unwrap();
+
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, ?)",
+        [
+            "l_any",
+            "t_any",
+            "2026-06-15T10:00:00Z",
+            "2026-06-15T11:00:00Z",
+        ],
+    )
+    .unwrap();
+
+    let patch = PatchLog {
+        id: "patch_any".to_string(),
+        project_id: "p_any".to_string(),
+        task_id: Some("t_any".to_string()),
+        start_time: "2026-06-15T11:00:00Z".to_string(),
+        end_time: "2026-06-15T12:00:00Z".to_string(),
+        patch_note: "Any adjustment".to_string(),
+        is_system_event: Some(false),
+    };
+    persistence.patches.save(vec![patch]).unwrap();
+
+    let filter = ElapsedRangeFilter {
+        task_id: None,
+        project_id: None,
+        project_ids: Some(vec![]),
+        from: Some("2026-06-15T00:00:00Z".to_string()),
+        to: Some("2026-06-15T23:59:59Z".to_string()),
+        include_patches: Some(true),
+    };
+
+    // Act
+    let result = engine.calculate_range_metrics(&filter, None).unwrap();
+    let elapsed = engine.calculate_elapsed_range(&filter).unwrap();
+
+    // Assert
+    // An empty project_ids list must exclude all logs and patches
+    assert_eq!(result.total_seconds, 0);
+    assert_eq!(elapsed.as_secs(), 0);
+    assert_eq!(result.clamped_logs.len(), 0);
+    assert!(result.project_elapsed.is_empty());
+    assert!(result.task_elapsed.is_empty());
+}

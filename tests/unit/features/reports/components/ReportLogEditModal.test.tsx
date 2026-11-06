@@ -73,9 +73,9 @@ describe('Unit Tests: ReportLogEditModal', () => {
     });
   });
 
-  it('should not report edit failure or prevent closing when mutation succeeds but refreshData fails', async () => {
+  it('should display safe error message, log refresh failure, and not close or call onSaveSuccess when refreshData fails, allowing retry', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const refreshDataMock = vi.fn().mockRejectedValue(new Error('Network disconnected on refresh'));
+    const refreshDataMock = vi.fn().mockRejectedValueOnce(new Error('Network disconnected on refresh'));
     const onSaveSuccessMock = vi.fn();
     const onCloseMock = vi.fn();
 
@@ -100,24 +100,40 @@ describe('Unit Tests: ReportLogEditModal', () => {
 
     await waitFor(() => {
       // Edit mutation was executed and succeeded
-      expect(editTimeLogMock).toHaveBeenCalled();
+      expect(editTimeLogMock).toHaveBeenCalledTimes(1);
       // refreshData was attempted and rejected
-      expect(refreshDataMock).toHaveBeenCalled();
-      // Success handler and close must still be invoked
-      expect(onSaveSuccessMock).toHaveBeenCalledWith('log-1');
-      expect(onCloseMock).toHaveBeenCalled();
+      expect(refreshDataMock).toHaveBeenCalledTimes(1);
+      // Success handler and close must NOT be invoked on refresh failure
+      expect(onSaveSuccessMock).not.toHaveBeenCalled();
+      expect(onCloseMock).not.toHaveBeenCalled();
+      // Safe error message is displayed to the user
+      expect(screen.getByText(/Error|Błąd/i)).not.toBeNull();
+      // Raw error message must not be shown
+      expect(screen.queryByText('Network disconnected on refresh')).toBeNull();
     });
 
-    // Refresh error is logged to console but not shown to user as edit failure
+    // Refresh error is logged to console with operational context
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining('[ReportLogEditModal] Refresh after edit failed:'),
       expect.any(Error)
     );
+
+    // Modal is not in a hanging state - retry refreshData when save button is clicked again
+    refreshDataMock.mockResolvedValueOnce(undefined);
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      // editTimeLog should NOT be re-called since mutation already succeeded
+      expect(editTimeLogMock).toHaveBeenCalledTimes(1);
+      expect(refreshDataMock).toHaveBeenCalledTimes(2);
+      expect(onSaveSuccessMock).toHaveBeenCalledWith('log-1');
+      expect(onCloseMock).toHaveBeenCalled();
+    });
   });
 
-  it('should display error message and keep modal open when editTimeLog mutation fails', async () => {
+  it('should display safe error message without exposing raw database/IPC error when editTimeLog mutation fails', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    editTimeLogMock.mockRejectedValue(new Error('Database row locked'));
+    editTimeLogMock.mockRejectedValue(new Error('Database row locked: sqlite3_step constraint failed'));
     const onSaveSuccessMock = vi.fn();
     const onCloseMock = vi.fn();
 
@@ -141,7 +157,10 @@ describe('Unit Tests: ReportLogEditModal', () => {
     fireEvent.click(saveBtn);
 
     await waitFor(() => {
-      expect(screen.getByText('Database row locked')).not.toBeNull();
+      // Shows safe localized generic error message
+      expect(screen.getByText(/Error|Błąd/i)).not.toBeNull();
+      // Must NOT leak internal SQLite / IPC error details to UI
+      expect(screen.queryByText(/sqlite3_step|Database row locked/i)).toBeNull();
     });
 
     expect(onSaveSuccessMock).not.toHaveBeenCalled();

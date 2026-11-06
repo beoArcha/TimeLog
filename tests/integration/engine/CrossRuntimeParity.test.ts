@@ -379,4 +379,92 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       expect(active).not.toContain(t1.id);
     });
   });
+
+  describe('Given project_ids filter across runtimes', () => {
+    beforeEach(async () => {
+      setupLocalStorageMock();
+      const persistence = new PersistencePlugin();
+      PersistenceRouter.getInstance().setImplementationForTesting(persistence);
+    });
+
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    it('Given time logs and patches across multiple projects, When filtered by projectIds, Then Browser and Desktop parity holds', async () => {
+      // Given
+      const persistence = PersistenceRouter.getInstance();
+      await persistence.core.overrideState({
+        projects: [
+          { id: 'p_inc', name: 'Included Project', color: 'green', createdAt: '2026-06-15T00:00:00Z', archived: false },
+          { id: 'p_exc', name: 'Excluded Project', color: 'red', createdAt: '2026-06-15T00:00:00Z', archived: false },
+        ],
+        tasks: [
+          { id: 't_inc', projectId: 'p_inc', name: 'Task Inc', createdAt: '2026-06-15T00:00:00Z', completed: false, status: 'Todo' },
+          { id: 't_exc', projectId: 'p_exc', name: 'Task Exc', createdAt: '2026-06-15T00:00:00Z', completed: false, status: 'Todo' },
+        ],
+        logs: [
+          { id: 'l_inc', projectId: 'p_inc', taskId: 't_inc', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
+          { id: 'l_exc', projectId: 'p_exc', taskId: 't_exc', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
+        ],
+        activeLog: null,
+      });
+
+      await persistence.patches.save([
+        {
+          id: 'patch_inc',
+          projectId: 'p_inc',
+          taskId: 't_inc',
+          startTime: '2026-06-15T11:00:00Z',
+          endTime: '2026-06-15T12:00:00Z',
+          patchNote: 'Included adjustment',
+          isSystemEvent: false,
+        },
+        {
+          id: 'patch_exc',
+          projectId: 'p_exc',
+          taskId: 't_exc',
+          startTime: '2026-06-15T11:00:00Z',
+          endTime: '2026-06-15T12:00:00Z',
+          patchNote: 'Excluded adjustment',
+          isSystemEvent: false,
+        },
+      ]);
+
+      const filterIncluded = {
+        projectIds: ['p_inc'],
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+        includePatches: true,
+      };
+
+      const browserEngine = new EnginePlugin();
+
+      // When
+      const browserMetrics = await browserEngine.metrics.getRangeMetrics(filterIncluded);
+
+      // Then
+      expect(browserMetrics.totalSeconds).toBe(7200);
+      expect(browserMetrics.clampedLogs).toHaveLength(2);
+      expect(browserMetrics.projectElapsed['p_inc']).toBe(7200);
+      expect(browserMetrics.projectElapsed['p_exc']).toBeUndefined();
+      expect(browserMetrics.clampedLogs.every((l) => l.projectId === 'p_inc')).toBe(true);
+
+      // When filtered with empty projectIds
+      const filterEmpty = {
+        projectIds: [],
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+        includePatches: true,
+      };
+
+      const emptyMetrics = await browserEngine.metrics.getRangeMetrics(filterEmpty);
+
+      // Then empty projectIds excludes all logs and patches
+      expect(emptyMetrics.totalSeconds).toBe(0);
+      expect(emptyMetrics.clampedLogs).toHaveLength(0);
+      expect(Object.keys(emptyMetrics.projectElapsed)).toHaveLength(0);
+      expect(Object.keys(emptyMetrics.taskElapsed)).toHaveLength(0);
+    });
+  });
 });
