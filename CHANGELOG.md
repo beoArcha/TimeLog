@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Playwright CI Browser Installation**:
+  - Removed the unnecessary Google Chrome download and aligned the E2E project with Playwright-managed Chromium.
+  - Separated Linux browser dependencies from browser installation, increased the download connection timeout, and added bounded retries for transient download failures.
 - **Composite UI Component Behavior**:
   - Migrated `CollapsibleCard` to the shared Base UI collapsible primitive, kept `headerRight` actions independent, and preserved collapsed child state.
   - Kept `PromptDialog` open after synchronous or asynchronous confirmation failures, displayed the error, and prevented unhandled Promise rejections.
