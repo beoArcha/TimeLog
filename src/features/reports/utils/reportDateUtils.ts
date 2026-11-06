@@ -335,12 +335,83 @@ export function formatCalendarDate(
 
 export interface FormatCalendarTimeOptions {
   hour12?: boolean;
+  timeZone?: string;
+}
+
+/**
+ * Resolves a timezone candidate into a valid IANA identifier or offset for Intl.DateTimeFormat.
+ * Handles common abbreviations like 'CEST' by converting to '+02:00' to avoid RangeError in standard Intl environments.
+ */
+export function normalizeTimeZone(timeZone?: string): string | undefined {
+  if (!timeZone) return undefined;
+  const trimmed = timeZone.trim();
+  if (trimmed.toUpperCase() === 'CEST') {
+    return '+02:00';
+  }
+  return trimmed;
+}
+
+/**
+ * Formats time-of-day for the screen view in the user's local timezone (or a specified timezone).
+ * When timeZone is omitted or undefined, formats according to the host environment's local timezone.
+ * Returns empty string if the input date is malformed, invalid, or is a pure date without time.
+ */
+export function formatScreenTime(
+  dateKey: string | Date,
+  locale?: string | Locale,
+  options?: FormatCalendarTimeOptions
+): string {
+  if (typeof dateKey === 'string' && CALENDAR_DATE_REGEX.test(dateKey.trim())) {
+    return '';
+  }
+  const parsed = parseUtcDateTime(dateKey);
+  if (!parsed) {
+    return '';
+  }
+  const resolvedLocale = resolveDateTimeLocale(locale);
+  const normalizedTz = normalizeTimeZone(options?.timeZone);
+  const tzKey = normalizedTz ?? 'local';
+  const cacheKey = `screen-time:${resolvedLocale}:${options?.hour12 ?? 'auto'}:${tzKey}`;
+  let formatter = formatterCache.get(cacheKey);
+  if (!formatter) {
+    const intlOptions: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    };
+    if (normalizedTz) {
+      intlOptions.timeZone = normalizedTz;
+    }
+    if (options?.hour12 !== undefined) {
+      intlOptions.hour12 = options.hour12;
+    }
+    try {
+      formatter = new Intl.DateTimeFormat(resolvedLocale, intlOptions);
+    } catch (err) {
+      if (err instanceof RangeError) {
+        formatter = new Intl.DateTimeFormat('en', intlOptions);
+      } else {
+        throw err;
+      }
+    }
+    formatterCache.set(cacheKey, formatter);
+  }
+
+  try {
+    return formatter.format(parsed);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return '';
+    }
+    console.error('Failed to format screen time:', err);
+    throw err;
+  }
 }
 
 /**
  * Formats the time-of-day in UTC for log entries and reports according to the active locale
  * (e.g. '12:00:00' in pl, '12:00:00 PM' in en).
- * Always converts timestamps to UTC to guarantee timezone consistency across reports.
+ * Always converts timestamps to UTC to guarantee print timezone consistency across reports.
  * Returns empty string if the input date is malformed, invalid, or is a pure date without time.
  */
 export function formatCalendarTime(
@@ -356,14 +427,15 @@ export function formatCalendarTime(
     return '';
   }
   const resolvedLocale = resolveDateTimeLocale(locale);
-  const cacheKey = `time:${resolvedLocale}:${options?.hour12 ?? 'auto'}`;
+  const timeZone = options?.timeZone ? (normalizeTimeZone(options.timeZone) ?? 'UTC') : 'UTC';
+  const cacheKey = `time:${resolvedLocale}:${options?.hour12 ?? 'auto'}:${timeZone}`;
   let formatter = formatterCache.get(cacheKey);
   if (!formatter) {
     const intlOptions: Intl.DateTimeFormatOptions = {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      timeZone: 'UTC',
+      timeZone,
     };
     if (options?.hour12 !== undefined) {
       intlOptions.hour12 = options.hour12;

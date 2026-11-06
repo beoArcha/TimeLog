@@ -9,7 +9,7 @@ import { Task } from '@bindings/Task';
 import { Badge } from '@components/ui/badge';
 import { Heading, Caption, MonoText } from '@components/ui/typography';
 import { Locale } from '@bindings/Locale';
-import { formatCalendarDate, formatCalendarTime } from '@features/reports/utils/reportDateUtils';
+import { formatCalendarDate, formatCalendarTime, formatScreenTime } from '@features/reports/utils/reportDateUtils';
 import { ProjectChartItem } from '../types';
 
 export interface ReportLogListProps {
@@ -21,6 +21,7 @@ export interface ReportLogListProps {
   tasks: Task[];
   nowIso?: string;
   locale?: Locale;
+  timeZone?: string;
 }
 
 export default function ReportLogList({
@@ -32,6 +33,7 @@ export default function ReportLogList({
   tasks,
   nowIso,
   locale: propLocale,
+  timeZone,
 }: ReportLogListProps) {
   const { t, locale: contextLocale } = useTranslation('report');
   const activeLocale = propLocale ?? contextLocale;
@@ -120,9 +122,12 @@ export default function ReportLogList({
               durSeconds = Math.max(0, Math.floor((end - start) / 1000));
             }
 
-            const dateFormatted = formatCalendarDate(displayTime, activeLocale);
-            const timeFormatted = formatCalendarTime(displayTime, activeLocale);
-            const timeOnly = timeFormatted || 'N/A';
+            const screenTimeFormatted = formatScreenTime(displayTime, activeLocale, { timeZone });
+            const screenTimeOnly = screenTimeFormatted || 'N/A';
+
+            const printDateFormatted = formatCalendarDate(displayTime, activeLocale);
+            const printTimeFormatted = formatCalendarTime(displayTime, activeLocale);
+            const printTimeOnly = printTimeFormatted || 'N/A';
 
             return (
               <div
@@ -132,9 +137,9 @@ export default function ReportLogList({
               >
                 <div className="truncate flex items-center gap-1.5 flex-wrap">
                   <MonoText size="2xs" weight="bold" className="text-indigo-400 shrink-0">
-                    <span className="print:hidden">[{timeOnly}]</span>
+                    <span className="print:hidden" data-testid="log-entry-screen-time">[{screenTimeOnly}]</span>
                     <span className="hidden print:inline" data-testid="log-entry-print-datetime">
-                      [{dateFormatted ? `${dateFormatted} ` : ''}{timeOnly}]
+                      [{printDateFormatted ? `${printDateFormatted} ` : ''}{printTimeOnly}]
                     </span>
                   </MonoText>
                   <strong className="text-foreground">"{tObj?.name || 'N/A'}"</strong>

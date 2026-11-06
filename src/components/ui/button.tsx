@@ -47,7 +47,7 @@ function Button({
   ...props
 }: ButtonProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    props.onKeyDown?.(e);
+    onKeyDown?.(e);
     if (!e.defaultPrevented && (e.key === ' ' || e.key === 'Space' || e.key === 'Spacebar' || e.code === 'Space')) {
       e.preventDefault();
       e.currentTarget.click();

@@ -254,4 +254,204 @@ describe('Unit Tests: ReportLogList', () => {
     expect(printTime).not.toBeNull();
     expect(printTime.textContent).toContain('[N/A]');
   });
+
+  describe('Timezone Regression & Separation (Screen vs Print)', () => {
+    it('should format screen time in CET (UTC+1) while maintaining UTC in print output', () => {
+      const winterLog = [
+        {
+          id: 'l-winter',
+          taskId: 't1',
+          projectId: 'p1',
+          startTime: '2026-01-15T12:00:00Z',
+          endTime: '2026-01-15T13:00:00Z',
+        },
+      ];
+
+      render(
+        <ReportLogList
+          {...mockProps}
+          locale="pl"
+          timeZone="CET"
+          filteredLogs={winterLog}
+          displayLogs={winterLog}
+        />
+      );
+
+      const screenTime = screen.getByTestId('log-entry-screen-time');
+      const printTime = screen.getByTestId('log-entry-print-datetime');
+
+      // CET is UTC+1 in winter: 12:00 UTC -> 13:00 on screen
+      expect(screenTime.textContent).toContain('13:00:00');
+
+      // Print output strictly retains UTC: 12:00:00
+      expect(printTime.textContent).toContain('15.01.2026');
+      expect(printTime.textContent).toContain('12:00:00');
+    });
+
+    it('should format screen time in CEST (UTC+2) while maintaining UTC in print output', () => {
+      const summerLog = [
+        {
+          id: 'l-summer',
+          taskId: 't1',
+          projectId: 'p1',
+          startTime: '2026-06-15T12:00:00Z',
+          endTime: '2026-06-15T13:00:00Z',
+        },
+      ];
+
+      render(
+        <ReportLogList
+          {...mockProps}
+          locale="pl"
+          timeZone="CEST"
+          filteredLogs={summerLog}
+          displayLogs={summerLog}
+        />
+      );
+
+      const screenTime = screen.getByTestId('log-entry-screen-time');
+      const printTime = screen.getByTestId('log-entry-print-datetime');
+
+      // CEST is UTC+2: 12:00 UTC -> 14:00 on screen
+      expect(screenTime.textContent).toContain('14:00:00');
+
+      // Print output strictly retains UTC: 12:00:00
+      expect(printTime.textContent).toContain('15.06.2026');
+      expect(printTime.textContent).toContain('12:00:00');
+    });
+
+    it('should render distinct times for the same timestamp on screen (local tz) and print (UTC)', () => {
+      const sharedTimestampLog = [
+        {
+          id: 'l-shared',
+          taskId: 't1',
+          projectId: 'p1',
+          startTime: '2026-06-15T09:15:30Z',
+          endTime: '2026-06-15T10:15:30Z',
+        },
+      ];
+
+      render(
+        <ReportLogList
+          {...mockProps}
+          locale="en"
+          timeZone="+02:00"
+          filteredLogs={sharedTimestampLog}
+          displayLogs={sharedTimestampLog}
+        />
+      );
+
+      const screenTime = screen.getByTestId('log-entry-screen-time');
+      const printTime = screen.getByTestId('log-entry-print-datetime');
+
+      // In +02:00 timezone: 09:15:30 UTC -> 11:15:30 on screen
+      expect(screenTime.textContent).toContain('11:15:30');
+
+      // In print (UTC): 06/15/2026 09:15:30
+      expect(printTime.textContent).toContain('06/15/2026');
+      expect(printTime.textContent).toContain('09:15:30');
+    });
+
+    it('should correctly handle day boundary transitions when converting timezones between screen and print', () => {
+      const boundaryLogs = [
+        {
+          id: 'l-next-day-screen',
+          taskId: 't1',
+          projectId: 'p1',
+          // 23:30 UTC on June 15 is 01:30 on June 16 in CEST (UTC+2)
+          startTime: '2026-06-15T23:30:00Z',
+          endTime: '2026-06-16T00:30:00Z',
+        },
+      ];
+
+      render(
+        <ReportLogList
+          {...mockProps}
+          locale="pl"
+          timeZone="CEST"
+          filteredLogs={boundaryLogs}
+          displayLogs={boundaryLogs}
+        />
+      );
+
+      const screenTime = screen.getByTestId('log-entry-screen-time');
+      const printTime = screen.getByTestId('log-entry-print-datetime');
+
+      // Screen shifts past midnight to next calendar day: 01:30:00
+      expect(screenTime.textContent).toContain('01:30:00');
+
+      // Print remains anchored on UTC calendar date: 15.06.2026 23:30:00
+      expect(printTime.textContent).toContain('15.06.2026');
+      expect(printTime.textContent).toContain('23:30:00');
+    });
+
+    it('should correctly handle backward day transitions for negative timezone offsets', () => {
+      const negativeOffsetLogs = [
+        {
+          id: 'l-prev-day-screen',
+          taskId: 't1',
+          projectId: 'p1',
+          // 00:30 UTC on June 15 is 20:30 on June 14 in UTC-4 (EDT)
+          startTime: '2026-06-15T00:30:00Z',
+          endTime: '2026-06-15T01:30:00Z',
+        },
+      ];
+
+      render(
+        <ReportLogList
+          {...mockProps}
+          locale="pl"
+          timeZone="-04:00"
+          filteredLogs={negativeOffsetLogs}
+          displayLogs={negativeOffsetLogs}
+        />
+      );
+
+      const screenTime = screen.getByTestId('log-entry-screen-time');
+      const printTime = screen.getByTestId('log-entry-print-datetime');
+
+      // Screen shifts before midnight to previous day: 20:30:00
+      expect(screenTime.textContent).toContain('20:30:00');
+
+      // Print remains anchored on UTC calendar date: 15.06.2026 00:30:00
+      expect(printTime.textContent).toContain('15.06.2026');
+      expect(printTime.textContent).toContain('00:30:00');
+    });
+
+    it('should correctly format date and time across all supported locales', () => {
+      const locales = ['en', 'pl', 'de', 'es', 'fr', 'pt-br', 'ja', 'nl', 'it', 'uk'] as const;
+      const testLog = [
+        {
+          id: 'l-locale-test',
+          taskId: 't1',
+          projectId: 'p1',
+          startTime: '2026-06-15T14:30:45Z',
+          endTime: '2026-06-15T15:30:45Z',
+        },
+      ];
+
+      locales.forEach((loc) => {
+        const { unmount } = render(
+          <ReportLogList
+            {...mockProps}
+            locale={loc}
+            timeZone="UTC"
+            filteredLogs={testLog}
+            displayLogs={testLog}
+          />
+        );
+
+        const screenTime = screen.getByTestId('log-entry-screen-time');
+        const printTime = screen.getByTestId('log-entry-print-datetime');
+
+        expect(screenTime.textContent).not.toBeNull();
+        expect(screenTime.textContent).not.toBe('[N/A]');
+        expect(printTime.textContent).not.toBeNull();
+        expect(printTime.textContent).not.toBe('[N/A]');
+
+        unmount();
+      });
+    });
+  });
 });
+

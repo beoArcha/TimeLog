@@ -77,13 +77,14 @@ describe('Unit Tests: StackedBarActivityChart', () => {
       />
     );
     const header = screen.getByTestId('stacked-activity-chart-header');
-    expect(screen.getByTestId('stacked-chart-empty')).not.toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
 
     // Act
     fireEvent.click(header);
 
     // Assert
-    expect(screen.queryByTestId('stacked-chart-empty')).toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.getByTestId('stacked-chart-empty').closest('[hidden]')).not.toBeNull();
   });
 
   it('should render localized XAxis date labels for Polish (pl)', () => {

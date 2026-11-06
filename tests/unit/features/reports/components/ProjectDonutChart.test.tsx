@@ -79,12 +79,13 @@ describe('Unit Tests: ProjectDonutChart', () => {
       />
     );
     const header = screen.getByTestId('project-donut-chart-header');
-    expect(screen.getByTestId('donut-chart-empty')).not.toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
 
     // Act
     fireEvent.click(header);
 
     // Assert
-    expect(screen.queryByTestId('donut-chart-empty')).toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.getByTestId('donut-chart-empty').closest('[hidden]')).not.toBeNull();
   });
 });
