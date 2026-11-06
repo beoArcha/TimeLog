@@ -155,6 +155,27 @@ describe('Unit Tests: CollapsibleCard', () => {
     expect(screen.getByText('Persistent Content').closest('[hidden]')).toBeNull();
   });
 
+  it('Given multiple cards are rendered, Then each trigger should control a unique content region', () => {
+    render(
+      <MockProviders state={mockState}>
+        <CollapsibleCard title="First Card"><div>First Content</div></CollapsibleCard>
+        <CollapsibleCard title="Second Card"><div>Second Content</div></CollapsibleCard>
+      </MockProviders>
+    );
+
+    const triggers = [
+      screen.getByRole('button', { name: /First Card/ }),
+      screen.getByRole('button', { name: /Second Card/ }),
+    ];
+    const contentIds = triggers.map((trigger) => trigger.getAttribute('aria-controls'));
+
+    expect(new Set(contentIds).size).toBe(2);
+    contentIds.forEach((id) => {
+      expect(id).toBeTruthy();
+      expect(document.getElementById(id!)).toBeTruthy();
+    });
+  });
+
   it('Given CollapsibleCard rendered, Then it should consume semantic design tokens', () => {
     const { container } = render(
       <MockProviders state={mockState}>
