@@ -14,15 +14,18 @@ import { Text } from '@components/ui/typography';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
-import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
-import { Project } from '@bindings/Project';
-import { Task } from '@bindings/Task';
+import type { ClampedTimeLog } from '@bindings/ClampedTimeLog';
+import type { Project } from '@bindings/Project';
+import type { Task } from '@bindings/Task';
+import type { Locale } from '@bindings/Locale';
+import { formatChartDate, getUtcDateKey, detectDateSpan } from '@features/reports/utils/reportDateUtils';
 
 export interface StackedBarActivityChartProps {
   clampedLogs: ClampedTimeLog[];
   projects: Project[];
   tasks?: Task[];
   defaultExpanded?: boolean;
+  locale?: Locale;
 }
 
 interface DailyProjectDataPoint {
@@ -36,8 +39,10 @@ export default function StackedBarActivityChart({
   clampedLogs,
   projects,
   defaultExpanded = true,
+  locale: propLocale,
 }: StackedBarActivityChartProps) {
-  const { t } = useTranslation('report');
+  const { t, locale: contextLocale } = useTranslation('report');
+  const activeLocale = propLocale ?? contextLocale;
 
   const { chartData, chartConfig, activeProjects } = useMemo(() => {
     const projectMap = new Map<string, Project>();
@@ -49,24 +54,34 @@ export default function StackedBarActivityChart({
     const presentProjectIds = new Set<string>();
 
     for (const log of clampedLogs) {
-      const dateStr = log.clampedStartTime.slice(0, 10);
-      let dayTotals = dayMap.get(dateStr);
+      const dateKey = getUtcDateKey(log.clampedStartTime);
+      if (!dateKey) {
+        console.warn(
+          `[StackedBarActivityChart] Skipping log ${log.id} due to invalid clampedStartTime: "${log.clampedStartTime}"`
+        );
+        continue;
+      }
+      let dayTotals = dayMap.get(dateKey);
       if (!dayTotals) {
         dayTotals = {};
-        dayMap.set(dateStr, dayTotals);
+        dayMap.set(dateKey, dayTotals);
       }
       dayTotals[log.projectId] = (dayTotals[log.projectId] || 0) + log.clampedDurationSeconds;
       presentProjectIds.add(log.projectId);
     }
 
     const sortedDates = Array.from(dayMap.keys()).sort();
+    const { hasMultipleMonths, hasMultipleYears } = detectDateSpan(sortedDates);
 
     const data: DailyProjectDataPoint[] = sortedDates.map((dateKey) => {
       const dayTotals = dayMap.get(dateKey) || {};
       let totalSeconds = 0;
       const point: DailyProjectDataPoint = {
         dateKey,
-        displayDate: dateKey.slice(5), // MM-DD
+        displayDate: formatChartDate(dateKey, activeLocale, {
+          includeMonth: hasMultipleMonths,
+          includeYear: hasMultipleYears,
+        }),
         totalSeconds: 0,
       };
 
@@ -94,7 +109,7 @@ export default function StackedBarActivityChart({
       chartConfig: config,
       activeProjects: activeList,
     };
-  }, [clampedLogs, projects]);
+  }, [clampedLogs, projects, activeLocale]);
 
   const hasData = chartData.length > 0;
 
