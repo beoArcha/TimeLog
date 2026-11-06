@@ -80,9 +80,9 @@ describe("Unit Tests: TimeLogsTable", () => {
     );
 
     // Act
-    const addBtn = container.querySelector("button");
+    const addBtn = screen.getByRole("button", { name: /Add Log Manually/i });
     expect(addBtn).not.toBeNull();
-    fireEvent.click(addBtn!);
+    fireEvent.click(addBtn);
 
     // Assert
     const form = container.querySelector("form");
@@ -240,8 +240,8 @@ describe("Unit Tests: TimeLogsTable", () => {
     );
 
     // Open add log form
-    const addBtn = container.querySelector("button");
-    fireEvent.click(addBtn!);
+    const addBtn = screen.getByRole("button", { name: /Add Log Manually/i });
+    fireEvent.click(addBtn);
 
     // Fill note and submit
     const noteInput = container.querySelector(

@@ -1,5 +1,6 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
+use calamine::{Data, Reader, Xlsx};
 use clap::Parser;
 use oxyflow_timelog::cli::formatters::ReportTreeDto;
 use oxyflow_timelog::cli::{handle_cli, CliArgs, CliOutput};
@@ -182,9 +183,8 @@ fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_
         std::env::temp_dir().join(format!("report_export_{}.xml", uuid::Uuid::new_v4()));
     let output_path = output_file.to_str().unwrap();
 
-    let args =
-        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xml", "-o", output_path])
-            .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xml", "-o", output_path])
+        .unwrap();
 
     // When
     let result = handle_cli(args, &persistence, &engine);
@@ -221,9 +221,49 @@ fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_repor
     assert!(result.is_ok());
     assert!(output_file.exists());
 
-    let bytes = fs::read(&output_file).expect("failed to read exported XLSX");
-    assert!(!bytes.is_empty());
-    assert_eq!(&bytes[0..4], &[0x50, 0x4B, 0x03, 0x04]);
+    let mut excel: Xlsx<_> =
+        calamine::open_workbook(&output_file).expect("failed to read exported XLSX");
+    let range = excel
+        .worksheet_range("Work Report")
+        .expect("must contain Work Report worksheet");
+
+    let get_cell_str = |r: usize, c: usize| match range.get((r, c)) {
+        Some(Data::String(s)) => s.clone(),
+        Some(Data::Float(f)) => f.to_string(),
+        Some(Data::Int(i)) => i.to_string(),
+        Some(Data::Empty) => String::new(),
+        _ => String::new(),
+    };
+
+    // Header assertions
+    assert_eq!(get_cell_str(0, 0), "Project");
+    assert_eq!(get_cell_str(0, 1), "Task");
+    assert_eq!(get_cell_str(0, 2), "Subtask");
+    assert_eq!(get_cell_str(0, 3), "Duration_Seconds");
+    assert_eq!(get_cell_str(0, 4), "Duration_Formatted");
+    assert_eq!(get_cell_str(0, 5), "Percentage");
+
+    // Row 1 assertions
+    assert_eq!(get_cell_str(1, 0), "Export System");
+    assert_eq!(get_cell_str(1, 1), "Invoice Generation");
+    assert_eq!(get_cell_str(1, 2), "");
+    let val_r1 = match range.get((1, 3)) {
+        Some(Data::Int(i)) => *i as f64,
+        Some(Data::Float(f)) => *f,
+        _ => 0.0,
+    };
+    assert!((val_r1 - 7200.0).abs() < 0.1);
+    assert_eq!(get_cell_str(1, 4), "02h 00m");
+
+    // Total row assertions
+    assert_eq!(get_cell_str(2, 0), "Total");
+    let val_total = match range.get((2, 3)) {
+        Some(Data::Int(i)) => *i as f64,
+        Some(Data::Float(f)) => *f,
+        _ => 0.0,
+    };
+    assert!((val_total - 7200.0).abs() < 0.1);
+    assert_eq!(get_cell_str(2, 4), "02h 00m");
 
     let _ = fs::remove_file(output_file);
 }
@@ -237,9 +277,8 @@ fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_
         std::env::temp_dir().join(format!("report_export_{}.ods", uuid::Uuid::new_v4()));
     let output_path = output_file.to_str().unwrap();
 
-    let args =
-        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "ods", "-o", output_path])
-            .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "ods", "-o", output_path])
+        .unwrap();
 
     // When
     let result = handle_cli(args, &persistence, &engine);
@@ -248,9 +287,31 @@ fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_
     assert!(result.is_ok());
     assert!(output_file.exists());
 
-    let bytes = fs::read(&output_file).expect("failed to read exported ODS");
-    assert!(!bytes.is_empty());
-    assert_eq!(&bytes[0..4], &[0x50, 0x4B, 0x03, 0x04]);
+    let ods = spreadsheet_ods::read_ods(&output_file).expect("failed to read exported ODS");
+    let sheet = ods.sheet(0);
+    assert_eq!(sheet.name(), "Work Report");
+
+    // Headers
+    assert_eq!(sheet.value(0, 0).as_str_or(""), "Project");
+    assert_eq!(sheet.value(0, 1).as_str_or(""), "Task");
+    assert_eq!(sheet.value(0, 2).as_str_or(""), "Subtask");
+    assert_eq!(sheet.value(0, 3).as_str_or(""), "Duration_Seconds");
+    assert_eq!(sheet.value(0, 4).as_str_or(""), "Duration_Formatted");
+    assert_eq!(sheet.value(0, 5).as_str_or(""), "Percentage");
+
+    // Data Row 1
+    assert_eq!(sheet.value(1, 0).as_str_or(""), "Export System");
+    assert_eq!(sheet.value(1, 1).as_str_or(""), "Invoice Generation");
+    assert_eq!(sheet.value(1, 2).as_str_or(""), "");
+    assert_eq!(sheet.value(1, 3).as_f64_or(0.0), 7200.0);
+    assert_eq!(sheet.value(1, 4).as_str_or(""), "02h 00m");
+    assert_eq!(sheet.value(1, 5).as_f64_or(0.0), 100.0);
+
+    // Total Row
+    assert_eq!(sheet.value(2, 0).as_str_or(""), "Total");
+    assert_eq!(sheet.value(2, 3).as_f64_or(0.0), 7200.0);
+    assert_eq!(sheet.value(2, 4).as_str_or(""), "02h 00m");
+    assert_eq!(sheet.value(2, 5).as_f64_or(0.0), 100.0);
 
     let _ = fs::remove_file(output_file);
 }

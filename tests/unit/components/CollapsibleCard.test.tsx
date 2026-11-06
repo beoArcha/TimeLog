@@ -157,7 +157,7 @@ describe('CollapsibleCard', () => {
     trigger.focus();
 
     // Act
-    await user.keyboard('{Space}');
+    await user.keyboard('[Space]');
 
     // Assert
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
@@ -207,7 +207,7 @@ describe('CollapsibleCard', () => {
     action.focus();
 
     // Act
-    await user.keyboard('{Space}');
+    await user.keyboard('[Space]');
 
     // Assert
     expect(onAction).toHaveBeenCalledTimes(1);
