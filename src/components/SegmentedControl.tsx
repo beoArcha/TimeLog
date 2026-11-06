@@ -56,12 +56,10 @@ export function SegmentedControl<T extends string = string>({
   return (
     <ToggleGroup
       value={[value]}
-      onValueChange={(val) => {
-        if (val && val.length > 0) {
-          const next = val[val.length - 1] as unknown as T;
-          if (next !== value) {
-            onChange(next);
-          }
+      onValueChange={(nextValues) => {
+        const next = nextValues[nextValues.length - 1] as T | undefined;
+        if (next !== undefined && next !== value) {
+          onChange(next);
         }
       }}
       variant="ghost"
@@ -88,9 +86,6 @@ export function SegmentedControl<T extends string = string>({
             aria-pressed={isSelected}
             data-testid={option.testId}
             title={option.title}
-            onClick={() => {
-              onChange(option.value);
-            }}
             className={cn(
               'rounded-md font-medium uppercase tracking-wider transition-all select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer',
               sizeClasses,

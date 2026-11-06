@@ -591,9 +591,18 @@
   }
 
   /* Ensure collapsible card bodies with forceMountOnPrint display in print */
+  [data-slot="collapsible-card"] .print\:flex,
+  [data-slot="collapsible-card"] [hidden].print\:flex,
+  .print\:flex[hidden],
   [data-slot="collapsible-card"] > .print\:flex,
   .print\:flex {
     display: flex !important;
+  }
+
+  [data-slot="collapsible-content"] {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
   }
 
   .print\:block {
