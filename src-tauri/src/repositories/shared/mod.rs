@@ -238,6 +238,48 @@ fn apply_migration_7(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+
+fn column_is_not_null(conn: &Connection, table: &str, column: &str) -> Result<bool> {
+    let pragma_sql = format!("PRAGMA table_info({table})");
+    let mut stmt = conn.prepare(&pragma_sql)?;
+    let mut rows = stmt.query([])?;
+
+    while let Some(row) = rows.next()? {
+        let name: String = row.get(1)?;
+        if name.eq_ignore_ascii_case(column) {
+            let not_null: i64 = row.get(3)?;
+            return Ok(not_null != 0);
+        }
+    }
+
+    Err(rusqlite::Error::InvalidColumnName(column.to_string()).into())
+}
+
+fn apply_migration_9(conn: &Connection) -> Result<()> {
+    if !column_is_not_null(conn, "time_logs_history", "reason")? {
+        return Ok(());
+    }
+
+    conn.execute(
+        constants::CREATE_TIME_LOGS_HISTORY_MIGRATION_9_TABLE,
+        [],
+    )?;
+    conn.execute(
+        constants::COPY_TIME_LOGS_HISTORY_MIGRATION_9,
+        [],
+    )?;
+    conn.execute(
+        constants::DROP_TIME_LOGS_HISTORY_MIGRATION_9,
+        [],
+    )?;
+    conn.execute(
+        constants::RENAME_TIME_LOGS_HISTORY_MIGRATION_9,
+        [],
+    )?;
+
+    Ok(())
+}
+
 fn apply_migration_8(conn: &Connection) -> Result<()> {
     add_column_if_missing(
         conn,
@@ -251,7 +293,7 @@ fn apply_migration_8(conn: &Connection) -> Result<()> {
 pub fn initialize_database(conn: &Connection) -> Result<()> {
     conn.execute(constants::CREATE_SCHEMA_MIGRATIONS_TABLE, [])?;
 
-    let migrations: [Migration; 8] = [
+    let migrations: [Migration; 9] = [
         Migration {
             version: 1,
             apply: apply_migration_1,
@@ -283,6 +325,10 @@ pub fn initialize_database(conn: &Connection) -> Result<()> {
         Migration {
             version: 8,
             apply: apply_migration_8,
+        },
+        Migration {
+            version: 9,
+            apply: apply_migration_9,
         },
     ];
 
