@@ -264,6 +264,8 @@ describe('Unit Tests: StackedBarActivityChart', () => {
   });
 
   it('should ignore entries with invalid clampedStartTime and not include them in chart data', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
     // Arrange: One valid entry (p1 on 2026-09-10) and two invalid entries (p2 with 'invalid-date' and '2026-06-15-invalid')
     const logs = [
       aClampedTimeLog({
@@ -310,9 +312,22 @@ describe('Unit Tests: StackedBarActivityChart', () => {
     // Project p2 was only present in invalid logs, so it should not be listed as an active project
     expect(screen.queryByText('Beta Project')).toBeNull();
     expect(screen.getByText('Alpha Project')).not.toBeNull();
+
+    // Verify console.warn was called with log id and invalid clampedStartTime
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[StackedBarActivityChart] Skipping log invalid-log-1 due to invalid clampedStartTime: "invalid-date"'
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[StackedBarActivityChart] Skipping log invalid-log-2 due to invalid clampedStartTime: "2026-06-15-invalid"'
+    );
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+
+    warnSpy.mockRestore();
   });
 
   it('should render empty state if all clampedLogs have invalid clampedStartTime', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
     // Arrange: Only invalid logs
     const logs = [
       aClampedTimeLog({
@@ -335,6 +350,13 @@ describe('Unit Tests: StackedBarActivityChart', () => {
     // Assert: Renders empty state since no valid dates exist
     expect(screen.getByTestId('stacked-chart-empty')).not.toBeNull();
     expect(screen.queryByTestId('stacked-bar-activity-chart')).toBeNull();
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[StackedBarActivityChart] Skipping log invalid-1 due to invalid clampedStartTime: "invalid-date"'
+    );
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
   });
 });
 
@@ -493,6 +515,48 @@ describe('Unit Tests: reportDateUtils', () => {
       expect(parseUtcCalendarDate('2026-06-15T12:00:60Z')).toBeNull();
       expect(parseUtcCalendarDate('2026-02-31T12:00:00Z')).toBeNull();
     });
+
+    it('should preserve actual calendar years 0001-0099 without mapping to 1900-1999', () => {
+      const parsed42 = parseUtcCalendarDate('0042-05-10');
+      expect(parsed42).not.toBeNull();
+      expect(parsed42?.getUTCFullYear()).toBe(42);
+      expect(parsed42?.getUTCMonth()).toBe(4);
+      expect(parsed42?.getUTCDate()).toBe(10);
+
+      const parsed99 = parseUtcCalendarDate('0099-12-31');
+      expect(parsed99).not.toBeNull();
+      expect(parsed99?.getUTCFullYear()).toBe(99);
+      expect(parsed99?.getUTCMonth()).toBe(11);
+      expect(parsed99?.getUTCDate()).toBe(31);
+
+      const parsed1 = parseUtcCalendarDate('0001-01-01');
+      expect(parsed1).not.toBeNull();
+      expect(parsed1?.getUTCFullYear()).toBe(1);
+      expect(parsed1?.getUTCMonth()).toBe(0);
+      expect(parsed1?.getUTCDate()).toBe(1);
+
+      const parsedIso42 = parseUtcCalendarDate('0042-05-10T14:30:00.000Z');
+      expect(parsedIso42).not.toBeNull();
+      expect(parsedIso42?.getUTCFullYear()).toBe(42);
+      expect(parsedIso42?.getUTCMonth()).toBe(4);
+      expect(parsedIso42?.getUTCDate()).toBe(10);
+
+      const dateObj = new Date(Date.UTC(42, 4, 10));
+      dateObj.setUTCFullYear(42);
+      const parsedDateObj = parseUtcCalendarDate(dateObj);
+      expect(parsedDateObj).not.toBeNull();
+      expect(parsedDateObj?.getUTCFullYear()).toBe(42);
+      expect(parsedDateObj?.getUTCMonth()).toBe(4);
+      expect(parsedDateObj?.getUTCDate()).toBe(10);
+
+      // Validate leap year handling in 0001-0099
+      expect(parseUtcCalendarDate('0099-02-29')).toBeNull(); // 99 is not leap
+      const leap96 = parseUtcCalendarDate('0096-02-29'); // 96 is leap
+      expect(leap96).not.toBeNull();
+      expect(leap96?.getUTCFullYear()).toBe(96);
+      expect(leap96?.getUTCMonth()).toBe(1);
+      expect(leap96?.getUTCDate()).toBe(29);
+    });
   });
 
   describe('getUtcDateKey', () => {
@@ -500,6 +564,13 @@ describe('Unit Tests: reportDateUtils', () => {
       expect(getUtcDateKey('2026-06-15')).toBe('2026-06-15');
       expect(getUtcDateKey('2026-06-15T00:00:00.000Z')).toBe('2026-06-15');
       expect(getUtcDateKey('2026-06-15T23:59:59.999Z')).toBe('2026-06-15');
+    });
+
+    it('should preserve 4-digit year representation for years 0001 to 0099', () => {
+      expect(getUtcDateKey('0042-05-10')).toBe('0042-05-10');
+      expect(getUtcDateKey('0099-12-31')).toBe('0099-12-31');
+      expect(getUtcDateKey('0001-01-01')).toBe('0001-01-01');
+      expect(getUtcDateKey('0042-05-10T12:00:00Z')).toBe('0042-05-10');
     });
 
     it('should account for timezone offset shifts in date key extraction', () => {

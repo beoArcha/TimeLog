@@ -56,6 +56,9 @@ export default function StackedBarActivityChart({
     for (const log of clampedLogs) {
       const dateKey = getUtcDateKey(log.clampedStartTime);
       if (!dateKey) {
+        console.warn(
+          `[StackedBarActivityChart] Skipping log ${log.id} due to invalid clampedStartTime: "${log.clampedStartTime}"`
+        );
         continue;
       }
       let dayTotals = dayMap.get(dateKey);

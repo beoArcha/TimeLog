@@ -49,6 +49,16 @@ export function resolveDateTimeLocale(locale?: string): string {
 }
 
 /**
+ * Safely constructs a Date object in UTC, ensuring that years 0000–0099
+ * are not incorrectly treated as 1900–1999 by Date.UTC.
+ */
+function createUtcDate(year: number, monthIndex: number, day: number): Date {
+  const date = new Date(Date.UTC(year, monthIndex, day));
+  date.setUTCFullYear(year);
+  return date;
+}
+
+/**
  * Parses a dateKey (such as 'YYYY-MM-DD' or strict ISO timestamp) into a JavaScript Date
  * strictly anchored at 00:00:00.000 UTC on that calendar day.
  * Performs calendar validation (days, months, leap years) and accounts for timezone
@@ -60,12 +70,10 @@ export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
     if (isNaN(dateKey.getTime())) {
       return null;
     }
-    return new Date(
-      Date.UTC(
-        dateKey.getUTCFullYear(),
-        dateKey.getUTCMonth(),
-        dateKey.getUTCDate()
-      )
+    return createUtcDate(
+      dateKey.getUTCFullYear(),
+      dateKey.getUTCMonth(),
+      dateKey.getUTCDate()
     );
   }
 
@@ -86,7 +94,7 @@ export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
       return null;
     }
 
-    const parsed = new Date(Date.UTC(year, month - 1, day));
+    const parsed = createUtcDate(year, month - 1, day);
     if (
       parsed.getUTCFullYear() === year &&
       parsed.getUTCMonth() === month - 1 &&
@@ -123,7 +131,7 @@ export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
     }
 
     // Calendar check on date component (catches Feb 31, non-leap Feb 29, etc.)
-    const calendarCheck = new Date(Date.UTC(year, month - 1, day));
+    const calendarCheck = createUtcDate(year, month - 1, day);
     if (
       calendarCheck.getUTCFullYear() !== year ||
       calendarCheck.getUTCMonth() !== month - 1 ||
@@ -141,9 +149,7 @@ export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
     }
 
     const d = new Date(timestamp);
-    return new Date(
-      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
-    );
+    return createUtcDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
   }
 
   return null;
@@ -159,7 +165,7 @@ export function getUtcDateKey(dateInput: string | Date): string | null {
   if (!parsed) {
     return null;
   }
-  const year = parsed.getUTCFullYear();
+  const year = String(parsed.getUTCFullYear()).padStart(4, '0');
   const month = String(parsed.getUTCMonth() + 1).padStart(2, '0');
   const day = String(parsed.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
