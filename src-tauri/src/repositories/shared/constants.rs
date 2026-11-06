@@ -102,8 +102,7 @@ pub const COPY_TIME_LOGS_HISTORY_MIGRATION_9: &str = "
         prev_end_time, prev_note, reason, audit_source
     FROM time_logs_history
 ";
-pub const DROP_TIME_LOGS_HISTORY_MIGRATION_9: &str =
-    "DROP TABLE time_logs_history";
+pub const DROP_TIME_LOGS_HISTORY_MIGRATION_9: &str = "DROP TABLE time_logs_history";
 pub const RENAME_TIME_LOGS_HISTORY_MIGRATION_9: &str =
     "ALTER TABLE time_logs_history_new RENAME TO time_logs_history";
 
