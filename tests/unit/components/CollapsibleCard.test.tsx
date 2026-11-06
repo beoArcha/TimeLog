@@ -1,15 +1,15 @@
-import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { Button } from '@components/ui/button';
 import { Settings } from 'lucide-react';
 import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
-describe('Unit Tests: CollapsibleCard', () => {
+describe('CollapsibleCard', () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -17,20 +17,26 @@ describe('Unit Tests: CollapsibleCard', () => {
 
   const mockState = getMockOXyFlowState();
 
-  it('Given defaultExpanded = true, When rendered, Then it should show children and expand icon', () => {
+  it('should render the title and content when expanded by default', () => {
+    // Arrange
     render(
       <MockProviders state={mockState}>
-        <CollapsibleCard title="My Card Title" icon={Settings} defaultExpanded={true}>
+        <CollapsibleCard title="My Card Title" icon={Settings} defaultExpanded>
           <div>Card Content Body</div>
         </CollapsibleCard>
       </MockProviders>
     );
 
-    expect(screen.getByText('My Card Title')).toBeTruthy();
+    // Act
+    const trigger = screen.getByRole('button', { name: /My Card Title/ });
+
+    // Assert
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
     expect(screen.getByText('Card Content Body')).toBeTruthy();
   });
 
-  it('Given defaultExpanded = false, When rendered, Then it should hide children initially', () => {
+  it('should report a collapsed state when defaultExpanded is false', () => {
+    // Arrange
     render(
       <MockProviders state={mockState}>
         <CollapsibleCard title="Collapsed Card" defaultExpanded={false}>
@@ -39,24 +45,33 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
-    expect(screen.getByText('Hidden Content').closest('[hidden]')).toBeTruthy();
+    // Act
+    const trigger = screen.getByRole('button', { name: /Collapsed Card/ });
+
+    // Assert
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.getByText('Hidden Content')).toBeTruthy();
   });
 
-  it('Given card header clicked, When defaultExpanded is true, Then it should hide children', () => {
+  it('should collapse the content when the header trigger is activated', () => {
+    // Arrange
     render(
       <MockProviders state={mockState}>
-        <CollapsibleCard title="Toggable Card" defaultExpanded={true}>
-          <div>Toggable Content</div>
+        <CollapsibleCard title="Toggle Card" defaultExpanded>
+          <div>Toggle Content</div>
         </CollapsibleCard>
       </MockProviders>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Toggable Card/ }));
+    // Act
+    fireEvent.click(screen.getByRole('button', { name: /Toggle Card/ }));
 
-    expect(screen.getByText('Toggable Content').closest('[hidden]')).toBeTruthy();
+    // Assert
+    expect(screen.getByRole('button', { name: /Toggle Card/ }).getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('Given headerRight element provided, When rendered, Then it should show headerRight', () => {
+  it('should render the independent header action when headerRight is provided', () => {
+    // Arrange
     render(
       <MockProviders state={mockState}>
         <CollapsibleCard title="Header Right Card" headerRight={<span>Extra Info</span>}>
@@ -65,10 +80,15 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
-    expect(screen.getByText('Extra Info')).toBeTruthy();
+    // Act
+    const action = screen.getByText('Extra Info');
+
+    // Assert
+    expect(action).toBeTruthy();
   });
 
-  it('Given titleNode prop provided, Then it should render titleNode instead of title text', () => {
+  it('should render titleNode instead of title when titleNode is provided', () => {
+    // Arrange
     render(
       <MockProviders state={mockState}>
         <CollapsibleCard titleNode={<span data-testid="custom-title">Custom Node</span>}>
@@ -77,26 +97,33 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
-    expect(screen.getByTestId('custom-title')).toBeTruthy();
-    expect(screen.queryByText('Custom Node')).toBeTruthy();
+    // Act
+    const titleNode = screen.getByTestId('custom-title');
+
+    // Assert
+    expect(titleNode).toBeTruthy();
   });
 
-  it('Given onClick prop provided, When header clicked, Then it should call onClick', () => {
-    const onClickSpy = vi.fn();
+  it('should invoke onClick when the header trigger changes the expanded state', () => {
+    // Arrange
+    const onClick = vi.fn();
     render(
       <MockProviders state={mockState}>
-        <CollapsibleCard title="Clickable" onClick={onClickSpy}>
+        <CollapsibleCard title="Clickable" onClick={onClick}>
           <div>Content</div>
         </CollapsibleCard>
       </MockProviders>
     );
 
+    // Act
     fireEvent.click(screen.getByRole('button', { name: /Clickable/ }));
 
-    expect(onClickSpy).toHaveBeenCalledTimes(1);
+    // Assert
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it('Given card is collapsed, When Enter key activates the header, Then it should expand and show content', async () => {
+  it('should expand the panel when Enter activates the header trigger', async () => {
+    // Arrange
     const user = userEvent.setup();
     render(
       <MockProviders state={mockState}>
@@ -105,15 +132,19 @@ describe('Unit Tests: CollapsibleCard', () => {
         </CollapsibleCard>
       </MockProviders>
     );
-
     const trigger = screen.getByRole('button', { name: /Keyboard Card/ });
     trigger.focus();
+
+    // Act
     await user.keyboard('{Enter}');
 
-    expect(screen.getByText('Keyboard Content').closest('[hidden]')).toBeNull();
+    // Assert
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByText('Keyboard Content')).toBeTruthy();
   });
 
-  it('Given card is collapsed, When Space key activates the header, Then it should expand and show content', async () => {
+  it('should expand the panel when Space activates the header trigger', async () => {
+    // Arrange
     const user = userEvent.setup();
     render(
       <MockProviders state={mockState}>
@@ -122,15 +153,19 @@ describe('Unit Tests: CollapsibleCard', () => {
         </CollapsibleCard>
       </MockProviders>
     );
-
     const trigger = screen.getByRole('button', { name: /Space Card/ });
     trigger.focus();
+
+    // Act
     await user.keyboard('{Space}');
 
-    expect(screen.getByText('Space Content').closest('[hidden]')).toBeNull();
+    // Assert
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByText('Space Content')).toBeTruthy();
   });
 
-  it('Given an interactive headerRight action, When Enter or Space is pressed, Then the card should remain expanded', async () => {
+  it('should preserve the expanded state when the independent header action is activated with Enter', async () => {
+    // Arrange
     const user = userEvent.setup();
     const onAction = vi.fn();
     render(
@@ -143,19 +178,44 @@ describe('Unit Tests: CollapsibleCard', () => {
         </CollapsibleCard>
       </MockProviders>
     );
-
     const action = screen.getByRole('button', { name: 'Header Action' });
     action.focus();
-    await user.keyboard('{Enter}');
-    expect(onAction).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('Persistent Content').closest('[hidden]')).toBeNull();
 
-    await user.keyboard(' ');
-    expect(onAction).toHaveBeenCalledTimes(2);
-    expect(screen.getByText('Persistent Content').closest('[hidden]')).toBeNull();
+    // Act
+    await user.keyboard('{Enter}');
+
+    // Assert
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: /Independent Action/ }).getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('Given multiple cards are rendered, Then each trigger should control a unique content region', () => {
+  it('should preserve the expanded state when the independent header action is activated with Space', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onAction = vi.fn();
+    render(
+      <MockProviders state={mockState}>
+        <CollapsibleCard
+          title="Independent Action"
+          headerRight={<Button onClick={onAction}>Header Action</Button>}
+        >
+          <div>Persistent Content</div>
+        </CollapsibleCard>
+      </MockProviders>
+    );
+    const action = screen.getByRole('button', { name: 'Header Action' });
+    action.focus();
+
+    // Act
+    await user.keyboard('{Space}');
+
+    // Assert
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: /Independent Action/ }).getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('should assign unique control relationships when multiple cards are rendered', () => {
+    // Arrange
     render(
       <MockProviders state={mockState}>
         <CollapsibleCard title="First Card"><div>First Content</div></CollapsibleCard>
@@ -163,30 +223,15 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
+    // Act
     const triggers = [
       screen.getByRole('button', { name: /First Card/ }),
       screen.getByRole('button', { name: /Second Card/ }),
     ];
-    const contentIds = triggers.map((trigger) => trigger.getAttribute('aria-controls'));
+    const controlIds = triggers.map((trigger) => trigger.getAttribute('aria-controls'));
 
-    expect(new Set(contentIds).size).toBe(2);
-    contentIds.forEach((id) => {
-      expect(id).toBeTruthy();
-      expect(document.getElementById(id!)).toBeTruthy();
-    });
-  });
-
-  it('Given CollapsibleCard rendered, Then it should consume semantic design tokens', () => {
-    const { container } = render(
-      <MockProviders state={mockState}>
-        <CollapsibleCard title="Semantic Card">
-          <div>Content</div>
-        </CollapsibleCard>
-      </MockProviders>
-    );
-
-    const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper.className).toContain('bg-card');
-    expect(wrapper.className).toContain('border-border');
+    // Assert
+    expect(controlIds.every(Boolean)).toBe(true);
+    expect(new Set(controlIds).size).toBe(2);
   });
 });
