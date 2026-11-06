@@ -143,7 +143,6 @@ describe('CollapsibleCard', () => {
     expect(screen.getByText('Keyboard Content')).toBeTruthy();
   });
 
-
   it('should preserve the expanded state when the independent header action is activated with Enter', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -168,7 +167,6 @@ describe('CollapsibleCard', () => {
     expect(onAction).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: /Independent Action/ }).getAttribute('aria-expanded')).toBe('true');
   });
-
 
   it('should assign unique control relationships when multiple cards are rendered', () => {
     // Arrange

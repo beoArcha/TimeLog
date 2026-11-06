@@ -35,6 +35,14 @@ sys-locale = "0.3"
 thiserror = "2.0"
 ts-rs = { version = "10.0", features = ["chrono-impl"] }
 uuid = { version = "1.8", features = ["serde", "v4"] }
+quick-xml = { version = "0.42.0", features = ["serialize"] }
+rust_xlsxwriter = "0.102.0"
+spreadsheet-ods = "1.0.4"
 
 [build-dependencies]
 tauri-build = { version = "2.0.0", features = [] }
+
+[dev-dependencies]
+calamine = "0.38"
+
+

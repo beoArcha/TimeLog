@@ -61,6 +61,7 @@ impl fmt::Display for BusinessRuleViolation {
 pub enum SinkError {
     Io(String),
     TestFailed(String),
+    Serialization(String),
 }
 
 impl fmt::Display for SinkError {
@@ -68,6 +69,7 @@ impl fmt::Display for SinkError {
         match self {
             Self::Io(msg) => write!(f, "Sink I/O error: {}", msg),
             Self::TestFailed(msg) => write!(f, "Sink verification failed: {}", msg),
+            Self::Serialization(msg) => write!(f, "Sink serialization error: {}", msg),
         }
     }
 }

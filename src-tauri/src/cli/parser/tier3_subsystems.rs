@@ -41,7 +41,7 @@ pub enum ReportSubcommand {
         #[arg(long, help = "Filter by end date (YYYY-MM-DD or RFC3339)")]
         to: Option<String>,
     },
-    #[command(about = "Export report to HTML, CSV, or JSON file")]
+    #[command(about = "Export report to HTML, CSV, JSON, XML, ODS, or XLSX file")]
     Export {
         #[arg(short, long, help = "Export format: html, csv, json, xml, ods, xlsx")]
         format: ExportFormat,
