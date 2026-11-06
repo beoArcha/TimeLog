@@ -2,8 +2,10 @@ import { MockProviders } from '@tests/shared/mocks/MockProviders';
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import CollapsibleCard from '@components/CollapsibleCard';
+import { Button } from '@components/ui/button';
 import { Settings } from 'lucide-react';
 import { getMockOXyFlowState } from '@tests/shared/test-helpers';
 
@@ -37,7 +39,7 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
-    expect(screen.queryByText('Hidden Content')).toBeNull();
+    expect(screen.getByText('Hidden Content').closest('[hidden]')).toBeTruthy();
   });
 
   it('Given card header clicked, When defaultExpanded is true, Then it should hide children', () => {
@@ -49,10 +51,9 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
-    const header = screen.getByText('Toggable Card');
-    fireEvent.click(header);
+    fireEvent.click(screen.getByRole('button', { name: /Toggable Card/ }));
 
-    expect(screen.queryByText('Toggable Content')).toBeNull();
+    expect(screen.getByText('Toggable Content').closest('[hidden]')).toBeTruthy();
   });
 
   it('Given headerRight element provided, When rendered, Then it should show headerRight', () => {
@@ -90,13 +91,13 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
-    const header = screen.getByRole('button');
-    fireEvent.click(header);
+    fireEvent.click(screen.getByRole('button', { name: /Clickable/ }));
 
     expect(onClickSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('Given card is collapsed, When Enter key pressed on header, Then it should expand and show content', () => {
+  it('Given card is collapsed, When Enter key activates the header, Then it should expand and show content', async () => {
+    const user = userEvent.setup();
     render(
       <MockProviders state={mockState}>
         <CollapsibleCard title="Keyboard Card" defaultExpanded={false}>
@@ -105,15 +106,15 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
-    expect(screen.queryByText('Keyboard Content')).toBeNull();
+    const trigger = screen.getByRole('button', { name: /Keyboard Card/ });
+    trigger.focus();
+    await user.keyboard('{Enter}');
 
-    const header = screen.getByRole('button');
-    fireEvent.keyDown(header, { key: 'Enter' });
-
-    expect(screen.getByText('Keyboard Content')).toBeTruthy();
+    expect(screen.getByText('Keyboard Content').closest('[hidden]')).toBeNull();
   });
 
-  it('Given card is collapsed, When Space key pressed on header, Then it should expand and show content', () => {
+  it('Given card is collapsed, When Space key activates the header, Then it should expand and show content', async () => {
+    const user = userEvent.setup();
     render(
       <MockProviders state={mockState}>
         <CollapsibleCard title="Space Card" defaultExpanded={false}>
@@ -122,12 +123,36 @@ describe('Unit Tests: CollapsibleCard', () => {
       </MockProviders>
     );
 
-    expect(screen.queryByText('Space Content')).toBeNull();
+    const trigger = screen.getByRole('button', { name: /Space Card/ });
+    trigger.focus();
+    await user.keyboard(' ');
 
-    const header = screen.getByRole('button');
-    fireEvent.keyDown(header, { key: ' ' });
+    expect(screen.getByText('Space Content').closest('[hidden]')).toBeNull();
+  });
 
-    expect(screen.getByText('Space Content')).toBeTruthy();
+  it('Given an interactive headerRight action, When Enter or Space is pressed, Then the card should remain expanded', async () => {
+    const user = userEvent.setup();
+    const onAction = vi.fn();
+    render(
+      <MockProviders state={mockState}>
+        <CollapsibleCard
+          title="Independent Action"
+          headerRight={<Button onClick={onAction}>Header Action</Button>}
+        >
+          <div>Persistent Content</div>
+        </CollapsibleCard>
+      </MockProviders>
+    );
+
+    const action = screen.getByRole('button', { name: 'Header Action' });
+    action.focus();
+    await user.keyboard('{Enter}');
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Persistent Content').closest('[hidden]')).toBeNull();
+
+    await user.keyboard(' ');
+    expect(onAction).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('Persistent Content').closest('[hidden]')).toBeNull();
   });
 
   it('Given CollapsibleCard rendered, Then it should consume semantic design tokens', () => {
