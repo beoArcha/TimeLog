@@ -6,6 +6,7 @@ import StackedBarActivityChart from '@features/reports/components/StackedBarActi
 import {
   formatChartDate,
   parseUtcCalendarDate,
+  getUtcDateKey,
   resolveDateTimeLocale,
   getChartDateFormatter,
 } from '@features/reports/utils/reportDateUtils';
@@ -104,9 +105,11 @@ describe('Unit Tests: StackedBarActivityChart', () => {
       />
     );
 
-    // Assert: Formatted date appears in the rendered chart ticks/DOM
+    // Assert: Formatted exact date appears in the rendered chart ticks/DOM
     const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
-    expect(textNodes.some((txt) => txt?.includes('czw.') || txt?.includes('10'))).toBe(true);
+    expect(textNodes).toContain('czw., 10');
+    expect(textNodes).not.toContain('pt., 11');
+    expect(textNodes).not.toContain('śr., 9');
     expect(formatChartDate('2026-09-10', 'pl')).toBe('czw., 10');
   });
 
@@ -130,9 +133,11 @@ describe('Unit Tests: StackedBarActivityChart', () => {
       />
     );
 
-    // Assert
+    // Assert: Formatted exact date appears in the rendered chart ticks/DOM
     const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
-    expect(textNodes.some((txt) => txt?.includes('Thu') || txt?.includes('10'))).toBe(true);
+    expect(textNodes).toContain('10 Thu');
+    expect(textNodes).not.toContain('11 Fri');
+    expect(textNodes).not.toContain('9 Wed');
     expect(formatChartDate('2026-09-10', 'en')).toBe('10 Thu');
   });
 
@@ -156,9 +161,11 @@ describe('Unit Tests: StackedBarActivityChart', () => {
       />
     );
 
-    // Assert
+    // Assert: Formatted exact date appears in the rendered chart ticks/DOM
     const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
-    expect(textNodes.some((txt) => txt?.includes('Do.') || txt?.includes('10.'))).toBe(true);
+    expect(textNodes).toContain('Do., 10.');
+    expect(textNodes).not.toContain('Fr., 11.');
+    expect(textNodes).not.toContain('Mi., 9.');
     expect(formatChartDate('2026-09-10', 'de')).toBe('Do., 10.');
   });
 
@@ -185,7 +192,45 @@ describe('Unit Tests: StackedBarActivityChart', () => {
 
     // Assert
     const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
-    expect(textNodes.some((txt) => txt?.includes('czw.') || txt?.includes('10'))).toBe(true);
+    expect(textNodes).toContain('czw., 10');
+    expect(textNodes).not.toContain('pt., 11');
+  });
+
+  it('should correctly group entries across UTC midnight boundaries and timezone offsets', () => {
+    // Arrange:
+    // log1: 2026-06-15T01:00:00+04:00 is 2026-06-14T21:00:00Z in UTC (Sunday -> niedz., 14 in pl)
+    // log2: 2026-06-14T23:00:00-02:00 is 2026-06-15T01:00:00Z in UTC (Monday -> pon., 15 in pl)
+    const logs = [
+      aClampedTimeLog({
+        id: 'cl-shift-prev-day',
+        projectId: 'p1',
+        clampedStartTime: '2026-06-15T01:00:00+04:00',
+        clampedDurationSeconds: 3600,
+      }),
+      aClampedTimeLog({
+        id: 'cl-shift-next-day',
+        projectId: 'p2',
+        clampedStartTime: '2026-06-14T23:00:00-02:00',
+        clampedDurationSeconds: 7200,
+      }),
+    ];
+
+    // Act
+    const { container } = render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="pl"
+      />
+    );
+
+    // Assert: Day grouping respects UTC calendar semantics
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+    expect(textNodes).toContain('niedz., 14');
+    expect(textNodes).toContain('pon., 15');
+    // Ensure naïve string slicing (which would place log1 on 2026-06-15 and log2 on 2026-06-14) did not occur
+    expect(textNodes).not.toContain('pon., 14');
+    expect(textNodes).not.toContain('wt., 15');
   });
 
   it('should handle month and year boundaries in chart datasets', () => {
@@ -271,8 +316,13 @@ describe('Unit Tests: reportDateUtils', () => {
 
     it('should safely fall back when dateKey is invalid or malformed', () => {
       expect(formatChartDate('invalid-date', 'pl')).toBe('invalid-date');
+      expect(formatChartDate('2026-06-15-invalid', 'pl')).toBe('2026-06-15-invalid');
       expect(formatChartDate('', 'en')).toBe('');
       expect(formatChartDate(new Date('invalid'), 'en')).toBe('');
+    });
+
+    it('should safely fall back to english when an invalid locale tag is provided', () => {
+      expect(formatChartDate('2026-09-10', 'invalid-locale-xyz' as Locale)).toBe('10 Thu');
     });
   });
 
@@ -297,10 +347,78 @@ describe('Unit Tests: reportDateUtils', () => {
       expect(startOfDay?.getTime()).toBe(endOfDay?.getTime());
     });
 
-    it('should return null for invalid calendar dates', () => {
+    it('should correctly account for timezone offsets shifting dates across midnight', () => {
+      // 2026-06-15T01:00:00+04:00 is 2026-06-14T21:00:00Z in UTC
+      const shiftedBack = parseUtcCalendarDate('2026-06-15T01:00:00+04:00');
+      expect(shiftedBack?.getUTCFullYear()).toBe(2026);
+      expect(shiftedBack?.getUTCMonth()).toBe(5);
+      expect(shiftedBack?.getUTCDate()).toBe(14);
+
+      // 2026-06-14T23:00:00-02:00 is 2026-06-15T01:00:00Z in UTC
+      const shiftedForward = parseUtcCalendarDate('2026-06-14T23:00:00-02:00');
+      expect(shiftedForward?.getUTCFullYear()).toBe(2026);
+      expect(shiftedForward?.getUTCMonth()).toBe(5);
+      expect(shiftedForward?.getUTCDate()).toBe(15);
+    });
+
+    it('should strictly reject malformed strings with trailing garbage', () => {
+      expect(parseUtcCalendarDate('2026-06-15-invalid')).toBeNull();
+      expect(parseUtcCalendarDate('2026-06-15extra')).toBeNull();
+      expect(parseUtcCalendarDate('2026-06-15T10:00:00Z-extra')).toBeNull();
+      expect(parseUtcCalendarDate('2026-06-15T10:00:00Zgarbage')).toBeNull();
+    });
+
+    it('should return null for impossible calendar dates and leap years', () => {
       expect(parseUtcCalendarDate('2026-02-31')).toBeNull(); // Non-existent date
+      expect(parseUtcCalendarDate('2026-02-29')).toBeNull(); // 2026 is not a leap year
+      expect(parseUtcCalendarDate('2026-04-31')).toBeNull(); // April only has 30 days
+      expect(parseUtcCalendarDate('2026-13-01')).toBeNull(); // Month 13 is invalid
+      expect(parseUtcCalendarDate('2026-00-15')).toBeNull(); // Month 0 is invalid
+      expect(parseUtcCalendarDate('2026-06-00')).toBeNull(); // Day 0 is invalid
       expect(parseUtcCalendarDate('not-a-date')).toBeNull();
       expect(parseUtcCalendarDate(12345 as unknown as string)).toBeNull();
+    });
+
+    it('should accept valid leap year calendar date (February 29)', () => {
+      const leapDay = parseUtcCalendarDate('2024-02-29');
+      expect(leapDay).not.toBeNull();
+      expect(leapDay?.getUTCFullYear()).toBe(2024);
+      expect(leapDay?.getUTCMonth()).toBe(1); // February (0-indexed)
+      expect(leapDay?.getUTCDate()).toBe(29);
+    });
+
+    it('should return null for impossible time components in ISO strings', () => {
+      expect(parseUtcCalendarDate('2026-06-15T25:00:00Z')).toBeNull();
+      expect(parseUtcCalendarDate('2026-06-15T12:60:00Z')).toBeNull();
+      expect(parseUtcCalendarDate('2026-06-15T12:00:60Z')).toBeNull();
+      expect(parseUtcCalendarDate('2026-02-31T12:00:00Z')).toBeNull();
+    });
+  });
+
+  describe('getUtcDateKey', () => {
+    it('should extract YYYY-MM-DD from valid date inputs', () => {
+      expect(getUtcDateKey('2026-06-15')).toBe('2026-06-15');
+      expect(getUtcDateKey('2026-06-15T00:00:00.000Z')).toBe('2026-06-15');
+      expect(getUtcDateKey('2026-06-15T23:59:59.999Z')).toBe('2026-06-15');
+    });
+
+    it('should account for timezone offset shifts in date key extraction', () => {
+      // 2026-06-15T01:00:00+04:00 is 2026-06-14 in UTC
+      expect(getUtcDateKey('2026-06-15T01:00:00+04:00')).toBe('2026-06-14');
+      // 2026-06-14T23:00:00-02:00 is 2026-06-15 in UTC
+      expect(getUtcDateKey('2026-06-14T23:00:00-02:00')).toBe('2026-06-15');
+    });
+
+    it('should extract date key directly from Date object', () => {
+      const date = new Date(Date.UTC(2026, 8, 10, 15, 30));
+      expect(getUtcDateKey(date)).toBe('2026-09-10');
+    });
+
+    it('should return null for malformed or invalid inputs', () => {
+      expect(getUtcDateKey('2026-06-15-invalid')).toBeNull();
+      expect(getUtcDateKey('invalid-key')).toBeNull();
+      expect(getUtcDateKey('')).toBeNull();
+      expect(getUtcDateKey(new Date('invalid'))).toBeNull();
     });
   });
 
@@ -310,6 +428,21 @@ describe('Unit Tests: reportDateUtils', () => {
       expect(resolveDateTimeLocale('custom')).toBe('en');
       expect(resolveDateTimeLocale('system')).toBeDefined();
       expect(resolveDateTimeLocale(undefined)).toBeDefined();
+    });
+
+    it('should safely fall back to en for invalid or malformed locales without throwing RangeError', () => {
+      expect(resolveDateTimeLocale('invalid-locale-xyz')).toBe('en');
+      expect(resolveDateTimeLocale('not_a_valid_bcp47!')).toBe('en');
+      expect(resolveDateTimeLocale('   ')).toBe('en');
+      expect(resolveDateTimeLocale('')).toBeDefined();
+    });
+
+    it('should return valid formatter for invalid locale without throwing RangeError', () => {
+      expect(() => getChartDateFormatter('invalid-locale-xyz')).not.toThrow();
+      const formatter = getChartDateFormatter('invalid-locale-xyz');
+      expect(formatter).toBeDefined();
+      const date = new Date(Date.UTC(2026, 8, 10));
+      expect(formatter.format(date)).toBe('10 Thu');
     });
 
     it('should cache Intl.DateTimeFormat instances for identical locales', () => {

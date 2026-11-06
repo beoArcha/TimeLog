@@ -14,11 +14,11 @@ import { Text } from '@components/ui/typography';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
-import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
-import { Project } from '@bindings/Project';
-import { Task } from '@bindings/Task';
-import { Locale } from '@bindings/Locale';
-import { formatChartDate } from '@features/reports/utils/reportDateUtils';
+import type { ClampedTimeLog } from '@bindings/ClampedTimeLog';
+import type { Project } from '@bindings/Project';
+import type { Task } from '@bindings/Task';
+import type { Locale } from '@bindings/Locale';
+import { formatChartDate, getUtcDateKey } from '@features/reports/utils/reportDateUtils';
 
 export interface StackedBarActivityChartProps {
   clampedLogs: ClampedTimeLog[];
@@ -54,11 +54,11 @@ export default function StackedBarActivityChart({
     const presentProjectIds = new Set<string>();
 
     for (const log of clampedLogs) {
-      const dateStr = log.clampedStartTime.slice(0, 10);
-      let dayTotals = dayMap.get(dateStr);
+      const dateKey = getUtcDateKey(log.clampedStartTime) ?? log.clampedStartTime.slice(0, 10);
+      let dayTotals = dayMap.get(dateKey);
       if (!dayTotals) {
         dayTotals = {};
-        dayMap.set(dateStr, dayTotals);
+        dayMap.set(dateKey, dayTotals);
       }
       dayTotals[log.projectId] = (dayTotals[log.projectId] || 0) + log.clampedDurationSeconds;
       presentProjectIds.add(log.projectId);
