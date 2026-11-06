@@ -225,7 +225,6 @@ fn test_given_legacy_db_with_existing_records_when_migrating_to_v7_then_preserve
     assert_eq!(t_curr.as_deref(), Some("USD"));
 }
 
-
 fn create_v8_database_with_legacy_history() -> Connection {
     let conn = Connection::open_in_memory().expect("in-memory db open should succeed");
     conn.execute_batch(
@@ -383,7 +382,9 @@ fn test_given_legacy_history_records_when_rebuilding_table_then_preserves_all_re
     initialize_database(&conn).expect("migration 9 should succeed");
 
     let count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| {
+            row.get(0)
+        })
         .expect("history count should be queryable");
     assert_eq!(count, 2, "all legacy history rows must be preserved");
 
@@ -394,7 +395,15 @@ fn test_given_legacy_history_records_when_rebuilding_table_then_preserves_all_re
             FROM time_logs_history WHERE id = 'history-1'
             ",
             [],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?)),
+            |row| {
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get(2)?,
+                    row.get(3)?,
+                    row.get(4)?,
+                ))
+            },
         )
         .expect("first history row should be preserved");
     assert_eq!(first.0, "history-1");
@@ -448,14 +457,21 @@ fn test_given_database_after_migration_9_when_initializing_again_then_is_idempot
         .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| row.get(0))
         .expect("history count should be queryable");
     let migration_count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM schema_migrations", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM schema_migrations", [], |row| {
+            row.get(0)
+        })
         .expect("migration count should be queryable");
 
-    assert_eq!(before, after, "initialization must not duplicate or delete history");
-    assert_eq!(migration_count, 9, "migration 9 should be recorded exactly once");
+    assert_eq!(
+        before, after,
+        "initialization must not duplicate or delete history"
+    );
+    assert_eq!(
+        migration_count, 9,
+        "migration 9 should be recorded exactly once"
+    );
     assert!(!history_reason_is_not_null(&conn));
 }
-
 
 #[test]
 fn test_given_migrated_v8_database_when_editing_log_without_reason_then_persistence_saves_audit() {
