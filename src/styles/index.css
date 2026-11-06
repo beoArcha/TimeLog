@@ -575,6 +575,31 @@
     background: #ffffff !important;
   }
 
+  /* Unclip all scroll and height-constrained containers in report print view (TASK-18-D1) */
+  #reports-panel .overflow-y-auto,
+  #reports-panel .overflow-x-auto,
+  #reports-panel [class*="overflow-y-"],
+  #reports-panel [class*="overflow-x-"],
+  #reports-panel [class*="max-h-"],
+  .print\:max-h-none {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .print\:overflow-visible {
+    overflow: visible !important;
+  }
+
+  /* Ensure collapsible card bodies with forceMountOnPrint display in print */
+  [data-slot="collapsible-card"] > .print\:flex,
+  .print\:flex {
+    display: flex !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
   /* Prevent awkward page breaks inside cards and tables */
   table,
   tbody,
@@ -586,6 +611,18 @@
   [data-slot="area"],
   .break-inside-avoid,
   #reports-panel > * {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Allow log list container to break naturally across multiple pages while keeping items intact */
+  #reports-panel [data-testid="report-log-list-scroll-container"],
+  #reports-panel div:has(> [data-testid="report-log-list-scroll-container"]) {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  [data-testid="report-log-list-scroll-container"] > * {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }

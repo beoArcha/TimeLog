@@ -163,6 +163,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         billingResult={billingResult}
         billingError={billingError}
         isBillingLoading={isBillingLoading}
+        forceMountOnPrint={true}
       />
 
       <ReportBillingCard
@@ -175,6 +176,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         billingResult={billingResult}
         billingError={billingError}
         isLoading={isBillingLoading}
+        forceMountOnPrint={true}
       />
 
       <ReportPeriodSelector
@@ -193,11 +195,13 @@ export default function ReportView({ state }: { state: GuiState }) {
           clampedLogs={clampedLogs}
           projects={projects}
           tasks={tasks}
+          forceMountOnPrint={true}
         />
         <ProjectDonutChart
           projectChart={projectChart}
           selectedProjectId={selectedProjectId}
           onSelectProject={setSelectedProjectId}
+          forceMountOnPrint={true}
         />
       </Grid>
 

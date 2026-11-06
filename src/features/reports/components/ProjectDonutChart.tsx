@@ -23,6 +23,7 @@ export interface ProjectDonutChartProps {
   selectedProjectId?: string | null;
   onSelectProject?: (projectId: string | null) => void;
   defaultExpanded?: boolean;
+  forceMountOnPrint?: boolean;
 }
 
 export default function ProjectDonutChart({
@@ -30,6 +31,7 @@ export default function ProjectDonutChart({
   selectedProjectId,
   onSelectProject,
   defaultExpanded = true,
+  forceMountOnPrint = false,
 }: ProjectDonutChartProps) {
   const { t } = useTranslation('report');
 
@@ -79,6 +81,7 @@ export default function ProjectDonutChart({
       defaultExpanded={defaultExpanded}
       headerTestId="project-donut-chart-header"
       contentClassName="mt-2"
+      forceMountOnPrint={forceMountOnPrint}
       headerRight={
         selectedProjectId && (
           <div className="flex items-center gap-2">

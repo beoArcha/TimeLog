@@ -19,6 +19,7 @@ export interface CollapsibleCardProps {
   titleNode?: React.ReactNode;
   onClick?: () => void;
   headerTestId?: string;
+  forceMountOnPrint?: boolean;
 }
 
 /**
@@ -38,6 +39,7 @@ export function CollapsibleCard({
   titleNode,
   onClick,
   headerTestId,
+  forceMountOnPrint = false,
 }: CollapsibleCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -86,18 +88,24 @@ export function CollapsibleCard({
         </HStack>
         <HStack align="center" gap="sm">
           {headerRight && <div onClick={(e) => e.stopPropagation()}>{headerRight}</div>}
-          {isExpanded ? (
-            <ChevronDown className="w-5 h-5 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          )}
+          <div className="print:hidden">
+            {isExpanded ? (
+              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            )}
+          </div>
         </HStack>
       </HStack>
 
-      {isExpanded && (
+      {(isExpanded || forceMountOnPrint) && (
         <VStack
           id={`collapsible-content-${headerTestId ?? 'card'}`}
-          className={cn('animate-in fade-in slide-in-from-top-2 duration-300', contentClassName)}
+          className={cn(
+            'animate-in fade-in slide-in-from-top-2 duration-300',
+            contentClassName,
+            !isExpanded && 'hidden print:flex'
+          )}
         >
           {children}
         </VStack>

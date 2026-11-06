@@ -82,7 +82,10 @@ export default function ReportLogList({
         <Heading level={4} className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase">
           📋 {t('PlainDump')} ({displayLogs.length})
         </Heading>
-        <div className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto p-4 flex flex-col gap-2">
+        <div
+          data-testid="report-log-list-scroll-container"
+          className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto print:max-h-none print:overflow-visible p-4 flex flex-col gap-2"
+        >
           {displayLogs.map(log => {
             const isClamped = 'clampedDurationSeconds' in log;
             const p = projects.find(x => x.id === log.projectId);
