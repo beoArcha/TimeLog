@@ -57,7 +57,7 @@ export function SegmentedControl<T extends string = string>({
     <ToggleGroup
       value={[value]}
       onValueChange={(nextValues) => {
-        const next = nextValues.at(-1) as T | undefined;
+        const next = nextValues[nextValues.length - 1] as T | undefined;
         if (next !== undefined && next !== value) {
           onChange(next);
         }
