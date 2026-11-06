@@ -26,6 +26,7 @@ export interface StackedBarActivityChartProps {
   tasks?: Task[];
   defaultExpanded?: boolean;
   locale?: Locale;
+  forceMountOnPrint?: boolean;
 }
 
 interface DailyProjectDataPoint {
@@ -40,6 +41,7 @@ export default function StackedBarActivityChart({
   projects,
   defaultExpanded = true,
   locale: propLocale,
+  forceMountOnPrint = false,
 }: StackedBarActivityChartProps) {
   const { t, locale: contextLocale } = useTranslation('report');
   const activeLocale = propLocale ?? contextLocale;
@@ -121,6 +123,7 @@ export default function StackedBarActivityChart({
       defaultExpanded={defaultExpanded}
       headerTestId="stacked-activity-chart-header"
       contentClassName="mt-2"
+      forceMountOnPrint={forceMountOnPrint}
     >
       {!hasData ? (
         <div className="py-8 text-center" data-testid="stacked-chart-empty">

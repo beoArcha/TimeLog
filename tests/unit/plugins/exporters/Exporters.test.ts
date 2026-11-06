@@ -90,6 +90,55 @@ describe('Built-in Exporter Plugins', () => {
       expect(text).toContain('<projectName>Project &quot;Alpha&quot;</projectName>');
       expect(text).toContain('<taskName>Coding, Testing &amp; Review</taskName>');
     });
+
+    it('should produce a well-formed XML document that parses without DOMParser errors and preserves Unicode', async () => {
+      // Arrange
+      const exporter = new XmlExporterPlugin();
+      const unicodePayload: ExportPayload = {
+        title: 'Raport zażółć gęślą jaźń & <Special> "Chars"',
+        period: 'month',
+        generatedAt: '2026-11-06T20:00:00Z',
+        totalSeconds: 3600,
+        formattedTotalDuration: '01:00:00',
+        projectBreakdown: [],
+        rows: [
+          {
+            id: 'row-unicode',
+            date: '2026-11-06',
+            projectName: 'Projet Français & 日本語',
+            taskName: 'Task with control char \u0007 and \u0000 stripped',
+            startTime: '09:00:00',
+            endTime: '10:00:00',
+            durationSeconds: 3600,
+            formattedDuration: '01:00:00',
+            note: 'Line with <tags> & "quotes" and Polish: ĄĆĘŁŃÓŚŹŻ',
+          },
+        ],
+      };
+
+      // Act
+      const blob = await exporter.export(unicodePayload);
+      const xmlString = await blob.text();
+
+      // Parse XML document
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xmlString, 'application/xml');
+
+      // Assert
+      const parseError = doc.querySelector('parsererror');
+      expect(parseError).toBeNull();
+
+      expect(doc.documentElement.nodeName).toBe('report');
+      expect(doc.querySelector('title')?.textContent).toBe('Raport zażółć gęślą jaźń & <Special> "Chars"');
+      expect(doc.querySelector('totalSeconds')?.textContent).toBe('3600');
+
+      const rows = doc.querySelectorAll('rows > row');
+      expect(rows).toHaveLength(1);
+      const row = rows[0];
+      expect(row.querySelector('projectName')?.textContent).toBe('Projet Français & 日本語');
+      expect(row.querySelector('taskName')?.textContent).toBe('Task with control char  and  stripped');
+      expect(row.querySelector('note')?.textContent).toBe('Line with <tags> & "quotes" and Polish: ĄĆĘŁŃÓŚŹŻ');
+    });
   });
 
   describe('MarkdownClipboardExporterPlugin', () => {

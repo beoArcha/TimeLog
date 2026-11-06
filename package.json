@@ -22,6 +22,7 @@
     "test:smoke": "vitest run tests/smoke/; cargo test --manifest-path src-tauri/Cargo.toml --test smoke_test",
     "test:arch:rust": "cargo test --manifest-path src-tauri/Cargo.toml --test architecture_tests",
     "test:e2e": "playwright test --config=tests/e2e/config/playwright.config.ts",
+    "test:e2e:print": "playwright test tests/e2e/specs/reports-print.spec.ts --config=tests/e2e/config/playwright.config.ts",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
     "test:mutation": "stryker run",
     "test:quality": "bun run test:smoke; bun run test:arch:rust; bun run check; bun run test:rust; bun run test",

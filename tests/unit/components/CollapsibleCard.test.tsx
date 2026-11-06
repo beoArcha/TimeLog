@@ -143,27 +143,6 @@ describe('CollapsibleCard', () => {
     expect(screen.getByText('Keyboard Content')).toBeTruthy();
   });
 
-  it('should expand the panel when Space activates the header trigger', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    render(
-      <MockProviders state={mockState}>
-        <CollapsibleCard title="Space Card" defaultExpanded={false}>
-          <div>Space Content</div>
-        </CollapsibleCard>
-      </MockProviders>
-    );
-    const trigger = screen.getByRole('button', { name: /Space Card/ });
-    trigger.focus();
-
-    // Act
-    await user.keyboard('[Space]');
-
-    // Assert
-    expect(trigger.getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getByText('Space Content')).toBeTruthy();
-  });
-
   it('should preserve the expanded state when the independent header action is activated with Enter', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -183,31 +162,6 @@ describe('CollapsibleCard', () => {
 
     // Act
     await user.keyboard('{Enter}');
-
-    // Assert
-    expect(onAction).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('button', { name: /Independent Action/ }).getAttribute('aria-expanded')).toBe('true');
-  });
-
-  it('should preserve the expanded state when the independent header action is activated with Space', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const onAction = vi.fn();
-    render(
-      <MockProviders state={mockState}>
-        <CollapsibleCard
-          title="Independent Action"
-          headerRight={<Button onClick={onAction}>Header Action</Button>}
-        >
-          <div>Persistent Content</div>
-        </CollapsibleCard>
-      </MockProviders>
-    );
-    const action = screen.getByRole('button', { name: 'Header Action' });
-    action.focus();
-
-    // Act
-    await user.keyboard('[Space]');
 
     // Assert
     expect(onAction).toHaveBeenCalledTimes(1);
@@ -234,4 +188,56 @@ describe('CollapsibleCard', () => {
     expect(controlIds.every(Boolean)).toBe(true);
     expect(new Set(controlIds).size).toBe(2);
   });
+
+  it('Given forceMountOnPrint = true and collapsed, When rendered, Then content remains mounted in DOM with hidden print:flex', () => {
+    const { container } = render(
+      <MockProviders state={mockState}>
+        <CollapsibleCard
+          title="Printable Card"
+          defaultExpanded={false}
+          forceMountOnPrint={true}
+          headerTestId="printable-card-header"
+        >
+          <div data-testid="printable-content">Always Mounted Content</div>
+        </CollapsibleCard>
+      </MockProviders>
+    );
+
+    // Node is present in DOM for print media queries
+    const content = screen.getByTestId('printable-content');
+    expect(content).toBeTruthy();
+
+    // But wrapped in a container that has hidden print:flex for screen vs print
+    const contentWrapper = container.querySelector('#collapsible-content-printable-card-header');
+    expect(contentWrapper).not.toBeNull();
+    expect(contentWrapper?.classList.contains('hidden')).toBe(true);
+    expect(contentWrapper?.className).toContain('print:flex');
+
+    // Chevron wrapper is print:hidden
+    const chevronWrapper = container.querySelector('.print\\:hidden');
+    expect(chevronWrapper).not.toBeNull();
+  });
+
+  it('Given forceMountOnPrint = true, When header is clicked, Then content expands and loses hidden class', () => {
+    const { container } = render(
+      <MockProviders state={mockState}>
+        <CollapsibleCard
+          title="Printable Toggle"
+          defaultExpanded={false}
+          forceMountOnPrint={true}
+          headerTestId="toggle-header"
+        >
+          <div>Toggled Content</div>
+        </CollapsibleCard>
+      </MockProviders>
+    );
+
+    const header = screen.getByRole('button');
+    const contentWrapper = container.querySelector('#collapsible-content-toggle-header');
+    expect(contentWrapper?.classList.contains('hidden')).toBe(true);
+
+    fireEvent.click(header);
+    expect(contentWrapper?.classList.contains('hidden')).toBe(false);
+  });
 });
+

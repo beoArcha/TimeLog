@@ -195,6 +195,38 @@ fn test_given_tree_when_export_xml_then_produces_well_formed_xml() {
 }
 
 #[test]
+fn test_given_tree_when_export_xml_then_parses_completely_without_errors() {
+    // Arrange
+    let tree = create_sample_tree();
+    let xml = export_xml(&tree).expect("xml export should succeed");
+
+    // Act: parse complete XML document using quick_xml reader
+    let mut reader = quick_xml::Reader::from_str(&xml);
+    reader.config_mut().trim_text(true);
+    let mut buf = Vec::new();
+    let mut tag_count = 0;
+
+    loop {
+        match reader.read_event_into(&mut buf) {
+            Ok(quick_xml::events::Event::Eof) => break,
+            Ok(quick_xml::events::Event::Start(_)) => {
+                tag_count += 1;
+            }
+            Err(e) => panic!(
+                "XML parser encountered an error at position {}: {:?}",
+                reader.buffer_position(),
+                e
+            ),
+            _ => (),
+        }
+        buf.clear();
+    }
+
+    // Assert
+    assert!(tag_count > 5, "XML should contain parsed elements");
+}
+
+#[test]
 fn test_given_task_without_subtasks_when_export_xlsx_then_produces_complete_and_correct_content() {
     // Arrange
     let tree = create_sample_tree();

@@ -77,4 +77,46 @@ describe('CreditsModal', () => {
     // Assert
     expect(state.setShowCreditsModal).toHaveBeenCalledWith(false);
   });
+
+  it('should render all refreshed tech stack core dependencies', () => {
+    // Arrange
+    const state = createCreditsModalState({ showCreditsModal: true });
+
+    // Act
+    render(
+      <MockProviders state={state}>
+        <CreditsModal />
+      </MockProviders>
+    );
+
+    // Assert: verify each core dependency in TASK-18-D3 stack
+    expect(screen.getByText('React 19')).toBeDefined();
+    expect(screen.getByText('@base-ui/react')).toBeDefined();
+    expect(screen.getByText('Tauri v2')).toBeDefined();
+    expect(screen.getByText('Recharts')).toBeDefined();
+    expect(screen.getByText('Sonner')).toBeDefined();
+    expect(screen.getByText('Geist Font Family')).toBeDefined();
+    expect(screen.getByText('Google GenAI')).toBeDefined();
+    expect(screen.getByText('Motion')).toBeDefined();
+    expect(screen.getByText('Tailwind CSS v4')).toBeDefined();
+    expect(screen.getByText('Lucide React')).toBeDefined();
+  });
+
+  it('should render author notes on Vibe Coding and architecture practices', () => {
+    // Arrange
+    const state = createCreditsModalState({ showCreditsModal: true });
+
+    // Act
+    render(
+      <MockProviders state={state}>
+        <CreditsModal />
+      </MockProviders>
+    );
+
+    // Assert: verify author bio & vibe coding architecture practices are rendered
+    expect(screen.getAllByText(/Marcin 'beoArcha' Stefan/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Vibe Coding in oXyFlow/i)).toBeDefined();
+    expect(screen.getByText(/dual-runtime parity/i)).toBeDefined();
+  });
 });
+

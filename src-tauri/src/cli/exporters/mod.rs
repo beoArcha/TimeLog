@@ -35,12 +35,20 @@ pub fn export_to_file(
 
     if let Some(parent) = Path::new(output_path).parent() {
         if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| CliError::Sink(SinkError::Io(e.to_string())))?;
+            std::fs::create_dir_all(parent).map_err(|e| {
+                log::error!(
+                    "Failed to create parent directories for {}: {}",
+                    output_path,
+                    e
+                );
+                CliError::Sink(SinkError::Io(e.to_string()))
+            })?;
         }
     }
 
-    std::fs::write(output_path, &bytes)
-        .map_err(|e| CliError::Sink(SinkError::Io(e.to_string())))?;
+    std::fs::write(output_path, &bytes).map_err(|e| {
+        log::error!("Failed to write export file to {}: {}", output_path, e);
+        CliError::Sink(SinkError::Io(e.to_string()))
+    })?;
     Ok(())
 }
