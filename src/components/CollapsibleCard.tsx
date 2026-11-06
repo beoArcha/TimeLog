@@ -79,14 +79,17 @@ export function CollapsibleCard({
                     {...triggerProps}
                     type="button"
                     variant="ghost"
+                    icon={
+                      state.open ? (
+                        <ChevronDown className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      )
+                    }
+                    iconPlacement="right"
                     className="h-auto w-full justify-between rounded-md px-1 py-1 text-left text-inherit hover:bg-muted/40"
                   >
-                    <span className="min-w-0">{titleNode ?? title}</span>
-                    {state.open ? (
-                      <ChevronDown className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    )}
+                    {titleNode ?? title}
                   </Button>
                 )}
               />
