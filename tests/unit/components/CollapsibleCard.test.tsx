@@ -125,7 +125,7 @@ describe('Unit Tests: CollapsibleCard', () => {
 
     const trigger = screen.getByRole('button', { name: /Space Card/ });
     trigger.focus();
-    await user.keyboard(' ');
+    await user.keyboard('{Space}');
 
     expect(screen.getByText('Space Content').closest('[hidden]')).toBeNull();
   });
