@@ -4,7 +4,6 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ReportLogList from '@features/reports/components/ReportLogList';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import { EngineRouter } from '@common/engine/EngineRouter';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 
 describe('Unit Tests: ReportLogList', () => {
@@ -189,17 +188,20 @@ describe('Unit Tests: ReportLogList', () => {
   });
 
   describe('Inline Edit Audit Flow', () => {
-    it('should open ReportLogEditModal and require audit reason to edit log', async () => {
-      const editSpy = vi.spyOn(EngineRouter.getInstance().timeLogs, 'editTimeLog').mockResolvedValue(undefined);
+    it('should open ReportLogEditModal, require an audit reason, and delegate the edit to DataContext', async () => {
+      const handleEditTimeLogMock = vi.fn().mockResolvedValue({
+        saved: true,
+        synchronized: true,
+      });
+      const onLogUpdatedMock = vi.fn();
 
       render(
-        <MockProviders>
-          <ReportLogList {...mockProps} />
+        <MockProviders dataState={{ handleEditTimeLog: handleEditTimeLogMock }}>
+          <ReportLogList {...mockProps} onLogUpdated={onLogUpdatedMock} />
         </MockProviders>
       );
 
-      const editBtn = screen.getByTestId('edit-log-l1');
-      fireEvent.click(editBtn);
+      fireEvent.click(screen.getByTestId('edit-log-l1'));
 
       expect(screen.getByTestId('audit-edit-start-time')).not.toBeNull();
       expect(screen.getByTestId('audit-edit-reason')).not.toBeNull();
@@ -207,15 +209,15 @@ describe('Unit Tests: ReportLogList', () => {
       const saveBtn = screen.getByTestId('audit-save-button');
       expect(saveBtn.getAttribute('disabled')).not.toBeNull();
 
-      const reasonInput = screen.getByTestId('audit-edit-reason');
-      fireEvent.change(reasonInput, { target: { value: 'Corrected duration for client review' } });
-
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'Corrected duration for client review' },
+      });
       expect(saveBtn.getAttribute('disabled')).toBeNull();
 
       fireEvent.click(saveBtn);
 
       await waitFor(() => {
-        expect(editSpy).toHaveBeenCalledWith(
+        expect(handleEditTimeLogMock).toHaveBeenCalledWith(
           'l1',
           't1',
           '2026-06-15T10:00:00Z',
@@ -223,6 +225,7 @@ describe('Unit Tests: ReportLogList', () => {
           'Feature implementation notes',
           'Corrected duration for client review'
         );
+        expect(onLogUpdatedMock).toHaveBeenCalledWith('l1');
       });
     });
   });
