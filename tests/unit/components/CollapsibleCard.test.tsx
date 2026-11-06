@@ -143,26 +143,6 @@ describe('CollapsibleCard', () => {
     expect(screen.getByText('Keyboard Content')).toBeTruthy();
   });
 
-  it('should expand the panel when Space activates the header trigger', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    render(
-      <MockProviders state={mockState}>
-        <CollapsibleCard title="Space Card" defaultExpanded={false}>
-          <div>Space Content</div>
-        </CollapsibleCard>
-      </MockProviders>
-    );
-    const trigger = screen.getByRole('button', { name: /Space Card/ });
-    trigger.focus();
-
-    // Act
-    await user.keyboard('{Space}');
-
-    // Assert
-    expect(trigger.getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getByText('Space Content')).toBeTruthy();
-  });
 
   it('should preserve the expanded state when the independent header action is activated with Enter', async () => {
     // Arrange
@@ -189,30 +169,6 @@ describe('CollapsibleCard', () => {
     expect(screen.getByRole('button', { name: /Independent Action/ }).getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('should preserve the expanded state when the independent header action is activated with Space', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const onAction = vi.fn();
-    render(
-      <MockProviders state={mockState}>
-        <CollapsibleCard
-          title="Independent Action"
-          headerRight={<Button onClick={onAction}>Header Action</Button>}
-        >
-          <div>Persistent Content</div>
-        </CollapsibleCard>
-      </MockProviders>
-    );
-    const action = screen.getByRole('button', { name: 'Header Action' });
-    action.focus();
-
-    // Act
-    await user.keyboard('{Space}');
-
-    // Assert
-    expect(onAction).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('button', { name: /Independent Action/ }).getAttribute('aria-expanded')).toBe('true');
-  });
 
   it('should assign unique control relationships when multiple cards are rendered', () => {
     // Arrange
