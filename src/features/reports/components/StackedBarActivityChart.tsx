@@ -17,12 +17,15 @@ import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
+import { Locale } from '@bindings/Locale';
+import { formatChartDate } from '@features/reports/utils/reportDateUtils';
 
 export interface StackedBarActivityChartProps {
   clampedLogs: ClampedTimeLog[];
   projects: Project[];
   tasks?: Task[];
   defaultExpanded?: boolean;
+  locale?: Locale;
 }
 
 interface DailyProjectDataPoint {
@@ -36,8 +39,10 @@ export default function StackedBarActivityChart({
   clampedLogs,
   projects,
   defaultExpanded = true,
+  locale: propLocale,
 }: StackedBarActivityChartProps) {
-  const { t } = useTranslation('report');
+  const { t, locale: contextLocale } = useTranslation('report');
+  const activeLocale = propLocale ?? contextLocale;
 
   const { chartData, chartConfig, activeProjects } = useMemo(() => {
     const projectMap = new Map<string, Project>();
@@ -66,7 +71,7 @@ export default function StackedBarActivityChart({
       let totalSeconds = 0;
       const point: DailyProjectDataPoint = {
         dateKey,
-        displayDate: dateKey.slice(5), // MM-DD
+        displayDate: formatChartDate(dateKey, activeLocale),
         totalSeconds: 0,
       };
 
@@ -94,7 +99,7 @@ export default function StackedBarActivityChart({
       chartConfig: config,
       activeProjects: activeList,
     };
-  }, [clampedLogs, projects]);
+  }, [clampedLogs, projects, activeLocale]);
 
   const hasData = chartData.length > 0;
 
