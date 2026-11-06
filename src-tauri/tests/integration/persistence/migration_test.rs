@@ -437,7 +437,9 @@ fn test_given_migrated_history_table_when_deleting_time_log_then_cascades_histor
         .expect("deleting parent time log should succeed");
 
     let count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| {
+            row.get(0)
+        })
         .expect("history count should be queryable");
     assert_eq!(count, 0, "ON DELETE CASCADE should remove history rows");
 }
@@ -448,13 +450,17 @@ fn test_given_database_after_migration_9_when_initializing_again_then_is_idempot
     initialize_database(&conn).expect("first migration should succeed");
 
     let before: i64 = conn
-        .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| {
+            row.get(0)
+        })
         .expect("history count should be queryable");
 
     initialize_database(&conn).expect("second initialization should succeed");
 
     let after: i64 = conn
-        .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| row.get(0))
+        .query_row("SELECT COUNT(*) FROM time_logs_history", [], |row| {
+            row.get(0)
+        })
         .expect("history count should be queryable");
     let migration_count: i64 = conn
         .query_row("SELECT COUNT(*) FROM schema_migrations", [], |row| {
@@ -559,8 +565,8 @@ fn test_given_migrated_v8_database_when_editing_log_without_reason_then_persiste
         db_path,
         csv_directory: csv_directory.clone(),
     };
-    let persistence = Persistence::new(&config)
-        .expect("persistence initialization should apply migration 9");
+    let persistence =
+        Persistence::new(&config).expect("persistence initialization should apply migration 9");
 
     let edit = TimeLogUpdateHistory {
         id: "log-1",
