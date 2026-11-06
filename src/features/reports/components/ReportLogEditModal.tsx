@@ -129,7 +129,10 @@ function ReportLogEditForm({
         if (!dataContext?.refreshData) {
           throw new Error('Data refresh is unavailable outside DataContext');
         }
-        await dataContext.refreshData();
+        const refreshed = await dataContext.refreshData();
+        if (refreshed === false) {
+          throw new Error('Repository state refresh did not complete');
+        }
       } catch (refreshErr) {
         console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
         setErrorMessage(tCommon('ErrGeneric'));
