@@ -174,6 +174,88 @@ fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_repor
 }
 
 #[test]
+fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_file() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_reports_export_xml");
+    let engine = Engine::new(&persistence);
+    let output_file =
+        std::env::temp_dir().join(format!("report_export_{}.xml", uuid::Uuid::new_v4()));
+    let output_path = output_file.to_str().unwrap();
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xml", "-o", output_path])
+            .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    assert!(output_file.exists());
+
+    let content = fs::read_to_string(&output_file).expect("failed to read exported XML");
+    assert!(content.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+    assert!(content.contains("<name>Export System</name>"));
+    assert!(content.contains("<total_seconds>7200</total_seconds>"));
+
+    let _ = fs::remove_file(output_file);
+}
+
+#[test]
+fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_report_file() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_reports_export_xlsx");
+    let engine = Engine::new(&persistence);
+    let output_file =
+        std::env::temp_dir().join(format!("report_export_{}.xlsx", uuid::Uuid::new_v4()));
+    let output_path = output_file.to_str().unwrap();
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xlsx", "-o", output_path])
+            .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    assert!(output_file.exists());
+
+    let bytes = fs::read(&output_file).expect("failed to read exported XLSX");
+    assert!(!bytes.is_empty());
+    assert_eq!(&bytes[0..4], &[0x50, 0x4B, 0x03, 0x04]);
+
+    let _ = fs::remove_file(output_file);
+}
+
+#[test]
+fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_file() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_reports_export_ods");
+    let engine = Engine::new(&persistence);
+    let output_file =
+        std::env::temp_dir().join(format!("report_export_{}.ods", uuid::Uuid::new_v4()));
+    let output_path = output_file.to_str().unwrap();
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "ods", "-o", output_path])
+            .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    assert!(output_file.exists());
+
+    let bytes = fs::read(&output_file).expect("failed to read exported ODS");
+    assert!(!bytes.is_empty());
+    assert_eq!(&bytes[0..4], &[0x50, 0x4B, 0x03, 0x04]);
+
+    let _ = fs::remove_file(output_file);
+}
+
+#[test]
 fn test_given_invalid_path_when_exporting_then_fails_with_sink_error_exit_code_1() {
     // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_io_err");

@@ -332,7 +332,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [ ] **Credits & Technology Stack Refresh**: Update [`CreditsModal.tsx`](../../src/layouts/components/CreditsModal.tsx) to incorporate current core dependencies (React 19, @base-ui/react, Tauri v2, Recharts, Sonner, Geist Font Family, Google GenAI) and update author notes regarding Vibe Coding architecture practices.
 
 #### Group E (Parallel Track) — Additional Export Formats (moved from Phase 10)
-- [ ] **Additional Export Formats**: XML, ODS and XLSX exports.
+- [x] **Additional Export Formats**: XML, ODS and XLSX exports.
 
 ---
 

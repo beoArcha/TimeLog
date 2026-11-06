@@ -87,6 +87,8 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
       return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
     if (id.includes("json"))
       return <FileCode className="w-5 h-5 text-amber-500" />;
+    if (id.includes("xml"))
+      return <FileCode className="w-5 h-5 text-purple-500" />;
     return <FileText className="w-5 h-5 text-sky-500" />;
   };
 
