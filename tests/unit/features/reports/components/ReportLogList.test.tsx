@@ -177,4 +177,81 @@ describe('Unit Tests: ReportLogList', () => {
     expect(scrollContainer.className).toContain('print:overflow-visible');
     expect(scrollContainer.className).toContain('print:h-auto');
   });
+
+  it('should format date and time in UTC for day boundaries and timezone offsets', () => {
+    const logsWithOffsets = [
+      {
+        id: 'l-offset-prev-day',
+        taskId: 't1',
+        projectId: 'p1',
+        // 2026-06-16 01:30:00 +04:00 is 2026-06-15 21:30:00 UTC
+        startTime: '2026-06-16T01:30:00+04:00',
+        endTime: '2026-06-16T02:00:00+04:00',
+      },
+      {
+        id: 'l-offset-next-day',
+        taskId: 't1',
+        projectId: 'p1',
+        // 2026-06-15 20:00:00 -05:00 is 2026-06-16 01:00:00 UTC
+        startTime: '2026-06-15T20:00:00-05:00',
+        endTime: '2026-06-15T21:00:00-05:00',
+      },
+      {
+        id: 'l-midnight',
+        taskId: 't1',
+        projectId: 'p1',
+        // 2026-06-15 00:00:00 UTC
+        startTime: '2026-06-15T00:00:00Z',
+        endTime: '2026-06-15T01:00:00Z',
+      },
+    ];
+
+    render(
+      <ReportLogList
+        {...mockProps}
+        locale="pl"
+        filteredLogs={logsWithOffsets}
+        displayLogs={logsWithOffsets}
+      />
+    );
+
+    const printTimes = screen.getAllByTestId('log-entry-print-datetime');
+    expect(printTimes).toHaveLength(3);
+
+    // Entry 1: in UTC should be 15.06.2026 21:30:00
+    expect(printTimes[0].textContent).toContain('15.06.2026');
+    expect(printTimes[0].textContent).toContain('21:30:00');
+
+    // Entry 2: in UTC should be 16.06.2026 01:00:00
+    expect(printTimes[1].textContent).toContain('16.06.2026');
+    expect(printTimes[1].textContent).toContain('01:00:00');
+
+    // Entry 3: midnight UTC should be 15.06.2026 00:00:00
+    expect(printTimes[2].textContent).toContain('15.06.2026');
+    expect(printTimes[2].textContent).toContain('00:00:00');
+  });
+
+  it('should safely display [N/A] when log startTime is invalid or malformed', () => {
+    const invalidLogs = [
+      {
+        id: 'l-invalid',
+        taskId: 't1',
+        projectId: 'p1',
+        startTime: 'invalid-date-string',
+        endTime: 'invalid-date-string',
+      },
+    ];
+
+    render(
+      <ReportLogList
+        {...mockProps}
+        filteredLogs={invalidLogs}
+        displayLogs={invalidLogs}
+      />
+    );
+
+    const printTime = screen.getByTestId('log-entry-print-datetime');
+    expect(printTime).not.toBeNull();
+    expect(printTime.textContent).toContain('[N/A]');
+  });
 });

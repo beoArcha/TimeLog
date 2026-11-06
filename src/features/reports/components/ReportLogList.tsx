@@ -9,7 +9,7 @@ import { Task } from '@bindings/Task';
 import { Badge } from '@components/ui/badge';
 import { Heading, Caption, MonoText } from '@components/ui/typography';
 import { Locale } from '@bindings/Locale';
-import { formatCalendarDate } from '@features/reports/utils/reportDateUtils';
+import { formatCalendarDate, formatCalendarTime } from '@features/reports/utils/reportDateUtils';
 import { ProjectChartItem } from '../types';
 
 export interface ReportLogListProps {
@@ -121,7 +121,8 @@ export default function ReportLogList({
             }
 
             const dateFormatted = formatCalendarDate(displayTime, activeLocale);
-            const timeOnly = new Date(displayTime).toLocaleTimeString();
+            const timeFormatted = formatCalendarTime(displayTime, activeLocale);
+            const timeOnly = timeFormatted || 'N/A';
 
             return (
               <div

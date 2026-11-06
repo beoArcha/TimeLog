@@ -60,28 +60,24 @@ function createUtcDate(year: number, monthIndex: number, day: number): Date {
 
 /**
  * Parses a dateKey (such as 'YYYY-MM-DD' or strict ISO timestamp) into a JavaScript Date
- * strictly anchored at 00:00:00.000 UTC on that calendar day.
+ * strictly representing that moment in time in UTC.
  * Performs calendar validation (days, months, leap years) and accounts for timezone
- * offsets so the resulting date accurately reflects the UTC calendar day.
+ * offsets so the resulting date accurately reflects the UTC moment.
  * Returns null if the input is malformed, invalid, or impossible on the calendar.
  */
-export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
-  if (dateKey instanceof Date) {
-    if (isNaN(dateKey.getTime())) {
+export function parseUtcDateTime(dateInput: string | Date): Date | null {
+  if (dateInput instanceof Date) {
+    if (isNaN(dateInput.getTime())) {
       return null;
     }
-    return createUtcDate(
-      dateKey.getUTCFullYear(),
-      dateKey.getUTCMonth(),
-      dateKey.getUTCDate()
-    );
+    return new Date(dateInput.getTime());
   }
 
-  if (typeof dateKey !== 'string') {
+  if (typeof dateInput !== 'string') {
     return null;
   }
 
-  const trimmed = dateKey.trim();
+  const trimmed = dateInput.trim();
 
   // Pattern 1: Pure calendar date (YYYY-MM-DD)
   const dateMatch = CALENDAR_DATE_REGEX.exec(trimmed);
@@ -148,11 +144,25 @@ export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
       return null;
     }
 
-    const d = new Date(timestamp);
-    return createUtcDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    return new Date(timestamp);
   }
 
   return null;
+}
+
+/**
+ * Parses a dateKey (such as 'YYYY-MM-DD' or strict ISO timestamp) into a JavaScript Date
+ * strictly anchored at 00:00:00.000 UTC on that calendar day.
+ * Performs calendar validation (days, months, leap years) and accounts for timezone
+ * offsets so the resulting date accurately reflects the UTC calendar day.
+ * Returns null if the input is malformed, invalid, or impossible on the calendar.
+ */
+export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
+  const dt = parseUtcDateTime(dateKey);
+  if (!dt) {
+    return null;
+  }
+  return createUtcDate(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
 }
 
 /**
@@ -319,6 +329,64 @@ export function formatCalendarDate(
       return getUtcDateKey(parsed) ?? '';
     }
     console.error('Failed to format calendar date:', err);
+    throw err;
+  }
+}
+
+export interface FormatCalendarTimeOptions {
+  hour12?: boolean;
+}
+
+/**
+ * Formats the time-of-day in UTC for log entries and reports according to the active locale
+ * (e.g. '12:00:00' in pl, '12:00:00 PM' in en).
+ * Always converts timestamps to UTC to guarantee timezone consistency across reports.
+ * Returns empty string if the input date is malformed, invalid, or is a pure date without time.
+ */
+export function formatCalendarTime(
+  dateKey: string | Date,
+  locale?: string | Locale,
+  options?: FormatCalendarTimeOptions
+): string {
+  if (typeof dateKey === 'string' && CALENDAR_DATE_REGEX.test(dateKey.trim())) {
+    return '';
+  }
+  const parsed = parseUtcDateTime(dateKey);
+  if (!parsed) {
+    return '';
+  }
+  const resolvedLocale = resolveDateTimeLocale(locale);
+  const cacheKey = `time:${resolvedLocale}:${options?.hour12 ?? 'auto'}`;
+  let formatter = formatterCache.get(cacheKey);
+  if (!formatter) {
+    const intlOptions: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'UTC',
+    };
+    if (options?.hour12 !== undefined) {
+      intlOptions.hour12 = options.hour12;
+    }
+    try {
+      formatter = new Intl.DateTimeFormat(resolvedLocale, intlOptions);
+    } catch (err) {
+      if (err instanceof RangeError) {
+        formatter = new Intl.DateTimeFormat('en', intlOptions);
+      } else {
+        throw err;
+      }
+    }
+    formatterCache.set(cacheKey, formatter);
+  }
+
+  try {
+    return formatter.format(parsed);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return '';
+    }
+    console.error('Failed to format calendar time:', err);
     throw err;
   }
 }
