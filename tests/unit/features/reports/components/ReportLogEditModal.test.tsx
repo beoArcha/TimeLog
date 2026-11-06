@@ -71,8 +71,8 @@ describe('Unit Tests: ReportLogEditModal', () => {
   it('should retry synchronization without repeating a committed audit mutation', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const refreshDataMock = vi.fn()
-      .mockRejectedValueOnce(new Error('Network disconnected on refresh'))
-      .mockResolvedValueOnce(undefined);
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
     const onSaveSuccessMock = vi.fn();
     const onCloseMock = vi.fn();
 
