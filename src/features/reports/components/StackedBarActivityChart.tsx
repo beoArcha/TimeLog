@@ -54,7 +54,10 @@ export default function StackedBarActivityChart({
     const presentProjectIds = new Set<string>();
 
     for (const log of clampedLogs) {
-      const dateKey = getUtcDateKey(log.clampedStartTime) ?? log.clampedStartTime.slice(0, 10);
+      const dateKey = getUtcDateKey(log.clampedStartTime);
+      if (!dateKey) {
+        continue;
+      }
       let dayTotals = dayMap.get(dateKey);
       if (!dayTotals) {
         dayTotals = {};

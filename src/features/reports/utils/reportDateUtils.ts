@@ -203,6 +203,10 @@ export function getChartDateFormatter(locale?: string | Locale): Intl.DateTimeFo
  * Formats a calendar date key for the XAxis of activity charts into a localized
  * short weekday and day label (e.g. 'czw., 10' for pl, '10 Thu' for en, 'Do., 10.' for de)
  * in UTC to prevent timezone day-shifting.
+ *
+ * Falls back safely to the raw input string (or empty string for invalid Date instances)
+ * when parsing fails or when a RangeError occurs during formatting. Non-RangeError exceptions
+ * are logged via console.error and re-thrown to prevent silent defect suppression.
  */
 export function formatChartDate(
   dateKey: string | Date,
@@ -216,7 +220,12 @@ export function formatChartDate(
   try {
     const formatter = getChartDateFormatter(locale);
     return formatter.format(parsedDate);
-  } catch {
-    return typeof dateKey === 'string' ? dateKey : '';
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return typeof dateKey === 'string' ? dateKey : '';
+    }
+    console.error('Failed to format chart date:', err);
+    throw err;
   }
 }
+

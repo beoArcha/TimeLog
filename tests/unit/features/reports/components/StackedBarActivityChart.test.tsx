@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import StackedBarActivityChart from '@features/reports/components/StackedBarActivityChart';
 import {
   formatChartDate,
@@ -262,6 +262,80 @@ describe('Unit Tests: StackedBarActivityChart', () => {
     // Assert
     expect(screen.getByTestId('stacked-bar-activity-chart')).not.toBeNull();
   });
+
+  it('should ignore entries with invalid clampedStartTime and not include them in chart data', () => {
+    // Arrange: One valid entry (p1 on 2026-09-10) and two invalid entries (p2 with 'invalid-date' and '2026-06-15-invalid')
+    const logs = [
+      aClampedTimeLog({
+        id: 'valid-log',
+        projectId: 'p1',
+        clampedStartTime: '2026-09-10T10:00:00.000Z',
+        clampedDurationSeconds: 3600,
+      }),
+      aClampedTimeLog({
+        id: 'invalid-log-1',
+        projectId: 'p2',
+        clampedStartTime: 'invalid-date',
+        clampedDurationSeconds: 7200,
+      }),
+      aClampedTimeLog({
+        id: 'invalid-log-2',
+        projectId: 'p2',
+        clampedStartTime: '2026-06-15-invalid',
+        clampedDurationSeconds: 1800,
+      }),
+    ];
+
+    // Act
+    const { container } = render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="pl"
+      />
+    );
+
+    // Assert: Chart renders successfully for valid entries
+    expect(screen.getByTestId('stacked-bar-activity-chart')).not.toBeNull();
+    const textNodes = Array.from(container.querySelectorAll('text')).map((n) => n.textContent);
+
+    // Valid date is formatted and present
+    expect(textNodes).toContain('czw., 10');
+
+    // Invalid dates and sliced fragments are not in chart labels
+    expect(textNodes).not.toContain('invalid-date');
+    expect(textNodes).not.toContain('invalid-da');
+    expect(textNodes).not.toContain('2026-06-15');
+
+    // Project p2 was only present in invalid logs, so it should not be listed as an active project
+    expect(screen.queryByText('Beta Project')).toBeNull();
+    expect(screen.getByText('Alpha Project')).not.toBeNull();
+  });
+
+  it('should render empty state if all clampedLogs have invalid clampedStartTime', () => {
+    // Arrange: Only invalid logs
+    const logs = [
+      aClampedTimeLog({
+        id: 'invalid-1',
+        projectId: 'p1',
+        clampedStartTime: 'invalid-date',
+        clampedDurationSeconds: 3600,
+      }),
+    ];
+
+    // Act
+    render(
+      <StackedBarActivityChart
+        clampedLogs={logs}
+        projects={mockProjects}
+        locale="pl"
+      />
+    );
+
+    // Assert: Renders empty state since no valid dates exist
+    expect(screen.getByTestId('stacked-chart-empty')).not.toBeNull();
+    expect(screen.queryByTestId('stacked-bar-activity-chart')).toBeNull();
+  });
 });
 
 describe('Unit Tests: reportDateUtils', () => {
@@ -323,6 +397,32 @@ describe('Unit Tests: reportDateUtils', () => {
 
     it('should safely fall back to english when an invalid locale tag is provided', () => {
       expect(formatChartDate('2026-09-10', 'invalid-locale-xyz' as Locale)).toBe('10 Thu');
+    });
+
+    it('should safely fall back to raw input when Intl formatting throws a RangeError', () => {
+      const formatSpy = vi.spyOn(Intl.DateTimeFormat.prototype as unknown as Record<string, unknown>, 'format', 'get').mockReturnValue(() => {
+        throw new RangeError('Invalid time value');
+      });
+
+      expect(formatChartDate('2026-06-15', 'pl')).toBe('2026-06-15');
+
+      formatSpy.mockRestore();
+    });
+
+    it('should explicitly log via console.error and propagate unexpected non-RangeError exceptions', () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const formatSpy = vi.spyOn(Intl.DateTimeFormat.prototype as unknown as Record<string, unknown>, 'format', 'get').mockReturnValue(() => {
+        throw new TypeError('Unexpected format failure');
+      });
+
+      expect(() => formatChartDate('2026-06-15', 'pl')).toThrow(TypeError);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Failed to format chart date:',
+        expect.any(TypeError)
+      );
+
+      formatSpy.mockRestore();
+      consoleErrorSpy.mockRestore();
     });
   });
 
