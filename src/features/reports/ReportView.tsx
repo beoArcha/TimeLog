@@ -37,11 +37,12 @@ export default function ReportView({ state }: { state: GuiState }) {
   const {
     todaySec, weekSec, monthSec,
     periodTotalSec, dailyAverageSec, topProject,
-    filteredLogs, projectChart, maxSec, displayLogs, clampedLogs
+    filteredLogs, projectChart, maxSec, displayLogs, clampedLogs,
+    billingResult, billingError, isBillingLoading,
   } = useReportStatistics({
     logs, patches, projects, tasks, nowIso,
     reportPeriod, reportSort, sysSettings,
-    customFrom, customTo
+    customFrom, customTo, selectedProjectId,
   });
 
   const effectiveDisplayLogs = useMemo(() => {
@@ -86,20 +87,32 @@ export default function ReportView({ state }: { state: GuiState }) {
       };
     });
 
+    const effectiveTotalSeconds = rows.reduce((acc, row) => acc + row.durationSeconds, 0);
+
+    const projectBreakdown = selectedProjectId
+      ? projectChart
+          .filter((pc) => pc.id === selectedProjectId)
+          .map((pc) => ({
+            projectName: pc.name,
+            seconds: effectiveTotalSeconds,
+            percentage: 100,
+          }))
+      : projectChart.map((pc) => ({
+          projectName: pc.name,
+          seconds: pc.seconds,
+          percentage: effectiveTotalSeconds > 0 ? (pc.seconds / effectiveTotalSeconds) * 100 : 0,
+        }));
+
     return {
       title: t('TimeSummariesReports'),
       period: reportPeriod,
       generatedAt: new Date().toISOString(),
-      totalSeconds: periodTotalSec,
-      formattedTotalDuration: formatSeconds(periodTotalSec),
+      totalSeconds: effectiveTotalSeconds,
+      formattedTotalDuration: formatSeconds(effectiveTotalSeconds),
       rows,
-      projectBreakdown: projectChart.map((pc) => ({
-        projectName: pc.name,
-        seconds: pc.seconds,
-        percentage: periodTotalSec > 0 ? (pc.seconds / periodTotalSec) * 100 : 0,
-      })),
+      projectBreakdown,
     };
-  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, periodTotalSec, projectChart]);
+  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, selectedProjectId, projectChart]);
 
   return (
     <Area as="main" id="reports-panel" variant="card" padding="section" radius="3xl" elevation="2xl" className="backdrop-blur-md flex flex-col gap-6 transition-all duration-300">
@@ -147,6 +160,9 @@ export default function ReportView({ state }: { state: GuiState }) {
         periodTotalSec={periodTotalSec}
         dailyAverageSec={dailyAverageSec}
         topProject={topProject}
+        billingResult={billingResult}
+        billingError={billingError}
+        isBillingLoading={isBillingLoading}
       />
 
       <ReportBillingCard
@@ -156,6 +172,9 @@ export default function ReportView({ state }: { state: GuiState }) {
         nowIso={nowIso}
         selectedProjectId={selectedProjectId}
         sysSettings={sysSettings}
+        billingResult={billingResult}
+        billingError={billingError}
+        isLoading={isBillingLoading}
       />
 
       <ReportPeriodSelector

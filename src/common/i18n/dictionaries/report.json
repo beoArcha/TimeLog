@@ -53,8 +53,13 @@
     "ByCurrency": "By Currency",
     "BillableTime": "Billable Time",
     "Amount": "Amount",
-    "AnalyticsEngine": "Analytics engine",
-    "Print": "Print / PDF"
+"AnalyticsEngine": "Analytics engine",
+    "Print": "Print / PDF",
+    "BillingCalculationError": "Failed to calculate range billing",
+    "TotalPeriodValue": "TOTAL PERIOD VALUE",
+    "TotalPeriodValueDesc": "Financial value of billable work in period",
+    "NonBillable": "Non-billable",
+    "Unconfigured": "Unconfigured"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -110,8 +115,13 @@
     "ByCurrency": "Według waluty",
     "BillableTime": "Czas rozliczany",
     "Amount": "Kwota",
-    "AnalyticsEngine": "Analizy Statystyczne",
-    "Print": "Drukuj / PDF"
+"AnalyticsEngine": "Analizy Statystyczne",
+    "Print": "Drukuj / PDF",
+    "BillingCalculationError": "Nie udało się obliczyć rozliczenia okresu",
+    "TotalPeriodValue": "WARTOŚĆ OKRESU",
+    "TotalPeriodValueDesc": "Wartość finansowa pracy rozliczalnej w okresie",
+    "NonBillable": "Nierozliczalne",
+    "Unconfigured": "Nieskonfigurowane"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -167,8 +177,13 @@
     "ByCurrency": "Nach Währung",
     "BillableTime": "Abrechenbare Zeit",
     "Amount": "Betrag",
-    "AnalyticsEngine": "Analyse-Motor",
-    "Print": "Drucken / PDF"
+"AnalyticsEngine": "Analyse-Motor",
+    "Print": "Drucken / PDF",
+    "BillingCalculationError": "Fehler beim Berechnen der Zeitraum-Abrechnung",
+    "TotalPeriodValue": "PERIODENGESAMTWERT",
+    "TotalPeriodValueDesc": "Finanzieller Wert der abrechenbaren Arbeit im Zeitraum",
+    "NonBillable": "Nicht abrechenbar",
+    "Unconfigured": "Nicht konfiguriert"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -224,8 +239,13 @@
     "ByCurrency": "Por moneda",
     "BillableTime": "Tiempo facturable",
     "Amount": "Monto",
-    "AnalyticsEngine": "Motor de análisis",
-    "Print": "Imprimir / PDF"
+"AnalyticsEngine": "Motor de análisis",
+    "Print": "Imprimir / PDF",
+    "BillingCalculationError": "Error al calcular la facturación del período",
+    "TotalPeriodValue": "VALOR TOTAL DEL PERÍODO",
+    "TotalPeriodValueDesc": "Valor financiero del trabajo facturable en el período",
+    "NonBillable": "No facturable",
+    "Unconfigured": "No configurado"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -281,8 +301,13 @@
     "ByCurrency": "Por moeda",
     "BillableTime": "Tempo faturável",
     "Amount": "Valor",
-    "AnalyticsEngine": "Motor de análise",
-    "Print": "Imprimir / PDF"
+"AnalyticsEngine": "Motor de análise",
+    "Print": "Imprimir / PDF",
+    "BillingCalculationError": "Falha ao calcular o faturamento do período",
+    "TotalPeriodValue": "VALOR TOTAL DO PERÍODO",
+    "TotalPeriodValueDesc": "Valor financeiro do trabalho faturável no período",
+    "NonBillable": "Não faturável",
+    "Unconfigured": "Não configurado"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -338,8 +363,13 @@
     "ByCurrency": "Par devise",
     "BillableTime": "Temps facturable",
     "Amount": "Montant",
-    "AnalyticsEngine": "Moteur d'analyse",
-    "Print": "Imprimer / PDF"
+"AnalyticsEngine": "Moteur d'analyse",
+    "Print": "Imprimer / PDF",
+    "BillingCalculationError": "Échec du calcul de la facturation de la période",
+    "TotalPeriodValue": "VALEUR TOTALE DE LA PÉRIODE",
+    "TotalPeriodValueDesc": "Valeur financière du travail facturable sur la période",
+    "NonBillable": "Non facturable",
+    "Unconfigured": "Non configuré"
   },
   "uk": {
     "Title": "Журнал звітів",
@@ -395,8 +425,13 @@
     "EffectiveRate": "Ефективна ставка",
     "ByCurrency": "За валютою",
     "Amount": "Сума",
-    "AnalyticsEngine": "Аналітичний рушій",
-    "Print": "Друк / PDF"
+"AnalyticsEngine": "Аналітичний рушій",
+    "Print": "Друк / PDF",
+    "BillingCalculationError": "Не вдалося розрахувати фінансові дані за період",
+    "TotalPeriodValue": "ЗАГАЛЬНА ВАРТІСТЬ ПЕРІОДУ",
+    "TotalPeriodValueDesc": "Фінансова вартість оплачуваної роботи за період",
+    "NonBillable": "Неоплачуване",
+    "Unconfigured": "Не налаштовано"
   },
   "ja": {
     "Title": "レポートログ",
@@ -452,8 +487,13 @@
     "ByCurrency": "通貨別",
     "BillableTime": "請求対象時間",
     "Amount": "金額",
-    "AnalyticsEngine": "分析エンジン",
-    "Print": "印刷 / PDF"
+"AnalyticsEngine": "分析エンジン",
+    "Print": "印刷 / PDF",
+    "BillingCalculationError": "期間の請求額の計算に失敗しました",
+    "TotalPeriodValue": "期間合計値",
+    "TotalPeriodValueDesc": "期間内の請求対象作業の財務価値",
+    "NonBillable": "請求対象外",
+    "Unconfigured": "未設定"
   },
   "nl": {
     "Title": "Rapportagelogs",
@@ -509,8 +549,13 @@
     "ByCurrency": "Per valuta",
     "BillableTime": "Facturabele tijd",
     "Amount": "Bedrag",
-    "AnalyticsEngine": "Analytics-engine",
-    "Print": "Afdrukken / PDF"
+"AnalyticsEngine": "Analytics-engine",
+    "Print": "Afdrukken / PDF",
+    "BillingCalculationError": "Kan periodefacturering niet berekenen",
+    "TotalPeriodValue": "TOTALE PERIODIEKE WAARDE",
+    "TotalPeriodValueDesc": "Financiële waarde van factureerbaar werk in periode",
+    "NonBillable": "Niet-factureerbaar",
+    "Unconfigured": "Niet geconfigureerd"
   },
   "it": {
     "Title": "Rapporti e Registri",
@@ -566,7 +611,12 @@
     "ByCurrency": "Per valuta",
     "BillableTime": "Tempo fatturabile",
     "Amount": "Importo",
-    "AnalyticsEngine": "Motore di analisi",
-    "Print": "Stampa / PDF"
+"AnalyticsEngine": "Motore di analisi",
+    "Print": "Stampa / PDF",
+    "BillingCalculationError": "Impossibile calcolare la fatturazione per il periodo",
+    "TotalPeriodValue": "VALORE TOTALE DEL PERIODO",
+    "TotalPeriodValueDesc": "Valore finanziario del lavoro fatturabile nel periodo",
+    "NonBillable": "Non fatturabile",
+    "Unconfigured": "Non configurato"
   }
 }

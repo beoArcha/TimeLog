@@ -286,4 +286,52 @@ describe('Unit: reportCalculator - Statistics, Sorting and Aggregations', () => 
     expect(result.topProject?.seconds).toBe(7200);
     expect(Math.round(result.topProject?.percentage || 0)).toBe(67);
   });
+
+  it('should calculate periodTotalSec, dailyAverageSec, topProject, and projectChart exclusively from selectedProjectId when provided', () => {
+    // Arrange: p1 has 7200s (2h), p2 has 3600s (1h)
+    const logs: TimeLog[] = [
+      aTimeLog({
+        id: 'log-1',
+        projectId: 'p1',
+        taskId: 't1',
+        startTime: '2026-07-01T10:00:00.000Z',
+        endTime: '2026-07-01T12:00:00.000Z',
+      }),
+      aTimeLog({
+        id: 'log-2',
+        projectId: 'p2',
+        taskId: 't2',
+        startTime: '2026-07-02T10:00:00.000Z',
+        endTime: '2026-07-02T11:00:00.000Z',
+      }),
+    ];
+
+    // Act: Filter exclusively for p2
+    const result = calculateReportStatistics({
+      logs,
+      patches: [],
+      projects,
+      tasks,
+      nowIso: '2026-07-05T12:00:00.000Z',
+      reportPeriod: 'custom',
+      customFrom: '2026-07-01',
+      customTo: '2026-07-03',
+      reportSort: 'duration',
+      selectedProjectId: 'p2',
+    });
+
+    // Assert: Only p2 metrics are returned
+    expect(result.periodTotalSec).toBe(3600);
+    expect(result.dailyAverageSec).toBe(1200);
+    expect(result.topProject).not.toBeNull();
+    expect(result.topProject?.id).toBe('p2');
+    expect(result.topProject?.name).toBe('Beta Project');
+    expect(result.topProject?.seconds).toBe(3600);
+    expect(result.topProject?.percentage).toBe(100);
+    expect(result.projectChart).toHaveLength(1);
+    expect(result.projectChart[0].id).toBe('p2');
+    expect(result.projectChart[0].seconds).toBe(3600);
+    expect(result.displayLogs).toHaveLength(1);
+    expect(result.displayLogs[0].id).toBe('log-2');
+  });
 });
