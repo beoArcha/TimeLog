@@ -79,6 +79,34 @@ pub const CREATE_TIME_LOGS_HISTORY_TABLE: &str = "
 pub const ALTER_TIME_LOGS_HISTORY_ADD_AUDIT_SOURCE: &str =
     "ALTER TABLE time_logs_history ADD COLUMN audit_source TEXT";
 
+pub const CREATE_TIME_LOGS_HISTORY_MIGRATION_9_TABLE: &str = "
+    CREATE TABLE time_logs_history_new (
+        id TEXT PRIMARY KEY,
+        time_log_id TEXT NOT NULL,
+        edited_at TEXT NOT NULL,
+        prev_start_time TEXT NOT NULL,
+        prev_end_time TEXT,
+        prev_note TEXT,
+        reason TEXT,
+        audit_source TEXT,
+        FOREIGN KEY(time_log_id) REFERENCES time_logs(id) ON DELETE CASCADE
+    )
+";
+pub const COPY_TIME_LOGS_HISTORY_MIGRATION_9: &str = "
+    INSERT INTO time_logs_history_new (
+        id, time_log_id, edited_at, prev_start_time,
+        prev_end_time, prev_note, reason, audit_source
+    )
+    SELECT
+        id, time_log_id, edited_at, prev_start_time,
+        prev_end_time, prev_note, reason, audit_source
+    FROM time_logs_history
+";
+pub const DROP_TIME_LOGS_HISTORY_MIGRATION_9: &str =
+    "DROP TABLE time_logs_history";
+pub const RENAME_TIME_LOGS_HISTORY_MIGRATION_9: &str =
+    "ALTER TABLE time_logs_history_new RENAME TO time_logs_history";
+
 pub const ALTER_PROJECTS_ADD_DESCRIPTION: &str = "ALTER TABLE projects ADD COLUMN description TEXT";
 pub const ALTER_PROJECTS_ADD_ICON: &str = "ALTER TABLE projects ADD COLUMN icon TEXT";
 pub const ALTER_PROJECTS_ADD_TAGS: &str = "ALTER TABLE projects ADD COLUMN tags TEXT";
