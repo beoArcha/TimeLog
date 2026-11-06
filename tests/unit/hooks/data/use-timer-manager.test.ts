@@ -91,13 +91,17 @@ describe('Unit Tests: useTimerManager Hook', () => {
     );
   });
 
-  it('should edit time log via engine and reload repository state', async () => {
+  it('should edit time log through actionRunner and synchronize repository state', async () => {
     const editSpy = vi.spyOn(engine.timeLogs, 'editTimeLog').mockResolvedValue();
+    const nextLogs = [
+      { id: 'log1', taskId: 't1', projectId: 'p1', startTime: '2026-01-01T10:00:00Z', endTime: '2026-01-01T11:00:00Z', note: 'Note', editHistory: null },
+    ];
     vi.spyOn(router.core, 'load').mockResolvedValue({
       projects: [],
       tasks: [],
-      logs: [],
+      logs: nextLogs,
       activeLog: null,
+      activeLogs: [],
     });
 
     const { result } = renderHook(() =>
@@ -109,12 +113,63 @@ describe('Unit Tests: useTimerManager Hook', () => {
       })
     );
 
+    let editResult: { saved: boolean; synchronized: boolean } | undefined;
     await act(async () => {
-      await result.current.handleEditTimeLog('log1', 't1', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z', 'Note', null);
+      editResult = await result.current.handleEditTimeLog(
+        'log1', 't1', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z', 'Note', null
+      );
     });
 
     expect(editSpy).toHaveBeenCalledWith('log1', 't1', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z', 'Note', null);
+    expect(mockActionRunner.runAction).toHaveBeenNthCalledWith(
+      1,
+      'Failed to edit time log',
+      expect.any(Function),
+      expect.objectContaining({ errorCode: 'ERR_REPOSITORY_EDIT_TIME_LOG', rethrow: true })
+    );
+    expect(mockActionRunner.runAction).toHaveBeenNthCalledWith(
+      2,
+      'Failed to synchronize time log after edit',
+      expect.any(Function),
+      expect.objectContaining({ errorCode: 'ERR_REPOSITORY_SYNC_TIME_LOG', rethrow: false })
+    );
+    expect(mockRepositoryState.setLogsState).toHaveBeenCalledWith(nextLogs);
+    expect(mockRepositoryState.setActiveLogState).toHaveBeenCalledWith(null);
+    expect(mockRepositoryState.setActiveLogsState).toHaveBeenCalledWith([]);
     expect(refreshComputedMetrics).toHaveBeenCalled();
+    expect(editResult).toEqual({ saved: true, synchronized: true });
+  });
+
+  it('should report a committed edit when repository synchronization fails', async () => {
+    const editSpy = vi.spyOn(engine.timeLogs, 'editTimeLog').mockResolvedValue();
+    vi.spyOn(router.core, 'load').mockRejectedValue(new Error('Repository reload failed'));
+
+    const runActionMock = vi.fn() as unknown as typeof mockActionRunner.runAction;
+    runActionMock
+      .mockImplementationOnce(async (_message, action) => action())
+      .mockResolvedValueOnce(undefined);
+    const actionRunner = createMockActionRunner({ runAction: runActionMock });
+
+    const { result } = renderHook(() =>
+      useTimerManager({
+        repositoryState: mockRepositoryState,
+        actionRunner,
+        pushToApi,
+        refreshComputedMetrics,
+      })
+    );
+
+    let editResult: { saved: boolean; synchronized: boolean } | undefined;
+    await act(async () => {
+      editResult = await result.current.handleEditTimeLog(
+        'log1', 't1', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z', 'Note', null
+      );
+    });
+
+    expect(editSpy).toHaveBeenCalledTimes(1);
+    expect(runActionMock).toHaveBeenCalledTimes(2);
+    expect(editResult).toEqual({ saved: true, synchronized: false });
+    expect(refreshComputedMetrics).not.toHaveBeenCalled();
   });
 
   it('should delete time log via router, reload state, and pass rethrow: true to actionRunner', async () => {
