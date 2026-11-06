@@ -163,4 +163,55 @@ describe('Unit Tests: ReportPeriodSelector', () => {
     expect(setCustomFromMock).toHaveBeenCalledWith('2026-06-05');
     expect(setCustomToMock).toHaveBeenCalledWith('2026-06-20');
   });
+
+  it('should render tag filter chips and call onToggleTag when clicked', () => {
+    const onToggleTagMock = vi.fn();
+    const onClearTagsMock = vi.fn();
+
+    render(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="today"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+          availableTags={['dev', 'client', 'internal']}
+          selectedTags={['dev']}
+          onToggleTag={onToggleTagMock}
+          onClearTags={onClearTagsMock}
+        />
+      </MockProviders>
+    );
+
+    expect(screen.getByTestId('report-tag-filter-container')).not.toBeNull();
+    const devChip = screen.getByTestId('tag-chip-dev');
+    const clientChip = screen.getByTestId('tag-chip-client');
+
+    expect(devChip.getAttribute('aria-pressed')).toBe('true');
+    expect(clientChip.getAttribute('aria-pressed')).toBe('false');
+
+    fireEvent.click(clientChip);
+    expect(onToggleTagMock).toHaveBeenCalledWith('client');
+
+    const clearButton = screen.getByTestId('clear-tags-button');
+    fireEvent.click(clearButton);
+    expect(onClearTagsMock).toHaveBeenCalled();
+  });
+
+  it('should not render tag filter container when availableTags is empty', () => {
+    render(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="today"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+          availableTags={[]}
+          selectedTags={[]}
+        />
+      </MockProviders>
+    );
+
+    expect(screen.queryByTestId('report-tag-filter-container')).toBeNull();
+  });
 });

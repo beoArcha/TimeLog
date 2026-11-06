@@ -5,6 +5,7 @@ import { NativeSelect } from '@components/ui/select';
 import { Input } from '@components/ui/input';
 import { HStack, InlineCluster } from '@components/ui/stack';
 import { FilterBar } from '@components/FilterBar';
+import { TagFilterGroup } from '@components/TagFilterGroup';
 import { ReportPeriodType } from '../types';
 
 export interface ReportPeriodSelectorProps {
@@ -16,6 +17,10 @@ export interface ReportPeriodSelectorProps {
   setCustomFrom?: (v: string) => void;
   customTo?: string;
   setCustomTo?: (v: string) => void;
+  availableTags?: string[];
+  selectedTags?: string[];
+  onToggleTag?: (tag: string) => void;
+  onClearTags?: () => void;
 }
 
 export default function ReportPeriodSelector({
@@ -27,6 +32,10 @@ export default function ReportPeriodSelector({
   setCustomFrom,
   customTo,
   setCustomTo,
+  availableTags,
+  selectedTags,
+  onToggleTag,
+  onClearTags,
 }: ReportPeriodSelectorProps) {
   const { t: tReport } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
@@ -108,6 +117,25 @@ export default function ReportPeriodSelector({
               aria-label={tReport('DateTo')}
             />
           </HStack>
+        </InlineCluster>
+      )}
+
+      {availableTags && availableTags.length > 0 && (
+        <InlineCluster
+          data-testid="report-tag-filter-container"
+          gap="sm"
+          className="pt-2.5 border-t border-border/40 text-xs w-full items-center"
+        >
+          <span className="font-mono text-xs text-muted-foreground shrink-0">
+            {tReport('FilterByTags')}:
+          </span>
+          <TagFilterGroup
+            tags={availableTags}
+            selectedTags={selectedTags ?? []}
+            onToggleTag={onToggleTag ?? (() => {})}
+            onClearTags={onClearTags}
+            size="xs"
+          />
         </InlineCluster>
       )}
     </FilterBar>

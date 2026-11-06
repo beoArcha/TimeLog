@@ -15,9 +15,12 @@ export interface ExtendedReportStatisticsResult extends ReportStatisticsResult {
   isBillingLoading: boolean;
 }
 
-export function useReportStatistics(
-  props: UseReportStatisticsProps & { selectedProjectId?: string | null }
-): ExtendedReportStatisticsResult {
+export interface ReportStatisticsHookProps extends UseReportStatisticsProps {
+  selectedProjectId?: string | null;
+  selectedTags?: string[];
+}
+
+export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedReportStatisticsResult {
   const {
     logs,
     patches,
@@ -30,17 +33,52 @@ export function useReportStatistics(
     customFrom,
     customTo,
     selectedProjectId,
+    selectedTags,
   } = props;
 
   const { t } = useTranslation('report');
 
+  const hasTagFilter = Boolean(selectedTags && selectedTags.length > 0);
+
+  const effectiveProjects = useMemo(() => {
+    if (!hasTagFilter || !selectedTags) return projects;
+    return projects.filter(
+      (p) => Array.isArray(p.tags) && p.tags.some((t) => selectedTags.includes(t))
+    );
+  }, [projects, selectedTags, hasTagFilter]);
+
+  const effectiveProjectIds = useMemo(() => {
+    return new Set(effectiveProjects.map((p) => p.id));
+  }, [effectiveProjects]);
+
+  const effectiveTasks = useMemo(() => {
+    if (!hasTagFilter) return tasks;
+    return tasks.filter((t) => effectiveProjectIds.has(t.projectId));
+  }, [tasks, effectiveProjectIds, hasTagFilter]);
+
+  const effectiveTaskIds = useMemo(() => {
+    return new Set(effectiveTasks.map((t) => t.id));
+  }, [effectiveTasks]);
+
+  const effectiveLogs = useMemo(() => {
+    if (!hasTagFilter) return logs;
+    return logs.filter(
+      (l) => effectiveProjectIds.has(l.projectId) || effectiveTaskIds.has(l.taskId)
+    );
+  }, [logs, effectiveProjectIds, effectiveTaskIds, hasTagFilter]);
+
+  const effectivePatches = useMemo(() => {
+    if (!hasTagFilter) return patches;
+    return patches.filter((p) => effectiveProjectIds.has(p.projectId));
+  }, [patches, effectiveProjectIds, hasTagFilter]);
+
   const baseStats = useMemo(
     () =>
       calculateReportStatistics({
-        logs,
-        patches,
-        projects,
-        tasks,
+        logs: effectiveLogs,
+        patches: effectivePatches,
+        projects: effectiveProjects,
+        tasks: effectiveTasks,
         nowIso,
         reportPeriod,
         reportSort,
@@ -50,10 +88,10 @@ export function useReportStatistics(
         selectedProjectId,
       }),
     [
-      logs,
-      patches,
-      projects,
-      tasks,
+      effectiveLogs,
+      effectivePatches,
+      effectiveProjects,
+      effectiveTasks,
       nowIso,
       reportPeriod,
       reportSort,
