@@ -125,6 +125,7 @@ fn test_engine_edit_log_with_all_fields() {
             "2026-06-15T08:15:00Z",
             Some("2026-06-15T09:15:00Z"),
             Some("New Note"),
+            Some("Corrected time and task"),
             Some(AuditSource::ManualAdjustment),
         )
         .unwrap();
@@ -138,5 +139,14 @@ fn test_engine_edit_log_with_all_fields() {
         Some("2026-06-15T09:15:00Z")
     );
     assert_eq!(updated_log.note.as_deref(), Some("New Note"));
-    assert!(!updated_log.edit_history.unwrap_or_default().is_empty());
+    let history = updated_log.edit_history.unwrap();
+    assert_eq!(history.len(), 1);
+    assert_eq!(
+        history[0].reason.as_deref(),
+        Some("Corrected time and task")
+    );
+    assert_eq!(
+        history[0].audit_source.as_deref(),
+        Some("Manual Adjustment")
+    );
 }

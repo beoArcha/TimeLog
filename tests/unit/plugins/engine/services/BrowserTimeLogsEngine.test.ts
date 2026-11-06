@@ -79,6 +79,7 @@ describe('BrowserTimeLogsEngine', () => {
     expect(updated?.note).toBe('New note');
     expect(updated?.editHistory).toHaveLength(1);
     expect(updated?.editHistory?.[0].reason).toBe('Adjusted time');
+    expect(updated?.editHistory?.[0].auditSource).toBe('GUI Edit');
     expect(updated?.editHistory?.[0].prevStartTime).toBe('2026-06-15T10:00:00Z');
   });
 });

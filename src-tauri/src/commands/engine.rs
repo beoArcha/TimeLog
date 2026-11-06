@@ -92,7 +92,7 @@ pub fn edit_time_log(
     start_time: String,
     end_time: Option<String>,
     note: Option<String>,
-    _reason: Option<String>,
+    reason: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<(), AppError> {
     let engine = Engine::new(&state.persistence);
@@ -102,6 +102,7 @@ pub fn edit_time_log(
         &start_time,
         end_time.as_deref(),
         note.as_deref(),
+        reason.as_deref(),
         Some(crate::types::AuditSource::GuiEdit),
     )?;
     Ok(())

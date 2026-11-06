@@ -47,6 +47,7 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       prevEndTime,
       prevNote,
       reason: reason || undefined,
+      auditSource: 'GUI Edit',
     };
 
     const updatedHistory = currentLog.editHistory ? [...currentLog.editHistory, historyItem] : [historyItem];

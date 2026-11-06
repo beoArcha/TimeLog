@@ -71,10 +71,13 @@ pub const CREATE_TIME_LOGS_HISTORY_TABLE: &str = "
         prev_start_time TEXT NOT NULL,
         prev_end_time TEXT,
         prev_note TEXT,
-        reason TEXT NOT NULL,
+        reason TEXT,
+        audit_source TEXT,
         FOREIGN KEY(time_log_id) REFERENCES time_logs(id) ON DELETE CASCADE
     )
 ";
+pub const ALTER_TIME_LOGS_HISTORY_ADD_AUDIT_SOURCE: &str =
+    "ALTER TABLE time_logs_history ADD COLUMN audit_source TEXT";
 
 pub const ALTER_PROJECTS_ADD_DESCRIPTION: &str = "ALTER TABLE projects ADD COLUMN description TEXT";
 pub const ALTER_PROJECTS_ADD_ICON: &str = "ALTER TABLE projects ADD COLUMN icon TEXT";

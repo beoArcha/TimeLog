@@ -123,17 +123,17 @@ describe('Unit Tests: ConfirmDialog', () => {
     expect(screen.getByRole('alertdialog')).not.toBeNull();
     // Error element is rendered
     expect(screen.getByRole('alert')).not.toBeNull();
-    expect(screen.getByTestId('confirm-dialog-error').textContent).toBe('Async rejection error');
+    expect(screen.getByTestId('confirm-dialog-error').textContent).toBe('Error');
     // Error logged properly
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Failed to execute confirm action in ConfirmDialog:',
+      '[ConfirmDialog] Confirm action failed:',
       error
     );
 
     consoleErrorSpy.mockRestore();
   });
 
-  it('renders visible role="alert" with error message when onConfirm rejects, keeps dialog open, and allows retry', async () => {
+  it('renders visible role="alert" with safe error message when onConfirm rejects, keeps dialog open, and allows retry', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const onOpenChange = vi.fn();
     const onConfirm = vi
@@ -155,7 +155,7 @@ describe('Unit Tests: ConfirmDialog', () => {
 
     const alert = await screen.findByRole('alert');
     expect(alert).not.toBeNull();
-    expect(alert.textContent).toBe('Database error');
+    expect(alert.textContent).toBe('Error');
     expect(screen.getByTestId('confirm-dialog-error')).not.toBeNull();
     expect(screen.getByRole('alertdialog')).not.toBeNull();
     expect(onOpenChange).not.toHaveBeenCalled();
@@ -168,7 +168,7 @@ describe('Unit Tests: ConfirmDialog', () => {
     });
   });
 
-  it('keeps dialog open and displays role="alert" when synchronous onConfirm throws', () => {
+  it('keeps dialog open and displays role="alert" with safe error when synchronous onConfirm throws', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const onOpenChange = vi.fn();
     const error = new Error('Synchronous throw');
@@ -191,9 +191,9 @@ describe('Unit Tests: ConfirmDialog', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(screen.getByRole('alertdialog')).not.toBeNull();
-    expect(screen.getByRole('alert').textContent).toBe('Synchronous throw');
+    expect(screen.getByRole('alert').textContent).toBe('Error');
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Failed to execute confirm action in ConfirmDialog:',
+      '[ConfirmDialog] Confirm action failed:',
       error
     );
 

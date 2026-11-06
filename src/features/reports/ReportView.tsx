@@ -88,8 +88,11 @@ export default function ReportView({ state }: { state: GuiState }) {
 
   const effectiveDisplayLogs = useMemo(() => {
     if (!effectiveSelectedProjectId) return displayLogs;
-    return displayLogs.filter((log) => log.projectId === effectiveSelectedProjectId);
-  }, [displayLogs, effectiveSelectedProjectId]);
+    return displayLogs.filter((log) => {
+      const projId = (log as ClampedTimeLog).projectId || tasks.find((t) => t.id === log.taskId)?.projectId;
+      return projId === effectiveSelectedProjectId;
+    });
+  }, [displayLogs, effectiveSelectedProjectId, tasks]);
 
   const exportPayload: ExportPayload = useMemo(() => {
     const rows: ExportDataRow[] = effectiveDisplayLogs.map((log) => {

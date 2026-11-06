@@ -95,6 +95,8 @@ pub struct TimeLogEditHistory {
     pub prev_note: Option<String>,
     #[ts(optional)]
     pub reason: Option<String>,
+    #[ts(optional)]
+    pub audit_source: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -162,7 +164,8 @@ pub struct TimeLogUpdateHistory<'a> {
     pub prev_start_time: Option<&'a str>,
     pub prev_end_time: Option<&'a str>,
     pub prev_note: Option<&'a str>,
-    pub reason: Option<AuditSource>,
+    pub reason: Option<&'a str>,
+    pub audit_source: Option<AuditSource>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]

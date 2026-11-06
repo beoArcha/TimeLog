@@ -238,10 +238,20 @@ fn apply_migration_7(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+fn apply_migration_8(conn: &Connection) -> Result<()> {
+    add_column_if_missing(
+        conn,
+        "time_logs_history",
+        "audit_source",
+        constants::ALTER_TIME_LOGS_HISTORY_ADD_AUDIT_SOURCE,
+    )?;
+    Ok(())
+}
+
 pub fn initialize_database(conn: &Connection) -> Result<()> {
     conn.execute(constants::CREATE_SCHEMA_MIGRATIONS_TABLE, [])?;
 
-    let migrations: [Migration; 7] = [
+    let migrations: [Migration; 8] = [
         Migration {
             version: 1,
             apply: apply_migration_1,
@@ -269,6 +279,10 @@ pub fn initialize_database(conn: &Connection) -> Result<()> {
         Migration {
             version: 7,
             apply: apply_migration_7,
+        },
+        Migration {
+            version: 8,
+            apply: apply_migration_8,
         },
     ];
 

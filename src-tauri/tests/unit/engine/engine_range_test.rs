@@ -360,7 +360,10 @@ fn test_engine_calculate_range_metrics_filters_by_project_ids_for_logs_and_patch
         patch_note: "Excluded adjustment".to_string(),
         is_system_event: Some(false),
     };
-    persistence.patches.save(vec![patch_inc, patch_exc]).unwrap();
+    persistence
+        .patches
+        .save(vec![patch_inc, patch_exc])
+        .unwrap();
 
     let filter = ElapsedRangeFilter {
         task_id: None,
@@ -382,7 +385,10 @@ fn test_engine_calculate_range_metrics_filters_by_project_ids_for_logs_and_patch
     assert_eq!(result.clamped_logs.len(), 2);
     assert_eq!(result.project_elapsed.get("p_included"), Some(&7200));
     assert_eq!(result.project_elapsed.get("p_excluded"), None);
-    assert!(result.clamped_logs.iter().all(|l| l.project_id == "p_included"));
+    assert!(result
+        .clamped_logs
+        .iter()
+        .all(|l| l.project_id == "p_included"));
 }
 
 #[test]
@@ -450,4 +456,84 @@ fn test_engine_calculate_range_metrics_empty_project_ids_returns_no_logs_or_patc
     assert_eq!(result.clamped_logs.len(), 0);
     assert!(result.project_elapsed.is_empty());
     assert!(result.task_elapsed.is_empty());
+}
+
+#[test]
+fn test_engine_calculate_range_metrics_when_task_moved_to_different_project() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_range_task_moved");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    let p1 = ProjectBuilder::new()
+        .with_id("p_orig")
+        .with_name("Original Project")
+        .with_color("blue")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    persistence.projects.create(p1).unwrap();
+
+    let p2 = ProjectBuilder::new()
+        .with_id("p_dest")
+        .with_name("Destination Project")
+        .with_color("purple")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    persistence.projects.create(p2).unwrap();
+
+    let task = TaskBuilder::new()
+        .with_id("t_moved")
+        .with_project_id("p_orig")
+        .with_name("Migrated Task")
+        .with_created_at(Utc::now().to_rfc3339())
+        .build();
+    persistence.tasks.create(task).unwrap();
+
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time) VALUES (?, ?, ?, ?)",
+        [
+            "l_m1",
+            "t_moved",
+            "2026-06-15T10:00:00Z",
+            "2026-06-15T11:00:00Z",
+        ],
+    )
+    .unwrap();
+
+    // Move task to destination project
+    conn.execute(
+        "UPDATE tasks SET project_id = ? WHERE id = ?",
+        ["p_dest", "t_moved"],
+    )
+    .unwrap();
+
+    // Act: filter by p_dest
+    let filter_dest = ElapsedRangeFilter {
+        task_id: None,
+        project_id: Some("p_dest".to_string()),
+        project_ids: None,
+        from: Some("2026-06-15T00:00:00Z".to_string()),
+        to: Some("2026-06-15T23:59:59Z".to_string()),
+        include_patches: None,
+    };
+    let res_dest = engine.calculate_range_metrics(&filter_dest, None).unwrap();
+
+    // Assert: logs belong to p_dest now
+    assert_eq!(res_dest.total_seconds, 3600);
+    assert_eq!(res_dest.clamped_logs.len(), 1);
+    assert_eq!(res_dest.clamped_logs[0].project_id, "p_dest");
+    assert_eq!(*res_dest.project_elapsed.get("p_dest").unwrap(), 3600);
+
+    // Filter by p_orig: should return 0
+    let filter_orig = ElapsedRangeFilter {
+        task_id: None,
+        project_id: Some("p_orig".to_string()),
+        project_ids: None,
+        from: Some("2026-06-15T00:00:00Z".to_string()),
+        to: Some("2026-06-15T23:59:59Z".to_string()),
+        include_patches: None,
+    };
+    let res_orig = engine.calculate_range_metrics(&filter_orig, None).unwrap();
+    assert_eq!(res_orig.total_seconds, 0);
+    assert_eq!(res_orig.clamped_logs.len(), 0);
 }

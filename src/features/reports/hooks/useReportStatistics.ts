@@ -56,21 +56,23 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
     return tasks.filter((t) => effectiveProjectIds.has(t.projectId));
   }, [tasks, effectiveProjectIds, hasTagFilter]);
 
-  const effectiveTaskIds = useMemo(() => {
-    return new Set(effectiveTasks.map((t) => t.id));
-  }, [effectiveTasks]);
+  const taskMap = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks]);
 
   const effectiveLogs = useMemo(() => {
     if (!hasTagFilter) return logs;
-    return logs.filter(
-      (l) => effectiveProjectIds.has(l.projectId) || effectiveTaskIds.has(l.taskId)
-    );
-  }, [logs, effectiveProjectIds, effectiveTaskIds, hasTagFilter]);
+    return logs.filter((l) => {
+      const projId = taskMap.get(l.taskId)?.projectId ?? l.projectId;
+      return effectiveProjectIds.has(projId);
+    });
+  }, [logs, taskMap, effectiveProjectIds, hasTagFilter]);
 
   const effectivePatches = useMemo(() => {
     if (!hasTagFilter) return patches;
-    return patches.filter((p) => effectiveProjectIds.has(p.projectId));
-  }, [patches, effectiveProjectIds, hasTagFilter]);
+    return patches.filter((p) => {
+      const projId = (p.taskId ? taskMap.get(p.taskId)?.projectId : undefined) ?? p.projectId;
+      return effectiveProjectIds.has(projId);
+    });
+  }, [patches, taskMap, effectiveProjectIds, hasTagFilter]);
 
   const baseStats = useMemo(
     () =>

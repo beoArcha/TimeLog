@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { StatCard } from '@components/StatCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
@@ -67,6 +67,57 @@ describe('Unit Tests: Composite Components', () => {
       expect(screen.getByText('Delete Item?')).toBeTruthy();
       expect(screen.getByText('This action cannot be undone.')).toBeTruthy();
       expect(onConfirm).toHaveBeenCalled();
+    });
+
+    it('should keep the dialog open and show safe error when async confirmation rejects', async () => {
+      // Arrange
+      const onOpenChange = vi.fn();
+      const onConfirm = vi.fn().mockRejectedValue(new Error('Async error'));
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <ConfirmDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Delete Confirmation"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toBe('Error');
+      });
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+      expect(screen.getByTestId('confirm-dialog-confirm-btn').getAttribute('aria-busy')).toBe('false');
+    });
+
+    it('should keep the dialog open and show safe error when confirmation throws synchronously', async () => {
+      // Arrange
+      const onOpenChange = vi.fn();
+      const onConfirm = vi.fn(() => {
+        throw new Error('Synchronous failure');
+      });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <ConfirmDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Delete Confirmation"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toBe('Error');
+      });
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
     });
 
     it('should call onCancel and onOpenChange when cancel button is clicked', () => {
@@ -193,6 +244,57 @@ describe('Unit Tests: Composite Components', () => {
       // Assert error cleared
       expect(screen.queryByRole('alert')).toBeNull();
     });
+
+    it('should keep the dialog open and show an error when async confirmation rejects', async () => {
+      // Arrange
+      const onOpenChange = vi.fn();
+      const onConfirm = vi.fn().mockRejectedValue(new Error('Unable to save prompt'));
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <PromptDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Save Prompt"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toBe('Unable to save prompt');
+      });
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+      expect(screen.getByTestId('prompt-dialog-confirm-btn').getAttribute('aria-busy')).toBe('false');
+    });
+
+    it('should keep the dialog open and show an error when confirmation throws synchronously', async () => {
+      // Arrange
+      const onOpenChange = vi.fn();
+      const onConfirm = vi.fn(() => {
+        throw new Error('Synchronous failure');
+      });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <PromptDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Save Prompt"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toBe('Synchronous failure');
+      });
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    });
   });
 
   describe('SegmentedControl', () => {
@@ -212,6 +314,7 @@ describe('Unit Tests: Composite Components', () => {
       const opt2 = screen.getByText('Option 2');
       fireEvent.click(opt2);
       expect(onChange).toHaveBeenCalledWith('opt2');
+      expect(onChange).toHaveBeenCalledTimes(1);
     });
   });
 

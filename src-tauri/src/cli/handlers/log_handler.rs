@@ -525,7 +525,8 @@ fn edit_log(
         prev_start_time: Some(&existing.start_time),
         prev_end_time: existing.end_time.as_deref(),
         prev_note: existing.note.as_deref(),
-        reason: Some(AuditSource::CliEdit),
+        reason: None,
+        audit_source: Some(AuditSource::CliEdit),
     };
 
     persistence.time_logs.update_with_history(&history_entry)?;

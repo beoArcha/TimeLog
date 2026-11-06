@@ -57,6 +57,7 @@ impl<'a> Engine<'a> {
         Ok(ids)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn edit_log(
         &self,
         log_id: &str,
@@ -64,7 +65,8 @@ impl<'a> Engine<'a> {
         new_start_time: &str,
         new_end_time: Option<&str>,
         new_note: Option<&str>,
-        reason: Option<crate::types::AuditSource>,
+        reason: Option<&str>,
+        audit_source: Option<crate::types::AuditSource>,
     ) -> Result<(), EngineError> {
         let current_log = self.persistence.time_logs.get_by_id(log_id)?;
 
@@ -101,6 +103,7 @@ impl<'a> Engine<'a> {
             prev_end_time: prev_end,
             prev_note,
             reason,
+            audit_source,
         };
 
         self.persistence.time_logs.update_with_history(&entry)?;

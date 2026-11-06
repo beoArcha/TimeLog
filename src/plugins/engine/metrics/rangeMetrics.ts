@@ -21,6 +21,8 @@ export function calculateRangeMetrics(
   const rangeStart = filter.from ? new Date(filter.from).getTime() : -Infinity;
   const rangeEnd = filter.to ? new Date(filter.to).getTime() : Infinity;
 
+  const taskMap = new Map<string, Task>(tasks.map((t) => [t.id, t]));
+
   let relevantTaskIds: Set<string> | null = null;
 
   if (filter.taskId) {
@@ -45,17 +47,20 @@ export function calculateRangeMetrics(
     if (relevantTaskIds && !relevantTaskIds.has(log.taskId)) {
       continue;
     }
-    if (filter.projectId && log.projectId !== filter.projectId) {
+    const task = taskMap.get(log.taskId);
+    const effectiveProjectId = task?.projectId ?? log.projectId;
+
+    if (filter.projectId && effectiveProjectId !== filter.projectId) {
       continue;
     }
-    if (filter.projectIds && !filter.projectIds.includes(log.projectId)) {
+    if (filter.projectIds && !filter.projectIds.includes(effectiveProjectId)) {
       continue;
     }
 
     const clamped = clampInterval(
       {
         id: log.id,
-        projectId: log.projectId,
+        projectId: effectiveProjectId,
         taskId: log.taskId,
         startTime: log.startTime,
         endTime: log.endTime,
@@ -77,10 +82,13 @@ export function calculateRangeMetrics(
 
   if (filter.includePatches && patches) {
     for (const patch of patches) {
-      if (filter.projectId && patch.projectId !== filter.projectId) {
+      const task = patch.taskId ? taskMap.get(patch.taskId) : undefined;
+      const effectiveProjectId = task?.projectId ?? patch.projectId;
+
+      if (filter.projectId && effectiveProjectId !== filter.projectId) {
         continue;
       }
-      if (filter.projectIds && !filter.projectIds.includes(patch.projectId)) {
+      if (filter.projectIds && !filter.projectIds.includes(effectiveProjectId)) {
         continue;
       }
       if (relevantTaskIds && (!patch.taskId || !relevantTaskIds.has(patch.taskId))) {
@@ -91,7 +99,7 @@ export function calculateRangeMetrics(
       const clamped = clampInterval(
         {
           id: patch.id,
-          projectId: patch.projectId,
+          projectId: effectiveProjectId,
           taskId: taskIdStr,
           startTime: patch.startTime,
           endTime: patch.endTime,

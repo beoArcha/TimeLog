@@ -466,5 +466,90 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       expect(Object.keys(emptyMetrics.projectElapsed)).toHaveLength(0);
       expect(Object.keys(emptyMetrics.taskElapsed)).toHaveLength(0);
     });
+    it('Given a task moved between projects, When querying range metrics and billing in browser runtime, Then metrics and billing attribute to destination project', async () => {
+      // Arrange
+      setupLocalStorageMock();
+      const persistence = new PersistencePlugin();
+      PersistenceRouter.getInstance().setImplementationForTesting(persistence);
+
+      await persistence.core.overrideState({
+        projects: [
+          {
+            id: 'p_source',
+            name: 'Source Project',
+            color: 'red',
+            createdAt: '2026-06-15T00:00:00Z',
+            archived: false,
+            hourlyRate: '50.00',
+            currency: 'USD',
+          },
+          {
+            id: 'p_target',
+            name: 'Target Project',
+            color: 'green',
+            createdAt: '2026-06-15T00:00:00Z',
+            archived: false,
+            hourlyRate: '100.00',
+            currency: 'EUR',
+          },
+        ],
+        tasks: [
+          {
+            id: 't_migrated',
+            projectId: 'p_target',
+            name: 'Migrated Task',
+            createdAt: '2026-06-15T00:00:00Z',
+            completed: false,
+            status: 'Todo',
+          },
+        ],
+        logs: [
+          {
+            id: 'l_old',
+            projectId: 'p_source',
+            taskId: 't_migrated',
+            startTime: '2026-06-15T10:00:00Z',
+            endTime: '2026-06-15T11:00:00Z',
+          },
+        ],
+        activeLog: null,
+      });
+
+      const browserEngine = new EnginePlugin();
+
+      // Act: query metrics for p_target
+      const targetMetrics = await browserEngine.metrics.getRangeMetrics({
+        projectId: 'p_target',
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+      });
+
+      // Assert
+      expect(targetMetrics.totalSeconds).toBe(3600);
+      expect(targetMetrics.clampedLogs).toHaveLength(1);
+      expect(targetMetrics.clampedLogs[0].projectId).toBe('p_target');
+      expect(targetMetrics.projectElapsed['p_target']).toBe(3600);
+      expect(targetMetrics.projectElapsed['p_source']).toBeUndefined();
+
+      // Act: query metrics for p_source
+      const sourceMetrics = await browserEngine.metrics.getRangeMetrics({
+        projectId: 'p_source',
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+      });
+      expect(sourceMetrics.totalSeconds).toBe(0);
+      expect(sourceMetrics.clampedLogs).toHaveLength(0);
+
+      // Act: calculate billing
+      const billing = await browserEngine.billing.calculateRangeBilling({
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+      });
+
+      expect(billing.totalBillableSeconds).toBe(3600);
+      expect(billing.byCurrency['EUR']).toBeDefined();
+      expect(billing.byCurrency['USD']).toBeUndefined();
+      expect(billing.byCurrency['EUR'].totalAmount).toBe('100.00');
+    });
   });
 });

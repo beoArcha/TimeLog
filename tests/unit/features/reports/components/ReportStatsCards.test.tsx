@@ -226,6 +226,7 @@ describe('Unit Tests: ReportStatsCards', () => {
     fireEvent.click(header);
 
     // Assert
-    expect(screen.queryByTestId('report-stat-today')).toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.getByTestId('report-stat-today').closest('[hidden]')).not.toBeNull();
   });
 });

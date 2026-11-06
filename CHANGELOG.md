@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Composite UI Component Behavior**:
+  - Migrated `CollapsibleCard` to the shared Base UI collapsible primitive, kept `headerRight` actions independent, and preserved collapsed child state.
+  - Kept `PromptDialog` open after synchronous or asynchronous confirmation failures, displayed the error, and prevented unhandled Promise rejections.
+  - Removed the duplicate `SegmentedControl` change callback path.
+  - Corrected `ToggleGroupItem` precedence so item-level variant and size overrides take effect.
+
 ### Breaking Changes
 
 - **Identity & OS Bundle Identifier**:

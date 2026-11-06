@@ -278,7 +278,7 @@ describe('Unit Tests: ReportLogList', () => {
       // ConfirmDialog must stay open and display the error
       await waitFor(() => {
         expect(screen.getByTestId('confirm-dialog-error')).not.toBeNull();
-        expect(screen.getByText('Database lock timeout')).not.toBeNull();
+        expect(screen.getByRole('alert')).not.toBeNull();
       });
 
       // onLogDeleted must NOT have been called

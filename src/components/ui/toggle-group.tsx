@@ -2,7 +2,7 @@ import * as React from "react";
 import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group";
 import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
 import { type VariantProps } from "class-variance-authority";
-import { buttonVariants } from "@/src/components/ui/button-variants";
+import { buttonVariants } from "./button-variants";
 import { cn } from "@/lib/utils";
 
 const ToggleGroupContext = React.createContext<{
@@ -53,8 +53,8 @@ function ToggleGroupItem({
       data-slot="toggle-group-item"
       className={cn(
         buttonVariants({
-          variant: context.variant || variant || "ghost",
-          size: context.size || size || "default",
+          variant: variant ?? context.variant ?? "ghost",
+          size: size ?? context.size ?? "default",
         }),
         "data-[pressed]:bg-accent data-[pressed]:text-accent-foreground data-[pressed]:shadow-xs",
         className
