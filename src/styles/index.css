@@ -610,18 +610,26 @@
   [data-slot="card"],
   [data-slot="area"],
   .break-inside-avoid,
-  #reports-panel > * {
+  #reports-panel > *:not([data-slot="report-log-list"]):not([data-testid="report-log-list"]) {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
 
-  /* Allow log list container to break naturally across multiple pages while keeping items intact */
-  #reports-panel [data-testid="report-log-list-scroll-container"],
-  #reports-panel div:has(> [data-testid="report-log-list-scroll-container"]) {
+  /* Explicitly allow the log list wrapper, sections, and scroll container to break across pages */
+  #reports-panel > [data-slot="report-log-list"],
+  #reports-panel > [data-testid="report-log-list"],
+  [data-slot="report-log-list"],
+  [data-slot="report-log-dump-section"],
+  [data-testid="report-log-list-scroll-container"] {
     break-inside: auto !important;
     page-break-inside: auto !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
+  /* Keep individual log entries intact where practical */
+  [data-slot="report-log-row"],
   [data-testid="report-log-list-scroll-container"] > * {
     break-inside: avoid !important;
     page-break-inside: avoid !important;

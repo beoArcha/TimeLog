@@ -293,4 +293,81 @@ export function formatChartDate(
   }
 }
 
+/**
+ * Formats a calendar date in UTC for print headers and printed log timestamps
+ * according to the active locale (e.g. '15.06.2026' in pl, '06/15/2026' in en, '2026-06-15' ISO fallback).
+ * Returns empty string if the input date is malformed or invalid.
+ */
+export function formatCalendarDate(
+  dateKey: string | Date,
+  locale?: string | Locale
+): string {
+  const parsed = parseUtcCalendarDate(dateKey);
+  if (!parsed) {
+    return '';
+  }
+  const resolvedLocale = resolveDateTimeLocale(locale);
+  try {
+    return new Intl.DateTimeFormat(resolvedLocale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'UTC',
+    }).format(parsed);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return getUtcDateKey(parsed) ?? '';
+    }
+    console.error('Failed to format calendar date:', err);
+    throw err;
+  }
+}
+
+export interface CustomDateRangeSummary {
+  fromStr: string | null;
+  toStr: string | null;
+  label: string | null;
+}
+
+/**
+ * Safely formats a custom date range for print headers (e.g. '15.06.2026 — 22.06.2026').
+ * Handles incomplete (from only, to only) or invalid inputs safely without misleading displays.
+ */
+export function formatCustomDateRange(
+  from?: string,
+  to?: string,
+  locale?: string | Locale
+): CustomDateRangeSummary {
+  const fromFormatted = from ? formatCalendarDate(from, locale) : '';
+  const toFormatted = to ? formatCalendarDate(to, locale) : '';
+
+  if (fromFormatted && toFormatted) {
+    return {
+      fromStr: fromFormatted,
+      toStr: toFormatted,
+      label: `${fromFormatted} — ${toFormatted}`,
+    };
+  }
+  if (fromFormatted) {
+    return {
+      fromStr: fromFormatted,
+      toStr: null,
+      label: `≥ ${fromFormatted}`,
+    };
+  }
+  if (toFormatted) {
+    return {
+      fromStr: null,
+      toStr: toFormatted,
+      label: `≤ ${toFormatted}`,
+    };
+  }
+  return {
+    fromStr: null,
+    toStr: null,
+    label: null,
+  };
+}
+
+
 

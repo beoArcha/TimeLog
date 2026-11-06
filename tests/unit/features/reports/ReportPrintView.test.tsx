@@ -161,4 +161,42 @@ describe('Unit Tests: ReportPrintView and Capabilities Badge', () => {
     expect(actionsContainer?.className).toContain('no-print');
     expect(actionsContainer?.className).toContain('print:hidden');
   });
+
+  it('should render print-only period header in ReportView with correct preset label', () => {
+    // Arrange & Act
+    render(
+      <PlatformCapabilitiesContext.Provider value={createCapabilities({ isDesktop: true })}>
+        <ReportView state={{ ...mockGuiState, reportPeriod: 'today' }} />
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    // Assert
+    const periodHeader = screen.getByTestId('report-print-period-header');
+    expect(periodHeader).not.toBeNull();
+    expect(periodHeader.className).toContain('hidden');
+    expect(periodHeader.className).toContain('print:flex');
+    expect(periodHeader.textContent).toContain('Today');
+  });
+
+  it('should render custom date range in print-only period header when period is custom', () => {
+    // Arrange & Act
+    render(
+      <PlatformCapabilitiesContext.Provider value={createCapabilities({ isDesktop: true })}>
+        <ReportView
+          state={{
+            ...mockGuiState,
+            reportPeriod: 'custom',
+            customFrom: '2026-06-01',
+            customTo: '2026-06-15',
+          }}
+        />
+      </PlatformCapabilitiesContext.Provider>
+    );
+
+    // Assert
+    const periodHeader = screen.getByTestId('report-print-period-header');
+    expect(periodHeader).not.toBeNull();
+    expect(periodHeader.textContent).toContain('06/01/2026 — 06/15/2026');
+  });
 });
+

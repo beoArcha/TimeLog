@@ -8,6 +8,8 @@ import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 import { Badge } from '@components/ui/badge';
 import { Heading, Caption, MonoText } from '@components/ui/typography';
+import { Locale } from '@bindings/Locale';
+import { formatCalendarDate } from '@features/reports/utils/reportDateUtils';
 import { ProjectChartItem } from '../types';
 
 export interface ReportLogListProps {
@@ -18,6 +20,7 @@ export interface ReportLogListProps {
   projects: Project[];
   tasks: Task[];
   nowIso?: string;
+  locale?: Locale;
 }
 
 export default function ReportLogList({
@@ -28,8 +31,10 @@ export default function ReportLogList({
   projects,
   tasks,
   nowIso,
+  locale: propLocale,
 }: ReportLogListProps) {
-  const { t } = useTranslation('report');
+  const { t, locale: contextLocale } = useTranslation('report');
+  const activeLocale = propLocale ?? contextLocale;
 
   if (filteredLogs.length === 0 && displayLogs.length === 0) {
     return (
@@ -40,7 +45,11 @@ export default function ReportLogList({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div
+      data-slot="report-log-list"
+      data-testid="report-log-list"
+      className="flex flex-col gap-6 print:break-inside-auto"
+    >
       <div className="flex flex-col gap-3">
         <Heading level={4} className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
           📊 {t('GraphicalDistribution')}
@@ -78,13 +87,13 @@ export default function ReportLogList({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 mt-4">
+      <div data-slot="report-log-dump-section" className="flex flex-col gap-3 mt-4 print:break-inside-auto">
         <Heading level={4} className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase">
           📋 {t('PlainDump')} ({displayLogs.length})
         </Heading>
         <div
           data-testid="report-log-list-scroll-container"
-          className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto print:max-h-none print:overflow-visible p-4 flex flex-col gap-2"
+          className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto print:max-h-none print:overflow-visible print:h-auto p-4 flex flex-col gap-2"
         >
           {displayLogs.map(log => {
             const isClamped = 'clampedDurationSeconds' in log;
@@ -111,14 +120,21 @@ export default function ReportLogList({
               durSeconds = Math.max(0, Math.floor((end - start) / 1000));
             }
 
+            const dateFormatted = formatCalendarDate(displayTime, activeLocale);
+            const timeOnly = new Date(displayTime).toLocaleTimeString();
+
             return (
               <div
                 key={log.id}
-                className="flex flex-col sm:flex-row justify-between sm:items-center gap-1.5 py-1.5 border-b border-border/50 last:border-0 text-xs text-foreground"
+                data-slot="report-log-row"
+                className="flex flex-col sm:flex-row justify-between sm:items-center gap-1.5 py-1.5 border-b border-border/50 last:border-0 text-xs text-foreground print:break-inside-avoid"
               >
                 <div className="truncate flex items-center gap-1.5 flex-wrap">
                   <MonoText size="2xs" weight="bold" className="text-indigo-400 shrink-0">
-                    [{new Date(displayTime).toLocaleTimeString()}]
+                    <span className="print:hidden">[{timeOnly}]</span>
+                    <span className="hidden print:inline" data-testid="log-entry-print-datetime">
+                      [{dateFormatted ? `${dateFormatted} ` : ''}{timeOnly}]
+                    </span>
                   </MonoText>
                   <strong className="text-foreground">"{tObj?.name || 'N/A'}"</strong>
                   <Caption as="span">({p?.name})</Caption>
