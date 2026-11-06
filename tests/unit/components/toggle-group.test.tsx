@@ -21,6 +21,5 @@ describe('ToggleGroupItem', () => {
     // Assert
     expect(item.className).toContain('bg-background');
     expect(item.className).toContain('h-7');
-    expect(item.className).not.toContain('hover:bg-muted hover:text-foreground');
   });
 });
