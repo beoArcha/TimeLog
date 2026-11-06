@@ -190,4 +190,56 @@ describe('CollapsibleCard', () => {
     expect(controlIds.every(Boolean)).toBe(true);
     expect(new Set(controlIds).size).toBe(2);
   });
+
+  it('Given forceMountOnPrint = true and collapsed, When rendered, Then content remains mounted in DOM with hidden print:flex', () => {
+    const { container } = render(
+      <MockProviders state={mockState}>
+        <CollapsibleCard
+          title="Printable Card"
+          defaultExpanded={false}
+          forceMountOnPrint={true}
+          headerTestId="printable-card-header"
+        >
+          <div data-testid="printable-content">Always Mounted Content</div>
+        </CollapsibleCard>
+      </MockProviders>
+    );
+
+    // Node is present in DOM for print media queries
+    const content = screen.getByTestId('printable-content');
+    expect(content).toBeTruthy();
+
+    // But wrapped in a container that has hidden print:flex for screen vs print
+    const contentWrapper = container.querySelector('#collapsible-content-printable-card-header');
+    expect(contentWrapper).not.toBeNull();
+    expect(contentWrapper?.classList.contains('hidden')).toBe(true);
+    expect(contentWrapper?.className).toContain('print:flex');
+
+    // Chevron wrapper is print:hidden
+    const chevronWrapper = container.querySelector('.print\\:hidden');
+    expect(chevronWrapper).not.toBeNull();
+  });
+
+  it('Given forceMountOnPrint = true, When header is clicked, Then content expands and loses hidden class', () => {
+    const { container } = render(
+      <MockProviders state={mockState}>
+        <CollapsibleCard
+          title="Printable Toggle"
+          defaultExpanded={false}
+          forceMountOnPrint={true}
+          headerTestId="toggle-header"
+        >
+          <div>Toggled Content</div>
+        </CollapsibleCard>
+      </MockProviders>
+    );
+
+    const header = screen.getByRole('button');
+    const contentWrapper = container.querySelector('#collapsible-content-toggle-header');
+    expect(contentWrapper?.classList.contains('hidden')).toBe(true);
+
+    fireEvent.click(header);
+    expect(contentWrapper?.classList.contains('hidden')).toBe(false);
+  });
 });
+

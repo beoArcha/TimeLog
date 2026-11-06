@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useId } from 'react';
 import { ChevronDown, ChevronRight, type LucideIcon } from 'lucide-react';
 import { Card } from '@components/ui/card';
 import {
@@ -25,6 +25,7 @@ export interface CollapsibleCardProps {
   titleNode?: React.ReactNode;
   onClick?: () => void;
   headerTestId?: string;
+  forceMountOnPrint?: boolean;
 }
 
 /**
@@ -44,7 +45,12 @@ export function CollapsibleCard({
   titleNode,
   onClick,
   headerTestId,
+  forceMountOnPrint = false,
 }: CollapsibleCardProps) {
+  const [open, setOpen] = useState(defaultExpanded);
+  const generatedId = useId();
+  const contentId = `collapsible-content-${headerTestId ?? generatedId}`;
+
   const defaultWrapper = cn(
     'p-6 rounded-3xl border transition-all flex flex-col gap-4 bg-card border-border text-card-foreground shadow-xs'
   );
@@ -53,14 +59,19 @@ export function CollapsibleCard({
     titleColor || 'text-foreground'
   );
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    onClick?.();
+  };
+
   return (
     <Card
       className={wrapperClassName || defaultWrapper}
       data-slot="collapsible-card"
     >
       <Collapsible
-        defaultOpen={defaultExpanded}
-        onOpenChange={() => onClick?.()}
+        open={open}
+        onOpenChange={handleOpenChange}
         className="flex flex-col gap-4"
       >
         <HStack justify="between" align="center" className="w-full">
@@ -80,11 +91,13 @@ export function CollapsibleCard({
                     type="button"
                     variant="ghost"
                     icon={
-                      state.open ? (
-                        <ChevronDown className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                      )
+                      <span className="print:hidden inline-flex items-center">
+                        {state.open ? (
+                          <ChevronDown className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        ) : (
+                          <ChevronRight className="w-5 h-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        )}
+                      </span>
                     }
                     iconPlacement="right"
                     className="h-auto w-full justify-between rounded-md px-1 py-1 text-left text-inherit hover:bg-muted/40"
@@ -103,8 +116,13 @@ export function CollapsibleCard({
         </HStack>
 
         <CollapsibleContent
+          id={contentId}
           keepMounted
-          className={cn('animate-in fade-in slide-in-from-top-2 duration-300', contentClassName)}
+          className={cn(
+            'animate-in fade-in slide-in-from-top-2 duration-300',
+            contentClassName,
+            !open && forceMountOnPrint && 'hidden print:flex'
+          )}
         >
           <VStack>{children}</VStack>
         </CollapsibleContent>

@@ -226,6 +226,14 @@ jobs:
         shell: bash
         run: bun run test:smoke
 
+      - name: Install Playwright Browsers and Dependencies
+        shell: bash
+        run: bun x playwright install --with-deps chrome chromium
+
+      - name: Run Reports Print E2E Spec
+        shell: bash
+        run: bun run test:e2e:print
+
   pr-gate:
     name: PR Gate (Unified Check)
     needs: [detect-changes, check-docs, check-frontend, check-rust, check-e2e]

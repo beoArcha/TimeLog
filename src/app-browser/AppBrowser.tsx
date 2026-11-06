@@ -19,6 +19,7 @@ export default function AppBrowser() {
         typeof window !== 'undefined' &&
         new URLSearchParams(window.location.search).get('debug') === '1',
       storageEngineName: 'localStorage',
+      isDesktop: false,
     }),
     []
   );

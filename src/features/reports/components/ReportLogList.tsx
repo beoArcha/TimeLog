@@ -14,6 +14,8 @@ import { HStack } from '@components/ui/stack';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { useDataSafe } from '@common/hooks/DataContext';
 import { Pencil, Trash2 } from 'lucide-react';
+import { Locale } from '@bindings/Locale';
+import { formatCalendarDate, formatCalendarTime, formatScreenTime } from '@features/reports/utils/reportDateUtils';
 import { ProjectChartItem } from '../types';
 import ReportLogEditModal from './ReportLogEditModal';
 
@@ -29,6 +31,8 @@ export interface ReportLogListProps {
   activeTimerLogId?: string | null;
   onLogDeleted?: (logId: string) => void;
   onLogUpdated?: (logId: string) => void;
+  locale?: Locale;
+  timeZone?: string;
 }
 
 export default function ReportLogList({
@@ -43,9 +47,12 @@ export default function ReportLogList({
   activeTimerLogId,
   onLogDeleted,
   onLogUpdated,
+  locale: propLocale,
+  timeZone,
 }: ReportLogListProps) {
-  const { t } = useTranslation('report');
+  const { t, locale: contextLocale } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
+  const activeLocale = propLocale ?? contextLocale;
   const dataContext = useDataSafe();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,7 +114,11 @@ export default function ReportLogList({
   const editingProject = projects.find((p) => p.id === activeEditingSourceLog?.projectId);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div
+      data-slot="report-log-list"
+      data-testid="report-log-list"
+      className="flex flex-col gap-6 print:break-inside-auto"
+    >
       <div className="flex flex-col gap-3">
         <Heading
           level={4}
@@ -144,13 +155,13 @@ export default function ReportLogList({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 mt-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+      <div data-slot="report-log-dump-section" className="flex flex-col gap-3 mt-4 print:break-inside-auto">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 print:block">
           <Heading level={4} className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase">
             📋 {t('PlainDump')} ({searchedLogs.length}
             {searchQuery.trim() ? ` / ${displayLogs.length}` : ''})
           </Heading>
-          <div className="w-full sm:w-64">
+          <div className="w-full sm:w-64 print:hidden">
             <SearchInput
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -167,7 +178,10 @@ export default function ReportLogList({
             🔍 {t('NoMatchingLogs')}
           </div>
         ) : (
-          <div className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto p-4 flex flex-col gap-2">
+          <div
+            data-testid="report-log-list-scroll-container"
+            className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto print:max-h-none print:overflow-visible print:h-auto p-4 flex flex-col gap-2"
+          >
             {searchedLogs.map((log) => {
               const isClamped = 'clampedDurationSeconds' in log;
               const p = projects.find((x) => x.id === log.projectId);
@@ -195,14 +209,25 @@ export default function ReportLogList({
 
               const isActive = !log.endTime || log.endTime === null || log.id === currentActiveId;
 
+              const screenTimeFormatted = formatScreenTime(displayTime, activeLocale, { timeZone });
+              const screenTimeOnly = screenTimeFormatted || 'N/A';
+
+              const printDateFormatted = formatCalendarDate(displayTime, activeLocale);
+              const printTimeFormatted = formatCalendarTime(displayTime, activeLocale);
+              const printTimeOnly = printTimeFormatted || 'N/A';
+
               return (
                 <div
                   key={log.id}
-                  className="flex flex-col sm:flex-row justify-between sm:items-center gap-1.5 py-1.5 border-b border-border/50 last:border-0 text-xs text-foreground"
+                  data-slot="report-log-row"
+                  className="flex flex-col sm:flex-row justify-between sm:items-center gap-1.5 py-1.5 border-b border-border/50 last:border-0 text-xs text-foreground print:break-inside-avoid"
                 >
                   <div className="truncate flex items-center gap-1.5 flex-wrap">
                     <MonoText size="2xs" weight="bold" className="text-indigo-400 shrink-0">
-                      [{new Date(displayTime).toLocaleTimeString()}]
+                      <span className="print:hidden" data-testid="log-entry-screen-time">[{screenTimeOnly}]</span>
+                      <span className="hidden print:inline" data-testid="log-entry-print-datetime">
+                        [{printDateFormatted ? `${printDateFormatted} ` : ''}{printTimeOnly}]
+                      </span>
                     </MonoText>
                     <strong className="text-foreground">"{tObj?.name || 'N/A'}"</strong>
                     <Caption as="span">({p?.name})</Caption>
@@ -234,7 +259,7 @@ export default function ReportLogList({
                     </span>
 
                     {!isPatch && (
-                      <>
+                      <div className="flex items-center gap-1 print:hidden">
                         <Button
                           type="button"
                           variant="ghost"
@@ -261,7 +286,7 @@ export default function ReportLogList({
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
-                      </>
+                      </div>
                     )}
                   </HStack>
                 </div>

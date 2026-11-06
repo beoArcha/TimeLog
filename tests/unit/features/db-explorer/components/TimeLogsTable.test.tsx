@@ -80,7 +80,7 @@ describe("Unit Tests: TimeLogsTable", () => {
     );
 
     // Act
-    const addBtn = screen.getByRole("button", { name: /AddLogManually|Add Log/i });
+    const addBtn = screen.getByRole("button", { name: /Add Log Manually|AddLogManually/i });
     expect(addBtn).not.toBeNull();
     fireEvent.click(addBtn);
 
@@ -240,7 +240,7 @@ describe("Unit Tests: TimeLogsTable", () => {
     );
 
     // Open add log form
-    const addBtn = screen.getByRole("button", { name: /AddLogManually|Add Log/i });
+    const addBtn = screen.getByRole("button", { name: /Add Log Manually|AddLogManually/i });
     fireEvent.click(addBtn);
 
     // Fill note and submit

@@ -79,7 +79,7 @@ describe('Unit Tests: ProjectDonutChart', () => {
       />
     );
     const header = screen.getByTestId('project-donut-chart-header');
-    expect(screen.getByTestId('donut-chart-empty')).not.toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
 
     // Act
     fireEvent.click(header);

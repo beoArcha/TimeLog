@@ -13,6 +13,7 @@ export interface PlatformCapabilities {
   hasNativeDaemon?: boolean;
   canUseCli?: boolean;
   storageEngineName?: 'sqlite' | 'localStorage';
+  isDesktop?: boolean;
 }
 
 const defaultCapabilities: PlatformCapabilities = {
@@ -27,6 +28,7 @@ const defaultCapabilities: PlatformCapabilities = {
   hasNativeDaemon: false,
   canUseCli: false,
   storageEngineName: 'localStorage',
+  isDesktop: false,
 };
 
 export const PlatformCapabilitiesContext = createContext<PlatformCapabilities>(defaultCapabilities);

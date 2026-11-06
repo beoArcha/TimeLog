@@ -31,6 +31,7 @@ export interface ReportBillingCardProps {
   billingResult?: RangeBillingResult | null;
   billingError?: string | null;
   isLoading?: boolean;
+  forceMountOnPrint?: boolean;
 }
 
 function formatDisplayRate(
@@ -58,6 +59,7 @@ export default function ReportBillingCard({
   billingResult: propBillingResult,
   billingError: propBillingError,
   isLoading: propIsLoading,
+  forceMountOnPrint = false,
 }: ReportBillingCardProps) {
   const { t } = useTranslation('report');
   const [internalResult, setInternalResult] = useState<RangeBillingResult | null>(null);
@@ -168,6 +170,7 @@ export default function ReportBillingCard({
         defaultExpanded={true}
         headerTestId="report-billing-collapsible-header"
         contentClassName="flex flex-col gap-4 mt-2"
+        forceMountOnPrint={forceMountOnPrint}
       >
         <Alert variant="destructive" data-testid="report-billing-error">
           <AlertTitle>{t('BillingCalculationError')}</AlertTitle>
@@ -193,6 +196,7 @@ export default function ReportBillingCard({
       defaultExpanded={true}
       headerTestId="report-billing-collapsible-header"
       contentClassName="flex flex-col gap-4 mt-2"
+      forceMountOnPrint={forceMountOnPrint}
     >
       {currencies.length === 0 ? (
         <div className="text-sm text-muted-foreground py-2" data-testid="report-billing-empty">
@@ -242,7 +246,7 @@ export default function ReportBillingCard({
           </Grid>
 
           {billingResult && billingResult.byTask.length > 0 && (
-            <div className="mt-2 overflow-x-auto">
+            <div className="mt-2 overflow-x-auto print:overflow-visible">
               <Table className="w-full text-xs text-left">
                 <TableHeader>
                   <TableRow className="border-b border-border/60 text-muted-foreground">

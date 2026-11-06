@@ -21,6 +21,7 @@ export interface ReportStatsCardsProps {
   currencies?: CurrencyBillingSummary[];
   billingError?: string | null;
   isBillingLoading?: boolean;
+  forceMountOnPrint?: boolean;
 }
 
 function getCurrencyMetricValue(curr: CurrencyBillingSummary): string {
@@ -166,6 +167,7 @@ export default function ReportStatsCards({
   currencies,
   billingError,
   isBillingLoading,
+  forceMountOnPrint = false,
 }: ReportStatsCardsProps) {
   const { t } = useTranslation('report');
 
@@ -281,6 +283,7 @@ export default function ReportStatsCards({
       defaultExpanded={true}
       headerTestId="report-stats-collapsible-header"
       contentClassName="flex flex-col gap-4 mt-2"
+      forceMountOnPrint={forceMountOnPrint}
     >
       {showActivePeriodStats && (
         <Grid cols={1} gap="xl" className="md:grid-cols-2 lg:grid-cols-4">

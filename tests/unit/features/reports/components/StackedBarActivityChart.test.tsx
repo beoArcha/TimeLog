@@ -77,7 +77,7 @@ describe('Unit Tests: StackedBarActivityChart', () => {
       />
     );
     const header = screen.getByTestId('stacked-activity-chart-header');
-    expect(screen.getByTestId('stacked-chart-empty')).not.toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
 
     // Act
     fireEvent.click(header);

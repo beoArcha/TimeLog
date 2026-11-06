@@ -589,4 +589,108 @@ describe('Unit Tests: useReportStatistics', () => {
       );
     });
   });
+
+  it('should compute statistics when custom date range and project filter work together', async () => {
+    const { result, rerender } = renderHook(
+      (props) => useReportStatistics(props),
+      {
+        initialProps: {
+          logs: [
+            { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-10T10:00:00Z', endTime: '2026-06-10T11:00:00Z' },
+            { id: 'l2', taskId: 't1', projectId: 'p1', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T12:00:00Z' },
+            { id: 'l3', taskId: 't2', projectId: 'p2', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T13:00:00Z' },
+          ],
+          patches: [],
+          projects: [
+            { id: 'p1', name: 'Alpha', color: 'indigo', createdAt: '2026-06-01' },
+            { id: 'p2', name: 'Beta', color: 'emerald', createdAt: '2026-06-01' },
+          ],
+          tasks: [
+            { id: 't1', projectId: 'p1', name: 'Task Alpha', completed: false, createdAt: '2026-06-01' },
+            { id: 't2', projectId: 'p2', name: 'Task Beta', completed: false, createdAt: '2026-06-01' },
+          ],
+          nowIso: '2026-06-25T15:00:00Z',
+          reportPeriod: 'custom',
+          customFrom: '2026-06-15',
+          customTo: '2026-06-22',
+          reportSort: 'duration',
+          selectedProjectId: 'p1',
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        },
+      }
+    );
+
+    // In date range June 15 - June 22 and for project p1:
+    // l1 is June 10 (outside range) -> excluded
+    // l2 is June 20 (inside range, p1) -> 7200s
+    // l3 is June 20 (inside range, but p2) -> excluded because selectedProjectId is p1
+    expect(result.current.periodTotalSec).toBe(7200);
+    expect(result.current.filteredLogs).toHaveLength(1);
+    expect(result.current.filteredLogs[0].id).toBe('l2');
+    expect(result.current.projectChart).toHaveLength(1);
+    expect(result.current.projectChart[0].id).toBe('p1');
+    expect(result.current.projectChart[0].seconds).toBe(7200);
+
+    // Now switch to p2 in the same custom date range
+    rerender({
+      logs: [
+        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-10T10:00:00Z', endTime: '2026-06-10T11:00:00Z' },
+        { id: 'l2', taskId: 't1', projectId: 'p1', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T12:00:00Z' },
+        { id: 'l3', taskId: 't2', projectId: 'p2', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T13:00:00Z' },
+      ],
+      patches: [],
+      projects: [
+        { id: 'p1', name: 'Alpha', color: 'indigo', createdAt: '2026-06-01' },
+        { id: 'p2', name: 'Beta', color: 'emerald', createdAt: '2026-06-01' },
+      ],
+      tasks: [
+        { id: 't1', projectId: 'p1', name: 'Task Alpha', completed: false, createdAt: '2026-06-01' },
+        { id: 't2', projectId: 'p2', name: 'Task Beta', completed: false, createdAt: '2026-06-01' },
+      ],
+      nowIso: '2026-06-25T15:00:00Z',
+      reportPeriod: 'custom',
+      customFrom: '2026-06-15',
+      customTo: '2026-06-22',
+      reportSort: 'duration',
+      selectedProjectId: 'p2',
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    });
+
+    // For p2: l3 is inside range (10800s)
+    expect(result.current.periodTotalSec).toBe(10800);
+    expect(result.current.filteredLogs).toHaveLength(1);
+    expect(result.current.filteredLogs[0].id).toBe('l3');
+    expect(result.current.projectChart).toHaveLength(1);
+    expect(result.current.projectChart[0].id).toBe('p2');
+    expect(result.current.projectChart[0].seconds).toBe(10800);
+
+    // Now clear project filter: both l2 and l3 should be included
+    rerender({
+      logs: [
+        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-10T10:00:00Z', endTime: '2026-06-10T11:00:00Z' },
+        { id: 'l2', taskId: 't1', projectId: 'p1', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T12:00:00Z' },
+        { id: 'l3', taskId: 't2', projectId: 'p2', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T13:00:00Z' },
+      ],
+      patches: [],
+      projects: [
+        { id: 'p1', name: 'Alpha', color: 'indigo', createdAt: '2026-06-01' },
+        { id: 'p2', name: 'Beta', color: 'emerald', createdAt: '2026-06-01' },
+      ],
+      tasks: [
+        { id: 't1', projectId: 'p1', name: 'Task Alpha', completed: false, createdAt: '2026-06-01' },
+        { id: 't2', projectId: 'p2', name: 'Task Beta', completed: false, createdAt: '2026-06-01' },
+      ],
+      nowIso: '2026-06-25T15:00:00Z',
+      reportPeriod: 'custom',
+      customFrom: '2026-06-15',
+      customTo: '2026-06-22',
+      reportSort: 'duration',
+      selectedProjectId: null,
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    });
+
+    expect(result.current.periodTotalSec).toBe(18000); // 7200 + 10800
+    expect(result.current.filteredLogs).toHaveLength(2);
+    expect(result.current.projectChart).toHaveLength(2);
+  });
 });

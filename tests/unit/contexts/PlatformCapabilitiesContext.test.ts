@@ -21,6 +21,7 @@ describe('PlatformCapabilitiesContext', () => {
     expect(result.current.storageEngineName).toBe('localStorage');
     expect(result.current.isPwaInstallable).toBe(false);
     expect(result.current.canInspectDatabase).toBe(false);
+    expect(result.current.isDesktop).toBe(false);
     expect(result.current.dragRegionProps).toEqual({});
     expect(result.current.supportedLayouts).toEqual(['compact', 'medium', 'full']);
     expect(result.current.defaultLayout).toBe('full');
@@ -40,6 +41,7 @@ describe('PlatformCapabilitiesContext', () => {
       hasNativeDaemon: true,
       canUseCli: true,
       storageEngineName: 'sqlite',
+      isDesktop: true,
     };
 
     const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
@@ -55,6 +57,7 @@ describe('PlatformCapabilitiesContext', () => {
     expect(result.current.hasNativeDaemon).toBe(true);
     expect(result.current.canUseCli).toBe(true);
     expect(result.current.storageEngineName).toBe('sqlite');
+    expect(result.current.isDesktop).toBe(true);
     expect(result.current.isPwaInstallable).toBe(false);
     expect(result.current.canInspectDatabase).toBe(true);
     expect(result.current.dragRegionProps).toEqual({ 'data-tauri-drag-region': true });
@@ -74,6 +77,7 @@ describe('PlatformCapabilitiesContext', () => {
       hasNativeDaemon: false,
       canUseCli: false,
       storageEngineName: 'localStorage',
+      isDesktop: false,
     };
 
     const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
@@ -89,6 +93,7 @@ describe('PlatformCapabilitiesContext', () => {
     expect(result.current.hasNativeDaemon).toBe(false);
     expect(result.current.canUseCli).toBe(false);
     expect(result.current.storageEngineName).toBe('localStorage');
+    expect(result.current.isDesktop).toBe(false);
     expect(result.current.isPwaInstallable).toBe(true);
     expect(result.current.canInspectDatabase).toBe(false);
     expect(result.current.supportedLayouts).toEqual(['medium', 'full']);

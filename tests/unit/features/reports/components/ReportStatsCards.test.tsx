@@ -220,7 +220,7 @@ describe('Unit Tests: ReportStatsCards', () => {
     const { container } = render(<ReportStatsCards {...mockProps} />);
     const header = screen.getByTestId('report-stats-collapsible-header');
     expect(container.querySelector('[data-slot="collapsible-card"]')).not.toBeNull();
-    expect(screen.getByTestId('report-stat-today')).not.toBeNull();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
 
     // Act
     fireEvent.click(header);

@@ -60,28 +60,24 @@ function createUtcDate(year: number, monthIndex: number, day: number): Date {
 
 /**
  * Parses a dateKey (such as 'YYYY-MM-DD' or strict ISO timestamp) into a JavaScript Date
- * strictly anchored at 00:00:00.000 UTC on that calendar day.
+ * strictly representing that moment in time in UTC.
  * Performs calendar validation (days, months, leap years) and accounts for timezone
- * offsets so the resulting date accurately reflects the UTC calendar day.
+ * offsets so the resulting date accurately reflects the UTC moment.
  * Returns null if the input is malformed, invalid, or impossible on the calendar.
  */
-export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
-  if (dateKey instanceof Date) {
-    if (isNaN(dateKey.getTime())) {
+export function parseUtcDateTime(dateInput: string | Date): Date | null {
+  if (dateInput instanceof Date) {
+    if (isNaN(dateInput.getTime())) {
       return null;
     }
-    return createUtcDate(
-      dateKey.getUTCFullYear(),
-      dateKey.getUTCMonth(),
-      dateKey.getUTCDate()
-    );
+    return new Date(dateInput.getTime());
   }
 
-  if (typeof dateKey !== 'string') {
+  if (typeof dateInput !== 'string') {
     return null;
   }
 
-  const trimmed = dateKey.trim();
+  const trimmed = dateInput.trim();
 
   // Pattern 1: Pure calendar date (YYYY-MM-DD)
   const dateMatch = CALENDAR_DATE_REGEX.exec(trimmed);
@@ -148,11 +144,25 @@ export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
       return null;
     }
 
-    const d = new Date(timestamp);
-    return createUtcDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    return new Date(timestamp);
   }
 
   return null;
+}
+
+/**
+ * Parses a dateKey (such as 'YYYY-MM-DD' or strict ISO timestamp) into a JavaScript Date
+ * strictly anchored at 00:00:00.000 UTC on that calendar day.
+ * Performs calendar validation (days, months, leap years) and accounts for timezone
+ * offsets so the resulting date accurately reflects the UTC calendar day.
+ * Returns null if the input is malformed, invalid, or impossible on the calendar.
+ */
+export function parseUtcCalendarDate(dateKey: string | Date): Date | null {
+  const dt = parseUtcDateTime(dateKey);
+  if (!dt) {
+    return null;
+  }
+  return createUtcDate(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
 }
 
 /**
@@ -292,5 +302,212 @@ export function formatChartDate(
     throw err;
   }
 }
+
+/**
+ * Formats a calendar date in UTC for print headers and printed log timestamps
+ * according to the active locale (e.g. '15.06.2026' in pl, '06/15/2026' in en, '2026-06-15' ISO fallback).
+ * Returns empty string if the input date is malformed or invalid.
+ */
+export function formatCalendarDate(
+  dateKey: string | Date,
+  locale?: string | Locale
+): string {
+  const parsed = parseUtcCalendarDate(dateKey);
+  if (!parsed) {
+    return '';
+  }
+  const resolvedLocale = resolveDateTimeLocale(locale);
+  try {
+    return new Intl.DateTimeFormat(resolvedLocale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'UTC',
+    }).format(parsed);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return getUtcDateKey(parsed) ?? '';
+    }
+    console.error('Failed to format calendar date:', err);
+    throw err;
+  }
+}
+
+export interface FormatCalendarTimeOptions {
+  hour12?: boolean;
+  timeZone?: string;
+}
+
+/**
+ * Resolves a timezone candidate into a valid IANA identifier or offset for Intl.DateTimeFormat.
+ * Handles common abbreviations like 'CEST' by converting to '+02:00' to avoid RangeError in standard Intl environments.
+ */
+export function normalizeTimeZone(timeZone?: string): string | undefined {
+  if (!timeZone) return undefined;
+  const trimmed = timeZone.trim();
+  if (trimmed.toUpperCase() === 'CEST') {
+    return '+02:00';
+  }
+  return trimmed;
+}
+
+/**
+ * Formats time-of-day for the screen view in the user's local timezone (or a specified timezone).
+ * When timeZone is omitted or undefined, formats according to the host environment's local timezone.
+ * Returns empty string if the input date is malformed, invalid, or is a pure date without time.
+ */
+export function formatScreenTime(
+  dateKey: string | Date,
+  locale?: string | Locale,
+  options?: FormatCalendarTimeOptions
+): string {
+  if (typeof dateKey === 'string' && CALENDAR_DATE_REGEX.test(dateKey.trim())) {
+    return '';
+  }
+  const parsed = parseUtcDateTime(dateKey);
+  if (!parsed) {
+    return '';
+  }
+  const resolvedLocale = resolveDateTimeLocale(locale);
+  const normalizedTz = normalizeTimeZone(options?.timeZone);
+  const tzKey = normalizedTz ?? 'local';
+  const cacheKey = `screen-time:${resolvedLocale}:${options?.hour12 ?? 'auto'}:${tzKey}`;
+  let formatter = formatterCache.get(cacheKey);
+  if (!formatter) {
+    const intlOptions: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    };
+    if (normalizedTz) {
+      intlOptions.timeZone = normalizedTz;
+    }
+    if (options?.hour12 !== undefined) {
+      intlOptions.hour12 = options.hour12;
+    }
+    try {
+      formatter = new Intl.DateTimeFormat(resolvedLocale, intlOptions);
+    } catch (err) {
+      if (err instanceof RangeError) {
+        formatter = new Intl.DateTimeFormat('en', intlOptions);
+      } else {
+        throw err;
+      }
+    }
+    formatterCache.set(cacheKey, formatter);
+  }
+
+  try {
+    return formatter.format(parsed);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return '';
+    }
+    console.error('Failed to format screen time:', err);
+    throw err;
+  }
+}
+
+/**
+ * Formats the time-of-day in UTC for log entries and reports according to the active locale
+ * (e.g. '12:00:00' in pl, '12:00:00 PM' in en).
+ * Always converts timestamps to UTC to guarantee print timezone consistency across reports.
+ * Returns empty string if the input date is malformed, invalid, or is a pure date without time.
+ */
+export function formatCalendarTime(
+  dateKey: string | Date,
+  locale?: string | Locale,
+  options?: FormatCalendarTimeOptions
+): string {
+  if (typeof dateKey === 'string' && CALENDAR_DATE_REGEX.test(dateKey.trim())) {
+    return '';
+  }
+  const parsed = parseUtcDateTime(dateKey);
+  if (!parsed) {
+    return '';
+  }
+  const resolvedLocale = resolveDateTimeLocale(locale);
+  const timeZone = options?.timeZone ? (normalizeTimeZone(options.timeZone) ?? 'UTC') : 'UTC';
+  const cacheKey = `time:${resolvedLocale}:${options?.hour12 ?? 'auto'}:${timeZone}`;
+  let formatter = formatterCache.get(cacheKey);
+  if (!formatter) {
+    const intlOptions: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone,
+    };
+    if (options?.hour12 !== undefined) {
+      intlOptions.hour12 = options.hour12;
+    }
+    try {
+      formatter = new Intl.DateTimeFormat(resolvedLocale, intlOptions);
+    } catch (err) {
+      if (err instanceof RangeError) {
+        formatter = new Intl.DateTimeFormat('en', intlOptions);
+      } else {
+        throw err;
+      }
+    }
+    formatterCache.set(cacheKey, formatter);
+  }
+
+  try {
+    return formatter.format(parsed);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return '';
+    }
+    console.error('Failed to format calendar time:', err);
+    throw err;
+  }
+}
+
+export interface CustomDateRangeSummary {
+  fromStr: string | null;
+  toStr: string | null;
+  label: string | null;
+}
+
+/**
+ * Safely formats a custom date range for print headers (e.g. '15.06.2026 — 22.06.2026').
+ * Handles incomplete (from only, to only) or invalid inputs safely without misleading displays.
+ */
+export function formatCustomDateRange(
+  from?: string,
+  to?: string,
+  locale?: string | Locale
+): CustomDateRangeSummary {
+  const fromFormatted = from ? formatCalendarDate(from, locale) : '';
+  const toFormatted = to ? formatCalendarDate(to, locale) : '';
+
+  if (fromFormatted && toFormatted) {
+    return {
+      fromStr: fromFormatted,
+      toStr: toFormatted,
+      label: `${fromFormatted} — ${toFormatted}`,
+    };
+  }
+  if (fromFormatted) {
+    return {
+      fromStr: fromFormatted,
+      toStr: null,
+      label: `≥ ${fromFormatted}`,
+    };
+  }
+  if (toFormatted) {
+    return {
+      fromStr: null,
+      toStr: toFormatted,
+      label: `≤ ${toFormatted}`,
+    };
+  }
+  return {
+    fromStr: null,
+    toStr: null,
+    label: null,
+  };
+}
+
 
 
