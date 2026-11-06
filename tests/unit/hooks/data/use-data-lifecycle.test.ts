@@ -170,6 +170,70 @@ describe('Unit Tests: useDataLifecycle Hook', () => {
     expect(refreshComputedMetrics).toHaveBeenCalled();
   });
 
+  it('should return true when refreshData completes successfully', async () => {
+    vi.spyOn(router.core, 'load').mockResolvedValue({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+    vi.spyOn(router.holidays, 'getAll').mockResolvedValue([]);
+    vi.spyOn(router.patches, 'getAll').mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      useDataLifecycle({
+        repositoryState: mockRepositoryState,
+        holidaysManager: mockHolidaysManager,
+        patchesManager: mockPatchesManager,
+        actionRunner: mockActionRunner,
+        refreshComputedMetrics,
+      })
+    );
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
+    let refreshed: boolean | undefined;
+    await act(async () => {
+      refreshed = await result.current.refreshData();
+    });
+
+    expect(refreshed).toBe(true);
+  });
+
+  it('should return false when refreshData fails instead of reporting a false success', async () => {
+    vi.spyOn(router.core, 'load').mockRejectedValue(new Error('Repository unavailable'));
+    vi.spyOn(router.holidays, 'getAll').mockResolvedValue([]);
+    vi.spyOn(router.patches, 'getAll').mockResolvedValue([]);
+
+    const runAction = vi.fn(async (_message: string, action: () => Promise<unknown>) => {
+      try {
+        return await action();
+      } catch {
+        return undefined;
+      }
+    }) as unknown as typeof mockActionRunner.runAction;
+    const actionRunner = createMockActionRunner({ runAction });
+
+    const { result } = renderHook(() =>
+      useDataLifecycle({
+        repositoryState: mockRepositoryState,
+        holidaysManager: mockHolidaysManager,
+        patchesManager: mockPatchesManager,
+        actionRunner,
+        refreshComputedMetrics,
+      })
+    );
+
+    await waitFor(() => expect(result.current.isInitialized).toBe(true));
+
+    let refreshed: boolean | undefined;
+    await act(async () => {
+      refreshed = await result.current.refreshData();
+    });
+
+    expect(refreshed).toBe(false);
+  });
+
   it('should manage engineState correctly', () => {
     // Arrange
     const { result } = renderHook(() =>
