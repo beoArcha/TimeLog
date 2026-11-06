@@ -160,6 +160,7 @@ pub fn build_report_tree(
 
     let filter = ElapsedRangeFilter {
         project_id: resolved_project_id,
+        project_ids: None,
         task_id: resolved_task_id,
         from: from_iso,
         to: to_iso,

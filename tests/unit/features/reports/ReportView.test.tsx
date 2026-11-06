@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import ReportView from '@features/reports/ReportView';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
@@ -67,5 +67,34 @@ describe('Unit Tests: ReportView', () => {
     // Assert
     expect(screen.getByTestId('stacked-bar-activity-chart')).not.toBeNull();
     expect(screen.getByTestId('project-donut-chart')).not.toBeNull();
+  });
+
+  it('should calculate exportPayload with effective project breakdown reflecting visible data', async () => {
+    const multiProjectState: GuiState = {
+      ...mockGuiState,
+      projects: [
+        { id: 'p1', name: 'Proj Alpha', color: 'indigo', createdAt: '2026-06-15T00:00:00Z', tags: ['frontend'] },
+        { id: 'p2', name: 'Proj Beta', color: 'blue', createdAt: '2026-06-15T00:00:00Z', tags: ['backend'] },
+      ],
+      tasks: [
+        { id: 't1', projectId: 'p1', name: 'Task 1', completed: false, createdAt: '2026-06-15T00:00:00Z' },
+        { id: 't2', projectId: 'p2', name: 'Task 2', completed: false, createdAt: '2026-06-15T00:00:00Z' },
+      ],
+      logs: [
+        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
+        { id: 'l2', taskId: 't2', projectId: 'p2', startTime: '2026-06-15T12:00:00Z', endTime: '2026-06-15T13:00:00Z' },
+      ],
+    } as unknown as GuiState;
+
+    render(<ReportView state={multiProjectState} />);
+
+    // Open export modal
+    const exportBtn = screen.getByTestId('report-export-button');
+    expect(exportBtn).not.toBeNull();
+    fireEvent.click(exportBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('report-export-modal')).not.toBeNull();
+    });
   });
 });

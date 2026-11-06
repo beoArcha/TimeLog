@@ -48,6 +48,9 @@ export function calculateRangeMetrics(
     if (filter.projectId && log.projectId !== filter.projectId) {
       continue;
     }
+    if (filter.projectIds && !filter.projectIds.includes(log.projectId)) {
+      continue;
+    }
 
     const clamped = clampInterval(
       {
@@ -75,6 +78,9 @@ export function calculateRangeMetrics(
   if (filter.includePatches && patches) {
     for (const patch of patches) {
       if (filter.projectId && patch.projectId !== filter.projectId) {
+        continue;
+      }
+      if (filter.projectIds && !filter.projectIds.includes(patch.projectId)) {
         continue;
       }
       if (relevantTaskIds && (!patch.taskId || !relevantTaskIds.has(patch.taskId))) {

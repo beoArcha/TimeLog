@@ -66,7 +66,7 @@ function ReportLogEditForm({
 
     const startTimestamp = new Date(startTime).getTime();
     if (isNaN(startTimestamp)) {
-      setErrorMessage('Invalid start time format');
+      setErrorMessage(tCommon('ErrGeneric'));
       return;
     }
 
@@ -74,11 +74,11 @@ function ReportLogEditForm({
     if (trimmedEnd) {
       const endTimestamp = new Date(trimmedEnd).getTime();
       if (isNaN(endTimestamp)) {
-        setErrorMessage('Invalid end time format');
+        setErrorMessage(tCommon('ErrGeneric'));
         return;
       }
       if (endTimestamp < startTimestamp) {
-        setErrorMessage('End time cannot be earlier than start time');
+        setErrorMessage(tCommon('ErrGeneric'));
         return;
       }
     }
@@ -95,17 +95,23 @@ function ReportLogEditForm({
         note.trim() ? note.trim() : null,
         trimmedReason
       );
+    } catch (err) {
+      console.error('[ReportLogEditModal] Mutation failed:', err);
+      setErrorMessage(err instanceof Error ? err.message : tCommon('ErrGeneric'));
+      setIsSaving(false);
+      return;
+    }
 
+    try {
       if (dataContext?.refreshData) {
         await dataContext.refreshData();
       }
-
-      onSaveSuccess?.(log.id);
-      onClose();
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'Error while saving');
+    } catch (refreshErr) {
+      console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
     } finally {
       setIsSaving(false);
+      onSaveSuccess?.(log.id);
+      onClose();
     }
   };
 

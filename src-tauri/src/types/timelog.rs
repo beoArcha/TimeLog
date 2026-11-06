@@ -201,6 +201,8 @@ pub struct ElapsedRangeFilter {
     #[ts(optional)]
     pub project_id: Option<String>,
     #[ts(optional)]
+    pub project_ids: Option<Vec<String>>,
+    #[ts(optional)]
     pub from: Option<String>,
     #[ts(optional)]
     pub to: Option<String>,

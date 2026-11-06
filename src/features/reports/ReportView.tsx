@@ -86,14 +86,6 @@ export default function ReportView({ state }: { state: GuiState }) {
       .map((p) => p.id);
   }, [projects, selectedTags]);
 
-  const effectiveBillingProjectId = useMemo(() => {
-    if (effectiveSelectedProjectId) return effectiveSelectedProjectId;
-    if (matchingTagProjectIds === null) return null;
-    if (matchingTagProjectIds.length === 1) return matchingTagProjectIds[0];
-    if (matchingTagProjectIds.length === 0) return '__no_matching_project__';
-    return null;
-  }, [effectiveSelectedProjectId, matchingTagProjectIds]);
-
   const effectiveDisplayLogs = useMemo(() => {
     if (!effectiveSelectedProjectId) return displayLogs;
     return displayLogs.filter((log) => log.projectId === effectiveSelectedProjectId);
@@ -138,9 +130,9 @@ export default function ReportView({ state }: { state: GuiState }) {
 
     const effectiveTotalSeconds = rows.reduce((acc, row) => acc + row.durationSeconds, 0);
 
-    const projectBreakdown = selectedProjectId
+    const projectBreakdown = effectiveSelectedProjectId
       ? projectChart
-          .filter((pc) => pc.id === selectedProjectId)
+          .filter((pc) => pc.id === effectiveSelectedProjectId)
           .map((pc) => ({
             projectName: pc.name,
             seconds: effectiveTotalSeconds,
@@ -161,7 +153,7 @@ export default function ReportView({ state }: { state: GuiState }) {
       rows,
       projectBreakdown,
     };
-  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, selectedProjectId, projectChart]);
+  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, effectiveSelectedProjectId, projectChart]);
 
   return (
     <Area as="main" id="reports-panel" variant="card" padding="section" radius="3xl" elevation="2xl" className="backdrop-blur-md flex flex-col gap-6 transition-all duration-300">
@@ -206,7 +198,8 @@ export default function ReportView({ state }: { state: GuiState }) {
         customFrom={customFrom}
         customTo={customTo}
         nowIso={nowIso}
-        selectedProjectId={effectiveBillingProjectId}
+        selectedProjectId={effectiveSelectedProjectId}
+        selectedProjectIds={matchingTagProjectIds ?? undefined}
         sysSettings={sysSettings}
         billingResult={billingResult}
         billingError={billingError}

@@ -129,15 +129,19 @@ export const useTimerManager = ({
   };
 
   const handleDeleteTimeLog = async (id: string): Promise<void> => {
-    await actionRunner.runAction('Failed to delete time log', async () => {
-      await PersistenceRouter.getInstance().timeLogs.delete(id);
-      const nextState = await PersistenceRouter.getInstance().core.load();
-      if (nextState) {
-        repositoryState.setLogsState(nextState.logs);
-        repositoryState.setActiveLogState(nextState.activeLog);
-        await refreshComputedMetrics();
-      }
-    });
+    await actionRunner.runAction(
+      'Failed to delete time log',
+      async () => {
+        await PersistenceRouter.getInstance().timeLogs.delete(id);
+        const nextState = await PersistenceRouter.getInstance().core.load();
+        if (nextState) {
+          repositoryState.setLogsState(nextState.logs);
+          repositoryState.setActiveLogState(nextState.activeLog);
+          await refreshComputedMetrics();
+        }
+      },
+      { errorCode: 'ERR_REPOSITORY_DELETE_TIME_LOG', rethrow: true }
+    );
   };
 
   const handleInsertTimeLog = async (

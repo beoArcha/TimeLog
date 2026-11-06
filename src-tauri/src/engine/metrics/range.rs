@@ -53,6 +53,11 @@ impl<'a> Engine<'a> {
                     continue;
                 }
             }
+            if let Some(ref target_project_ids) = filter.project_ids {
+                if !target_project_ids.contains(&log.project_id) {
+                    continue;
+                }
+            }
 
             let input = IntervalInput {
                 id: &log.id,
@@ -121,6 +126,11 @@ impl<'a> Engine<'a> {
         for patch in &patches {
             if let Some(ref target_project_id) = filter.project_id {
                 if &patch.project_id != target_project_id {
+                    continue;
+                }
+            }
+            if let Some(ref target_project_ids) = filter.project_ids {
+                if !target_project_ids.contains(&patch.project_id) {
                     continue;
                 }
             }

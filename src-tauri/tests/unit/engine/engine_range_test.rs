@@ -43,6 +43,7 @@ fn test_engine_calculate_elapsed_range_clamps_to_window() {
     let filter = ElapsedRangeFilter {
         task_id: Some("t_rng".to_string()),
         project_id: Some("p_rng".to_string()),
+        project_ids: None,
         from: Some("2026-06-15T10:30:00Z".to_string()),
         to: Some("2026-06-15T11:30:00Z".to_string()),
         include_patches: None,
@@ -92,6 +93,7 @@ fn test_engine_calculate_elapsed_range_returns_zero_when_filters_do_not_match() 
     let filter_mismatch_task = ElapsedRangeFilter {
         task_id: Some("other_task".to_string()),
         project_id: None,
+        project_ids: None,
         from: None,
         to: None,
         include_patches: None,
@@ -99,6 +101,7 @@ fn test_engine_calculate_elapsed_range_returns_zero_when_filters_do_not_match() 
     let filter_mismatch_proj = ElapsedRangeFilter {
         task_id: None,
         project_id: Some("other_proj".to_string()),
+        project_ids: None,
         from: None,
         to: None,
         include_patches: None,
@@ -158,6 +161,7 @@ fn test_engine_calculate_range_metrics_clamps_multi_day_log_across_midnight() {
     let filter = ElapsedRangeFilter {
         task_id: None,
         project_id: Some("p_rm".to_string()),
+        project_ids: None,
         from: Some("2026-06-16T00:00:00Z".to_string()),
         to: Some("2026-06-16T23:59:59Z".to_string()),
         include_patches: Some(false),
@@ -225,6 +229,7 @@ fn test_engine_calculate_range_metrics_includes_patch_logs_when_enabled() {
     let filter_with_patches = ElapsedRangeFilter {
         task_id: None,
         project_id: Some("p_rm".to_string()),
+        project_ids: None,
         from: Some("2026-06-16T00:00:00Z".to_string()),
         to: Some("2026-06-16T23:59:59Z".to_string()),
         include_patches: Some(true),
@@ -251,6 +256,7 @@ fn test_engine_calculate_range_metrics_propagates_persistence_error_on_subtask_q
     let filter = ElapsedRangeFilter {
         task_id: Some("t_corrupt".to_string()),
         project_id: None,
+        project_ids: None,
         from: Some("2026-06-15T00:00:00Z".to_string()),
         to: Some("2026-06-16T00:00:00Z".to_string()),
         include_patches: None,

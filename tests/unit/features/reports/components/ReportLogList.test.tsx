@@ -251,5 +251,39 @@ describe('Unit Tests: ReportLogList', () => {
         expect(onLogDeletedMock).toHaveBeenCalledWith('l1');
       });
     });
+
+    it('should keep ConfirmDialog open, display error alert, and not call onLogDeleted when deletion fails', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const handleDeleteMock = vi.fn().mockRejectedValue(new Error('Database lock timeout'));
+      const onLogDeletedMock = vi.fn();
+
+      render(
+        <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteMock }}>
+          <ReportLogList {...mockProps} onLogDeleted={onLogDeletedMock} />
+        </MockProviders>
+      );
+
+      const deleteBtn = screen.getByTestId('delete-log-l1');
+      fireEvent.click(deleteBtn);
+
+      expect(screen.getByText(/Delete Time Log\?/i)).not.toBeNull();
+
+      const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+      fireEvent.click(confirmBtn);
+
+      await waitFor(() => {
+        expect(handleDeleteMock).toHaveBeenCalledWith('l1');
+      });
+
+      // ConfirmDialog must stay open and display the error
+      await waitFor(() => {
+        expect(screen.getByTestId('confirm-dialog-error')).not.toBeNull();
+        expect(screen.getByText('Database lock timeout')).not.toBeNull();
+      });
+
+      // onLogDeleted must NOT have been called
+      expect(onLogDeletedMock).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
   });
 });

@@ -116,4 +116,37 @@ describe('Unit Tests: useTimerManager Hook', () => {
     expect(editSpy).toHaveBeenCalledWith('log1', 't1', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z', 'Note', null);
     expect(refreshComputedMetrics).toHaveBeenCalled();
   });
+
+  it('should delete time log via router, reload state, and pass rethrow: true to actionRunner', async () => {
+    const deleteSpy = vi.spyOn(router.timeLogs, 'delete').mockResolvedValue();
+    vi.spyOn(router.core, 'load').mockResolvedValue({
+      projects: [],
+      tasks: [],
+      logs: [],
+      activeLog: null,
+    });
+
+    const { result } = renderHook(() =>
+      useTimerManager({
+        repositoryState: mockRepositoryState,
+        actionRunner: mockActionRunner,
+        pushToApi,
+        refreshComputedMetrics,
+      })
+    );
+
+    await act(async () => {
+      await result.current.handleDeleteTimeLog('log1');
+    });
+
+    expect(deleteSpy).toHaveBeenCalledWith('log1');
+    expect(mockActionRunner.runAction).toHaveBeenCalledWith(
+      'Failed to delete time log',
+      expect.any(Function),
+      expect.objectContaining({ rethrow: true, errorCode: 'ERR_REPOSITORY_DELETE_TIME_LOG' })
+    );
+    expect(mockRepositoryState.setLogsState).toHaveBeenCalledWith([]);
+    expect(mockRepositoryState.setActiveLogState).toHaveBeenCalledWith(null);
+    expect(refreshComputedMetrics).toHaveBeenCalled();
+  });
 });

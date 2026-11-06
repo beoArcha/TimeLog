@@ -474,4 +474,119 @@ describe('Unit Tests: useReportStatistics', () => {
       expect(result.current.isBillingLoading).toBe(false);
     });
   });
+
+  describe('Tag Filtering in Billing Calculation', () => {
+    const taggedProjects: Project[] = [
+      { id: 'p1', name: 'Project Alpha', color: 'rose', createdAt: '2026-06-12T00:00:00Z', tags: ['frontend', 'client'] },
+      { id: 'p2', name: 'Project Beta', color: 'blue', createdAt: '2026-06-12T00:00:00Z', tags: ['backend', 'internal'] },
+      { id: 'p3', name: 'Project Gamma', color: 'green', createdAt: '2026-06-12T00:00:00Z', tags: ['frontend', 'internal'] },
+    ];
+
+    it('should pass matching projectIds to billing filter when selectedTags are provided', async () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs,
+          patches,
+          projects: taggedProjects,
+          tasks,
+          nowIso: '2026-07-12T15:00:00Z',
+          reportPeriod: 'week',
+          reportSort: 'duration',
+          selectedTags: ['frontend'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.isBillingLoading).toBe(false);
+      });
+
+      expect(calculateRangeBillingMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectIds: expect.arrayContaining(['p1', 'p3']),
+        }),
+        '2026-07-12T15:00:00Z'
+      );
+      const lastCall = calculateRangeBillingMock.mock.calls[0][0];
+      expect(lastCall.projectIds).toHaveLength(2);
+      expect(lastCall.projectIds).not.toContain('p2');
+    });
+
+    it('should pass empty projectIds when selectedTags match no projects', async () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs,
+          patches,
+          projects: taggedProjects,
+          tasks,
+          nowIso: '2026-07-12T15:00:00Z',
+          reportPeriod: 'week',
+          reportSort: 'duration',
+          selectedTags: ['non-existent-tag'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.isBillingLoading).toBe(false);
+      });
+
+      expect(calculateRangeBillingMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectIds: [],
+        }),
+        '2026-07-12T15:00:00Z'
+      );
+    });
+
+    it('should recalculate billing when selectedTags change', async () => {
+      const { result, rerender } = renderHook((props) => useReportStatistics(props), {
+        initialProps: {
+          logs,
+          patches,
+          projects: taggedProjects,
+          tasks,
+          nowIso: '2026-07-12T15:00:00Z',
+          reportPeriod: 'week',
+          reportSort: 'duration',
+          selectedTags: ['backend'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        },
+      });
+
+      await waitFor(() => {
+        expect(result.current.isBillingLoading).toBe(false);
+      });
+
+      expect(calculateRangeBillingMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          projectIds: ['p2'],
+        }),
+        '2026-07-12T15:00:00Z'
+      );
+
+      rerender({
+        logs,
+        patches,
+        projects: taggedProjects,
+        tasks,
+        nowIso: '2026-07-12T15:00:00Z',
+        reportPeriod: 'week',
+        reportSort: 'duration',
+        selectedTags: ['client'],
+        sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+      });
+
+      await waitFor(() => {
+        expect(result.current.isBillingLoading).toBe(false);
+      });
+
+      expect(calculateRangeBillingMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          projectIds: ['p1'],
+        }),
+        '2026-07-12T15:00:00Z'
+      );
+    });
+  });
 });

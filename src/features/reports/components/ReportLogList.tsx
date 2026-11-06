@@ -78,18 +78,14 @@ export default function ReportLogList({
   const handleConfirmDelete = async () => {
     if (!deletingLog) return;
     const targetId = deletingLog.id;
-    setDeletingLog(null);
 
-    try {
-      if (dataContext?.handleDeleteTimeLog) {
-        await dataContext.handleDeleteTimeLog(targetId);
-      } else if (dataContext?.refreshData) {
-        await dataContext.refreshData();
-      }
-      onLogDeleted?.(targetId);
-    } catch (err) {
-      console.error('Failed to delete time log:', err);
+    if (dataContext?.handleDeleteTimeLog) {
+      await dataContext.handleDeleteTimeLog(targetId);
+    } else if (dataContext?.refreshData) {
+      await dataContext.refreshData();
     }
+    onLogDeleted?.(targetId);
+    setDeletingLog(null);
   };
 
   const getSourceLog = (target: ClampedTimeLog | TimeLog | null): TimeLog | null => {

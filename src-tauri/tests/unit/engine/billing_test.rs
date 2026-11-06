@@ -331,6 +331,7 @@ fn test_range_billing_calculation() {
         from: Some("2026-10-31T00:00:00Z".to_string()),
         to: Some("2026-10-31T23:59:59Z".to_string()),
         project_id: None,
+        project_ids: None,
         task_id: None,
         include_patches: Some(false),
     };

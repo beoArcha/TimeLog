@@ -129,6 +129,9 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
         if (selectedProjectId) {
           filter.projectId = selectedProjectId;
         }
+        if (hasTagFilter) {
+          filter.projectIds = Array.from(effectiveProjectIds);
+        }
         filterContext = filter;
 
         let router: EngineRouter | null = null;
@@ -181,7 +184,17 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
     return () => {
       isCancelled = true;
     };
-  }, [reportPeriod, customFrom, customTo, nowIso, selectedProjectId, includePatches, t]);
+  }, [
+    reportPeriod,
+    customFrom,
+    customTo,
+    nowIso,
+    selectedProjectId,
+    hasTagFilter,
+    effectiveProjectIds,
+    includePatches,
+    t,
+  ]);
 
   return {
     ...baseStats,
