@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { CsvExporterPlugin } from '@plugins/exporters/CsvExporterPlugin';
 import { JsonExporterPlugin } from '@plugins/exporters/JsonExporterPlugin';
 import { MarkdownClipboardExporterPlugin } from '@plugins/exporters/MarkdownClipboardExporterPlugin';
+import { XmlExporterPlugin } from '@plugins/exporters/XmlExporterPlugin';
 import { ExportPayload } from '@plugins/contracts/IExporterPlugin';
 
 describe('Built-in Exporter Plugins', () => {
@@ -68,6 +69,26 @@ describe('Built-in Exporter Plugins', () => {
       expect(parsed.totalSeconds).toBe(7200);
       expect(parsed.rows).toHaveLength(1);
       expect(parsed.rows[0].projectName).toBe('Project "Alpha"');
+    });
+  });
+
+  describe('XmlExporterPlugin', () => {
+    it('should export valid XML blob with XML declaration and escaped entities', async () => {
+      // Arrange
+      const exporter = new XmlExporterPlugin();
+
+      // Act
+      const blob = await exporter.export(samplePayload);
+      const text = await blob.text();
+
+      // Assert
+      expect(text).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+      expect(text).toContain('<report>');
+      expect(text).toContain('<title>Time Summaries &amp; Reports</title>');
+      expect(text).toContain('<period>week</period>');
+      expect(text).toContain('<totalSeconds>7200</totalSeconds>');
+      expect(text).toContain('<projectName>Project &quot;Alpha&quot;</projectName>');
+      expect(text).toContain('<taskName>Coding, Testing &amp; Review</taskName>');
     });
   });
 
