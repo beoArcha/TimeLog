@@ -35,7 +35,6 @@ export interface PromptDialogProps {
 }
 
 interface PromptDialogFormProps extends Omit<PromptDialogProps, 'open' | 'onOpenChange'> {
-  key?: React.Key;
   onClose: () => void;
 }
 
@@ -71,8 +70,20 @@ function PromptDialogForm({
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const extractErrorMessage = (reason: unknown): string => {
+    if (reason instanceof Error && reason.message) {
+      return reason.message;
+    }
+    if (typeof reason === 'string' && reason.length > 0) {
+      return reason;
+    }
+    return translate(locale, 'common', 'ErrGeneric', customTranslations);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (loading) return;
+
     if (validate) {
       const validationError = validate(value);
       if (validationError) {
@@ -81,15 +92,17 @@ function PromptDialogForm({
       }
     }
 
-    const result = onConfirm(value);
-    if (result && typeof (result as Promise<void>).then === 'function') {
-      setLoading(true);
-      (result as Promise<void>).finally(() => {
-        setLoading(false);
-        onClose();
-      });
-    } else {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await onConfirm(value);
       onClose();
+    } catch (reason) {
+      console.error('Failed to execute prompt action in PromptDialog:', reason);
+      setError(extractErrorMessage(reason));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -121,8 +134,8 @@ function PromptDialogForm({
           data-testid="prompt-dialog-input"
           type="text"
           value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
+          onChange={(event) => {
+            setValue(event.target.value);
             if (error) setError(null);
           }}
           placeholder={placeholder}
@@ -176,7 +189,6 @@ export function PromptDialog({
       <DialogContent className="max-w-md focus-visible:outline-none">
         {open && (
           <PromptDialogForm
-            key={String(open) + (formProps.defaultValue ?? '')}
             {...formProps}
             onClose={() => onOpenChange?.(false)}
           />
