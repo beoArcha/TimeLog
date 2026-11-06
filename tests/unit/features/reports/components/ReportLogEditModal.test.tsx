@@ -104,10 +104,19 @@ describe('Unit Tests: ReportLogEditModal', () => {
       expect(onCloseMock).not.toHaveBeenCalled();
     });
 
-    // The retry path only refreshes state. It must never issue a second edit/audit insert.
+    // The retry path only refreshes state. A failed refresh can be retried again
+    // without issuing a second edit/audit mutation.
     fireEvent.click(saveButton);
     await waitFor(() => {
       expect(refreshDataMock).toHaveBeenCalledTimes(1);
+      expect(handleEditTimeLogMock).toHaveBeenCalledTimes(1);
+      expect(onSaveSuccessMock).not.toHaveBeenCalled();
+      expect(onCloseMock).not.toHaveBeenCalled();
+    });
+
+    fireEvent.click(saveButton);
+    await waitFor(() => {
+      expect(refreshDataMock).toHaveBeenCalledTimes(2);
       expect(handleEditTimeLogMock).toHaveBeenCalledTimes(1);
       expect(onSaveSuccessMock).toHaveBeenCalledWith('log-1');
       expect(onCloseMock).toHaveBeenCalled();
