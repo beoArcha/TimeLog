@@ -15,7 +15,6 @@ import { VStack, HStack } from '@components/ui/stack';
 import { Badge } from '@components/ui/badge';
 import { Caption, MonoText } from '@components/ui/typography';
 import { useTranslation } from '@common/i18n/translator';
-import { EngineRouter } from '@common/engine/EngineRouter';
 import { useDataSafe } from '@common/hooks/DataContext';
 import { TimeLog } from '@bindings/TimeLog';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
@@ -89,7 +88,11 @@ function ReportLogEditForm({
 
     if (!isSaved) {
       try {
-        await EngineRouter.getInstance().timeLogs.editTimeLog(
+        if (!dataContext?.handleEditTimeLog) {
+          throw new Error('Time log editing is unavailable outside DataContext');
+        }
+
+        const result = await dataContext.handleEditTimeLog(
           log.id,
           log.taskId,
           startTime.trim(),
@@ -97,27 +100,47 @@ function ReportLogEditForm({
           note.trim() ? note.trim() : null,
           trimmedReason
         );
+
+        if (!result.saved) {
+          setErrorMessage(tCommon('ErrGeneric'));
+          setIsSaving(false);
+          return;
+        }
+
+        // The edit is committed. Keep this flag even if synchronization failed,
+        // so retrying the modal only refreshes state and never creates a second audit row.
         setIsSaved(true);
+
+        if (!result.synchronized) {
+          setErrorMessage(tCommon('ErrGeneric'));
+          setIsSaving(false);
+          return;
+        }
       } catch (err) {
         console.error('[ReportLogEditModal] Mutation failed:', err);
         setErrorMessage(tCommon('ErrGeneric'));
         setIsSaving(false);
         return;
       }
+    } else {
+      // A previous attempt committed the edit but failed while synchronizing state.
+      // Retry only the refresh; never submit the same audit mutation twice.
+      try {
+        if (!dataContext?.refreshData) {
+          throw new Error('Data refresh is unavailable outside DataContext');
+        }
+        await dataContext.refreshData();
+      } catch (refreshErr) {
+        console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
+        setErrorMessage(tCommon('ErrGeneric'));
+        setIsSaving(false);
+        return;
+      }
     }
 
-    try {
-      if (dataContext?.refreshData) {
-        await dataContext.refreshData();
-      }
-      onSaveSuccess?.(log.id);
-      onClose();
-    } catch (refreshErr) {
-      console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
-      setErrorMessage(tCommon('ErrGeneric'));
-    } finally {
-      setIsSaving(false);
-    }
+    onSaveSuccess?.(log.id);
+    onClose();
+    setIsSaving(false);
   };
 
   return (
