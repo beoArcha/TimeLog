@@ -107,6 +107,7 @@ describe('Unit Tests: ReportBillingCard', () => {
   });
 
   it('should render visible error alert instead of returning null when billing calculation fails', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     // Arrange: Mock billing engine failure
     const mockCalculate = vi.fn().mockRejectedValue(new Error('SQLite billing query failed'));
     vi.spyOn(EngineRouter, 'getInstance').mockReturnValue({
@@ -128,8 +129,16 @@ describe('Unit Tests: ReportBillingCard', () => {
     await waitFor(() => {
       expect(screen.getByTestId('report-billing-error')).toBeTruthy();
     });
-    expect(screen.getByText('SQLite billing query failed')).toBeTruthy();
+    // Raw technical error should NOT be shown in the UI
+    expect(screen.queryByText('SQLite billing query failed')).toBeNull();
+    // User gets friendly translated message
+    expect(screen.getAllByText('Failed to calculate range billing').length).toBeGreaterThan(0);
     expect(screen.getByTestId('report-billing-collapsible-header')).toBeTruthy();
+    // Technical details are logged to console.error
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[ReportBillingCard] Billing calculation failed:'),
+      expect.objectContaining({ error: expect.any(Error) })
+    );
   });
 
   it('should render zero-rate non_billable and unconfigured tasks in task table correctly', async () => {

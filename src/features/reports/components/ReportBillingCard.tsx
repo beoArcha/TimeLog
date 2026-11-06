@@ -75,6 +75,8 @@ export default function ReportBillingCard({
     const fetchBilling = async () => {
       setInternalLoading(true);
       setInternalError(null);
+      setInternalResult(null);
+      let filterContext: unknown = null;
       try {
         const now = nowIso ? new Date(nowIso) : new Date();
         const { filter } = getRangeFilterForPeriod(
@@ -88,15 +90,45 @@ export default function ReportBillingCard({
         if (selectedProjectId) {
           filter.projectId = selectedProjectId;
         }
+        filterContext = filter;
 
-        const res = await EngineRouter.getInstance().billing.calculateRangeBilling(filter, nowIso);
+        let router: EngineRouter | null = null;
+        try {
+          router = typeof EngineRouter !== 'undefined' ? EngineRouter.getInstance() : null;
+        } catch (engineErr) {
+          console.error('[ReportBillingCard] Failed to get EngineRouter instance:', {
+            filter: filterContext,
+            nowIso,
+            error: engineErr,
+          });
+          if (!isCancelled) {
+            setInternalError(t('BillingCalculationError'));
+          }
+          return;
+        }
+
+        if (!router?.billing?.calculateRangeBilling) {
+          return;
+        }
+
+        const res = await router.billing.calculateRangeBilling(filter, nowIso);
         if (!isCancelled) {
           setInternalResult(res);
         }
       } catch (err) {
+        console.error('[ReportBillingCard] Billing calculation failed:', {
+          filter: filterContext ?? {
+            reportPeriod,
+            customFrom,
+            customTo,
+            selectedProjectId,
+            includePatches: sysSettings?.includePatchesInReports ?? false,
+          },
+          nowIso,
+          error: err,
+        });
         if (!isCancelled) {
-          const message = err instanceof Error ? err.message : String(err);
-          setInternalError(message);
+          setInternalError(t('BillingCalculationError'));
         }
       } finally {
         if (!isCancelled) {
@@ -110,7 +142,7 @@ export default function ReportBillingCard({
     return () => {
       isCancelled = true;
     };
-  }, [isControlled, reportPeriod, customFrom, customTo, nowIso, selectedProjectId, sysSettings]);
+  }, [isControlled, reportPeriod, customFrom, customTo, nowIso, selectedProjectId, sysSettings, t]);
 
   if (billingError) {
     return (

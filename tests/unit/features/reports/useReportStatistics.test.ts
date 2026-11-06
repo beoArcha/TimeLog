@@ -217,7 +217,8 @@ describe('Unit Tests: useReportStatistics', () => {
     });
   });
 
-  it('should handle billing calculation failure gracefully', async () => {
+  it('should handle billing calculation failure gracefully and sanitize error message', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     calculateRangeBillingMock.mockRejectedValueOnce(new Error('Calculation failed'));
 
     const { result } = renderHook(() =>
@@ -234,11 +235,18 @@ describe('Unit Tests: useReportStatistics', () => {
     );
 
     await waitFor(() => {
-      expect(result.current.billingError).toBe('Calculation failed');
+      // User-facing error message must be translated/sanitized, not raw Error message
+      expect(result.current.billingError).toBe('Failed to calculate range billing');
     });
 
     expect(result.current.isBillingLoading).toBe(false);
     expect(result.current.billingResult).toBeNull();
+
+    // Detailed error must be logged to console.error
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[useReportStatistics] Billing calculation failed:'),
+      expect.objectContaining({ error: expect.any(Error) })
+    );
   });
 
   it('should pass selectedProjectId to billing calculation filter when provided', async () => {
@@ -266,7 +274,8 @@ describe('Unit Tests: useReportStatistics', () => {
     );
   });
 
-  it('should handle EngineRouter instantiation failure gracefully', async () => {
+  it('should handle EngineRouter instantiation failure gracefully and log to console', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(EngineRouter, 'getInstance').mockImplementation(() => {
       throw new Error('EngineRouter unavailable');
     });
@@ -285,10 +294,184 @@ describe('Unit Tests: useReportStatistics', () => {
     );
 
     await waitFor(() => {
-      expect(result.current.billingError).toBe('EngineRouter unavailable');
+      expect(result.current.billingError).toBe('Failed to calculate range billing');
     });
 
     expect(result.current.isBillingLoading).toBe(false);
     expect(result.current.billingResult).toBeNull();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[useReportStatistics] Failed to get EngineRouter instance:'),
+      expect.objectContaining({ error: expect.any(Error) })
+    );
+  });
+
+  it('should reset billingResult to null and set isBillingLoading to true when reportPeriod or selectedProjectId changes', async () => {
+    let resolveBillingPromise: ((val: RangeBillingResult) => void) | undefined;
+    calculateRangeBillingMock.mockImplementation(
+      () =>
+        new Promise<RangeBillingResult>((resolve) => {
+          resolveBillingPromise = resolve;
+        })
+    );
+
+    const initialProps = {
+      logs,
+      patches,
+      projects,
+      tasks,
+      nowIso: '2026-07-12T15:00:00Z',
+      reportPeriod: 'week',
+      reportSort: 'duration',
+      selectedProjectId: 'p1',
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    };
+
+    const { result, rerender } = renderHook((props) => useReportStatistics(props), {
+      initialProps,
+    });
+
+    // Initially loading
+    expect(result.current.isBillingLoading).toBe(true);
+    expect(result.current.billingResult).toBeNull();
+
+    // Resolve initial billing calculation
+    resolveBillingPromise!(mockBillingResult);
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+    expect(result.current.billingResult).toEqual(mockBillingResult);
+
+    // 1. Changing reportPeriod must clear stale billingResult immediately and set isBillingLoading: true
+    let resolveSecondPromise: ((val: RangeBillingResult) => void) | undefined;
+    calculateRangeBillingMock.mockImplementation(
+      () =>
+        new Promise<RangeBillingResult>((resolve) => {
+          resolveSecondPromise = resolve;
+        })
+    );
+
+    rerender({
+      ...initialProps,
+      reportPeriod: 'month',
+    });
+
+    expect(result.current.billingResult).toBeNull();
+    expect(result.current.isBillingLoading).toBe(true);
+
+    // Resolve second calculation
+    resolveSecondPromise!(mockBillingResult);
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+    expect(result.current.billingResult).toEqual(mockBillingResult);
+
+    // 2. Changing selectedProjectId must clear stale billingResult immediately and set isBillingLoading: true
+    let resolveThirdPromise: ((val: RangeBillingResult) => void) | undefined;
+    calculateRangeBillingMock.mockImplementation(
+      () =>
+        new Promise<RangeBillingResult>((resolve) => {
+          resolveThirdPromise = resolve;
+        })
+    );
+
+    rerender({
+      ...initialProps,
+      reportPeriod: 'month',
+      selectedProjectId: 'p2',
+    });
+
+    expect(result.current.billingResult).toBeNull();
+    expect(result.current.isBillingLoading).toBe(true);
+
+    resolveThirdPromise!(mockBillingResult);
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+    expect(result.current.billingResult).toEqual(mockBillingResult);
+  });
+
+  it('should calculate periodTotalSec, dailyAverageSec, and topProject exclusively from selected project logs', async () => {
+    // When no project is selected: both p1 (3600s) and p2 (7200s) are included in week stats
+    const { result, rerender } = renderHook((props) => useReportStatistics(props), {
+      initialProps: {
+        logs,
+        patches,
+        projects,
+        tasks,
+        nowIso: '2026-07-12T15:00:00Z',
+        reportPeriod: 'week',
+        reportSort: 'duration',
+        selectedProjectId: null as string | null,
+        sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+      },
+    });
+
+    expect(result.current.periodTotalSec).toBe(10800); // 3600 + 7200
+    expect(result.current.dailyAverageSec).toBe(Math.round(10800 / 7));
+    expect(result.current.topProject?.id).toBe('p2');
+    expect(result.current.topProject?.seconds).toBe(7200);
+    expect(result.current.projectChart).toHaveLength(2);
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+
+    // When selectedProjectId is 'p1': only p1 logs (3600s) must be computed
+    rerender({
+      logs,
+      patches,
+      projects,
+      tasks,
+      nowIso: '2026-07-12T15:00:00Z',
+      reportPeriod: 'week',
+      reportSort: 'duration',
+      selectedProjectId: 'p1',
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    });
+
+    expect(result.current.periodTotalSec).toBe(3600);
+    expect(result.current.dailyAverageSec).toBe(Math.round(3600 / 7));
+    expect(result.current.topProject?.id).toBe('p1');
+    expect(result.current.topProject?.name).toBe('Project Alpha');
+    expect(result.current.topProject?.seconds).toBe(3600);
+    expect(result.current.topProject?.percentage).toBe(100);
+    expect(result.current.projectChart).toHaveLength(1);
+    expect(result.current.projectChart[0].id).toBe('p1');
+    expect(result.current.projectChart[0].seconds).toBe(3600);
+    expect(result.current.filteredLogs).toHaveLength(1);
+    expect(result.current.filteredLogs[0].id).toBe('l1');
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+
+    // When selectedProjectId is 'p2': only p2 logs (7200s) must be computed
+    rerender({
+      logs,
+      patches,
+      projects,
+      tasks,
+      nowIso: '2026-07-12T15:00:00Z',
+      reportPeriod: 'week',
+      reportSort: 'duration',
+      selectedProjectId: 'p2',
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    });
+
+    expect(result.current.periodTotalSec).toBe(7200);
+    expect(result.current.dailyAverageSec).toBe(Math.round(7200 / 7));
+    expect(result.current.topProject?.id).toBe('p2');
+    expect(result.current.topProject?.name).toBe('Project Beta');
+    expect(result.current.topProject?.seconds).toBe(7200);
+    expect(result.current.topProject?.percentage).toBe(100);
+    expect(result.current.projectChart).toHaveLength(1);
+    expect(result.current.projectChart[0].id).toBe('p2');
+    expect(result.current.projectChart[0].seconds).toBe(7200);
+    expect(result.current.filteredLogs).toHaveLength(1);
+    expect(result.current.filteredLogs[0].id).toBe('l2');
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
   });
 });

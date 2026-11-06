@@ -214,9 +214,13 @@ export default function ReportStatsCards({
     badge?: React.ReactNode;
   }> = [];
 
-  if (currencyList.length === 0) {
+  if (isBillingLoading) {
     financialMetrics.push(
-      getEmptyFinancialMetric(billingResult, billingError, isBillingLoading, t as (key: string) => string)
+      getEmptyFinancialMetric(null, null, true, t as (key: string) => string)
+    );
+  } else if (currencyList.length === 0) {
+    financialMetrics.push(
+      getEmptyFinancialMetric(billingResult, billingError, false, t as (key: string) => string)
     );
   } else if (currencyList.length === 1) {
     const curr = currencyList[0];
