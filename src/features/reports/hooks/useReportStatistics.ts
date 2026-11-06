@@ -60,7 +60,9 @@ export function useReportStatistics(
 
   const [billingResult, setBillingResult] = useState<RangeBillingResult | null>(null);
   const [billingError, setBillingError] = useState<string | null>(null);
-  const [isBillingLoading, setIsBillingLoading] = useState<boolean>(false);
+  const [isBillingLoading, setIsBillingLoading] = useState<boolean>(true);
+
+  const includePatches = sysSettings?.includePatchesInReports ?? false;
 
   useEffect(() => {
     let isCancelled = false;
@@ -75,14 +77,29 @@ export function useReportStatistics(
           now,
           customFrom,
           customTo,
-          sysSettings?.includePatchesInReports ?? false
+          includePatches
         );
 
         if (selectedProjectId) {
           filter.projectId = selectedProjectId;
         }
 
-        const res = await EngineRouter.getInstance().billing.calculateRangeBilling(filter, nowIso);
+        let router: EngineRouter | null = null;
+        try {
+          router = typeof EngineRouter !== 'undefined' ? EngineRouter.getInstance() : null;
+        } catch (engineErr) {
+          if (!isCancelled) {
+            const msg = engineErr instanceof Error ? engineErr.message : String(engineErr);
+            setBillingError(msg);
+          }
+          return;
+        }
+
+        if (!router?.billing?.calculateRangeBilling) {
+          return;
+        }
+
+        const res = await router.billing.calculateRangeBilling(filter, nowIso);
         if (!isCancelled) {
           setBillingResult(res);
         }
@@ -103,7 +120,7 @@ export function useReportStatistics(
     return () => {
       isCancelled = true;
     };
-  }, [reportPeriod, customFrom, customTo, nowIso, selectedProjectId, sysSettings]);
+  }, [reportPeriod, customFrom, customTo, nowIso, selectedProjectId, includePatches]);
 
   return {
     ...baseStats,
