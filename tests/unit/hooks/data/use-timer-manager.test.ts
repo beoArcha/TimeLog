@@ -147,7 +147,13 @@ describe('Unit Tests: useTimerManager Hook', () => {
     const runActionMock = vi.fn() as unknown as typeof mockActionRunner.runAction;
     runActionMock
       .mockImplementationOnce(async (_message, action) => action())
-      .mockResolvedValueOnce(undefined);
+      .mockImplementationOnce(async (_message, action) => {
+        try {
+          return await action();
+        } catch {
+          return undefined;
+        }
+      });
     const actionRunner = createMockActionRunner({ runAction: runActionMock });
 
     const { result } = renderHook(() =>
