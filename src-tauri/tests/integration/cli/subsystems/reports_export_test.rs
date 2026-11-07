@@ -1,6 +1,6 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use calamine::{Data, Reader, Xlsx};
+use calamine::{Reader, Xlsx};
 use clap::Parser;
 use oxyflow_timelog::cli::formatters::ReportTreeDto;
 use oxyflow_timelog::cli::{handle_cli, CliArgs};
@@ -46,7 +46,6 @@ fn setup_dataset(db_name: &str) -> (Persistence, Connection, crate::shared::test
 
 #[test]
 fn test_given_logged_work_when_exporting_to_html_then_generates_valid_html_report_file() {
-    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_html");
     let engine = Engine::new(&persistence);
     let temp_dir = tempfile::tempdir().expect("create temp dir");
@@ -57,10 +56,8 @@ fn test_given_logged_work_when_exporting_to_html_then_generates_valid_html_repor
         CliArgs::try_parse_from(["oxy", "report", "export", "-f", "html", "-o", output_path])
             .unwrap();
 
-    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -73,7 +70,6 @@ fn test_given_logged_work_when_exporting_to_html_then_generates_valid_html_repor
 
 #[test]
 fn test_given_logged_work_when_exporting_to_csv_then_generates_valid_tabular_csv_file() {
-    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_csv");
     let engine = Engine::new(&persistence);
     let temp_dir = tempfile::tempdir().expect("create temp dir");
@@ -83,10 +79,8 @@ fn test_given_logged_work_when_exporting_to_csv_then_generates_valid_tabular_csv
     let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "csv", "-o", output_path])
         .unwrap();
 
-    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -99,7 +93,6 @@ fn test_given_logged_work_when_exporting_to_csv_then_generates_valid_tabular_csv
 
 #[test]
 fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_report_file() {
-    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_json");
     let engine = Engine::new(&persistence);
     let temp_dir = tempfile::tempdir().expect("create temp dir");
@@ -110,10 +103,8 @@ fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_repor
         CliArgs::try_parse_from(["oxy", "report", "export", "-f", "json", "-o", output_path])
             .unwrap();
 
-    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -127,7 +118,6 @@ fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_repor
 
 #[test]
 fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_file() {
-    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_xml");
     let engine = Engine::new(&persistence);
     let temp_dir = tempfile::tempdir().expect("create temp dir");
@@ -137,10 +127,8 @@ fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_
     let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xml", "-o", output_path])
         .unwrap();
 
-    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -153,7 +141,6 @@ fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_
 
 #[test]
 fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_report_file() {
-    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_xlsx");
     let engine = Engine::new(&persistence);
     let temp_dir = tempfile::tempdir().expect("create temp dir");
@@ -164,10 +151,8 @@ fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_repor
         CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xlsx", "-o", output_path])
             .unwrap();
 
-    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -177,48 +162,69 @@ fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_repor
         .worksheet_range("Work Report")
         .expect("must contain Work Report worksheet");
 
-    let get_cell_str = |r: usize, c: usize| match range.get((r, c)) {
-        Some(Data::String(s)) => s.clone(),
-        Some(Data::Float(f)) => f.to_string(),
-        Some(Data::Int(i)) => i.to_string(),
-        Some(Data::Empty) => String::new(),
-        _ => String::new(),
-    };
-
     // Header assertions
-    assert_eq!(get_cell_str(0, 0), "Project");
-    assert_eq!(get_cell_str(0, 1), "Task");
-    assert_eq!(get_cell_str(0, 2), "Subtask");
-    assert_eq!(get_cell_str(0, 3), "Duration_Seconds");
-    assert_eq!(get_cell_str(0, 4), "Duration_Formatted");
-    assert_eq!(get_cell_str(0, 5), "Percentage");
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 0),
+        "Project"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 1),
+        "Task"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 2),
+        "Subtask"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 3),
+        "Duration_Seconds"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 4),
+        "Duration_Formatted"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 5),
+        "Percentage"
+    );
 
     // Row 1 assertions
-    assert_eq!(get_cell_str(1, 0), "Export System");
-    assert_eq!(get_cell_str(1, 1), "Invoice Generation");
-    assert_eq!(get_cell_str(1, 2), "");
-    let val_r1 = match range.get((1, 3)) {
-        Some(Data::Int(i)) => *i as f64,
-        Some(Data::Float(f)) => *f,
-        _ => 0.0,
-    };
-    assert!((val_r1 - 7200.0).abs() < 0.1);
-    assert_eq!(get_cell_str(1, 4), "02h 00m");
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 1, 0),
+        "Export System"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 1, 1),
+        "Invoice Generation"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 1, 2),
+        ""
+    );
+    assert!(
+        (crate::shared::spreadsheet_helpers::get_xlsx_cell_f64(&range, 1, 3) - 7200.0).abs() < 0.1
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 1, 4),
+        "02h 00m"
+    );
 
     // Total row assertions
-    assert_eq!(get_cell_str(2, 0), "Total");
-    let val_total = match range.get((2, 3)) {
-        Some(Data::Int(i)) => *i as f64,
-        Some(Data::Float(f)) => *f,
-        _ => 0.0,
-    };
-    assert!((val_total - 7200.0).abs() < 0.1);
-    assert_eq!(get_cell_str(2, 4), "02h 00m");
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 2, 0),
+        "Total"
+    );
+    assert!(
+        (crate::shared::spreadsheet_helpers::get_xlsx_cell_f64(&range, 2, 3) - 7200.0).abs() < 0.1
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 2, 4),
+        "02h 00m"
+    );
 }
 
 #[test]
 fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_file() {
-    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_ods");
     let engine = Engine::new(&persistence);
     let temp_dir = tempfile::tempdir().expect("create temp dir");
@@ -228,10 +234,8 @@ fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_
     let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "ods", "-o", output_path])
         .unwrap();
 
-    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -240,31 +244,78 @@ fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_
     assert_eq!(sheet.name(), "Work Report");
 
     // Headers
-    assert_eq!(sheet.value(0, 0).as_str_or(""), "Project");
-    assert_eq!(sheet.value(0, 1).as_str_or(""), "Task");
-    assert_eq!(sheet.value(0, 2).as_str_or(""), "Subtask");
-    assert_eq!(sheet.value(0, 3).as_str_or(""), "Duration_Seconds");
-    assert_eq!(sheet.value(0, 4).as_str_or(""), "Duration_Formatted");
-    assert_eq!(sheet.value(0, 5).as_str_or(""), "Percentage");
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 0, 0),
+        "Project"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 0, 1),
+        "Task"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 0, 2),
+        "Subtask"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 0, 3),
+        "Duration_Seconds"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 0, 4),
+        "Duration_Formatted"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 0, 5),
+        "Percentage"
+    );
 
     // Data Row 1
-    assert_eq!(sheet.value(1, 0).as_str_or(""), "Export System");
-    assert_eq!(sheet.value(1, 1).as_str_or(""), "Invoice Generation");
-    assert_eq!(sheet.value(1, 2).as_str_or(""), "");
-    assert_eq!(sheet.value(1, 3).as_f64_or(0.0), 7200.0);
-    assert_eq!(sheet.value(1, 4).as_str_or(""), "02h 00m");
-    assert_eq!(sheet.value(1, 5).as_f64_or(0.0), 100.0);
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 1, 0),
+        "Export System"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 1, 1),
+        "Invoice Generation"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 1, 2),
+        ""
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_f64(sheet, 1, 3),
+        7200.0
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 1, 4),
+        "02h 00m"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_f64(sheet, 1, 5),
+        100.0
+    );
 
     // Total Row
-    assert_eq!(sheet.value(2, 0).as_str_or(""), "Total");
-    assert_eq!(sheet.value(2, 3).as_f64_or(0.0), 7200.0);
-    assert_eq!(sheet.value(2, 4).as_str_or(""), "02h 00m");
-    assert_eq!(sheet.value(2, 5).as_f64_or(0.0), 100.0);
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 2, 0),
+        "Total"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_f64(sheet, 2, 3),
+        7200.0
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_str(sheet, 2, 4),
+        "02h 00m"
+    );
+    assert_eq!(
+        crate::shared::spreadsheet_helpers::get_ods_cell_f64(sheet, 2, 5),
+        100.0
+    );
 }
 
 #[test]
 fn test_given_invalid_path_when_exporting_then_fails_with_sink_error_exit_code_1() {
-    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_io_err");
     let engine = Engine::new(&persistence);
     let invalid_path = if cfg!(windows) {
@@ -277,10 +328,8 @@ fn test_given_invalid_path_when_exporting_then_fails_with_sink_error_exit_code_1
         CliArgs::try_parse_from(["oxy", "report", "export", "-f", "csv", "-o", invalid_path])
             .unwrap();
 
-    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Then
     assert!(result.is_err());
     let err = result.unwrap_err();
     assert_eq!(err.exit_code(), 1);

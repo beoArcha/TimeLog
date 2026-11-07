@@ -10,7 +10,8 @@ import {
 import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";
 import { Grid } from "@components/ui/grid";
-import { Caption, Overline, MonoText, MetricText } from "@components/ui/typography";
+import { Text, Caption, Overline, MonoText, MetricText } from "@components/ui/typography";
+import { VStack, HStack } from "@components/ui/stack";
 import { useTranslation } from "@common/i18n/translator";
 import { PluginRegistry } from "@plugins/PluginRegistry";
 import { registerDefaultExporters, getReportXmlSchema } from "@plugins/exporters";
@@ -156,8 +157,8 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-3">
-          <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 flex items-center justify-between text-xs">
+        <VStack gap="lg" className="py-3">
+          <HStack justify="between" className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 text-xs">
             <div>
               <Overline>
                 {payload.period}
@@ -174,12 +175,12 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                 {payload.formattedTotalDuration}
               </MetricText>
             </div>
-          </div>
+          </HStack>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-foreground">
+          <VStack gap="sm">
+            <Text as="span" size="xs" className="font-semibold text-foreground">
               {t("SelectFormat")}
-            </span>
+            </Text>
             <Grid cols={1} gap="sm">
               {exporters.map((exp) => {
                 const isSelected = exp.id === activeSelectedId;
@@ -207,22 +208,23 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                       <Badge
                         variant="secondary"
                         size="sm"
+                        data-testid="export-format-active-badge"
                         className="font-mono"
                       >
-                        Active
+                        {t("ExportFormatActive")}
                       </Badge>
                     )}
                   </Button>
                 );
               })}
             </Grid>
-          </div>
-        </div>
+          </VStack>
+        </VStack>
 
         <DialogFooter className="flex sm:justify-between items-center gap-2 pt-2">
           {renderSecondaryAction()}
 
-          <div className="flex items-center gap-2">
+          <HStack gap="sm">
             <Button
               type="button"
               variant="ghost"
@@ -244,7 +246,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
               <Download className="w-4 h-4" />
               {t("DownloadFile")}
             </Button>
-          </div>
+          </HStack>
         </DialogFooter>
       </DialogContent>
     </Dialog>

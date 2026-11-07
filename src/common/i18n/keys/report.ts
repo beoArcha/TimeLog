@@ -34,6 +34,7 @@ export type ReportKey =
   | 'EndTime'
   | 'Export'
   | 'ExportEntriesCount'
+  | 'ExportFormatActive'
   | 'ExportReport'
   | 'ExportReportDesc'
   | 'FilterByTags'

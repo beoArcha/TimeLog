@@ -70,13 +70,13 @@ describe('ReportExportModal', () => {
         payload={samplePayload}
       />
     );
+    const jsonBtn = screen.getByTestId('export-format-json-exporter');
 
     // Act
-    const jsonBtn = screen.getByTestId('export-format-json-exporter');
     await user.click(jsonBtn);
 
     // Assert
-    expect(within(jsonBtn).getByText('Active')).toBeTruthy();
+    expect(within(jsonBtn).getByTestId('export-format-active-badge')).toBeTruthy();
   });
 
   it('should switch format to XLSX and trigger download with .xlsx extension', async () => {
@@ -94,13 +94,11 @@ describe('ReportExportModal', () => {
         payload={samplePayload}
       />
     );
-
-    // Act
     const xlsxBtn = screen.getByTestId('export-format-xlsx-exporter');
     await user.click(xlsxBtn);
-    expect(within(xlsxBtn).getByText('Active')).toBeTruthy();
-
     const downloadBtn = screen.getByTestId('export-download-button');
+
+    // Act
     await user.click(downloadBtn);
 
     // Assert
@@ -109,7 +107,8 @@ describe('ReportExportModal', () => {
     });
   });
 
-  it('should switch format to ODS and HTML correctly', async () => {
+  it('should switch format to ODS and show active badge', async () => {
+    // Arrange
     const user = userEvent.setup();
     render(
       <ReportExportModal
@@ -118,14 +117,32 @@ describe('ReportExportModal', () => {
         payload={samplePayload}
       />
     );
-
     const odsBtn = screen.getByTestId('export-format-ods-exporter');
-    await user.click(odsBtn);
-    expect(within(odsBtn).getByText('Active')).toBeTruthy();
 
+    // Act
+    await user.click(odsBtn);
+
+    // Assert
+    expect(within(odsBtn).getByTestId('export-format-active-badge')).toBeTruthy();
+  });
+
+  it('should switch format to HTML and show active badge', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
     const htmlBtn = screen.getByTestId('export-format-html-exporter');
+
+    // Act
     await user.click(htmlBtn);
-    expect(within(htmlBtn).getByText('Active')).toBeTruthy();
+
+    // Assert
+    expect(within(htmlBtn).getByTestId('export-format-active-badge')).toBeTruthy();
   });
 
   it('should trigger file download when Download button is clicked', async () => {

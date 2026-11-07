@@ -3,6 +3,7 @@ use crate::cli::formatters::{
     ReportEntryDto, ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
 };
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 /// Checks if a Unicode scalar value is allowed in XML 1.0 (Fifth Edition).
 /// Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
@@ -83,11 +84,16 @@ impl XmlSubtasksDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct XmlProjectDto {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub id: String,
     pub name: String,
     #[serde(rename = "durationSeconds")]
     pub duration_seconds: u64,
-    #[serde(rename = "formattedDuration")]
+    #[serde(
+        rename = "formattedDuration",
+        default,
+        skip_serializing_if = "String::is_empty"
+    )]
     pub formatted_duration: String,
     pub percentage: f64,
     #[serde(default, skip_serializing_if = "XmlTasksDto::is_empty")]
@@ -235,4 +241,72 @@ pub fn export_xml(tree: &ReportTreeDto) -> Result<String, CliError> {
         .map_err(|e| CliError::Sink(SinkError::Serialization(e.to_string())))?;
     xml.push_str(&content);
     Ok(xml)
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Error)]
+pub enum XmlValidationError {
+    #[error("Missing XML declaration prolog")]
+    MissingProlog,
+    #[error("Missing root element <report schemaVersion=\"1\">")]
+    MissingRootElement,
+    #[error("Missing section: {0}")]
+    MissingSection(&'static str),
+    #[error("Sections out of canonical order: expected metadata < summary < projects < entries")]
+    InvalidSectionOrder,
+    #[error("XML schema deserialization failed: {0}")]
+    Deserialization(String),
+    #[error("Invalid schemaVersion: expected '1', got '{0}'")]
+    InvalidSchemaVersion(String),
+}
+
+impl From<XmlValidationError> for CliError {
+    fn from(err: XmlValidationError) -> Self {
+        CliError::Sink(SinkError::Serialization(err.to_string()))
+    }
+}
+
+/// Validates an XML document string against the canonical Report XML Schema v1 structural rules:
+/// 1. XML prolog presence: starts with `<?xml version="1.0" encoding="UTF-8"?>`.
+/// 2. Root element `<report>` with required attribute `schemaVersion="1"`.
+/// 3. Canonical 4 sections in exact order: `<metadata>`, `<summary>`, `<projects>`, `<entries>`.
+/// 4. Mandatory child elements and valid numeric representations (nonNegativeInteger, decimal).
+/// 5. Validates complete roundtrip deserialization via quick_xml.
+pub fn validate_report_xml_structure(xml: &str) -> Result<XmlReportDto, XmlValidationError> {
+    if !xml.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>") {
+        return Err(XmlValidationError::MissingProlog);
+    }
+
+    if !xml.contains("<report schemaVersion=\"1\">") {
+        return Err(XmlValidationError::MissingRootElement);
+    }
+
+    let meta_idx = xml
+        .find("<metadata>")
+        .ok_or(XmlValidationError::MissingSection("<metadata>"))?;
+    let sum_idx = xml
+        .find("<summary>")
+        .ok_or(XmlValidationError::MissingSection("<summary>"))?;
+    let proj_idx = xml
+        .find("<projects")
+        .ok_or(XmlValidationError::MissingSection("<projects>"))?;
+    let ent_idx = xml
+        .find("<entries")
+        .ok_or(XmlValidationError::MissingSection("<entries>"))?;
+
+    if !(meta_idx < sum_idx && sum_idx < proj_idx && proj_idx < ent_idx) {
+        return Err(XmlValidationError::InvalidSectionOrder);
+    }
+
+    let body = xml
+        .strip_prefix("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+        .unwrap_or(xml);
+
+    let dto: XmlReportDto = quick_xml::de::from_str(body)
+        .map_err(|e| XmlValidationError::Deserialization(e.to_string()))?;
+
+    if dto.schema_version != "1" {
+        return Err(XmlValidationError::InvalidSchemaVersion(dto.schema_version));
+    }
+
+    Ok(dto)
 }

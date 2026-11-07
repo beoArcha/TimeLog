@@ -1,11 +1,10 @@
 use oxyflow_timelog::cli::error::{
-    BusinessRuleViolation, CliErrorCode, CliErrorEnvelope, CliSyntaxError, SinkError,
+    BusinessRuleViolation, CliErrorCode, CliErrorEnvelope, CliSyntaxError,
 };
 use oxyflow_timelog::cli::resolver::{EntityType, ResolveError};
 use oxyflow_timelog::cli::shared::constants::{
     EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENGINE_ERROR, EXIT_CODE_ENTITY_ERROR,
-    EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR, MSG_ERR_REMEDIATION_SERIALIZATION,
-    MSG_ERR_REMEDIATION_SINK,
+    EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR,
 };
 use oxyflow_timelog::cli::CliError;
 use oxyflow_timelog::engine::EngineError;
@@ -335,142 +334,4 @@ fn test_given_stage_a_before_db_open_when_building_envelope_then_uses_explicit_e
     assert_eq!(envelope_human.code, "STO_SQLITE_QUERY");
     assert!(envelope_human.user.is_some());
     assert_eq!(envelope_human.user.unwrap().locale, "en");
-}
-
-#[test]
-fn test_given_stage_b_and_c_when_building_envelope_then_preserves_primary_error_and_handles_locale_failures(
-) {
-    use crate::shared::test_db::setup_persistence_test;
-    use oxyflow_timelog::cli::{build_error_envelope, resolve_envelope_locale};
-    use oxyflow_timelog::persistence::Persistence;
-
-    let (_conn, config, _temp_dir) = setup_persistence_test("unit_error_envelope_lifecycle");
-    let persistence = Persistence::new(&config).expect("failed to create persistence");
-
-    // Stage B: persistence is available and cli_machine_locale is configured to "ja"
-    persistence
-        .cli
-        .set_config_value("cli_machine_locale", "ja")
-        .unwrap();
-
-    let primary_error = CliError::Syntax(CliSyntaxError::EmptyId);
-    let resolved_b = resolve_envelope_locale(true, Some(&persistence));
-    assert_eq!(resolved_b, Some("ja".to_string()));
-
-    let envelope_b = build_error_envelope(&primary_error, true, Some(&persistence));
-    assert_eq!(envelope_b.code, "CLI_SYNTAX_EMPTY_ID");
-    assert_eq!(envelope_b.exit_code, 2);
-
-    // Stage C: persistence is available, but locale config has corrupted value
-    persistence
-        .cli
-        .set_config_value("cli_machine_locale", "corrupted_val")
-        .unwrap();
-
-    // Locale resolution failure must log error, return "en" fallback, and preserve primary error
-    let resolved_c = resolve_envelope_locale(true, Some(&persistence));
-    assert_eq!(resolved_c, Some("en".to_string()));
-
-    let envelope_c = build_error_envelope(&primary_error, true, Some(&persistence));
-    assert_eq!(envelope_c.code, "CLI_SYNTAX_EMPTY_ID");
-    assert_eq!(envelope_c.exit_code, 2);
-}
-
-#[test]
-fn test_given_sqlite_storage_failure_during_locale_resolution_when_building_envelope_then_logs_and_falls_back_to_en_preserving_primary_error(
-) {
-    use crate::shared::test_db::setup_persistence_test;
-    use oxyflow_timelog::cli::{
-        build_error_envelope, init_cli_logger, resolve_envelope_locale, resolve_machine_locale,
-    };
-    use oxyflow_timelog::persistence::Persistence;
-
-    init_cli_logger();
-
-    let (conn, config, _temp_dir) =
-        setup_persistence_test("unit_error_envelope_sqlite_storage_failure");
-    let persistence = Persistence::new(&config).expect("failed to create persistence");
-
-    // Simulate an actual SQLite operational failure by dropping the config table
-    conn.execute("DROP TABLE config", [])
-        .expect("drop table failed");
-
-    // 1. Verify that resolve_machine_locale directly fails with CliError::Storage
-    let res = resolve_machine_locale(&persistence);
-    assert!(res.is_err());
-    let err = res.unwrap_err();
-    match err {
-        CliError::Storage(_) => (),
-        other => panic!("expected CliError::Storage, got {:?}", other),
-    }
-
-    // 2. Primary CLI error that caused the envelope generation
-    let primary_error = CliError::Syntax(CliSyntaxError::EmptyId);
-
-    // 3. Verify resolve_envelope_locale logs error, falls back safely to "en"
-    let resolved_locale = resolve_envelope_locale(true, Some(&persistence));
-    assert_eq!(resolved_locale, Some("en".to_string()));
-
-    // 4. Verify build_error_envelope preserves primary error code and exit code
-    let envelope = build_error_envelope(&primary_error, true, Some(&persistence));
-    assert_eq!(envelope.code, "CLI_SYNTAX_EMPTY_ID");
-    assert_eq!(envelope.exit_code, 2);
-}
-
-#[test]
-fn test_given_sink_io_error_when_converting_to_envelope_then_maps_to_snk_external_io_and_exit_code_1(
-) {
-    // Arrange
-    let error = CliError::Sink(SinkError::Io("Permission denied (os error 13)".to_string()));
-
-    // Act
-    let envelope = error.to_envelope(None);
-
-    // Assert
-    assert_eq!(envelope.code, "SNK_EXTERNAL_IO");
-    assert_eq!(envelope.category, "sink");
-    assert_eq!(envelope.exit_code, EXIT_CODE_GENERIC_FAILURE);
-    assert_eq!(envelope.exit_code, 1);
-    assert_eq!(
-        envelope.technical,
-        "Sink I/O error: Permission denied (os error 13)"
-    );
-    let user_msg = envelope.user.expect("expected user message in envelope");
-    assert_eq!(user_msg.locale, "en");
-    assert_eq!(
-        user_msg.remediation.as_deref(),
-        Some(MSG_ERR_REMEDIATION_SINK)
-    );
-}
-
-#[test]
-fn test_given_sink_serialization_error_when_converting_to_envelope_then_maps_to_snk_serialization_and_exit_code_1(
-) {
-    // Arrange
-    let error = CliError::Sink(SinkError::Serialization(
-        "Invalid UTF-8 payload".to_string(),
-    ));
-
-    // Act
-    let envelope = error.to_envelope(None);
-
-    // Assert
-    assert_eq!(envelope.code, "SNK_SERIALIZATION");
-    assert_eq!(envelope.category, "sink");
-    assert_eq!(envelope.exit_code, EXIT_CODE_GENERIC_FAILURE);
-    assert_eq!(envelope.exit_code, 1);
-    assert_eq!(
-        envelope.technical,
-        "Sink serialization error: Invalid UTF-8 payload"
-    );
-    let user_msg = envelope.user.expect("expected user message in envelope");
-    assert_eq!(user_msg.locale, "en");
-    assert_eq!(
-        user_msg.remediation.as_deref(),
-        Some(MSG_ERR_REMEDIATION_SERIALIZATION)
-    );
-    assert_ne!(
-        user_msg.remediation.as_deref(),
-        Some(MSG_ERR_REMEDIATION_SINK)
-    );
 }

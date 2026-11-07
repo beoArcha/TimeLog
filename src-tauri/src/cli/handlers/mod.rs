@@ -8,6 +8,7 @@ pub mod log_handler;
 pub mod mask_handler;
 pub mod project_handler;
 pub mod report_bounds;
+pub mod report_dto_builder;
 pub mod report_handler;
 pub mod report_schema_handler;
 pub mod sink_handler;

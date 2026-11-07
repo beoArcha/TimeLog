@@ -8,13 +8,9 @@ use oxyflow_timelog::cli::formatters::{
 
 #[test]
 fn test_given_tree_when_exporting_xml_then_root_contains_schema_version_1() {
-    // Arrange
     let tree = create_full_hierarchy_tree();
-
-    // Act
     let xml = export_xml(&tree).expect("export_xml should succeed");
 
-    // Assert
     assert!(xml.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
     assert!(xml.contains("<report schemaVersion=\"1\">"));
     assert!(xml.ends_with("</report>"));
@@ -22,13 +18,9 @@ fn test_given_tree_when_exporting_xml_then_root_contains_schema_version_1() {
 
 #[test]
 fn test_given_tree_when_exporting_xml_then_four_canonical_sections_are_present() {
-    // Arrange
     let tree = create_full_hierarchy_tree();
-
-    // Act
     let xml = export_xml(&tree).expect("export_xml should succeed");
 
-    // Assert
     let metadata_pos = xml.find("<metadata>").expect("must contain <metadata>");
     let summary_pos = xml.find("<summary>").expect("must contain <summary>");
     let projects_pos = xml.find("<projects>").expect("must contain <projects>");
@@ -46,13 +38,10 @@ fn test_given_tree_when_exporting_xml_then_four_canonical_sections_are_present()
 
 #[test]
 fn test_given_nested_tree_when_exporting_xml_then_hierarchy_is_properly_nested() {
-    // Arrange
     let tree = create_full_hierarchy_tree();
-
-    // Act
     let xml = export_xml(&tree).expect("export_xml should succeed");
 
-    // Assert: projects contain project, tasks contain task, subtasks contain subtask
+    // Projects contain project, tasks contain task, subtasks contain subtask
     assert!(xml.contains("<projects><project>"));
     assert!(xml.contains("<name>Alpha \"Platform\" &amp; Engine</name>"));
     assert!(xml.contains("<tasks><task>"));
@@ -64,13 +53,9 @@ fn test_given_nested_tree_when_exporting_xml_then_hierarchy_is_properly_nested()
 
 #[test]
 fn test_given_empty_tree_when_exporting_xml_then_renders_empty_sections() {
-    // Arrange
     let tree = create_empty_report_tree();
-
-    // Act
     let xml = export_xml(&tree).expect("export_xml should succeed");
 
-    // Assert
     assert!(xml.contains("<report schemaVersion=\"1\">"));
     assert!(xml.contains("<period>Today</period>"));
     assert!(xml.contains("<totalSeconds>0</totalSeconds>"));
@@ -81,7 +66,7 @@ fn test_given_empty_tree_when_exporting_xml_then_renders_empty_sections() {
 
 #[test]
 fn test_given_control_characters_when_sanitizing_then_strips_disallowed_and_preserves_valid() {
-    // Arrange: test is_xml_1_0_char for allowed and forbidden ranges
+    // Check is_xml_1_0_char for allowed and forbidden ranges
     assert!(!is_xml_1_0_char('\u{0000}')); // NULL
     assert!(!is_xml_1_0_char('\u{0007}')); // BELL
     assert!(!is_xml_1_0_char('\u{0008}')); // BACKSPACE
@@ -103,12 +88,10 @@ fn test_given_control_characters_when_sanitizing_then_strips_disallowed_and_pres
     assert!(is_xml_1_0_char('日'));
     assert!(is_xml_1_0_char('🚀'));
 
-    // Act
     let raw =
         "Project\u{0000} \u{0007}Alpha\twith\nUnicode: Zażółć gęślą jaźń\r\u{FFFE} 🚀\u{FFFF}";
     let sanitized = sanitize_xml_text(raw);
 
-    // Assert
     assert_eq!(
         sanitized,
         "Project Alpha\twith\nUnicode: Zażółć gęślą jaźń\r 🚀"
@@ -118,7 +101,6 @@ fn test_given_control_characters_when_sanitizing_then_strips_disallowed_and_pres
 #[test]
 fn test_given_tree_with_forbidden_control_characters_when_exporting_xml_then_sanitizes_and_parses_with_quick_xml(
 ) {
-    // Arrange
     let tree = ReportTreeDto {
         period: "Period\u{0000}\u{0007} 2026".to_string(),
         total_seconds: 3600,
@@ -152,10 +134,9 @@ fn test_given_tree_with_forbidden_control_characters_when_exporting_xml_then_san
         }],
     };
 
-    // Act
     let xml = export_xml(&tree).expect("export_xml should succeed despite control chars");
 
-    // Assert: control chars must not be present
+    // Control chars must not be present
     assert!(!xml.contains('\u{0000}'));
     assert!(!xml.contains('\u{0007}'));
     assert!(!xml.contains('\u{0008}'));
@@ -170,7 +151,7 @@ fn test_given_tree_with_forbidden_control_characters_when_exporting_xml_then_san
     assert!(xml.contains("Subtask Clean"));
     assert!(xml.contains("Note with control char"));
 
-    // Act & Assert: Parse entire document with quick_xml reader without errors
+    // Parse entire document with quick_xml reader without errors
     let mut reader = quick_xml::Reader::from_str(&xml);
     reader.config_mut().trim_text(true);
     let mut buf = Vec::new();
@@ -197,13 +178,9 @@ fn test_given_tree_with_forbidden_control_characters_when_exporting_xml_then_san
 #[test]
 fn test_given_tree_with_entries_when_exporting_xml_then_entries_section_contains_valid_entry_elements(
 ) {
-    // Arrange
     let tree = create_full_hierarchy_tree();
-
-    // Act
     let xml = export_xml(&tree).expect("export_xml should succeed");
 
-    // Assert
     assert!(xml.contains("<entries><entry>"));
     assert!(xml.contains("<id>entry-1</id>"));
     assert!(xml.contains("<date>2026-11-07</date>"));
@@ -222,11 +199,9 @@ fn test_given_tree_with_entries_when_exporting_xml_then_entries_section_contains
 
 #[test]
 fn test_given_xml_report_dto_deserialization_roundtrip() {
-    // Arrange
     let tree = create_full_hierarchy_tree();
     let xml = export_xml(&tree).expect("export_xml should succeed");
 
-    // Act: deserialize back from XML
     let content_without_decl = xml
         .strip_prefix("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         .expect("must have xml declaration");
@@ -234,7 +209,6 @@ fn test_given_xml_report_dto_deserialization_roundtrip() {
     let dto: XmlReportDto =
         quick_xml::de::from_str(content_without_decl).expect("deserialization should succeed");
 
-    // Assert
     assert_eq!(dto.schema_version, "1");
     assert_eq!(dto.metadata.period, "Current Sprint");
     assert_eq!(dto.summary.total_seconds, 7200);

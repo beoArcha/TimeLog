@@ -1,18 +1,8 @@
 use super::exporter_fixtures::*;
+use crate::shared::spreadsheet_helpers::{get_ods_cell_f64, get_ods_cell_str};
 use oxyflow_timelog::cli::error::{CliError, SinkError};
 use oxyflow_timelog::cli::exporters::ods::{export_ods, map_ods_err};
-use spreadsheet_ods::{read_ods_buf, OdsError, Sheet};
-
-fn get_ods_cell_str(sheet: &Sheet, row: usize, col: usize) -> String {
-    sheet
-        .value(row as u32, col as u32)
-        .as_str_or("")
-        .to_string()
-}
-
-fn get_ods_cell_f64(sheet: &Sheet, row: usize, col: usize) -> f64 {
-    sheet.value(row as u32, col as u32).as_f64_or(0.0)
-}
+use spreadsheet_ods::{read_ods_buf, OdsError};
 
 #[test]
 fn test_given_ods_error_when_mapping_then_returns_sink_serialization_error() {
@@ -31,13 +21,9 @@ fn test_given_ods_error_when_mapping_then_returns_sink_serialization_error() {
 
 #[test]
 fn test_given_task_without_subtasks_when_export_ods_then_produces_complete_and_correct_content() {
-    // Arrange
     let tree = create_sample_tree();
-
-    // Act
     let bytes = export_ods(&tree).expect("ods export should succeed");
 
-    // Assert
     assert!(!bytes.is_empty());
     let ods = read_ods_buf(&bytes).expect("must parse as ods");
     let sheet = ods.sheet(0);
@@ -73,11 +59,8 @@ fn test_given_task_with_subtasks_and_direct_time_when_export_ods_then_preserves_
 ) {
     // Arrange: parent has 30m direct, sub A has 20m, sub B has 10m -> total 60m
     let tree = create_tree_with_subtasks_and_direct_time();
-
-    // Act
     let bytes = export_ods(&tree).expect("ods export should succeed");
 
-    // Assert
     let ods = read_ods_buf(&bytes).expect("must parse as ods");
     let sheet = ods.sheet(0);
 
@@ -122,13 +105,9 @@ fn test_given_task_with_subtasks_and_direct_time_when_export_ods_then_preserves_
 
 #[test]
 fn test_given_empty_report_when_export_ods_then_produces_header_and_zero_total() {
-    // Arrange
     let tree = create_empty_tree();
-
-    // Act
     let bytes = export_ods(&tree).expect("ods export should succeed");
 
-    // Assert
     let ods = read_ods_buf(&bytes).expect("must parse as ods");
     let sheet = ods.sheet(0);
 
@@ -141,13 +120,9 @@ fn test_given_empty_report_when_export_ods_then_produces_header_and_zero_total()
 
 #[test]
 fn test_given_special_characters_when_export_ods_then_cells_contain_exact_strings() {
-    // Arrange
     let tree = create_tree_with_special_characters();
-
-    // Act
     let bytes = export_ods(&tree).expect("ods export should succeed");
 
-    // Assert
     let ods = read_ods_buf(&bytes).expect("must parse as ods");
     let sheet = ods.sheet(0);
 

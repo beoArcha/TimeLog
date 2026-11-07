@@ -18,7 +18,7 @@ pub fn export_ods(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
 
     let mut current_row: u32 = 1;
 
-    for row in flatten_report(tree) {
+    for row in flatten_report(tree)? {
         sheet.set_value(current_row, 0, row.project_name.as_str());
         sheet.set_value(current_row, 1, row.task_name.as_str());
         sheet.set_value(current_row, 2, row.subtask_name.as_deref().unwrap_or(""));

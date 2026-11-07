@@ -27,7 +27,7 @@ pub fn export_xlsx(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
 
     let mut current_row: u32 = 1;
 
-    for row in flatten_report(tree) {
+    for row in flatten_report(tree)? {
         worksheet
             .write(current_row, 0, row.project_name.as_str())
             .map_err(map_xlsx_err)?;

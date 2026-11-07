@@ -67,4 +67,49 @@ describe('HtmlExporterPlugin', () => {
     expect(html).not.toContain('Project Breakdown');
     expect(html).toContain('Activity Log');
   });
+
+  it('should neutralize XSS payloads across all payload fields', async () => {
+    const exporter = new HtmlExporterPlugin();
+    const xssPayload: ExportPayload = {
+      title: '<script>alert("title")</script>',
+      period: '<img src=x onerror=alert("period")>',
+      generatedAt: '2026-11-07 14:00:00',
+      totalSeconds: 3600,
+      formattedTotalDuration: '01:00:00',
+      projectBreakdown: [
+        {
+          projectName: '<svg onload=alert("svg")>',
+          seconds: 3600,
+          percentage: 100,
+        },
+      ],
+      rows: [
+        {
+          id: 'row-xss',
+          date: '2026-11-02',
+          projectName: '<svg onload=alert("svg")>',
+          taskName: '<iframe src="javascript:alert(1)"></iframe>',
+          startTime: '09:00:00',
+          endTime: '10:00:00',
+          durationSeconds: 3600,
+          formattedDuration: '01:00:00',
+          note: '<script>alert("note")</script>',
+        },
+      ],
+    };
+
+    const blob = await exporter.export(xssPayload);
+    const html = await blob.text();
+
+    expect(html).not.toContain('<script>');
+    expect(html).not.toContain('</script>');
+    expect(html).not.toContain('<img src=x');
+    expect(html).not.toContain('<svg onload');
+    expect(html).not.toContain('<iframe');
+
+    expect(html).toContain('&lt;script&gt;alert(&quot;title&quot;)&lt;/script&gt;');
+    expect(html).toContain('&lt;img src=x onerror=alert(&quot;period&quot;)&gt;');
+    expect(html).toContain('&lt;svg onload=alert(&quot;svg&quot;)&gt;');
+    expect(html).toContain('&lt;iframe src=&quot;javascript:alert(1)&quot;&gt;&lt;/iframe&gt;');
+  });
 });

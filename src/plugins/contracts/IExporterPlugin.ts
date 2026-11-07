@@ -5,7 +5,7 @@ export interface ExportDataRow {
   taskName: string;
   subtaskName?: string;
   startTime: string;
-  endTime: string;
+  endTime?: string;
   durationSeconds: number;
   formattedDuration: string;
   note?: string;

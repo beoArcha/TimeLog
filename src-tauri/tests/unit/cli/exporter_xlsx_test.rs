@@ -1,28 +1,10 @@
 use super::exporter_fixtures::*;
-use calamine::{Data, Reader, Xlsx};
+use crate::shared::spreadsheet_helpers::{get_xlsx_cell_f64, get_xlsx_cell_str};
+use calamine::{Reader, Xlsx};
 use oxyflow_timelog::cli::error::{CliError, SinkError};
 use oxyflow_timelog::cli::exporters::xlsx::{export_xlsx, map_xlsx_err};
 use rust_xlsxwriter::XlsxError;
 use std::io::Cursor;
-
-fn get_xlsx_cell_str(range: &calamine::Range<Data>, row: usize, col: usize) -> String {
-    match range.get((row, col)) {
-        Some(Data::String(s)) => s.clone(),
-        Some(Data::Float(f)) => f.to_string(),
-        Some(Data::Int(i)) => i.to_string(),
-        Some(Data::Empty) => String::new(),
-        _ => String::new(),
-    }
-}
-
-fn get_xlsx_cell_f64(range: &calamine::Range<Data>, row: usize, col: usize) -> f64 {
-    match range.get((row, col)) {
-        Some(Data::Float(f)) => *f,
-        Some(Data::Int(i)) => *i as f64,
-        Some(Data::String(s)) => s.parse().unwrap_or(0.0),
-        _ => 0.0,
-    }
-}
 
 #[test]
 fn test_given_xlsx_error_when_mapping_then_returns_sink_serialization_error() {
@@ -43,13 +25,9 @@ fn test_given_xlsx_error_when_mapping_then_returns_sink_serialization_error() {
 
 #[test]
 fn test_given_task_without_subtasks_when_export_xlsx_then_produces_complete_and_correct_content() {
-    // Arrange
     let tree = create_sample_tree();
-
-    // Act
     let bytes = export_xlsx(&tree).expect("xlsx export should succeed");
 
-    // Assert
     assert!(!bytes.is_empty());
     let mut excel: Xlsx<_> = Xlsx::new(Cursor::new(&bytes)).expect("must parse as xlsx");
     let range = excel
@@ -86,11 +64,8 @@ fn test_given_task_with_subtasks_and_direct_time_when_export_xlsx_then_preserves
 ) {
     // Arrange: parent has 30m direct, sub A has 20m, sub B has 10m -> total 60m
     let tree = create_tree_with_subtasks_and_direct_time();
-
-    // Act
     let bytes = export_xlsx(&tree).expect("xlsx export should succeed");
 
-    // Assert
     let mut excel: Xlsx<_> = Xlsx::new(Cursor::new(&bytes)).expect("must parse as xlsx");
     let range = excel
         .worksheet_range("Work Report")
@@ -137,13 +112,9 @@ fn test_given_task_with_subtasks_and_direct_time_when_export_xlsx_then_preserves
 
 #[test]
 fn test_given_empty_report_when_export_xlsx_then_produces_header_and_zero_total() {
-    // Arrange
     let tree = create_empty_tree();
-
-    // Act
     let bytes = export_xlsx(&tree).expect("xlsx export should succeed");
 
-    // Assert
     let mut excel: Xlsx<_> = Xlsx::new(Cursor::new(&bytes)).expect("must parse as xlsx");
     let range = excel
         .worksheet_range("Work Report")
@@ -158,13 +129,9 @@ fn test_given_empty_report_when_export_xlsx_then_produces_header_and_zero_total(
 
 #[test]
 fn test_given_special_characters_when_export_xlsx_then_cells_contain_exact_strings() {
-    // Arrange
     let tree = create_tree_with_special_characters();
-
-    // Act
     let bytes = export_xlsx(&tree).expect("xlsx export should succeed");
 
-    // Assert
     let mut excel: Xlsx<_> = Xlsx::new(Cursor::new(&bytes)).expect("must parse as xlsx");
     let range = excel
         .worksheet_range("Work Report")
