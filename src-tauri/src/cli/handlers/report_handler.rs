@@ -33,8 +33,8 @@ pub fn handle(
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
-    if let Some(ReportSubcommand::Schema { output, version }) = args.command {
-        return report_schema_handler::handle(output, &version, is_machine);
+    if let Some(ReportSubcommand::Schema { output, version }) = args.command.as_ref() {
+        return report_schema_handler::handle(output.clone(), version, is_machine);
     }
 
     let criteria = extract_filter_criteria(&args);
