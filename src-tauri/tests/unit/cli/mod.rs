@@ -1,7 +1,11 @@
 pub mod dashboard_test;
 pub mod duration_parser_test;
 pub mod error_test;
-pub mod exporter_test;
+pub mod exporter_csv_test;
+pub mod exporter_html_test;
+pub mod exporter_json_test;
+pub mod exporter_ods_test;
+pub mod exporter_xlsx_test;
 pub mod exporter_xml_test;
 pub mod levenshtein_test;
 pub mod log_edit_parser_test;

@@ -1,9 +1,12 @@
+use oxyflow_timelog::cli::exporters::export_to_file;
 use oxyflow_timelog::cli::exporters::xml::{
     export_xml, is_xml_1_0_char, sanitize_xml_text, XmlReportDto,
 };
 use oxyflow_timelog::cli::formatters::{
     ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
 };
+use oxyflow_timelog::cli::parser::ExportFormat;
+use std::fs;
 
 fn create_full_hierarchy_tree() -> ReportTreeDto {
     ReportTreeDto {
@@ -269,4 +272,27 @@ fn test_given_xml_report_dto_deserialization_roundtrip() {
             .len(),
         2
     );
+}
+
+#[test]
+fn test_given_xml_format_when_export_to_file_then_writes_valid_xml_file() {
+    // Arrange
+    let tree = create_full_hierarchy_tree();
+    let temp_dir =
+        std::env::temp_dir().join(format!("oxy_test_export_xml_{}", uuid::Uuid::new_v4()));
+    let target_file = temp_dir.join("report.xml");
+    let target_path_str = target_file.to_str().unwrap();
+
+    // Act
+    let res = export_to_file(&tree, ExportFormat::Xml, target_path_str);
+
+    // Assert
+    assert!(res.is_ok());
+    assert!(target_file.exists());
+    let content = fs::read_to_string(&target_file).expect("failed to read file");
+    assert!(content.contains("<?xml"));
+    assert!(content.contains("<report schemaVersion=\"1\">"));
+
+    // Cleanup
+    let _ = fs::remove_dir_all(temp_dir);
 }
