@@ -37,6 +37,8 @@ pub const MSG_ERR_REMEDIATION_ENGINE: &str =
     "Inspect active timers using 'oxy status' or stop them with 'oxy stop'.";
 pub const MSG_ERR_REMEDIATION_SINK: &str =
     "Verify target file path permissions and available storage for output export.";
+pub const MSG_ERR_REMEDIATION_SERIALIZATION: &str =
+    "Verify report data integrity or try exporting to an alternative format.";
 pub const FORMAT_REMEDIATION_DID_YOU_MEAN: &str = "Run command using candidate ID '{}'";
 
 pub const EXIT_CODE_SUCCESS: u8 = 0;

@@ -2,7 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, within, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ReportExportModal } from '@features/reports/components/ReportExportModal';
+import {
+  getFormatIcon,
+  DEFAULT_FORMAT_ICON_CONFIG,
+} from '@features/reports/components/reportExportIcons';
 import { ExportPayload } from '@plugins/contracts/IExporterPlugin';
+import { PluginRegistry } from '@plugins/PluginRegistry';
 
 describe('ReportExportModal', () => {
   const samplePayload: ExportPayload = {
@@ -47,7 +52,11 @@ describe('ReportExportModal', () => {
     expect(screen.getByTestId('report-export-modal')).toBeTruthy();
     expect(screen.getByText(/01:00:00/)).toBeTruthy();
     expect(screen.getByTestId('export-format-csv-exporter')).toBeTruthy();
+    expect(screen.getByTestId('export-format-html-exporter')).toBeTruthy();
     expect(screen.getByTestId('export-format-json-exporter')).toBeTruthy();
+    expect(screen.getByTestId('export-format-xml-exporter')).toBeTruthy();
+    expect(screen.getByTestId('export-format-ods-exporter')).toBeTruthy();
+    expect(screen.getByTestId('export-format-xlsx-exporter')).toBeTruthy();
     expect(screen.getByTestId('export-format-markdown-exporter')).toBeTruthy();
   });
 
@@ -61,13 +70,79 @@ describe('ReportExportModal', () => {
         payload={samplePayload}
       />
     );
+    const jsonBtn = screen.getByTestId('export-format-json-exporter');
 
     // Act
-    const jsonBtn = screen.getByTestId('export-format-json-exporter');
     await user.click(jsonBtn);
 
     // Assert
-    expect(within(jsonBtn).getByText('Active')).toBeTruthy();
+    expect(within(jsonBtn).getByTestId('export-format-active-badge')).toBeTruthy();
+  });
+
+  it('should switch format to XLSX and trigger download with .xlsx extension', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const createObjectURLMock = vi.fn().mockReturnValue('blob:test-xlsx-url');
+    const revokeObjectURLMock = vi.fn();
+    window.URL.createObjectURL = createObjectURLMock;
+    window.URL.revokeObjectURL = revokeObjectURLMock;
+
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
+    const xlsxBtn = screen.getByTestId('export-format-xlsx-exporter');
+    await user.click(xlsxBtn);
+    const downloadBtn = screen.getByTestId('export-download-button');
+
+    // Act
+    await user.click(downloadBtn);
+
+    // Assert
+    await waitFor(() => {
+      expect(createObjectURLMock).toHaveBeenCalled();
+    });
+  });
+
+  it('should switch format to ODS and show active badge', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
+    const odsBtn = screen.getByTestId('export-format-ods-exporter');
+
+    // Act
+    await user.click(odsBtn);
+
+    // Assert
+    expect(within(odsBtn).getByTestId('export-format-active-badge')).toBeTruthy();
+  });
+
+  it('should switch format to HTML and show active badge', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
+    const htmlBtn = screen.getByTestId('export-format-html-exporter');
+
+    // Act
+    await user.click(htmlBtn);
+
+    // Assert
+    expect(within(htmlBtn).getByTestId('export-format-active-badge')).toBeTruthy();
   });
 
   it('should trigger file download when Download button is clicked', async () => {
@@ -133,6 +208,54 @@ describe('ReportExportModal', () => {
     });
   });
 
+  it('should display schema download action button when XML exporter is selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
+
+    // Act
+    const xmlBtn = screen.getByTestId('export-format-xml-exporter');
+    await user.click(xmlBtn);
+
+    // Assert
+    expect(screen.getByTestId('export-download-schema-button')).toBeTruthy();
+  });
+
+  it('should trigger schema download when schema download action button is clicked', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const createObjectURLMock = vi.fn().mockReturnValue('blob:test-xsd-url');
+    const revokeObjectURLMock = vi.fn();
+    window.URL.createObjectURL = createObjectURLMock;
+    window.URL.revokeObjectURL = revokeObjectURLMock;
+
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
+    const xmlBtn = screen.getByTestId('export-format-xml-exporter');
+    await user.click(xmlBtn);
+    const schemaBtn = screen.getByTestId('export-download-schema-button');
+
+    // Act
+    await user.click(schemaBtn);
+
+    // Assert
+    await waitFor(() => {
+      expect(createObjectURLMock).toHaveBeenCalled();
+      expect(revokeObjectURLMock).toHaveBeenCalled();
+    });
+  });
+
   it('should call onClose when cancel button is clicked', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -151,5 +274,92 @@ describe('ReportExportModal', () => {
 
     // Assert
     expect(onCloseMock).toHaveBeenCalled();
+  });
+
+  describe('OCP and declarative icon mapping', () => {
+    it('maps known iconKey values to corresponding icons and semantic theme tokens', () => {
+      const csvIcon = getFormatIcon('csv', false);
+      const xlsxIcon = getFormatIcon('xlsx', false);
+      const odsIcon = getFormatIcon('ods', false);
+      const htmlIcon = getFormatIcon('html', false);
+      const jsonIcon = getFormatIcon('json', false);
+      const xmlIcon = getFormatIcon('xml', false);
+      const mdIcon = getFormatIcon('markdown', false);
+
+      expect(csvIcon.props.className).toContain('text-primary');
+      expect(xlsxIcon.props.className).toContain('text-primary');
+      expect(odsIcon.props.className).toContain('text-primary');
+      expect(htmlIcon.props.className).toContain('text-foreground');
+      expect(jsonIcon.props.className).toContain('text-foreground');
+      expect(xmlIcon.props.className).toContain('text-foreground');
+      expect(mdIcon.props.className).toContain('text-muted-foreground');
+
+      // None of the icons should use legacy hardcoded color classes
+      const legacyColorRegex = /text-(emerald|green|teal|orange|amber|purple|sky)-[0-9]{3}/;
+      expect(legacyColorRegex.test(csvIcon.props.className)).toBe(false);
+      expect(legacyColorRegex.test(xlsxIcon.props.className)).toBe(false);
+      expect(legacyColorRegex.test(odsIcon.props.className)).toBe(false);
+      expect(legacyColorRegex.test(htmlIcon.props.className)).toBe(false);
+      expect(legacyColorRegex.test(jsonIcon.props.className)).toBe(false);
+      expect(legacyColorRegex.test(xmlIcon.props.className)).toBe(false);
+      expect(legacyColorRegex.test(mdIcon.props.className)).toBe(false);
+    });
+
+    it('uses text-primary-foreground when an icon is selected', () => {
+      const selectedIcon = getFormatIcon('csv', true);
+      expect(selectedIcon.props.className).toContain('text-primary-foreground');
+    });
+
+    it('safely falls back to DEFAULT_FORMAT_ICON_CONFIG for unknown or missing iconKey', () => {
+      const unknownIcon = getFormatIcon('unknown-ext', false);
+      const emptyIcon = getFormatIcon('', false);
+      const undefinedIcon = getFormatIcon(undefined, false);
+
+      expect(unknownIcon.type).toBe(DEFAULT_FORMAT_ICON_CONFIG.icon);
+      expect(unknownIcon.props.className).toContain('text-muted-foreground');
+
+      expect(emptyIcon.type).toBe(DEFAULT_FORMAT_ICON_CONFIG.icon);
+      expect(emptyIcon.props.className).toContain('text-muted-foreground');
+
+      expect(undefinedIcon.type).toBe(DEFAULT_FORMAT_ICON_CONFIG.icon);
+      expect(undefinedIcon.props.className).toContain('text-muted-foreground');
+    });
+
+    it('renders newly registered exporter with unknown iconKey using safe fallback without modifying modal code (OCP)', () => {
+      const customExporter = {
+        id: 'custom-ocp-exporter',
+        name: 'Custom Format (OCP)',
+        extension: 'cst',
+        fileExtension: 'cst',
+        mimeType: 'application/octet-stream',
+        iconKey: 'custom-non-standard-key',
+        export: vi.fn().mockResolvedValue(new Blob(['test'])),
+      };
+
+      PluginRegistry.getInstance().registerExporter(customExporter);
+
+      try {
+        render(
+          <ReportExportModal
+            isOpen={true}
+            onClose={vi.fn()}
+            payload={samplePayload}
+          />
+        );
+
+        const customBtn = screen.getByTestId('export-format-custom-ocp-exporter');
+        expect(customBtn).toBeTruthy();
+        expect(within(customBtn).getByText('Custom Format (OCP)')).toBeTruthy();
+        expect(within(customBtn).getByText('.cst')).toBeTruthy();
+
+        // Verify that the button contains an SVG icon with semantic styling
+        const svg = customBtn.querySelector('svg');
+        expect(svg).toBeTruthy();
+        expect(svg?.getAttribute('class')).toContain('text-muted-foreground');
+        expect(svg?.getAttribute('class')).not.toContain('text-emerald-500');
+      } finally {
+        PluginRegistry.getInstance().unregisterExporter('custom-ocp-exporter');
+      }
+    });
   });
 });

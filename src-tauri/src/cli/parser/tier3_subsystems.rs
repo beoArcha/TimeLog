@@ -62,6 +62,21 @@ pub enum ReportSubcommand {
         #[arg(long, help = "Filter by end date (YYYY-MM-DD or RFC3339)")]
         to: Option<String>,
     },
+    #[command(about = "Output XML Schema (XSD) definition for reports")]
+    Schema {
+        #[arg(
+            short = 'o',
+            long = "output",
+            help = "Output destination file path (default: stdout)"
+        )]
+        output: Option<String>,
+        #[arg(
+            long = "version",
+            default_value = "1",
+            help = "XML schema version (default: 1)"
+        )]
+        version: String,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]

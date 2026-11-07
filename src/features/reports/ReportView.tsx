@@ -11,7 +11,14 @@ import { InlineCluster } from '@components/ui/stack';
 import { ViewHeader } from '@components/ViewHeader';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
-import { ExportPayload, ExportDataRow } from '@plugins/contracts/IExporterPlugin';
+import { Task } from '@bindings/Task';
+import {
+  ExportPayload,
+  ExportDataRow,
+  ExportProjectBreakdown,
+  ExportTaskBreakdown,
+  ExportSubtaskBreakdown,
+} from '@plugins/contracts/IExporterPlugin';
 import ReportStatsCards from './components/ReportStatsCards';
 import ReportBillingCard from './components/ReportBillingCard';
 import ReportPeriodSelector from './components/ReportPeriodSelector';
@@ -91,8 +98,17 @@ export default function ReportView({ state }: { state: GuiState }) {
 
   const exportPayload: ExportPayload = useMemo(() => {
     const rows: ExportDataRow[] = effectiveDisplayLogs.map((log) => {
-      const task = tasks.find((t) => t.id === log.taskId);
-      const projId = (log as ClampedTimeLog).projectId || task?.projectId;
+      const rawTask = tasks.find((t) => t.id === log.taskId);
+      let taskName = rawTask?.name || 'Unknown';
+      let subtaskName: string | undefined;
+
+      if (rawTask?.parentTaskId) {
+        const parentTask = tasks.find((t) => t.id === rawTask.parentTaskId);
+        taskName = parentTask?.name || rawTask.parentTaskId;
+        subtaskName = rawTask.name;
+      }
+
+      const projId = (log as ClampedTimeLog).projectId || rawTask?.projectId;
       const project = projects.find((p) => p.id === projId);
 
       const isClamped = 'clampedDurationSeconds' in log;
@@ -117,7 +133,8 @@ export default function ReportView({ state }: { state: GuiState }) {
         id: log.id,
         date,
         projectName: project?.name || 'Unknown',
-        taskName: task?.name || 'Unknown',
+        taskName,
+        subtaskName,
         startTime: start,
         endTime: end,
         durationSeconds,
@@ -128,19 +145,78 @@ export default function ReportView({ state }: { state: GuiState }) {
 
     const effectiveTotalSeconds = rows.reduce((acc, row) => acc + row.durationSeconds, 0);
 
-    const projectBreakdown = effectiveSelectedProjectId
-      ? projectChart
-          .filter((pc) => pc.id === effectiveSelectedProjectId)
-          .map((pc) => ({
-            projectName: pc.name,
-            seconds: effectiveTotalSeconds,
-            percentage: 100,
-          }))
-      : projectChart.map((pc) => ({
-          projectName: pc.name,
-          seconds: pc.seconds,
-          percentage: effectiveTotalSeconds > 0 ? (pc.seconds / effectiveTotalSeconds) * 100 : 0,
-        }));
+    const buildProjectTasks = (pc: (typeof projectChart)[0]): ExportTaskBreakdown[] => {
+      const taskSecMap = new Map<string, number>();
+      for (const item of pc.tasks) {
+        if (item.task) {
+          taskSecMap.set(item.task.id, item.seconds);
+        }
+      }
+
+      const projectTasks = tasks.filter((t) => t.projectId === pc.id);
+      const rootTasks = projectTasks.filter((t) => !t.parentTaskId);
+      const subtasksByParent = new Map<string, Task[]>();
+      for (const t of projectTasks) {
+        if (t.parentTaskId) {
+          const list = subtasksByParent.get(t.parentTaskId) || [];
+          list.push(t);
+          subtasksByParent.set(t.parentTaskId, list);
+        }
+      }
+
+      const result: ExportTaskBreakdown[] = [];
+      for (const root of rootTasks) {
+        const directSec = taskSecMap.get(root.id) || 0;
+        const subs = subtasksByParent.get(root.id) || [];
+        const subtaskBreakdowns: ExportSubtaskBreakdown[] = [];
+        let totalTaskSec = directSec;
+
+        for (const sub of subs) {
+          const subSec = taskSecMap.get(sub.id) || 0;
+          if (subSec > 0) {
+            totalTaskSec += subSec;
+            subtaskBreakdowns.push({
+              id: sub.id,
+              name: sub.name,
+              durationSeconds: subSec,
+              formattedDuration: formatSeconds(subSec),
+              percentage: effectiveTotalSeconds > 0 ? (subSec / effectiveTotalSeconds) * 100 : 0,
+            });
+          }
+        }
+
+        if (totalTaskSec > 0) {
+          subtaskBreakdowns.sort((a, b) => b.durationSeconds - a.durationSeconds);
+          result.push({
+            id: root.id,
+            name: root.name,
+            durationSeconds: totalTaskSec,
+            formattedDuration: formatSeconds(totalTaskSec),
+            percentage: effectiveTotalSeconds > 0 ? (totalTaskSec / effectiveTotalSeconds) * 100 : 0,
+            subtasks: subtaskBreakdowns.length > 0 ? subtaskBreakdowns : undefined,
+          });
+        }
+      }
+
+      result.sort((a, b) => b.durationSeconds - a.durationSeconds);
+      return result;
+    };
+
+    const projectBreakdown: ExportProjectBreakdown[] = (effectiveSelectedProjectId
+      ? projectChart.filter((pc) => pc.id === effectiveSelectedProjectId)
+      : projectChart
+    ).map((pc) => {
+      const pSeconds = effectiveSelectedProjectId ? effectiveTotalSeconds : pc.seconds;
+      const pTasks = buildProjectTasks(pc);
+      return {
+        id: pc.id,
+        projectName: pc.name,
+        seconds: pSeconds,
+        formattedDuration: formatSeconds(pSeconds),
+        percentage: effectiveTotalSeconds > 0 ? (pSeconds / effectiveTotalSeconds) * 100 : 0,
+        tasks: pTasks,
+      };
+    });
 
     return {
       title: t('TimeSummariesReports'),

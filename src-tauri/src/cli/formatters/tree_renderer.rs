@@ -34,12 +34,31 @@ pub struct ReportProjectDto {
     pub tasks: Vec<ReportTaskDto>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct ReportEntryDto {
+    pub id: String,
+    pub date: String,
+    pub project_name: String,
+    pub task_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subtask_name: Option<String>,
+    pub start_time: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_time: Option<String>,
+    pub duration_seconds: u64,
+    pub duration_formatted: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct ReportTreeDto {
     pub period: String,
     pub total_seconds: u64,
     pub total_formatted: String,
     pub projects: Vec<ReportProjectDto>,
+    #[serde(default)]
+    pub entries: Vec<ReportEntryDto>,
 }
 
 pub fn format_duration(seconds: u64) -> String {

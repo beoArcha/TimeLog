@@ -15,8 +15,10 @@ describe('PluginRegistry', () => {
     const mockExporter: IExporterPlugin = {
       id: 'mock-exporter',
       name: 'Mock Exporter',
+      extension: 'mock',
       fileExtension: 'mock',
       mimeType: 'text/mock',
+      iconKey: 'mock',
       export: vi.fn().mockResolvedValue(new Blob(['test'])),
     };
 
@@ -34,8 +36,10 @@ describe('PluginRegistry', () => {
     const mockExporter: IExporterPlugin = {
       id: 'mock-exporter',
       name: 'Mock Exporter',
+      extension: 'mock',
       fileExtension: 'mock',
       mimeType: 'text/mock',
+      iconKey: 'mock',
       export: vi.fn(),
     };
     registry.registerExporter(mockExporter);

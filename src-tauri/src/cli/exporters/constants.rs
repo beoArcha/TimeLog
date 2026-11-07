@@ -1,13 +1,21 @@
-pub const CSV_HEADER_REPORT: &str =
-    "Project,Task,Subtask,Duration_Seconds,Duration_Formatted,Percentage";
-
-pub const FORMAT_CSV_ROW: &str = "\"{}\",\"{}\",\"{}\",{},\"{}\",{:.1}\n";
-pub const FORMAT_CSV_ROW_NO_SUBTASK: &str = "\"{}\",\"{}\",\"\",{},\"{}\",{:.1}\n";
+pub const REPORT_COLUMN_HEADERS: [&str; 6] = [
+    "Project",
+    "Task",
+    "Subtask",
+    "Duration_Seconds",
+    "Duration_Formatted",
+    "Percentage",
+];
+pub const REPORT_WORKSHEET_NAME: &str = "Work Report";
+pub const REPORT_TOTAL_LABEL: &str = "Total";
 
 pub const MSG_EXPORT_SUCCESS: &str = "Exported report to '{}' ({})";
+pub const MSG_SCHEMA_EXPORT_SUCCESS: &str = "Exported XML schema v{} to '{}'";
 pub const MSG_NO_REPORT_DATA: &str = "No time logs recorded for the selected period.";
 pub const ERR_UNSUPPORTED_FORMAT: &str =
     "Format '{}' is not supported. Supported formats are: html, csv, json.";
+pub const ERR_UNSUPPORTED_SCHEMA_VERSION: &str =
+    "Unsupported XML schema version: '{}'. Supported versions: '1'";
 
 pub const HTML_ROW_PROJECT: &str = r#"<tr class="project-row">
     <td colspan="3"><strong>📦 {}</strong></td>

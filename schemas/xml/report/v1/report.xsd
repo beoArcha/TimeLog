@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <!-- Root element -->
+  <xs:element name="report">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="metadata" type="MetadataType"/>
+        <xs:element name="summary" type="SummaryType"/>
+        <xs:element name="projects" type="ProjectsType"/>
+        <xs:element name="entries" type="EntriesType"/>
+      </xs:sequence>
+      <xs:attribute name="schemaVersion" type="xs:string" use="required" fixed="1"/>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Metadata -->
+  <xs:complexType name="MetadataType">
+    <xs:sequence>
+      <xs:element name="title" type="xs:string" minOccurs="0"/>
+      <xs:element name="period" type="xs:string"/>
+      <xs:element name="generatedAt" type="xs:dateTime" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Summary -->
+  <xs:complexType name="SummaryType">
+    <xs:sequence>
+      <xs:element name="totalSeconds" type="xs:nonNegativeInteger"/>
+      <xs:element name="formattedTotalDuration" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Hierarchy: Projects -> Tasks -> Subtasks -->
+  <xs:complexType name="SubtaskType">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="durationSeconds" type="xs:nonNegativeInteger"/>
+      <xs:element name="formattedDuration" type="xs:string"/>
+      <xs:element name="percentage" type="xs:decimal"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TaskType">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="durationSeconds" type="xs:nonNegativeInteger"/>
+      <xs:element name="formattedDuration" type="xs:string"/>
+      <xs:element name="percentage" type="xs:decimal"/>
+      <xs:element name="subtasks" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="subtask" type="SubtaskType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProjectType">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string" minOccurs="0"/>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="durationSeconds" type="xs:nonNegativeInteger"/>
+      <xs:element name="formattedDuration" type="xs:string" minOccurs="0"/>
+      <xs:element name="percentage" type="xs:decimal"/>
+      <xs:element name="tasks" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="task" type="TaskType" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProjectsType">
+    <xs:sequence>
+      <xs:element name="project" type="ProjectType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Detailed Log Entries -->
+  <xs:complexType name="EntryType">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="date" type="xs:string"/>
+      <xs:element name="projectName" type="xs:string"/>
+      <xs:element name="taskName" type="xs:string"/>
+      <xs:element name="subtaskName" type="xs:string" minOccurs="0"/>
+      <xs:element name="startTime" type="xs:string"/>
+      <xs:element name="endTime" type="xs:string" minOccurs="0"/>
+      <xs:element name="durationSeconds" type="xs:nonNegativeInteger"/>
+      <xs:element name="formattedDuration" type="xs:string"/>
+      <xs:element name="note" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="EntriesType">
+    <xs:sequence>
+      <xs:element name="entry" type="EntryType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

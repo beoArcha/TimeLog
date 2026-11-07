@@ -10,20 +10,20 @@ import {
 import { Button } from "@components/ui/button";
 import { Badge } from "@components/ui/badge";
 import { Grid } from "@components/ui/grid";
-import { Caption, Overline, MonoText, MetricText } from "@components/ui/typography";
+import { Text, Caption, Overline, MonoText, MetricText } from "@components/ui/typography";
+import { VStack, HStack } from "@components/ui/stack";
 import { useTranslation } from "@common/i18n/translator";
 import { PluginRegistry } from "@plugins/PluginRegistry";
-import { registerDefaultExporters } from "@plugins/exporters";
+import { registerDefaultExporters, getReportXmlSchema } from "@plugins/exporters";
 import { ExportPayload } from "@plugins/contracts/IExporterPlugin";
 import { MarkdownClipboardExporterPlugin } from "@plugins/exporters/MarkdownClipboardExporterPlugin";
 import {
   Download,
   Copy,
   Check,
-  FileSpreadsheet,
   FileCode,
-  FileText,
 } from "lucide-react";
+import { getFormatIcon } from "./reportExportIcons";
 
 interface ReportExportModalProps {
   isOpen: boolean;
@@ -62,7 +62,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
     const link = document.createElement("a");
     link.href = url;
     const sanitizedTitle = payload.title.replace(/[^a-zA-Z0-9_-]/g, "_");
-    link.download = `${sanitizedTitle || "report"}_${new Date().toISOString().split("T")[0]}.${exporter.fileExtension}`;
+    link.download = `${sanitizedTitle || "report"}_${new Date().toISOString().split("T")[0]}.${exporter.extension || exporter.fileExtension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -78,16 +78,67 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
     }
   };
 
+  const handleDownloadSchema = () => {
+    const schemaContent = getReportXmlSchema("1");
+    const blob = new Blob([schemaContent], { type: "application/xml" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "report-v1.xsd";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const selectedExporter = exporters.find((e) => e.id === activeSelectedId);
   const isMarkdown =
     selectedExporter instanceof MarkdownClipboardExporterPlugin;
+  const isXml = activeSelectedId === "xml-exporter";
 
-  const getFormatIcon = (id: string) => {
-    if (id.includes("csv"))
-      return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
-    if (id.includes("json"))
-      return <FileCode className="w-5 h-5 text-amber-500" />;
-    return <FileText className="w-5 h-5 text-sky-500" />;
+  const renderSecondaryAction = () => {
+    if (isMarkdown) {
+      return (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          data-testid="export-copy-button"
+          onClick={handleCopyClipboard}
+          className="gap-2 text-xs"
+        >
+          {isCopied ? (
+            <>
+              <Check className="w-4 h-4 text-primary" />
+              {t("CopyToClipboard")}
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4 text-muted-foreground" />
+              {t("CopyToClipboard")}
+            </>
+          )}
+        </Button>
+      );
+    }
+
+    if (isXml) {
+      return (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          data-testid="export-download-schema-button"
+          onClick={handleDownloadSchema}
+          className="gap-2 text-xs"
+        >
+          <FileCode className="w-4 h-4 text-muted-foreground" />
+          {t("DownloadXmlSchema")}
+        </Button>
+      );
+    }
+
+    return <div />;
   };
 
   return (
@@ -106,8 +157,8 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-3">
-          <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 flex items-center justify-between text-xs">
+        <VStack gap="lg" className="py-3">
+          <HStack justify="between" className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 text-xs">
             <div>
               <Overline>
                 {payload.period}
@@ -124,12 +175,12 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                 {payload.formattedTotalDuration}
               </MetricText>
             </div>
-          </div>
+          </HStack>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-foreground">
+          <VStack gap="sm">
+            <Text as="span" size="xs" className="font-semibold text-foreground">
               {t("SelectFormat")}
-            </span>
+            </Text>
             <Grid cols={1} gap="sm">
               {exporters.map((exp) => {
                 const isSelected = exp.id === activeSelectedId;
@@ -143,13 +194,13 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                     className="w-full justify-between h-auto py-2.5 px-3.5 rounded-xl border transition-all text-left"
                   >
                     <span className="flex items-center gap-3">
-                      {getFormatIcon(exp.id)}
+                      {getFormatIcon(exp.iconKey, isSelected)}
                       <span className="block">
                         <Caption as="span" className="block font-semibold">
                           {exp.name}
                         </Caption>
                         <Caption as="span" size="2xs" className="block opacity-75 font-mono">
-                          .{exp.fileExtension}
+                          .{exp.extension || exp.fileExtension}
                         </Caption>
                       </span>
                     </span>
@@ -157,45 +208,23 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                       <Badge
                         variant="secondary"
                         size="sm"
+                        data-testid="export-format-active-badge"
                         className="font-mono"
                       >
-                        Active
+                        {t("ExportFormatActive")}
                       </Badge>
                     )}
                   </Button>
                 );
               })}
             </Grid>
-          </div>
-        </div>
+          </VStack>
+        </VStack>
 
         <DialogFooter className="flex sm:justify-between items-center gap-2 pt-2">
-          {isMarkdown ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              data-testid="export-copy-button"
-              onClick={handleCopyClipboard}
-              className="gap-2 text-xs"
-            >
-              {isCopied ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-500" />
-                  {t("CopyToClipboard")}
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4 text-muted-foreground" />
-                  {t("CopyToClipboard")}
-                </>
-              )}
-            </Button>
-          ) : (
-            <div />
-          )}
+          {renderSecondaryAction()}
 
-          <div className="flex items-center gap-2">
+          <HStack gap="sm">
             <Button
               type="button"
               variant="ghost"
@@ -217,7 +246,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
               <Download className="w-4 h-4" />
               {t("DownloadFile")}
             </Button>
-          </div>
+          </HStack>
         </DialogFooter>
       </DialogContent>
     </Dialog>
