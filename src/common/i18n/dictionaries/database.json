@@ -78,7 +78,12 @@
     "RowDetails": "Row Details",
     "SaveChanges": "Save Changes",
     "SearchInTable": "Search in table...",
-    "SelectTable": "Select Table:"
+    "SelectTable": "Select Table:",
+    "AuditSourceLabel": "Source:",
+    "AuditSourceGuiEdit": "GUI Edit",
+    "AuditSourceCliEdit": "CLI Edit",
+    "AuditSourceManualAdjustment": "Manual Adjustment",
+    "AuditSourceSystemPatch": "System Patch"
   },
   "pl": {
     "NoteBeforeCorrection": "Notatka przed korektą:",
@@ -159,7 +164,12 @@
     "RowDetails": "Szczegóły wiersza",
     "SaveChanges": "Zapisz zmiany",
     "SearchInTable": "Szukaj w tabeli...",
-    "SelectTable": "Wybierz tabelę:"
+    "SelectTable": "Wybierz tabelę:",
+    "AuditSourceLabel": "Źródło:",
+    "AuditSourceGuiEdit": "Edycja GUI",
+    "AuditSourceCliEdit": "Edycja CLI",
+    "AuditSourceManualAdjustment": "Korekta ręczna",
+    "AuditSourceSystemPatch": "Łatka systemowa"
   },
   "de": {
     "NoteBeforeCorrection": "Notiz vor Korrektur:",
@@ -240,7 +250,12 @@
     "RowDetails": "Zeilendetails",
     "SaveChanges": "Änderungen speichern",
     "SearchInTable": "In Tabelle suchen...",
-    "SelectTable": "Tabelle auswählen:"
+    "SelectTable": "Tabelle auswählen:",
+    "AuditSourceLabel": "Quelle:",
+    "AuditSourceGuiEdit": "GUI-Bearbeitung",
+    "AuditSourceCliEdit": "CLI-Bearbeitung",
+    "AuditSourceManualAdjustment": "Manuelle Anpassung",
+    "AuditSourceSystemPatch": "System-Patch"
   },
   "es": {
     "NoteBeforeCorrection": "Nota antes de corrección:",
@@ -321,7 +336,12 @@
     "RowDetails": "Detalles de la fila",
     "SaveChanges": "Guardar cambios",
     "SearchInTable": "Buscar en la tabla...",
-    "SelectTable": "Seleccionar tabla:"
+    "SelectTable": "Seleccionar tabla:",
+    "AuditSourceLabel": "Fuente:",
+    "AuditSourceGuiEdit": "Edición GUI",
+    "AuditSourceCliEdit": "Edición CLI",
+    "AuditSourceManualAdjustment": "Ajuste manual",
+    "AuditSourceSystemPatch": "Parche del sistema"
   },
   "pt-br": {
     "NoteBeforeCorrection": "Nota antes da correção:",
@@ -402,7 +422,12 @@
     "RowDetails": "Detalhes da linha",
     "SaveChanges": "Salvar alterações",
     "SearchInTable": "Pesquisar na tabela...",
-    "SelectTable": "Selecionar tabela:"
+    "SelectTable": "Selecionar tabela:",
+    "AuditSourceLabel": "Fonte:",
+    "AuditSourceGuiEdit": "Edição GUI",
+    "AuditSourceCliEdit": "Edição CLI",
+    "AuditSourceManualAdjustment": "Ajuste manual",
+    "AuditSourceSystemPatch": "Patch do sistema"
   },
   "fr": {
     "NoteBeforeCorrection": "Note avant correction :",
@@ -483,7 +508,12 @@
     "RowDetails": "Détails de la ligne",
     "SaveChanges": "Enregistrer les modifications",
     "SearchInTable": "Rechercher dans la table...",
-    "SelectTable": "Sélectionner la table :"
+    "SelectTable": "Sélectionner la table :",
+    "AuditSourceLabel": "Source :",
+    "AuditSourceGuiEdit": "Édition GUI",
+    "AuditSourceCliEdit": "Édition CLI",
+    "AuditSourceManualAdjustment": "Ajustement manuel",
+    "AuditSourceSystemPatch": "Correctif système"
   },
   "uk": {
     "NoteBeforeCorrection": "Нотатка до виправлення:",
@@ -564,7 +594,12 @@
     "RowDetails": "Деталі рядка",
     "SaveChanges": "Зберегти зміни",
     "SearchInTable": "Шукати в таблиці...",
-    "SelectTable": "Виберіть таблицю:"
+    "SelectTable": "Виберіть таблицю:",
+    "AuditSourceLabel": "Джерело:",
+    "AuditSourceGuiEdit": "Редагування GUI",
+    "AuditSourceCliEdit": "Редагування CLI",
+    "AuditSourceManualAdjustment": "Ручне коригування",
+    "AuditSourceSystemPatch": "Системний патч"
   },
   "ja": {
     "NoteBeforeCorrection": "修正前のメモ:",
@@ -645,7 +680,12 @@
     "RowDetails": "行の詳細",
     "SaveChanges": "変更を保存",
     "SearchInTable": "テーブル内を検索...",
-    "SelectTable": "テーブルを選択:"
+    "SelectTable": "テーブルを選択:",
+    "AuditSourceLabel": "ソース:",
+    "AuditSourceGuiEdit": "GUI編集",
+    "AuditSourceCliEdit": "CLI編集",
+    "AuditSourceManualAdjustment": "手動調整",
+    "AuditSourceSystemPatch": "システムパッチ"
   },
   "nl": {
     "NoteBeforeCorrection": "Notitie vóór correctie:",
@@ -726,7 +766,12 @@
     "RowDetails": "Rijdetails",
     "SaveChanges": "Wijzigingen opslaan",
     "SearchInTable": "Zoeken in tabel...",
-    "SelectTable": "Selecteer tabel:"
+    "SelectTable": "Selecteer tabel:",
+    "AuditSourceLabel": "Bron:",
+    "AuditSourceGuiEdit": "GUI-bewerking",
+    "AuditSourceCliEdit": "CLI-bewerking",
+    "AuditSourceManualAdjustment": "Handmatige aanpassing",
+    "AuditSourceSystemPatch": "Systeempatch"
   },
   "it": {
     "NoteBeforeCorrection": "Nota prima della correzione:",
@@ -807,6 +852,11 @@
     "RowDetails": "Dettagli riga",
     "SaveChanges": "Salva modifiche",
     "SearchInTable": "Cerca nella tabella...",
-    "SelectTable": "Seleziona tabella:"
+    "SelectTable": "Seleziona tabella:",
+    "AuditSourceLabel": "Sorgente:",
+    "AuditSourceGuiEdit": "Modifica GUI",
+    "AuditSourceCliEdit": "Modifica CLI",
+    "AuditSourceManualAdjustment": "Aggiustamento manuale",
+    "AuditSourceSystemPatch": "Patch di sistema"
   }
 }

@@ -85,21 +85,40 @@ export const useTimerManager = ({
     endTime: string | null,
     note: string | null,
     reason: string | null
-  ): Promise<void> => {
-    await actionRunner.runAction(
+  ): Promise<{ saved: boolean; synchronized: boolean }> => {
+    const mutationResult = await actionRunner.runAction(
       'Failed to edit time log',
       async () => {
         await EngineRouter.getInstance().timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason);
-        const nextState = await PersistenceRouter.getInstance().core.load();
-        if (nextState) {
-          repositoryState.setLogsState(nextState.logs);
-          repositoryState.setActiveLogState(nextState.activeLog);
-          repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
-          await refreshComputedMetrics();
-        }
+        return true;
       },
       { errorCode: 'ERR_REPOSITORY_EDIT_TIME_LOG', rethrow: true }
     );
+
+    if (mutationResult !== true) {
+      return { saved: false, synchronized: false };
+    }
+
+    // Keep persistence mutation and in-memory synchronization separate. A failed
+    // reload must not make the caller retry the already committed audit mutation.
+    const synchronizationResult = await actionRunner.runAction(
+      'Failed to synchronize time log after edit',
+      async () => {
+        const nextState = await PersistenceRouter.getInstance().core.load();
+        if (!nextState) {
+          throw new Error('Repository state unavailable after editing time log');
+        }
+
+        repositoryState.setLogsState(nextState.logs);
+        repositoryState.setActiveLogState(nextState.activeLog);
+        repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
+        await refreshComputedMetrics();
+        return true;
+      },
+      { errorCode: 'ERR_REPOSITORY_SYNC_TIME_LOG', rethrow: false }
+    );
+
+    return { saved: true, synchronized: synchronizationResult === true };
   };
 
   const setLogs = async (action: SetStateAction<TimeLog[]>) => {
@@ -128,16 +147,40 @@ export const useTimerManager = ({
     );
   };
 
-  const handleDeleteTimeLog = async (id: string): Promise<void> => {
-    await actionRunner.runAction('Failed to delete time log', async () => {
-      await PersistenceRouter.getInstance().timeLogs.delete(id);
-      const nextState = await PersistenceRouter.getInstance().core.load();
-      if (nextState) {
+  const handleDeleteTimeLog = async (
+    id: string
+  ): Promise<{ deleted: boolean; synchronized: boolean }> => {
+    const mutationResult = await actionRunner.runAction(
+      'Failed to delete time log',
+      async () => {
+        await PersistenceRouter.getInstance().timeLogs.delete(id);
+        return true;
+      },
+      { errorCode: 'ERR_REPOSITORY_DELETE_TIME_LOG', rethrow: true }
+    );
+
+    if (mutationResult !== true) {
+      return { deleted: false, synchronized: false };
+    }
+
+    const synchronizationResult = await actionRunner.runAction(
+      'Failed to synchronize time logs after delete',
+      async () => {
+        const nextState = await PersistenceRouter.getInstance().core.load();
+        if (!nextState) {
+          throw new Error('Repository state unavailable after deleting time log');
+        }
+
         repositoryState.setLogsState(nextState.logs);
         repositoryState.setActiveLogState(nextState.activeLog);
+        repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
         await refreshComputedMetrics();
-      }
-    });
+        return true;
+      },
+      { errorCode: 'ERR_REPOSITORY_SYNC_TIME_LOG', rethrow: false }
+    );
+
+    return { deleted: true, synchronized: synchronizationResult === true };
   };
 
   const handleInsertTimeLog = async (

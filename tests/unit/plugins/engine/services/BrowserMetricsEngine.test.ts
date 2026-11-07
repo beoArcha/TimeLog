@@ -173,4 +173,79 @@ describe('BrowserMetricsEngine', () => {
     expect(clampedPatch.isMultiDaySegment).toBe(false);
     expect(clampedPatch.isPatch).toBe(true);
   });
+
+  it('should filter range metrics and patches by projectIds and return empty results when projectIds is empty', async () => {
+    // Arrange
+    const p1 = aProject({ id: 'p1' });
+    const p2 = aProject({ id: 'p2' });
+    const t1 = aTask({ id: 't1', projectId: 'p1' });
+    const t2 = aTask({ id: 't2', projectId: 'p2' });
+    const l1 = aTimeLog({
+      id: 'l1',
+      projectId: 'p1',
+      taskId: 't1',
+      startTime: '2026-06-16T10:00:00Z',
+      endTime: '2026-06-16T11:00:00Z',
+    });
+    const l2 = aTimeLog({
+      id: 'l2',
+      projectId: 'p2',
+      taskId: 't2',
+      startTime: '2026-06-16T10:00:00Z',
+      endTime: '2026-06-16T11:00:00Z',
+    });
+    const patch1 = {
+      id: 'pt1',
+      projectId: 'p1',
+      taskId: 't1',
+      startTime: '2026-06-16T11:00:00Z',
+      endTime: '2026-06-16T12:00:00Z',
+      patchNote: 'Patch P1',
+    };
+    const patch2 = {
+      id: 'pt2',
+      projectId: 'p2',
+      taskId: 't2',
+      startTime: '2026-06-16T11:00:00Z',
+      endTime: '2026-06-16T12:00:00Z',
+      patchNote: 'Patch P2',
+    };
+
+    vi.mocked(routerMock.core.load).mockResolvedValue({
+      projects: [p1, p2],
+      tasks: [t1, t2],
+      logs: [l1, l2],
+      activeLog: null,
+    });
+    vi.mocked(routerMock.patches.getAll).mockResolvedValue([patch1, patch2]);
+
+    // Act - Filter with p1
+    const resultIncluded = await engine.getRangeMetrics({
+      projectIds: ['p1'],
+      from: '2026-06-16T00:00:00Z',
+      to: '2026-06-16T23:59:59Z',
+      includePatches: true,
+    });
+
+    // Assert
+    expect(resultIncluded.totalSeconds).toBe(7200);
+    expect(resultIncluded.projectElapsed['p1']).toBe(7200);
+    expect(resultIncluded.projectElapsed['p2']).toBeUndefined();
+    expect(resultIncluded.clampedLogs).toHaveLength(2);
+    expect(resultIncluded.clampedLogs.every((l) => l.projectId === 'p1')).toBe(true);
+
+    // Act - Filter with empty projectIds
+    const resultEmpty = await engine.getRangeMetrics({
+      projectIds: [],
+      from: '2026-06-16T00:00:00Z',
+      to: '2026-06-16T23:59:59Z',
+      includePatches: true,
+    });
+
+    // Assert
+    expect(resultEmpty.totalSeconds).toBe(0);
+    expect(resultEmpty.clampedLogs).toHaveLength(0);
+    expect(resultEmpty.projectElapsed).toEqual({});
+    expect(resultEmpty.taskElapsed).toEqual({});
+  });
 });

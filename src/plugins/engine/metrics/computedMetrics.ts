@@ -21,10 +21,12 @@ interface TaskHierarchyIndex {
 
 function aggregateLogMetrics(
   logs: TimeLog[],
+  tasks: Task[],
   nowMs: number,
   todayStartMs: number,
   weekStartMs: number
 ): LogMetricsAggregation {
+  const taskMap = new Map<string, Task>(tasks.map((t) => [t.id, t]));
   const taskSelfElapsed: Record<string, number> = {};
   const taskIsRunning: Record<string, boolean> = {};
   const projectTotalElapsed: Record<string, number> = {};
@@ -40,25 +42,27 @@ function aggregateLogMetrics(
     if (endMs >= startMs) {
       const diffSecs = Math.max(0, Math.floor((endMs - startMs) / 1000));
       taskSelfElapsed[log.taskId] = (taskSelfElapsed[log.taskId] || 0) + diffSecs;
-      projectTotalElapsed[log.projectId] = (projectTotalElapsed[log.projectId] || 0) + diffSecs;
+
+      const effectiveProjectId = taskMap.get(log.taskId)?.projectId ?? log.projectId;
+      projectTotalElapsed[effectiveProjectId] = (projectTotalElapsed[effectiveProjectId] || 0) + diffSecs;
 
       if (isActive) {
         taskIsRunning[log.taskId] = true;
-        projectIsRunning[log.projectId] = true;
+        projectIsRunning[effectiveProjectId] = true;
       }
 
       const todayOverlapStart = Math.max(startMs, todayStartMs);
       const todayOverlapEnd = Math.min(endMs, nowMs);
       if (todayOverlapEnd >= todayOverlapStart) {
         const todaySecs = Math.max(0, Math.floor((todayOverlapEnd - todayOverlapStart) / 1000));
-        projectTodayElapsed[log.projectId] = (projectTodayElapsed[log.projectId] || 0) + todaySecs;
+        projectTodayElapsed[effectiveProjectId] = (projectTodayElapsed[effectiveProjectId] || 0) + todaySecs;
       }
 
       const weekOverlapStart = Math.max(startMs, weekStartMs);
       const weekOverlapEnd = Math.min(endMs, nowMs);
       if (weekOverlapEnd >= weekOverlapStart) {
         const weekSecs = Math.max(0, Math.floor((weekOverlapEnd - weekOverlapStart) / 1000));
-        projectWeekElapsed[log.projectId] = (projectWeekElapsed[log.projectId] || 0) + weekSecs;
+        projectWeekElapsed[effectiveProjectId] = (projectWeekElapsed[effectiveProjectId] || 0) + weekSecs;
       }
     }
   }
@@ -184,7 +188,7 @@ export function computeAllMetrics(
   weekStart.setUTCDate(weekStart.getUTCDate() - diffToMonday);
   const weekStartMs = weekStart.getTime();
 
-  const logMetrics = aggregateLogMetrics(logs, nowMs, todayStartMs, weekStartMs);
+  const logMetrics = aggregateLogMetrics(logs, tasks, nowMs, todayStartMs, weekStartMs);
   const hierarchy = indexTaskHierarchy(tasks);
 
   const tasksMetrics = buildTaskComputedMetrics(

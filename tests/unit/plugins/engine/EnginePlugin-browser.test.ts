@@ -281,6 +281,8 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       expect(updatedLog.note).toBe('updated note');
       expect(updatedLog.editHistory).toHaveLength(1);
       expect(updatedLog.editHistory![0].prevNote).toBe('original note');
+      expect(updatedLog.editHistory![0].reason).toBe('time correction');
+      expect(updatedLog.editHistory![0].auditSource).toBe('GUI Edit');
     });
 
     it('Given edited log is the activeLog, Then it should also update activeLog in state', async () => {
@@ -296,12 +298,24 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       mockState.logs = [log];
       mockState.activeLog = log;
 
-      await plugin.editTimeLog('l1', 't1', '2026-07-12T10:00:00Z', '2026-07-12T10:45:00Z', null, null);
+      await plugin.editTimeLog('l1', 't1', '2026-07-12T10:00:00Z', '2026-07-12T10:45:00Z', null, 'Active log edit reason');
       expect(mockImplementation.core.overrideState).toHaveBeenCalled();
 
       const callArg = vi.mocked(mockImplementation.core.overrideState).mock.calls[0][0] as TimerRepositoryState;
       expect(callArg.activeLog).not.toBeNull();
       expect(callArg.activeLog!.endTime).toBe('2026-07-12T10:45:00Z');
+    });
+
+    it('Given missing or empty reason, Then it should throw validation error', async () => {
+      mockState.logs = [
+        { id: 'l1', projectId: 'p1', taskId: 't1', startTime: '2026-07-12T10:00:00Z', endTime: '2026-07-12T10:30:00Z', note: undefined, editHistory: undefined },
+      ];
+
+      await expect(plugin.editTimeLog('l1', 't1', '2026-07-12T10:00:00Z', '2026-07-12T10:30:00Z', null, null))
+        .rejects.toThrow('Audit reason is required for manual edits');
+
+      await expect(plugin.editTimeLog('l1', 't1', '2026-07-12T10:00:00Z', '2026-07-12T10:30:00Z', null, '   '))
+        .rejects.toThrow('Audit reason is required for manual edits');
     });
   });
 

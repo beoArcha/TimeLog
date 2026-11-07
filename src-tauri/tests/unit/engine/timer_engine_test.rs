@@ -208,6 +208,7 @@ fn test_calculate_elapsed_range_with_no_logs_returns_zero() {
     let filter_specific = ElapsedRangeFilter {
         task_id: Some("t_dummy".to_string()),
         project_id: Some("p_dummy".to_string()),
+        project_ids: None,
         from: Some("2025-01-01T00:00:00Z".to_string()),
         to: Some("2025-01-02T00:00:00Z".to_string()),
         include_patches: None,

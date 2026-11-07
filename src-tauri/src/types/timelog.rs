@@ -95,6 +95,8 @@ pub struct TimeLogEditHistory {
     pub prev_note: Option<String>,
     #[ts(optional)]
     pub reason: Option<String>,
+    #[ts(optional)]
+    pub audit_source: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -148,6 +150,57 @@ impl AuditSource {
             AuditSource::ManualAdjustment => AUDIT_SOURCE_MANUAL_ADJUSTMENT,
         }
     }
+
+    pub fn requires_reason(&self) -> bool {
+        !matches!(self, AuditSource::SystemPatch)
+    }
+
+    pub fn from_raw_str(s: &str) -> Result<Self, crate::engine::EngineError> {
+        match s {
+            "CliEdit" | AUDIT_SOURCE_CLI_EDIT => Ok(AuditSource::CliEdit),
+            "GuiEdit" | AUDIT_SOURCE_GUI_EDIT => Ok(AuditSource::GuiEdit),
+            "SystemPatch" | AUDIT_SOURCE_SYSTEM_PATCH => Ok(AuditSource::SystemPatch),
+            "ManualAdjustment" | AUDIT_SOURCE_MANUAL_ADJUSTMENT => {
+                Ok(AuditSource::ManualAdjustment)
+            }
+            other => Err(crate::engine::EngineError::AuditSourceInvalid(
+                other.to_string(),
+            )),
+        }
+    }
+}
+
+impl TryFrom<&str> for AuditSource {
+    type Error = crate::engine::EngineError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Self::from_raw_str(s)
+    }
+}
+
+impl std::str::FromStr for AuditSource {
+    type Err = crate::engine::EngineError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_raw_str(s)
+    }
+}
+
+impl std::fmt::Display for AuditSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TimeLogEditInput<'a> {
+    pub id: &'a str,
+    pub task_id: &'a str,
+    pub start_time: &'a str,
+    pub end_time: Option<&'a str>,
+    pub note: Option<&'a str>,
+    pub reason: Option<&'a str>,
+    pub audit_source: Option<AuditSource>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -162,7 +215,8 @@ pub struct TimeLogUpdateHistory<'a> {
     pub prev_start_time: Option<&'a str>,
     pub prev_end_time: Option<&'a str>,
     pub prev_note: Option<&'a str>,
-    pub reason: Option<AuditSource>,
+    pub reason: Option<&'a str>,
+    pub audit_source: Option<AuditSource>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -200,6 +254,8 @@ pub struct ElapsedRangeFilter {
     pub task_id: Option<String>,
     #[ts(optional)]
     pub project_id: Option<String>,
+    #[ts(optional)]
+    pub project_ids: Option<Vec<String>>,
     #[ts(optional)]
     pub from: Option<String>,
     #[ts(optional)]

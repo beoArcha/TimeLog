@@ -210,4 +210,31 @@ describe('Unit Tests: ReportBillingCard', () => {
     expect(screen.getByTestId('report-billing-error')).toBeTruthy();
     expect(screen.getByText('Direct controlled error message')).toBeTruthy();
   });
+
+  it('should pass selectedProjectIds to billing calculation filter when provided', async () => {
+    const mockCalculate = vi.fn().mockResolvedValue(mockBillingResult);
+    vi.spyOn(EngineRouter, 'getInstance').mockReturnValue({
+      billing: {
+        calculateRangeBilling: mockCalculate,
+        resolveEffectiveTaskRate: vi.fn(),
+      },
+    } as unknown as EngineRouter);
+
+    render(
+      <ReportBillingCard
+        reportPeriod="thisWeek"
+        nowIso="2026-10-31T12:00:00.000Z"
+        selectedProjectIds={['p-1', 'p-2']}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockCalculate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectIds: ['p-1', 'p-2'],
+        }),
+        '2026-10-31T12:00:00.000Z'
+      );
+    });
+  });
 });

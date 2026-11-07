@@ -21,6 +21,11 @@ import ProjectDonutChart from './components/ProjectDonutChart';
 import ReportLogList from './components/ReportLogList';
 import ReportExportModal from './components/ReportExportModal';
 import { useReportStatistics } from './hooks/useReportStatistics';
+import {
+  extractAvailableTags,
+  projectMatchesTags,
+  filterProjectsByTags,
+} from './utils/tagFiltering';
 
 export default function ReportView({ state }: { state: GuiState }) {
   const {
@@ -31,10 +36,33 @@ export default function ReportView({ state }: { state: GuiState }) {
   } = state;
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
   const { isDesktop } = usePlatformCapabilities();
   const { t } = useTranslation('report');
+
+  const availableTags = useMemo(() => {
+    return extractAvailableTags(projects);
+  }, [projects]);
+
+  const handleToggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleClearTags = () => {
+    setSelectedTags([]);
+  };
+
+  const effectiveSelectedProjectId = useMemo(() => {
+    if (!selectedProjectId) return null;
+    if (selectedTags.length === 0) return selectedProjectId;
+    const project = projects.find((p) => p.id === selectedProjectId);
+    return projectMatchesTags(project, selectedTags) ? selectedProjectId : null;
+  }, [selectedProjectId, selectedTags, projects]);
+
   const {
     todaySec, weekSec, monthSec,
     periodTotalSec, dailyAverageSec, topProject,
@@ -43,13 +71,23 @@ export default function ReportView({ state }: { state: GuiState }) {
   } = useReportStatistics({
     logs, patches, projects, tasks, nowIso,
     reportPeriod, reportSort, sysSettings,
-    customFrom, customTo, selectedProjectId,
+    customFrom, customTo,
+    selectedProjectId: effectiveSelectedProjectId,
+    selectedTags,
   });
 
+  const matchingTagProjectIds = useMemo(() => {
+    if (selectedTags.length === 0) return null;
+    return filterProjectsByTags(projects, selectedTags).map((p) => p.id);
+  }, [projects, selectedTags]);
+
   const effectiveDisplayLogs = useMemo(() => {
-    if (!selectedProjectId) return displayLogs;
-    return displayLogs.filter((log) => log.projectId === selectedProjectId);
-  }, [displayLogs, selectedProjectId]);
+    if (!effectiveSelectedProjectId) return displayLogs;
+    return displayLogs.filter((log) => {
+      const projId = (log as ClampedTimeLog).projectId || tasks.find((t) => t.id === log.taskId)?.projectId;
+      return projId === effectiveSelectedProjectId;
+    });
+  }, [displayLogs, effectiveSelectedProjectId, tasks]);
 
   const exportPayload: ExportPayload = useMemo(() => {
     const rows: ExportDataRow[] = effectiveDisplayLogs.map((log) => {
@@ -90,9 +128,9 @@ export default function ReportView({ state }: { state: GuiState }) {
 
     const effectiveTotalSeconds = rows.reduce((acc, row) => acc + row.durationSeconds, 0);
 
-    const projectBreakdown = selectedProjectId
+    const projectBreakdown = effectiveSelectedProjectId
       ? projectChart
-          .filter((pc) => pc.id === selectedProjectId)
+          .filter((pc) => pc.id === effectiveSelectedProjectId)
           .map((pc) => ({
             projectName: pc.name,
             seconds: effectiveTotalSeconds,
@@ -113,7 +151,7 @@ export default function ReportView({ state }: { state: GuiState }) {
       rows,
       projectBreakdown,
     };
-  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, selectedProjectId, projectChart]);
+  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, effectiveSelectedProjectId, projectChart]);
 
   return (
     <Area as="main" id="reports-panel" variant="card" padding="section" radius="3xl" elevation="2xl" className="backdrop-blur-md flex flex-col gap-6 transition-all duration-300">
@@ -178,7 +216,8 @@ export default function ReportView({ state }: { state: GuiState }) {
         customFrom={customFrom}
         customTo={customTo}
         nowIso={nowIso}
-        selectedProjectId={selectedProjectId}
+        selectedProjectId={effectiveSelectedProjectId}
+        selectedProjectIds={matchingTagProjectIds ?? undefined}
         sysSettings={sysSettings}
         billingResult={billingResult}
         billingError={billingError}
@@ -195,6 +234,10 @@ export default function ReportView({ state }: { state: GuiState }) {
         setCustomFrom={setCustomFrom}
         customTo={customTo}
         setCustomTo={setCustomTo}
+        availableTags={availableTags}
+        selectedTags={selectedTags}
+        onToggleTag={handleToggleTag}
+        onClearTags={handleClearTags}
       />
 
       <Grid cols={1} gap="xl" className="lg:grid-cols-2">
@@ -206,7 +249,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         />
         <ProjectDonutChart
           projectChart={projectChart}
-          selectedProjectId={selectedProjectId}
+          selectedProjectId={effectiveSelectedProjectId}
           onSelectProject={setSelectedProjectId}
           forceMountOnPrint={true}
         />
@@ -220,6 +263,8 @@ export default function ReportView({ state }: { state: GuiState }) {
         projects={projects}
         tasks={tasks}
         nowIso={nowIso}
+        logs={logs}
+        activeTimerLogId={state.activeLog?.id}
       />
 
       <ReportExportModal

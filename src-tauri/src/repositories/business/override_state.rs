@@ -309,6 +309,7 @@ impl BusinessRepository {
                             h.prev_end_time,
                             h.prev_note,
                             h.reason,
+                            h.audit_source,
                         ],
                     )?;
                 }

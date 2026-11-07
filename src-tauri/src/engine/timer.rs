@@ -57,50 +57,53 @@ impl<'a> Engine<'a> {
         Ok(ids)
     }
 
-    pub fn edit_log(
-        &self,
-        log_id: &str,
-        new_task_id: &str,
-        new_start_time: &str,
-        new_end_time: Option<&str>,
-        new_note: Option<&str>,
-        reason: Option<crate::types::AuditSource>,
-    ) -> Result<(), EngineError> {
-        let current_log = self.persistence.time_logs.get_by_id(log_id)?;
+    pub fn edit_log(&self, input: crate::types::TimeLogEditInput<'_>) -> Result<(), EngineError> {
+        let current_log = self.persistence.time_logs.get_by_id(input.id)?;
 
-        self.validate_time_log(log_id, new_task_id, new_start_time, new_end_time)?;
+        self.validate_time_log(input.id, input.task_id, input.start_time, input.end_time)?;
 
-        let prev_start = if current_log.start_time != new_start_time {
+        let resolved_source = input
+            .audit_source
+            .unwrap_or(crate::types::AuditSource::GuiEdit);
+
+        let trimmed_reason = input.reason.map(|r| r.trim()).filter(|r| !r.is_empty());
+
+        if resolved_source.requires_reason() && trimmed_reason.is_none() {
+            return Err(EngineError::AuditReasonRequired);
+        }
+
+        let prev_start = if current_log.start_time != input.start_time {
             Some(current_log.start_time.as_str())
         } else {
             None
         };
-        let prev_end = if current_log.end_time.as_deref() != new_end_time {
+        let prev_end = if current_log.end_time.as_deref() != input.end_time {
             current_log.end_time.as_deref()
         } else {
             None
         };
-        let prev_note = if current_log.note.as_deref() != new_note {
+        let prev_note = if current_log.note.as_deref() != input.note {
             current_log.note.as_deref()
         } else {
             None
         };
 
-        let history_id = format!("history_{}", Utc::now().timestamp_millis());
+        let history_id = format!("history_{}", uuid::Uuid::new_v4());
         let edited_at = Utc::now().to_rfc3339();
 
         let entry = crate::types::TimeLogUpdateHistory {
-            id: log_id,
-            task_id: new_task_id,
-            start_time: new_start_time,
-            end_time: new_end_time,
-            note: new_note,
+            id: input.id,
+            task_id: input.task_id,
+            start_time: input.start_time,
+            end_time: input.end_time,
+            note: input.note,
             history_id: &history_id,
             edited_at: &edited_at,
             prev_start_time: prev_start,
             prev_end_time: prev_end,
             prev_note,
-            reason,
+            reason: trimmed_reason,
+            audit_source: Some(resolved_source),
         };
 
         self.persistence.time_logs.update_with_history(&entry)?;

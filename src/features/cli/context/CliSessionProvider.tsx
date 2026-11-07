@@ -127,7 +127,7 @@ export const CliSessionProvider: React.FC<CliSessionProviderProps> = ({
       isSandbox: isSandboxMode,
       onToggleSandbox: setSandboxMode,
       onSwitchTask: contextOverrides?.onSwitchTask,
-      onRefreshData: ambientData?.refreshData,
+      onRefreshData: ambientData?.refreshData ? async () => { await ambientData.refreshData(); } : undefined,
     };
 
     const outputs = await executeCliCommand(cmdText, cliContext);

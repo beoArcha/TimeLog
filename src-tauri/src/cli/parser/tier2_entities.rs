@@ -224,6 +224,12 @@ pub enum LogSubcommand {
         end: Option<String>,
         #[arg(long, help = "Reassign log to target task (by ID, prefix, or name)")]
         task: Option<String>,
+        #[arg(
+            short,
+            long,
+            help = "Reason for editing the log (required for audit history)"
+        )]
+        reason: Option<String>,
     },
     #[command(alias = "rm", alias = "delete", about = "Delete a log entry")]
     Remove {

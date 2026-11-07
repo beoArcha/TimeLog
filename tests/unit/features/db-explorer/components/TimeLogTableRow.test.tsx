@@ -263,4 +263,107 @@ describe("Unit Tests: TimeLogTableRow", () => {
     // Assert - verify the row rendered with original start badge
     expect(screen.getByText(/Original/i)).toBeTruthy();
   });
+
+  it("should render audit source badge when auditSource is present in history", () => {
+    // Arrange
+    const logWithAuditSource: TimeLog = {
+      ...baseLog,
+      editHistory: [
+        {
+          editedAt: "2026-06-15T14:00:00Z",
+          prevStartTime: "2026-06-15T11:00:00Z",
+          prevEndTime: "2026-06-15T12:00:00Z",
+          prevNote: "Prev Note",
+          reason: "CLI batch correction",
+          auditSource: "CLI Edit",
+        },
+      ],
+    };
+
+    // Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow
+            {...mockProps}
+            l={logWithAuditSource}
+            showHistory={true}
+          />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    const badge = screen.getByTestId("audit-source-badge");
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toContain("CLI Edit");
+  });
+
+  it("should not render audit source badge when auditSource is omitted from history", () => {
+    // Arrange
+    const logWithoutAuditSource: TimeLog = {
+      ...baseLog,
+      editHistory: [
+        {
+          editedAt: "2026-06-15T14:00:00Z",
+          prevStartTime: "2026-06-15T11:00:00Z",
+          prevEndTime: "2026-06-15T12:00:00Z",
+          prevNote: "Legacy Note",
+          reason: "Legacy edit without source",
+        },
+      ],
+    };
+
+    // Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow
+            {...mockProps}
+            l={logWithoutAuditSource}
+            showHistory={true}
+          />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    expect(screen.queryByTestId("audit-source-badge")).toBeNull();
+    expect(screen.getByText(/"Legacy edit without source"/i)).toBeTruthy();
+  });
+
+  it("should render fallback text in badge when auditSource is an unmapped custom value", () => {
+    // Arrange
+    const logWithCustomSource: TimeLog = {
+      ...baseLog,
+      editHistory: [
+        {
+          editedAt: "2026-06-15T14:00:00Z",
+          prevStartTime: "2026-06-15T11:00:00Z",
+          prevEndTime: "2026-06-15T12:00:00Z",
+          prevNote: "Custom note",
+          reason: "Custom import",
+          auditSource: "ExternalSyncJob",
+        },
+      ],
+    };
+
+    // Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow
+            {...mockProps}
+            l={logWithCustomSource}
+            showHistory={true}
+          />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    const badge = screen.getByTestId("audit-source-badge");
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toContain("ExternalSyncJob");
+  });
 });

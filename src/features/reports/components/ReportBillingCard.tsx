@@ -26,6 +26,7 @@ export interface ReportBillingCardProps {
   customTo?: string;
   nowIso?: string;
   selectedProjectId?: string | null;
+  selectedProjectIds?: string[] | null;
   sysSettings?: Settings | null;
   billingResult?: RangeBillingResult | null;
   billingError?: string | null;
@@ -53,6 +54,7 @@ export default function ReportBillingCard({
   customTo,
   nowIso,
   selectedProjectId,
+  selectedProjectIds,
   sysSettings,
   billingResult: propBillingResult,
   billingError: propBillingError,
@@ -91,6 +93,9 @@ export default function ReportBillingCard({
 
         if (selectedProjectId) {
           filter.projectId = selectedProjectId;
+        }
+        if (selectedProjectIds) {
+          filter.projectIds = selectedProjectIds;
         }
         filterContext = filter;
 
@@ -144,7 +149,17 @@ export default function ReportBillingCard({
     return () => {
       isCancelled = true;
     };
-  }, [isControlled, reportPeriod, customFrom, customTo, nowIso, selectedProjectId, sysSettings, t]);
+  }, [
+    isControlled,
+    reportPeriod,
+    customFrom,
+    customTo,
+    nowIso,
+    selectedProjectId,
+    selectedProjectIds,
+    sysSettings,
+    t,
+  ]);
 
   if (billingError) {
     return (

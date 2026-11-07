@@ -1,6 +1,6 @@
-import { ITimeLogsEngine } from '@common/engine/IEngine';
+import { ITimeLogsEngine, ENGINE_ERROR_CODES } from '@common/engine/IEngine';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { EntityNotFoundException, EngineException, ErrorHandler } from '@common/exceptions';
+import { EntityNotFoundException, EngineException, EngineValidationError, ErrorHandler } from '@common/exceptions';
 import { validateTimeLog } from '../validation';
 
 export class BrowserTimeLogsEngine implements ITimeLogsEngine {
@@ -16,7 +16,8 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
     startTime: string,
     endTime: string | null,
     note: string | null,
-    reason: string | null
+    reason: string | null,
+    auditSource?: string | null
   ): Promise<void> {
     const state = await this.persistence.core.load();
     if (!state) {
@@ -37,6 +38,40 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       throw err;
     }
 
+    let resolvedAuditSource: string;
+    if (!auditSource) {
+      resolvedAuditSource = 'GUI Edit';
+    } else if (auditSource === 'GUI Edit' || auditSource === 'GuiEdit') {
+      resolvedAuditSource = 'GUI Edit';
+    } else if (auditSource === 'CLI Edit' || auditSource === 'CliEdit') {
+      resolvedAuditSource = 'CLI Edit';
+    } else if (auditSource === 'Manual Adjustment' || auditSource === 'ManualAdjustment') {
+      resolvedAuditSource = 'Manual Adjustment';
+    } else if (auditSource === 'System Patch' || auditSource === 'SystemPatch') {
+      resolvedAuditSource = 'System Patch';
+    } else {
+      const err = new EngineValidationError(
+        `Invalid audit source: ${auditSource}`,
+        undefined,
+        ENGINE_ERROR_CODES.AUDIT_SOURCE_INVALID
+      );
+      ErrorHandler.handle(err);
+      throw err;
+    }
+
+    const trimmedReason = reason?.trim();
+    const requiresReason = resolvedAuditSource !== 'System Patch';
+
+    if (requiresReason && !trimmedReason) {
+      const err = new EngineValidationError(
+        'Audit reason is required for manual edits',
+        undefined,
+        ENGINE_ERROR_CODES.AUDIT_REASON_REQUIRED
+      );
+      ErrorHandler.handle(err);
+      throw err;
+    }
+
     const prevStartTime = currentLog.startTime !== startTime ? currentLog.startTime : undefined;
     const prevEndTime = currentLog.endTime !== endTime ? currentLog.endTime || undefined : undefined;
     const prevNote = currentLog.note !== note ? currentLog.note || undefined : undefined;
@@ -46,7 +81,8 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       prevStartTime,
       prevEndTime,
       prevNote,
-      reason: reason || undefined,
+      reason: trimmedReason || undefined,
+      auditSource: resolvedAuditSource,
     };
 
     const updatedHistory = currentLog.editHistory ? [...currentLog.editHistory, historyItem] : [historyItem];

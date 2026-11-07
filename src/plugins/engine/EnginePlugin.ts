@@ -78,9 +78,10 @@ export class EnginePlugin implements IEngine {
     startTime: string,
     endTime: string | null,
     note: string | null,
-    reason: string | null
+    reason: string | null,
+    auditSource?: string | null
   ): Promise<void> {
-    return this.timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason);
+    return this.timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason, auditSource);
   }
 
   async validateProjectName(

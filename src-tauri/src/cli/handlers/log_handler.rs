@@ -1,7 +1,8 @@
 use super::constants::{
-    ERR_LOG_ADD_NO_DURATION_OR_FROM, ERR_LOG_EDIT_EMPTY, FORMAT_DURATION_MINS_SECS,
-    FORMAT_LOG_NOTE, FORMAT_LOG_ROW, HEADER_TIME_LOGS, LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION,
-    LABEL_UNKNOWN_TASK, MSG_LOG_DELETED, MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
+    ERR_LOG_ADD_NO_DURATION_OR_FROM, ERR_LOG_EDIT_EMPTY, ERR_LOG_EDIT_NO_REASON,
+    FORMAT_DURATION_MINS_SECS, FORMAT_LOG_NOTE, FORMAT_LOG_ROW, HEADER_TIME_LOGS,
+    LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION, LABEL_UNKNOWN_TASK, MSG_LOG_DELETED,
+    MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
 };
 use crate::cli::error::CliError;
 use crate::cli::parser::tier2_entities::{LogArgs, LogSubcommand};
@@ -9,10 +10,11 @@ use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::constants::DATE_FORMAT_DATE_ONLY;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::{
-    current_timestamp, generate_id, parse_date_bound, parse_duration_seconds, parse_iso_or_rfc3339,
+    generate_id, parse_date_bound, parse_duration_seconds, parse_iso_or_rfc3339,
 };
+use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{AuditSource, NewTimeLog, TimeLogUpdateHistory};
+use crate::types::{AuditSource, NewTimeLog, TimeLogEditInput};
 use chrono::{DateTime, Duration, Utc};
 use std::collections::HashSet;
 
@@ -43,6 +45,7 @@ struct LogEditInput {
     start: Option<String>,
     end: Option<String>,
     task: Option<String>,
+    reason: Option<String>,
 }
 
 struct LogFilterCriteria<'a> {
@@ -113,6 +116,7 @@ pub fn handle(
             start,
             end,
             task,
+            reason,
         } => edit_log(
             persistence,
             LogEditInput {
@@ -122,6 +126,7 @@ pub fn handle(
                 start,
                 end,
                 task,
+                reason,
             },
             is_machine,
         ),
@@ -479,6 +484,11 @@ fn edit_log(
         return Err(CliError::syntax_invalid_args(ERR_LOG_EDIT_EMPTY));
     }
 
+    let trimmed_reason = match input.reason {
+        Some(ref r) if !r.trim().is_empty() => r.trim(),
+        _ => return Err(CliError::syntax_invalid_args(ERR_LOG_EDIT_NO_REASON)),
+    };
+
     let existing = persistence.time_logs.get_by_id(&input.id)?;
 
     let target_task_id = match input.task {
@@ -500,35 +510,18 @@ fn edit_log(
         None => existing.end_time.clone(),
     };
 
-    if let Some(ref et) = new_end {
-        let st_dt = parse_iso_or_rfc3339(&new_start)?;
-        let et_dt = parse_iso_or_rfc3339(et)?;
-        if st_dt > et_dt {
-            return Err(CliError::business_custom(
-                "Log start time cannot be after end time.",
-            ));
-        }
-    }
-
     let new_note = input.note.as_deref().or(existing.note.as_deref());
-    let history_id = generate_id();
-    let now = current_timestamp();
 
-    let history_entry = TimeLogUpdateHistory {
+    let engine = Engine::new(persistence);
+    engine.edit_log(TimeLogEditInput {
         id: &existing.id,
         task_id: &target_task_id,
         start_time: &new_start,
         end_time: new_end.as_deref(),
         note: new_note,
-        history_id: &history_id,
-        edited_at: &now,
-        prev_start_time: Some(&existing.start_time),
-        prev_end_time: existing.end_time.as_deref(),
-        prev_note: existing.note.as_deref(),
-        reason: Some(AuditSource::CliEdit),
-    };
-
-    persistence.time_logs.update_with_history(&history_entry)?;
+        reason: Some(trimmed_reason),
+        audit_source: Some(AuditSource::CliEdit),
+    })?;
 
     if is_machine {
         return Ok(CliOutput::Json(

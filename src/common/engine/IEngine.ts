@@ -34,6 +34,12 @@ export {
   type RateMode,
 };
 
+export {
+  ENGINE_ERROR_CODES,
+  type EngineErrorCode,
+  isEngineErrorCode,
+} from './errorCodes';
+
 export interface ITimerEngine {
   startTimer(taskId: string): Promise<void>;
   stopTimer(projectId?: string): Promise<void>;
@@ -58,7 +64,8 @@ export interface ITimeLogsEngine {
     startTime: string,
     endTime: string | null,
     note: string | null,
-    reason: string | null
+    reason: string | null,
+    auditSource?: string | null
   ): Promise<void>;
 }
 
