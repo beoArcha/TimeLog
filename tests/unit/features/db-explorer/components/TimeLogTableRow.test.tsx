@@ -35,141 +35,94 @@ describe("Unit Tests: TimeLogTableRow", () => {
     onToggleHistory: onToggleHistoryMock,
   };
 
+  const renderRow = (overrides = {}) =>
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} {...overrides} />
+        </tbody>
+      </table>,
+    );
+
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
   });
 
   it("should render log row with note", () => {
-    // Arrange & Act
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} />
-        </tbody>
-      </table>,
-    );
-
-    // Assert
+    renderRow();
     expect(screen.getByText("Initial Note")).toBeTruthy();
   });
 
   it("should trigger onStartEdit when edit button is clicked", () => {
-    // Arrange
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} />
-        </tbody>
-      </table>,
-    );
-
-    // Act
-    const editBtn = screen.getByRole("button", { name: /Edit/i });
-    fireEvent.click(editBtn);
-
-    // Assert
+    renderRow();
+    fireEvent.click(screen.getByRole("button", { name: /Edit/i }));
     expect(onStartEditMock).toHaveBeenCalledTimes(1);
   });
 
-  it("should allow note editing and saving when isEditing is true", () => {
-    // Arrange
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} isEditing={true} />
-        </tbody>
-      </table>,
-    );
+  it("should initialize reason input as empty by default when isEditing is true", () => {
+    renderRow({ isEditing: true });
+    const reasonInput = screen.getByLabelText(/Reason/i) as HTMLInputElement;
+    expect(reasonInput.value).toBe("");
+  });
 
-    // Act
-    const noteInput = screen.getByLabelText(/Note/i);
-    fireEvent.change(noteInput, { target: { value: "Updated Note" } });
+  it("should block saving and show validation error when reason is empty", () => {
+    renderRow({ isEditing: true });
+    fireEvent.click(screen.getByRole("button", { name: /Save/i }));
 
-    const saveBtn = screen.getByRole("button", { name: /Save/i });
-    fireEvent.click(saveBtn);
+    expect(onSaveEditMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId("audit-reason-error")).toBeTruthy();
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+  });
 
-    // Assert
+  it("should block saving and show validation error when reason contains only whitespace", () => {
+    renderRow({ isEditing: true });
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "   \t  " } });
+    fireEvent.click(screen.getByRole("button", { name: /Save/i }));
+
+    expect(onSaveEditMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId("audit-reason-error")).toBeTruthy();
+  });
+
+  it("should allow editing and saving when a valid reason is provided", () => {
+    renderRow({ isEditing: true });
+    fireEvent.change(screen.getByLabelText(/Note/i), { target: { value: "Updated Note" } });
+    fireEvent.change(screen.getByLabelText(/Reason/i), { target: { value: "Manual correction of timing" } });
+    fireEvent.click(screen.getByRole("button", { name: /Save/i }));
+
     expect(onSaveEditMock).toHaveBeenCalledWith(
       baseLog.startTime,
       baseLog.endTime,
       "Updated Note",
-      expect.any(String),
+      "Manual correction of timing",
     );
   });
 
   it("should trigger onCancelEdit when cancel button is clicked in edit mode", () => {
-    // Arrange
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} isEditing={true} />
-        </tbody>
-      </table>,
-    );
-
-    // Act
-    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
-    fireEvent.click(cancelBtn);
-
-    // Assert
+    renderRow({ isEditing: true });
+    fireEvent.click(screen.getByRole("button", { name: /Cancel/i }));
     expect(onCancelEditMock).toHaveBeenCalledTimes(1);
   });
 
   it("should trigger onDelete when delete button is clicked", () => {
-    // Arrange
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} />
-        </tbody>
-      </table>,
-    );
-
-    // Act
-    const deleteBtn = screen.getByRole("button", { name: /Delete/i });
-    fireEvent.click(deleteBtn);
-
-    // Assert
+    renderRow();
+    fireEvent.click(screen.getByRole("button", { name: /Delete/i }));
     expect(onDeleteMock).toHaveBeenCalledTimes(1);
   });
 
   it("should render active tracking label when endTime is null", () => {
-    // Arrange
-    const activeLog: TimeLog = { ...baseLog, endTime: null };
-
-    // Act
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} l={activeLog} />
-        </tbody>
-      </table>,
-    );
-
-    // Assert - verify tracking active text is displayed
+    renderRow({ l: { ...baseLog, endTime: null } });
     expect(screen.getByText(/tracking/i)).toBeTruthy();
   });
 
   it("should render NoNote fallback when note is null or empty", () => {
-    // Arrange
-    const logWithoutNote: TimeLog = { ...baseLog, note: null };
-
-    // Act
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} l={logWithoutNote} />
-        </tbody>
-      </table>,
-    );
-
-    // Assert
+    renderRow({ l: { ...baseLog, note: null } });
     expect(screen.getByText(/no note/i)).toBeTruthy();
   });
 
   it("should display history toggle button when edit history exists and trigger onToggleHistory", () => {
-    // Arrange
     const logWithHistory: TimeLog = {
       ...baseLog,
       editHistory: [
@@ -183,26 +136,12 @@ describe("Unit Tests: TimeLogTableRow", () => {
       ],
     };
 
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} l={logWithHistory} />
-        </tbody>
-      </table>,
-    );
-
-    // Act
-    const historyBtn = screen.getByRole("button", {
-      name: /Revision History/i,
-    });
-    fireEvent.click(historyBtn);
-
-    // Assert
+    renderRow({ l: logWithHistory });
+    fireEvent.click(screen.getByRole("button", { name: /Revision History/i }));
     expect(onToggleHistoryMock).toHaveBeenCalledTimes(1);
   });
 
   it("should render audit trail row when showHistory is true and editHistory is present", () => {
-    // Arrange
     const logWithHistory: TimeLog = {
       ...baseLog,
       editHistory: [
@@ -211,32 +150,18 @@ describe("Unit Tests: TimeLogTableRow", () => {
           prevStartTime: "2026-06-15T11:00:00Z",
           prevEndTime: "2026-06-15T12:00:00Z",
           prevNote: "Old Note Content",
-          reason: "Typo in note",
+          reason: "User specified reason",
         },
       ],
     };
 
-    // Act
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow
-            {...mockProps}
-            l={logWithHistory}
-            showHistory={true}
-          />
-        </tbody>
-      </table>,
-    );
-
-    // Assert
+    renderRow({ l: logWithHistory, showHistory: true });
     expect(screen.getByText(/Audit Trail/i)).toBeTruthy();
     expect(screen.getByText(/"Old Note Content"/i)).toBeTruthy();
-    expect(screen.getByText(/"Typo in note"/i)).toBeTruthy();
+    expect(screen.getByText(/"User specified reason"/i)).toBeTruthy();
   });
 
   it("should fall back to current startTime when history items have no prevStartTime", () => {
-    // Arrange
     const logWithEmptyHistoryItems: TimeLog = {
       ...baseLog,
       startTime: "2026-06-15T09:00:00Z",
@@ -251,21 +176,11 @@ describe("Unit Tests: TimeLogTableRow", () => {
       ],
     };
 
-    // Act
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow {...mockProps} l={logWithEmptyHistoryItems} />
-        </tbody>
-      </table>,
-    );
-
-    // Assert - verify the row rendered with original start badge
+    renderRow({ l: logWithEmptyHistoryItems });
     expect(screen.getByText(/Original/i)).toBeTruthy();
   });
 
   it("should render audit source badge when auditSource is present in history", () => {
-    // Arrange
     const logWithAuditSource: TimeLog = {
       ...baseLog,
       editHistory: [
@@ -280,27 +195,13 @@ describe("Unit Tests: TimeLogTableRow", () => {
       ],
     };
 
-    // Act
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow
-            {...mockProps}
-            l={logWithAuditSource}
-            showHistory={true}
-          />
-        </tbody>
-      </table>,
-    );
-
-    // Assert
+    renderRow({ l: logWithAuditSource, showHistory: true });
     const badge = screen.getByTestId("audit-source-badge");
     expect(badge).toBeTruthy();
     expect(badge.textContent).toContain("CLI Edit");
   });
 
   it("should not render audit source badge when auditSource is omitted from history", () => {
-    // Arrange
     const logWithoutAuditSource: TimeLog = {
       ...baseLog,
       editHistory: [
@@ -314,26 +215,12 @@ describe("Unit Tests: TimeLogTableRow", () => {
       ],
     };
 
-    // Act
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow
-            {...mockProps}
-            l={logWithoutAuditSource}
-            showHistory={true}
-          />
-        </tbody>
-      </table>,
-    );
-
-    // Assert
+    renderRow({ l: logWithoutAuditSource, showHistory: true });
     expect(screen.queryByTestId("audit-source-badge")).toBeNull();
     expect(screen.getByText(/"Legacy edit without source"/i)).toBeTruthy();
   });
 
   it("should render fallback text in badge when auditSource is an unmapped custom value", () => {
-    // Arrange
     const logWithCustomSource: TimeLog = {
       ...baseLog,
       editHistory: [
@@ -348,20 +235,7 @@ describe("Unit Tests: TimeLogTableRow", () => {
       ],
     };
 
-    // Act
-    render(
-      <table>
-        <tbody>
-          <TimeLogTableRow
-            {...mockProps}
-            l={logWithCustomSource}
-            showHistory={true}
-          />
-        </tbody>
-      </table>,
-    );
-
-    // Assert
+    renderRow({ l: logWithCustomSource, showHistory: true });
     const badge = screen.getByTestId("audit-source-badge");
     expect(badge).toBeTruthy();
     expect(badge.textContent).toContain("ExternalSyncJob");

@@ -62,8 +62,20 @@ export default function TimeLogTableRow({
     startTime: l.startTime,
     endTime: l.endTime || '',
     note: l.note || '',
-    reason: translate(locale, 'database', 'SyncErrorReason', customTranslations)
+    reason: ''
   });
+  const [reasonError, setReasonError] = useState<string | null>(null);
+
+  const handleStartEdit = () => {
+    setForm({
+      startTime: l.startTime,
+      endTime: l.endTime || '',
+      note: l.note || '',
+      reason: ''
+    });
+    setReasonError(null);
+    onStartEdit();
+  };
 
   const hasHistory = !!(l.editHistory && l.editHistory.length > 0);
 
@@ -78,7 +90,24 @@ export default function TimeLogTableRow({
   };
 
   const handleSave = () => {
-    onSaveEdit(form.startTime, form.endTime, form.note, form.reason);
+    const trimmedReason = form.reason.trim();
+    if (!trimmedReason) {
+      setReasonError(translate(locale, 'database', 'AuditReasonRequired', customTranslations));
+      return;
+    }
+    setReasonError(null);
+    onSaveEdit(form.startTime, form.endTime, form.note, trimmedReason);
+  };
+
+  const handleCancel = () => {
+    setReasonError(null);
+    setForm({
+      startTime: l.startTime,
+      endTime: l.endTime || '',
+      note: l.note || '',
+      reason: ''
+    });
+    onCancelEdit();
   };
 
   return (
@@ -150,42 +179,62 @@ export default function TimeLogTableRow({
               </Button>
             )}
             {isEditing ? (
-              <>
-                <Input
-                  type="text"
-                  placeholder={translate(locale, 'database', 'Reason', customTranslations)}
-                  aria-label={translate(locale, 'database', 'Reason', customTranslations)}
-                  value={form.reason}
-                  onChange={e => setForm(prev => ({ ...prev, reason: e.target.value }))}
-                  className="text-xs bg-background border border-border px-1.5 py-0.5 h-6 rounded w-32 text-foreground mr-1"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={handleSave}
-                  className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 text-success cursor-pointer"
-                  title={translate(locale, 'common', 'Save', customTranslations)}
-                  aria-label={translate(locale, 'common', 'Save', customTranslations)}
-                >
-                  <Check className="w-3.5 h-3.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={onCancelEdit}
-                  className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive cursor-pointer"
-                  title={translate(locale, 'common', 'Cancel', customTranslations)}
-                  aria-label={translate(locale, 'common', 'Cancel', customTranslations)}
-                >
-                  <X className="w-3.5 h-3.5" />
-                </Button>
-              </>
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center justify-end gap-2">
+                  <Input
+                    type="text"
+                    placeholder={translate(locale, 'database', 'AuditReasonPlaceholder', customTranslations)}
+                    aria-label={translate(locale, 'database', 'AuditReasonLabel', customTranslations)}
+                    aria-invalid={reasonError ? 'true' : undefined}
+                    aria-describedby={reasonError ? `reason-error-${l.id}` : undefined}
+                    value={form.reason}
+                    onChange={e => {
+                      setForm(prev => ({ ...prev, reason: e.target.value }));
+                      if (reasonError) setReasonError(null);
+                    }}
+                    className={`text-xs bg-background border px-1.5 py-0.5 h-6 rounded w-36 text-foreground mr-1 ${
+                      reasonError
+                        ? 'border-destructive focus-visible:ring-destructive text-destructive'
+                        : 'border-border'
+                    }`}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={handleSave}
+                    className="p-1.5 rounded-lg bg-success/20 hover:bg-success/30 text-success cursor-pointer"
+                    title={translate(locale, 'common', 'Save', customTranslations)}
+                    aria-label={translate(locale, 'common', 'Save', customTranslations)}
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={handleCancel}
+                    className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive cursor-pointer"
+                    title={translate(locale, 'common', 'Cancel', customTranslations)}
+                    aria-label={translate(locale, 'common', 'Cancel', customTranslations)}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+                {reasonError && (
+                  <span
+                    id={`reason-error-${l.id}`}
+                    data-testid="audit-reason-error"
+                    className="text-[10px] text-destructive font-sans mr-1"
+                  >
+                    {reasonError}
+                  </span>
+                )}
+              </div>
             ) : (
               <>
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  onClick={onStartEdit}
+                  onClick={handleStartEdit}
                   className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground cursor-pointer"
                   title={translate(locale, 'common', 'Edit', customTranslations)}
                   aria-label={translate(locale, 'common', 'Edit', customTranslations)}

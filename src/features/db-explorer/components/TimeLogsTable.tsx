@@ -28,6 +28,14 @@ export default function TimeLogsTable() {
     const existingLog = logs.find(l => l.id === id);
     if (!existingLog) return;
 
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) {
+      if (showToast) {
+        showToast(translate(locale, 'database', 'AuditReasonRequired', customTranslations));
+      }
+      return;
+    }
+
     const finalEndTime = endTime.trim() === '' ? null : endTime;
     const finalNote = note.trim() === '' ? null : note;
     
@@ -41,7 +49,7 @@ export default function TimeLogsTable() {
     }
 
     try {
-      await handleEditTimeLog(id, existingLog.taskId, startTime, finalEndTime, finalNote, reason);
+      await handleEditTimeLog(id, existingLog.taskId, startTime, finalEndTime, finalNote, trimmedReason);
       setEditingLogId(null);
     } catch (err) {
       if (showToast) {

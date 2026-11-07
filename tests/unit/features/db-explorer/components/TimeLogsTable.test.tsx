@@ -107,6 +107,9 @@ describe("Unit Tests: TimeLogsTable", () => {
     const noteInput = screen.getByLabelText(/Note/i);
     fireEvent.change(noteInput, { target: { value: "Modified session note" } });
 
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Audit review update" } });
+
     const saveBtn = screen.getByRole("button", { name: /Save/i });
     fireEvent.click(saveBtn);
 
@@ -118,7 +121,7 @@ describe("Unit Tests: TimeLogsTable", () => {
         "2026-06-15T10:00:00Z",
         "2026-06-15T11:00:00Z",
         "Modified session note",
-        expect.any(String),
+        "Audit review update",
       );
     });
   });
@@ -134,9 +137,12 @@ describe("Unit Tests: TimeLogsTable", () => {
       </MockProviders>,
     );
 
-    // Act - click edit then immediately save without modifying inputs
+    // Act - click edit, supply reason, then save without modifying time/note
     const editBtn = screen.getByRole("button", { name: /Edit/i });
     fireEvent.click(editBtn);
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "No change intent" } });
 
     const saveBtn = screen.getByRole("button", { name: /Save/i });
     fireEvent.click(saveBtn);
@@ -147,6 +153,36 @@ describe("Unit Tests: TimeLogsTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Edit/i })).toBeTruthy();
     });
+  });
+
+  it("should block handleEditTimeLog and show validation error when reason is empty or whitespace", async () => {
+    const handleEditTimeLog = vi.fn().mockResolvedValue(undefined);
+    const state = createMockState(undefined, { handleEditTimeLog });
+
+    render(
+      <MockProviders state={state}>
+        <TimeLogsTable />
+      </MockProviders>,
+    );
+
+    const editBtn = screen.getByRole("button", { name: /Edit/i });
+    fireEvent.click(editBtn);
+
+    const noteInput = screen.getByLabelText(/Note/i);
+    fireEvent.change(noteInput, { target: { value: "Changed Note" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    expect(handleEditTimeLog).not.toHaveBeenCalled();
+    expect(screen.getByTestId("audit-reason-error")).toBeTruthy();
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "    " } });
+    fireEvent.click(saveBtn);
+
+    expect(handleEditTimeLog).not.toHaveBeenCalled();
+    expect(screen.getByTestId("audit-reason-error")).toBeTruthy();
   });
 
   it("should display toast when handleEditTimeLog throws an error", async () => {
@@ -169,6 +205,9 @@ describe("Unit Tests: TimeLogsTable", () => {
 
     const noteInput = screen.getByLabelText(/Note/i);
     fireEvent.change(noteInput, { target: { value: "Trigger rejection" } });
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Trigger rejection reason" } });
 
     const saveBtn = screen.getByRole("button", { name: /Save/i });
     fireEvent.click(saveBtn);

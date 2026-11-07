@@ -83,7 +83,10 @@
     "AuditSourceGuiEdit": "GUI Edit",
     "AuditSourceCliEdit": "CLI Edit",
     "AuditSourceManualAdjustment": "Manual Adjustment",
-    "AuditSourceSystemPatch": "System Patch"
+    "AuditSourceSystemPatch": "System Patch",
+    "AuditReasonLabel": "Reason for edit (required for audit)",
+    "AuditReasonPlaceholder": "Audit reason (required)",
+    "AuditReasonRequired": "Audit reason is required"
   },
   "pl": {
     "NoteBeforeCorrection": "Notatka przed korektą:",
@@ -169,7 +172,10 @@
     "AuditSourceGuiEdit": "Edycja GUI",
     "AuditSourceCliEdit": "Edycja CLI",
     "AuditSourceManualAdjustment": "Korekta ręczna",
-    "AuditSourceSystemPatch": "Łatka systemowa"
+    "AuditSourceSystemPatch": "Łatka systemowa",
+    "AuditReasonLabel": "Powód edycji (wymagany do audytu)",
+    "AuditReasonPlaceholder": "Powód audytu (wymagany)",
+    "AuditReasonRequired": "Powód audytu jest wymagany"
   },
   "de": {
     "NoteBeforeCorrection": "Notiz vor Korrektur:",
@@ -255,7 +261,10 @@
     "AuditSourceGuiEdit": "GUI-Bearbeitung",
     "AuditSourceCliEdit": "CLI-Bearbeitung",
     "AuditSourceManualAdjustment": "Manuelle Anpassung",
-    "AuditSourceSystemPatch": "System-Patch"
+    "AuditSourceSystemPatch": "System-Patch",
+    "AuditReasonLabel": "Grund für die Bearbeitung (für Audit erforderlich)",
+    "AuditReasonPlaceholder": "Audit-Grund (erforderlich)",
+    "AuditReasonRequired": "Audit-Grund ist erforderlich"
   },
   "es": {
     "NoteBeforeCorrection": "Nota antes de corrección:",
@@ -341,7 +350,10 @@
     "AuditSourceGuiEdit": "Edición GUI",
     "AuditSourceCliEdit": "Edición CLI",
     "AuditSourceManualAdjustment": "Ajuste manual",
-    "AuditSourceSystemPatch": "Parche del sistema"
+    "AuditSourceSystemPatch": "Parche del sistema",
+    "AuditReasonLabel": "Motivo de la edición (requerido para auditoría)",
+    "AuditReasonPlaceholder": "Motivo de auditoría (obligatorio)",
+    "AuditReasonRequired": "El motivo de auditoría es obligatorio"
   },
   "pt-br": {
     "NoteBeforeCorrection": "Nota antes da correção:",
@@ -427,7 +439,10 @@
     "AuditSourceGuiEdit": "Edição GUI",
     "AuditSourceCliEdit": "Edição CLI",
     "AuditSourceManualAdjustment": "Ajuste manual",
-    "AuditSourceSystemPatch": "Patch do sistema"
+    "AuditSourceSystemPatch": "Patch do sistema",
+    "AuditReasonLabel": "Motivo da edição (obrigatório para auditoria)",
+    "AuditReasonPlaceholder": "Motivo da auditoria (obrigatório)",
+    "AuditReasonRequired": "O motivo da auditoria é obrigatório"
   },
   "fr": {
     "NoteBeforeCorrection": "Note avant correction :",
@@ -513,7 +528,10 @@
     "AuditSourceGuiEdit": "Édition GUI",
     "AuditSourceCliEdit": "Édition CLI",
     "AuditSourceManualAdjustment": "Ajustement manuel",
-    "AuditSourceSystemPatch": "Correctif système"
+    "AuditSourceSystemPatch": "Correctif système",
+    "AuditReasonLabel": "Motif de modification (requis pour l'audit)",
+    "AuditReasonPlaceholder": "Motif d'audit (requis)",
+    "AuditReasonRequired": "Le motif d'audit est requis"
   },
   "uk": {
     "NoteBeforeCorrection": "Нотатка до виправлення:",
@@ -599,7 +617,10 @@
     "AuditSourceGuiEdit": "Редагування GUI",
     "AuditSourceCliEdit": "Редагування CLI",
     "AuditSourceManualAdjustment": "Ручне коригування",
-    "AuditSourceSystemPatch": "Системний патч"
+    "AuditSourceSystemPatch": "Системний патч",
+    "AuditReasonLabel": "Причина редагування (обов'язково для аудиту)",
+    "AuditReasonPlaceholder": "Причина аудиту (обов'язково)",
+    "AuditReasonRequired": "Причина аудиту обов'язкова"
   },
   "ja": {
     "NoteBeforeCorrection": "修正前のメモ:",
@@ -685,7 +706,10 @@
     "AuditSourceGuiEdit": "GUI編集",
     "AuditSourceCliEdit": "CLI編集",
     "AuditSourceManualAdjustment": "手動調整",
-    "AuditSourceSystemPatch": "システムパッチ"
+    "AuditSourceSystemPatch": "システムパッチ",
+    "AuditReasonLabel": "編集理由（監査に必須）",
+    "AuditReasonPlaceholder": "監査理由（必須）",
+    "AuditReasonRequired": "監査理由が必要です"
   },
   "nl": {
     "NoteBeforeCorrection": "Notitie vóór correctie:",
@@ -771,7 +795,10 @@
     "AuditSourceGuiEdit": "GUI-bewerking",
     "AuditSourceCliEdit": "CLI-bewerking",
     "AuditSourceManualAdjustment": "Handmatige aanpassing",
-    "AuditSourceSystemPatch": "Systeempatch"
+    "AuditSourceSystemPatch": "Systeempatch",
+    "AuditReasonLabel": "Reden voor bewerking (verplicht voor audit)",
+    "AuditReasonPlaceholder": "Auditreden (verplicht)",
+    "AuditReasonRequired": "Auditreden is verplicht"
   },
   "it": {
     "NoteBeforeCorrection": "Nota prima della correzione:",
@@ -857,6 +884,9 @@
     "AuditSourceGuiEdit": "Modifica GUI",
     "AuditSourceCliEdit": "Modifica CLI",
     "AuditSourceManualAdjustment": "Aggiustamento manuale",
-    "AuditSourceSystemPatch": "Patch di sistema"
+    "AuditSourceSystemPatch": "Patch di sistema",
+    "AuditReasonLabel": "Motivo della modifica (obbligatorio per audit)",
+    "AuditReasonPlaceholder": "Motivo di audit (obbligatorio)",
+    "AuditReasonRequired": "Il motivo di audit è obbligatorio"
   }
 }
