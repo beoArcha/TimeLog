@@ -20,3 +20,11 @@ reports/mutation/
 src-tauri/bindings/
 .gemini/*
 /t3/
+
+# ───────────────────────────────────────────────────────────
+# Graphify Knowledge Graph & RAG Artifacts
+# ───────────────────────────────────────────────────────────
+graphify-out/
+.graphify_*
+*.graphml
+cypher.txt

@@ -244,6 +244,39 @@ Pull requests are verified automatically by `.github/workflows/pr-checks.yml`:
 
 ---
 
+## Knowledge Graph Topology & Graphify Integration
+
+oXyFlow TimeLog maintains a living semantic knowledge graph generated via Graphify (`graphify . --directed`). The graph captures AST symbols, calls, imports, type references, and modular communities across both the TypeScript/React frontend and the Rust/Tauri backend.
+
+### Topology Overview
+
+- **Corpus Scale**: 6,799 nodes and 20,362 directed dependency edges across 262 modular communities.
+- **Acyclic Integrity**: 0 circular import cycles detected across core modules, upholding the strict Clean Architecture boundary enforcement.
+- **Edge Integrity**: 100% valid candidate edges with 0 missing or dangling endpoint edges.
+
+### God Nodes & Architectural Hubs
+
+The knowledge graph reveals key structural hubs that anchor the architecture:
+- **Ecosystem Hubs**: `react` (330 connections), `vitest` (287 connections), `@testing-library/react` (167 connections).
+- **Core Domain & Persistence Hubs**: `setup_persistence_test()` (260 connections), `translate()` (202 connections), `cn()` (194 connections), `Persistence` (134 connections), `Button()` (131 connections), `AppError` (131 connections), and `handle_cli()` (126 connections).
+
+These hubs demonstrate high cohesion: styling utilities (`cn`), design system primitives (`Button`), domain errors (`AppError`), localization (`translate`), and persistence abstractions serve as single-responsibility foundations without leaking across runtime boundaries.
+
+### Graphify Tooling Workflow
+
+| Command | Purpose |
+| --- | --- |
+| `bun run graphify:build` | Full graph extraction across AST sources (`graphify . --directed`) |
+| `bun run graphify:update` | Incremental update reflecting recent commit changes |
+| `bun run graphify:watch` | Watch mode re-indexing touched files automatically |
+| `bun run graphify:report` | Print summary report (`graphify-out/GRAPH_REPORT.md`) |
+| `bun run graphify:viz` | Open interactive visual graph in browser (`graphify-out/graph.html`) |
+| `bun run graphify:diagnose` | Run edge collapse, dangling pointer, and multi-graph diagnostics |
+
+Agents and contributors leverage the `graphify` MCP server (`graphify_query`, `graphify_path`, `graphify_explain`, `graphify_neighbors`) for Graph-First Architecture Discovery before executing complex refactors or additions.
+
+---
+
 ## Toolchain
 
 Bun is the only JavaScript package manager and script runner (`bun install`, `bun run <script>`, `bun x <binary>`); `bun.lock` is the only lockfile. Commands are listed in [`../../AGENTS.md`](../../AGENTS.md#commands).

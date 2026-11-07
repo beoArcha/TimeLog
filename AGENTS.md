@@ -71,6 +71,8 @@ Bun is the only JavaScript toolchain. Never use `npm`, `npx`, `yarn` or `pnpm`, 
 | Rust architecture tests | `bun run test:arch:rust` |
 | E2E (Playwright) | `bun run test:e2e` |
 | Regenerate TS bindings | `cargo test --manifest-path src-tauri/Cargo.toml --test export_bindings_when_testing` |
+| Graphify build / update / diagnose | `bun run graphify:build`, `bun run graphify:update`, `bun run graphify:diagnose` |
+| Graphify report / visualization | `bun run graphify:report`, `bun run graphify:viz` |
 
 `bun run check` and `bun run test:quality` chain steps with `;`, so their exit code reflects only the last step. Read the full output, or run the steps individually, before declaring them green. CI runs each step separately.
 
@@ -123,6 +125,21 @@ Understand → Choose layer → Contracts → Implementation → Tests → Docum
 
 - Ask the user when requirements are ambiguous; do not guess unstated requirements and do not invent architecture.
 - Prefer the simplest solution. Introduce an abstraction only when it solves a problem that exists today.
+
+### Graph-First Architecture Discovery
+
+When `graphify-out/` or the Graphify MCP server is available, assistants MUST apply the **Graph-First Architecture Discovery** pattern before reading large directories or editing code. Query the codebase knowledge graph via the `graphify` MCP server:
+
+- `graphify_query`: Ask questions about codebase topology, community clusters, and structural concepts.
+- `graphify_path`: Trace exact dependency chains and call flows between modules across layers (e.g. UI → Router → Engine/Persistence).
+- `graphify_explain`: Understand why specific symbols connect, what community roles they fulfill, and what responsibilities they hold.
+- `graphify_neighbors`: Inspect immediate upstream and downstream dependencies before modifying interfaces or functions.
+
+When to use:
+- **Layer relationship auditing**: verifying that changes adhere to Clean Architecture without crossing unauthorized layer boundaries.
+- **Impact analysis**: tracing callers and consumers before altering public signatures, domain types, or commands.
+- **Hub & God Node detection**: identifying critical central nodes to prevent tight coupling or cyclic dependencies.
+- **Pre-change dependency inspection**: evaluating ripple effects before adding dependencies or refactoring.
 
 ### Multi-phase tasks
 

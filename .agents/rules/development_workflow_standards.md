@@ -31,6 +31,11 @@ Use this single-agent phase-gate process when:
 
 ### 2.1. Discovery
 
+- **Graph-First Architecture Discovery**: When `graphify-out/` or the Graphify MCP server is present, agents MUST start exploration by querying the knowledge graph rather than performing blind file searches or reading entire modules. Use Graphify MCP tools (`graphify_query`, `graphify_path`, `graphify_explain`, `graphify_neighbors`):
+  - **Layer relationships & boundaries**: Query paths between UI components, Routers, Engine, and Persistence to ensure planned changes respect architectural constraints (`graphify_path`).
+  - **Refactoring impact analysis**: Discover all callers, dependents, and consumers of symbols or interfaces before modifying them (`graphify_neighbors`).
+  - **Central hubs & God Nodes**: Identify heavily connected nodes (e.g. `react`, `Persistence`, `handle_cli`, `setup_persistence_test`) to avoid introducing hidden coupling or cyclic dependencies (`graphify_query`).
+  - **Symbol & Community inspection**: Query semantic module cluster summaries and symbol roles (`graphify_explain`).
 - Read the relevant modules in `src/` and `src-tauri/` and the applicable rules before writing code.
 - Create an analytical artifact (e.g. `backend_error_handling_analysis.md`) adhering to `documentation_standards.md` as the concrete **source of truth** mapping existing flows, root causes, exact file locations, and target behaviors.
 - Resolve ambiguities by asking the user, preferably as multiple-choice questions. Never guess unstated requirements.
