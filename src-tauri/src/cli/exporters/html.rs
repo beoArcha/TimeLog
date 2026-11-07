@@ -1,5 +1,6 @@
 use super::constants::{HTML_PAGE_TEMPLATE, HTML_ROW_PROJECT, HTML_ROW_SUBTASK, HTML_ROW_TASK};
-use crate::cli::formatters::{ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto};
+use super::rows::flatten_project;
+use crate::cli::formatters::{ReportProjectDto, ReportTreeDto};
 
 pub fn export_html(tree: &ReportTreeDto) -> String {
     let rows = tree
@@ -21,34 +22,24 @@ pub fn export_html(tree: &ReportTreeDto) -> String {
 
 fn render_project_section(project: &ReportProjectDto) -> String {
     let project_row = render_project_row(project);
-    let task_rows = project
-        .tasks
+    let project_rows = flatten_project(project);
+
+    if project_rows.is_empty() {
+        return project_row;
+    }
+
+    let task_rows = project_rows
         .iter()
-        .map(render_task_section)
+        .map(|row| match &row.subtask_name {
+            None => render_task_row(&row.task_name, &row.duration_formatted, row.percentage),
+            Some(subtask_name) => {
+                render_subtask_row(subtask_name, &row.duration_formatted, row.percentage)
+            }
+        })
         .collect::<Vec<_>>()
         .join("\n");
 
-    if task_rows.is_empty() {
-        project_row
-    } else {
-        format!("{}\n{}", project_row, task_rows)
-    }
-}
-
-fn render_task_section(task: &ReportTaskDto) -> String {
-    let task_row = render_task_row(task);
-    let subtask_rows = task
-        .subtasks
-        .iter()
-        .map(render_subtask_row)
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    if subtask_rows.is_empty() {
-        task_row
-    } else {
-        format!("{}\n{}", task_row, subtask_rows)
-    }
+    format!("{}\n{}", project_row, task_rows)
 }
 
 fn render_project_row(project: &ReportProjectDto) -> String {
@@ -60,20 +51,20 @@ fn render_project_row(project: &ReportProjectDto) -> String {
         .replacen("{}", &pct_str, 1)
 }
 
-fn render_task_row(task: &ReportTaskDto) -> String {
-    let pct_str = format!("{:.1}", task.percentage);
+fn render_task_row(name: &str, duration_formatted: &str, percentage: f64) -> String {
+    let pct_str = format!("{:.1}", percentage);
     HTML_ROW_TASK
-        .replacen("{}", &escape_html(&task.name), 1)
-        .replacen("{}", &task.duration_formatted, 1)
+        .replacen("{}", &escape_html(name), 1)
+        .replacen("{}", duration_formatted, 1)
         .replacen("{}", &pct_str, 1)
         .replacen("{}", &pct_str, 1)
 }
 
-fn render_subtask_row(subtask: &ReportSubtaskDto) -> String {
-    let pct_str = format!("{:.1}", subtask.percentage);
+fn render_subtask_row(name: &str, duration_formatted: &str, percentage: f64) -> String {
+    let pct_str = format!("{:.1}", percentage);
     HTML_ROW_SUBTASK
-        .replacen("{}", &escape_html(&subtask.name), 1)
-        .replacen("{}", &subtask.duration_formatted, 1)
+        .replacen("{}", &escape_html(name), 1)
+        .replacen("{}", duration_formatted, 1)
         .replacen("{}", &pct_str, 1)
         .replacen("{}", &pct_str, 1)
 }

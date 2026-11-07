@@ -498,6 +498,28 @@ fn test_given_task_with_subtasks_and_direct_time_when_export_csv_then_preserves_
 }
 
 #[test]
+fn test_given_task_with_subtasks_and_direct_time_when_export_html_then_preserves_parent_time_and_subtasks(
+) {
+    // Arrange: parent 30m, sub A 20m, sub B 10m
+    let tree = create_tree_with_subtasks_and_direct_time();
+
+    // Act
+    let html = export_html(&tree);
+
+    // Assert
+    assert!(html.contains("Alpha Project"));
+    assert!(html.contains("Main Feature"));
+    assert!(html.contains("30m 00s"));
+    assert!(html.contains("50.0%"));
+    assert!(html.contains("Subtask A"));
+    assert!(html.contains("20m 00s"));
+    assert!(html.contains("33.3%"));
+    assert!(html.contains("Subtask B"));
+    assert!(html.contains("10m 00s"));
+    assert!(html.contains("16.7%"));
+}
+
+#[test]
 fn test_given_destination_when_export_to_file_then_writes_file_and_creates_parents() {
     // Arrange
     let tree = create_sample_tree();

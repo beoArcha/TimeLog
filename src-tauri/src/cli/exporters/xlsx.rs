@@ -1,5 +1,7 @@
+use super::constants::{REPORT_COLUMN_HEADERS, REPORT_TOTAL_LABEL, REPORT_WORKSHEET_NAME};
+use super::rows::flatten_report;
 use crate::cli::error::{CliError, SinkError};
-use crate::cli::formatters::{format_duration, ReportTreeDto};
+use crate::cli::formatters::ReportTreeDto;
 use rust_xlsxwriter::{Color, Format, Workbook, XlsxError};
 
 fn map_xlsx_err(e: XlsxError) -> CliError {
@@ -10,22 +12,15 @@ fn map_xlsx_err(e: XlsxError) -> CliError {
 pub fn export_xlsx(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
     let mut workbook = Workbook::new();
     let worksheet = workbook.add_worksheet();
-    worksheet.set_name("Work Report").map_err(map_xlsx_err)?;
+    worksheet
+        .set_name(REPORT_WORKSHEET_NAME)
+        .map_err(map_xlsx_err)?;
 
     let header_format = Format::new()
         .set_bold()
         .set_background_color(Color::RGB(0x00E2E8F0));
 
-    let headers = [
-        "Project",
-        "Task",
-        "Subtask",
-        "Duration_Seconds",
-        "Duration_Formatted",
-        "Percentage",
-    ];
-
-    for (col, header) in headers.iter().enumerate() {
+    for (col, header) in REPORT_COLUMN_HEADERS.iter().enumerate() {
         worksheet
             .write_with_format(0, col as u16, *header, &header_format)
             .map_err(map_xlsx_err)?;
@@ -33,85 +28,32 @@ pub fn export_xlsx(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
 
     let mut current_row: u32 = 1;
 
-    for project in &tree.projects {
-        let p_name = &project.name;
-        for task in &project.tasks {
-            let subtasks_secs: u64 = task.subtasks.iter().map(|s| s.duration_seconds).sum();
-            let direct_secs = task.duration_seconds.saturating_sub(subtasks_secs);
-            let direct_pct = if task.duration_seconds > 0 {
-                (direct_secs as f64 / task.duration_seconds as f64) * task.percentage
-            } else {
-                0.0
-            };
-
-            if task.subtasks.is_empty() {
-                worksheet
-                    .write(current_row, 0, p_name.as_str())
-                    .map_err(map_xlsx_err)?;
-                worksheet
-                    .write(current_row, 1, task.name.as_str())
-                    .map_err(map_xlsx_err)?;
-                worksheet.write(current_row, 2, "").map_err(map_xlsx_err)?;
-                worksheet
-                    .write(current_row, 3, task.duration_seconds)
-                    .map_err(map_xlsx_err)?;
-                worksheet
-                    .write(current_row, 4, task.duration_formatted.as_str())
-                    .map_err(map_xlsx_err)?;
-                worksheet
-                    .write(current_row, 5, task.percentage)
-                    .map_err(map_xlsx_err)?;
-                current_row += 1;
-            } else {
-                if direct_secs > 0 {
-                    worksheet
-                        .write(current_row, 0, p_name.as_str())
-                        .map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 1, task.name.as_str())
-                        .map_err(map_xlsx_err)?;
-                    worksheet.write(current_row, 2, "").map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 3, direct_secs)
-                        .map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 4, format_duration(direct_secs).as_str())
-                        .map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 5, direct_pct)
-                        .map_err(map_xlsx_err)?;
-                    current_row += 1;
-                }
-
-                for subtask in &task.subtasks {
-                    worksheet
-                        .write(current_row, 0, p_name.as_str())
-                        .map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 1, task.name.as_str())
-                        .map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 2, subtask.name.as_str())
-                        .map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 3, subtask.duration_seconds)
-                        .map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 4, subtask.duration_formatted.as_str())
-                        .map_err(map_xlsx_err)?;
-                    worksheet
-                        .write(current_row, 5, subtask.percentage)
-                        .map_err(map_xlsx_err)?;
-                    current_row += 1;
-                }
-            }
-        }
+    for row in flatten_report(tree) {
+        worksheet
+            .write(current_row, 0, row.project_name.as_str())
+            .map_err(map_xlsx_err)?;
+        worksheet
+            .write(current_row, 1, row.task_name.as_str())
+            .map_err(map_xlsx_err)?;
+        worksheet
+            .write(current_row, 2, row.subtask_name.as_deref().unwrap_or(""))
+            .map_err(map_xlsx_err)?;
+        worksheet
+            .write(current_row, 3, row.duration_seconds)
+            .map_err(map_xlsx_err)?;
+        worksheet
+            .write(current_row, 4, row.duration_formatted.as_str())
+            .map_err(map_xlsx_err)?;
+        worksheet
+            .write(current_row, 5, row.percentage)
+            .map_err(map_xlsx_err)?;
+        current_row += 1;
     }
 
     let total_format = Format::new().set_bold();
     let total_pct = if tree.total_seconds > 0 { 100.0 } else { 0.0 };
     worksheet
-        .write_with_format(current_row, 0, "Total", &total_format)
+        .write_with_format(current_row, 0, REPORT_TOTAL_LABEL, &total_format)
         .map_err(map_xlsx_err)?;
     worksheet
         .write_with_format(current_row, 1, "", &total_format)

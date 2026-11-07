@@ -1,3 +1,14 @@
+pub const REPORT_COLUMN_HEADERS: [&str; 6] = [
+    "Project",
+    "Task",
+    "Subtask",
+    "Duration_Seconds",
+    "Duration_Formatted",
+    "Percentage",
+];
+pub const REPORT_WORKSHEET_NAME: &str = "Work Report";
+pub const REPORT_TOTAL_LABEL: &str = "Total";
+
 pub const CSV_HEADER_REPORT: &str =
     "Project,Task,Subtask,Duration_Seconds,Duration_Formatted,Percentage";
 
