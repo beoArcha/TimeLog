@@ -86,7 +86,7 @@ graph TD
     Identify -->|Guidance, Help, Simple| Maya["3. Beginner User (Maya)"]
     Identify -->|Macros, Aliases, Batch| Masks["4. Action Masks & Macros"]
 
-    Alex --> AlexActions["• Atomic 'switch'<br>• Unicode Tree (--tree)<br>• HTML / JSON / CSV Exports<br>• Unix Pipes (stdout | jq)"]
+    Alex --> AlexActions["• Atomic 'switch'<br>• Unicode Tree (--tree)<br>• Multi-format Exports (CSV, HTML, JSON, XML, ODS, XLSX)<br>• Unix Pipes (stdout | jq)"]
     Daemon --> DaemonActions["• Strict English (--lang en)<br>• Structured JSON to stderr<br>• POSIX Exit Codes (0..5)<br>• Idempotent Execution"]
     Maya --> MayaActions["• 'Did you mean?' Typo Catch<br>• Interactive Parameter Prompts<br>• Visual Summary Cards<br>• Interactive Self-Healing"]
     Masks --> MaskActions["• Shorthand Aliases (mask set)<br>• Dynamic Tokens ($1, $LAST)<br>• Built-in Compound Actions"]
@@ -94,7 +94,7 @@ graph TD
 
 ### 1. The Power User (Alex — Keyboard Maestro)
 
-- **Primary Goal:** Sub-second time tracking without touching the mouse, terminal reports with Unicode trees, instant export for invoices/clients in HTML, JSON and CSV (XML, ODS and XLSX are planned).
+- **Primary Goal:** Sub-second time tracking without touching the mouse, terminal reports with Unicode trees, instant export for invoices/clients across all standard formats (CSV, HTML, JSON, XML, ODS, XLSX).
 - **Key Commands:** `oxy switch <id>`, `oxy report --tree --week`, `oxy report export -f html -o ./rep.html`, `oxy report -f json | jq .`.
 
 ### 2. The Automated System / Daemon (Machine / CI / Git Hooks)
@@ -147,7 +147,7 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Report** | Tree | `oxy report --tree [--today\|--week\|--month]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
 | **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
-| **Report** | Export | `oxy report export -f <format> -o <path>` | Supports **HTML, JSON, CSV**; `xml`, `ods`, `xlsx` are accepted by the parser but rejected with exit code `2` until implemented | Interactive format selector |
+| **Report** | Export | `oxy report export -f <format> -o <path>` | Fully supports **CSV, HTML, JSON, XML, ODS, XLSX**; serialization errors yield `SNK_SERIALIZATION` (exit code `1`) | Interactive format selector |
 | **Report** | Stream | `oxy report -f json \| jq .` | Raw unescaped JSON to `stdout` | N/A (interactive terminal) |
 | **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
 | **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
@@ -203,6 +203,27 @@ For integer minor-unit input, use `--rate-cents 15000` on Project/Task creation 
 **Current CLI scope:** Project/Task billing configuration and machine-readable mutation responses are implemented. Billing-aware CLI report output is not implemented yet; `oxy report` continues to use the existing elapsed-time report path. Billing summaries are currently available in the application's Reports view.
 
 **Rate input contract:** Rates have two decimal places and are represented internally as integer cents. The accepted maximum is 9,007,199,254,740,991 cents (the JavaScript safe-integer boundary), and larger values are rejected consistently by Rust and TypeScript. The report calculator rounds each task's calculated amount to the currency's two-decimal minor-unit representation using round-half-to-even (banker's rounding).
+
+---
+
+### Report Export Subsystem (Implemented)
+
+The CLI provides deterministic, streaming report exports across six structured formats via `oxy report export -f <format> -o <path>`:
+
+- **Tabular & Structured Text Formats:**
+  - `csv`: Comma-separated values adhering to RFC 4180 with standard UTF-8 encoding.
+  - `html`: Self-contained, responsive HTML document with embedded CSS styling and semantic tables.
+  - `json`: Structured JSON payload with comprehensive summary metrics, project aggregates, and detailed task breakdowns.
+  - `xml`: Sanitized hierarchical XML with ISO 8601 timestamps and strictly escaped entity values.
+- **Spreadsheet Archive Packages (ZIP-based):**
+  - `ods`: OpenDocument Spreadsheet 1.3 package generated with pure-Rust ZIP32 writer and compliant OpenDocument XML templates.
+  - `xlsx`: Office Open XML SpreadsheetML workbook generated with valid package parts (`[Content_Types].xml`, `_rels/.rels`, worksheet, workbook).
+
+**Pure-Rust Streaming Architecture:**
+All exporters stream output directly to disk without spawning external child processes or depending on system archivers. Spreadsheet formats (`ods`, `xlsx`) utilize a dedicated, memory-safe in-memory ZIP32 builder with valid MS-DOS timestamps (with fallback to `1980-01-01` = `0x0021`) and strict 32-bit boundary validations.
+
+**Error Classification & Exit Codes:**
+If an export cannot be formatted, encoded, or serialized, the CLI emits a structured error envelope with semantic code `SNK_SERIALIZATION` and POSIX exit code `1` (business/sink rule violation). If file I/O fails during target file creation or writing, the CLI emits `SNK_EXTERNAL_IO` with exit code `1`.
 
 ---
 ## 🛡️ Hierarchical Error & Failure Architecture
@@ -340,16 +361,15 @@ TimeLog/
 │   │   ├── resolver_test.rs             # Entity resolution
 │   │   ├── prompter_test.rs             # Interactive prompts
 │   │   ├── tree_renderer_test.rs        # Unicode tree formatting
-│   │   ├── exporter_test.rs             # HTML / CSV / JSON exports
+│   │   ├── exporter_*_test.rs           # CSV, HTML, JSON, ODS, XLSX, XML exporter unit tests
 │   │   └── dashboard_test.rs            # Summary output
 │   └── integration/cli/                 # Rust CLI integration tests (real SQLite in temp dirs)
-│       ├── cli_test.rs, cli_subtask_test.rs, cli_settings_test.rs
-│       ├── ergonomic_flow_test.rs, interactive_flow_test.rs, subsystem_flow_test.rs
-│       ├── report_integration_test.rs, error_envelope_test.rs
+│       ├── entities/                    # Entity CRUD integration tests
+│       ├── error/                       # Error envelope & exit code integration tests
+│       ├── flow/                        # Ergonomic, interactive, and subsystem flow tests
 │       ├── ipc_cli_test.rs              # Tauri IPC cli_execute bridge tests
 │       ├── parity/parity_matrix_test.rs # 39 cross-runtime parity vectors (Rust side)
-│       ├── subsystems/ (doctor_test.rs, db_test.rs, masks_execution_test.rs, paths_test.rs)
-│       └── subprocess_test.rs           # Compiled binary execution
+│       └── subsystems/                  # doctor_test.rs, db_test.rs, masks_test.rs, reports_export_test.rs, export_to_file_test.rs, sinks_test.rs, config_test.rs
 └── tests/
     ├── unit/features/cli/               # In-app CLI unit tests (CliDrawer, CliInterface, context, sandbox, utils)
     ├── integration/cli/
