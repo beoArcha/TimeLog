@@ -2,6 +2,7 @@ pub mod dashboard_test;
 pub mod duration_parser_test;
 pub mod error_test;
 pub mod exporter_csv_test;
+pub mod exporter_fixtures;
 pub mod exporter_html_test;
 pub mod exporter_json_test;
 pub mod exporter_ods_test;

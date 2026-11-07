@@ -1,59 +1,8 @@
-use oxyflow_timelog::cli::exporters::export_to_file;
+use super::exporter_fixtures::*;
 use oxyflow_timelog::cli::exporters::xml::{
     export_xml, is_xml_1_0_char, sanitize_xml_text, XmlReportDto,
 };
-use oxyflow_timelog::cli::formatters::{
-    ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
-};
-use oxyflow_timelog::cli::parser::ExportFormat;
-use std::fs;
-
-fn create_full_hierarchy_tree() -> ReportTreeDto {
-    ReportTreeDto {
-        period: "Current Sprint".to_string(),
-        total_seconds: 7200,
-        total_formatted: "02h 00m".to_string(),
-        projects: vec![ReportProjectDto {
-            id: "prj-alpha".to_string(),
-            name: "Alpha \"Platform\" & Engine".to_string(),
-            duration_seconds: 7200,
-            duration_formatted: "02h 00m".to_string(),
-            percentage: 100.0,
-            tasks: vec![ReportTaskDto {
-                id: "tsk-core".to_string(),
-                name: "Core Infrastructure <v2>".to_string(),
-                duration_seconds: 7200,
-                duration_formatted: "02h 00m".to_string(),
-                percentage: 100.0,
-                subtasks: vec![
-                    ReportSubtaskDto {
-                        id: "sub-1".to_string(),
-                        name: "Schema Design 'XML'".to_string(),
-                        duration_seconds: 4800,
-                        duration_formatted: "01h 20m".to_string(),
-                        percentage: 66.7,
-                    },
-                    ReportSubtaskDto {
-                        id: "sub-2".to_string(),
-                        name: "Serialization & Tests".to_string(),
-                        duration_seconds: 2400,
-                        duration_formatted: "40m 00s".to_string(),
-                        percentage: 33.3,
-                    },
-                ],
-            }],
-        }],
-    }
-}
-
-fn create_empty_report_tree() -> ReportTreeDto {
-    ReportTreeDto {
-        period: "Today".to_string(),
-        total_seconds: 0,
-        total_formatted: "00m 00s".to_string(),
-        projects: vec![],
-    }
-}
+use oxyflow_timelog::cli::formatters::{ReportProjectDto, ReportTaskDto, ReportTreeDto};
 
 #[test]
 fn test_given_tree_when_exporting_xml_then_root_contains_schema_version_1() {
@@ -272,27 +221,4 @@ fn test_given_xml_report_dto_deserialization_roundtrip() {
             .len(),
         2
     );
-}
-
-#[test]
-fn test_given_xml_format_when_export_to_file_then_writes_valid_xml_file() {
-    // Arrange
-    let tree = create_full_hierarchy_tree();
-    let temp_dir =
-        std::env::temp_dir().join(format!("oxy_test_export_xml_{}", uuid::Uuid::new_v4()));
-    let target_file = temp_dir.join("report.xml");
-    let target_path_str = target_file.to_str().unwrap();
-
-    // Act
-    let res = export_to_file(&tree, ExportFormat::Xml, target_path_str);
-
-    // Assert
-    assert!(res.is_ok());
-    assert!(target_file.exists());
-    let content = fs::read_to_string(&target_file).expect("failed to read file");
-    assert!(content.contains("<?xml"));
-    assert!(content.contains("<report schemaVersion=\"1\">"));
-
-    // Cleanup
-    let _ = fs::remove_dir_all(temp_dir);
 }

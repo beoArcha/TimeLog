@@ -4,7 +4,7 @@ use crate::cli::error::{CliError, SinkError};
 use crate::cli::formatters::ReportTreeDto;
 use rust_xlsxwriter::{Color, Format, Workbook, XlsxError};
 
-fn map_xlsx_err(e: XlsxError) -> CliError {
+pub fn map_xlsx_err(e: XlsxError) -> CliError {
     CliError::Sink(SinkError::Serialization(e.to_string()))
 }
 
@@ -78,26 +78,4 @@ pub fn export_xlsx(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
     worksheet.set_column_width(5, 14).map_err(map_xlsx_err)?;
 
     workbook.save_to_buffer().map_err(map_xlsx_err)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_given_xlsx_error_when_mapping_then_returns_sink_serialization_error() {
-        let err = XlsxError::SheetnameLengthExceeded(
-            "NameThatIsWayTooLongForAnExcelWorksheetNameMoreThan31Chars".to_string(),
-        );
-        let cli_err = map_xlsx_err(err);
-        match cli_err {
-            CliError::Sink(SinkError::Serialization(msg)) => {
-                assert!(msg.contains("NameThatIsWayTooLong"));
-            }
-            other => panic!(
-                "expected CliError::Sink(SinkError::Serialization), got {:?}",
-                other
-            ),
-        }
-    }
 }

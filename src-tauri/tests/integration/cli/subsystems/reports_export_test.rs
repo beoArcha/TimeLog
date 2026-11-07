@@ -46,21 +46,21 @@ fn setup_dataset(db_name: &str) -> (Persistence, Connection, crate::shared::test
 
 #[test]
 fn test_given_logged_work_when_exporting_to_html_then_generates_valid_html_report_file() {
-    // Arrange
+    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_html");
     let engine = Engine::new(&persistence);
-    let output_file =
-        std::env::temp_dir().join(format!("report_export_{}.html", uuid::Uuid::new_v4()));
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let output_file = temp_dir.path().join("report.html");
     let output_path = output_file.to_str().unwrap();
 
     let args =
         CliArgs::try_parse_from(["oxy", "report", "export", "-f", "html", "-o", output_path])
             .unwrap();
 
-    // Act
+    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Assert
+    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -69,26 +69,24 @@ fn test_given_logged_work_when_exporting_to_html_then_generates_valid_html_repor
     assert!(content.contains("Export System"));
     assert!(content.contains("Invoice Generation"));
     assert!(content.contains("02h 00m"));
-
-    let _ = fs::remove_file(output_file);
 }
 
 #[test]
 fn test_given_logged_work_when_exporting_to_csv_then_generates_valid_tabular_csv_file() {
-    // Arrange
+    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_csv");
     let engine = Engine::new(&persistence);
-    let output_file =
-        std::env::temp_dir().join(format!("report_export_{}.csv", uuid::Uuid::new_v4()));
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let output_file = temp_dir.path().join("report.csv");
     let output_path = output_file.to_str().unwrap();
 
     let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "csv", "-o", output_path])
         .unwrap();
 
-    // Act
+    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Assert
+    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -97,27 +95,25 @@ fn test_given_logged_work_when_exporting_to_csv_then_generates_valid_tabular_csv
     assert!(content.contains("Export System"));
     assert!(content.contains("Invoice Generation"));
     assert!(content.contains("7200"));
-
-    let _ = fs::remove_file(output_file);
 }
 
 #[test]
 fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_report_file() {
-    // Arrange
+    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_json");
     let engine = Engine::new(&persistence);
-    let output_file =
-        std::env::temp_dir().join(format!("report_export_{}.json", uuid::Uuid::new_v4()));
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let output_file = temp_dir.path().join("report.json");
     let output_path = output_file.to_str().unwrap();
 
     let args =
         CliArgs::try_parse_from(["oxy", "report", "export", "-f", "json", "-o", output_path])
             .unwrap();
 
-    // Act
+    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Assert
+    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -127,26 +123,24 @@ fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_repor
     assert_eq!(tree.projects.len(), 1);
     assert_eq!(tree.projects[0].name, "Export System");
     assert_eq!(tree.total_seconds, 7200);
-
-    let _ = fs::remove_file(output_file);
 }
 
 #[test]
 fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_file() {
-    // Arrange
+    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_xml");
     let engine = Engine::new(&persistence);
-    let output_file =
-        std::env::temp_dir().join(format!("report_export_{}.xml", uuid::Uuid::new_v4()));
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let output_file = temp_dir.path().join("report.xml");
     let output_path = output_file.to_str().unwrap();
 
     let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xml", "-o", output_path])
         .unwrap();
 
-    // Act
+    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Assert
+    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -155,27 +149,25 @@ fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_
     assert!(content.contains("<report schemaVersion=\"1\">"));
     assert!(content.contains("<name>Export System</name>"));
     assert!(content.contains("<totalSeconds>7200</totalSeconds>"));
-
-    let _ = fs::remove_file(output_file);
 }
 
 #[test]
 fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_report_file() {
-    // Arrange
+    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_xlsx");
     let engine = Engine::new(&persistence);
-    let output_file =
-        std::env::temp_dir().join(format!("report_export_{}.xlsx", uuid::Uuid::new_v4()));
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let output_file = temp_dir.path().join("report.xlsx");
     let output_path = output_file.to_str().unwrap();
 
     let args =
         CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xlsx", "-o", output_path])
             .unwrap();
 
-    // Act
+    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Assert
+    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -222,26 +214,24 @@ fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_repor
     };
     assert!((val_total - 7200.0).abs() < 0.1);
     assert_eq!(get_cell_str(2, 4), "02h 00m");
-
-    let _ = fs::remove_file(output_file);
 }
 
 #[test]
 fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_file() {
-    // Arrange
+    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_ods");
     let engine = Engine::new(&persistence);
-    let output_file =
-        std::env::temp_dir().join(format!("report_export_{}.ods", uuid::Uuid::new_v4()));
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let output_file = temp_dir.path().join("report.ods");
     let output_path = output_file.to_str().unwrap();
 
     let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "ods", "-o", output_path])
         .unwrap();
 
-    // Act
+    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Assert
+    // Then
     assert!(result.is_ok());
     assert!(output_file.exists());
 
@@ -270,13 +260,11 @@ fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_
     assert_eq!(sheet.value(2, 3).as_f64_or(0.0), 7200.0);
     assert_eq!(sheet.value(2, 4).as_str_or(""), "02h 00m");
     assert_eq!(sheet.value(2, 5).as_f64_or(0.0), 100.0);
-
-    let _ = fs::remove_file(output_file);
 }
 
 #[test]
 fn test_given_invalid_path_when_exporting_then_fails_with_sink_error_exit_code_1() {
-    // Arrange
+    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_io_err");
     let engine = Engine::new(&persistence);
     let invalid_path = if cfg!(windows) {
@@ -289,10 +277,10 @@ fn test_given_invalid_path_when_exporting_then_fails_with_sink_error_exit_code_1
         CliArgs::try_parse_from(["oxy", "report", "export", "-f", "csv", "-o", invalid_path])
             .unwrap();
 
-    // Act
+    // When
     let result = handle_cli(args, &persistence, &engine);
 
-    // Assert
+    // Then
     assert!(result.is_err());
     let err = result.unwrap_err();
     assert_eq!(err.exit_code(), 1);

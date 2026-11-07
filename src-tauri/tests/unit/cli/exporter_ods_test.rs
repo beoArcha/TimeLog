@@ -1,113 +1,32 @@
-use oxyflow_timelog::cli::exporters::{export_ods, export_to_file};
-use oxyflow_timelog::cli::formatters::{
-    ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
-};
-use oxyflow_timelog::cli::parser::ExportFormat;
-use spreadsheet_ods::read_ods_buf;
-use std::fs;
+use super::exporter_fixtures::*;
+use oxyflow_timelog::cli::error::{CliError, SinkError};
+use oxyflow_timelog::cli::exporters::ods::{export_ods, map_ods_err};
+use spreadsheet_ods::{read_ods_buf, OdsError, Sheet};
 
-fn create_sample_tree() -> ReportTreeDto {
-    ReportTreeDto {
-        period: "Today".to_string(),
-        total_seconds: 3600,
-        total_formatted: "01h 00m".to_string(),
-        projects: vec![ReportProjectDto {
-            id: "p1".to_string(),
-            name: "API \"Service\"".to_string(),
-            duration_seconds: 3600,
-            duration_formatted: "01h 00m".to_string(),
-            percentage: 100.0,
-            tasks: vec![ReportTaskDto {
-                id: "t1".to_string(),
-                name: "Database Setup".to_string(),
-                duration_seconds: 3600,
-                duration_formatted: "01h 00m".to_string(),
-                percentage: 100.0,
-                subtasks: vec![],
-            }],
-        }],
-    }
-}
-
-fn create_tree_with_subtasks_and_direct_time() -> ReportTreeDto {
-    ReportTreeDto {
-        period: "This Week".to_string(),
-        total_seconds: 3600,
-        total_formatted: "01h 00m".to_string(),
-        projects: vec![ReportProjectDto {
-            id: "p1".to_string(),
-            name: "Alpha Project".to_string(),
-            duration_seconds: 3600,
-            duration_formatted: "01h 00m".to_string(),
-            percentage: 100.0,
-            tasks: vec![ReportTaskDto {
-                id: "t1".to_string(),
-                name: "Main Feature".to_string(),
-                duration_seconds: 3600,
-                duration_formatted: "01h 00m".to_string(),
-                percentage: 100.0,
-                subtasks: vec![
-                    ReportSubtaskDto {
-                        id: "s1".to_string(),
-                        name: "Subtask A".to_string(),
-                        duration_seconds: 1200,
-                        duration_formatted: "20m 00s".to_string(),
-                        percentage: 33.3,
-                    },
-                    ReportSubtaskDto {
-                        id: "s2".to_string(),
-                        name: "Subtask B".to_string(),
-                        duration_seconds: 600,
-                        duration_formatted: "10m 00s".to_string(),
-                        percentage: 16.7,
-                    },
-                ],
-            }],
-        }],
-    }
-}
-
-fn create_empty_tree() -> ReportTreeDto {
-    ReportTreeDto {
-        period: "Today".to_string(),
-        total_seconds: 0,
-        total_formatted: "00m 00s".to_string(),
-        projects: vec![],
-    }
-}
-
-fn create_tree_with_special_characters() -> ReportTreeDto {
-    ReportTreeDto {
-        period: "Period <2026> & 'Q1'".to_string(),
-        total_seconds: 1800,
-        total_formatted: "30m 00s".to_string(),
-        projects: vec![ReportProjectDto {
-            id: "p_spec".to_string(),
-            name: "Projekt \"Zażółć\" <gęślą> & jaźń".to_string(),
-            duration_seconds: 1800,
-            duration_formatted: "30m 00s".to_string(),
-            percentage: 100.0,
-            tasks: vec![ReportTaskDto {
-                id: "t_spec".to_string(),
-                name: "Zadanie: 'Księgowość' & VAT 23%".to_string(),
-                duration_seconds: 1800,
-                duration_formatted: "30m 00s".to_string(),
-                percentage: 100.0,
-                subtasks: vec![],
-            }],
-        }],
-    }
-}
-
-fn get_ods_cell_str(sheet: &spreadsheet_ods::Sheet, row: usize, col: usize) -> String {
+fn get_ods_cell_str(sheet: &Sheet, row: usize, col: usize) -> String {
     sheet
         .value(row as u32, col as u32)
         .as_str_or("")
         .to_string()
 }
 
-fn get_ods_cell_f64(sheet: &spreadsheet_ods::Sheet, row: usize, col: usize) -> f64 {
+fn get_ods_cell_f64(sheet: &Sheet, row: usize, col: usize) -> f64 {
     sheet.value(row as u32, col as u32).as_f64_or(0.0)
+}
+
+#[test]
+fn test_given_ods_error_when_mapping_then_returns_sink_serialization_error() {
+    let err = OdsError::Ods("custom ods test error".to_string());
+    let cli_err = map_ods_err(err);
+    match cli_err {
+        CliError::Sink(SinkError::Serialization(msg)) => {
+            assert!(msg.contains("custom ods test error"));
+        }
+        other => panic!(
+            "expected CliError::Sink(SinkError::Serialization), got {:?}",
+            other
+        ),
+    }
 }
 
 #[test]
@@ -240,31 +159,4 @@ fn test_given_special_characters_when_export_ods_then_cells_contain_exact_string
         get_ods_cell_str(sheet, 1, 1),
         "Zadanie: 'Księgowość' & VAT 23%"
     );
-}
-
-#[test]
-fn test_given_ods_format_when_export_to_file_then_writes_valid_ods_with_content() {
-    // Arrange
-    let tree = create_sample_tree();
-    let temp_dir =
-        std::env::temp_dir().join(format!("oxy_test_export_ods_{}", uuid::Uuid::new_v4()));
-    let target_file = temp_dir.join("report.ods");
-    let target_path_str = target_file.to_str().unwrap();
-
-    // Act
-    let res = export_to_file(&tree, ExportFormat::Ods, target_path_str);
-
-    // Assert
-    assert!(res.is_ok());
-    assert!(target_file.exists());
-
-    let ods = spreadsheet_ods::read_ods(&target_file).expect("failed to open exported file");
-    let sheet = ods.sheet(0);
-    assert_eq!(sheet.name(), "Work Report");
-    assert_eq!(get_ods_cell_str(sheet, 0, 0), "Project");
-    assert_eq!(get_ods_cell_str(sheet, 1, 1), "Database Setup");
-    assert_eq!(get_ods_cell_f64(sheet, 2, 3), 3600.0);
-
-    // Cleanup
-    let _ = fs::remove_dir_all(temp_dir);
 }

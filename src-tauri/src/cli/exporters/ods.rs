@@ -4,7 +4,7 @@ use crate::cli::error::{CliError, SinkError};
 use crate::cli::formatters::ReportTreeDto;
 use spreadsheet_ods::{OdsError, Sheet, WorkBook};
 
-fn map_ods_err(e: OdsError) -> CliError {
+pub fn map_ods_err(e: OdsError) -> CliError {
     CliError::Sink(SinkError::Serialization(e.to_string()))
 }
 
@@ -39,24 +39,4 @@ pub fn export_ods(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
     workbook.push_sheet(sheet);
 
     spreadsheet_ods::write_ods_buf(&mut workbook, Vec::new()).map_err(map_ods_err)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_given_ods_error_when_mapping_then_returns_sink_serialization_error() {
-        let err = OdsError::Ods("custom ods test error".to_string());
-        let cli_err = map_ods_err(err);
-        match cli_err {
-            CliError::Sink(SinkError::Serialization(msg)) => {
-                assert!(msg.contains("custom ods test error"));
-            }
-            other => panic!(
-                "expected CliError::Sink(SinkError::Serialization), got {:?}",
-                other
-            ),
-        }
-    }
 }
