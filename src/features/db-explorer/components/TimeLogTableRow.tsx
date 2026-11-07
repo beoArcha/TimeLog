@@ -23,6 +23,29 @@ interface TimeLogTableRowProps {
   onToggleHistory: () => void;
 }
 
+function resolveAuditSourceLabel(
+  source: string,
+  locale: Locale,
+  customTranslations: Record<string, unknown>
+): string {
+  switch (source) {
+    case 'GUI Edit':
+    case 'GuiEdit':
+      return translate(locale, 'database', 'AuditSourceGuiEdit', customTranslations);
+    case 'CLI Edit':
+    case 'CliEdit':
+      return translate(locale, 'database', 'AuditSourceCliEdit', customTranslations);
+    case 'Manual Adjustment':
+    case 'ManualAdjustment':
+      return translate(locale, 'database', 'AuditSourceManualAdjustment', customTranslations);
+    case 'System Patch':
+    case 'SystemPatch':
+      return translate(locale, 'database', 'AuditSourceSystemPatch', customTranslations);
+    default:
+      return source;
+  }
+}
+
 export default function TimeLogTableRow({
   l,
   isEditing,
@@ -195,6 +218,16 @@ export default function TimeLogTableRow({
               {l.editHistory.map((h, hIdx) => (
                 <Caption key={hIdx} size="xs" className="text-muted-foreground mt-1 leading-relaxed block">
                   <span>[{new Date(h.editedAt).toLocaleString()}]</span>{' '}
+                  {h.auditSource && (
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      data-testid="audit-source-badge"
+                      className="mr-1.5 font-mono text-[10px] py-0 px-1.5 align-middle"
+                    >
+                      {translate(locale, 'database', 'AuditSourceLabel', customTranslations)} {resolveAuditSourceLabel(h.auditSource, locale, customTranslations)}
+                    </Badge>
+                  )}
                   {translate(locale, 'database', 'StartTime', customTranslations)} <strong className="text-foreground">"{h.prevStartTime}"</strong>, {translate(locale, 'database', 'EndTime', customTranslations)} <strong className="text-foreground">"{h.prevEndTime || translate(locale, 'common', 'No', customTranslations)}"</strong>, {translate(locale, 'database', 'Note', customTranslations)} <strong className="text-foreground">"{h.prevNote}"</strong> &rarr;{' '}
                   {translate(locale, 'database', 'Reason', customTranslations)} <em className="text-foreground">"{h.reason}"</em>
                 </Caption>

@@ -14,6 +14,37 @@ import { AlertTriangle, HelpCircle, type LucideIcon } from 'lucide-react';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
 
+const TECHNICAL_ERROR_PATTERNS = [
+  /\bat\s+/i,
+  /\n\s*at\s+/i,
+  /sqlite/i,
+  /SQLITE_/i,
+  /panic/i,
+];
+
+function isUnsafeErrorMessage(msg: string): boolean {
+  return TECHNICAL_ERROR_PATTERNS.some((pattern) => pattern.test(msg));
+}
+
+function extractRawErrorMessage(error: unknown): string | null {
+  if (typeof error === 'string') {
+    const trimmed = error.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (error instanceof Error) {
+    const trimmed = error.message.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof error === 'object' && error !== null) {
+    const candidate = (error as Record<string, unknown>).message;
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    }
+  }
+  return null;
+}
+
 export interface ConfirmDialogProps {
   open: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -84,8 +115,15 @@ export function ConfirmDialog({
     onOpenChange?.(nextOpen);
   };
 
-  const extractErrorMessage = (_error: unknown): string => {
-    return translate(locale, 'common', 'ErrGeneric', customTranslations);
+  const extractErrorMessage = (error: unknown): string => {
+    const rawMessage = extractRawErrorMessage(error);
+    const genericFallback = translate(locale, 'common', 'ErrGeneric', customTranslations);
+
+    if (!rawMessage || isUnsafeErrorMessage(rawMessage)) {
+      return genericFallback;
+    }
+
+    return rawMessage;
   };
 
   const handleConfirm = () => {

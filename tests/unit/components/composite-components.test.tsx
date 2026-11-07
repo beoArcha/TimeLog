@@ -87,7 +87,7 @@ describe('Unit Tests: Composite Components', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByRole('alert').textContent).toBe('Error');
+        expect(screen.getByRole('alert').textContent).toBe('Async error');
       });
       expect(onOpenChange).not.toHaveBeenCalledWith(false);
       expect(screen.getByTestId('confirm-dialog-confirm-btn').getAttribute('aria-busy')).toBe('false');
@@ -114,7 +114,7 @@ describe('Unit Tests: Composite Components', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByRole('alert').textContent).toBe('Error');
+        expect(screen.getByRole('alert').textContent).toBe('Synchronous failure');
       });
       expect(onOpenChange).not.toHaveBeenCalledWith(false);
     });

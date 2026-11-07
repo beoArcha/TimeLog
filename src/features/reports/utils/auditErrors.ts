@@ -1,37 +1,51 @@
 import { ENGINE_ERROR_CODES, EngineErrorCode } from '@common/engine/IEngine';
 
+const KNOWN_CODES = [
+  ENGINE_ERROR_CODES.AUDIT_REASON_REQUIRED,
+  ENGINE_ERROR_CODES.TIMELOG_INVALID_RANGE,
+  ENGINE_ERROR_CODES.AUDIT_SOURCE_INVALID,
+] as const;
+
+function matchEngineErrorCode(text: string): EngineErrorCode | undefined {
+  return KNOWN_CODES.find((code) => text.includes(code));
+}
+
+function extractCauseCode(cause: unknown): string | undefined {
+  if (typeof cause !== 'object' || cause === null) {
+    return undefined;
+  }
+  const code = (cause as Record<string, unknown>).code;
+  return typeof code === 'string' ? code : undefined;
+}
+
 /**
  * Extracts a typed engine error code from an unknown error object, string, or exception.
  */
 export function extractErrorCode(err: unknown): EngineErrorCode | string | undefined {
-  if (!err) return undefined;
-
-  if (typeof err === 'string') {
-    if (err.includes(ENGINE_ERROR_CODES.AUDIT_REASON_REQUIRED)) return ENGINE_ERROR_CODES.AUDIT_REASON_REQUIRED;
-    if (err.includes(ENGINE_ERROR_CODES.TIMELOG_INVALID_RANGE)) return ENGINE_ERROR_CODES.TIMELOG_INVALID_RANGE;
-    if (err.includes(ENGINE_ERROR_CODES.AUDIT_SOURCE_INVALID)) return ENGINE_ERROR_CODES.AUDIT_SOURCE_INVALID;
+  if (!err) {
+    return undefined;
   }
 
-  if (typeof err === 'object') {
-    const errorObj = err as Record<string, unknown>;
-    if (typeof errorObj.code === 'string') return errorObj.code;
+  if (typeof err === 'string') {
+    return matchEngineErrorCode(err);
+  }
 
-    if (errorObj.cause && typeof errorObj.cause === 'object') {
-      const causeObj = errorObj.cause as Record<string, unknown>;
-      if (typeof causeObj.code === 'string') return causeObj.code;
-    }
+  if (typeof err !== 'object' || err === null) {
+    return undefined;
+  }
 
-    if (typeof errorObj.message === 'string') {
-      if (errorObj.message.includes(ENGINE_ERROR_CODES.AUDIT_REASON_REQUIRED)) {
-        return ENGINE_ERROR_CODES.AUDIT_REASON_REQUIRED;
-      }
-      if (errorObj.message.includes(ENGINE_ERROR_CODES.TIMELOG_INVALID_RANGE)) {
-        return ENGINE_ERROR_CODES.TIMELOG_INVALID_RANGE;
-      }
-      if (errorObj.message.includes(ENGINE_ERROR_CODES.AUDIT_SOURCE_INVALID)) {
-        return ENGINE_ERROR_CODES.AUDIT_SOURCE_INVALID;
-      }
-    }
+  const errorObj = err as Record<string, unknown>;
+  if (typeof errorObj.code === 'string') {
+    return errorObj.code;
+  }
+
+  const causeCode = extractCauseCode(errorObj.cause);
+  if (causeCode) {
+    return causeCode;
+  }
+
+  if (typeof errorObj.message === 'string') {
+    return matchEngineErrorCode(errorObj.message);
   }
 
   return undefined;

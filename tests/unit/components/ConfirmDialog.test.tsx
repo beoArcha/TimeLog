@@ -91,10 +91,10 @@ describe('Unit Tests: ConfirmDialog', () => {
     });
   });
 
-  it('keeps dialog open, resets internalLoading, and logs error when async onConfirm rejects', async () => {
+  it('keeps dialog open, resets internalLoading, and logs error when async onConfirm rejects with technical error', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const onOpenChange = vi.fn();
-    const error = new Error('Async rejection error');
+    const error = new Error('sqlite3_step: constraint failed');
     const onConfirm = vi.fn().mockRejectedValue(error);
 
     render(
@@ -111,20 +111,15 @@ describe('Unit Tests: ConfirmDialog', () => {
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
 
-    // Verify that loading is reset back to false and button is re-enabled
     await waitFor(() => {
       expect(confirmBtn.getAttribute('aria-busy')).not.toBe('true');
       expect(confirmBtn.hasAttribute('disabled')).toBe(false);
     });
 
-    // Dialog must NOT be closed: onOpenChange was not called with false
     expect(onOpenChange).not.toHaveBeenCalled();
-    // Modal dialog still present in DOM
     expect(screen.getByRole('alertdialog')).not.toBeNull();
-    // Error element is rendered
     expect(screen.getByRole('alert')).not.toBeNull();
     expect(screen.getByTestId('confirm-dialog-error').textContent).toBe('Error');
-    // Error logged properly
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '[ConfirmDialog] Confirm action failed:',
       error
@@ -138,7 +133,7 @@ describe('Unit Tests: ConfirmDialog', () => {
     const onOpenChange = vi.fn();
     const onConfirm = vi
       .fn()
-      .mockRejectedValueOnce(new Error('Database error'))
+      .mockRejectedValueOnce(new Error('sqlite database is locked'))
       .mockResolvedValueOnce(undefined);
 
     render(
@@ -168,10 +163,122 @@ describe('Unit Tests: ConfirmDialog', () => {
     });
   });
 
-  it('keeps dialog open and displays role="alert" with safe error when synchronous onConfirm throws', () => {
+  it('displays readable error message when onConfirm rejects with readable Error instance', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue(new Error('Custom readable error'));
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Readable Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('Custom readable error');
+  });
+
+  it('displays readable error message when onConfirm rejects with string error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue('String error');
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="String Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('String error');
+  });
+
+  it('masks stack trace and technical panic errors to generic error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue(new Error('Critical crash\n    at Object.test (suite.ts:10:5)'));
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Stacktrace Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('Error');
+  });
+
+  it('masks unknown error or null to generic error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue(null);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Null Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('Error');
+  });
+
+  it('clears internal error when dialog is closed and reopened', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue(new Error('Readable error'));
+    const onOpenChange = vi.fn();
+
+    const { rerender } = render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Clear Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    expect(await screen.findByRole('alert')).not.toBeNull();
+
+    const cancelBtn = screen.getByTestId('confirm-dialog-cancel-btn');
+    fireEvent.click(cancelBtn);
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+
+    rerender(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Clear Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('keeps dialog open and displays role="alert" with safe error when synchronous onConfirm throws technical error', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const onOpenChange = vi.fn();
-    const error = new Error('Synchronous throw');
+    const error = new Error('panic: kernel thread aborted');
     const onConfirm = vi.fn().mockImplementation(() => {
       throw error;
     });
