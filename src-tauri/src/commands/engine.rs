@@ -96,15 +96,15 @@ pub fn edit_time_log(
     state: State<'_, AppState>,
 ) -> Result<(), AppError> {
     let engine = Engine::new(&state.persistence);
-    engine.edit_log(
-        &id,
-        &task_id,
-        &start_time,
-        end_time.as_deref(),
-        note.as_deref(),
-        reason.as_deref(),
-        Some(crate::types::AuditSource::GuiEdit),
-    )?;
+    engine.edit_log(crate::types::TimeLogEditInput {
+        id: &id,
+        task_id: &task_id,
+        start_time: &start_time,
+        end_time: end_time.as_deref(),
+        note: note.as_deref(),
+        reason: reason.as_deref(),
+        audit_source: Some(crate::types::AuditSource::GuiEdit),
+    })?;
     Ok(())
 }
 

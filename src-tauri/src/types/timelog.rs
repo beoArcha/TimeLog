@@ -153,6 +153,17 @@ impl AuditSource {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TimeLogEditInput<'a> {
+    pub id: &'a str,
+    pub task_id: &'a str,
+    pub start_time: &'a str,
+    pub end_time: Option<&'a str>,
+    pub note: Option<&'a str>,
+    pub reason: Option<&'a str>,
+    pub audit_source: Option<AuditSource>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeLogUpdateHistory<'a> {
     pub id: &'a str,
     pub task_id: &'a str,

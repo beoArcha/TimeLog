@@ -2,7 +2,7 @@ use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use oxyflow_timelog::engine::Engine;
 use oxyflow_timelog::persistence::Persistence;
-use oxyflow_timelog::types::{AuditSource, ElapsedRangeFilter, Settings};
+use oxyflow_timelog::types::{AuditSource, ElapsedRangeFilter, Settings, TimeLogEditInput};
 
 #[test]
 fn test_settings_lifecycle_save_and_retrieve() {
@@ -134,15 +134,15 @@ fn test_engine_timer_stop_and_log_editing() {
 
     // Act
     engine
-        .edit_log(
-            log_id,
-            "task_flow_1",
-            "2025-01-01T10:00:00Z",
-            Some("2025-01-01T11:00:00Z"),
-            Some("Edited Note"),
-            Some("Manual correction"),
-            Some(AuditSource::ManualAdjustment),
-        )
+        .edit_log(TimeLogEditInput {
+            id: log_id,
+            task_id: "task_flow_1",
+            start_time: "2025-01-01T10:00:00Z",
+            end_time: Some("2025-01-01T11:00:00Z"),
+            note: Some("Edited Note"),
+            reason: Some("Manual correction"),
+            audit_source: Some(AuditSource::ManualAdjustment),
+        })
         .unwrap();
     let edited = persistence.time_logs.get_by_id(log_id).unwrap();
 

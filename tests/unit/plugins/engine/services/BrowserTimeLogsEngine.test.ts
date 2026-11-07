@@ -82,4 +82,40 @@ describe('BrowserTimeLogsEngine', () => {
     expect(updated?.editHistory?.[0].auditSource).toBe('GUI Edit');
     expect(updated?.editHistory?.[0].prevStartTime).toBe('2026-06-15T10:00:00Z');
   });
+
+  it('should throw validation exception when reason is missing or empty', async () => {
+    // Arrange
+    const originalLog = aTimeLog({
+      id: 'l1',
+      taskId: 't1',
+      startTime: '2026-06-15T10:00:00Z',
+      endTime: '2026-06-15T11:00:00Z',
+      note: 'Old note',
+      editHistory: null,
+    });
+
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    // Act & Assert - null reason
+    await expect(
+      engine.editTimeLog('l1', 't1', '2026-06-15T10:00:00Z', '2026-06-15T11:00:00Z', null, null)
+    ).rejects.toThrow('Audit reason is required for manual edits');
+
+    // Act & Assert - whitespace reason
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    await expect(
+      engine.editTimeLog('l1', 't1', '2026-06-15T10:00:00Z', '2026-06-15T11:00:00Z', null, '   ')
+    ).rejects.toThrow('Audit reason is required for manual edits');
+  });
 });

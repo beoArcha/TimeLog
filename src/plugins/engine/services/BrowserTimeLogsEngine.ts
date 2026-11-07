@@ -1,6 +1,6 @@
 import { ITimeLogsEngine } from '@common/engine/IEngine';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
-import { EntityNotFoundException, EngineException, ErrorHandler } from '@common/exceptions';
+import { EntityNotFoundException, EngineException, EngineValidationError, ErrorHandler } from '@common/exceptions';
 import { validateTimeLog } from '../validation';
 
 export class BrowserTimeLogsEngine implements ITimeLogsEngine {
@@ -37,6 +37,17 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       throw err;
     }
 
+    const trimmedReason = reason?.trim();
+    if (!trimmedReason) {
+      const err = new EngineValidationError(
+        'Audit reason is required for manual edits',
+        undefined,
+        'ERR_ENGINE_VALIDATION'
+      );
+      ErrorHandler.handle(err);
+      throw err;
+    }
+
     const prevStartTime = currentLog.startTime !== startTime ? currentLog.startTime : undefined;
     const prevEndTime = currentLog.endTime !== endTime ? currentLog.endTime || undefined : undefined;
     const prevNote = currentLog.note !== note ? currentLog.note || undefined : undefined;
@@ -46,7 +57,7 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       prevStartTime,
       prevEndTime,
       prevNote,
-      reason: reason || undefined,
+      reason: trimmedReason,
       auditSource: 'GUI Edit',
     };
 

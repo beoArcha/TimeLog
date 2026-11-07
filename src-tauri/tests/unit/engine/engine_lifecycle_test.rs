@@ -3,7 +3,7 @@ use crate::shared::test_db::setup_persistence_test;
 use chrono::Utc;
 use oxyflow_timelog::engine::Engine;
 use oxyflow_timelog::persistence::Persistence;
-use oxyflow_timelog::types::AuditSource;
+use oxyflow_timelog::types::{AuditSource, TimeLogEditInput};
 
 #[test]
 fn test_validate_task_hierarchy_rejects_task_as_its_own_parent() {
@@ -119,15 +119,15 @@ fn test_engine_edit_log_with_all_fields() {
 
     // Act
     engine
-        .edit_log(
-            "l_edit_1",
-            "t_edit_2",
-            "2026-06-15T08:15:00Z",
-            Some("2026-06-15T09:15:00Z"),
-            Some("New Note"),
-            Some("Corrected time and task"),
-            Some(AuditSource::ManualAdjustment),
-        )
+        .edit_log(TimeLogEditInput {
+            id: "l_edit_1",
+            task_id: "t_edit_2",
+            start_time: "2026-06-15T08:15:00Z",
+            end_time: Some("2026-06-15T09:15:00Z"),
+            note: Some("New Note"),
+            reason: Some("Corrected time and task"),
+            audit_source: Some(AuditSource::ManualAdjustment),
+        })
         .unwrap();
 
     // Assert
@@ -149,4 +149,106 @@ fn test_engine_edit_log_with_all_fields() {
         history[0].audit_source.as_deref(),
         Some("Manual Adjustment")
     );
+}
+
+#[test]
+fn test_engine_edit_log_manual_missing_or_empty_reason_fails_validation() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_edit_log_reason_validation");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    conn.execute(
+        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'P1', 'blue', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'T1', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time, note) VALUES ('log1', 't1', '2026-06-15T08:00:00Z', '2026-06-15T09:00:00Z', 'Note')",
+        [],
+    )
+    .unwrap();
+
+    // Act - GuiEdit with None reason
+    let err_none = engine.edit_log(TimeLogEditInput {
+        id: "log1",
+        task_id: "t1",
+        start_time: "2026-06-15T08:15:00Z",
+        end_time: Some("2026-06-15T09:15:00Z"),
+        note: None,
+        reason: None,
+        audit_source: Some(AuditSource::GuiEdit),
+    });
+    assert!(err_none.is_err());
+    let err_msg = err_none.unwrap_err().to_string();
+    assert!(
+        err_msg.contains("Audit reason is required for manual edits"),
+        "unexpected error message: {}",
+        err_msg
+    );
+
+    // Act - ManualAdjustment with whitespace-only reason
+    let err_empty = engine.edit_log(TimeLogEditInput {
+        id: "log1",
+        task_id: "t1",
+        start_time: "2026-06-15T08:15:00Z",
+        end_time: Some("2026-06-15T09:15:00Z"),
+        note: None,
+        reason: Some("   "),
+        audit_source: Some(AuditSource::ManualAdjustment),
+    });
+    assert!(err_empty.is_err());
+    let err_msg = err_empty.unwrap_err().to_string();
+    assert!(
+        err_msg.contains("Audit reason is required for manual edits"),
+        "unexpected error message: {}",
+        err_msg
+    );
+}
+
+#[test]
+fn test_engine_edit_log_cli_without_reason_succeeds() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_edit_log_cli_no_reason");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    conn.execute(
+        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'P1', 'blue', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'T1', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time, note) VALUES ('log1', 't1', '2026-06-15T08:00:00Z', '2026-06-15T09:00:00Z', 'Note')",
+        [],
+    )
+    .unwrap();
+
+    // Act - CliEdit without reason must succeed
+    let res = engine.edit_log(TimeLogEditInput {
+        id: "log1",
+        task_id: "t1",
+        start_time: "2026-06-15T08:15:00Z",
+        end_time: Some("2026-06-15T09:15:00Z"),
+        note: Some("Updated by CLI"),
+        reason: None,
+        audit_source: Some(AuditSource::CliEdit),
+    });
+    assert!(res.is_ok());
+
+    let updated_log = persistence.time_logs.get_by_id("log1").unwrap();
+    let history = updated_log.edit_history.unwrap();
+    assert_eq!(history.len(), 1);
+    assert_eq!(history[0].reason, None);
+    assert_eq!(history[0].audit_source.as_deref(), Some("CLI Edit"));
 }
