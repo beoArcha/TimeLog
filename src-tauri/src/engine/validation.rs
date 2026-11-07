@@ -183,9 +183,7 @@ impl<'a> Engine<'a> {
             Some(e_str) => {
                 let e = parse_utc_timestamp(e_str)?;
                 if e < start {
-                    return Err(EngineError::Validation(
-                        "End time cannot be before start time".to_string(),
-                    ));
+                    return Err(EngineError::TimeLogInvalidRange);
                 }
                 e
             }

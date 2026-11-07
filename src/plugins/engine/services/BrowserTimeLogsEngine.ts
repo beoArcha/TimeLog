@@ -1,4 +1,4 @@
-import { ITimeLogsEngine } from '@common/engine/IEngine';
+import { ITimeLogsEngine, ENGINE_ERROR_CODES } from '@common/engine/IEngine';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { EntityNotFoundException, EngineException, EngineValidationError, ErrorHandler } from '@common/exceptions';
 import { validateTimeLog } from '../validation';
@@ -53,7 +53,7 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       const err = new EngineValidationError(
         `Invalid audit source: ${auditSource}`,
         undefined,
-        'ERR_ENGINE_VALIDATION'
+        ENGINE_ERROR_CODES.AUDIT_SOURCE_INVALID
       );
       ErrorHandler.handle(err);
       throw err;
@@ -66,7 +66,7 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       const err = new EngineValidationError(
         'Audit reason is required for manual edits',
         undefined,
-        'ERR_ENGINE_VALIDATION'
+        ENGINE_ERROR_CODES.AUDIT_REASON_REQUIRED
       );
       ErrorHandler.handle(err);
       throw err;

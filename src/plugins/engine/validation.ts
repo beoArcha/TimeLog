@@ -2,6 +2,7 @@ import { Task } from '@bindings/Task';
 import { Project } from '@bindings/Project';
 import { TimeLog } from '@bindings/TimeLog';
 import { EngineValidationError } from '@common/exceptions';
+import { ENGINE_ERROR_CODES } from '@common/engine/errorCodes';
 
 export const MAX_NAME_LENGTH = 1000;
 export const MAX_TAG_LENGTH = 100;
@@ -200,7 +201,11 @@ export function validateTimeLog(
   }
 
   if (end < start) {
-    throw new EngineValidationError('End time cannot be before start time', undefined, 'ERR_ENGINE_VALIDATION');
+    throw new EngineValidationError(
+      'End time cannot be before start time',
+      undefined,
+      ENGINE_ERROR_CODES.TIMELOG_INVALID_RANGE
+    );
   }
 
   if (start > nowMs) {

@@ -163,9 +163,9 @@ impl AuditSource {
             "ManualAdjustment" | AUDIT_SOURCE_MANUAL_ADJUSTMENT => {
                 Ok(AuditSource::ManualAdjustment)
             }
-            other => Err(crate::engine::EngineError::Validation(format!(
-                "Invalid audit source: '{other}'"
-            ))),
+            other => Err(crate::engine::EngineError::AuditSourceInvalid(
+                other.to_string(),
+            )),
         }
     }
 }

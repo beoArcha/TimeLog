@@ -57,11 +57,17 @@ export const I18N_KEYS = {
     StatusConnecting: 'StatusConnecting',
     StatusDaemonRunning: 'StatusDaemonRunning',
   },
+  common: {
+    ERR_AUDIT_REASON_REQUIRED: 'ERR_AUDIT_REASON_REQUIRED',
+    ERR_AUDIT_SOURCE_INVALID: 'ERR_AUDIT_SOURCE_INVALID',
+    ERR_TIMELOG_INVALID_RANGE: 'ERR_TIMELOG_INVALID_RANGE',
+  },
 } as const;
 
 export type I18nKeysContract = typeof I18N_KEYS;
 export type I18nProjectKeys = typeof I18N_KEYS.project;
 export type I18nEngineKeys = typeof I18N_KEYS.engine;
+export type I18nCommonKeys = typeof I18N_KEYS.common;
 
 export const I18N_DOMAINS = [
   'common',

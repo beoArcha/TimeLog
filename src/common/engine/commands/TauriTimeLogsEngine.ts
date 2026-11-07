@@ -23,7 +23,8 @@ export class TauriTimeLogsEngine implements ITimeLogsEngine {
         ...(auditSource ? { auditSource } : {}),
       });
     } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to edit time log via Tauri', err, 'ERR_TAURI_ENGINE_EDIT'));
+      const code = (err as { code?: string })?.code || 'ERR_TAURI_ENGINE_EDIT';
+      ErrorHandler.handle(new TauriInteropException('Failed to edit time log via Tauri', err, code));
       throw err;
     }
   }

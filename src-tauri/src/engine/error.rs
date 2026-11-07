@@ -17,6 +17,15 @@ pub enum EngineError {
     #[error("Parse time error: {0}")]
     ParseTime(String),
 
+    #[error("Audit reason is required for manual edits")]
+    AuditReasonRequired,
+
+    #[error("Invalid audit source: '{0}'")]
+    AuditSourceInvalid(String),
+
+    #[error("End time cannot be before start time")]
+    TimeLogInvalidRange,
+
     #[error("Validation error: {0}")]
     Validation(String),
 
@@ -24,10 +33,30 @@ pub enum EngineError {
     OperationFailed(String),
 }
 
+impl EngineError {
+    pub const fn code(&self) -> &'static str {
+        match self {
+            Self::AuditReasonRequired => "ERR_AUDIT_REASON_REQUIRED",
+            Self::AuditSourceInvalid(_) => "ERR_AUDIT_SOURCE_INVALID",
+            Self::TimeLogInvalidRange => "ERR_TIMELOG_INVALID_RANGE",
+            Self::NoActiveTimer => "ENG_TIMER_INACTIVE",
+            Self::ActiveTimerConflict { .. } => "ENG_TIMER_CONFLICT",
+            Self::EntityNotFound { .. } => "DOM_ENTITY_NOT_FOUND",
+            Self::ParseTime(_) => "DOM_INVALID_TIMESTAMP",
+            Self::Validation(_) => "DOM_BUSINESS_VIOLATION",
+            Self::OperationFailed(_) => "ENG_OPERATION_FAILED",
+            Self::Persistence(_) => "ENG_PERSISTENCE_ERROR",
+        }
+    }
+}
+
 impl PartialEq for EngineError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::NoActiveTimer, Self::NoActiveTimer) => true,
+            (Self::AuditReasonRequired, Self::AuditReasonRequired) => true,
+            (Self::TimeLogInvalidRange, Self::TimeLogInvalidRange) => true,
+            (Self::AuditSourceInvalid(s1), Self::AuditSourceInvalid(s2)) => s1 == s2,
             (
                 Self::ActiveTimerConflict { active_task_id: a1 },
                 Self::ActiveTimerConflict { active_task_id: a2 },

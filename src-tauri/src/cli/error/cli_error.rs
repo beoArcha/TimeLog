@@ -107,9 +107,11 @@ impl CliError {
                 EngineError::NoActiveTimer | EngineError::ActiveTimerConflict { .. } => {
                     EXIT_CODE_ENGINE_ERROR
                 }
-                EngineError::OperationFailed(_) | EngineError::Validation(_) => {
-                    EXIT_CODE_GENERIC_FAILURE
-                }
+                EngineError::OperationFailed(_)
+                | EngineError::Validation(_)
+                | EngineError::AuditReasonRequired
+                | EngineError::AuditSourceInvalid(_)
+                | EngineError::TimeLogInvalidRange => EXIT_CODE_GENERIC_FAILURE,
                 EngineError::EntityNotFound { .. } => EXIT_CODE_ENTITY_ERROR,
                 EngineError::ParseTime(_) => EXIT_CODE_CLI_SYNTAX,
                 EngineError::Persistence(_) => EXIT_CODE_STORAGE_ERROR,
@@ -157,7 +159,10 @@ impl CliError {
                 EngineError::ActiveTimerConflict { .. } => CliErrorCode::EngTimerConflict,
                 EngineError::OperationFailed(_) => CliErrorCode::EngOperationFailed,
                 EngineError::EntityNotFound { .. } => CliErrorCode::DomEntityNotFound,
-                EngineError::Validation(_) => CliErrorCode::DomBusinessViolation,
+                EngineError::Validation(_)
+                | EngineError::AuditReasonRequired
+                | EngineError::AuditSourceInvalid(_)
+                | EngineError::TimeLogInvalidRange => CliErrorCode::DomBusinessViolation,
                 EngineError::ParseTime(_) => CliErrorCode::CliSyntaxInvalidDuration,
                 EngineError::Persistence(_) => CliErrorCode::StoSqliteQuery,
             },
@@ -349,6 +354,11 @@ impl From<EngineError> for CliError {
                 })
             }
             EngineError::Validation(v) => CliError::Business(BusinessRuleViolation::Custom(v)),
+            EngineError::AuditReasonRequired
+            | EngineError::AuditSourceInvalid(_)
+            | EngineError::TimeLogInvalidRange => {
+                CliError::Business(BusinessRuleViolation::Custom(err.to_string()))
+            }
             EngineError::ParseTime(t) => CliError::Syntax(CliSyntaxError::InvalidDuration(t)),
             EngineError::OperationFailed(m) => CliError::Engine(EngineError::OperationFailed(m)),
         }

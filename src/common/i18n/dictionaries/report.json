@@ -53,7 +53,7 @@
     "ByCurrency": "By Currency",
     "BillableTime": "Billable Time",
     "Amount": "Amount",
-"AnalyticsEngine": "Analytics engine",
+    "AnalyticsEngine": "Analytics engine",
     "Print": "Print / PDF",
     "BillingCalculationError": "Failed to calculate range billing",
     "TotalPeriodValue": "TOTAL PERIOD VALUE",
@@ -75,7 +75,10 @@
     "PatchReadOnlyNotice": "Adjustment entries (patches) are read-only",
     "SearchLogsPlaceholder": "Search logs by task, project, note...",
     "StartTime": "Start Time",
-    "TimeLogAuditModalTitle": "Edit Time Log (Audit)"
+    "TimeLogAuditModalTitle": "Edit Time Log (Audit)",
+    "ERR_AUDIT_REASON_REQUIRED": "Audit reason is required for manual edits",
+    "ERR_AUDIT_SOURCE_INVALID": "Invalid audit source",
+    "ERR_TIMELOG_INVALID_RANGE": "End time cannot be before start time"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -131,7 +134,7 @@
     "ByCurrency": "Według waluty",
     "BillableTime": "Czas rozliczany",
     "Amount": "Kwota",
-"AnalyticsEngine": "Analizy Statystyczne",
+    "AnalyticsEngine": "Analizy Statystyczne",
     "Print": "Drukuj / PDF",
     "BillingCalculationError": "Nie udało się obliczyć rozliczenia okresu",
     "TotalPeriodValue": "WARTOŚĆ OKRESU",
@@ -153,7 +156,10 @@
     "PatchReadOnlyNotice": "Wpisy korygujące (łatki) są tylko do odczytu",
     "SearchLogsPlaceholder": "Szukaj logów po zadaniu, projekcie, notatce...",
     "StartTime": "Czas rozpoczęcia",
-    "TimeLogAuditModalTitle": "Edycja wpisu czasu (Audyt)"
+    "TimeLogAuditModalTitle": "Edycja wpisu czasu (Audyt)",
+    "ERR_AUDIT_REASON_REQUIRED": "Powód audytu jest wymagany przy ręcznej edycji",
+    "ERR_AUDIT_SOURCE_INVALID": "Nieprawidłowe źródło audytu",
+    "ERR_TIMELOG_INVALID_RANGE": "Czas zakończenia nie może być wcześniejszy niż czas rozpoczęcia"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -209,7 +215,7 @@
     "ByCurrency": "Nach Währung",
     "BillableTime": "Abrechenbare Zeit",
     "Amount": "Betrag",
-"AnalyticsEngine": "Analyse-Motor",
+    "AnalyticsEngine": "Analyse-Motor",
     "Print": "Drucken / PDF",
     "BillingCalculationError": "Fehler beim Berechnen der Zeitraum-Abrechnung",
     "TotalPeriodValue": "PERIODENGESAMTWERT",
@@ -231,7 +237,10 @@
     "PatchReadOnlyNotice": "Korrektureinträge (Patches) sind schreibgeschützt",
     "SearchLogsPlaceholder": "Logs nach Aufgabe, Projekt, Notiz durchsuchen...",
     "StartTime": "Startzeit",
-    "TimeLogAuditModalTitle": "Zeiteintrag bearbeiten (Audit)"
+    "TimeLogAuditModalTitle": "Zeiteintrag bearbeiten (Audit)",
+    "ERR_AUDIT_REASON_REQUIRED": "Ein Grund ist für manuelle Änderungen erforderlich",
+    "ERR_AUDIT_SOURCE_INVALID": "Ungültige Audit-Quelle",
+    "ERR_TIMELOG_INVALID_RANGE": "Endzeit kann nicht vor der Startzeit liegen"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -287,7 +296,7 @@
     "ByCurrency": "Por moneda",
     "BillableTime": "Tiempo facturable",
     "Amount": "Monto",
-"AnalyticsEngine": "Motor de análisis",
+    "AnalyticsEngine": "Motor de análisis",
     "Print": "Imprimir / PDF",
     "BillingCalculationError": "Error al calcular la facturación del período",
     "TotalPeriodValue": "VALOR TOTAL DEL PERÍODO",
@@ -309,7 +318,10 @@
     "PatchReadOnlyNotice": "Las entradas de ajuste (parches) son de solo lectura",
     "SearchLogsPlaceholder": "Buscar registros por tarea, proyecto, nota...",
     "StartTime": "Hora de inicio",
-    "TimeLogAuditModalTitle": "Editar registro de tiempo (Auditoría)"
+    "TimeLogAuditModalTitle": "Editar registro de tiempo (Auditoría)",
+    "ERR_AUDIT_REASON_REQUIRED": "El motivo de auditoría es obligatorio para ediciones manuales",
+    "ERR_AUDIT_SOURCE_INVALID": "Fuente de auditoría no válida",
+    "ERR_TIMELOG_INVALID_RANGE": "La hora de finalización no puede ser anterior a la hora de inicio"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -365,7 +377,7 @@
     "ByCurrency": "Por moeda",
     "BillableTime": "Tempo faturável",
     "Amount": "Valor",
-"AnalyticsEngine": "Motor de análise",
+    "AnalyticsEngine": "Motor de análise",
     "Print": "Imprimir / PDF",
     "BillingCalculationError": "Falha ao calcular o faturamento do período",
     "TotalPeriodValue": "VALOR TOTAL DO PERÍODO",
@@ -387,7 +399,10 @@
     "PatchReadOnlyNotice": "Entradas de ajuste (patches) são somente leitura",
     "SearchLogsPlaceholder": "Buscar registros por tarefa, projeto, nota...",
     "StartTime": "Hora de início",
-    "TimeLogAuditModalTitle": "Editar registro de tempo (Auditoria)"
+    "TimeLogAuditModalTitle": "Editar registro de tempo (Auditoria)",
+    "ERR_AUDIT_REASON_REQUIRED": "O motivo da auditoria é obrigatório para edições manuais",
+    "ERR_AUDIT_SOURCE_INVALID": "Fonte de auditoria inválida",
+    "ERR_TIMELOG_INVALID_RANGE": "O horário de término não pode ser anterior ao horário de início"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -443,7 +458,7 @@
     "ByCurrency": "Par devise",
     "BillableTime": "Temps facturable",
     "Amount": "Montant",
-"AnalyticsEngine": "Moteur d'analyse",
+    "AnalyticsEngine": "Moteur d'analyse",
     "Print": "Imprimer / PDF",
     "BillingCalculationError": "Échec du calcul de la facturation de la période",
     "TotalPeriodValue": "VALEUR TOTALE DE LA PÉRIODE",
@@ -465,7 +480,10 @@
     "PatchReadOnlyNotice": "Les entrées d'ajustement (patches) sont en lecture seule",
     "SearchLogsPlaceholder": "Rechercher les journaux par tâche, projet, note...",
     "StartTime": "Heure de début",
-    "TimeLogAuditModalTitle": "Modifier l'entrée de temps (Audit)"
+    "TimeLogAuditModalTitle": "Modifier l'entrée de temps (Audit)",
+    "ERR_AUDIT_REASON_REQUIRED": "Le motif d'audit est requis pour les modifications manuelles",
+    "ERR_AUDIT_SOURCE_INVALID": "Source d'audit invalide",
+    "ERR_TIMELOG_INVALID_RANGE": "L'heure de fin ne peut pas être antérieure à l'heure de début"
   },
   "uk": {
     "Title": "Журнал звітів",
@@ -521,7 +539,7 @@
     "EffectiveRate": "Ефективна ставка",
     "ByCurrency": "За валютою",
     "Amount": "Сума",
-"AnalyticsEngine": "Аналітичний рушій",
+    "AnalyticsEngine": "Аналітичний рушій",
     "Print": "Друк / PDF",
     "BillingCalculationError": "Не вдалося розрахувати фінансові дані за період",
     "TotalPeriodValue": "ЗАГАЛЬНА ВАРТІСТЬ ПЕРІОДУ",
@@ -543,7 +561,10 @@
     "PatchReadOnlyNotice": "Записи коригування (патчі) доступні лише для читання",
     "SearchLogsPlaceholder": "Пошук записів за завданням, проєктом, нотаткою...",
     "StartTime": "Час початку",
-    "TimeLogAuditModalTitle": "Редагування запису часу (Аудит)"
+    "TimeLogAuditModalTitle": "Редагування запису часу (Аудит)",
+    "ERR_AUDIT_REASON_REQUIRED": "Причина аудиту є обов'язковою для ручного редагування",
+    "ERR_AUDIT_SOURCE_INVALID": "Недійсне джерело аудиту",
+    "ERR_TIMELOG_INVALID_RANGE": "Час завершення не може бути раніше часу початку"
   },
   "ja": {
     "Title": "レポートログ",
@@ -599,7 +620,7 @@
     "ByCurrency": "通貨別",
     "BillableTime": "請求対象時間",
     "Amount": "金額",
-"AnalyticsEngine": "分析エンジン",
+    "AnalyticsEngine": "分析エンジン",
     "Print": "印刷 / PDF",
     "BillingCalculationError": "期間の請求額の計算に失敗しました",
     "TotalPeriodValue": "期間合計値",
@@ -621,7 +642,10 @@
     "PatchReadOnlyNotice": "調整エントリ（パッチ）は読み取り専用です",
     "SearchLogsPlaceholder": "タスク、プロジェクト、メモでログを検索...",
     "StartTime": "開始時間",
-    "TimeLogAuditModalTitle": "時間ログの編集（監査）"
+    "TimeLogAuditModalTitle": "時間ログの編集（監査）",
+    "ERR_AUDIT_REASON_REQUIRED": "手動編集には監査理由が必要です",
+    "ERR_AUDIT_SOURCE_INVALID": "無効な監査ソースです",
+    "ERR_TIMELOG_INVALID_RANGE": "終了時刻を開始時刻より前に設定することはできません"
   },
   "nl": {
     "Title": "Rapportagelogs",
@@ -677,7 +701,7 @@
     "ByCurrency": "Per valuta",
     "BillableTime": "Facturabele tijd",
     "Amount": "Bedrag",
-"AnalyticsEngine": "Analytics-engine",
+    "AnalyticsEngine": "Analytics-engine",
     "Print": "Afdrukken / PDF",
     "BillingCalculationError": "Kan periodefacturering niet berekenen",
     "TotalPeriodValue": "TOTALE PERIODIEKE WAARDE",
@@ -699,7 +723,10 @@
     "PatchReadOnlyNotice": "Correctie-invoeren (patches) zijn alleen-lezen",
     "SearchLogsPlaceholder": "Zoek logs op taak, project, notitie...",
     "StartTime": "Starttijd",
-    "TimeLogAuditModalTitle": "Tijdlog bewerken (Audit)"
+    "TimeLogAuditModalTitle": "Tijdlog bewerken (Audit)",
+    "ERR_AUDIT_REASON_REQUIRED": "Auditreden is vereist voor handmatige bewerkingen",
+    "ERR_AUDIT_SOURCE_INVALID": "Ongeldige auditbron",
+    "ERR_TIMELOG_INVALID_RANGE": "Eindtijd kan niet vóór de starttijd liggen"
   },
   "it": {
     "Title": "Rapporti e Registri",
@@ -755,7 +782,7 @@
     "ByCurrency": "Per valuta",
     "BillableTime": "Tempo fatturabile",
     "Amount": "Importo",
-"AnalyticsEngine": "Motore di analisi",
+    "AnalyticsEngine": "Motore di analisi",
     "Print": "Stampa / PDF",
     "BillingCalculationError": "Impossibile calcolare la fatturazione per il periodo",
     "TotalPeriodValue": "VALORE TOTALE DEL PERIODO",
@@ -777,6 +804,9 @@
     "PatchReadOnlyNotice": "Le voci di correzione (patch) sono di sola lettura",
     "SearchLogsPlaceholder": "Cerca registri per attività, progetto, nota...",
     "StartTime": "Ora di inizio",
-    "TimeLogAuditModalTitle": "Modifica registro di tempo (Audit)"
+    "TimeLogAuditModalTitle": "Modifica registro di tempo (Audit)",
+    "ERR_AUDIT_REASON_REQUIRED": "Il motivo di controllo è obbligatorio per le modifiche manuali",
+    "ERR_AUDIT_SOURCE_INVALID": "Sorgente di controllo non valida",
+    "ERR_TIMELOG_INVALID_RANGE": "L'ora di fine non può essere precedente all'ora di inizio"
   }
 }

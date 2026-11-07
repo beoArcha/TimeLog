@@ -69,9 +69,7 @@ impl<'a> Engine<'a> {
         let trimmed_reason = input.reason.map(|r| r.trim()).filter(|r| !r.is_empty());
 
         if resolved_source.requires_reason() && trimmed_reason.is_none() {
-            return Err(EngineError::Validation(
-                "Audit reason is required for manual edits".to_string(),
-            ));
+            return Err(EngineError::AuditReasonRequired);
         }
 
         let prev_start = if current_log.start_time != input.start_time {
