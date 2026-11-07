@@ -62,7 +62,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
     const link = document.createElement("a");
     link.href = url;
     const sanitizedTitle = payload.title.replace(/[^a-zA-Z0-9_-]/g, "_");
-    link.download = `${sanitizedTitle || "report"}_${new Date().toISOString().split("T")[0]}.${exporter.fileExtension}`;
+    link.download = `${sanitizedTitle || "report"}_${new Date().toISOString().split("T")[0]}.${exporter.extension || exporter.fileExtension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -82,12 +82,19 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
   const isMarkdown =
     selectedExporter instanceof MarkdownClipboardExporterPlugin;
 
-  const getFormatIcon = (id: string) => {
-    if (id.includes("csv"))
+  const getFormatIcon = (iconKey?: string, id?: string) => {
+    const key = (iconKey || id || "").toLowerCase();
+    if (key.includes("csv"))
       return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
-    if (id.includes("json"))
+    if (key.includes("xlsx"))
+      return <FileSpreadsheet className="w-5 h-5 text-green-600" />;
+    if (key.includes("ods"))
+      return <FileSpreadsheet className="w-5 h-5 text-teal-500" />;
+    if (key.includes("html"))
+      return <FileCode className="w-5 h-5 text-orange-500" />;
+    if (key.includes("json"))
       return <FileCode className="w-5 h-5 text-amber-500" />;
-    if (id.includes("xml"))
+    if (key.includes("xml"))
       return <FileCode className="w-5 h-5 text-purple-500" />;
     return <FileText className="w-5 h-5 text-sky-500" />;
   };
@@ -145,13 +152,13 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                     className="w-full justify-between h-auto py-2.5 px-3.5 rounded-xl border transition-all text-left"
                   >
                     <span className="flex items-center gap-3">
-                      {getFormatIcon(exp.id)}
+                      {getFormatIcon(exp.iconKey, exp.id)}
                       <span className="block">
                         <Caption as="span" className="block font-semibold">
                           {exp.name}
                         </Caption>
                         <Caption as="span" size="2xs" className="block opacity-75 font-mono">
-                          .{exp.fileExtension}
+                          .{exp.extension || exp.fileExtension}
                         </Caption>
                       </span>
                     </span>

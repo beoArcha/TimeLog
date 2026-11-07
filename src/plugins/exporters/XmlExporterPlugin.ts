@@ -85,8 +85,10 @@ export function createXmlBlock(
 export class XmlExporterPlugin implements IExporterPlugin {
   readonly id = 'xml-exporter';
   readonly name = 'XML';
+  readonly extension = 'xml';
   readonly fileExtension = 'xml';
   readonly mimeType = 'application/xml;charset=utf-8;';
+  readonly iconKey = 'xml';
 
   async export(payload: ExportPayload): Promise<Blob> {
     const metadata = createXmlBlock(

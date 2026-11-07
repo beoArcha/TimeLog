@@ -19,8 +19,10 @@ function escapeCsvValue(val: unknown): string {
 export class CsvExporterPlugin implements IExporterPlugin {
   readonly id = 'csv-exporter';
   readonly name = 'CSV (RFC 4180)';
+  readonly extension = 'csv';
   readonly fileExtension = 'csv';
   readonly mimeType = 'text/csv;charset=utf-8;';
+  readonly iconKey = 'csv';
 
   async export(payload: ExportPayload): Promise<Blob> {
     const headers = [

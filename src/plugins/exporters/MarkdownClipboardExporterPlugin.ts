@@ -7,8 +7,10 @@ import { ExportPayload, IExporterPlugin } from '../contracts/IExporterPlugin';
 export class MarkdownClipboardExporterPlugin implements IExporterPlugin {
   readonly id = 'markdown-exporter';
   readonly name = 'Markdown (Table & Summary)';
+  readonly extension = 'md';
   readonly fileExtension = 'md';
   readonly mimeType = 'text/markdown;charset=utf-8;';
+  readonly iconKey = 'markdown';
 
   async export(payload: ExportPayload): Promise<string> {
     const lines: string[] = [];

@@ -26,11 +26,22 @@ export interface ExportPayload {
   projectBreakdown?: ExportProjectBreakdown[];
 }
 
+export type ExporterIconKey =
+  | 'csv'
+  | 'html'
+  | 'json'
+  | 'xml'
+  | 'ods'
+  | 'xlsx'
+  | 'markdown';
+
 export interface IExporterPlugin {
   readonly id: string;
   readonly name: string;
+  readonly extension: string;
   readonly fileExtension: string;
   readonly mimeType: string;
+  readonly iconKey: ExporterIconKey | string;
   export(payload: ExportPayload): Promise<Blob | string>;
 }
 

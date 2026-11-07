@@ -47,7 +47,11 @@ describe('ReportExportModal', () => {
     expect(screen.getByTestId('report-export-modal')).toBeTruthy();
     expect(screen.getByText(/01:00:00/)).toBeTruthy();
     expect(screen.getByTestId('export-format-csv-exporter')).toBeTruthy();
+    expect(screen.getByTestId('export-format-html-exporter')).toBeTruthy();
     expect(screen.getByTestId('export-format-json-exporter')).toBeTruthy();
+    expect(screen.getByTestId('export-format-xml-exporter')).toBeTruthy();
+    expect(screen.getByTestId('export-format-ods-exporter')).toBeTruthy();
+    expect(screen.getByTestId('export-format-xlsx-exporter')).toBeTruthy();
     expect(screen.getByTestId('export-format-markdown-exporter')).toBeTruthy();
   });
 
@@ -68,6 +72,55 @@ describe('ReportExportModal', () => {
 
     // Assert
     expect(within(jsonBtn).getByText('Active')).toBeTruthy();
+  });
+
+  it('should switch format to XLSX and trigger download with .xlsx extension', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const createObjectURLMock = vi.fn().mockReturnValue('blob:test-xlsx-url');
+    const revokeObjectURLMock = vi.fn();
+    window.URL.createObjectURL = createObjectURLMock;
+    window.URL.revokeObjectURL = revokeObjectURLMock;
+
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
+
+    // Act
+    const xlsxBtn = screen.getByTestId('export-format-xlsx-exporter');
+    await user.click(xlsxBtn);
+    expect(within(xlsxBtn).getByText('Active')).toBeTruthy();
+
+    const downloadBtn = screen.getByTestId('export-download-button');
+    await user.click(downloadBtn);
+
+    // Assert
+    await waitFor(() => {
+      expect(createObjectURLMock).toHaveBeenCalled();
+    });
+  });
+
+  it('should switch format to ODS and HTML correctly', async () => {
+    const user = userEvent.setup();
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
+
+    const odsBtn = screen.getByTestId('export-format-ods-exporter');
+    await user.click(odsBtn);
+    expect(within(odsBtn).getByText('Active')).toBeTruthy();
+
+    const htmlBtn = screen.getByTestId('export-format-html-exporter');
+    await user.click(htmlBtn);
+    expect(within(htmlBtn).getByText('Active')).toBeTruthy();
   });
 
   it('should trigger file download when Download button is clicked', async () => {
