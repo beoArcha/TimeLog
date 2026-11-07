@@ -195,8 +195,9 @@ fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_
 
     let content = fs::read_to_string(&output_file).expect("failed to read exported XML");
     assert!(content.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+    assert!(content.contains("<report schemaVersion=\"1\">"));
     assert!(content.contains("<name>Export System</name>"));
-    assert!(content.contains("<total_seconds>7200</total_seconds>"));
+    assert!(content.contains("<totalSeconds>7200</totalSeconds>"));
 
     let _ = fs::remove_file(output_file);
 }

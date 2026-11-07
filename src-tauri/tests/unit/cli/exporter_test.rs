@@ -189,9 +189,15 @@ fn test_given_tree_when_export_xml_then_produces_well_formed_xml() {
 
     // Assert
     assert!(xml.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+    assert!(xml.contains("<report schemaVersion=\"1\">"));
+    assert!(xml.contains("<metadata>"));
     assert!(xml.contains("<period>Today</period>"));
-    assert!(xml.contains("<total_seconds>3600</total_seconds>"));
+    assert!(xml.contains("<summary>"));
+    assert!(xml.contains("<totalSeconds>3600</totalSeconds>"));
+    assert!(xml.contains("<formattedTotalDuration>01h 00m</formattedTotalDuration>"));
+    assert!(xml.contains("<projects>"));
     assert!(xml.contains("<name>Database Setup</name>"));
+    assert!(xml.contains("<entries/>"));
 }
 
 #[test]
