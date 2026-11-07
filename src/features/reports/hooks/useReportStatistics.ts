@@ -15,9 +15,12 @@ export interface ExtendedReportStatisticsResult extends ReportStatisticsResult {
   isBillingLoading: boolean;
 }
 
-export function useReportStatistics(
-  props: UseReportStatisticsProps & { selectedProjectId?: string | null }
-): ExtendedReportStatisticsResult {
+export interface ReportStatisticsHookProps extends UseReportStatisticsProps {
+  selectedProjectId?: string | null;
+  selectedTags?: string[];
+}
+
+export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedReportStatisticsResult {
   const {
     logs,
     patches,
@@ -30,17 +33,54 @@ export function useReportStatistics(
     customFrom,
     customTo,
     selectedProjectId,
+    selectedTags,
   } = props;
 
   const { t } = useTranslation('report');
 
+  const hasTagFilter = Boolean(selectedTags && selectedTags.length > 0);
+
+  const effectiveProjects = useMemo(() => {
+    if (!hasTagFilter || !selectedTags) return projects;
+    return projects.filter(
+      (p) => Array.isArray(p.tags) && p.tags.some((t) => selectedTags.includes(t))
+    );
+  }, [projects, selectedTags, hasTagFilter]);
+
+  const effectiveProjectIds = useMemo(() => {
+    return new Set(effectiveProjects.map((p) => p.id));
+  }, [effectiveProjects]);
+
+  const effectiveTasks = useMemo(() => {
+    if (!hasTagFilter) return tasks;
+    return tasks.filter((t) => effectiveProjectIds.has(t.projectId));
+  }, [tasks, effectiveProjectIds, hasTagFilter]);
+
+  const taskMap = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks]);
+
+  const effectiveLogs = useMemo(() => {
+    if (!hasTagFilter) return logs;
+    return logs.filter((l) => {
+      const projId = taskMap.get(l.taskId)?.projectId ?? l.projectId;
+      return effectiveProjectIds.has(projId);
+    });
+  }, [logs, taskMap, effectiveProjectIds, hasTagFilter]);
+
+  const effectivePatches = useMemo(() => {
+    if (!hasTagFilter) return patches;
+    return patches.filter((p) => {
+      const projId = (p.taskId ? taskMap.get(p.taskId)?.projectId : undefined) ?? p.projectId;
+      return effectiveProjectIds.has(projId);
+    });
+  }, [patches, taskMap, effectiveProjectIds, hasTagFilter]);
+
   const baseStats = useMemo(
     () =>
       calculateReportStatistics({
-        logs,
-        patches,
-        projects,
-        tasks,
+        logs: effectiveLogs,
+        patches: effectivePatches,
+        projects: effectiveProjects,
+        tasks: effectiveTasks,
         nowIso,
         reportPeriod,
         reportSort,
@@ -50,10 +90,10 @@ export function useReportStatistics(
         selectedProjectId,
       }),
     [
-      logs,
-      patches,
-      projects,
-      tasks,
+      effectiveLogs,
+      effectivePatches,
+      effectiveProjects,
+      effectiveTasks,
       nowIso,
       reportPeriod,
       reportSort,
@@ -90,6 +130,9 @@ export function useReportStatistics(
 
         if (selectedProjectId) {
           filter.projectId = selectedProjectId;
+        }
+        if (hasTagFilter) {
+          filter.projectIds = Array.from(effectiveProjectIds);
         }
         filterContext = filter;
 
@@ -143,7 +186,17 @@ export function useReportStatistics(
     return () => {
       isCancelled = true;
     };
-  }, [reportPeriod, customFrom, customTo, nowIso, selectedProjectId, includePatches, t]);
+  }, [
+    reportPeriod,
+    customFrom,
+    customTo,
+    nowIso,
+    selectedProjectId,
+    hasTagFilter,
+    effectiveProjectIds,
+    includePatches,
+    t,
+  ]);
 
   return {
     ...baseStats,

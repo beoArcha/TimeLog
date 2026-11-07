@@ -95,7 +95,8 @@ pub const SELECT_TIME_LOGS_BY_TASK: &str = "
                     'prevStartTime', h.prev_start_time,
                     'prevEndTime', h.prev_end_time,
                     'prevNote', h.prev_note,
-                    'reason', h.reason
+                    'reason', h.reason,
+                    'auditSource', h.audit_source
                 )
             )
             FROM time_logs_history h
@@ -122,7 +123,8 @@ pub const SELECT_TIME_LOG_BY_ID: &str = "
                     'prevStartTime', h.prev_start_time,
                     'prevEndTime', h.prev_end_time,
                     'prevNote', h.prev_note,
-                    'reason', h.reason
+                    'reason', h.reason,
+                    'auditSource', h.audit_source
                 )
             )
             FROM time_logs_history h
@@ -141,8 +143,8 @@ pub const UPDATE_TIME_LOG: &str = "
 ";
 
 pub const INSERT_TIME_LOG_HISTORY: &str = "
-    INSERT INTO time_logs_history (id, time_log_id, edited_at, prev_start_time, prev_end_time, prev_note, reason)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+    INSERT INTO time_logs_history (id, time_log_id, edited_at, prev_start_time, prev_end_time, prev_note, reason, audit_source)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
 ";
 
 pub const SELECT_PROJECT_ID_BY_TASK_ID: &str = "
@@ -280,7 +282,8 @@ pub const SELECT_ALL_TIME_LOGS: &str = "
                     'prevStartTime', h.prev_start_time,
                     'prevEndTime', h.prev_end_time,
                     'prevNote', h.prev_note,
-                    'reason', h.reason
+                    'reason', h.reason,
+                    'auditSource', h.audit_source
                 )
             )
             FROM time_logs_history h

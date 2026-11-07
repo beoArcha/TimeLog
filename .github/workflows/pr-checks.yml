@@ -226,9 +226,30 @@ jobs:
         shell: bash
         run: bun run test:smoke
 
-      - name: Install Playwright Browsers and Dependencies
+      - name: Install Playwright Chromium System Dependencies
         shell: bash
-        run: bun x playwright install --with-deps chrome chromium
+        run: bun x playwright install-deps chromium
+
+      - name: Install Playwright Chromium
+        shell: bash
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000
+        run: |
+          for attempt in 1 2 3; do
+            echo "Chromium download attempt: $attempt/3"
+
+            if bun x playwright install chromium; then
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::Chromium download failed; retrying in $((attempt * 10)) seconds."
+              sleep "$((attempt * 10))"
+            fi
+          done
+
+          echo "::error::Failed to install Playwright Chromium after 3 attempts."
+          exit 1
 
       - name: Run Reports Print E2E Spec
         shell: bash

@@ -281,6 +281,8 @@ describe('Unit Tests: EnginePlugin (Browser/Local)', () => {
       expect(updatedLog.note).toBe('updated note');
       expect(updatedLog.editHistory).toHaveLength(1);
       expect(updatedLog.editHistory![0].prevNote).toBe('original note');
+      expect(updatedLog.editHistory![0].reason).toBe('time correction');
+      expect(updatedLog.editHistory![0].auditSource).toBe('GUI Edit');
     });
 
     it('Given edited log is the activeLog, Then it should also update activeLog in state', async () => {

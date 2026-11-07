@@ -69,32 +69,32 @@ describe('Unit Tests: Composite Components', () => {
       expect(onConfirm).toHaveBeenCalled();
     });
 
-    it('should keep the dialog open and show an error when async confirmation rejects', async () => {
+    it('should keep the dialog open and show safe error when async confirmation rejects', async () => {
       // Arrange
       const onOpenChange = vi.fn();
-      const onConfirm = vi.fn().mockRejectedValue(new Error('Unable to save prompt'));
+      const onConfirm = vi.fn().mockRejectedValue(new Error('Async error'));
       vi.spyOn(console, 'error').mockImplementation(() => {});
       render(
-        <PromptDialog
+        <ConfirmDialog
           open={true}
           onOpenChange={onOpenChange}
-          title="Save Prompt"
+          title="Delete Confirmation"
           onConfirm={onConfirm}
         />
       );
 
       // Act
-      fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+      fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByRole('alert').textContent).toBe('Unable to save prompt');
+        expect(screen.getByRole('alert').textContent).toBe('Error');
       });
       expect(onOpenChange).not.toHaveBeenCalledWith(false);
-      expect(screen.getByTestId('prompt-dialog-confirm-btn').getAttribute('aria-busy')).toBe('false');
+      expect(screen.getByTestId('confirm-dialog-confirm-btn').getAttribute('aria-busy')).toBe('false');
     });
 
-    it('should keep the dialog open and show an error when confirmation throws synchronously', async () => {
+    it('should keep the dialog open and show safe error when confirmation throws synchronously', async () => {
       // Arrange
       const onOpenChange = vi.fn();
       const onConfirm = vi.fn(() => {
@@ -102,20 +102,20 @@ describe('Unit Tests: Composite Components', () => {
       });
       vi.spyOn(console, 'error').mockImplementation(() => {});
       render(
-        <PromptDialog
+        <ConfirmDialog
           open={true}
           onOpenChange={onOpenChange}
-          title="Save Prompt"
+          title="Delete Confirmation"
           onConfirm={onConfirm}
         />
       );
 
       // Act
-      fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+      fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByRole('alert').textContent).toBe('Synchronous failure');
+        expect(screen.getByRole('alert').textContent).toBe('Error');
       });
       expect(onOpenChange).not.toHaveBeenCalledWith(false);
     });
@@ -243,6 +243,57 @@ describe('Unit Tests: Composite Components', () => {
 
       // Assert error cleared
       expect(screen.queryByRole('alert')).toBeNull();
+    });
+
+    it('should keep the dialog open and show an error when async confirmation rejects', async () => {
+      // Arrange
+      const onOpenChange = vi.fn();
+      const onConfirm = vi.fn().mockRejectedValue(new Error('Unable to save prompt'));
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <PromptDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Save Prompt"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toBe('Unable to save prompt');
+      });
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+      expect(screen.getByTestId('prompt-dialog-confirm-btn').getAttribute('aria-busy')).toBe('false');
+    });
+
+    it('should keep the dialog open and show an error when confirmation throws synchronously', async () => {
+      // Arrange
+      const onOpenChange = vi.fn();
+      const onConfirm = vi.fn(() => {
+        throw new Error('Synchronous failure');
+      });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <PromptDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Save Prompt"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toBe('Synchronous failure');
+      });
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
     });
   });
 

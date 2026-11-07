@@ -379,4 +379,177 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       expect(active).not.toContain(t1.id);
     });
   });
+
+  describe('Given project_ids filter across runtimes', () => {
+    beforeEach(async () => {
+      setupLocalStorageMock();
+      const persistence = new PersistencePlugin();
+      PersistenceRouter.getInstance().setImplementationForTesting(persistence);
+    });
+
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    it('Given time logs and patches across multiple projects, When filtered by projectIds, Then Browser and Desktop parity holds', async () => {
+      // Given
+      const persistence = PersistenceRouter.getInstance();
+      await persistence.core.overrideState({
+        projects: [
+          { id: 'p_inc', name: 'Included Project', color: 'green', createdAt: '2026-06-15T00:00:00Z', archived: false },
+          { id: 'p_exc', name: 'Excluded Project', color: 'red', createdAt: '2026-06-15T00:00:00Z', archived: false },
+        ],
+        tasks: [
+          { id: 't_inc', projectId: 'p_inc', name: 'Task Inc', createdAt: '2026-06-15T00:00:00Z', completed: false, status: 'Todo' },
+          { id: 't_exc', projectId: 'p_exc', name: 'Task Exc', createdAt: '2026-06-15T00:00:00Z', completed: false, status: 'Todo' },
+        ],
+        logs: [
+          { id: 'l_inc', projectId: 'p_inc', taskId: 't_inc', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
+          { id: 'l_exc', projectId: 'p_exc', taskId: 't_exc', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
+        ],
+        activeLog: null,
+      });
+
+      await persistence.patches.save([
+        {
+          id: 'patch_inc',
+          projectId: 'p_inc',
+          taskId: 't_inc',
+          startTime: '2026-06-15T11:00:00Z',
+          endTime: '2026-06-15T12:00:00Z',
+          patchNote: 'Included adjustment',
+          isSystemEvent: false,
+        },
+        {
+          id: 'patch_exc',
+          projectId: 'p_exc',
+          taskId: 't_exc',
+          startTime: '2026-06-15T11:00:00Z',
+          endTime: '2026-06-15T12:00:00Z',
+          patchNote: 'Excluded adjustment',
+          isSystemEvent: false,
+        },
+      ]);
+
+      const filterIncluded = {
+        projectIds: ['p_inc'],
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+        includePatches: true,
+      };
+
+      const browserEngine = new EnginePlugin();
+
+      // When
+      const browserMetrics = await browserEngine.metrics.getRangeMetrics(filterIncluded);
+
+      // Then
+      expect(browserMetrics.totalSeconds).toBe(7200);
+      expect(browserMetrics.clampedLogs).toHaveLength(2);
+      expect(browserMetrics.projectElapsed['p_inc']).toBe(7200);
+      expect(browserMetrics.projectElapsed['p_exc']).toBeUndefined();
+      expect(browserMetrics.clampedLogs.every((l) => l.projectId === 'p_inc')).toBe(true);
+
+      // When filtered with empty projectIds
+      const filterEmpty = {
+        projectIds: [],
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+        includePatches: true,
+      };
+
+      const emptyMetrics = await browserEngine.metrics.getRangeMetrics(filterEmpty);
+
+      // Then empty projectIds excludes all logs and patches
+      expect(emptyMetrics.totalSeconds).toBe(0);
+      expect(emptyMetrics.clampedLogs).toHaveLength(0);
+      expect(Object.keys(emptyMetrics.projectElapsed)).toHaveLength(0);
+      expect(Object.keys(emptyMetrics.taskElapsed)).toHaveLength(0);
+    });
+    it('Given a task moved between projects, When querying range metrics and billing in browser runtime, Then metrics and billing attribute to destination project', async () => {
+      // Arrange
+      setupLocalStorageMock();
+      const persistence = new PersistencePlugin();
+      PersistenceRouter.getInstance().setImplementationForTesting(persistence);
+
+      await persistence.core.overrideState({
+        projects: [
+          {
+            id: 'p_source',
+            name: 'Source Project',
+            color: 'red',
+            createdAt: '2026-06-15T00:00:00Z',
+            archived: false,
+            hourlyRate: '50.00',
+            currency: 'USD',
+          },
+          {
+            id: 'p_target',
+            name: 'Target Project',
+            color: 'green',
+            createdAt: '2026-06-15T00:00:00Z',
+            archived: false,
+            hourlyRate: '100.00',
+            currency: 'EUR',
+          },
+        ],
+        tasks: [
+          {
+            id: 't_migrated',
+            projectId: 'p_target',
+            name: 'Migrated Task',
+            createdAt: '2026-06-15T00:00:00Z',
+            completed: false,
+            status: 'Todo',
+          },
+        ],
+        logs: [
+          {
+            id: 'l_old',
+            projectId: 'p_source',
+            taskId: 't_migrated',
+            startTime: '2026-06-15T10:00:00Z',
+            endTime: '2026-06-15T11:00:00Z',
+          },
+        ],
+        activeLog: null,
+      });
+
+      const browserEngine = new EnginePlugin();
+
+      // Act: query metrics for p_target
+      const targetMetrics = await browserEngine.metrics.getRangeMetrics({
+        projectId: 'p_target',
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+      });
+
+      // Assert
+      expect(targetMetrics.totalSeconds).toBe(3600);
+      expect(targetMetrics.clampedLogs).toHaveLength(1);
+      expect(targetMetrics.clampedLogs[0].projectId).toBe('p_target');
+      expect(targetMetrics.projectElapsed['p_target']).toBe(3600);
+      expect(targetMetrics.projectElapsed['p_source']).toBeUndefined();
+
+      // Act: query metrics for p_source
+      const sourceMetrics = await browserEngine.metrics.getRangeMetrics({
+        projectId: 'p_source',
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+      });
+      expect(sourceMetrics.totalSeconds).toBe(0);
+      expect(sourceMetrics.clampedLogs).toHaveLength(0);
+
+      // Act: calculate billing
+      const billing = await browserEngine.billing.calculateRangeBilling({
+        from: '2026-06-15T00:00:00Z',
+        to: '2026-06-15T23:59:59Z',
+      });
+
+      expect(billing.totalBillableSeconds).toBe(3600);
+      expect(billing.byCurrency['EUR']).toBeDefined();
+      expect(billing.byCurrency['USD']).toBeUndefined();
+      expect(billing.byCurrency['EUR'].totalAmount).toBe('100.00');
+    });
+  });
 });

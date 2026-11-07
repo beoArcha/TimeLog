@@ -61,6 +61,7 @@ fn test_business_repository_override_state_full_hierarchy() {
             prev_end_time: Some("2026-06-23T10:30:00Z".to_string()),
             prev_note: None,
             reason: Some("Adjusted minutes".to_string()),
+            audit_source: Some("GUI Edit".to_string()),
         }])
         .build()];
 

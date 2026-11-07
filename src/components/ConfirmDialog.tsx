@@ -84,13 +84,7 @@ export function ConfirmDialog({
     onOpenChange?.(nextOpen);
   };
 
-  const extractErrorMessage = (error: unknown): string => {
-    if (error instanceof Error) {
-      return error.message;
-    }
-    if (typeof error === 'string') {
-      return error;
-    }
+  const extractErrorMessage = (_error: unknown): string => {
     return translate(locale, 'common', 'ErrGeneric', customTranslations);
   };
 
@@ -105,7 +99,7 @@ export function ConfirmDialog({
             onOpenChange?.(false);
           })
           .catch((error) => {
-            console.error('Failed to execute confirm action in ConfirmDialog:', error);
+            console.error('[ConfirmDialog] Confirm action failed:', error);
             setInternalError(extractErrorMessage(error));
           })
           .finally(() => {
@@ -116,7 +110,7 @@ export function ConfirmDialog({
         onOpenChange?.(false);
       }
     } catch (error) {
-      console.error('Failed to execute confirm action in ConfirmDialog:', error);
+      console.error('[ConfirmDialog] Confirm action failed:', error);
       setInternalError(extractErrorMessage(error));
     }
   };

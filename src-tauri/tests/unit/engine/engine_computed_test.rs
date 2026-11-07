@@ -128,6 +128,7 @@ fn test_engine_metrics_leap_year_boundary() {
         to: Some("2024-03-01T00:00:00Z".to_string()),
         task_id: Some("t_leap".to_string()),
         project_id: None,
+        project_ids: None,
         include_patches: None,
     };
     let leap_day_secs = engine.calculate_elapsed_range(&filter).unwrap().as_secs();

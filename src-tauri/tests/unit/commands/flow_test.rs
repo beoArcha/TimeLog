@@ -140,6 +140,7 @@ fn test_engine_timer_stop_and_log_editing() {
             "2025-01-01T10:00:00Z",
             Some("2025-01-01T11:00:00Z"),
             Some("Edited Note"),
+            Some("Manual correction"),
             Some(AuditSource::ManualAdjustment),
         )
         .unwrap();
@@ -148,6 +149,13 @@ fn test_engine_timer_stop_and_log_editing() {
     // Assert
     assert_eq!(edited.note.as_deref(), Some("Edited Note"));
     assert_eq!(engine.get_active_logs().unwrap().len(), 0);
+    let history = edited.edit_history.unwrap();
+    assert_eq!(history.len(), 1);
+    assert_eq!(history[0].reason.as_deref(), Some("Manual correction"));
+    assert_eq!(
+        history[0].audit_source.as_deref(),
+        Some("Manual Adjustment")
+    );
 }
 
 #[test]
