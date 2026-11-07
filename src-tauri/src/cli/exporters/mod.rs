@@ -24,6 +24,10 @@ use crate::cli::formatters::ReportTreeDto;
 use crate::cli::parser::ExportFormat;
 use std::path::Path;
 
+pub(crate) fn sink_io_error(context: &str, error: impl std::fmt::Display) -> CliError {
+    CliError::Sink(SinkError::Io(format!("{}: {}", context, error)))
+}
+
 pub fn export_to_file(
     tree: &ReportTreeDto,
     format: ExportFormat,
@@ -40,12 +44,20 @@ pub fn export_to_file(
 
     if let Some(parent) = Path::new(output_path).parent() {
         if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| CliError::Sink(SinkError::Io(e.to_string())))?;
+            std::fs::create_dir_all(parent).map_err(|e| {
+                sink_io_error(
+                    &format!("Failed to create parent directories for {}", output_path),
+                    e,
+                )
+            })?;
         }
     }
 
-    std::fs::write(output_path, &bytes)
-        .map_err(|e| CliError::Sink(SinkError::Io(e.to_string())))?;
+    std::fs::write(output_path, &bytes).map_err(|e| {
+        sink_io_error(
+            &format!("Failed to write export file to {}", output_path),
+            e,
+        )
+    })?;
     Ok(())
 }

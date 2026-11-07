@@ -9,12 +9,6 @@ pub const REPORT_COLUMN_HEADERS: [&str; 6] = [
 pub const REPORT_WORKSHEET_NAME: &str = "Work Report";
 pub const REPORT_TOTAL_LABEL: &str = "Total";
 
-pub const CSV_HEADER_REPORT: &str =
-    "Project,Task,Subtask,Duration_Seconds,Duration_Formatted,Percentage";
-
-pub const FORMAT_CSV_ROW: &str = "\"{}\",\"{}\",\"{}\",{},\"{}\",{:.1}\n";
-pub const FORMAT_CSV_ROW_NO_SUBTASK: &str = "\"{}\",\"{}\",\"\",{},\"{}\",{:.1}\n";
-
 pub const MSG_EXPORT_SUCCESS: &str = "Exported report to '{}' ({})";
 pub const MSG_NO_REPORT_DATA: &str = "No time logs recorded for the selected period.";
 pub const ERR_UNSUPPORTED_FORMAT: &str =

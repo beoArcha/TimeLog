@@ -1,10 +1,11 @@
 use oxyflow_timelog::cli::error::{
-    BusinessRuleViolation, CliErrorCode, CliErrorEnvelope, CliSyntaxError,
+    BusinessRuleViolation, CliErrorCode, CliErrorEnvelope, CliSyntaxError, SinkError,
 };
 use oxyflow_timelog::cli::resolver::{EntityType, ResolveError};
 use oxyflow_timelog::cli::shared::constants::{
     EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENGINE_ERROR, EXIT_CODE_ENTITY_ERROR,
-    EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR,
+    EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR, MSG_ERR_REMEDIATION_SERIALIZATION,
+    MSG_ERR_REMEDIATION_SINK,
 };
 use oxyflow_timelog::cli::CliError;
 use oxyflow_timelog::engine::EngineError;
@@ -212,6 +213,7 @@ fn test_given_cli_error_codes_when_category_inspected_then_matches_namespace() {
     assert_eq!(CliErrorCode::EngOperationFailed.category(), "engine");
     assert_eq!(CliErrorCode::DomBusinessViolation.category(), "business");
     assert_eq!(CliErrorCode::SnkExternalIo.category(), "sink");
+    assert_eq!(CliErrorCode::SnkSerialization.category(), "sink");
     assert_eq!(CliErrorCode::MskAliasNotFound.category(), "mask");
     assert_eq!(CliErrorCode::MskAliasSyntax.category(), "mask");
 }
@@ -413,4 +415,62 @@ fn test_given_sqlite_storage_failure_during_locale_resolution_when_building_enve
     let envelope = build_error_envelope(&primary_error, true, Some(&persistence));
     assert_eq!(envelope.code, "CLI_SYNTAX_EMPTY_ID");
     assert_eq!(envelope.exit_code, 2);
+}
+
+#[test]
+fn test_given_sink_io_error_when_converting_to_envelope_then_maps_to_snk_external_io_and_exit_code_1(
+) {
+    // Arrange
+    let error = CliError::Sink(SinkError::Io("Permission denied (os error 13)".to_string()));
+
+    // Act
+    let envelope = error.to_envelope(None);
+
+    // Assert
+    assert_eq!(envelope.code, "SNK_EXTERNAL_IO");
+    assert_eq!(envelope.category, "sink");
+    assert_eq!(envelope.exit_code, EXIT_CODE_GENERIC_FAILURE);
+    assert_eq!(envelope.exit_code, 1);
+    assert_eq!(
+        envelope.technical,
+        "Sink I/O error: Permission denied (os error 13)"
+    );
+    let user_msg = envelope.user.expect("expected user message in envelope");
+    assert_eq!(user_msg.locale, "en");
+    assert_eq!(
+        user_msg.remediation.as_deref(),
+        Some(MSG_ERR_REMEDIATION_SINK)
+    );
+}
+
+#[test]
+fn test_given_sink_serialization_error_when_converting_to_envelope_then_maps_to_snk_serialization_and_exit_code_1(
+) {
+    // Arrange
+    let error = CliError::Sink(SinkError::Serialization(
+        "Invalid UTF-8 payload".to_string(),
+    ));
+
+    // Act
+    let envelope = error.to_envelope(None);
+
+    // Assert
+    assert_eq!(envelope.code, "SNK_SERIALIZATION");
+    assert_eq!(envelope.category, "sink");
+    assert_eq!(envelope.exit_code, EXIT_CODE_GENERIC_FAILURE);
+    assert_eq!(envelope.exit_code, 1);
+    assert_eq!(
+        envelope.technical,
+        "Sink serialization error: Invalid UTF-8 payload"
+    );
+    let user_msg = envelope.user.expect("expected user message in envelope");
+    assert_eq!(user_msg.locale, "en");
+    assert_eq!(
+        user_msg.remediation.as_deref(),
+        Some(MSG_ERR_REMEDIATION_SERIALIZATION)
+    );
+    assert_ne!(
+        user_msg.remediation.as_deref(),
+        Some(MSG_ERR_REMEDIATION_SINK)
+    );
 }

@@ -27,6 +27,7 @@ pub enum CliErrorCode {
     DomBusinessNoProjects,
 
     SnkExternalIo,
+    SnkSerialization,
 
     MskAliasNotFound,
     MskAliasSyntax,
@@ -58,6 +59,7 @@ impl CliErrorCode {
             Self::DomBusinessNoProjects => "DOM_BUSINESS_NO_PROJECTS",
 
             Self::SnkExternalIo => "SNK_EXTERNAL_IO",
+            Self::SnkSerialization => "SNK_SERIALIZATION",
 
             Self::MskAliasNotFound => "MSK_ALIAS_NOT_FOUND",
             Self::MskAliasSyntax => "MSK_ALIAS_SYNTAX",
@@ -85,7 +87,7 @@ impl CliErrorCode {
 
             Self::DomBusinessViolation | Self::DomBusinessNoProjects => "business",
 
-            Self::SnkExternalIo => "sink",
+            Self::SnkExternalIo | Self::SnkSerialization => "sink",
 
             Self::MskAliasNotFound | Self::MskAliasSyntax => "mask",
         }

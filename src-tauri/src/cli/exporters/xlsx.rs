@@ -5,7 +5,6 @@ use crate::cli::formatters::ReportTreeDto;
 use rust_xlsxwriter::{Color, Format, Workbook, XlsxError};
 
 fn map_xlsx_err(e: XlsxError) -> CliError {
-    log::error!("Failed to export XLSX report: {e}");
     CliError::Sink(SinkError::Serialization(e.to_string()))
 }
 

@@ -5,7 +5,6 @@ use crate::cli::formatters::ReportTreeDto;
 use spreadsheet_ods::{OdsError, Sheet, WorkBook};
 
 fn map_ods_err(e: OdsError) -> CliError {
-    log::error!("Failed to export ODS report: {e}");
     CliError::Sink(SinkError::Serialization(e.to_string()))
 }
 

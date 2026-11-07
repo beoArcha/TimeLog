@@ -7,7 +7,8 @@ use super::exit_codes::{
 use crate::cli::resolver::ResolveError;
 use crate::cli::shared::constants::{
     FORMAT_REMEDIATION_DID_YOU_MEAN, MSG_ERR_REMEDIATION_ENGINE, MSG_ERR_REMEDIATION_ENTITY,
-    MSG_ERR_REMEDIATION_HELP, MSG_ERR_REMEDIATION_SINK, MSG_ERR_REMEDIATION_STORAGE,
+    MSG_ERR_REMEDIATION_HELP, MSG_ERR_REMEDIATION_SERIALIZATION, MSG_ERR_REMEDIATION_SINK,
+    MSG_ERR_REMEDIATION_STORAGE,
 };
 use crate::cli::shared::utils::DurationParseError;
 use crate::engine::EngineError;
@@ -174,7 +175,10 @@ impl CliError {
                     CliErrorCode::DomBusinessViolation
                 }
             },
-            CliError::Sink(_) => CliErrorCode::SnkExternalIo,
+            CliError::Sink(sink_err) => match sink_err {
+                SinkError::Serialization(_) => CliErrorCode::SnkSerialization,
+                SinkError::Io(_) | SinkError::TestFailed(_) => CliErrorCode::SnkExternalIo,
+            },
         }
     }
 
@@ -254,12 +258,20 @@ impl CliError {
                     suggestion: None,
                     remediation: Some(MSG_ERR_REMEDIATION_ENTITY.to_string()),
                 }),
-                CliError::Sink(_) => Some(LocalizedUserMessage {
-                    locale: target_locale,
-                    message: technical.clone(),
-                    suggestion: None,
-                    remediation: Some(MSG_ERR_REMEDIATION_SINK.to_string()),
-                }),
+                CliError::Sink(sink_err) => match sink_err {
+                    SinkError::Serialization(_) => Some(LocalizedUserMessage {
+                        locale: target_locale,
+                        message: technical.clone(),
+                        suggestion: None,
+                        remediation: Some(MSG_ERR_REMEDIATION_SERIALIZATION.to_string()),
+                    }),
+                    _ => Some(LocalizedUserMessage {
+                        locale: target_locale,
+                        message: technical.clone(),
+                        suggestion: None,
+                        remediation: Some(MSG_ERR_REMEDIATION_SINK.to_string()),
+                    }),
+                },
             }
         };
 
