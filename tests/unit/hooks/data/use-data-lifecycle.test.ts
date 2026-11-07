@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useDataLifecycle } from '@common/hooks/data/useDataLifecycle';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
@@ -24,6 +24,10 @@ describe('Unit Tests: useDataLifecycle Hook', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('should hydrate repository state on mount when state exists', async () => {
