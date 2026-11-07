@@ -136,6 +136,7 @@ describe('CsvExporterPlugin & CSV Formula Injection Protection', () => {
             date: '2026-11-07',
             projectName: '=1+1',
             taskName: "+cmd|' /C calc'!A0",
+            subtaskName: 'Security subtask',
             startTime: '10:00:00',
             endTime: '11:00:00',
             durationSeconds: 3600,
@@ -158,11 +159,12 @@ describe('CsvExporterPlugin & CSV Formula Injection Protection', () => {
 
       const lines = text.split('\r\n');
       expect(lines[0]).toBe(
-        'Date,Project,Task,Start Time,End Time,Duration (s),Formatted Duration,Note'
+        'Date,Project,Task,Subtask,Start Time,End Time,Duration (s),Formatted Duration,Note'
       );
       // Row 1 should have neutralized formulas
       expect(lines[1]).toContain("'=1+1");
       expect(lines[1]).toContain("'+cmd|' /C calc'!A0");
+      expect(lines[1]).toContain('Security subtask');
       expect(lines[1]).toContain("'-calc and @SUM(A1:A2)");
       expect(lines[1]).toContain('3600');
     });
