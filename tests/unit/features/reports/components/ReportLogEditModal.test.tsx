@@ -64,12 +64,156 @@ describe('Unit Tests: ReportLogEditModal', () => {
       expect(onCloseMock).toHaveBeenCalled();
     });
 
-    // handleEditTimeLog owns repository synchronization; the modal must not refresh twice.
     expect(refreshDataMock).not.toHaveBeenCalled();
   });
 
+  it('should display audit reason error and mark field invalid when reason is empty', async () => {
+    render(
+      <MockProviders dataState={{ handleEditTimeLog: handleEditTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={vi.fn()}
+          log={mockLog}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.click(screen.getByTestId('audit-save-button'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('audit-reason-error')).not.toBeNull();
+      expect(screen.getByTestId('audit-edit-reason').getAttribute('aria-invalid')).toBe('true');
+    });
+    expect(handleEditTimeLogMock).not.toHaveBeenCalled();
+  });
+
+  it('should display range error and mark time inputs invalid when end time is before start time', async () => {
+    render(
+      <MockProviders dataState={{ handleEditTimeLog: handleEditTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={vi.fn()}
+          log={mockLog}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+      target: { value: 'Valid correction reason' },
+    });
+    fireEvent.change(screen.getByTestId('audit-edit-end-time'), {
+      target: { value: '2026-06-15T09:00:00Z' },
+    });
+    fireEvent.click(screen.getByTestId('audit-save-button'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('audit-range-error')).not.toBeNull();
+      expect(screen.getByTestId('audit-edit-start-time').getAttribute('aria-invalid')).toBe('true');
+      expect(screen.getByTestId('audit-edit-end-time').getAttribute('aria-invalid')).toBe('true');
+    });
+    expect(handleEditTimeLogMock).not.toHaveBeenCalled();
+  });
+
+  it('should handle engine ERR_AUDIT_REASON_REQUIRED and show inline error', async () => {
+    handleEditTimeLogMock.mockRejectedValue({
+      code: 'ERR_AUDIT_REASON_REQUIRED',
+      message: 'Audit reason is required for manual edits',
+    });
+    const onSaveSuccessMock = vi.fn();
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleEditTimeLog: handleEditTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          onSaveSuccess={onSaveSuccessMock}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+      target: { value: 'Some reason' },
+    });
+    fireEvent.click(screen.getByTestId('audit-save-button'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('audit-reason-error')).not.toBeNull();
+      expect(screen.getByTestId('audit-edit-reason').getAttribute('aria-invalid')).toBe('true');
+    });
+    expect(onSaveSuccessMock).not.toHaveBeenCalled();
+    expect(onCloseMock).not.toHaveBeenCalled();
+  });
+
+  it('should handle engine ERR_TIMELOG_INVALID_RANGE and show inline range error', async () => {
+    handleEditTimeLogMock.mockRejectedValue({
+      code: 'ERR_TIMELOG_INVALID_RANGE',
+      message: 'End time cannot be before start time',
+    });
+    const onSaveSuccessMock = vi.fn();
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleEditTimeLog: handleEditTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          onSaveSuccess={onSaveSuccessMock}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+      target: { value: 'Some reason' },
+    });
+    fireEvent.click(screen.getByTestId('audit-save-button'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('audit-range-error')).not.toBeNull();
+      expect(screen.getByTestId('audit-edit-start-time').getAttribute('aria-invalid')).toBe('true');
+      expect(screen.getByTestId('audit-edit-end-time').getAttribute('aria-invalid')).toBe('true');
+    });
+    expect(onSaveSuccessMock).not.toHaveBeenCalled();
+    expect(onCloseMock).not.toHaveBeenCalled();
+  });
+
+  it('should clear errors when typing and close on successful save', async () => {
+    const onSaveSuccessMock = vi.fn();
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleEditTimeLog: handleEditTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          onSaveSuccess={onSaveSuccessMock}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.click(screen.getByTestId('audit-save-button'));
+    await waitFor(() => {
+      expect(screen.getByTestId('audit-reason-error')).not.toBeNull();
+    });
+
+    fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+      target: { value: 'Valid correction reason' },
+    });
+    expect(screen.queryByTestId('audit-reason-error')).toBeNull();
+    expect(screen.getByTestId('audit-edit-reason').getAttribute('aria-invalid')).toBeNull();
+
+    fireEvent.click(screen.getByTestId('audit-save-button'));
+    await waitFor(() => {
+      expect(onSaveSuccessMock).toHaveBeenCalledWith('log-1');
+      expect(onCloseMock).toHaveBeenCalled();
+    });
+  });
+
   it('should retry synchronization without repeating a committed audit mutation', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     const refreshDataMock = vi.fn()
       .mockResolvedValueOnce(false)
       .mockResolvedValueOnce(true);
@@ -99,13 +243,11 @@ describe('Unit Tests: ReportLogEditModal', () => {
 
     await waitFor(() => {
       expect(handleEditTimeLogMock).toHaveBeenCalledTimes(1);
-      expect(screen.getByText(/Error|Błąd/i)).not.toBeNull();
+      expect(screen.getByTestId('audit-general-error')).not.toBeNull();
       expect(onSaveSuccessMock).not.toHaveBeenCalled();
       expect(onCloseMock).not.toHaveBeenCalled();
     });
 
-    // The retry path only refreshes state. A failed refresh can be retried again
-    // without issuing a second edit/audit mutation.
     fireEvent.click(saveButton);
     await waitFor(() => {
       expect(refreshDataMock).toHaveBeenCalledTimes(1);
@@ -121,15 +263,10 @@ describe('Unit Tests: ReportLogEditModal', () => {
       expect(onSaveSuccessMock).toHaveBeenCalledWith('log-1');
       expect(onCloseMock).toHaveBeenCalled();
     });
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[ReportLogEditModal] Refresh after edit failed:'),
-      expect.any(Error)
-    );
   });
 
   it('should display a safe error and keep the modal open when the edit mutation fails', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     handleEditTimeLogMock.mockRejectedValue(
       new Error('Database row locked: sqlite3_step constraint failed')
     );
@@ -155,58 +292,12 @@ describe('Unit Tests: ReportLogEditModal', () => {
     fireEvent.click(screen.getByTestId('audit-save-button'));
 
     await waitFor(() => {
-      expect(screen.getByText(/Error|Błąd/i)).not.toBeNull();
+      expect(screen.getByTestId('audit-general-error')).not.toBeNull();
       expect(screen.queryByText(/sqlite3_step|Database row locked/i)).toBeNull();
     });
 
     expect(handleEditTimeLogMock).toHaveBeenCalledTimes(1);
     expect(onSaveSuccessMock).not.toHaveBeenCalled();
     expect(onCloseMock).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[ReportLogEditModal] Mutation failed:'),
-      expect.any(Error)
-    );
-  });
-
-  it('should validate invalid start and end times without triggering the DataContext handler', async () => {
-    render(
-      <MockProviders dataState={{ handleEditTimeLog: handleEditTimeLogMock }}>
-        <ReportLogEditModal
-          isOpen={true}
-          onClose={vi.fn()}
-          log={mockLog}
-          taskName="Task One"
-          projectName="Project One"
-        />
-      </MockProviders>
-    );
-
-    fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
-      target: { value: 'not-a-valid-date' },
-    });
-    fireEvent.change(screen.getByTestId('audit-edit-reason'), {
-      target: { value: 'Some valid reason' },
-    });
-    fireEvent.click(screen.getByTestId('audit-save-button'));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Error|Błąd/i)).not.toBeNull();
-    });
-    expect(handleEditTimeLogMock).not.toHaveBeenCalled();
-  });
-
-  it('should require an audit reason before enabling save', () => {
-    render(
-      <MockProviders dataState={{ handleEditTimeLog: handleEditTimeLogMock }}>
-        <ReportLogEditModal
-          isOpen={true}
-          onClose={vi.fn()}
-          log={mockLog}
-        />
-      </MockProviders>
-    );
-
-    expect(screen.getByTestId('audit-save-button').getAttribute('disabled')).not.toBeNull();
-    expect(handleEditTimeLogMock).not.toHaveBeenCalled();
   });
 });

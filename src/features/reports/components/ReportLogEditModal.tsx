@@ -13,12 +13,13 @@ import { Label } from '@components/ui/label';
 import { Textarea } from '@components/ui/textarea';
 import { VStack, HStack } from '@components/ui/stack';
 import { Badge } from '@components/ui/badge';
-import { Caption, MonoText } from '@components/ui/typography';
+import { Caption, MonoText, Text } from '@components/ui/typography';
 import { useTranslation } from '@common/i18n/translator';
 import { useDataSafe } from '@common/hooks/DataContext';
 import { TimeLog } from '@bindings/TimeLog';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import { Edit3, AlertCircle } from 'lucide-react';
+import { extractErrorCode } from '../utils/auditErrors';
 
 export interface ReportLogEditModalProps {
   isOpen: boolean;
@@ -47,44 +48,53 @@ function ReportLogEditForm({
 }: ReportLogEditFormProps) {
   const { t: tReport } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
+  const { t: tEngine } = useTranslation('engine');
   const dataContext = useDataSafe();
 
   const [startTime, setStartTime] = useState<string>(log.startTime || '');
   const [endTime, setEndTime] = useState<string>(log.endTime || '');
   const [note, setNote] = useState<string>(log.note || '');
   const [reason, setReason] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [reasonError, setReasonError] = useState<boolean>(false);
+  const [reasonErrorMessage, setReasonErrorMessage] = useState<string | null>(null);
+  const [rangeError, setRangeError] = useState<boolean>(false);
+  const [rangeErrorMessage, setRangeErrorMessage] = useState<string | null>(null);
+  const [generalErrorMessage, setGeneralErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
   const handleSave = async () => {
+    setReasonError(false);
+    setReasonErrorMessage(null);
+    setRangeError(false);
+    setRangeErrorMessage(null);
+    setGeneralErrorMessage(null);
+
     const trimmedReason = reason.trim();
     if (!trimmedReason) {
-      setErrorMessage(tReport('AuditReasonRequired'));
+      setReasonError(true);
+      setReasonErrorMessage(tReport('ERR_AUDIT_REASON_REQUIRED'));
       return;
     }
 
     const startTimestamp = new Date(startTime).getTime();
     if (isNaN(startTimestamp)) {
-      setErrorMessage(tCommon('ErrGeneric'));
+      setRangeError(true);
+      setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
       return;
     }
 
     const trimmedEnd = endTime.trim();
     if (trimmedEnd) {
       const endTimestamp = new Date(trimmedEnd).getTime();
-      if (isNaN(endTimestamp)) {
-        setErrorMessage(tCommon('ErrGeneric'));
-        return;
-      }
-      if (endTimestamp < startTimestamp) {
-        setErrorMessage(tCommon('ErrGeneric'));
+      if (isNaN(endTimestamp) || endTimestamp < startTimestamp) {
+        setRangeError(true);
+        setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
         return;
       }
     }
 
     setIsSaving(true);
-    setErrorMessage(null);
 
     if (!isSaved) {
       try {
@@ -102,7 +112,7 @@ function ReportLogEditForm({
         );
 
         if (!result.saved) {
-          setErrorMessage(tCommon('ErrGeneric'));
+          setGeneralErrorMessage(tEngine('SyncStatusError'));
           setIsSaving(false);
           return;
         }
@@ -112,13 +122,24 @@ function ReportLogEditForm({
         setIsSaved(true);
 
         if (!result.synchronized) {
-          setErrorMessage(tCommon('ErrGeneric'));
+          setGeneralErrorMessage(tEngine('SyncStatusError'));
           setIsSaving(false);
           return;
         }
       } catch (err) {
         console.error('[ReportLogEditModal] Mutation failed:', err);
-        setErrorMessage(tCommon('ErrGeneric'));
+        const code = extractErrorCode(err);
+        if (code === 'ERR_AUDIT_REASON_REQUIRED') {
+          setReasonError(true);
+          setReasonErrorMessage(tReport('ERR_AUDIT_REASON_REQUIRED'));
+        } else if (code === 'ERR_TIMELOG_INVALID_RANGE') {
+          setRangeError(true);
+          setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
+        } else if (code === 'ERR_AUDIT_SOURCE_INVALID') {
+          setGeneralErrorMessage(tReport('ERR_AUDIT_SOURCE_INVALID'));
+        } else {
+          setGeneralErrorMessage(tEngine('SyncStatusError'));
+        }
         setIsSaving(false);
         return;
       }
@@ -135,7 +156,7 @@ function ReportLogEditForm({
         }
       } catch (refreshErr) {
         console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
-        setErrorMessage(tCommon('ErrGeneric'));
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
         setIsSaving(false);
         return;
       }
@@ -183,12 +204,17 @@ function ReportLogEditForm({
             id="audit-edit-start-time"
             data-testid="audit-edit-start-time"
             type="text"
+            aria-invalid={rangeError ? 'true' : undefined}
             value={startTime}
             onChange={(e) => {
               setStartTime(e.target.value);
+              setRangeError(false);
+              setRangeErrorMessage(null);
               setIsSaved(false);
             }}
-            className="h-8 text-xs font-mono bg-background"
+            className={`h-8 text-xs font-mono bg-background ${
+              rangeError ? 'border-destructive focus-visible:ring-destructive' : ''
+            }`}
           />
         </VStack>
 
@@ -200,13 +226,24 @@ function ReportLogEditForm({
             id="audit-edit-end-time"
             data-testid="audit-edit-end-time"
             type="text"
+            aria-invalid={rangeError ? 'true' : undefined}
             value={endTime}
             onChange={(e) => {
               setEndTime(e.target.value);
+              setRangeError(false);
+              setRangeErrorMessage(null);
               setIsSaved(false);
             }}
-            className="h-8 text-xs font-mono bg-background"
+            className={`h-8 text-xs font-mono bg-background ${
+              rangeError ? 'border-destructive focus-visible:ring-destructive' : ''
+            }`}
           />
+          {rangeErrorMessage && (
+            <HStack data-testid="audit-range-error" gap="xs" className="text-xs text-destructive items-center mt-0.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <Text size="xs" className="text-destructive">{rangeErrorMessage}</Text>
+            </HStack>
+          )}
         </VStack>
 
         <VStack gap="xs">
@@ -233,21 +270,34 @@ function ReportLogEditForm({
           <Textarea
             id="audit-edit-reason"
             data-testid="audit-edit-reason"
+            aria-invalid={reasonError ? 'true' : undefined}
             value={reason}
             onChange={(e) => {
               setReason(e.target.value);
+              setReasonError(false);
+              setReasonErrorMessage(null);
               setIsSaved(false);
             }}
             placeholder={tReport('AuditReasonPlaceholder')}
             rows={2}
-            className="text-xs bg-background resize-none border-primary/50 focus:border-primary"
+            className={`text-xs bg-background resize-none ${
+              reasonError
+                ? 'border-destructive focus:border-destructive text-destructive'
+                : 'border-primary/50 focus:border-primary'
+            }`}
           />
+          {reasonErrorMessage && (
+            <HStack data-testid="audit-reason-error" gap="xs" className="text-xs text-destructive items-center mt-0.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <Text size="xs" className="text-destructive">{reasonErrorMessage}</Text>
+            </HStack>
+          )}
         </VStack>
 
-        {errorMessage && (
-          <HStack gap="xs" className="text-xs text-destructive items-center">
+        {generalErrorMessage && (
+          <HStack data-testid="audit-general-error" gap="xs" className="text-xs text-destructive items-center">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            <span>{errorMessage}</span>
+            <Text size="xs" className="text-destructive">{generalErrorMessage}</Text>
           </HStack>
         )}
       </VStack>
@@ -267,7 +317,7 @@ function ReportLogEditForm({
           variant="default"
           size="sm"
           onClick={handleSave}
-          disabled={isSaving || !reason.trim()}
+          disabled={isSaving}
           data-testid="audit-save-button"
           className="gap-1.5"
         >
