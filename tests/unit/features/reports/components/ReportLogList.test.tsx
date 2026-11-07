@@ -200,6 +200,29 @@ describe('Unit Tests: ReportLogList', () => {
         expect(screen.queryByText(/"Task Alpha"/i)).toBeNull();
       });
     });
+
+    it('should keep search counter synchronized with debounced value instead of raw input', async () => {
+      // Arrange
+      render(
+        <MockProviders>
+          <ReportLogList {...mockProps} debounceDelay={150} />
+        </MockProviders>
+      );
+
+      // Act
+      const searchInput = screen.getByTestId('report-logs-search-input');
+      fireEvent.change(searchInput, { target: { value: 'Task Beta' } });
+
+      // Before debounce delay expires: counter shows total without suffix because debouncedSearchQuery is still empty
+      const dumpHeading = screen.getByRole('heading', { name: /PLAIN SQLITE LOGS DUMP/i });
+      expect(dumpHeading.textContent).toContain('(4)');
+      expect(dumpHeading.textContent).not.toContain('/ 4');
+
+      // Assert - after debounce fires: counter updates to (1 / 4) matching filtered results
+      await waitFor(() => {
+        expect(dumpHeading.textContent).toContain('(1 / 4)');
+      });
+    });
   });
 
   describe('Safeguards for Active Timers and Patch Logs', () => {

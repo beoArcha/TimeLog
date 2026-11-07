@@ -120,7 +120,7 @@ export default function ReportLogList({
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 print:block">
           <Heading level={4} className="text-xs font-mono font-bold tracking-wider text-muted-foreground uppercase">
             📋 {t('PlainDump')} ({searchedLogs.length}
-            {searchQuery.trim() ? ` / ${displayLogs.length}` : ''})
+            {debouncedSearchQuery.trim() ? ` / ${displayLogs.length}` : ''})
           </Heading>
           <div className="w-full sm:w-64 print:hidden">
             <SearchInput

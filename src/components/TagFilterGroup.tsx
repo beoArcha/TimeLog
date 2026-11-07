@@ -4,6 +4,7 @@ import { InlineCluster } from '@components/ui/stack';
 import { Tag as TagIcon, X } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import { cn } from '@/lib/utils';
+import { normalizeTag } from '@common/utils/tagUtils';
 
 export interface TagFilterGroupProps {
   tags: string[];
@@ -32,7 +33,8 @@ export function TagFilterGroup({
     return null;
   }
 
-  const hasSelection = selectedTags.length > 0;
+  const normalizedSelected = new Set(selectedTags.map(normalizeTag).filter((t) => t.length > 0));
+  const hasSelection = normalizedSelected.size > 0;
 
   return (
     <InlineCluster
@@ -42,8 +44,9 @@ export function TagFilterGroup({
       role="group"
       aria-label={tReport('FilterByTags')}
     >
-      {tags.map((tag) => {
-        const isSelected = selectedTags.includes(tag);
+      {tags.map((rawTag) => {
+        const tag = normalizeTag(rawTag);
+        const isSelected = normalizedSelected.has(tag);
         return (
           <Button
             key={tag}
@@ -52,15 +55,15 @@ export function TagFilterGroup({
             variant={isSelected ? 'accent' : 'outline'}
             aria-pressed={isSelected}
             onClick={() => onToggleTag(tag)}
+            icon={<TagIcon className={cn('opacity-70', size === 'sm' ? 'size-3.5' : 'size-3')} />}
             data-testid={`tag-chip-${tag}`}
             className={cn(
-              'rounded-lg font-mono text-xs transition-all shadow-none',
+              'rounded-lg font-mono text-xs transition-all shadow-none cursor-pointer',
               isSelected
                 ? 'font-bold shadow-xs'
                 : 'bg-card text-muted-foreground hover:text-foreground border-border/80'
             )}
           >
-            <TagIcon className="w-3 h-3 opacity-70" />
             #{tag}
           </Button>
         );
@@ -72,11 +75,11 @@ export function TagFilterGroup({
           size={size}
           variant="ghost"
           onClick={onClearTags}
+          icon={<X className={cn('opacity-80', size === 'sm' ? 'size-3.5' : 'size-3')} />}
           data-testid="clear-tags-button"
-          className="text-xs text-muted-foreground hover:text-destructive h-6 px-1.5 rounded-md"
+          className="text-xs text-muted-foreground hover:text-destructive h-6 px-1.5 rounded-md cursor-pointer"
           aria-label={tReport('ClearFilter')}
         >
-          <X className="w-3 h-3 mr-0.5" />
           {tReport('ClearFilter')}
         </Button>
       )}

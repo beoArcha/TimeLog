@@ -4,6 +4,7 @@ import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { PatchLog } from '@bindings/PatchLog';
 import {
+  normalizeTag,
   extractAvailableTags,
   projectMatchesTags,
   filterProjectsByTags,
@@ -12,6 +13,36 @@ import {
 } from '@features/reports/utils/tagFiltering';
 
 describe('Unit Tests: tagFiltering helpers', () => {
+  describe('normalizeTag', () => {
+    it('Given a raw tag with leading/trailing spaces, When normalizing, Then trims whitespace', () => {
+      // Arrange
+      const rawTag = '  feature-x  ';
+
+      // Act
+      const normalized = normalizeTag(rawTag);
+
+      // Assert
+      expect(normalized).toBe('feature-x');
+    });
+
+    it('Given a tag with a leading hash (#), When normalizing, Then strips hash and trims', () => {
+      // Arrange
+      const rawTag = ' #urgent ';
+
+      // Act
+      const normalized = normalizeTag(rawTag);
+
+      // Assert
+      expect(normalized).toBe('urgent');
+    });
+
+    it('Given an empty string or whitespace only, When normalizing, Then returns empty string', () => {
+      // Arrange & Act & Assert
+      expect(normalizeTag('')).toBe('');
+      expect(normalizeTag('   ')).toBe('');
+      expect(normalizeTag('#')).toBe('');
+    });
+  });
   const sampleProjects: Project[] = [
     {
       id: 'p1',
@@ -92,6 +123,15 @@ describe('Unit Tests: tagFiltering helpers', () => {
 
       // Assert
       expect(matches).toBe(true);
+    });
+
+    it('Given selected tags with whitespace and hash prefix, When checking match, Then matches normalized project tags', () => {
+      // Arrange
+      const project = sampleProjects[0]; // has 'design' with spaces
+
+      // Act & Assert
+      expect(projectMatchesTags(project, ['#design'])).toBe(true);
+      expect(projectMatchesTags(project, ['  #frontend  '])).toBe(true);
     });
 
     it('Given selected tags and a project not containing any selected tag, When checking match, Then returns false', () => {

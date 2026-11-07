@@ -6,6 +6,7 @@ import { Input } from '@components/ui/input';
 import { HStack, InlineCluster } from '@components/ui/stack';
 import { FilterBar } from '@components/FilterBar';
 import { TagFilterGroup } from '@components/TagFilterGroup';
+import { normalizeTag } from '../utils/tagFiltering';
 import { ReportPeriodType } from '../types';
 
 export interface ReportPeriodSelectorProps {
@@ -132,9 +133,9 @@ export default function ReportPeriodSelector({
             {tReport('FilterByTags')}:
           </span>
           <TagFilterGroup
-            tags={availableTags}
-            selectedTags={selectedTags ?? []}
-            onToggleTag={onToggleTag ?? (() => {})}
+            tags={availableTags.map(normalizeTag).filter((t) => t.length > 0)}
+            selectedTags={(selectedTags ?? []).map(normalizeTag).filter((t) => t.length > 0)}
+            onToggleTag={(t) => onToggleTag?.(normalizeTag(t))}
             onClearTags={onClearTags}
             size="xs"
           />

@@ -1,5 +1,8 @@
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
+import { normalizeTag } from '@common/utils/tagUtils';
+
+export { normalizeTag };
 
 /**
  * Extracts unique, trimmed non-empty tags from an array of projects,
@@ -10,9 +13,9 @@ export function extractAvailableTags(projects: Project[]): string[] {
   for (const project of projects) {
     if (Array.isArray(project.tags)) {
       for (const rawTag of project.tags) {
-        const trimmed = typeof rawTag === 'string' ? rawTag.trim() : '';
-        if (trimmed.length > 0) {
-          tagSet.add(trimmed);
+        const normalized = normalizeTag(rawTag);
+        if (normalized.length > 0) {
+          tagSet.add(normalized);
         }
       }
     }
@@ -34,7 +37,13 @@ export function projectMatchesTags(
   if (!project || !Array.isArray(project.tags) || project.tags.length === 0) {
     return false;
   }
-  return project.tags.some((t) => selectedTags.includes(t));
+  const normalizedSelected = new Set(
+    selectedTags.map(normalizeTag).filter((t) => t.length > 0)
+  );
+  if (normalizedSelected.size === 0) {
+    return true;
+  }
+  return project.tags.some((t) => normalizedSelected.has(normalizeTag(t)));
 }
 
 /**
