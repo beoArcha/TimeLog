@@ -11,6 +11,7 @@ fn test_given_empty_tree_when_flatten_then_returns_empty_vec() {
         total_seconds: 0,
         total_formatted: "00m 00s".to_string(),
         projects: vec![],
+        entries: vec![],
     };
 
     // Act

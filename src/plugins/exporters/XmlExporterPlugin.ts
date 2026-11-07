@@ -72,17 +72,56 @@ export class XmlExporterPlugin implements IExporterPlugin {
       2
     );
 
-    const projectBlocks = (payload.projectBreakdown ?? []).map((project) =>
-      createXmlBlock(
+    const projectBlocks = (payload.projectBreakdown ?? []).map((project) => {
+      const taskBlocks = (project.tasks ?? []).map((task) => {
+        const subtaskBlocks = (task.subtasks ?? []).map((subtask) =>
+          createXmlBlock(
+            'subtask',
+            [
+              createXmlElement('id', subtask.id, 10),
+              createXmlElement('name', subtask.name, 10),
+              createXmlElement('durationSeconds', subtask.durationSeconds, 10),
+              createXmlElement('formattedDuration', subtask.formattedDuration, 10),
+              createXmlElement('percentage', subtask.percentage, 10),
+            ],
+            8
+          )
+        );
+
+        const subtasksXml =
+          subtaskBlocks.length > 0 ? createXmlBlock('subtasks', subtaskBlocks, 8) : '';
+
+        return createXmlBlock(
+          'task',
+          [
+            createXmlElement('id', task.id, 8),
+            createXmlElement('name', task.name, 8),
+            createXmlElement('durationSeconds', task.durationSeconds, 8),
+            createXmlElement('formattedDuration', task.formattedDuration, 8),
+            createXmlElement('percentage', task.percentage, 8),
+            ...(subtasksXml ? [subtasksXml] : []),
+          ],
+          6
+        );
+      });
+
+      const tasksXml = taskBlocks.length > 0 ? createXmlBlock('tasks', taskBlocks, 6) : '';
+
+      return createXmlBlock(
         'project',
         [
+          ...(project.id ? [createXmlElement('id', project.id, 6)] : []),
           createXmlElement('name', project.projectName, 6),
           createXmlElement('durationSeconds', project.seconds, 6),
+          ...(project.formattedDuration
+            ? [createXmlElement('formattedDuration', project.formattedDuration, 6)]
+            : []),
           createXmlElement('percentage', project.percentage, 6),
+          ...(tasksXml ? [tasksXml] : []),
         ],
         4
-      )
-    );
+      );
+    });
     const projects = createXmlBlock('projects', projectBlocks, 2);
 
     const entryBlocks = (payload.rows ?? []).map((row) =>
@@ -93,8 +132,9 @@ export class XmlExporterPlugin implements IExporterPlugin {
           createXmlElement('date', row.date, 6),
           createXmlElement('projectName', row.projectName, 6),
           createXmlElement('taskName', row.taskName, 6),
+          ...(row.subtaskName ? [createXmlElement('subtaskName', row.subtaskName, 6)] : []),
           createXmlElement('startTime', row.startTime, 6),
-          createXmlElement('endTime', row.endTime, 6),
+          ...(row.endTime ? [createXmlElement('endTime', row.endTime, 6)] : []),
           createXmlElement('durationSeconds', row.durationSeconds, 6),
           createXmlElement('formattedDuration', row.formattedDuration, 6),
           ...(row.note ? [createXmlElement('note', row.note, 6)] : []),

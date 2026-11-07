@@ -1,5 +1,7 @@
 use crate::cli::error::{CliError, SinkError};
-use crate::cli::formatters::{ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto};
+use crate::cli::formatters::{
+    ReportEntryDto, ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
+};
 use serde::{Deserialize, Serialize};
 
 /// Checks if a Unicode scalar value is allowed in XML 1.0 (Fifth Edition).
@@ -117,7 +119,49 @@ pub struct XmlSubtaskDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct XmlEntriesDto {}
+pub struct XmlEntriesDto {
+    #[serde(rename = "entry", default)]
+    pub entries: Vec<XmlEntryDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct XmlEntryDto {
+    pub id: String,
+    pub date: String,
+    #[serde(rename = "projectName")]
+    pub project_name: String,
+    #[serde(rename = "taskName")]
+    pub task_name: String,
+    #[serde(rename = "subtaskName", skip_serializing_if = "Option::is_none")]
+    pub subtask_name: Option<String>,
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+    #[serde(rename = "endTime", skip_serializing_if = "Option::is_none")]
+    pub end_time: Option<String>,
+    #[serde(rename = "durationSeconds")]
+    pub duration_seconds: u64,
+    #[serde(rename = "formattedDuration")]
+    pub formatted_duration: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+impl From<&ReportEntryDto> for XmlEntryDto {
+    fn from(entry: &ReportEntryDto) -> Self {
+        Self {
+            id: sanitize_xml_text(&entry.id),
+            date: sanitize_xml_text(&entry.date),
+            project_name: sanitize_xml_text(&entry.project_name),
+            task_name: sanitize_xml_text(&entry.task_name),
+            subtask_name: entry.subtask_name.as_deref().map(sanitize_xml_text),
+            start_time: sanitize_xml_text(&entry.start_time),
+            end_time: entry.end_time.as_deref().map(sanitize_xml_text),
+            duration_seconds: entry.duration_seconds,
+            formatted_duration: sanitize_xml_text(&entry.duration_formatted),
+            note: entry.note.as_deref().map(sanitize_xml_text),
+        }
+    }
+}
 
 impl From<&ReportSubtaskDto> for XmlSubtaskDto {
     fn from(subtask: &ReportSubtaskDto) -> Self {
@@ -177,7 +221,9 @@ impl From<&ReportTreeDto> for XmlReportDto {
             projects: XmlProjectsDto {
                 projects: tree.projects.iter().map(XmlProjectDto::from).collect(),
             },
-            entries: XmlEntriesDto::default(),
+            entries: XmlEntriesDto {
+                entries: tree.entries.iter().map(XmlEntryDto::from).collect(),
+            },
         }
     }
 }

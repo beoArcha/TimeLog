@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use oxyflow_timelog::cli::formatters::{
-    ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
+    ReportEntryDto, ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
 };
 
 pub fn create_sample_tree() -> ReportTreeDto {
@@ -24,6 +24,7 @@ pub fn create_sample_tree() -> ReportTreeDto {
                 subtasks: vec![],
             }],
         }],
+        entries: vec![],
     }
 }
 
@@ -62,6 +63,7 @@ pub fn create_tree_with_subtasks_and_direct_time() -> ReportTreeDto {
                 ],
             }],
         }],
+        entries: vec![],
     }
 }
 
@@ -71,6 +73,7 @@ pub fn create_empty_tree() -> ReportTreeDto {
         total_seconds: 0,
         total_formatted: "00m 00s".to_string(),
         projects: vec![],
+        entries: vec![],
     }
 }
 
@@ -98,6 +101,7 @@ pub fn create_tree_with_special_characters() -> ReportTreeDto {
                 subtasks: vec![],
             }],
         }],
+        entries: vec![],
     }
 }
 
@@ -136,5 +140,31 @@ pub fn create_full_hierarchy_tree() -> ReportTreeDto {
                 ],
             }],
         }],
+        entries: vec![
+            ReportEntryDto {
+                id: "entry-1".to_string(),
+                date: "2026-11-07".to_string(),
+                project_name: "Alpha \"Platform\" & Engine".to_string(),
+                task_name: "Core Infrastructure <v2>".to_string(),
+                subtask_name: Some("Schema Design 'XML'".to_string()),
+                start_time: "2026-11-07T10:00:00Z".to_string(),
+                end_time: Some("2026-11-07T11:20:00Z".to_string()),
+                duration_seconds: 4800,
+                duration_formatted: "01h 20m".to_string(),
+                note: Some("Implementation & tests <v1>".to_string()),
+            },
+            ReportEntryDto {
+                id: "entry-2".to_string(),
+                date: "2026-11-07".to_string(),
+                project_name: "Alpha \"Platform\" & Engine".to_string(),
+                task_name: "Core Infrastructure <v2>".to_string(),
+                subtask_name: Some("Serialization & Tests".to_string()),
+                start_time: "2026-11-07T11:20:00Z".to_string(),
+                end_time: Some("2026-11-07T12:00:00Z".to_string()),
+                duration_seconds: 2400,
+                duration_formatted: "40m 00s".to_string(),
+                note: None,
+            },
+        ],
     }
 }

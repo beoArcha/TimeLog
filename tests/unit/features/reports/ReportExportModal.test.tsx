@@ -191,7 +191,26 @@ describe('ReportExportModal', () => {
     });
   });
 
-  it('should display Download XML Schema button when XML format is active and trigger xsd download', async () => {
+  it('should display schema download action button when XML exporter is selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ReportExportModal
+        isOpen={true}
+        onClose={vi.fn()}
+        payload={samplePayload}
+      />
+    );
+
+    // Act
+    const xmlBtn = screen.getByTestId('export-format-xml-exporter');
+    await user.click(xmlBtn);
+
+    // Assert
+    expect(screen.getByTestId('export-download-schema-button')).toBeTruthy();
+  });
+
+  it('should trigger schema download when schema download action button is clicked', async () => {
     // Arrange
     const user = userEvent.setup();
     const createObjectURLMock = vi.fn().mockReturnValue('blob:test-xsd-url');
@@ -206,17 +225,11 @@ describe('ReportExportModal', () => {
         payload={samplePayload}
       />
     );
-
-    // Act - select XML format
     const xmlBtn = screen.getByTestId('export-format-xml-exporter');
     await user.click(xmlBtn);
-
-    // Assert schema download button appears
     const schemaBtn = screen.getByTestId('export-download-schema-button');
-    expect(schemaBtn).toBeTruthy();
-    expect(within(schemaBtn).getByText('Download XML Schema (XSD)')).toBeTruthy();
 
-    // Act - download schema
+    // Act
     await user.click(schemaBtn);
 
     // Assert

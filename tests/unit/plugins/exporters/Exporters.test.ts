@@ -168,6 +168,110 @@ describe('Built-in Exporter Plugins', () => {
       );
     });
 
+    it('should export XML with full nested hierarchy of projects, tasks, and subtasks matching parity specification', async () => {
+      // Arrange
+      const exporter = new XmlExporterPlugin();
+      const hierarchicalPayload: ExportPayload = {
+        title: 'Hierarchical Sprint Report',
+        period: 'Sprint 42',
+        generatedAt: '2026-11-07T12:00:00Z',
+        totalSeconds: 7200,
+        formattedTotalDuration: '02h 00m',
+        projectBreakdown: [
+          {
+            id: 'proj-1',
+            projectName: 'Platform "Core" & Engine',
+            seconds: 7200,
+            formattedDuration: '02h 00m',
+            percentage: 100,
+            tasks: [
+              {
+                id: 'task-1',
+                name: 'Data Architecture <v2>',
+                durationSeconds: 7200,
+                formattedDuration: '02h 00m',
+                percentage: 100,
+                subtasks: [
+                  {
+                    id: 'sub-1',
+                    name: "Schema Design 'XML'",
+                    durationSeconds: 4800,
+                    formattedDuration: '01h 20m',
+                    percentage: 66.7,
+                  },
+                  {
+                    id: 'sub-2',
+                    name: 'Serialization & Parity',
+                    durationSeconds: 2400,
+                    formattedDuration: '40m 00s',
+                    percentage: 33.3,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        rows: [
+          {
+            id: 'entry-1',
+            date: '2026-11-07',
+            projectName: 'Platform "Core" & Engine',
+            taskName: 'Data Architecture <v2>',
+            subtaskName: "Schema Design 'XML'",
+            startTime: '2026-11-07T10:00:00Z',
+            endTime: '2026-11-07T11:20:00Z',
+            durationSeconds: 4800,
+            formattedDuration: '01h 20m',
+            note: 'Implementation & tests <v1>',
+          },
+        ],
+      };
+
+      // Act
+      const blob = await exporter.export(hierarchicalPayload);
+      const xmlString = await blob.text();
+
+      // Assert: string content checks
+      expect(xmlString).toContain('<project>');
+      expect(xmlString).toContain('<id>proj-1</id>');
+      expect(xmlString).toContain('<name>Platform &quot;Core&quot; &amp; Engine</name>');
+      expect(xmlString).toContain('<tasks>');
+      expect(xmlString).toContain('<task>');
+      expect(xmlString).toContain('<id>task-1</id>');
+      expect(xmlString).toContain('<name>Data Architecture &lt;v2&gt;</name>');
+      expect(xmlString).toContain('<subtasks>');
+      expect(xmlString).toContain('<subtask>');
+      expect(xmlString).toContain('<id>sub-1</id>');
+      expect(xmlString).toContain('<name>Schema Design &apos;XML&apos;</name>');
+      expect(xmlString).toContain('<id>sub-2</id>');
+      expect(xmlString).toContain('<name>Serialization &amp; Parity</name>');
+      expect(xmlString).toContain('<entries>');
+      expect(xmlString).toContain('<entry>');
+      expect(xmlString).toContain('<subtaskName>Schema Design &apos;XML&apos;</subtaskName>');
+
+      // Assert: parse with DOMParser and check structure
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xmlString, 'application/xml');
+      expect(doc.querySelector('parsererror')).toBeNull();
+
+      const projects = doc.querySelectorAll('projects > project');
+      expect(projects).toHaveLength(1);
+      expect(projects[0].querySelector('id')?.textContent).toBe('proj-1');
+
+      const tasks = doc.querySelectorAll('projects > project > tasks > task');
+      expect(tasks).toHaveLength(1);
+      expect(tasks[0].querySelector('id')?.textContent).toBe('task-1');
+
+      const subtasks = doc.querySelectorAll('projects > project > tasks > task > subtasks > subtask');
+      expect(subtasks).toHaveLength(2);
+      expect(subtasks[0].querySelector('name')?.textContent).toBe("Schema Design 'XML'");
+      expect(subtasks[1].querySelector('name')?.textContent).toBe('Serialization & Parity');
+
+      const entries = doc.querySelectorAll('entries > entry');
+      expect(entries).toHaveLength(1);
+      expect(entries[0].querySelector('subtaskName')?.textContent).toBe("Schema Design 'XML'");
+    });
+
     it('should correctly sanitize XML 1.0 disallowed characters while preserving valid code points', () => {
       // Disallowed: 0x00, 0x07, 0x08, 0x0B, 0x0C, 0x0E-0x1F, 0xFFFE, 0xFFFF, lone surrogates
       expect(isValidXml10CodePoint(0x00)).toBe(false);

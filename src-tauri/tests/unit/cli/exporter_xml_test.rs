@@ -2,7 +2,9 @@ use super::exporter_fixtures::*;
 use oxyflow_timelog::cli::exporters::xml::{
     export_xml, is_xml_1_0_char, sanitize_xml_text, XmlReportDto,
 };
-use oxyflow_timelog::cli::formatters::{ReportProjectDto, ReportTaskDto, ReportTreeDto};
+use oxyflow_timelog::cli::formatters::{
+    ReportEntryDto, ReportProjectDto, ReportTaskDto, ReportTreeDto,
+};
 
 #[test]
 fn test_given_tree_when_exporting_xml_then_root_contains_schema_version_1() {
@@ -30,7 +32,7 @@ fn test_given_tree_when_exporting_xml_then_four_canonical_sections_are_present()
     let metadata_pos = xml.find("<metadata>").expect("must contain <metadata>");
     let summary_pos = xml.find("<summary>").expect("must contain <summary>");
     let projects_pos = xml.find("<projects>").expect("must contain <projects>");
-    let entries_pos = xml.find("<entries/>").expect("must contain <entries/>");
+    let entries_pos = xml.find("<entries>").expect("must contain <entries>");
 
     assert!(metadata_pos < summary_pos);
     assert!(summary_pos < projects_pos);
@@ -136,6 +138,18 @@ fn test_given_tree_with_forbidden_control_characters_when_exporting_xml_then_san
                 subtasks: vec![],
             }],
         }],
+        entries: vec![ReportEntryDto {
+            id: "entry\u{0000}-dirty".to_string(),
+            date: "2026-11-07".to_string(),
+            project_name: "Projet\u{0000} Francais".to_string(),
+            task_name: "Task \u{0008}with Emoji 🚀".to_string(),
+            subtask_name: Some("Subtask \u{0007}Clean".to_string()),
+            start_time: "2026-11-07T10:00:00Z".to_string(),
+            end_time: Some("2026-11-07T11:00:00Z".to_string()),
+            duration_seconds: 3600,
+            duration_formatted: "01h 00m".to_string(),
+            note: Some("Note with \u{000B}control char".to_string()),
+        }],
     };
 
     // Act
@@ -145,12 +159,16 @@ fn test_given_tree_with_forbidden_control_characters_when_exporting_xml_then_san
     assert!(!xml.contains('\u{0000}'));
     assert!(!xml.contains('\u{0007}'));
     assert!(!xml.contains('\u{0008}'));
+    assert!(!xml.contains('\u{000B}'));
     assert!(!xml.contains('\u{001F}'));
     assert!(!xml.contains('\u{FFFE}'));
 
     assert!(xml.contains("Period 2026"));
     assert!(xml.contains("Projet Francais &amp; Zażółć"));
     assert!(xml.contains("Task with Emoji 🚀 &amp; Polish ĄĆĘŁ"));
+    assert!(xml.contains("entry-dirty"));
+    assert!(xml.contains("Subtask Clean"));
+    assert!(xml.contains("Note with control char"));
 
     // Act & Assert: Parse entire document with quick_xml reader without errors
     let mut reader = quick_xml::Reader::from_str(&xml);
@@ -177,20 +195,29 @@ fn test_given_tree_with_forbidden_control_characters_when_exporting_xml_then_san
 }
 
 #[test]
-fn test_given_ad03_contract_when_exporting_xml_then_entries_section_is_empty() {
-    // Arrange: Decision AD-03 mandates that Rust CLI exports the aggregated report tree
-    // without synthetic log entries, hence <entries/> must be an empty element.
+fn test_given_tree_with_entries_when_exporting_xml_then_entries_section_contains_valid_entry_elements(
+) {
+    // Arrange
     let tree = create_full_hierarchy_tree();
 
     // Act
     let xml = export_xml(&tree).expect("export_xml should succeed");
 
     // Assert
-    assert!(
-        xml.contains("<entries/>") || xml.contains("<entries></entries>"),
-        "AD-03 requires entries to be an empty section in Rust CLI export"
-    );
-    assert!(!xml.contains("<entry>"));
+    assert!(xml.contains("<entries><entry>"));
+    assert!(xml.contains("<id>entry-1</id>"));
+    assert!(xml.contains("<date>2026-11-07</date>"));
+    assert!(xml.contains("<projectName>Alpha \"Platform\" &amp; Engine</projectName>"));
+    assert!(xml.contains("<taskName>Core Infrastructure &lt;v2&gt;</taskName>"));
+    assert!(xml.contains("<subtaskName>Schema Design 'XML'</subtaskName>"));
+    assert!(xml.contains("<startTime>2026-11-07T10:00:00Z</startTime>"));
+    assert!(xml.contains("<endTime>2026-11-07T11:20:00Z</endTime>"));
+    assert!(xml.contains("<durationSeconds>4800</durationSeconds>"));
+    assert!(xml.contains("<formattedDuration>01h 20m</formattedDuration>"));
+    assert!(xml.contains("<note>Implementation &amp; tests &lt;v1&gt;</note>"));
+
+    assert!(xml.contains("<id>entry-2</id>"));
+    assert!(xml.contains("<subtaskName>Serialization &amp; Tests</subtaskName>"));
 }
 
 #[test]
@@ -221,4 +248,8 @@ fn test_given_xml_report_dto_deserialization_roundtrip() {
             .len(),
         2
     );
+    assert_eq!(dto.entries.entries.len(), 2);
+    assert_eq!(dto.entries.entries[0].id, "entry-1");
+    assert_eq!(dto.entries.entries[0].date, "2026-11-07");
+    assert_eq!(dto.entries.entries[1].id, "entry-2");
 }

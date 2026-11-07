@@ -51,6 +51,7 @@ fn test_given_empty_report_tree_when_render_tree_string_then_returns_no_data_mes
         total_seconds: 0,
         total_formatted: "00m 00s".to_string(),
         projects: vec![],
+        entries: vec![],
     };
 
     // Act
@@ -91,6 +92,7 @@ fn test_given_hierarchical_report_when_render_tree_string_then_includes_unicode_
         total_seconds: 7200,
         total_formatted: "02h 00m".to_string(),
         projects: vec![project],
+        entries: vec![],
     };
 
     // Act
@@ -120,6 +122,7 @@ fn test_given_report_tree_when_serialized_to_json_then_produces_valid_dto_schema
             percentage: 100.0,
             tasks: vec![],
         }],
+        entries: vec![],
     };
 
     // Act

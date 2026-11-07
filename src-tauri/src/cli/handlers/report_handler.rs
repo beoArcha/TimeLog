@@ -5,15 +5,15 @@ use crate::cli::error::CliError;
 use crate::cli::exporters::constants::MSG_EXPORT_SUCCESS;
 use crate::cli::exporters::export_to_file;
 use crate::cli::formatters::{
-    format_duration, render_tree_string, ReportProjectDto, ReportSubtaskDto, ReportTaskDto,
-    ReportTreeDto,
+    format_duration, render_tree_string, ReportEntryDto, ReportProjectDto, ReportSubtaskDto,
+    ReportTaskDto, ReportTreeDto,
 };
 use crate::cli::parser::{ReportArgs, ReportSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{ElapsedRangeFilter, Project, RangeMetricsResult, Task};
+use crate::types::{ClampedTimeLog, ElapsedRangeFilter, Project, RangeMetricsResult, Task};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default)]
@@ -178,6 +178,11 @@ pub fn build_report_tree(
         .map(|p| (p.id.clone(), p))
         .collect();
 
+    let task_map: HashMap<String, Task> = all_tasks
+        .iter()
+        .map(|t| (t.id.clone(), t.clone()))
+        .collect();
+
     let mut subtasks_by_parent: HashMap<String, Vec<Task>> = HashMap::new();
     let mut root_tasks_by_project: HashMap<String, Vec<Task>> = HashMap::new();
 
@@ -210,12 +215,14 @@ pub fn build_report_tree(
         .collect();
 
     project_dtos.sort_by_key(|a| std::cmp::Reverse(a.duration_seconds));
+    let entry_dtos = build_entry_dtos(&metrics.clamped_logs, &project_map, &task_map);
 
     Ok(ReportTreeDto {
         period: period_label,
         total_seconds: total_secs,
         total_formatted: format_duration(total_secs),
         projects: project_dtos,
+        entries: entry_dtos,
     })
 }
 
@@ -322,4 +329,59 @@ fn build_task_dto(
         percentage: task_pct,
         subtasks: subtask_dtos,
     })
+}
+
+fn build_entry_dtos(
+    clamped_logs: &[ClampedTimeLog],
+    project_map: &HashMap<String, Project>,
+    task_map: &HashMap<String, Task>,
+) -> Vec<ReportEntryDto> {
+    clamped_logs
+        .iter()
+        .map(|log| {
+            let (task_name, subtask_name) = match task_map.get(&log.task_id) {
+                Some(task) => match &task.parent_task_id {
+                    Some(parent_id) => {
+                        let parent_name = task_map
+                            .get(parent_id)
+                            .map(|p| p.name.clone())
+                            .unwrap_or_else(|| parent_id.clone());
+                        (parent_name, Some(task.name.clone()))
+                    }
+                    None => (task.name.clone(), None),
+                },
+                None => (log.task_id.clone(), None),
+            };
+
+            let project_name = project_map
+                .get(&log.project_id)
+                .map(|p| p.name.clone())
+                .unwrap_or_else(|| log.project_id.clone());
+
+            let date = if log.clamped_start_time.len() >= 10 {
+                log.clamped_start_time[0..10].to_string()
+            } else {
+                log.clamped_start_time.clone()
+            };
+
+            let end_time = if log.clamped_end_time.is_empty() {
+                None
+            } else {
+                Some(log.clamped_end_time.clone())
+            };
+
+            ReportEntryDto {
+                id: log.id.clone(),
+                date,
+                project_name,
+                task_name,
+                subtask_name,
+                start_time: log.clamped_start_time.clone(),
+                end_time,
+                duration_seconds: log.clamped_duration_seconds,
+                duration_formatted: format_duration(log.clamped_duration_seconds),
+                note: log.note.clone(),
+            }
+        })
+        .collect()
 }

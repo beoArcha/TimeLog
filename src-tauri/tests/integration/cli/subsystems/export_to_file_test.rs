@@ -24,6 +24,7 @@ fn create_sample_tree() -> ReportTreeDto {
                 subtasks: vec![],
             }],
         }],
+        entries: vec![],
     }
 }
 
