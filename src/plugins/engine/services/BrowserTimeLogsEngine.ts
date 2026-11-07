@@ -16,7 +16,8 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
     startTime: string,
     endTime: string | null,
     note: string | null,
-    reason: string | null
+    reason: string | null,
+    auditSource?: string | null
   ): Promise<void> {
     const state = await this.persistence.core.load();
     if (!state) {
@@ -37,8 +38,25 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       throw err;
     }
 
+    const isCli = auditSource === 'CliEdit' || auditSource === 'CLI Edit';
+    const isSystemPatch = auditSource === 'SystemPatch' || auditSource === 'System Patch';
+    const isManualAdjustment = auditSource === 'ManualAdjustment' || auditSource === 'Manual Adjustment';
+
+    const isManual = !isCli && !isSystemPatch;
+
+    let resolvedAuditSource: string;
+    if (isCli) {
+      resolvedAuditSource = 'CLI Edit';
+    } else if (isSystemPatch) {
+      resolvedAuditSource = 'System Patch';
+    } else if (isManualAdjustment) {
+      resolvedAuditSource = 'Manual Adjustment';
+    } else {
+      resolvedAuditSource = 'GUI Edit';
+    }
+
     const trimmedReason = reason?.trim();
-    if (!trimmedReason) {
+    if (isManual && !trimmedReason) {
       const err = new EngineValidationError(
         'Audit reason is required for manual edits',
         undefined,
@@ -57,8 +75,8 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       prevStartTime,
       prevEndTime,
       prevNote,
-      reason: trimmedReason,
-      auditSource: 'GUI Edit',
+      reason: trimmedReason || undefined,
+      auditSource: resolvedAuditSource,
     };
 
     const updatedHistory = currentLog.editHistory ? [...currentLog.editHistory, historyItem] : [historyItem];

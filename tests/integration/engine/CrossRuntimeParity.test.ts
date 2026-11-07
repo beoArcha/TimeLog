@@ -281,4 +281,63 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
     });
   });
 
+  describe('Cross-Runtime TimeLog Edit & Audit Parity', () => {
+    beforeEach(async () => {
+      setupLocalStorageMock();
+      const persistence = new PersistencePlugin();
+      PersistenceRouter.getInstance().setImplementationForTesting(persistence);
+      await persistence.core.reset();
+      await persistence.core.overrideState({
+        projects: [{ id: 'p1', name: 'P1', color: 'blue', createdAt: '2026-06-15T00:00:00Z', archived: false }],
+        tasks: [{ id: 't1', projectId: 'p1', name: 'T1', createdAt: '2026-06-15T00:00:00Z', completed: false, status: 'Todo' }],
+        logs: [
+          {
+            id: 'l1',
+            projectId: 'p1',
+            taskId: 't1',
+            startTime: '2026-06-15T10:00:00Z',
+            endTime: '2026-06-15T11:00:00Z',
+            note: 'Original note',
+          },
+        ],
+        activeLog: null,
+      });
+    });
+
+    it('Given manual edit without reason, Then browser runtime rejects with EngineValidationError', async () => {
+      // Arrange
+      const browserEngine = new EnginePlugin();
+
+      // Act & Assert
+      await expect(
+        browserEngine.timeLogs.editTimeLog('l1', 't1', '2026-06-15T10:00:00Z', '2026-06-15T11:30:00Z', null, null)
+      ).rejects.toThrow('Audit reason is required for manual edits');
+    });
+
+    it('Given desktop commands editTimeLog, When invoked, Then passes audit payload to Tauri invoke', async () => {
+      // Arrange
+      mockInvoke.mockResolvedValue(undefined);
+      const desktopEngine = new EngineCommands();
+
+      // Act
+      await desktopEngine.timeLogs.editTimeLog(
+        'l1',
+        't1',
+        '2026-06-15T10:00:00Z',
+        '2026-06-15T11:30:00Z',
+        'Updated note',
+        'Reason for edit'
+      );
+
+      // Assert
+      expect(mockInvoke).toHaveBeenCalledWith('edit_time_log', {
+        id: 'l1',
+        taskId: 't1',
+        startTime: '2026-06-15T10:00:00Z',
+        endTime: '2026-06-15T11:30:00Z',
+        note: 'Updated note',
+        reason: 'Reason for edit',
+      });
+    });
+  });
 });

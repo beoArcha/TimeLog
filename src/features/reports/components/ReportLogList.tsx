@@ -58,6 +58,7 @@ export default function ReportLogList({
   const {
     editingLog,
     deletingLog,
+    deleteError,
     openEdit,
     closeEdit,
     openDelete,
@@ -179,6 +180,7 @@ export default function ReportLogList({
         variant="destructive"
         onConfirm={handleConfirmDelete}
         onCancel={closeDelete}
+        errorMessage={deleteError}
       />
     </div>
   );

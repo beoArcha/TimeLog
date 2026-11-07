@@ -252,3 +252,127 @@ fn test_engine_edit_log_cli_without_reason_succeeds() {
     assert_eq!(history[0].reason, None);
     assert_eq!(history[0].audit_source.as_deref(), Some("CLI Edit"));
 }
+
+#[test]
+fn test_engine_edit_log_generates_unique_uuid_history_ids() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_edit_log_uuid_history");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    conn.execute(
+        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'P1', 'teal', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'T1', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time, note) VALUES ('log_uuid', 't1', '2026-06-15T08:00:00Z', '2026-06-15T09:00:00Z', 'Note')",
+        [],
+    )
+    .unwrap();
+
+    // Act - perform two consecutive edits
+    engine
+        .edit_log(TimeLogEditInput {
+            id: "log_uuid",
+            task_id: "t1",
+            start_time: "2026-06-15T08:00:00Z",
+            end_time: Some("2026-06-15T09:05:00Z"),
+            note: Some("Edit 1"),
+            reason: Some("First adjustment"),
+            audit_source: Some(AuditSource::ManualAdjustment),
+        })
+        .unwrap();
+
+    engine
+        .edit_log(TimeLogEditInput {
+            id: "log_uuid",
+            task_id: "t1",
+            start_time: "2026-06-15T08:00:00Z",
+            end_time: Some("2026-06-15T09:10:00Z"),
+            note: Some("Edit 2"),
+            reason: Some("Second adjustment"),
+            audit_source: Some(AuditSource::GuiEdit),
+        })
+        .unwrap();
+
+    // Assert
+    let rows: Vec<(String, Option<String>)> = {
+        let mut stmt = conn
+            .prepare("SELECT id, prev_start_time FROM time_logs_history WHERE time_log_id = ? ORDER BY edited_at ASC")
+            .unwrap();
+        let iter = stmt
+            .query_map(["log_uuid"], |r| Ok((r.get(0)?, r.get(1)?)))
+            .unwrap();
+        iter.map(|r| r.unwrap()).collect()
+    };
+
+    assert_eq!(rows.len(), 2);
+    let (id1, prev_start1) = &rows[0];
+    let (id2, _prev_start2) = &rows[1];
+
+    assert_ne!(id1, id2, "History IDs must be unique across rapid edits");
+    assert!(id1.starts_with("history_"));
+    assert!(id2.starts_with("history_"));
+
+    let uuid_part1 = id1.trim_start_matches("history_");
+    let uuid_part2 = id2.trim_start_matches("history_");
+    assert!(uuid::Uuid::parse_str(uuid_part1).is_ok());
+    assert!(uuid::Uuid::parse_str(uuid_part2).is_ok());
+
+    // start_time was not modified in either edit
+    assert_eq!(*prev_start1, None);
+}
+
+#[test]
+fn test_engine_edit_log_prev_start_recorded_when_start_time_changes() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_edit_log_prev_start");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    conn.execute(
+        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'P1', 'teal', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'T1', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time, note) VALUES ('log_start', 't1', '2026-06-15T08:00:00Z', '2026-06-15T09:00:00Z', 'Note')",
+        [],
+    )
+    .unwrap();
+
+    // Act - edit with modified start_time
+    engine
+        .edit_log(TimeLogEditInput {
+            id: "log_start",
+            task_id: "t1",
+            start_time: "2026-06-15T08:30:00Z",
+            end_time: Some("2026-06-15T09:00:00Z"),
+            note: Some("Shifted start"),
+            reason: Some("Delayed start correction"),
+            audit_source: Some(AuditSource::ManualAdjustment),
+        })
+        .unwrap();
+
+    // Assert
+    let prev_start: Option<String> = conn
+        .query_row(
+            "SELECT prev_start_time FROM time_logs_history WHERE time_log_id = ?",
+            ["log_start"],
+            |r| r.get(0),
+        )
+        .unwrap();
+
+    assert_eq!(prev_start.as_deref(), Some("2026-06-15T08:00:00Z"));
+}

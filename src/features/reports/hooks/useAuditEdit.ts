@@ -17,6 +17,7 @@ export interface UseAuditEditOptions {
 export interface UseAuditEditResult {
   editingLog: ClampedTimeLog | TimeLog | null;
   deletingLog: ClampedTimeLog | TimeLog | null;
+  deleteError: string | null;
   openEdit: (log: ClampedTimeLog | TimeLog) => void;
   closeEdit: () => void;
   openDelete: (log: ClampedTimeLog | TimeLog) => void;
@@ -44,6 +45,7 @@ export function useAuditEdit({
 
   const [editingLog, setEditingLog] = useState<ClampedTimeLog | TimeLog | null>(null);
   const [deletingLog, setDeletingLog] = useState<ClampedTimeLog | TimeLog | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const allSourceLogs = useMemo(
     () => logs ?? dataContext?.logs ?? [],
@@ -60,10 +62,12 @@ export function useAuditEdit({
   };
 
   const openDelete = (log: ClampedTimeLog | TimeLog) => {
+    setDeleteError(null);
     setDeletingLog(log);
   };
 
   const closeDelete = () => {
+    setDeleteError(null);
     setDeletingLog(null);
   };
 
@@ -71,13 +75,27 @@ export function useAuditEdit({
     if (!deletingLog) return;
     const targetId = deletingLog.id;
 
-    if (dataContext?.handleDeleteTimeLog) {
-      await dataContext.handleDeleteTimeLog(targetId);
-    } else if (dataContext?.refreshData) {
-      await dataContext.refreshData();
+    if (!dataContext?.handleDeleteTimeLog) {
+      const err = new Error('Deletion handler is not available');
+      setDeleteError(err.message);
+      throw err;
     }
-    onLogDeleted?.(targetId);
-    setDeletingLog(null);
+
+    try {
+      const result = await dataContext.handleDeleteTimeLog(targetId);
+      if (result && typeof result === 'object' && 'deleted' in result && !result.deleted) {
+        const err = new Error('Failed to delete time log');
+        setDeleteError(err.message);
+        throw err;
+      }
+      setDeleteError(null);
+      onLogDeleted?.(targetId);
+      setDeletingLog(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete time log';
+      setDeleteError(message);
+      throw error;
+    }
   };
 
   const activeEditingSourceLog = useMemo(() => {
@@ -103,6 +121,7 @@ export function useAuditEdit({
   return {
     editingLog,
     deletingLog,
+    deleteError,
     openEdit,
     closeEdit,
     openDelete,

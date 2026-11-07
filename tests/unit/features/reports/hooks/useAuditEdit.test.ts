@@ -132,5 +132,91 @@ describe('Unit Tests: useAuditEdit hook', () => {
     expect(handleDeleteTimeLogMock).toHaveBeenCalledWith('l1');
     expect(onLogDeletedMock).toHaveBeenCalledWith('l1');
     expect(result.current.deletingLog).toBeNull();
+    expect(result.current.deleteError).toBeNull();
+  });
+
+  it('Given missing handleDeleteTimeLog, When handleConfirmDelete is called, Then does not trigger onLogDeleted and preserves deletingLog', async () => {
+    // Arrange
+    const onLogDeletedMock = vi.fn();
+    vi.spyOn(DataContextModule, 'useDataSafe').mockReturnValue({
+      logs: sampleLogs,
+      refreshData: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useDataSafe>);
+
+    const { result } = renderHook(() =>
+      useAuditEdit({
+        projects: sampleProjects,
+        tasks: sampleTasks,
+        logs: sampleLogs,
+        onLogDeleted: onLogDeletedMock,
+      })
+    );
+
+    // Act
+    act(() => {
+      result.current.openDelete(sampleLogs[0]);
+    });
+
+    let caughtError: unknown;
+    await act(async () => {
+      try {
+        await result.current.handleConfirmDelete();
+      } catch (err) {
+        caughtError = err;
+      }
+    });
+
+    // Assert
+    expect(caughtError).toBeInstanceOf(Error);
+    expect((caughtError as Error).message).toContain('Deletion handler is not available');
+    expect(onLogDeletedMock).not.toHaveBeenCalled();
+    expect(result.current.deletingLog).toEqual(sampleLogs[0]);
+    expect(result.current.deleteError).toContain('Deletion handler is not available');
+  });
+
+  it('Given failing handleDeleteTimeLog, When handleConfirmDelete is called, Then preserves deletingLog and sets deleteError', async () => {
+    // Arrange
+    const handleDeleteTimeLogMock = vi.fn().mockRejectedValue(new Error('Backend delete failure'));
+    const onLogDeletedMock = vi.fn();
+    vi.spyOn(DataContextModule, 'useDataSafe').mockReturnValue({
+      handleDeleteTimeLog: handleDeleteTimeLogMock,
+      logs: sampleLogs,
+    } as unknown as ReturnType<typeof DataContextModule.useDataSafe>);
+
+    const { result } = renderHook(() =>
+      useAuditEdit({
+        projects: sampleProjects,
+        tasks: sampleTasks,
+        logs: sampleLogs,
+        onLogDeleted: onLogDeletedMock,
+      })
+    );
+
+    // Act
+    act(() => {
+      result.current.openDelete(sampleLogs[0]);
+    });
+
+    let caughtError: unknown;
+    await act(async () => {
+      try {
+        await result.current.handleConfirmDelete();
+      } catch (err) {
+        caughtError = err;
+      }
+    });
+
+    // Assert
+    expect(caughtError).toBeInstanceOf(Error);
+    expect(onLogDeletedMock).not.toHaveBeenCalled();
+    expect(result.current.deletingLog).toEqual(sampleLogs[0]);
+    expect(result.current.deleteError).toBe('Backend delete failure');
+
+    // Act closeDelete resets error
+    act(() => {
+      result.current.closeDelete();
+    });
+    expect(result.current.deletingLog).toBeNull();
+    expect(result.current.deleteError).toBeNull();
   });
 });

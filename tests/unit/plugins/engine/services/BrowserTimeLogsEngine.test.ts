@@ -118,4 +118,89 @@ describe('BrowserTimeLogsEngine', () => {
       engine.editTimeLog('l1', 't1', '2026-06-15T10:00:00Z', '2026-06-15T11:00:00Z', null, '   ')
     ).rejects.toThrow('Audit reason is required for manual edits');
   });
+
+  it('should allow non-manual edits (CliEdit, SystemPatch) without a reason and persist audit source', async () => {
+    // Arrange
+    const originalLog = aTimeLog({
+      id: 'l1',
+      taskId: 't1',
+      startTime: '2026-06-15T10:00:00Z',
+      endTime: '2026-06-15T11:00:00Z',
+      note: 'Old note',
+      editHistory: null,
+    });
+
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    // Act - CliEdit without reason
+    await engine.editTimeLog(
+      'l1',
+      't1',
+      '2026-06-15T10:00:00Z',
+      '2026-06-15T11:30:00Z',
+      'CLI note',
+      null,
+      'CliEdit'
+    );
+
+    // Assert
+    const savedState = vi.mocked(routerMock.core.overrideState).mock.calls[0][0];
+    const updated = savedState.logs?.find((l) => l.id === 'l1');
+    expect(updated?.editHistory).toHaveLength(1);
+    expect(updated?.editHistory?.[0].auditSource).toBe('CLI Edit');
+    expect(updated?.editHistory?.[0].reason).toBeUndefined();
+    expect(updated?.editHistory?.[0].prevStartTime).toBeUndefined();
+  });
+
+  it('should require reason for ManualAdjustment and persist canonical auditSource', async () => {
+    // Arrange
+    const originalLog = aTimeLog({
+      id: 'l1',
+      taskId: 't1',
+      startTime: '2026-06-15T10:00:00Z',
+      endTime: '2026-06-15T11:00:00Z',
+      note: 'Old note',
+      editHistory: null,
+    });
+
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    // Act & Assert - missing reason for ManualAdjustment
+    await expect(
+      engine.editTimeLog('l1', 't1', '2026-06-15T10:00:00Z', '2026-06-15T11:00:00Z', null, null, 'ManualAdjustment')
+    ).rejects.toThrow('Audit reason is required for manual edits');
+
+    // Act & Assert - valid ManualAdjustment
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    await engine.editTimeLog(
+      'l1',
+      't1',
+      '2026-06-15T10:00:00Z',
+      '2026-06-15T11:00:00Z',
+      null,
+      'Manual fix',
+      'ManualAdjustment'
+    );
+
+    const savedState = vi.mocked(routerMock.core.overrideState).mock.calls[0][0];
+    const updated = savedState.logs?.find((l) => l.id === 'l1');
+    expect(updated?.editHistory?.[0].auditSource).toBe('Manual Adjustment');
+    expect(updated?.editHistory?.[0].reason).toBe('Manual fix');
+  });
 });

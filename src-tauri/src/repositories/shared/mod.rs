@@ -265,7 +265,9 @@ fn column_is_not_null(conn: &Connection, table: &str, column: &str) -> Result<bo
 }
 
 fn apply_migration_9(conn: &Connection) -> Result<()> {
-    if !column_is_not_null(conn, "time_logs_history", "reason")? {
+    if !column_is_not_null(conn, "time_logs_history", "reason")?
+        && !column_is_not_null(conn, "time_logs_history", "prev_start_time")?
+    {
         return Ok(());
     }
 

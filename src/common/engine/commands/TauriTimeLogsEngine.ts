@@ -9,7 +9,8 @@ export class TauriTimeLogsEngine implements ITimeLogsEngine {
     startTime: string,
     endTime: string | null,
     note: string | null,
-    reason: string | null
+    reason: string | null,
+    _auditSource?: string | null
   ): Promise<void> {
     try {
       await invoke('edit_time_log', { id, taskId, startTime, endTime, note, reason });

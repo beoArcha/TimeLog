@@ -74,7 +74,11 @@ impl<'a> Engine<'a> {
             ));
         }
 
-        let prev_start = Some(current_log.start_time.as_str());
+        let prev_start = if current_log.start_time != input.start_time {
+            Some(current_log.start_time.as_str())
+        } else {
+            None
+        };
         let prev_end = if current_log.end_time.as_deref() != input.end_time {
             current_log.end_time.as_deref()
         } else {
@@ -86,7 +90,7 @@ impl<'a> Engine<'a> {
             None
         };
 
-        let history_id = format!("history_{}", Utc::now().timestamp_millis());
+        let history_id = format!("history_{}", uuid::Uuid::new_v4());
         let edited_at = Utc::now().to_rfc3339();
 
         let entry = crate::types::TimeLogUpdateHistory {

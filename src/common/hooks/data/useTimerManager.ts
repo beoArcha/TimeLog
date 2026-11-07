@@ -147,20 +147,40 @@ export const useTimerManager = ({
     );
   };
 
-  const handleDeleteTimeLog = async (id: string): Promise<void> => {
-    await actionRunner.runAction(
+  const handleDeleteTimeLog = async (
+    id: string
+  ): Promise<{ deleted: boolean; synchronized: boolean }> => {
+    const mutationResult = await actionRunner.runAction(
       'Failed to delete time log',
       async () => {
         await PersistenceRouter.getInstance().timeLogs.delete(id);
-        const nextState = await PersistenceRouter.getInstance().core.load();
-        if (nextState) {
-          repositoryState.setLogsState(nextState.logs);
-          repositoryState.setActiveLogState(nextState.activeLog);
-          await refreshComputedMetrics();
-        }
+        return true;
       },
       { errorCode: 'ERR_REPOSITORY_DELETE_TIME_LOG', rethrow: true }
     );
+
+    if (mutationResult !== true) {
+      return { deleted: false, synchronized: false };
+    }
+
+    const synchronizationResult = await actionRunner.runAction(
+      'Failed to synchronize time logs after delete',
+      async () => {
+        const nextState = await PersistenceRouter.getInstance().core.load();
+        if (!nextState) {
+          throw new Error('Repository state unavailable after deleting time log');
+        }
+
+        repositoryState.setLogsState(nextState.logs);
+        repositoryState.setActiveLogState(nextState.activeLog);
+        repositoryState.setActiveLogsState(nextState.activeLogs ?? (nextState.activeLog ? [nextState.activeLog] : []));
+        await refreshComputedMetrics();
+        return true;
+      },
+      { errorCode: 'ERR_REPOSITORY_SYNC_TIME_LOG', rethrow: false }
+    );
+
+    return { deleted: true, synchronized: synchronizationResult === true };
   };
 
   const handleInsertTimeLog = async (

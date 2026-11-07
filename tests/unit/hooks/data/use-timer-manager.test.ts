@@ -179,13 +179,15 @@ describe('Unit Tests: useTimerManager Hook', () => {
     expect(refreshComputedMetrics).not.toHaveBeenCalled();
   });
 
-  it('should delete time log via router, reload state, and pass rethrow: true to actionRunner', async () => {
+  it('should delete time log via router, reload state, update activeLogsState, and return success', async () => {
+    // Arrange
     const deleteSpy = vi.spyOn(router.timeLogs, 'delete').mockResolvedValue();
     vi.spyOn(router.core, 'load').mockResolvedValue({
       projects: [],
       tasks: [],
       logs: [],
       activeLog: null,
+      activeLogs: [],
     });
 
     const { result } = renderHook(() =>
@@ -197,18 +199,70 @@ describe('Unit Tests: useTimerManager Hook', () => {
       })
     );
 
+    // Act
+    let deleteResult: { deleted: boolean; synchronized: boolean } | undefined;
     await act(async () => {
-      await result.current.handleDeleteTimeLog('log1');
+      deleteResult = await result.current.handleDeleteTimeLog('log1');
     });
 
+    // Assert
     expect(deleteSpy).toHaveBeenCalledWith('log1');
-    expect(mockActionRunner.runAction).toHaveBeenCalledWith(
+    expect(mockActionRunner.runAction).toHaveBeenNthCalledWith(
+      1,
       'Failed to delete time log',
       expect.any(Function),
       expect.objectContaining({ rethrow: true, errorCode: 'ERR_REPOSITORY_DELETE_TIME_LOG' })
     );
+    expect(mockActionRunner.runAction).toHaveBeenNthCalledWith(
+      2,
+      'Failed to synchronize time logs after delete',
+      expect.any(Function),
+      expect.objectContaining({ rethrow: false, errorCode: 'ERR_REPOSITORY_SYNC_TIME_LOG' })
+    );
     expect(mockRepositoryState.setLogsState).toHaveBeenCalledWith([]);
     expect(mockRepositoryState.setActiveLogState).toHaveBeenCalledWith(null);
+    expect(mockRepositoryState.setActiveLogsState).toHaveBeenCalledWith([]);
     expect(refreshComputedMetrics).toHaveBeenCalled();
+    expect(deleteResult).toEqual({ deleted: true, synchronized: true });
+  });
+
+  it('should report committed delete when synchronization fails after deletion', async () => {
+    // Arrange
+    const deleteSpy = vi.spyOn(router.timeLogs, 'delete').mockResolvedValue();
+    vi.spyOn(router.core, 'load').mockRejectedValue(new Error('Reload failed'));
+
+    const runActionMock = vi.fn()
+      .mockImplementationOnce(async (_message: string, action: () => Promise<unknown>) => action())
+      .mockImplementationOnce(async (_message: string, action: () => Promise<unknown>) => {
+        try {
+          return await action();
+        } catch {
+          return undefined;
+        }
+      });
+    const actionRunner = createMockActionRunner({
+      runAction: runActionMock as unknown as typeof mockActionRunner.runAction,
+    });
+
+    const { result } = renderHook(() =>
+      useTimerManager({
+        repositoryState: mockRepositoryState,
+        actionRunner,
+        pushToApi,
+        refreshComputedMetrics,
+      })
+    );
+
+    // Act
+    let deleteResult: { deleted: boolean; synchronized: boolean } | undefined;
+    await act(async () => {
+      deleteResult = await result.current.handleDeleteTimeLog('log1');
+    });
+
+    // Assert
+    expect(deleteSpy).toHaveBeenCalledWith('log1');
+    expect(runActionMock).toHaveBeenCalledTimes(2);
+    expect(deleteResult).toEqual({ deleted: true, synchronized: false });
+    expect(refreshComputedMetrics).not.toHaveBeenCalled();
   });
 });
