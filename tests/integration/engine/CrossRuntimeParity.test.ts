@@ -314,6 +314,65 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       ).rejects.toThrow('Audit reason is required for manual edits');
     });
 
+    it('Given CliEdit without reason, Then browser runtime rejects with EngineValidationError', async () => {
+      // Arrange
+      const browserEngine = new EnginePlugin();
+
+      // Act & Assert
+      await expect(
+        browserEngine.timeLogs.editTimeLog(
+          'l1',
+          't1',
+          '2026-06-15T10:00:00Z',
+          '2026-06-15T11:30:00Z',
+          null,
+          null,
+          'CliEdit'
+        )
+      ).rejects.toThrow('Audit reason is required for manual edits');
+    });
+
+    it('Given SystemPatch without reason, Then browser runtime succeeds and persists canonical audit source', async () => {
+      // Arrange
+      const browserEngine = new EnginePlugin();
+
+      // Act
+      await browserEngine.timeLogs.editTimeLog(
+        'l1',
+        't1',
+        '2026-06-15T10:00:00Z',
+        '2026-06-15T11:30:00Z',
+        null,
+        null,
+        'SystemPatch'
+      );
+
+      // Assert
+      const state = await PersistenceRouter.getInstance().core.load();
+      const updatedLog = state?.logs?.find((l) => l.id === 'l1');
+      expect(updatedLog?.editHistory).toHaveLength(1);
+      expect(updatedLog?.editHistory?.[0].auditSource).toBe('System Patch');
+      expect(updatedLog?.editHistory?.[0].reason).toBeUndefined();
+    });
+
+    it('Given unknown audit source, Then browser runtime rejects with EngineValidationError', async () => {
+      // Arrange
+      const browserEngine = new EnginePlugin();
+
+      // Act & Assert
+      await expect(
+        browserEngine.timeLogs.editTimeLog(
+          'l1',
+          't1',
+          '2026-06-15T10:00:00Z',
+          '2026-06-15T11:30:00Z',
+          null,
+          'Valid reason',
+          'UnknownSource'
+        )
+      ).rejects.toThrow('Invalid audit source: UnknownSource');
+    });
+
     it('Given desktop commands editTimeLog, When invoked, Then passes audit payload to Tauri invoke', async () => {
       // Arrange
       mockInvoke.mockResolvedValue(undefined);

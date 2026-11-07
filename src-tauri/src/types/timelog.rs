@@ -150,6 +150,46 @@ impl AuditSource {
             AuditSource::ManualAdjustment => AUDIT_SOURCE_MANUAL_ADJUSTMENT,
         }
     }
+
+    pub fn requires_reason(&self) -> bool {
+        !matches!(self, AuditSource::SystemPatch)
+    }
+
+    pub fn from_raw_str(s: &str) -> Result<Self, crate::engine::EngineError> {
+        match s {
+            "CliEdit" | AUDIT_SOURCE_CLI_EDIT => Ok(AuditSource::CliEdit),
+            "GuiEdit" | AUDIT_SOURCE_GUI_EDIT => Ok(AuditSource::GuiEdit),
+            "SystemPatch" | AUDIT_SOURCE_SYSTEM_PATCH => Ok(AuditSource::SystemPatch),
+            "ManualAdjustment" | AUDIT_SOURCE_MANUAL_ADJUSTMENT => {
+                Ok(AuditSource::ManualAdjustment)
+            }
+            other => Err(crate::engine::EngineError::Validation(format!(
+                "Invalid audit source: '{other}'"
+            ))),
+        }
+    }
+}
+
+impl TryFrom<&str> for AuditSource {
+    type Error = crate::engine::EngineError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Self::from_raw_str(s)
+    }
+}
+
+impl std::str::FromStr for AuditSource {
+    type Err = crate::engine::EngineError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_raw_str(s)
+    }
+}
+
+impl std::fmt::Display for AuditSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

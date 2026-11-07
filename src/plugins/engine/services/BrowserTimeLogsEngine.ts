@@ -38,25 +38,31 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
       throw err;
     }
 
-    const isCli = auditSource === 'CliEdit' || auditSource === 'CLI Edit';
-    const isSystemPatch = auditSource === 'SystemPatch' || auditSource === 'System Patch';
-    const isManualAdjustment = auditSource === 'ManualAdjustment' || auditSource === 'Manual Adjustment';
-
-    const isManual = !isCli && !isSystemPatch;
-
     let resolvedAuditSource: string;
-    if (isCli) {
-      resolvedAuditSource = 'CLI Edit';
-    } else if (isSystemPatch) {
-      resolvedAuditSource = 'System Patch';
-    } else if (isManualAdjustment) {
-      resolvedAuditSource = 'Manual Adjustment';
-    } else {
+    if (!auditSource) {
       resolvedAuditSource = 'GUI Edit';
+    } else if (auditSource === 'GUI Edit' || auditSource === 'GuiEdit') {
+      resolvedAuditSource = 'GUI Edit';
+    } else if (auditSource === 'CLI Edit' || auditSource === 'CliEdit') {
+      resolvedAuditSource = 'CLI Edit';
+    } else if (auditSource === 'Manual Adjustment' || auditSource === 'ManualAdjustment') {
+      resolvedAuditSource = 'Manual Adjustment';
+    } else if (auditSource === 'System Patch' || auditSource === 'SystemPatch') {
+      resolvedAuditSource = 'System Patch';
+    } else {
+      const err = new EngineValidationError(
+        `Invalid audit source: ${auditSource}`,
+        undefined,
+        'ERR_ENGINE_VALIDATION'
+      );
+      ErrorHandler.handle(err);
+      throw err;
     }
 
     const trimmedReason = reason?.trim();
-    if (isManual && !trimmedReason) {
+    const requiresReason = resolvedAuditSource !== 'System Patch';
+
+    if (requiresReason && !trimmedReason) {
       const err = new EngineValidationError(
         'Audit reason is required for manual edits',
         undefined,

@@ -86,6 +86,7 @@ pub fn get_range_metrics(
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub fn edit_time_log(
     id: String,
     task_id: String,
@@ -93,9 +94,14 @@ pub fn edit_time_log(
     end_time: Option<String>,
     note: Option<String>,
     reason: Option<String>,
+    audit_source: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<(), AppError> {
     let engine = Engine::new(&state.persistence);
+    let parsed_audit_source = match audit_source {
+        Some(ref s) if !s.trim().is_empty() => Some(crate::types::AuditSource::from_raw_str(s)?),
+        _ => None,
+    };
     engine.edit_log(crate::types::TimeLogEditInput {
         id: &id,
         task_id: &task_id,
@@ -103,7 +109,7 @@ pub fn edit_time_log(
         end_time: end_time.as_deref(),
         note: note.as_deref(),
         reason: reason.as_deref(),
-        audit_source: Some(crate::types::AuditSource::GuiEdit),
+        audit_source: parsed_audit_source,
     })?;
     Ok(())
 }

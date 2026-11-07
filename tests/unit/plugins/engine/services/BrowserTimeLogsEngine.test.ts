@@ -119,7 +119,7 @@ describe('BrowserTimeLogsEngine', () => {
     ).rejects.toThrow('Audit reason is required for manual edits');
   });
 
-  it('should allow non-manual edits (CliEdit, SystemPatch) without a reason and persist audit source', async () => {
+  it('should require reason for CliEdit and persist canonical auditSource', async () => {
     // Arrange
     const originalLog = aTimeLog({
       id: 'l1',
@@ -137,24 +137,121 @@ describe('BrowserTimeLogsEngine', () => {
       activeLog: null,
     });
 
-    // Act - CliEdit without reason
+    // Act & Assert - CliEdit without reason must throw
+    await expect(
+      engine.editTimeLog(
+        'l1',
+        't1',
+        '2026-06-15T10:00:00Z',
+        '2026-06-15T11:30:00Z',
+        'CLI note',
+        null,
+        'CliEdit'
+      )
+    ).rejects.toThrow('Audit reason is required for manual edits');
+
+    // Act & Assert - CliEdit with whitespace-only reason must throw
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    await expect(
+      engine.editTimeLog(
+        'l1',
+        't1',
+        '2026-06-15T10:00:00Z',
+        '2026-06-15T11:30:00Z',
+        'CLI note',
+        '   ',
+        'CliEdit'
+      )
+    ).rejects.toThrow('Audit reason is required for manual edits');
+
+    // Act - CliEdit with valid reason must succeed
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
     await engine.editTimeLog(
       'l1',
       't1',
       '2026-06-15T10:00:00Z',
       '2026-06-15T11:30:00Z',
       'CLI note',
-      null,
+      '  CLI command update  ',
       'CliEdit'
     );
 
-    // Assert
     const savedState = vi.mocked(routerMock.core.overrideState).mock.calls[0][0];
     const updated = savedState.logs?.find((l) => l.id === 'l1');
     expect(updated?.editHistory).toHaveLength(1);
     expect(updated?.editHistory?.[0].auditSource).toBe('CLI Edit');
+    expect(updated?.editHistory?.[0].reason).toBe('CLI command update');
+  });
+
+  it('should allow SystemPatch without a reason and trim reason when provided', async () => {
+    // Arrange
+    const originalLog = aTimeLog({
+      id: 'l1',
+      taskId: 't1',
+      startTime: '2026-06-15T10:00:00Z',
+      endTime: '2026-06-15T11:00:00Z',
+      note: 'Old note',
+      editHistory: null,
+    });
+
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    // Act - SystemPatch without reason succeeds
+    await engine.editTimeLog(
+      'l1',
+      't1',
+      '2026-06-15T10:00:00Z',
+      '2026-06-15T11:30:00Z',
+      'Patch note',
+      null,
+      'SystemPatch'
+    );
+
+    const savedState = vi.mocked(routerMock.core.overrideState).mock.calls[0][0];
+    const updated = savedState.logs?.find((l) => l.id === 'l1');
+    expect(updated?.editHistory).toHaveLength(1);
+    expect(updated?.editHistory?.[0].auditSource).toBe('System Patch');
     expect(updated?.editHistory?.[0].reason).toBeUndefined();
-    expect(updated?.editHistory?.[0].prevStartTime).toBeUndefined();
+
+    // Act - SystemPatch with trimmed reason
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    await engine.editTimeLog(
+      'l1',
+      't1',
+      '2026-06-15T10:00:00Z',
+      '2026-06-15T11:30:00Z',
+      'Patch note 2',
+      '  Auto repair patch  ',
+      'System Patch'
+    );
+
+    const savedState2 = vi.mocked(routerMock.core.overrideState).mock.calls[1][0];
+    const updated2 = savedState2.logs?.find((l) => l.id === 'l1');
+    expect(updated2?.editHistory?.[0].auditSource).toBe('System Patch');
+    expect(updated2?.editHistory?.[0].reason).toBe('Auto repair patch');
   });
 
   it('should require reason for ManualAdjustment and persist canonical auditSource', async () => {
@@ -194,7 +291,7 @@ describe('BrowserTimeLogsEngine', () => {
       '2026-06-15T10:00:00Z',
       '2026-06-15T11:00:00Z',
       null,
-      'Manual fix',
+      '  Manual fix  ',
       'ManualAdjustment'
     );
 
@@ -202,5 +299,37 @@ describe('BrowserTimeLogsEngine', () => {
     const updated = savedState.logs?.find((l) => l.id === 'l1');
     expect(updated?.editHistory?.[0].auditSource).toBe('Manual Adjustment');
     expect(updated?.editHistory?.[0].reason).toBe('Manual fix');
+  });
+
+  it('should reject unknown audit source with validation error', async () => {
+    // Arrange
+    const originalLog = aTimeLog({
+      id: 'l1',
+      taskId: 't1',
+      startTime: '2026-06-15T10:00:00Z',
+      endTime: '2026-06-15T11:00:00Z',
+      note: 'Old note',
+      editHistory: null,
+    });
+
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [aTask({ id: 't1' })],
+      logs: [originalLog],
+      activeLog: null,
+    });
+
+    // Act & Assert
+    await expect(
+      engine.editTimeLog(
+        'l1',
+        't1',
+        '2026-06-15T10:00:00Z',
+        '2026-06-15T11:00:00Z',
+        null,
+        'Valid reason',
+        'UnknownSource'
+      )
+    ).rejects.toThrow('Invalid audit source: UnknownSource');
   });
 });

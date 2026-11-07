@@ -62,13 +62,13 @@ impl<'a> Engine<'a> {
 
         self.validate_time_log(input.id, input.task_id, input.start_time, input.end_time)?;
 
-        let is_manual = matches!(
-            input.audit_source,
-            None | Some(crate::types::AuditSource::GuiEdit)
-                | Some(crate::types::AuditSource::ManualAdjustment)
-        );
+        let resolved_source = input
+            .audit_source
+            .unwrap_or(crate::types::AuditSource::GuiEdit);
 
-        if is_manual && input.reason.is_none_or(|r| r.trim().is_empty()) {
+        let trimmed_reason = input.reason.map(|r| r.trim()).filter(|r| !r.is_empty());
+
+        if resolved_source.requires_reason() && trimmed_reason.is_none() {
             return Err(EngineError::Validation(
                 "Audit reason is required for manual edits".to_string(),
             ));
@@ -104,10 +104,8 @@ impl<'a> Engine<'a> {
             prev_start_time: prev_start,
             prev_end_time: prev_end,
             prev_note,
-            reason: input.reason.map(|r| r.trim()),
-            audit_source: input
-                .audit_source
-                .or(Some(crate::types::AuditSource::ManualAdjustment)),
+            reason: trimmed_reason,
+            audit_source: Some(resolved_source),
         };
 
         self.persistence.time_logs.update_with_history(&entry)?;

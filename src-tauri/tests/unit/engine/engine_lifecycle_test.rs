@@ -212,7 +212,7 @@ fn test_engine_edit_log_manual_missing_or_empty_reason_fails_validation() {
 }
 
 #[test]
-fn test_engine_edit_log_cli_without_reason_succeeds() {
+fn test_engine_edit_log_cli_without_reason_fails_validation() {
     // Arrange
     let (conn, config, _temp_dir) = setup_persistence_test("engine_edit_log_cli_no_reason");
     let persistence = Persistence::new(&config).unwrap();
@@ -234,7 +234,7 @@ fn test_engine_edit_log_cli_without_reason_succeeds() {
     )
     .unwrap();
 
-    // Act - CliEdit without reason must succeed
+    // Act - CliEdit without reason must fail
     let res = engine.edit_log(TimeLogEditInput {
         id: "log1",
         task_id: "t1",
@@ -244,13 +244,203 @@ fn test_engine_edit_log_cli_without_reason_succeeds() {
         reason: None,
         audit_source: Some(AuditSource::CliEdit),
     });
-    assert!(res.is_ok());
+    assert!(res.is_err());
+    assert!(res
+        .unwrap_err()
+        .to_string()
+        .contains("Audit reason is required for manual edits"));
+
+    // Act - CliEdit with whitespace-only reason must fail
+    let res_ws = engine.edit_log(TimeLogEditInput {
+        id: "log1",
+        task_id: "t1",
+        start_time: "2026-06-15T08:15:00Z",
+        end_time: Some("2026-06-15T09:15:00Z"),
+        note: Some("Updated by CLI"),
+        reason: Some("   "),
+        audit_source: Some(AuditSource::CliEdit),
+    });
+    assert!(res_ws.is_err());
+    assert!(res_ws
+        .unwrap_err()
+        .to_string()
+        .contains("Audit reason is required for manual edits"));
+
+    // Act - CliEdit with reason must succeed and trim reason
+    let res_ok = engine.edit_log(TimeLogEditInput {
+        id: "log1",
+        task_id: "t1",
+        start_time: "2026-06-15T08:15:00Z",
+        end_time: Some("2026-06-15T09:15:00Z"),
+        note: Some("Updated by CLI"),
+        reason: Some("  CLI batch modification  "),
+        audit_source: Some(AuditSource::CliEdit),
+    });
+    assert!(res_ok.is_ok());
 
     let updated_log = persistence.time_logs.get_by_id("log1").unwrap();
     let history = updated_log.edit_history.unwrap();
     assert_eq!(history.len(), 1);
-    assert_eq!(history[0].reason, None);
+    assert_eq!(history[0].reason.as_deref(), Some("CLI batch modification"));
     assert_eq!(history[0].audit_source.as_deref(), Some("CLI Edit"));
+}
+
+#[test]
+fn test_engine_edit_log_system_patch_without_reason_succeeds() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_edit_log_system_patch");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    conn.execute(
+        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'P1', 'blue', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'T1', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time, note) VALUES ('log_patch', 't1', '2026-06-15T08:00:00Z', '2026-06-15T09:00:00Z', 'Note')",
+        [],
+    )
+    .unwrap();
+
+    // Act - SystemPatch without reason is the only exempt source
+    let res = engine.edit_log(TimeLogEditInput {
+        id: "log_patch",
+        task_id: "t1",
+        start_time: "2026-06-15T08:10:00Z",
+        end_time: Some("2026-06-15T09:10:00Z"),
+        note: Some("System patch note"),
+        reason: None,
+        audit_source: Some(AuditSource::SystemPatch),
+    });
+    assert!(res.is_ok());
+
+    let updated_log = persistence.time_logs.get_by_id("log_patch").unwrap();
+    let history = updated_log.edit_history.unwrap();
+    assert_eq!(history.len(), 1);
+    assert_eq!(history[0].reason, None);
+    assert_eq!(history[0].audit_source.as_deref(), Some("System Patch"));
+
+    // Act - SystemPatch with trimmed reason
+    let res2 = engine.edit_log(TimeLogEditInput {
+        id: "log_patch",
+        task_id: "t1",
+        start_time: "2026-06-15T08:20:00Z",
+        end_time: Some("2026-06-15T09:20:00Z"),
+        note: Some("System patch note 2"),
+        reason: Some("  Auto maintenance sync  "),
+        audit_source: Some(AuditSource::SystemPatch),
+    });
+    assert!(res2.is_ok());
+
+    let updated_log2 = persistence.time_logs.get_by_id("log_patch").unwrap();
+    let history2 = updated_log2.edit_history.unwrap();
+    assert_eq!(history2.len(), 2);
+    assert_eq!(history2[1].reason.as_deref(), Some("Auto maintenance sync"));
+    assert_eq!(history2[1].audit_source.as_deref(), Some("System Patch"));
+}
+
+#[test]
+fn test_engine_edit_log_missing_audit_source_defaults_to_gui_edit_and_requires_reason() {
+    // Arrange
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_edit_log_default_source");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    conn.execute(
+        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'P1', 'blue', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, created_at) VALUES ('t1', 'p1', 'T1', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO time_logs (id, task_id, start_time, end_time, note) VALUES ('log_def', 't1', '2026-06-15T08:00:00Z', '2026-06-15T09:00:00Z', 'Note')",
+        [],
+    )
+    .unwrap();
+
+    // Act - None audit_source without reason must fail
+    let res_err = engine.edit_log(TimeLogEditInput {
+        id: "log_def",
+        task_id: "t1",
+        start_time: "2026-06-15T08:05:00Z",
+        end_time: Some("2026-06-15T09:05:00Z"),
+        note: None,
+        reason: None,
+        audit_source: None,
+    });
+    assert!(res_err.is_err());
+    assert!(res_err
+        .unwrap_err()
+        .to_string()
+        .contains("Audit reason is required for manual edits"));
+
+    // Act - None audit_source with reason succeeds and defaults to GUI Edit
+    let res_ok = engine.edit_log(TimeLogEditInput {
+        id: "log_def",
+        task_id: "t1",
+        start_time: "2026-06-15T08:05:00Z",
+        end_time: Some("2026-06-15T09:05:00Z"),
+        note: None,
+        reason: Some("  Default GUI correction  "),
+        audit_source: None,
+    });
+    assert!(res_ok.is_ok());
+
+    let updated_log = persistence.time_logs.get_by_id("log_def").unwrap();
+    let history = updated_log.edit_history.unwrap();
+    assert_eq!(history.len(), 1);
+    assert_eq!(history[0].reason.as_deref(), Some("Default GUI correction"));
+    assert_eq!(history[0].audit_source.as_deref(), Some("GUI Edit"));
+}
+
+#[test]
+fn test_audit_source_from_raw_str_unknown_fails_validation() {
+    assert!(AuditSource::from_raw_str("UnknownSource").is_err());
+    assert!(AuditSource::from_raw_str("").is_err());
+    assert!("Invalid".parse::<AuditSource>().is_err());
+
+    assert_eq!(
+        AuditSource::from_raw_str("CLI Edit").unwrap(),
+        AuditSource::CliEdit
+    );
+    assert_eq!(
+        AuditSource::from_raw_str("CliEdit").unwrap(),
+        AuditSource::CliEdit
+    );
+    assert_eq!(
+        AuditSource::from_raw_str("GUI Edit").unwrap(),
+        AuditSource::GuiEdit
+    );
+    assert_eq!(
+        AuditSource::from_raw_str("GuiEdit").unwrap(),
+        AuditSource::GuiEdit
+    );
+    assert_eq!(
+        AuditSource::from_raw_str("System Patch").unwrap(),
+        AuditSource::SystemPatch
+    );
+    assert_eq!(
+        AuditSource::from_raw_str("SystemPatch").unwrap(),
+        AuditSource::SystemPatch
+    );
+    assert_eq!(
+        AuditSource::from_raw_str("Manual Adjustment").unwrap(),
+        AuditSource::ManualAdjustment
+    );
+    assert_eq!(
+        AuditSource::from_raw_str("ManualAdjustment").unwrap(),
+        AuditSource::ManualAdjustment
+    );
 }
 
 #[test]

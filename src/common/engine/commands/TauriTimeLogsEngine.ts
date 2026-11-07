@@ -10,10 +10,18 @@ export class TauriTimeLogsEngine implements ITimeLogsEngine {
     endTime: string | null,
     note: string | null,
     reason: string | null,
-    _auditSource?: string | null
+    auditSource?: string | null
   ): Promise<void> {
     try {
-      await invoke('edit_time_log', { id, taskId, startTime, endTime, note, reason });
+      await invoke('edit_time_log', {
+        id,
+        taskId,
+        startTime,
+        endTime,
+        note,
+        reason,
+        ...(auditSource ? { auditSource } : {}),
+      });
     } catch (err) {
       ErrorHandler.handle(new TauriInteropException('Failed to edit time log via Tauri', err, 'ERR_TAURI_ENGINE_EDIT'));
       throw err;
