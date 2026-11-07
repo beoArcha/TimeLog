@@ -21,6 +21,11 @@ import ProjectDonutChart from './components/ProjectDonutChart';
 import ReportLogList from './components/ReportLogList';
 import ReportExportModal from './components/ReportExportModal';
 import { useReportStatistics } from './hooks/useReportStatistics';
+import {
+  extractAvailableTags,
+  projectMatchesTags,
+  filterProjectsByTags,
+} from './utils/tagFiltering';
 
 export default function ReportView({ state }: { state: GuiState }) {
   const {
@@ -38,18 +43,7 @@ export default function ReportView({ state }: { state: GuiState }) {
   const { t } = useTranslation('report');
 
   const availableTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    for (const project of projects) {
-      if (Array.isArray(project.tags)) {
-        for (const rawTag of project.tags) {
-          const trimmed = typeof rawTag === 'string' ? rawTag.trim() : '';
-          if (trimmed.length > 0) {
-            tagSet.add(trimmed);
-          }
-        }
-      }
-    }
-    return Array.from(tagSet).sort((a, b) => a.localeCompare(b));
+    return extractAvailableTags(projects);
   }, [projects]);
 
   const handleToggleTag = (tag: string) => {
@@ -66,8 +60,7 @@ export default function ReportView({ state }: { state: GuiState }) {
     if (!selectedProjectId) return null;
     if (selectedTags.length === 0) return selectedProjectId;
     const project = projects.find((p) => p.id === selectedProjectId);
-    const matches = project?.tags?.some((t) => selectedTags.includes(t));
-    return matches ? selectedProjectId : null;
+    return projectMatchesTags(project, selectedTags) ? selectedProjectId : null;
   }, [selectedProjectId, selectedTags, projects]);
 
   const {
@@ -85,9 +78,7 @@ export default function ReportView({ state }: { state: GuiState }) {
 
   const matchingTagProjectIds = useMemo(() => {
     if (selectedTags.length === 0) return null;
-    return projects
-      .filter((p) => Array.isArray(p.tags) && p.tags.some((t) => selectedTags.includes(t)))
-      .map((p) => p.id);
+    return filterProjectsByTags(projects, selectedTags).map((p) => p.id);
   }, [projects, selectedTags]);
 
   const effectiveDisplayLogs = useMemo(() => {

@@ -5,6 +5,11 @@ import { RangeBillingResult } from '@common/engine/billing/types';
 import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';
 import { getRangeFilterForPeriod } from '../utils/periodRanges';
 import { calculateReportStatistics } from '../utils/reportCalculator';
+import {
+  filterProjectsByTags,
+  filterTasksByProjectIds,
+  filterTimeLogsByTagFilter,
+} from '../utils/tagFiltering';
 import { UseReportStatisticsProps, ProjectChartItem, ReportStatisticsResult } from '../types';
 
 export type { UseReportStatisticsProps, ProjectChartItem, ReportStatisticsResult };
@@ -41,11 +46,8 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
   const hasTagFilter = Boolean(selectedTags && selectedTags.length > 0);
 
   const effectiveProjects = useMemo(() => {
-    if (!hasTagFilter || !selectedTags) return projects;
-    return projects.filter(
-      (p) => Array.isArray(p.tags) && p.tags.some((t) => selectedTags.includes(t))
-    );
-  }, [projects, selectedTags, hasTagFilter]);
+    return filterProjectsByTags(projects, selectedTags);
+  }, [projects, selectedTags]);
 
   const effectiveProjectIds = useMemo(() => {
     return new Set(effectiveProjects.map((p) => p.id));
@@ -53,25 +55,19 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
 
   const effectiveTasks = useMemo(() => {
     if (!hasTagFilter) return tasks;
-    return tasks.filter((t) => effectiveProjectIds.has(t.projectId));
+    return filterTasksByProjectIds(tasks, effectiveProjectIds);
   }, [tasks, effectiveProjectIds, hasTagFilter]);
 
   const taskMap = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks]);
 
   const effectiveLogs = useMemo(() => {
     if (!hasTagFilter) return logs;
-    return logs.filter((l) => {
-      const projId = taskMap.get(l.taskId)?.projectId ?? l.projectId;
-      return effectiveProjectIds.has(projId);
-    });
+    return filterTimeLogsByTagFilter(logs, effectiveProjectIds, taskMap);
   }, [logs, taskMap, effectiveProjectIds, hasTagFilter]);
 
   const effectivePatches = useMemo(() => {
     if (!hasTagFilter) return patches;
-    return patches.filter((p) => {
-      const projId = (p.taskId ? taskMap.get(p.taskId)?.projectId : undefined) ?? p.projectId;
-      return effectiveProjectIds.has(projId);
-    });
+    return filterTimeLogsByTagFilter(patches, effectiveProjectIds, taskMap);
   }, [patches, taskMap, effectiveProjectIds, hasTagFilter]);
 
   const baseStats = useMemo(
