@@ -1,7 +1,8 @@
 use super::constants::{
-    ERR_LOG_ADD_NO_DURATION_OR_FROM, ERR_LOG_EDIT_EMPTY, FORMAT_DURATION_MINS_SECS,
-    FORMAT_LOG_NOTE, FORMAT_LOG_ROW, HEADER_TIME_LOGS, LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION,
-    LABEL_UNKNOWN_TASK, MSG_LOG_DELETED, MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
+    ERR_LOG_ADD_NO_DURATION_OR_FROM, ERR_LOG_EDIT_EMPTY, ERR_LOG_EDIT_NO_REASON,
+    FORMAT_DURATION_MINS_SECS, FORMAT_LOG_NOTE, FORMAT_LOG_ROW, HEADER_TIME_LOGS,
+    LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION, LABEL_UNKNOWN_TASK, MSG_LOG_DELETED,
+    MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
 };
 use crate::cli::error::CliError;
 use crate::cli::parser::tier2_entities::{LogArgs, LogSubcommand};
@@ -44,6 +45,7 @@ struct LogEditInput {
     start: Option<String>,
     end: Option<String>,
     task: Option<String>,
+    reason: Option<String>,
 }
 
 struct LogFilterCriteria<'a> {
@@ -114,6 +116,7 @@ pub fn handle(
             start,
             end,
             task,
+            reason,
         } => edit_log(
             persistence,
             LogEditInput {
@@ -123,6 +126,7 @@ pub fn handle(
                 start,
                 end,
                 task,
+                reason,
             },
             is_machine,
         ),
@@ -480,6 +484,11 @@ fn edit_log(
         return Err(CliError::syntax_invalid_args(ERR_LOG_EDIT_EMPTY));
     }
 
+    let trimmed_reason = match input.reason {
+        Some(ref r) if !r.trim().is_empty() => r.trim(),
+        _ => return Err(CliError::syntax_invalid_args(ERR_LOG_EDIT_NO_REASON)),
+    };
+
     let existing = persistence.time_logs.get_by_id(&input.id)?;
 
     let target_task_id = match input.task {
@@ -510,7 +519,7 @@ fn edit_log(
         start_time: &new_start,
         end_time: new_end.as_deref(),
         note: new_note,
-        reason: None,
+        reason: Some(trimmed_reason),
         audit_source: Some(AuditSource::CliEdit),
     })?;
 

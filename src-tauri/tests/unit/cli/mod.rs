@@ -3,6 +3,7 @@ pub mod duration_parser_test;
 pub mod error_test;
 pub mod exporter_test;
 pub mod levenshtein_test;
+pub mod log_edit_parser_test;
 pub mod mask_expansion_test;
 pub mod output_formatter_test;
 pub mod parser_test;
