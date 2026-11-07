@@ -148,6 +148,7 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
 | **Report** | Export | `oxy report export -f <format> -o <path>` | Fully supports **CSV, HTML, JSON, XML, ODS, XLSX**; serialization errors yield `SNK_SERIALIZATION` (exit code `1`) | Interactive format selector |
+| **Report** | Schema | `oxy report schema [-o <path>] [--version <v>]` | Emits canonical XML Schema (XSD) to stdout or file (default version `1`) | Download XSD schema |
 | **Report** | Stream | `oxy report -f json \| jq .` | Raw unescaped JSON to `stdout` | N/A (interactive terminal) |
 | **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
 | **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
@@ -221,6 +222,12 @@ The CLI provides deterministic, streaming report exports across six structured f
 
 **Pure-Rust Streaming Architecture:**
 All exporters stream output directly to disk without spawning external child processes or depending on system archivers. Spreadsheet formats (`ods`, `xlsx`) utilize a dedicated, memory-safe in-memory ZIP32 builder with valid MS-DOS timestamps (with fallback to `1980-01-01` = `0x0021`) and strict 32-bit boundary validations.
+
+**XML Schema Definition Export (`oxy report schema`):**
+The CLI can export the canonical W3C XML Schema Definition (XSD) used to validate XML report exports:
+- `oxy report schema`: Streams the canonical XML Schema (version `1`) directly to `stdout`.
+- `oxy report schema -o <path>` (or `--output <path>`): Writes the canonical XML Schema to the specified file path. Parent directories are created automatically if needed.
+- `oxy report schema --version <v>`: Selects the XML Schema version (currently supporting `"1"`). Unsupported versions yield syntax error code `CLI_SYNTAX_INVALID_ARGS` with exit code `2`.
 
 **Error Classification & Exit Codes:**
 If an export cannot be formatted, encoded, or serialized, the CLI emits a structured error envelope with semantic code `SNK_SERIALIZATION` and POSIX exit code `1` (business/sink rule violation). If file I/O fails during target file creation or writing, the CLI emits `SNK_EXTERNAL_IO` with exit code `1`.

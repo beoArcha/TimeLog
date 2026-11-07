@@ -78,7 +78,8 @@
     "TimeLogAuditModalTitle": "Edit Time Log (Audit)",
     "ERR_AUDIT_REASON_REQUIRED": "Audit reason is required for manual edits",
     "ERR_AUDIT_SOURCE_INVALID": "Invalid audit source",
-    "ERR_TIMELOG_INVALID_RANGE": "End time cannot be before start time"
+    "ERR_TIMELOG_INVALID_RANGE": "End time cannot be before start time",
+    "DownloadXmlSchema": "Download XML Schema (XSD)"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -159,7 +160,8 @@
     "TimeLogAuditModalTitle": "Edycja wpisu czasu (Audyt)",
     "ERR_AUDIT_REASON_REQUIRED": "Powód audytu jest wymagany przy ręcznej edycji",
     "ERR_AUDIT_SOURCE_INVALID": "Nieprawidłowe źródło audytu",
-    "ERR_TIMELOG_INVALID_RANGE": "Czas zakończenia nie może być wcześniejszy niż czas rozpoczęcia"
+    "ERR_TIMELOG_INVALID_RANGE": "Czas zakończenia nie może być wcześniejszy niż czas rozpoczęcia",
+    "DownloadXmlSchema": "Pobierz schemat XSD"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -240,7 +242,8 @@
     "TimeLogAuditModalTitle": "Zeiteintrag bearbeiten (Audit)",
     "ERR_AUDIT_REASON_REQUIRED": "Ein Grund ist für manuelle Änderungen erforderlich",
     "ERR_AUDIT_SOURCE_INVALID": "Ungültige Audit-Quelle",
-    "ERR_TIMELOG_INVALID_RANGE": "Endzeit kann nicht vor der Startzeit liegen"
+    "ERR_TIMELOG_INVALID_RANGE": "Endzeit kann nicht vor der Startzeit liegen",
+    "DownloadXmlSchema": "XML-Schema herunterladen (XSD)"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -321,7 +324,8 @@
     "TimeLogAuditModalTitle": "Editar registro de tiempo (Auditoría)",
     "ERR_AUDIT_REASON_REQUIRED": "El motivo de auditoría es obligatorio para ediciones manuales",
     "ERR_AUDIT_SOURCE_INVALID": "Fuente de auditoría no válida",
-    "ERR_TIMELOG_INVALID_RANGE": "La hora de finalización no puede ser anterior a la hora de inicio"
+    "ERR_TIMELOG_INVALID_RANGE": "La hora de finalización no puede ser anterior a la hora de inicio",
+    "DownloadXmlSchema": "Descargar esquema XML (XSD)"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -402,7 +406,8 @@
     "TimeLogAuditModalTitle": "Editar registro de tempo (Auditoria)",
     "ERR_AUDIT_REASON_REQUIRED": "O motivo da auditoria é obrigatório para edições manuais",
     "ERR_AUDIT_SOURCE_INVALID": "Fonte de auditoria inválida",
-    "ERR_TIMELOG_INVALID_RANGE": "O horário de término não pode ser anterior ao horário de início"
+    "ERR_TIMELOG_INVALID_RANGE": "O horário de término não pode ser anterior ao horário de início",
+    "DownloadXmlSchema": "Baixar esquema XML (XSD)"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -483,7 +488,8 @@
     "TimeLogAuditModalTitle": "Modifier l'entrée de temps (Audit)",
     "ERR_AUDIT_REASON_REQUIRED": "Le motif d'audit est requis pour les modifications manuelles",
     "ERR_AUDIT_SOURCE_INVALID": "Source d'audit invalide",
-    "ERR_TIMELOG_INVALID_RANGE": "L'heure de fin ne peut pas être antérieure à l'heure de début"
+    "ERR_TIMELOG_INVALID_RANGE": "L'heure de fin ne peut pas être antérieure à l'heure de début",
+    "DownloadXmlSchema": "Télécharger le schéma XML (XSD)"
   },
   "uk": {
     "Title": "Журнал звітів",
@@ -564,7 +570,8 @@
     "TimeLogAuditModalTitle": "Редагування запису часу (Аудит)",
     "ERR_AUDIT_REASON_REQUIRED": "Причина аудиту є обов'язковою для ручного редагування",
     "ERR_AUDIT_SOURCE_INVALID": "Недійсне джерело аудиту",
-    "ERR_TIMELOG_INVALID_RANGE": "Час завершення не може бути раніше часу початку"
+    "ERR_TIMELOG_INVALID_RANGE": "Час завершення не може бути раніше часу початку",
+    "DownloadXmlSchema": "Завантажити схему XML (XSD)"
   },
   "ja": {
     "Title": "レポートログ",
@@ -645,7 +652,8 @@
     "TimeLogAuditModalTitle": "時間ログの編集（監査）",
     "ERR_AUDIT_REASON_REQUIRED": "手動編集には監査理由が必要です",
     "ERR_AUDIT_SOURCE_INVALID": "無効な監査ソースです",
-    "ERR_TIMELOG_INVALID_RANGE": "終了時刻を開始時刻より前に設定することはできません"
+    "ERR_TIMELOG_INVALID_RANGE": "終了時刻を開始時刻より前に設定することはできません",
+    "DownloadXmlSchema": "XMLスキーマをダウンロード (XSD)"
   },
   "nl": {
     "Title": "Rapportagelogs",
@@ -726,7 +734,8 @@
     "TimeLogAuditModalTitle": "Tijdlog bewerken (Audit)",
     "ERR_AUDIT_REASON_REQUIRED": "Auditreden is vereist voor handmatige bewerkingen",
     "ERR_AUDIT_SOURCE_INVALID": "Ongeldige auditbron",
-    "ERR_TIMELOG_INVALID_RANGE": "Eindtijd kan niet vóór de starttijd liggen"
+    "ERR_TIMELOG_INVALID_RANGE": "Eindtijd kan niet vóór de starttijd liggen",
+    "DownloadXmlSchema": "XML-schema downloaden (XSD)"
   },
   "it": {
     "Title": "Rapporti e Registri",
@@ -807,6 +816,7 @@
     "TimeLogAuditModalTitle": "Modifica registro di tempo (Audit)",
     "ERR_AUDIT_REASON_REQUIRED": "Il motivo di controllo è obbligatorio per le modifiche manuali",
     "ERR_AUDIT_SOURCE_INVALID": "Sorgente di controllo non valida",
-    "ERR_TIMELOG_INVALID_RANGE": "L'ora di fine non può essere precedente all'ora di inizio"
+    "ERR_TIMELOG_INVALID_RANGE": "L'ora di fine non può essere precedente all'ora di inizio",
+    "DownloadXmlSchema": "Scarica schema XML (XSD)"
   }
 }

@@ -5,5 +5,6 @@ pub mod export_to_file_test;
 pub mod masks_execution_test;
 pub mod masks_test;
 pub mod reports_export_test;
+pub mod reports_schema_test;
 pub mod reports_test;
 pub mod sinks_test;

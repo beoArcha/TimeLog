@@ -68,3 +68,41 @@ fn test_given_source_file_when_comparing_with_embedded_schema_then_bytes_are_ide
         "Embedded REPORT_XML_SCHEMA_V1 in Rust must be byte-for-byte identical to schemas/xml/report/v1/report.xsd"
     );
 }
+
+#[test]
+fn test_given_schema_content_when_export_schema_to_file_then_creates_file_and_parents() {
+    use oxyflow_timelog::cli::exporters::schema::export_schema_to_file;
+
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let target = temp_dir
+        .path()
+        .join("nested")
+        .join("sub")
+        .join("report.xsd");
+    let target_str = target.to_str().unwrap();
+
+    let res = export_schema_to_file(REPORT_XML_SCHEMA_V1, target_str);
+    assert!(res.is_ok());
+    assert!(target.exists());
+
+    let content = fs::read_to_string(&target).expect("read written file");
+    assert_eq!(content, REPORT_XML_SCHEMA_V1);
+}
+
+#[test]
+fn test_given_invalid_path_when_export_schema_to_file_then_returns_sink_io_error() {
+    use oxyflow_timelog::cli::exporters::schema::export_schema_to_file;
+
+    let invalid_path = if cfg!(windows) {
+        "Z:\\non_existent_drive_xyz\\report.xsd"
+    } else {
+        "/non_existent_dir_xyz/deeply/nested/report.xsd"
+    };
+
+    let res = export_schema_to_file(REPORT_XML_SCHEMA_V1, invalid_path);
+    assert!(res.is_err());
+    let err = res.unwrap_err();
+    assert_eq!(err.exit_code(), 1);
+    let envelope = err.to_envelope(None);
+    assert_eq!(envelope.code, "SNK_EXTERNAL_IO");
+}

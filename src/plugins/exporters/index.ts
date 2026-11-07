@@ -16,6 +16,7 @@ export * from './XlsxExporterPlugin';
 export * from './XmlExporterPlugin';
 export * from './xmlSanitizer';
 export * from './zipBuilder';
+export * from './reportXmlSchema';
 
 export function registerDefaultExporters(
   registry = PluginRegistry.getInstance()

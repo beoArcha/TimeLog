@@ -13,13 +13,14 @@ import { Grid } from "@components/ui/grid";
 import { Caption, Overline, MonoText, MetricText } from "@components/ui/typography";
 import { useTranslation } from "@common/i18n/translator";
 import { PluginRegistry } from "@plugins/PluginRegistry";
-import { registerDefaultExporters } from "@plugins/exporters";
+import { registerDefaultExporters, getReportXmlSchema } from "@plugins/exporters";
 import { ExportPayload } from "@plugins/contracts/IExporterPlugin";
 import { MarkdownClipboardExporterPlugin } from "@plugins/exporters/MarkdownClipboardExporterPlugin";
 import {
   Download,
   Copy,
   Check,
+  FileCode,
 } from "lucide-react";
 import { getFormatIcon } from "./reportExportIcons";
 
@@ -76,9 +77,68 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
     }
   };
 
+  const handleDownloadSchema = () => {
+    const schemaContent = getReportXmlSchema("1");
+    const blob = new Blob([schemaContent], { type: "application/xml" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "report-v1.xsd";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const selectedExporter = exporters.find((e) => e.id === activeSelectedId);
   const isMarkdown =
     selectedExporter instanceof MarkdownClipboardExporterPlugin;
+  const isXml = activeSelectedId === "xml-exporter";
+
+  const renderSecondaryAction = () => {
+    if (isMarkdown) {
+      return (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          data-testid="export-copy-button"
+          onClick={handleCopyClipboard}
+          className="gap-2 text-xs"
+        >
+          {isCopied ? (
+            <>
+              <Check className="w-4 h-4 text-primary" />
+              {t("CopyToClipboard")}
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4 text-muted-foreground" />
+              {t("CopyToClipboard")}
+            </>
+          )}
+        </Button>
+      );
+    }
+
+    if (isXml) {
+      return (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          data-testid="export-download-schema-button"
+          onClick={handleDownloadSchema}
+          className="gap-2 text-xs"
+        >
+          <FileCode className="w-4 h-4 text-muted-foreground" />
+          {t("DownloadXmlSchema")}
+        </Button>
+      );
+    }
+
+    return <div />;
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -160,30 +220,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
         </div>
 
         <DialogFooter className="flex sm:justify-between items-center gap-2 pt-2">
-          {isMarkdown ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              data-testid="export-copy-button"
-              onClick={handleCopyClipboard}
-              className="gap-2 text-xs"
-            >
-              {isCopied ? (
-                <>
-                  <Check className="w-4 h-4 text-primary" />
-                  {t("CopyToClipboard")}
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4 text-muted-foreground" />
-                  {t("CopyToClipboard")}
-                </>
-              )}
-            </Button>
-          ) : (
-            <div />
-          )}
+          {renderSecondaryAction()}
 
           <div className="flex items-center gap-2">
             <Button

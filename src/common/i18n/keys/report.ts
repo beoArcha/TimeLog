@@ -27,6 +27,7 @@ export type ReportKey =
   | 'DateTo'
   | 'DeleteLog'
   | 'DownloadFile'
+  | 'DownloadXmlSchema'
   | 'DurationHighestFirst'
   | 'EditLog'
   | 'EffectiveRate'
