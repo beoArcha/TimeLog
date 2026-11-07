@@ -41,3 +41,8 @@ spreadsheet-ods = "1.0.4"
 
 [build-dependencies]
 tauri-build = { version = "2.0.0", features = [] }
+
+[dev-dependencies]
+calamine = "0.38"
+
+

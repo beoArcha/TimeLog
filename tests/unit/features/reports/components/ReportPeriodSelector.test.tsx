@@ -128,6 +128,17 @@ describe('Unit Tests: ReportPeriodSelector', () => {
       </MockProviders>
     );
 
+    rerender(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="all"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+        />
+      </MockProviders>
+    );
+
     fireEvent.click(screen.getByTestId('period-btn-today'));
     expect(setReportPeriodMock).toHaveBeenCalledWith('today');
   });
