@@ -18,6 +18,7 @@ describe('HtmlExporterPlugin', () => {
         date: '2026-11-02',
         projectName: 'Project "Alpha"',
         taskName: 'Feature <Development>',
+        subtaskName: 'UI Polish',
         startTime: '09:00:00',
         endTime: '10:00:00',
         durationSeconds: 3600,
@@ -49,6 +50,8 @@ describe('HtmlExporterPlugin', () => {
     expect(html).toContain('01:00:00');
     expect(html).toContain('Project &quot;Alpha&quot;');
     expect(html).toContain('Feature &lt;Development&gt;');
+    expect(html).toContain('<th>Subtask</th>');
+    expect(html).toContain('<td>UI Polish</td>');
     expect(html).toContain('Tested with Polish: zażółć gęślą jaźń &amp; &quot;quotes&quot;');
     expect(html).toContain('Project Breakdown');
     expect(html).toContain('Activity Log');

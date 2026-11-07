@@ -28,6 +28,7 @@ describe('Built-in Exporter Plugins', () => {
         date: '2026-10-19',
         projectName: 'Project "Alpha"',
         taskName: 'Coding, Testing & Review',
+        subtaskName: 'Regression Tests',
         startTime: '10:00:00',
         endTime: '12:00:00',
         durationSeconds: 7200,
@@ -52,11 +53,12 @@ describe('Built-in Exporter Plugins', () => {
       expect(bytes[0]).toBe(0xef);
       expect(bytes[1]).toBe(0xbb);
       expect(bytes[2]).toBe(0xbf);
-      expect(text).toContain('Date,Project,Task,Start Time,End Time,Duration (s),Formatted Duration,Note');
+      expect(text).toContain('Date,Project,Task,Subtask,Start Time,End Time,Duration (s),Formatted Duration,Note');
       // Quotes should be doubled and field wrapped in quotes
       expect(text).toContain('"Project ""Alpha"""');
       // Commas and newlines should be wrapped in quotes
       expect(text).toContain('"Coding, Testing & Review"');
+      expect(text).toContain('Regression Tests');
       expect(text).toContain('"Line 1\nLine 2 with ""quotes"", and commas"');
     });
   });
@@ -344,8 +346,8 @@ describe('Built-in Exporter Plugins', () => {
       expect(markdown).toContain('# Time Summaries & Reports');
       expect(markdown).toContain('**Period**: week');
       expect(markdown).toContain('### Activity Log');
-      expect(markdown).toContain('| Date | Project | Task | Start | End | Duration | Note |');
-      expect(markdown).toContain('| 2026-10-19 | Project "Alpha" | Coding, Testing & Review | 10:00:00 | 12:00:00 | 02:00:00 |');
+      expect(markdown).toContain('| Date | Project | Task | Subtask | Start | End | Duration | Note |');
+      expect(markdown).toContain('| 2026-10-19 | Project "Alpha" | Coding, Testing & Review | Regression Tests | 10:00:00 | 12:00:00 | 02:00:00 |');
     });
 
     it('should copy to clipboard when copyToClipboard is invoked', async () => {

@@ -15,6 +15,7 @@ describe('OdsExporterPlugin', () => {
         date: '2026-11-02',
         projectName: 'TimeLog',
         taskName: 'ODS Export Plugin',
+        subtaskName: 'Archive Validation',
         startTime: '08:00:00',
         endTime: '10:00:00',
         durationSeconds: 7200,
@@ -58,6 +59,8 @@ describe('OdsExporterPlugin', () => {
     expect(text).toContain('Work Report');
     expect(text).toContain('TimeLog');
     expect(text).toContain('ODS Export Plugin');
+    expect(text).toContain('Subtask');
+    expect(text).toContain('Archive Validation');
     expect(text).toContain('&lt;XML&gt; &amp; &quot;Quotes&quot;');
   });
 

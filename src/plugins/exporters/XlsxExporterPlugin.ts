@@ -11,7 +11,7 @@ function numberCell(ref: string, val: number): string {
   return `<c r="${ref}"><v>${val}</v></c>`;
 }
 
-const COL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+const COL_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
 
 export class XlsxExporterPlugin implements IExporterPlugin {
   readonly id = 'xlsx-exporter';
@@ -27,6 +27,7 @@ export class XlsxExporterPlugin implements IExporterPlugin {
       'Date',
       'Project',
       'Task',
+      'Subtask',
       'Start Time',
       'End Time',
       'Duration (s)',
@@ -50,11 +51,12 @@ export class XlsxExporterPlugin implements IExporterPlugin {
         stringCell(`A${rowIdx}`, row.date),
         stringCell(`B${rowIdx}`, row.projectName),
         stringCell(`C${rowIdx}`, row.taskName),
-        stringCell(`D${rowIdx}`, row.startTime),
-        stringCell(`E${rowIdx}`, row.endTime),
-        numberCell(`F${rowIdx}`, row.durationSeconds),
-        stringCell(`G${rowIdx}`, row.formattedDuration),
-        stringCell(`H${rowIdx}`, row.note ?? ''),
+        stringCell(`D${rowIdx}`, row.subtaskName ?? ''),
+        stringCell(`E${rowIdx}`, row.startTime),
+        stringCell(`F${rowIdx}`, row.endTime),
+        numberCell(`G${rowIdx}`, row.durationSeconds),
+        stringCell(`H${rowIdx}`, row.formattedDuration),
+        stringCell(`I${rowIdx}`, row.note ?? ''),
       ];
       rowsXml.push(`<row r="${rowIdx}">${cells.join('')}</row>`);
       rowIdx++;
@@ -67,9 +69,10 @@ export class XlsxExporterPlugin implements IExporterPlugin {
       stringCell(`C${rowIdx}`, ''),
       stringCell(`D${rowIdx}`, ''),
       stringCell(`E${rowIdx}`, ''),
-      numberCell(`F${rowIdx}`, payload.totalSeconds),
-      stringCell(`G${rowIdx}`, payload.formattedTotalDuration),
-      stringCell(`H${rowIdx}`, ''),
+      stringCell(`F${rowIdx}`, ''),
+      numberCell(`G${rowIdx}`, payload.totalSeconds),
+      stringCell(`H${rowIdx}`, payload.formattedTotalDuration),
+      stringCell(`I${rowIdx}`, ''),
     ];
     rowsXml.push(`<row r="${rowIdx}">${totalCells.join('')}</row>`);
 

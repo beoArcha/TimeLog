@@ -24,6 +24,7 @@ export class OdsExporterPlugin implements IExporterPlugin {
       'Date',
       'Project',
       'Task',
+      'Subtask',
       'Start Time',
       'End Time',
       'Duration (s)',
@@ -38,6 +39,7 @@ export class OdsExporterPlugin implements IExporterPlugin {
         stringCell(row.date),
         stringCell(row.projectName),
         stringCell(row.taskName),
+        stringCell(row.subtaskName ?? ''),
         stringCell(row.startTime),
         stringCell(row.endTime),
         floatCell(row.durationSeconds),
@@ -49,6 +51,7 @@ export class OdsExporterPlugin implements IExporterPlugin {
 
     const totalRow = `<table:table-row>${[
       stringCell('Total'),
+      stringCell(''),
       stringCell(''),
       stringCell(''),
       stringCell(''),

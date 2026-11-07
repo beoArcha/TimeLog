@@ -15,6 +15,7 @@ describe('XlsxExporterPlugin', () => {
         date: '2026-11-02',
         projectName: 'TimeLog',
         taskName: 'Excel Export Implementation',
+        subtaskName: 'Worksheet Validation',
         startTime: '10:00:00',
         endTime: '11:00:00',
         durationSeconds: 3600,
@@ -63,6 +64,8 @@ describe('XlsxExporterPlugin', () => {
     expect(text).toContain('Work Report');
     expect(text).toContain('TimeLog');
     expect(text).toContain('Excel Export Implementation');
+    expect(text).toContain('Subtask');
+    expect(text).toContain('Worksheet Validation');
     expect(text).toContain('Excel with &lt;brackets&gt; &amp; &quot;quotes&quot;');
   });
 

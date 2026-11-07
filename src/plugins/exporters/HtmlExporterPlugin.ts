@@ -59,6 +59,7 @@ export class HtmlExporterPlugin implements IExporterPlugin {
           <td>${escapeHtml(row.date)}</td>
           <td>${escapeHtml(row.projectName)}</td>
           <td>${escapeHtml(row.taskName)}</td>
+          <td>${escapeHtml(row.subtaskName ?? '')}</td>
           <td>${escapeHtml(row.startTime)}</td>
           <td>${escapeHtml(row.endTime)}</td>
           <td style="text-align: right;">${escapeHtml(row.formattedDuration)}</td>
@@ -216,6 +217,7 @@ export class HtmlExporterPlugin implements IExporterPlugin {
             <th>Date</th>
             <th>Project</th>
             <th>Task</th>
+            <th>Subtask</th>
             <th>Start</th>
             <th>End</th>
             <th style="text-align: right;">Duration</th>
