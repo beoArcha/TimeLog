@@ -4,6 +4,7 @@ pub mod html;
 pub mod json;
 pub mod ods;
 pub mod rows;
+pub mod schema;
 pub mod xlsx;
 pub mod xml;
 
@@ -16,6 +17,7 @@ pub use self::html::export_html;
 pub use self::json::export_json;
 pub use self::ods::export_ods;
 pub use self::rows::{flatten_project, flatten_report, flatten_task, ReportRow};
+pub use self::schema::{get_report_xml_schema, REPORT_XML_SCHEMA_V1};
 pub use self::xlsx::export_xlsx;
 pub use self::xml::export_xml;
 

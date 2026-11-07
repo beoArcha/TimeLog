@@ -6,6 +6,7 @@ pub mod exporter_fixtures;
 pub mod exporter_html_test;
 pub mod exporter_json_test;
 pub mod exporter_ods_test;
+pub mod exporter_schema_test;
 pub mod exporter_xlsx_test;
 pub mod exporter_xml_test;
 pub mod levenshtein_test;
