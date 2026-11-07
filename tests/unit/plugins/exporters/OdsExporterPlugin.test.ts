@@ -60,4 +60,59 @@ describe('OdsExporterPlugin', () => {
     expect(text).toContain('ODS Export Plugin');
     expect(text).toContain('&lt;XML&gt; &amp; &quot;Quotes&quot;');
   });
+
+  it('should sanitize XML 1.0 disallowed characters and produce well-formed content.xml', async () => {
+    const exporter = new OdsExporterPlugin();
+    const dirtyPayload: ExportPayload = {
+      title: 'Dirty ODS\u0000 Report\u0007',
+      period: '2026-11-01',
+      generatedAt: '2026-11-07 15:00:00',
+      totalSeconds: 3600,
+      formattedTotalDuration: '01:00:00',
+      rows: [
+        {
+          id: 'row-dirty',
+          date: '2026-11-02',
+          projectName: 'Project\u0000 with \u0007\u0008 controls \ufffe\uffff',
+          taskName: 'Task with <brackets> & "quotes" and \u001f stripped \ud83d\ude80',
+          startTime: '08:00:00',
+          endTime: '09:00:00',
+          durationSeconds: 3600,
+          formattedDuration: '01:00:00',
+          note: 'Note with Polish: Zażółć gęślą jaźń and disallowed \u000b\u000c chars',
+        },
+      ],
+    };
+
+    const blob = await exporter.export(dirtyPayload);
+    const buffer = await blob.arrayBuffer();
+    const text = new TextDecoder().decode(new Uint8Array(buffer));
+
+    // Extract content.xml from the uncompressed zip
+    const startTag = '<?xml version="1.0" encoding="UTF-8"?>';
+    const endTag = '</office:document-content>';
+    const startIdx = text.indexOf('<office:document-content');
+    const endIdx = text.indexOf(endTag);
+    expect(startIdx).toBeGreaterThan(-1);
+    expect(endIdx).toBeGreaterThan(startIdx);
+
+    const xmlSlice = `${startTag}\n${text.slice(startIdx, endIdx + endTag.length)}`;
+
+    // Ensure raw disallowed control characters do not appear in the generated XML
+    expect(xmlSlice).not.toContain('\u0000');
+    expect(xmlSlice).not.toContain('\u0007');
+    expect(xmlSlice).not.toContain('\u0008');
+    expect(xmlSlice).not.toContain('\u001f');
+    expect(xmlSlice).not.toContain('\ufffe');
+    expect(xmlSlice).not.toContain('\uffff');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlSlice, 'application/xml');
+
+    expect(doc.querySelector('parsererror')).toBeNull();
+    const cells = Array.from(doc.getElementsByTagName('table:table-cell'));
+    expect(cells.length).toBeGreaterThan(0);
+    expect(xmlSlice).toContain('Project with  controls');
+    expect(xmlSlice).toContain('Zażółć gęślą jaźń');
+    expect(xmlSlice).toContain('🚀');
+  });
 });

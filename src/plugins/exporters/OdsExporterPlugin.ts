@@ -1,21 +1,9 @@
 import { ExportPayload, IExporterPlugin } from '../contracts/IExporterPlugin';
 import { createUncompressedZip, ZipEntry } from './zipBuilder';
-
-/**
- * Escapes special XML characters for safe inclusion inside OpenDocument XML tags.
- */
-function escapeXml(input: unknown): string {
-  if (input === null || input === undefined) return '';
-  return String(input)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
+import { escapeXml, sanitizeXml10 } from './xmlSanitizer';
 
 function stringCell(val: unknown): string {
-  const text = escapeXml(val);
+  const text = escapeXml(sanitizeXml10(String(val ?? '')));
   return `<table:table-cell office:value-type="string"><text:p>${text}</text:p></table:table-cell>`;
 }
 

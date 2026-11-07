@@ -20,10 +20,8 @@ import {
   Download,
   Copy,
   Check,
-  FileSpreadsheet,
-  FileCode,
-  FileText,
 } from "lucide-react";
+import { getFormatIcon } from "./reportExportIcons";
 
 interface ReportExportModalProps {
   isOpen: boolean;
@@ -82,23 +80,6 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
   const isMarkdown =
     selectedExporter instanceof MarkdownClipboardExporterPlugin;
 
-  const getFormatIcon = (iconKey?: string, id?: string) => {
-    const key = (iconKey || id || "").toLowerCase();
-    if (key.includes("csv"))
-      return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
-    if (key.includes("xlsx"))
-      return <FileSpreadsheet className="w-5 h-5 text-green-600" />;
-    if (key.includes("ods"))
-      return <FileSpreadsheet className="w-5 h-5 text-teal-500" />;
-    if (key.includes("html"))
-      return <FileCode className="w-5 h-5 text-orange-500" />;
-    if (key.includes("json"))
-      return <FileCode className="w-5 h-5 text-amber-500" />;
-    if (key.includes("xml"))
-      return <FileCode className="w-5 h-5 text-purple-500" />;
-    return <FileText className="w-5 h-5 text-sky-500" />;
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
@@ -152,7 +133,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
                     className="w-full justify-between h-auto py-2.5 px-3.5 rounded-xl border transition-all text-left"
                   >
                     <span className="flex items-center gap-3">
-                      {getFormatIcon(exp.iconKey, exp.id)}
+                      {getFormatIcon(exp.iconKey, isSelected)}
                       <span className="block">
                         <Caption as="span" className="block font-semibold">
                           {exp.name}
@@ -190,7 +171,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({
             >
               {isCopied ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-500" />
+                  <Check className="w-4 h-4 text-primary" />
                   {t("CopyToClipboard")}
                 </>
               ) : (

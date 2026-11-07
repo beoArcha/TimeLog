@@ -14,6 +14,7 @@ export * from './MarkdownClipboardExporterPlugin';
 export * from './OdsExporterPlugin';
 export * from './XlsxExporterPlugin';
 export * from './XmlExporterPlugin';
+export * from './xmlSanitizer';
 export * from './zipBuilder';
 
 export function registerDefaultExporters(
