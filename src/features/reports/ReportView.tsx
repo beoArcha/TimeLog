@@ -28,10 +28,7 @@ import ProjectDonutChart from './components/ProjectDonutChart';
 import ReportLogList from './components/ReportLogList';
 import ReportExportModal from './components/ReportExportModal';
 import { useReportStatistics } from './hooks/useReportStatistics';
-import {
-  extractAvailableTags,
-  filterProjectsByTags,
-} from './utils/tagFiltering';
+import { extractAvailableTags } from './utils/tagFiltering';
 
 export default function ReportView({ state }: { state: GuiState }) {
   const {
@@ -75,21 +72,8 @@ export default function ReportView({ state }: { state: GuiState }) {
     selectedTags,
   });
 
-  const matchingTagProjectIds = useMemo(() => {
-    if (selectedTags.length === 0) return null;
-    return filterProjectsByTags(projects, selectedTags).map((p) => p.id);
-  }, [projects, selectedTags]);
-
-  const effectiveDisplayLogs = useMemo(() => {
-    if (!selectedProjectId) return displayLogs;
-    return displayLogs.filter((log) => {
-      const projId = (log as ClampedTimeLog).projectId || tasks.find((t) => t.id === log.taskId)?.projectId;
-      return projId === selectedProjectId;
-    });
-  }, [displayLogs, selectedProjectId, tasks]);
-
   const exportPayload: ExportPayload = useMemo(() => {
-    const rows: ExportDataRow[] = effectiveDisplayLogs.map((log) => {
+    const rows: ExportDataRow[] = displayLogs.map((log) => {
       const rawTask = tasks.find((t) => t.id === log.taskId);
       let taskName = rawTask?.name || 'Unknown';
       let subtaskName: string | undefined;
@@ -194,18 +178,14 @@ export default function ReportView({ state }: { state: GuiState }) {
       return result;
     };
 
-    const projectBreakdown: ExportProjectBreakdown[] = (selectedProjectId
-      ? projectChart.filter((pc) => pc.id === selectedProjectId)
-      : projectChart
-    ).map((pc) => {
-      const pSeconds = selectedProjectId ? effectiveTotalSeconds : pc.seconds;
+    const projectBreakdown: ExportProjectBreakdown[] = projectChart.map((pc) => {
       const pTasks = buildProjectTasks(pc);
       return {
         id: pc.id,
         projectName: pc.name,
-        seconds: pSeconds,
-        formattedDuration: formatSeconds(pSeconds),
-        percentage: effectiveTotalSeconds > 0 ? (pSeconds / effectiveTotalSeconds) * 100 : 0,
+        seconds: pc.seconds,
+        formattedDuration: formatSeconds(pc.seconds),
+        percentage: effectiveTotalSeconds > 0 ? (pc.seconds / effectiveTotalSeconds) * 100 : 0,
         tasks: pTasks,
       };
     });
@@ -219,7 +199,7 @@ export default function ReportView({ state }: { state: GuiState }) {
       rows,
       projectBreakdown,
     };
-  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, selectedProjectId, projectChart]);
+  }, [displayLogs, tasks, projects, nowIso, t, reportPeriod, projectChart]);
 
   return (
     <Area as="main" id="reports-panel" variant="card" padding="section" radius="3xl" elevation="2xl" className="backdrop-blur-md flex flex-col gap-6 transition-all duration-300">
@@ -285,7 +265,6 @@ export default function ReportView({ state }: { state: GuiState }) {
         customTo={customTo}
         nowIso={nowIso}
         selectedProjectId={selectedProjectId}
-        selectedProjectIds={matchingTagProjectIds ?? undefined}
         sysSettings={sysSettings}
         billingResult={billingResult}
         billingError={billingError}
@@ -330,7 +309,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         filteredLogs={filteredLogs}
         projectChart={projectChart}
         maxSec={maxSec}
-        displayLogs={effectiveDisplayLogs}
+        displayLogs={displayLogs}
         projects={projects}
         tasks={tasks}
         nowIso={nowIso}
