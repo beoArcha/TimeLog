@@ -1,5 +1,5 @@
 import React from 'react';
-import { HStack, VStack, InlineCluster } from '@components/ui/stack';
+import { HStack, InlineCluster } from '@components/ui/stack';
 import { SearchInput } from '@components/ui/search-input';
 import { cn } from '@/lib/utils';
 
@@ -30,47 +30,43 @@ export function FilterBar({
   testId,
 }: FilterBarProps) {
   return (
-    <VStack
+    <HStack
       data-slot="filter-bar"
       data-testid={testId}
+      align="center"
+      justify="between"
       gap="md"
       className={cn(
-        'p-4 rounded-2xl border border-border bg-muted/40 text-left transition-colors',
+        'w-full flex-col md:flex-row flex-wrap p-4 rounded-2xl border border-border bg-muted/40 text-left transition-colors',
         className
       )}
     >
-      <HStack
-        align="center"
-        justify="between"
-        gap="md"
-        className="flex-col md:flex-row w-full flex-wrap"
-      >
-        {search && (
-          <div className="w-full sm:max-w-xs shrink-0">
-            <SearchInput
-              value={search.value}
-              onChange={(e) => search.onChange(e.target.value)}
-              onClear={search.onClear}
-              placeholder={search.placeholder}
-              searchAriaLabel={search.ariaLabel}
-            />
-          </div>
-        )}
+      {search && (
+        <div className="w-full md:max-w-xs shrink-0">
+          <SearchInput
+            value={search.value}
+            onChange={(e) => search.onChange(e.target.value)}
+            onClear={search.onClear}
+            placeholder={search.placeholder}
+            searchAriaLabel={search.ariaLabel}
+          />
+        </div>
+      )}
 
-        {children && (
-          <InlineCluster gap="sm" align="center" className="flex-1">
-            {children}
-          </InlineCluster>
-        )}
+      {children && (
+        <InlineCluster gap="sm" align="center" className="flex-1">
+          {children}
+        </InlineCluster>
+      )}
 
-        {rightActions && (
-          <HStack gap="sm" align="center" className="shrink-0 self-start md:self-auto ml-auto">
-            {rightActions}
-          </HStack>
-        )}
-      </HStack>
-    </VStack>
+      {rightActions && (
+        <HStack gap="sm" align="center" className="shrink-0 self-start md:self-auto ml-auto">
+          {rightActions}
+        </HStack>
+      )}
+    </HStack>
   );
 }
 
 export default FilterBar;
+
