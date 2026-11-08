@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { BarChart3, Download, Printer } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
@@ -43,6 +43,25 @@ export default function ReportView({ state }: { state: GuiState }) {
   } = state;
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+
+  // Synchronize selection with external state (e.g., sidebar project selection)
+  const prevExternalProjectId = useRef(state.selectedProjectId);
+  useEffect(() => {
+    if (state.selectedProjectId !== prevExternalProjectId.current) {
+      prevExternalProjectId.current = state.selectedProjectId;
+      setSelectedProjectId(state.selectedProjectId ?? null);
+    }
+  }, [state.selectedProjectId]);
+
+  const handleSelectProject = useCallback(
+    (id: string | null) => {
+      setSelectedProjectId(id);
+      prevExternalProjectId.current = id;
+      state.setSelectedProjectId?.(id);
+    },
+    [state]
+  );
+
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
@@ -314,6 +333,9 @@ export default function ReportView({ state }: { state: GuiState }) {
         selectedTags={selectedTags}
         onToggleTag={handleToggleTag}
         onClearTags={handleClearTags}
+        projects={projects}
+        selectedProjectId={effectiveSelectedProjectId}
+        onSelectProject={handleSelectProject}
       />
 
       <Grid cols={1} gap="xl" className="lg:grid-cols-2">
@@ -326,7 +348,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         <ProjectDonutChart
           projectChart={projectChart}
           selectedProjectId={effectiveSelectedProjectId}
-          onSelectProject={setSelectedProjectId}
+          onSelectProject={handleSelectProject}
           forceMountOnPrint={true}
         />
       </Grid>
