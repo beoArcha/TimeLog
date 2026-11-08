@@ -32,7 +32,7 @@ export function SubtaskForm({
       layout="horizontal"
       gap="xs"
       onSubmit={(e) => onSubmit(parentTaskId, e)}
-      className="p-2.5 rounded-2xl border flex gap-2 ml-8 mt-1 bg-muted/40 border-border"
+      className="p-2.5 rounded-2xl border flex gap-2 w-auto ml-8 mt-1 bg-muted/40 border-border"
     >
       <Input
         id={`new-subtask-input-${parentTaskId}`}
@@ -41,14 +41,14 @@ export function SubtaskForm({
         placeholder={tTask('EnterSubtaskName')}
         value={newSubtaskName}
         onChange={(e) => setNewSubtaskName(e.target.value)}
-        className="flex-1 px-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all bg-card border-border text-foreground placeholder-muted-foreground"
+        className="flex-1 min-w-0 px-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all bg-card border-border text-foreground placeholder-muted-foreground"
       />
       <Button
         id={`submit-subtask-btn-${parentTaskId}`}
         type="submit"
         variant="accent"
         size="xs"
-        className="text-white text-xs font-semibold rounded-xl px-3 py-1.5 hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+        className="shrink-0 text-white text-xs font-semibold rounded-xl px-3 py-1.5 hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
       >
         {tCommon('Save')}
       </Button>
