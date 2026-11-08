@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CI Frontend Setup Resilience**:
+  - Added an npm fallback in `.github/actions/setup-frontend/action.yml` when `oven-sh/setup-bun` encounters upstream GitHub Release asset proxy timeouts or HTTP 504 Gateway Time-out errors.
 - **SQLite Time Log History Migration Compatibility**:
   - Added migration 9 to rebuild legacy `time_logs_history` tables where `reason` is still `NOT NULL`, making the column nullable without losing existing audit records or the `time_logs` foreign-key cascade.
   - Added migration regression coverage for v8 databases, NULL-reason inserts, history preservation, foreign-key cascade behavior, and idempotent initialization.
