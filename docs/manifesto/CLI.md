@@ -209,7 +209,7 @@ For integer minor-unit input, use `--rate-cents 15000` on Project/Task creation 
 
 ### Report Export Subsystem (Implemented)
 
-The CLI provides deterministic, streaming report exports across six structured formats via `oxy report export -f <format> -o <path>`:
+The CLI provides deterministic report exports across six structured formats via `oxy report export -f <format> -o <path>`:
 
 - **Tabular & Structured Text Formats:**
   - `csv`: Comma-separated values adhering to RFC 4180 with standard UTF-8 encoding.
@@ -217,11 +217,15 @@ The CLI provides deterministic, streaming report exports across six structured f
   - `json`: Structured JSON payload with comprehensive summary metrics, project aggregates, and detailed task breakdowns.
   - `xml`: Sanitized hierarchical XML with ISO 8601 timestamps and strictly escaped entity values.
 - **Spreadsheet Archive Packages (ZIP-based):**
-  - `ods`: OpenDocument Spreadsheet 1.3 package generated with pure-Rust ZIP32 writer and compliant OpenDocument XML templates.
-  - `xlsx`: Office Open XML SpreadsheetML workbook generated with valid package parts (`[Content_Types].xml`, `_rels/.rels`, worksheet, workbook).
+  - `ods`: OpenDocument Spreadsheet 1.3 package generated natively in Rust using `spreadsheet-ods`.
+  - `xlsx`: Office Open XML SpreadsheetML workbook generated natively in Rust using `rust_xlsxwriter`.
 
-**Pure-Rust Streaming Architecture:**
-All exporters stream output directly to disk without spawning external child processes or depending on system archivers. Spreadsheet formats (`ods`, `xlsx`) utilize a dedicated, memory-safe in-memory ZIP32 builder with valid MS-DOS timestamps (with fallback to `1980-01-01` = `0x0021`) and strict 32-bit boundary validations.
+**Memory Buffering and File Output Architecture:**
+In the current implementation, all CLI report exporters serialize content into memory before writing to target storage:
+- Formats `csv`, `html`, `json`, and `xml` are serialized in memory as UTF-8 payload strings and written to disk using `std::fs::write`.
+- Formats `ods` and `xlsx` are generated natively in Rust using `spreadsheet-ods` and `rust_xlsxwriter` into byte buffers (`Vec<u8>`) and written via `std::fs::write`.
+- The dedicated ZIP32 builder with MS-DOS timestamps and 32-bit boundary validation operates exclusively within the TypeScript browser plugin layer (`src/plugins/exporters/zipBuilder.ts`), rather than the Rust CLI runtime.
+- Direct streaming to disk without intermediary in-memory buffering is marked as `[PLANNED]` pending completion of task B3.
 
 **XML Schema Definition Export (`oxy report schema`):**
 The CLI can export the canonical W3C XML Schema Definition (XSD) used to validate XML report exports:
