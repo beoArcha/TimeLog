@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import TimezoneSettingsCard from '@features/settings/components/TimezoneSettingsCard';
@@ -114,5 +115,46 @@ describe('TimezoneSettingsCard', () => {
     expect(clockIcon).not.toBeNull();
     expect(clockIcon?.getAttribute('aria-hidden')).toBe('true');
     expect(clockIcon?.getAttribute('class')).toContain('text-info');
+  });
+
+  it('should handle real user interaction when opening select, choosing Asia/Tokyo and updating context', async () => {
+    // 1. Arrange MockProviders with timezone: 'System', resolvedTimezone: 'Europe/Warsaw', setTimezone mock
+    const user = userEvent.setup();
+    const setTimezone = vi.fn();
+
+    // 2. Render TimezoneSettingsCard
+    const { rerender } = render(
+      <MockProviders
+        settingsState={{ timezone: 'System', resolvedTimezone: 'Europe/Warsaw', setTimezone }}
+        localeState={{ locale: 'en', customTranslations: {} }}
+      >
+        <TimezoneSettingsCard />
+      </MockProviders>
+    );
+
+    const trigger = screen.getByTestId('timezone-select-trigger');
+    expect(trigger.textContent).toContain('System default');
+
+    // 3. Open selector via user interaction
+    await user.click(trigger);
+
+    // 4. Select 'Asia/Tokyo'
+    const tokyoOption = await screen.findByTestId('timezone-option-Asia/Tokyo');
+    await user.click(tokyoOption);
+
+    // 5. Verify setTimezone was called with 'Asia/Tokyo'
+    expect(setTimezone).toHaveBeenCalledWith('Asia/Tokyo');
+
+    // 6. Verify control presents the selected value after context update
+    rerender(
+      <MockProviders
+        settingsState={{ timezone: 'Asia/Tokyo', resolvedTimezone: 'Asia/Tokyo', setTimezone }}
+        localeState={{ locale: 'en', customTranslations: {} }}
+      >
+        <TimezoneSettingsCard />
+      </MockProviders>
+    );
+
+    expect(screen.getByTestId('timezone-select-trigger').textContent).toContain('Asia/Tokyo');
   });
 });
