@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { StatCard } from '@components/StatCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
@@ -349,7 +350,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(status.getAttribute('aria-live')).toBe('polite');
     });
 
-    it('StatCard should have accessible aria-label on trend and keyboard activation', () => {
+    it('StatCard should have accessible aria-label on trend and keyboard activation', async () => {
+      const user = userEvent.setup();
       const onClick = vi.fn();
       render(
         <StatCard
@@ -363,7 +365,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(screen.getByLabelText('10% increase this week')).toBeTruthy();
 
       const card = screen.getByTestId('interactive-stat');
-      fireEvent.keyDown(card, { key: 'Enter' });
+      card.focus();
+      await user.keyboard('{Enter}');
       expect(onClick).toHaveBeenCalledTimes(1);
     });
 
