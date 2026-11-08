@@ -1,3 +1,5 @@
+use std::collections::{HashSet, VecDeque};
+
 use crate::common::AppError;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
@@ -41,22 +43,44 @@ fn apply_status_and_completion(
     }
 }
 
+fn collect_task_and_descendant_ids(
+    persistence: &Persistence,
+    root_task_id: &str,
+) -> Result<HashSet<String>, crate::persistence::PersistenceError> {
+    let mut visited = HashSet::new();
+    let mut queue = VecDeque::new();
+
+    visited.insert(root_task_id.to_string());
+    queue.push_back(root_task_id.to_string());
+
+    while let Some(current_id) = queue.pop_front() {
+        let subtasks = persistence.tasks.get_subtasks(&current_id)?;
+        for subtask in subtasks {
+            if visited.insert(subtask.id.clone()) {
+                queue.push_back(subtask.id);
+            }
+        }
+    }
+
+    Ok(visited)
+}
+
 fn stop_active_timer_if_task_or_subtask(
     engine: &Engine,
     persistence: &Persistence,
     task_id: &str,
 ) -> Result<(), AppError> {
+    let matching_task_ids = collect_task_and_descendant_ids(persistence, task_id)?;
     let state_data = engine.get_state()?;
-    if let Some(ref active) = state_data.active_log {
-        let is_target = active.task_id == task_id;
-        let is_subtask = if !is_target {
-            let subtasks = persistence.tasks.get_subtasks(task_id)?;
-            subtasks.iter().any(|s| s.id == active.task_id)
-        } else {
-            false
-        };
-        if is_target || is_subtask {
-            engine.stop_timer(None)?;
+    let active_logs = match state_data.active_logs {
+        Some(logs) => logs,
+        None => state_data.active_log.into_iter().collect(),
+    };
+
+    let now = chrono::Utc::now().to_rfc3339();
+    for active in active_logs {
+        if matching_task_ids.contains(&active.task_id) {
+            persistence.time_logs.close_active_by_id(&now, &active.id)?;
         }
     }
     Ok(())
@@ -115,9 +139,10 @@ pub fn update_task_details(
     let valid_name = engine.validate_task_name(&input.name)?;
     task.name = valid_name;
 
+    let was_completed = task.completed;
     apply_status_and_completion(&mut task, input.status, input.completed);
 
-    if task.completed {
+    if !was_completed && task.completed {
         stop_active_timer_if_task_or_subtask(&engine, persistence, &task.id)?;
     }
 
