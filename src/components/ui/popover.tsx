@@ -14,6 +14,7 @@ const PopoverDescription = PopoverPrimitive.Description;
  */
 function PopoverContent({
   className,
+  positionerClassName,
   children,
   sideOffset = 4,
   align = 'center',
@@ -23,14 +24,20 @@ function PopoverContent({
   sideOffset?: number;
   align?: 'start' | 'center' | 'end';
   side?: 'top' | 'bottom' | 'left' | 'right';
+  positionerClassName?: string;
 }) {
   return (
     <PopoverPortal>
-      <PopoverPrimitive.Positioner sideOffset={sideOffset} align={align} side={side}>
+      <PopoverPrimitive.Positioner
+        sideOffset={sideOffset}
+        align={align}
+        side={side}
+        className={cn('z-50', positionerClassName)}
+      >
         <PopoverPrimitive.Popup
           data-slot="popover-content"
           className={cn(
-            'z-50 min-w-[12rem] overflow-hidden rounded-2xl border border-border bg-popover p-3 text-popover-foreground shadow-2xl outline-none',
+            'relative z-50 min-w-[12rem] overflow-hidden rounded-2xl border border-border bg-popover p-3 text-popover-foreground shadow-2xl outline-none',
             'animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2',
             className
           )}
