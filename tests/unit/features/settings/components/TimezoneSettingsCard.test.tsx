@@ -27,7 +27,8 @@ describe('TimezoneSettingsCard', () => {
     // Assert
     expect(screen.getByTestId('timezone-settings-card-header')).not.toBeNull();
     expect(screen.getByText('Display Timezone')).not.toBeNull();
-    expect(screen.getByText('System default')).not.toBeNull();
+    expect(screen.getAllByText('System default').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByTestId('timezone-select-trigger').textContent).toContain('System default');
   });
 
   it('should display resolved active timezone badge and current selection when custom timezone is provided', () => {

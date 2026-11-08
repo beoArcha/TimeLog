@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Globe, Clock } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { useLocale } from '@common/hooks/LocaleProvider';
@@ -30,17 +30,30 @@ export function TimezoneSettingsCard() {
     return ['System', 'UTC', ...uniqueTimezones];
   }, []);
 
-  const now = useMemo(() => new Date(), []);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const previewTime = useMemo(
-    () => formatTime(now, resolvedTimezone, locale),
-    [now, resolvedTimezone, locale]
+    () => formatTime(currentTime, resolvedTimezone, locale),
+    [currentTime, resolvedTimezone, locale]
   );
+
+  const selectedLabel = timezone === 'System'
+    ? translate(locale, 'settings', 'TimezoneSystem', customTranslations)
+    : timezone;
 
   return (
     <CollapsibleCard
       title={translate(locale, 'settings', 'TimezoneTitle', customTranslations)}
       icon={Globe}
-      iconColor="text-sky-500"
+      iconColor="text-info"
+      titleColor="text-foreground"
       defaultExpanded={true}
       headerTestId="timezone-settings-card-header"
     >
@@ -49,11 +62,13 @@ export function TimezoneSettingsCard() {
         <div className="p-4 rounded-2xl border border-border bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <VStack gap="xs" className="min-w-0">
             <HStack align="center" gap="sm">
-              <Clock className="w-4 h-4 text-sky-500 shrink-0" aria-hidden="true" />
+              <Clock className="w-4 h-4 text-info shrink-0" aria-hidden="true" />
               <Text size="base" weight="bold" className="text-foreground truncate">
-                {timezone === 'System' ? translate(locale, 'settings', 'TimezoneSystem', customTranslations) : timezone}
+                {selectedLabel}
               </Text>
-              <Badge variant={timezone === 'System' ? 'outline' : 'default'} className="font-mono text-2xs">{resolvedTimezone}</Badge>
+              <Badge variant={timezone === 'System' ? 'outline' : 'default'} className="font-mono text-2xs">
+                {resolvedTimezone}
+              </Badge>
             </HStack>
             <Caption variant="muted" size="xs">
               {translate(locale, 'settings', 'TimezoneActive', customTranslations, { tz: resolvedTimezone })}
@@ -62,8 +77,11 @@ export function TimezoneSettingsCard() {
           </VStack>
           <div className="w-full sm:w-64">
             <Select value={timezone} onValueChange={(val) => val && setTimezone(val)}>
-              <SelectTrigger data-testid="timezone-select-trigger" aria-label={translate(locale, 'settings', 'TimezoneSelectAria', customTranslations)}>
-                <SelectValue>{timezone}</SelectValue>
+              <SelectTrigger
+                data-testid="timezone-select-trigger"
+                aria-label={translate(locale, 'settings', 'TimezoneSelectAria', customTranslations)}
+              >
+                <SelectValue>{selectedLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent className="max-h-60 overflow-y-auto">
                 {options.map((tz) => (
