@@ -32,11 +32,79 @@ import { ExportPayload, IExporterPlugin } from '../contracts/IExporterPlugin';
 
 const FORMULA_TRIGGERS = new Set(['=', '+', '-', '@']);
 
+const RUST_FLOAT_REGEX = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+
 /**
- * Checks whether a character code represents whitespace or an ASCII/Unicode control character.
+ * Checks whether a character code represents Unicode White_Space,
+ * matching Rust's `char::is_whitespace()` in core::char exactly.
+ *
+ * Rust whitespace codepoints:
+ * - 0x0020 (Space)
+ * - 0x0009..=0x000D (Tab, LF, VT, FF, CR)
+ * - 0x0085 (NEL: Next Line)
+ * - 0x00A0 (NBSP: No-Break Space)
+ * - 0x1680 (Ogham Space Mark)
+ * - 0x2000..=0x200A (En Quad through Hair Space)
+ * - 0x2028 (Line Separator)
+ * - 0x2029 (Paragraph Separator)
+ * - 0x202F (Narrow No-Break Space)
+ * - 0x205F (Medium Mathematical Space)
+ * - 0x3000 (Ideographic Space)
+ *
+ * Format characters like U+200B (Zero-Width Space) and U+FEFF (BOM) are
+ * intentionally excluded to maintain strict parity with Rust.
  */
-function isWhitespaceOrControl(charCode: number): boolean {
-  return charCode <= 32 || (charCode >= 127 && charCode <= 159);
+export function isUnicodeWhitespace(charCode: number): boolean {
+  return (
+    charCode === 0x0020 ||
+    (charCode >= 0x0009 && charCode <= 0x000d) ||
+    charCode === 0x0085 ||
+    charCode === 0x00a0 ||
+    charCode === 0x1680 ||
+    (charCode >= 0x2000 && charCode <= 0x200a) ||
+    charCode === 0x2028 ||
+    charCode === 0x2029 ||
+    charCode === 0x202f ||
+    charCode === 0x205f ||
+    charCode === 0x3000
+  );
+}
+
+/**
+ * Checks whether a character code represents an ASCII or Unicode control character,
+ * matching Rust's `char::is_control()` (Unicode General Category Cc) exactly:
+ * - 0x0000..=0x001F (C0 control characters)
+ * - 0x007F..=0x009F (Delete and C1 control characters)
+ */
+export function isUnicodeControl(charCode: number): boolean {
+  return (
+    (charCode >= 0x0000 && charCode <= 0x001f) ||
+    (charCode >= 0x007f && charCode <= 0x009f)
+  );
+}
+
+/**
+ * Checks whether a character code represents whitespace or an ASCII/Unicode control character,
+ * matching Rust's `char::is_whitespace() || char::is_control()` parity contract.
+ */
+export function isWhitespaceOrControl(charCode: number): boolean {
+  return isUnicodeWhitespace(charCode) || isUnicodeControl(charCode);
+}
+
+/**
+ * Trims leading and trailing Unicode whitespace characters according to Rust's
+ * `char::is_whitespace()` definition.
+ */
+export function trimRustWhitespace(str: string): string {
+  let start = 0;
+  while (start < str.length && isUnicodeWhitespace(str.charCodeAt(start))) {
+    start++;
+  }
+  let end = str.length;
+  while (end > start && isUnicodeWhitespace(str.charCodeAt(end - 1))) {
+    end--;
+  }
+  return str.slice(start, end);
 }
 
 /**
@@ -45,12 +113,11 @@ function isWhitespaceOrControl(charCode: number): boolean {
  * and should not be neutralized with an apostrophe.
  */
 export function isNumericString(str: string): boolean {
-  const trimmed = str.trim();
+  const trimmed = trimRustWhitespace(str);
   if (trimmed === '') {
     return false;
   }
-  const num = Number(trimmed);
-  return Number.isFinite(num);
+  return RUST_FLOAT_REGEX.test(trimmed);
 }
 
 /**
@@ -74,14 +141,11 @@ export function sanitizeCsvFormula(val: string): string {
     }
   }
 
-  if (firstChar !== null && FORMULA_TRIGGERS.has(firstChar)) {
-    if (isNumericString(val)) {
-      return val;
-    }
-    return `'${val}`;
+  if (!firstChar || !FORMULA_TRIGGERS.has(firstChar) || isNumericString(val)) {
+    return val;
   }
 
-  return val;
+  return `'${val}`;
 }
 
 /**

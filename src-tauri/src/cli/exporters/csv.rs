@@ -99,3 +99,7 @@ pub fn export_csv(tree: &ReportTreeDto) -> Result<String, CliError> {
     }
     Ok(lines.join("\n") + "\n")
 }
+
+#[cfg(test)]
+#[path = "../../../tests/unit/cli/csv_test.rs"]
+mod csv_test;
