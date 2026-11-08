@@ -60,9 +60,11 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
       return null;
     }
 
-    const matchingTagProjects = hasTagFilter
-      ? filterProjectsByTags(projects, selectedTags)
-      : projects;
+    if (!hasTagFilter && hasProjectFilter && selectedProjectId) {
+      return new Set([selectedProjectId]);
+    }
+
+    const matchingTagProjects = filterProjectsByTags(projects, selectedTags);
     const matchingTagIds = new Set(matchingTagProjects.map((p) => p.id));
 
     if (hasProjectFilter && selectedProjectId) {
@@ -167,11 +169,12 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
           includePatches
         );
 
-        if (selectedProjectId) {
-          filter.projectId = selectedProjectId;
-        }
         if (allowedProjectIds !== null) {
-          filter.projectIds = Array.from(allowedProjectIds);
+          if (allowedProjectIds.size === 1) {
+            filter.projectId = Array.from(allowedProjectIds)[0];
+          } else if (allowedProjectIds.size > 1) {
+            filter.projectIds = Array.from(allowedProjectIds);
+          }
         }
         filterContext = filter;
 

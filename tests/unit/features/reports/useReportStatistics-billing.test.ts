@@ -363,10 +363,11 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
 
       expect(calculateRangeBillingMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          projectIds: ['p2'],
+          projectId: 'p2',
         }),
         '2026-07-12T15:00:00Z'
       );
+      expect(calculateRangeBillingMock.mock.calls[0][0].projectIds).toBeUndefined();
 
       // Act
       calculateRangeBillingMock.mockClear();
@@ -389,10 +390,65 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
 
       expect(calculateRangeBillingMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          projectIds: ['p1'],
+          projectId: 'p1',
         }),
         '2026-07-12T15:00:00Z'
       );
+      expect(calculateRangeBillingMock.mock.calls[0][0].projectIds).toBeUndefined();
+    });
+
+    it('should pass projectId when selectedProjectId matches tags', async () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs,
+          patches,
+          projects: taggedProjects,
+          tasks,
+          nowIso: '2026-07-12T15:00:00Z',
+          reportPeriod: 'week',
+          reportSort: 'duration',
+          selectedProjectId: 'p1',
+          selectedTags: ['frontend'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.isBillingLoading).toBe(false);
+      });
+
+      expect(calculateRangeBillingMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: 'p1',
+        }),
+        '2026-07-12T15:00:00Z'
+      );
+      const call = calculateRangeBillingMock.mock.calls[0][0];
+      expect(call.projectIds).toBeUndefined();
+    });
+
+    it('should omit both projectId and projectIds when neither project nor tags are set', async () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs,
+          patches,
+          projects: taggedProjects,
+          tasks,
+          nowIso: '2026-07-12T15:00:00Z',
+          reportPeriod: 'week',
+          reportSort: 'duration',
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.isBillingLoading).toBe(false);
+      });
+
+      expect(calculateRangeBillingMock).toHaveBeenCalled();
+      const call = calculateRangeBillingMock.mock.calls[0][0];
+      expect(call.projectId).toBeUndefined();
+      expect(call.projectIds).toBeUndefined();
     });
   });
 });
