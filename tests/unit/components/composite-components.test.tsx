@@ -378,5 +378,25 @@ describe('Unit Tests: Composite Components', () => {
       const expectedTrendLabel = `${translate('en', 'common', 'TrendIncrease')}: 5%`;
       expect(screen.getByLabelText(expectedTrendLabel)).toBeTruthy();
     });
+
+    it('StatCard should forward sentiment to TrendIndicator when provided', () => {
+      // Arrange
+      const expectedTrendLabel = `${translate('en', 'common', 'TrendIncrease')}: $200`;
+
+      // Act
+      render(
+        <StatCard
+          title="Expenses"
+          value="$1,200"
+          trend={{ value: '$200', direction: 'up', sentiment: 'negative' }}
+        />
+      );
+
+      // Assert
+      const trendElement = screen.getByRole('img', { name: expectedTrendLabel });
+      expect(trendElement).toBeTruthy();
+      expect(trendElement.getAttribute('data-direction')).toBe('up');
+      expect(trendElement.getAttribute('data-sentiment')).toBe('negative');
+    });
   });
 });
