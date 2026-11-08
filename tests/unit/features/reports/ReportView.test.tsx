@@ -6,7 +6,7 @@ import ReportView from '@features/reports/ReportView';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { SidebarProjectItem } from '@layouts/parts/sidebar/SidebarProjectItem';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
-import type { ExportPayload } from '@features/reports/types';
+import type { ExportPayload } from '@plugins/contracts/IExporterPlugin';
 
 interface MockExportModalProps {
   isOpen: boolean;
