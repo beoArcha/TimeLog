@@ -21,6 +21,8 @@ pub struct Settings {
     pub always_on_top_main: Option<bool>,
     #[ts(optional)]
     pub minimize_to_tray: Option<bool>,
+    #[ts(optional)]
+    pub timezone: Option<String>,
 }
 
 impl Default for Settings {
@@ -35,6 +37,7 @@ impl Default for Settings {
             always_on_top_small: Some(false),
             always_on_top_main: Some(false),
             minimize_to_tray: Some(true),
+            timezone: Some("System".to_string()),
         }
     }
 }

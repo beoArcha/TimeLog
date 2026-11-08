@@ -10,7 +10,19 @@ import { LAYOUT_VARIANTS, isCompactLayout } from '@common/constants/layoutVarian
 import { AppTabId } from '@common/types/navigation';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { toast } from 'sonner';
-import { resolveEffectiveTimezone } from '@common/utils/timeFormat';
+import { resolveEffectiveTimezone, isValidTimezone } from '@common/utils/timeFormat';
+
+function validateTimezoneSetting(tz: unknown): string | null {
+  if (typeof tz !== 'string') return null;
+  const trimmed = tz.trim();
+  if (trimmed === 'System' || trimmed.toLowerCase() === 'system') {
+    return 'System';
+  }
+  if (trimmed === 'UTC' || isValidTimezone(trimmed)) {
+    return trimmed;
+  }
+  return null;
+}
 
 export const useAppSettings = () => {
   const { supportedLayouts, defaultLayout } = usePlatformCapabilities();
@@ -27,6 +39,7 @@ export const useAppSettings = () => {
     includePatchesInReports: true,
     activeSinks: ['Csv'],
   });
+  const [timezone, setTimezoneState] = useState<string>('System');
 
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(
@@ -81,6 +94,22 @@ export const useAppSettings = () => {
         includePatchesInReports: loaded.includePatchesInReports ?? true,
         activeSinks: loaded.activeSinks ?? ['Csv'],
       });
+
+      let initialTimezone = validateTimezoneSetting(loaded.timezone);
+      try {
+        const legacy = localStorage.getItem('oxytime_timezone');
+        if (legacy !== null) {
+          const validatedLegacy = validateTimezoneSetting(legacy);
+          if (validatedLegacy && (!initialTimezone || initialTimezone === 'System')) {
+            initialTimezone = validatedLegacy;
+          }
+          localStorage.removeItem('oxytime_timezone');
+        }
+      } catch {
+        // LocalStorage access may fail in restricted environments
+      }
+      setTimezoneState(initialTimezone ?? 'System');
+
       if (currentProj) setCurrentProjectId(currentProj);
       if (lastNonCompact) setLastNonCompactVariant(lastNonCompact as Exclude<LayoutVariant, 'compact'>);
       setSettingsLoaded(true);
@@ -139,6 +168,7 @@ export const useAppSettings = () => {
         alwaysOnTopSmall: alwaysOnTopSmall,
         alwaysOnTopMain: alwaysOnTopMain,
         minimizeToTray: minimizeToTray,
+        timezone: timezone,
       };
       await PersistenceRouter.getInstance().settings.save(payload);
     };
@@ -155,6 +185,7 @@ export const useAppSettings = () => {
     alwaysOnTopSmall,
     alwaysOnTopMain,
     minimizeToTray,
+    timezone,
   ]);
 
   useEffect(() => {
@@ -172,23 +203,12 @@ export const useAppSettings = () => {
     localStorage.setItem('oxy_default_project_concurrency', String(val));
   };
 
-  const [timezone, setTimezoneState] = useState<string>(() => {
-    try {
-      return localStorage.getItem('oxytime_timezone') || 'System';
-    } catch {
-      // LocalStorage access may throw a SecurityError in sandboxed iframes or locked-down webview environments.
-      return 'System';
-    }
-  });
-
   const setTimezone = useCallback((val: string) => {
-    setTimezoneState(val);
-    try {
-      localStorage.setItem('oxytime_timezone', val);
-    } catch {
-      // LocalStorage persistence may fail due to quota exhaustion, private browsing mode, or restricted webview policies;
-      // the application continues operating gracefully with in-memory state.
+    const validated = validateTimezoneSetting(val);
+    if (!validated) {
+      return;
     }
+    setTimezoneState(validated);
   }, []);
 
   const resolvedTimezone = resolveEffectiveTimezone(timezone);

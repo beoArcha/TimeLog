@@ -214,6 +214,6 @@ describe('useAppSettings timezone persistence', () => {
 
     // Assert
     expect(result.current.timezone).toBe('America/Chicago');
-    expect(localStorage.getItem('oxytime_timezone')).toBe('America/Chicago');
+    expect(localStorage.getItem('oxytime_timezone')).toBeNull();
   });
 });
