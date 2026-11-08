@@ -6,7 +6,7 @@ import { useSettings } from '@common/hooks/SettingsContext';
 import { translate } from '@common/i18n/translator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@components/ui/select';
 import { Badge } from '@components/ui/badge';
-import { HStack, VStack } from '@components/ui/stack';
+import { HStack, VStack, Stack } from '@components/ui/stack';
 import { Text, Caption } from '@components/ui/typography';
 import { POPULAR_TIMEZONES, getSupportedTimezones, formatTime } from '@common/utils/timeFormat';
 
@@ -59,7 +59,12 @@ export function TimezoneSettingsCard() {
     >
       <VStack gap="md">
         <Caption variant="muted">{translate(locale, 'settings', 'TimezoneDesc', customTranslations)}</Caption>
-        <div className="p-4 rounded-2xl border border-border bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <Stack
+          direction="vertical"
+          justify="between"
+          gap="lg"
+          className="p-4 rounded-2xl border border-border bg-muted/20 sm:flex-row sm:items-center"
+        >
           <VStack gap="xs" className="min-w-0">
             <HStack align="center" gap="sm">
               <Clock className="w-4 h-4 text-info shrink-0" aria-hidden="true" />
@@ -75,7 +80,7 @@ export function TimezoneSettingsCard() {
               {previewTime ? ` · ${previewTime}` : ''}
             </Caption>
           </VStack>
-          <div className="w-full sm:w-64">
+          <VStack className="w-full sm:w-64 shrink-0">
             <Select value={timezone} onValueChange={(val) => val && setTimezone(val)}>
               <SelectTrigger
                 data-testid="timezone-select-trigger"
@@ -91,8 +96,8 @@ export function TimezoneSettingsCard() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-        </div>
+          </VStack>
+        </Stack>
       </VStack>
     </CollapsibleCard>
   );
