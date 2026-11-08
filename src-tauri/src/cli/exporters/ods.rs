@@ -8,7 +8,7 @@ pub fn map_ods_err(e: OdsError) -> CliError {
     CliError::Sink(SinkError::Serialization(e.to_string()))
 }
 
-pub fn export_ods(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
+fn build_ods_workbook(tree: &ReportTreeDto) -> Result<WorkBook, CliError> {
     let mut workbook = WorkBook::new_empty();
     let mut sheet = Sheet::new(REPORT_WORKSHEET_NAME);
 
@@ -37,6 +37,21 @@ pub fn export_ods(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
     sheet.set_value(current_row, 5, total_pct);
 
     workbook.push_sheet(sheet);
+    Ok(workbook)
+}
 
+use super::sink_io_error;
+use std::io::Write;
+
+pub fn export_ods(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
+    let mut workbook = build_ods_workbook(tree)?;
     spreadsheet_ods::write_ods_buf(&mut workbook, Vec::new()).map_err(map_ods_err)
+}
+
+pub fn write_ods<W: Write>(tree: &ReportTreeDto, mut writer: W) -> Result<(), CliError> {
+    let bytes = export_ods(tree)?;
+    writer
+        .write_all(&bytes)
+        .map_err(|e| sink_io_error("Failed to write ODS workbook", e))?;
+    Ok(())
 }

@@ -79,3 +79,14 @@ pub fn export_xlsx(tree: &ReportTreeDto) -> Result<Vec<u8>, CliError> {
 
     workbook.save_to_buffer().map_err(map_xlsx_err)
 }
+
+use super::sink_io_error;
+use std::io::Write;
+
+pub fn write_xlsx<W: Write>(tree: &ReportTreeDto, mut writer: W) -> Result<(), CliError> {
+    let bytes = export_xlsx(tree)?;
+    writer
+        .write_all(&bytes)
+        .map_err(|e| sink_io_error("Failed to write XLSX workbook", e))?;
+    Ok(())
+}

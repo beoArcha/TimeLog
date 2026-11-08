@@ -68,6 +68,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **CLI Streaming Writer Seam & Atomic Export Writes** (`feat/cli-export-streaming`):
+  - Introduced streaming export writer seam `export_to_writer` in `src-tauri/src/cli/exporters/` accepting any sink implementing `std::io::Write`.
+  - Added dedicated streaming writer functions for all supported formats: `write_csv`, `write_json`, `write_html`, `write_xml`, `write_xlsx`, and `write_ods`.
+  - Implemented safe, atomic file writing with `atomic_write_to_file` using `std::io::BufWriter` to a temporary `.tmp` file in the destination directory and atomic rename on completion, ensuring no partial or corrupted files remain upon write errors.
+  - Refactored `export_to_file` and `export_schema_to_file` to delegate to `atomic_write_to_file` while preserving 100% backward compatibility for all existing CLI commands, exit codes, and error mapping contracts.
+  - Added comprehensive unit test coverage in `src-tauri/tests/unit/cli/exporter_streaming_test.rs` validating multi-format streaming, format output parity, atomic file creation/overwrites, directory validation, and clean temp file cleanup upon failure.
+
 - **Cross-Runtime Audit Source & Reason Parity Test Suite**:
   - Established shared cross-runtime test matrix fixture `tests/shared/fixtures/audit-parity-cases.json` covering 41 vectors across default source, raw enum identifiers, UI label strings, optional reason for `SystemPatch`, mandatory reason validation for manual edits (`ERR_AUDIT_REASON_REQUIRED`), and invalid source detection (`ERR_AUDIT_SOURCE_INVALID`).
   - Added comprehensive BDT test coverage in `tests/integration/engine/CrossRuntimeParity.test.ts` executing the shared matrix against Browser `EnginePlugin` and verifying payload mapping in Desktop Tauri `EngineCommands`.

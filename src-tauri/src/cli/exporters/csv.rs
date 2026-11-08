@@ -79,10 +79,13 @@ pub fn sanitize_csv(val: &str) -> String {
     neutralized.replace('"', "\"\"")
 }
 
+use super::sink_io_error;
 use crate::cli::error::CliError;
+use std::io::Write;
 
-pub fn export_csv(tree: &ReportTreeDto) -> Result<String, CliError> {
-    let mut lines = vec![REPORT_COLUMN_HEADERS.join(",")];
+pub fn write_csv<W: Write>(tree: &ReportTreeDto, mut writer: W) -> Result<(), CliError> {
+    writeln!(writer, "{}", REPORT_COLUMN_HEADERS.join(","))
+        .map_err(|e| sink_io_error("Failed to write CSV header", e))?;
     for row in flatten_report(tree)? {
         let p_name = sanitize_csv(&row.project_name);
         let t_name = sanitize_csv(&row.task_name);
@@ -92,12 +95,20 @@ pub fn export_csv(tree: &ReportTreeDto) -> Result<String, CliError> {
             .map(sanitize_csv)
             .unwrap_or_default();
         let d_fmt = sanitize_csv(&row.duration_formatted);
-        lines.push(format!(
+        writeln!(
+            writer,
             "\"{}\",\"{}\",\"{}\",{},\"{}\",{:.1}",
             p_name, t_name, s_name, row.duration_seconds, d_fmt, row.percentage,
-        ));
+        )
+        .map_err(|e| sink_io_error("Failed to write CSV row", e))?;
     }
-    Ok(lines.join("\n") + "\n")
+    Ok(())
+}
+
+pub fn export_csv(tree: &ReportTreeDto) -> Result<String, CliError> {
+    let mut buffer = Vec::new();
+    write_csv(tree, &mut buffer)?;
+    String::from_utf8(buffer).map_err(|e| sink_io_error("Failed to decode UTF-8 CSV", e))
 }
 
 #[cfg(test)]
