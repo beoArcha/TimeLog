@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -37,7 +37,7 @@ describe('SyncStatusBadge', () => {
     });
 
     it.each([
-      { state: 'idle' as const, expectedIconClass: 'text-emerald-500' },
+      { state: 'idle' as const, expectedIconClass: 'text-success' },
       { state: 'syncing' as const, expectedIconClass: 'animate-spin' },
       { state: 'queued' as const, expectedIconClass: 'animate-pulse' },
       { state: 'error' as const, expectedIconClass: 'shrink-0' },
@@ -174,6 +174,33 @@ describe('SyncStatusBadge', () => {
         expect(screen.getByTestId('webhook-sync-indicator')).toBeTruthy();
         unmount();
       }
+    });
+  });
+
+  describe('Semantic Color Tokens', () => {
+    it('should use text-info instead of text-sky in syncing state', () => {
+      const { container } = render(<SyncStatusBadge status={aSyncStatus({ state: 'syncing' })} />);
+      const content = container.querySelector('[data-slot="hstack"]');
+      expect(content?.className).toContain('text-info');
+      expect(content?.className).not.toContain('text-sky');
+    });
+
+    it('should use text-warning instead of text-amber in queued state', () => {
+      const { container } = render(<SyncStatusBadge status={aSyncStatus({ state: 'queued', pendingCount: 3 })} onRetry={vi.fn()} />);
+      const content = container.querySelector('[data-slot="hstack"]');
+      expect(content?.className).toContain('text-warning');
+      expect(content?.className).not.toContain('text-amber');
+      const retryBtn = screen.getByTestId('webhook-sync-indicator-retry-btn');
+      expect(retryBtn.className).toContain('text-warning');
+    });
+
+    it('should use text-destructive instead of text-rose in error state', () => {
+      const { container } = render(<SyncStatusBadge status={aSyncStatus({ state: 'error', failedCount: 2 })} onRetry={vi.fn()} />);
+      const content = container.querySelector('[data-slot="hstack"]');
+      expect(content?.className).toContain('text-destructive');
+      expect(content?.className).not.toContain('text-rose');
+      const retryBtn = screen.getByTestId('webhook-sync-indicator-retry-btn');
+      expect(retryBtn.className).toContain('text-destructive');
     });
   });
 });

@@ -13,6 +13,8 @@ export const statusDotVariants = cva(
         muted: 'bg-muted-foreground',
         success: 'bg-success',
         destructive: 'bg-destructive',
+        warning: 'bg-warning',
+        info: 'bg-info',
         primary: 'bg-primary',
       },
       size: {
@@ -44,6 +46,8 @@ export const statusDotPingVariants = cva(
         muted: 'bg-muted-foreground/75',
         success: 'bg-success opacity-75',
         destructive: 'bg-destructive opacity-75',
+        warning: 'bg-warning opacity-75',
+        info: 'bg-info opacity-75',
         primary: 'bg-primary opacity-75',
       },
     },

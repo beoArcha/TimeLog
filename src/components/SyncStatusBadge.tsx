@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { RefreshCw, CloudUpload, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@components/ui/badge';
 import { Button } from '@components/ui/button';
@@ -46,7 +46,7 @@ export interface StateConfigItem {
 const STATE_CONFIG: Record<SyncStateType, StateConfigItem> = {
   idle: {
     icon: CheckCircle2,
-    iconClass: 'text-emerald-500',
+    iconClass: 'text-success',
     containerClass: 'text-muted-foreground',
     gap: '2xs',
     labelKey: 'SyncStatusOk',
@@ -55,7 +55,7 @@ const STATE_CONFIG: Record<SyncStateType, StateConfigItem> = {
   syncing: {
     icon: RefreshCw,
     animationClass: 'animate-spin',
-    containerClass: 'text-sky-500',
+    containerClass: 'text-info',
     gap: '2xs',
     labelKey: 'SyncStatusSyncing',
     getLabel: (_status, t) => t('SyncStatusSyncing'),
@@ -63,22 +63,22 @@ const STATE_CONFIG: Record<SyncStateType, StateConfigItem> = {
   queued: {
     icon: CloudUpload,
     animationClass: 'animate-pulse',
-    containerClass: 'text-amber-500',
+    containerClass: 'text-warning',
     gap: 'xs',
     labelKey: 'SyncStatusQueued',
     getLabel: (status, t) => `${status.pendingCount ?? 0} ${t('SyncStatusQueued')}`,
     action: {
-      buttonClass: 'min-h-[24px] h-6 px-1.5 text-amber-500 hover:text-amber-400',
+      buttonClass: 'min-h-[24px] h-6 px-1.5 text-warning hover:text-warning/80',
     },
   },
   error: {
     icon: AlertCircle,
-    containerClass: 'text-rose-500',
+    containerClass: 'text-destructive',
     gap: 'xs',
     labelKey: 'SyncStatusError',
     getLabel: (status, t) => `${status.failedCount ?? 0} ${t('SyncStatusError')}`,
     action: {
-      buttonClass: 'min-h-[24px] h-6 px-1.5 text-rose-500 hover:text-rose-400',
+      buttonClass: 'min-h-[24px] h-6 px-1.5 text-destructive hover:text-destructive/80',
     },
   },
 };

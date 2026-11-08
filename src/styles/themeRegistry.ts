@@ -15,9 +15,15 @@ export const LIGHT_THEME_TOKENS: ThemeColorTokens = {
   secondaryForeground: '#2C2421',
   accent: '#EAE4DB',
   accentForeground: '#2C2421',
-  destructive: '#E11D48',
+  destructive: '#BE123C',
   destructiveForeground: '#FFFFFF',
   ring: '#F97316',
+  success: '#047857',
+  successForeground: '#FFFFFF',
+  warning: '#A14407',
+  warningForeground: '#FFFFFF',
+  info: '#0369A1',
+  infoForeground: '#FFFFFF',
 };
 
 export const DARK_THEME_TOKENS: ThemeColorTokens = {
@@ -38,6 +44,12 @@ export const DARK_THEME_TOKENS: ThemeColorTokens = {
   destructive: '#F43F5E',
   destructiveForeground: '#FFFFFF',
   ring: '#FB923C',
+  success: '#10B981',
+  successForeground: '#FFFFFF',
+  warning: '#FBBF24',
+  warningForeground: '#0b0f19',
+  info: '#38BDF8',
+  infoForeground: '#0b0f19',
 };
 
 export const HIGH_CONTRAST_THEME_TOKENS: ThemeColorTokens = {
@@ -58,6 +70,12 @@ export const HIGH_CONTRAST_THEME_TOKENS: ThemeColorTokens = {
   destructive: '#FF0033',
   destructiveForeground: '#FFFFFF',
   ring: '#FACC15',
+  success: '#00FF66',
+  successForeground: '#000000',
+  warning: '#FACC15',
+  warningForeground: '#000000',
+  info: '#38BDF8',
+  infoForeground: '#000000',
 };
 
 const BUILTIN_THEMES: ThemeDefinition[] = [

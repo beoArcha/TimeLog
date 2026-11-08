@@ -32,9 +32,12 @@ export interface PromptDialogProps {
   onConfirm: (value: string) => void | Promise<void>;
   onCancel?: () => void;
   validate?: (value: string) => string | null | undefined;
+  required?: boolean;
 }
 
 interface PromptDialogFormProps extends Omit<PromptDialogProps, 'open' | 'onOpenChange'> {
+  titleId: string;
+  descriptionId: string;
   onClose: () => void;
 }
 
@@ -50,12 +53,13 @@ function PromptDialogForm({
   onConfirm,
   onCancel,
   validate,
+  required = true,
+  titleId,
+  descriptionId,
   onClose,
 }: PromptDialogFormProps) {
   const { locale, customTranslations } = useSafeLocale();
   const inputId = useId();
-  const titleId = useId();
-  const descriptionId = useId();
   const errorId = useId();
 
   const resolvedConfirmLabel = confirmLabel || translate(locale, 'common', 'Save', customTranslations);
@@ -84,6 +88,11 @@ function PromptDialogForm({
     event.preventDefault();
     if (loading) return;
 
+    if (required && value.trim() === '') {
+      setError(translate(locale, 'common', 'ErrRequired', customTranslations));
+      return;
+    }
+
     if (validate) {
       const validationError = validate(value);
       if (validationError) {
@@ -110,14 +119,14 @@ function PromptDialogForm({
     <Form onSubmit={handleSubmit} layout="vertical" gap="lg">
       <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
         <IconBox
-          variant="subtle"
-          size="md"
-          className="rounded-2xl border border-primary/20 bg-primary/10 text-primary"
           aria-hidden="true"
+          size="md"
+          rounded="section"
+          className="border border-primary/20 bg-primary/10 text-primary"
         >
           <Icon className="w-5 h-5" />
         </IconBox>
-        <VStack gap="xs" align="start">
+        <VStack gap="2xs" className="text-left">
           <DialogTitle id={titleId}>{title}</DialogTitle>
           {description && (
             <DialogDescription id={descriptionId}>{description}</DialogDescription>
@@ -140,7 +149,7 @@ function PromptDialogForm({
           }}
           placeholder={placeholder}
           autoFocus
-          aria-required="true"
+          aria-required={required}
           aria-invalid={Boolean(error)}
           aria-errormessage={error ? errorId : undefined}
           aria-describedby={description ? descriptionId : undefined}
@@ -182,14 +191,28 @@ function PromptDialogForm({
 export function PromptDialog({
   open,
   onOpenChange,
+  title,
+  description,
   ...formProps
 }: PromptDialogProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md focus-visible:outline-none">
+      <DialogContent
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
+        className="max-w-md focus-visible:outline-none"
+      >
         {open && (
           <PromptDialogForm
             {...formProps}
+            title={title}
+            description={description}
+            titleId={titleId}
+            descriptionId={descriptionId}
             onClose={() => onOpenChange?.(false)}
           />
         )}

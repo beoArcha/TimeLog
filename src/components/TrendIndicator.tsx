@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HStack } from '@components/ui/stack';
@@ -25,8 +25,8 @@ const DEFAULT_SENTIMENT_BY_DIRECTION: Record<TrendDirection, TrendSentiment> = {
 };
 
 const SENTIMENT_COLOR_MAP: Record<TrendSentiment, string> = {
-  positive: 'text-emerald-500',
-  negative: 'text-rose-500',
+  positive: 'text-success',
+  negative: 'text-destructive',
   neutral: 'text-muted-foreground',
 };
 
