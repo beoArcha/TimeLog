@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **ZIP32 Format Boundary & ZIP64 Sentinel Reservation**:
   - Reserved ZIP64 sentinel boundaries in `zipBuilder`: capped maximum allowed ZIP32 entry count at 65534 (`0xFFFE`) and maximum entry size and local header offset at `0xFFFFFFFE` (`4,294,967,294` bytes) to prevent producing invalid standard ZIP archives with ambiguous ZIP64 sentinel headers (`0xFFFF` / `0xFFFFFFFF`).
   - Added boundary validation test coverage for entry count limits (65534 boundary pass and 65535 boundary fail) and 4GB entry size and header offset boundaries.
+- **Cross-Runtime Audit Source Validation Parity**:
+  - Aligned Browser engine audit source resolution with Rust reference behavior by treating whitespace-only `auditSource` strings as absent, defaulting to `GUI Edit`.
+  - Expanded shared cross-runtime test matrix and engine lifecycle test suites with whitespace-only audit source coverage.
 - **SQLite Time Log History Migration Compatibility**:
   - Added migration 9 to rebuild legacy `time_logs_history` tables where `reason` is still `NOT NULL`, making the column nullable without losing existing audit records or the `time_logs` foreign-key cascade.
   - Added migration regression coverage for v8 databases, NULL-reason inserts, history preservation, foreign-key cascade behavior, and idempotent initialization.

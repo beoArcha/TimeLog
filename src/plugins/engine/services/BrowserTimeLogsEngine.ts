@@ -39,7 +39,7 @@ export class BrowserTimeLogsEngine implements ITimeLogsEngine {
     }
 
     let resolvedAuditSource: string;
-    if (!auditSource) {
+    if (!auditSource || auditSource.trim() === '') {
       resolvedAuditSource = 'GUI Edit';
     } else if (auditSource === 'GUI Edit' || auditSource === 'GuiEdit') {
       resolvedAuditSource = 'GUI Edit';
