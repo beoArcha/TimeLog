@@ -393,4 +393,138 @@ describe('useAppSettings', () => {
     getSpy.mockRestore();
     saveSpy.mockRestore();
   });
+
+  describe('timezone setting validation, persistence, and legacy migration', () => {
+    it('should initialize with default System timezone when no settings exist', async () => {
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+      expect(result.current.resolvedTimezone).toBeDefined();
+    });
+
+    it('should update timezone state when valid timezone is provided to setTimezone', async () => {
+      // Arrange
+      const { result } = renderHook(() => useAppSettings());
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+
+      // Act
+      act(() => {
+        result.current.setTimezone('Europe/Warsaw');
+      });
+
+      // Assert
+      expect(result.current.timezone).toBe('Europe/Warsaw');
+      expect(result.current.resolvedTimezone).toBe('Europe/Warsaw');
+    });
+
+    it('should reject invalid timezone values in setTimezone and preserve current state', async () => {
+      // Arrange
+      const { result } = renderHook(() => useAppSettings());
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+
+      act(() => {
+        result.current.setTimezone('Europe/Paris');
+      });
+      expect(result.current.timezone).toBe('Europe/Paris');
+
+      // Act - attempt invalid timezone
+      act(() => {
+        result.current.setTimezone('Invalid/Non_Existent_Timezone');
+      });
+
+      // Assert: should retain Europe/Paris
+      expect(result.current.timezone).toBe('Europe/Paris');
+
+      // Act - attempt random garbage
+      act(() => {
+        result.current.setTimezone('!@#$%^');
+      });
+      expect(result.current.timezone).toBe('Europe/Paris');
+    });
+
+    it('should load valid timezone from unified persistence', async () => {
+      // Arrange
+      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+        theme: 'light',
+        guiVariant: 'full',
+        textAndIconSize: 'medium',
+        autoStart: false,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+        timezone: 'America/Chicago',
+      }));
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('America/Chicago');
+      });
+    });
+
+    it('should fallback to System when persisted timezone is invalid', async () => {
+      // Arrange
+      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+        theme: 'light',
+        guiVariant: 'full',
+        textAndIconSize: 'medium',
+        autoStart: false,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+        timezone: 'Corrupted/Invalid_Zone_123',
+      }));
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+    });
+
+    it('should migrate legacy oxytime_timezone from localStorage to unified settings and remove legacy key', async () => {
+      // Arrange
+      localStorage.setItem('oxytime_timezone', 'Europe/Berlin');
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('Europe/Berlin');
+      });
+      // Legacy key must be cleaned up
+      expect(localStorage.getItem('oxytime_timezone')).toBeNull();
+
+      // Unified settings must be saved
+      await waitFor(() => {
+        const unified = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
+        expect(unified.timezone).toBe('Europe/Berlin');
+      });
+    });
+
+    it('should fallback to System and clean up when legacy oxytime_timezone contains invalid value', async () => {
+      // Arrange
+      localStorage.setItem('oxytime_timezone', 'Invalid_Legacy_Value');
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+      expect(localStorage.getItem('oxytime_timezone')).toBeNull();
+    });
+  });
 });
