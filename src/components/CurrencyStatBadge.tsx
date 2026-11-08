@@ -1,45 +1,113 @@
 import React from 'react';
+import type { RateStatus } from '@bindings/RateStatus';
+import type { Locale } from '@bindings/Locale';
 import { Badge, type BadgeProps } from '@components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useSafeLocale } from '@common/hooks/LocaleProvider';
+import { translate } from '@common/i18n/translator';
+import type { CommonKey } from '@common/i18n/keys/common';
+
+export type { RateStatus };
 
 export interface CurrencyStatBadgeProps {
   currency?: string | null;
   amount?: string | number | null;
-  rateStatus?: 'billable' | 'non_billable' | 'unconfigured' | 'custom' | 'inherited' | string | null;
+  rateStatus?: RateStatus | null;
   variant?: BadgeProps['variant'];
   size?: BadgeProps['size'];
   className?: string;
   testId?: string;
 }
 
-function resolveStatusVariant(rateStatus?: string | null): BadgeProps['variant'] {
-  if (rateStatus === 'non_billable') return 'muted';
-  if (rateStatus === 'unconfigured') return 'amber';
-  if (rateStatus === 'custom') return 'emerald';
-  if (rateStatus === 'inherited') return 'outline';
-  return 'secondary';
+const RATE_STATUS_VARIANT_MAP: Record<RateStatus, BadgeProps['variant']> = {
+  non_billable: 'muted',
+  unconfigured: 'amber',
+  custom: 'emerald',
+  inherited: 'outline',
+};
+
+const RATE_STATUS_I18N_MAP: Record<RateStatus, CommonKey> = {
+  inherited: 'RateStatusInherited',
+  custom: 'RateStatusCustom',
+  non_billable: 'RateStatusNonBillable',
+  unconfigured: 'RateStatusUnconfigured',
+};
+
+function resolveStatusVariant(rateStatus?: RateStatus | null): BadgeProps['variant'] {
+  if (!rateStatus) return 'secondary';
+  return RATE_STATUS_VARIANT_MAP[rateStatus] ?? 'secondary';
+}
+
+function parseAmount(amount?: string | number | null): number | null {
+  if (amount === null || amount === undefined) {
+    return null;
+  }
+  if (typeof amount === 'number') {
+    return Number.isFinite(amount) ? amount : null;
+  }
+  const trimmed = amount.trim();
+  if (trimmed === '') {
+    return null;
+  }
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatAmount(
+  amount: number,
+  locale: Locale,
+  currency?: string | null
+): string {
+  const safeLocale = locale === 'custom' || locale === 'system' ? 'en' : locale;
+  const cleanCurrency = currency?.trim();
+  if (cleanCurrency) {
+    try {
+      return new Intl.NumberFormat(safeLocale, {
+        style: 'currency',
+        currency: cleanCurrency,
+      }).format(amount);
+    } catch {
+      // Graceful fallback for non-standard currency codes
+      const formattedNum = new Intl.NumberFormat(safeLocale).format(amount);
+      return `${formattedNum} ${cleanCurrency.toUpperCase()}`;
+    }
+  }
+  return new Intl.NumberFormat(safeLocale).format(amount);
 }
 
 function resolveDisplayText(
-  currency?: string | null,
-  amount?: string | number | null,
-  rateStatus?: string | null
+  currency: string | null | undefined,
+  amount: string | number | null | undefined,
+  rateStatus: RateStatus | null | undefined,
+  locale: Locale,
+  customTranslations?: Record<string, unknown>
 ): string {
-  if (amount !== undefined && amount !== null) {
-    return currency ? `${amount} ${currency}` : `${amount}`;
+  const parsed = parseAmount(amount);
+  if (parsed !== null) {
+    return formatAmount(parsed, locale, currency);
   }
-  if (currency) {
-    return currency;
+
+  // Handle non-numeric amount string if provided
+  if (amount !== undefined && amount !== null && typeof amount === 'string' && amount.trim() !== '') {
+    const cleanCurr = currency?.trim();
+    return cleanCurr ? `${amount.trim()} ${cleanCurr.toUpperCase()}` : amount.trim();
   }
-  if (rateStatus) {
-    return rateStatus;
+
+  const cleanCurrency = currency?.trim();
+  if (cleanCurrency) {
+    return cleanCurrency.toUpperCase();
   }
+
+  if (rateStatus && rateStatus in RATE_STATUS_I18N_MAP) {
+    return translate(locale, 'common', RATE_STATUS_I18N_MAP[rateStatus], customTranslations);
+  }
+
   return '';
 }
 
 /**
  * Composite currency badge component adhering to Design System.
- * Formats currency code, amounts, and rate status flags with semantic token variants.
+ * Formats currency code, amounts via Intl.NumberFormat, and rate status flags with semantic tokens and i18n.
  */
 export function CurrencyStatBadge({
   currency,
@@ -50,8 +118,15 @@ export function CurrencyStatBadge({
   className,
   testId,
 }: CurrencyStatBadgeProps) {
+  const { locale, customTranslations } = useSafeLocale();
   const resolvedVariant = variant ?? resolveStatusVariant(rateStatus);
-  const displayText = resolveDisplayText(currency, amount, rateStatus);
+  const displayText = resolveDisplayText(
+    currency,
+    amount,
+    rateStatus,
+    locale,
+    customTranslations as Record<string, unknown>
+  );
 
   if (!displayText) {
     return null;
@@ -61,7 +136,7 @@ export function CurrencyStatBadge({
     <Badge
       variant={resolvedVariant}
       size={size}
-      className={cn('font-mono font-medium tracking-tight uppercase', className)}
+      className={cn('font-mono font-medium tracking-tight', className)}
       data-testid={testId}
     >
       {displayText}
