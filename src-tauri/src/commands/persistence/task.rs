@@ -41,16 +41,6 @@ fn apply_status_and_completion(
     }
 }
 
-fn stop_active_timer_if_matching_task(engine: &Engine, task_id: &str) -> Result<(), AppError> {
-    let state_data = engine.get_state()?;
-    if let Some(ref active) = state_data.active_log {
-        if active.task_id == task_id {
-            engine.stop_timer(None)?;
-        }
-    }
-    Ok(())
-}
-
 fn stop_active_timer_if_task_or_subtask(
     engine: &Engine,
     persistence: &Persistence,
@@ -128,7 +118,7 @@ pub fn update_task_details(
     apply_status_and_completion(&mut task, input.status, input.completed);
 
     if task.completed {
-        stop_active_timer_if_matching_task(&engine, &task.id)?;
+        stop_active_timer_if_task_or_subtask(&engine, persistence, &task.id)?;
     }
 
     if let Some(rate_opt) = input.hourly_rate.as_set() {
@@ -185,7 +175,7 @@ pub fn toggle_task_completion(
         TaskStatus::Todo
     });
     if task.completed {
-        stop_active_timer_if_matching_task(&engine, &task.id)?;
+        stop_active_timer_if_task_or_subtask(&engine, persistence, &task.id)?;
     }
     persistence.tasks.patch(task)?;
     Ok(engine.get_state()?)

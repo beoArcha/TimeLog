@@ -137,8 +137,18 @@ export const useTasksManager = ({
         : { name: nameOrInput, parentTaskId, status, completed, hourlyRate };
 
     await actionRunner.runAction('Failed to update task', async () => {
-      const isCompleting = input.completed === true || input.status === 'Done';
-      if (isCompleting) {
+      if (input.completed === true) {
+        let activeLogs = repositoryState.activeLogs;
+        if (activeLogs.length === 0 && repositoryState.activeLog) {
+          activeLogs = [repositoryState.activeLog];
+        }
+        const hasActiveTimer = activeLogs.some((l) =>
+          isTaskOrDescendant(l.taskId, taskId, repositoryState.tasks)
+        );
+        if (hasActiveTimer) {
+          await engineRouter.timer.stopTimer();
+        }
+      } else if (input.status === 'Done') {
         await handleAutoStopIfConfigured(
           taskId,
           repositoryState.activeLog?.taskId,
@@ -194,9 +204,10 @@ export const useTasksManager = ({
       const task = repositoryState.tasks.find((t) => t.id === taskId);
       const isCompleting = task ? !task.completed : false;
       if (isCompleting) {
-        const activeLogs = repositoryState.activeLogs.length > 0
-          ? repositoryState.activeLogs
-          : (repositoryState.activeLog ? [repositoryState.activeLog] : []);
+        let activeLogs = repositoryState.activeLogs;
+        if (activeLogs.length === 0 && repositoryState.activeLog) {
+          activeLogs = [repositoryState.activeLog];
+        }
         const hasActiveTimer = activeLogs.some((l) =>
           isTaskOrDescendant(l.taskId, taskId, repositoryState.tasks)
         );

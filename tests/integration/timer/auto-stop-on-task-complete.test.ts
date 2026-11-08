@@ -236,6 +236,52 @@ describe('Integration Tests: AutoStopTimerOnTaskComplete', () => {
         expect(mockStopTimer).toHaveBeenCalledTimes(1);
       });
     });
+
+    describe('When the user updates a parent task to completed whose subtask has an active running timer', () => {
+      it('Then it should unconditionally stop the running timer on the descendant task', async () => {
+        // Given
+        mockWorkflow.getConfig = vi.fn().mockResolvedValue(
+          aWorkflowConfig({
+            autoStopOnTaskComplete: false,
+          })
+        );
+
+        const parentTask = aTask({ id: 'task-parent-2', projectId: 'p1', name: 'Parent Task 2', completed: false });
+        const subTask = aTask({ id: 'task-child-2', projectId: 'p1', parentTaskId: 'task-parent-2', name: 'Child Task 2', completed: false });
+        const runningLog = aTimeLog({ id: 'log-2', taskId: 'task-child-2', projectId: 'p1', endTime: null });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [parentTask, subTask],
+          logs: [runningLog],
+          activeLog: runningLog,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'update').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...parentTask, completed: true }, subTask],
+          logs: [{ ...runningLog, endTime: '2026-10-19T10:00:00.000Z' }],
+          activeLog: null,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When
+        await act(async () => {
+          await result.current.handleUpdateTask('task-parent-2', 'Parent Task 2', null, 'Done', true);
+        });
+
+        // Then
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   describe('Given multiple tasks where only one has an active running timer', () => {
