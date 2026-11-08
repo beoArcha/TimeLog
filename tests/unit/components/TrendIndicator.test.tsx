@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
@@ -22,6 +22,8 @@ describe('TrendIndicator', () => {
     // Assert
     const indicator = screen.getByRole('img', { name: expectedLabel });
     expect(indicator).toBeTruthy();
+    expect(indicator.className).toContain('text-success');
+    expect(indicator.className).not.toContain('text-emerald');
     expect(indicator.getAttribute('data-direction')).toBe('up');
     expect(indicator.getAttribute('data-sentiment')).toBe('positive');
     expect(screen.getByTestId('trend-up-icon-up')).toBeTruthy();
@@ -40,6 +42,8 @@ describe('TrendIndicator', () => {
     // Assert
     const indicator = screen.getByRole('img', { name: label });
     expect(indicator).toBeTruthy();
+    expect(indicator.className).toContain('text-destructive');
+    expect(indicator.className).not.toContain('text-rose');
     expect(indicator.getAttribute('data-direction')).toBe('down');
     expect(indicator.getAttribute('data-sentiment')).toBe('negative');
     expect(screen.getByTestId('trend-down-icon-down')).toBeTruthy();
@@ -58,6 +62,7 @@ describe('TrendIndicator', () => {
     // Assert
     const indicator = screen.getByRole('img', { name: expectedLabel });
     expect(indicator).toBeTruthy();
+    expect(indicator.className).toContain('text-muted-foreground');
     expect(indicator.getAttribute('data-direction')).toBe('neutral');
     expect(indicator.getAttribute('data-sentiment')).toBe('neutral');
     expect(screen.getByTestId('trend-neutral-icon-neutral')).toBeTruthy();
@@ -100,6 +105,7 @@ describe('TrendIndicator', () => {
     // Assert
     const indicator = screen.getByRole('img', { name: expectedLabel });
     expect(indicator).toBeTruthy();
+    expect(indicator.className).toContain('text-destructive');
     expect(indicator.getAttribute('data-direction')).toBe('up');
     expect(indicator.getAttribute('data-sentiment')).toBe('negative');
     expect(screen.getByTestId('cost-trend-icon-up')).toBeTruthy();
@@ -126,6 +132,7 @@ describe('TrendIndicator', () => {
     // Assert
     const indicator = screen.getByRole('img', { name: expectedLabel });
     expect(indicator).toBeTruthy();
+    expect(indicator.className).toContain('text-success');
     expect(indicator.getAttribute('data-direction')).toBe('down');
     expect(indicator.getAttribute('data-sentiment')).toBe('positive');
     expect(screen.getByTestId('defect-trend-icon-down')).toBeTruthy();
@@ -152,6 +159,7 @@ describe('TrendIndicator', () => {
     // Assert
     const indicator = screen.getByRole('img', { name: expectedLabel });
     expect(indicator).toBeTruthy();
+    expect(indicator.className).toContain('text-muted-foreground');
     expect(indicator.getAttribute('data-direction')).toBe('up');
     expect(indicator.getAttribute('data-sentiment')).toBe('neutral');
     expect(screen.getByTestId('minor-trend-icon-up')).toBeTruthy();

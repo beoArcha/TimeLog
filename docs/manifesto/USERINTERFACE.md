@@ -309,11 +309,17 @@ UI must be driven by semantic design tokens, not hardcoded values.
 Required approach:
 
 - Semantic CSS variables (`bg-card`, `border-border`, `text-card-foreground`, `bg-background`, `text-foreground`, `text-muted-foreground`, etc.).
-- Tokens adapt automatically across `light`, `dark`, and `high-contrast` themes.
+- Semantic status color tokens (`success`, `warning`, `destructive`, `info`) ensuring WCAG AA contrast (>= 4.5:1) across all themes without component branching:
+  - `success` (`--success`, `text-success`, `bg-success`): Success status indicators and positive trends (`#047857` in light mode for >= 4.5:1 contrast, `#10B981` in dark mode, `#00FF66` in high-contrast).
+  - `warning` (`--warning`, `text-warning`, `bg-warning`): Warning alerts, queued operations, and pending indicators (`#A14407` in light mode for >= 5:1 contrast, `#FBBF24` in dark mode, `#FACC15` in high-contrast).
+  - `destructive` (`--destructive`, `text-destructive`, `bg-destructive`): Destructive actions, errors, and negative trends (`#BE123C` in light mode for >= 5.5:1 contrast, `#F43F5E` in dark mode, `#FF0033` in high-contrast).
+  - `info` (`--info`, `text-info`, `bg-info`): Active sync operations and informational notices (`#0369A1` in light mode for >= 4.5:1 contrast, `#38BDF8` in dark mode, `#38BDF8` in high-contrast).
+- Tokens adapt automatically across `light`, `dark`, and `high-contrast` themes via CSS variables.
 - Proportional units and spacing variables.
 
 Forbidden:
 
+- Raw palette color classes in components (e.g. `text-emerald-500`, `text-rose-500`, `text-amber-500`, `text-sky-500`).
 - Inline hex values (e.g. `bg-[#FCFAF8]`, `border-[#DFD7CB]`, `text-[#2C2421]`).
 - Page-specific CSS overrides or ad-hoc style tags.
 - Pixel-based layout logic.
