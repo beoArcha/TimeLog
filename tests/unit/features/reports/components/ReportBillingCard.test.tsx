@@ -74,7 +74,7 @@ describe('Unit Tests: ReportBillingCard', () => {
 
     // Check task breakdown
     expect(screen.getByText('Backend Architecture')).toBeTruthy();
-    expect(screen.getByText('custom')).toBeTruthy();
+    expect(screen.getByText('Custom')).toBeTruthy();
   });
 
   it('should render empty state when byCurrency is empty', async () => {
@@ -193,8 +193,8 @@ describe('Unit Tests: ReportBillingCard', () => {
     expect(screen.getByText('Unassigned Research')).toBeTruthy();
     expect(screen.getByTestId('task-rate-status-t-non-billable')).toBeTruthy();
     expect(screen.getByTestId('task-rate-status-t-unconfigured')).toBeTruthy();
-    expect(screen.getByTestId('task-rate-status-t-non-billable').textContent).toBe('non_billable');
-    expect(screen.getByTestId('task-rate-status-t-unconfigured').textContent).toBe('unconfigured');
+    expect(screen.getByTestId('task-rate-status-t-non-billable').textContent).toBe('Non-billable');
+    expect(screen.getByTestId('task-rate-status-t-unconfigured').textContent).toBe('Unconfigured');
   });
 
   it('should render controlled billingError directly without fetching', () => {

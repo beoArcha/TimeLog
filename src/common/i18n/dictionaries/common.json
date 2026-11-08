@@ -38,7 +38,11 @@
     "TrendNeutral": "Neutral",
     "ERR_AUDIT_REASON_REQUIRED": "Audit reason is required for manual edits",
     "ERR_AUDIT_SOURCE_INVALID": "Invalid audit source",
-    "ERR_TIMELOG_INVALID_RANGE": "End time cannot be before start time"
+    "ERR_TIMELOG_INVALID_RANGE": "End time cannot be before start time",
+    "RateStatusCustom": "Custom",
+    "RateStatusInherited": "Inherited",
+    "RateStatusNonBillable": "Non-billable",
+    "RateStatusUnconfigured": "Unconfigured"
   },
   "pl": {
     "Cancel": "Anuluj",
@@ -79,7 +83,11 @@
     "TrendNeutral": "Poziom",
     "ERR_AUDIT_REASON_REQUIRED": "Powód audytu jest wymagany przy ręcznej edycji",
     "ERR_AUDIT_SOURCE_INVALID": "Nieprawidłowe źródło audytu",
-    "ERR_TIMELOG_INVALID_RANGE": "Czas zakończenia nie może być wcześniejszy niż czas rozpoczęcia"
+    "ERR_TIMELOG_INVALID_RANGE": "Czas zakończenia nie może być wcześniejszy niż czas rozpoczęcia",
+    "RateStatusCustom": "Własna",
+    "RateStatusInherited": "Dziedziczone",
+    "RateStatusNonBillable": "Nierozliczalne",
+    "RateStatusUnconfigured": "Nieskonfigurowane"
   },
   "de": {
     "Cancel": "Abbrechen",
@@ -120,7 +128,11 @@
     "TrendNeutral": "Neutral",
     "ERR_AUDIT_REASON_REQUIRED": "Ein Grund ist für manuelle Änderungen erforderlich",
     "ERR_AUDIT_SOURCE_INVALID": "Ungültige Audit-Quelle",
-    "ERR_TIMELOG_INVALID_RANGE": "Endzeit kann nicht vor der Startzeit liegen"
+    "ERR_TIMELOG_INVALID_RANGE": "Endzeit kann nicht vor der Startzeit liegen",
+    "RateStatusCustom": "Benutzerdefiniert",
+    "RateStatusInherited": "Geerbt",
+    "RateStatusNonBillable": "Nicht abrechenbar",
+    "RateStatusUnconfigured": "Nicht konfiguriert"
   },
   "es": {
     "Cancel": "Cancelar",
@@ -161,7 +173,11 @@
     "TrendNeutral": "Neutral",
     "ERR_AUDIT_REASON_REQUIRED": "El motivo de auditoría es obligatorio para ediciones manuales",
     "ERR_AUDIT_SOURCE_INVALID": "Fuente de auditoría no válida",
-    "ERR_TIMELOG_INVALID_RANGE": "La hora de finalización no puede ser anterior a la hora de inicio"
+    "ERR_TIMELOG_INVALID_RANGE": "La hora de finalización no puede ser anterior a la hora de inicio",
+    "RateStatusCustom": "Personalizado",
+    "RateStatusInherited": "Heredado",
+    "RateStatusNonBillable": "No facturable",
+    "RateStatusUnconfigured": "No configurado"
   },
   "pt-br": {
     "Cancel": "Cancelar",
@@ -202,7 +218,11 @@
     "TrendNeutral": "Neutro",
     "ERR_AUDIT_REASON_REQUIRED": "O motivo da auditoria é obrigatório para edições manuais",
     "ERR_AUDIT_SOURCE_INVALID": "Fonte de auditoria inválida",
-    "ERR_TIMELOG_INVALID_RANGE": "O horário de término não pode ser anterior ao horário de início"
+    "ERR_TIMELOG_INVALID_RANGE": "O horário de término não pode ser anterior ao horário de início",
+    "RateStatusCustom": "Personalizado",
+    "RateStatusInherited": "Herdado",
+    "RateStatusNonBillable": "Não faturável",
+    "RateStatusUnconfigured": "Não configurado"
   },
   "fr": {
     "Cancel": "Annuler",
@@ -243,7 +263,11 @@
     "TrendNeutral": "Neutre",
     "ERR_AUDIT_REASON_REQUIRED": "Le motif d'audit est requis pour les modifications manuelles",
     "ERR_AUDIT_SOURCE_INVALID": "Source d'audit invalide",
-    "ERR_TIMELOG_INVALID_RANGE": "L'heure de fin ne peut pas être antérieure à l'heure de début"
+    "ERR_TIMELOG_INVALID_RANGE": "L'heure de fin ne peut pas être antérieure à l'heure de début",
+    "RateStatusCustom": "Personnalisé",
+    "RateStatusInherited": "Hérité",
+    "RateStatusNonBillable": "Non facturable",
+    "RateStatusUnconfigured": "Non configuré"
   },
   "uk": {
     "Cancel": "Скасувати",
@@ -284,7 +308,11 @@
     "TrendNeutral": "Нейтрально",
     "ERR_AUDIT_REASON_REQUIRED": "Причина аудиту є обов'язковою для ручного редагування",
     "ERR_AUDIT_SOURCE_INVALID": "Недійсне джерело аудиту",
-    "ERR_TIMELOG_INVALID_RANGE": "Час завершення не може бути раніше часу початку"
+    "ERR_TIMELOG_INVALID_RANGE": "Час завершення не може бути раніше часу початку",
+    "RateStatusCustom": "Власна",
+    "RateStatusInherited": "Успадковано",
+    "RateStatusNonBillable": "Неоплачуване",
+    "RateStatusUnconfigured": "Не налаштовано"
   },
   "ja": {
     "Cancel": "キャンセル",
@@ -325,7 +353,11 @@
     "TrendNeutral": "横ばい",
     "ERR_AUDIT_REASON_REQUIRED": "手動編集には監査理由が必要です",
     "ERR_AUDIT_SOURCE_INVALID": "無効な監査ソースです",
-    "ERR_TIMELOG_INVALID_RANGE": "終了時刻を開始時刻より前に設定することはできません"
+    "ERR_TIMELOG_INVALID_RANGE": "終了時刻を開始時刻より前に設定することはできません",
+    "RateStatusCustom": "カスタム",
+    "RateStatusInherited": "継承",
+    "RateStatusNonBillable": "請求対象外",
+    "RateStatusUnconfigured": "未設定"
   },
   "nl": {
     "Cancel": "Annuleren",
@@ -366,7 +398,11 @@
     "TrendNeutral": "Neutraal",
     "ERR_AUDIT_REASON_REQUIRED": "Auditreden is vereist voor handmatige bewerkingen",
     "ERR_AUDIT_SOURCE_INVALID": "Ongeldige auditbron",
-    "ERR_TIMELOG_INVALID_RANGE": "Eindtijd kan niet vóór de starttijd liggen"
+    "ERR_TIMELOG_INVALID_RANGE": "Eindtijd kan niet vóór de starttijd liggen",
+    "RateStatusCustom": "Aangepast",
+    "RateStatusInherited": "Overgenomen",
+    "RateStatusNonBillable": "Niet-factureerbaar",
+    "RateStatusUnconfigured": "Niet geconfigureerd"
   },
   "it": {
     "Cancel": "Annulla",
@@ -407,6 +443,10 @@
     "TrendNeutral": "Neutro",
     "ERR_AUDIT_REASON_REQUIRED": "Il motivo di controllo è obbligatorio per le modifiche manuali",
     "ERR_AUDIT_SOURCE_INVALID": "Sorgente di controllo non valida",
-    "ERR_TIMELOG_INVALID_RANGE": "L'ora di fine non può essere precedente all'ora di inizio"
+    "ERR_TIMELOG_INVALID_RANGE": "L'ora di fine non può essere precedente all'ora di inizio",
+    "RateStatusCustom": "Personalizzato",
+    "RateStatusInherited": "Ereditato",
+    "RateStatusNonBillable": "Non fatturabile",
+    "RateStatusUnconfigured": "Non configurato"
   }
 }
