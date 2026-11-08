@@ -9,10 +9,6 @@ import { cn } from '@/lib/utils';
 export interface AnimatedDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  /**
-   * Accessible title for the drawer.
-   * Rendered visually hidden via DrawerTitle and passed to aria-label for assistive technologies.
-   */
   title: string;
   children: React.ReactNode;
   className?: string;
@@ -27,7 +23,6 @@ export interface AnimatedDrawerProps {
 
 /**
  * Slide-down modal sheet drawer with backdrop blur overlay and smooth transitions.
- * Accessible drawer composite wrapping Base UI Drawer primitive.
  */
 export function AnimatedDrawer({
   isOpen,
