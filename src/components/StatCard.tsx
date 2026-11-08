@@ -6,11 +6,12 @@ import { HStack, VStack } from '@components/ui/stack';
 import { IconBox } from '@components/ui/icon-box';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
-import { TrendIndicator, type TrendDirection } from './TrendIndicator';
+import { TrendIndicator, type TrendDirection, type TrendSentiment } from './TrendIndicator';
 
 export interface StatCardTrend {
   value: string | number;
   direction?: TrendDirection;
+  sentiment?: TrendSentiment;
   label?: string;
 }
 
@@ -98,6 +99,7 @@ export function StatCard({
             <TrendIndicator
               value={trend.value}
               direction={trend.direction}
+              sentiment={trend.sentiment}
               label={trend.label}
             />
           )}
