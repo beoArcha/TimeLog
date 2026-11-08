@@ -183,6 +183,18 @@ pub const CLOSE_ALL_ACTIVE_LOGS: &str = "
     WHERE end_time IS NULL
 ";
 
+pub const CLOSE_ACTIVE_LOG_BY_ID: &str = "
+    UPDATE time_logs 
+    SET end_time = ?1 
+    WHERE id = ?2 AND end_time IS NULL
+";
+
+pub const CLOSE_ACTIVE_LOGS_BY_TASK: &str = "
+    UPDATE time_logs 
+    SET end_time = ?1 
+    WHERE task_id = ?2 AND end_time IS NULL
+";
+
 pub const INSERT_TIME_LOG: &str = "
     INSERT INTO time_logs (id, task_id, start_time, end_time)
     VALUES (?, ?, ?, NULL)

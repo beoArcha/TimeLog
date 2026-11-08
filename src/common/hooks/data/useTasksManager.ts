@@ -1,12 +1,11 @@
 import { useState, type SetStateAction } from 'react';
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
+import { TimeLog } from '@bindings/TimeLog';
 import { TimerRepositoryState } from '@bindings/TimerRepositoryState';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { EngineRouter } from '@common/engine/EngineRouter';
 import { WorkflowRouter } from '@common/workflows/WorkflowRouter';
-import { ErrorHandler } from '@common/exceptions/ErrorHandler';
-import { WorkflowException } from '@common/exceptions/AppExceptions';
 import { RepositoryStateHook } from './useRepositoryState';
 import { AsyncActionRunnerHook } from './useAsyncActionRunner';
 
@@ -42,41 +41,45 @@ const isTaskOrDescendant = (
   if (candidateTaskId === targetTaskId) {
     return true;
   }
+  const visited = new Set<string>([candidateTaskId]);
   let current = allTasks.find((t) => t.id === candidateTaskId);
-  while (current?.parentTaskId) {
+  while (current?.parentTaskId && !visited.has(current.parentTaskId)) {
     if (current.parentTaskId === targetTaskId) {
       return true;
     }
+    visited.add(current.parentTaskId);
     current = allTasks.find((t) => t.id === current?.parentTaskId);
   }
   return false;
 };
 
-const handleAutoStopIfConfigured = async (
-  taskId: string,
-  activeTaskId: string | undefined,
+const stopActiveTimersForTaskAndDescendants = async (
+  targetTaskId: string,
   allTasks: readonly Task[],
-  engineRouter: EngineRouter,
-  workflowRouter: WorkflowRouter,
-  contextDescription: string
+  activeLogs: readonly TimeLog[],
+  fallbackActiveLog: TimeLog | null,
+  engineRouter: EngineRouter
 ) => {
-  if (!activeTaskId || !isTaskOrDescendant(activeTaskId, taskId, allTasks)) {
-    return;
+  let logsToInspect = activeLogs;
+  if (logsToInspect.length === 0 && fallbackActiveLog) {
+    logsToInspect = [fallbackActiveLog];
   }
-  try {
-    const config = await workflowRouter.getConfig();
-    if (config.autoStopOnTaskComplete) {
-      await engineRouter.timer.stopTimer();
+
+  const matchingLogs = logsToInspect.filter((l) =>
+    isTaskOrDescendant(l.taskId, targetTaskId, allTasks)
+  );
+
+  const projectIds = new Set<string>();
+  for (const log of matchingLogs) {
+    const projId =
+      log.projectId || allTasks.find((t) => t.id === log.taskId)?.projectId;
+    if (projId) {
+      projectIds.add(projId);
     }
-  } catch (error) {
-    ErrorHandler.handle(
-      new WorkflowException(
-        `Failed checking workflow auto-stop on ${contextDescription}`,
-        error,
-        'WARN_WORKFLOW_TASK_COMPLETE',
-        'WARN'
-      )
-    );
+  }
+
+  for (const projectId of projectIds) {
+    await engineRouter.timer.stopTimer(projectId);
   }
 };
 
@@ -86,7 +89,7 @@ export const useTasksManager = ({
   refreshComputedMetrics,
   engineRouter = EngineRouter.getInstance(),
   persistenceRouter = PersistenceRouter.getInstance(),
-  workflowRouter = WorkflowRouter.getInstance(),
+  workflowRouter: _workflowRouter = WorkflowRouter.getInstance(),
 }: UseTasksManagerOptions) => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -137,15 +140,21 @@ export const useTasksManager = ({
         : { name: nameOrInput, parentTaskId, status, completed, hourlyRate };
 
     await actionRunner.runAction('Failed to update task', async () => {
-      const isCompleting = input.completed === true || input.status === 'Done';
+      const currentTask = repositoryState.tasks.find((t) => t.id === taskId);
+      const isAlreadyCompleted = currentTask
+        ? currentTask.completed || currentTask.status === 'Done'
+        : false;
+      const isCompleting =
+        !isAlreadyCompleted &&
+        (input.completed === true || input.status === 'Done');
+
       if (isCompleting) {
-        await handleAutoStopIfConfigured(
+        await stopActiveTimersForTaskAndDescendants(
           taskId,
-          repositoryState.activeLog?.taskId,
           repositoryState.tasks,
-          engineRouter,
-          workflowRouter,
-          'task update'
+          repositoryState.activeLogs,
+          repositoryState.activeLog,
+          engineRouter
         );
       }
 
@@ -179,10 +188,13 @@ export const useTasksManager = ({
 
   const handleDeleteTask = async (taskId: string) => {
     await actionRunner.runAction('Failed to delete task', async () => {
-      const activeTaskId = repositoryState.activeLog?.taskId;
-      if (activeTaskId && isTaskOrDescendant(activeTaskId, taskId, repositoryState.tasks)) {
-        await engineRouter.timer.stopTimer();
-      }
+      await stopActiveTimersForTaskAndDescendants(
+        taskId,
+        repositoryState.tasks,
+        repositoryState.activeLogs,
+        repositoryState.activeLog,
+        engineRouter
+      );
 
       const nextState = await persistenceRouter.tasks.delete(taskId);
       await syncState(nextState);
@@ -191,16 +203,19 @@ export const useTasksManager = ({
 
   const handleToggleTaskComplete = async (taskId: string) => {
     await actionRunner.runAction('Failed to toggle task complete', async () => {
-      const task = repositoryState.tasks.find((t) => t.id === taskId);
-      const isCompleting = task ? !task.completed : false;
+      const currentTask = repositoryState.tasks.find((t) => t.id === taskId);
+      const isAlreadyCompleted = currentTask
+        ? currentTask.completed || currentTask.status === 'Done'
+        : false;
+      const isCompleting = !isAlreadyCompleted;
+
       if (isCompleting) {
-        await handleAutoStopIfConfigured(
+        await stopActiveTimersForTaskAndDescendants(
           taskId,
-          repositoryState.activeLog?.taskId,
           repositoryState.tasks,
-          engineRouter,
-          workflowRouter,
-          'task completion toggle'
+          repositoryState.activeLogs,
+          repositoryState.activeLog,
+          engineRouter
         );
       }
 

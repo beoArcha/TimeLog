@@ -72,6 +72,9 @@ impl AppError {
                 crate::engine::EngineError::AuditSourceInvalid(s) => {
                     IpcErrorPayload::new(e.code(), e.to_string(), Some(s.clone()))
                 }
+                crate::engine::EngineError::TaskAlreadyCompleted(t) => {
+                    IpcErrorPayload::new(e.code(), e.to_string(), Some(t.clone()))
+                }
                 crate::engine::EngineError::NoActiveTimer => {
                     IpcErrorPayload::new("ENG_TIMER_INACTIVE", e.to_string(), None)
                 }

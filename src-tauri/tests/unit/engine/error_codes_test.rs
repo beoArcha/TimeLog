@@ -18,6 +18,10 @@ fn test_engine_error_codes_mapping() {
         EngineError::TimeLogInvalidRange.code(),
         "ERR_TIMELOG_INVALID_RANGE"
     );
+    assert_eq!(
+        EngineError::TaskAlreadyCompleted("t1".to_string()).code(),
+        "ERR_TASK_ALREADY_COMPLETED"
+    );
 }
 
 #[test]
@@ -43,6 +47,12 @@ fn test_app_error_ipc_payload_codes_parity() {
         payload_range.message,
         "End time cannot be before start time"
     );
+
+    let err_completed = AppError::Engine(EngineError::TaskAlreadyCompleted("t_done_1".to_string()));
+    let payload_completed = err_completed.to_payload();
+    assert_eq!(payload_completed.code, "ERR_TASK_ALREADY_COMPLETED");
+    assert!(payload_completed.message.contains("t_done_1"));
+    assert_eq!(payload_completed.details.as_deref(), Some("t_done_1"));
 }
 
 #[test]
@@ -107,5 +117,37 @@ fn test_engine_edit_log_emits_typed_validation_codes() {
     assert!(matches!(
         err_invalid_range,
         EngineError::TimeLogInvalidRange
+    ));
+}
+
+#[test]
+fn test_start_and_switch_timer_rejects_completed_task() {
+    let (conn, config, _temp_dir) = setup_persistence_test("engine_timer_completed_task");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+
+    conn.execute(
+        "INSERT INTO projects (id, name, color, created_at) VALUES ('p1', 'P1', 'blue', '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+    conn.execute(
+        "INSERT INTO tasks (id, project_id, name, completed, created_at) VALUES ('t_done', 'p1', 'Completed Task', 1, '2026-06-15T00:00:00Z')",
+        [],
+    )
+    .unwrap();
+
+    let err_start = engine.start_timer("t_done").unwrap_err();
+    assert_eq!(err_start.code(), "ERR_TASK_ALREADY_COMPLETED");
+    assert!(matches!(
+        err_start,
+        EngineError::TaskAlreadyCompleted(ref id) if id == "t_done"
+    ));
+
+    let err_switch = engine.switch_timer("t_done").unwrap_err();
+    assert_eq!(err_switch.code(), "ERR_TASK_ALREADY_COMPLETED");
+    assert!(matches!(
+        err_switch,
+        EngineError::TaskAlreadyCompleted(ref id) if id == "t_done"
     ));
 }
