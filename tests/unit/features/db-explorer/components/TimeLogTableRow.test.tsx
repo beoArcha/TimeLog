@@ -508,4 +508,128 @@ describe("Unit Tests: TimeLogTableRow", () => {
     expect(onCancelEditMock).toHaveBeenCalledTimes(1);
     expect(reasonInput.getAttribute("aria-invalid")).toBeNull();
   });
+
+  it("should display error alert with role=\"alert\" and aria-live=\"polite\" when errorMessage prop is provided", () => {
+    // Arrange & Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} errorMessage="Persistence failure occurred" />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    const alert = screen.getByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.getAttribute("aria-live")).toBe("polite");
+    expect(alert.textContent).toContain("Persistence failure occurred");
+    expect(screen.getByTestId("time-log-row-error")).toBeTruthy();
+  });
+
+  it("should catch onSaveEdit rejection, keep editing state, and display error in alert", async () => {
+    // Arrange
+    onSaveEditMock.mockRejectedValue(new Error("Database write locked"));
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Valid edit reason" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.getAttribute("aria-live")).toBe("polite");
+    expect(alert.textContent).toContain("Database write locked");
+
+    // Form remains in edit mode
+    expect(screen.getByLabelText(/Reason/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Save/i })).toBeTruthy();
+  });
+
+  it("should display localized SyncErrorReason when onSaveEdit resolves to false", async () => {
+    // Arrange
+    onSaveEditMock.mockResolvedValue(false);
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Valid sync reason" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.textContent).toContain("Sync Error");
+  });
+
+  it("should map known error codes such as ERR_AUDIT_REASON_REQUIRED to localized messages", async () => {
+    // Arrange
+    onSaveEditMock.mockRejectedValue(new Error("ERR_AUDIT_REASON_REQUIRED"));
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Trigger backend rejection" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.textContent).toContain("Audit reason is required");
+  });
+
+  it("should clear error alert when cancel button is clicked", async () => {
+    // Arrange
+    onSaveEditMock.mockRejectedValue(new Error("Temporary persistence issue"));
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Testing cancel with error" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+
+    // Act
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    // Assert
+    expect(onCancelEditMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
 });

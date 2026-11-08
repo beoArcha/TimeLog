@@ -185,7 +185,7 @@ describe("Unit Tests: TimeLogsTable", () => {
     expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
   });
 
-  it("should display toast when handleEditTimeLog throws an error", async () => {
+  it("should display toast and alert, and retain edit mode when handleEditTimeLog throws an error", async () => {
     // Arrange
     const handleEditTimeLog = vi
       .fn()
@@ -215,6 +215,117 @@ describe("Unit Tests: TimeLogsTable", () => {
     // Assert
     await waitFor(() => {
       expect(showToast).toHaveBeenCalledWith("Backend persistence failed");
+    });
+    const alert = screen.getByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.getAttribute("aria-live")).toBe("polite");
+    expect(alert.textContent).toContain("Backend persistence failed");
+    expect(screen.getByRole("button", { name: /Save/i })).toBeTruthy();
+  });
+
+  it("should retain edit mode and show localized SyncErrorReason when handleEditTimeLog returns { saved: true, synchronized: false }", async () => {
+    // Arrange
+    const handleEditTimeLog = vi
+      .fn()
+      .mockResolvedValue({ saved: true, synchronized: false });
+    const showToast = vi.fn();
+    const state = createMockState(undefined, { handleEditTimeLog, showToast });
+
+    render(
+      <MockProviders state={state} windowShellState={{ showToast }}>
+        <TimeLogsTable />
+      </MockProviders>,
+    );
+
+    // Act
+    const editBtn = screen.getByRole("button", { name: /Edit/i });
+    fireEvent.click(editBtn);
+
+    const noteInput = screen.getByLabelText(/Note/i);
+    fireEvent.change(noteInput, { target: { value: "Trigger sync failure" } });
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Sync test reason" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.textContent).toContain("Sync Error");
+    expect(screen.getByRole("button", { name: /Save/i })).toBeTruthy();
+  });
+
+  it("should retain edit mode and show error when handleEditTimeLog returns { saved: false, synchronized: false }", async () => {
+    // Arrange
+    const handleEditTimeLog = vi
+      .fn()
+      .mockResolvedValue({ saved: false, synchronized: false });
+    const showToast = vi.fn();
+    const state = createMockState(undefined, { handleEditTimeLog, showToast });
+
+    render(
+      <MockProviders state={state} windowShellState={{ showToast }}>
+        <TimeLogsTable />
+      </MockProviders>,
+    );
+
+    // Act
+    const editBtn = screen.getByRole("button", { name: /Edit/i });
+    fireEvent.click(editBtn);
+
+    const noteInput = screen.getByLabelText(/Note/i);
+    fireEvent.change(noteInput, { target: { value: "Trigger unsaved state" } });
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Unsaved test reason" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Save/i })).toBeTruthy();
+  });
+
+  it("should clear error alert and reset edit mode when cancel is clicked after failure", async () => {
+    // Arrange
+    const handleEditTimeLog = vi
+      .fn()
+      .mockRejectedValue(new Error("Transient lock"));
+    const state = createMockState(undefined, { handleEditTimeLog });
+
+    render(
+      <MockProviders state={state}>
+        <TimeLogsTable />
+      </MockProviders>,
+    );
+
+    const editBtn = screen.getByRole("button", { name: /Edit/i });
+    fireEvent.click(editBtn);
+
+    const noteInput = screen.getByLabelText(/Note/i);
+    fireEvent.change(noteInput, { target: { value: "Modified note" } });
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Temporary reason" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+
+    // Act
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    // Assert
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).toBeNull();
+      expect(screen.getByRole("button", { name: /Edit/i })).toBeTruthy();
     });
   });
 
