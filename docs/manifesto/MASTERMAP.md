@@ -291,7 +291,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] Native and Browser CLI implementations expose consistent billing operations and machine-readable mutation results.
 - [x] Relevant unit, repository, migration, integration, cross-runtime parity, frontend, and CLI tests pass.
 
-### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🚧 (Planned)
+### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🔒 (Closed)
 
 #### Group A (Parallel Track) — Modular Domain Keys & Type Aggregation
 - [x] **Decomposition of `keys.ts`**: Decompose [`src/common/i18n/keys.ts`](../../src/common/i18n/keys.ts) by extracting domain key union types into dedicated modules under `src/common/i18n/keys/`:
@@ -303,19 +303,19 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] **Dictionary Schema Generation & Quality Guardrails**: Added complete dictionary JSON files across all 12 domain dictionaries (`src/common/i18n/dictionaries/`) with automated `I18nQualityRule` tests enforcing 100% key and placeholder parity across all 10 locales.
 
 #### Group C (Parallel Track) — Automated Multi-Locale MCP Validation
-- [ ] **MCP Chrome Preview Validation**: Execute automated visual regression and translation completeness audits across all locales using Chrome MCP (`preview_*`).
-- [ ] **Layout & Boundary Verification**: Verify that labels in German (`de`), Japanese (`ja`), and Dutch (`nl`) do not cause button overflow, text wrapping defects, or clipping across Compact, Medium, and Full layouts.
+- [x] **MCP Chrome Preview Validation**: Execute automated visual regression and translation completeness audits across all locales using Chrome MCP (`preview_*`).
+- [x] **Layout & Boundary Verification**: Verify that labels in German (`de`), Japanese (`ja`), and Dutch (`nl`) do not cause button overflow, text wrapping defects, or clipping across Compact, Medium, and Full layouts.
 
 #### Group D (Parallel Track) — Machine Locale Config (moved from Phase 10)
 - [x] **Machine Locale Config**: Persistent `cli_machine_locale` SQLite config key (`oxy config set/get cli_machine_locale`) and centralized error envelope resolution, ensuring CLI machine output stays deterministic in English by default.
 
 ---
 
-### Phase 18 — Reports Suite Modernization, Financial Analytics & Credits 🚧 (Planned)
+### Phase 18 — Reports Suite Modernization, Financial Analytics & Credits 🔒 (Closed)
 
 #### Group A (Parallel Track) — Localized Date Formats & Chart Refinement
-- [ ] **Short Localized Chart Dates**: Refactor XAxis date rendering in [`StackedBarActivityChart.tsx`](../../src/features/reports/components/StackedBarActivityChart.tsx) to format date keys using `new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric' })`, producing localized labels (e.g., `czw. 10` in Polish, `Thu 10` in English, `Do. 10` in German).
-- [ ] **Date Key Disambiguation**: Replace raw string slicing (`dateKey.slice(5)`) with robust UTC-safe calendar formatting supporting multi-locale switching.
+- [x] **Short Localized Chart Dates**: Refactor XAxis date rendering in [`StackedBarActivityChart.tsx`](../../src/features/reports/components/StackedBarActivityChart.tsx) to format date keys using `new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric' })`, producing localized labels (e.g., `czw. 10` in Polish, `Thu 10` in English, `Do. 10` in German).
+- [x] **Date Key Disambiguation**: Replace raw string slicing (`dateKey.slice(5)`) with robust UTC-safe calendar formatting supporting multi-locale switching.
 
 #### Group B (Parallel Track) — Financial KPI Analytics & Revenue Aggregation
 - [x] **Financial Metric Calculation**: Extend [`reportCalculator.ts`](../../src/features/reports/utils/reportCalculator.ts) and [`useReportStatistics.ts`](../../src/features/reports/hooks/useReportStatistics.ts) to compute total period financial value ($\sum \text{durationHours} \times \text{effectiveRate}$).
