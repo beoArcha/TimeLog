@@ -107,7 +107,7 @@ export default function TabBar({
         >
           <TabsList
             aria-label="Navigation tabs"
-            className="flex gap-1.5 py-2.5 whitespace-nowrap min-w-max group-data-horizontal/tabs:!h-auto !h-auto bg-transparent border-0 p-0"
+            className="flex justify-start w-full gap-section py-2.5 whitespace-nowrap min-w-max group-data-horizontal/tabs:!h-auto !h-auto bg-transparent border-0 p-0"
           >
             {tabs.map((tb) => {
               const isActive = activeLargeTab === tb.id;
@@ -118,7 +118,7 @@ export default function TabBar({
                   data-testid={`tab-${tb.id}`}
                   onClick={() => setActiveLargeTab(tb.id)}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2 h-auto rounded-xl text-xs font-bold tracking-tight transition-all cursor-pointer capitalize flex-none",
+                    "flex items-center gap-section padding-section h-auto rounded-section text-[length:var(--text-main)] font-bold tracking-tight transition-all cursor-pointer capitalize flex-none",
                     isActive
                       ? "bg-card text-foreground border border-border shadow-xs font-extrabold"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted",
@@ -126,12 +126,12 @@ export default function TabBar({
                 >
                   <tb.icon
                     className={cn(
-                      "w-4 h-4",
+                      "icon-medium",
                       tb.iconColor,
                       isActive && "animate-pulse",
                     )}
                   />
-                  <span>{tb.label}</span>
+                  <span className="text-main">{tb.label}</span>
                 </TabsTrigger>
               );
             })}
