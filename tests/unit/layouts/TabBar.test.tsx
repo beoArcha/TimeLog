@@ -75,4 +75,30 @@ describe('Unit Tests: TabBar', () => {
     fireEvent.click(screen.getByTestId('tab-reports'));
     expect(setActiveLargeTab).toHaveBeenCalledWith('reports');
   });
+
+  it('should use CSS scale tokens and align tabs to start', () => {
+    renderTabBar({ canUseCli: true });
+
+    const tabsList = screen.getByRole('tablist');
+    expect(tabsList.className).toContain('justify-start');
+    expect(tabsList.className).toContain('gap-section');
+
+    const tasksTab = screen.getByTestId('tab-tasks');
+    expect(tasksTab.className).toContain('text-[length:var(--text-main)]');
+    expect(tasksTab.className).toContain('padding-section');
+    expect(tasksTab.className).toContain('rounded-section');
+    expect(tasksTab.className).not.toContain('text-xs');
+    expect(tasksTab.className).not.toContain('px-4');
+
+    const label = tasksTab.querySelector('span');
+    expect(label).not.toBeNull();
+    expect(label?.getAttribute('class')).toContain('text-main');
+    expect(label?.getAttribute('class')).not.toContain('text-xs');
+
+    const icon = tasksTab.querySelector('svg');
+    expect(icon).not.toBeNull();
+    expect(icon?.getAttribute('class')).toContain('icon-medium');
+    expect(icon?.getAttribute('class')).not.toContain('w-4');
+    expect(icon?.getAttribute('class')).not.toContain('h-4');
+  });
 });
