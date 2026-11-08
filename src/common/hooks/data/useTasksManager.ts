@@ -194,14 +194,15 @@ export const useTasksManager = ({
       const task = repositoryState.tasks.find((t) => t.id === taskId);
       const isCompleting = task ? !task.completed : false;
       if (isCompleting) {
-        await handleAutoStopIfConfigured(
-          taskId,
-          repositoryState.activeLog?.taskId,
-          repositoryState.tasks,
-          engineRouter,
-          workflowRouter,
-          'task completion toggle'
+        const activeLogs = repositoryState.activeLogs.length > 0
+          ? repositoryState.activeLogs
+          : (repositoryState.activeLog ? [repositoryState.activeLog] : []);
+        const hasActiveTimer = activeLogs.some((l) =>
+          isTaskOrDescendant(l.taskId, taskId, repositoryState.tasks)
         );
+        if (hasActiveTimer) {
+          await engineRouter.timer.stopTimer();
+        }
       }
 
       const nextState = await persistenceRouter.tasks.toggleComplete(taskId);

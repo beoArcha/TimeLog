@@ -5,6 +5,19 @@ static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUs
 
 impl<'a> Engine<'a> {
     pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
+        let task =
+            self.persistence
+                .tasks
+                .get(task_id)?
+                .ok_or_else(|| EngineError::EntityNotFound {
+                    entity: "Task",
+                    id: task_id.to_string(),
+                })?;
+
+        if task.completed {
+            return Err(EngineError::TaskAlreadyCompleted(task_id.to_string()));
+        }
+
         let now = Utc::now().to_rfc3339();
         let log_id = format!(
             "log_{}_{}",
@@ -36,8 +49,18 @@ impl<'a> Engine<'a> {
     }
 
     pub fn switch_timer(&self, target_task_id: &str) -> Result<(), EngineError> {
-        // Validate target task existence before touching active timers
-        let _ = self.persistence.tasks.get_project_id(target_task_id)?;
+        let task = self.persistence.tasks.get(target_task_id)?.ok_or_else(|| {
+            EngineError::EntityNotFound {
+                entity: "Task",
+                id: target_task_id.to_string(),
+            }
+        })?;
+
+        if task.completed {
+            return Err(EngineError::TaskAlreadyCompleted(
+                target_task_id.to_string(),
+            ));
+        }
 
         let now = Utc::now().to_rfc3339();
         let log_id = format!(

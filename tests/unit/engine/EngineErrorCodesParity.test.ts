@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserTimeLogsEngine } from '@plugins/engine/services/BrowserTimeLogsEngine';
+import { BrowserTimerEngine } from '@plugins/engine/services/BrowserTimerEngine';
 import { TauriTimeLogsEngine } from '@common/engine/commands/TauriTimeLogsEngine';
+import { TauriTimerEngine } from '@common/engine/commands/TauriTimerEngine';
 import { validateTimeLog } from '@plugins/engine/validation';
 import { ENGINE_ERROR_CODES, isEngineErrorCode } from '@common/engine/errorCodes';
 import { EngineValidationError } from '@common/exceptions';
@@ -34,12 +36,14 @@ describe('Engine Error Codes Parity (Browser & Tauri/Rust Engines)', () => {
       expect(ENGINE_ERROR_CODES.AUDIT_REASON_REQUIRED).toBe('ERR_AUDIT_REASON_REQUIRED');
       expect(ENGINE_ERROR_CODES.AUDIT_SOURCE_INVALID).toBe('ERR_AUDIT_SOURCE_INVALID');
       expect(ENGINE_ERROR_CODES.TIMELOG_INVALID_RANGE).toBe('ERR_TIMELOG_INVALID_RANGE');
+      expect(ENGINE_ERROR_CODES.TASK_ALREADY_COMPLETED).toBe('ERR_TASK_ALREADY_COMPLETED');
     });
 
     it('should validate codes using isEngineErrorCode', () => {
       expect(isEngineErrorCode('ERR_AUDIT_REASON_REQUIRED')).toBe(true);
       expect(isEngineErrorCode('ERR_AUDIT_SOURCE_INVALID')).toBe(true);
       expect(isEngineErrorCode('ERR_TIMELOG_INVALID_RANGE')).toBe(true);
+      expect(isEngineErrorCode('ERR_TASK_ALREADY_COMPLETED')).toBe(true);
       expect(isEngineErrorCode('ERR_SOME_OTHER_ERROR')).toBe(false);
       expect(isEngineErrorCode(undefined)).toBe(false);
       expect(isEngineErrorCode(123)).toBe(false);
@@ -191,6 +195,58 @@ describe('Engine Error Codes Parity (Browser & Tauri/Rust Engines)', () => {
         expect.unreachable('Should have thrown');
       } catch (err) {
         expect((err as { code: string }).code).toBe('ERR_TIMELOG_INVALID_RANGE');
+      }
+    });
+
+    it('should preserve ERR_TASK_ALREADY_COMPLETED from Rust IPC on startTimer and switchTimer', async () => {
+      const tauriTimer = new TauriTimerEngine();
+      vi.mocked(invoke).mockRejectedValueOnce({
+        code: 'ERR_TASK_ALREADY_COMPLETED',
+        message: "Cannot start timer on completed task 't-done'",
+        details: 't-done',
+      });
+
+      try {
+        await tauriTimer.startTimer('t-done');
+        expect.unreachable('Should have thrown');
+      } catch (err) {
+        expect((err as { code: string }).code).toBe('ERR_TASK_ALREADY_COMPLETED');
+      }
+    });
+  });
+
+  describe('BrowserTimerEngine completed task parity', () => {
+    it('should emit ERR_TASK_ALREADY_COMPLETED when startTimer is called on completed task', async () => {
+      const browserTimer = new BrowserTimerEngine(routerMock);
+      vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+        projects: [],
+        tasks: [aTask({ id: 't-done', completed: true })],
+        logs: [],
+        activeLog: null,
+      });
+
+      try {
+        await browserTimer.startTimer('t-done');
+        expect.unreachable('Should have thrown');
+      } catch (err) {
+        expect((err as { code: string }).code).toBe('ERR_TASK_ALREADY_COMPLETED');
+      }
+    });
+
+    it('should emit ERR_TASK_ALREADY_COMPLETED when switchTimer is called on completed task', async () => {
+      const browserTimer = new BrowserTimerEngine(routerMock);
+      vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+        projects: [],
+        tasks: [aTask({ id: 't-done', completed: true })],
+        logs: [],
+        activeLog: null,
+      });
+
+      try {
+        await browserTimer.switchTimer('t-done');
+        expect.unreachable('Should have thrown');
+      } catch (err) {
+        expect((err as { code: string }).code).toBe('ERR_TASK_ALREADY_COMPLETED');
       }
     });
   });

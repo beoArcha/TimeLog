@@ -296,7 +296,7 @@ Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* ex
 | `engine` | `ENG_TIMER_ACTIVE` | `5` | Timer already active (*not yet emitted*) |
 | `engine` | `ENG_TIMER_INACTIVE` | `5` | No active timer running |
 | `engine` | `ENG_OPERATION_FAILED` | `1` | Engine internal operation failed |
-| `business` | `DOM_BUSINESS_VIOLATION` | `1` | Business rule violated |
+| `business` | `DOM_BUSINESS_VIOLATION` | `1` | Business rule violated (e.g. starting/switching timer on completed task) |
 | `business` | `DOM_BUSINESS_NO_PROJECTS` | `1` | Operation requires at least one project |
 | `sink` | `SNK_EXTERNAL_IO` | `1` | Sink I/O or verification failure |
 | `sink` | `SNK_SERIALIZATION` | `1` | Sink export serialization failure |

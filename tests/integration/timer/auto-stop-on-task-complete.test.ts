@@ -147,7 +147,7 @@ describe('Integration Tests: AutoStopTimerOnTaskComplete', () => {
 
   describe('Given autoStopOnTaskComplete is disabled in workflow configuration', () => {
     describe('When the user completes the currently running task', () => {
-      it('Then it should keep the running timer intact without calling stopTimer', async () => {
+      it('Then it should unconditionally stop the running timer even if workflow auto-stop is disabled', async () => {
         // Given
         mockWorkflow.getConfig = vi.fn().mockResolvedValue(
           aWorkflowConfig({
@@ -169,8 +169,8 @@ describe('Integration Tests: AutoStopTimerOnTaskComplete', () => {
         vi.spyOn(PersistenceRouter.getInstance().tasks, 'toggleComplete').mockResolvedValue({
           projects: [],
           tasks: [{ ...activeTask, completed: true }],
-          logs: [runningLog],
-          activeLog: runningLog,
+          logs: [{ ...runningLog, endTime: '2026-10-19T10:00:00.000Z' }],
+          activeLog: null,
         });
 
         const { result } = renderHook(() =>
@@ -187,7 +187,53 @@ describe('Integration Tests: AutoStopTimerOnTaskComplete', () => {
         });
 
         // Then
-        expect(mockStopTimer).not.toHaveBeenCalled();
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('When the user completes a parent task whose subtask has an active running timer', () => {
+      it('Then it should unconditionally stop the running timer on the descendant task', async () => {
+        // Given
+        mockWorkflow.getConfig = vi.fn().mockResolvedValue(
+          aWorkflowConfig({
+            autoStopOnTaskComplete: false,
+          })
+        );
+
+        const parentTask = aTask({ id: 'task-parent', projectId: 'p1', name: 'Parent Task', completed: false });
+        const subTask = aTask({ id: 'task-child', projectId: 'p1', parentTaskId: 'task-parent', name: 'Child Task', completed: false });
+        const runningLog = aTimeLog({ id: 'log-1', taskId: 'task-child', projectId: 'p1', endTime: null });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [parentTask, subTask],
+          logs: [runningLog],
+          activeLog: runningLog,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'toggleComplete').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...parentTask, completed: true }, subTask],
+          logs: [{ ...runningLog, endTime: '2026-10-19T10:00:00.000Z' }],
+          activeLog: null,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When
+        await act(async () => {
+          await result.current.handleToggleTaskComplete('task-parent');
+        });
+
+        // Then
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
       });
     });
   });
