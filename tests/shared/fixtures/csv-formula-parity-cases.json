@@ -1,0 +1,482 @@
+[
+  {
+    "id": "trigger-equals",
+    "description": "Standard formula trigger with equals",
+    "input": "=1+1",
+    "expected": "'=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "trigger-plus",
+    "description": "Standard formula trigger with plus command",
+    "input": "+cmd|' /C calc'!A0",
+    "expected": "'+cmd|' /C calc'!A0",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "trigger-minus",
+    "description": "Standard formula trigger with minus command",
+    "input": "-calc",
+    "expected": "'-calc",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "trigger-at",
+    "description": "Standard formula trigger with at symbol",
+    "input": "@SUM(A1:A2)",
+    "expected": "'@SUM(A1:A2)",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "ascii-spaces-equals",
+    "description": "ASCII spaces before formula trigger",
+    "input": "   =1+1",
+    "expected": "'   =1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "ascii-tab-at",
+    "description": "ASCII tab before formula trigger",
+    "input": "\t@SUM(A1:A2)",
+    "expected": "'\t@SUM(A1:A2)",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "ascii-crlf-plus",
+    "description": "ASCII CRLF before formula trigger",
+    "input": "\r\n+cmd|' /C calc'!A0",
+    "expected": "'\r\n+cmd|' /C calc'!A0",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "ascii-ctrl-nul-minus",
+    "description": "ASCII NUL control character before trigger",
+    "input": "\u0000-calc",
+    "expected": "'\u0000-calc",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "ascii-ctrl-esc-at",
+    "description": "ASCII ESC control character before trigger",
+    "input": "\u001B@cmd",
+    "expected": "'\u001B@cmd",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "ascii-ctrl-del-equals",
+    "description": "ASCII DEL control character before trigger",
+    "input": "\u007F=1+1",
+    "expected": "'\u007F=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u0085-nel",
+    "description": "Unicode Next Line NEL U+0085 before formula trigger",
+    "input": "\u0085=1+1",
+    "expected": "'\u0085=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u00a0-nbsp",
+    "description": "Unicode Non-Breaking Space NBSP U+00A0 before formula trigger",
+    "input": "\u00A0=1+1",
+    "expected": "'\u00A0=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u1680-ogham",
+    "description": "Unicode Ogham Space Mark U+1680 before formula trigger",
+    "input": "\u1680+1+1",
+    "expected": "'\u1680+1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2000-en-quad",
+    "description": "Unicode En Quad U+2000 before formula trigger",
+    "input": "\u2000-calc",
+    "expected": "'\u2000-calc",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2001-em-quad",
+    "description": "Unicode Em Quad U+2001 before formula trigger",
+    "input": "\u2001@SUM(1)",
+    "expected": "'\u2001@SUM(1)",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2002-en-space",
+    "description": "Unicode En Space U+2002 before formula trigger",
+    "input": "\u2002=2+2",
+    "expected": "'\u2002=2+2",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2003-em-space",
+    "description": "Unicode Em Space U+2003 before formula trigger",
+    "input": "\u2003+2+2",
+    "expected": "'\u2003+2+2",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2004-three-per-em",
+    "description": "Unicode Three-Per-Em Space U+2004 before formula trigger",
+    "input": "\u2004-cmd",
+    "expected": "'\u2004-cmd",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2005-four-per-em",
+    "description": "Unicode Four-Per-Em Space U+2005 before formula trigger",
+    "input": "\u2005@test",
+    "expected": "'\u2005@test",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2006-six-per-em",
+    "description": "Unicode Six-Per-Em Space U+2006 before formula trigger",
+    "input": "\u2006=1",
+    "expected": "'\u2006=1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2007-figure-space",
+    "description": "Unicode Figure Space U+2007 before formula trigger",
+    "input": "\u2007+cmd",
+    "expected": "'\u2007+cmd",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2008-punctuation-space",
+    "description": "Unicode Punctuation Space U+2008 before formula trigger",
+    "input": "\u2008-calc",
+    "expected": "'\u2008-calc",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2009-thin-space",
+    "description": "Unicode Thin Space U+2009 before formula trigger",
+    "input": "\u2009@calc",
+    "expected": "'\u2009@calc",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u200a-hair-space",
+    "description": "Unicode Hair Space U+200A before formula trigger",
+    "input": "\u200A=calc",
+    "expected": "'\u200A=calc",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2028-line-separator",
+    "description": "Unicode Line Separator U+2028 before formula trigger",
+    "input": "\u2028+cmd",
+    "expected": "'\u2028+cmd",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u2029-paragraph-separator",
+    "description": "Unicode Paragraph Separator U+2029 before formula trigger",
+    "input": "\u2029-calc",
+    "expected": "'\u2029-calc",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u202f-narrow-no-break",
+    "description": "Unicode Narrow No-Break Space U+202F before formula trigger",
+    "input": "\u202F@eval",
+    "expected": "'\u202F@eval",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u205f-math-space",
+    "description": "Unicode Medium Mathematical Space U+205F before formula trigger",
+    "input": "\u205F=1+1",
+    "expected": "'\u205F=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-u3000-ideographic",
+    "description": "Unicode Ideographic Space U+3000 before formula trigger",
+    "input": "\u3000=1+1",
+    "expected": "'\u3000=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ws-mixed",
+    "description": "Mixed ASCII and Unicode whitespace before formula trigger",
+    "input": "\u00A0 \u3000\t =1+1",
+    "expected": "'\u00A0 \u3000\t =1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ctrl-u0080",
+    "description": "Unicode C1 control character U+0080 before formula trigger",
+    "input": "\u0080=1+1",
+    "expected": "'\u0080=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "unicode-ctrl-u009f",
+    "description": "Unicode C1 control character U+009F before formula trigger",
+    "input": "\u009F@SUM",
+    "expected": "'\u009F@SUM",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "format-u200b-zero-width-space",
+    "description": "Unicode Zero-Width Space U+200B is format character Cf not whitespace in Rust",
+    "input": "\u200B=1+1",
+    "expected": "\u200B=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "format-u200c-zwnj",
+    "description": "Unicode ZWNJ U+200C is format character Cf not whitespace in Rust",
+    "input": "\u200C+calc",
+    "expected": "\u200C+calc",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "format-u200d-zwj",
+    "description": "Unicode ZWJ U+200D is format character Cf not whitespace in Rust",
+    "input": "\u200D-calc",
+    "expected": "\u200D-calc",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "format-u2060-word-joiner",
+    "description": "Unicode Word Joiner U+2060 is format character Cf not whitespace in Rust",
+    "input": "\u2060@eval",
+    "expected": "\u2060@eval",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "format-ufeff-bom",
+    "description": "Unicode BOM / ZWNBSP U+FEFF is format character Cf not whitespace in Rust",
+    "input": "\uFEFF=1+1",
+    "expected": "\uFEFF=1+1",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-positive-integer",
+    "description": "Positive integer must not be neutralized",
+    "input": "123",
+    "expected": "123",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-explicit-plus-integer",
+    "description": "Integer with explicit plus sign must not be neutralized",
+    "input": "+123",
+    "expected": "+123",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-negative-integer",
+    "description": "Negative integer must not be neutralized",
+    "input": "-123",
+    "expected": "-123",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-negative-float",
+    "description": "Negative decimal float must not be neutralized",
+    "input": "-123.45",
+    "expected": "-123.45",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-explicit-plus-float",
+    "description": "Float with explicit plus sign must not be neutralized",
+    "input": "+42.0",
+    "expected": "+42.0",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-zero",
+    "description": "Zero value must not be neutralized",
+    "input": "0",
+    "expected": "0",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-negative-zero",
+    "description": "Negative zero value must not be neutralized",
+    "input": "-0",
+    "expected": "-0",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-leading-decimal",
+    "description": "Decimal starting with dot must not be neutralized",
+    "input": ".5",
+    "expected": ".5",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-negative-leading-decimal",
+    "description": "Negative decimal starting with dot must not be neutralized",
+    "input": "-.5",
+    "expected": "-.5",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-scientific-positive",
+    "description": "Scientific notation positive must not be neutralized",
+    "input": "1e5",
+    "expected": "1e5",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-scientific-negative",
+    "description": "Scientific notation negative must not be neutralized",
+    "input": "-1e-3",
+    "expected": "-1e-3",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-spaces-negative",
+    "description": "Negative number with leading and trailing spaces must not be neutralized",
+    "input": "   -5   ",
+    "expected": "   -5   ",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-unicode-nbsp-negative",
+    "description": "Negative number with Unicode NBSP whitespace must not be neutralized",
+    "input": "\u00A0-123.45",
+    "expected": "\u00A0-123.45",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "numeric-unicode-ideographic-plus",
+    "description": "Positive number with Unicode ideographic whitespace must not be neutralized",
+    "input": "\u3000+42",
+    "expected": "\u3000+42",
+    "isNumeric": true,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "non-number-bare-minus",
+    "description": "Bare minus sign is not a valid number and must be neutralized",
+    "input": "-",
+    "expected": "'-",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "non-number-bare-plus",
+    "description": "Bare plus sign is not a valid number and must be neutralized",
+    "input": "+",
+    "expected": "'+",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "non-number-arithmetic-expression",
+    "description": "Arithmetic expression starting with minus is not a number and must be neutralized",
+    "input": "-1+1",
+    "expected": "'-1+1",
+    "isNumeric": false,
+    "shouldNeutralize": true
+  },
+  {
+    "id": "plain-text-project",
+    "description": "Plain text project name without triggers remains unchanged",
+    "input": "Regular Project",
+    "expected": "Regular Project",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "plain-text-hash",
+    "description": "Plain text with hash character remains unchanged",
+    "input": "Task #42",
+    "expected": "Task #42",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "plain-text-ampersand",
+    "description": "Plain text with ampersand character remains unchanged",
+    "input": "Alpha & Omega",
+    "expected": "Alpha & Omega",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "plain-empty",
+    "description": "Empty string remains empty without modification",
+    "input": "",
+    "expected": "",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "plain-whitespace-only",
+    "description": "Whitespace only string remains unchanged",
+    "input": "   ",
+    "expected": "   ",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  },
+  {
+    "id": "plain-unicode-whitespace-only",
+    "description": "Unicode whitespace only string remains unchanged",
+    "input": "\u00A0\u3000",
+    "expected": "\u00A0\u3000",
+    "isNumeric": false,
+    "shouldNeutralize": false
+  }
+]

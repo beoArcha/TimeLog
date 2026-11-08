@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **ZIP32 Format Boundary & ZIP64 Sentinel Reservation**:
   - Reserved ZIP64 sentinel boundaries in `zipBuilder`: capped maximum allowed ZIP32 entry count at 65534 (`0xFFFE`) and maximum entry size and local header offset at `0xFFFFFFFE` (`4,294,967,294` bytes) to prevent producing invalid standard ZIP archives with ambiguous ZIP64 sentinel headers (`0xFFFF` / `0xFFFFFFFF`).
   - Added boundary validation test coverage for entry count limits (65534 boundary pass and 65535 boundary fail) and 4GB entry size and header offset boundaries.
+- **CSV Formula Injection (CWE-1236) Unicode Whitespace Parity**:
+  - Unified Unicode White_Space and Control character detection in `CsvExporterPlugin.ts` with the Rust reference implementation (`char::is_whitespace() || char::is_control()`), neutralizing formula injection triggers preceded by Unicode spaces (U+00A0 NBSP, U+1680, U+2000–U+200A, U+2028, U+2029, U+202F, U+205F, U+3000).
+  - Explicitly excluded Unicode format characters (Cf: U+200B zero-width space, U+FEFF BOM) from whitespace categorization to guarantee 100% cross-runtime parity with Rust.
+  - Preserved valid integer, float, and scientific notation numbers from apostrophe neutralization across both runtimes.
+  - Added shared 60-vector cross-runtime fixture matrix in `tests/shared/fixtures/csv-formula-parity-cases.json` executed by both Vitest and Cargo test suites.
 - **SQLite Time Log History Migration Compatibility**:
   - Added migration 9 to rebuild legacy `time_logs_history` tables where `reason` is still `NOT NULL`, making the column nullable without losing existing audit records or the `time_logs` foreign-key cascade.
   - Added migration regression coverage for v8 databases, NULL-reason inserts, history preservation, foreign-key cascade behavior, and idempotent initialization.
