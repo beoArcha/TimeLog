@@ -82,7 +82,6 @@ export function SegmentedControl<T extends string = string>({
             value={option.value}
             disabled={option.disabled}
             aria-label={itemLabel}
-            aria-checked={isSelected}
             aria-pressed={isSelected}
             data-testid={option.testId}
             title={option.title}
