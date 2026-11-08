@@ -12,7 +12,7 @@ import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesCo
 import { toast } from 'sonner';
 import { resolveEffectiveTimezone, isValidTimezone } from '@common/utils/timeFormat';
 
-function validateTimezoneSetting(tz: unknown): string | null {
+export function validateTimezoneSetting(tz: unknown): string | null {
   if (typeof tz !== 'string') return null;
   const trimmed = tz.trim();
   if (trimmed === 'System' || trimmed.toLowerCase() === 'system') {
@@ -22,6 +22,68 @@ function validateTimezoneSetting(tz: unknown): string | null {
     return trimmed;
   }
   return null;
+}
+
+export function readLegacyTimezoneSetting(): string | null {
+  try {
+    return localStorage.getItem('oxytime_timezone');
+  } catch (err) {
+    ErrorHandler.handle(err);
+    return null;
+  }
+}
+
+export function removeLegacyTimezoneSetting(): void {
+  try {
+    localStorage.removeItem('oxytime_timezone');
+  } catch (err) {
+    ErrorHandler.handle(err);
+  }
+}
+
+export interface TimezoneResolutionResult {
+  effectiveTimezone: string;
+  needsMigration: boolean;
+}
+
+export function resolveTimezoneWithMigration(
+  persistedValue: unknown,
+  legacyValue: string | null
+): TimezoneResolutionResult {
+  const validatedPersisted = validateTimezoneSetting(persistedValue);
+  const hasLegacy = legacyValue !== null;
+
+  // Rule: brak starego klucza nie wymaga migracji
+  if (!hasLegacy) {
+    return {
+      effectiveTimezone: validatedPersisted || 'System',
+      needsMigration: false,
+    };
+  }
+
+  const validatedLegacy = validateTimezoneSetting(legacyValue);
+
+  // Rule 1: prawidłowa wartość z zunifikowanego persistence ma pierwszeństwo
+  if (validatedPersisted && validatedPersisted !== 'System') {
+    return {
+      effectiveTimezone: validatedPersisted,
+      needsMigration: true,
+    };
+  }
+
+  // Rule 2 & 3: stara wartość może uzupełnić brakującą lub domyślną wartość 'System'
+  if (validatedLegacy) {
+    return {
+      effectiveTimezone: validatedLegacy,
+      needsMigration: true,
+    };
+  }
+
+  // Rule 4: nieprawidłowa wartość ze starego klucza nie może nadpisać prawidłowej (ani domyślnej)
+  return {
+    effectiveTimezone: validatedPersisted || 'System',
+    needsMigration: true,
+  };
 }
 
 export const useAppSettings = () => {
@@ -63,6 +125,7 @@ export const useAppSettings = () => {
   const currentSignature = `${defaultLayout || ''}|${layoutsSignature}`;
   const [prevSignature, setPrevSignature] = useState(currentSignature);
   const hasInitializedRef = useRef(false);
+  const pendingLegacyMigrationRef = useRef(false);
 
   if (prevSignature !== currentSignature) {
     setPrevSignature(currentSignature);
@@ -95,20 +158,15 @@ export const useAppSettings = () => {
         activeSinks: loaded.activeSinks ?? ['Csv'],
       });
 
-      let initialTimezone = validateTimezoneSetting(loaded.timezone);
-      try {
-        const legacy = localStorage.getItem('oxytime_timezone');
-        if (legacy !== null) {
-          const validatedLegacy = validateTimezoneSetting(legacy);
-          if (validatedLegacy && (!initialTimezone || initialTimezone === 'System')) {
-            initialTimezone = validatedLegacy;
-          }
-          localStorage.removeItem('oxytime_timezone');
-        }
-      } catch {
-        // LocalStorage access may fail in restricted environments
+      const rawLegacy = readLegacyTimezoneSetting();
+      const { effectiveTimezone, needsMigration } = resolveTimezoneWithMigration(
+        loaded.timezone,
+        rawLegacy
+      );
+      if (needsMigration) {
+        pendingLegacyMigrationRef.current = true;
       }
-      setTimezoneState(initialTimezone ?? 'System');
+      setTimezoneState(effectiveTimezone);
 
       if (currentProj) setCurrentProjectId(currentProj);
       if (lastNonCompact) setLastNonCompactVariant(lastNonCompact as Exclude<LayoutVariant, 'compact'>);
@@ -171,6 +229,10 @@ export const useAppSettings = () => {
         timezone: timezone,
       };
       await PersistenceRouter.getInstance().settings.save(payload);
+      if (pendingLegacyMigrationRef.current) {
+        removeLegacyTimezoneSetting();
+        pendingLegacyMigrationRef.current = false;
+      }
     };
     saveSettings().catch((e) => {
       ErrorHandler.handle(e);
