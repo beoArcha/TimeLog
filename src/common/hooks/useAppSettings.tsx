@@ -176,6 +176,7 @@ export const useAppSettings = () => {
     try {
       return localStorage.getItem('oxytime_timezone') || 'System';
     } catch {
+      // LocalStorage access may throw a SecurityError in sandboxed iframes or locked-down webview environments.
       return 'System';
     }
   });
@@ -185,7 +186,8 @@ export const useAppSettings = () => {
     try {
       localStorage.setItem('oxytime_timezone', val);
     } catch {
-      // safe fallback
+      // LocalStorage persistence may fail due to quota exhaustion, private browsing mode, or restricted webview policies;
+      // the application continues operating gracefully with in-memory state.
     }
   }, []);
 

@@ -10,11 +10,31 @@ import { HStack, VStack } from '@components/ui/stack';
 import { Text, Caption } from '@components/ui/typography';
 import { POPULAR_TIMEZONES, getSupportedTimezones, formatTime } from '@common/utils/timeFormat';
 
+/**
+ * Presentation component allowing users to configure their display timezone preference.
+ *
+ * Provides a settings card for selecting between system-inferred timezone, UTC,
+ * or regional IANA timezones. All underlying database and engine operations remain strictly
+ * in UTC; this preference only governs date and time representation across views and reports.
+ */
 export function TimezoneSettingsCard() {
   const { locale, customTranslations } = useLocale();
   const { timezone, setTimezone, resolvedTimezone } = useSettings();
-  const options = useMemo(() => Array.from(new Set(['System', 'UTC', ...POPULAR_TIMEZONES, ...getSupportedTimezones()])), []);
-  const previewTime = formatTime(useMemo(() => new Date(), []), resolvedTimezone, locale);
+
+  const options = useMemo(() => {
+    const rawTimezones = [...POPULAR_TIMEZONES, ...getSupportedTimezones()];
+    const uniqueTimezones = Array.from(new Set(rawTimezones)).filter(
+      (tz) => tz !== 'System' && tz !== 'UTC'
+    );
+    uniqueTimezones.sort((a, b) => a.localeCompare(b));
+    return ['System', 'UTC', ...uniqueTimezones];
+  }, []);
+
+  const now = useMemo(() => new Date(), []);
+  const previewTime = useMemo(
+    () => formatTime(now, resolvedTimezone, locale),
+    [now, resolvedTimezone, locale]
+  );
 
   return (
     <CollapsibleCard
@@ -37,7 +57,7 @@ export function TimezoneSettingsCard() {
             </HStack>
             <Caption variant="muted" size="xs">
               {translate(locale, 'settings', 'TimezoneActive', customTranslations, { tz: resolvedTimezone })}
-              {previewTime ? ` • ${previewTime}` : ''}
+              {previewTime ? ` · ${previewTime}` : ''}
             </Caption>
           </VStack>
           <div className="w-full sm:w-64">
