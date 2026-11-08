@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, type HTMLMotionProps } from 'motion/react';
+import { motion, useReducedMotion, type HTMLMotionProps } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 export interface AnimatedCardProps extends HTMLMotionProps<'div'> {
@@ -7,11 +7,13 @@ export interface AnimatedCardProps extends HTMLMotionProps<'div'> {
   hoverable?: boolean;
   className?: string;
   children?: React.ReactNode;
+  reducedMotion?: boolean;
 }
 
 /**
  * Encapsulated design system animated container using motion.
  * Provides accessible, smooth entry animations with design system border and card styling.
+ * Respects user preferences for reduced motion (WCAG 2.2 §2.3.3).
  */
 export function AnimatedCard({
   delay = 0,
@@ -21,15 +23,25 @@ export function AnimatedCard({
   initial = { opacity: 0, y: 10 },
   animate = { opacity: 1, y: 0 },
   transition,
+  reducedMotion,
   ...rest
 }: AnimatedCardProps) {
+  const systemReducedMotion = useReducedMotion();
+  const shouldReduceMotion = reducedMotion ?? systemReducedMotion;
+
+  const resolvedInitial = shouldReduceMotion ? false : initial;
+  const resolvedTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : (transition ?? { duration: 0.25, delay });
+
+
   return (
     <motion.div
-      initial={initial}
+      initial={resolvedInitial}
       animate={animate}
-      transition={transition ?? { duration: 0.25, delay }}
+      transition={resolvedTransition}
       className={cn(
-        'p-5 rounded-3xl border border-border bg-card shadow-xs transition-all duration-300 flex flex-col h-full',
+        'p-5 rounded-3xl border border-border bg-card shadow-xs transition-[border-color,box-shadow] duration-300 motion-reduce:transition-none flex flex-col h-full',
         hoverable && 'hover:border-primary/30 hover:shadow-md',
         className
       )}
@@ -41,3 +53,4 @@ export function AnimatedCard({
 }
 
 export default AnimatedCard;
+
