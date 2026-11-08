@@ -7,7 +7,7 @@ This file is the single entry point. Detailed, topic-specific rules live in `.ag
 | File | Scope |
 | --- | --- |
 | [`.agents/rules/development_workflow_standards.md`](.agents/rules/development_workflow_standards.md) | Single-agent execution, multi-phase tasks, phase gates, review protocol |
-| [`.agents/rules/multi_agent_workflow_standards.md`](.agents/rules/multi_agent_workflow_standards.md) | Multi-agent orchestration, delegation briefs, semantic git branches, development commits and squash-merge policy, sequential merge |
+| [`.agents/rules/multi_agent_workflow_standards.md`](.agents/rules/multi_agent_workflow_standards.md) | Multi-agent orchestration, Task Queue & Worker Pull, PR sizing & chaining, Graphify integration, evidence-based review |
 | [`.agents/rules/frontend_engineering_standards.md`](.agents/rules/frontend_engineering_standards.md) | React, hooks, contexts, design system, theming, i18n, a11y |
 | [`.agents/rules/backend_rust_engineering_standards.md`](.agents/rules/backend_rust_engineering_standards.md) | Rust domain modeling, errors, CLI exit codes, handler structure |
 | [`.agents/rules/testing_standards.md`](.agents/rules/testing_standards.md) | Test tiers, naming, AAA / BDT, builders, decoupling, timeouts |
@@ -126,19 +126,21 @@ Understand → Choose layer → Contracts → Implementation → Tests → Docum
 - Ask the user when requirements are ambiguous; do not guess unstated requirements and do not invent architecture.
 - Prefer the simplest solution. Introduce an abstraction only when it solves a problem that exists today.
 
-### Graph-First Architecture Discovery
+### Graph-First Architecture Discovery & PR Sizing
 
-When `graphify-out/` or the Graphify MCP server is available, assistants MUST apply the **Graph-First Architecture Discovery** pattern before reading large directories or editing code. Query the codebase knowledge graph via the `graphify` MCP server:
+When `graphify-out/` or the Graphify MCP server is available, assistants MUST apply the **Graph-First Architecture Discovery** pattern before reading large directories, planning decompositions, or editing code. Query the codebase knowledge graph via the `graphify` MCP server:
 
-- `graphify_query`: Ask questions about codebase topology, community clusters, and structural concepts.
-- `graphify_path`: Trace exact dependency chains and call flows between modules across layers (e.g. UI → Router → Engine/Persistence).
-- `graphify_explain`: Understand why specific symbols connect, what community roles they fulfill, and what responsibilities they hold.
-- `graphify_neighbors`: Inspect immediate upstream and downstream dependencies before modifying interfaces or functions.
+- `query_graph`: Ask questions about codebase topology, community clusters, and structural concepts.
+- `shortest_path`: Trace exact dependency chains and call flows between modules across layers (e.g. UI → Router → Engine/Persistence).
+- `get_community`: Inspect semantic module clusters to cut PRs along natural boundaries rather than arbitrary file splits.
+- `get_neighbors`: Inspect immediate upstream and downstream dependencies before modifying interfaces or functions.
+- `god_nodes`: Identify critical central hubs (e.g. `react`, `CliError`, `Persistence`) to prevent tight coupling or cyclic dependencies.
+- `get_pr_impact` & `triage_prs`: Evaluate blast radius and cross-boundary ripple effects before opening or reviewing PRs.
 
 When to use:
+- **PR decomposition & sizing**: breaking large changes into bite-sized (100–300 LOC) PR chains along natural community boundaries.
 - **Layer relationship auditing**: verifying that changes adhere to Clean Architecture without crossing unauthorized layer boundaries.
 - **Impact analysis**: tracing callers and consumers before altering public signatures, domain types, or commands.
-- **Hub & God Node detection**: identifying critical central nodes to prevent tight coupling or cyclic dependencies.
 - **Pre-change dependency inspection**: evaluating ripple effects before adding dependencies or refactoring.
 
 ### Multi-phase tasks

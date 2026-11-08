@@ -31,9 +31,9 @@
     "docs:serve": "bunx serve docs/wiki",
     "metadata:sync": "bun scripts/sync_metadata.js",
     "metadata:check": "bun scripts/sync_metadata.js --check",
-    "graphify:build": "graphify . --directed",
-    "graphify:update": "graphify . --update --directed",
-    "graphify:watch": "graphify . --watch --directed",
+    "graphify:build": "graphify . --code-only --directed",
+    "graphify:update": "graphify . --code-only --update --directed",
+    "graphify:watch": "graphify . --code-only --watch --directed",
     "graphify:report": "bun -e \"console.log(require('fs').readFileSync('graphify-out/GRAPH_REPORT.md', 'utf-8'))\"",
     "graphify:viz": "bun -e \"import('open').then(m => m.default('graphify-out/graph.html'))\"",
     "graphify:diagnose": "graphify diagnose"
