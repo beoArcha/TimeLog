@@ -333,6 +333,8 @@ describe('EmojiPicker', () => {
     // Act
     fireEvent.click(screen.getByTestId('emoji-picker-trigger'));
     const clearBtn = screen.getByTestId('emoji-picker-clear-btn');
+    expect(clearBtn.className).toContain('text-destructive');
+    expect(clearBtn.className).not.toContain('text-rose');
     fireEvent.click(clearBtn);
 
     // Assert

@@ -39,7 +39,7 @@ export function SyncStatusBadge({
     >
       {status.state === 'idle' && (
         <HStack as="span" gap="2xs" className="text-muted-foreground">
-          <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+          <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
           <Caption as="span" size="2xs">
             {translate(locale, 'engine', 'SyncStatusOk', customTranslations)}
           </Caption>
@@ -47,7 +47,7 @@ export function SyncStatusBadge({
       )}
 
       {status.state === 'syncing' && (
-        <HStack as="span" gap="2xs" className="text-sky-500">
+        <HStack as="span" gap="2xs" className="text-info">
           <RefreshCw className="w-3 h-3 animate-spin shrink-0" />
           <Caption as="span" size="2xs">
             {translate(locale, 'engine', 'SyncStatusSyncing', customTranslations)}
@@ -56,7 +56,7 @@ export function SyncStatusBadge({
       )}
 
       {status.state === 'queued' && (
-        <HStack as="span" gap="xs" className="text-amber-500">
+        <HStack as="span" gap="xs" className="text-warning">
           <CloudUpload className="w-3 h-3 animate-pulse shrink-0" />
           <Caption as="span" size="2xs">
             {status.pendingCount} {translate(locale, 'engine', 'SyncStatusQueued', customTranslations)}
@@ -67,7 +67,7 @@ export function SyncStatusBadge({
               size="xs"
               data-testid="webhook-retry-now-btn"
               onClick={onRetry}
-              className="h-4 px-1.5 text-amber-500 hover:text-amber-400"
+              className="h-4 px-1.5 text-warning hover:text-warning/80"
             >
               {translate(locale, 'engine', 'RetryNow', customTranslations)}
             </Button>
@@ -76,7 +76,7 @@ export function SyncStatusBadge({
       )}
 
       {status.state === 'error' && (
-        <HStack as="span" gap="xs" className="text-rose-500">
+        <HStack as="span" gap="xs" className="text-destructive">
           <AlertCircle className="w-3 h-3 shrink-0" />
           <Caption as="span" size="2xs">
             {status.failedCount} {translate(locale, 'engine', 'SyncStatusError', customTranslations)}
@@ -87,7 +87,7 @@ export function SyncStatusBadge({
               size="xs"
               data-testid="webhook-retry-now-btn"
               onClick={onRetry}
-              className="h-4 px-1.5 text-rose-500 hover:text-rose-400"
+              className="h-4 px-1.5 text-destructive hover:text-destructive/80"
             >
               {translate(locale, 'engine', 'RetryNow', customTranslations)}
             </Button>

@@ -16,8 +16,8 @@ export interface TrendIndicatorProps {
 }
 
 const DIRECTION_COLOR_MAP: Record<TrendDirection, string> = {
-  up: 'text-emerald-500',
-  down: 'text-rose-500',
+  up: 'text-success',
+  down: 'text-destructive',
   neutral: 'text-muted-foreground',
 };
 

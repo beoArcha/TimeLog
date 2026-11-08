@@ -21,6 +21,12 @@ export interface ThemeColorTokens {
   destructive: string;
   destructiveForeground: string;
   ring: string;
+  success?: string;
+  successForeground?: string;
+  warning?: string;
+  warningForeground?: string;
+  info?: string;
+  infoForeground?: string;
 }
 
 /**

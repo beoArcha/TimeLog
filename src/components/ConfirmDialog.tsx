@@ -155,7 +155,7 @@ export function ConfirmDialog({
 
   const iconColorMap: Record<string, string> = {
     destructive: 'text-destructive bg-destructive/10 border-destructive/20',
-    warning: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+    warning: 'text-warning bg-warning/10 border-warning/20',
   };
   const iconColor = iconColorMap[variant] ?? 'text-primary bg-primary/10 border-primary/20';
 

@@ -211,7 +211,7 @@ export function EmojiPicker({
               size="xs"
               onClick={handleClear}
               data-testid={`${testId}-clear-btn`}
-              className="text-[11px] h-6 px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-lg"
+              className="text-[11px] h-6 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg"
             >
               <X className="w-3 h-3 mr-1" /> {clearLabel}
             </Button>

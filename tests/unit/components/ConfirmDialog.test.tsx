@@ -331,4 +331,44 @@ describe('Unit Tests: ConfirmDialog', () => {
     expect(onClearError).toHaveBeenCalledTimes(1);
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
+
+  it('renders warning variant with semantic warning token classes and no raw amber palette classes', () => {
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Warning Dialog"
+        description="This action requires caution."
+        variant="warning"
+        onConfirm={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole('alertdialog');
+    const iconBox = dialog.querySelector('[data-slot="icon-box"]');
+    expect(iconBox).not.toBeNull();
+    expect(iconBox?.className).toContain('text-warning');
+    expect(iconBox?.className).toContain('bg-warning/10');
+    expect(iconBox?.className).toContain('border-warning/20');
+    expect(iconBox?.className).not.toContain('amber');
+  });
+
+  it('renders destructive variant with semantic destructive token classes and no raw rose palette classes', () => {
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Destructive Dialog"
+        description="This action cannot be undone."
+        variant="destructive"
+        onConfirm={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole('alertdialog');
+    const iconBox = dialog.querySelector('[data-slot="icon-box"]');
+    expect(iconBox).not.toBeNull();
+    expect(iconBox?.className).toContain('text-destructive');
+    expect(iconBox?.className).toContain('bg-destructive/10');
+    expect(iconBox?.className).toContain('border-destructive/20');
+    expect(iconBox?.className).not.toContain('rose');
+  });
 });

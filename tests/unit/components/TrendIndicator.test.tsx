@@ -10,7 +10,7 @@ describe('TrendIndicator', () => {
     cleanup();
   });
 
-  it('should render up trend with emerald style and accessible label when direction is up', () => {
+  it('should render up trend with success token style and accessible label when direction is up', () => {
     // Arrange
     const value = '+15%';
     const direction = 'up';
@@ -22,10 +22,12 @@ describe('TrendIndicator', () => {
     // Assert
     const indicator = screen.getByLabelText(expectedLabel);
     expect(indicator).toBeTruthy();
+    expect(indicator.className).toContain('text-success');
+    expect(indicator.className).not.toContain('text-emerald');
     expect(screen.getByText(value)).toBeTruthy();
   });
 
-  it('should render down trend with custom label when provided', () => {
+  it('should render down trend with destructive token style and custom label when provided', () => {
     // Arrange
     const value = '-8%';
     const direction = 'down';
@@ -37,6 +39,8 @@ describe('TrendIndicator', () => {
     // Assert
     const indicator = screen.getByLabelText(label);
     expect(indicator).toBeTruthy();
+    expect(indicator.className).toContain('text-destructive');
+    expect(indicator.className).not.toContain('text-rose');
     expect(screen.getByText(value)).toBeTruthy();
   });
 
