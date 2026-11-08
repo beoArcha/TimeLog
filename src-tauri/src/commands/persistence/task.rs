@@ -43,7 +43,7 @@ fn apply_status_and_completion(
     }
 }
 
-fn collect_task_and_descendant_ids(
+pub fn collect_task_and_descendant_ids(
     persistence: &Persistence,
     root_task_id: &str,
 ) -> Result<HashSet<String>, crate::persistence::PersistenceError> {
