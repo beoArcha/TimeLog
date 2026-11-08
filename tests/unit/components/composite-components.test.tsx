@@ -316,8 +316,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(dialog.getAttribute('aria-describedby')).toBeTruthy();
     });
 
-    it('SearchInput should have role=search, input aria-label, and clear button accessible name', () => {
-      render(<SearchInput value="test" onChange={() => {}} onClear={() => {}} />);
+    it('SearchInput should have role=search when requested, input aria-label, and clear button accessible name', () => {
+      render(<SearchInput role="search" value="test" onChange={() => {}} onClear={() => {}} />);
       const searchRegion = screen.getByRole('search');
       expect(searchRegion).toBeTruthy();
 
