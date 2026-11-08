@@ -78,6 +78,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Engineering Standards & i18n Locales Specification**:
+  - Aligned `AGENTS.md` and frontend engineering standards with the full suite of 10 supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `uk`, `ja`, `nl`, `it`).
+  - Formalized the `I18N_DOMAINS` domain contract from `src/common/i18n/keys.ts`, clarifying that new keys must be defined in modular domain key files (`src/common/i18n/keys/<domain>.ts`) and localized across all 10 locales in domain dictionaries (`src/common/i18n/dictionaries/<domain>.json`).
+
 - **Accessible Radio Semantics & Localized Settings**:
   - Refactored `LanguageSelectionModal` to delegate radio semantics, keyboard arrow navigation, and roving focus exclusively to the Base UI `RadioGroupItem` primitive, eliminating redundant wrapper roles and focus traps.
   - Localized all settings modal labels, descriptions, validation alerts, and placeholders across all 10 locales using `translate()`.
