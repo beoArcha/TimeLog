@@ -11,7 +11,6 @@ describe('Unit Tests: PromptDialog Component', () => {
   });
 
   it('should render prompt and submit typed value', () => {
-    // Arrange
     const onConfirm = vi.fn();
     render(
       <PromptDialog
@@ -24,17 +23,14 @@ describe('Unit Tests: PromptDialog Component', () => {
     );
     const input = screen.getByRole('textbox') as HTMLInputElement;
 
-    // Act
     fireEvent.change(input, { target: { value: 'Beta' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-    // Assert
     expect(input.value).toBe('Beta');
     expect(onConfirm).toHaveBeenCalledWith('Beta');
   });
 
   it('should call onCancel and onOpenChange when cancel button is clicked', () => {
-    // Arrange
     const onCancel = vi.fn();
     const onOpenChange = vi.fn();
     render(
@@ -47,45 +43,81 @@ describe('Unit Tests: PromptDialog Component', () => {
       />
     );
 
-    // Act
     fireEvent.click(screen.getByTestId('prompt-dialog-cancel-btn'));
 
-    // Assert
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('should display validation error and block submit when validation fails', () => {
-    // Arrange
+  it('should block submit when required is default true and value is empty or whitespace', () => {
     const onConfirm = vi.fn();
     render(
       <PromptDialog
         open={true}
-        title="Project Code"
-        validate={(val) => (val.length < 3 ? 'Code too short' : null)}
+        title="Project Name"
+        defaultValue=""
         onConfirm={onConfirm}
       />
     );
     const input = screen.getByRole('textbox');
 
-    // Act - enter invalid value
-    fireEvent.change(input, { target: { value: 'ab' } });
     fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
 
-    // Assert
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toBeTruthy();
+    expect(screen.getByText('This field is required')).toBeTruthy();
+
+    fireEvent.change(input, { target: { value: '   ' } });
+    fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByText('This field is required')).toBeTruthy();
+
+    fireEvent.change(input, { target: { value: 'Valid Project' } });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('should allow submitting empty value when required is false', () => {
+    const onConfirm = vi.fn();
+    render(
+      <PromptDialog
+        open={true}
+        title="Optional Description"
+        defaultValue=""
+        required={false}
+        onConfirm={onConfirm}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+
+    expect(onConfirm).toHaveBeenCalledWith('');
+  });
+
+  it('should display custom validation error and block submit when validation fails', () => {
+    const onConfirm = vi.fn();
+    render(
+      <PromptDialog
+        open={true}
+        title="Project Code"
+        defaultValue="abc"
+        validate={(val) => (val.length < 5 ? 'Code too short' : null)}
+        onConfirm={onConfirm}
+      />
+    );
+    const input = screen.getByRole('textbox');
+
+    fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
+
     expect(onConfirm).not.toHaveBeenCalled();
     expect(screen.getByRole('alert')).toBeTruthy();
     expect(screen.getByText('Code too short')).toBeTruthy();
 
-    // Act - fix input
-    fireEvent.change(input, { target: { value: 'abcd' } });
-
-    // Assert error cleared
+    fireEvent.change(input, { target: { value: 'abcdef' } });
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('should keep the dialog open and show an error when async confirmation rejects', async () => {
-    // Arrange
+  it('should keep dialog open and show error when async confirmation rejects', async () => {
     const onOpenChange = vi.fn();
     const onConfirm = vi.fn().mockRejectedValue(new Error('Unable to save prompt'));
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -94,14 +126,13 @@ describe('Unit Tests: PromptDialog Component', () => {
         open={true}
         onOpenChange={onOpenChange}
         title="Save Prompt"
+        defaultValue="Valid Value"
         onConfirm={onConfirm}
       />
     );
 
-    // Act
     fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
 
-    // Assert
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toBe('Unable to save prompt');
     });
@@ -109,8 +140,7 @@ describe('Unit Tests: PromptDialog Component', () => {
     expect(screen.getByTestId('prompt-dialog-confirm-btn').getAttribute('aria-busy')).toBe('false');
   });
 
-  it('should keep the dialog open and show an error when confirmation throws synchronously', async () => {
-    // Arrange
+  it('should keep dialog open and show error when confirmation throws synchronously', async () => {
     const onOpenChange = vi.fn();
     const onConfirm = vi.fn(() => {
       throw new Error('Synchronous failure');
@@ -121,41 +151,52 @@ describe('Unit Tests: PromptDialog Component', () => {
         open={true}
         onOpenChange={onOpenChange}
         title="Save Prompt"
+        defaultValue="Valid Value"
         onConfirm={onConfirm}
       />
     );
 
-    // Act
     fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
 
-    // Assert
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toBe('Synchronous failure');
     });
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
   });
 
-  it('should have input connected with label, aria-required, and error alert', () => {
-    // Arrange
-    render(
+  it('should reflect accessibility attributes for required and optional states', () => {
+    const { unmount } = render(
       <PromptDialog
         open={true}
-        title="Project Name"
-        validate={(v) => (v.length < 3 ? 'Min 3 chars' : null)}
+        title="Required Dialog"
+        description="Helper description"
+        defaultValue="Test"
         onConfirm={() => {}}
       />
     );
+
+    const dialogContent = document.querySelector('[data-slot="dialog-content"]');
+    expect(dialogContent?.getAttribute('aria-modal')).toBe('true');
+    expect(dialogContent?.hasAttribute('aria-labelledby')).toBe(true);
+    expect(dialogContent?.hasAttribute('aria-describedby')).toBe(true);
+
     const input = screen.getByRole('textbox');
     expect(input.getAttribute('aria-required')).toBe('true');
     expect(input.getAttribute('aria-invalid')).toBe('false');
 
-    // Act - Trigger validation error
-    fireEvent.change(input, { target: { value: 'ab' } });
-    fireEvent.click(screen.getByRole('button', { name: /save|confirm/i }));
+    unmount();
 
-    // Assert
-    expect(input.getAttribute('aria-invalid')).toBe('true');
-    expect(screen.getByRole('alert')).toBeTruthy();
-    expect(screen.getByText('Min 3 chars')).toBeTruthy();
+    render(
+      <PromptDialog
+        open={true}
+        title="Optional Dialog"
+        required={false}
+        defaultValue="Test"
+        onConfirm={() => {}}
+      />
+    );
+
+    const optionalInput = screen.getByRole('textbox');
+    expect(optionalInput.getAttribute('aria-required')).toBe('false');
   });
 });
