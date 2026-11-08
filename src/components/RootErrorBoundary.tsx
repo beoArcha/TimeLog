@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { Component } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert';
 import { Button } from '@components/ui/button';
 import { Code } from '@components/ui/code';
 import { AlertTriangle } from 'lucide-react';
 import { translate } from '@common/i18n/translator';
+import { resolveSystemLocale } from '@common/i18n/locales';
 
 export interface RootErrorBoundaryProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export interface RootErrorBoundaryState {
@@ -14,20 +16,12 @@ export interface RootErrorBoundaryState {
   error: Error | null;
 }
 
-type ReactComponentConstructor<P, S> = new (props: P) => {
-  props: P;
-  state: S;
-  setState(updater: Partial<S> | ((prevState: S) => Partial<S>)): void;
-  componentDidCatch?(error: Error, errorInfo: unknown): void;
-  render(): React.ReactNode;
-};
-
-const ReactComponent = React.Component as unknown as ReactComponentConstructor<
+export class RootErrorBoundary extends Component<
   RootErrorBoundaryProps,
   RootErrorBoundaryState
->;
-
-export class RootErrorBoundary extends ReactComponent {
+> {
+  declare props: RootErrorBoundaryProps;
+  declare state: RootErrorBoundaryState;
   static getDerivedStateFromError(error: Error): RootErrorBoundaryState {
     return {
       hasError: true,
@@ -37,13 +31,16 @@ export class RootErrorBoundary extends ReactComponent {
 
   constructor(props: RootErrorBoundaryProps) {
     super(props);
+    const triggerParam =
+      typeof window !== 'undefined' &&
+      window.location.search.includes('trigger-error=true');
     this.state = {
-      hasError: false,
-      error: null,
+      hasError: triggerParam,
+      error: triggerParam ? new Error('Simulated crash triggered via URL parameter') : null,
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: unknown): void {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Unhandled application error caught by RootErrorBoundary:', error, errorInfo);
   }
 
@@ -51,11 +48,12 @@ export class RootErrorBoundary extends ReactComponent {
     window.location.reload();
   };
 
-  render(): React.ReactNode {
+  render(): ReactNode {
     if (this.state.hasError) {
-      const title = translate('en', 'app', 'AppCrashTitle');
-      const desc = translate('en', 'app', 'AppCrashDesc');
-      const reloadBtn = translate('en', 'app', 'RestartGui');
+      const locale = resolveSystemLocale();
+      const title = translate(locale, 'app', 'AppCrashTitle');
+      const desc = translate(locale, 'app', 'AppCrashDesc');
+      const reloadBtn = translate(locale, 'app', 'RestartGui');
 
       return (
         <div
