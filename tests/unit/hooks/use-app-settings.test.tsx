@@ -494,7 +494,7 @@ describe('useAppSettings', () => {
       });
     });
 
-    // 1. Prawidłowa wartość z zunifikowanego persistence ma pierwszeństwo
+    // 1. Valid value from unified persistence takes precedence
     it('should prioritize valid timezone from unified persistence over legacy value (Rule 1)', async () => {
       // Arrange
       localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
@@ -521,7 +521,7 @@ describe('useAppSettings', () => {
       });
     });
 
-    // 2. Stara wartość może uzupełnić brakującą wartość w zunifikowanym persistence
+    // 2. Legacy value can populate missing timezone in unified persistence
     it('should populate missing timezone in unified persistence with valid legacy value (Rule 2)', async () => {
       // Arrange - no timezone in unified settings
       localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
@@ -550,7 +550,7 @@ describe('useAppSettings', () => {
       expect(localStorage.getItem('oxytime_timezone')).toBeNull();
     });
 
-    // 3. Stara wartość może uzupełnić domyślną wartość 'System'
+    // 3. Legacy value can replace default 'System' timezone in unified persistence
     it('should replace default System timezone in unified persistence with valid legacy value (Rule 3)', async () => {
       // Arrange - timezone is explicitly 'System'
       localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
@@ -579,7 +579,7 @@ describe('useAppSettings', () => {
       expect(localStorage.getItem('oxytime_timezone')).toBeNull();
     });
 
-    // 4. Nieprawidłowa wartość nie może nadpisać prawidłowej
+    // 4. Invalid legacy value cannot overwrite valid persisted value or migrate
     it('should not allow invalid legacy timezone to overwrite valid persisted timezone or migrate (Rule 4)', async () => {
       // Arrange
       localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
@@ -606,7 +606,7 @@ describe('useAppSettings', () => {
       });
     });
 
-    // 5. Brak starego klucza nie wymaga migracji
+    // 5. Absence of legacy key does not trigger migration
     it('should not trigger migration when legacy timezone key does not exist (Rule 5)', async () => {
       // Arrange
       const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem');
@@ -623,7 +623,7 @@ describe('useAppSettings', () => {
       removeItemSpy.mockRestore();
     });
 
-    // 6. Jeżeli zapis się nie powiedzie: zachowaj stary klucz, zachowaj możliwość ponowienia migracji, zgłoś błąd przez ErrorHandler
+    // 6. If saving to persistence fails, preserve legacy key, retain retry capability, and report error via ErrorHandler
     it('should preserve legacy key and allow retry reporting error when persistence save fails (Safe Migration)', async () => {
       // Arrange
       localStorage.setItem('oxytime_timezone', 'Europe/Paris');
@@ -645,7 +645,7 @@ describe('useAppSettings', () => {
       errorHandlerSpy.mockRestore();
     });
 
-    // 7. Błędy odczytu lub usunięcia klucza są zgłaszane przez ErrorHandler zamiast połykane po cichu
+    // 7. Errors during legacy key read or removal are reported via ErrorHandler instead of swallowed silently
     it('should report errors via ErrorHandler when reading or removing legacy key throws (No empty catch)', async () => {
       // Arrange: mock localStorage.getItem throwing a SecurityError
       const accessError = new Error('LocalStorage security restriction');

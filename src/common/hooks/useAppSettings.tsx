@@ -53,7 +53,7 @@ export function resolveTimezoneWithMigration(
   const validatedPersisted = validateTimezoneSetting(persistedValue);
   const hasLegacy = legacyValue !== null;
 
-  // Rule: brak starego klucza nie wymaga migracji
+  // Rule: absence of legacy key does not require migration
   if (!hasLegacy) {
     return {
       effectiveTimezone: validatedPersisted || 'System',
@@ -63,7 +63,7 @@ export function resolveTimezoneWithMigration(
 
   const validatedLegacy = validateTimezoneSetting(legacyValue);
 
-  // Rule 1: prawidłowa wartość z zunifikowanego persistence ma pierwszeństwo
+  // Rule 1: valid value from unified persistence takes precedence
   if (validatedPersisted && validatedPersisted !== 'System') {
     return {
       effectiveTimezone: validatedPersisted,
@@ -71,7 +71,7 @@ export function resolveTimezoneWithMigration(
     };
   }
 
-  // Rule 2 & 3: stara wartość może uzupełnić brakującą lub domyślną wartość 'System'
+  // Rule 2 & 3: legacy value can populate missing or default 'System' value
   if (validatedLegacy) {
     return {
       effectiveTimezone: validatedLegacy,
@@ -79,7 +79,7 @@ export function resolveTimezoneWithMigration(
     };
   }
 
-  // Rule 4: nieprawidłowa wartość ze starego klucza nie może nadpisać prawidłowej (ani domyślnej)
+  // Rule 4: invalid legacy value cannot overwrite valid (or default) value
   return {
     effectiveTimezone: validatedPersisted || 'System',
     needsMigration: true,

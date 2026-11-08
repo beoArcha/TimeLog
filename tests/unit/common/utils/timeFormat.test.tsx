@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   isValidTimezone,
   resolveSystemTimezone,
@@ -12,7 +12,10 @@ import {
   formatDateTime,
   DEFAULT_TIMEZONE,
   FALLBACK_TIMEZONE,
+  getSafeDateTimeFormat,
+  clearDateTimeFormatCache,
 } from '@common/utils/timeFormat';
+import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { useAppSettings } from '@common/hooks/useAppSettings';
 import { PlatformCapabilitiesContext, type PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { setupMatchMediaMock, setupLocalStorageMock } from '@tests/shared/mocks/browser-mocks';
@@ -187,7 +190,12 @@ describe('timeFormat', () => {
     expect(formatted).toBe('');
   });
 
-  describe('Intl.DateTimeFormat error handling and fallback resilience', () => {
+  describe('Intl.DateTimeFormat error handling, fallback resilience, and error propagation', () => {
+    afterEach(() => {
+      clearDateTimeFormatCache();
+      vi.restoreAllMocks();
+    });
+
     it('should format safely and fall back to en when an invalid or malformed locale is provided', () => {
       // Arrange
       const iso = '2026-06-15T12:00:00.000Z';
@@ -220,6 +228,128 @@ describe('timeFormat', () => {
       expect(isValidTimezone(null as unknown as string)).toBe(false);
       expect(isValidTimezone(undefined as unknown as string)).toBe(false);
       expect(isValidTimezone(123 as unknown as string)).toBe(false);
+    });
+
+    it('should log via ErrorHandler and propagate unexpected errors in isValidTimezone', () => {
+      const unexpectedError = new TypeError('Intl runtime failure');
+      const origDateTimeFormat = Intl.DateTimeFormat;
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      // @ts-expect-error mocking constructor
+      Intl.DateTimeFormat = function () {
+        throw unexpectedError;
+      };
+
+      try {
+        expect(() => isValidTimezone('UTC')).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+      } finally {
+        Intl.DateTimeFormat = origDateTimeFormat;
+      }
+    });
+
+    it('should log via ErrorHandler and propagate unexpected errors in resolveSystemTimezone', () => {
+      const unexpectedError = new TypeError('Cannot resolve system options');
+      const origResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions;
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      Intl.DateTimeFormat.prototype.resolvedOptions = () => {
+        throw unexpectedError;
+      };
+
+      try {
+        expect(() => resolveSystemTimezone()).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+      } finally {
+        Intl.DateTimeFormat.prototype.resolvedOptions = origResolvedOptions;
+      }
+    });
+
+    it('should log via ErrorHandler and propagate unexpected errors in resolveEffectiveTimezone', () => {
+      const unexpectedError = new Error('Unexpected resolution exception');
+      const origResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions;
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      Intl.DateTimeFormat.prototype.resolvedOptions = () => {
+        throw unexpectedError;
+      };
+
+      try {
+        expect(() => resolveEffectiveTimezone('System')).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+      } finally {
+        Intl.DateTimeFormat.prototype.resolvedOptions = origResolvedOptions;
+      }
+    });
+
+    it('should log via ErrorHandler and propagate unexpected errors in getSupportedTimezones', () => {
+      const origSupportedValuesOf = Intl.supportedValuesOf;
+      const unexpectedError = new Error('Internal V8 failure');
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      Intl.supportedValuesOf = () => {
+        throw unexpectedError;
+      };
+
+      try {
+        expect(() => getSupportedTimezones()).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+      } finally {
+        Intl.supportedValuesOf = origSupportedValuesOf;
+      }
+    });
+
+    it('should log via ErrorHandler and propagate unexpected errors in getSafeDateTimeFormat', () => {
+      const unexpectedError = new TypeError('Invalid options prototype');
+      const origDateTimeFormat = Intl.DateTimeFormat;
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      // @ts-expect-error mocking constructor
+      Intl.DateTimeFormat = function () {
+        throw unexpectedError;
+      };
+
+      try {
+        expect(() => getSafeDateTimeFormat('en', {})).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+      } finally {
+        Intl.DateTimeFormat = origDateTimeFormat;
+      }
+    });
+
+    it('should log via ErrorHandler and propagate unexpected errors in formatDateTime, formatDate, formatTime', () => {
+      const iso = '2026-06-15T12:00:00.000Z';
+      const unexpectedError = new Error('Unexpected format error');
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      const desc = Object.getOwnPropertyDescriptor(Intl.DateTimeFormat.prototype, 'format');
+      Object.defineProperty(Intl.DateTimeFormat.prototype, 'format', {
+        configurable: true,
+        get() {
+          return () => {
+            throw unexpectedError;
+          };
+        },
+      });
+
+      try {
+        clearDateTimeFormatCache();
+        expect(() => formatDateTime(iso, 'UTC')).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+
+        clearDateTimeFormatCache();
+        expect(() => formatDate(iso, 'UTC')).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+
+        clearDateTimeFormatCache();
+        expect(() => formatTime(iso, 'UTC')).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+      } finally {
+        if (desc) {
+          Object.defineProperty(Intl.DateTimeFormat.prototype, 'format', desc);
+        }
+        clearDateTimeFormatCache();
+      }
     });
   });
 

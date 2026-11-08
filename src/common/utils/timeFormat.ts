@@ -7,6 +7,8 @@
  * preferences or operating system localization.
  */
 
+import { ErrorHandler } from '@common/exceptions/ErrorHandler';
+
 export const DEFAULT_TIMEZONE = 'System';
 export const FALLBACK_TIMEZONE = 'UTC';
 
@@ -49,6 +51,7 @@ export function isValidTimezone(tz: string): boolean {
     if (err instanceof RangeError) {
       return false;
     }
+    ErrorHandler.handle(err);
     throw err;
   }
 }
@@ -67,9 +70,10 @@ export function resolveSystemTimezone(): string {
       return tz;
     }
   } catch (err) {
-    if (err instanceof RangeError || err instanceof TypeError) {
+    if (err instanceof RangeError) {
       return FALLBACK_TIMEZONE;
     }
+    ErrorHandler.handle(err);
     throw err;
   }
   return FALLBACK_TIMEZONE;
@@ -83,13 +87,21 @@ export function resolveSystemTimezone(): string {
  * @returns Validated IANA timezone identifier ready for presentation formatting
  */
 export function resolveEffectiveTimezone(tzPreference?: string | null): string {
-  if (!tzPreference || tzPreference === DEFAULT_TIMEZONE || tzPreference.toLowerCase() === 'system') {
+  try {
+    if (!tzPreference || tzPreference === DEFAULT_TIMEZONE || tzPreference.toLowerCase() === 'system') {
+      return resolveSystemTimezone();
+    }
+    if (isValidTimezone(tzPreference)) {
+      return tzPreference;
+    }
     return resolveSystemTimezone();
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return resolveSystemTimezone();
+    }
+    ErrorHandler.handle(err);
+    throw err;
   }
-  if (isValidTimezone(tzPreference)) {
-    return tzPreference;
-  }
-  return resolveSystemTimezone();
 }
 
 /**
@@ -105,9 +117,10 @@ export function getSupportedTimezones(): string[] {
       const supported = Intl.supportedValuesOf('timeZone');
       return Array.from(new Set(['UTC', ...supported]));
     } catch (err) {
-      if (err instanceof RangeError || err instanceof TypeError) {
+      if (err instanceof RangeError) {
         return [...POPULAR_TIMEZONES];
       }
+      ErrorHandler.handle(err);
       throw err;
     }
   }
@@ -145,6 +158,7 @@ export function getSafeDateTimeFormat(
     return new Intl.DateTimeFormat(locale, normalizedOptions);
   } catch (err) {
     if (!(err instanceof RangeError)) {
+      ErrorHandler.handle(err);
       throw err;
     }
   }
@@ -154,6 +168,7 @@ export function getSafeDateTimeFormat(
     return new Intl.DateTimeFormat('en', normalizedOptions);
   } catch (err) {
     if (!(err instanceof RangeError)) {
+      ErrorHandler.handle(err);
       throw err;
     }
   }
@@ -163,6 +178,7 @@ export function getSafeDateTimeFormat(
     return new Intl.DateTimeFormat(locale, { ...normalizedOptions, timeZone: FALLBACK_TIMEZONE });
   } catch (err) {
     if (!(err instanceof RangeError)) {
+      ErrorHandler.handle(err);
       throw err;
     }
   }
@@ -172,12 +188,18 @@ export function getSafeDateTimeFormat(
     return new Intl.DateTimeFormat('en', { ...normalizedOptions, timeZone: FALLBACK_TIMEZONE });
   } catch (err) {
     if (!(err instanceof RangeError)) {
+      ErrorHandler.handle(err);
       throw err;
     }
   }
 
   // 5. Ultimate fallback without custom options
-  return new Intl.DateTimeFormat('en', { timeZone: FALLBACK_TIMEZONE });
+  try {
+    return new Intl.DateTimeFormat('en', { timeZone: FALLBACK_TIMEZONE });
+  } catch (err) {
+    ErrorHandler.handle(err);
+    throw err;
+  }
 }
 
 function getCachedDateTimeFormat(
@@ -238,6 +260,7 @@ export function formatDateTime(
       });
       return fallbackFormatter.format(date);
     }
+    ErrorHandler.handle(err);
     throw err;
   }
 }
@@ -283,6 +306,7 @@ export function formatDate(
       });
       return fallbackFormatter.format(date);
     }
+    ErrorHandler.handle(err);
     throw err;
   }
 }
@@ -329,6 +353,7 @@ export function formatTime(
       });
       return fallbackFormatter.format(date);
     }
+    ErrorHandler.handle(err);
     throw err;
   }
 }
