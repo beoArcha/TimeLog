@@ -70,10 +70,10 @@ Consume the narrowest context that provides what you need.
 
 - All user-facing text, titles, placeholders and accessible names use `translate(...)` or `useTranslation`.
 - Never write `translate(...) || 'Fallback'`; `translator.ts` already falls back to `en`.
-- Dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/` (e.g. `timer.json`), each containing all 6 currently supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`). A new key must be added to every supported locale in the relevant dictionary and registered in `src/common/i18n/keys.ts`.
+- Domains are defined by `I18N_DOMAINS` in `src/common/i18n/keys.ts`. Dictionaries are one JSON file per domain in `src/common/i18n/dictionaries/` (e.g. `timer.json`), each containing all 10 currently supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `uk`, `ja`, `nl`, `it`). A new key must be added to every supported locale in the relevant dictionary (`src/common/i18n/dictionaries/<domain>.json`) and registered in its corresponding domain key file `src/common/i18n/keys/<domain>.ts`.
 - Do not introduce additional locales or change the supported locale set through an isolated feature change. A locale-set change requires an explicit product decision and synchronized updates to dictionaries, validation, tests and project documentation.
 - **Truthful System Resolution**: "System default" UI indicators must always display the genuine system/browser detected locale (`resolveSystemLocale()`), never mirroring the user's explicit preference when locked to another language.
-- **Domain Validation & Form Feedback**: Custom translation or key overrides must validate against known domains (`DomainKeys`) using a typed `<Select>` rather than open text fields, and provide visual form validation feedback instead of silent returns (`return;`).
+- **Domain Validation & Form Feedback**: Custom translation or key overrides must validate against known domains (`I18N_DOMAINS` / `DomainKeys`) using a typed `<Select>` rather than open text fields, and provide visual form validation feedback instead of silent returns (`return;`).
 
 ## 8. Accessibility
 
