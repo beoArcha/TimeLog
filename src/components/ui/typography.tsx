@@ -9,7 +9,7 @@ export type HeadingProps = React.HTMLAttributes<HTMLHeadingElement> &
   };
 
 /**
- * Semantic heading component with typography scale variants.
+ * Heading component with typography scale variants.
  */
 function Heading({ className, level = 2, variant, as, ...props }: HeadingProps) {
   const Component = as || (`h${level}` as const);
@@ -28,7 +28,7 @@ export type TextProps = React.HTMLAttributes<HTMLElement> &
   };
 
 /**
- * General purpose typography primitive for paragraphs, captions, and text snippets.
+ * Typography component for paragraphs, captions, and text snippets.
  */
 function Text({ className, variant, size, as = "p", ...props }: TextProps) {
   const Component = as;
@@ -42,30 +42,28 @@ function Text({ className, variant, size, as = "p", ...props }: TextProps) {
 }
 
 /**
- * Dedicated subtext/caption primitive.
- * Defaults to 2xs (10px) text-muted-foreground leading-tight (the most common pattern in oXyFlow).
+ * Subtext and caption component.
  */
 function Caption({ className, variant = "caption", size = "2xs", as = "p", ...props }: TextProps) {
   return <Text as={as} variant={variant} size={size} className={className} {...props} />;
 }
 
 /**
- * Dedicated overline / section label primitive.
- * Defaults to uppercase tracking-wider 2xs (10px) font-semibold text-muted-foreground.
+ * Overline and section label component.
  */
 function Overline({ className, variant = "label", size = "2xs", as = "span", ...props }: TextProps) {
   return <Text as={as} variant={variant} size={size} className={className} {...props} />;
 }
 
 /**
- * Dedicated monospace text primitive for tags, hashes, timestamps, durations, and counts.
+ * Monospace text component for tags, hashes, timestamps, durations, and counts.
  */
 function MonoText({ className, variant = "mono", size = "2xs", as = "span", ...props }: TextProps) {
   return <Text as={as} variant={variant} size={size} className={className} {...props} />;
 }
 
 /**
- * Dedicated metric text primitive for KPI numbers, duration sums, and stat cards.
+ * Metric text component for KPI numbers, duration sums, and stat cards.
  */
 function MetricText({ className, variant = "metric", size = "base", as = "span", ...props }: TextProps) {
   return <Text as={as} variant={variant} size={size} className={className} {...props} />;
@@ -101,7 +99,7 @@ function ListItem({ className, ...props }: React.LiHTMLAttributes<HTMLLIElement>
 }
 
 /**
- * Phrasing semantic wrappers that inherit parent typography size/line-height.
+ * Phrasing wrappers that inherit parent typography size and line height.
  */
 const Strong = React.forwardRef<HTMLElement, React.HTMLAttributes<HTMLElement>>(
   ({ className, ...props }, ref) => {

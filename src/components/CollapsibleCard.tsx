@@ -29,7 +29,7 @@ export interface CollapsibleCardProps {
 }
 
 /**
- * Collapsible card using the shared accessible disclosure primitive.
+ * Card container with a collapsible content section.
  */
 export function CollapsibleCard({
   title,

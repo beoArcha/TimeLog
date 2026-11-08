@@ -8,7 +8,7 @@ export interface KbdProps
     VariantProps<typeof kbdVariants> {}
 
 /**
- * Accessible keyboard shortcut key primitive with CVA variants.
+ * Keyboard shortcut key element with size and style variants.
  */
 const Kbd = React.forwardRef<HTMLElement, KbdProps>(
   ({ className, variant, size, children, ...props }, ref) => {

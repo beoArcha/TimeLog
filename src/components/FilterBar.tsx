@@ -20,7 +20,7 @@ export interface FilterBarProps {
 }
 
 /**
- * Composite filtering toolbar for data tables, lists, and analytics views.
+ * Filtering toolbar for data tables, lists, and analytics views.
  */
 export function FilterBar({
   children,

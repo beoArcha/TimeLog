@@ -7,8 +7,7 @@ export interface AnimatedFadeProps extends HTMLMotionProps<'div'> {
 }
 
 /**
- * Reusable animated fade and scale transition wrapper.
- * Provides accessible, smooth opacity and scale transitions for tab content, viewports, and status indicators.
+ * Transition wrapper for fade and scale animations.
  */
 export function AnimatedFade({
   className,

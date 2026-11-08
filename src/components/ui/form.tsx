@@ -10,7 +10,7 @@ export type FormProps = Omit<React.FormHTMLAttributes<HTMLFormElement>, 'onSubmi
 };
 
 /**
- * Semantic Form component providing standardized layout, accessible role, and form submission ergonomics.
+ * Form container supporting layout presets and submission handling.
  */
 export const Form = React.forwardRef<HTMLFormElement, FormProps>(
   (

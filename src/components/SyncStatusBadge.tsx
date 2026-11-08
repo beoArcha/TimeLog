@@ -84,7 +84,7 @@ const STATE_CONFIG: Record<SyncStateType, StateConfigItem> = {
 };
 
 /**
- * Composite badge representing asynchronous synchronization states (idle, syncing, queued, error)
+ * Badge representing synchronization states (idle, syncing, queued, error)
  * with an optional inline action to retry failed attempts.
  */
 export function SyncStatusBadge({

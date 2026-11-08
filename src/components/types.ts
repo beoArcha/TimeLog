@@ -13,7 +13,7 @@ export type CompactUiSize = '2xs' | 'xs' | 'sm' | 'md' | 'lg';
 export type UiSurfaceVariant = 'default' | 'muted' | 'outline' | 'card' | 'ghost';
 
 /**
- * Standard border radius tokens matching design system tokens.
+ * Border radius tokens.
  */
 export type UiRoundedVariant = 'none' | 'sm' | 'md' | 'lg' | 'full' | 'section';
 

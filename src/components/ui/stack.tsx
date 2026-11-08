@@ -9,7 +9,7 @@ export type StackProps = Omit<React.HTMLAttributes<HTMLElement>, "direction" | "
   };
 
 /**
- * Base stack primitive supporting horizontal and vertical layouts.
+ * Flex container supporting horizontal and vertical layouts.
  */
 export const Stack = React.forwardRef<HTMLElement, StackProps>(
   ({ className, direction = "horizontal", align, justify, gap, wrap, inline, as: Component = "div", ...props }, ref) => {

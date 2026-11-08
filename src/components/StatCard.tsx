@@ -31,7 +31,6 @@ export interface StatCardProps {
 
 /**
  * Metric card displaying a primary value, optional icon, badge, trend, and description.
- * Renders an accessible Button when onClick is provided, or a static Card container when read-only.
  */
 export const StatCard: React.FC<StatCardProps> = ({
   title,

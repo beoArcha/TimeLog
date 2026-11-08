@@ -31,7 +31,7 @@ function StatsSkeleton({ className }: { className?: string }) {
 }
 
 /**
- * Skeleton placeholder for cards and list items using semantic theme tokens.
+ * Skeleton placeholder for cards and list items.
  */
 function CardSkeleton({ className }: { className?: string }) {
   return (

@@ -16,7 +16,7 @@ export interface ProgressProps
 }
 
 /**
- * Semantic and accessible progress bar primitive with size and color variants.
+ * Progress bar with size and color variants.
  */
 export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
   (
@@ -65,7 +65,7 @@ export type ProgressBarProps = React.HTMLAttributes<HTMLDivElement> &
   };
 
 /**
- * Convenient standalone progress bar with percentage clamping and semantic accessibility.
+ * Standalone progress bar with percentage clamping.
  */
 export const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
   (

@@ -16,7 +16,7 @@ export interface ViewHeaderProps {
 }
 
 /**
- * Composite header component for views and tabs, with badge, title, icon, description, and action controls.
+ * Header component for views and tabs, with badge, title, icon, description, and action controls.
  */
 export function ViewHeader({
   title,

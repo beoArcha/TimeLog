@@ -15,7 +15,7 @@ export interface SearchInputProps extends Omit<InputProps, 'type'> {
 }
 
 /**
- * Creates a compliant synthetic ChangeEvent for HTMLInputElement.
+ * Creates a synthetic ChangeEvent for HTMLInputElement.
  */
 function createSyntheticChangeEvent(
   target: HTMLInputElement

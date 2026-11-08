@@ -10,8 +10,7 @@ export interface AnimatedCollapseProps extends HTMLMotionProps<'div'> {
 }
 
 /**
- * Declarative collapsible container with smooth height and opacity transitions.
- * Wraps content in AnimatePresence and handles accessible expandable panel behavior.
+ * Collapsible container with height and opacity transitions.
  */
 export function AnimatedCollapse({
   isOpen = true,
