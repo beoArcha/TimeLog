@@ -54,6 +54,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Cross-Runtime Audit Source & Reason Parity Test Suite**:
+  - Established shared cross-runtime test matrix fixture `tests/shared/fixtures/audit-parity-cases.json` covering 41 vectors across default source, raw enum identifiers, UI label strings, optional reason for `SystemPatch`, mandatory reason validation for manual edits (`ERR_AUDIT_REASON_REQUIRED`), and invalid source detection (`ERR_AUDIT_SOURCE_INVALID`).
+  - Added comprehensive BDT test coverage in `tests/integration/engine/CrossRuntimeParity.test.ts` executing the shared matrix against Browser `EnginePlugin` and verifying payload mapping in Desktop Tauri `EngineCommands`.
+  - Added dedicated Rust integration test suite in `src-tauri/tests/engine_lifecycle_test.rs` validating the shared fixture against the Rust reference engine implementation.
 - **TagFilterGroup Component Barrel Export** (`TASK-A5-TAG-FILTER-EXPORTS`):
   - Exported `TagFilterGroup` and its associated types from `src/components/index.ts` to complete composite component exports in the primary components barrel.
 
