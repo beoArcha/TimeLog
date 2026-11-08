@@ -122,7 +122,7 @@ describe('AnimatedCard', () => {
       </AnimatedCard>
     );
 
-    // Assert: transition-all must not be present to avoid fighting transform & opacity
+    // Assert
     const card = container.firstElementChild as HTMLElement;
     expect(card.className).not.toContain('transition-all');
     expect(card.className).toContain('transition-[border-color,box-shadow]');
@@ -149,7 +149,7 @@ describe('AnimatedCard', () => {
       </AnimatedCard>
     );
 
-    // Assert: card renders properly without throwing under reduced motion
+    // Assert
     const card = container.firstElementChild as HTMLElement;
     expect(card).toBeTruthy();
     expect(getByText('Reduced motion card')).toBeTruthy();

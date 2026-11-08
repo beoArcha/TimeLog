@@ -12,8 +12,6 @@ export interface AnimatedCardProps extends HTMLMotionProps<'div'> {
 
 /**
  * Encapsulated design system animated container using motion.
- * Provides accessible, smooth entry animations with design system border and card styling.
- * Respects user preferences for reduced motion (WCAG 2.2 §2.3.3).
  */
 export function AnimatedCard({
   delay = 0,
