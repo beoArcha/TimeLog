@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **DB Explorer Persistence & Sync Error Propagation**:
+  - Ensured DB Explorer (`TimeLogsTable` and `TimeLogTableRow`) handles and displays persistence and synchronization errors gracefully during time log editing.
+  - Kept row edit mode open when a save fails or repository reload does not complete, preventing premature closure with false success.
+  - Rendered localized error feedback in an accessible `<Alert>` region with `role="alert"` and `aria-live="polite"` using domain translations (`SyncErrorReason`, common error keys, and repository error messages).
+  - Cleared error states and validation flags upon edit cancellation or subsequent successful save.
 - **DB Explorer Audit Reason Integrity & Validation**:
   - Initialized the audit reason input in DB Explorer (`TimeLogTableRow`) as an empty string instead of defaulting to `SyncErrorReason`.
   - Added strict validation blocking save when the audit reason is empty or contains only whitespace, setting `aria-invalid="true"` and visual error indicators on the input.

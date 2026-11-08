@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit3, Trash2, Check, X, History } from 'lucide-react';
+import { Edit3, Trash2, Check, X, History, AlertCircle } from 'lucide-react';
 import { TimeLog } from '@bindings/TimeLog';
 import { translate } from '@common/i18n/translator';
 import { Locale } from '@bindings/Locale';
@@ -8,6 +8,7 @@ import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Caption, Overline } from '@components/ui/typography';
+import { Alert, AlertDescription } from '@components/ui/alert';
 import { cn } from '@/lib/utils';
 
 interface TimeLogTableRowProps {
@@ -15,13 +16,48 @@ interface TimeLogTableRowProps {
   l: TimeLog;
   isEditing: boolean;
   onStartEdit: () => void;
-  onSaveEdit: (startTime: string, endTime: string, note: string, reason: string) => void;
+  onSaveEdit: (startTime: string, endTime: string, note: string, reason: string) => void | Promise<boolean | void>;
   onCancelEdit: () => void;
   onDelete: () => void;
   locale: Locale;
   customTranslations: Record<string, unknown>;
   showHistory: boolean;
   onToggleHistory: () => void;
+  errorMessage?: string | null;
+}
+
+function resolveErrorMessage(
+  err: unknown,
+  locale: Locale,
+  customTranslations: Record<string, unknown>
+): string {
+  if (!err) {
+    return translate(locale, 'database', 'SyncErrorReason', customTranslations);
+  }
+
+  let raw: string;
+  if (err instanceof Error) {
+    raw = err.message;
+  } else if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message: unknown }).message === 'string') {
+    raw = (err as { message: string }).message;
+  } else {
+    raw = String(err);
+  }
+
+  if (raw.includes('ERR_AUDIT_REASON_REQUIRED')) {
+    return translate(locale, 'common', 'ERR_AUDIT_REASON_REQUIRED', customTranslations);
+  }
+  if (raw.includes('ERR_AUDIT_SOURCE_INVALID')) {
+    return translate(locale, 'common', 'ERR_AUDIT_SOURCE_INVALID', customTranslations);
+  }
+  if (raw.includes('ERR_TIMELOG_INVALID_RANGE')) {
+    return translate(locale, 'common', 'ERR_TIMELOG_INVALID_RANGE', customTranslations);
+  }
+  if (raw.includes('ERR_REPOSITORY_SYNC') || raw.toLowerCase().includes('sync')) {
+    return translate(locale, 'database', 'SyncErrorReason', customTranslations);
+  }
+
+  return raw || translate(locale, 'common', 'ErrGeneric', customTranslations);
 }
 
 function resolveAuditSourceLabel(
@@ -57,7 +93,8 @@ export default function TimeLogTableRow({
   locale,
   customTranslations,
   showHistory,
-  onToggleHistory
+  onToggleHistory,
+  errorMessage
 }: TimeLogTableRowProps) {
   const [form, setForm] = useState({
     startTime: l.startTime,
@@ -66,11 +103,13 @@ export default function TimeLogTableRow({
     reason: ''
   });
   const [reasonError, setReasonError] = useState(false);
+  const [rowError, setRowError] = useState<string | null>(null);
   const [prevIsEditing, setPrevIsEditing] = useState(isEditing);
 
   if (prevIsEditing !== isEditing) {
     setPrevIsEditing(isEditing);
     setReasonError(false);
+    setRowError(null);
     setForm({
       startTime: l.startTime,
       endTime: l.endTime || '',
@@ -78,6 +117,8 @@ export default function TimeLogTableRow({
       reason: ''
     });
   }
+
+  const activeError = errorMessage ?? rowError;
 
   const hasHistory = !!(l.editHistory && l.editHistory.length > 0);
 
@@ -91,18 +132,27 @@ export default function TimeLogTableRow({
     return l.startTime;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmedReason = form.reason.trim();
     if (!trimmedReason) {
       setReasonError(true);
       return;
     }
     setReasonError(false);
-    onSaveEdit(form.startTime, form.endTime, form.note, trimmedReason);
+    setRowError(null);
+    try {
+      const result = await onSaveEdit(form.startTime, form.endTime, form.note, trimmedReason);
+      if (result === false) {
+        setRowError(translate(locale, 'database', 'SyncErrorReason', customTranslations));
+      }
+    } catch (err) {
+      setRowError(resolveErrorMessage(err, locale, customTranslations));
+    }
   };
 
   const handleCancel = () => {
     setReasonError(false);
+    setRowError(null);
     setForm({
       startTime: l.startTime,
       endTime: l.endTime || '',
@@ -114,6 +164,7 @@ export default function TimeLogTableRow({
 
   const handleStart = () => {
     setReasonError(false);
+    setRowError(null);
     setForm({
       startTime: l.startTime,
       endTime: l.endTime || '',
@@ -259,6 +310,24 @@ export default function TimeLogTableRow({
           </div>
         </TableCell>
       </TableRow>
+
+      {isEditing && activeError && (
+        <TableRow className="bg-destructive/5 border-b border-border">
+          <TableCell colSpan={7} className="py-2 px-4">
+            <Alert
+              variant="destructive"
+              aria-live="polite"
+              className="py-1.5 px-3 text-xs flex items-center gap-2"
+              data-testid="time-log-row-error"
+            >
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <AlertDescription className="text-xs leading-none">
+                {activeError}
+              </AlertDescription>
+            </Alert>
+          </TableCell>
+        </TableRow>
+      )}
 
       {showHistory && l.editHistory && (
         <TableRow>
