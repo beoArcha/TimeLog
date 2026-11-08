@@ -12,6 +12,7 @@ const DropdownMenuGroup = MenuPrimitive.Group;
  */
 function DropdownMenuContent({
   className,
+  positionerClassName,
   children,
   sideOffset = 4,
   align,
@@ -21,14 +22,20 @@ function DropdownMenuContent({
   sideOffset?: number;
   align?: "start" | "center" | "end";
   side?: "top" | "bottom" | "left" | "right";
+  positionerClassName?: string;
 }) {
   return (
     <DropdownMenuPortal>
-      <MenuPrimitive.Positioner sideOffset={sideOffset} align={align} side={side}>
+      <MenuPrimitive.Positioner
+        sideOffset={sideOffset}
+        align={align}
+        side={side}
+        className={cn("z-50", positionerClassName)}
+      >
         <MenuPrimitive.Popup
           data-slot="dropdown-menu-content"
           className={cn(
-            "z-50 min-w-[8rem] overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-xl",
+            "relative z-50 min-w-[8rem] overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-xl",
             "animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
             className
           )}

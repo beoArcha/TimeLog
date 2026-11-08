@@ -485,6 +485,28 @@ describe('EmojiPicker', () => {
     const reopenedSearchInput = screen.getByTestId('emoji-picker-search-input');
     expect((reopenedSearchInput as HTMLInputElement).value).toBe('');
   });
+
+  it('should render popover content with relative positioning and z-50 for correct stacking context', () => {
+    // Arrange
+    render(
+      <MockProviders>
+        <EmojiPicker onChange={vi.fn()} />
+      </MockProviders>
+    );
+
+    // Act
+    fireEvent.click(screen.getByTestId('emoji-picker-trigger'));
+
+    // Assert
+    const content = screen.getByTestId('emoji-picker-content');
+    expect(content).not.toBeNull();
+    expect(content.className).toContain('relative');
+    expect(content.className).toContain('z-50');
+
+    const positioner = content.parentElement;
+    expect(positioner).not.toBeNull();
+    expect(positioner?.className).toContain('z-50');
+  });
 });
 
 
