@@ -46,6 +46,7 @@ describe('AnimatedDrawer', () => {
       <AnimatedDrawer
         isOpen={true}
         onClose={onClose}
+        title="CLI Terminal"
         backdropId="custom-backdrop"
       >
         <div>Content</div>
@@ -103,6 +104,7 @@ describe('AnimatedDrawer', () => {
       <AnimatedDrawer
         isOpen={true}
         onClose={vi.fn()}
+        title="CLI Terminal"
         wrapperId="custom-drawer-wrapper"
         containerId="custom-drawer-container"
         backdropId="custom-drawer-backdrop"
@@ -115,6 +117,45 @@ describe('AnimatedDrawer', () => {
     expect(document.querySelector('#custom-drawer-wrapper')).not.toBeNull();
     expect(document.querySelector('#custom-drawer-container')).not.toBeNull();
     expect(document.querySelector('#custom-drawer-backdrop')).not.toBeNull();
+  });
+
+  it('should always render required DrawerTitle with sr-only class and expose accessible dialog name', () => {
+    // Arrange & Act
+    render(
+      <AnimatedDrawer isOpen={true} onClose={vi.fn()} title="System Diagnostics Drawer">
+        <div>Diagnostics Content</div>
+      </AnimatedDrawer>
+    );
+
+    // Assert
+    const dialog = screen.getByRole('dialog', { name: 'System Diagnostics Drawer' });
+    expect(dialog).toBeTruthy();
+    expect(dialog.getAttribute('aria-label')).toBe('System Diagnostics Drawer');
+
+    const drawerTitle = document.querySelector('[data-slot="drawer-title"]');
+    expect(drawerTitle).not.toBeNull();
+    expect(drawerTitle?.textContent).toBe('System Diagnostics Drawer');
+    expect(drawerTitle?.classList.contains('sr-only')).toBe(true);
+  });
+
+  it('should respect explicit aria-label override when provided', () => {
+    // Arrange & Act
+    render(
+      <AnimatedDrawer
+        isOpen={true}
+        onClose={vi.fn()}
+        title="Visible Heading Title"
+        aria-label="Custom Accessible Name"
+      >
+        <div>Content</div>
+      </AnimatedDrawer>
+    );
+
+    // Assert
+    const dialog = screen.getByRole('dialog', { name: 'Custom Accessible Name' });
+    expect(dialog).toBeTruthy();
+    expect(dialog.getAttribute('aria-label')).toBe('Custom Accessible Name');
+    expect(screen.getByText('Visible Heading Title')).toBeTruthy();
   });
 
   it('should apply pure CSS transition classes for data-starting-style and data-ending-style', () => {
