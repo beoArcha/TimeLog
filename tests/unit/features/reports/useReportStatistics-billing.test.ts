@@ -278,7 +278,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
       expect(lastCall.projectIds).not.toContain('p2');
     });
 
-    it('should pass empty projectIds when selectedTags match no projects', async () => {
+    it('should return empty billing result without calling engine when selectedTags match no projects', async () => {
       // Arrange & Act
       const { result } = renderHook(() =>
         useReportStatistics({
@@ -299,12 +299,46 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
         expect(result.current.isBillingLoading).toBe(false);
       });
 
-      expect(calculateRangeBillingMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          projectIds: [],
-        }),
-        '2026-07-12T15:00:00Z'
+      expect(calculateRangeBillingMock).not.toHaveBeenCalled();
+      expect(result.current.billingResult).toEqual({
+        byCurrency: {},
+        byTask: [],
+        totalBillableSeconds: 0,
+        totalNonBillableSeconds: 0,
+        totalUnconfiguredSeconds: 0,
+      });
+    });
+
+    it('should return empty billing result without calling engine when selectedProjectId does not match active tags', async () => {
+      // Arrange & Act (p2 has tag ['backend'], but selectedTags is ['frontend'])
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs,
+          patches,
+          projects: taggedProjects,
+          tasks,
+          nowIso: '2026-07-12T15:00:00Z',
+          reportPeriod: 'week',
+          reportSort: 'duration',
+          selectedProjectId: 'p2',
+          selectedTags: ['frontend'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
       );
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.isBillingLoading).toBe(false);
+      });
+
+      expect(calculateRangeBillingMock).not.toHaveBeenCalled();
+      expect(result.current.billingResult).toEqual({
+        byCurrency: {},
+        byTask: [],
+        totalBillableSeconds: 0,
+        totalNonBillableSeconds: 0,
+        totalUnconfiguredSeconds: 0,
+      });
     });
 
     it('should recalculate billing when selectedTags change', async () => {

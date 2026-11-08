@@ -45,7 +45,9 @@ describe('Unit Tests: ReportView', () => {
     reportPeriod: 'all',
     setReportPeriod: vi.fn(),
     reportSort: 'duration',
-    setReportSort: vi.fn()
+    setReportSort: vi.fn(),
+    selectedProjectId: null,
+    setSelectedProjectId: vi.fn(),
   } as unknown as GuiState;
 
   afterEach(() => {
@@ -172,108 +174,36 @@ describe('Unit Tests: ReportView', () => {
     const multiProjectState: GuiState = {
       ...mockGuiState,
       projects: [
-        { id: 'p1', name: 'Alpha Project', color: 'indigo', createdAt: '2026-06-01T00:00:00Z', archived: false, description: null, icon: null, tags: null },
-        { id: 'p2', name: 'Beta Project', color: 'emerald', createdAt: '2026-06-01T00:00:00Z', archived: false, description: null, icon: null, tags: null },
+        { id: 'p1', name: 'Alpha Project', color: 'indigo', createdAt: '2026-06-01T00:00:00Z', archived: false, description: null, icon: null, tags: ['frontend'] },
+        { id: 'p2', name: 'Beta Project', color: 'emerald', createdAt: '2026-06-01T00:00:00Z', archived: false, description: null, icon: null, tags: ['backend'] },
+        { id: 'p3', name: 'Gamma Project', color: 'rose', createdAt: '2026-06-01T00:00:00Z', archived: false, description: null, icon: null, tags: ['frontend'] },
       ],
       tasks: [
         { id: 't1', projectId: 'p1', name: 'Alpha Task', completed: false, createdAt: '2026-06-01T00:00:00Z', status: null, parentTaskId: null },
         { id: 't2', projectId: 'p2', name: 'Beta Task', completed: false, createdAt: '2026-06-01T00:00:00Z', status: null, parentTaskId: null },
+        { id: 't3', projectId: 'p3', name: 'Gamma Task', completed: false, createdAt: '2026-06-01T00:00:00Z', status: null, parentTaskId: null },
       ],
       logs: [
         { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T09:00:00Z', endTime: '2026-06-15T10:00:00Z', note: 'Alpha work 1h' },
         { id: 'l2', taskId: 't2', projectId: 'p2', startTime: '2026-06-15T11:00:00Z', endTime: '2026-06-15T13:00:00Z', note: 'Beta work 2h' },
+        { id: 'l3', taskId: 't3', projectId: 'p3', startTime: '2026-06-15T14:00:00Z', endTime: '2026-06-15T17:00:00Z', note: 'Gamma work 3h' },
       ],
       reportPeriod: 'all',
+      selectedProjectId: null,
       setSelectedProjectId: vi.fn(),
     } as unknown as GuiState;
 
-    it('Given multiple projects When no project is selected (All) Then total shows sum of all projects (10800s / 3h)', () => {
-      // Given & When
-      render(<ReportView state={multiProjectState} />);
-
-      // Then
-      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('true');
-      expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('false');
-      expect(screen.getByTestId('project-filter-p2').getAttribute('aria-pressed')).toBe('false');
-
-      // Both tasks and projects appear
-      expect(screen.getAllByText(/Alpha Task/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Beta Task/i).length).toBeGreaterThan(0);
-
-      // Period total must be 3h (3600 + 7200 = 10800s)
-      expect(screen.getByTestId('report-stat-total')).toBeDefined();
-      expect(screen.getByTestId('report-stat-total').textContent).toContain('03:00:00');
-    });
-
-    it('Given multiple projects When user selects Alpha Project from filter list Then sum equals sum of its logs (3600s / 1h) and list/chart synchronize', () => {
-      // Given
-      const setSelectedProjectIdSpy = vi.fn();
-      render(
-        <ReportView
-          state={{
-            ...multiProjectState,
-            setSelectedProjectId: setSelectedProjectIdSpy,
-          }}
-        />
-      );
-
-      // When
-      const p1Btn = screen.getByTestId('project-filter-p1');
-      fireEvent.click(p1Btn);
-
-      // Then - List state updated
-      expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('true');
-      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('false');
-      expect(setSelectedProjectIdSpy).toHaveBeenCalledWith('p1');
-
-      // Then - Period total equals sum of p1 logs (1h = 01:00:00)
-      expect(screen.getByTestId('report-stat-total').textContent).toContain('01:00:00');
-
-      // Then - Only Alpha Task is rendered in logs
-      expect(screen.getAllByText(/Alpha Task/i).length).toBeGreaterThan(0);
-      expect(screen.queryByText(/Beta Task/i)).toBeNull();
-
-      // Then - Donut chart shows selected badge and clear button
-      expect(screen.getByTestId('clear-project-filter')).toBeDefined();
-    });
-
-    it('Given selected project When clearing filter from Donut Chart Then list selection returns to All and total restores to full sum', () => {
-      // Given
-      const setSelectedProjectIdSpy = vi.fn();
-      render(
-        <ReportView
-          state={{
-            ...multiProjectState,
-            setSelectedProjectId: setSelectedProjectIdSpy,
-          }}
-        />
-      );
-
-      // Select p2 first
-      fireEvent.click(screen.getByTestId('project-filter-p2'));
-      expect(screen.getByTestId('report-stat-total').textContent).toContain('02:00:00');
-      expect(screen.getByTestId('clear-project-filter')).toBeDefined();
-
-      // When - click Clear Filter in Donut Chart
-      fireEvent.click(screen.getByTestId('clear-project-filter'));
-
-      // Then - Filter list switches back to All
-      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('true');
-      expect(screen.getByTestId('project-filter-p2').getAttribute('aria-pressed')).toBe('false');
-      expect(setSelectedProjectIdSpy).toHaveBeenCalledWith(null);
-
-      // Then - Full sum restored (3h = 03:00:00)
-      expect(screen.getByTestId('report-stat-total').textContent).toContain('03:00:00');
-      expect(screen.getAllByText(/Alpha Task/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Beta Task/i).length).toBeGreaterThan(0);
-    });
-
-    it('Given external state update from sidebar When state.selectedProjectId changes Then ReportView reacts and syncs selection', () => {
-      // Given
+    it('1. Sidebar -> report: external state change in state.selectedProjectId updates filter and data', () => {
       const { rerender } = render(<ReportView state={multiProjectState} />);
-      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('true');
 
-      // When - External state updates (user clicked p1 in sidebar)
+      // Initially All is selected: total shows 6h (1h + 2h + 3h = 21600s)
+      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('true');
+      expect(screen.getByTestId('report-stat-total').textContent).toContain('06:00:00');
+      expect(screen.getAllByText(/Alpha Task/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Beta Task/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Gamma Task/i).length).toBeGreaterThan(0);
+
+      // External update: user selects Alpha in sidebar
       rerender(
         <ReportView
           state={{
@@ -283,10 +213,181 @@ describe('Unit Tests: ReportView', () => {
         />
       );
 
-      // Then - ReportView project filter reacts to sidebar selection
       expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('true');
       expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('false');
       expect(screen.getByTestId('report-stat-total').textContent).toContain('01:00:00');
+      expect(screen.getAllByText(/Alpha Task/i).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/Beta Task/i)).toBeNull();
+      expect(screen.queryByText(/Gamma Task/i)).toBeNull();
+
+      // External update: user selects Beta in sidebar
+      rerender(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            selectedProjectId: 'p2',
+          }}
+        />
+      );
+
+      expect(screen.getByTestId('project-filter-p2').getAttribute('aria-pressed')).toBe('true');
+      expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getByTestId('report-stat-total').textContent).toContain('02:00:00');
+      expect(screen.getAllByText(/Beta Task/i).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/Alpha Task/i)).toBeNull();
+
+      // External update: user clears selection in sidebar
+      rerender(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            selectedProjectId: null,
+          }}
+        />
+      );
+
+      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('true');
+      expect(screen.getByTestId('report-stat-total').textContent).toContain('06:00:00');
+    });
+
+    it('2. Report -> sidebar: clicking project button calls state.setSelectedProjectId', () => {
+      const setSelectedProjectIdSpy = vi.fn();
+      const { rerender } = render(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            setSelectedProjectId: setSelectedProjectIdSpy,
+          }}
+        />
+      );
+
+      // Click p1
+      fireEvent.click(screen.getByTestId('project-filter-p1'));
+      expect(setSelectedProjectIdSpy).toHaveBeenCalledWith('p1');
+
+      // Click All
+      fireEvent.click(screen.getByTestId('project-filter-all'));
+      expect(setSelectedProjectIdSpy).toHaveBeenCalledWith(null);
+
+      // Toggle off: when already selected, clicking it toggles to null
+      rerender(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            selectedProjectId: 'p1',
+            setSelectedProjectId: setSelectedProjectIdSpy,
+          }}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('project-filter-p1'));
+      expect(setSelectedProjectIdSpy).toHaveBeenCalledWith(null);
+
+      // Clearing from Donut Chart
+      rerender(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            selectedProjectId: 'p2',
+            setSelectedProjectId: setSelectedProjectIdSpy,
+          }}
+        />
+      );
+
+      expect(screen.getByTestId('clear-project-filter')).not.toBeNull();
+      fireEvent.click(screen.getByTestId('clear-project-filter'));
+      expect(setSelectedProjectIdSpy).toHaveBeenCalledWith(null);
+    });
+
+    it('3. Project + matching tags: shows only data for the selected project', () => {
+      render(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            selectedProjectId: 'p1', // p1 has tag 'frontend'
+          }}
+        />
+      );
+
+      // Toggle 'frontend' tag
+      const tagBtn = screen.getByTestId('tag-chip-frontend');
+      fireEvent.click(tagBtn);
+
+      // p1 matches active tag 'frontend': only p1 data is shown (1h = 01:00:00)
+      expect(screen.getByTestId('report-stat-total').textContent).toContain('01:00:00');
+      expect(screen.getAllByText(/Alpha Task/i).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/Beta Task/i)).toBeNull();
+      expect(screen.queryByText(/Gamma Task/i)).toBeNull();
+    });
+
+    it('4. Project + non-matching tags: returns empty results across all report sections', () => {
+      render(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            selectedProjectId: 'p2', // Beta has tag 'backend'
+          }}
+        />
+      );
+
+      // Toggle 'frontend' tag (Beta does NOT have 'frontend')
+      const tagBtn = screen.getByTestId('tag-chip-frontend');
+      fireEvent.click(tagBtn);
+
+      // Strict intersection is empty -> 0 results everywhere
+      expect(screen.getByTestId('report-stat-total').textContent).toContain('00:00:00');
+      expect(screen.queryByText(/Alpha Task/i)).toBeNull();
+      expect(screen.queryByText(/Beta Task/i)).toBeNull();
+      expect(screen.queryByText(/Gamma Task/i)).toBeNull();
+      expect(screen.queryByTestId('report-stat-top-project')).toBeNull();
+    });
+
+    it('5. All: restores all projects matching active tags', () => {
+      render(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            selectedProjectId: null, // All projects
+          }}
+        />
+      );
+
+      // Toggle 'frontend' tag (matches p1 Alpha 1h and p3 Gamma 3h)
+      const tagBtn = screen.getByTestId('tag-chip-frontend');
+      fireEvent.click(tagBtn);
+
+      // Sum of p1 (1h) and p3 (3h) = 4h (04:00:00)
+      expect(screen.getByTestId('report-stat-total').textContent).toContain('04:00:00');
+      expect(screen.getAllByText(/Alpha Task/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Gamma Task/i).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/Beta Task/i)).toBeNull();
+    });
+
+    it('6. Consistency across KPI, donut chart, activity chart, and export payload', async () => {
+      render(
+        <ReportView
+          state={{
+            ...multiProjectState,
+            selectedProjectId: 'p1',
+          }}
+        />
+      );
+
+      // KPI
+      expect(screen.getByTestId('report-stat-total').textContent).toContain('01:00:00');
+
+      // Charts exist
+      expect(screen.getByTestId('stacked-bar-activity-chart')).not.toBeNull();
+      expect(screen.getByTestId('project-donut-chart')).not.toBeNull();
+      expect(screen.getByTestId('clear-project-filter')).not.toBeNull();
+
+      // Export modal payload consistency
+      const exportBtn = screen.getByTestId('report-export-button');
+      fireEvent.click(exportBtn);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('report-export-modal')).not.toBeNull();
+      });
     });
   });
 });

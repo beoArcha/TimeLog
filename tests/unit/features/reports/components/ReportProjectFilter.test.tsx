@@ -6,6 +6,8 @@ import { ReportProjectFilter } from '@features/reports/components/ReportProjectF
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { aProject } from '@tests/shared/builders/entity-builders';
 
+import { DEFAULT_PROJECT_COLOR_HEX } from '@common/constants/projectColors';
+
 describe('Unit Tests: ReportProjectFilter', () => {
   afterEach(() => {
     cleanup();
@@ -117,5 +119,43 @@ describe('Unit Tests: ReportProjectFilter', () => {
 
     fireEvent.click(screen.getByTestId('project-filter-all'));
     expect(onSelectProject).toHaveBeenCalledWith(null);
+  });
+
+  it('Given project with unknown color name When rendered Then color indicator falls back to DEFAULT_PROJECT_COLOR_HEX', () => {
+    const projectUnknown = aProject({ id: 'p3', name: 'Gamma Corp', color: 'unmapped_color' });
+    const onSelectProject = vi.fn();
+    render(
+      <MockProviders>
+        <ReportProjectFilter
+          projects={[projectUnknown]}
+          selectedProjectId={null}
+          onSelectProject={onSelectProject}
+        />
+      </MockProviders>
+    );
+
+    const btn = screen.getByTestId('project-filter-p3');
+    const dot = btn.querySelector('span[aria-hidden="true"]');
+    expect(dot).not.toBeNull();
+    expect(DEFAULT_PROJECT_COLOR_HEX).toBe('#f43f5e');
+    expect((dot as HTMLElement).style.backgroundColor).toMatch(/rgb\(244,\s*63,\s*94\)|#f43f5e/);
+  });
+
+  it('Given ReportProjectFilter When rendered Then project label uses Text typography component with muted variant and font-mono', () => {
+    const onSelectProject = vi.fn();
+    const { container } = render(
+      <MockProviders>
+        <ReportProjectFilter
+          projects={[projectA]}
+          selectedProjectId={null}
+          onSelectProject={onSelectProject}
+        />
+      </MockProviders>
+    );
+
+    const label = container.querySelector('[data-slot="text"]');
+    expect(label).not.toBeNull();
+    expect(label?.tagName.toLowerCase()).toBe('span');
+    expect(label?.className).toContain('font-mono');
   });
 });
