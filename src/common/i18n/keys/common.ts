@@ -19,6 +19,7 @@ export type CommonKey =
   | 'ERR_AUDIT_REASON_REQUIRED'
   | 'ERR_AUDIT_SOURCE_INVALID'
   | 'ERR_TIMELOG_INVALID_RANGE'
+  | 'ErrRequired'
   | 'ErrSuccess'
   | 'ErrWarning'
   | 'Month'

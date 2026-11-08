@@ -51,4 +51,20 @@ describe('StatusDot', () => {
     expect(element?.className).toContain('w-1.5');
     expect(element?.className).toContain('h-1.5');
   });
+
+  it('should support semantic status tokens (success, warning, destructive, info)', () => {
+    // Arrange & Act
+    const { container: successContainer } = render(<StatusDot variant="success" size="xs" />);
+    const { container: warningContainer } = render(<StatusDot variant="warning" size="xs" ping />);
+    const { container: destructiveContainer } = render(<StatusDot variant="destructive" size="xs" />);
+    const { container: infoContainer } = render(<StatusDot variant="info" size="xs" ping />);
+
+    // Assert
+    expect(successContainer.querySelector('[data-slot="status-dot"]')?.className).toContain('bg-success');
+    expect(warningContainer.querySelector('.rounded-full:not(.animate-ping)')?.className).toContain('bg-warning');
+    expect(warningContainer.querySelector('.animate-ping')?.className).toContain('bg-warning');
+    expect(destructiveContainer.querySelector('[data-slot="status-dot"]')?.className).toContain('bg-destructive');
+    expect(infoContainer.querySelector('.rounded-full:not(.animate-ping)')?.className).toContain('bg-info');
+    expect(infoContainer.querySelector('.animate-ping')?.className).toContain('bg-info');
+  });
 });
