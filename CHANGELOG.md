@@ -51,6 +51,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Cross-Runtime Audit Source & Reason Parity Test Suite**:
+  - Established shared cross-runtime test matrix fixture `tests/shared/fixtures/audit-parity-cases.json` covering 41 vectors across default source, raw enum identifiers, UI label strings, optional reason for `SystemPatch`, mandatory reason validation for manual edits (`ERR_AUDIT_REASON_REQUIRED`), and invalid source detection (`ERR_AUDIT_SOURCE_INVALID`).
+  - Added comprehensive BDT test coverage in `tests/integration/engine/CrossRuntimeParity.test.ts` executing the shared matrix against Browser `EnginePlugin` and verifying payload mapping in Desktop Tauri `EngineCommands`.
+  - Added dedicated Rust integration test suite in `src-tauri/tests/engine_lifecycle_test.rs` validating the shared fixture against the Rust reference engine implementation.
+
 - **Report Print / PDF Stylesheet & PWA Analytics Clean-Up** (Phase 18 Group D):
   - Added dedicated `@media print` CSS rules in `src/styles/index.css` stripping navigation sidebars, headers, period filters, and action buttons, while forcing clean contrast (black text, white background, no drop-shadows or backdrops, avoid-break inside tables and cards) for client-ready PDF generation.
   - Added "Print / PDF" action button with `Printer` icon in `ReportView` `ViewHeader` triggering native `window.print()`.
