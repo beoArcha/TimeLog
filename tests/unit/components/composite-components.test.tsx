@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { StatCard } from '@components/StatCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
@@ -316,8 +317,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(dialog.getAttribute('aria-describedby')).toBeTruthy();
     });
 
-    it('SearchInput should have role=search, input aria-label, and clear button accessible name', () => {
-      render(<SearchInput value="test" onChange={() => {}} onClear={() => {}} />);
+    it('SearchInput should have role=search when requested, input aria-label, and clear button accessible name', () => {
+      render(<SearchInput role="search" value="test" onChange={() => {}} onClear={() => {}} />);
       const searchRegion = screen.getByRole('search');
       expect(searchRegion).toBeTruthy();
 
@@ -349,7 +350,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(status.getAttribute('aria-live')).toBe('polite');
     });
 
-    it('StatCard should have accessible aria-label on trend and keyboard activation', () => {
+    it('StatCard should have accessible aria-label on trend and keyboard activation', async () => {
+      const user = userEvent.setup();
       const onClick = vi.fn();
       render(
         <StatCard
@@ -363,7 +365,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(screen.getByLabelText('10% increase this week')).toBeTruthy();
 
       const card = screen.getByTestId('interactive-stat');
-      fireEvent.keyDown(card, { key: 'Enter' });
+      card.focus();
+      await user.keyboard('{Enter}');
       expect(onClick).toHaveBeenCalledTimes(1);
     });
 
@@ -377,6 +380,26 @@ describe('Unit Tests: Composite Components', () => {
       );
       const expectedTrendLabel = `${translate('en', 'common', 'TrendIncrease')}: 5%`;
       expect(screen.getByLabelText(expectedTrendLabel)).toBeTruthy();
+    });
+
+    it('StatCard should forward sentiment to TrendIndicator when provided', () => {
+      // Arrange
+      const expectedTrendLabel = `${translate('en', 'common', 'TrendIncrease')}: $200`;
+
+      // Act
+      render(
+        <StatCard
+          title="Expenses"
+          value="$1,200"
+          trend={{ value: '$200', direction: 'up', sentiment: 'negative' }}
+        />
+      );
+
+      // Assert
+      const trendElement = screen.getByRole('img', { name: expectedTrendLabel });
+      expect(trendElement).toBeTruthy();
+      expect(trendElement.getAttribute('data-direction')).toBe('up');
+      expect(trendElement.getAttribute('data-sentiment')).toBe('negative');
     });
   });
 });

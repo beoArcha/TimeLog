@@ -31,6 +31,7 @@ export interface DataTableProps<T> {
   emptyDescription?: string;
   maxHeight?: string | number;
   totalCount?: number;
+  rowIndexOffset?: number;
   totalLabel?: string;
   tableAriaLabel?: string;
   footerContent?: React.ReactNode;
@@ -61,6 +62,7 @@ export function DataTable<T>({
   emptyDescription,
   maxHeight = '500px',
   totalCount,
+  rowIndexOffset = 0,
   totalLabel,
   tableAriaLabel,
   footerContent,
@@ -69,6 +71,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const { locale, customTranslations } = useSafeLocale();
   const count = totalCount ?? data.length;
+  const rowCount = count + 1;
 
   const resolvedEmptyTitle = emptyTitle || translate(locale, 'common', 'NoData', customTranslations);
   const resolvedTotalLabel = totalLabel || translate(locale, 'common', 'Total', customTranslations);
@@ -85,9 +88,9 @@ export function DataTable<T>({
       )}
     >
       <ScrollArea style={{ maxHeight }} className="w-full">
-        <Table aria-rowcount={data.length} aria-colcount={columns.length} className={cn('w-full', className)}>
+        <Table aria-rowcount={rowCount} aria-colcount={columns.length} className={cn('w-full', className)}>
           <TableHeader>
-            <TableRow>
+            <TableRow aria-rowindex={1}>
               {columns.map((col, colIdx) => (
                 <TableHead
                   key={col.key}
@@ -121,8 +124,9 @@ export function DataTable<T>({
                     </React.Fragment>
                   );
                 }
+                const ariaRowIndex = rowIndexOffset + index + 2;
                 return (
-                  <TableRow key={key} aria-rowindex={index + 1}>
+                  <TableRow key={key} aria-rowindex={ariaRowIndex}>
                     {columns.map((col, colIdx) => (
                       <TableCell
                         key={col.key}

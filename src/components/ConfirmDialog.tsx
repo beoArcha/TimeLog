@@ -63,6 +63,17 @@ export interface ConfirmDialogProps {
   onClearError?: () => void;
 }
 
+interface CancellableEventDetails {
+  cancel: () => void;
+}
+
+function isCancellableEventDetails(details: unknown): details is CancellableEventDetails {
+  if (typeof details !== 'object' || details === null) {
+    return false;
+  }
+  return 'cancel' in details && typeof (details as { cancel?: unknown }).cancel === 'function';
+}
+
 /**
  * Confirmation dialog for user actions such as deletions, resets, or critical operations.
  */
@@ -103,16 +114,33 @@ export function ConfirmDialog({
   };
 
   const handleCancel = () => {
+    if (isLoading) {
+      return;
+    }
     clearError();
     onCancel?.();
     onOpenChange?.(false);
   };
 
-  const handleOpenChange = (nextOpen: boolean) => {
+  const handleOpenChange = (nextOpen: boolean, eventDetails?: unknown) => {
+    if (isLoading && !nextOpen) {
+      if (isCancellableEventDetails(eventDetails)) {
+        eventDetails.cancel();
+      }
+      return;
+    }
+
     if (!nextOpen) {
       clearError();
     }
     onOpenChange?.(nextOpen);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (isLoading && event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   };
 
   const extractErrorMessage = (error: unknown): string => {
@@ -127,9 +155,14 @@ export function ConfirmDialog({
   };
 
   const handleConfirm = () => {
+    if (isLoading || confirmDisabled) {
+      return;
+    }
+
     try {
       const result = onConfirm();
-      if (result && typeof (result as Promise<void>).then === 'function') {
+      const isPromise = Boolean(result && typeof (result as Promise<void>).then === 'function');
+      if (isPromise) {
         setInternalLoading(true);
         (result as Promise<void>)
           .then(() => {
@@ -143,10 +176,11 @@ export function ConfirmDialog({
           .finally(() => {
             setInternalLoading(false);
           });
-      } else {
-        clearError();
-        onOpenChange?.(false);
+        return;
       }
+
+      clearError();
+      onOpenChange?.(false);
     } catch (error) {
       console.error('[ConfirmDialog] Confirm action failed:', error);
       setInternalError(extractErrorMessage(error));
@@ -160,12 +194,18 @@ export function ConfirmDialog({
   const iconColor = iconColorMap[variant] ?? 'text-primary bg-primary/10 border-primary/20';
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      disablePointerDismissal={isLoading}
+    >
       <DialogContent
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
+        onKeyDown={handleKeyDown}
+        showClose={!isLoading}
         className="max-w-md focus-visible:outline-none"
       >
         <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
@@ -208,6 +248,7 @@ export function ConfirmDialog({
             variant={variant === 'destructive' ? 'destructive' : 'default'}
             onClick={handleConfirm}
             disabled={isLoading || confirmDisabled}
+            focusableWhenDisabled={isLoading}
             loading={isLoading}
             aria-busy={isLoading}
             data-testid="confirm-dialog-confirm-btn"

@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -332,6 +332,134 @@ describe('Unit Tests: ConfirmDialog', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
+  it('should ignore Escape key press and keep dialog open when confirm action is loading', async () => {
+    // Arrange
+    const onOpenChange = vi.fn();
+    let resolveAction: () => void = () => {};
+    const pendingPromise = new Promise<void>((resolve) => {
+      resolveAction = resolve;
+    });
+    const onConfirm = vi.fn().mockReturnValue(pendingPromise);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Loading Esc Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+    expect(confirmBtn.getAttribute('aria-busy')).toBe('true');
+
+    // Act
+    fireEvent.keyDown(screen.getByRole('alertdialog'), { key: 'Escape', code: 'Escape' });
+    fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
+
+    // Assert
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+
+    resolveAction();
+  });
+
+  it('should ignore backdrop click and keep dialog open when confirm action is loading', async () => {
+    // Arrange
+    const onOpenChange = vi.fn();
+    let resolveAction: () => void = () => {};
+    const pendingPromise = new Promise<void>((resolve) => {
+      resolveAction = resolve;
+    });
+    const onConfirm = vi.fn().mockReturnValue(pendingPromise);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Loading Backdrop Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+    expect(confirmBtn.getAttribute('aria-busy')).toBe('true');
+
+    // Act
+    const backdrop = document.querySelector('[data-slot="dialog-backdrop"]');
+    if (backdrop) {
+      fireEvent.click(backdrop);
+    }
+
+    // Assert
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+
+    resolveAction();
+  });
+
+  it('should retain focus on confirm button when confirm action is loading', async () => {
+    // Arrange
+    const onOpenChange = vi.fn();
+    let resolveAction: () => void = () => {};
+    const pendingPromise = new Promise<void>((resolve) => {
+      resolveAction = resolve;
+    });
+    const onConfirm = vi.fn().mockReturnValue(pendingPromise);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Focus Retain Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    confirmBtn.focus();
+    expect(document.activeElement).toBe(confirmBtn);
+
+    // Act
+    fireEvent.click(confirmBtn);
+
+    // Assert
+    expect(confirmBtn.getAttribute('aria-busy')).toBe('true');
+    expect(document.activeElement).toBe(confirmBtn);
+    expect(confirmBtn.getAttribute('aria-disabled')).toBe('true');
+    expect(confirmBtn.hasAttribute('disabled')).toBe(false);
+
+    resolveAction();
+  });
+
+  it('should keep dialog open and display visible error alert when async onConfirm action fails', async () => {
+    // Arrange
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onOpenChange = vi.fn();
+    const onConfirm = vi.fn().mockRejectedValue(new Error('Operation aborted unexpectedly'));
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Failure Keeps Open Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    // Act
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    // Assert
+    const alert = await screen.findByRole('alert');
+    expect(alert).not.toBeNull();
+    expect(alert.textContent).toBe('Operation aborted unexpectedly');
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+  });
   it('renders warning variant with semantic warning token classes and no raw amber palette classes', () => {
     render(
       <ConfirmDialog
