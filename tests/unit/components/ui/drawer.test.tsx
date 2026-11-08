@@ -10,6 +10,8 @@ import {
   DrawerDescription,
   DrawerFooter,
 } from '@components/ui/drawer';
+import { MockLocaleProvider } from '@tests/shared/mocks/MockProviders';
+import type { Locale } from '@bindings/Locale';
 
 describe('Drawer', () => {
   afterEach(() => {
@@ -81,4 +83,82 @@ describe('Drawer', () => {
     expect(dialog.className).not.toContain('animate-in');
     expect(dialog.className).not.toContain('animate-out');
   });
+
+  it('should render default English close sr-only text and aria-label when outside LocaleProvider', () => {
+    // Arrange & Act
+    render(
+      <Drawer open={true}>
+        <DrawerContent>
+          <DrawerTitle>Drawer Content</DrawerTitle>
+        </DrawerContent>
+      </Drawer>
+    );
+
+    // Assert
+    const closeBtn = screen.getByRole('button', { name: 'Close' });
+    expect(closeBtn).toBeTruthy();
+    expect(closeBtn.getAttribute('aria-label')).toBe('Close');
+    const srOnly = closeBtn.querySelector('.sr-only');
+    expect(srOnly?.textContent).toBe('Close');
+  });
+
+  it.each([
+    ['pl', 'Zamknij'],
+    ['de', 'Schließen'],
+    ['es', 'Cerrar'],
+    ['fr', 'Fermer'],
+    ['uk', 'Закрити'],
+    ['ja', '閉じる'],
+  ] as const)('should render localized close label for locale %s', (locale, expectedLabel) => {
+    // Arrange & Act
+    render(
+      <MockLocaleProvider value={{ locale: locale as Locale }}>
+        <Drawer open={true}>
+          <DrawerContent>
+            <DrawerTitle>Localized Drawer</DrawerTitle>
+          </DrawerContent>
+        </Drawer>
+      </MockLocaleProvider>
+    );
+
+    // Assert
+    const closeBtn = screen.getByRole('button', { name: expectedLabel });
+    expect(closeBtn).toBeTruthy();
+    expect(closeBtn.getAttribute('aria-label')).toBe(expectedLabel);
+    const srOnly = closeBtn.querySelector('.sr-only');
+    expect(srOnly?.textContent).toBe(expectedLabel);
+  });
+
+  it('should allow custom closeLabel prop override', () => {
+    // Arrange & Act
+    render(
+      <Drawer open={true}>
+        <DrawerContent closeLabel="Custom Drawer Close">
+          <DrawerTitle>Custom Label Drawer</DrawerTitle>
+        </DrawerContent>
+      </Drawer>
+    );
+
+    // Assert
+    const closeBtn = screen.getByRole('button', { name: 'Custom Drawer Close' });
+    expect(closeBtn).toBeTruthy();
+    expect(closeBtn.getAttribute('aria-label')).toBe('Custom Drawer Close');
+    const srOnly = closeBtn.querySelector('.sr-only');
+    expect(srOnly?.textContent).toBe('Custom Drawer Close');
+  });
+
+  it('should omit close button when showClose is false', () => {
+    // Arrange & Act
+    render(
+      <Drawer open={true}>
+        <DrawerContent showClose={false}>
+          <DrawerTitle>No Close Button</DrawerTitle>
+        </DrawerContent>
+      </Drawer>
+    );
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /close/i })).toBeNull();
+  });
 });
+
