@@ -140,7 +140,7 @@ impl BusinessRepository {
             });
         }
 
-        let reason_str = entry.reason.map(|r| r.as_str());
+        let audit_source_str = entry.audit_source.map(|r| r.as_str());
 
         tx.execute(
             constants::INSERT_TIME_LOG_HISTORY,
@@ -151,7 +151,8 @@ impl BusinessRepository {
                 entry.prev_start_time,
                 entry.prev_end_time,
                 entry.prev_note,
-                reason_str
+                entry.reason,
+                audit_source_str
             ],
         )?;
 

@@ -1,23 +1,38 @@
 import React, { useState, useMemo } from 'react';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
-import { BarChart3, Download } from 'lucide-react';
+import { BarChart3, Download, Printer } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
+import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Area } from '@components/ui/area';
 import { Grid } from '@components/ui/grid';
+import { InlineCluster } from '@components/ui/stack';
 import { ViewHeader } from '@components/ViewHeader';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
-import { ExportPayload, ExportDataRow } from '@plugins/contracts/IExporterPlugin';
+import { Task } from '@bindings/Task';
+import {
+  ExportPayload,
+  ExportDataRow,
+  ExportProjectBreakdown,
+  ExportTaskBreakdown,
+  ExportSubtaskBreakdown,
+} from '@plugins/contracts/IExporterPlugin';
 import ReportStatsCards from './components/ReportStatsCards';
 import ReportBillingCard from './components/ReportBillingCard';
 import ReportPeriodSelector from './components/ReportPeriodSelector';
+import ReportPeriodPrintHeader from './components/ReportPeriodPrintHeader';
 import StackedBarActivityChart from './components/StackedBarActivityChart';
 import ProjectDonutChart from './components/ProjectDonutChart';
 import ReportLogList from './components/ReportLogList';
 import ReportExportModal from './components/ReportExportModal';
 import { useReportStatistics } from './hooks/useReportStatistics';
+import {
+  extractAvailableTags,
+  projectMatchesTags,
+  filterProjectsByTags,
+} from './utils/tagFiltering';
 
 export default function ReportView({ state }: { state: GuiState }) {
   const {
@@ -28,28 +43,72 @@ export default function ReportView({ state }: { state: GuiState }) {
   } = state;
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
+  const { isDesktop } = usePlatformCapabilities();
   const { t } = useTranslation('report');
+
+  const availableTags = useMemo(() => {
+    return extractAvailableTags(projects);
+  }, [projects]);
+
+  const handleToggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleClearTags = () => {
+    setSelectedTags([]);
+  };
+
+  const effectiveSelectedProjectId = useMemo(() => {
+    if (!selectedProjectId) return null;
+    if (selectedTags.length === 0) return selectedProjectId;
+    const project = projects.find((p) => p.id === selectedProjectId);
+    return projectMatchesTags(project, selectedTags) ? selectedProjectId : null;
+  }, [selectedProjectId, selectedTags, projects]);
+
   const {
     todaySec, weekSec, monthSec,
     periodTotalSec, dailyAverageSec, topProject,
-    filteredLogs, projectChart, maxSec, displayLogs, clampedLogs
+    filteredLogs, projectChart, maxSec, displayLogs, clampedLogs,
+    billingResult, billingError, isBillingLoading,
   } = useReportStatistics({
     logs, patches, projects, tasks, nowIso,
     reportPeriod, reportSort, sysSettings,
-    customFrom, customTo
+    customFrom, customTo,
+    selectedProjectId: effectiveSelectedProjectId,
+    selectedTags,
   });
 
+  const matchingTagProjectIds = useMemo(() => {
+    if (selectedTags.length === 0) return null;
+    return filterProjectsByTags(projects, selectedTags).map((p) => p.id);
+  }, [projects, selectedTags]);
+
   const effectiveDisplayLogs = useMemo(() => {
-    if (!selectedProjectId) return displayLogs;
-    return displayLogs.filter((log) => log.projectId === selectedProjectId);
-  }, [displayLogs, selectedProjectId]);
+    if (!effectiveSelectedProjectId) return displayLogs;
+    return displayLogs.filter((log) => {
+      const projId = (log as ClampedTimeLog).projectId || tasks.find((t) => t.id === log.taskId)?.projectId;
+      return projId === effectiveSelectedProjectId;
+    });
+  }, [displayLogs, effectiveSelectedProjectId, tasks]);
 
   const exportPayload: ExportPayload = useMemo(() => {
     const rows: ExportDataRow[] = effectiveDisplayLogs.map((log) => {
-      const task = tasks.find((t) => t.id === log.taskId);
-      const projId = (log as ClampedTimeLog).projectId || task?.projectId;
+      const rawTask = tasks.find((t) => t.id === log.taskId);
+      let taskName = rawTask?.name || 'Unknown';
+      let subtaskName: string | undefined;
+
+      if (rawTask?.parentTaskId) {
+        const parentTask = tasks.find((t) => t.id === rawTask.parentTaskId);
+        taskName = parentTask?.name || rawTask.parentTaskId;
+        subtaskName = rawTask.name;
+      }
+
+      const projId = (log as ClampedTimeLog).projectId || rawTask?.projectId;
       const project = projects.find((p) => p.id === projId);
 
       const isClamped = 'clampedDurationSeconds' in log;
@@ -74,7 +133,8 @@ export default function ReportView({ state }: { state: GuiState }) {
         id: log.id,
         date,
         projectName: project?.name || 'Unknown',
-        taskName: task?.name || 'Unknown',
+        taskName,
+        subtaskName,
         startTime: start,
         endTime: end,
         durationSeconds,
@@ -83,45 +143,135 @@ export default function ReportView({ state }: { state: GuiState }) {
       };
     });
 
+    const effectiveTotalSeconds = rows.reduce((acc, row) => acc + row.durationSeconds, 0);
+
+    const buildProjectTasks = (pc: (typeof projectChart)[0]): ExportTaskBreakdown[] => {
+      const taskSecMap = new Map<string, number>();
+      for (const item of pc.tasks) {
+        if (item.task) {
+          taskSecMap.set(item.task.id, item.seconds);
+        }
+      }
+
+      const projectTasks = tasks.filter((t) => t.projectId === pc.id);
+      const rootTasks = projectTasks.filter((t) => !t.parentTaskId);
+      const subtasksByParent = new Map<string, Task[]>();
+      for (const t of projectTasks) {
+        if (t.parentTaskId) {
+          const list = subtasksByParent.get(t.parentTaskId) || [];
+          list.push(t);
+          subtasksByParent.set(t.parentTaskId, list);
+        }
+      }
+
+      const result: ExportTaskBreakdown[] = [];
+      for (const root of rootTasks) {
+        const directSec = taskSecMap.get(root.id) || 0;
+        const subs = subtasksByParent.get(root.id) || [];
+        const subtaskBreakdowns: ExportSubtaskBreakdown[] = [];
+        let totalTaskSec = directSec;
+
+        for (const sub of subs) {
+          const subSec = taskSecMap.get(sub.id) || 0;
+          if (subSec > 0) {
+            totalTaskSec += subSec;
+            subtaskBreakdowns.push({
+              id: sub.id,
+              name: sub.name,
+              durationSeconds: subSec,
+              formattedDuration: formatSeconds(subSec),
+              percentage: effectiveTotalSeconds > 0 ? (subSec / effectiveTotalSeconds) * 100 : 0,
+            });
+          }
+        }
+
+        if (totalTaskSec > 0) {
+          subtaskBreakdowns.sort((a, b) => b.durationSeconds - a.durationSeconds);
+          result.push({
+            id: root.id,
+            name: root.name,
+            durationSeconds: totalTaskSec,
+            formattedDuration: formatSeconds(totalTaskSec),
+            percentage: effectiveTotalSeconds > 0 ? (totalTaskSec / effectiveTotalSeconds) * 100 : 0,
+            subtasks: subtaskBreakdowns.length > 0 ? subtaskBreakdowns : undefined,
+          });
+        }
+      }
+
+      result.sort((a, b) => b.durationSeconds - a.durationSeconds);
+      return result;
+    };
+
+    const projectBreakdown: ExportProjectBreakdown[] = (effectiveSelectedProjectId
+      ? projectChart.filter((pc) => pc.id === effectiveSelectedProjectId)
+      : projectChart
+    ).map((pc) => {
+      const pSeconds = effectiveSelectedProjectId ? effectiveTotalSeconds : pc.seconds;
+      const pTasks = buildProjectTasks(pc);
+      return {
+        id: pc.id,
+        projectName: pc.name,
+        seconds: pSeconds,
+        formattedDuration: formatSeconds(pSeconds),
+        percentage: effectiveTotalSeconds > 0 ? (pSeconds / effectiveTotalSeconds) * 100 : 0,
+        tasks: pTasks,
+      };
+    });
+
     return {
       title: t('TimeSummariesReports'),
       period: reportPeriod,
       generatedAt: new Date().toISOString(),
-      totalSeconds: periodTotalSec,
-      formattedTotalDuration: formatSeconds(periodTotalSec),
+      totalSeconds: effectiveTotalSeconds,
+      formattedTotalDuration: formatSeconds(effectiveTotalSeconds),
       rows,
-      projectBreakdown: projectChart.map((pc) => ({
-        projectName: pc.name,
-        seconds: pc.seconds,
-        percentage: periodTotalSec > 0 ? (pc.seconds / periodTotalSec) * 100 : 0,
-      })),
+      projectBreakdown,
     };
-  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, periodTotalSec, projectChart]);
+  }, [effectiveDisplayLogs, tasks, projects, nowIso, t, reportPeriod, effectiveSelectedProjectId, projectChart]);
 
   return (
     <Area as="main" id="reports-panel" variant="card" padding="section" radius="3xl" elevation="2xl" className="backdrop-blur-md flex flex-col gap-6 transition-all duration-300">
       <ViewHeader
         badge={
           <Badge variant="orange" size="sm" className="font-mono tracking-wider uppercase">
-            {t('SqlAnalyticsEngine')}
+            {isDesktop ? t('SqlAnalyticsEngine') : t('AnalyticsEngine')}
           </Badge>
         }
         title={t('TimeSummariesReports')}
         icon={BarChart3}
         iconColor="text-primary"
         actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            data-testid="report-export-button"
-            onClick={() => setIsExportModalOpen(true)}
-            className="gap-2 self-start sm:self-auto rounded-xl"
-          >
-            <Download className="w-4 h-4 text-primary" />
-            {t('Export')}
-          </Button>
+          <InlineCluster gap="sm" className="no-print print:hidden">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="report-print-button"
+              onClick={() => window.print()}
+              className="gap-2 self-start sm:self-auto rounded-xl"
+            >
+              <Printer className="w-4 h-4 text-primary" />
+              {t('Print')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="report-export-button"
+              onClick={() => setIsExportModalOpen(true)}
+              className="gap-2 self-start sm:self-auto rounded-xl"
+            >
+              <Download className="w-4 h-4 text-primary" />
+              {t('Export')}
+            </Button>
+          </InlineCluster>
         }
+      />
+
+      <ReportPeriodPrintHeader
+        reportPeriod={reportPeriod}
+        customFrom={customFrom}
+        customTo={customTo}
       />
 
       <ReportStatsCards
@@ -131,6 +281,10 @@ export default function ReportView({ state }: { state: GuiState }) {
         periodTotalSec={periodTotalSec}
         dailyAverageSec={dailyAverageSec}
         topProject={topProject}
+        billingResult={billingResult}
+        billingError={billingError}
+        isBillingLoading={isBillingLoading}
+        forceMountOnPrint={true}
       />
 
       <ReportBillingCard
@@ -138,8 +292,13 @@ export default function ReportView({ state }: { state: GuiState }) {
         customFrom={customFrom}
         customTo={customTo}
         nowIso={nowIso}
-        selectedProjectId={selectedProjectId}
+        selectedProjectId={effectiveSelectedProjectId}
+        selectedProjectIds={matchingTagProjectIds ?? undefined}
         sysSettings={sysSettings}
+        billingResult={billingResult}
+        billingError={billingError}
+        isLoading={isBillingLoading}
+        forceMountOnPrint={true}
       />
 
       <ReportPeriodSelector
@@ -151,6 +310,10 @@ export default function ReportView({ state }: { state: GuiState }) {
         setCustomFrom={setCustomFrom}
         customTo={customTo}
         setCustomTo={setCustomTo}
+        availableTags={availableTags}
+        selectedTags={selectedTags}
+        onToggleTag={handleToggleTag}
+        onClearTags={handleClearTags}
       />
 
       <Grid cols={1} gap="xl" className="lg:grid-cols-2">
@@ -158,11 +321,13 @@ export default function ReportView({ state }: { state: GuiState }) {
           clampedLogs={clampedLogs}
           projects={projects}
           tasks={tasks}
+          forceMountOnPrint={true}
         />
         <ProjectDonutChart
           projectChart={projectChart}
-          selectedProjectId={selectedProjectId}
+          selectedProjectId={effectiveSelectedProjectId}
           onSelectProject={setSelectedProjectId}
+          forceMountOnPrint={true}
         />
       </Grid>
 
@@ -174,6 +339,8 @@ export default function ReportView({ state }: { state: GuiState }) {
         projects={projects}
         tasks={tasks}
         nowIso={nowIso}
+        logs={logs}
+        activeTimerLogId={state.activeLog?.id}
       />
 
       <ReportExportModal

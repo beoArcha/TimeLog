@@ -3,7 +3,7 @@ import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
 import { cn } from "@/lib/utils";
 
 /**
- * Scrollable container primitive with customizable scrollbars.
+ * Scrollable container with custom scrollbars.
  */
 function ScrollArea({
   className,

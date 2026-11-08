@@ -1,12 +1,59 @@
-import { renderHook } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+// @vitest-environment jsdom
+import { renderHook, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useReportStatistics } from '@features/reports/hooks/useReportStatistics';
+import { EngineRouter } from '@common/engine/EngineRouter';
+import { RangeBillingResult } from '@common/engine/billing/types';
 import { TimeLog } from '@bindings/TimeLog';
 import { PatchLog } from '@bindings/PatchLog';
 import { Project } from '@bindings/Project';
 import { Task } from '@bindings/Task';
 
 describe('Unit Tests: useReportStatistics', () => {
+  const mockBillingResult: RangeBillingResult = {
+    byCurrency: {
+      USD: {
+        currency: 'USD',
+        totalAmount: '100.00',
+        billableDurationSeconds: 3600,
+        nonBillableDurationSeconds: 0,
+        unconfiguredDurationSeconds: 0,
+      },
+    },
+    byTask: [
+      {
+        taskId: 't1',
+        taskName: 'Task One',
+        projectId: 'p1',
+        durationSeconds: 3600,
+        effectiveRate: '100.00',
+        currency: 'USD',
+        rateStatus: 'custom',
+        amount: '100.00',
+      },
+    ],
+    totalBillableSeconds: 3600,
+    totalNonBillableSeconds: 0,
+    totalUnconfiguredSeconds: 0,
+  };
+
+  let calculateRangeBillingMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    calculateRangeBillingMock = vi.fn().mockResolvedValue(mockBillingResult);
+    vi.spyOn(EngineRouter, 'getInstance').mockReturnValue({
+      billing: {
+        calculateRangeBilling: calculateRangeBillingMock,
+        resolveEffectiveTaskRate: vi.fn(),
+      },
+    } as unknown as EngineRouter);
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
   const projects: Project[] = [
     { id: 'p1', name: 'Project Alpha', color: 'rose', createdAt: '2026-06-12T00:00:00Z' },
     { id: 'p2', name: 'Project Beta', color: 'blue', createdAt: '2026-06-12T00:00:00Z' }
@@ -49,7 +96,7 @@ describe('Unit Tests: useReportStatistics', () => {
     }
   ];
 
-  it('should calculate today, week, and month statistics correctly without patches', () => {
+  it('should calculate today, week, and month statistics correctly without patches', async () => {
     const { result } = renderHook(() =>
       useReportStatistics({
         logs,
@@ -70,9 +117,15 @@ describe('Unit Tests: useReportStatistics', () => {
     expect(result.current.projectChart).toHaveLength(2);
     expect(result.current.projectChart[0].id).toBe('p2'); // sorted by duration: p2 has 7200, p1 has 3600
     expect(result.current.projectChart[0].seconds).toBe(7200);
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+    expect(result.current.billingResult).toEqual(mockBillingResult);
+    expect(result.current.billingError).toBeNull();
   });
 
-  it('should include patches in reports if sysSettings.includePatchesInReports is true', () => {
+  it('should include patches in reports if sysSettings.includePatchesInReports is true', async () => {
     const { result } = renderHook(() =>
       useReportStatistics({
         logs,
@@ -89,9 +142,13 @@ describe('Unit Tests: useReportStatistics', () => {
     expect(result.current.todaySec).toBe(3600 + 1800); // l1 (3600) + pt1 (1800)
     expect(result.current.weekSec).toBe(10800 + 1800);
     expect(result.current.monthSec).toBe(10800 + 1800);
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
   });
 
-  it('should filter logs by reportPeriod today correctly', () => {
+  it('should filter logs by reportPeriod today correctly', async () => {
     const { result } = renderHook(() =>
       useReportStatistics({
         logs,
@@ -107,9 +164,13 @@ describe('Unit Tests: useReportStatistics', () => {
 
     expect(result.current.filteredLogs).toHaveLength(1);
     expect(result.current.filteredLogs[0].id).toBe('l1');
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
   });
 
-  it('should filter logs by reportPeriod month and all, and sort alfabetic/date correctly', () => {
+  it('should filter logs by reportPeriod month and all, and sort alfabetic/date correctly', async () => {
     const { result } = renderHook(() =>
       useReportStatistics({
         logs,
@@ -129,9 +190,13 @@ describe('Unit Tests: useReportStatistics', () => {
 
     expect(result.current.projectChart[0].id).toBe('p1');
     expect(result.current.projectChart[1].id).toBe('p2');
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
   });
 
-  it('should filter logs by reportPeriod all correctly', () => {
+  it('should filter logs by reportPeriod all correctly', async () => {
     const { result } = renderHook(() =>
       useReportStatistics({
         logs,
@@ -146,5 +211,198 @@ describe('Unit Tests: useReportStatistics', () => {
     );
 
     expect(result.current.filteredLogs).toHaveLength(2);
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+  });
+
+  it('should calculate periodTotalSec, dailyAverageSec, and topProject exclusively from selected project logs', async () => {
+    // When no project is selected: both p1 (3600s) and p2 (7200s) are included in week stats
+    const { result, rerender } = renderHook((props) => useReportStatistics(props), {
+      initialProps: {
+        logs,
+        patches,
+        projects,
+        tasks,
+        nowIso: '2026-07-12T15:00:00Z',
+        reportPeriod: 'week',
+        reportSort: 'duration',
+        selectedProjectId: null as string | null,
+        sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+      },
+    });
+
+    expect(result.current.periodTotalSec).toBe(10800); // 3600 + 7200
+    expect(result.current.dailyAverageSec).toBe(Math.round(10800 / 7));
+    expect(result.current.topProject?.id).toBe('p2');
+    expect(result.current.topProject?.seconds).toBe(7200);
+    expect(result.current.projectChart).toHaveLength(2);
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+
+    // When selectedProjectId is 'p1': only p1 logs (3600s) must be computed
+    rerender({
+      logs,
+      patches,
+      projects,
+      tasks,
+      nowIso: '2026-07-12T15:00:00Z',
+      reportPeriod: 'week',
+      reportSort: 'duration',
+      selectedProjectId: 'p1',
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    });
+
+    expect(result.current.periodTotalSec).toBe(3600);
+    expect(result.current.dailyAverageSec).toBe(Math.round(3600 / 7));
+    expect(result.current.topProject?.id).toBe('p1');
+    expect(result.current.topProject?.name).toBe('Project Alpha');
+    expect(result.current.topProject?.seconds).toBe(3600);
+    expect(result.current.topProject?.percentage).toBe(100);
+    expect(result.current.projectChart).toHaveLength(1);
+    expect(result.current.projectChart[0].id).toBe('p1');
+    expect(result.current.projectChart[0].seconds).toBe(3600);
+    expect(result.current.filteredLogs).toHaveLength(1);
+    expect(result.current.filteredLogs[0].id).toBe('l1');
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+
+    // When selectedProjectId is 'p2': only p2 logs (7200s) must be computed
+    rerender({
+      logs,
+      patches,
+      projects,
+      tasks,
+      nowIso: '2026-07-12T15:00:00Z',
+      reportPeriod: 'week',
+      reportSort: 'duration',
+      selectedProjectId: 'p2',
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    });
+
+    expect(result.current.periodTotalSec).toBe(7200);
+    expect(result.current.dailyAverageSec).toBe(Math.round(7200 / 7));
+    expect(result.current.topProject?.id).toBe('p2');
+    expect(result.current.topProject?.name).toBe('Project Beta');
+    expect(result.current.topProject?.seconds).toBe(7200);
+    expect(result.current.topProject?.percentage).toBe(100);
+    expect(result.current.projectChart).toHaveLength(1);
+    expect(result.current.projectChart[0].id).toBe('p2');
+    expect(result.current.projectChart[0].seconds).toBe(7200);
+    expect(result.current.filteredLogs).toHaveLength(1);
+    expect(result.current.filteredLogs[0].id).toBe('l2');
+
+    await waitFor(() => {
+      expect(result.current.isBillingLoading).toBe(false);
+    });
+  });
+
+  it('should compute statistics when custom date range and project filter work together', async () => {
+    const { result, rerender } = renderHook(
+      (props) => useReportStatistics(props),
+      {
+        initialProps: {
+          logs: [
+            { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-10T10:00:00Z', endTime: '2026-06-10T11:00:00Z' },
+            { id: 'l2', taskId: 't1', projectId: 'p1', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T12:00:00Z' },
+            { id: 'l3', taskId: 't2', projectId: 'p2', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T13:00:00Z' },
+          ],
+          patches: [],
+          projects: [
+            { id: 'p1', name: 'Alpha', color: 'indigo', createdAt: '2026-06-01' },
+            { id: 'p2', name: 'Beta', color: 'emerald', createdAt: '2026-06-01' },
+          ],
+          tasks: [
+            { id: 't1', projectId: 'p1', name: 'Task Alpha', completed: false, createdAt: '2026-06-01' },
+            { id: 't2', projectId: 'p2', name: 'Task Beta', completed: false, createdAt: '2026-06-01' },
+          ],
+          nowIso: '2026-06-25T15:00:00Z',
+          reportPeriod: 'custom',
+          customFrom: '2026-06-15',
+          customTo: '2026-06-22',
+          reportSort: 'duration',
+          selectedProjectId: 'p1',
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        },
+      }
+    );
+
+    // In date range June 15 - June 22 and for project p1:
+    // l1 is June 10 (outside range) -> excluded
+    // l2 is June 20 (inside range, p1) -> 7200s
+    // l3 is June 20 (inside range, but p2) -> excluded because selectedProjectId is p1
+    expect(result.current.periodTotalSec).toBe(7200);
+    expect(result.current.filteredLogs).toHaveLength(1);
+    expect(result.current.filteredLogs[0].id).toBe('l2');
+    expect(result.current.projectChart).toHaveLength(1);
+    expect(result.current.projectChart[0].id).toBe('p1');
+    expect(result.current.projectChart[0].seconds).toBe(7200);
+
+    // Now switch to p2 in the same custom date range
+    rerender({
+      logs: [
+        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-10T10:00:00Z', endTime: '2026-06-10T11:00:00Z' },
+        { id: 'l2', taskId: 't1', projectId: 'p1', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T12:00:00Z' },
+        { id: 'l3', taskId: 't2', projectId: 'p2', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T13:00:00Z' },
+      ],
+      patches: [],
+      projects: [
+        { id: 'p1', name: 'Alpha', color: 'indigo', createdAt: '2026-06-01' },
+        { id: 'p2', name: 'Beta', color: 'emerald', createdAt: '2026-06-01' },
+      ],
+      tasks: [
+        { id: 't1', projectId: 'p1', name: 'Task Alpha', completed: false, createdAt: '2026-06-01' },
+        { id: 't2', projectId: 'p2', name: 'Task Beta', completed: false, createdAt: '2026-06-01' },
+      ],
+      nowIso: '2026-06-25T15:00:00Z',
+      reportPeriod: 'custom',
+      customFrom: '2026-06-15',
+      customTo: '2026-06-22',
+      reportSort: 'duration',
+      selectedProjectId: 'p2',
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    });
+
+    // For p2: l3 is inside range (10800s)
+    expect(result.current.periodTotalSec).toBe(10800);
+    expect(result.current.filteredLogs).toHaveLength(1);
+    expect(result.current.filteredLogs[0].id).toBe('l3');
+    expect(result.current.projectChart).toHaveLength(1);
+    expect(result.current.projectChart[0].id).toBe('p2');
+    expect(result.current.projectChart[0].seconds).toBe(10800);
+
+    // Now clear project filter: both l2 and l3 should be included
+    rerender({
+      logs: [
+        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-10T10:00:00Z', endTime: '2026-06-10T11:00:00Z' },
+        { id: 'l2', taskId: 't1', projectId: 'p1', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T12:00:00Z' },
+        { id: 'l3', taskId: 't2', projectId: 'p2', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T13:00:00Z' },
+      ],
+      patches: [],
+      projects: [
+        { id: 'p1', name: 'Alpha', color: 'indigo', createdAt: '2026-06-01' },
+        { id: 'p2', name: 'Beta', color: 'emerald', createdAt: '2026-06-01' },
+      ],
+      tasks: [
+        { id: 't1', projectId: 'p1', name: 'Task Alpha', completed: false, createdAt: '2026-06-01' },
+        { id: 't2', projectId: 'p2', name: 'Task Beta', completed: false, createdAt: '2026-06-01' },
+      ],
+      nowIso: '2026-06-25T15:00:00Z',
+      reportPeriod: 'custom',
+      customFrom: '2026-06-15',
+      customTo: '2026-06-22',
+      reportSort: 'duration',
+      selectedProjectId: null,
+      sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+    });
+
+    expect(result.current.periodTotalSec).toBe(18000); // 7200 + 10800
+    expect(result.current.filteredLogs).toHaveLength(2);
+    expect(result.current.projectChart).toHaveLength(2);
   });
 });

@@ -13,14 +13,26 @@ export type CompactUiSize = '2xs' | 'xs' | 'sm' | 'md' | 'lg';
 export type UiSurfaceVariant = 'default' | 'muted' | 'outline' | 'card' | 'ghost';
 
 /**
- * Standard border radius tokens matching design system tokens.
+ * Border radius tokens.
  */
 export type UiRoundedVariant = 'none' | 'sm' | 'md' | 'lg' | 'full' | 'section';
 
 /**
- * Semantic status colors across indicators, badges, and alerts.
+ * Semantic status variant tokens for indicators, badges, and alerts.
  */
-export type UiStatusVariant = 'emerald' | 'amber' | 'rose' | 'orange' | 'blue' | 'muted';
+export type UiSemanticStatus = 'success' | 'warning' | 'destructive' | 'info' | 'muted';
+
+/**
+ * Semantic status colors across indicators, badges, and alerts.
+ * Supports semantic tokens alongside legacy palette aliases.
+ */
+export type UiStatusVariant =
+  | UiSemanticStatus
+  | 'emerald'
+  | 'amber'
+  | 'rose'
+  | 'orange'
+  | 'blue';
 
 /**
  * Standard polymorphic element tag for inline and container primitives.

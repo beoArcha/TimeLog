@@ -291,7 +291,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] Native and Browser CLI implementations expose consistent billing operations and machine-readable mutation results.
 - [x] Relevant unit, repository, migration, integration, cross-runtime parity, frontend, and CLI tests pass.
 
-### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🚧 (Planned)
+### Phase 17 — Internationalization Architecture, Modular Keys & Multi-Locale MCP Validation 🔒 (Closed)
 
 #### Group A (Parallel Track) — Modular Domain Keys & Type Aggregation
 - [x] **Decomposition of `keys.ts`**: Decompose [`src/common/i18n/keys.ts`](../../src/common/i18n/keys.ts) by extracting domain key union types into dedicated modules under `src/common/i18n/keys/`:
@@ -303,36 +303,36 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 - [x] **Dictionary Schema Generation & Quality Guardrails**: Added complete dictionary JSON files across all 12 domain dictionaries (`src/common/i18n/dictionaries/`) with automated `I18nQualityRule` tests enforcing 100% key and placeholder parity across all 10 locales.
 
 #### Group C (Parallel Track) — Automated Multi-Locale MCP Validation
-- [ ] **MCP Chrome Preview Validation**: Execute automated visual regression and translation completeness audits across all locales using Chrome MCP (`preview_*`).
-- [ ] **Layout & Boundary Verification**: Verify that labels in German (`de`), Japanese (`ja`), and Dutch (`nl`) do not cause button overflow, text wrapping defects, or clipping across Compact, Medium, and Full layouts.
+- [x] **MCP Chrome Preview Validation**: Execute automated visual regression and translation completeness audits across all locales using Chrome MCP (`preview_*`).
+- [x] **Layout & Boundary Verification**: Verify that labels in German (`de`), Japanese (`ja`), and Dutch (`nl`) do not cause button overflow, text wrapping defects, or clipping across Compact, Medium, and Full layouts.
 
 #### Group D (Parallel Track) — Machine Locale Config (moved from Phase 10)
 - [x] **Machine Locale Config**: Persistent `cli_machine_locale` SQLite config key (`oxy config set/get cli_machine_locale`) and centralized error envelope resolution, ensuring CLI machine output stays deterministic in English by default.
 
 ---
 
-### Phase 18 — Reports Suite Modernization, Financial Analytics & Credits 🚧 (Planned)
+### Phase 18 — Reports Suite Modernization, Financial Analytics & Credits 🔒 (Closed)
 
 #### Group A (Parallel Track) — Localized Date Formats & Chart Refinement
-- [ ] **Short Localized Chart Dates**: Refactor XAxis date rendering in [`StackedBarActivityChart.tsx`](../../src/features/reports/components/StackedBarActivityChart.tsx) to format date keys using `new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric' })`, producing localized labels (e.g., `czw. 10` in Polish, `Thu 10` in English, `Do. 10` in German).
-- [ ] **Date Key Disambiguation**: Replace raw string slicing (`dateKey.slice(5)`) with robust UTC-safe calendar formatting supporting multi-locale switching.
+- [x] **Short Localized Chart Dates**: Refactor XAxis date rendering in [`StackedBarActivityChart.tsx`](../../src/features/reports/components/StackedBarActivityChart.tsx) to format date keys using `new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric' })`, producing localized labels (e.g., `czw. 10` in Polish, `Thu 10` in English, `Do. 10` in German).
+- [x] **Date Key Disambiguation**: Replace raw string slicing (`dateKey.slice(5)`) with robust UTC-safe calendar formatting supporting multi-locale switching.
 
 #### Group B (Parallel Track) — Financial KPI Analytics & Revenue Aggregation
-- [ ] **Financial Metric Calculation**: Extend [`reportCalculator.ts`](../../src/features/reports/utils/reportCalculator.ts) and [`useReportStatistics.ts`](../../src/features/reports/hooks/useReportStatistics.ts) to compute total period financial value ($\sum \text{durationHours} \times \text{effectiveRate}$).
-- [ ] **Financial Revenue StatCard**: Add a primary KPI card for Total Period Value (e.g., `3 450,00 PLN`) into [`ReportStatsCards.tsx`](../../src/features/reports/components/ReportStatsCards.tsx), respecting active project currencies and zero-rate tasks.
+- [x] **Financial Metric Calculation**: Extend [`reportCalculator.ts`](../../src/features/reports/utils/reportCalculator.ts) and [`useReportStatistics.ts`](../../src/features/reports/hooks/useReportStatistics.ts) to compute total period financial value ($\sum \text{durationHours} \times \text{effectiveRate}$).
+- [x] **Financial Revenue StatCard**: Add a primary KPI card for Total Period Value (e.g., `3 450,00 PLN`) into [`ReportStatsCards.tsx`](../../src/features/reports/components/ReportStatsCards.tsx), respecting active project currencies and zero-rate tasks.
 
 #### Group C (Parallel Track) — Report Exploration, Tag Filtering & Inline Auditing
-- [ ] **Tag-Based Period Filtering**: Add tag selector chips (`#client`, `#dev`, `#internal`) into [`ReportPeriodSelector.tsx`](../../src/features/reports/components/ReportPeriodSelector.tsx) to filter report datasets across projects and tasks.
-- [ ] **Live Text Search Filter**: Add real-time search bar filtering report log rows by task name, project name, or note content.
-- [ ] **Inline Log Correction & Deletion**: Add direct note editing, duration correction, and deletion actions within [`ReportLogList.tsx`](../../src/features/reports/components/ReportLogList.tsx) (`PlainDump`) for streamlined time audit maintenance.
+- [x] **Tag-Based Period Filtering**: Add tag selector chips (`#client`, `#dev`, `#internal`) into [`ReportPeriodSelector.tsx`](../../src/features/reports/components/ReportPeriodSelector.tsx) to filter report datasets across projects and tasks.
+- [x] **Live Text Search Filter**: Add real-time search bar filtering report log rows by task name, project name, or note content.
+- [x] **Inline Log Correction & Deletion**: Add direct note editing, duration correction, and deletion actions within [`ReportLogList.tsx`](../../src/features/reports/components/ReportLogList.tsx) (`PlainDump`) for streamlined time audit maintenance.
 
 #### Group D (Parallel Track) — Print Stylesheet, PWA Title Cleanup & Credits Refresh
-- [ ] **Print / PDF Stylesheet**: Implement `@media print` CSS rules formatting [`ReportView.tsx`](../../src/features/reports/ReportView.tsx) into a clean, client-facing PDF document, stripping navigation sidebars, buttons, and decorative badges.
-- [ ] **PWA Analytics Badge Cleanup**: Update [`ReportView.tsx`](../../src/features/reports/ReportView.tsx) to display `ANALIZY STATYSTYCZNE` (without `SQL`) when running in browser mode.
-- [ ] **Credits & Technology Stack Refresh**: Update [`CreditsModal.tsx`](../../src/layouts/components/CreditsModal.tsx) to incorporate current core dependencies (React 19, @base-ui/react, Tauri v2, Recharts, Sonner, Geist Font Family, Google GenAI) and update author notes regarding Vibe Coding architecture practices.
+- [x] **Print / PDF Stylesheet**: Implement `@media print` CSS rules formatting [`ReportView.tsx`](../../src/features/reports/ReportView.tsx) into a clean, client-facing PDF document, stripping navigation sidebars, buttons, and decorative badges.
+- [x] **PWA Analytics Badge Cleanup**: Update [`ReportView.tsx`](../../src/features/reports/ReportView.tsx) to display `ANALIZY STATYSTYCZNE` (without `SQL`) when running in browser mode.
+- [x] **Credits & Technology Stack Refresh**: Update [`CreditsModal.tsx`](../../src/layouts/components/CreditsModal.tsx) to incorporate current core dependencies (React 19, @base-ui/react, Tauri v2, Recharts, Sonner, Geist Font Family, Google GenAI) and update author notes regarding Vibe Coding architecture practices.
 
 #### Group E (Parallel Track) — Additional Export Formats (moved from Phase 10)
-- [ ] **Additional Export Formats**: XML, ODS and XLSX exports.
+- [x] **Additional Export Formats**: XML, ODS and XLSX exports.
 
 ---
 

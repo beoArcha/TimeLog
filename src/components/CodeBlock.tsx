@@ -8,7 +8,7 @@ export interface CodeBlockProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 /**
- * Composite code block component delegating to the Code UI primitive.
+ * Formatted code container supporting inline or block rendering.
  */
 export function CodeBlock({
   children,

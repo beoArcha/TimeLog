@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { Smile, X, Search } from 'lucide-react';
+import { Smile, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@components/ui/popover';
 import { Button } from '@components/ui/button';
-import { Input } from '@components/ui/input';
+import { SearchInput } from '@components/ui/search-input';
 import { Caption } from '@components/ui/typography';
 import { HStack, VStack } from '@components/ui/stack';
 import { Grid } from '@components/ui/grid';
 import { translate } from '@common/i18n/translator';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
+import { cn } from '@/lib/utils';
 import {
   CURATED_EMOJIS,
   EMOJI_CATEGORIES,
@@ -53,23 +54,30 @@ export function EmojiPicker({
     });
   }, [search, selectedCategory]);
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      setSearch('');
+    }
+  };
+
   const handleSelectEmoji = (emoji: string) => {
     const grapheme = getFirstGrapheme(emoji);
     onChange(grapheme);
-    setIsOpen(false);
-    setSearch('');
+    handleOpenChange(false);
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChange('');
-    setIsOpen(false);
+    handleOpenChange(false);
   };
 
   const currentDisplay = value ? getFirstGrapheme(value) : null;
   const selectLabel = translate(locale, 'project', 'SelectEmoji', customTranslations);
   const clearLabel = translate(locale, 'project', 'ClearEmoji', customTranslations);
   const searchPlaceholder = translate(locale, 'project', 'SearchEmoji', customTranslations);
+  const categoriesLabel = translate(locale, 'project', 'EmojiCategories', customTranslations);
 
   const customGrapheme = getFirstGrapheme(search.trim());
   const hasCustomEmoji = Boolean(customGrapheme && isEmoji(customGrapheme));
@@ -90,15 +98,16 @@ export function EmojiPicker({
   }
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger
         type="button"
         disabled={disabled}
         data-testid={`${testId}-trigger`}
         aria-label={selectLabel}
-        className={`relative inline-flex items-center justify-center w-9 h-9 rounded-xl border border-input bg-card hover:bg-accent hover:text-accent-foreground text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer ${
-          className || ''
-        }`}
+        className={cn(
+          'relative inline-flex items-center justify-center w-9 h-9 rounded-xl border border-input bg-card hover:bg-accent hover:text-accent-foreground text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
+          className
+        )}
       >
         {triggerContent}
       </PopoverTrigger>
@@ -110,30 +119,23 @@ export function EmojiPicker({
         data-testid={`${testId}-content`}
       >
         <VStack gap="xs" className="w-full">
-          <div className="relative w-full">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={searchPlaceholder}
-              data-testid={`${testId}-search-input`}
-              className="pl-8 pr-7 py-1 h-8 text-xs w-full bg-muted/40 border-border/60 rounded-xl"
-            />
-            {search && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => setSearch('')}
-                className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 p-0 text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            )}
-          </div>
+          <SearchInput
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
+            placeholder={searchPlaceholder}
+            searchAriaLabel={searchPlaceholder}
+            data-testid={`${testId}-search-input`}
+            className="h-8 text-xs rounded-xl bg-muted/40 border-border/60"
+            containerClassName="w-full"
+          />
 
-          <HStack gap="2xs" className="w-full overflow-x-auto pb-1 no-scrollbar">
+          <HStack
+            role="group"
+            aria-label={categoriesLabel}
+            gap="2xs"
+            className="w-full overflow-x-auto pb-1 no-scrollbar"
+          >
             {EMOJI_CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat.id;
               const catLabel = translate(locale, 'project', cat.labelKey, customTranslations);
@@ -143,9 +145,10 @@ export function EmojiPicker({
                   type="button"
                   size="xs"
                   variant={isSelected ? 'secondary' : 'ghost'}
+                  aria-pressed={isSelected}
                   onClick={() => setSelectedCategory(cat.id)}
                   data-testid={`${testId}-category-${cat.id}`}
-                  className="text-[10px] h-6 px-2 rounded-lg font-mono tracking-tight"
+                  className="text-[10px] h-6 px-2 rounded-lg font-mono tracking-tight shrink-0"
                 >
                   {catLabel}
                 </Button>
@@ -211,7 +214,7 @@ export function EmojiPicker({
               size="xs"
               onClick={handleClear}
               data-testid={`${testId}-clear-btn`}
-              className="text-[11px] h-6 px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-lg"
+              className="text-[11px] h-6 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg"
             >
               <X className="w-3 h-3 mr-1" /> {clearLabel}
             </Button>

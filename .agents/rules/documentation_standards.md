@@ -42,6 +42,9 @@ When translating or authoring in `pl`, `de`, `es`, `fr`, or `pt-br`:
 - **No Translationese or Calques**: Avoid literal word-for-word translations from English that sound robotic in the target language (e.g. Polish: avoid unnatural participle chains like *"będąc zoptymalizowanym pod kątem..."* or literal translations of *"under the hood"* as *"pod maską"* where *"architektura wewnętrzna"* is meant).
 - **Natural Engineering Phrasing**: Use terminology that practicing developers and sysadmins in that linguistic region actually use.
 
+### 2.5. Prohibition of Self-Assessment Ratings in PRs & Reviews
+Never insert arbitrary subjective grades or self-congratulatory ratings into PR descriptions, commit messages, or review summaries (e.g., ❌ *"10/10 własnej recenzji"*, *"ocena: 10/10"*, *"100% doskonałość"*, *"perfekcyjne wykonanie"*). Self-assigned scores are misleading, unprovable, and violate reporting integrity. All reports and PR documentation must be strictly evidence-based: factual tables of executed test suites with exact pass/fail counts, exit codes, verified AST rules, and explicit LOC audits.
+
 ---
 
 ## 3. Discovery & Analytical Artifacts

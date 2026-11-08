@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -91,10 +91,10 @@ describe('Unit Tests: ConfirmDialog', () => {
     });
   });
 
-  it('keeps dialog open, resets internalLoading, and logs error when async onConfirm rejects', async () => {
+  it('keeps dialog open, resets internalLoading, and logs error when async onConfirm rejects with technical error', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const onOpenChange = vi.fn();
-    const error = new Error('Async rejection error');
+    const error = new Error('sqlite3_step: constraint failed');
     const onConfirm = vi.fn().mockRejectedValue(error);
 
     render(
@@ -111,34 +111,29 @@ describe('Unit Tests: ConfirmDialog', () => {
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
 
-    // Verify that loading is reset back to false and button is re-enabled
     await waitFor(() => {
       expect(confirmBtn.getAttribute('aria-busy')).not.toBe('true');
       expect(confirmBtn.hasAttribute('disabled')).toBe(false);
     });
 
-    // Dialog must NOT be closed: onOpenChange was not called with false
     expect(onOpenChange).not.toHaveBeenCalled();
-    // Modal dialog still present in DOM
     expect(screen.getByRole('alertdialog')).not.toBeNull();
-    // Error element is rendered
     expect(screen.getByRole('alert')).not.toBeNull();
-    expect(screen.getByTestId('confirm-dialog-error').textContent).toBe('Async rejection error');
-    // Error logged properly
+    expect(screen.getByTestId('confirm-dialog-error').textContent).toBe('Error');
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Failed to execute confirm action in ConfirmDialog:',
+      '[ConfirmDialog] Confirm action failed:',
       error
     );
 
     consoleErrorSpy.mockRestore();
   });
 
-  it('renders visible role="alert" with error message when onConfirm rejects, keeps dialog open, and allows retry', async () => {
+  it('renders visible role="alert" with safe error message when onConfirm rejects, keeps dialog open, and allows retry', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const onOpenChange = vi.fn();
     const onConfirm = vi
       .fn()
-      .mockRejectedValueOnce(new Error('Database error'))
+      .mockRejectedValueOnce(new Error('sqlite database is locked'))
       .mockResolvedValueOnce(undefined);
 
     render(
@@ -155,7 +150,7 @@ describe('Unit Tests: ConfirmDialog', () => {
 
     const alert = await screen.findByRole('alert');
     expect(alert).not.toBeNull();
-    expect(alert.textContent).toBe('Database error');
+    expect(alert.textContent).toBe('Error');
     expect(screen.getByTestId('confirm-dialog-error')).not.toBeNull();
     expect(screen.getByRole('alertdialog')).not.toBeNull();
     expect(onOpenChange).not.toHaveBeenCalled();
@@ -168,10 +163,122 @@ describe('Unit Tests: ConfirmDialog', () => {
     });
   });
 
-  it('keeps dialog open and displays role="alert" when synchronous onConfirm throws', () => {
+  it('displays readable error message when onConfirm rejects with readable Error instance', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue(new Error('Custom readable error'));
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Readable Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('Custom readable error');
+  });
+
+  it('displays readable error message when onConfirm rejects with string error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue('String error');
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="String Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('String error');
+  });
+
+  it('masks stack trace and technical panic errors to generic error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue(new Error('Critical crash\n    at Object.test (suite.ts:10:5)'));
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Stacktrace Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('Error');
+  });
+
+  it('masks unknown error or null to generic error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue(null);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Null Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe('Error');
+  });
+
+  it('clears internal error when dialog is closed and reopened', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onConfirm = vi.fn().mockRejectedValue(new Error('Readable error'));
+    const onOpenChange = vi.fn();
+
+    const { rerender } = render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Clear Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    expect(await screen.findByRole('alert')).not.toBeNull();
+
+    const cancelBtn = screen.getByTestId('confirm-dialog-cancel-btn');
+    fireEvent.click(cancelBtn);
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+
+    rerender(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Clear Error Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('keeps dialog open and displays role="alert" with safe error when synchronous onConfirm throws technical error', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const onOpenChange = vi.fn();
-    const error = new Error('Synchronous throw');
+    const error = new Error('panic: kernel thread aborted');
     const onConfirm = vi.fn().mockImplementation(() => {
       throw error;
     });
@@ -191,9 +298,9 @@ describe('Unit Tests: ConfirmDialog', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(screen.getByRole('alertdialog')).not.toBeNull();
-    expect(screen.getByRole('alert').textContent).toBe('Synchronous throw');
+    expect(screen.getByRole('alert').textContent).toBe('Error');
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Failed to execute confirm action in ConfirmDialog:',
+      '[ConfirmDialog] Confirm action failed:',
       error
     );
 
@@ -223,5 +330,173 @@ describe('Unit Tests: ConfirmDialog', () => {
 
     expect(onClearError).toHaveBeenCalledTimes(1);
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('should ignore Escape key press and keep dialog open when confirm action is loading', async () => {
+    // Arrange
+    const onOpenChange = vi.fn();
+    let resolveAction: () => void = () => {};
+    const pendingPromise = new Promise<void>((resolve) => {
+      resolveAction = resolve;
+    });
+    const onConfirm = vi.fn().mockReturnValue(pendingPromise);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Loading Esc Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+    expect(confirmBtn.getAttribute('aria-busy')).toBe('true');
+
+    // Act
+    fireEvent.keyDown(screen.getByRole('alertdialog'), { key: 'Escape', code: 'Escape' });
+    fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' });
+
+    // Assert
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+
+    resolveAction();
+  });
+
+  it('should ignore backdrop click and keep dialog open when confirm action is loading', async () => {
+    // Arrange
+    const onOpenChange = vi.fn();
+    let resolveAction: () => void = () => {};
+    const pendingPromise = new Promise<void>((resolve) => {
+      resolveAction = resolve;
+    });
+    const onConfirm = vi.fn().mockReturnValue(pendingPromise);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Loading Backdrop Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+    expect(confirmBtn.getAttribute('aria-busy')).toBe('true');
+
+    // Act
+    const backdrop = document.querySelector('[data-slot="dialog-backdrop"]');
+    if (backdrop) {
+      fireEvent.click(backdrop);
+    }
+
+    // Assert
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+
+    resolveAction();
+  });
+
+  it('should retain focus on confirm button when confirm action is loading', async () => {
+    // Arrange
+    const onOpenChange = vi.fn();
+    let resolveAction: () => void = () => {};
+    const pendingPromise = new Promise<void>((resolve) => {
+      resolveAction = resolve;
+    });
+    const onConfirm = vi.fn().mockReturnValue(pendingPromise);
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Focus Retain Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    confirmBtn.focus();
+    expect(document.activeElement).toBe(confirmBtn);
+
+    // Act
+    fireEvent.click(confirmBtn);
+
+    // Assert
+    expect(confirmBtn.getAttribute('aria-busy')).toBe('true');
+    expect(document.activeElement).toBe(confirmBtn);
+    expect(confirmBtn.getAttribute('aria-disabled')).toBe('true');
+    expect(confirmBtn.hasAttribute('disabled')).toBe(false);
+
+    resolveAction();
+  });
+
+  it('should keep dialog open and display visible error alert when async onConfirm action fails', async () => {
+    // Arrange
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onOpenChange = vi.fn();
+    const onConfirm = vi.fn().mockRejectedValue(new Error('Operation aborted unexpectedly'));
+
+    render(
+      <ConfirmDialog
+        open={true}
+        onOpenChange={onOpenChange}
+        title="Failure Keeps Open Test"
+        onConfirm={onConfirm}
+      />
+    );
+
+    // Act
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+    fireEvent.click(confirmBtn);
+
+    // Assert
+    const alert = await screen.findByRole('alert');
+    expect(alert).not.toBeNull();
+    expect(alert.textContent).toBe('Operation aborted unexpectedly');
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+  });
+  it('renders warning variant with semantic warning token classes and no raw amber palette classes', () => {
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Warning Dialog"
+        description="This action requires caution."
+        variant="warning"
+        onConfirm={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole('alertdialog');
+    const iconBox = dialog.querySelector('[data-slot="icon-box"]');
+    expect(iconBox).not.toBeNull();
+    expect(iconBox?.className).toContain('text-warning');
+    expect(iconBox?.className).toContain('bg-warning/10');
+    expect(iconBox?.className).toContain('border-warning/20');
+    expect(iconBox?.className).not.toContain('amber');
+  });
+
+  it('renders destructive variant with semantic destructive token classes and no raw rose palette classes', () => {
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Destructive Dialog"
+        description="This action cannot be undone."
+        variant="destructive"
+        onConfirm={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole('alertdialog');
+    const iconBox = dialog.querySelector('[data-slot="icon-box"]');
+    expect(iconBox).not.toBeNull();
+    expect(iconBox?.className).toContain('text-destructive');
+    expect(iconBox?.className).toContain('bg-destructive/10');
+    expect(iconBox?.className).toContain('border-destructive/20');
+    expect(iconBox?.className).not.toContain('rose');
   });
 });

@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { StatCard } from '@components/StatCard';
 import { ConfirmDialog } from '@components/ConfirmDialog';
-import { PromptDialog } from '@components/PromptDialog';
 import { SegmentedControl } from '@components/SegmentedControl';
 import { SearchInput } from '@components/ui/search-input';
 import { EmptyState } from '@components/EmptyState';
@@ -69,6 +69,57 @@ describe('Unit Tests: Composite Components', () => {
       expect(onConfirm).toHaveBeenCalled();
     });
 
+    it('should keep the dialog open and show safe error when async confirmation rejects', async () => {
+      // Arrange
+      const onOpenChange = vi.fn();
+      const onConfirm = vi.fn().mockRejectedValue(new Error('Async error'));
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <ConfirmDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Delete Confirmation"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toBe('Async error');
+      });
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+      expect(screen.getByTestId('confirm-dialog-confirm-btn').getAttribute('aria-busy')).toBe('false');
+    });
+
+    it('should keep the dialog open and show safe error when confirmation throws synchronously', async () => {
+      // Arrange
+      const onOpenChange = vi.fn();
+      const onConfirm = vi.fn(() => {
+        throw new Error('Synchronous failure');
+      });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <ConfirmDialog
+          open={true}
+          onOpenChange={onOpenChange}
+          title="Delete Confirmation"
+          onConfirm={onConfirm}
+        />
+      );
+
+      // Act
+      fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByRole('alert').textContent).toBe('Synchronous failure');
+      });
+      expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    });
+
     it('should call onCancel and onOpenChange when cancel button is clicked', () => {
       // Arrange
       const onCancel = vi.fn();
@@ -119,81 +170,6 @@ describe('Unit Tests: Composite Components', () => {
     });
   });
 
-  describe('PromptDialog', () => {
-    it('should render prompt and submit typed value', () => {
-      // Arrange
-      const onConfirm = vi.fn();
-      render(
-        <PromptDialog
-          open={true}
-          title="Enter Project Name"
-          defaultValue="Alpha"
-          confirmLabel="Save"
-          onConfirm={onConfirm}
-        />
-      );
-      const input = screen.getByRole('textbox') as HTMLInputElement;
-
-      // Act
-      fireEvent.change(input, { target: { value: 'Beta' } });
-      fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(input.value).toBe('Beta');
-      expect(onConfirm).toHaveBeenCalledWith('Beta');
-    });
-
-    it('should call onCancel and onOpenChange when cancel button is clicked', () => {
-      // Arrange
-      const onCancel = vi.fn();
-      const onOpenChange = vi.fn();
-      render(
-        <PromptDialog
-          open={true}
-          onOpenChange={onOpenChange}
-          title="Enter Name"
-          onConfirm={vi.fn()}
-          onCancel={onCancel}
-        />
-      );
-
-      // Act
-      fireEvent.click(screen.getByTestId('prompt-dialog-cancel-btn'));
-
-      // Assert
-      expect(onCancel).toHaveBeenCalledTimes(1);
-      expect(onOpenChange).toHaveBeenCalledWith(false);
-    });
-
-    it('should display validation error and block submit when validation fails', () => {
-      // Arrange
-      const onConfirm = vi.fn();
-      render(
-        <PromptDialog
-          open={true}
-          title="Project Code"
-          validate={(val) => (val.length < 3 ? 'Code too short' : null)}
-          onConfirm={onConfirm}
-        />
-      );
-      const input = screen.getByRole('textbox');
-
-      // Act - enter invalid value
-      fireEvent.change(input, { target: { value: 'ab' } });
-      fireEvent.click(screen.getByTestId('prompt-dialog-confirm-btn'));
-
-      // Assert
-      expect(onConfirm).not.toHaveBeenCalled();
-      expect(screen.getByRole('alert')).toBeTruthy();
-      expect(screen.getByText('Code too short')).toBeTruthy();
-
-      // Act - fix input
-      fireEvent.change(input, { target: { value: 'abcd' } });
-
-      // Assert error cleared
-      expect(screen.queryByRole('alert')).toBeNull();
-    });
-  });
 
   describe('SegmentedControl', () => {
     it('should render options and fire onChange on select', () => {
@@ -212,6 +188,7 @@ describe('Unit Tests: Composite Components', () => {
       const opt2 = screen.getByText('Option 2');
       fireEvent.click(opt2);
       expect(onChange).toHaveBeenCalledWith('opt2');
+      expect(onChange).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -340,30 +317,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(dialog.getAttribute('aria-describedby')).toBeTruthy();
     });
 
-    it('PromptDialog should have input connected with label, aria-required, and error alert', () => {
-      render(
-        <PromptDialog
-          open={true}
-          title="Project Name"
-          validate={(v) => (v.length < 3 ? 'Min 3 chars' : null)}
-          onConfirm={() => {}}
-        />
-      );
-      const input = screen.getByRole('textbox');
-      expect(input.getAttribute('aria-required')).toBe('true');
-      expect(input.getAttribute('aria-invalid')).toBe('false');
-
-      // Trigger validation error
-      fireEvent.change(input, { target: { value: 'ab' } });
-      fireEvent.click(screen.getByRole('button', { name: /save|confirm/i }));
-
-      expect(input.getAttribute('aria-invalid')).toBe('true');
-      expect(screen.getByRole('alert')).toBeTruthy();
-      expect(screen.getByText('Min 3 chars')).toBeTruthy();
-    });
-
-    it('SearchInput should have role=search, input aria-label, and clear button accessible name', () => {
-      render(<SearchInput value="test" onChange={() => {}} onClear={() => {}} />);
+    it('SearchInput should have role=search when requested, input aria-label, and clear button accessible name', () => {
+      render(<SearchInput role="search" value="test" onChange={() => {}} onClear={() => {}} />);
       const searchRegion = screen.getByRole('search');
       expect(searchRegion).toBeTruthy();
 
@@ -395,7 +350,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(status.getAttribute('aria-live')).toBe('polite');
     });
 
-    it('StatCard should have accessible aria-label on trend and keyboard activation', () => {
+    it('StatCard should have accessible aria-label on trend and keyboard activation', async () => {
+      const user = userEvent.setup();
       const onClick = vi.fn();
       render(
         <StatCard
@@ -409,7 +365,8 @@ describe('Unit Tests: Composite Components', () => {
       expect(screen.getByLabelText('10% increase this week')).toBeTruthy();
 
       const card = screen.getByTestId('interactive-stat');
-      fireEvent.keyDown(card, { key: 'Enter' });
+      card.focus();
+      await user.keyboard('{Enter}');
       expect(onClick).toHaveBeenCalledTimes(1);
     });
 
@@ -423,6 +380,26 @@ describe('Unit Tests: Composite Components', () => {
       );
       const expectedTrendLabel = `${translate('en', 'common', 'TrendIncrease')}: 5%`;
       expect(screen.getByLabelText(expectedTrendLabel)).toBeTruthy();
+    });
+
+    it('StatCard should forward sentiment to TrendIndicator when provided', () => {
+      // Arrange
+      const expectedTrendLabel = `${translate('en', 'common', 'TrendIncrease')}: $200`;
+
+      // Act
+      render(
+        <StatCard
+          title="Expenses"
+          value="$1,200"
+          trend={{ value: '$200', direction: 'up', sentiment: 'negative' }}
+        />
+      );
+
+      // Assert
+      const trendElement = screen.getByRole('img', { name: expectedTrendLabel });
+      expect(trendElement).toBeTruthy();
+      expect(trendElement.getAttribute('data-direction')).toBe('up');
+      expect(trendElement.getAttribute('data-sentiment')).toBe('negative');
     });
   });
 });

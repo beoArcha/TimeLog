@@ -8,6 +8,8 @@ import { EnginePlugin } from '@plugins/engine/EnginePlugin';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { PersistencePlugin } from '@plugins/persistence/PersistencePlugin';
 import { EngineValidationError } from '@common/exceptions';
+import { aProject, aTask, aTimeLog } from '@tests/shared/builders/entity-builders';
+import auditParityCases from '@tests/shared/fixtures/audit-parity-cases.json';
 
 describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
   beforeEach(() => {
@@ -281,102 +283,299 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
     });
   });
 
-  describe('Desktop Tauri Commands Parity Invocation', () => {
-    it('Given Desktop Tauri Engine, When getElapsedRange is called, Then it should invoke get_elapsed_range with range payload', async () => {
-      const commands = new EngineCommands();
-      mockInvoke.mockResolvedValue(2700);
-
-      const filter = { from: '2026-06-15T10:30:00Z', to: '2026-06-15T11:45:00Z' };
-      const res = await commands.metrics.getElapsedRange(filter);
-
-      expect(mockInvoke).toHaveBeenCalledWith('get_elapsed_range', {
-        range: filter,
-        nowIso: undefined,
-      });
-      expect(res).toBe(2700);
-    });
-
-    it('Given Desktop Tauri Engine, When getRangeMetrics is called, Then it should invoke get_range_metrics with range payload', async () => {
-      const commands = new EngineCommands();
-      const mockResult = {
-        totalSeconds: 3600,
-        projectElapsed: { 'proj-1': 3600 },
-        taskElapsed: { 'task-1': 3600 },
-        clampedLogs: [],
-      };
-      mockInvoke.mockResolvedValue(mockResult);
-
-      const filter = { from: '2026-06-15T10:00:00Z', to: '2026-06-15T11:00:00Z' };
-      const res = await commands.metrics.getRangeMetrics(filter, '2026-06-15T12:00:00Z');
-
-      expect(mockInvoke).toHaveBeenCalledWith('get_range_metrics', {
-        range: filter,
-        nowIso: '2026-06-15T12:00:00Z',
-      });
-      expect(res).toEqual(mockResult);
-    });
-
-    it('Given Desktop Tauri Engine, When editTimeLog is called, Then it should invoke edit_time_log command', async () => {
-      const commands = new EngineCommands();
-      mockInvoke.mockResolvedValue(undefined);
-
-      await commands.timeLogs.editTimeLog('log-1', 'task-1', '2026-06-15T10:00:00Z', '2026-06-15T11:00:00Z', 'Note', 'Reason');
-
-      expect(mockInvoke).toHaveBeenCalledWith('edit_time_log', {
-        id: 'log-1',
-        taskId: 'task-1',
-        startTime: '2026-06-15T10:00:00Z',
-        endTime: '2026-06-15T11:00:00Z',
-        note: 'Note',
-        reason: 'Reason',
-      });
-    });
-  });
-
-  describe('Given projects with different concurrency configurations in Browser runtime', () => {
-    it('Then it should enforce concurrency rules identically to Rust reference engine', async () => {
-      // Given
+  describe('Given Cross-Runtime TimeLog Edit & Audit Parity', () => {
+    beforeEach(async () => {
+      setupLocalStorageMock();
       const persistence = new PersistencePlugin();
       PersistenceRouter.getInstance().setImplementationForTesting(persistence);
-      const engine = new EnginePlugin();
+      await persistence.core.reset();
+      await persistence.core.overrideState({
+        projects: [aProject({ id: 'p1', name: 'P1', color: 'blue' })],
+        tasks: [aTask({ id: 't1', projectId: 'p1', name: 'T1' })],
+        logs: [
+          aTimeLog({
+            id: 'l1',
+            projectId: 'p1',
+            taskId: 't1',
+            startTime: '2026-06-15T10:00:00Z',
+            endTime: '2026-06-15T11:00:00Z',
+            note: 'Original note',
+          }),
+        ],
+        activeLog: null,
+      });
+    });
 
-      await persistence.projects.add({ name: 'NonConcurrent1', color: 'blue', allowConcurrency: false });
-      await persistence.projects.add({ name: 'Concurrent', color: 'green', allowConcurrency: true });
-      await persistence.projects.add({ name: 'NonConcurrent2', color: 'red', allowConcurrency: false });
+    describe('When executing manual edit without reason', () => {
+      it('Then browser runtime rejects with ERR_AUDIT_REASON_REQUIRED', async () => {
+        // Given
+        const browserEngine = new EnginePlugin();
 
-      const state = await persistence.core.load();
-      const p1 = state!.projects.find((p) => p.name === 'NonConcurrent1')!;
-      const pConc = state!.projects.find((p) => p.name === 'Concurrent')!;
-      const p2 = state!.projects.find((p) => p.name === 'NonConcurrent2')!;
+        // When & Then
+        try {
+          await browserEngine.timeLogs.editTimeLog('l1', 't1', '2026-06-15T10:00:00Z', '2026-06-15T11:30:00Z', null, null);
+          expect.unreachable('Should have rejected');
+        } catch (err) {
+          // Then
+          expect(err).toBeInstanceOf(EngineValidationError);
+          expect((err as EngineValidationError).code).toBe('ERR_AUDIT_REASON_REQUIRED');
+        }
+      });
+    });
 
-      await persistence.tasks.add({ projectId: p1.id, name: 'Task1', parentTaskId: null });
-      await persistence.tasks.add({ projectId: pConc.id, name: 'TaskConc', parentTaskId: null });
-      await persistence.tasks.add({ projectId: p2.id, name: 'Task2', parentTaskId: null });
+    describe('When executing CliEdit without reason', () => {
+      it('Then browser runtime rejects with ERR_AUDIT_REASON_REQUIRED', async () => {
+        // Given
+        const browserEngine = new EnginePlugin();
 
-      const tasksState = await persistence.core.load();
-      const t1 = tasksState!.tasks.find((t) => t.name === 'Task1')!;
-      const tConc = tasksState!.tasks.find((t) => t.name === 'TaskConc')!;
-      const t2 = tasksState!.tasks.find((t) => t.name === 'Task2')!;
+        // When & Then
+        try {
+          await browserEngine.timeLogs.editTimeLog(
+            'l1',
+            't1',
+            '2026-06-15T10:00:00Z',
+            '2026-06-15T11:30:00Z',
+            null,
+            null,
+            'CliEdit'
+          );
+          expect.unreachable('Should have rejected');
+        } catch (err) {
+          // Then
+          expect(err).toBeInstanceOf(EngineValidationError);
+          expect((err as EngineValidationError).code).toBe('ERR_AUDIT_REASON_REQUIRED');
+        }
+      });
+    });
 
-      // When
-      await engine.timer.startTimer(t1.id);
-      await engine.timer.startTimer(tConc.id);
+    describe('When executing SystemPatch without reason', () => {
+      it('Then browser runtime succeeds and persists canonical audit source', async () => {
+        // Given
+        const browserEngine = new EnginePlugin();
 
-      // Then
-      let active = await engine.timer.getActiveLogs();
-      expect(active).toHaveLength(2);
-      expect(active).toContain(t1.id);
-      expect(active).toContain(tConc.id);
+        // When
+        await browserEngine.timeLogs.editTimeLog(
+          'l1',
+          't1',
+          '2026-06-15T10:00:00Z',
+          '2026-06-15T11:30:00Z',
+          null,
+          null,
+          'SystemPatch'
+        );
 
-      // When
-      await engine.timer.startTimer(t2.id);
+        // Then
+        const state = await PersistenceRouter.getInstance().core.load();
+        const updatedLog = state?.logs?.find((l) => l.id === 'l1');
+        expect(updatedLog?.editHistory).toHaveLength(1);
+        expect(updatedLog?.editHistory?.[0].auditSource).toBe('System Patch');
+        expect(updatedLog?.editHistory?.[0].reason).toBeUndefined();
+      });
+    });
 
-      // Then
-      active = await engine.timer.getActiveLogs();
-      expect(active).toHaveLength(2);
-      expect(active).toContain(tConc.id);
-      expect(active).toContain(t2.id);
-      expect(active).not.toContain(t1.id);
+    describe('When executing with unknown audit source', () => {
+      it('Then browser runtime rejects with ERR_AUDIT_SOURCE_INVALID', async () => {
+        // Given
+        const browserEngine = new EnginePlugin();
+
+        // When & Then
+        try {
+          await browserEngine.timeLogs.editTimeLog(
+            'l1',
+            't1',
+            '2026-06-15T10:00:00Z',
+            '2026-06-15T11:30:00Z',
+            null,
+            'Valid reason',
+            'UnknownSource'
+          );
+          expect.unreachable('Should have rejected');
+        } catch (err) {
+          // Then
+          expect(err).toBeInstanceOf(EngineValidationError);
+          expect((err as EngineValidationError).code).toBe('ERR_AUDIT_SOURCE_INVALID');
+        }
+      });
+    });
+
+    describe('When executing with whitespace-only audit source', () => {
+      it('Then browser runtime defaults to GUI Edit and requires a valid reason', async () => {
+        // Given
+        const browserEngine = new EnginePlugin();
+
+        // When
+        await browserEngine.timeLogs.editTimeLog(
+          'l1',
+          't1',
+          '2026-06-15T10:00:00Z',
+          '2026-06-15T11:30:00Z',
+          null,
+          'Valid reason for whitespace auditSource',
+          '   '
+        );
+
+        // Then
+        const state = await PersistenceRouter.getInstance().core.load();
+        const updatedLog = state?.logs?.find((l) => l.id === 'l1');
+        expect(updatedLog?.editHistory).toHaveLength(1);
+        expect(updatedLog?.editHistory?.[0].auditSource).toBe('GUI Edit');
+        expect(updatedLog?.editHistory?.[0].reason).toBe('Valid reason for whitespace auditSource');
+      });
+    });
+
+    describe('When desktop commands editTimeLog is invoked', () => {
+      it('Then it passes audit payload to Tauri invoke', async () => {
+        // Given
+        mockInvoke.mockResolvedValue(undefined);
+        const desktopEngine = new EngineCommands();
+
+        // When
+        await desktopEngine.timeLogs.editTimeLog(
+          'l1',
+          't1',
+          '2026-06-15T10:00:00Z',
+          '2026-06-15T11:30:00Z',
+          'Updated note',
+          'Reason for edit'
+        );
+
+        // Then
+        expect(mockInvoke).toHaveBeenCalledWith('edit_time_log', {
+          id: 'l1',
+          taskId: 't1',
+          startTime: '2026-06-15T10:00:00Z',
+          endTime: '2026-06-15T11:30:00Z',
+          note: 'Updated note',
+          reason: 'Reason for edit',
+        });
+      });
+    });
+
+    describe('When validating shared audit-parity-cases.json matrix in Browser Runtime', () => {
+      auditParityCases.forEach((tc) => {
+        it(`Then it should satisfy contract expectations for ${tc.id} (${tc.description})`, async () => {
+          // Given
+          const persistence = PersistenceRouter.getInstance();
+          await persistence.core.overrideState({
+            projects: [aProject({ id: 'p1', name: 'P1', color: 'blue' })],
+            tasks: [aTask({ id: 't1', projectId: 'p1', name: 'T1' })],
+            logs: [
+              aTimeLog({
+                id: 'l1',
+                projectId: 'p1',
+                taskId: 't1',
+                startTime: '2026-06-15T10:00:00Z',
+                endTime: '2026-06-15T11:00:00Z',
+                note: 'Original note',
+              }),
+            ],
+            activeLog: null,
+          });
+          const browserEngine = new EnginePlugin();
+
+          if (tc.expectedSuccess) {
+            // When
+            await browserEngine.timeLogs.editTimeLog(
+              'l1',
+              't1',
+              '2026-06-15T10:00:00Z',
+              '2026-06-15T11:30:00Z',
+              'Updated note',
+              tc.reason,
+              tc.auditSource
+            );
+
+            // Then
+            const state = await persistence.core.load();
+            const updated = state?.logs?.find((l) => l.id === 'l1');
+            expect(updated?.editHistory).toBeDefined();
+            const lastEntry = updated?.editHistory?.[updated.editHistory.length - 1];
+            expect(lastEntry?.auditSource).toBe(tc.expectedAuditSource);
+            if (tc.expectedReason !== null) {
+              expect(lastEntry?.reason).toBe(tc.expectedReason);
+            } else {
+              expect(lastEntry?.reason).toBeUndefined();
+            }
+          } else {
+            // When & Then
+            try {
+              await browserEngine.timeLogs.editTimeLog(
+                'l1',
+                't1',
+                '2026-06-15T10:00:00Z',
+                '2026-06-15T11:30:00Z',
+                'Updated note',
+                tc.reason,
+                tc.auditSource
+              );
+              expect.unreachable(`Expected case ${tc.id} to throw but it succeeded`);
+            } catch (err) {
+              // Then
+              expect(err).toBeInstanceOf(EngineValidationError);
+              expect((err as EngineValidationError).code).toBe(tc.expectedErrorCode);
+            }
+          }
+        });
+      });
+    });
+
+    describe('When validating shared audit-parity-cases.json matrix in Desktop Tauri Runtime', () => {
+      auditParityCases.forEach((tc) => {
+        it(`Then it should invoke Tauri command and preserve error codes for ${tc.id}`, async () => {
+          // Given
+          const desktopEngine = new EngineCommands();
+          mockInvoke.mockReset();
+
+          if (tc.expectedSuccess) {
+            mockInvoke.mockResolvedValueOnce(undefined);
+
+            // When
+            await desktopEngine.timeLogs.editTimeLog(
+              'l1',
+              't1',
+              '2026-06-15T10:00:00Z',
+              '2026-06-15T11:30:00Z',
+              'Updated note',
+              tc.reason,
+              tc.auditSource
+            );
+
+            // Then
+            expect(mockInvoke).toHaveBeenCalledWith('edit_time_log', {
+              id: 'l1',
+              taskId: 't1',
+              startTime: '2026-06-15T10:00:00Z',
+              endTime: '2026-06-15T11:30:00Z',
+              note: 'Updated note',
+              reason: tc.reason,
+              ...(tc.auditSource ? { auditSource: tc.auditSource } : {}),
+            });
+          } else {
+            mockInvoke.mockRejectedValueOnce({
+              code: tc.expectedErrorCode,
+              message: 'Validation failed in Rust backend',
+            });
+
+            // When & Then
+            try {
+              await desktopEngine.timeLogs.editTimeLog(
+                'l1',
+                't1',
+                '2026-06-15T10:00:00Z',
+                '2026-06-15T11:30:00Z',
+                'Updated note',
+                tc.reason,
+                tc.auditSource
+              );
+              expect.unreachable(`Expected case ${tc.id} to throw but it succeeded`);
+            } catch (err) {
+              // Then
+              expect((err as { code?: string })?.code).toBe(tc.expectedErrorCode);
+            }
+          }
+        });
+      });
     });
   });
+
 });

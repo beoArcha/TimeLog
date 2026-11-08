@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 export interface AnimatedDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
+  title: string;
   children: React.ReactNode;
   className?: string;
   backdropClassName?: string;
@@ -17,11 +17,12 @@ export interface AnimatedDrawerProps {
   backdropId?: string;
   wrapperId?: string;
   portalContainer?: HTMLElement | ShadowRoot | React.RefObject<HTMLElement | ShadowRoot | null> | null;
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
 }
 
 /**
  * Slide-down modal sheet drawer with backdrop blur overlay and smooth transitions.
- * Accessible drawer composite wrapping Base UI Drawer primitive.
  */
 export function AnimatedDrawer({
   isOpen,
@@ -34,6 +35,8 @@ export function AnimatedDrawer({
   backdropId = 'animated-drawer-backdrop',
   wrapperId = 'animated-drawer-wrapper',
   portalContainer,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
 }: AnimatedDrawerProps) {
   return (
     <Drawer
@@ -52,14 +55,15 @@ export function AnimatedDrawer({
         backdropId={backdropId}
         backdropClassName={backdropClassName}
         portalContainer={portalContainer}
-        aria-label={title}
+        aria-label={ariaLabel ?? title}
+        aria-labelledby={ariaLabelledBy}
         aria-modal="true"
         className={cn(
           'w-full max-h-[82vh] flex flex-col p-4 sm:p-6 text-foreground overflow-hidden',
           className
         )}
       >
-        {title && <DrawerTitle className="sr-only">{title}</DrawerTitle>}
+        <DrawerTitle className="sr-only">{title}</DrawerTitle>
         {children}
       </DrawerContent>
     </Drawer>

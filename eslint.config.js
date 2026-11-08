@@ -3,6 +3,16 @@ import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+
+const jsxA11yWarnRules = Object.fromEntries(
+    Object.entries(jsxA11y.flatConfigs.recommended.rules).map(([key, val]) => [
+        key,
+        val === "error" || (Array.isArray(val) && val[0] === "error")
+            ? (Array.isArray(val) ? ["warn", ...val.slice(1)] : "warn")
+            : val
+    ])
+);
 
 export default [
     {
@@ -61,6 +71,16 @@ export default [
             "@typescript-eslint/no-explicit-any": "warn",
             "no-else-return": "warn",
             "no-empty": "warn",
+        },
+    },
+
+    {
+        files: ["src/**/*.{ts,tsx}"],
+        plugins: {
+            "jsx-a11y": jsxA11y,
+        },
+        rules: {
+            ...jsxA11yWarnRules,
         },
     },
 

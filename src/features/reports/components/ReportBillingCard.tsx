@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Coins, DollarSign } from 'lucide-react';
 import CollapsibleCard from '@components/CollapsibleCard';
 import { StatCard } from '@components/StatCard';
+import { CurrencyStatBadge } from '@components/CurrencyStatBadge';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { EngineRouter } from '@common/engine/EngineRouter';
 import { RangeBillingResult, CurrencyBillingSummary } from '@common/engine/billing/types';
 import { getRangeFilterForPeriod } from '../utils/periodRanges';
 import { Settings } from '@bindings/Settings';
-import { Badge } from '@components/ui/badge';
 import { Grid } from '@components/ui/grid';
+import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert';
 import {
   Table,
   TableHeader,
@@ -25,7 +26,12 @@ export interface ReportBillingCardProps {
   customTo?: string;
   nowIso?: string;
   selectedProjectId?: string | null;
+  selectedProjectIds?: string[] | null;
   sysSettings?: Settings | null;
+  billingResult?: RangeBillingResult | null;
+  billingError?: string | null;
+  isLoading?: boolean;
+  forceMountOnPrint?: boolean;
 }
 
 function formatDisplayRate(
@@ -48,17 +54,33 @@ export default function ReportBillingCard({
   customTo,
   nowIso,
   selectedProjectId,
+  selectedProjectIds,
   sysSettings,
+  billingResult: propBillingResult,
+  billingError: propBillingError,
+  isLoading: propIsLoading,
+  forceMountOnPrint = false,
 }: ReportBillingCardProps) {
   const { t } = useTranslation('report');
-  const [billingResult, setBillingResult] = useState<RangeBillingResult | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [internalResult, setInternalResult] = useState<RangeBillingResult | null>(null);
+  const [internalLoading, setInternalLoading] = useState<boolean>(false);
+  const [internalError, setInternalError] = useState<string | null>(null);
+
+  const isControlled = propBillingResult !== undefined || propBillingError !== undefined;
+  const billingResult = isControlled ? (propBillingResult ?? null) : internalResult;
+  const isLoading = isControlled ? (propIsLoading ?? false) : internalLoading;
+  const billingError = isControlled ? (propBillingError ?? null) : internalError;
 
   useEffect(() => {
+    if (isControlled) return;
+
     let isCancelled = false;
 
     const fetchBilling = async () => {
-      setIsLoading(true);
+      setInternalLoading(true);
+      setInternalError(null);
+      setInternalResult(null);
+      let filterContext: unknown = null;
       try {
         const now = nowIso ? new Date(nowIso) : new Date();
         const { filter } = getRangeFilterForPeriod(
@@ -72,16 +94,52 @@ export default function ReportBillingCard({
         if (selectedProjectId) {
           filter.projectId = selectedProjectId;
         }
+        if (selectedProjectIds) {
+          filter.projectIds = selectedProjectIds;
+        }
+        filterContext = filter;
 
-        const res = await EngineRouter.getInstance().billing.calculateRangeBilling(filter, nowIso);
+        let router: EngineRouter | null = null;
+        try {
+          router = typeof EngineRouter !== 'undefined' ? EngineRouter.getInstance() : null;
+        } catch (engineErr) {
+          console.error('[ReportBillingCard] Failed to get EngineRouter instance:', {
+            filter: filterContext,
+            nowIso,
+            error: engineErr,
+          });
+          if (!isCancelled) {
+            setInternalError(t('BillingCalculationError'));
+          }
+          return;
+        }
+
+        if (!router?.billing?.calculateRangeBilling) {
+          return;
+        }
+
+        const res = await router.billing.calculateRangeBilling(filter, nowIso);
         if (!isCancelled) {
-          setBillingResult(res);
+          setInternalResult(res);
         }
       } catch (err) {
-        console.error('Failed to calculate range billing:', err);
+        console.error('[ReportBillingCard] Billing calculation failed:', {
+          filter: filterContext ?? {
+            reportPeriod,
+            customFrom,
+            customTo,
+            selectedProjectId,
+            includePatches: sysSettings?.includePatchesInReports ?? false,
+          },
+          nowIso,
+          error: err,
+        });
+        if (!isCancelled) {
+          setInternalError(t('BillingCalculationError'));
+        }
       } finally {
         if (!isCancelled) {
-          setIsLoading(false);
+          setInternalLoading(false);
         }
       }
     };
@@ -91,7 +149,36 @@ export default function ReportBillingCard({
     return () => {
       isCancelled = true;
     };
-  }, [reportPeriod, customFrom, customTo, nowIso, selectedProjectId, sysSettings]);
+  }, [
+    isControlled,
+    reportPeriod,
+    customFrom,
+    customTo,
+    nowIso,
+    selectedProjectId,
+    selectedProjectIds,
+    sysSettings,
+    t,
+  ]);
+
+  if (billingError) {
+    return (
+      <CollapsibleCard
+        title={t('BillingSummary')}
+        icon={Coins}
+        iconColor="text-destructive"
+        defaultExpanded={true}
+        headerTestId="report-billing-collapsible-header"
+        contentClassName="flex flex-col gap-4 mt-2"
+        forceMountOnPrint={forceMountOnPrint}
+      >
+        <Alert variant="destructive" data-testid="report-billing-error">
+          <AlertTitle>{t('BillingCalculationError')}</AlertTitle>
+          <AlertDescription>{billingError}</AlertDescription>
+        </Alert>
+      </CollapsibleCard>
+    );
+  }
 
   if (!billingResult && !isLoading) {
     return null;
@@ -109,6 +196,7 @@ export default function ReportBillingCard({
       defaultExpanded={true}
       headerTestId="report-billing-collapsible-header"
       contentClassName="flex flex-col gap-4 mt-2"
+      forceMountOnPrint={forceMountOnPrint}
     >
       {currencies.length === 0 ? (
         <div className="text-sm text-muted-foreground py-2" data-testid="report-billing-empty">
@@ -125,6 +213,13 @@ export default function ReportBillingCard({
                 value={`${curr.totalAmount} ${curr.currency}`}
                 description={`${t('BillableTime')}: ${formatSeconds(curr.billableDurationSeconds)}`}
                 icon={DollarSign}
+                badge={
+                  <CurrencyStatBadge
+                    currency={curr.currency}
+                    variant="emerald"
+                    size="xs"
+                  />
+                }
               />
             ))}
           </Grid>
@@ -151,7 +246,7 @@ export default function ReportBillingCard({
           </Grid>
 
           {billingResult && billingResult.byTask.length > 0 && (
-            <div className="mt-2 overflow-x-auto">
+            <div className="mt-2 overflow-x-auto print:overflow-visible">
               <Table className="w-full text-xs text-left">
                 <TableHeader>
                   <TableRow className="border-b border-border/60 text-muted-foreground">
@@ -167,9 +262,12 @@ export default function ReportBillingCard({
                       <TableCell className="py-2 px-3 font-medium text-foreground">{task.taskName}</TableCell>
                       <TableCell className="py-2 px-3 text-muted-foreground">
                         {formatDisplayRate(task.effectiveRate, task.currency, task.rateStatus)}
-                        <Badge variant="outline" size="xs" className="ml-2 uppercase text-[10px]">
-                          {task.rateStatus}
-                        </Badge>
+                        <CurrencyStatBadge
+                          rateStatus={task.rateStatus}
+                          size="xs"
+                          className="ml-2"
+                          testId={`task-rate-status-${task.taskId}`}
+                        />
                       </TableCell>
                       <TableCell className="py-2 px-3 font-mono text-muted-foreground">
                         {formatSeconds(task.durationSeconds)}

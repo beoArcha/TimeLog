@@ -1,7 +1,7 @@
 {
   "name": "timelog",
   "private": true,
-  "version": "1.15.1",
+  "version": "1.14.2",
   "license": "MPL-2.0",
   "type": "module",
   "scripts": {
@@ -22,6 +22,7 @@
     "test:smoke": "vitest run tests/smoke/; cargo test --manifest-path src-tauri/Cargo.toml --test smoke_test",
     "test:arch:rust": "cargo test --manifest-path src-tauri/Cargo.toml --test architecture_tests",
     "test:e2e": "playwright test --config=tests/e2e/config/playwright.config.ts",
+    "test:e2e:print": "playwright test tests/e2e/specs/reports-print.spec.ts --config=tests/e2e/config/playwright.config.ts",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
     "test:mutation": "stryker run",
     "test:quality": "bun run test:smoke; bun run test:arch:rust; bun run check; bun run test:rust; bun run test",
@@ -29,7 +30,13 @@
     "docs:validate": "bun scripts/validate-docs.js",
     "docs:serve": "bunx serve docs/wiki",
     "metadata:sync": "bun scripts/sync_metadata.js",
-    "metadata:check": "bun scripts/sync_metadata.js --check"
+    "metadata:check": "bun scripts/sync_metadata.js --check",
+    "graphify:build": "graphify . --code-only --directed",
+    "graphify:update": "graphify . --code-only --update --directed",
+    "graphify:watch": "graphify . --code-only --watch --directed",
+    "graphify:report": "bun -e \"console.log(require('fs').readFileSync('graphify-out/GRAPH_REPORT.md', 'utf-8'))\"",
+    "graphify:viz": "bun -e \"import('open').then(m => m.default('graphify-out/graph.html'))\"",
+    "graphify:diagnose": "graphify diagnose"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -66,6 +73,7 @@
     "autoprefixer": "^10.6.1",
     "esbuild": "^0.25.12",
     "eslint": "^10.13.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",

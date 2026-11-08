@@ -53,28 +53,35 @@ export const useDataLifecycle = ({
     };
   });
 
-  const refreshData = async () => {
+  const refreshData = async (): Promise<boolean> => {
     const deps = initDepsRef.current;
-    await deps.actionRunner.runAction('Failed to load repository state', async () => {
-      const router = PersistenceRouter.getInstance();
-      const [state, loadedHolidays, loadedPatches] = await Promise.all([
-        router.core.load(),
-        router.holidays.getAll(),
-        router.patches.getAll(),
-      ]);
+    const result = await deps.actionRunner.runAction(
+      'Failed to load repository state',
+      async () => {
+        const router = PersistenceRouter.getInstance();
+        const [state, loadedHolidays, loadedPatches] = await Promise.all([
+          router.core.load(),
+          router.holidays.getAll(),
+          router.patches.getAll(),
+        ]);
 
-      if (state !== null) {
-        deps.repositoryState.setProjectsState(state.projects);
-        deps.repositoryState.setTasksState(state.tasks);
-        deps.repositoryState.setLogsState(state.logs);
-        deps.repositoryState.setActiveLogState(state.activeLog);
-        deps.repositoryState.setActiveLogsState(state.activeLogs ?? (state.activeLog ? [state.activeLog] : []));
-        deps.onTaskSelected?.(state.tasks?.[0]?.id ?? null);
-      }
-      deps.holidaysManager.setHolidaysState(loadedHolidays);
-      deps.patchesManager.setPatchesState(loadedPatches);
-      await deps.refreshComputedMetrics();
-    });
+        if (state !== null) {
+          deps.repositoryState.setProjectsState(state.projects);
+          deps.repositoryState.setTasksState(state.tasks);
+          deps.repositoryState.setLogsState(state.logs);
+          deps.repositoryState.setActiveLogState(state.activeLog);
+          deps.repositoryState.setActiveLogsState(state.activeLogs ?? (state.activeLog ? [state.activeLog] : []));
+          deps.onTaskSelected?.(state.tasks?.[0]?.id ?? null);
+        }
+        deps.holidaysManager.setHolidaysState(loadedHolidays);
+        deps.patchesManager.setPatchesState(loadedPatches);
+        await deps.refreshComputedMetrics();
+        return true;
+      },
+      { errorCode: 'ERR_REPOSITORY_REFRESH_DATA', rethrow: false }
+    );
+
+    return result === true;
   };
 
   useEffect(() => {

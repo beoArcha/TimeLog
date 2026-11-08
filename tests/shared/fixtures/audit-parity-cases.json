@@ -1,0 +1,422 @@
+[
+  {
+    "id": "default-source-with-valid-reason",
+    "description": "Default auditSource (null) with valid reason persists GUI Edit",
+    "auditSource": null,
+    "reason": "Manual correction of typo",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "GUI Edit",
+    "expectedReason": "Manual correction of typo"
+  },
+  {
+    "id": "default-source-with-trimmed-reason",
+    "description": "Default auditSource (null) with padded reason persists trimmed reason",
+    "auditSource": null,
+    "reason": "  Manual correction with padding  ",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "GUI Edit",
+    "expectedReason": "Manual correction with padding"
+  },
+  {
+    "id": "default-source-missing-reason",
+    "description": "Default auditSource (null) with null reason fails validation",
+    "auditSource": null,
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "default-source-empty-reason",
+    "description": "Default auditSource (null) with empty string reason fails validation",
+    "auditSource": null,
+    "reason": "",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "default-source-whitespace-reason",
+    "description": "Default auditSource (null) with whitespace-only reason fails validation",
+    "auditSource": null,
+    "reason": "   ",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "whitespace-source-with-valid-reason",
+    "description": "Whitespace-only auditSource with valid reason persists GUI Edit",
+    "auditSource": "   ",
+    "reason": "Manual correction of typo",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "GUI Edit",
+    "expectedReason": "Manual correction of typo"
+  },
+  {
+    "id": "gui-edit-raw-with-valid-reason",
+    "description": "Raw enum GuiEdit with valid reason persists canonical GUI Edit",
+    "auditSource": "GuiEdit",
+    "reason": "Manual correction of typo",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "GUI Edit",
+    "expectedReason": "Manual correction of typo"
+  },
+  {
+    "id": "gui-edit-raw-missing-reason",
+    "description": "Raw enum GuiEdit with missing reason fails validation",
+    "auditSource": "GuiEdit",
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "gui-edit-raw-empty-reason",
+    "description": "Raw enum GuiEdit with empty string reason fails validation",
+    "auditSource": "GuiEdit",
+    "reason": "",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "gui-edit-raw-whitespace-reason",
+    "description": "Raw enum GuiEdit with whitespace-only reason fails validation",
+    "auditSource": "GuiEdit",
+    "reason": "   ",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "cli-edit-raw-with-valid-reason",
+    "description": "Raw enum CliEdit with valid reason persists canonical CLI Edit",
+    "auditSource": "CliEdit",
+    "reason": "CLI batch correction",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "CLI Edit",
+    "expectedReason": "CLI batch correction"
+  },
+  {
+    "id": "cli-edit-raw-missing-reason",
+    "description": "Raw enum CliEdit with missing reason fails validation",
+    "auditSource": "CliEdit",
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "cli-edit-raw-empty-reason",
+    "description": "Raw enum CliEdit with empty string reason fails validation",
+    "auditSource": "CliEdit",
+    "reason": "",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "cli-edit-raw-whitespace-reason",
+    "description": "Raw enum CliEdit with whitespace-only reason fails validation",
+    "auditSource": "CliEdit",
+    "reason": "   ",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "manual-adjustment-raw-with-valid-reason",
+    "description": "Raw enum ManualAdjustment with valid reason persists canonical Manual Adjustment",
+    "auditSource": "ManualAdjustment",
+    "reason": "Adjusted after manager review",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "Manual Adjustment",
+    "expectedReason": "Adjusted after manager review"
+  },
+  {
+    "id": "manual-adjustment-raw-missing-reason",
+    "description": "Raw enum ManualAdjustment with missing reason fails validation",
+    "auditSource": "ManualAdjustment",
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "manual-adjustment-raw-empty-reason",
+    "description": "Raw enum ManualAdjustment with empty string reason fails validation",
+    "auditSource": "ManualAdjustment",
+    "reason": "",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "manual-adjustment-raw-whitespace-reason",
+    "description": "Raw enum ManualAdjustment with whitespace-only reason fails validation",
+    "auditSource": "ManualAdjustment",
+    "reason": "   ",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "system-patch-raw-without-reason",
+    "description": "Raw enum SystemPatch without reason succeeds as reason is optional",
+    "auditSource": "SystemPatch",
+    "reason": null,
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "System Patch",
+    "expectedReason": null
+  },
+  {
+    "id": "system-patch-raw-with-valid-reason",
+    "description": "Raw enum SystemPatch with valid reason persists reason",
+    "auditSource": "SystemPatch",
+    "reason": "Automated clock drift correction",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "System Patch",
+    "expectedReason": "Automated clock drift correction"
+  },
+  {
+    "id": "system-patch-raw-with-empty-reason",
+    "description": "Raw enum SystemPatch with empty string reason succeeds with null reason",
+    "auditSource": "SystemPatch",
+    "reason": "",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "System Patch",
+    "expectedReason": null
+  },
+  {
+    "id": "system-patch-raw-with-whitespace-reason",
+    "description": "Raw enum SystemPatch with whitespace-only reason succeeds with null reason",
+    "auditSource": "SystemPatch",
+    "reason": "   ",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "System Patch",
+    "expectedReason": null
+  },
+  {
+    "id": "gui-edit-label-with-valid-reason",
+    "description": "UI label GUI Edit with valid reason persists canonical GUI Edit",
+    "auditSource": "GUI Edit",
+    "reason": "Manual correction of typo",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "GUI Edit",
+    "expectedReason": "Manual correction of typo"
+  },
+  {
+    "id": "gui-edit-label-missing-reason",
+    "description": "UI label GUI Edit with missing reason fails validation",
+    "auditSource": "GUI Edit",
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "gui-edit-label-empty-reason",
+    "description": "UI label GUI Edit with empty string reason fails validation",
+    "auditSource": "GUI Edit",
+    "reason": "",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "gui-edit-label-whitespace-reason",
+    "description": "UI label GUI Edit with whitespace-only reason fails validation",
+    "auditSource": "GUI Edit",
+    "reason": "   ",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "cli-edit-label-with-valid-reason",
+    "description": "UI label CLI Edit with valid reason persists canonical CLI Edit",
+    "auditSource": "CLI Edit",
+    "reason": "CLI script adjustment",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "CLI Edit",
+    "expectedReason": "CLI script adjustment"
+  },
+  {
+    "id": "cli-edit-label-missing-reason",
+    "description": "UI label CLI Edit with missing reason fails validation",
+    "auditSource": "CLI Edit",
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "cli-edit-label-empty-reason",
+    "description": "UI label CLI Edit with empty string reason fails validation",
+    "auditSource": "CLI Edit",
+    "reason": "",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "cli-edit-label-whitespace-reason",
+    "description": "UI label CLI Edit with whitespace-only reason fails validation",
+    "auditSource": "CLI Edit",
+    "reason": "   ",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "manual-adjustment-label-with-valid-reason",
+    "description": "UI label Manual Adjustment with valid reason persists canonical Manual Adjustment",
+    "auditSource": "Manual Adjustment",
+    "reason": "Manual adjustment from timecard",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "Manual Adjustment",
+    "expectedReason": "Manual adjustment from timecard"
+  },
+  {
+    "id": "manual-adjustment-label-missing-reason",
+    "description": "UI label Manual Adjustment with missing reason fails validation",
+    "auditSource": "Manual Adjustment",
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "manual-adjustment-label-empty-reason",
+    "description": "UI label Manual Adjustment with empty string reason fails validation",
+    "auditSource": "Manual Adjustment",
+    "reason": "",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "manual-adjustment-label-whitespace-reason",
+    "description": "UI label Manual Adjustment with whitespace-only reason fails validation",
+    "auditSource": "Manual Adjustment",
+    "reason": "   ",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_REASON_REQUIRED",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "system-patch-label-without-reason",
+    "description": "UI label System Patch without reason succeeds as reason is optional",
+    "auditSource": "System Patch",
+    "reason": null,
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "System Patch",
+    "expectedReason": null
+  },
+  {
+    "id": "system-patch-label-with-valid-reason",
+    "description": "UI label System Patch with valid reason persists reason",
+    "auditSource": "System Patch",
+    "reason": "System patch for daylight savings",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "System Patch",
+    "expectedReason": "System patch for daylight savings"
+  },
+  {
+    "id": "system-patch-label-with-empty-reason",
+    "description": "UI label System Patch with empty string reason succeeds with null reason",
+    "auditSource": "System Patch",
+    "reason": "",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "System Patch",
+    "expectedReason": null
+  },
+  {
+    "id": "system-patch-label-with-whitespace-reason",
+    "description": "UI label System Patch with whitespace-only reason succeeds with null reason",
+    "auditSource": "System Patch",
+    "reason": "   ",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "System Patch",
+    "expectedReason": null
+  },
+  {
+    "id": "invalid-source-with-reason",
+    "description": "Unrecognized source InvalidSource with reason fails with ERR_AUDIT_SOURCE_INVALID",
+    "auditSource": "InvalidSource",
+    "reason": "Some valid reason",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_SOURCE_INVALID",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "invalid-source-without-reason",
+    "description": "Unrecognized source InvalidSource without reason fails with ERR_AUDIT_SOURCE_INVALID",
+    "auditSource": "InvalidSource",
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_SOURCE_INVALID",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "unknown-source-with-reason",
+    "description": "Unrecognized source Unknown with reason fails with ERR_AUDIT_SOURCE_INVALID",
+    "auditSource": "Unknown",
+    "reason": "Some valid reason",
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_SOURCE_INVALID",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  },
+  {
+    "id": "unknown-source-without-reason",
+    "description": "Unrecognized source Unknown without reason fails with ERR_AUDIT_SOURCE_INVALID",
+    "auditSource": "Unknown",
+    "reason": null,
+    "expectedSuccess": false,
+    "expectedErrorCode": "ERR_AUDIT_SOURCE_INVALID",
+    "expectedAuditSource": null,
+    "expectedReason": null
+  }
+]

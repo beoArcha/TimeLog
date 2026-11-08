@@ -32,10 +32,12 @@ export interface PromptDialogProps {
   onConfirm: (value: string) => void | Promise<void>;
   onCancel?: () => void;
   validate?: (value: string) => string | null | undefined;
+  required?: boolean;
 }
 
 interface PromptDialogFormProps extends Omit<PromptDialogProps, 'open' | 'onOpenChange'> {
-  key?: React.Key;
+  titleId: string;
+  descriptionId: string;
   onClose: () => void;
 }
 
@@ -51,12 +53,13 @@ function PromptDialogForm({
   onConfirm,
   onCancel,
   validate,
+  required = true,
+  titleId,
+  descriptionId,
   onClose,
 }: PromptDialogFormProps) {
   const { locale, customTranslations } = useSafeLocale();
   const inputId = useId();
-  const titleId = useId();
-  const descriptionId = useId();
   const errorId = useId();
 
   const resolvedConfirmLabel = confirmLabel || translate(locale, 'common', 'Save', customTranslations);
@@ -71,8 +74,25 @@ function PromptDialogForm({
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const extractErrorMessage = (reason: unknown): string => {
+    if (reason instanceof Error && reason.message) {
+      return reason.message;
+    }
+    if (typeof reason === 'string' && reason.length > 0) {
+      return reason;
+    }
+    return translate(locale, 'common', 'ErrGeneric', customTranslations);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (loading) return;
+
+    if (required && value.trim() === '') {
+      setError(translate(locale, 'common', 'ErrRequired', customTranslations));
+      return;
+    }
+
     if (validate) {
       const validationError = validate(value);
       if (validationError) {
@@ -81,15 +101,17 @@ function PromptDialogForm({
       }
     }
 
-    const result = onConfirm(value);
-    if (result && typeof (result as Promise<void>).then === 'function') {
-      setLoading(true);
-      (result as Promise<void>).finally(() => {
-        setLoading(false);
-        onClose();
-      });
-    } else {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await onConfirm(value);
       onClose();
+    } catch (reason) {
+      console.error('Failed to execute prompt action in PromptDialog:', reason);
+      setError(extractErrorMessage(reason));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,14 +119,14 @@ function PromptDialogForm({
     <Form onSubmit={handleSubmit} layout="vertical" gap="lg">
       <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
         <IconBox
-          variant="subtle"
-          size="md"
-          className="rounded-2xl border border-primary/20 bg-primary/10 text-primary"
           aria-hidden="true"
+          size="md"
+          rounded="section"
+          className="border border-primary/20 bg-primary/10 text-primary"
         >
           <Icon className="w-5 h-5" />
         </IconBox>
-        <VStack gap="xs" align="start">
+        <VStack gap="2xs" className="text-left">
           <DialogTitle id={titleId}>{title}</DialogTitle>
           {description && (
             <DialogDescription id={descriptionId}>{description}</DialogDescription>
@@ -121,13 +143,13 @@ function PromptDialogForm({
           data-testid="prompt-dialog-input"
           type="text"
           value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
+          onChange={(event) => {
+            setValue(event.target.value);
             if (error) setError(null);
           }}
           placeholder={placeholder}
           autoFocus
-          aria-required="true"
+          aria-required={required}
           aria-invalid={Boolean(error)}
           aria-errormessage={error ? errorId : undefined}
           aria-describedby={description ? descriptionId : undefined}
@@ -169,15 +191,28 @@ function PromptDialogForm({
 export function PromptDialog({
   open,
   onOpenChange,
+  title,
+  description,
   ...formProps
 }: PromptDialogProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md focus-visible:outline-none">
+      <DialogContent
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
+        className="max-w-md focus-visible:outline-none"
+      >
         {open && (
           <PromptDialogForm
-            key={String(open) + (formProps.defaultValue ?? '')}
             {...formProps}
+            title={title}
+            description={description}
+            titleId={titleId}
+            descriptionId={descriptionId}
             onClose={() => onOpenChange?.(false)}
           />
         )}

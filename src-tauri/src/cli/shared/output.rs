@@ -10,6 +10,7 @@ pub enum CliOutput {
     Status(Vec<String>),
     Success(String),
     Json(String),
+    Raw(String),
 }
 
 impl fmt::Display for CliOutput {
@@ -30,6 +31,7 @@ impl fmt::Display for CliOutput {
             }
             CliOutput::Success(msg) => write!(f, "{}", OUT_SUCCESS.replace("{}", msg)),
             CliOutput::Json(data) => write!(f, "{}", data),
+            CliOutput::Raw(data) => write!(f, "{}", data),
         }
     }
 }

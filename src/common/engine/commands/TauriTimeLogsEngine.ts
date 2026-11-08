@@ -9,12 +9,22 @@ export class TauriTimeLogsEngine implements ITimeLogsEngine {
     startTime: string,
     endTime: string | null,
     note: string | null,
-    reason: string | null
+    reason: string | null,
+    auditSource?: string | null
   ): Promise<void> {
     try {
-      await invoke('edit_time_log', { id, taskId, startTime, endTime, note, reason });
+      await invoke('edit_time_log', {
+        id,
+        taskId,
+        startTime,
+        endTime,
+        note,
+        reason,
+        ...(auditSource ? { auditSource } : {}),
+      });
     } catch (err) {
-      ErrorHandler.handle(new TauriInteropException('Failed to edit time log via Tauri', err, 'ERR_TAURI_ENGINE_EDIT'));
+      const code = (err as { code?: string })?.code || 'ERR_TAURI_ENGINE_EDIT';
+      ErrorHandler.handle(new TauriInteropException('Failed to edit time log via Tauri', err, code));
       throw err;
     }
   }

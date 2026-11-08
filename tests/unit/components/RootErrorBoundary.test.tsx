@@ -70,4 +70,52 @@ describe('Unit Tests: RootErrorBoundary', () => {
       value: originalLocation,
     });
   });
+
+  it('renders localized error UI when system locale is Polish', () => {
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('pl-PL');
+
+    render(
+      <RootErrorBoundary>
+        <ProblematicChild shouldThrow={true} />
+      </RootErrorBoundary>
+    );
+
+    expect(screen.getByText('Błąd Aplikacji')).toBeTruthy();
+    expect(
+      screen.getByText('Wystąpił nieoczekiwany błąd podczas renderowania interfejsu.')
+    ).toBeTruthy();
+    expect(screen.getByTestId('root-error-reload-btn').textContent).toContain('Restart GUI Client');
+  });
+
+  it('renders localized error UI when system locale is German', () => {
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('de-DE');
+
+    render(
+      <RootErrorBoundary>
+        <ProblematicChild shouldThrow={true} />
+      </RootErrorBoundary>
+    );
+
+    expect(screen.getByText('Anwendungsfehler')).toBeTruthy();
+    expect(
+      screen.getByText('Beim Rendern der Benutzeroberfläche ist ein unerwarteter Fehler aufgetreten.')
+    ).toBeTruthy();
+    expect(screen.getByTestId('root-error-reload-btn').textContent).toContain('GUI-Client neu starten');
+  });
+
+  it('falls back to English error UI when system locale is unsupported', () => {
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('zh-CN');
+
+    render(
+      <RootErrorBoundary>
+        <ProblematicChild shouldThrow={true} />
+      </RootErrorBoundary>
+    );
+
+    expect(screen.getByText('Application Error')).toBeTruthy();
+    expect(
+      screen.getByText('An unexpected error occurred while rendering the interface.')
+    ).toBeTruthy();
+    expect(screen.getByTestId('root-error-reload-btn').textContent).toContain('Restart GUI Client');
+  });
 });

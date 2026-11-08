@@ -35,6 +35,8 @@ pub const ERR_LOG_ADD_NO_DURATION_OR_FROM: &str =
     "Either duration or --from timestamp must be provided.";
 pub const ERR_LOG_EDIT_EMPTY: &str =
     "At least one field to edit must be provided (--duration, --note, --start, --end, --task).";
+pub const ERR_LOG_EDIT_NO_REASON: &str =
+    "Audit reason is required for editing a time log. Provide --reason <text> (or -r <text>).";
 
 pub const MSG_NO_TARGET_SPECIFIED: &str = "No target task specified. Usage: oxy start <target>";
 pub const MSG_NO_TODAY_LOGS: &str =

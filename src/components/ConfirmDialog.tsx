@@ -14,6 +14,37 @@ import { AlertTriangle, HelpCircle, type LucideIcon } from 'lucide-react';
 import { useSafeLocale } from '@common/hooks/LocaleProvider';
 import { translate } from '@common/i18n/translator';
 
+const TECHNICAL_ERROR_PATTERNS = [
+  /\bat\s+/i,
+  /\n\s*at\s+/i,
+  /sqlite/i,
+  /SQLITE_/i,
+  /panic/i,
+];
+
+function isUnsafeErrorMessage(msg: string): boolean {
+  return TECHNICAL_ERROR_PATTERNS.some((pattern) => pattern.test(msg));
+}
+
+function extractRawErrorMessage(error: unknown): string | null {
+  if (typeof error === 'string') {
+    const trimmed = error.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (error instanceof Error) {
+    const trimmed = error.message.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof error === 'object' && error !== null) {
+    const candidate = (error as Record<string, unknown>).message;
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    }
+  }
+  return null;
+}
+
 export interface ConfirmDialogProps {
   open: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -30,6 +61,17 @@ export interface ConfirmDialogProps {
   confirmDisabled?: boolean;
   errorMessage?: string | null;
   onClearError?: () => void;
+}
+
+interface CancellableEventDetails {
+  cancel: () => void;
+}
+
+function isCancellableEventDetails(details: unknown): details is CancellableEventDetails {
+  if (typeof details !== 'object' || details === null) {
+    return false;
+  }
+  return 'cancel' in details && typeof (details as { cancel?: unknown }).cancel === 'function';
 }
 
 /**
@@ -72,32 +114,55 @@ export function ConfirmDialog({
   };
 
   const handleCancel = () => {
+    if (isLoading) {
+      return;
+    }
     clearError();
     onCancel?.();
     onOpenChange?.(false);
   };
 
-  const handleOpenChange = (nextOpen: boolean) => {
+  const handleOpenChange = (nextOpen: boolean, eventDetails?: unknown) => {
+    if (isLoading && !nextOpen) {
+      if (isCancellableEventDetails(eventDetails)) {
+        eventDetails.cancel();
+      }
+      return;
+    }
+
     if (!nextOpen) {
       clearError();
     }
     onOpenChange?.(nextOpen);
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (isLoading && event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+
   const extractErrorMessage = (error: unknown): string => {
-    if (error instanceof Error) {
-      return error.message;
+    const rawMessage = extractRawErrorMessage(error);
+    const genericFallback = translate(locale, 'common', 'ErrGeneric', customTranslations);
+
+    if (!rawMessage || isUnsafeErrorMessage(rawMessage)) {
+      return genericFallback;
     }
-    if (typeof error === 'string') {
-      return error;
-    }
-    return translate(locale, 'common', 'ErrGeneric', customTranslations);
+
+    return rawMessage;
   };
 
   const handleConfirm = () => {
+    if (isLoading || confirmDisabled) {
+      return;
+    }
+
     try {
       const result = onConfirm();
-      if (result && typeof (result as Promise<void>).then === 'function') {
+      const isPromise = Boolean(result && typeof (result as Promise<void>).then === 'function');
+      if (isPromise) {
         setInternalLoading(true);
         (result as Promise<void>)
           .then(() => {
@@ -105,35 +170,42 @@ export function ConfirmDialog({
             onOpenChange?.(false);
           })
           .catch((error) => {
-            console.error('Failed to execute confirm action in ConfirmDialog:', error);
+            console.error('[ConfirmDialog] Confirm action failed:', error);
             setInternalError(extractErrorMessage(error));
           })
           .finally(() => {
             setInternalLoading(false);
           });
-      } else {
-        clearError();
-        onOpenChange?.(false);
+        return;
       }
+
+      clearError();
+      onOpenChange?.(false);
     } catch (error) {
-      console.error('Failed to execute confirm action in ConfirmDialog:', error);
+      console.error('[ConfirmDialog] Confirm action failed:', error);
       setInternalError(extractErrorMessage(error));
     }
   };
 
   const iconColorMap: Record<string, string> = {
     destructive: 'text-destructive bg-destructive/10 border-destructive/20',
-    warning: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+    warning: 'text-warning bg-warning/10 border-warning/20',
   };
   const iconColor = iconColorMap[variant] ?? 'text-primary bg-primary/10 border-primary/20';
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      disablePointerDismissal={isLoading}
+    >
       <DialogContent
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
+        onKeyDown={handleKeyDown}
+        showClose={!isLoading}
         className="max-w-md focus-visible:outline-none"
       >
         <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
@@ -176,6 +248,7 @@ export function ConfirmDialog({
             variant={variant === 'destructive' ? 'destructive' : 'default'}
             onClick={handleConfirm}
             disabled={isLoading || confirmDisabled}
+            focusableWhenDisabled={isLoading}
             loading={isLoading}
             aria-busy={isLoading}
             data-testid="confirm-dialog-confirm-btn"

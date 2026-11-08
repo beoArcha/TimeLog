@@ -26,7 +26,7 @@ fn test_given_new_database_file_when_initializing_then_applies_all_migrations_an
     let count: i64 = conn
         .query_row("SELECT COUNT(*) FROM schema_migrations", [], |r| r.get(0))
         .expect("querying schema_migrations should succeed");
-    assert_eq!(count, 7, "all 7 migration steps must be recorded");
+    assert_eq!(count, 9, "all 9 migration steps must be recorded");
 
     let projects_exists: bool = conn
         .query_row(
@@ -68,7 +68,7 @@ fn test_given_already_migrated_database_when_initializing_again_then_is_idempote
     let count: i64 = conn
         .query_row("SELECT COUNT(*) FROM schema_migrations", [], |r| r.get(0))
         .expect("querying schema_migrations should succeed");
-    assert_eq!(count, 7, "migration count must remain unchanged");
+    assert_eq!(count, 9, "migration count must remain unchanged");
 
     drop(conn);
     let _ = std::fs::remove_file(db_path);
@@ -103,7 +103,7 @@ fn test_given_legacy_database_with_existing_columns_when_migrating_then_safely_b
     let count: i64 = conn
         .query_row("SELECT COUNT(*) FROM schema_migrations", [], |r| r.get(0))
         .expect("querying schema_migrations should succeed");
-    assert_eq!(count, 7, "all migrations should be baselined and recorded");
+    assert_eq!(count, 9, "all migrations should be baselined and recorded");
 }
 
 #[test]
@@ -163,6 +163,10 @@ fn test_given_database_when_migrated_then_projects_and_tasks_have_billing_rate_a
     assert!(
         check_column("tasks", "billing_currency"),
         "tasks.billing_currency must exist"
+    );
+    assert!(
+        check_column("time_logs_history", "audit_source"),
+        "time_logs_history.audit_source must exist"
     );
 }
 

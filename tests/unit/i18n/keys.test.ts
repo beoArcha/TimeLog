@@ -94,6 +94,7 @@ describe('Unit Tests: Modular i18n Domain Keys', () => {
     expect(I18N_KEYS.project.CustomColorPicker).toBe('CustomColorPicker');
     expect(I18N_KEYS.engine.EnvironmentSqlite).toBe('EnvironmentSqlite');
     expect(I18N_KEYS.engine.StatusDaemonRunning).toBe('StatusDaemonRunning');
+    expect(I18N_KEYS.common.Close).toBe('Close');
   });
 
   it('should ensure re-exported domain types match modular type declarations', () => {

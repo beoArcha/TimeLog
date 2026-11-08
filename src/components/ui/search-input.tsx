@@ -11,6 +11,32 @@ export interface SearchInputProps extends Omit<InputProps, 'type'> {
   containerClassName?: string;
   clearAriaLabel?: string;
   searchAriaLabel?: string;
+  role?: string;
+}
+
+/**
+ * Creates a synthetic ChangeEvent for HTMLInputElement.
+ */
+function createSyntheticChangeEvent(
+  target: HTMLInputElement
+): React.ChangeEvent<HTMLInputElement> {
+  return {
+    target,
+    currentTarget: target,
+    bubbles: true,
+    cancelable: false,
+    defaultPrevented: false,
+    eventPhase: 3,
+    isTrusted: false,
+    nativeEvent: new Event('change'),
+    preventDefault: () => {},
+    isDefaultPrevented: () => false,
+    stopPropagation: () => {},
+    isPropagationStopped: () => false,
+    persist: () => {},
+    timeStamp: Date.now(),
+    type: 'change',
+  };
 }
 
 /**
@@ -26,6 +52,7 @@ export function SearchInput({
   containerClassName,
   className,
   onKeyDown,
+  role,
   ...props
 }: SearchInputProps) {
   const { locale, customTranslations } = useSafeLocale();
@@ -36,15 +63,25 @@ export function SearchInput({
   const resolvedClearLabel = clearAriaLabel || translate(locale, 'common', 'ClearSearch', customTranslations);
   const resolvedSearchLabel = searchAriaLabel || resolvedPlaceholder;
 
+  // Determine if container should act as a search landmark
+  const isSearchLandmark = role === 'search';
+  const containerRole = isSearchLandmark ? 'search' : undefined;
+  const inputRole = isSearchLandmark ? undefined : role;
+
   const handleClear = () => {
-    if (onClear) {
-      onClear();
-    } else if (onChange) {
-      const syntheticEvent = {
-        target: { value: '' },
-      } as React.ChangeEvent<HTMLInputElement>;
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
+
+    onClear?.();
+
+    if (onChange) {
+      const fallbackTarget = { value: '' } as unknown as HTMLInputElement;
+      const target = inputRef.current ?? fallbackTarget;
+      const syntheticEvent = createSyntheticChangeEvent(target);
       onChange(syntheticEvent);
     }
+
     inputRef.current?.focus();
   };
 
@@ -58,8 +95,7 @@ export function SearchInput({
 
   return (
     <div
-      role="search"
-      aria-label={resolvedSearchLabel}
+      role={containerRole}
       className={cn('relative flex items-center w-full min-w-0', containerClassName)}
     >
       <Search
@@ -69,6 +105,7 @@ export function SearchInput({
       <Input
         ref={inputRef}
         type="search"
+        role={inputRole}
         value={value}
         onChange={onChange}
         onKeyDown={handleKeyDown}
@@ -88,6 +125,7 @@ export function SearchInput({
           onClick={handleClear}
           aria-label={resolvedClearLabel}
           title={resolvedClearLabel}
+          data-testid="search-input-clear-button"
           className="absolute right-1.5 size-7 p-0 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="w-3.5 h-3.5" aria-hidden="true" />

@@ -86,6 +86,9 @@ describe("Unit Tests: TimeLogTableRow", () => {
     const noteInput = screen.getByLabelText(/Note/i);
     fireEvent.change(noteInput, { target: { value: "Updated Note" } });
 
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Fixed typo in note" } });
+
     const saveBtn = screen.getByRole("button", { name: /Save/i });
     fireEvent.click(saveBtn);
 
@@ -94,7 +97,7 @@ describe("Unit Tests: TimeLogTableRow", () => {
       baseLog.startTime,
       baseLog.endTime,
       "Updated Note",
-      expect.any(String),
+      "Fixed typo in note",
     );
   });
 
@@ -262,5 +265,371 @@ describe("Unit Tests: TimeLogTableRow", () => {
 
     // Assert - verify the row rendered with original start badge
     expect(screen.getByText(/Original/i)).toBeTruthy();
+  });
+
+  it("should render audit source badge when auditSource is present in history", () => {
+    // Arrange
+    const logWithAuditSource: TimeLog = {
+      ...baseLog,
+      editHistory: [
+        {
+          editedAt: "2026-06-15T14:00:00Z",
+          prevStartTime: "2026-06-15T11:00:00Z",
+          prevEndTime: "2026-06-15T12:00:00Z",
+          prevNote: "Prev Note",
+          reason: "CLI batch correction",
+          auditSource: "CLI Edit",
+        },
+      ],
+    };
+
+    // Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow
+            {...mockProps}
+            l={logWithAuditSource}
+            showHistory={true}
+          />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    const badge = screen.getByTestId("audit-source-badge");
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toContain("CLI Edit");
+  });
+
+  it("should not render audit source badge when auditSource is omitted from history", () => {
+    // Arrange
+    const logWithoutAuditSource: TimeLog = {
+      ...baseLog,
+      editHistory: [
+        {
+          editedAt: "2026-06-15T14:00:00Z",
+          prevStartTime: "2026-06-15T11:00:00Z",
+          prevEndTime: "2026-06-15T12:00:00Z",
+          prevNote: "Legacy Note",
+          reason: "Legacy edit without source",
+        },
+      ],
+    };
+
+    // Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow
+            {...mockProps}
+            l={logWithoutAuditSource}
+            showHistory={true}
+          />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    expect(screen.queryByTestId("audit-source-badge")).toBeNull();
+    expect(screen.getByText(/"Legacy edit without source"/i)).toBeTruthy();
+  });
+
+  it("should render fallback text in badge when auditSource is an unmapped custom value", () => {
+    // Arrange
+    const logWithCustomSource: TimeLog = {
+      ...baseLog,
+      editHistory: [
+        {
+          editedAt: "2026-06-15T14:00:00Z",
+          prevStartTime: "2026-06-15T11:00:00Z",
+          prevEndTime: "2026-06-15T12:00:00Z",
+          prevNote: "Custom note",
+          reason: "Custom import",
+          auditSource: "ExternalSyncJob",
+        },
+      ],
+    };
+
+    // Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow
+            {...mockProps}
+            l={logWithCustomSource}
+            showHistory={true}
+          />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    const badge = screen.getByTestId("audit-source-badge");
+    expect(badge).toBeTruthy();
+    expect(badge.textContent).toContain("ExternalSyncJob");
+  });
+
+  it("should initialize reason input with an empty string and not populate with SyncErrorReason", () => {
+    // Arrange & Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    const reasonInput = screen.getByLabelText(/Reason/i) as HTMLInputElement;
+    expect(reasonInput).toBeTruthy();
+    expect(reasonInput.value).toBe("");
+    expect(reasonInput.placeholder).toBeTruthy();
+    expect(reasonInput.getAttribute("aria-invalid")).toBeNull();
+  });
+
+  it("should block save and set aria-invalid when reason is empty", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act - click save with empty reason
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSaveEditMock).not.toHaveBeenCalled();
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+    expect(reasonInput.className).toContain("border-destructive");
+  });
+
+  it("should block save and set aria-invalid when reason contains only whitespace", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act - type whitespace only
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "   \t \n  " } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSaveEditMock).not.toHaveBeenCalled();
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+    expect(reasonInput.className).toContain("border-destructive");
+  });
+
+  it("should clear aria-invalid state when non-empty text is typed into reason", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act - trigger error first
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+
+    // Type valid reason
+    fireEvent.change(reasonInput, { target: { value: "Valid reason" } });
+
+    // Assert
+    expect(reasonInput.getAttribute("aria-invalid")).toBeNull();
+    expect(reasonInput.className).toContain("border-border");
+  });
+
+  it("should trim reason before passing to onSaveEdit", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "   Reason with whitespace padding   " } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSaveEditMock).toHaveBeenCalledWith(
+      baseLog.startTime,
+      baseLog.endTime,
+      baseLog.note,
+      "Reason with whitespace padding",
+    );
+  });
+
+  it("should reset reason and clear validation error on cancel", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act - cause validation error
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+
+    // Click cancel
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    // Assert
+    expect(onCancelEditMock).toHaveBeenCalledTimes(1);
+    expect(reasonInput.getAttribute("aria-invalid")).toBeNull();
+  });
+
+  it("should display error alert with role=\"alert\" and aria-live=\"polite\" when errorMessage prop is provided", () => {
+    // Arrange & Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} errorMessage="Persistence failure occurred" />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    const alert = screen.getByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.getAttribute("aria-live")).toBe("polite");
+    expect(alert.textContent).toContain("Persistence failure occurred");
+    expect(screen.getByTestId("time-log-row-error")).toBeTruthy();
+  });
+
+  it("should catch onSaveEdit rejection, keep editing state, and display error in alert", async () => {
+    // Arrange
+    onSaveEditMock.mockRejectedValue(new Error("Database write locked"));
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Valid edit reason" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.getAttribute("aria-live")).toBe("polite");
+    expect(alert.textContent).toContain("Database write locked");
+
+    // Form remains in edit mode
+    expect(screen.getByLabelText(/Reason/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Save/i })).toBeTruthy();
+  });
+
+  it("should display localized SyncErrorReason when onSaveEdit resolves to false", async () => {
+    // Arrange
+    onSaveEditMock.mockResolvedValue(false);
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Valid sync reason" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.textContent).toContain("Sync Error");
+  });
+
+  it("should map known error codes such as ERR_AUDIT_REASON_REQUIRED to localized messages", async () => {
+    // Arrange
+    onSaveEditMock.mockRejectedValue(new Error("ERR_AUDIT_REASON_REQUIRED"));
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Trigger backend rejection" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+    expect(alert.textContent).toContain("Audit reason is required");
+  });
+
+  it("should clear error alert when cancel button is clicked", async () => {
+    // Arrange
+    onSaveEditMock.mockRejectedValue(new Error("Temporary persistence issue"));
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Testing cancel with error" } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toBeTruthy();
+
+    // Act
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    // Assert
+    expect(onCancelEditMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

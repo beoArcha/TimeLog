@@ -11,7 +11,7 @@ export type TimeInputProps = Omit<InputProps, "size"> & {
 };
 
 /**
- * Accessible, formatted time input primitive component.
+ * Time input field with optional clock icon.
  */
 const TimeInput = React.forwardRef<HTMLInputElement, TimeInputProps>(
   ({ className, containerClassName, size = "md", showIcon = true, type = "time", ...props }: TimeInputProps, ref) => {

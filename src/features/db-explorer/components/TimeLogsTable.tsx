@@ -13,6 +13,41 @@ import { useWindowShell } from '@common/contexts/WindowShellContext';
 import { DataTable, type DataTableColumn } from '@components/DataTable';
 import { Button } from '@components/ui/button';
 import { Caption } from '@components/ui/typography';
+import { Locale } from '@bindings/Locale';
+
+function resolveErrorMessage(
+  err: unknown,
+  locale: Locale,
+  customTranslations: Record<string, unknown>
+): string {
+  if (!err) {
+    return translate(locale, 'database', 'SyncErrorReason', customTranslations);
+  }
+
+  let raw: string;
+  if (err instanceof Error) {
+    raw = err.message;
+  } else if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message: unknown }).message === 'string') {
+    raw = (err as { message: string }).message;
+  } else {
+    raw = String(err);
+  }
+
+  if (raw.includes('ERR_AUDIT_REASON_REQUIRED')) {
+    return translate(locale, 'common', 'ERR_AUDIT_REASON_REQUIRED', customTranslations);
+  }
+  if (raw.includes('ERR_AUDIT_SOURCE_INVALID')) {
+    return translate(locale, 'common', 'ERR_AUDIT_SOURCE_INVALID', customTranslations);
+  }
+  if (raw.includes('ERR_TIMELOG_INVALID_RANGE')) {
+    return translate(locale, 'common', 'ERR_TIMELOG_INVALID_RANGE', customTranslations);
+  }
+  if (raw.includes('ERR_REPOSITORY_SYNC') || raw.toLowerCase().includes('sync')) {
+    return translate(locale, 'database', 'SyncErrorReason', customTranslations);
+  }
+
+  return raw || translate(locale, 'common', 'ErrGeneric', customTranslations);
+}
 
 export default function TimeLogsTable() {
   const { locale, customTranslations } = useLocale();
@@ -20,13 +55,24 @@ export default function TimeLogsTable() {
   const { showToast } = useWindowShell();
 
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
   const [showHistoryRecordId, setShowHistoryRecordId] = useState<string | null>(null);
   const [showAddLogForm, setShowAddLogForm] = useState(false);
   const [deleteTargetLogId, setDeleteTargetLogId] = useState<string | null>(null);
 
-  const handleSaveEdit = async (id: string, startTime: string, endTime: string, note: string, reason: string) => {
+  const handleSaveEdit = async (
+    id: string,
+    startTime: string,
+    endTime: string,
+    note: string,
+    reason: string,
+    auditSource: string = 'GUI Edit'
+  ) => {
     const existingLog = logs.find(l => l.id === id);
     if (!existingLog) return;
+
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) return;
 
     const finalEndTime = endTime.trim() === '' ? null : endTime;
     const finalNote = note.trim() === '' ? null : note;
@@ -37,16 +83,30 @@ export default function TimeLogsTable() {
                        
     if (!hasChanged) {
       setEditingLogId(null);
+      setEditError(null);
       return;
     }
 
     try {
-      await handleEditTimeLog(id, existingLog.taskId, startTime, finalEndTime, finalNote, reason);
-      setEditingLogId(null);
-    } catch (err) {
-      if (showToast) {
-        showToast(err instanceof Error ? err.message : 'Error while saving');
+      const result = await handleEditTimeLog(id, existingLog.taskId, startTime, finalEndTime, finalNote, trimmedReason, auditSource);
+      const isFailedSave = Boolean(result && result.saved === false);
+      const isFailedSync = Boolean(result && result.saved === true && result.synchronized === false);
+
+      if (isFailedSave || isFailedSync) {
+        const errorMsg = isFailedSync
+          ? translate(locale, 'database', 'SyncErrorReason', customTranslations)
+          : translate(locale, 'common', 'ErrGeneric', customTranslations);
+        setEditError(errorMsg);
+        showToast?.(errorMsg);
+        return;
       }
+
+      setEditingLogId(null);
+      setEditError(null);
+    } catch (err) {
+      const errorMsg = resolveErrorMessage(err, locale, customTranslations);
+      setEditError(errorMsg);
+      showToast?.(err instanceof Error ? err.message : errorMsg);
     }
   };
 
@@ -135,9 +195,16 @@ export default function TimeLogsTable() {
             key={l.id}
             l={l}
             isEditing={editingLogId === l.id}
-            onStartEdit={() => setEditingLogId(l.id)}
-            onSaveEdit={(startTime, endTime, note, reason) => handleSaveEdit(l.id, startTime, endTime, note, reason)}
-            onCancelEdit={() => setEditingLogId(null)}
+            errorMessage={editingLogId === l.id ? editError : null}
+            onStartEdit={() => {
+              setEditingLogId(l.id);
+              setEditError(null);
+            }}
+            onSaveEdit={(startTime, endTime, note, reason) => handleSaveEdit(l.id, startTime, endTime, note, reason, 'GUI Edit')}
+            onCancelEdit={() => {
+              setEditingLogId(null);
+              setEditError(null);
+            }}
             onDelete={() => setDeleteTargetLogId(l.id)}
             locale={locale}
             customTranslations={customTranslations}

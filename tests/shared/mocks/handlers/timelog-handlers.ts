@@ -21,6 +21,7 @@ export const editTimeLogHandler = async (args: MockCommandArgs): Promise<MockDat
       prevEndTime: args.endTime ?? null,
       prevNote: args.note ?? null,
       reason: args.reason || 'Korekta',
+      auditSource: 'GUI Edit',
     };
     log.editHistory = log.editHistory ? [...log.editHistory, historyItem] : [historyItem];
   }

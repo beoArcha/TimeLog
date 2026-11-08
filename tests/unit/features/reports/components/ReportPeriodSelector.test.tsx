@@ -67,7 +67,7 @@ describe('Unit Tests: ReportPeriodSelector', () => {
   });
 
   it('should trigger setReportPeriod when each period button is clicked', () => {
-    render(
+    const { rerender } = render(
       <MockProviders>
         <ReportPeriodSelector
           reportPeriod="today"
@@ -80,12 +80,64 @@ describe('Unit Tests: ReportPeriodSelector', () => {
 
     fireEvent.click(screen.getByTestId('period-btn-week'));
     expect(setReportPeriodMock).toHaveBeenCalledWith('week');
+    rerender(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="week"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+        />
+      </MockProviders>
+    );
 
     fireEvent.click(screen.getByTestId('period-btn-month'));
     expect(setReportPeriodMock).toHaveBeenCalledWith('month');
+    rerender(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="month"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+        />
+      </MockProviders>
+    );
 
     fireEvent.click(screen.getByTestId('period-btn-all'));
     expect(setReportPeriodMock).toHaveBeenCalledWith('all');
+    rerender(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="all"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+        />
+      </MockProviders>
+    );
+
+    rerender(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="all"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+        />
+      </MockProviders>
+    );
+
+    rerender(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="all"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+        />
+      </MockProviders>
+    );
 
     fireEvent.click(screen.getByTestId('period-btn-today'));
     expect(setReportPeriodMock).toHaveBeenCalledWith('today');
@@ -162,5 +214,56 @@ describe('Unit Tests: ReportPeriodSelector', () => {
     // Assert
     expect(setCustomFromMock).toHaveBeenCalledWith('2026-06-05');
     expect(setCustomToMock).toHaveBeenCalledWith('2026-06-20');
+  });
+
+  it('should render tag filter chips and call onToggleTag when clicked', () => {
+    const onToggleTagMock = vi.fn();
+    const onClearTagsMock = vi.fn();
+
+    render(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="today"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+          availableTags={['dev', 'client', 'internal']}
+          selectedTags={['dev']}
+          onToggleTag={onToggleTagMock}
+          onClearTags={onClearTagsMock}
+        />
+      </MockProviders>
+    );
+
+    expect(screen.getByTestId('report-tag-filter-container')).not.toBeNull();
+    const devChip = screen.getByTestId('tag-chip-dev');
+    const clientChip = screen.getByTestId('tag-chip-client');
+
+    expect(devChip.getAttribute('aria-pressed')).toBe('true');
+    expect(clientChip.getAttribute('aria-pressed')).toBe('false');
+
+    fireEvent.click(clientChip);
+    expect(onToggleTagMock).toHaveBeenCalledWith('client');
+
+    const clearButton = screen.getByTestId('clear-tags-button');
+    fireEvent.click(clearButton);
+    expect(onClearTagsMock).toHaveBeenCalled();
+  });
+
+  it('should not render tag filter container when availableTags is empty', () => {
+    render(
+      <MockProviders>
+        <ReportPeriodSelector
+          reportPeriod="today"
+          setReportPeriod={setReportPeriodMock}
+          reportSort="duration"
+          setReportSort={setReportSortMock}
+          availableTags={[]}
+          selectedTags={[]}
+        />
+      </MockProviders>
+    );
+
+    expect(screen.queryByTestId('report-tag-filter-container')).toBeNull();
   });
 });

@@ -7,7 +7,8 @@ use super::exit_codes::{
 use crate::cli::resolver::ResolveError;
 use crate::cli::shared::constants::{
     FORMAT_REMEDIATION_DID_YOU_MEAN, MSG_ERR_REMEDIATION_ENGINE, MSG_ERR_REMEDIATION_ENTITY,
-    MSG_ERR_REMEDIATION_HELP, MSG_ERR_REMEDIATION_SINK, MSG_ERR_REMEDIATION_STORAGE,
+    MSG_ERR_REMEDIATION_HELP, MSG_ERR_REMEDIATION_SERIALIZATION, MSG_ERR_REMEDIATION_SINK,
+    MSG_ERR_REMEDIATION_STORAGE,
 };
 use crate::cli::shared::utils::DurationParseError;
 use crate::engine::EngineError;
@@ -61,6 +62,7 @@ impl fmt::Display for BusinessRuleViolation {
 pub enum SinkError {
     Io(String),
     TestFailed(String),
+    Serialization(String),
 }
 
 impl fmt::Display for SinkError {
@@ -68,6 +70,7 @@ impl fmt::Display for SinkError {
         match self {
             Self::Io(msg) => write!(f, "Sink I/O error: {}", msg),
             Self::TestFailed(msg) => write!(f, "Sink verification failed: {}", msg),
+            Self::Serialization(msg) => write!(f, "Sink serialization error: {}", msg),
         }
     }
 }
@@ -107,9 +110,11 @@ impl CliError {
                 EngineError::NoActiveTimer | EngineError::ActiveTimerConflict { .. } => {
                     EXIT_CODE_ENGINE_ERROR
                 }
-                EngineError::OperationFailed(_) | EngineError::Validation(_) => {
-                    EXIT_CODE_GENERIC_FAILURE
-                }
+                EngineError::OperationFailed(_)
+                | EngineError::Validation(_)
+                | EngineError::AuditReasonRequired
+                | EngineError::AuditSourceInvalid(_)
+                | EngineError::TimeLogInvalidRange => EXIT_CODE_GENERIC_FAILURE,
                 EngineError::EntityNotFound { .. } => EXIT_CODE_ENTITY_ERROR,
                 EngineError::ParseTime(_) => EXIT_CODE_CLI_SYNTAX,
                 EngineError::Persistence(_) => EXIT_CODE_STORAGE_ERROR,
@@ -157,7 +162,10 @@ impl CliError {
                 EngineError::ActiveTimerConflict { .. } => CliErrorCode::EngTimerConflict,
                 EngineError::OperationFailed(_) => CliErrorCode::EngOperationFailed,
                 EngineError::EntityNotFound { .. } => CliErrorCode::DomEntityNotFound,
-                EngineError::Validation(_) => CliErrorCode::DomBusinessViolation,
+                EngineError::Validation(_)
+                | EngineError::AuditReasonRequired
+                | EngineError::AuditSourceInvalid(_)
+                | EngineError::TimeLogInvalidRange => CliErrorCode::DomBusinessViolation,
                 EngineError::ParseTime(_) => CliErrorCode::CliSyntaxInvalidDuration,
                 EngineError::Persistence(_) => CliErrorCode::StoSqliteQuery,
             },
@@ -167,7 +175,10 @@ impl CliError {
                     CliErrorCode::DomBusinessViolation
                 }
             },
-            CliError::Sink(_) => CliErrorCode::SnkExternalIo,
+            CliError::Sink(sink_err) => match sink_err {
+                SinkError::Serialization(_) => CliErrorCode::SnkSerialization,
+                SinkError::Io(_) | SinkError::TestFailed(_) => CliErrorCode::SnkExternalIo,
+            },
         }
     }
 
@@ -247,12 +258,20 @@ impl CliError {
                     suggestion: None,
                     remediation: Some(MSG_ERR_REMEDIATION_ENTITY.to_string()),
                 }),
-                CliError::Sink(_) => Some(LocalizedUserMessage {
-                    locale: target_locale,
-                    message: technical.clone(),
-                    suggestion: None,
-                    remediation: Some(MSG_ERR_REMEDIATION_SINK.to_string()),
-                }),
+                CliError::Sink(sink_err) => match sink_err {
+                    SinkError::Serialization(_) => Some(LocalizedUserMessage {
+                        locale: target_locale,
+                        message: technical.clone(),
+                        suggestion: None,
+                        remediation: Some(MSG_ERR_REMEDIATION_SERIALIZATION.to_string()),
+                    }),
+                    _ => Some(LocalizedUserMessage {
+                        locale: target_locale,
+                        message: technical.clone(),
+                        suggestion: None,
+                        remediation: Some(MSG_ERR_REMEDIATION_SINK.to_string()),
+                    }),
+                },
             }
         };
 
@@ -349,6 +368,11 @@ impl From<EngineError> for CliError {
                 })
             }
             EngineError::Validation(v) => CliError::Business(BusinessRuleViolation::Custom(v)),
+            EngineError::AuditReasonRequired
+            | EngineError::AuditSourceInvalid(_)
+            | EngineError::TimeLogInvalidRange => {
+                CliError::Business(BusinessRuleViolation::Custom(err.to_string()))
+            }
             EngineError::ParseTime(t) => CliError::Syntax(CliSyntaxError::InvalidDuration(t)),
             EngineError::OperationFailed(m) => CliError::Engine(EngineError::OperationFailed(m)),
         }

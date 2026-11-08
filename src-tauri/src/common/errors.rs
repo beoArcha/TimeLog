@@ -65,6 +65,13 @@ impl AppError {
             ),
             AppError::Persistence(p) => persistence_to_payload(p),
             AppError::Engine(e) => match e {
+                crate::engine::EngineError::AuditReasonRequired
+                | crate::engine::EngineError::TimeLogInvalidRange => {
+                    IpcErrorPayload::new(e.code(), e.to_string(), None)
+                }
+                crate::engine::EngineError::AuditSourceInvalid(s) => {
+                    IpcErrorPayload::new(e.code(), e.to_string(), Some(s.clone()))
+                }
                 crate::engine::EngineError::NoActiveTimer => {
                     IpcErrorPayload::new("ENG_TIMER_INACTIVE", e.to_string(), None)
                 }

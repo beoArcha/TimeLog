@@ -7,8 +7,10 @@ import { ExportPayload, IExporterPlugin } from '../contracts/IExporterPlugin';
 export class MarkdownClipboardExporterPlugin implements IExporterPlugin {
   readonly id = 'markdown-exporter';
   readonly name = 'Markdown (Table & Summary)';
+  readonly extension = 'md';
   readonly fileExtension = 'md';
   readonly mimeType = 'text/markdown;charset=utf-8;';
+  readonly iconKey = 'markdown';
 
   async export(payload: ExportPayload): Promise<string> {
     const lines: string[] = [];
@@ -28,17 +30,18 @@ export class MarkdownClipboardExporterPlugin implements IExporterPlugin {
     }
 
     lines.push('### Activity Log');
-    lines.push('| Date | Project | Task | Start | End | Duration | Note |');
-    lines.push('| :--- | :--- | :--- | :--- | :--- | :--- | :--- |');
+    lines.push('| Date | Project | Task | Subtask | Start | End | Duration | Note |');
+    lines.push('| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |');
 
     for (const row of payload.rows) {
       // Escape pipe characters inside table cells
       const safeProject = row.projectName.replace(/\|/g, '\\|');
       const safeTask = row.taskName.replace(/\|/g, '\\|');
+      const safeSubtask = (row.subtaskName ?? '-').replace(/\|/g, '\\|');
       const safeNote = (row.note ?? '-').replace(/\|/g, '\\|');
 
       lines.push(
-        `| ${row.date} | ${safeProject} | ${safeTask} | ${row.startTime} | ${row.endTime} | ${row.formattedDuration} | ${safeNote} |`
+        `| ${row.date} | ${safeProject} | ${safeTask} | ${safeSubtask} | ${row.startTime} | ${row.endTime} | ${row.formattedDuration} | ${safeNote} |`
       );
     }
 

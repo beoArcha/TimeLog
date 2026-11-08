@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **DB Explorer Persistence & Sync Error Propagation**:
+  - Ensured DB Explorer (`TimeLogsTable` and `TimeLogTableRow`) handles and displays persistence and synchronization errors gracefully during time log editing.
+  - Kept row edit mode open when a save fails or repository reload does not complete, preventing premature closure with false success.
+  - Rendered localized error feedback in an accessible `<Alert>` region with `role="alert"` and `aria-live="polite"` using domain translations (`SyncErrorReason`, common error keys, and repository error messages).
+  - Cleared error states and validation flags upon edit cancellation or subsequent successful save.
+- **DB Explorer Audit Reason Integrity & Validation**:
+  - Initialized the audit reason input in DB Explorer (`TimeLogTableRow`) as an empty string instead of defaulting to `SyncErrorReason`.
+  - Added strict validation blocking save when the audit reason is empty or contains only whitespace, setting `aria-invalid="true"` and visual error indicators on the input.
+  - Updated `TimeLogsTable` and `useTimerManager` to accept and forward `auditSource: "GUI Edit"` along with the explicit, validated reason to the engine (`EngineRouter.getInstance().timeLogs.editTimeLog`).
+- **CI Frontend Setup Resilience**:
+  - Added an npm fallback in `.github/actions/setup-frontend/action.yml` when `oven-sh/setup-bun` encounters upstream GitHub Release asset proxy timeouts or HTTP 504 Gateway Time-out errors.
+- **ZIP32 Format Boundary & ZIP64 Sentinel Reservation**:
+  - Reserved ZIP64 sentinel boundaries in `zipBuilder`: capped maximum allowed ZIP32 entry count at 65534 (`0xFFFE`) and maximum entry size and local header offset at `0xFFFFFFFE` (`4,294,967,294` bytes) to prevent producing invalid standard ZIP archives with ambiguous ZIP64 sentinel headers (`0xFFFF` / `0xFFFFFFFF`).
+  - Added boundary validation test coverage for entry count limits (65534 boundary pass and 65535 boundary fail) and 4GB entry size and header offset boundaries.
+- **CSV Formula Injection (CWE-1236) Unicode Whitespace Parity**:
+  - Unified Unicode White_Space and Control character detection in `CsvExporterPlugin.ts` with the Rust reference implementation (`char::is_whitespace() || char::is_control()`), neutralizing formula injection triggers preceded by Unicode spaces (U+00A0 NBSP, U+1680, U+2000–U+200A, U+2028, U+2029, U+202F, U+205F, U+3000).
+  - Explicitly excluded Unicode format characters (Cf: U+200B zero-width space, U+FEFF BOM) from whitespace categorization to guarantee 100% cross-runtime parity with Rust.
+  - Preserved valid integer, float, and scientific notation numbers from apostrophe neutralization across both runtimes.
+  - Added shared 60-vector cross-runtime fixture matrix in `tests/shared/fixtures/csv-formula-parity-cases.json` executed by both Vitest and Cargo test suites.
+- **SQLite Time Log History Migration Compatibility**:
+  - Added migration 9 to rebuild legacy `time_logs_history` tables where `reason` is still `NOT NULL`, making the column nullable without losing existing audit records or the `time_logs` foreign-key cascade.
+  - Added migration regression coverage for v8 databases, NULL-reason inserts, history preservation, foreign-key cascade behavior, and idempotent initialization.
+- **Playwright CI Browser Installation**:
+  - Removed the unnecessary Google Chrome download and aligned the E2E project with Playwright-managed Chromium.
+  - Separated Linux browser dependencies from browser installation, increased the download connection timeout, and added bounded retries for transient download failures.
+- **Composite UI Component Behavior**:
+  - Migrated `CollapsibleCard` to the shared Base UI collapsible primitive, kept `headerRight` actions independent, and preserved collapsed child state.
+  - Kept `PromptDialog` open after synchronous or asynchronous confirmation failures, displayed the error, and prevented unhandled Promise rejections.
+  - Removed the duplicate `SegmentedControl` change callback path.
+  - Corrected `ToggleGroupItem` precedence so item-level variant and size overrides take effect.
+
 ### Breaking Changes
 
 - **Identity & OS Bundle Identifier**:
@@ -35,6 +68,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **CLI Streaming Writer Seam & Atomic Export Writes** (`feat/cli-export-streaming`):
+  - Introduced streaming export writer seam `export_to_writer` in `src-tauri/src/cli/exporters/` accepting any sink implementing `std::io::Write`.
+  - Added dedicated streaming writer functions for all supported formats: `write_csv`, `write_json`, `write_html`, `write_xml`, `write_xlsx`, and `write_ods`.
+  - Implemented safe, atomic file writing with `atomic_write_to_file` using `std::io::BufWriter` to a temporary `.tmp` file in the destination directory and atomic rename on completion, ensuring no partial or corrupted files remain upon write errors.
+  - Refactored `export_to_file` and `export_schema_to_file` to delegate to `atomic_write_to_file` while preserving 100% backward compatibility for all existing CLI commands, exit codes, and error mapping contracts.
+  - Added comprehensive unit test coverage in `src-tauri/tests/unit/cli/exporter_streaming_test.rs` validating multi-format streaming, format output parity, atomic file creation/overwrites, directory validation, and clean temp file cleanup upon failure.
+- **Canonical XML Report XSD Schema Validation Suite (`TASK-B4-XML-XSD-VALIDATION`)**:
+  - Implemented comprehensive cross-runtime canonical XSD validation suite in TypeScript/Vitest (`tests/integration/exporters/XmlReportXsdValidation.test.ts`, `tests/unit/plugins/exporters/XmlExporterPlugin.test.ts`) and Rust CLI (`src-tauri/tests/unit/cli/exporter_xml_xsd_test.rs`).
+  - Verified structural compliance against `schemas/xml/report/v1/report.xsd` across all report data scenarios: full hierarchy (Project -> Task -> Subtask + entries), minimal reports (omitted optional fields), empty reports (zero durations, self-closing tags), and special characters/entities (`&`, `<`, `>`, `"`, `'`, control characters, Unicode diacritics, and emoji).
+  - Enforced strict canonical XSD data type compliance (`xs:nonNegativeInteger` for duration seconds, `xs:dateTime` ISO 8601 for generatedAt, `xs:decimal` for percentages) and canonical element sequence ordering.
+  - Added robust negative validation coverage asserting failure on invalid schema versions, missing canonical sections, out-of-order tags, and malformed types.
+
+- **Cross-Runtime Audit Source & Reason Parity Test Suite**:
+  - Established shared cross-runtime test matrix fixture `tests/shared/fixtures/audit-parity-cases.json` covering 41 vectors across default source, raw enum identifiers, UI label strings, optional reason for `SystemPatch`, mandatory reason validation for manual edits (`ERR_AUDIT_REASON_REQUIRED`), and invalid source detection (`ERR_AUDIT_SOURCE_INVALID`).
+  - Added comprehensive BDT test coverage in `tests/integration/engine/CrossRuntimeParity.test.ts` executing the shared matrix against Browser `EnginePlugin` and verifying payload mapping in Desktop Tauri `EngineCommands`.
+  - Added dedicated Rust integration test suite in `src-tauri/tests/engine_lifecycle_test.rs` validating the shared fixture against the Rust reference engine implementation.
+- **TagFilterGroup Component Barrel Export** (`TASK-A5-TAG-FILTER-EXPORTS`):
+  - Exported `TagFilterGroup` and its associated types from `src/components/index.ts` to complete composite component exports in the primary components barrel.
+
+- **Report Print / PDF Stylesheet & PWA Analytics Clean-Up** (Phase 18 Group D):
+  - Added dedicated `@media print` CSS rules in `src/styles/index.css` stripping navigation sidebars, headers, period filters, and action buttons, while forcing clean contrast (black text, white background, no drop-shadows or backdrops, avoid-break inside tables and cards) for client-ready PDF generation.
+  - Added "Print / PDF" action button with `Printer` icon in `ReportView` `ViewHeader` triggering native `window.print()`.
+  - Switched hardcoded `SqlAnalyticsEngine` badge in `ReportView` to dynamically resolve via `usePlatformCapabilities().isDesktop`, displaying `SqlAnalyticsEngine` on desktop and `AnalyticsEngine` (without "SQL") in browser/PWA mode.
+  - Added and synchronized `Print` and `AnalyticsEngine` i18n keys across all 10 supported locales (`en`, `pl`, `de`, `es`, `pt-br`, `fr`, `uk`, `ja`, `nl`, `it`).
+- **Credits & Technology Stack Modernization** (Phase 18 Group D):
+  - Refreshed `CreditsModal.tsx` dependency acknowledgements to reflect the current core tech stack: React 19, @base-ui/react, Tauri v2, Recharts, Sonner, Geist Font Family, Google GenAI, Motion, and Tailwind CSS v4.
+  - Updated author notes with architectural principles and Vibe Coding practices (clean boundary separation, dual-runtime parity, contract-driven architecture, and rigorous quality guardrails).
+  - Added and synchronized all tech stack and architecture i18n keys across all 10 translation dictionaries.
+
 - **Extended Locales & 10-Language i18n Suite** (PR #45, #46, #47):
   - Expanded supported language suite from 6 to 10 locales: added full translation dictionaries for Japanese (`ja`), Dutch (`nl`), Italian (`it`), and completed Ukrainian (`uk`) across all 12 translation domains.
   - Introduced `LanguageSelectionModal` in Settings (`@features/settings/components/LanguageSelectionModal`) with accessible Base UI `RadioGroup` keyboard navigation, active system resolution badges, and custom override status indicator.
@@ -53,6 +115,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rebuilt the animated drawer on the accessible Base UI Dialog lifecycle, retaining Escape and backdrop dismissal and CSS entry/exit transitions.
 
 ### Changed
+
+- **CLI Report Export Documentation Parity**:
+  - Updated `docs/manifesto/CLI.md` to reflect that CSV, HTML, JSON, and XML report exporters serialize payloads in memory before writing to disk via `std::fs::write`.
+  - Documented that ODS and XLSX formats are generated natively in Rust via `spreadsheet-ods` and `rust_xlsxwriter`, while the custom ZIP32 builder with MS-DOS timestamps and 32-bit boundary validation resides in the TypeScript browser plugin layer (`src/plugins/exporters/zipBuilder.ts`).
+  - Marked unbuffered disk streaming as `[PLANNED]` pending completion of task B3.
+- **Engineering Standards & i18n Locales Specification**:
+  - Aligned `AGENTS.md` and frontend engineering standards with the full suite of 10 supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `uk`, `ja`, `nl`, `it`).
+  - Formalized the `I18N_DOMAINS` domain contract from `src/common/i18n/keys.ts`, clarifying that new keys must be defined in modular domain key files (`src/common/i18n/keys/<domain>.ts`) and localized across all 10 locales in domain dictionaries (`src/common/i18n/dictionaries/<domain>.json`).
 
 - **Accessible Radio Semantics & Localized Settings**:
   - Refactored `LanguageSelectionModal` to delegate radio semantics, keyboard arrow navigation, and roving focus exclusively to the Base UI `RadioGroupItem` primitive, eliminating redundant wrapper roles and focus traps.

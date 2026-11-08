@@ -7,20 +7,33 @@ export interface EmojiItem {
   keywords: string[];
 }
 
-export const FALLBACK_GRAPHEME_REGEX =
-  /^(?:\p{Regional_Indicator}{2}|[0-9#*]\uFE0F?\u20E3|(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?\p{Emoji_Modifier}?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?\p{Emoji_Modifier}?)*|[\s\S])/u;
+export const EMOJI_PATTERN =
+  '(?:\\p{Regional_Indicator}{2}|[0-9#*]\\uFE0F?\\u20E3|(?:\\p{Extended_Pictographic}|\\p{Emoji_Presentation})(?:\\uFE0F|\\uFE0E)?\\p{Emoji_Modifier}?(?:\\u200D(?:\\p{Extended_Pictographic}|\\p{Emoji_Presentation})(?:\\uFE0F|\\uFE0E)?\\p{Emoji_Modifier}?)*)';
 
-export const EMOJI_REGEX =
-  /^(?:\p{Regional_Indicator}{2}|[0-9#*]\uFE0F?\u20E3|(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?\p{Emoji_Modifier}?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})(?:\uFE0F|\uFE0E)?\p{Emoji_Modifier}?)*)$/u;
+export const EMOJI_REGEX = new RegExp(`^${EMOJI_PATTERN}$`, 'u');
+
+export const FALLBACK_GRAPHEME_REGEX = new RegExp(`^(?:${EMOJI_PATTERN}|[\\s\\S])`, 'u');
+
+let cachedGraphemeSegmenter: Intl.Segmenter | null = null;
+
+function getGraphemeSegmenter(): Intl.Segmenter | null {
+  if (typeof Intl === 'undefined' || typeof Intl.Segmenter !== 'function') {
+    return null;
+  }
+  if (!cachedGraphemeSegmenter) {
+    cachedGraphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+  }
+  return cachedGraphemeSegmenter;
+}
 
 /**
  * Extract the first user-perceived grapheme cluster without splitting multi-byte/surrogate/ZWJ emojis.
- * Uses Intl.Segmenter when available; falls back to Unicode grapheme cluster regex when unsupported.
+ * Uses a singleton Intl.Segmenter when available; falls back to Unicode grapheme cluster regex when unsupported.
  */
 export function getFirstGrapheme(text: string): string {
   if (!text) return '';
-  if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
-    const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+  const segmenter = getGraphemeSegmenter();
+  if (segmenter) {
     const segments = Array.from(segmenter.segment(text));
     return segments[0]?.segment || '';
   }
@@ -39,12 +52,12 @@ export function isEmoji(text: string): boolean {
 }
 
 export const EMOJI_CATEGORIES = [
-  { id: 'all', labelKey: 'EmojiCategoryAll', fallbackLabel: 'All' },
-  { id: 'work', labelKey: 'EmojiCategoryWork', fallbackLabel: 'Work' },
-  { id: 'status', labelKey: 'EmojiCategoryStatus', fallbackLabel: 'Status' },
-  { id: 'creative', labelKey: 'EmojiCategoryCreative', fallbackLabel: 'Creative' },
-  { id: 'life', labelKey: 'EmojiCategoryLife', fallbackLabel: 'Life' },
-] as const satisfies readonly { id: string; labelKey: ProjectKey; fallbackLabel: string }[];
+  { id: 'all', labelKey: 'EmojiCategoryAll' },
+  { id: 'work', labelKey: 'EmojiCategoryWork' },
+  { id: 'status', labelKey: 'EmojiCategoryStatus' },
+  { id: 'creative', labelKey: 'EmojiCategoryCreative' },
+  { id: 'life', labelKey: 'EmojiCategoryLife' },
+] as const satisfies readonly { id: string; labelKey: ProjectKey }[];
 
 export type EmojiCategoryId = (typeof EMOJI_CATEGORIES)[number]['id'];
 
