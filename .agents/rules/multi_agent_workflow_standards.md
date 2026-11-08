@@ -32,32 +32,40 @@ A multi-agent run consists of exactly one **Main Agent** (the orchestrator) and 
 
 The workflow is capability-aware: use only agent sessions, threads, workspaces, and control mechanisms actually available in the host environment. Do not claim that a worker was launched, monitored, or isolated unless that operation was confirmed. If the host cannot provide a required capability, Main reports the limitation and chooses a safe fallback.
 
-### 1.2. Orchestration Flow
+### 1.2. Orchestration Flow: Task Queue & Worker Pull Architecture
 
 ```text
 User Goal
    ↓
 Main Agent (single orchestrator)
-   ├─ Discovery, analysis and implementation plan
-   ├─ Dependency graph + file ownership map
-   ├─ Dynamic worker-pool sizing (1..N−1)
-   └─ Task briefs and assignments
+   ├─ Graph-First Discovery via Graphify (god nodes, module communities, blast radius)
+   ├─ Proactive PR Decomposition into bite-sized tasks (target: 100–300 LOC diff)
+   ├─ Active Task Queue / Backlog (prioritized, dependency-mapped, file-bounded)
+   └─ Continuous Orchestrator Review & Integration Loop
           ↓
+   ┌──────────────────────────────────────────────────────────────┐
+   │ Active Task Queue (Unblocked Ready-to-Run Tasks)            │
+   └──────────────────────────────────────────────────────────────┘
+          │ (Worker Pull / Immediate Dispatch upon worker availability)
+          ▼
    ┌──────────────┬──────────────┬──────────────┐
    │ Worker A     │ Worker B     │ Worker ... N │
    │ isolated task│ isolated task│ isolated task│
    └──────────────┴──────────────┴──────────────┘
           ↓             ↓             ↓
-       Reports, commits, verification evidence
-          └─────────────┴─────────────┘
+       Task completion reports, commits, verification evidence
+          └─────────────┬─────────────┘
                         ↓
-              Main Agent integration gate
+          Orchestrator Continuous Review
+          (Audits diff, quality gates & AST rules;
+           Idle worker immediately pulls next unblocked task from queue)
                         ↓
-       Cross-review → integration verification
+         PR Creation / PR Chain Linking
+         (Evidence-based, strictly NO fake self-ratings like "10/10")
                         ↓
-             User review / approval gate
+              User review / approval gate
                         ↓
-             Sequential merge into main
+              Sequential merge into main
 ```
 
 ## 2. Agent Roles and Responsibilities
@@ -120,9 +128,9 @@ Planned → Assigned → Running → Completed → Reviewed → Integrated
 
 A worker must not be marked Completed based only on a progress message. Main requires a completion report and verifiable output. Main polls or checks worker status at meaningful coordination points using available host capabilities; it must not invent background monitoring or assume a worker is still active without evidence.
 
-### 2.5. Task Registry and Coordination Protocol
+### 2.5. Task Registry, Active Backlog and Worker Pull Model
 
-Main maintains one authoritative task registry for the duration of the run. It may be a concise table in the main working context or a project artifact when persistence is needed. At minimum, record:
+Main maintains one authoritative task registry and active task backlog for the duration of the run. It may be a concise table in the main working context or a project artifact when persistence is needed. At minimum, record:
 
 | Field | Required information |
 |---|---|
@@ -135,7 +143,17 @@ Main maintains one authoritative task registry for the duration of the run. It m
 | Status | Lifecycle status from section 2.4 |
 | Result | Commit SHA, verification evidence, blockers, review outcome |
 
-Coordination rules:
+#### 2.5.1. Active Task Backlog & Idle Worker Pull Protocol
+
+To maximize automation and eliminate orchestrator bottlenecks, execution follows a **Worker Pull / Immediate Dispatch** model:
+
+1. **Active Task Queue**: Main decomposes the overall goal into a prioritized queue of bounded, independent or dependency-mapped tasks.
+2. **Immediate Pull/Dispatch**: As soon as a worker finishes its assigned task and delivers its completion report, Main marks the task `Completed`, registers the commit, and **immediately assigns the next eligible, unblocked task from the queue** to that free worker.
+3. **No Unnecessary Idle Waiting**: An idle worker does not wait for Main to finish a multi-step code review of its previous task if another independent task is ready in the backlog.
+4. **Continuous Orchestrator Review**: Main concurrently reviews delivered work (diff inspection, quality gates, AST rules) in the background while workers continue executing queued tasks.
+5. **Targeted Review Fixes**: If Main's review uncovers defects or rule violations, Main injects a high-priority, bounded correction task into the author's queue or assigns it upon the next pull.
+
+#### 2.5.2. Coordination Rules:
 
 - Each file has one active writer by default. Main assigns non-overlapping file ownership before parallel execution.
 - Shared contracts, central exports, lockfiles, generated files, and configuration files are treated as conflict-sensitive resources.
@@ -157,30 +175,69 @@ Branches and pull requests must carry durable technical and business meaning. Ar
   - `refactor/shared-patterns-and-accessible-drawer`
   - `refactor/project-form-fields-and-layout-primitives`
 
-### 3.2. PR Commit Discipline & Single-Commit Squash Result
+### 3.2. PR Sizing Standard & Proactive Decomposition
+
+Pull Requests must be small, cohesive, and easily auditable by both humans and automated reviewers:
+
+1. **Size Target & Ceiling (Single Responsibility PR)**:
+   - **Target PR Size**: **100–300 lines of code (LOC) net diff**.
+   - **Hard PR Ceiling**: **400 LOC net diff** per PR (excluding package lockfiles, generated bindings from `ts-rs`, and large mock test fixtures with explicit approval).
+2. **Mandatory Proactive Decomposition**:
+   - When a requested feature, implementation plan, or remediation phase is estimated to exceed 400 LOC diff or spans multiple architectural layers (e.g., Domain/Engine vs UI vs Exporters), Main **MUST proactively suggest decomposing it into smaller, focused PRs** before implementation begins.
+   - Do not produce monolithic mega-PRs. A clean sequence of smaller PRs guarantees fast CI runs, simplified conflict resolution, and zero cognitive overload during review.
+
+### 3.3. PR Commit Discipline & Single-Commit Squash Result
 
 A pull request must contribute **exactly one commit to the target branch** after merge. This enforces clean, bisectable history on `main` while maintaining clear auditability during code review:
 
 1. **Initial PR Creation (Exactly 1 Initial Commit)**: When opening a PR on GitHub, the branch must contain **exactly 1 initial commit** representing the baseline implementation. Do not open PRs with messy work-in-progress commit histories.
 2. **Review Fixes (Separate Atomic Commits)**: When code review requests changes (e.g. FIX-01, FIX-02), all fixes must be pushed as **separate, descriptive commits** (e.g. `fix(cli): prevent swallowing SQLite errors (FIX-01)`). **Never amend, rebase, or squash commits during active PR review** — keeping review fixes separate is required so human and automated reviewers can easily verify incremental corrections.
-3. **PR Title & Description**: PR title follows Conventional Commits with a clear scope and imperative mood. The PR description contains bulleted technical details, architectural context, test verification evidence, and linked issues/contracts.
+3. **PR Title**: PR title follows Conventional Commits with a clear scope and imperative mood (e.g., `feat(reports): add tag filtering support`).
 4. **Final Integration (Squash and Merge)**: Once all checks pass and explicit human approval is received, the PR is merged into `main` exclusively via **Squash and merge**. The resulting single commit on `main` summarizes the entire PR scope.
 
-### 3.3. PR Chaining & Concurrency Discipline
+### 3.4. PR Chaining Architecture & Concurrency Discipline
 
-1. **Strict Prohibition of Unnecessary PR Chaining**:
-   - Creating dependent branch chains (`branch B` branched off unmerged `branch A`) is **strictly forbidden** unless Task B explicitly and unavoidably depends on code or type contracts introduced in Task A.
-   - Independent tasks must always branch from the latest common `main`. This guarantees that independent PRs can be reviewed, tested, and merged without blocking each other.
-2. **Worker Slot Re-use upon Merge**:
-   - As soon as a PR is merged into `main`, that worker's capacity becomes available.
-   - Main must check whether another task is ready for assignment, considering its dependencies, file ownership and integration order.
-   - If an eligible independent task exists, Main should assign it without waiting for unrelated branches.
-   - Main must not assign blocked, dependent or insufficiently specified work merely to keep a worker occupied.
-3. **Sequential Merge Order with Human Sign-off**:
-   - While implementation runs in parallel, merges into `main` must occur sequentially according to the defined plan order to prevent merge conflicts.
-   - Every merge into `main` strictly requires explicit human confirmation or user-initiated merge on GitHub. Main never automatically merges PRs without human approval.
+When decomposing large features into bite-sized PRs, tasks often have sequential dependencies. Main manages this using a structured **PR Chain**:
 
-### 3.4. Branch and Integration Ownership
+1. **Chained PR Topology**:
+   - When PR B depends on code or type contracts introduced in PR A:
+     - `PR A` (`branch-A`) targets `main`.
+     - `PR B` (`branch-B`) branches from `branch-A` and targets `branch-A`.
+     - `PR C` (`branch-C`) branches from `branch-B` and targets `branch-B`.
+2. **Documented Chain Header**:
+   - Every chained PR must state its exact chain topology in the PR description header:
+     ```markdown
+     > **PR Chain**: [PR #55 (Base: main)] ➔ **PR #56 (Current, Base: feat/pr-55)** ➔ [PR #57 (Base: feat/pr-56)]
+     ```
+3. **Smooth Downstream Retargeting upon Merge**:
+   - As soon as `PR A` is squash-merged into `main`:
+     - Main rebases `branch-B` onto `origin/main`.
+     - Main retargets `PR B` base branch to `main` via GitHub API or web interface.
+     - Worker capacity is recycled immediately for the next queued item.
+4. **Independent Work Branches from Main**:
+   - Independent tasks must always branch directly from `main`. Never chain PRs unless an unavoidable code or contract dependency exists.
+
+### 3.5. Evidence-Based PR Descriptions & Prohibition of Self-Assessment Ratings
+
+1. **Strict Prohibition of Self-Assessment Ratings ("10/10" Ban)**:
+   - Writing *"10/10 własnej recenzji"*, *"ocena 10/10"*, *"100% doskonałość"*, *"perfekcyjne wykonanie"*, or any arbitrary subjective score in PR descriptions, commit messages, or review summaries is **strictly forbidden**.
+   - Self-assigned scores are inherently biased, untruthful, and violate reporting integrity.
+2. **Evidence-Based Reporting Contract**:
+   Every PR description and review report must be strictly factual and evidence-based, containing:
+   - **Business Context & Problem (WHY)**: Direct reference to the issue or plan phase.
+   - **Exact Scope of Changes (WHAT)**: Clear breakdown of modified layers and components.
+   - **Quality Gates Evidence (VERIFICATION)**: Factual table of executed commands, exit codes, and passed counts:
+     | Quality Gate | Command | Status | Exact Result |
+     | :--- | :--- | :---: | :--- |
+     | TypeScript Typecheck | `bun run typecheck` | PASS | 0 errors |
+     | ESLint | `bun run lint` | PASS | 0 errors / 0 warnings |
+     | Rust Formatting & Clippy | `cargo clippy -- -D warnings` | PASS | 0 warnings |
+     | Rust Tests | `cargo test` | PASS | 349 passed; 0 failed |
+     | Frontend Vitest | `bun run test` | PASS | 474 passed; 0 failed |
+   - **Architectural Guardrails & LOC Audit**: Exact line count per touched file (`< 400 LOC`) and AST rule compliance.
+   - **Known Limitations & Trade-offs**: Plainly disclosed unverified edge cases or deferred items.
+
+### 3.6. Branch and Integration Ownership
 
 - Main defines the branch strategy before dispatch and records it in the task registry.
 - A worker with a dedicated task branch must not push to another worker's branch or to `main`.
@@ -284,3 +341,30 @@ A task is not **Integrated** until the integration target contains the reviewed 
 - **No bypass of user gate**: Main never merges or proceeds past a required user approval gate without explicit approval.
 - **Graceful degradation**: If a worker becomes unavailable, Main records the status, preserves completed evidence, and either retries, reassigns, serializes the task, or asks the user when the choice affects scope or risk.
 - **Honest status**: Main distinguishes Planned, Running, Blocked, Completed, Reviewed, and Integrated. It never reports completion based solely on elapsed time or an assumed background process.
+
+## 8. Systematic Graphify Integration (Graph-First Multi-Agent Architecture)
+
+Graphify (`graphify-out/graph.json` and Graphify MCP tools) is an authoritative, persistent knowledge graph of oXyFlow. Orchestrators and workers MUST actively leverage Graphify across all phases of the multi-agent workflow:
+
+### 8.1. Discovery & Decomposition via Graph Communities
+- Before designing tasks or drafting an implementation plan, Main queries the graph (`god_nodes`, `graph_stats`, `get_community`) to discover central hubs and natural cohesion boundaries.
+- **Natural Boundary Sizing**: Main decomposes large features along Graphify community boundaries rather than arbitrary horizontal splits. This prevents breaking tightly-coupled modules across uncoordinated PRs.
+
+### 8.2. Impact & Blast-Radius Verification
+- Before assigning a task, Main runs `get_pr_impact` / `shortest_path` on the proposed file set to identify all downstream callers, tests, and consumers that could be affected.
+- The resulting blast-radius is included directly in the worker's **Task Brief** under `Permitted File Scope` and `Dependencies`.
+
+### 8.3. PR Review & Triage
+- During the cross-review gate, Main verifies via Graphify (`triage_prs`, `get_neighbors`) that the proposed changes:
+  1. Do not introduce new circular dependencies between subsystems.
+  2. Do not introduce forbidden bypasses (e.g. UI directly querying Persistence instead of EngineRouter).
+  3. Do not unnecessarily overload god nodes (`CliError`, `Persistence`, `EngineRouter`).
+
+### 8.4. Deterministic Local AST Extraction
+- When running locally or in environments without third-party LLM API keys, Graphify operates in deterministic code-only mode:
+  ```bash
+  bun run graphify:build   # runs `graphify . --code-only --directed`
+  bun run graphify:update  # runs `graphify . --code-only --update --directed`
+  ```
+- This guarantees fast, offline AST extraction across 1,200+ source files without external dependencies.
+
