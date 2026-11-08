@@ -51,6 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **TagFilterGroup Component Barrel Export** (`TASK-A5-TAG-FILTER-EXPORTS`):
+  - Exported `TagFilterGroup` and its associated types from `src/components/index.ts` to complete composite component exports in the primary components barrel.
+
 - **Report Print / PDF Stylesheet & PWA Analytics Clean-Up** (Phase 18 Group D):
   - Added dedicated `@media print` CSS rules in `src/styles/index.css` stripping navigation sidebars, headers, period filters, and action buttons, while forcing clean contrast (black text, white background, no drop-shadows or backdrops, avoid-break inside tables and cards) for client-ready PDF generation.
   - Added "Print / PDF" action button with `Printer` icon in `ReportView` `ViewHeader` triggering native `window.print()`.
