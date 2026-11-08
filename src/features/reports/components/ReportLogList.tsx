@@ -10,7 +10,7 @@ import { SearchInput } from '@components/ui/search-input';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { useDebounce } from '@common/hooks/useDebounce';
 import { ProjectChartItem } from '../types';
-import ReportLogEditModal from './ReportLogEditModal';
+import { ReportLogEditModal } from '@components/ReportLogEditModal';
 import ReportLogDistribution from './ReportLogDistribution';
 import ReportLogRow from './ReportLogRow';
 import { useAuditEdit } from '../hooks/useAuditEdit';

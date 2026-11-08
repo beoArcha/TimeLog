@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import ReportLogEditModal from '@features/reports/components/ReportLogEditModal';
+import { ReportLogEditModal } from '@components/ReportLogEditModal';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 import { TimeLog } from '@bindings/TimeLog';
 
