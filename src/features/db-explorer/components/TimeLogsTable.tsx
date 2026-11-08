@@ -24,9 +24,19 @@ export default function TimeLogsTable() {
   const [showAddLogForm, setShowAddLogForm] = useState(false);
   const [deleteTargetLogId, setDeleteTargetLogId] = useState<string | null>(null);
 
-  const handleSaveEdit = async (id: string, startTime: string, endTime: string, note: string, reason: string) => {
+  const handleSaveEdit = async (
+    id: string,
+    startTime: string,
+    endTime: string,
+    note: string,
+    reason: string,
+    auditSource: string = 'GUI Edit'
+  ) => {
     const existingLog = logs.find(l => l.id === id);
     if (!existingLog) return;
+
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) return;
 
     const finalEndTime = endTime.trim() === '' ? null : endTime;
     const finalNote = note.trim() === '' ? null : note;
@@ -41,7 +51,7 @@ export default function TimeLogsTable() {
     }
 
     try {
-      await handleEditTimeLog(id, existingLog.taskId, startTime, finalEndTime, finalNote, reason);
+      await handleEditTimeLog(id, existingLog.taskId, startTime, finalEndTime, finalNote, trimmedReason, auditSource);
       setEditingLogId(null);
     } catch (err) {
       if (showToast) {
@@ -136,7 +146,7 @@ export default function TimeLogsTable() {
             l={l}
             isEditing={editingLogId === l.id}
             onStartEdit={() => setEditingLogId(l.id)}
-            onSaveEdit={(startTime, endTime, note, reason) => handleSaveEdit(l.id, startTime, endTime, note, reason)}
+            onSaveEdit={(startTime, endTime, note, reason) => handleSaveEdit(l.id, startTime, endTime, note, reason, 'GUI Edit')}
             onCancelEdit={() => setEditingLogId(null)}
             onDelete={() => setDeleteTargetLogId(l.id)}
             locale={locale}

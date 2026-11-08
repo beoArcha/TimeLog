@@ -84,12 +84,17 @@ export const useTimerManager = ({
     startTime: string,
     endTime: string | null,
     note: string | null,
-    reason: string | null
+    reason: string | null,
+    auditSource?: string | null
   ): Promise<{ saved: boolean; synchronized: boolean }> => {
     const mutationResult = await actionRunner.runAction(
       'Failed to edit time log',
       async () => {
-        await EngineRouter.getInstance().timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason);
+        if (auditSource !== undefined) {
+          await EngineRouter.getInstance().timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason, auditSource);
+        } else {
+          await EngineRouter.getInstance().timeLogs.editTimeLog(id, taskId, startTime, endTime, note, reason);
+        }
         return true;
       },
       { errorCode: 'ERR_REPOSITORY_EDIT_TIME_LOG', rethrow: true }
