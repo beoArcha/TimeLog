@@ -106,8 +106,7 @@ function resolveDisplayText(
 }
 
 /**
- * Composite currency badge component adhering to Design System.
- * Formats currency code, amounts via Intl.NumberFormat, and rate status flags with semantic tokens and i18n.
+ * Badge displaying formatted currency amounts, currency codes, or billing rate status.
  */
 export function CurrencyStatBadge({
   currency,

@@ -7,7 +7,7 @@ export type TextareaProps = Omit<React.TextareaHTMLAttributes<HTMLTextAreaElemen
 };
 
 /**
- * Multiline text input primitive component with scalable UiSize variants.
+ * Multiline text input with size variants.
  */
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, size = "md", ...props }: TextareaProps, ref) => {

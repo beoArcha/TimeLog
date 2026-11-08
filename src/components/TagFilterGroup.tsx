@@ -16,8 +16,7 @@ export interface TagFilterGroupProps {
 }
 
 /**
- * Composite TagFilterGroup component: Renders accessible, interactive tag chips
- * supporting multi-selection with OR semantics for report and view filtering.
+ * Interactive tag chips supporting multi-selection for report and view filtering.
  */
 export function TagFilterGroup({
   tags,

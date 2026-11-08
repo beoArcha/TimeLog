@@ -119,8 +119,7 @@ interface NativeSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement
 }
 
 /**
- * Semantic option primitive for NativeSelect.
- * Explicitly forwards disabled, value, label, ref, and all native HTMLOptionElement attributes.
+ * Option element for NativeSelect.
  */
 const NativeOption = React.forwardRef<
   HTMLOptionElement,
@@ -143,8 +142,7 @@ const NativeOption = React.forwardRef<
 NativeOption.displayName = "NativeOption";
 
 /**
- * Semantic optgroup primitive for NativeSelect.
- * Explicitly forwards label, disabled, ref, and all native HTMLOptGroupElement attributes.
+ * Optgroup element for NativeSelect.
  */
 const NativeOptGroup = React.forwardRef<
   HTMLOptGroupElement,

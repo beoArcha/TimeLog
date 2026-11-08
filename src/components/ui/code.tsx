@@ -10,7 +10,7 @@ export interface CodeProps
 }
 
 /**
- * Semantic code primitive supporting inline and block formatting with design tokens.
+ * Code element supporting inline and block formatting.
  */
 export const Code = React.forwardRef<HTMLElement, CodeProps>(
   ({ className, variant, size, block = false, as, children, ...props }, ref) => {

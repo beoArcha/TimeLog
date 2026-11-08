@@ -37,7 +37,7 @@ const DIRECTION_I18N_MAP: Record<TrendDirection, 'TrendIncrease' | 'TrendDecreas
 };
 
 /**
- * Reusable trend indicator displaying an icon, metric change value, and accessible label.
+ * Trend indicator displaying an icon, metric change value, and directional label.
  */
 export function TrendIndicator({
   value,
