@@ -8,6 +8,7 @@ import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Caption, Overline } from '@components/ui/typography';
+import { cn } from '@/lib/utils';
 
 interface TimeLogTableRowProps {
   key?: string | number;
@@ -62,8 +63,21 @@ export default function TimeLogTableRow({
     startTime: l.startTime,
     endTime: l.endTime || '',
     note: l.note || '',
-    reason: translate(locale, 'database', 'SyncErrorReason', customTranslations)
+    reason: ''
   });
+  const [reasonError, setReasonError] = useState(false);
+  const [prevIsEditing, setPrevIsEditing] = useState(isEditing);
+
+  if (prevIsEditing !== isEditing) {
+    setPrevIsEditing(isEditing);
+    setReasonError(false);
+    setForm({
+      startTime: l.startTime,
+      endTime: l.endTime || '',
+      note: l.note || '',
+      reason: ''
+    });
+  }
 
   const hasHistory = !!(l.editHistory && l.editHistory.length > 0);
 
@@ -78,7 +92,35 @@ export default function TimeLogTableRow({
   };
 
   const handleSave = () => {
-    onSaveEdit(form.startTime, form.endTime, form.note, form.reason);
+    const trimmedReason = form.reason.trim();
+    if (!trimmedReason) {
+      setReasonError(true);
+      return;
+    }
+    setReasonError(false);
+    onSaveEdit(form.startTime, form.endTime, form.note, trimmedReason);
+  };
+
+  const handleCancel = () => {
+    setReasonError(false);
+    setForm({
+      startTime: l.startTime,
+      endTime: l.endTime || '',
+      note: l.note || '',
+      reason: ''
+    });
+    onCancelEdit();
+  };
+
+  const handleStart = () => {
+    setReasonError(false);
+    setForm({
+      startTime: l.startTime,
+      endTime: l.endTime || '',
+      note: l.note || '',
+      reason: ''
+    });
+    onStartEdit();
   };
 
   return (
@@ -156,8 +198,18 @@ export default function TimeLogTableRow({
                   placeholder={translate(locale, 'database', 'Reason', customTranslations)}
                   aria-label={translate(locale, 'database', 'Reason', customTranslations)}
                   value={form.reason}
-                  onChange={e => setForm(prev => ({ ...prev, reason: e.target.value }))}
-                  className="text-xs bg-background border border-border px-1.5 py-0.5 h-6 rounded w-32 text-foreground mr-1"
+                  onChange={e => {
+                    const nextReason = e.target.value;
+                    setForm(prev => ({ ...prev, reason: nextReason }));
+                    if (nextReason.trim()) {
+                      setReasonError(false);
+                    }
+                  }}
+                  aria-invalid={reasonError ? 'true' : undefined}
+                  className={cn(
+                    'text-xs bg-background border px-1.5 py-0.5 h-6 rounded w-32 text-foreground mr-1',
+                    reasonError ? 'border-destructive ring-1 ring-destructive/40' : 'border-border'
+                  )}
                 />
                 <Button
                   variant="ghost"
@@ -172,7 +224,7 @@ export default function TimeLogTableRow({
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  onClick={onCancelEdit}
+                  onClick={handleCancel}
                   className="p-1.5 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive cursor-pointer"
                   title={translate(locale, 'common', 'Cancel', customTranslations)}
                   aria-label={translate(locale, 'common', 'Cancel', customTranslations)}
@@ -185,7 +237,7 @@ export default function TimeLogTableRow({
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  onClick={onStartEdit}
+                  onClick={handleStart}
                   className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground cursor-pointer"
                   title={translate(locale, 'common', 'Edit', customTranslations)}
                   aria-label={translate(locale, 'common', 'Edit', customTranslations)}

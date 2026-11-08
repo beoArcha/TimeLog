@@ -86,6 +86,9 @@ describe("Unit Tests: TimeLogTableRow", () => {
     const noteInput = screen.getByLabelText(/Note/i);
     fireEvent.change(noteInput, { target: { value: "Updated Note" } });
 
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Fixed typo in note" } });
+
     const saveBtn = screen.getByRole("button", { name: /Save/i });
     fireEvent.click(saveBtn);
 
@@ -94,7 +97,7 @@ describe("Unit Tests: TimeLogTableRow", () => {
       baseLog.startTime,
       baseLog.endTime,
       "Updated Note",
-      expect.any(String),
+      "Fixed typo in note",
     );
   });
 
@@ -365,5 +368,144 @@ describe("Unit Tests: TimeLogTableRow", () => {
     const badge = screen.getByTestId("audit-source-badge");
     expect(badge).toBeTruthy();
     expect(badge.textContent).toContain("ExternalSyncJob");
+  });
+
+  it("should initialize reason input with an empty string and not populate with SyncErrorReason", () => {
+    // Arrange & Act
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Assert
+    const reasonInput = screen.getByLabelText(/Reason/i) as HTMLInputElement;
+    expect(reasonInput).toBeTruthy();
+    expect(reasonInput.value).toBe("");
+    expect(reasonInput.placeholder).toBeTruthy();
+    expect(reasonInput.getAttribute("aria-invalid")).toBeNull();
+  });
+
+  it("should block save and set aria-invalid when reason is empty", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act - click save with empty reason
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSaveEditMock).not.toHaveBeenCalled();
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+    expect(reasonInput.className).toContain("border-destructive");
+  });
+
+  it("should block save and set aria-invalid when reason contains only whitespace", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act - type whitespace only
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "   \t \n  " } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSaveEditMock).not.toHaveBeenCalled();
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+    expect(reasonInput.className).toContain("border-destructive");
+  });
+
+  it("should clear aria-invalid state when non-empty text is typed into reason", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act - trigger error first
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+
+    // Type valid reason
+    fireEvent.change(reasonInput, { target: { value: "Valid reason" } });
+
+    // Assert
+    expect(reasonInput.getAttribute("aria-invalid")).toBeNull();
+    expect(reasonInput.className).toContain("border-border");
+  });
+
+  it("should trim reason before passing to onSaveEdit", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "   Reason with whitespace padding   " } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert
+    expect(onSaveEditMock).toHaveBeenCalledWith(
+      baseLog.startTime,
+      baseLog.endTime,
+      baseLog.note,
+      "Reason with whitespace padding",
+    );
+  });
+
+  it("should reset reason and clear validation error on cancel", () => {
+    // Arrange
+    render(
+      <table>
+        <tbody>
+          <TimeLogTableRow {...mockProps} isEditing={true} />
+        </tbody>
+      </table>,
+    );
+
+    // Act - cause validation error
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
+
+    // Click cancel
+    const cancelBtn = screen.getByRole("button", { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    // Assert
+    expect(onCancelEditMock).toHaveBeenCalledTimes(1);
+    expect(reasonInput.getAttribute("aria-invalid")).toBeNull();
   });
 });

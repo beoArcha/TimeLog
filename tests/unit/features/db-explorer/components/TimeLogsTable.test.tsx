@@ -107,6 +107,9 @@ describe("Unit Tests: TimeLogsTable", () => {
     const noteInput = screen.getByLabelText(/Note/i);
     fireEvent.change(noteInput, { target: { value: "Modified session note" } });
 
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Updated note reason" } });
+
     const saveBtn = screen.getByRole("button", { name: /Save/i });
     fireEvent.click(saveBtn);
 
@@ -118,7 +121,8 @@ describe("Unit Tests: TimeLogsTable", () => {
         "2026-06-15T10:00:00Z",
         "2026-06-15T11:00:00Z",
         "Modified session note",
-        expect.any(String),
+        "Updated note reason",
+        "GUI Edit",
       );
     });
   });
@@ -134,9 +138,12 @@ describe("Unit Tests: TimeLogsTable", () => {
       </MockProviders>,
     );
 
-    // Act - click edit then immediately save without modifying inputs
+    // Act - click edit then provide reason and save without modifying time/note
     const editBtn = screen.getByRole("button", { name: /Edit/i });
     fireEvent.click(editBtn);
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "No actual changes made" } });
 
     const saveBtn = screen.getByRole("button", { name: /Save/i });
     fireEvent.click(saveBtn);
@@ -147,6 +154,35 @@ describe("Unit Tests: TimeLogsTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Edit/i })).toBeTruthy();
     });
+  });
+
+  it("should not call handleEditTimeLog when saving with empty or whitespace-only reason", async () => {
+    // Arrange
+    const handleEditTimeLog = vi.fn().mockResolvedValue(undefined);
+    const state = createMockState(undefined, { handleEditTimeLog });
+
+    render(
+      <MockProviders state={state}>
+        <TimeLogsTable />
+      </MockProviders>,
+    );
+
+    // Act - click edit, change note, but leave reason empty or pure whitespace
+    const editBtn = screen.getByRole("button", { name: /Edit/i });
+    fireEvent.click(editBtn);
+
+    const noteInput = screen.getByLabelText(/Note/i);
+    fireEvent.change(noteInput, { target: { value: "Modified note" } });
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "    " } });
+
+    const saveBtn = screen.getByRole("button", { name: /Save/i });
+    fireEvent.click(saveBtn);
+
+    // Assert - handleEditTimeLog should not be called and row remains in edit mode
+    expect(handleEditTimeLog).not.toHaveBeenCalled();
+    expect(reasonInput.getAttribute("aria-invalid")).toBe("true");
   });
 
   it("should display toast when handleEditTimeLog throws an error", async () => {
@@ -169,6 +205,9 @@ describe("Unit Tests: TimeLogsTable", () => {
 
     const noteInput = screen.getByLabelText(/Note/i);
     fireEvent.change(noteInput, { target: { value: "Trigger rejection" } });
+
+    const reasonInput = screen.getByLabelText(/Reason/i);
+    fireEvent.change(reasonInput, { target: { value: "Rejection test reason" } });
 
     const saveBtn = screen.getByRole("button", { name: /Save/i });
     fireEvent.click(saveBtn);

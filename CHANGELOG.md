@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **DB Explorer Audit Reason Integrity & Validation**:
+  - Initialized the audit reason input in DB Explorer (`TimeLogTableRow`) as an empty string instead of defaulting to `SyncErrorReason`.
+  - Added strict validation blocking save when the audit reason is empty or contains only whitespace, setting `aria-invalid="true"` and visual error indicators on the input.
+  - Updated `TimeLogsTable` and `useTimerManager` to accept and forward `auditSource: "GUI Edit"` along with the explicit, validated reason to the engine (`EngineRouter.getInstance().timeLogs.editTimeLog`).
 - **CI Frontend Setup Resilience**:
   - Added an npm fallback in `.github/actions/setup-frontend/action.yml` when `oven-sh/setup-bun` encounters upstream GitHub Release asset proxy timeouts or HTTP 504 Gateway Time-out errors.
 - **ZIP32 Format Boundary & ZIP64 Sentinel Reservation**:
