@@ -74,6 +74,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented safe, atomic file writing with `atomic_write_to_file` using `std::io::BufWriter` to a temporary `.tmp` file in the destination directory and atomic rename on completion, ensuring no partial or corrupted files remain upon write errors.
   - Refactored `export_to_file` and `export_schema_to_file` to delegate to `atomic_write_to_file` while preserving 100% backward compatibility for all existing CLI commands, exit codes, and error mapping contracts.
   - Added comprehensive unit test coverage in `src-tauri/tests/unit/cli/exporter_streaming_test.rs` validating multi-format streaming, format output parity, atomic file creation/overwrites, directory validation, and clean temp file cleanup upon failure.
+- **Canonical XML Report XSD Schema Validation Suite (`TASK-B4-XML-XSD-VALIDATION`)**:
+  - Implemented comprehensive cross-runtime canonical XSD validation suite in TypeScript/Vitest (`tests/integration/exporters/XmlReportXsdValidation.test.ts`, `tests/unit/plugins/exporters/XmlExporterPlugin.test.ts`) and Rust CLI (`src-tauri/tests/unit/cli/exporter_xml_xsd_test.rs`).
+  - Verified structural compliance against `schemas/xml/report/v1/report.xsd` across all report data scenarios: full hierarchy (Project -> Task -> Subtask + entries), minimal reports (omitted optional fields), empty reports (zero durations, self-closing tags), and special characters/entities (`&`, `<`, `>`, `"`, `'`, control characters, Unicode diacritics, and emoji).
+  - Enforced strict canonical XSD data type compliance (`xs:nonNegativeInteger` for duration seconds, `xs:dateTime` ISO 8601 for generatedAt, `xs:decimal` for percentages) and canonical element sequence ordering.
+  - Added robust negative validation coverage asserting failure on invalid schema versions, missing canonical sections, out-of-order tags, and malformed types.
 
 - **Cross-Runtime Audit Source & Reason Parity Test Suite**:
   - Established shared cross-runtime test matrix fixture `tests/shared/fixtures/audit-parity-cases.json` covering 41 vectors across default source, raw enum identifiers, UI label strings, optional reason for `SystemPatch`, mandatory reason validation for manual edits (`ERR_AUDIT_REASON_REQUIRED`), and invalid source detection (`ERR_AUDIT_SOURCE_INVALID`).
