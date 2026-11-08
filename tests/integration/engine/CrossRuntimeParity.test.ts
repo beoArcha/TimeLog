@@ -398,6 +398,31 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
       });
     });
 
+    describe('When executing with whitespace-only audit source', () => {
+      it('Then browser runtime defaults to GUI Edit and requires a valid reason', async () => {
+        // Given
+        const browserEngine = new EnginePlugin();
+
+        // When
+        await browserEngine.timeLogs.editTimeLog(
+          'l1',
+          't1',
+          '2026-06-15T10:00:00Z',
+          '2026-06-15T11:30:00Z',
+          null,
+          'Valid reason for whitespace auditSource',
+          '   '
+        );
+
+        // Then
+        const state = await PersistenceRouter.getInstance().core.load();
+        const updatedLog = state?.logs?.find((l) => l.id === 'l1');
+        expect(updatedLog?.editHistory).toHaveLength(1);
+        expect(updatedLog?.editHistory?.[0].auditSource).toBe('GUI Edit');
+        expect(updatedLog?.editHistory?.[0].reason).toBe('Valid reason for whitespace auditSource');
+      });
+    });
+
     describe('When desktop commands editTimeLog is invoked', () => {
       it('Then it passes audit payload to Tauri invoke', async () => {
         // Given

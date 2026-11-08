@@ -50,6 +50,16 @@
     "expectedReason": null
   },
   {
+    "id": "whitespace-source-with-valid-reason",
+    "description": "Whitespace-only auditSource with valid reason persists GUI Edit",
+    "auditSource": "   ",
+    "reason": "Manual correction of typo",
+    "expectedSuccess": true,
+    "expectedErrorCode": null,
+    "expectedAuditSource": "GUI Edit",
+    "expectedReason": "Manual correction of typo"
+  },
+  {
     "id": "gui-edit-raw-with-valid-reason",
     "description": "Raw enum GuiEdit with valid reason persists canonical GUI Edit",
     "auditSource": "GuiEdit",

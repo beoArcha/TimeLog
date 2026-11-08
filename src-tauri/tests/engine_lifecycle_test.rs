@@ -96,9 +96,9 @@ fn test_given_shared_audit_parity_matrix_when_executed_in_rust_then_satisfies_cr
                 );
             }
             Ok(parsed_source) => {
-                let actual_source = match case.audit_source {
-                    Some(_) => Some(parsed_source),
-                    None => None,
+                let actual_source = match case.audit_source.as_deref() {
+                    Some(s) if !s.trim().is_empty() => Some(parsed_source),
+                    _ => None,
                 };
 
                 let edit_result = engine.edit_log(TimeLogEditInput {
@@ -269,4 +269,36 @@ fn test_given_invalid_audit_source_when_parsed_then_fails_with_source_invalid() 
 
     assert!(res_unknown.is_err());
     assert_eq!(res_unknown.unwrap_err().code(), "ERR_AUDIT_SOURCE_INVALID");
+}
+
+#[test]
+fn test_given_whitespace_audit_source_when_edited_with_valid_reason_then_defaults_to_gui_edit() {
+    // Given
+    let (persistence, _conn, _temp) = seed_persistence_with_log("audit_whitespace_valid");
+    let engine = Engine::new(&persistence);
+    let raw_source: Option<String> = Some("   ".to_string());
+
+    // When (aligning with edit_time_log command filtering)
+    let parsed_audit_source = match raw_source {
+        Some(ref s) if !s.trim().is_empty() => Some(AuditSource::from_raw_str(s).unwrap()),
+        _ => None,
+    };
+
+    let result = engine.edit_log(TimeLogEditInput {
+        id: "log-parity",
+        task_id: "t_parity",
+        start_time: "2026-06-15T10:00:00Z",
+        end_time: Some("2026-06-15T11:15:00Z"),
+        note: Some("Note"),
+        reason: Some("  Correction via GUI  "),
+        audit_source: parsed_audit_source,
+    });
+
+    // Then
+    assert!(result.is_ok());
+    let updated = persistence.time_logs.get_by_id("log-parity").unwrap();
+    let history = updated.edit_history.unwrap();
+    assert_eq!(history.len(), 1);
+    assert_eq!(history[0].audit_source.as_deref(), Some("GUI Edit"));
+    assert_eq!(history[0].reason.as_deref(), Some("Correction via GUI"));
 }
