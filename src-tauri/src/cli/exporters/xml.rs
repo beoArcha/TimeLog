@@ -234,13 +234,26 @@ impl From<&ReportTreeDto> for XmlReportDto {
     }
 }
 
-pub fn export_xml(tree: &ReportTreeDto) -> Result<String, CliError> {
+use super::sink_io_error;
+use std::io::Write;
+
+pub fn write_xml<W: Write>(tree: &ReportTreeDto, mut writer: W) -> Result<(), CliError> {
     let report_dto = XmlReportDto::from(tree);
-    let mut xml = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    writer
+        .write_all(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+        .map_err(|e| sink_io_error("Failed to write XML prolog", e))?;
     let content = quick_xml::se::to_string(&report_dto)
         .map_err(|e| CliError::Sink(SinkError::Serialization(e.to_string())))?;
-    xml.push_str(&content);
-    Ok(xml)
+    writer
+        .write_all(content.as_bytes())
+        .map_err(|e| sink_io_error("Failed to write XML content", e))?;
+    Ok(())
+}
+
+pub fn export_xml(tree: &ReportTreeDto) -> Result<String, CliError> {
+    let mut buffer = Vec::new();
+    write_xml(tree, &mut buffer)?;
+    String::from_utf8(buffer).map_err(|e| sink_io_error("Failed to decode UTF-8 XML", e))
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Error)]

@@ -2,8 +2,18 @@ use super::constants::{
     HTML_PAGE_TEMPLATE, HTML_ROW_PROJECT, HTML_ROW_SUBTASK, HTML_ROW_TASK, MSG_NO_REPORT_DATA,
 };
 use super::rows::flatten_project;
+use super::sink_io_error;
 use crate::cli::error::CliError;
 use crate::cli::formatters::{ReportProjectDto, ReportTreeDto};
+use std::io::Write;
+
+pub fn write_html<W: Write>(tree: &ReportTreeDto, mut writer: W) -> Result<(), CliError> {
+    let html = export_html(tree)?;
+    writer
+        .write_all(html.as_bytes())
+        .map_err(|e| sink_io_error("Failed to write HTML report", e))?;
+    Ok(())
+}
 
 /// Exports the report tree into a self-contained, responsive HTML5 document.
 /// All user-controlled fields (`period`, `project.name`, `task.name`, `subtask.name`,
