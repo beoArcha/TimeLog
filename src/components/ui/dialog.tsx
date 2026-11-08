@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
+import { useSafeLocale } from "@common/hooks/LocaleProvider";
+import { translate } from "@common/i18n/translator";
 import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
@@ -28,6 +30,11 @@ function DialogBackdrop({
   );
 }
 
+export interface DialogContentProps extends DialogPrimitive.Popup.Props {
+  showClose?: boolean;
+  closeLabel?: string;
+}
+
 /**
  * Main modal dialog surface container.
  */
@@ -35,8 +42,12 @@ function DialogContent({
   className,
   children,
   showClose = true,
+  closeLabel,
   ...props
-}: DialogPrimitive.Popup.Props & { showClose?: boolean }) {
+}: DialogContentProps) {
+  const { locale, customTranslations } = useSafeLocale();
+  const resolvedCloseLabel = closeLabel || translate(locale, 'common', 'Close', customTranslations);
+
   return (
     <DialogPortal>
       <DialogBackdrop />
@@ -54,10 +65,11 @@ function DialogContent({
           {showClose && (
             <DialogPrimitive.Close
               data-slot="dialog-close"
+              aria-label={resolvedCloseLabel}
               className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <X className="size-4" />
-              <span className="sr-only">Close</span>
+              <span className="sr-only">{resolvedCloseLabel}</span>
             </DialogPrimitive.Close>
           )}
         </DialogPrimitive.Popup>

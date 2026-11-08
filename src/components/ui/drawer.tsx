@@ -2,6 +2,8 @@ import * as React from 'react';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { X } from 'lucide-react';
 import { type VariantProps } from 'class-variance-authority';
+import { useSafeLocale } from '@common/hooks/LocaleProvider';
+import { translate } from '@common/i18n/translator';
 import { cn } from '@/lib/utils';
 import { drawerVariants } from './drawer-variants';
 
@@ -30,6 +32,7 @@ export interface DrawerContentProps
   extends DialogPrimitive.Popup.Props,
     VariantProps<typeof drawerVariants> {
   showClose?: boolean;
+  closeLabel?: string;
   backdropClassName?: string;
   backdropId?: string;
   wrapperId?: string;
@@ -42,6 +45,7 @@ function DrawerContent({
   children,
   side = 'top',
   showClose = true,
+  closeLabel,
   backdropClassName,
   backdropId,
   wrapperId,
@@ -49,6 +53,9 @@ function DrawerContent({
   portalContainer,
   ...props
 }: DrawerContentProps) {
+  const { locale, customTranslations } = useSafeLocale();
+  const resolvedCloseLabel = closeLabel || translate(locale, 'common', 'Close', customTranslations);
+
   return (
     <DrawerPortal id={wrapperId} container={portalContainer}>
       <DrawerBackdrop
@@ -65,10 +72,11 @@ function DrawerContent({
         {showClose && (
           <DialogPrimitive.Close
             data-slot="drawer-close"
+            aria-label={resolvedCloseLabel}
             className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <X className="size-4" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{resolvedCloseLabel}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>
