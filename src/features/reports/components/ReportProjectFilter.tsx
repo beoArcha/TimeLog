@@ -3,7 +3,8 @@ import { Project } from '@bindings/Project';
 import { Button } from '@components/ui/button';
 import { InlineCluster } from '@components/ui/stack';
 import { useTranslation } from '@common/i18n/translator';
-import { PROJECT_COLORS } from '@common/constants/projectColors';
+import { PROJECT_COLORS, DEFAULT_PROJECT_COLOR_HEX } from '@common/constants/projectColors';
+import { Text } from '@components/ui/typography';
 import { cn } from '@/lib/utils';
 
 export interface ReportProjectFilterProps {
@@ -39,9 +40,9 @@ export function ReportProjectFilter({
       className={cn('pt-2.5 border-t border-border/40 text-xs w-full items-center', className)}
       data-testid="report-project-filter-container"
     >
-      <span className="font-mono text-xs text-muted-foreground shrink-0">
+      <Text as="span" variant="muted" size="xs" className="font-mono shrink-0">
         {tProject('ProjectsLabel')}:
-      </span>
+      </Text>
       <InlineCluster
         gap="xs"
         className="items-center flex-wrap"
@@ -68,7 +69,7 @@ export function ReportProjectFilter({
         {projects.map((p) => {
           const isSelected = selectedProjectId === p.id;
           const matched = PROJECT_COLORS.find((c) => c.name === p.color);
-          const hex = matched ? matched.hex : '#8b5cf6';
+          const hex = matched ? matched.hex : DEFAULT_PROJECT_COLOR_HEX;
 
           return (
             <Button
