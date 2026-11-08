@@ -5,6 +5,18 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import ReportView from '@features/reports/ReportView';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 
+const mockReportExportModal = vi.fn();
+vi.mock('@features/reports/components/ReportExportModal', () => ({
+  default: (props: any) => {
+    mockReportExportModal(props);
+    return props.isOpen ? <div data-testid="report-export-modal" /> : null;
+  },
+  ReportExportModal: (props: any) => {
+    mockReportExportModal(props);
+    return props.isOpen ? <div data-testid="report-export-modal" /> : null;
+  },
+}));
+
 describe('Unit Tests: ReportView', () => {
   const mockGuiState: GuiState = {
     projects: [
@@ -74,6 +86,7 @@ describe('Unit Tests: ReportView', () => {
   it('should calculate exportPayload with effective project breakdown reflecting visible data', async () => {
     const multiProjectState: GuiState = {
       ...mockGuiState,
+      selectedProjectId: 'p1',
       projects: [
         { id: 'p1', name: 'Proj Alpha', color: 'indigo', createdAt: '2026-06-15T00:00:00Z', tags: ['frontend'] },
         { id: 'p2', name: 'Proj Beta', color: 'blue', createdAt: '2026-06-15T00:00:00Z', tags: ['backend'] },
@@ -83,8 +96,8 @@ describe('Unit Tests: ReportView', () => {
         { id: 't2', projectId: 'p2', name: 'Task 2', completed: false, createdAt: '2026-06-15T00:00:00Z' },
       ],
       logs: [
-        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' },
-        { id: 'l2', taskId: 't2', projectId: 'p2', startTime: '2026-06-15T12:00:00Z', endTime: '2026-06-15T13:00:00Z' },
+        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T10:00:00Z', endTime: '2026-06-15T11:00:00Z' }, // 3600s
+        { id: 'l2', taskId: 't2', projectId: 'p2', startTime: '2026-06-15T12:00:00Z', endTime: '2026-06-15T12:30:00Z' }, // 1800s
       ],
     } as unknown as GuiState;
 
@@ -97,6 +110,34 @@ describe('Unit Tests: ReportView', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('report-export-modal')).not.toBeNull();
+    });
+
+    const calls = mockReportExportModal.mock.calls;
+    const lastCallProps = calls[calls.length - 1][0];
+    const payload = lastCallProps.payload;
+
+    expect(payload.totalSeconds).toBe(3600);
+    expect(payload.rows).toHaveLength(1);
+    expect(payload.rows[0].projectName).toBe('Proj Alpha');
+    expect(payload.rows[0].durationSeconds).toBe(3600);
+    expect(payload.projectBreakdown).toHaveLength(1);
+    expect(payload.projectBreakdown[0].projectName).toBe('Proj Alpha');
+    expect(payload.projectBreakdown[0].seconds).toBe(3600);
+    expect(payload.projectBreakdown[0].percentage).toBe(100);
+    expect(payload.projectBreakdown[0].tasks).toHaveLength(1);
+    expect(payload.projectBreakdown[0].tasks[0].id).toBe('t1');
+    expect(payload.projectBreakdown[0].tasks[0].name).toBe('Task 1');
+
+    // Case: Empty intersection of project and tags (p1 has ['frontend'], tag 'backend' active)
+    const tagChip = screen.getByTestId('tag-chip-backend');
+    fireEvent.click(tagChip);
+
+    await waitFor(() => {
+      const updatedCalls = mockReportExportModal.mock.calls;
+      const latestPayload = updatedCalls[updatedCalls.length - 1][0].payload;
+      expect(latestPayload.totalSeconds).toBe(0);
+      expect(latestPayload.rows).toHaveLength(0);
+      expect(latestPayload.projectBreakdown).toHaveLength(0);
     });
   });
 
