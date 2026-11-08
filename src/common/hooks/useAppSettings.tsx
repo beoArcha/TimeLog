@@ -10,6 +10,7 @@ import { LAYOUT_VARIANTS, isCompactLayout } from '@common/constants/layoutVarian
 import { AppTabId } from '@common/types/navigation';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { toast } from 'sonner';
+import { resolveEffectiveTimezone } from '@common/utils/timeFormat';
 
 export const useAppSettings = () => {
   const { supportedLayouts, defaultLayout } = usePlatformCapabilities();
@@ -171,6 +172,25 @@ export const useAppSettings = () => {
     localStorage.setItem('oxy_default_project_concurrency', String(val));
   };
 
+  const [timezone, setTimezoneState] = useState<string>(() => {
+    try {
+      return localStorage.getItem('oxytime_timezone') || 'System';
+    } catch {
+      return 'System';
+    }
+  });
+
+  const setTimezone = useCallback((val: string) => {
+    setTimezoneState(val);
+    try {
+      localStorage.setItem('oxytime_timezone', val);
+    } catch {
+      // safe fallback
+    }
+  }, []);
+
+  const resolvedTimezone = resolveEffectiveTimezone(timezone);
+
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
 
   return {
@@ -187,6 +207,8 @@ export const useAppSettings = () => {
     currentProjectId, setCurrentProjectId,
     showCreditsModal, setShowCreditsModal,
     minimizeToTray, setMinimizeToTray,
-    defaultProjectConcurrency, setDefaultProjectConcurrency
+    defaultProjectConcurrency, setDefaultProjectConcurrency,
+    timezone, setTimezone,
+    resolvedTimezone
   };
 };
