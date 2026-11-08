@@ -266,4 +266,53 @@ describe('Unit Tests: ReportPeriodSelector', () => {
 
     expect(screen.queryByTestId('report-tag-filter-container')).toBeNull();
   });
+
+  describe('Project Filter Integration', () => {
+    const mockProjects = [
+      { id: 'p1', name: 'Project Alpha', color: 'indigo', createdAt: '2026-01-01T00:00:00Z', archived: false, description: null, icon: null, tags: null },
+      { id: 'p2', name: 'Project Beta', color: 'emerald', createdAt: '2026-01-01T00:00:00Z', archived: false, description: null, icon: null, tags: null },
+    ];
+
+    it('should render project filter container when projects and onSelectProject are provided', () => {
+      const onSelectProject = vi.fn();
+      render(
+        <MockProviders>
+          <ReportPeriodSelector
+            reportPeriod="today"
+            setReportPeriod={setReportPeriodMock}
+            reportSort="duration"
+            setReportSort={setReportSortMock}
+            projects={mockProjects}
+            selectedProjectId={null}
+            onSelectProject={onSelectProject}
+          />
+        </MockProviders>
+      );
+
+      expect(screen.getByTestId('report-project-filter-container')).not.toBeNull();
+      expect(screen.getByTestId('project-filter-all')).not.toBeNull();
+      expect(screen.getByTestId('project-filter-p1')).not.toBeNull();
+      expect(screen.getByTestId('project-filter-p2')).not.toBeNull();
+    });
+
+    it('should trigger onSelectProject when project button is clicked in period selector', () => {
+      const onSelectProject = vi.fn();
+      render(
+        <MockProviders>
+          <ReportPeriodSelector
+            reportPeriod="today"
+            setReportPeriod={setReportPeriodMock}
+            reportSort="duration"
+            setReportSort={setReportSortMock}
+            projects={mockProjects}
+            selectedProjectId={null}
+            onSelectProject={onSelectProject}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.click(screen.getByTestId('project-filter-p1'));
+      expect(onSelectProject).toHaveBeenCalledWith('p1');
+    });
+  });
 });

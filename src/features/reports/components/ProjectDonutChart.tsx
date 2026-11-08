@@ -13,6 +13,7 @@ import {
 import { Button } from '@components/ui/button';
 import { Badge } from '@components/ui/badge';
 import { Text } from '@components/ui/typography';
+import { HStack, VStack } from '@components/ui/stack';
 import { useTranslation } from '@common/i18n/translator';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
@@ -84,7 +85,7 @@ export default function ProjectDonutChart({
       forceMountOnPrint={forceMountOnPrint}
       headerRight={
         selectedProjectId && (
-          <div className="flex items-center gap-2">
+          <HStack gap="sm" align="center">
             <Badge variant="secondary" size="sm" className="font-sans">
               {selectedProjectName}
             </Badge>
@@ -93,21 +94,21 @@ export default function ProjectDonutChart({
               size="xs"
               data-testid="clear-project-filter"
               onClick={() => onSelectProject?.(null)}
+              icon={<X className="w-3 h-3" />}
               className="text-muted-foreground hover:text-foreground"
             >
-              <X className="w-3 h-3 mr-1" />
               {t('ClearFilter')}
             </Button>
-          </div>
+          </HStack>
         )
       }
     >
       {!hasData ? (
-        <div className="py-8 text-center" data-testid="donut-chart-empty">
+        <VStack gap="md" align="center" className="py-8 text-center" data-testid="donut-chart-empty">
           <Text variant="muted">{t('NoDataSelectedRange')}</Text>
-        </div>
+        </VStack>
       ) : (
-        <div data-testid="project-donut-chart" className="w-full flex flex-col items-center">
+        <VStack gap="none" align="center" data-testid="project-donut-chart" className="w-full">
           <ChartContainer config={chartConfig} className="h-72 w-full max-w-md">
             <PieChart>
               <ChartTooltip
@@ -155,7 +156,7 @@ export default function ProjectDonutChart({
               <ChartLegend content={<ChartLegendContent />} />
             </PieChart>
           </ChartContainer>
-        </div>
+        </VStack>
       )}
     </CollapsibleCard>
   );
