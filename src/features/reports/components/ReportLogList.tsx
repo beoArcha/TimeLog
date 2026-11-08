@@ -12,8 +12,9 @@ import { useDebounce } from '@common/hooks/useDebounce';
 import { ProjectChartItem } from '../types';
 import { ReportLogEditModal } from '@components/ReportLogEditModal';
 import ReportLogDistribution from './ReportLogDistribution';
-import ReportLogRow from './ReportLogRow';
+import ReportProjectSection from './ReportProjectSection';
 import { useAuditEdit } from '../hooks/useAuditEdit';
+import { groupTimeLogs } from '../utils/grouping';
 
 export interface ReportLogListProps {
   filteredLogs: TimeLog[];
@@ -100,6 +101,15 @@ export default function ReportLogList({
     });
   }, [displayLogs, debouncedSearchQuery, projectMap, taskMap]);
 
+  const groupedHierarchy = useMemo(() => {
+    return groupTimeLogs({
+      logs: searchedLogs,
+      projects,
+      tasks,
+      nowIso,
+    });
+  }, [searchedLogs, projects, tasks, nowIso]);
+
   if (filteredLogs.length === 0 && displayLogs.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground text-xs font-mono">
@@ -141,18 +151,16 @@ export default function ReportLogList({
         ) : (
           <div
             data-testid="report-log-list-scroll-container"
-            className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto print:max-h-none print:overflow-visible print:h-auto p-4 flex flex-col gap-2"
+            className="rounded-[1.5rem] border border-border bg-muted/30 max-h-[250px] overflow-y-auto print:max-h-none print:overflow-visible print:h-auto p-4 flex flex-col gap-3"
           >
-            {searchedLogs.map((log) => (
-              <ReportLogRow
-                key={log.id}
-                log={log}
-                project={projectMap.get(log.projectId)}
-                task={taskMap.get(log.taskId)}
-                isActive={isLogActive(log)}
-                locale={activeLocale}
+            {groupedHierarchy.projects.map((projectGroup) => (
+              <ReportProjectSection
+                key={projectGroup.projectId}
+                projectGroup={projectGroup}
+                activeLocale={activeLocale}
                 timeZone={timeZone}
                 nowIso={nowIso}
+                isLogActive={isLogActive}
                 onEdit={openEdit}
                 onDelete={openDelete}
               />
