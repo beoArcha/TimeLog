@@ -122,4 +122,70 @@ describe('Unit Tests: TaskItem', () => {
     expect(headerWrapper).not.toBeNull();
     expect(headerWrapper?.className).toContain('flex-col');
   });
+
+  it('should not add subtask and should close form if root task is completed when submitting', () => {
+    // Arrange
+    const onAddTaskMock = vi.fn();
+    const setShowSubtaskFormForIdMock = vi.fn();
+    const completedRootTask = aTask({
+      ...rootTask,
+      completed: true,
+    });
+    const state = createMockState({
+      tasks: [completedRootTask],
+      projectTasks: [completedRootTask],
+      onAddTask: onAddTaskMock,
+      showSubtaskFormForId: 't1',
+      newSubtaskName: 'Illegal Subtask',
+      setShowSubtaskFormForId: setShowSubtaskFormForIdMock,
+    });
+
+    // Act
+    const { container } = render(
+      <TaskItem rootTask={completedRootTask} state={state} isCondensed={false} />,
+    );
+    const form = container.querySelector('#subtask-form-t1');
+    expect(form).not.toBeNull();
+    fireEvent.submit(form!);
+
+    // Assert
+    expect(onAddTaskMock).not.toHaveBeenCalled();
+    expect(setShowSubtaskFormForIdMock).toHaveBeenCalledWith(null);
+  });
+
+  it('should not render start or add subtask buttons when root task is completed and restore them when uncompleted', () => {
+    // Arrange
+    const completedRootTask = aTask({
+      ...rootTask,
+      completed: true,
+    });
+    const state = createMockState({
+      tasks: [completedRootTask],
+      projectTasks: [completedRootTask],
+    });
+    const { container, rerender } = render(
+      <TaskItem rootTask={completedRootTask} state={state} isCondensed={false} />,
+    );
+
+    // Assert completed state
+    expect(container.querySelector('#start-btn-t1')).toBeNull();
+    expect(container.querySelector('#show-subtask-form-btn-t1')).toBeNull();
+
+    // Act - uncomplete task
+    const activeRootTask = aTask({
+      ...rootTask,
+      completed: false,
+    });
+    rerender(
+      <TaskItem
+        rootTask={activeRootTask}
+        state={{ ...state, tasks: [activeRootTask], projectTasks: [activeRootTask] }}
+        isCondensed={false}
+      />,
+    );
+
+    // Assert restored state
+    expect(container.querySelector('#start-btn-t1')).not.toBeNull();
+    expect(container.querySelector('#show-subtask-form-btn-t1')).not.toBeNull();
+  });
 });

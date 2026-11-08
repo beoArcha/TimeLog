@@ -58,20 +58,38 @@ describe("Unit Tests: TaskMetrics", () => {
     expect(onStartTimerMock).toHaveBeenCalledWith("t1");
   });
 
-  it("should disable start button and prevent timer start when task is completed", () => {
+  it("should not render start/stop button or add subtask button when task is completed", () => {
     // Arrange
     const completedTask = aTask({ id: "t1", completed: true });
-    render(<TaskMetrics {...mockProps} rootTask={completedTask} />);
 
     // Act
-    const startBtn = screen.getByRole("button", {
-      name: /StartMeasurement|Start/i,
-    });
-    expect(startBtn.hasAttribute("disabled")).toBe(true);
-    fireEvent.click(startBtn);
+    render(<TaskMetrics {...mockProps} rootTask={completedTask} />);
 
     // Assert
-    expect(onStartTimerMock).not.toHaveBeenCalled();
+    const startBtn = screen.queryByRole("button", {
+      name: /StartMeasurement|Start/i,
+    });
+    const subtaskBtn = screen.queryByRole("button", {
+      name: /AddSubtask|Subtask/i,
+    });
+    expect(startBtn).toBeNull();
+    expect(subtaskBtn).toBeNull();
+  });
+
+  it("should restore start/stop button and add subtask button when task is uncompleted", () => {
+    // Arrange
+    const completedTask = aTask({ id: "t1", completed: true });
+    const { rerender } = render(<TaskMetrics {...mockProps} rootTask={completedTask} />);
+    expect(screen.queryByRole("button", { name: /StartMeasurement|Start/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /AddSubtask|Subtask/i })).toBeNull();
+
+    // Act
+    const activeTask = aTask({ id: "t1", completed: false });
+    rerender(<TaskMetrics {...mockProps} rootTask={activeTask} />);
+
+    // Assert
+    expect(screen.getByRole("button", { name: /StartMeasurement|Start/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /AddSubtask|Subtask/i })).toBeTruthy();
   });
 
   it("should render stop button when isCurrentRunning is true and trigger onStopTimer with projectId", () => {

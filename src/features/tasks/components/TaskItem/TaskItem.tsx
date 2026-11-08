@@ -88,18 +88,19 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
 
   const handleAddSubtaskSubmit = (parentTaskId: string, e: React.FormEvent) => {
     e.preventDefault();
+    const closeForm = editing?.setShowSubtaskFormForId ?? state.setShowSubtaskFormForId;
+    if (rootTask.completed) {
+      closeForm?.(null);
+      return;
+    }
     const subtaskName = (editing?.newSubtaskName ?? state.newSubtaskName ?? '').trim();
     if (!subtaskName || !selectedProject?.id) return;
     const addFn = state.onAddTask ?? tasksCtx?.handleAddTask;
     addFn?.(selectedProject.id, subtaskName, parentTaskId);
 
-    if (editing) {
-      editing.setNewSubtaskName('');
-      editing.setShowSubtaskFormForId(null);
-    } else {
-      state.setNewSubtaskName?.('');
-      state.setShowSubtaskFormForId?.(null);
-    }
+    const clearName = editing?.setNewSubtaskName ?? state.setNewSubtaskName;
+    clearName?.('');
+    closeForm?.(null);
   };
 
   return (
