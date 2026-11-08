@@ -7,9 +7,9 @@
 export const MIN_DOS_DATE = 0x0021; // 1980-01-01
 export const MIN_DOS_TIME = 0x0000; // 00:00:00
 
-export const MAX_ZIP_ENTRIES = 65535; // 0xFFFF
+export const MAX_ZIP_ENTRIES = 65534; // 0xFFFE (0xFFFF is reserved for ZIP64 sentinel)
 export const MAX_FILENAME_BYTES = 65535; // 0xFFFF
-export const MAX_ZIP32_SIZE = 0xffffffff; // 4,294,967,295 bytes (4 GiB - 1)
+export const MAX_ZIP32_SIZE = 0xfffffffe; // 4,294,967,294 bytes (0xFFFFFFFF is reserved for ZIP64 sentinel)
 
 export interface ZipEntry {
   name: string;

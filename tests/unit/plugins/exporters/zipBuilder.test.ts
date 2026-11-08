@@ -320,15 +320,41 @@ describe('zipBuilder', () => {
     });
 
     describe('ZIP 32-bit format limit validations', () => {
-      it('should throw explicit error when entry count exceeds 65535', () => {
-        // Create an array exceeding MAX_ZIP_ENTRIES
-        const dummyEntries: ZipEntry[] = new Array(MAX_ZIP_ENTRIES + 1).fill({
+      it('should define correct ZIP32 boundary constants reserving ZIP64 sentinels', () => {
+        expect(MAX_ZIP_ENTRIES).toBe(65534);
+        expect(MAX_ZIP32_SIZE).toBe(0xfffffffe);
+      });
+
+      it('should successfully build archive with exactly 65534 entries (MAX_ZIP_ENTRIES boundary)', () => {
+        const dummyEntry: ZipEntry = { name: 'f', data: '' };
+        const entries: ZipEntry[] = new Array(MAX_ZIP_ENTRIES).fill(dummyEntry);
+
+        const zipBytes = createUncompressedZip(entries);
+        expect(zipBytes).toBeInstanceOf(Uint8Array);
+
+        const view = new DataView(zipBytes.buffer, zipBytes.byteOffset, zipBytes.byteLength);
+        const eocdOffset = zipBytes.byteLength - 22;
+        expect(view.getUint32(eocdOffset, true)).toBe(0x06054b50);
+        expect(view.getUint16(eocdOffset + 8, true)).toBe(65534);
+        expect(view.getUint16(eocdOffset + 10, true)).toBe(65534);
+      });
+
+      it('should throw explicit error when entry count reaches 65535 (ZIP64 sentinel boundary)', () => {
+        const dummyEntries: ZipEntry[] = new Array(65535).fill({
           name: 'f.txt',
           data: '',
         });
 
         expect(() => createUncompressedZip(dummyEntries)).toThrow(
-          /maximum number of entries is 65535.*ZIP64 format is not supported/i
+          'ZIP format limit exceeded: maximum number of entries is 65534, got 65535. ZIP64 format is not supported.'
+        );
+      });
+
+      it('should throw explicit error when mock entries length is 65535', () => {
+        const mockEntries = { length: 65535 } as unknown as ZipEntry[];
+
+        expect(() => createUncompressedZip(mockEntries)).toThrow(
+          /maximum number of entries is 65534, got 65535.*ZIP64 format is not supported/i
         );
       });
 
@@ -341,17 +367,72 @@ describe('zipBuilder', () => {
         );
       });
 
+      it('should throw explicit error when entry size reaches 0xFFFFFFFF (ZIP64 sentinel boundary)', () => {
+        const entries: ZipEntry[] = [
+          {
+            name: 'sentinel.dat',
+            data: { length: 0xffffffff } as unknown as Uint8Array,
+          },
+        ];
+
+        expect(() => createUncompressedZip(entries)).toThrow(
+          'ZIP format limit exceeded: entry "sentinel.dat" size (4294967295 bytes) exceeds 4GB limit. ZIP64 format is not supported.'
+        );
+      });
+
       it('should throw explicit error when entry size exceeds 4GB limit', () => {
         const entries: ZipEntry[] = [
           {
             name: 'large.dat',
-            // Mock a data object with length exceeding MAX_ZIP32_SIZE without allocating physical memory
-            data: { length: MAX_ZIP32_SIZE + 1 } as unknown as Uint8Array,
+            data: { length: 0x100000000 } as unknown as Uint8Array,
           },
         ];
 
         expect(() => createUncompressedZip(entries)).toThrow(
           /size .* exceeds 4GB limit.*ZIP64 format is not supported/i
+        );
+      });
+
+      it('should throw explicit error when local header offset exceeds MAX_ZIP32_SIZE', () => {
+        let readCount = 0;
+        const createMockHugeData = () =>
+          ({
+            get length() {
+              readCount++;
+              // 1st read per entry: const size = dataBytes.length; -> return 0x7fffffff (~2GB)
+              // 2nd read per entry: inside crc32(dataBytes) -> return 0 (terminates immediately)
+              return readCount % 2 === 1 ? 0x7fffffff : 0;
+            },
+          }) as unknown as Uint8Array;
+
+        const entries: ZipEntry[] = [
+          { name: 'chunk1.bin', data: createMockHugeData() },
+          { name: 'chunk2.bin', data: createMockHugeData() },
+          { name: 'chunk3.bin', data: '' },
+        ];
+
+        expect(() => createUncompressedZip(entries)).toThrow(
+          /local header offset for "chunk3\.bin" exceeds 4GB limit.*ZIP64 format is not supported/i
+        );
+      });
+
+      it('should throw explicit error when central directory offset exceeds MAX_ZIP32_SIZE', () => {
+        let readCount = 0;
+        const createMockHugeData = () =>
+          ({
+            get length() {
+              readCount++;
+              return readCount % 2 === 1 ? 0x7fffffff : 0;
+            },
+          }) as unknown as Uint8Array;
+
+        const entries: ZipEntry[] = [
+          { name: 'chunk1.bin', data: createMockHugeData() },
+          { name: 'chunk2.bin', data: createMockHugeData() },
+        ];
+
+        expect(() => createUncompressedZip(entries)).toThrow(
+          /central directory offset \(\d+ bytes\) exceeds 4GB limit.*ZIP64 format is not supported/i
         );
       });
     });
