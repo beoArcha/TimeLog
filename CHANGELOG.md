@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **CI Frontend Setup Resilience**:
   - Added an npm fallback in `.github/actions/setup-frontend/action.yml` when `oven-sh/setup-bun` encounters upstream GitHub Release asset proxy timeouts or HTTP 504 Gateway Time-out errors.
+- **ZIP32 Format Boundary & ZIP64 Sentinel Reservation**:
+  - Reserved ZIP64 sentinel boundaries in `zipBuilder`: capped maximum allowed ZIP32 entry count at 65534 (`0xFFFE`) and maximum entry size and local header offset at `0xFFFFFFFE` (`4,294,967,294` bytes) to prevent producing invalid standard ZIP archives with ambiguous ZIP64 sentinel headers (`0xFFFF` / `0xFFFFFFFF`).
+  - Added boundary validation test coverage for entry count limits (65534 boundary pass and 65535 boundary fail) and 4GB entry size and header offset boundaries.
 - **SQLite Time Log History Migration Compatibility**:
   - Added migration 9 to rebuild legacy `time_logs_history` tables where `reason` is still `NOT NULL`, making the column nullable without losing existing audit records or the `time_logs` foreign-key cascade.
   - Added migration regression coverage for v8 databases, NULL-reason inserts, history preservation, foreign-key cascade behavior, and idempotent initialization.
@@ -55,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Established shared cross-runtime test matrix fixture `tests/shared/fixtures/audit-parity-cases.json` covering 41 vectors across default source, raw enum identifiers, UI label strings, optional reason for `SystemPatch`, mandatory reason validation for manual edits (`ERR_AUDIT_REASON_REQUIRED`), and invalid source detection (`ERR_AUDIT_SOURCE_INVALID`).
   - Added comprehensive BDT test coverage in `tests/integration/engine/CrossRuntimeParity.test.ts` executing the shared matrix against Browser `EnginePlugin` and verifying payload mapping in Desktop Tauri `EngineCommands`.
   - Added dedicated Rust integration test suite in `src-tauri/tests/engine_lifecycle_test.rs` validating the shared fixture against the Rust reference engine implementation.
+- **TagFilterGroup Component Barrel Export** (`TASK-A5-TAG-FILTER-EXPORTS`):
+  - Exported `TagFilterGroup` and its associated types from `src/components/index.ts` to complete composite component exports in the primary components barrel.
 
 - **Report Print / PDF Stylesheet & PWA Analytics Clean-Up** (Phase 18 Group D):
   - Added dedicated `@media print` CSS rules in `src/styles/index.css` stripping navigation sidebars, headers, period filters, and action buttons, while forcing clean contrast (black text, white background, no drop-shadows or backdrops, avoid-break inside tables and cards) for client-ready PDF generation.
@@ -85,6 +90,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **CLI Report Export Documentation Parity**:
+  - Updated `docs/manifesto/CLI.md` to reflect that CSV, HTML, JSON, and XML report exporters serialize payloads in memory before writing to disk via `std::fs::write`.
+  - Documented that ODS and XLSX formats are generated natively in Rust via `spreadsheet-ods` and `rust_xlsxwriter`, while the custom ZIP32 builder with MS-DOS timestamps and 32-bit boundary validation resides in the TypeScript browser plugin layer (`src/plugins/exporters/zipBuilder.ts`).
+  - Marked unbuffered disk streaming as `[PLANNED]` pending completion of task B3.
 - **Engineering Standards & i18n Locales Specification**:
   - Aligned `AGENTS.md` and frontend engineering standards with the full suite of 10 supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `uk`, `ja`, `nl`, `it`).
   - Formalized the `I18N_DOMAINS` domain contract from `src/common/i18n/keys.ts`, clarifying that new keys must be defined in modular domain key files (`src/common/i18n/keys/<domain>.ts`) and localized across all 10 locales in domain dictionaries (`src/common/i18n/dictionaries/<domain>.json`).
