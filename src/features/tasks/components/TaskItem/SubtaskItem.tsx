@@ -179,31 +179,32 @@ export function SubtaskItem({
           variant="pill"
         />
 
-        {isSubRunning ? (
-          <Button
-            id={`stop-subtask-btn-${subTask.id}`}
-            variant="destructive"
-            size="icon-xs"
-            onClick={() => onStopTimer ? onStopTimer() : onStartTimer(subTask.id)}
-            title={tTimer('StopMeasurement')}
-            aria-label={tTimer('StopMeasurement')}
-            className="p-2 transition-colors cursor-pointer animate-pulse shrink-0"
-          >
-            <Square className="w-3.5 h-3.5 fill-current" />
-          </Button>
-        ) : (
-          <Button
-            id={`start-subtask-btn-${subTask.id}`}
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => !subTask.completed && onStartTimer(subTask.id)}
-            disabled={subTask.completed}
-            title={tTimer('StartMeasurement')}
-            aria-label={tTimer('StartMeasurement')}
-            className="text-muted-foreground hover:text-primary-foreground rounded-lg p-2 transition-all cursor-pointer shrink-0 bg-muted hover:bg-primary group-hover/sub:bg-primary group-hover/sub:text-primary-foreground text-foreground"
-          >
-            <Play className="w-3.5 h-3.5 fill-current shrink-0" />
-          </Button>
+        {!subTask.completed && (
+          isSubRunning ? (
+            <Button
+              id={`stop-subtask-btn-${subTask.id}`}
+              variant="destructive"
+              size="icon-xs"
+              onClick={() => onStopTimer ? onStopTimer() : onStartTimer(subTask.id)}
+              title={tTimer('StopMeasurement')}
+              aria-label={tTimer('StopMeasurement')}
+              className="p-2 transition-colors cursor-pointer animate-pulse shrink-0"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+            </Button>
+          ) : (
+            <Button
+              id={`start-subtask-btn-${subTask.id}`}
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => onStartTimer(subTask.id)}
+              title={tTimer('StartMeasurement')}
+              aria-label={tTimer('StartMeasurement')}
+              className="text-muted-foreground hover:text-primary-foreground rounded-lg p-2 transition-all cursor-pointer shrink-0 bg-muted hover:bg-primary group-hover/sub:bg-primary group-hover/sub:text-primary-foreground text-foreground"
+            >
+              <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+            </Button>
+          )
         )}
       </HStack>
     </HStack>

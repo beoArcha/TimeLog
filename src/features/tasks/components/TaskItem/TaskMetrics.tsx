@@ -59,54 +59,52 @@ export function TaskMetrics({
         {tTask('CounterLabel')}: {formatSeconds(rootDuration)}
       </span>
 
-      <HStack gap="sm" className="shrink-0">
-        {isCurrentRunning ? (
-          <Button
-            id={`stop-btn-${rootTask.id}`}
-            variant="destructive"
-            size="icon-xs"
-            onClick={() => onStopTimer ? onStopTimer(rootTask.projectId) : onStartTimer(rootTask.id)}
-            className="rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer"
-            title={tTimer('StopMeasurement')}
-            aria-label={tTimer('StopMeasurement')}
-          >
-            <Square className="w-3.5 h-3.5 fill-current" />
-          </Button>
-        ) : (
-          <Button
-            id={`start-btn-${rootTask.id}`}
-            variant={rootTask.completed ? 'ghost' : 'default'}
-            size="icon-xs"
-            onClick={() => !rootTask.completed && onStartTimer(rootTask.id)}
-            disabled={rootTask.completed}
-            className={`rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer ${rootTask.completed
-              ? 'bg-card/5 text-muted-foreground border border-transparent cursor-not-allowed opacity-50'
-              : 'shadow-md'
-              }`}
-            title={tTimer('StartMeasurement')}
-            aria-label={tTimer('StartMeasurement')}
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-          </Button>
-        )}
+      {!rootTask.completed && (
+        <HStack gap="sm" className="shrink-0">
+          {isCurrentRunning ? (
+            <Button
+              id={`stop-btn-${rootTask.id}`}
+              variant="destructive"
+              size="icon-xs"
+              onClick={() => onStopTimer ? onStopTimer(rootTask.projectId) : onStartTimer(rootTask.id)}
+              className="rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer"
+              title={tTimer('StopMeasurement')}
+              aria-label={tTimer('StopMeasurement')}
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+            </Button>
+          ) : (
+            <Button
+              id={`start-btn-${rootTask.id}`}
+              variant="default"
+              size="icon-xs"
+              onClick={() => onStartTimer(rootTask.id)}
+              className="rounded-xl p-2 transition-all transform hover:scale-105 cursor-pointer shadow-md"
+              title={tTimer('StartMeasurement')}
+              aria-label={tTimer('StartMeasurement')}
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+            </Button>
+          )}
 
-        <Button
-          id={`show-subtask-form-btn-${rootTask.id}`}
-          variant="outline"
-          size="xs"
-          onClick={() =>
-            setShowSubtaskFormForId(showSubtaskFormForId === rootTask.id ? null : rootTask.id)
-          }
-          className="rounded-xl px-2.5 py-2 h-auto text-xs font-semibold flex items-center gap-1 transition-all border cursor-pointer shrink-0 bg-muted hover:bg-muted/80 text-foreground border-border"
-          title={tTask('AddSubtask')}
-          aria-label={tTask('AddSubtask')}
-        >
-          <Plus className="w-3.5 h-3.5 text-primary" />{' '}
-          <span className={isCondensed ? 'hidden xs:inline' : ''}>
-            {tTask('SubtaskLabel')}
-          </span>
-        </Button>
-      </HStack>
+          <Button
+            id={`show-subtask-form-btn-${rootTask.id}`}
+            variant="outline"
+            size="xs"
+            onClick={() =>
+              setShowSubtaskFormForId(showSubtaskFormForId === rootTask.id ? null : rootTask.id)
+            }
+            className="rounded-xl px-2.5 py-2 h-auto text-xs font-semibold flex items-center gap-1 transition-all border cursor-pointer shrink-0 bg-muted hover:bg-muted/80 text-foreground border-border"
+            title={tTask('AddSubtask')}
+            aria-label={tTask('AddSubtask')}
+          >
+            <Plus className="w-3.5 h-3.5 text-primary" />{' '}
+            <span className={isCondensed ? 'hidden xs:inline' : ''}>
+              {tTask('SubtaskLabel')}
+            </span>
+          </Button>
+        </HStack>
+      )}
     </HStack>
   );
 }

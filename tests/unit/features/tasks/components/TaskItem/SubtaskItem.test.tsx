@@ -80,4 +80,34 @@ describe('Unit Tests: SubtaskItem', () => {
     expect(onStartTimerMock).toHaveBeenCalledTimes(1);
     expect(onStartTimerMock).toHaveBeenCalledWith('t2');
   });
+
+  it('should not render start or stop button when subtask is completed', () => {
+    // Arrange
+    const props = createMockProps();
+    props.subTask.completed = true;
+
+    // Act
+    const { container } = render(<SubtaskItem {...props} />);
+
+    // Assert
+    const startBtn = container.querySelector('#start-subtask-btn-t2');
+    const stopBtn = container.querySelector('#stop-subtask-btn-t2');
+    expect(startBtn).toBeNull();
+    expect(stopBtn).toBeNull();
+  });
+
+  it('should restore start button when subtask is uncompleted', () => {
+    // Arrange
+    const props = createMockProps();
+    props.subTask.completed = true;
+    const { container, rerender } = render(<SubtaskItem {...props} />);
+    expect(container.querySelector('#start-subtask-btn-t2')).toBeNull();
+
+    // Act
+    const activeSubtask = { ...props.subTask, completed: false };
+    rerender(<SubtaskItem {...props} subTask={activeSubtask} />);
+
+    // Assert
+    expect(container.querySelector('#start-subtask-btn-t2')).not.toBeNull();
+  });
 });
