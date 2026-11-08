@@ -21,6 +21,16 @@ export const POPULAR_TIMEZONES = [
   'Asia/Tokyo', 'Asia/Shanghai', 'Asia/Dubai', 'Australia/Sydney',
 ] as const;
 
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Clears the internal Intl.DateTimeFormat formatter cache.
+ * Primarily intended for testing environments.
+ */
+export function clearDateTimeFormatCache(): void {
+  formatterCache.clear();
+}
+
 /**
  * Validates whether a given timezone string conforms to a valid IANA identifier
  * recognized by the JavaScript Intl runtime.
@@ -35,8 +45,11 @@ export function isValidTimezone(tz: string): boolean {
   try {
     new Intl.DateTimeFormat(undefined, { timeZone: tz });
     return true;
-  } catch {
-    return false;
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return false;
+    }
+    throw err;
   }
 }
 
@@ -53,8 +66,11 @@ export function resolveSystemTimezone(): string {
     if (tz && isValidTimezone(tz)) {
       return tz;
     }
-  } catch {
-    // Host environments or webview runtimes may restrict access to resolved options
+  } catch (err) {
+    if (err instanceof RangeError || err instanceof TypeError) {
+      return FALLBACK_TIMEZONE;
+    }
+    throw err;
   }
   return FALLBACK_TIMEZONE;
 }
@@ -88,8 +104,11 @@ export function getSupportedTimezones(): string[] {
     try {
       const supported = Intl.supportedValuesOf('timeZone');
       return Array.from(new Set(['UTC', ...supported]));
-    } catch {
-      // Fallback path when supportedValuesOf throws in constrained execution contexts
+    } catch (err) {
+      if (err instanceof RangeError || err instanceof TypeError) {
+        return [...POPULAR_TIMEZONES];
+      }
+      throw err;
     }
   }
   return [...POPULAR_TIMEZONES];
@@ -104,6 +123,77 @@ function parseInputDate(input: Date | string | number): Date | null {
 }
 
 /**
+ * Constructs an Intl.DateTimeFormat instance with layered fallbacks for unsupported locales,
+ * invalid timezones, or constrained runtime environments.
+ *
+ * @param locale - Requested BCP 47 locale tag
+ * @param options - Formatting options
+ * @returns A guaranteed valid Intl.DateTimeFormat instance
+ */
+export function getSafeDateTimeFormat(
+  locale: string,
+  options: Intl.DateTimeFormatOptions
+): Intl.DateTimeFormat {
+  const targetTimezone = options.timeZone ? resolveEffectiveTimezone(options.timeZone) : resolveEffectiveTimezone();
+  const normalizedOptions: Intl.DateTimeFormatOptions = {
+    ...options,
+    timeZone: targetTimezone,
+  };
+
+  // 1. Try requested locale with target timezone
+  try {
+    return new Intl.DateTimeFormat(locale, normalizedOptions);
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      throw err;
+    }
+  }
+
+  // 2. Try fallback 'en' locale with target timezone
+  try {
+    return new Intl.DateTimeFormat('en', normalizedOptions);
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      throw err;
+    }
+  }
+
+  // 3. Try requested locale with UTC timezone
+  try {
+    return new Intl.DateTimeFormat(locale, { ...normalizedOptions, timeZone: FALLBACK_TIMEZONE });
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      throw err;
+    }
+  }
+
+  // 4. Try 'en' with UTC timezone
+  try {
+    return new Intl.DateTimeFormat('en', { ...normalizedOptions, timeZone: FALLBACK_TIMEZONE });
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      throw err;
+    }
+  }
+
+  // 5. Ultimate fallback without custom options
+  return new Intl.DateTimeFormat('en', { timeZone: FALLBACK_TIMEZONE });
+}
+
+function getCachedDateTimeFormat(
+  locale: string,
+  options: Intl.DateTimeFormatOptions
+): Intl.DateTimeFormat {
+  const cacheKey = `${locale}:${JSON.stringify(options)}`;
+  let formatter = formatterCache.get(cacheKey);
+  if (!formatter) {
+    formatter = getSafeDateTimeFormat(locale, options);
+    formatterCache.set(cacheKey, formatter);
+  }
+  return formatter;
+}
+
+/**
  * Formats an input date or timestamp into a full localized date and 24-hour time string
  * within the resolved target presentation timezone.
  *
@@ -111,7 +201,7 @@ function parseInputDate(input: Date | string | number): Date | null {
  * @param timezone - Optional target timezone identifier (defaults to resolved system timezone)
  * @param locale - BCP-47 language tag (defaults to 'en')
  * @param options - Additional Intl.DateTimeFormatOptions overrides
- * @returns Formatted date-time string, or empty string if input is invalid
+ * @returns Formatted date-time string, or empty string if input date is invalid
  */
 export function formatDateTime(
   input: Date | string | number,
@@ -125,7 +215,7 @@ export function formatDateTime(
   }
 
   const effectiveTimezone = resolveEffectiveTimezone(timezone);
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const intlOptions: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -135,9 +225,21 @@ export function formatDateTime(
     hour12: false,
     ...options,
     timeZone: effectiveTimezone,
-  });
+  };
 
-  return formatter.format(date);
+  const formatter = getCachedDateTimeFormat(locale, intlOptions);
+  try {
+    return formatter.format(date);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      const fallbackFormatter = getSafeDateTimeFormat('en', {
+        ...intlOptions,
+        timeZone: FALLBACK_TIMEZONE,
+      });
+      return fallbackFormatter.format(date);
+    }
+    throw err;
+  }
 }
 
 /**
@@ -148,7 +250,7 @@ export function formatDateTime(
  * @param timezone - Optional target timezone identifier (defaults to resolved system timezone)
  * @param locale - BCP-47 language tag (defaults to 'en')
  * @param options - Additional Intl.DateTimeFormatOptions overrides
- * @returns Formatted date string, or empty string if input is invalid
+ * @returns Formatted date string, or empty string if input date is invalid
  */
 export function formatDate(
   input: Date | string | number,
@@ -162,15 +264,27 @@ export function formatDate(
   }
 
   const effectiveTimezone = resolveEffectiveTimezone(timezone);
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const intlOptions: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     ...options,
     timeZone: effectiveTimezone,
-  });
+  };
 
-  return formatter.format(date);
+  const formatter = getCachedDateTimeFormat(locale, intlOptions);
+  try {
+    return formatter.format(date);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      const fallbackFormatter = getSafeDateTimeFormat('en', {
+        ...intlOptions,
+        timeZone: FALLBACK_TIMEZONE,
+      });
+      return fallbackFormatter.format(date);
+    }
+    throw err;
+  }
 }
 
 /**
@@ -181,7 +295,7 @@ export function formatDate(
  * @param timezone - Optional target timezone identifier (defaults to resolved system timezone)
  * @param locale - BCP-47 language tag (defaults to 'en')
  * @param options - Additional Intl.DateTimeFormatOptions overrides
- * @returns Formatted time string, or empty string if input is invalid
+ * @returns Formatted time string, or empty string if input date is invalid
  */
 export function formatTime(
   input: Date | string | number,
@@ -195,14 +309,26 @@ export function formatTime(
   }
 
   const effectiveTimezone = resolveEffectiveTimezone(timezone);
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const intlOptions: Intl.DateTimeFormatOptions = {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
     ...options,
     timeZone: effectiveTimezone,
-  });
+  };
 
-  return formatter.format(date);
+  const formatter = getCachedDateTimeFormat(locale, intlOptions);
+  try {
+    return formatter.format(date);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      const fallbackFormatter = getSafeDateTimeFormat('en', {
+        ...intlOptions,
+        timeZone: FALLBACK_TIMEZONE,
+      });
+      return fallbackFormatter.format(date);
+    }
+    throw err;
+  }
 }
