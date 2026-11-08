@@ -4,6 +4,8 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import ReportView from '@features/reports/ReportView';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
+import { SidebarProjectItem } from '@layouts/parts/sidebar/SidebarProjectItem';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 
 const mockReportExportModal = vi.fn();
 vi.mock('@features/reports/components/ReportExportModal', () => ({
@@ -429,6 +431,132 @@ describe('Unit Tests: ReportView', () => {
       await waitFor(() => {
         expect(screen.getByTestId('report-export-modal')).not.toBeNull();
       });
+    });
+  });
+
+  describe('Integration: Sidebar ↔ Report Project Filter Synchronization', () => {
+    const integrationState: GuiState = {
+      ...mockGuiState,
+      projects: [
+        { id: 'p1', name: 'Alpha Project', color: 'indigo', createdAt: '2026-06-01T00:00:00Z', archived: false, description: null, icon: null, tags: null },
+        { id: 'p2', name: 'Beta Project', color: 'emerald', createdAt: '2026-06-01T00:00:00Z', archived: false, description: null, icon: null, tags: null },
+      ],
+      tasks: [
+        { id: 't1', projectId: 'p1', name: 'Alpha Task', completed: false, createdAt: '2026-06-01T00:00:00Z', status: null, parentTaskId: null },
+        { id: 't2', projectId: 'p2', name: 'Beta Task', completed: false, createdAt: '2026-06-01T00:00:00Z', status: null, parentTaskId: null },
+      ],
+      logs: [
+        { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-15T09:00:00Z', endTime: '2026-06-15T10:00:00Z', note: 'Alpha work' },
+        { id: 'l2', taskId: 't2', projectId: 'p2', startTime: '2026-06-15T11:00:00Z', endTime: '2026-06-15T13:00:00Z', note: 'Beta work' },
+      ],
+      reportPeriod: 'all',
+    } as unknown as GuiState;
+
+    function IntegrationHarness({ onStateChange }: { onStateChange?: (id: string | null) => void }) {
+      const [selectedProjectId, setSelectedProjectId] = React.useState<string | null>(null);
+
+      const handleSetSelectedProjectId = React.useCallback(
+        (id: string | null) => {
+          setSelectedProjectId(id);
+          onStateChange?.(id);
+        },
+        [onStateChange]
+      );
+
+      const sharedState: GuiState = {
+        ...integrationState,
+        selectedProjectId,
+        setSelectedProjectId: handleSetSelectedProjectId,
+      };
+
+      return (
+        <MockProviders dataState={{ handleDeleteProject: vi.fn() } as any}>
+          <div data-testid="integration-shell">
+            <aside data-testid="sidebar-projects-container">
+              {sharedState.projects.map((project) => (
+                <SidebarProjectItem
+                  key={project.id}
+                  project={project}
+                  isSelected={selectedProjectId === project.id}
+                  onSelect={handleSetSelectedProjectId}
+                  metrics={null}
+                  activeLog={null}
+                  totalSeconds={0}
+                  locale="en"
+                  customTranslations={{}}
+                  isFirst={false}
+                  isLast={false}
+                  isEditingInline={false}
+                  inlineEditName=""
+                  taskCount={sharedState.tasks.filter((t) => t.projectId === project.id).length}
+                  onEditDialog={vi.fn()}
+                  onToggleArchive={vi.fn()}
+                  onDeleteProject={vi.fn()}
+                  onMoveUp={vi.fn()}
+                  onMoveDown={vi.fn()}
+                  onInlineNameChange={vi.fn()}
+                  onCommitInlineRename={vi.fn()}
+                  onCancelInlineRename={vi.fn()}
+                />
+              ))}
+            </aside>
+            <ReportView state={sharedState} />
+          </div>
+        </MockProviders>
+      );
+    }
+
+    it('synchronizes project selection bidirectionally between sidebar and report using single shared state', () => {
+      const stateChangeSpy = vi.fn();
+      const { container } = render(<IntegrationHarness onStateChange={stateChangeSpy} />);
+
+      // 1. Mount view with selectedProjectId = null
+      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('true');
+      expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getByTestId('project-filter-p2').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getAllByText(/"Alpha Task"/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/"Beta Task"/i).length).toBeGreaterThan(0);
+
+      // 2. Select project A via sidebar control
+      const sidebarItemA = container.querySelector('#project-item-p1');
+      expect(sidebarItemA).not.toBeNull();
+      fireEvent.click(sidebarItemA!);
+
+      // 3. Verify state.selectedProjectId has value 'p1'
+      expect(stateChangeSpy).toHaveBeenLastCalledWith('p1');
+
+      // 4. Check that report shows data exclusively for project A
+      expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('true');
+      expect(screen.getByTestId('project-filter-p2').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getAllByText(/"Alpha Task"/i).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/"Beta Task"/i)).toBeNull();
+
+      // 5. Change project selection in report to B
+      const reportFilterB = screen.getByTestId('project-filter-p2');
+      fireEvent.click(reportFilterB);
+
+      // 6. Verify shared state has value 'p2'
+      expect(stateChangeSpy).toHaveBeenLastCalledWith('p2');
+
+      // 7. Verify report shows data exclusively for project B
+      expect(screen.getByTestId('project-filter-p2').getAttribute('aria-pressed')).toBe('true');
+      expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getAllByText(/"Beta Task"/i).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/"Alpha Task"/i)).toBeNull();
+
+      // 8. Clear project selection in report
+      const reportFilterAll = screen.getByTestId('project-filter-all');
+      fireEvent.click(reportFilterAll);
+
+      // 9. Verify state returned to null
+      expect(stateChangeSpy).toHaveBeenLastCalledWith(null);
+      expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('true');
+      expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getByTestId('project-filter-p2').getAttribute('aria-pressed')).toBe('false');
+      expect(screen.getAllByText(/"Alpha Task"/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/"Beta Task"/i).length).toBeGreaterThan(0);
     });
   });
 });
