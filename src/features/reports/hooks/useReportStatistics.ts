@@ -55,7 +55,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
   const hasProjectFilter = Boolean(selectedProjectId);
 
   // Strict intersection between project filter and tag filter
-  const allowedProjectIds = useMemo(() => {
+  const allowedProjectIds = useMemo((): Set<string> | null => {
     if (!hasTagFilter && !hasProjectFilter) {
       return null;
     }
@@ -170,10 +170,11 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
         );
 
         if (allowedProjectIds !== null) {
-          if (allowedProjectIds.size === 1) {
-            filter.projectId = Array.from(allowedProjectIds)[0];
-          } else if (allowedProjectIds.size > 1) {
-            filter.projectIds = Array.from(allowedProjectIds);
+          const idsArray = Array.from<string>(allowedProjectIds);
+          if (idsArray.length === 1) {
+            filter.projectId = idsArray[0];
+          } else if (idsArray.length > 1) {
+            filter.projectIds = idsArray;
           }
         }
         filterContext = filter;

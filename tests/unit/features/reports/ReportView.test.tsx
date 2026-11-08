@@ -6,14 +6,21 @@ import ReportView from '@features/reports/ReportView';
 import { GuiState } from '@layouts/hooks/useGuiLogic';
 import { SidebarProjectItem } from '@layouts/parts/sidebar/SidebarProjectItem';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import type { ExportPayload } from '@features/reports/types';
+
+interface MockExportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  payload: ExportPayload;
+}
 
 const mockReportExportModal = vi.fn();
 vi.mock('@features/reports/components/ReportExportModal', () => ({
-  default: (props: any) => {
+  default: (props: MockExportModalProps) => {
     mockReportExportModal(props);
     return props.isOpen ? <div data-testid="report-export-modal" /> : null;
   },
-  ReportExportModal: (props: any) => {
+  ReportExportModal: (props: MockExportModalProps) => {
     mockReportExportModal(props);
     return props.isOpen ? <div data-testid="report-export-modal" /> : null;
   },
@@ -470,7 +477,7 @@ describe('Unit Tests: ReportView', () => {
       };
 
       return (
-        <MockProviders dataState={{ handleDeleteProject: vi.fn() } as any}>
+        <MockProviders dataState={{ handleDeleteProject: vi.fn() }}>
           <div data-testid="integration-shell">
             <aside data-testid="sidebar-projects-container">
               {sharedState.projects.map((project) => (
