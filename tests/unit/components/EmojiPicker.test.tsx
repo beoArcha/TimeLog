@@ -3,7 +3,14 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { EmojiPicker } from '@components/EmojiPicker/EmojiPicker';
-import { getFirstGrapheme, isEmoji } from '@components/EmojiPicker/emojiData';
+import {
+  getFirstGrapheme,
+  isEmoji,
+  EMOJI_CATEGORIES,
+  EMOJI_PATTERN,
+  EMOJI_REGEX,
+  FALLBACK_GRAPHEME_REGEX,
+} from '@components/EmojiPicker/emojiData';
 import { MockProviders } from '@tests/shared/mocks/MockProviders';
 
 describe('getFirstGrapheme', () => {
@@ -161,6 +168,23 @@ describe('isEmoji', () => {
     expect(isEmoji(word)).toBe(false);
     expect(isEmoji(letter)).toBe(false);
     expect(isEmoji(empty)).toBe(false);
+  });
+});
+
+describe('EMOJI_CATEGORIES', () => {
+  it('should not contain dead fallbackLabel property on any category', () => {
+    // Arrange & Act & Assert
+    for (const category of EMOJI_CATEGORIES) {
+      expect((category as unknown as Record<string, unknown>).fallbackLabel).toBeUndefined();
+    }
+  });
+});
+
+describe('EMOJI_REGEX and FALLBACK_GRAPHEME_REGEX', () => {
+  it('should share unified EMOJI_PATTERN source', () => {
+    // Arrange & Act & Assert
+    expect(EMOJI_REGEX.source).toContain(EMOJI_PATTERN);
+    expect(FALLBACK_GRAPHEME_REGEX.source).toContain(EMOJI_PATTERN);
   });
 });
 
@@ -361,5 +385,104 @@ describe('EmojiPicker', () => {
     expect(screen.getByTestId('emoji-picker-category-all').textContent).toBe('CustomAll');
     expect(screen.getByTestId('emoji-picker-category-work').textContent).toBe('CustomWork');
   });
+
+  it('should have accessible search input with aria-label matching placeholder', () => {
+    // Arrange
+    render(
+      <MockProviders>
+        <EmojiPicker onChange={vi.fn()} />
+      </MockProviders>
+    );
+
+    // Act
+    fireEvent.click(screen.getByTestId('emoji-picker-trigger'));
+    const searchInput = screen.getByTestId('emoji-picker-search-input');
+
+    // Assert
+    expect(searchInput.getAttribute('aria-label')).toBeTruthy();
+    expect(searchInput.getAttribute('placeholder')).toBe(searchInput.getAttribute('aria-label'));
+  });
+
+  it('should render accessible clear button with aria-label in search input and clear on click', () => {
+    // Arrange
+    render(
+      <MockProviders>
+        <EmojiPicker onChange={vi.fn()} />
+      </MockProviders>
+    );
+
+    // Act
+    fireEvent.click(screen.getByTestId('emoji-picker-trigger'));
+    const searchInput = screen.getByTestId('emoji-picker-search-input');
+    fireEvent.change(searchInput, { target: { value: 'laptop' } });
+
+    // Assert
+    const clearSearchBtn = screen.getByRole('button', { name: /clear search/i });
+    expect(clearSearchBtn).not.toBeNull();
+    expect(clearSearchBtn.getAttribute('aria-label')).toBe('Clear search');
+
+    // Act: click clear
+    fireEvent.click(clearSearchBtn);
+
+    // Assert: search input is cleared
+    expect((searchInput as HTMLInputElement).value).toBe('');
+  });
+
+  it('should expose aria-pressed on category buttons and role="group" with accessible name', () => {
+    // Arrange
+    render(
+      <MockProviders>
+        <EmojiPicker onChange={vi.fn()} />
+      </MockProviders>
+    );
+
+    // Act
+    fireEvent.click(screen.getByTestId('emoji-picker-trigger'));
+    const allBtn = screen.getByTestId('emoji-picker-category-all');
+    const workBtn = screen.getByTestId('emoji-picker-category-work');
+
+    // Assert initial state
+    expect(allBtn.getAttribute('aria-pressed')).toBe('true');
+    expect(workBtn.getAttribute('aria-pressed')).toBe('false');
+
+    // Act: select work category
+    fireEvent.click(workBtn);
+
+    // Assert updated state
+    expect(allBtn.getAttribute('aria-pressed')).toBe('false');
+    expect(workBtn.getAttribute('aria-pressed')).toBe('true');
+
+    // Assert category group container semantics
+    const group = screen.getByRole('group', { name: /categories/i });
+    expect(group).not.toBeNull();
+  });
+
+  it('should reset search query when popover closes and reopens', () => {
+    // Arrange
+    render(
+      <MockProviders>
+        <EmojiPicker onChange={vi.fn()} />
+      </MockProviders>
+    );
+
+    const trigger = screen.getByTestId('emoji-picker-trigger');
+
+    // Act: open and type query
+    fireEvent.click(trigger);
+    const searchInput = screen.getByTestId('emoji-picker-search-input');
+    fireEvent.change(searchInput, { target: { value: 'laptop' } });
+    expect((screen.getByTestId('emoji-picker-search-input') as HTMLInputElement).value).toBe('laptop');
+
+    // Act: close popover by clicking trigger
+    fireEvent.click(trigger);
+
+    // Act: reopen popover
+    fireEvent.click(trigger);
+
+    // Assert: search is reset
+    const reopenedSearchInput = screen.getByTestId('emoji-picker-search-input');
+    expect((reopenedSearchInput as HTMLInputElement).value).toBe('');
+  });
 });
+
 

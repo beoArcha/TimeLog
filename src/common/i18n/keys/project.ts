@@ -18,6 +18,7 @@ export type ProjectKey =
   | 'DescriptionPlaceholder'
   | 'EditProject'
   | 'EditProjectTitle'
+  | 'EmojiCategories'
   | 'EmojiCategoryAll'
   | 'EmojiCategoryCreative'
   | 'EmojiCategoryLife'
