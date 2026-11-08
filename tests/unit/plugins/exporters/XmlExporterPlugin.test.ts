@@ -27,16 +27,27 @@ function validateXmlAgainstReportXsd(xmlString: string): Document {
 
   // Required section assertions
   expect(root.querySelector(':scope > metadata > period')?.textContent).toBeTruthy();
+  const generatedAtText = root.querySelector(':scope > metadata > generatedAt')?.textContent;
+  if (generatedAtText) {
+    expect(generatedAtText).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/
+    );
+  }
   expect(root.querySelector(':scope > summary > totalSeconds')?.textContent).toMatch(/^\d+$/);
 
   // Structural checks for projects and entries
   for (const proj of Array.from(root.querySelectorAll(':scope > projects > project'))) {
     expect(proj.querySelector(':scope > name')?.textContent).toBeTruthy();
     expect(proj.querySelector(':scope > durationSeconds')?.textContent).toMatch(/^\d+$/);
+    expect(proj.querySelector(':scope > percentage')?.textContent).toMatch(/^-?\d+(\.\d+)?$/);
     for (const task of Array.from(proj.querySelectorAll(':scope > tasks > task'))) {
       expect(task.querySelector(':scope > name')?.textContent).toBeTruthy();
+      expect(task.querySelector(':scope > durationSeconds')?.textContent).toMatch(/^\d+$/);
+      expect(task.querySelector(':scope > percentage')?.textContent).toMatch(/^-?\d+(\.\d+)?$/);
       for (const sub of Array.from(task.querySelectorAll(':scope > subtasks > subtask'))) {
         expect(sub.querySelector(':scope > name')?.textContent).toBeTruthy();
+        expect(sub.querySelector(':scope > durationSeconds')?.textContent).toMatch(/^\d+$/);
+        expect(sub.querySelector(':scope > percentage')?.textContent).toMatch(/^-?\d+(\.\d+)?$/);
       }
     }
   }

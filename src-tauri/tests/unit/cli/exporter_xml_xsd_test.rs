@@ -1,5 +1,7 @@
 use super::exporter_fixtures::*;
-use oxyflow_timelog::cli::exporters::xml::{export_xml, validate_report_xml_structure};
+use oxyflow_timelog::cli::exporters::xml::{
+    export_xml, validate_report_xml_structure, XmlValidationError,
+};
 use oxyflow_timelog::cli::formatters::{
     ReportEntryDto, ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
 };
@@ -336,4 +338,212 @@ fn test_given_large_report_document_when_export_xml_then_scales_efficiently_and_
     let dto = validation.unwrap();
     assert_eq!(dto.projects.projects.len(), 10);
     assert_eq!(dto.entries.entries.len(), 150);
+}
+
+fn extract_all_tag_values(xml: &str, tag: &str) -> Vec<String> {
+    let open_tag = format!("<{}>", tag);
+    let close_tag = format!("</{}>", tag);
+    let mut values = Vec::new();
+    let mut cursor = 0;
+
+    while let Some(start_idx) = xml[cursor..].find(&open_tag) {
+        let content_start = cursor + start_idx + open_tag.len();
+        if let Some(end_idx) = xml[content_start..].find(&close_tag) {
+            values.push(xml[content_start..content_start + end_idx].to_string());
+            cursor = content_start + end_idx + close_tag.len();
+        } else {
+            break;
+        }
+    }
+    values
+}
+
+fn assert_all_non_negative_integers(values: &[String], tag_name: &str) {
+    assert!(
+        !values.is_empty(),
+        "Expected at least one <{}> tag",
+        tag_name
+    );
+    for val in values {
+        assert!(
+            val.chars().all(|c| c.is_ascii_digit()) && !val.is_empty(),
+            "<{}> value '{}' is not a valid xs:nonNegativeInteger",
+            tag_name,
+            val
+        );
+        assert!(
+            val.parse::<u64>().is_ok(),
+            "<{}> value '{}' failed u64 parse",
+            tag_name,
+            val
+        );
+    }
+}
+
+fn assert_all_decimals(values: &[String], tag_name: &str) {
+    assert!(
+        !values.is_empty(),
+        "Expected at least one <{}> tag",
+        tag_name
+    );
+    for val in values {
+        assert!(
+            val.parse::<f64>().is_ok(),
+            "<{}> value '{}' is not a valid xs:decimal",
+            tag_name,
+            val
+        );
+    }
+}
+
+#[test]
+fn test_given_full_hierarchy_when_export_xml_then_data_types_comply_with_xsd_canonical_primitives()
+{
+    let tree = create_full_hierarchy_tree();
+    let xml = export_xml(&tree).expect("export_xml should succeed");
+
+    // 1. Strict xs:nonNegativeInteger assertions (totalSeconds, durationSeconds)
+    let total_seconds = extract_all_tag_values(&xml, "totalSeconds");
+    assert_all_non_negative_integers(&total_seconds, "totalSeconds");
+
+    let duration_seconds = extract_all_tag_values(&xml, "durationSeconds");
+    assert_all_non_negative_integers(&duration_seconds, "durationSeconds");
+    // Full hierarchy contains 1 project + 1 task + 2 subtasks + 2 entries = 6 durationSeconds
+    assert_eq!(duration_seconds.len(), 6);
+
+    // 2. Strict xs:decimal assertions (percentage)
+    let percentages = extract_all_tag_values(&xml, "percentage");
+    assert_all_decimals(&percentages, "percentage");
+    // 1 project + 1 task + 2 subtasks = 4 percentages
+    assert_eq!(percentages.len(), 4);
+
+    // 3. Exact element sequence verification inside sections
+    let meta_open = xml.find("<metadata>").expect("metadata section");
+    let meta_close = xml.find("</metadata>").expect("metadata end");
+    let meta_content = &xml[meta_open..meta_close];
+    let title_pos = meta_content.find("<title>");
+    let period_pos = meta_content.find("<period>").expect("period required");
+    if let Some(t_pos) = title_pos {
+        assert!(t_pos < period_pos, "<title> must precede <period>");
+    }
+
+    let summary_open = xml.find("<summary>").expect("summary section");
+    let summary_close = xml.find("</summary>").expect("summary end");
+    let summary_content = &xml[summary_open..summary_close];
+    let total_sec_pos = summary_content
+        .find("<totalSeconds>")
+        .expect("totalSeconds required");
+    let fmt_dur_pos = summary_content
+        .find("<formattedTotalDuration>")
+        .expect("formattedTotalDuration required");
+    assert!(
+        total_sec_pos < fmt_dur_pos,
+        "<totalSeconds> must precede <formattedTotalDuration>"
+    );
+}
+
+#[test]
+fn test_given_fractional_percentages_when_export_xml_then_conforms_to_xs_decimal() {
+    let tree = ReportTreeDto {
+        period: "Precision Sprint".to_string(),
+        total_seconds: 3000,
+        total_formatted: "50m 00s".to_string(),
+        projects: vec![ReportProjectDto {
+            id: "p_frac".to_string(),
+            name: "Fractional Precision Project".to_string(),
+            duration_seconds: 3000,
+            duration_formatted: "50m 00s".to_string(),
+            percentage: 33.333333333333336,
+            tasks: vec![ReportTaskDto {
+                id: "t_frac".to_string(),
+                name: "Fractional Task".to_string(),
+                duration_seconds: 3000,
+                duration_formatted: "50m 00s".to_string(),
+                percentage: 66.66666666666667,
+                subtasks: vec![],
+            }],
+        }],
+        entries: vec![],
+    };
+
+    let xml = export_xml(&tree).expect("export_xml should succeed");
+    let validation = validate_report_xml_structure(&xml);
+    assert!(validation.is_ok());
+
+    let percentages = extract_all_tag_values(&xml, "percentage");
+    assert_all_decimals(&percentages, "percentage");
+}
+
+#[test]
+fn test_given_missing_prolog_when_validate_structure_then_fails_with_missing_prolog() {
+    let xml = "<report schemaVersion=\"1\"><metadata><period>P</period></metadata><summary><totalSeconds>0</totalSeconds><formattedTotalDuration>0s</formattedTotalDuration></summary><projects/><entries/></report>";
+    let result = validate_report_xml_structure(xml);
+    assert_eq!(result.unwrap_err(), XmlValidationError::MissingProlog);
+}
+
+#[test]
+fn test_given_missing_root_or_wrong_version_when_validate_structure_then_fails_with_missing_root_element(
+) {
+    let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<report schemaVersion=\"2\"><metadata><period>P</period></metadata><summary><totalSeconds>0</totalSeconds><formattedTotalDuration>0s</formattedTotalDuration></summary><projects/><entries/></report>";
+    let result = validate_report_xml_structure(xml);
+    assert_eq!(result.unwrap_err(), XmlValidationError::MissingRootElement);
+}
+
+#[test]
+fn test_given_missing_metadata_section_when_validate_structure_then_fails() {
+    let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<report schemaVersion=\"1\"><summary><totalSeconds>0</totalSeconds><formattedTotalDuration>0s</formattedTotalDuration></summary><projects/><entries/></report>";
+    let result = validate_report_xml_structure(xml);
+    assert_eq!(
+        result.unwrap_err(),
+        XmlValidationError::MissingSection("<metadata>")
+    );
+}
+
+#[test]
+fn test_given_missing_summary_section_when_validate_structure_then_fails() {
+    let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<report schemaVersion=\"1\"><metadata><period>P</period></metadata><projects/><entries/></report>";
+    let result = validate_report_xml_structure(xml);
+    assert_eq!(
+        result.unwrap_err(),
+        XmlValidationError::MissingSection("<summary>")
+    );
+}
+
+#[test]
+fn test_given_missing_projects_section_when_validate_structure_then_fails() {
+    let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<report schemaVersion=\"1\"><metadata><period>P</period></metadata><summary><totalSeconds>0</totalSeconds><formattedTotalDuration>0s</formattedTotalDuration></summary><entries/></report>";
+    let result = validate_report_xml_structure(xml);
+    assert_eq!(
+        result.unwrap_err(),
+        XmlValidationError::MissingSection("<projects>")
+    );
+}
+
+#[test]
+fn test_given_missing_entries_section_when_validate_structure_then_fails() {
+    let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<report schemaVersion=\"1\"><metadata><period>P</period></metadata><summary><totalSeconds>0</totalSeconds><formattedTotalDuration>0s</formattedTotalDuration></summary><projects/></report>";
+    let result = validate_report_xml_structure(xml);
+    assert_eq!(
+        result.unwrap_err(),
+        XmlValidationError::MissingSection("<entries>")
+    );
+}
+
+#[test]
+fn test_given_inverted_section_order_when_validate_structure_then_fails_with_invalid_section_order()
+{
+    // Inverted: <summary> placed before <metadata>
+    let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<report schemaVersion=\"1\"><summary><totalSeconds>0</totalSeconds><formattedTotalDuration>0s</formattedTotalDuration></summary><metadata><period>P</period></metadata><projects/><entries/></report>";
+    let result = validate_report_xml_structure(xml);
+    assert_eq!(result.unwrap_err(), XmlValidationError::InvalidSectionOrder);
+}
+
+#[test]
+fn test_given_malformed_xml_syntax_when_validate_structure_then_fails_with_deserialization_error() {
+    let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<report schemaVersion=\"1\"><metadata><period>Unclosed tag</metadata><summary><totalSeconds>0</totalSeconds><formattedTotalDuration>0s</formattedTotalDuration></summary><projects/><entries/></report>";
+    let result = validate_report_xml_structure(xml);
+    assert!(matches!(
+        result.unwrap_err(),
+        XmlValidationError::Deserialization(_)
+    ));
 }
