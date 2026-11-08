@@ -13,6 +13,7 @@ export * from './AnimatedCollapse';
 export * from './AnimatedDrawer';
 export * from './ViewHeader';
 export * from './FilterBar';
+export * from './TagFilterGroup';
 export * from './TrendIndicator';
 export * from './SyncStatusBadge';
 export * from './EmojiPicker';
