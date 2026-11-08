@@ -80,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **CLI Report Export Documentation Parity**:
+  - Updated `docs/manifesto/CLI.md` to reflect that CSV, HTML, JSON, and XML report exporters serialize payloads in memory before writing to disk via `std::fs::write`.
+  - Documented that ODS and XLSX formats are generated natively in Rust via `spreadsheet-ods` and `rust_xlsxwriter`, while the custom ZIP32 builder with MS-DOS timestamps and 32-bit boundary validation resides in the TypeScript browser plugin layer (`src/plugins/exporters/zipBuilder.ts`).
+  - Marked unbuffered disk streaming as `[PLANNED]` pending completion of task B3.
 - **Engineering Standards & i18n Locales Specification**:
   - Aligned `AGENTS.md` and frontend engineering standards with the full suite of 10 supported locales (`en`, `pl`, `de`, `es`, `fr`, `pt-br`, `uk`, `ja`, `nl`, `it`).
   - Formalized the `I18N_DOMAINS` domain contract from `src/common/i18n/keys.ts`, clarifying that new keys must be defined in modular domain key files (`src/common/i18n/keys/<domain>.ts`) and localized across all 10 locales in domain dictionaries (`src/common/i18n/dictionaries/<domain>.json`).
