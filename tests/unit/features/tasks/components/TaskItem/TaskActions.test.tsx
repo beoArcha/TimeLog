@@ -354,8 +354,8 @@ describe('Unit Tests: TaskActions', () => {
       const endInput = screen.getByTestId('audit-edit-end-time');
       const noteInput = screen.getByTestId('audit-edit-note');
 
-      expect((startInput as HTMLInputElement).value).toBe('2026-11-09T08:00:00Z');
-      expect((endInput as HTMLInputElement).value).toBe('2026-11-09T09:30:00Z');
+      expect((startInput as HTMLInputElement).value).toBe('2026-11-09 08:00:00');
+      expect((endInput as HTMLInputElement).value).toBe('2026-11-09 09:30:00');
       expect((noteInput as HTMLInputElement).value).toBe('Initial development');
 
       // Test save flow
@@ -369,8 +369,8 @@ describe('Unit Tests: TaskActions', () => {
         expect(handleEditTimeLogMock).toHaveBeenCalledWith(
           'log-1',
           't1',
-          '2026-11-09T08:00:00Z',
-          '2026-11-09T09:30:00Z',
+          '2026-11-09T08:00:00.000Z',
+          '2026-11-09T09:30:00.000Z',
           'Initial development',
           'Fixing start time inaccuracy'
         );
