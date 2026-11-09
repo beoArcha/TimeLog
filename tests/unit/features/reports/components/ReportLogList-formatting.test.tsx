@@ -98,7 +98,7 @@ describe('Unit Tests: ReportLogList Formatting and Timezones', () => {
     }));
 
     // Act
-    render(
+    const { container } = render(
       <ReportLogList
         {...mockProps}
         tasks={tasks}
@@ -110,7 +110,8 @@ describe('Unit Tests: ReportLogList Formatting and Timezones', () => {
     // Assert
     const scrollContainer = screen.getByTestId('report-log-list-scroll-container');
     expect(scrollContainer).not.toBeNull();
-    expect(scrollContainer.children.length).toBe(largeLogsCount);
+    expect(container.querySelectorAll('[data-slot="report-log-row"]')).toHaveLength(largeLogsCount);
+    expect(scrollContainer.querySelectorAll('[data-slot="report-project-section"]')).toHaveLength(1);
 
     for (let i = 0; i < largeLogsCount; i++) {
       expect(screen.getByText(`"Dedicated Task ${i}"`)).not.toBeNull();

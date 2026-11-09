@@ -80,7 +80,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "Invalid audit source",
     "ERR_TIMELOG_INVALID_RANGE": "End time cannot be before start time",
     "DownloadXmlSchema": "Download XML Schema (XSD)",
-    "ExportFormatActive": "Active"
+    "ExportFormatActive": "Active",
+    "Subtasks": "Subtasks",
+    "DirectLogs": "Direct logs",
+    "CollapseSection": "Collapse section",
+    "ExpandSection": "Expand section",
+    "NoTasksInProject": "No tasks in this project",
+    "HierarchicalView": "Hierarchical grouped view"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -163,7 +169,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "Nieprawidłowe źródło audytu",
     "ERR_TIMELOG_INVALID_RANGE": "Czas zakończenia nie może być wcześniejszy niż czas rozpoczęcia",
     "DownloadXmlSchema": "Pobierz schemat XSD",
-    "ExportFormatActive": "Aktywny"
+    "ExportFormatActive": "Aktywny",
+    "Subtasks": "Podzadania",
+    "DirectLogs": "Wpisy bezpośrednie",
+    "CollapseSection": "Zwiń sekcję",
+    "ExpandSection": "Rozwiń sekcję",
+    "NoTasksInProject": "Brak zadań w tym projekcie",
+    "HierarchicalView": "Widok hierarchiczny"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -246,7 +258,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "Ungültige Audit-Quelle",
     "ERR_TIMELOG_INVALID_RANGE": "Endzeit kann nicht vor der Startzeit liegen",
     "DownloadXmlSchema": "XML-Schema herunterladen (XSD)",
-    "ExportFormatActive": "Aktiv"
+    "ExportFormatActive": "Aktiv",
+    "Subtasks": "Unteraufgaben",
+    "DirectLogs": "Direkte Einträge",
+    "CollapseSection": "Bereich einklappen",
+    "ExpandSection": "Bereich ausklappen",
+    "NoTasksInProject": "Keine Aufgaben in diesem Projekt",
+    "HierarchicalView": "Hierarchische Ansicht"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -329,7 +347,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "Fuente de auditoría no válida",
     "ERR_TIMELOG_INVALID_RANGE": "La hora de finalización no puede ser anterior a la hora de inicio",
     "DownloadXmlSchema": "Descargar esquema XML (XSD)",
-    "ExportFormatActive": "Activo"
+    "ExportFormatActive": "Activo",
+    "Subtasks": "Subtareas",
+    "DirectLogs": "Registros directos",
+    "CollapseSection": "Contraer sección",
+    "ExpandSection": "Expandir sección",
+    "NoTasksInProject": "No hay tareas en este proyecto",
+    "HierarchicalView": "Vista jerárquica"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -412,7 +436,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "Fonte de auditoria inválida",
     "ERR_TIMELOG_INVALID_RANGE": "O horário de término não pode ser anterior ao horário de início",
     "DownloadXmlSchema": "Baixar esquema XML (XSD)",
-    "ExportFormatActive": "Ativo"
+    "ExportFormatActive": "Ativo",
+    "Subtasks": "Subtarefas",
+    "DirectLogs": "Registros diretos",
+    "CollapseSection": "Recolher seção",
+    "ExpandSection": "Expandir seção",
+    "NoTasksInProject": "Nenhuma tarefa neste projeto",
+    "HierarchicalView": "Visualização hierárquica"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -495,7 +525,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "Source d'audit invalide",
     "ERR_TIMELOG_INVALID_RANGE": "L'heure de fin ne peut pas être antérieure à l'heure de début",
     "DownloadXmlSchema": "Télécharger le schéma XML (XSD)",
-    "ExportFormatActive": "Actif"
+    "ExportFormatActive": "Actif",
+    "Subtasks": "Sous-tâches",
+    "DirectLogs": "Entrées directes",
+    "CollapseSection": "Réduire la section",
+    "ExpandSection": "Développer la section",
+    "NoTasksInProject": "Aucune tâche dans ce projet",
+    "HierarchicalView": "Vue hiérarchique"
   },
   "uk": {
     "Title": "Журнал звітів",
@@ -578,7 +614,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "Недійсне джерело аудиту",
     "ERR_TIMELOG_INVALID_RANGE": "Час завершення не може бути раніше часу початку",
     "DownloadXmlSchema": "Завантажити схему XML (XSD)",
-    "ExportFormatActive": "Активний"
+    "ExportFormatActive": "Активний",
+    "Subtasks": "Підзавдання",
+    "DirectLogs": "Прямі записи",
+    "CollapseSection": "Згорнути секцію",
+    "ExpandSection": "Розгорнути секцію",
+    "NoTasksInProject": "Немає завдань у цьому проєкті",
+    "HierarchicalView": "Ієрархічний вигляд"
   },
   "ja": {
     "Title": "レポートログ",
@@ -661,7 +703,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "無効な監査ソースです",
     "ERR_TIMELOG_INVALID_RANGE": "終了時刻を開始時刻より前に設定することはできません",
     "DownloadXmlSchema": "XMLスキーマをダウンロード (XSD)",
-    "ExportFormatActive": "アクティブ"
+    "ExportFormatActive": "アクティブ",
+    "Subtasks": "サブタスク",
+    "DirectLogs": "直接の記録",
+    "CollapseSection": "セクションを折りたたむ",
+    "ExpandSection": "セクションを展開",
+    "NoTasksInProject": "このプロジェクトにタスクはありません",
+    "HierarchicalView": "階層表示"
   },
   "nl": {
     "Title": "Rapportagelogs",
@@ -744,7 +792,13 @@
     "ERR_AUDIT_SOURCE_INVALID": "Ongeldige auditbron",
     "ERR_TIMELOG_INVALID_RANGE": "Eindtijd kan niet vóór de starttijd liggen",
     "DownloadXmlSchema": "XML-schema downloaden (XSD)",
-    "ExportFormatActive": "Actief"
+    "ExportFormatActive": "Actief",
+    "Subtasks": "Subtaken",
+    "DirectLogs": "Directe registraties",
+    "CollapseSection": "Sectie inklappen",
+    "ExpandSection": "Sectie uitklappen",
+    "NoTasksInProject": "Geen taken in dit project",
+    "HierarchicalView": "Hiërarchische weergave"
   },
   "it": {
     "Title": "Rapporti e Registri",
@@ -827,6 +881,12 @@
     "ERR_AUDIT_SOURCE_INVALID": "Sorgente di controllo non valida",
     "ERR_TIMELOG_INVALID_RANGE": "L'ora di fine non può essere precedente all'ora di inizio",
     "DownloadXmlSchema": "Scarica schema XML (XSD)",
-    "ExportFormatActive": "Attivo"
+    "ExportFormatActive": "Attivo",
+    "Subtasks": "Sotto-attività",
+    "DirectLogs": "Registrazioni dirette",
+    "CollapseSection": "Comprimi sezione",
+    "ExpandSection": "Espandi sezione",
+    "NoTasksInProject": "Nessuna attività in questo progetto",
+    "HierarchicalView": "Vista gerarchica"
   }
 }
