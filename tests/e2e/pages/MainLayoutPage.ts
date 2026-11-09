@@ -26,6 +26,13 @@ export class MainLayoutPage extends BasePage {
   readonly addTaskBtn: Locator;
   readonly tasksTreeContainer: Locator;
 
+  readonly windowedFrame: Locator;
+  readonly layoutHeader: Locator;
+  readonly tabBarContainer: Locator;
+  readonly tabBarScroll: Locator;
+  readonly layoutMain: Locator;
+  readonly layoutFooter: Locator;
+
   constructor(page: Page) {
     super(page);
 
@@ -39,6 +46,14 @@ export class MainLayoutPage extends BasePage {
     this.sizeSmallBtn = page.locator('[data-testid="layout-variant-compact"]:visible');
     this.sizeMediumBtn = page.locator('[data-testid="layout-variant-medium"]:visible');
     this.sizeLargeBtn = page.locator('[data-testid="layout-variant-full"]:visible');
+
+    // Layout Sections & Frame
+    this.windowedFrame = page.locator('[data-testid="windowed-frame"]');
+    this.layoutHeader = page.locator('[data-testid="layout-header"]');
+    this.tabBarContainer = page.locator('[data-testid="tab-bar-container"]');
+    this.tabBarScroll = page.locator('[data-testid="tab-bar-scroll"]');
+    this.layoutMain = page.locator('[data-testid="layout-main"]');
+    this.layoutFooter = page.locator('[data-testid="layout-footer"]');
 
     // Timer Banner
     this.idleTimerBanner = page.locator('#active-timer-idle-banner');
@@ -55,6 +70,42 @@ export class MainLayoutPage extends BasePage {
     this.newTaskInput = page.locator('#new-task-input');
     this.addTaskBtn = page.locator('#add-task-btn');
     this.tasksTreeContainer = page.locator('#tasks-tree-container');
+  }
+
+  async getElementContentMetrics(locator: Locator) {
+    return locator.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      const style = window.getComputedStyle(el);
+      const paddingLeft = parseFloat(style.paddingLeft) || 0;
+      const paddingRight = parseFloat(style.paddingRight) || 0;
+      return {
+        rectLeft: rect.left,
+        rectRight: rect.right,
+        rectWidth: rect.width,
+        paddingLeft,
+        paddingRight,
+        contentLeft: rect.left + paddingLeft,
+        contentRight: rect.right - paddingRight,
+        contentWidth: rect.width - paddingLeft - paddingRight,
+      };
+    });
+  }
+
+  async waitForLayoutStability(expectedWidth?: number) {
+    await this.windowedFrame.waitFor({ state: 'visible' });
+    await this.page.waitForFunction(
+      (expWidth) => {
+        const frame = document.querySelector('[data-testid="windowed-frame"]');
+        if (!frame) return false;
+        const rect = frame.getBoundingClientRect();
+        if (expWidth !== undefined) {
+          return Math.abs(rect.width - expWidth) <= 1;
+        }
+        return true;
+      },
+      expectedWidth,
+      { timeout: 5000 }
+    );
   }
 
   async switchLayoutVariant(variant: 'compact' | 'medium' | 'full') {

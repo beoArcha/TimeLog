@@ -171,4 +171,15 @@ describe('Unit Tests: WindowedLayoutContainer', () => {
     expect(footer?.className).toContain('sm:px-6');
     expect(footer?.className).toContain('lg:px-8');
   });
+
+  it('ensures Footer retains px-3 sm:px-6 padding in medium mode', () => {
+    const { container } = renderContainer('medium');
+
+    const footer = container.querySelector('footer');
+    expect(footer).not.toBeNull();
+    expect(footer?.className).toContain('px-3');
+    expect(footer?.className).toContain('sm:px-6');
+    expect(footer?.className).not.toContain('lg:px-8');
+    expect(footer?.className).not.toContain('px-4');
+  });
 });

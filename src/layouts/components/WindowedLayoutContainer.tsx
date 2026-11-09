@@ -80,6 +80,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
       className="flex-1 flex flex-col w-full min-h-0 overflow-hidden"
     >
       <VStack
+        data-testid="windowed-frame"
         gap="none"
         className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex-1 min-h-0 border border-border transition-all duration-300 bg-card/50 backdrop-blur-2xl ${containerWidthClass}`}
       >
@@ -96,6 +97,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
 
         <Area
           as="main"
+          data-testid="layout-main"
           className={`flex-1 min-h-0 w-full z-10 flex flex-col ${mainAreaClass}`}
         >
           <div className="shrink-0 mb-1">
