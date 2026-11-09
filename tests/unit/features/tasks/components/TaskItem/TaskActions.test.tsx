@@ -3,6 +3,9 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { TaskActions } from '@features/tasks/components/TaskItem/TaskActions';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
+import { TimeLog } from '@bindings/TimeLog';
+import { Task } from '@bindings/Task';
 
 describe('Unit Tests: TaskActions', () => {
   const onDeleteTaskMock = vi.fn();
@@ -146,5 +149,172 @@ describe('Unit Tests: TaskActions', () => {
     });
 
     consoleErrorSpy.mockRestore();
+  });
+
+  describe('Clock button conditional rendering & logs modal integration', () => {
+    const mockLog: TimeLog = {
+      id: 'log-1',
+      taskId: 't1',
+      projectId: 'p1',
+      startTime: '2026-11-09T08:00:00Z',
+      endTime: '2026-11-09T09:30:00Z',
+      note: 'Initial development',
+    };
+
+    it('does not render clock button when task has no time logs', () => {
+      render(
+        <MockProviders dataState={{ logs: [] }}>
+          <TaskActions {...baseProps} timeLogsCount={0} />
+        </MockProviders>
+      );
+
+      expect(screen.queryByTestId('clock-task-btn-t1')).toBeNull();
+    });
+
+    it('renders clock button when timeLogsCount is greater than zero', () => {
+      render(
+        <MockProviders dataState={{ logs: [] }}>
+          <TaskActions {...baseProps} timeLogsCount={3} />
+        </MockProviders>
+      );
+
+      expect(screen.getByTestId('clock-task-btn-t1')).not.toBeNull();
+    });
+
+    it('renders clock button when matching logs are provided in props', () => {
+      render(
+        <MockProviders dataState={{ logs: [] }}>
+          <TaskActions {...baseProps} timeLogsCount={0} logs={[mockLog]} />
+        </MockProviders>
+      );
+
+      expect(screen.getByTestId('clock-task-btn-t1')).not.toBeNull();
+    });
+
+    it('renders clock button for root task when subtasks have logs', () => {
+      const subtaskLog: TimeLog = {
+        id: 'log-sub-1',
+        taskId: 'sub-1',
+        projectId: 'p1',
+        startTime: '2026-11-09T10:00:00Z',
+        endTime: '2026-11-09T11:00:00Z',
+        note: 'Subtask work',
+      };
+
+      const tasks: Task[] = [
+        {
+          id: 't1',
+          name: 'Task OneName',
+          projectId: 'p1',
+          parentTaskId: undefined,
+          status: 'Todo',
+          completed: false,
+          hourlyRate: undefined,
+          createdAt: '2026-11-09T00:00:00Z',
+        },
+        {
+          id: 'sub-1',
+          name: 'Subtask 1',
+          projectId: 'p1',
+          parentTaskId: 't1',
+          status: 'Todo',
+          completed: false,
+          hourlyRate: undefined,
+          createdAt: '2026-11-09T00:00:00Z',
+        },
+      ];
+
+      render(
+        <MockProviders dataState={{ tasks, logs: [subtaskLog] }}>
+          <TaskActions {...baseProps} isSubtask={false} timeLogsCount={0} />
+        </MockProviders>
+      );
+
+      expect(screen.getByTestId('clock-task-btn-t1')).not.toBeNull();
+    });
+
+    it('opens logs popover and opens ReportLogEditModal with prefilled data upon selecting a log', async () => {
+      const handleEditTimeLogMock = vi.fn().mockResolvedValue({ saved: true, synchronized: true });
+      const refreshDataMock = vi.fn().mockResolvedValue(true);
+
+      render(
+        <MockProviders
+          dataState={{
+            logs: [mockLog],
+            handleEditTimeLog: handleEditTimeLogMock,
+            refreshData: refreshDataMock,
+          }}
+        >
+          <TaskActions {...baseProps} logs={[mockLog]} />
+        </MockProviders>
+      );
+
+      const clockBtn = screen.getByTestId('clock-task-btn-t1');
+      expect(clockBtn).not.toBeNull();
+      fireEvent.click(clockBtn);
+
+      const logItemBtn = await screen.findByTestId('log-item-log-1');
+      expect(logItemBtn).not.toBeNull();
+
+      fireEvent.click(logItemBtn);
+
+      const startInput = await screen.findByTestId('audit-edit-start-time');
+      const endInput = screen.getByTestId('audit-edit-end-time');
+      const noteInput = screen.getByTestId('audit-edit-note');
+
+      expect((startInput as HTMLInputElement).value).toBe('2026-11-09T08:00:00Z');
+      expect((endInput as HTMLInputElement).value).toBe('2026-11-09T09:30:00Z');
+      expect((noteInput as HTMLInputElement).value).toBe('Initial development');
+
+      // Test save flow
+      const reasonInput = screen.getByTestId('audit-edit-reason');
+      fireEvent.change(reasonInput, { target: { value: 'Fixing start time inaccuracy' } });
+
+      const saveBtn = screen.getByTestId('audit-save-button');
+      fireEvent.click(saveBtn);
+
+      await waitFor(() => {
+        expect(handleEditTimeLogMock).toHaveBeenCalledWith(
+          'log-1',
+          't1',
+          '2026-11-09T08:00:00Z',
+          '2026-11-09T09:30:00Z',
+          'Initial development',
+          'Fixing start time inaccuracy'
+        );
+        expect(refreshDataMock).toHaveBeenCalled();
+        expect(screen.queryByTestId('audit-edit-start-time')).toBeNull();
+      });
+    });
+
+    it('refreshes data and closes modal after deleting a log in ReportLogEditModal', async () => {
+      const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: true, synchronized: true });
+      const refreshDataMock = vi.fn().mockResolvedValue(true);
+
+      render(
+        <MockProviders
+          dataState={{
+            logs: [mockLog],
+            handleDeleteTimeLog: handleDeleteTimeLogMock,
+            refreshData: refreshDataMock,
+          }}
+        >
+          <TaskActions {...baseProps} logs={[mockLog]} />
+        </MockProviders>
+      );
+
+      fireEvent.click(screen.getByTestId('clock-task-btn-t1'));
+      const logItemBtn = await screen.findByTestId('log-item-log-1');
+      fireEvent.click(logItemBtn);
+
+      const deleteBtn = await screen.findByTestId('audit-delete-button');
+      fireEvent.click(deleteBtn);
+
+      await waitFor(() => {
+        expect(handleDeleteTimeLogMock).toHaveBeenCalledWith('log-1');
+        expect(refreshDataMock).toHaveBeenCalled();
+        expect(screen.queryByTestId('audit-delete-button')).toBeNull();
+      });
+    });
   });
 });
