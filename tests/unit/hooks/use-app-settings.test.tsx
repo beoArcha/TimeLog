@@ -645,6 +645,50 @@ describe('useAppSettings', () => {
       errorHandlerSpy.mockRestore();
     });
 
+    it('should not resurrect a legacy timezone after removal fails and the user selects System', async () => {
+      // Arrange: migration succeeds, but cleanup of the legacy key is blocked.
+      localStorage.setItem('oxytime_timezone', 'Europe/Paris');
+      const removalError = new Error('Legacy key removal is unavailable');
+      const originalRemoveItem = Storage.prototype.removeItem;
+      const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((key) => {
+        if (key === 'oxytime_timezone') {
+          throw removalError;
+        }
+        return originalRemoveItem.call(localStorage, key);
+      });
+
+      const { result } = renderHook(() => useAppSettings());
+
+      // The migration marker and migrated timezone must be persisted before cleanup is attempted.
+      await waitFor(() => {
+        const persisted = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
+        expect(result.current.timezone).toBe('Europe/Paris');
+        expect(persisted.timezoneMigrationCompleted).toBe(true);
+      });
+      expect(localStorage.getItem('oxytime_timezone')).toBe('Europe/Paris');
+
+      // Act: user explicitly selects System after the failed cleanup.
+      act(() => {
+        result.current.setTimezone('System');
+      });
+      await waitFor(() => {
+        const persisted = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
+        expect(persisted.timezone).toBe('System');
+      });
+
+      // Simulate an application restart while the stale legacy key still exists.
+      cleanup();
+      PersistenceRouter.resetForTesting();
+      const reloaded = renderHook(() => useAppSettings());
+
+      // Assert: completed migration marker makes the persisted System preference authoritative.
+      await waitFor(() => {
+        expect(reloaded.result.current.timezone).toBe('System');
+      });
+      expect(localStorage.getItem('oxytime_timezone')).toBe('Europe/Paris');
+      removeItemSpy.mockRestore();
+    });
+
     // 7. Errors during legacy key read or removal are reported via ErrorHandler instead of swallowed silently
     it('should report errors via ErrorHandler when reading or removing legacy key throws (No empty catch)', async () => {
       // Arrange: mock localStorage.getItem throwing a SecurityError
