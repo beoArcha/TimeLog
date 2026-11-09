@@ -292,8 +292,8 @@ describe('Unit Tests: ReportLogList', () => {
         expect(handleEditTimeLogMock).toHaveBeenCalledWith(
           'l1',
           't1',
-          '2026-06-15T10:00:00Z',
-          '2026-06-15T11:00:00Z',
+          '2026-06-15T10:00:00.000Z',
+          '2026-06-15T11:00:00.000Z',
           'Feature implementation notes',
           'Correcting start time per client request'
         );

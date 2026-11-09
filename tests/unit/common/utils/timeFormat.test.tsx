@@ -10,6 +10,8 @@ import {
   formatDate,
   formatTime,
   formatDateTime,
+  formatDateTimeInTimezone,
+  parseDateTimeInTimezone,
   DEFAULT_TIMEZONE,
   FALLBACK_TIMEZONE,
   getSafeDateTimeFormat,
@@ -462,3 +464,249 @@ describe('useAppSettings timezone persistence', () => {
     expect(localStorage.getItem('oxytime_timezone')).toBeNull();
   });
 });
+
+describe('formatDateTimeInTimezone and parseDateTimeInTimezone', () => {
+  it('should format UTC timestamp to localized input string across various timezones', () => {
+    const utcIso = '2026-06-15T10:00:00.000Z';
+
+    // Europe/Warsaw in June is CEST (UTC+2)
+    expect(formatDateTimeInTimezone(utcIso, 'Europe/Warsaw')).toBe('2026-06-15 12:00:00');
+
+    // America/New_York in June is EDT (UTC-4)
+    expect(formatDateTimeInTimezone(utcIso, 'America/New_York')).toBe('2026-06-15 06:00:00');
+
+    // Asia/Tokyo is UTC+9
+    expect(formatDateTimeInTimezone(utcIso, 'Asia/Tokyo')).toBe('2026-06-15 19:00:00');
+
+    // UTC
+    expect(formatDateTimeInTimezone(utcIso, 'UTC')).toBe('2026-06-15 10:00:00');
+
+    // Empty/invalid input
+    expect(formatDateTimeInTimezone(null, 'UTC')).toBe('');
+    expect(formatDateTimeInTimezone('', 'UTC')).toBe('');
+    expect(formatDateTimeInTimezone('invalid', 'UTC')).toBe('');
+  });
+
+  it('should parse local date-time string in target timezone back to exact UTC Date', () => {
+    // 12:00:00 in Europe/Warsaw (CEST, UTC+2) -> 10:00:00Z
+    const d1 = parseDateTimeInTimezone('2026-06-15 12:00:00', 'Europe/Warsaw');
+    expect(d1?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+
+    // 06:00:00 in America/New_York (EDT, UTC-4) -> 10:00:00Z
+    const d2 = parseDateTimeInTimezone('2026-06-15 06:00:00', 'America/New_York');
+    expect(d2?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+
+    // With T separator
+    const d3 = parseDateTimeInTimezone('2026-06-15T19:00:00', 'Asia/Tokyo');
+    expect(d3?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+
+    // Without seconds (defaults to 00)
+    const d4 = parseDateTimeInTimezone('2026-06-15 12:00', 'Europe/Warsaw');
+    expect(d4?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+
+    // Explicit UTC ISO string
+    const d5 = parseDateTimeInTimezone('2026-06-15T10:00:00Z', 'Europe/Warsaw');
+    expect(d5?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+  });
+
+  it('should return null for malformed or calendar-impossible date-time strings', () => {
+    expect(parseDateTimeInTimezone('')).toBeNull();
+    expect(parseDateTimeInTimezone('not-a-date')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-02-30 12:00:00')).toBeNull(); // Feb 30 does not exist
+    expect(parseDateTimeInTimezone('2026-04-31 12:00:00')).toBeNull(); // April 31 does not exist
+    expect(parseDateTimeInTimezone('2026-13-01 12:00:00')).toBeNull(); // Month 13
+    expect(parseDateTimeInTimezone('2026-06-15 25:00:00')).toBeNull(); // Hour 25
+    expect(parseDateTimeInTimezone('2026-06-15 12:60:00')).toBeNull(); // Minute 60
+  });
+
+  it('should round-trip cleanly between formatting and parsing across seasons and timezones', () => {
+    const originalUtc = '2026-01-15T15:30:00.000Z'; // Winter
+    const timezones = ['Europe/Warsaw', 'America/New_York', 'Asia/Tokyo', 'UTC'];
+
+    for (const tz of timezones) {
+      const formatted = formatDateTimeInTimezone(originalUtc, tz);
+      const parsed = parseDateTimeInTimezone(formatted, tz);
+      expect(parsed?.toISOString()).toBe(originalUtc);
+    }
+  });
+
+  it('should reject non-existent local times during the spring DST transition', () => {
+    // Warsaw skips 02:00–02:59 when clocks move forward on 2026-03-29.
+    expect(parseDateTimeInTimezone('2026-03-29 01:59:59', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-03-29T00:59:59.000Z');
+    expect(parseDateTimeInTimezone('2026-03-29 02:00:00', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-03-29 02:30:00', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-03-29 02:59:59', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-03-29 03:00:00', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-03-29T01:00:00.000Z');
+  });
+
+  it('should reject ambiguous local times during the autumn DST transition', () => {
+    // Warsaw repeats 02:00–02:59 when clocks move backward on 2026-10-25.
+    expect(parseDateTimeInTimezone('2026-10-25 01:59:59', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-24T23:59:59.000Z');
+    expect(parseDateTimeInTimezone('2026-10-25 02:00:00', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-10-25 02:30:00', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-10-25 02:59:59', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-10-25 03:00:00', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-25T02:00:00.000Z');
+  });
+
+  it('should reject non-existent and ambiguous times in a non-European timezone', () => {
+    // New York skips 02:00–02:59 on 2026-03-08 and repeats it on 2026-11-01.
+    expect(parseDateTimeInTimezone('2026-03-08 02:30:00', 'America/New_York')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-11-01 01:30:00', 'America/New_York')).toBeNull();
+  });
+
+  it('should handle non-hour DST transitions without inventing a local time', () => {
+    // Lord Howe Island advances clocks by 30 minutes, skipping 02:00–02:29.
+    expect(parseDateTimeInTimezone('2026-10-04 02:15:00', 'Australia/Lord_Howe')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-10-04 02:30:00', 'Australia/Lord_Howe')?.toISOString())
+      .toBe('2026-10-03T15:30:00.000Z');
+  });
+
+  it('should reject a completely skipped civil date', () => {
+    // Samoa skipped 2011-12-30 when it moved across the international date line.
+    expect(parseDateTimeInTimezone('2011-12-30 12:00:00', 'Pacific/Apia')).toBeNull();
+  });
+
+  it('should preserve exact instants when an explicit UTC offset disambiguates a repeated hour', () => {
+    expect(parseDateTimeInTimezone('2026-10-25T02:30:00+02:00', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-25T00:30:00.000Z');
+    expect(parseDateTimeInTimezone('2026-10-25T02:30:00+01:00', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-25T01:30:00.000Z');
+    expect(parseDateTimeInTimezone('2026-10-25T00:30:00Z', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-25T00:30:00.000Z');
+  });
+
+  it('should accept leap days and reject invalid leap-day dates', () => {
+    expect(parseDateTimeInTimezone('2024-02-29 12:00:00', 'UTC')?.toISOString())
+      .toBe('2024-02-29T12:00:00.000Z');
+    expect(parseDateTimeInTimezone('2025-02-29 12:00:00', 'UTC')).toBeNull();
+  });
+
+  it('should preserve local dates across year and month boundaries', () => {
+    expect(parseDateTimeInTimezone('2026-01-01 00:30:00', 'America/Los_Angeles')?.toISOString())
+      .toBe('2026-01-01T08:30:00.000Z');
+    expect(parseDateTimeInTimezone('2026-12-31 23:30:00', 'Asia/Tokyo')?.toISOString())
+      .toBe('2026-12-31T14:30:00.000Z');
+  });
+
+  describe('Strict calendar component validation with explicit UTC offsets', () => {
+    it('should reject invalid calendar dates with explicit Z offset while accepting valid dates', () => {
+      expect(parseDateTimeInTimezone('2026-02-31T12:00:00Z')).toBeNull();
+      expect(parseDateTimeInTimezone('2025-02-29T12:00:00Z')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-04-31T12:00:00Z')).toBeNull();
+
+      const validLeapDate = parseDateTimeInTimezone('2024-02-29T12:00:00Z');
+      expect(validLeapDate).toBeInstanceOf(Date);
+      expect(validLeapDate?.toISOString()).toBe('2024-02-29T12:00:00.000Z');
+    });
+
+    it('should reject invalid calendar dates with explicit numeric offsets while accepting valid dates', () => {
+      expect(parseDateTimeInTimezone('2026-02-31T12:00:00+01:00')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-04-31T12:00:00-05:00')).toBeNull();
+
+      const validOffsetDate = parseDateTimeInTimezone('2024-02-29T12:00:00+01:00');
+      expect(validOffsetDate).toBeInstanceOf(Date);
+      expect(validOffsetDate?.toISOString()).toBe('2024-02-29T11:00:00.000Z');
+    });
+
+    it('should reject invalid time and offset values in explicit offset timestamps', () => {
+      expect(parseDateTimeInTimezone('2026-01-01T25:00:00Z')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-01-01T12:60:00Z')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-01-01T12:00:00+25:00')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-01-01T12:00:00+01:60')).toBeNull();
+      expect(parseDateTimeInTimezone('not-a-valid-date-stringZ')).toBeNull();
+    });
+
+    it('should preserve exact instants for timestamps with explicit UTC offsets', () => {
+      expect(parseDateTimeInTimezone('2026-10-25T02:30:00+02:00')?.toISOString())
+        .toBe('2026-10-25T00:30:00.000Z');
+      expect(parseDateTimeInTimezone('2026-10-25T02:30:00+01:00')?.toISOString())
+        .toBe('2026-10-25T01:30:00.000Z');
+      expect(parseDateTimeInTimezone('2026-10-25T00:30:00Z')?.toISOString())
+        .toBe('2026-10-25T00:30:00.000Z');
+    });
+  });
+
+  describe('P2 Date Parsing and Formatter Semantics', () => {
+    it('1. should parse timestamp without offset preserving local host time', () => {
+      const localStr = '2026-06-15 12:00:00';
+      const expectedDate = new Date(localStr);
+      const formatted = formatDateTime(localStr, 'UTC');
+      const expectedFormatted = formatDateTime(expectedDate, 'UTC');
+      expect(formatted).toBe(expectedFormatted);
+    });
+
+    it('2. should format timestamp with Z in target timezone', () => {
+      const isoZ = '2026-06-15T12:00:00Z';
+      const formattedWarsaw = formatDateTime(isoZ, 'Europe/Warsaw');
+      // In summer, Warsaw is UTC+2
+      expect(formattedWarsaw).toContain('2026');
+      expect(formattedWarsaw).toContain('14:00:00');
+    });
+
+    it('3. should format timestamp with positive offset correctly in UTC', () => {
+      const isoPositive = '2026-06-15T14:00:00+02:00';
+      const formattedUtc = formatDateTime(isoPositive, 'UTC');
+      expect(formattedUtc).toContain('12:00:00');
+    });
+
+    it('4. should format timestamp with negative offset correctly in UTC', () => {
+      const isoNegative = '2026-06-15T08:00:00-04:00';
+      const formattedUtc = formatDateTime(isoNegative, 'UTC');
+      expect(formattedUtc).toContain('12:00:00');
+    });
+
+    it('5. should accept a JavaScript Date object', () => {
+      const d = new Date('2026-06-15T12:00:00Z');
+      const formatted = formatDateTime(d, 'UTC');
+      expect(formatted).toContain('2026');
+      expect(formatted).toContain('12:00:00');
+    });
+
+    it('6. should accept a numeric Unix millisecond timestamp', () => {
+      const ms = Date.UTC(2026, 5, 15, 12, 0, 0);
+      const formatted = formatDateTime(ms, 'UTC');
+      expect(formatted).toContain('2026');
+      expect(formatted).toContain('12:00:00');
+    });
+
+    it('7. should return empty string for empty string input', () => {
+      expect(formatDateTime('')).toBe('');
+      expect(formatDate('')).toBe('');
+      expect(formatTime('')).toBe('');
+      expect(formatDateTimeInTimezone('')).toBe('');
+    });
+
+    it('8. should return empty string for invalid timestamp string', () => {
+      expect(formatDateTime('invalid-date-string')).toBe('');
+      expect(formatDate('invalid-date-string')).toBe('');
+      expect(formatTime('invalid-date-string')).toBe('');
+      expect(formatDateTimeInTimezone('invalid-date-string')).toBe('');
+    });
+
+    it('9. should handle invalid calendar dates in formatters gracefully', () => {
+      // Non-existent calendar date in standard Date parses to NaN or rolls over depending on engine
+      const invalidCal = '2026-02-31';
+      const parsedInTz = parseDateTimeInTimezone(invalidCal + ' 12:00:00', 'UTC');
+      expect(parsedInTz).toBeNull();
+    });
+
+    it('10. should format consistently across all public formatting functions', () => {
+      const iso = '2026-06-15T12:30:45.000Z';
+      const dt = formatDateTime(iso, 'UTC');
+      const d = formatDate(iso, 'UTC');
+      const t = formatTime(iso, 'UTC');
+      const dtTz = formatDateTimeInTimezone(iso, 'UTC');
+
+      expect(dt).toContain('2026');
+      expect(dt).toContain('12:30:45');
+      expect(d).toContain('2026');
+      expect(t).toBe('12:30:45');
+      expect(dtTz).toBe('2026-06-15 12:30:45');
+    });
+  });
+});
+

@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Timezone-Aware Time Log Editing & DST Validation (PR #104)**:
+  - Replaced iterative local-to-UTC conversion with offset-candidate resolution that verifies the exact local wall-clock round trip.
+  - Rejects non-existent local times during DST gaps and ambiguous local times during DST overlaps instead of silently shifting or selecting an arbitrary instant.
+  - Preserves explicit ISO 8601 timestamps with UTC markers or offsets as exact instants.
+  - Added edge-case tests for Warsaw and New York DST transitions, 30-minute Lord Howe transitions, Samoa's skipped civil date, explicit offsets, leap days, and calendar/year boundaries.
 - **Stop and Forbid Timer on Completed Tasks (Rust & Browser Engine Parity)**:
   - Enforced unconditional active timer termination when completing a task or any of its parent tasks in `useTasksManager` (`handleToggleTaskComplete`), regardless of workflow auto-stop configuration.
   - Added strict task completion check in Rust engine (`start_timer`, `switch_timer`) and browser engine (`BrowserTimerEngine`), returning strongly-typed `EngineError::TaskAlreadyCompleted` / `ERR_TASK_ALREADY_COMPLETED`.
