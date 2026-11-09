@@ -22,10 +22,17 @@ import { Edit3, AlertCircle } from 'lucide-react';
 
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { toast } from 'sonner';
+import { useSettingsSafe } from '@common/hooks/useSettings';
+import {
+  formatDateTimeInTimezone,
+  parseDateTimeInTimezone,
+  resolveEffectiveTimezone,
+} from '@common/utils/timeFormat';
 
 const KNOWN_CODES = [
   'ERR_AUDIT_REASON_REQUIRED',
   'ERR_TIMELOG_INVALID_RANGE',
+  'ERR_TIMELOG_INVALID_FORMAT',
   'ERR_AUDIT_SOURCE_INVALID',
 ] as const;
 
@@ -77,6 +84,7 @@ export interface ReportLogEditModalProps {
   log: TimeLog | ClampedTimeLog | null;
   projectName?: string;
   taskName?: string;
+  timezone?: string;
   onSaveSuccess?: (updatedLogId: string) => void;
   onDeleteSuccess?: (deletedLogId: string) => void;
   onDeleted?: (deletedLogId: string) => void;
@@ -87,16 +95,34 @@ interface ReportLogEditFormProps {
   log: TimeLog | ClampedTimeLog;
   projectName?: string;
   taskName?: string;
+  timezone?: string;
   onClose: () => void;
   onSaveSuccess?: (updatedLogId: string) => void;
   onDeleteSuccess?: (deletedLogId: string) => void;
   onDeleted?: (deletedLogId: string) => void;
 }
 
+function resolveActiveTimezone(
+  propTimezone?: string,
+  settings?: ReturnType<typeof useSettingsSafe>
+): string {
+  if (propTimezone) {
+    return propTimezone;
+  }
+  if (settings?.resolvedTimezone) {
+    return settings.resolvedTimezone;
+  }
+  if (settings?.timezone) {
+    return settings.timezone;
+  }
+  return resolveEffectiveTimezone();
+}
+
 function ReportLogEditForm({
   log,
   projectName,
   taskName,
+  timezone: propTimezone,
   onClose,
   onSaveSuccess,
   onDeleteSuccess,
@@ -106,9 +132,16 @@ function ReportLogEditForm({
   const { t: tCommon } = useTranslation('common');
   const { t: tEngine } = useTranslation('engine');
   const dataContext = useDataSafe();
+  const settings = useSettingsSafe();
 
-  const [startTime, setStartTime] = useState<string>(log.startTime || '');
-  const [endTime, setEndTime] = useState<string>(log.endTime || '');
+  const activeTimezone = resolveActiveTimezone(propTimezone, settings);
+
+  const [startTime, setStartTime] = useState<string>(() =>
+    formatDateTimeInTimezone(log.startTime, activeTimezone)
+  );
+  const [endTime, setEndTime] = useState<string>(() =>
+    formatDateTimeInTimezone(log.endTime, activeTimezone)
+  );
   const [note, setNote] = useState<string>(log.note || '');
   const [reason, setReason] = useState<string>('');
   const [reasonError, setReasonError] = useState<boolean>(false);
@@ -186,23 +219,38 @@ function ReportLogEditForm({
       return;
     }
 
-    const startTimestamp = new Date(startTime).getTime();
-    if (isNaN(startTimestamp)) {
+    const trimmedStart = startTime.trim();
+    if (!trimmedStart) {
       setRangeError(true);
-      setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
+      setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
       return;
     }
 
+    const startDate = parseDateTimeInTimezone(trimmedStart, activeTimezone);
+    if (!startDate) {
+      setRangeError(true);
+      setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
+      return;
+    }
+
+    let endIso: string | null = null;
     const trimmedEnd = endTime.trim();
     if (trimmedEnd) {
-      const endTimestamp = new Date(trimmedEnd).getTime();
-      if (isNaN(endTimestamp) || endTimestamp < startTimestamp) {
+      const endDate = parseDateTimeInTimezone(trimmedEnd, activeTimezone);
+      if (!endDate) {
+        setRangeError(true);
+        setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
+        return;
+      }
+      if (endDate.getTime() < startDate.getTime()) {
         setRangeError(true);
         setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
         return;
       }
+      endIso = endDate.toISOString();
     }
 
+    const startIso = startDate.toISOString();
     setIsSaving(true);
 
     if (!isSaved) {
@@ -214,8 +262,8 @@ function ReportLogEditForm({
         const result = await dataContext.handleEditTimeLog(
           log.id,
           log.taskId,
-          startTime.trim(),
-          trimmedEnd ? trimmedEnd : null,
+          startIso,
+          endIso,
           note.trim() ? note.trim() : null,
           trimmedReason
         );
@@ -244,6 +292,9 @@ function ReportLogEditForm({
         } else if (code === 'ERR_TIMELOG_INVALID_RANGE') {
           setRangeError(true);
           setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
+        } else if (code === 'ERR_TIMELOG_INVALID_FORMAT') {
+          setRangeError(true);
+          setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
         } else if (code === 'ERR_AUDIT_SOURCE_INVALID') {
           setGeneralErrorMessage(tReport('ERR_AUDIT_SOURCE_INVALID'));
         } else {
@@ -300,15 +351,28 @@ function ReportLogEditForm({
               ({projectName})
             </Caption>
           )}
+          <Badge
+            variant="outline"
+            size="sm"
+            data-testid="audit-edit-timezone-badge"
+            className="text-2xs font-mono text-muted-foreground"
+          >
+            {activeTimezone}
+          </Badge>
           <MonoText size="2xs" className="text-muted-foreground ml-auto">
             ID: {log.id}
           </MonoText>
         </HStack>
 
         <VStack gap="xs">
-          <Label htmlFor="audit-edit-start-time" className="text-xs font-mono text-muted-foreground">
-            {tReport('StartTime')}
-          </Label>
+          <HStack gap="xs" className="items-center justify-between">
+            <Label htmlFor="audit-edit-start-time" className="text-xs font-mono text-muted-foreground">
+              {tReport('StartTime')}
+            </Label>
+            <Caption size="2xs" className="text-muted-foreground font-mono">
+              ({activeTimezone})
+            </Caption>
+          </HStack>
           <Input
             id="audit-edit-start-time"
             data-testid="audit-edit-start-time"
@@ -329,9 +393,14 @@ function ReportLogEditForm({
         </VStack>
 
         <VStack gap="xs">
-          <Label htmlFor="audit-edit-end-time" className="text-xs font-mono text-muted-foreground">
-            {tReport('EndTime')}
-          </Label>
+          <HStack gap="xs" className="items-center justify-between">
+            <Label htmlFor="audit-edit-end-time" className="text-xs font-mono text-muted-foreground">
+              {tReport('EndTime')}
+            </Label>
+            <Caption size="2xs" className="text-muted-foreground font-mono">
+              ({activeTimezone})
+            </Caption>
+          </HStack>
           <Input
             id="audit-edit-end-time"
             data-testid="audit-edit-end-time"
@@ -478,6 +547,7 @@ export function ReportLogEditModal({
   log,
   projectName,
   taskName,
+  timezone,
   onSaveSuccess,
   onDeleteSuccess,
   onDeleted,
@@ -491,6 +561,7 @@ export function ReportLogEditModal({
         log={log}
         projectName={projectName}
         taskName={taskName}
+        timezone={timezone}
         onClose={onClose}
         onSaveSuccess={onSaveSuccess}
         onDeleteSuccess={onDeleteSuccess}

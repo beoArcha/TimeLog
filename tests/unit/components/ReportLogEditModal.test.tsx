@@ -55,8 +55,8 @@ describe('Unit Tests: ReportLogEditModal', () => {
       expect(handleEditTimeLogMock).toHaveBeenCalledWith(
         'log-1',
         'task-1',
-        '2026-06-15T10:00:00Z',
-        '2026-06-15T11:00:00Z',
+        '2026-06-15T10:00:00.000Z',
+        '2026-06-15T11:00:00.000Z',
         'Initial note',
         'Extended meeting with customer'
       );
@@ -535,6 +535,252 @@ describe('Unit Tests: ReportLogEditModal', () => {
     await waitFor(() => {
       expect(onDeletedMock).toHaveBeenCalledWith('log-1');
       expect(onCloseMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('Timezone-aware Presentation and Conversion', () => {
+    it('should format input fields in the user resolved timezone (Europe/Warsaw vs America/New_York)', () => {
+      // 1. Europe/Warsaw (+2h in summer)
+      const { unmount } = render(
+        <MockProviders
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+            taskName="Task One"
+            projectName="Project One"
+          />
+        </MockProviders>
+      );
+
+      const startInputWarsaw = screen.getByTestId('audit-edit-start-time') as HTMLInputElement;
+      const endInputWarsaw = screen.getByTestId('audit-edit-end-time') as HTMLInputElement;
+      const tzBadgeWarsaw = screen.getByTestId('audit-edit-timezone-badge');
+
+      expect(startInputWarsaw.value).toBe('2026-06-15 12:00:00');
+      expect(endInputWarsaw.value).toBe('2026-06-15 13:00:00');
+      expect(tzBadgeWarsaw.textContent).toBe('Europe/Warsaw');
+
+      unmount();
+
+      // 2. America/New_York (-4h in summer)
+      render(
+        <MockProviders
+          settingsState={{ timezone: 'America/New_York', resolvedTimezone: 'America/New_York' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+            taskName="Task One"
+            projectName="Project One"
+          />
+        </MockProviders>
+      );
+
+      const startInputNy = screen.getByTestId('audit-edit-start-time') as HTMLInputElement;
+      const endInputNy = screen.getByTestId('audit-edit-end-time') as HTMLInputElement;
+      const tzBadgeNy = screen.getByTestId('audit-edit-timezone-badge');
+
+      expect(startInputNy.value).toBe('2026-06-15 06:00:00');
+      expect(endInputNy.value).toBe('2026-06-15 07:00:00');
+      expect(tzBadgeNy.textContent).toBe('America/New_York');
+    });
+
+    it('should convert edited times in Europe/Warsaw to correct UTC ISO 8601 when saving', async () => {
+      render(
+        <MockProviders
+          dataState={{ handleEditTimeLog: handleEditTimeLogMock }}
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
+        target: { value: '2026-06-15 14:00:00' }, // 14:00 in Warsaw = 12:00:00 UTC
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-end-time'), {
+        target: { value: '2026-06-15 16:30:00' }, // 16:30 in Warsaw = 14:30:00 UTC
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'Adjusted to match customer call logs' },
+      });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(handleEditTimeLogMock).toHaveBeenCalledWith(
+          'log-1',
+          'task-1',
+          '2026-06-15T12:00:00.000Z',
+          '2026-06-15T14:30:00.000Z',
+          'Initial note',
+          'Adjusted to match customer call logs'
+        );
+      });
+    });
+
+    it('should convert edited times in America/New_York to correct UTC ISO 8601 when saving', async () => {
+      render(
+        <MockProviders
+          dataState={{ handleEditTimeLog: handleEditTimeLogMock }}
+          settingsState={{ timezone: 'America/New_York', resolvedTimezone: 'America/New_York' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
+        target: { value: '2026-06-15 08:00:00' }, // 08:00 in New York = 12:00:00 UTC
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-end-time'), {
+        target: { value: '2026-06-15 10:30:00' }, // 10:30 in New York = 14:30:00 UTC
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'Shifted per EDT time' },
+      });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(handleEditTimeLogMock).toHaveBeenCalledWith(
+          'log-1',
+          'task-1',
+          '2026-06-15T12:00:00.000Z',
+          '2026-06-15T14:30:00.000Z',
+          'Initial note',
+          'Shifted per EDT time'
+        );
+      });
+    });
+
+    it('should block saving and display range error when endTime is before startTime in local timezone', async () => {
+      render(
+        <MockProviders
+          dataState={{ handleEditTimeLog: handleEditTimeLogMock }}
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
+        target: { value: '2026-06-15 15:00:00' },
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-end-time'), {
+        target: { value: '2026-06-15 14:00:00' }, // Earlier than start time
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'Correction attempt' },
+      });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-range-error')).not.toBeNull();
+        expect(screen.getByTestId('audit-range-error').textContent).toContain('End time cannot be before start time');
+        expect(screen.getByTestId('audit-edit-start-time').getAttribute('aria-invalid')).toBe('true');
+        expect(screen.getByTestId('audit-edit-end-time').getAttribute('aria-invalid')).toBe('true');
+      });
+
+      expect(handleEditTimeLogMock).not.toHaveBeenCalled();
+    });
+
+    it('should block saving and display format error when invalid date or time format is entered', async () => {
+      render(
+        <MockProviders
+          dataState={{ handleEditTimeLog: handleEditTimeLogMock }}
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
+        target: { value: 'not-a-valid-datetime' },
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'Typo in date input' },
+      });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-range-error')).not.toBeNull();
+        expect(screen.getByTestId('audit-range-error').textContent).toContain('Invalid date or time format');
+        expect(screen.getByTestId('audit-edit-start-time').getAttribute('aria-invalid')).toBe('true');
+      });
+
+      expect(handleEditTimeLogMock).not.toHaveBeenCalled();
+    });
+
+    it('should block saving and display format error when impossible calendar date is entered', async () => {
+      render(
+        <MockProviders
+          dataState={{ handleEditTimeLog: handleEditTimeLogMock }}
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
+        target: { value: '2026-02-31 10:00:00' }, // Feb 31 does not exist
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'Impossible calendar date' },
+      });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-range-error')).not.toBeNull();
+        expect(screen.getByTestId('audit-range-error').textContent).toContain('Invalid date or time format');
+      });
+
+      expect(handleEditTimeLogMock).not.toHaveBeenCalled();
+    });
+
+    it('should allow explicit timezone prop to override context settings', () => {
+      render(
+        <MockProviders
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+            timezone="Asia/Tokyo"
+          />
+        </MockProviders>
+      );
+
+      // Asia/Tokyo is UTC+9, so 10:00:00Z -> 19:00:00
+      const startInput = screen.getByTestId('audit-edit-start-time') as HTMLInputElement;
+      const endInput = screen.getByTestId('audit-edit-end-time') as HTMLInputElement;
+      const tzBadge = screen.getByTestId('audit-edit-timezone-badge');
+
+      expect(startInput.value).toBe('2026-06-15 19:00:00');
+      expect(endInput.value).toBe('2026-06-15 20:00:00');
+      expect(tzBadge.textContent).toBe('Asia/Tokyo');
     });
   });
 });
