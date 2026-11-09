@@ -529,5 +529,68 @@ describe('formatDateTimeInTimezone and parseDateTimeInTimezone', () => {
       expect(parsed?.toISOString()).toBe(originalUtc);
     }
   });
+
+  it('should reject non-existent local times during the spring DST transition', () => {
+    // Warsaw skips 02:00–02:59 when clocks move forward on 2026-03-29.
+    expect(parseDateTimeInTimezone('2026-03-29 01:59:59', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-03-29T00:59:59.000Z');
+    expect(parseDateTimeInTimezone('2026-03-29 02:00:00', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-03-29 02:30:00', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-03-29 02:59:59', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-03-29 03:00:00', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-03-29T01:00:00.000Z');
+  });
+
+  it('should reject ambiguous local times during the autumn DST transition', () => {
+    // Warsaw repeats 02:00–02:59 when clocks move backward on 2026-10-25.
+    expect(parseDateTimeInTimezone('2026-10-25 01:59:59', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-24T23:59:59.000Z');
+    expect(parseDateTimeInTimezone('2026-10-25 02:00:00', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-10-25 02:30:00', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-10-25 02:59:59', 'Europe/Warsaw')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-10-25 03:00:00', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-25T02:00:00.000Z');
+  });
+
+  it('should reject non-existent and ambiguous times in a non-European timezone', () => {
+    // New York skips 02:00–02:59 on 2026-03-08 and repeats it on 2026-11-01.
+    expect(parseDateTimeInTimezone('2026-03-08 02:30:00', 'America/New_York')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-11-01 01:30:00', 'America/New_York')).toBeNull();
+  });
+
+  it('should handle non-hour DST transitions without inventing a local time', () => {
+    // Lord Howe Island advances clocks by 30 minutes, skipping 02:00–02:29.
+    expect(parseDateTimeInTimezone('2026-10-04 02:15:00', 'Australia/Lord_Howe')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-10-04 02:30:00', 'Australia/Lord_Howe')?.toISOString())
+      .toBe('2026-10-03T15:30:00.000Z');
+  });
+
+  it('should reject a completely skipped civil date', () => {
+    // Samoa skipped 2011-12-30 when it moved across the international date line.
+    expect(parseDateTimeInTimezone('2011-12-30 12:00:00', 'Pacific/Apia')).toBeNull();
+  });
+
+  it('should preserve exact instants when an explicit UTC offset disambiguates a repeated hour', () => {
+    expect(parseDateTimeInTimezone('2026-10-25T02:30:00+02:00', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-25T00:30:00.000Z');
+    expect(parseDateTimeInTimezone('2026-10-25T02:30:00+01:00', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-25T01:30:00.000Z');
+    expect(parseDateTimeInTimezone('2026-10-25T00:30:00Z', 'Europe/Warsaw')?.toISOString())
+      .toBe('2026-10-25T00:30:00.000Z');
+  });
+
+  it('should accept leap days and reject invalid leap-day dates', () => {
+    expect(parseDateTimeInTimezone('2024-02-29 12:00:00', 'UTC')?.toISOString())
+      .toBe('2024-02-29T12:00:00.000Z');
+    expect(parseDateTimeInTimezone('2025-02-29 12:00:00', 'UTC')).toBeNull();
+  });
+
+  it('should preserve local dates across year and month boundaries', () => {
+    expect(parseDateTimeInTimezone('2026-01-01 00:30:00', 'America/Los_Angeles')?.toISOString())
+      .toBe('2026-01-01T08:30:00.000Z');
+    expect(parseDateTimeInTimezone('2026-12-31 23:30:00', 'Asia/Tokyo')?.toISOString())
+      .toBe('2026-12-31T14:30:00.000Z');
+  });
+
 });
 
