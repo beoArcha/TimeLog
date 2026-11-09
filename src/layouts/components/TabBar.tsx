@@ -16,6 +16,9 @@ import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { AppTabId } from "@common/types/navigation";
 import { usePlatformCapabilities } from "@common/contexts/PlatformCapabilitiesContext";
 import { cn } from "@/lib/utils";
+import { WINDOWED_HORIZONTAL_PADDING } from "@layouts/parts/LayoutStyles";
+
+export { WINDOWED_CONTENT_WIDTH, WINDOWED_HORIZONTAL_PADDING } from "@layouts/parts/LayoutStyles";
 
 export type LargeTabId = AppTabId;
 
@@ -97,8 +100,8 @@ export default function TabBar({
   );
 
   return (
-    <div className="shrink-0 z-20 border-b border-border bg-muted/30 transition-all duration-300">
-      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div data-testid="tab-bar-container" className="shrink-0 z-20 border-b border-border bg-muted/30 transition-all duration-300 w-full">
+      <div data-testid="tab-bar-scroll" className={cn("w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", WINDOWED_HORIZONTAL_PADDING)}>
         <Tabs
           value={activeLargeTab}
           onValueChange={(val) => {

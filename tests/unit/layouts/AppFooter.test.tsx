@@ -4,6 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import AppFooter from '@layouts/components/AppFooter';
 import { PlatformCapabilitiesContext, PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
+import { MockProviders } from '@tests/shared/mocks/MockProviders';
 
 describe('Unit Tests: AppFooter', () => {
   const onNavigateToSettingsMock = vi.fn();
@@ -90,5 +91,43 @@ describe('Unit Tests: AppFooter', () => {
 
     fireEvent.click(safeNavBtn);
     expect(onNavigateToSettingsMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('applies WINDOWED_HORIZONTAL_PADDING in full layout mode', () => {
+    const { container } = render(
+      <MockProviders settingsState={{ layoutVariant: 'full' }}>
+        <AppFooter
+          locale="en"
+          onNavigateToSettings={onNavigateToSettingsMock}
+          setShowCreditsModal={setShowCreditsModalMock}
+        />
+      </MockProviders>
+    );
+
+    const footer = container.querySelector('footer');
+    expect(footer).not.toBeNull();
+    expect(footer?.className).toContain('px-4');
+    expect(footer?.className).toContain('sm:px-6');
+    expect(footer?.className).toContain('lg:px-8');
+    expect(footer?.className).not.toContain('px-3');
+  });
+
+  it('restores px-3 sm:px-6 padding in medium layout mode', () => {
+    const { container } = render(
+      <MockProviders settingsState={{ layoutVariant: 'medium' }}>
+        <AppFooter
+          locale="en"
+          onNavigateToSettings={onNavigateToSettingsMock}
+          setShowCreditsModal={setShowCreditsModalMock}
+        />
+      </MockProviders>
+    );
+
+    const footer = container.querySelector('footer');
+    expect(footer).not.toBeNull();
+    expect(footer?.className).toContain('px-3');
+    expect(footer?.className).toContain('sm:px-6');
+    expect(footer?.className).not.toContain('lg:px-8');
+    expect(footer?.className).not.toContain('px-4');
   });
 });
