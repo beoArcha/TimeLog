@@ -70,7 +70,12 @@
     "KeyPlaceholder": "e.g. Save",
     "ValuePlaceholder": "Custom translated text",
     "LanguageSelectionAria": "Language selection",
-    "RemoveOverrideAria": "Remove translation override {name}"
+    "RemoveOverrideAria": "Remove translation override {name}",
+    "TimezoneTitle": "Display Timezone",
+    "TimezoneDesc": "Configure timezone for dates, logs, and reports. Business engine operates in UTC.",
+    "TimezoneSystem": "System default",
+    "TimezoneSelectAria": "Select timezone",
+    "TimezoneActive": "Active timezone: {tz}"
   },
   "pl": {
     "Title": "Ustawienia Interfejsu i Aplikacji",
@@ -143,7 +148,12 @@
     "KeyPlaceholder": "np. Save",
     "ValuePlaceholder": "Niestandardowy tekst tłumaczenia",
     "LanguageSelectionAria": "Wybór języka",
-    "RemoveOverrideAria": "Usuń nadpisanie tłumaczenia {name}"
+    "RemoveOverrideAria": "Usuń nadpisanie tłumaczenia {name}",
+    "TimezoneTitle": "Strefa czasowa wyświetlania",
+    "TimezoneDesc": "Ustaw strefę czasową dla dat, wpisów i raportów. Silnik wewnętrznie operuje w UTC.",
+    "TimezoneSystem": "Domyślna systemu",
+    "TimezoneSelectAria": "Wybierz strefę czasową",
+    "TimezoneActive": "Aktywna strefa: {tz}"
   },
   "de": {
     "Title": "Schnittstellen- & Anwendungseinstellungen",
@@ -216,7 +226,12 @@
     "KeyPlaceholder": "z.B. Save",
     "ValuePlaceholder": "Benutzerdefinierter Übersetzungstext",
     "LanguageSelectionAria": "Sprachauswahl",
-    "RemoveOverrideAria": "Übersetzungsüberschreibung {name} entfernen"
+    "RemoveOverrideAria": "Übersetzungsüberschreibung {name} entfernen",
+    "TimezoneTitle": "Anzeigezeitzone",
+    "TimezoneDesc": "Konfigurieren Sie die Zeitzone für Datumsangaben, Protokolle und Berichte. Die Engine arbeitet in UTC.",
+    "TimezoneSystem": "Systemstandard",
+    "TimezoneSelectAria": "Zeitzone auswählen",
+    "TimezoneActive": "Aktive Zeitzone: {tz}"
   },
   "es": {
     "Title": "Configuración de Interfaz y Aplicación",
@@ -289,7 +304,12 @@
     "KeyPlaceholder": "p.ej. Save",
     "ValuePlaceholder": "Texto de traducción personalizado",
     "LanguageSelectionAria": "Selección de idioma",
-    "RemoveOverrideAria": "Eliminar la sobrescritura de traducción {name}"
+    "RemoveOverrideAria": "Eliminar la sobrescritura de traducción {name}",
+    "TimezoneTitle": "Zona horaria de visualización",
+    "TimezoneDesc": "Configure la zona horaria para fechas, registros e informes. El motor opera en UTC.",
+    "TimezoneSystem": "Predeterminada del sistema",
+    "TimezoneSelectAria": "Seleccionar zona horaria",
+    "TimezoneActive": "Zona horaria activa: {tz}"
   },
   "pt-br": {
     "Title": "Configurações de Interface e Aplicativo",
@@ -362,7 +382,12 @@
     "KeyPlaceholder": "ex.: Save",
     "ValuePlaceholder": "Texto de tradução personalizado",
     "LanguageSelectionAria": "Seleção de idioma",
-    "RemoveOverrideAria": "Remover substituição de tradução {name}"
+    "RemoveOverrideAria": "Remover substituição de tradução {name}",
+    "TimezoneTitle": "Fuso horário de exibição",
+    "TimezoneDesc": "Configure o fuso horário para datas, registros e relatórios. O mecanismo opera em UTC.",
+    "TimezoneSystem": "Padrão do sistema",
+    "TimezoneSelectAria": "Selecionar fuso horário",
+    "TimezoneActive": "Fuso horário ativo: {tz}"
   },
   "fr": {
     "Title": "Paramètres de l'Interface et de l'Application",
@@ -435,7 +460,12 @@
     "KeyPlaceholder": "ex. Save",
     "ValuePlaceholder": "Texte de traduction personnalisé",
     "LanguageSelectionAria": "Sélection de la langue",
-    "RemoveOverrideAria": "Supprimer la surcharge de traduction {name}"
+    "RemoveOverrideAria": "Supprimer la surcharge de traduction {name}",
+    "TimezoneTitle": "Fuseau horaire d'affichage",
+    "TimezoneDesc": "Configurez le fuseau horaire pour les dates, journaux et rapports. Le moteur fonctionne en UTC.",
+    "TimezoneSystem": "Système par défaut",
+    "TimezoneSelectAria": "Sélectionner un fuseau horaire",
+    "TimezoneActive": "Fuseau horaire actif : {tz}"
   },
   "uk": {
     "Title": "Налаштування інтерфейсу та програми",
@@ -508,7 +538,12 @@
     "KeyPlaceholder": "напр. Save",
     "ValuePlaceholder": "Власний текст перекладу",
     "LanguageSelectionAria": "Вибір мови",
-    "RemoveOverrideAria": "Видалити перевизначення перекладу {name}"
+    "RemoveOverrideAria": "Видалити перевизначення перекладу {name}",
+    "TimezoneTitle": "Часовий пояс відображення",
+    "TimezoneDesc": "Налаштуйте часовий пояс для дат, записів та звітів. Двигун працює в UTC.",
+    "TimezoneSystem": "За замовчуванням системи",
+    "TimezoneSelectAria": "Виберіть часовий пояс",
+    "TimezoneActive": "Активний часовий пояс: {tz}"
   },
   "ja": {
     "Title": "インターフェース & アプリケーション設定",
@@ -581,7 +616,12 @@
     "KeyPlaceholder": "例: Save",
     "ValuePlaceholder": "カスタム翻訳テキスト",
     "LanguageSelectionAria": "言語の選択",
-    "RemoveOverrideAria": "翻訳の上書き {name} を削除"
+    "RemoveOverrideAria": "翻訳の上書き {name} を削除",
+    "TimezoneTitle": "表示タイムゾーン",
+    "TimezoneDesc": "日付、ログ、レポートのタイムゾーンを設定します。エンジン内部はUTCで動作します。",
+    "TimezoneSystem": "システムデフォルト",
+    "TimezoneSelectAria": "タイムゾーンを選択",
+    "TimezoneActive": "アクティブなタイムゾーン: {tz}"
   },
   "nl": {
     "Title": "Interface & Applicatie-instellingen",
@@ -654,7 +694,12 @@
     "KeyPlaceholder": "bijv. Save",
     "ValuePlaceholder": "Aangepaste vertaalde tekst",
     "LanguageSelectionAria": "Taalselectie",
-    "RemoveOverrideAria": "Vertaaloverschrijving {name} verwijderen"
+    "RemoveOverrideAria": "Vertaaloverschrijving {name} verwijderen",
+    "TimezoneTitle": "Tijdzone voor weergave",
+    "TimezoneDesc": "Configureer de tijdzone voor datums, logboeken en rapporten. De engine werkt in UTC.",
+    "TimezoneSystem": "Systeemstandaard",
+    "TimezoneSelectAria": "Selecteer tijdzone",
+    "TimezoneActive": "Actieve tijdzone: {tz}"
   },
   "it": {
     "Title": "Impostazioni interfaccia e applicazione",
@@ -727,6 +772,11 @@
     "KeyPlaceholder": "es. Save",
     "ValuePlaceholder": "Testo tradotto personalizzato",
     "LanguageSelectionAria": "Selezione della lingua",
-    "RemoveOverrideAria": "Rimuovi la sovrascrittura della traduzione {name}"
+    "RemoveOverrideAria": "Rimuovi la sovrascrittura della traduzione {name}",
+    "TimezoneTitle": "Fuso orario di visualizzazione",
+    "TimezoneDesc": "Configura il fuso orario per date, registri e report. Il motore opera in UTC.",
+    "TimezoneSystem": "Predefinito di sistema",
+    "TimezoneSelectAria": "Seleziona fuso orario",
+    "TimezoneActive": "Fuso orario attivo: {tz}"
   }
 }
