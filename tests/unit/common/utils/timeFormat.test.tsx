@@ -277,8 +277,33 @@ describe('timeFormat', () => {
       try {
         expect(() => resolveEffectiveTimezone('System')).toThrow(unexpectedError);
         expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledTimes(1);
       } finally {
         Intl.DateTimeFormat.prototype.resolvedOptions = origResolvedOptions;
+      }
+    });
+
+    it('should log a nested timezone validation failure exactly once', () => {
+      const unexpectedError = new TypeError('Intl timezone validation failure');
+      const originalDateTimeFormat = Intl.DateTimeFormat;
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      // @ts-expect-error mocking Intl constructor
+      Intl.DateTimeFormat = function (...args: unknown[]) {
+        if (args.length === 0) {
+          return {
+            resolvedOptions: () => ({ timeZone: 'Europe/Warsaw' }),
+          };
+        }
+        throw unexpectedError;
+      };
+
+      try {
+        expect(() => resolveEffectiveTimezone('System')).toThrow(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledWith(unexpectedError);
+        expect(errorHandlerSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        Intl.DateTimeFormat = originalDateTimeFormat;
       }
     });
 
