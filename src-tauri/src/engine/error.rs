@@ -29,6 +29,9 @@ pub enum EngineError {
     #[error("Validation error: {0}")]
     Validation(String),
 
+    #[error("Cannot start timer on completed task '{0}'")]
+    TaskAlreadyCompleted(String),
+
     #[error("Operation failed: {0}")]
     OperationFailed(String),
 }
@@ -39,6 +42,7 @@ impl EngineError {
             Self::AuditReasonRequired => "ERR_AUDIT_REASON_REQUIRED",
             Self::AuditSourceInvalid(_) => "ERR_AUDIT_SOURCE_INVALID",
             Self::TimeLogInvalidRange => "ERR_TIMELOG_INVALID_RANGE",
+            Self::TaskAlreadyCompleted(_) => "ERR_TASK_ALREADY_COMPLETED",
             Self::NoActiveTimer => "ENG_TIMER_INACTIVE",
             Self::ActiveTimerConflict { .. } => "ENG_TIMER_CONFLICT",
             Self::EntityNotFound { .. } => "DOM_ENTITY_NOT_FOUND",
@@ -75,6 +79,7 @@ impl PartialEq for EngineError {
             (Self::ParseTime(p1), Self::ParseTime(p2)) => p1 == p2,
             (Self::OperationFailed(o1), Self::OperationFailed(o2)) => o1 == o2,
             (Self::Persistence(p1), Self::Persistence(p2)) => p1 == p2,
+            (Self::TaskAlreadyCompleted(t1), Self::TaskAlreadyCompleted(t2)) => t1 == t2,
             _ => false,
         }
     }

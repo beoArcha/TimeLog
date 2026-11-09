@@ -72,6 +72,7 @@ fn test_app_error_conversions() {
     let e_conflict = EngineError::ActiveTimerConflict {
         active_task_id: "task-999".to_string(),
     };
+    let e_completed = EngineError::TaskAlreadyCompleted("task-completed".to_string());
     let e_op_failed = EngineError::OperationFailed("internal failure".to_string());
 
     // Act
@@ -81,6 +82,7 @@ fn test_app_error_conversions() {
     let eng_not_found: AppError = e_not_found.into();
     let eng_no_active: AppError = e_no_active.into();
     let eng_conflict: AppError = e_conflict.into();
+    let eng_completed: AppError = e_completed.into();
     let eng_op_failed: AppError = e_op_failed.into();
     let persist_db: AppError =
         PersistenceError::Database(rusqlite::Error::QueryReturnedNoRows).into();
@@ -113,6 +115,10 @@ fn test_app_error_conversions() {
     assert!(matches!(
         eng_conflict,
         AppError::Engine(EngineError::ActiveTimerConflict { .. })
+    ));
+    assert!(matches!(
+        eng_completed,
+        AppError::Engine(EngineError::TaskAlreadyCompleted(_))
     ));
     assert!(matches!(
         eng_op_failed,

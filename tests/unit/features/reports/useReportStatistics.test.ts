@@ -405,4 +405,99 @@ describe('Unit Tests: useReportStatistics', () => {
     expect(result.current.filteredLogs).toHaveLength(2);
     expect(result.current.projectChart).toHaveLength(2);
   });
+
+  describe('Strict intersection of project filter and tag filter', () => {
+    const taggedProjects: Project[] = [
+      { id: 'p1', name: 'Alpha', color: 'indigo', createdAt: '2026-06-01', tags: ['frontend'] },
+      { id: 'p2', name: 'Beta', color: 'emerald', createdAt: '2026-06-01', tags: ['backend'] },
+      { id: 'p3', name: 'Gamma', color: 'rose', createdAt: '2026-06-01', tags: ['frontend'] },
+    ];
+
+    const testTasks: Task[] = [
+      { id: 't1', projectId: 'p1', name: 'Task Alpha', completed: false, createdAt: '2026-06-01' },
+      { id: 't2', projectId: 'p2', name: 'Task Beta', completed: false, createdAt: '2026-06-01' },
+      { id: 't3', projectId: 'p3', name: 'Task Gamma', completed: false, createdAt: '2026-06-01' },
+    ];
+
+    const testLogs: TimeLog[] = [
+      { id: 'l1', taskId: 't1', projectId: 'p1', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T11:00:00Z' }, // 3600
+      { id: 'l2', taskId: 't2', projectId: 'p2', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T12:00:00Z' }, // 7200
+      { id: 'l3', taskId: 't3', projectId: 'p3', startTime: '2026-06-20T10:00:00Z', endTime: '2026-06-20T13:00:00Z' }, // 10800
+    ];
+
+    it('when selected project matches active tags, returns only that project data', () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs: testLogs,
+          patches: [],
+          projects: taggedProjects,
+          tasks: testTasks,
+          nowIso: '2026-06-25T15:00:00Z',
+          reportPeriod: 'all',
+          reportSort: 'duration',
+          selectedProjectId: 'p1',
+          selectedTags: ['frontend'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      expect(result.current.periodTotalSec).toBe(3600);
+      expect(result.current.projectChart).toHaveLength(1);
+      expect(result.current.projectChart[0].id).toBe('p1');
+      expect(result.current.displayLogs).toHaveLength(1);
+      expect(result.current.displayLogs[0].id).toBe('l1');
+      expect(result.current.topProject?.id).toBe('p1');
+    });
+
+    it('when selected project does NOT match active tags, returns zero results across all metrics and lists', () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs: testLogs,
+          patches: [],
+          projects: taggedProjects,
+          tasks: testTasks,
+          nowIso: '2026-06-25T15:00:00Z',
+          reportPeriod: 'all',
+          reportSort: 'duration',
+          selectedProjectId: 'p2', // Beta is 'backend'
+          selectedTags: ['frontend'], // active tag is 'frontend'
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      expect(result.current.periodTotalSec).toBe(0);
+      expect(result.current.todaySec).toBe(0);
+      expect(result.current.weekSec).toBe(0);
+      expect(result.current.monthSec).toBe(0);
+      expect(result.current.dailyAverageSec).toBe(0);
+      expect(result.current.topProject).toBeNull();
+      expect(result.current.projectChart).toHaveLength(0);
+      expect(result.current.displayLogs).toHaveLength(0);
+      expect(result.current.filteredLogs).toHaveLength(0);
+      expect(result.current.clampedLogs).toHaveLength(0);
+    });
+
+    it('when selectedProjectId is null, returns all projects matching active tags', () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs: testLogs,
+          patches: [],
+          projects: taggedProjects,
+          tasks: testTasks,
+          nowIso: '2026-06-25T15:00:00Z',
+          reportPeriod: 'all',
+          reportSort: 'duration',
+          selectedProjectId: null,
+          selectedTags: ['frontend'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      // p1 (3600) + p3 (10800) = 14400
+      expect(result.current.periodTotalSec).toBe(14400);
+      expect(result.current.projectChart).toHaveLength(2);
+      expect(result.current.displayLogs).toHaveLength(2);
+      expect(result.current.topProject?.id).toBe('p3');
+    });
+  });
 });

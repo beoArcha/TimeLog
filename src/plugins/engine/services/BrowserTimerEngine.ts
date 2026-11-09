@@ -1,6 +1,8 @@
 import { ITimerEngine } from '@common/engine/IEngine';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
 import { Project } from '@bindings/Project';
+import { EngineException } from '@common/exceptions';
+import { ENGINE_ERROR_CODES } from '@common/engine/errorCodes';
 
 let logCounter = 0;
 
@@ -12,6 +14,16 @@ export class BrowserTimerEngine implements ITimerEngine {
   }
 
   async startTimer(taskId: string): Promise<void> {
+    const state = await this.persistence.core?.load?.();
+    const task = state?.tasks?.find((t) => t.id === taskId);
+    if (task?.completed) {
+      throw new EngineException(
+        `Cannot start timer on completed task '${taskId}'`,
+        undefined,
+        ENGINE_ERROR_CODES.TASK_ALREADY_COMPLETED
+      );
+    }
+
     const now = new Date().toISOString();
     const logId = `log_${Date.now()}_${logCounter++}`;
 
@@ -24,8 +36,8 @@ export class BrowserTimerEngine implements ITimerEngine {
 
     await this.persistence.timeLogs.closeActiveByProject(now, projectId);
 
-    const state = await this.persistence.core?.load?.();
-    const projects = state?.projects ?? [];
+    const reloadedState = state ?? (await this.persistence.core?.load?.());
+    const projects = reloadedState?.projects ?? [];
     const currentProj = projects.find((p) => p.id === projectId);
     const allowsConcurrency = currentProj?.allowConcurrency ?? false;
 
@@ -69,6 +81,16 @@ export class BrowserTimerEngine implements ITimerEngine {
   }
 
   async switchTimer(taskId: string): Promise<void> {
+    const state = await this.persistence.core?.load?.();
+    const task = state?.tasks?.find((t) => t.id === taskId);
+    if (task?.completed) {
+      throw new EngineException(
+        `Cannot start timer on completed task '${taskId}'`,
+        undefined,
+        ENGINE_ERROR_CODES.TASK_ALREADY_COMPLETED
+      );
+    }
+
     const now = new Date().toISOString();
     const logId = `log_${Date.now()}_${logCounter++}`;
 

@@ -39,6 +39,7 @@ describe('Components barrel (src/components/index.ts)', () => {
     expect(Components.EmptyState).toBeDefined();
     expect(Components.FilterBar).toBeDefined();
     expect(Components.PromptDialog).toBeDefined();
+    expect(Components.ReportLogEditModal).toBeDefined();
     expect(Components.RootErrorBoundary).toBeDefined();
     expect(Components.SearchInput).toBeDefined();
     expect(Components.SegmentedControl).toBeDefined();

@@ -16,6 +16,9 @@ import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { AppTabId } from "@common/types/navigation";
 import { usePlatformCapabilities } from "@common/contexts/PlatformCapabilitiesContext";
 import { cn } from "@/lib/utils";
+import { WINDOWED_HORIZONTAL_PADDING } from "@layouts/parts/LayoutStyles";
+
+export { WINDOWED_CONTENT_WIDTH, WINDOWED_HORIZONTAL_PADDING } from "@layouts/parts/LayoutStyles";
 
 export type LargeTabId = AppTabId;
 
@@ -97,8 +100,8 @@ export default function TabBar({
   );
 
   return (
-    <div className="shrink-0 z-20 border-b border-border bg-muted/30 transition-all duration-300">
-      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div data-testid="tab-bar-container" className="shrink-0 z-20 border-b border-border bg-muted/30 transition-all duration-300 w-full">
+      <div data-testid="tab-bar-scroll" className={cn("w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", WINDOWED_HORIZONTAL_PADDING)}>
         <Tabs
           value={activeLargeTab}
           onValueChange={(val) => {
@@ -107,7 +110,7 @@ export default function TabBar({
         >
           <TabsList
             aria-label="Navigation tabs"
-            className="flex gap-1.5 py-2.5 whitespace-nowrap min-w-max group-data-horizontal/tabs:!h-auto !h-auto bg-transparent border-0 p-0"
+            className="flex justify-start w-full gap-section py-2.5 whitespace-nowrap min-w-max group-data-horizontal/tabs:!h-auto !h-auto bg-transparent border-0 p-0"
           >
             {tabs.map((tb) => {
               const isActive = activeLargeTab === tb.id;
@@ -118,7 +121,7 @@ export default function TabBar({
                   data-testid={`tab-${tb.id}`}
                   onClick={() => setActiveLargeTab(tb.id)}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2 h-auto rounded-xl text-xs font-bold tracking-tight transition-all cursor-pointer capitalize flex-none",
+                    "flex items-center gap-section padding-section h-auto rounded-section text-[length:var(--text-main)] font-bold tracking-tight transition-all cursor-pointer capitalize flex-none",
                     isActive
                       ? "bg-card text-foreground border border-border shadow-xs font-extrabold"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted",
@@ -126,12 +129,12 @@ export default function TabBar({
                 >
                   <tb.icon
                     className={cn(
-                      "w-4 h-4",
+                      "icon-medium",
                       tb.iconColor,
                       isActive && "animate-pulse",
                     )}
                   />
-                  <span>{tb.label}</span>
+                  <span className="text-main">{tb.label}</span>
                 </TabsTrigger>
               );
             })}

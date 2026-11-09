@@ -114,7 +114,8 @@ impl CliError {
                 | EngineError::Validation(_)
                 | EngineError::AuditReasonRequired
                 | EngineError::AuditSourceInvalid(_)
-                | EngineError::TimeLogInvalidRange => EXIT_CODE_GENERIC_FAILURE,
+                | EngineError::TimeLogInvalidRange
+                | EngineError::TaskAlreadyCompleted(_) => EXIT_CODE_GENERIC_FAILURE,
                 EngineError::EntityNotFound { .. } => EXIT_CODE_ENTITY_ERROR,
                 EngineError::ParseTime(_) => EXIT_CODE_CLI_SYNTAX,
                 EngineError::Persistence(_) => EXIT_CODE_STORAGE_ERROR,
@@ -165,7 +166,8 @@ impl CliError {
                 EngineError::Validation(_)
                 | EngineError::AuditReasonRequired
                 | EngineError::AuditSourceInvalid(_)
-                | EngineError::TimeLogInvalidRange => CliErrorCode::DomBusinessViolation,
+                | EngineError::TimeLogInvalidRange
+                | EngineError::TaskAlreadyCompleted(_) => CliErrorCode::DomBusinessViolation,
                 EngineError::ParseTime(_) => CliErrorCode::CliSyntaxInvalidDuration,
                 EngineError::Persistence(_) => CliErrorCode::StoSqliteQuery,
             },
@@ -374,6 +376,9 @@ impl From<EngineError> for CliError {
                 CliError::Business(BusinessRuleViolation::Custom(err.to_string()))
             }
             EngineError::ParseTime(t) => CliError::Syntax(CliSyntaxError::InvalidDuration(t)),
+            EngineError::TaskAlreadyCompleted(t) => {
+                CliError::Engine(EngineError::TaskAlreadyCompleted(t))
+            }
             EngineError::OperationFailed(m) => CliError::Engine(EngineError::OperationFailed(m)),
         }
     }

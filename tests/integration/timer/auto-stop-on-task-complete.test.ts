@@ -147,7 +147,7 @@ describe('Integration Tests: AutoStopTimerOnTaskComplete', () => {
 
   describe('Given autoStopOnTaskComplete is disabled in workflow configuration', () => {
     describe('When the user completes the currently running task', () => {
-      it('Then it should keep the running timer intact without calling stopTimer', async () => {
+      it('Then it should unconditionally stop the running timer even if workflow auto-stop is disabled', async () => {
         // Given
         mockWorkflow.getConfig = vi.fn().mockResolvedValue(
           aWorkflowConfig({
@@ -169,8 +169,8 @@ describe('Integration Tests: AutoStopTimerOnTaskComplete', () => {
         vi.spyOn(PersistenceRouter.getInstance().tasks, 'toggleComplete').mockResolvedValue({
           projects: [],
           tasks: [{ ...activeTask, completed: true }],
-          logs: [runningLog],
-          activeLog: runningLog,
+          logs: [{ ...runningLog, endTime: '2026-10-19T10:00:00.000Z' }],
+          activeLog: null,
         });
 
         const { result } = renderHook(() =>
@@ -187,7 +187,99 @@ describe('Integration Tests: AutoStopTimerOnTaskComplete', () => {
         });
 
         // Then
-        expect(mockStopTimer).not.toHaveBeenCalled();
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('When the user completes a parent task whose subtask has an active running timer', () => {
+      it('Then it should unconditionally stop the running timer on the descendant task', async () => {
+        // Given
+        mockWorkflow.getConfig = vi.fn().mockResolvedValue(
+          aWorkflowConfig({
+            autoStopOnTaskComplete: false,
+          })
+        );
+
+        const parentTask = aTask({ id: 'task-parent', projectId: 'p1', name: 'Parent Task', completed: false });
+        const subTask = aTask({ id: 'task-child', projectId: 'p1', parentTaskId: 'task-parent', name: 'Child Task', completed: false });
+        const runningLog = aTimeLog({ id: 'log-1', taskId: 'task-child', projectId: 'p1', endTime: null });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [parentTask, subTask],
+          logs: [runningLog],
+          activeLog: runningLog,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'toggleComplete').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...parentTask, completed: true }, subTask],
+          logs: [{ ...runningLog, endTime: '2026-10-19T10:00:00.000Z' }],
+          activeLog: null,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When
+        await act(async () => {
+          await result.current.handleToggleTaskComplete('task-parent');
+        });
+
+        // Then
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('When the user updates a parent task to completed whose subtask has an active running timer', () => {
+      it('Then it should unconditionally stop the running timer on the descendant task', async () => {
+        // Given
+        mockWorkflow.getConfig = vi.fn().mockResolvedValue(
+          aWorkflowConfig({
+            autoStopOnTaskComplete: false,
+          })
+        );
+
+        const parentTask = aTask({ id: 'task-parent-2', projectId: 'p1', name: 'Parent Task 2', completed: false });
+        const subTask = aTask({ id: 'task-child-2', projectId: 'p1', parentTaskId: 'task-parent-2', name: 'Child Task 2', completed: false });
+        const runningLog = aTimeLog({ id: 'log-2', taskId: 'task-child-2', projectId: 'p1', endTime: null });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [parentTask, subTask],
+          logs: [runningLog],
+          activeLog: runningLog,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'update').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...parentTask, completed: true }, subTask],
+          logs: [{ ...runningLog, endTime: '2026-10-19T10:00:00.000Z' }],
+          activeLog: null,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When
+        await act(async () => {
+          await result.current.handleUpdateTask('task-parent-2', 'Parent Task 2', null, 'Done', true);
+        });
+
+        // Then
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -226,6 +318,221 @@ describe('Integration Tests: AutoStopTimerOnTaskComplete', () => {
         // When
         await act(async () => {
           await result.current.handleToggleTaskComplete('task-other');
+        });
+
+        // Then
+        expect(mockStopTimer).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Regression: Selective cascade stop across concurrent projects, hierarchies, and update transitions', () => {
+    describe('1. Two active timers in different projects with allowConcurrency = true', () => {
+      it('Then completing task A stops A but task B remains running', async () => {
+        // Given
+        const taskA = aTask({ id: 'task-a', projectId: 'p1', name: 'Task A', completed: false });
+        const taskB = aTask({ id: 'task-b', projectId: 'p2', name: 'Task B', completed: false });
+        const logA = aTimeLog({ id: 'log-a', taskId: 'task-a', projectId: 'p1', endTime: null });
+        const logB = aTimeLog({ id: 'log-b', taskId: 'task-b', projectId: 'p2', endTime: null });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [taskA, taskB],
+          logs: [logA, logB],
+          activeLogs: [logA, logB],
+          activeLog: logA,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'toggleComplete').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...taskA, completed: true }, taskB],
+          logs: [{ ...logA, endTime: '2026-10-19T10:00:00.000Z' }, logB],
+          activeLogs: [logB],
+          activeLog: logB,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When
+        await act(async () => {
+          await result.current.handleToggleTaskComplete('task-a');
+        });
+
+        // Then
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
+        expect(mockStopTimer).toHaveBeenCalledWith('p1');
+        expect(mockStopTimer).not.toHaveBeenCalledWith('p2');
+      });
+    });
+
+    describe('2. Active timer on a grandchild task', () => {
+      it('Then completing the grandparent task stops the grandchild timer', async () => {
+        // Given
+        const grandparent = aTask({ id: 'task-gp', projectId: 'p1', name: 'Grandparent', completed: false });
+        const parent = aTask({ id: 'task-parent', projectId: 'p1', parentTaskId: 'task-gp', name: 'Parent', completed: false });
+        const grandchild = aTask({ id: 'task-gc', projectId: 'p1', parentTaskId: 'task-parent', name: 'Grandchild', completed: false });
+        const runningLog = aTimeLog({ id: 'log-gc', taskId: 'task-gc', projectId: 'p1', endTime: null });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [grandparent, parent, grandchild],
+          logs: [runningLog],
+          activeLogs: [runningLog],
+          activeLog: runningLog,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'toggleComplete').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...grandparent, completed: true }, parent, grandchild],
+          logs: [{ ...runningLog, endTime: '2026-10-19T10:00:00.000Z' }],
+          activeLogs: [],
+          activeLog: null,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When
+        await act(async () => {
+          await result.current.handleToggleTaskComplete('task-gp');
+        });
+
+        // Then
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
+        expect(mockStopTimer).toHaveBeenCalledWith('p1');
+      });
+    });
+
+    describe('3. Update status to Done without completed: true', () => {
+      it('Then updating status to Done stops the timer', async () => {
+        // Given
+        const activeTask = aTask({ id: 'task-active-3', projectId: 'p1', name: 'Task 3', completed: false, status: 'Todo' });
+        const runningLog = aTimeLog({ id: 'log-3', taskId: 'task-active-3', projectId: 'p1', endTime: null });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [activeTask],
+          logs: [runningLog],
+          activeLogs: [runningLog],
+          activeLog: runningLog,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'update').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...activeTask, status: 'Done', completed: true }],
+          logs: [{ ...runningLog, endTime: '2026-10-19T10:00:00.000Z' }],
+          activeLogs: [],
+          activeLog: null,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When: updating status: 'Done' without completed: true (e.g. completed: null)
+        await act(async () => {
+          await result.current.handleUpdateTask('task-active-3', 'Task 3', null, 'Done', null);
+        });
+
+        // Then
+        expect(mockStopTimer).toHaveBeenCalledTimes(1);
+        expect(mockStopTimer).toHaveBeenCalledWith('p1');
+      });
+    });
+
+    describe('4. Renaming or updating rate on an already completed task', () => {
+      it('Then updating name or rate on completed task does not stop unrelated active timers', async () => {
+        // Given
+        const completedTask = aTask({ id: 'task-done', projectId: 'p1', name: 'Done Task', completed: true, status: 'Done' });
+        const otherTask = aTask({ id: 'task-other-running', projectId: 'p2', name: 'Other Running', completed: false });
+        const runningLog = aTimeLog({ id: 'log-other', taskId: 'task-other-running', projectId: 'p2', endTime: null });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [completedTask, otherTask],
+          logs: [runningLog],
+          activeLogs: [runningLog],
+          activeLog: runningLog,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'update').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...completedTask, name: 'Renamed Done Task', hourlyRate: '75' }, otherTask],
+          logs: [runningLog],
+          activeLogs: [runningLog],
+          activeLog: runningLog,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When
+        await act(async () => {
+          await result.current.handleUpdateTask('task-done', 'Renamed Done Task', null, null, null, '75');
+        });
+
+        // Then
+        expect(mockStopTimer).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('5. Completing task without active timer', () => {
+      it('Then completing a task without any active timer does not invoke stopTimer', async () => {
+        // Given
+        const idleTask = aTask({ id: 'task-idle', projectId: 'p1', name: 'Idle Task', completed: false });
+
+        const mockRepositoryState = createMockRepositoryState({
+          tasks: [idleTask],
+          logs: [],
+          activeLogs: [],
+          activeLog: null,
+        });
+
+        const mockActionRunner = createMockActionRunner();
+
+        vi.spyOn(PersistenceRouter.getInstance().tasks, 'toggleComplete').mockResolvedValue({
+          projects: [],
+          tasks: [{ ...idleTask, completed: true }],
+          logs: [],
+          activeLogs: [],
+          activeLog: null,
+        });
+
+        const { result } = renderHook(() =>
+          useTasksManager({
+            repositoryState: mockRepositoryState,
+            actionRunner: mockActionRunner,
+            refreshComputedMetrics: vi.fn().mockResolvedValue(undefined),
+          })
+        );
+
+        // When
+        await act(async () => {
+          await result.current.handleToggleTaskComplete('task-idle');
         });
 
         // Then

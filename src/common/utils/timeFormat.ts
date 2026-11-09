@@ -1,0 +1,632 @@
+/**
+ * Presentation-layer timezone resolution and date-time formatting utilities.
+ *
+ * The core domain engine, SQLite database, and persistence layer operate strictly
+ * on UTC ISO timestamps. Timezone transformations are confined entirely to the
+ * presentation layer to ensure consistent data storage while honoring user display
+ * preferences or operating system localization.
+ */
+
+import { ErrorHandler } from '@common/exceptions/ErrorHandler';
+
+export const DEFAULT_TIMEZONE = 'System';
+export const FALLBACK_TIMEZONE = 'UTC';
+
+/**
+ * Standard list of globally recognized IANA timezones used as a deterministic fallback
+ * when runtime reflection is unavailable in restricted or older webview environments.
+ */
+export const POPULAR_TIMEZONES = [
+  'UTC', 'Europe/Warsaw', 'Europe/London', 'Europe/Berlin', 'Europe/Paris',
+  'Europe/Kyiv', 'Europe/Amsterdam', 'Europe/Rome', 'America/New_York',
+  'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Sao_Paulo',
+  'Asia/Tokyo', 'Asia/Shanghai', 'Asia/Dubai', 'Australia/Sydney',
+] as const;
+
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Clears the internal Intl.DateTimeFormat formatter cache.
+ * Primarily intended for testing environments.
+ */
+export function clearDateTimeFormatCache(): void {
+  formatterCache.clear();
+}
+
+/**
+ * Validates whether a given timezone string conforms to a valid IANA identifier
+ * recognized by the JavaScript Intl runtime.
+ *
+ * @param tz - IANA timezone identifier to test (e.g. "Europe/Warsaw")
+ * @returns True if the timezone is supported and syntactically valid; otherwise false
+ */
+function isValidTimezoneInternal(tz: string): boolean {
+  if (!tz || typeof tz !== 'string') {
+    return false;
+  }
+  try {
+    new Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return true;
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return false;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Validates whether a given timezone string conforms to a valid IANA identifier
+ * recognized by the JavaScript Intl runtime.
+ *
+ * @param tz - IANA timezone identifier to test (e.g. "Europe/Warsaw")
+ * @returns True if the timezone is supported and syntactically valid; otherwise false
+ */
+export function isValidTimezone(tz: string): boolean {
+  try {
+    return isValidTimezoneInternal(tz);
+  } catch (err) {
+    ErrorHandler.handle(err);
+    throw err;
+  }
+}
+
+function resolveSystemTimezoneInternal(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz && isValidTimezoneInternal(tz)) {
+      return tz;
+    }
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return FALLBACK_TIMEZONE;
+    }
+    throw err;
+  }
+  return FALLBACK_TIMEZONE;
+}
+
+/**
+ * Resolves the host system's active timezone using Intl.DateTimeFormat.
+ * Falls back deterministically to UTC when the host runtime environment omits
+ * or invalidates the system timezone string.
+ *
+ * @returns The resolved host timezone identifier or FALLBACK_TIMEZONE ("UTC")
+ */
+export function resolveSystemTimezone(): string {
+  try {
+    return resolveSystemTimezoneInternal();
+  } catch (err) {
+    ErrorHandler.handle(err);
+    throw err;
+  }
+}
+
+function resolveEffectiveTimezoneInternal(tzPreference?: string | null): string {
+  try {
+    if (!tzPreference || tzPreference === DEFAULT_TIMEZONE || tzPreference.toLowerCase() === 'system') {
+      return resolveSystemTimezoneInternal();
+    }
+    if (isValidTimezoneInternal(tzPreference)) {
+      return tzPreference;
+    }
+    return resolveSystemTimezoneInternal();
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return resolveSystemTimezoneInternal();
+    }
+    throw err;
+  }
+}
+
+/**
+ * Resolves the effective presentation timezone by evaluating user preference against
+ * system capabilities. Setting "System" delegates resolution to the host operating system.
+ *
+ * @param tzPreference - Optional user-configured timezone identifier or 'System'
+ * @returns Validated IANA timezone identifier ready for presentation formatting
+ */
+export function resolveEffectiveTimezone(tzPreference?: string | null): string {
+  try {
+    return resolveEffectiveTimezoneInternal(tzPreference);
+  } catch (err) {
+    ErrorHandler.handle(err);
+    throw err;
+  }
+}
+
+/**
+ * Retrieves the complete set of supported IANA timezones supported by the runtime.
+ * Older webviews or embedded Chromium engines may lack Intl.supportedValuesOf, in which
+ * case POPULAR_TIMEZONES is supplied as a deterministic fallback list.
+ *
+ * @returns Array of unique supported timezone strings
+ */
+export function getSupportedTimezones(): string[] {
+  if (typeof Intl.supportedValuesOf === 'function') {
+    try {
+      const supported = Intl.supportedValuesOf('timeZone');
+      return Array.from(new Set(['UTC', ...supported]));
+    } catch (err) {
+      if (err instanceof RangeError) {
+        return [...POPULAR_TIMEZONES];
+      }
+      ErrorHandler.handle(err);
+      throw err;
+    }
+  }
+  return [...POPULAR_TIMEZONES];
+}
+
+function parseInputDate(input: Date | string | number): Date | null {
+  if (input instanceof Date) {
+    return Number.isNaN(input.getTime()) ? null : input;
+  }
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const date = new Date(trimmed);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const date = new Date(input);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * Constructs an Intl.DateTimeFormat instance with layered fallbacks for unsupported locales,
+ * invalid timezones, or constrained runtime environments.
+ *
+ * @param locale - Requested BCP 47 locale tag
+ * @param options - Formatting options
+ * @returns A guaranteed valid Intl.DateTimeFormat instance
+ */
+export function getSafeDateTimeFormat(
+  locale: string,
+  options: Intl.DateTimeFormatOptions
+): Intl.DateTimeFormat {
+  const targetTimezone = options.timeZone ? resolveEffectiveTimezone(options.timeZone) : resolveEffectiveTimezone();
+  const normalizedOptions: Intl.DateTimeFormatOptions = {
+    ...options,
+    timeZone: targetTimezone,
+  };
+
+  // 1. Try requested locale with target timezone
+  try {
+    return new Intl.DateTimeFormat(locale, normalizedOptions);
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      ErrorHandler.handle(err);
+      throw err;
+    }
+  }
+
+  // 2. Try fallback 'en' locale with target timezone
+  try {
+    return new Intl.DateTimeFormat('en', normalizedOptions);
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      ErrorHandler.handle(err);
+      throw err;
+    }
+  }
+
+  // 3. Try requested locale with UTC timezone
+  try {
+    return new Intl.DateTimeFormat(locale, { ...normalizedOptions, timeZone: FALLBACK_TIMEZONE });
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      ErrorHandler.handle(err);
+      throw err;
+    }
+  }
+
+  // 4. Try 'en' with UTC timezone
+  try {
+    return new Intl.DateTimeFormat('en', { ...normalizedOptions, timeZone: FALLBACK_TIMEZONE });
+  } catch (err) {
+    if (!(err instanceof RangeError)) {
+      ErrorHandler.handle(err);
+      throw err;
+    }
+  }
+
+  // 5. Ultimate fallback without custom options
+  try {
+    return new Intl.DateTimeFormat('en', { timeZone: FALLBACK_TIMEZONE });
+  } catch (err) {
+    ErrorHandler.handle(err);
+    throw err;
+  }
+}
+
+function getCachedDateTimeFormat(
+  locale: string,
+  options: Intl.DateTimeFormatOptions
+): Intl.DateTimeFormat {
+  const cacheKey = `${locale}:${JSON.stringify(options)}`;
+  let formatter = formatterCache.get(cacheKey);
+  if (!formatter) {
+    formatter = getSafeDateTimeFormat(locale, options);
+    formatterCache.set(cacheKey, formatter);
+  }
+  return formatter;
+}
+
+/**
+ * Formats an input date or timestamp into a full localized date and 24-hour time string
+ * within the resolved target presentation timezone.
+ *
+ * @param input - Date object, ISO timestamp string, or Unix epoch millisecond count
+ * @param timezone - Optional target timezone identifier (defaults to resolved system timezone)
+ * @param locale - BCP-47 language tag (defaults to 'en')
+ * @param options - Additional Intl.DateTimeFormatOptions overrides
+ * @returns Formatted date-time string, or empty string if input date is invalid
+ */
+export function formatDateTime(
+  input: Date | string | number,
+  timezone?: string,
+  locale = 'en',
+  options?: Intl.DateTimeFormatOptions
+): string {
+  const date = parseInputDate(input);
+  if (!date) {
+    return '';
+  }
+
+  const effectiveTimezone = resolveEffectiveTimezone(timezone);
+  const intlOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    ...options,
+    timeZone: effectiveTimezone,
+  };
+
+  const formatter = getCachedDateTimeFormat(locale, intlOptions);
+  try {
+    return formatter.format(date);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      const fallbackFormatter = getSafeDateTimeFormat('en', {
+        ...intlOptions,
+        timeZone: FALLBACK_TIMEZONE,
+      });
+      return fallbackFormatter.format(date);
+    }
+    ErrorHandler.handle(err);
+    throw err;
+  }
+}
+
+/**
+ * Formats an input date or timestamp into a localized date string (year, month, day)
+ * within the resolved target presentation timezone.
+ *
+ * @param input - Date object, ISO timestamp string, or Unix epoch millisecond count
+ * @param timezone - Optional target timezone identifier (defaults to resolved system timezone)
+ * @param locale - BCP-47 language tag (defaults to 'en')
+ * @param options - Additional Intl.DateTimeFormatOptions overrides
+ * @returns Formatted date string, or empty string if input date is invalid
+ */
+export function formatDate(
+  input: Date | string | number,
+  timezone?: string,
+  locale = 'en',
+  options?: Intl.DateTimeFormatOptions
+): string {
+  const date = parseInputDate(input);
+  if (!date) {
+    return '';
+  }
+
+  const effectiveTimezone = resolveEffectiveTimezone(timezone);
+  const intlOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    ...options,
+    timeZone: effectiveTimezone,
+  };
+
+  const formatter = getCachedDateTimeFormat(locale, intlOptions);
+  try {
+    return formatter.format(date);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      const fallbackFormatter = getSafeDateTimeFormat('en', {
+        ...intlOptions,
+        timeZone: FALLBACK_TIMEZONE,
+      });
+      return fallbackFormatter.format(date);
+    }
+    ErrorHandler.handle(err);
+    throw err;
+  }
+}
+
+/**
+ * Formats an input date or timestamp into a localized 24-hour time string (hour, minute, second)
+ * within the resolved target presentation timezone.
+ *
+ * @param input - Date object, ISO timestamp string, or Unix epoch millisecond count
+ * @param timezone - Optional target timezone identifier (defaults to resolved system timezone)
+ * @param locale - BCP-47 language tag (defaults to 'en')
+ * @param options - Additional Intl.DateTimeFormatOptions overrides
+ * @returns Formatted time string, or empty string if input date is invalid
+ */
+export function formatTime(
+  input: Date | string | number,
+  timezone?: string,
+  locale = 'en',
+  options?: Intl.DateTimeFormatOptions
+): string {
+  const date = parseInputDate(input);
+  if (!date) {
+    return '';
+  }
+
+  const effectiveTimezone = resolveEffectiveTimezone(timezone);
+  const intlOptions: Intl.DateTimeFormatOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    ...options,
+    timeZone: effectiveTimezone,
+  };
+
+  const formatter = getCachedDateTimeFormat(locale, intlOptions);
+  try {
+    return formatter.format(date);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      const fallbackFormatter = getSafeDateTimeFormat('en', {
+        ...intlOptions,
+        timeZone: FALLBACK_TIMEZONE,
+      });
+      return fallbackFormatter.format(date);
+    }
+    ErrorHandler.handle(err);
+    throw err;
+  }
+}
+
+/**
+ * Formats an input date or timestamp into a normalized standard 'YYYY-MM-DD HH:mm:ss' string
+ * representing the date and time in the specified timezone.
+ * Primarily intended for form input presentation in timezone-aware modals.
+ *
+ * @param input - Date object, ISO timestamp string, Unix epoch millisecond count, or null/undefined
+ * @param timezone - Optional target timezone identifier (defaults to resolved system timezone)
+ * @returns Normalized 'YYYY-MM-DD HH:mm:ss' string, or empty string if input is null or invalid
+ */
+export function formatDateTimeInTimezone(
+  input: Date | string | number | null | undefined,
+  timezone?: string
+): string {
+  if (input === null || input === undefined || input === '') {
+    return '';
+  }
+  const date = parseInputDate(input);
+  if (!date) {
+    return '';
+  }
+
+  const effectiveTimezone = resolveEffectiveTimezone(timezone);
+  try {
+    const formatter = getSafeDateTimeFormat('en-US', {
+      timeZone: effectiveTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(date);
+    const map: Record<string, string> = {};
+    for (const p of parts) {
+      map[p.type] = p.value;
+    }
+    let hour = map.hour || '00';
+    if (hour === '24') {
+      hour = '00';
+    }
+    return `${map.year}-${map.month}-${map.day} ${hour}:${map.minute}:${map.second}`;
+  } catch (err) {
+    ErrorHandler.handle(err);
+    throw err;
+  }
+}
+
+/**
+ * Parses a date-time string in a specified timezone into a UTC JavaScript Date.
+ *
+ * Local wall-clock times are accepted only when they map to exactly one instant.
+ * Non-existent times (DST gaps) and ambiguous times (DST overlaps) return null.
+ * An explicit ISO 8601 UTC marker or offset selects an exact instant and bypasses
+ * local-time ambiguity.
+ *
+ * @param input - Local date-time string or explicit ISO 8601 timestamp
+ * @param timezone - IANA timezone used to interpret local date-time strings
+ * @returns Exact UTC instant, or null when input is invalid or ambiguous
+ */
+function isValidCalendarDateTime(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number
+): boolean {
+  if (
+    month < 1 || month > 12 ||
+    day < 1 || day > 31 ||
+    hour < 0 || hour > 23 ||
+    minute < 0 || minute > 59 ||
+    second < 0 || second > 59
+  ) {
+    return false;
+  }
+
+  const calendarCheck = new Date(Date.UTC(2000, month - 1, day));
+  calendarCheck.setUTCFullYear(year);
+  return (
+    calendarCheck.getUTCFullYear() === year &&
+    calendarCheck.getUTCMonth() === month - 1 &&
+    calendarCheck.getUTCDate() === day
+  );
+}
+
+function parseExplicitOffsetTimestamp(trimmed: string): Date | null {
+  const explicitMatch = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(?:([zZ])|([+-])(\d{2}):?(\d{2}))$/.exec(trimmed);
+  if (!explicitMatch) {
+    return null;
+  }
+
+  const year = Number(explicitMatch[1]);
+  const month = Number(explicitMatch[2]);
+  const day = Number(explicitMatch[3]);
+  const hour = Number(explicitMatch[4]);
+  const minute = Number(explicitMatch[5]);
+  const second = explicitMatch[6] ? Number(explicitMatch[6]) : 0;
+
+  if (!isValidCalendarDateTime(year, month, day, hour, minute, second)) {
+    return null;
+  }
+
+  let offsetTotalMinutes = 0;
+  if (explicitMatch[9]) {
+    const offsetHours = Number(explicitMatch[10]);
+    const offsetMinutes = Number(explicitMatch[11]);
+    if (offsetHours > 23 || offsetMinutes > 59) {
+      return null;
+    }
+    const offsetSign = explicitMatch[9] === '-' ? -1 : 1;
+    offsetTotalMinutes = offsetSign * (offsetHours * 60 + offsetMinutes);
+  }
+
+  const fracStr = explicitMatch[7];
+  let millisecond = 0;
+  if (fracStr) {
+    millisecond = Number((fracStr + '00').slice(0, 3));
+  }
+
+  const baseDate = new Date(Date.UTC(2000, month - 1, day, hour, minute, second, millisecond));
+  baseDate.setUTCFullYear(year);
+  const utcMs = baseDate.getTime() - offsetTotalMinutes * 60 * 1000;
+  const explicitDate = new Date(utcMs);
+  if (Number.isNaN(explicitDate.getTime())) {
+    return null;
+  }
+  return explicitDate;
+}
+
+/**
+ * Parses a date-time string in a specified timezone into a UTC JavaScript Date.
+ *
+ * Local wall-clock times are accepted only when they map to exactly one instant.
+ * Non-existent times (DST gaps) and ambiguous times (DST overlaps) return null.
+ * An explicit ISO 8601 UTC marker or offset selects an exact instant and bypasses
+ * local-time ambiguity.
+ *
+ * @param input - Local date-time string or explicit ISO 8601 timestamp
+ * @param timezone - IANA timezone used to interpret local date-time strings
+ * @returns Exact UTC instant, or null when input is invalid or ambiguous
+ */
+export function parseDateTimeInTimezone(
+  input: string,
+  timezone?: string
+): Date | null {
+  if (!input || typeof input !== 'string') {
+    return null;
+  }
+
+  const trimmed = input.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const hasExplicitOffset = /(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(trimmed);
+  if (hasExplicitOffset) {
+    return parseExplicitOffsetTimestamp(trimmed);
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = match[6] ? Number(match[6]) : 0;
+
+  if (!isValidCalendarDateTime(year, month, day, hour, minute, second)) {
+    return null;
+  }
+
+  const effectiveTimezone = resolveEffectiveTimezone(timezone);
+  const targetLocalMs = Date.UTC(year, month - 1, day, hour, minute, second);
+  const formatter = getSafeDateTimeFormat('en-US', {
+    timeZone: effectiveTimezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+
+  const getLocalTimestamp = (instantMs: number): number => {
+    const parts: Record<string, string> = {};
+    for (const part of formatter.formatToParts(new Date(instantMs))) {
+      parts[part.type] = part.value;
+    }
+    return Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second)
+    );
+  };
+
+  // Collect every offset active around the requested wall-clock time. Sampling
+  // both sides of the transition discovers both offsets during DST overlaps.
+  const offsets = new Set<number>();
+  const samplingWindowMs = 36 * 60 * 60 * 1000;
+  const samplingStepMs = 6 * 60 * 60 * 1000;
+  for (
+    let sampleMs = targetLocalMs - samplingWindowMs;
+    sampleMs <= targetLocalMs + samplingWindowMs;
+    sampleMs += samplingStepMs
+  ) {
+    offsets.add(getLocalTimestamp(sampleMs) - sampleMs);
+  }
+
+  const matchingInstants = new Set<number>();
+  for (const offsetMs of offsets) {
+    const candidateMs = targetLocalMs - offsetMs;
+    if (getLocalTimestamp(candidateMs) === targetLocalMs) {
+      matchingInstants.add(candidateMs);
+    }
+  }
+
+  if (matchingInstants.size !== 1) {
+    return null;
+  }
+
+  return new Date([...matchingInstants][0]);
+}

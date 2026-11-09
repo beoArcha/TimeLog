@@ -75,6 +75,12 @@ impl ConfigRepository {
             Some(v) => Some(Self::parse_bool_value("minimize_to_tray", &v)?),
             None => None,
         };
+        let timezone = self.get_value(&conn, "timezone")?;
+        let timezone_migration_completed =
+            match self.get_value(&conn, "timezone_migration_completed")? {
+                Some(v) => Some(Self::parse_bool_value("timezone_migration_completed", &v)?),
+                None => None,
+            };
 
         let settings = Settings {
             auto_start,
@@ -86,6 +92,8 @@ impl ConfigRepository {
             always_on_top_small,
             always_on_top_main,
             minimize_to_tray,
+            timezone,
+            timezone_migration_completed,
         };
 
         if keys_changed {
@@ -127,6 +135,16 @@ impl ConfigRepository {
         }
         if let Some(m) = settings.minimize_to_tray {
             self.set_value(conn, "minimize_to_tray", &m.to_string())?;
+        }
+        if let Some(ref tz) = settings.timezone {
+            self.set_value(conn, "timezone", tz)?;
+        }
+        if let Some(migration_completed) = settings.timezone_migration_completed {
+            self.set_value(
+                conn,
+                "timezone_migration_completed",
+                &migration_completed.to_string(),
+            )?;
         }
 
         Ok(())

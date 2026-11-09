@@ -33,6 +33,9 @@ export interface OXyFlowState {
   setLocalePref?: Mock | ((pref: Locale | ((prev: Locale) => Locale)) => void);
   locale?: Locale;
   setLocale?: Mock | ((locale: Locale | ((prev: Locale) => Locale)) => void);
+  timezone?: string;
+  setTimezone?: Mock | ((tz: string) => void);
+  resolvedTimezone?: string;
   theme?: ThemePreference;
   setTheme?: Mock | ((theme: ThemePreference | ((prev: ThemePreference) => ThemePreference)) => void);
   resolvedTheme?: Theme;
@@ -123,6 +126,9 @@ export const getMockOXyFlowState = (): OXyFlowState => ({
   setLocalePref: vi.fn(),
   locale: 'en',
   setLocale: vi.fn(),
+  timezone: 'System',
+  setTimezone: vi.fn(),
+  resolvedTimezone: 'UTC',
   theme: 'dark',
   setTheme: vi.fn(),
   resolvedTheme: 'dark',

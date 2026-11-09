@@ -6,6 +6,8 @@ import { Input } from '@components/ui/input';
 import { HStack, InlineCluster } from '@components/ui/stack';
 import { FilterBar } from '@components/FilterBar';
 import { TagFilterGroup } from '@components/TagFilterGroup';
+import { Project } from '@bindings/Project';
+import { ReportProjectFilter } from './ReportProjectFilter';
 import { normalizeTag } from '../utils/tagFiltering';
 import { ReportPeriodType } from '../types';
 
@@ -22,6 +24,9 @@ export interface ReportPeriodSelectorProps {
   selectedTags?: string[];
   onToggleTag?: (tag: string) => void;
   onClearTags?: () => void;
+  projects?: Project[];
+  selectedProjectId?: string | null;
+  onSelectProject?: (projectId: string | null) => void;
 }
 
 export default function ReportPeriodSelector({
@@ -37,6 +42,9 @@ export default function ReportPeriodSelector({
   selectedTags,
   onToggleTag,
   onClearTags,
+  projects,
+  selectedProjectId,
+  onSelectProject,
 }: ReportPeriodSelectorProps) {
   const { t: tReport } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
@@ -121,6 +129,14 @@ export default function ReportPeriodSelector({
             />
           </HStack>
         </InlineCluster>
+      )}
+
+      {projects && projects.length > 0 && onSelectProject && (
+        <ReportProjectFilter
+          projects={projects}
+          selectedProjectId={selectedProjectId ?? null}
+          onSelectProject={onSelectProject}
+        />
       )}
 
       {availableTags && availableTags.length > 0 && (

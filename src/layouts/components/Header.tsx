@@ -9,21 +9,27 @@ import { StatusIndicator } from './header-parts/StatusIndicator';
 import { useSettings } from '@common/hooks/SettingsContext';
 import { HStack } from '@components/ui/stack';
 import { Area } from '@components/ui/area';
+import { cn } from '@/lib/utils';
+import { WINDOWED_HORIZONTAL_PADDING } from '@layouts/parts/LayoutStyles';
 
 export default function Header() {
   const { dragRegionProps } = usePlatformCapabilities();
   const { layoutVariant } = useSettings();
 
   const isMediumMode = layoutVariant === 'medium';
+  const horizontalPadding = isMediumMode ? 'px-3 sm:px-4' : WINDOWED_HORIZONTAL_PADDING;
+  const layoutDirection = isMediumMode ? 'flex-col gap-2' : 'flex-col md:flex-row md:items-center';
 
   return (
     <Area
       as="header"
       {...dragRegionProps}
       data-testid="layout-header"
-      className={`shrink-0 sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-2xl transition-all duration-300 py-2 px-3 sm:py-2.5 sm:px-4 flex ${
-        isMediumMode ? 'flex-col gap-2' : 'flex-col md:flex-row md:items-center'
-      } justify-between md:gap-3`}
+      className={cn(
+        'shrink-0 sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-2xl transition-all duration-300 py-2 sm:py-2.5 flex justify-between md:gap-3',
+        horizontalPadding,
+        layoutDirection,
+      )}
     >
       <HStack justify="between" align="center" gap="sm" className="w-full md:w-auto">
         <AppLogo />

@@ -23,6 +23,7 @@ jobs:
       rust: ${{ steps.filter.outputs.rust }}
       documentation: ${{ steps.filter.outputs.documentation }}
       e2e: ${{ steps.filter.outputs.e2e }}
+      layout_geometry: ${{ steps.filter.outputs.layout_geometry }}
       ci_config: ${{ steps.filter.outputs.ci_config }}
       is_opened: ${{ github.event.action == 'opened' }}
     steps:
@@ -67,6 +68,20 @@ jobs:
               - '.cargo/**'
             e2e:
               - 'tests/e2e/**'
+            layout_geometry:
+              - 'src/layouts/**'
+              - 'src/**/*.css'
+              - 'tests/e2e/specs/layout-alignment-geometry.spec.ts'
+              - 'tests/e2e/pages/BasePage.ts'
+              - 'tests/e2e/pages/MainLayoutPage.ts'
+              - 'tests/e2e/fixtures/**'
+              - 'tests/e2e/config/playwright.config.ts'
+              - 'config/devServer.ts'
+              - 'app.config.json'
+              - 'vite.config.*'
+              - 'package.json'
+              - 'bun.lock'
+              - 'bun.lockb'
             ci_config:
               - '.github/**'
               - 'scripts/ci/**'
@@ -255,9 +270,48 @@ jobs:
         shell: bash
         run: bun run test:e2e:print
 
+  check-layout-geometry:
+    name: Layout Geometry E2E
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.layout_geometry == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-frontend
+
+      - name: Install Playwright Chromium System Dependencies
+        shell: bash
+        run: bun x playwright install-deps chromium
+
+      - name: Install Playwright Chromium
+        shell: bash
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000
+        run: |
+          for attempt in 1 2 3; do
+            echo "Chromium download attempt: $attempt/3"
+
+            if bun x playwright install chromium; then
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::Chromium download failed; retrying in $((attempt * 10)) seconds."
+              sleep "$((attempt * 10))"
+            fi
+          done
+
+          echo "::error::Failed to install Playwright Chromium after 3 attempts."
+          exit 1
+
+      - name: Run Layout Alignment Geometry E2E Spec
+        shell: bash
+        run: bun x playwright test tests/e2e/specs/layout-alignment-geometry.spec.ts --config=tests/e2e/config/playwright.config.ts
+
   pr-gate:
     name: PR Gate (Unified Check)
-    needs: [detect-changes, check-docs, check-frontend, check-rust, check-e2e]
+    needs: [detect-changes, check-docs, check-frontend, check-rust, check-e2e, check-layout-geometry]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -269,6 +323,8 @@ jobs:
           CHECK_FRONTEND_RES: ${{ needs.check-frontend.result }}
           CHECK_RUST_RES: ${{ needs.check-rust.result }}
           CHECK_E2E_RES: ${{ needs.check-e2e.result }}
+          LAYOUT_GEOMETRY_RES: ${{ needs.check-layout-geometry.result }}
+          LAYOUT_GEOMETRY_CHANGED: ${{ needs.detect-changes.outputs.layout_geometry }}
           DOCS_CHANGED: ${{ needs.detect-changes.outputs.documentation }}
           FRONTEND_CHANGED: ${{ needs.detect-changes.outputs.frontend }}
           RUST_CHANGED: ${{ needs.detect-changes.outputs.rust }}
@@ -282,6 +338,7 @@ jobs:
           echo "Check Frontend:   result=$CHECK_FRONTEND_RES, changed=$FRONTEND_CHANGED"
           echo "Check Rust:       result=$CHECK_RUST_RES, changed=$RUST_CHANGED"
           echo "Check E2E:        result=$CHECK_E2E_RES, e2e_changed=$E2E_CHANGED"
+          echo "Layout Geometry:  result=$LAYOUT_GEOMETRY_RES, changed=$LAYOUT_GEOMETRY_CHANGED"
           echo "CI Config:        changed=$CI_CONFIG_CHANGED"
           echo "PR Event Action:  is_opened=$IS_OPENED"
           echo "=================================="
@@ -295,12 +352,18 @@ jobs:
           fi
 
           # 2. Check for unexpected failure or cancellation in any executed job
-          for job_res in "$CHECK_DOCS_RES" "$CHECK_FRONTEND_RES" "$CHECK_RUST_RES" "$CHECK_E2E_RES"; do
+          for job_res in "$CHECK_DOCS_RES" "$CHECK_FRONTEND_RES" "$CHECK_RUST_RES" "$CHECK_E2E_RES" "$LAYOUT_GEOMETRY_RES"; do
             if [ "$job_res" = "failure" ] || [ "$job_res" = "cancelled" ]; then
               echo "::error::An upstream check finished with status '$job_res'."
               FAILED=true
             fi
           done
+
+          # 6. If layout geometry inputs changed -> dedicated geometry E2E must succeed
+          if [ "$LAYOUT_GEOMETRY_CHANGED" = "true" ] && [ "$LAYOUT_GEOMETRY_RES" != "success" ]; then
+            echo "::error::Layout geometry E2E was required but result is '$LAYOUT_GEOMETRY_RES'."
+            FAILED=true
+          fi
 
           # Docs-only PR detection
           IS_DOCS_ONLY=false

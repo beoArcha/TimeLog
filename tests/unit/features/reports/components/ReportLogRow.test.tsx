@@ -125,4 +125,79 @@ describe('Unit Tests: ReportLogRow', () => {
     expect(screen.queryByTestId('edit-log-patch-1')).toBeNull();
     expect(screen.queryByTestId('delete-log-patch-1')).toBeNull();
   });
+
+  it('Given preferred timezone in settings context, When rendered without explicit prop, Then formats screen time in preferred timezone and print time in UTC', () => {
+    // Arrange: log starts at 10:00:00Z. In Tokyo (UTC+9), screen time is 19:00:00.
+    const tokyoLog = {
+      id: 'log-tz-1',
+      taskId: 't1',
+      projectId: 'p1',
+      startTime: '2026-06-15T10:00:00Z',
+      endTime: '2026-06-15T11:00:00Z',
+    };
+
+    // Act
+    render(
+      <MockProviders
+        settingsState={{ timezone: 'Asia/Tokyo', resolvedTimezone: 'Asia/Tokyo' }}
+        localeState={{ locale: 'pl' }}
+      >
+        <ReportLogRow
+          log={tokyoLog}
+          project={sampleProject}
+          task={sampleTask}
+          isActive={false}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+        />
+      </MockProviders>
+    );
+
+    // Assert
+    const screenTime = screen.getByTestId('log-entry-screen-time');
+    const printTime = screen.getByTestId('log-entry-print-datetime');
+
+    // Screen time reflects Asia/Tokyo (10:00 UTC + 9h = 19:00:00)
+    expect(screenTime.textContent).toContain('19:00:00');
+
+    // Print datetime deterministically remains in UTC (10:00:00)
+    expect(printTime.textContent).toContain('10:00:00');
+    expect(printTime.textContent).toContain('15.06.2026');
+  });
+
+  it('Given explicit timeZone prop, When rendered, Then explicit prop takes precedence over settings context for screen time while keeping print in UTC', () => {
+    // Arrange: log starts at 12:00:00Z. Context says Tokyo (+9), but explicit prop says UTC.
+    const testLog = {
+      id: 'log-tz-2',
+      taskId: 't1',
+      projectId: 'p1',
+      startTime: '2026-06-15T12:00:00Z',
+      endTime: '2026-06-15T13:00:00Z',
+    };
+
+    // Act
+    render(
+      <MockProviders
+        settingsState={{ timezone: 'Asia/Tokyo', resolvedTimezone: 'Asia/Tokyo' }}
+        localeState={{ locale: 'pl' }}
+      >
+        <ReportLogRow
+          log={testLog}
+          project={sampleProject}
+          task={sampleTask}
+          isActive={false}
+          timeZone="UTC"
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+        />
+      </MockProviders>
+    );
+
+    // Assert: Screen time uses explicit UTC prop
+    const screenTime = screen.getByTestId('log-entry-screen-time');
+    const printTime = screen.getByTestId('log-entry-print-datetime');
+
+    expect(screenTime.textContent).toContain('12:00:00');
+    expect(printTime.textContent).toContain('12:00:00');
+  });
 });

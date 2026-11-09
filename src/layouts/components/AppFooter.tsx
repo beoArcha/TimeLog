@@ -6,6 +6,9 @@ import { Button } from '@components/ui/button';
 import { HStack } from '@components/ui/stack';
 import { Caption, MonoText } from '@components/ui/typography';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
+import { cn } from '@/lib/utils';
+import { WINDOWED_HORIZONTAL_PADDING } from '@layouts/parts/LayoutStyles';
+import { useSettingsSafe } from '@common/hooks/SettingsContext';
 
 interface AppFooterProps {
   locale: Locale;
@@ -21,6 +24,11 @@ export default function AppFooter({
   setShowCreditsModal,
 }: AppFooterProps) {
   const { storageEngineName } = usePlatformCapabilities();
+  const settings = useSettingsSafe();
+
+  const isMediumMode = settings?.layoutVariant === 'medium';
+  const horizontalPadding = isMediumMode ? 'px-3 sm:px-6' : WINDOWED_HORIZONTAL_PADDING;
+
   const environmentLabel = storageEngineName === 'sqlite'
     ? translate(locale, 'engine', 'EnvironmentSqlite', customTranslations)
     : translate(locale, 'engine', 'EnvironmentLocalStorage', customTranslations);
@@ -28,9 +36,13 @@ export default function AppFooter({
   return (
     <HStack
       as="footer"
+      data-testid="layout-footer"
       justify="between"
       gap="sm"
-      className="mt-auto bg-card/60 backdrop-blur-md border-t border-border py-1.5 px-3 sm:py-2 sm:px-6 text-xs text-muted-foreground font-mono whitespace-nowrap overflow-x-auto select-none"
+      className={cn(
+        "mt-auto bg-card/60 backdrop-blur-md border-t border-border py-1.5 sm:py-2 text-xs text-muted-foreground font-mono whitespace-nowrap overflow-x-auto select-none",
+        horizontalPadding
+      )}
     >
       <HStack gap="xs" className="sm:gap-2 shrink-0">
         <MonoText as="span" size="xs" weight="semibold" className="hidden sm:inline text-foreground">

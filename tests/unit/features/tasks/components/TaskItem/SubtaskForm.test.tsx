@@ -59,4 +59,37 @@ describe('Unit Tests: SubtaskForm', () => {
     expect(onSubmitMock).toHaveBeenCalledTimes(1);
     expect(onSubmitMock).toHaveBeenCalledWith('t1', expect.any(Object));
   });
+
+  it('should render submit button with shrink-0 class to prevent compression and truncation', () => {
+    // Arrange & Act
+    const { container } = render(<SubtaskForm {...mockProps} />);
+
+    // Assert
+    const submitBtn = container.querySelector('#submit-subtask-btn-t1') as HTMLButtonElement;
+    expect(submitBtn).not.toBeNull();
+    expect(submitBtn.className).toContain('shrink-0');
+  });
+
+  it('should render form container with w-auto overriding w-full to prevent horizontal overflow', () => {
+    // Arrange & Act
+    const { container } = render(<SubtaskForm {...mockProps} />);
+
+    // Assert
+    const form = container.querySelector('#subtask-form-t1') as HTMLFormElement;
+    expect(form).not.toBeNull();
+    expect(form.className).toContain('w-auto');
+    expect(form.className).toContain('ml-8');
+    expect(form.className).not.toMatch(/\bw-full\b/);
+  });
+
+  it('should render input with flex-1 and min-w-0 to flexibly occupy available width', () => {
+    // Arrange & Act
+    const { container } = render(<SubtaskForm {...mockProps} />);
+
+    // Assert
+    const input = container.querySelector('#new-subtask-input-t1') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    expect(input.className).toContain('flex-1');
+    expect(input.className).toContain('min-w-0');
+  });
 });

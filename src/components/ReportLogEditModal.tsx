@@ -1,0 +1,604 @@
+import React, { useState, useRef } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@components/ui/dialog';
+import { Button } from '@components/ui/button';
+import { Input } from '@components/ui/input';
+import { Label } from '@components/ui/label';
+import { Textarea } from '@components/ui/textarea';
+import { VStack, HStack } from '@components/ui/stack';
+import { Badge } from '@components/ui/badge';
+import { Caption, MonoText, Text } from '@components/ui/typography';
+import { useTranslation } from '@common/i18n/translator';
+import { useDataSafe } from '@common/hooks/DataContext';
+import { TimeLog } from '@bindings/TimeLog';
+import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
+import { Edit3, AlertCircle } from 'lucide-react';
+
+import { ConfirmDialog } from '@components/ConfirmDialog';
+import { toast } from 'sonner';
+import { useSettingsSafe } from '@common/hooks/useSettings';
+import {
+  formatDateTimeInTimezone,
+  parseDateTimeInTimezone,
+  resolveEffectiveTimezone,
+} from '@common/utils/timeFormat';
+
+export type SaveState =
+  | 'not-saved'
+  | 'committed-sync-pending'
+  | 'completed';
+
+const KNOWN_CODES = [
+  'ERR_AUDIT_REASON_REQUIRED',
+  'ERR_TIMELOG_INVALID_RANGE',
+  'ERR_TIMELOG_INVALID_FORMAT',
+  'ERR_AUDIT_SOURCE_INVALID',
+] as const;
+
+function matchEngineErrorCode(text: string): string | undefined {
+  return KNOWN_CODES.find((code) => text.includes(code));
+}
+
+function extractCauseCode(cause: unknown): string | undefined {
+  if (typeof cause !== 'object' || cause === null) {
+    return undefined;
+  }
+  const code = (cause as Record<string, unknown>).code;
+  return typeof code === 'string' ? code : undefined;
+}
+
+function extractErrorCode(err: unknown): string | undefined {
+  if (!err) {
+    return undefined;
+  }
+
+  if (typeof err === 'string') {
+    return matchEngineErrorCode(err);
+  }
+
+  if (typeof err !== 'object' || err === null) {
+    return undefined;
+  }
+
+  const errorObj = err as Record<string, unknown>;
+  if (typeof errorObj.code === 'string') {
+    return errorObj.code;
+  }
+
+  const causeCode = extractCauseCode(errorObj.cause);
+  if (causeCode) {
+    return causeCode;
+  }
+
+  if (typeof errorObj.message === 'string') {
+    return matchEngineErrorCode(errorObj.message);
+  }
+
+  return undefined;
+}
+
+export interface ReportLogEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  log: TimeLog | ClampedTimeLog | null;
+  projectName?: string;
+  taskName?: string;
+  timezone?: string;
+  onSaveSuccess?: (updatedLogId: string) => void;
+  onDeleteSuccess?: (deletedLogId: string) => void;
+  onDeleted?: (deletedLogId: string) => void;
+}
+
+interface ReportLogEditFormProps {
+  key?: React.Key;
+  log: TimeLog | ClampedTimeLog;
+  projectName?: string;
+  taskName?: string;
+  timezone?: string;
+  onClose: () => void;
+  onSaveSuccess?: (updatedLogId: string) => void;
+  onDeleteSuccess?: (deletedLogId: string) => void;
+  onDeleted?: (deletedLogId: string) => void;
+}
+
+function resolveActiveTimezone(
+  propTimezone?: string,
+  settings?: ReturnType<typeof useSettingsSafe>
+): string {
+  const candidate = propTimezone || settings?.resolvedTimezone || settings?.timezone;
+  return resolveEffectiveTimezone(candidate);
+}
+
+function ReportLogEditForm({
+  log,
+  projectName,
+  taskName,
+  timezone: propTimezone,
+  onClose,
+  onSaveSuccess,
+  onDeleteSuccess,
+  onDeleted,
+}: ReportLogEditFormProps) {
+  const { t: tReport } = useTranslation('report');
+  const { t: tCommon } = useTranslation('common');
+  const { t: tEngine } = useTranslation('engine');
+  const dataContext = useDataSafe();
+  const settings = useSettingsSafe();
+
+  const activeTimezone = resolveActiveTimezone(propTimezone, settings);
+
+  const [startTime, setStartTime] = useState<string>(() =>
+    formatDateTimeInTimezone(log.startTime, activeTimezone)
+  );
+  const [endTime, setEndTime] = useState<string>(() =>
+    formatDateTimeInTimezone(log.endTime, activeTimezone)
+  );
+  const [note, setNote] = useState<string>(log.note || '');
+  const [reason, setReason] = useState<string>('');
+  const [reasonError, setReasonError] = useState<boolean>(false);
+  const [reasonErrorMessage, setReasonErrorMessage] = useState<string | null>(null);
+  const [rangeError, setRangeError] = useState<boolean>(false);
+  const [rangeErrorMessage, setRangeErrorMessage] = useState<string | null>(null);
+  const [generalErrorMessage, setGeneralErrorMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [saveState, setSaveState] = useState<SaveState>('not-saved');
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
+  const savingRef = useRef<boolean>(false);
+
+  const handleDeleteClick = () => {
+    if (isSaving || savingRef.current || isDeleting || saveState === 'committed-sync-pending') return;
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (isSaving || savingRef.current || isDeleting || saveState === 'committed-sync-pending') return;
+    setIsDeleting(true);
+    setGeneralErrorMessage(null);
+
+    try {
+      if (!dataContext?.handleDeleteTimeLog) {
+        throw new Error('Time log deletion is unavailable outside DataContext');
+      }
+
+      const result = await dataContext.handleDeleteTimeLog(log.id);
+      if (!result.deleted) {
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+        setIsDeleting(false);
+        setIsConfirmOpen(false);
+        return;
+      }
+
+      setIsConfirmOpen(false);
+      setIsDeleting(false);
+
+      if (!result.synchronized) {
+        toast.warning(tEngine('SyncStatusError'));
+      }
+
+      try {
+        if (onDeleted) {
+          onDeleted(log.id);
+        } else if (onDeleteSuccess) {
+          onDeleteSuccess(log.id);
+        } else {
+          onSaveSuccess?.(log.id);
+        }
+      } catch (callbackErr) {
+        console.warn('[ReportLogEditModal] Post-delete callback error:', callbackErr);
+      }
+
+      onClose();
+    } catch (err) {
+      console.error('[ReportLogEditModal] Deletion failed:', err);
+      setGeneralErrorMessage(tEngine('SyncStatusError'));
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (savingRef.current || isSaving || isDeleting) {
+      return;
+    }
+
+    setReasonError(false);
+    setReasonErrorMessage(null);
+    setRangeError(false);
+    setRangeErrorMessage(null);
+    setGeneralErrorMessage(null);
+
+    // If mutation was already committed, ONLY retry synchronization
+    if (saveState === 'committed-sync-pending') {
+      savingRef.current = true;
+      setIsSaving(true);
+      try {
+        if (!dataContext?.refreshData) {
+          throw new Error('Data refresh is unavailable outside DataContext');
+        }
+        const refreshed = await dataContext.refreshData();
+        if (refreshed === false) {
+          throw new Error('Repository state refresh did not complete');
+        }
+      } catch (refreshErr) {
+        console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+        savingRef.current = false;
+        setIsSaving(false);
+        return;
+      }
+
+      setSaveState('completed');
+      try {
+        onSaveSuccess?.(log.id);
+      } catch (cbErr) {
+        console.warn('[ReportLogEditModal] onSaveSuccess callback error:', cbErr);
+      }
+      onClose();
+      savingRef.current = false;
+      setIsSaving(false);
+      return;
+    }
+
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) {
+      setReasonError(true);
+      setReasonErrorMessage(tReport('ERR_AUDIT_REASON_REQUIRED'));
+      return;
+    }
+
+    const trimmedStart = startTime.trim();
+    if (!trimmedStart) {
+      setRangeError(true);
+      setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
+      return;
+    }
+
+    const startDate = parseDateTimeInTimezone(trimmedStart, activeTimezone);
+    if (!startDate) {
+      setRangeError(true);
+      setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
+      return;
+    }
+
+    let endIso: string | null = null;
+    const trimmedEnd = endTime.trim();
+    if (trimmedEnd) {
+      const endDate = parseDateTimeInTimezone(trimmedEnd, activeTimezone);
+      if (!endDate) {
+        setRangeError(true);
+        setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
+        return;
+      }
+      if (endDate.getTime() < startDate.getTime()) {
+        setRangeError(true);
+        setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
+        return;
+      }
+      endIso = endDate.toISOString();
+    }
+
+    const startIso = startDate.toISOString();
+    savingRef.current = true;
+    setIsSaving(true);
+
+    try {
+      if (!dataContext?.handleEditTimeLog) {
+        throw new Error('Time log editing is unavailable outside DataContext');
+      }
+
+      const result = await dataContext.handleEditTimeLog(
+        log.id,
+        log.taskId,
+        startIso,
+        endIso,
+        note.trim() ? note.trim() : null,
+        trimmedReason
+      );
+
+      if (!result.saved) {
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+        savingRef.current = false;
+        setIsSaving(false);
+        return;
+      }
+
+      // The edit is committed. Lock state to committed-sync-pending if synchronization failed.
+      if (!result.synchronized) {
+        setSaveState('committed-sync-pending');
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+        savingRef.current = false;
+        setIsSaving(false);
+        return;
+      }
+    } catch (err) {
+      console.error('[ReportLogEditModal] Mutation failed:', err);
+      const code = extractErrorCode(err);
+      if (code === 'ERR_AUDIT_REASON_REQUIRED') {
+        setReasonError(true);
+        setReasonErrorMessage(tReport('ERR_AUDIT_REASON_REQUIRED'));
+      } else if (code === 'ERR_TIMELOG_INVALID_RANGE') {
+        setRangeError(true);
+        setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
+      } else if (code === 'ERR_TIMELOG_INVALID_FORMAT') {
+        setRangeError(true);
+        setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
+      } else if (code === 'ERR_AUDIT_SOURCE_INVALID') {
+        setGeneralErrorMessage(tReport('ERR_AUDIT_SOURCE_INVALID'));
+      } else {
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+      }
+      savingRef.current = false;
+      setIsSaving(false);
+      return;
+    }
+
+    setSaveState('completed');
+    try {
+      onSaveSuccess?.(log.id);
+    } catch (cbErr) {
+      console.warn('[ReportLogEditModal] onSaveSuccess callback error:', cbErr);
+    }
+    onClose();
+    savingRef.current = false;
+    setIsSaving(false);
+  };
+
+  let saveButtonLabel = tCommon('Save');
+  if (isSaving) {
+    saveButtonLabel = `${tCommon('Save')}...`;
+  } else if (saveState === 'committed-sync-pending') {
+    saveButtonLabel = tEngine('RetryNow');
+  }
+
+  return (
+    <DialogContent className="max-w-md bg-card border-border p-6 rounded-2xl shadow-2xl">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2 text-base font-bold text-foreground">
+          <Edit3 className="w-4 h-4 text-primary" />
+          {tReport('TimeLogAuditModalTitle')}
+        </DialogTitle>
+        <DialogDescription className="text-xs text-muted-foreground">
+          {tReport('AuditReasonLabel')}
+        </DialogDescription>
+      </DialogHeader>
+
+      <VStack gap="md" className="py-2">
+        <HStack gap="sm" className="flex-wrap items-center">
+          {taskName && (
+            <Badge variant="orange" size="sm">
+              {taskName}
+            </Badge>
+          )}
+          {projectName && (
+            <Caption className="text-muted-foreground font-medium">
+              ({projectName})
+            </Caption>
+          )}
+          <Badge
+            variant="outline"
+            size="sm"
+            data-testid="audit-edit-timezone-badge"
+            className="text-2xs font-mono text-muted-foreground"
+          >
+            {activeTimezone}
+          </Badge>
+          <MonoText size="2xs" className="text-muted-foreground ml-auto">
+            ID: {log.id}
+          </MonoText>
+        </HStack>
+
+        <VStack gap="xs">
+          <HStack gap="xs" className="items-center justify-between">
+            <Label htmlFor="audit-edit-start-time" className="text-xs font-mono text-muted-foreground">
+              {tReport('StartTime')}
+            </Label>
+            <Caption size="2xs" className="text-muted-foreground font-mono">
+              ({activeTimezone})
+            </Caption>
+          </HStack>
+          <Input
+            id="audit-edit-start-time"
+            data-testid="audit-edit-start-time"
+            type="text"
+            disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
+            aria-invalid={rangeError ? 'true' : undefined}
+            value={startTime}
+            onChange={(e) => {
+              if (saveState === 'committed-sync-pending') return;
+              setStartTime(e.target.value);
+              setRangeError(false);
+              setRangeErrorMessage(null);
+            }}
+            className={`h-8 text-xs font-mono bg-background ${
+              rangeError ? 'border-destructive focus-visible:ring-destructive' : ''
+            }`}
+          />
+        </VStack>
+
+        <VStack gap="xs">
+          <HStack gap="xs" className="items-center justify-between">
+            <Label htmlFor="audit-edit-end-time" className="text-xs font-mono text-muted-foreground">
+              {tReport('EndTime')}
+            </Label>
+            <Caption size="2xs" className="text-muted-foreground font-mono">
+              ({activeTimezone})
+            </Caption>
+          </HStack>
+          <Input
+            id="audit-edit-end-time"
+            data-testid="audit-edit-end-time"
+            type="text"
+            disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
+            aria-invalid={rangeError ? 'true' : undefined}
+            value={endTime}
+            onChange={(e) => {
+              if (saveState === 'committed-sync-pending') return;
+              setEndTime(e.target.value);
+              setRangeError(false);
+              setRangeErrorMessage(null);
+            }}
+            className={`h-8 text-xs font-mono bg-background ${
+              rangeError ? 'border-destructive focus-visible:ring-destructive' : ''
+            }`}
+          />
+          {rangeErrorMessage && (
+            <HStack data-testid="audit-range-error" gap="xs" className="text-xs text-destructive items-center mt-0.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <Text size="xs" className="text-destructive">{rangeErrorMessage}</Text>
+            </HStack>
+          )}
+        </VStack>
+
+        <VStack gap="xs">
+          <Label htmlFor="audit-edit-note" className="text-xs font-mono text-muted-foreground">
+            {tReport('Note')}
+          </Label>
+          <Input
+            id="audit-edit-note"
+            data-testid="audit-edit-note"
+            type="text"
+            disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
+            value={note}
+            onChange={(e) => {
+              if (saveState === 'committed-sync-pending') return;
+              setNote(e.target.value);
+            }}
+            className="h-8 text-xs bg-background"
+          />
+        </VStack>
+
+        <VStack gap="xs">
+          <Label htmlFor="audit-edit-reason" className="text-xs font-mono font-bold text-primary">
+            * {tReport('AuditReasonLabel')}
+          </Label>
+          <Textarea
+            id="audit-edit-reason"
+            data-testid="audit-edit-reason"
+            disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
+            aria-invalid={reasonError ? 'true' : undefined}
+            value={reason}
+            onChange={(e) => {
+              if (saveState === 'committed-sync-pending') return;
+              setReason(e.target.value);
+              setReasonError(false);
+              setReasonErrorMessage(null);
+            }}
+            placeholder={tReport('AuditReasonPlaceholder')}
+            rows={2}
+            className={`text-xs bg-background resize-none ${
+              reasonError
+                ? 'border-destructive focus:border-destructive text-destructive'
+                : 'border-primary/50 focus:border-primary'
+            }`}
+          />
+          {reasonErrorMessage && (
+            <HStack data-testid="audit-reason-error" gap="xs" className="text-xs text-destructive items-center mt-0.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <Text size="xs" className="text-destructive">{reasonErrorMessage}</Text>
+            </HStack>
+          )}
+        </VStack>
+
+        {generalErrorMessage && (
+          <HStack data-testid="audit-general-error" gap="xs" className="text-xs text-destructive items-center">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <Text size="xs" className="text-destructive">{generalErrorMessage}</Text>
+          </HStack>
+        )}
+      </VStack>
+
+      <DialogFooter className="gap-2 sm:gap-0 justify-between items-center w-full">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleDeleteClick}
+          disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
+          data-testid="audit-delete-button"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-auto cursor-pointer"
+        >
+          {isDeleting ? tCommon('Delete') + '...' : tCommon('Delete')}
+        </Button>
+        <HStack gap="sm">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            disabled={isSaving || isDeleting}
+          >
+            {tCommon('Cancel')}
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={handleSave}
+            disabled={isSaving || isDeleting}
+            data-testid="audit-save-button"
+            className="gap-1.5"
+          >
+            {saveButtonLabel}
+          </Button>
+        </HStack>
+      </DialogFooter>
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={tReport('ConfirmDeleteLogTitle')}
+        description={tReport('ConfirmDeleteLogDesc')}
+        confirmLabel={tReport('DeleteLog')}
+        cancelLabel={tCommon('Cancel')}
+        variant="destructive"
+        loading={isDeleting}
+        confirmDisabled={isDeleting || isSaving}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsConfirmOpen(false)}
+      />
+    </DialogContent>
+  );
+}
+
+/**
+ * Audit-compliant time log edit modal.
+ * Requires a mandatory "Reason" field for every modification to enforce audit integrity.
+ */
+export function ReportLogEditModal({
+  isOpen,
+  onClose,
+  log,
+  projectName,
+  taskName,
+  timezone,
+  onSaveSuccess,
+  onDeleteSuccess,
+  onDeleted,
+}: ReportLogEditModalProps) {
+  if (!isOpen || !log) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <ReportLogEditForm
+        key={log.id}
+        log={log}
+        projectName={projectName}
+        taskName={taskName}
+        timezone={timezone}
+        onClose={onClose}
+        onSaveSuccess={onSaveSuccess}
+        onDeleteSuccess={onDeleteSuccess}
+        onDeleted={onDeleted}
+      />
+    </Dialog>
+  );
+}
+
+export default ReportLogEditModal;

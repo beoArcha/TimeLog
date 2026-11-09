@@ -11,6 +11,7 @@ export * from './EmojiPicker';
 export * from './EmptyState';
 export * from './FilterBar';
 export * from './PromptDialog';
+export * from './ReportLogEditModal';
 export * from './RootErrorBoundary';
 export * from './SegmentedControl';
 export * from './StatCard';

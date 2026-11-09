@@ -25,6 +25,14 @@ export interface ReportStatisticsHookProps extends UseReportStatisticsProps {
   selectedTags?: string[];
 }
 
+const EMPTY_BILLING_RESULT: RangeBillingResult = {
+  byCurrency: {},
+  byTask: [],
+  totalBillableSeconds: 0,
+  totalNonBillableSeconds: 0,
+  totalUnconfiguredSeconds: 0,
+};
+
 export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedReportStatisticsResult {
   const {
     logs,
@@ -44,31 +52,57 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
   const { t } = useTranslation('report');
 
   const hasTagFilter = Boolean(selectedTags && selectedTags.length > 0);
+  const hasProjectFilter = Boolean(selectedProjectId);
+
+  // Strict intersection between project filter and tag filter
+  const allowedProjectIds = useMemo((): Set<string> | null => {
+    if (!hasTagFilter && !hasProjectFilter) {
+      return null;
+    }
+
+    if (!hasTagFilter && hasProjectFilter && selectedProjectId) {
+      return new Set([selectedProjectId]);
+    }
+
+    const matchingTagProjects = filterProjectsByTags(projects, selectedTags);
+    const matchingTagIds = new Set(matchingTagProjects.map((p) => p.id));
+
+    if (hasProjectFilter && selectedProjectId) {
+      if (matchingTagIds.has(selectedProjectId)) {
+        return new Set([selectedProjectId]);
+      }
+      return new Set<string>();
+    }
+
+    return matchingTagIds;
+  }, [projects, selectedTags, selectedProjectId, hasTagFilter, hasProjectFilter]);
 
   const effectiveProjects = useMemo(() => {
-    return filterProjectsByTags(projects, selectedTags);
-  }, [projects, selectedTags]);
-
-  const effectiveProjectIds = useMemo(() => {
-    return new Set(effectiveProjects.map((p) => p.id));
-  }, [effectiveProjects]);
+    if (!allowedProjectIds) return projects;
+    return projects.filter((p) => allowedProjectIds.has(p.id));
+  }, [projects, allowedProjectIds]);
 
   const effectiveTasks = useMemo(() => {
-    if (!hasTagFilter) return tasks;
-    return filterTasksByProjectIds(tasks, effectiveProjectIds);
-  }, [tasks, effectiveProjectIds, hasTagFilter]);
+    if (!allowedProjectIds) return tasks;
+    return filterTasksByProjectIds(tasks, allowedProjectIds);
+  }, [tasks, allowedProjectIds]);
 
   const taskMap = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks]);
 
   const effectiveLogs = useMemo(() => {
-    if (!hasTagFilter) return logs;
-    return filterTimeLogsByTagFilter(logs, effectiveProjectIds, taskMap);
-  }, [logs, taskMap, effectiveProjectIds, hasTagFilter]);
+    if (!allowedProjectIds) return logs;
+    return filterTimeLogsByTagFilter(logs, allowedProjectIds, taskMap);
+  }, [logs, taskMap, allowedProjectIds]);
 
   const effectivePatches = useMemo(() => {
-    if (!hasTagFilter) return patches;
-    return filterTimeLogsByTagFilter(patches, effectiveProjectIds, taskMap);
-  }, [patches, taskMap, effectiveProjectIds, hasTagFilter]);
+    if (!allowedProjectIds) return patches;
+    return filterTimeLogsByTagFilter(patches, allowedProjectIds, taskMap);
+  }, [patches, taskMap, allowedProjectIds]);
+
+  const effectiveSelectedProjectId = useMemo(() => {
+    if (!selectedProjectId) return null;
+    return allowedProjectIds && allowedProjectIds.has(selectedProjectId) ? selectedProjectId : null;
+  }, [selectedProjectId, allowedProjectIds]);
 
   const baseStats = useMemo(
     () =>
@@ -83,7 +117,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
         sysSettings,
         customFrom,
         customTo,
-        selectedProjectId,
+        selectedProjectId: effectiveSelectedProjectId,
       }),
     [
       effectiveLogs,
@@ -96,7 +130,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
       sysSettings,
       customFrom,
       customTo,
-      selectedProjectId,
+      effectiveSelectedProjectId,
     ]
   );
 
@@ -113,6 +147,17 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
       setBillingResult(null);
       setIsBillingLoading(true);
       setBillingError(null);
+
+      // If intersection is empty, return empty billing result immediately without querying engine
+      if (allowedProjectIds !== null && allowedProjectIds.size === 0) {
+        if (!isCancelled) {
+          setBillingResult(EMPTY_BILLING_RESULT);
+          setIsBillingLoading(false);
+          setBillingError(null);
+        }
+        return;
+      }
+
       let filterContext: ElapsedRangeFilter | null = null;
       try {
         const now = nowIso ? new Date(nowIso) : new Date();
@@ -124,11 +169,13 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
           includePatches
         );
 
-        if (selectedProjectId) {
-          filter.projectId = selectedProjectId;
-        }
-        if (hasTagFilter) {
-          filter.projectIds = Array.from(effectiveProjectIds);
+        if (allowedProjectIds !== null) {
+          const idsArray = Array.from<string>(allowedProjectIds);
+          if (idsArray.length === 1) {
+            filter.projectId = idsArray[0];
+          } else if (idsArray.length > 1) {
+            filter.projectIds = idsArray;
+          }
         }
         filterContext = filter;
 
@@ -162,6 +209,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
             customFrom,
             customTo,
             selectedProjectId,
+            projectIds: allowedProjectIds ? Array.from(allowedProjectIds) : undefined,
             includePatches,
           },
           nowIso,
@@ -188,8 +236,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
     customTo,
     nowIso,
     selectedProjectId,
-    hasTagFilter,
-    effectiveProjectIds,
+    allowedProjectIds,
     includePatches,
     t,
   ]);

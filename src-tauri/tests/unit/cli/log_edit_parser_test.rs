@@ -102,3 +102,56 @@ fn test_log_edit_parser_help_contains_reason_and_short_flag() {
         "Help text must explain audit reason"
     );
 }
+
+#[test]
+fn test_log_edit_parser_with_explicit_utc_and_offset_timestamps() {
+    let parsed_z = CliArgs::try_parse_from([
+        "oxy",
+        "log",
+        "edit",
+        "log-400",
+        "--start",
+        "2026-10-24T10:00:00Z",
+        "--end",
+        "2026-10-24T11:00:00Z",
+        "-r",
+        "Testing Z offset",
+    ])
+    .expect("parse log edit with Z");
+
+    match parsed_z.command {
+        Some(CliCommand::Log(args)) => match args.command {
+            LogSubcommand::Edit { start, end, .. } => {
+                assert_eq!(start.as_deref(), Some("2026-10-24T10:00:00Z"));
+                assert_eq!(end.as_deref(), Some("2026-10-24T11:00:00Z"));
+            }
+            other => panic!("Expected LogSubcommand::Edit, got: {:?}", other),
+        },
+        other => panic!("Expected CliCommand::Log, got: {:?}", other),
+    }
+
+    let parsed_offset = CliArgs::try_parse_from([
+        "oxy",
+        "log",
+        "edit",
+        "log-500",
+        "--start",
+        "2026-10-24T12:00:00+02:00",
+        "--end",
+        "2026-10-24T13:00:00+02:00",
+        "-r",
+        "Testing +02:00 offset",
+    ])
+    .expect("parse log edit with +02:00 offset");
+
+    match parsed_offset.command {
+        Some(CliCommand::Log(args)) => match args.command {
+            LogSubcommand::Edit { start, end, .. } => {
+                assert_eq!(start.as_deref(), Some("2026-10-24T12:00:00+02:00"));
+                assert_eq!(end.as_deref(), Some("2026-10-24T13:00:00+02:00"));
+            }
+            other => panic!("Expected LogSubcommand::Edit, got: {:?}", other),
+        },
+        other => panic!("Expected CliCommand::Log, got: {:?}", other),
+    }
+}

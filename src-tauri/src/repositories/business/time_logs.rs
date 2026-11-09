@@ -59,6 +59,19 @@ impl BusinessRepository {
         Ok(conn.execute(constants::CLOSE_ALL_ACTIVE_LOGS, params![end_time])?)
     }
 
+    pub fn close_active_log_by_id(&self, end_time: &str, log_id: &str) -> Result<usize> {
+        let conn = self.connect()?;
+        Ok(conn.execute(constants::CLOSE_ACTIVE_LOG_BY_ID, params![end_time, log_id])?)
+    }
+
+    pub fn close_active_logs_by_task(&self, end_time: &str, task_id: &str) -> Result<usize> {
+        let conn = self.connect()?;
+        Ok(conn.execute(
+            constants::CLOSE_ACTIVE_LOGS_BY_TASK,
+            params![end_time, task_id],
+        )?)
+    }
+
     pub fn insert_time_log(&self, log_id: &str, task_id: &str, start_time: &str) -> Result<usize> {
         let conn = self.connect()?;
         Ok(conn.execute(

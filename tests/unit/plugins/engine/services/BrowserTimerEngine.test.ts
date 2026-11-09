@@ -85,4 +85,49 @@ describe('BrowserTimerEngine', () => {
     expect(routerMock.timeLogs.closeAllActive).not.toHaveBeenCalled();
     expect(routerMock.timeLogs.insert).not.toHaveBeenCalled();
   });
+
+  it('should throw EngineException with ERR_TASK_ALREADY_COMPLETED when startTimer is called on completed task', async () => {
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [{ id: 'task-completed-1', projectId: 'project-10', name: 'Done Task', completed: true, createdAt: '' }],
+      logs: [],
+      activeLog: null,
+    });
+
+    await expect(engine.startTimer('task-completed-1')).rejects.toThrow(
+      expect.objectContaining({
+        code: 'ERR_TASK_ALREADY_COMPLETED',
+      })
+    );
+  });
+
+  it('should throw EngineException with ERR_TASK_ALREADY_COMPLETED when switchTimer is called on completed task', async () => {
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [{ id: 'task-completed-2', projectId: 'project-10', name: 'Done Task 2', completed: true, createdAt: '' }],
+      logs: [],
+      activeLog: null,
+    });
+
+    await expect(engine.switchTimer('task-completed-2')).rejects.toThrow(
+      expect.objectContaining({
+        code: 'ERR_TASK_ALREADY_COMPLETED',
+      })
+    );
+  });
+
+  it('should throw EngineException with ERR_TASK_ALREADY_COMPLETED when resumeTimer is called on completed task', async () => {
+    vi.mocked(routerMock.core.load).mockResolvedValueOnce({
+      projects: [],
+      tasks: [{ id: 'task-completed-3', projectId: 'project-10', name: 'Done Task 3', completed: true, createdAt: '' }],
+      logs: [],
+      activeLog: null,
+    });
+
+    await expect(engine.resumeTimer('task-completed-3')).rejects.toThrow(
+      expect.objectContaining({
+        code: 'ERR_TASK_ALREADY_COMPLETED',
+      })
+    );
+  });
 });
