@@ -9,6 +9,7 @@ import { Heading } from '@components/ui/typography';
 import { SearchInput } from '@components/ui/search-input';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { useDebounce } from '@common/hooks/useDebounce';
+import { useSettingsSafe } from '@common/hooks/useSettings';
 import { ProjectChartItem } from '../types';
 import { ReportLogEditModal } from '@components/ReportLogEditModal';
 import ReportLogDistribution from './ReportLogDistribution';
@@ -45,12 +46,14 @@ export default function ReportLogList({
   onLogDeleted,
   onLogUpdated,
   locale: propLocale,
-  timeZone,
+  timeZone: propTimeZone,
   debounceDelay = 200,
 }: ReportLogListProps) {
   const { t, locale: contextLocale } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
   const activeLocale = propLocale ?? contextLocale;
+  const settings = useSettingsSafe();
+  const effectiveTimeZone = propTimeZone ?? settings?.resolvedTimezone ?? settings?.timezone;
 
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, debounceDelay);
@@ -151,7 +154,7 @@ export default function ReportLogList({
                 task={taskMap.get(log.taskId)}
                 isActive={isLogActive(log)}
                 locale={activeLocale}
-                timeZone={timeZone}
+                timeZone={effectiveTimeZone}
                 nowIso={nowIso}
                 onEdit={openEdit}
                 onDelete={openDelete}

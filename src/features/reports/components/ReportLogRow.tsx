@@ -10,6 +10,7 @@ import { Caption, MonoText } from '@components/ui/typography';
 import { HStack } from '@components/ui/stack';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
+import { useSettingsSafe } from '@common/hooks/useSettings';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import {
   formatCalendarDate,
@@ -36,13 +37,15 @@ export function ReportLogRow({
   task,
   isActive,
   locale: propLocale,
-  timeZone,
+  timeZone: propTimeZone,
   nowIso,
   onEdit,
   onDelete,
 }: ReportLogRowProps) {
   const { t, locale: contextLocale } = useTranslation('report');
   const activeLocale = propLocale ?? contextLocale;
+  const settings = useSettingsSafe();
+  const effectiveTimeZone = propTimeZone ?? settings?.resolvedTimezone ?? settings?.timezone;
 
   const isClamped = 'clampedDurationSeconds' in log;
   let durSeconds: number;
@@ -65,7 +68,7 @@ export function ReportLogRow({
     durSeconds = Math.max(0, Math.floor((end - start) / 1000));
   }
 
-  const screenTimeFormatted = formatScreenTime(displayTime, activeLocale, { timeZone });
+  const screenTimeFormatted = formatScreenTime(displayTime, activeLocale, { timeZone: effectiveTimeZone });
   const screenTimeOnly = screenTimeFormatted || 'N/A';
 
   const printDateFormatted = formatCalendarDate(displayTime, activeLocale);

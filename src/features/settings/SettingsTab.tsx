@@ -1,6 +1,7 @@
 import React from 'react';
 import { Settings } from 'lucide-react';
 import LanguageSettingsCard from './components/LanguageSettingsCard';
+import TimezoneSettingsCard from './components/TimezoneSettingsCard';
 import EngineConfig from './components/EngineConfig';
 import AutomationSettings from './components/AutomationSettings';
 import HolidaysLeavesCard from './components/HolidaysLeavesCard';
@@ -30,6 +31,7 @@ export default function SettingsTab() {
 
       <div className="flex flex-col gap-6">
         <LanguageSettingsCard />
+        <TimezoneSettingsCard />
         <EngineConfig />
         <AutomationSettings />
         <HolidaysLeavesCard />
