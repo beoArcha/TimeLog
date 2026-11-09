@@ -86,7 +86,9 @@
     "CollapseSection": "Collapse section",
     "ExpandSection": "Expand section",
     "NoTasksInProject": "No tasks in this project",
-    "HierarchicalView": "Hierarchical grouped view"
+    "HierarchicalView": "Hierarchical grouped view",
+    "ERR_TIMELOG_INVALID_FORMAT": "Invalid date or time format (expected YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Timezone"
   },
   "pl": {
     "Title": "Dziennik Raportów",
@@ -175,7 +177,9 @@
     "CollapseSection": "Zwiń sekcję",
     "ExpandSection": "Rozwiń sekcję",
     "NoTasksInProject": "Brak zadań w tym projekcie",
-    "HierarchicalView": "Widok hierarchiczny"
+    "HierarchicalView": "Widok hierarchiczny",
+    "ERR_TIMELOG_INVALID_FORMAT": "Nieprawidłowy format daty lub czasu (oczekiwany YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Strefa czasowa"
   },
   "de": {
     "Title": "Berichtsprotokollierung",
@@ -264,7 +268,9 @@
     "CollapseSection": "Bereich einklappen",
     "ExpandSection": "Bereich ausklappen",
     "NoTasksInProject": "Keine Aufgaben in diesem Projekt",
-    "HierarchicalView": "Hierarchische Ansicht"
+    "HierarchicalView": "Hierarchische Ansicht",
+    "ERR_TIMELOG_INVALID_FORMAT": "Ungültiges Datums- oder Uhrzeitformat (erwartet YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Zeitzone"
   },
   "es": {
     "Title": "Registro de Informes",
@@ -353,7 +359,9 @@
     "CollapseSection": "Contraer sección",
     "ExpandSection": "Expandir sección",
     "NoTasksInProject": "No hay tareas en este proyecto",
-    "HierarchicalView": "Vista jerárquica"
+    "HierarchicalView": "Vista jerárquica",
+    "ERR_TIMELOG_INVALID_FORMAT": "Formato de fecha u hora no válido (se esperaba YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Zona horaria"
   },
   "pt-br": {
     "Title": "Registro de Relatórios",
@@ -442,7 +450,9 @@
     "CollapseSection": "Recolher seção",
     "ExpandSection": "Expandir seção",
     "NoTasksInProject": "Nenhuma tarefa neste projeto",
-    "HierarchicalView": "Visualização hierárquica"
+    "HierarchicalView": "Visualização hierárquica",
+    "ERR_TIMELOG_INVALID_FORMAT": "Formato de data ou hora inválido (esperado YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Fuso horário"
   },
   "fr": {
     "Title": "Journalisation des Rapports",
@@ -531,7 +541,9 @@
     "CollapseSection": "Réduire la section",
     "ExpandSection": "Développer la section",
     "NoTasksInProject": "Aucune tâche dans ce projet",
-    "HierarchicalView": "Vue hiérarchique"
+    "HierarchicalView": "Vue hiérarchique",
+    "ERR_TIMELOG_INVALID_FORMAT": "Format de date ou d'heure non valide (attendu YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Fuseau horaire"
   },
   "uk": {
     "Title": "Журнал звітів",
@@ -620,7 +632,9 @@
     "CollapseSection": "Згорнути секцію",
     "ExpandSection": "Розгорнути секцію",
     "NoTasksInProject": "Немає завдань у цьому проєкті",
-    "HierarchicalView": "Ієрархічний вигляд"
+    "HierarchicalView": "Ієрархічний вигляд",
+    "ERR_TIMELOG_INVALID_FORMAT": "Недійсний формат дати або часу (очікується YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Часовий пояс"
   },
   "ja": {
     "Title": "レポートログ",
@@ -709,7 +723,9 @@
     "CollapseSection": "セクションを折りたたむ",
     "ExpandSection": "セクションを展開",
     "NoTasksInProject": "このプロジェクトにタスクはありません",
-    "HierarchicalView": "階層表示"
+    "HierarchicalView": "階層表示",
+    "ERR_TIMELOG_INVALID_FORMAT": "無効な日付または時刻の形式です (形式: YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "タイムゾーン"
   },
   "nl": {
     "Title": "Rapportagelogs",
@@ -798,7 +814,9 @@
     "CollapseSection": "Sectie inklappen",
     "ExpandSection": "Sectie uitklappen",
     "NoTasksInProject": "Geen taken in dit project",
-    "HierarchicalView": "Hiërarchische weergave"
+    "HierarchicalView": "Hiërarchische weergave",
+    "ERR_TIMELOG_INVALID_FORMAT": "Ongeldige datum- of tijdnotatie (verwacht YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Tijdzone"
   },
   "it": {
     "Title": "Rapporti e Registri",
@@ -887,6 +905,8 @@
     "CollapseSection": "Comprimi sezione",
     "ExpandSection": "Espandi sezione",
     "NoTasksInProject": "Nessuna attività in questo progetto",
-    "HierarchicalView": "Vista gerarchica"
+    "HierarchicalView": "Vista gerarchica",
+    "ERR_TIMELOG_INVALID_FORMAT": "Formato di data o ora non valido (previsto YYYY-MM-DD HH:mm:ss)",
+    "TimezoneLabel": "Fuso orario"
   }
 }
