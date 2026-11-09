@@ -439,13 +439,16 @@ export function formatDateTimeInTimezone(
 }
 
 /**
- * Parses a date-time string in a specified timezone (e.g. 'YYYY-MM-DD HH:mm:ss' or 'YYYY-MM-DDTHH:mm:ss')
- * into a UTC JavaScript Date object. Also accepts explicit ISO 8601 strings with a UTC 'Z' or offset indicator.
- * Performs rigorous calendar validation (e.g. leap years, valid day and month counts).
+ * Parses a date-time string in a specified timezone into a UTC JavaScript Date.
  *
- * @param input - Form input string containing date and time
- * @param timezone - Target timezone to interpret local date-time strings within
- * @returns JavaScript Date representing the exact UTC moment, or null if invalid or malformed
+ * Local wall-clock times are accepted only when they map to exactly one instant.
+ * Non-existent times (DST gaps) and ambiguous times (DST overlaps) return null.
+ * An explicit ISO 8601 UTC marker or offset selects an exact instant and bypasses
+ * local-time ambiguity.
+ *
+ * @param input - Local date-time string or explicit ISO 8601 timestamp
+ * @param timezone - IANA timezone used to interpret local date-time strings
+ * @returns Exact UTC instant, or null when input is invalid or ambiguous
  */
 export function parseDateTimeInTimezone(
   input: string,
@@ -454,19 +457,16 @@ export function parseDateTimeInTimezone(
   if (!input || typeof input !== 'string') {
     return null;
   }
+
   const trimmed = input.trim();
   if (!trimmed) {
     return null;
   }
 
-  // If input contains an explicit UTC or timezone offset, parse directly
-  const hasExplicitOffset = /[zZ]|[+-]\d{2}(?::?\d{2})?$/.test(trimmed);
+  const hasExplicitOffset = /(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(trimmed);
   if (hasExplicitOffset) {
-    const directDate = new Date(trimmed);
-    if (!isNaN(directDate.getTime())) {
-      return directDate;
-    }
-    return null;
+    const explicitDate = new Date(trimmed);
+    return Number.isNaN(explicitDate.getTime()) ? null : explicitDate;
   }
 
   const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
@@ -474,12 +474,12 @@ export function parseDateTimeInTimezone(
     return null;
   }
 
-  const year = parseInt(match[1], 10);
-  const month = parseInt(match[2], 10);
-  const day = parseInt(match[3], 10);
-  const hour = parseInt(match[4], 10);
-  const minute = parseInt(match[5], 10);
-  const second = match[6] ? parseInt(match[6], 10) : 0;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = match[6] ? Number(match[6]) : 0;
 
   if (
     month < 1 || month > 12 ||
@@ -502,9 +502,7 @@ export function parseDateTimeInTimezone(
 
   const effectiveTimezone = resolveEffectiveTimezone(timezone);
   const targetLocalMs = Date.UTC(year, month - 1, day, hour, minute, second);
-  let utcMs = targetLocalMs;
-
-  const dtf = getSafeDateTimeFormat('en-US', {
+  const formatter = getSafeDateTimeFormat('en-US', {
     timeZone: effectiveTimezone,
     year: 'numeric',
     month: '2-digit',
@@ -512,34 +510,48 @@ export function parseDateTimeInTimezone(
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
+    hourCycle: 'h23',
   });
 
-  for (let i = 0; i < 4; i++) {
-    const parts = dtf.formatToParts(new Date(utcMs));
-    const p: Record<string, string> = {};
-    for (const part of parts) {
-      p[part.type] = part.value;
+  const getLocalTimestamp = (instantMs: number): number => {
+    const parts: Record<string, string> = {};
+    for (const part of formatter.formatToParts(new Date(instantMs))) {
+      parts[part.type] = part.value;
     }
-    let h = parseInt(p.hour, 10);
-    if (h === 24) {
-      h = 0;
-    }
-    const localMs = Date.UTC(
-      parseInt(p.year, 10),
-      parseInt(p.month, 10) - 1,
-      parseInt(p.day, 10),
-      h,
-      parseInt(p.minute, 10),
-      parseInt(p.second, 10)
+    return Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second)
     );
-    const diff = targetLocalMs - localMs;
-    if (diff === 0) {
-      break;
-    }
-    utcMs += diff;
+  };
+
+  // Collect every offset active around the requested wall-clock time. Sampling
+  // both sides of the transition discovers both offsets during DST overlaps.
+  const offsets = new Set<number>();
+  const samplingWindowMs = 36 * 60 * 60 * 1000;
+  const samplingStepMs = 6 * 60 * 60 * 1000;
+  for (
+    let sampleMs = targetLocalMs - samplingWindowMs;
+    sampleMs <= targetLocalMs + samplingWindowMs;
+    sampleMs += samplingStepMs
+  ) {
+    offsets.add(getLocalTimestamp(sampleMs) - sampleMs);
   }
 
-  return new Date(utcMs);
-}
+  const matchingInstants = new Set<number>();
+  for (const offsetMs of offsets) {
+    const candidateMs = targetLocalMs - offsetMs;
+    if (getLocalTimestamp(candidateMs) === targetLocalMs) {
+      matchingInstants.add(candidateMs);
+    }
+  }
 
+  if (matchingInstants.size !== 1) {
+    return null;
+  }
+
+  return new Date([...matchingInstants][0]);
+}
