@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 import React from "react";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { TaskMetrics } from "@features/tasks/components/TaskItem/TaskMetrics";
 import { aTask } from "@tests/shared/builders/entity-builders";
 import { TaskEditingProvider } from "@features/tasks/context/TaskEditingContext";
-import { MockDataProvider } from "@tests/shared/mocks/MockProviders";
+import { MockDataProvider, MockProviders } from "@tests/shared/mocks/MockProviders";
 import type { DataState } from "@common/hooks/DataContext";
+import type { TimeLog } from "@bindings/TimeLog";
 
 describe("Unit Tests: TaskMetrics", () => {
   const onStartTimerMock = vi.fn();
@@ -167,5 +169,213 @@ describe("Unit Tests: TaskMetrics", () => {
 
     // Assert
     expect(handleStartTimer).toHaveBeenCalledWith("t1");
+  });
+
+  describe("A5: Interactive counter double-click and space bar actions", () => {
+    const mockLog1: TimeLog = {
+      id: "log-1",
+      taskId: "t1",
+      projectId: "p1",
+      startTime: "2026-11-09T08:00:00Z",
+      endTime: "2026-11-09T09:00:00Z",
+      note: "Work session 1",
+    };
+
+    const mockLog2: TimeLog = {
+      id: "log-2",
+      taskId: "t1",
+      projectId: "p1",
+      startTime: "2026-11-09T09:30:00Z",
+      endTime: "2026-11-09T10:30:00Z",
+      note: "Work session 2",
+    };
+
+    it("should render counter as an interactive button with tabIndex=0 and descriptive aria-label", () => {
+      render(
+        <MockProviders>
+          <TaskMetrics {...mockProps} rootDuration={3600} />
+        </MockProviders>
+      );
+
+      const counter = screen.getByTestId("task-counter-btn-t1");
+      expect(counter.tagName.toLowerCase()).toBe("button");
+      expect(counter.getAttribute("tabindex")).toBe("0");
+      expect(counter.tabIndex).toBe(0);
+      expect(counter.getAttribute("type")).toBe("button");
+      expect(counter.getAttribute("aria-label")).toMatch(/01:00:00/i);
+      expect(counter.getAttribute("title")).toBeTruthy();
+    });
+
+    it("should open logs popover on userEvent.dblClick when task has multiple logs", async () => {
+      const user = userEvent.setup();
+      const onOpenLogs = vi.fn();
+
+      render(
+        <MockProviders dataState={{ logs: [mockLog1, mockLog2] }}>
+          <TaskMetrics {...mockProps} logs={[mockLog1, mockLog2]} onOpenLogs={onOpenLogs} />
+        </MockProviders>
+      );
+
+      const counter = screen.getByTestId("task-counter-btn-t1");
+      await user.dblClick(counter);
+
+      expect(onOpenLogs).toHaveBeenCalled();
+      const popover = await screen.findByTestId("task-logs-popover-t1");
+      expect(popover).not.toBeNull();
+      expect(screen.getByTestId("log-item-log-1")).not.toBeNull();
+      expect(screen.getByTestId("log-item-log-2")).not.toBeNull();
+    });
+
+    it("should open logs popover on pressing Space (userEvent.keyboard(' ')) on focused counter", async () => {
+      const user = userEvent.setup();
+      const onOpenLogs = vi.fn();
+
+      render(
+        <MockProviders dataState={{ logs: [mockLog1, mockLog2] }}>
+          <TaskMetrics {...mockProps} logs={[mockLog1, mockLog2]} onOpenLogs={onOpenLogs} />
+        </MockProviders>
+      );
+
+      const counter = screen.getByTestId("task-counter-btn-t1");
+      counter.focus();
+      expect(document.activeElement).toBe(counter);
+
+      await user.keyboard(" ");
+
+      expect(onOpenLogs).toHaveBeenCalled();
+      const popover = await screen.findByTestId("task-logs-popover-t1");
+      expect(popover).not.toBeNull();
+      expect(screen.getByTestId("log-item-log-1")).not.toBeNull();
+      expect(screen.getByTestId("log-item-log-2")).not.toBeNull();
+    });
+
+    it("should open ReportLogEditModal directly on dblClick when task has exactly one log", async () => {
+      const user = userEvent.setup();
+      const onOpenLogs = vi.fn();
+
+      render(
+        <MockProviders dataState={{ logs: [mockLog1] }}>
+          <TaskMetrics {...mockProps} logs={[mockLog1]} onOpenLogs={onOpenLogs} />
+        </MockProviders>
+      );
+
+      const counter = screen.getByTestId("task-counter-btn-t1");
+      await user.dblClick(counter);
+
+      expect(onOpenLogs).toHaveBeenCalled();
+      expect(screen.queryByTestId("task-logs-popover-t1")).toBeNull();
+      const startInput = await screen.findByTestId("audit-edit-start-time");
+      expect((startInput as HTMLInputElement).value).toBe("2026-11-09T08:00:00Z");
+    });
+
+    it("should open ReportLogEditModal directly on pressing Space when task has an active log", async () => {
+      const user = userEvent.setup();
+      const onOpenLogs = vi.fn();
+      const activeLog: TimeLog = {
+        id: "active-log-1",
+        taskId: "t1",
+        projectId: "p1",
+        startTime: "2026-11-09T11:00:00Z",
+        endTime: null,
+        note: "Currently timing",
+      };
+
+      render(
+        <MockProviders dataState={{ logs: [mockLog1, activeLog], activeLog }}>
+          <TaskMetrics
+            {...mockProps}
+            logs={[mockLog1, activeLog]}
+            activeLog={activeLog}
+            onOpenLogs={onOpenLogs}
+          />
+        </MockProviders>
+      );
+
+      const counter = screen.getByTestId("task-counter-btn-t1");
+      counter.focus();
+      await user.keyboard(" ");
+
+      expect(onOpenLogs).toHaveBeenCalled();
+      expect(screen.queryByTestId("task-logs-popover-t1")).toBeNull();
+      const startInput = await screen.findByTestId("audit-edit-start-time");
+      expect((startInput as HTMLInputElement).value).toBe("2026-11-09T11:00:00Z");
+    });
+
+    it("should open ReportLogEditModal upon selecting a log from the popover", async () => {
+      const user = userEvent.setup();
+
+      render(
+        <MockProviders dataState={{ logs: [mockLog1, mockLog2] }}>
+          <TaskMetrics {...mockProps} logs={[mockLog1, mockLog2]} />
+        </MockProviders>
+      );
+
+      const counter = screen.getByTestId("task-counter-btn-t1");
+      await user.dblClick(counter);
+
+      const logItemBtn = await screen.findByTestId("log-item-log-2");
+      await user.click(logItemBtn);
+
+      const startInput = await screen.findByTestId("audit-edit-start-time");
+      expect((startInput as HTMLInputElement).value).toBe("2026-11-09T09:30:00Z");
+    });
+
+    it("should not open logs history or modal on a single click", async () => {
+      const user = userEvent.setup();
+      const onOpenLogs = vi.fn();
+
+      render(
+        <MockProviders dataState={{ logs: [mockLog1, mockLog2] }}>
+          <TaskMetrics {...mockProps} logs={[mockLog1, mockLog2]} onOpenLogs={onOpenLogs} />
+        </MockProviders>
+      );
+
+      const counter = screen.getByTestId("task-counter-btn-t1");
+      await user.click(counter);
+
+      expect(onOpenLogs).not.toHaveBeenCalled();
+      expect(screen.queryByTestId("task-logs-popover-t1")).toBeNull();
+      expect(screen.queryByTestId("audit-edit-start-time")).toBeNull();
+    });
+
+    it("should not trigger counter open action when pressing Space on Start button", async () => {
+      const user = userEvent.setup();
+      const onOpenLogs = vi.fn();
+
+      render(
+        <MockProviders dataState={{ logs: [mockLog1, mockLog2] }}>
+          <TaskMetrics {...mockProps} logs={[mockLog1, mockLog2]} onOpenLogs={onOpenLogs} />
+        </MockProviders>
+      );
+
+      const startBtn = screen.getByRole("button", {
+        name: /StartMeasurement|Start/i,
+      });
+      startBtn.focus();
+      expect(document.activeElement).toBe(startBtn);
+
+      await user.keyboard(" ");
+
+      expect(onOpenLogs).not.toHaveBeenCalled();
+      expect(onStartTimerMock).toHaveBeenCalledWith("t1");
+      expect(screen.queryByTestId("task-logs-popover-t1")).toBeNull();
+    });
+
+    it("should display NoLogs message in popover when task has 0 logs", async () => {
+      const user = userEvent.setup();
+
+      render(
+        <MockProviders dataState={{ logs: [] }}>
+          <TaskMetrics {...mockProps} logs={[]} />
+        </MockProviders>
+      );
+
+      const counter = screen.getByTestId("task-counter-btn-t1");
+      await user.dblClick(counter);
+
+      const popover = await screen.findByTestId("task-logs-popover-t1");
+      expect(popover).not.toBeNull();
+      expect(screen.getByText(/No time logs recorded|Brak zarejestrowanych wpisów czasu/i)).not.toBeNull();
+    });
   });
 });

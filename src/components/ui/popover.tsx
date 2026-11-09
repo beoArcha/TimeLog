@@ -9,6 +9,14 @@ const PopoverClose = PopoverPrimitive.Close;
 const PopoverTitle = PopoverPrimitive.Title;
 const PopoverDescription = PopoverPrimitive.Description;
 
+export interface PopoverContentProps extends PopoverPrimitive.Popup.Props {
+  sideOffset?: number;
+  align?: 'start' | 'center' | 'end';
+  side?: 'top' | 'bottom' | 'left' | 'right';
+  positionerClassName?: string;
+  anchor?: React.ComponentProps<typeof PopoverPrimitive.Positioner>['anchor'];
+}
+
 /**
  * Base UI popover content popup with positioner.
  */
@@ -19,16 +27,13 @@ function PopoverContent({
   sideOffset = 4,
   align = 'center',
   side = 'bottom',
+  anchor,
   ...props
-}: PopoverPrimitive.Popup.Props & {
-  sideOffset?: number;
-  align?: 'start' | 'center' | 'end';
-  side?: 'top' | 'bottom' | 'left' | 'right';
-  positionerClassName?: string;
-}) {
+}: PopoverContentProps) {
   return (
     <PopoverPortal>
       <PopoverPrimitive.Positioner
+        anchor={anchor}
         sideOffset={sideOffset}
         align={align}
         side={side}
@@ -50,9 +55,12 @@ function PopoverContent({
   );
 }
 
+const PopoverPositioner = PopoverPrimitive.Positioner;
+
 export {
   Popover,
   PopoverTrigger,
+  PopoverPositioner,
   PopoverPortal,
   PopoverContent,
   PopoverClose,
