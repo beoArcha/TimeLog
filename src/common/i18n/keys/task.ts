@@ -19,6 +19,7 @@ export type TaskKey =
   | 'NoTaskSelected'
   | 'NoTasksInProfile'
   | 'NoTasksInProject'
+  | 'OpenTimeLogsHint'
   | 'Rate'
   | 'RateCustom'
   | 'RateCustomLabel'
