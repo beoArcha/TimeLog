@@ -782,5 +782,56 @@ describe('Unit Tests: ReportLogEditModal', () => {
       expect(endInput.value).toBe('2026-06-15 20:00:00');
       expect(tzBadge.textContent).toBe('Asia/Tokyo');
     });
+
+    it('should block saving a non-existent local time during the spring DST transition', async () => {
+      render(
+        <MockProviders
+          dataState={{ handleEditTimeLog: handleEditTimeLogMock }}
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal isOpen={true} onClose={vi.fn()} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
+        target: { value: '2026-03-29 02:30:00' },
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'DST gap validation' },
+      });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-range-error').textContent).toContain('Invalid date or time format');
+        expect(screen.getByTestId('audit-edit-start-time').getAttribute('aria-invalid')).toBe('true');
+      });
+      expect(handleEditTimeLogMock).not.toHaveBeenCalled();
+    });
+
+    it('should block saving an ambiguous local time during the autumn DST transition', async () => {
+      render(
+        <MockProviders
+          dataState={{ handleEditTimeLog: handleEditTimeLogMock }}
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal isOpen={true} onClose={vi.fn()} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
+        target: { value: '2026-10-25 02:30:00' },
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'DST overlap validation' },
+      });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-range-error').textContent).toContain('Invalid date or time format');
+        expect(screen.getByTestId('audit-edit-start-time').getAttribute('aria-invalid')).toBe('true');
+      });
+      expect(handleEditTimeLogMock).not.toHaveBeenCalled();
+    });
+
   });
 });
