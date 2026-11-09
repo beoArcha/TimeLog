@@ -23,6 +23,8 @@ pub struct Settings {
     pub minimize_to_tray: Option<bool>,
     #[ts(optional)]
     pub timezone: Option<String>,
+    #[ts(optional)]
+    pub timezone_migration_completed: Option<bool>,
 }
 
 impl Default for Settings {
@@ -38,6 +40,7 @@ impl Default for Settings {
             always_on_top_main: Some(false),
             minimize_to_tray: Some(true),
             timezone: Some("System".to_string()),
+            timezone_migration_completed: Some(false),
         }
     }
 }
