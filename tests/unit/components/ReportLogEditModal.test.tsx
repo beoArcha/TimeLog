@@ -865,4 +865,323 @@ describe('Unit Tests: ReportLogEditModal', () => {
     });
 
   });
+
+  describe('P1 Mutation Safety and Synchronous Guarding', () => {
+    it('1. should succeed with mutation and synchronization on happy path', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: true });
+      const onSaveSuccessMock = vi.fn();
+      const onCloseMock = vi.fn();
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock }}>
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={onCloseMock}
+            log={mockLog}
+            onSaveSuccess={onSaveSuccessMock}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Valid edit reason' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(editMock).toHaveBeenCalledTimes(1);
+        expect(onSaveSuccessMock).toHaveBeenCalledWith('log-1');
+        expect(onCloseMock).toHaveBeenCalled();
+      });
+    });
+
+    it('2. should stay in not-saved when mutation fails, allowing retry', async () => {
+      const editMock = vi.fn()
+        .mockResolvedValueOnce({ saved: false, synchronized: false })
+        .mockResolvedValueOnce({ saved: true, synchronized: true });
+      const onCloseMock = vi.fn();
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock }}>
+          <ReportLogEditModal isOpen={true} onClose={onCloseMock} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Initial reason' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-general-error')).not.toBeNull();
+      });
+      expect(editMock).toHaveBeenCalledTimes(1);
+
+      // User modifies note and retries
+      fireEvent.change(screen.getByTestId('audit-edit-note'), { target: { value: 'Updated note' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(editMock).toHaveBeenCalledTimes(2);
+        expect(onCloseMock).toHaveBeenCalled();
+      });
+    });
+
+    it('3. should enter committed-sync-pending when saved: true but synchronized: false', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: false });
+      const onCloseMock = vi.fn();
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock }}>
+          <ReportLogEditModal isOpen={true} onClose={onCloseMock} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Committed mutation' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-general-error')).not.toBeNull();
+      });
+
+      expect(editMock).toHaveBeenCalledTimes(1);
+      expect(onCloseMock).not.toHaveBeenCalled();
+      // Button text changes to retry
+      expect(screen.getByTestId('audit-save-button').textContent).toContain('Retry now');
+    });
+
+    it('4. should retry synchronization without calling handleEditTimeLog again', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: false });
+      const refreshMock = vi.fn().mockResolvedValue(true);
+      const onSaveSuccessMock = vi.fn();
+      const onCloseMock = vi.fn();
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock, refreshData: refreshMock }}>
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={onCloseMock}
+            log={mockLog}
+            onSaveSuccess={onSaveSuccessMock}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Committed mutation' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-save-button').textContent).toContain('Retry now');
+      });
+
+      expect(editMock).toHaveBeenCalledTimes(1);
+
+      // User clicks Retry now
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(refreshMock).toHaveBeenCalledTimes(1);
+        expect(onSaveSuccessMock).toHaveBeenCalledWith('log-1');
+        expect(onCloseMock).toHaveBeenCalled();
+      });
+
+      // Crucial assertion: handleEditTimeLog MUST NOT be called a second time
+      expect(editMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('5. should handle multiple sync failures and keep state locked', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: false });
+      const refreshMock = vi.fn().mockResolvedValue(false); // Fails
+      const onCloseMock = vi.fn();
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock, refreshData: refreshMock }}>
+          <ReportLogEditModal isOpen={true} onClose={onCloseMock} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Audit reason' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-save-button').textContent).toContain('Retry now');
+      });
+
+      // Try 1
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+      await waitFor(() => {
+        expect(refreshMock).toHaveBeenCalledTimes(1);
+      });
+      expect(onCloseMock).not.toHaveBeenCalled();
+
+      // Try 2
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+      await waitFor(() => {
+        expect(refreshMock).toHaveBeenCalledTimes(2);
+      });
+      expect(onCloseMock).not.toHaveBeenCalled();
+
+      // Mutation called exactly once!
+      expect(editMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('6. should complete after subsequent successful sync retry', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: false });
+      const refreshMock = vi.fn()
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce(true);
+      const onSaveSuccessMock = vi.fn();
+      const onCloseMock = vi.fn();
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock, refreshData: refreshMock }}>
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={onCloseMock}
+            log={mockLog}
+            onSaveSuccess={onSaveSuccessMock}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Audit reason' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-save-button').textContent).toContain('Retry now');
+      });
+
+      // First sync retry fails
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+      await waitFor(() => {
+        expect(refreshMock).toHaveBeenCalledTimes(1);
+      });
+
+      // Second sync retry succeeds
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+      await waitFor(() => {
+        expect(refreshMock).toHaveBeenCalledTimes(2);
+        expect(onSaveSuccessMock).toHaveBeenCalledWith('log-1');
+        expect(onCloseMock).toHaveBeenCalled();
+      });
+
+      expect(editMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('7. should lock all input fields when in committed-sync-pending state', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: false });
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock }}>
+          <ReportLogEditModal isOpen={true} onClose={vi.fn()} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Audit reason' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-save-button').textContent).toContain('Retry now');
+      });
+
+      expect((screen.getByTestId('audit-edit-start-time') as HTMLInputElement).disabled).toBe(true);
+      expect((screen.getByTestId('audit-edit-end-time') as HTMLInputElement).disabled).toBe(true);
+      expect((screen.getByTestId('audit-edit-note') as HTMLInputElement).disabled).toBe(true);
+      expect((screen.getByTestId('audit-edit-reason') as HTMLTextAreaElement).disabled).toBe(true);
+      expect((screen.getByTestId('audit-delete-button') as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('8. should prevent changing reason after mutation is committed', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: false });
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock }}>
+          <ReportLogEditModal isOpen={true} onClose={vi.fn()} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Original reason' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-save-button').textContent).toContain('Retry now');
+      });
+
+      const reasonArea = screen.getByTestId('audit-edit-reason') as HTMLTextAreaElement;
+      fireEvent.change(reasonArea, { target: { value: 'Modified reason' } });
+      expect(reasonArea.value).toBe('Original reason');
+    });
+
+    it('9. should protect against concurrent synchronous clicks on Save', async () => {
+      let resolveEdit: (val: unknown) => void;
+      const editPromise = new Promise((resolve) => {
+        resolveEdit = resolve;
+      });
+      const editMock = vi.fn().mockReturnValue(editPromise);
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock }}>
+          <ReportLogEditModal isOpen={true} onClose={vi.fn()} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Concurrency test' } });
+      const saveButton = screen.getByTestId('audit-save-button');
+
+      // Click twice synchronously
+      fireEvent.click(saveButton);
+      fireEvent.click(saveButton);
+
+      expect(editMock).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      resolveEdit!({ saved: true, synchronized: true });
+    });
+
+    it('10. should safely catch errors in onSaveSuccess callback without breaking committed state', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: true });
+      const faultyCallback = vi.fn().mockImplementation(() => {
+        throw new Error('Callback crash');
+      });
+      const onCloseMock = vi.fn();
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock }}>
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={onCloseMock}
+            log={mockLog}
+            onSaveSuccess={faultyCallback}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Valid reason' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(editMock).toHaveBeenCalledTimes(1);
+        expect(faultyCallback).toHaveBeenCalledWith('log-1');
+        expect(onCloseMock).toHaveBeenCalled();
+      });
+    });
+
+    it('11. should not perform duplicate refresh when dataContext handles mutation', async () => {
+      const editMock = vi.fn().mockResolvedValue({ saved: true, synchronized: true });
+      const refreshMock = vi.fn().mockResolvedValue(true);
+
+      render(
+        <MockProviders dataState={{ handleEditTimeLog: editMock, refreshData: refreshMock }}>
+          <ReportLogEditModal isOpen={true} onClose={vi.fn()} log={mockLog} />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), { target: { value: 'Reason' } });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(editMock).toHaveBeenCalledTimes(1);
+      });
+
+      // In happy path where synchronized: true, modal relies on handleEditTimeLog internal synchronization
+      // and does not issue a redundant duplicate refreshData call
+      expect(refreshMock).not.toHaveBeenCalled();
+    });
+  });
 });

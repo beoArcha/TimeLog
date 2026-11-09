@@ -630,5 +630,83 @@ describe('formatDateTimeInTimezone and parseDateTimeInTimezone', () => {
     });
   });
 
+  describe('P2 Date Parsing and Formatter Semantics', () => {
+    it('1. should parse timestamp without offset preserving local host time', () => {
+      const localStr = '2026-06-15 12:00:00';
+      const expectedDate = new Date(localStr);
+      const formatted = formatDateTime(localStr, 'UTC');
+      const expectedFormatted = formatDateTime(expectedDate, 'UTC');
+      expect(formatted).toBe(expectedFormatted);
+    });
+
+    it('2. should format timestamp with Z in target timezone', () => {
+      const isoZ = '2026-06-15T12:00:00Z';
+      const formattedWarsaw = formatDateTime(isoZ, 'Europe/Warsaw');
+      // In summer, Warsaw is UTC+2
+      expect(formattedWarsaw).toContain('2026');
+      expect(formattedWarsaw).toContain('14:00:00');
+    });
+
+    it('3. should format timestamp with positive offset correctly in UTC', () => {
+      const isoPositive = '2026-06-15T14:00:00+02:00';
+      const formattedUtc = formatDateTime(isoPositive, 'UTC');
+      expect(formattedUtc).toContain('12:00:00');
+    });
+
+    it('4. should format timestamp with negative offset correctly in UTC', () => {
+      const isoNegative = '2026-06-15T08:00:00-04:00';
+      const formattedUtc = formatDateTime(isoNegative, 'UTC');
+      expect(formattedUtc).toContain('12:00:00');
+    });
+
+    it('5. should accept a JavaScript Date object', () => {
+      const d = new Date('2026-06-15T12:00:00Z');
+      const formatted = formatDateTime(d, 'UTC');
+      expect(formatted).toContain('2026');
+      expect(formatted).toContain('12:00:00');
+    });
+
+    it('6. should accept a numeric Unix millisecond timestamp', () => {
+      const ms = Date.UTC(2026, 5, 15, 12, 0, 0);
+      const formatted = formatDateTime(ms, 'UTC');
+      expect(formatted).toContain('2026');
+      expect(formatted).toContain('12:00:00');
+    });
+
+    it('7. should return empty string for empty string input', () => {
+      expect(formatDateTime('')).toBe('');
+      expect(formatDate('')).toBe('');
+      expect(formatTime('')).toBe('');
+      expect(formatDateTimeInTimezone('')).toBe('');
+    });
+
+    it('8. should return empty string for invalid timestamp string', () => {
+      expect(formatDateTime('invalid-date-string')).toBe('');
+      expect(formatDate('invalid-date-string')).toBe('');
+      expect(formatTime('invalid-date-string')).toBe('');
+      expect(formatDateTimeInTimezone('invalid-date-string')).toBe('');
+    });
+
+    it('9. should handle invalid calendar dates in formatters gracefully', () => {
+      // Non-existent calendar date in standard Date parses to NaN or rolls over depending on engine
+      const invalidCal = '2026-02-31';
+      const parsedInTz = parseDateTimeInTimezone(invalidCal + ' 12:00:00', 'UTC');
+      expect(parsedInTz).toBeNull();
+    });
+
+    it('10. should format consistently across all public formatting functions', () => {
+      const iso = '2026-06-15T12:30:45.000Z';
+      const dt = formatDateTime(iso, 'UTC');
+      const d = formatDate(iso, 'UTC');
+      const t = formatTime(iso, 'UTC');
+      const dtTz = formatDateTimeInTimezone(iso, 'UTC');
+
+      expect(dt).toContain('2026');
+      expect(dt).toContain('12:30:45');
+      expect(d).toContain('2026');
+      expect(t).toBe('12:30:45');
+      expect(dtTz).toBe('2026-06-15 12:30:45');
+    });
+  });
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,11 @@ import {
   parseDateTimeInTimezone,
   resolveEffectiveTimezone,
 } from '@common/utils/timeFormat';
+
+export type SaveState =
+  | 'not-saved'
+  | 'committed-sync-pending'
+  | 'completed';
 
 const KNOWN_CODES = [
   'ERR_AUDIT_REASON_REQUIRED',
@@ -142,17 +147,18 @@ function ReportLogEditForm({
   const [rangeErrorMessage, setRangeErrorMessage] = useState<string | null>(null);
   const [generalErrorMessage, setGeneralErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [saveState, setSaveState] = useState<SaveState>('not-saved');
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
+  const savingRef = useRef<boolean>(false);
 
   const handleDeleteClick = () => {
-    if (isSaving || isDeleting) return;
+    if (isSaving || savingRef.current || isDeleting || saveState === 'committed-sync-pending') return;
     setIsConfirmOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (isSaving || isDeleting) return;
+    if (isSaving || savingRef.current || isDeleting || saveState === 'committed-sync-pending') return;
     setIsDeleting(true);
     setGeneralErrorMessage(null);
 
@@ -198,11 +204,47 @@ function ReportLogEditForm({
   };
 
   const handleSave = async () => {
+    if (savingRef.current || isSaving || isDeleting) {
+      return;
+    }
+
     setReasonError(false);
     setReasonErrorMessage(null);
     setRangeError(false);
     setRangeErrorMessage(null);
     setGeneralErrorMessage(null);
+
+    // If mutation was already committed, ONLY retry synchronization
+    if (saveState === 'committed-sync-pending') {
+      savingRef.current = true;
+      setIsSaving(true);
+      try {
+        if (!dataContext?.refreshData) {
+          throw new Error('Data refresh is unavailable outside DataContext');
+        }
+        const refreshed = await dataContext.refreshData();
+        if (refreshed === false) {
+          throw new Error('Repository state refresh did not complete');
+        }
+      } catch (refreshErr) {
+        console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+        savingRef.current = false;
+        setIsSaving(false);
+        return;
+      }
+
+      setSaveState('completed');
+      try {
+        onSaveSuccess?.(log.id);
+      } catch (cbErr) {
+        console.warn('[ReportLogEditModal] onSaveSuccess callback error:', cbErr);
+      }
+      onClose();
+      savingRef.current = false;
+      setIsSaving(false);
+      return;
+    }
 
     const trimmedReason = reason.trim();
     if (!trimmedReason) {
@@ -243,81 +285,77 @@ function ReportLogEditForm({
     }
 
     const startIso = startDate.toISOString();
+    savingRef.current = true;
     setIsSaving(true);
 
-    if (!isSaved) {
-      try {
-        if (!dataContext?.handleEditTimeLog) {
-          throw new Error('Time log editing is unavailable outside DataContext');
-        }
-
-        const result = await dataContext.handleEditTimeLog(
-          log.id,
-          log.taskId,
-          startIso,
-          endIso,
-          note.trim() ? note.trim() : null,
-          trimmedReason
-        );
-
-        if (!result.saved) {
-          setGeneralErrorMessage(tEngine('SyncStatusError'));
-          setIsSaving(false);
-          return;
-        }
-
-        // The edit is committed. Keep this flag even if synchronization failed,
-        // so retrying the modal only refreshes state and never creates a second audit row.
-        setIsSaved(true);
-
-        if (!result.synchronized) {
-          setGeneralErrorMessage(tEngine('SyncStatusError'));
-          setIsSaving(false);
-          return;
-        }
-      } catch (err) {
-        console.error('[ReportLogEditModal] Mutation failed:', err);
-        const code = extractErrorCode(err);
-        if (code === 'ERR_AUDIT_REASON_REQUIRED') {
-          setReasonError(true);
-          setReasonErrorMessage(tReport('ERR_AUDIT_REASON_REQUIRED'));
-        } else if (code === 'ERR_TIMELOG_INVALID_RANGE') {
-          setRangeError(true);
-          setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
-        } else if (code === 'ERR_TIMELOG_INVALID_FORMAT') {
-          setRangeError(true);
-          setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
-        } else if (code === 'ERR_AUDIT_SOURCE_INVALID') {
-          setGeneralErrorMessage(tReport('ERR_AUDIT_SOURCE_INVALID'));
-        } else {
-          setGeneralErrorMessage(tEngine('SyncStatusError'));
-        }
-        setIsSaving(false);
-        return;
+    try {
+      if (!dataContext?.handleEditTimeLog) {
+        throw new Error('Time log editing is unavailable outside DataContext');
       }
-    } else {
-      // A previous attempt committed the edit but failed while synchronizing state.
-      // Retry only the refresh; never submit the same audit mutation twice.
-      try {
-        if (!dataContext?.refreshData) {
-          throw new Error('Data refresh is unavailable outside DataContext');
-        }
-        const refreshed = await dataContext.refreshData();
-        if (refreshed === false) {
-          throw new Error('Repository state refresh did not complete');
-        }
-      } catch (refreshErr) {
-        console.error('[ReportLogEditModal] Refresh after edit failed:', refreshErr);
+
+      const result = await dataContext.handleEditTimeLog(
+        log.id,
+        log.taskId,
+        startIso,
+        endIso,
+        note.trim() ? note.trim() : null,
+        trimmedReason
+      );
+
+      if (!result.saved) {
         setGeneralErrorMessage(tEngine('SyncStatusError'));
+        savingRef.current = false;
         setIsSaving(false);
         return;
       }
+
+      // The edit is committed. Lock state to committed-sync-pending if synchronization failed.
+      if (!result.synchronized) {
+        setSaveState('committed-sync-pending');
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+        savingRef.current = false;
+        setIsSaving(false);
+        return;
+      }
+    } catch (err) {
+      console.error('[ReportLogEditModal] Mutation failed:', err);
+      const code = extractErrorCode(err);
+      if (code === 'ERR_AUDIT_REASON_REQUIRED') {
+        setReasonError(true);
+        setReasonErrorMessage(tReport('ERR_AUDIT_REASON_REQUIRED'));
+      } else if (code === 'ERR_TIMELOG_INVALID_RANGE') {
+        setRangeError(true);
+        setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_RANGE'));
+      } else if (code === 'ERR_TIMELOG_INVALID_FORMAT') {
+        setRangeError(true);
+        setRangeErrorMessage(tReport('ERR_TIMELOG_INVALID_FORMAT'));
+      } else if (code === 'ERR_AUDIT_SOURCE_INVALID') {
+        setGeneralErrorMessage(tReport('ERR_AUDIT_SOURCE_INVALID'));
+      } else {
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+      }
+      savingRef.current = false;
+      setIsSaving(false);
+      return;
     }
 
-    onSaveSuccess?.(log.id);
+    setSaveState('completed');
+    try {
+      onSaveSuccess?.(log.id);
+    } catch (cbErr) {
+      console.warn('[ReportLogEditModal] onSaveSuccess callback error:', cbErr);
+    }
     onClose();
+    savingRef.current = false;
     setIsSaving(false);
   };
+
+  let saveButtonLabel = tCommon('Save');
+  if (isSaving) {
+    saveButtonLabel = `${tCommon('Save')}...`;
+  } else if (saveState === 'committed-sync-pending') {
+    saveButtonLabel = tEngine('RetryNow');
+  }
 
   return (
     <DialogContent className="max-w-md bg-card border-border p-6 rounded-2xl shadow-2xl">
@@ -369,14 +407,14 @@ function ReportLogEditForm({
             id="audit-edit-start-time"
             data-testid="audit-edit-start-time"
             type="text"
-            disabled={isSaving || isDeleting}
+            disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
             aria-invalid={rangeError ? 'true' : undefined}
             value={startTime}
             onChange={(e) => {
+              if (saveState === 'committed-sync-pending') return;
               setStartTime(e.target.value);
               setRangeError(false);
               setRangeErrorMessage(null);
-              setIsSaved(false);
             }}
             className={`h-8 text-xs font-mono bg-background ${
               rangeError ? 'border-destructive focus-visible:ring-destructive' : ''
@@ -397,14 +435,14 @@ function ReportLogEditForm({
             id="audit-edit-end-time"
             data-testid="audit-edit-end-time"
             type="text"
-            disabled={isSaving || isDeleting}
+            disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
             aria-invalid={rangeError ? 'true' : undefined}
             value={endTime}
             onChange={(e) => {
+              if (saveState === 'committed-sync-pending') return;
               setEndTime(e.target.value);
               setRangeError(false);
               setRangeErrorMessage(null);
-              setIsSaved(false);
             }}
             className={`h-8 text-xs font-mono bg-background ${
               rangeError ? 'border-destructive focus-visible:ring-destructive' : ''
@@ -426,11 +464,11 @@ function ReportLogEditForm({
             id="audit-edit-note"
             data-testid="audit-edit-note"
             type="text"
-            disabled={isSaving || isDeleting}
+            disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
             value={note}
             onChange={(e) => {
+              if (saveState === 'committed-sync-pending') return;
               setNote(e.target.value);
-              setIsSaved(false);
             }}
             className="h-8 text-xs bg-background"
           />
@@ -443,14 +481,14 @@ function ReportLogEditForm({
           <Textarea
             id="audit-edit-reason"
             data-testid="audit-edit-reason"
-            disabled={isSaving || isDeleting}
+            disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
             aria-invalid={reasonError ? 'true' : undefined}
             value={reason}
             onChange={(e) => {
+              if (saveState === 'committed-sync-pending') return;
               setReason(e.target.value);
               setReasonError(false);
               setReasonErrorMessage(null);
-              setIsSaved(false);
             }}
             placeholder={tReport('AuditReasonPlaceholder')}
             rows={2}
@@ -482,7 +520,7 @@ function ReportLogEditForm({
           variant="ghost"
           size="sm"
           onClick={handleDeleteClick}
-          disabled={isSaving || isDeleting}
+          disabled={isSaving || isDeleting || saveState === 'committed-sync-pending'}
           data-testid="audit-delete-button"
           className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-auto cursor-pointer"
         >
@@ -507,7 +545,7 @@ function ReportLogEditForm({
             data-testid="audit-save-button"
             className="gap-1.5"
           >
-            {isSaving ? tCommon('Save') + '...' : tCommon('Save')}
+            {saveButtonLabel}
           </Button>
         </HStack>
       </DialogFooter>
