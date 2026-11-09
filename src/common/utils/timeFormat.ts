@@ -40,7 +40,7 @@ export function clearDateTimeFormatCache(): void {
  * @param tz - IANA timezone identifier to test (e.g. "Europe/Warsaw")
  * @returns True if the timezone is supported and syntactically valid; otherwise false
  */
-export function isValidTimezone(tz: string): boolean {
+function isValidTimezoneInternal(tz: string): boolean {
   if (!tz || typeof tz !== 'string') {
     return false;
   }
@@ -51,9 +51,39 @@ export function isValidTimezone(tz: string): boolean {
     if (err instanceof RangeError) {
       return false;
     }
+    throw err;
+  }
+}
+
+/**
+ * Validates whether a given timezone string conforms to a valid IANA identifier
+ * recognized by the JavaScript Intl runtime.
+ *
+ * @param tz - IANA timezone identifier to test (e.g. "Europe/Warsaw")
+ * @returns True if the timezone is supported and syntactically valid; otherwise false
+ */
+export function isValidTimezone(tz: string): boolean {
+  try {
+    return isValidTimezoneInternal(tz);
+  } catch (err) {
     ErrorHandler.handle(err);
     throw err;
   }
+}
+
+function resolveSystemTimezoneInternal(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz && isValidTimezoneInternal(tz)) {
+      return tz;
+    }
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return FALLBACK_TIMEZONE;
+    }
+    throw err;
+  }
+  return FALLBACK_TIMEZONE;
 }
 
 /**
@@ -65,18 +95,28 @@ export function isValidTimezone(tz: string): boolean {
  */
 export function resolveSystemTimezone(): string {
   try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz && isValidTimezone(tz)) {
-      return tz;
-    }
+    return resolveSystemTimezoneInternal();
   } catch (err) {
-    if (err instanceof RangeError) {
-      return FALLBACK_TIMEZONE;
-    }
     ErrorHandler.handle(err);
     throw err;
   }
-  return FALLBACK_TIMEZONE;
+}
+
+function resolveEffectiveTimezoneInternal(tzPreference?: string | null): string {
+  try {
+    if (!tzPreference || tzPreference === DEFAULT_TIMEZONE || tzPreference.toLowerCase() === 'system') {
+      return resolveSystemTimezoneInternal();
+    }
+    if (isValidTimezoneInternal(tzPreference)) {
+      return tzPreference;
+    }
+    return resolveSystemTimezoneInternal();
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return resolveSystemTimezoneInternal();
+    }
+    throw err;
+  }
 }
 
 /**
@@ -88,17 +128,8 @@ export function resolveSystemTimezone(): string {
  */
 export function resolveEffectiveTimezone(tzPreference?: string | null): string {
   try {
-    if (!tzPreference || tzPreference === DEFAULT_TIMEZONE || tzPreference.toLowerCase() === 'system') {
-      return resolveSystemTimezone();
-    }
-    if (isValidTimezone(tzPreference)) {
-      return tzPreference;
-    }
-    return resolveSystemTimezone();
+    return resolveEffectiveTimezoneInternal(tzPreference);
   } catch (err) {
-    if (err instanceof RangeError) {
-      return resolveSystemTimezone();
-    }
     ErrorHandler.handle(err);
     throw err;
   }
