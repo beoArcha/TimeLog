@@ -19,6 +19,8 @@
     "fmt:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml",
     "fmt:rust:check": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
     "test": "vitest run",
+    "test:unit": "vitest run tests/unit/",
+    "test:arch:ast": "vitest run tests/architecture/specs/",
     "test:smoke": "vitest run tests/smoke/; cargo test --manifest-path src-tauri/Cargo.toml --test smoke_test",
     "test:arch:rust": "cargo test --manifest-path src-tauri/Cargo.toml --test architecture_tests",
     "test:e2e": "playwright test --config=tests/e2e/config/playwright.config.ts",

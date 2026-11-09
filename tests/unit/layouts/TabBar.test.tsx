@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import TabBar from '@layouts/components/TabBar';
+import TabBar, { WINDOWED_CONTENT_WIDTH, WINDOWED_HORIZONTAL_PADDING } from '@layouts/components/TabBar';
 import { AppTabId } from '@common/types/navigation';
 import { PlatformCapabilitiesContext, PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 
@@ -100,5 +100,20 @@ describe('Unit Tests: TabBar', () => {
     expect(icon?.getAttribute('class')).toContain('icon-medium');
     expect(icon?.getAttribute('class')).not.toContain('w-4');
     expect(icon?.getAttribute('class')).not.toContain('h-4');
+  });
+
+  it('should export WINDOWED_CONTENT_WIDTH and WINDOWED_HORIZONTAL_PADDING tokens', () => {
+    expect(WINDOWED_CONTENT_WIDTH).toBe('w-full max-w-7xl 2xl:max-w-[1600px] mx-auto');
+    expect(WINDOWED_HORIZONTAL_PADDING).toBe('px-4 sm:px-6 lg:px-8');
+  });
+
+  it('should apply WINDOWED_HORIZONTAL_PADDING on scroll container', () => {
+    renderTabBar({ canUseCli: true });
+    const innerContainer = screen.getByTestId('tab-bar-scroll');
+    expect(innerContainer).not.toBeNull();
+    expect(innerContainer.className).toContain('px-4');
+    expect(innerContainer.className).toContain('sm:px-6');
+    expect(innerContainer.className).toContain('lg:px-8');
+    expect(innerContainer.className).not.toContain('mx-auto');
   });
 });

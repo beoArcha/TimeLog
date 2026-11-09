@@ -112,6 +112,27 @@ describe('LayoutManager', () => {
     expect(screen.getByRole('tablist', { name: /tabs/i })).not.toBeNull();
   });
 
+  it('should apply WINDOWED_CONTENT_WIDTH on the windowed frame in full mode to align frame with content', () => {
+    // Arrange
+    activeMockState = {
+      ...getMockOXyFlowState(),
+      layoutVariant: 'full',
+      activeLargeTab: 'tasks',
+      isGuiClosed: false,
+      isMinimized: false,
+    };
+
+    // Act
+    const { container } = render(<LayoutManager runtime="browser" />);
+
+    // Assert: Find the outer windowed frame card
+    const frame = container.querySelector('#app-root-container .shadow-3xl');
+    expect(frame).not.toBeNull();
+    expect(frame?.className).toContain('max-w-7xl');
+    expect(frame?.className).toContain('2xl:max-w-[1600px]');
+    expect(frame?.className).toContain('mx-auto');
+  });
+
   it('should render data-runtime, data-layout-variant, and data-text-size attributes on root container', () => {
     // Arrange
     activeMockState = {

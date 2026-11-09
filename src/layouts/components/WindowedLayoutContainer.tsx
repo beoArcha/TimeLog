@@ -12,6 +12,9 @@ import { LayoutVariant } from '@bindings/LayoutVariant';
 import { isMediumLayout, isFullLayout } from '@common/constants/layoutVariants';
 import { Area } from '@components/ui/area';
 import { VStack } from '@components/ui/stack';
+import { WINDOWED_CONTENT_WIDTH } from '../parts/LayoutStyles';
+
+export { WINDOWED_CONTENT_WIDTH, WINDOWED_HORIZONTAL_PADDING } from '../parts/LayoutStyles';
 
 export interface WindowedLayoutContainerProps {
   layoutVariant: LayoutVariant;
@@ -38,6 +41,13 @@ export interface WindowedLayoutContainerProps {
   };
 }
 
+const getMediumDockClasses = (dockPosition: 'right' | 'left'): string => {
+  if (dockPosition === 'left') {
+    return 'md:mx-auto lg:ml-4 lg:mr-auto xl:ml-8';
+  }
+  return 'md:mx-auto lg:mr-4 lg:ml-auto xl:mr-8';
+};
+
 export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = ({
   layoutVariant,
   mediumDockPosition,
@@ -53,6 +63,14 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
   const isMedium = isMediumLayout(layoutVariant);
   const isFull = isFullLayout(layoutVariant);
 
+  const containerWidthClass = isMedium
+    ? `w-full md:max-w-4xl lg:max-w-[500px] xl:max-w-[540px] ${getMediumDockClasses(mediumDockPosition)}`
+    : WINDOWED_CONTENT_WIDTH;
+
+  const mainAreaClass = isMedium
+    ? 'p-2.5 sm:p-4 md:p-5 overflow-hidden'
+    : 'w-full px-4 sm:px-6 lg:px-8 py-5 gap-5 overflow-y-auto overflow-x-hidden';
+
   return (
     <AnimatedFade
       key="windowed-state"
@@ -63,15 +81,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
     >
       <VStack
         gap="none"
-        className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex-1 min-h-0 border border-border transition-all duration-300 bg-card/50 backdrop-blur-2xl ${
-          isMedium
-            ? `w-full md:max-w-4xl lg:max-w-[500px] xl:max-w-[540px] ${
-                mediumDockPosition === 'left'
-                  ? 'md:mx-auto lg:ml-4 lg:mr-auto xl:ml-8'
-                  : 'md:mx-auto lg:mr-4 lg:ml-auto xl:mr-8'
-              }`
-            : 'w-full'
-        }`}
+        className={`rounded-none sm:rounded-[2rem] shadow-3xl overflow-hidden flex-1 min-h-0 border border-border transition-all duration-300 bg-card/50 backdrop-blur-2xl ${containerWidthClass}`}
       >
         <Header />
 
@@ -86,11 +96,7 @@ export const WindowedLayoutContainer: React.FC<WindowedLayoutContainerProps> = (
 
         <Area
           as="main"
-          className={`flex-1 min-h-0 w-full z-10 flex flex-col ${
-            isMedium
-              ? 'p-2.5 sm:p-4 md:p-5 overflow-hidden'
-              : 'w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-5 gap-5 overflow-y-auto overflow-x-hidden'
-          }`}
+          className={`flex-1 min-h-0 w-full z-10 flex flex-col ${mainAreaClass}`}
         >
           <div className="shrink-0 mb-1">
             <DaemonStatusBar />
