@@ -466,6 +466,89 @@ export function formatDateTimeInTimezone(
  * @param timezone - IANA timezone used to interpret local date-time strings
  * @returns Exact UTC instant, or null when input is invalid or ambiguous
  */
+function isValidCalendarDateTime(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number
+): boolean {
+  if (
+    month < 1 || month > 12 ||
+    day < 1 || day > 31 ||
+    hour < 0 || hour > 23 ||
+    minute < 0 || minute > 59 ||
+    second < 0 || second > 59
+  ) {
+    return false;
+  }
+
+  const calendarCheck = new Date(Date.UTC(2000, month - 1, day));
+  calendarCheck.setUTCFullYear(year);
+  return (
+    calendarCheck.getUTCFullYear() === year &&
+    calendarCheck.getUTCMonth() === month - 1 &&
+    calendarCheck.getUTCDate() === day
+  );
+}
+
+function parseExplicitOffsetTimestamp(trimmed: string): Date | null {
+  const explicitMatch = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?(?:([zZ])|([+-])(\d{2}):?(\d{2}))$/.exec(trimmed);
+  if (!explicitMatch) {
+    return null;
+  }
+
+  const year = Number(explicitMatch[1]);
+  const month = Number(explicitMatch[2]);
+  const day = Number(explicitMatch[3]);
+  const hour = Number(explicitMatch[4]);
+  const minute = Number(explicitMatch[5]);
+  const second = explicitMatch[6] ? Number(explicitMatch[6]) : 0;
+
+  if (!isValidCalendarDateTime(year, month, day, hour, minute, second)) {
+    return null;
+  }
+
+  let offsetTotalMinutes = 0;
+  if (explicitMatch[9]) {
+    const offsetHours = Number(explicitMatch[10]);
+    const offsetMinutes = Number(explicitMatch[11]);
+    if (offsetHours > 23 || offsetMinutes > 59) {
+      return null;
+    }
+    const offsetSign = explicitMatch[9] === '-' ? -1 : 1;
+    offsetTotalMinutes = offsetSign * (offsetHours * 60 + offsetMinutes);
+  }
+
+  const fracStr = explicitMatch[7];
+  let millisecond = 0;
+  if (fracStr) {
+    millisecond = Number((fracStr + '00').slice(0, 3));
+  }
+
+  const baseDate = new Date(Date.UTC(2000, month - 1, day, hour, minute, second, millisecond));
+  baseDate.setUTCFullYear(year);
+  const utcMs = baseDate.getTime() - offsetTotalMinutes * 60 * 1000;
+  const explicitDate = new Date(utcMs);
+  if (Number.isNaN(explicitDate.getTime())) {
+    return null;
+  }
+  return explicitDate;
+}
+
+/**
+ * Parses a date-time string in a specified timezone into a UTC JavaScript Date.
+ *
+ * Local wall-clock times are accepted only when they map to exactly one instant.
+ * Non-existent times (DST gaps) and ambiguous times (DST overlaps) return null.
+ * An explicit ISO 8601 UTC marker or offset selects an exact instant and bypasses
+ * local-time ambiguity.
+ *
+ * @param input - Local date-time string or explicit ISO 8601 timestamp
+ * @param timezone - IANA timezone used to interpret local date-time strings
+ * @returns Exact UTC instant, or null when input is invalid or ambiguous
+ */
 export function parseDateTimeInTimezone(
   input: string,
   timezone?: string
@@ -481,8 +564,7 @@ export function parseDateTimeInTimezone(
 
   const hasExplicitOffset = /(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(trimmed);
   if (hasExplicitOffset) {
-    const explicitDate = new Date(trimmed);
-    return Number.isNaN(explicitDate.getTime()) ? null : explicitDate;
+    return parseExplicitOffsetTimestamp(trimmed);
   }
 
   const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(trimmed);
@@ -497,22 +579,7 @@ export function parseDateTimeInTimezone(
   const minute = Number(match[5]);
   const second = match[6] ? Number(match[6]) : 0;
 
-  if (
-    month < 1 || month > 12 ||
-    day < 1 || day > 31 ||
-    hour < 0 || hour > 23 ||
-    minute < 0 || minute > 59 ||
-    second < 0 || second > 59
-  ) {
-    return null;
-  }
-
-  const calendarCheck = new Date(Date.UTC(year, month - 1, day));
-  if (
-    calendarCheck.getUTCFullYear() !== year ||
-    calendarCheck.getUTCMonth() !== month - 1 ||
-    calendarCheck.getUTCDate() !== day
-  ) {
+  if (!isValidCalendarDateTime(year, month, day, hour, minute, second)) {
     return null;
   }
 

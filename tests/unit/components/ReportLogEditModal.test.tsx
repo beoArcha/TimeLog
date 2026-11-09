@@ -759,6 +759,37 @@ describe('Unit Tests: ReportLogEditModal', () => {
       expect(handleEditTimeLogMock).not.toHaveBeenCalled();
     });
 
+    it('should block saving and display format error when impossible calendar date with explicit UTC offset is entered', async () => {
+      render(
+        <MockProviders
+          dataState={{ handleEditTimeLog: handleEditTimeLogMock }}
+          settingsState={{ timezone: 'Europe/Warsaw', resolvedTimezone: 'Europe/Warsaw' }}
+        >
+          <ReportLogEditModal
+            isOpen={true}
+            onClose={vi.fn()}
+            log={mockLog}
+          />
+        </MockProviders>
+      );
+
+      fireEvent.change(screen.getByTestId('audit-edit-start-time'), {
+        target: { value: '2026-02-31T12:00:00Z' },
+      });
+      fireEvent.change(screen.getByTestId('audit-edit-reason'), {
+        target: { value: 'Impossible calendar date with UTC offset' },
+      });
+      fireEvent.click(screen.getByTestId('audit-save-button'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('audit-range-error')).not.toBeNull();
+        expect(screen.getByTestId('audit-range-error').textContent).toContain('Invalid date or time format');
+        expect(screen.getByTestId('audit-edit-start-time').getAttribute('aria-invalid')).toBe('true');
+      });
+
+      expect(handleEditTimeLogMock).not.toHaveBeenCalled();
+    });
+
     it('should allow explicit timezone prop to override context settings', () => {
       render(
         <MockProviders

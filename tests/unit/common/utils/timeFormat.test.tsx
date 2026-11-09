@@ -592,5 +592,43 @@ describe('formatDateTimeInTimezone and parseDateTimeInTimezone', () => {
       .toBe('2026-12-31T14:30:00.000Z');
   });
 
+  describe('Strict calendar component validation with explicit UTC offsets', () => {
+    it('should reject invalid calendar dates with explicit Z offset while accepting valid dates', () => {
+      expect(parseDateTimeInTimezone('2026-02-31T12:00:00Z')).toBeNull();
+      expect(parseDateTimeInTimezone('2025-02-29T12:00:00Z')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-04-31T12:00:00Z')).toBeNull();
+
+      const validLeapDate = parseDateTimeInTimezone('2024-02-29T12:00:00Z');
+      expect(validLeapDate).toBeInstanceOf(Date);
+      expect(validLeapDate?.toISOString()).toBe('2024-02-29T12:00:00.000Z');
+    });
+
+    it('should reject invalid calendar dates with explicit numeric offsets while accepting valid dates', () => {
+      expect(parseDateTimeInTimezone('2026-02-31T12:00:00+01:00')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-04-31T12:00:00-05:00')).toBeNull();
+
+      const validOffsetDate = parseDateTimeInTimezone('2024-02-29T12:00:00+01:00');
+      expect(validOffsetDate).toBeInstanceOf(Date);
+      expect(validOffsetDate?.toISOString()).toBe('2024-02-29T11:00:00.000Z');
+    });
+
+    it('should reject invalid time and offset values in explicit offset timestamps', () => {
+      expect(parseDateTimeInTimezone('2026-01-01T25:00:00Z')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-01-01T12:60:00Z')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-01-01T12:00:00+25:00')).toBeNull();
+      expect(parseDateTimeInTimezone('2026-01-01T12:00:00+01:60')).toBeNull();
+      expect(parseDateTimeInTimezone('not-a-valid-date-stringZ')).toBeNull();
+    });
+
+    it('should preserve exact instants for timestamps with explicit UTC offsets', () => {
+      expect(parseDateTimeInTimezone('2026-10-25T02:30:00+02:00')?.toISOString())
+        .toBe('2026-10-25T00:30:00.000Z');
+      expect(parseDateTimeInTimezone('2026-10-25T02:30:00+01:00')?.toISOString())
+        .toBe('2026-10-25T01:30:00.000Z');
+      expect(parseDateTimeInTimezone('2026-10-25T00:30:00Z')?.toISOString())
+        .toBe('2026-10-25T00:30:00.000Z');
+    });
+  });
+
 });
 
