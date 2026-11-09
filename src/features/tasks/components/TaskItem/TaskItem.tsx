@@ -140,6 +140,8 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
           isCondensed={isCondensed}
           onStartTimer={state.onStartTimer}
           onStopTimer={state.onStopTimer}
+          logs={logs}
+          activeLog={state.activeLog}
         />
       </div>
 

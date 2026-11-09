@@ -35,7 +35,8 @@
     "Rate": "Hourly Rate",
     "TimeLogsHistory": "Time logs history",
     "NoLogs": "No time logs recorded",
-    "EditTimeLog": "Edit time log"
+    "EditTimeLog": "Edit time log",
+    "OpenTimeLogsHint": "Double-click or press Space to open time logs history"
   },
   "pl": {
     "AddTask": "Dodaj zadanie",
@@ -73,7 +74,8 @@
     "Rate": "Stawka godzinowa",
     "TimeLogsHistory": "Historia wpisów czasu",
     "NoLogs": "Brak zarejestrowanych wpisów czasu",
-    "EditTimeLog": "Edytuj wpis czasu"
+    "EditTimeLog": "Edytuj wpis czasu",
+    "OpenTimeLogsHint": "Kliknij dwukrotnie lub naciśnij spację, aby otworzyć historię wpisów czasu"
   },
   "de": {
     "AddTask": "Aufgabe hinzufügen",
@@ -111,7 +113,8 @@
     "Rate": "Stundensatz",
     "TimeLogsHistory": "Zeiterfassungshistorie",
     "NoLogs": "Keine Zeiteinträge erfasst",
-    "EditTimeLog": "Zeiteintrag bearbeiten"
+    "EditTimeLog": "Zeiteintrag bearbeiten",
+    "OpenTimeLogsHint": "Doppelklicken oder Leertaste drücken, um die Zeiterfassungshistorie zu öffnen"
   },
   "es": {
     "AddTask": "Agregar Tarea",
@@ -149,7 +152,8 @@
     "Rate": "Tarifa horaria",
     "TimeLogsHistory": "Historial de registros de tiempo",
     "NoLogs": "No hay registros de tiempo",
-    "EditTimeLog": "Editar registro de tiempo"
+    "EditTimeLog": "Editar registro de tiempo",
+    "OpenTimeLogsHint": "Haga doble clic o presione la barra espaciadora para abrir el historial de registros de tiempo"
   },
   "pt-br": {
     "AddTask": "Adicionar Tarefa",
@@ -187,7 +191,8 @@
     "Rate": "Taxa horária",
     "TimeLogsHistory": "Histórico de registros de tempo",
     "NoLogs": "Nenhum registro de tempo gravado",
-    "EditTimeLog": "Editar registro de tempo"
+    "EditTimeLog": "Editar registro de tempo",
+    "OpenTimeLogsHint": "Clique duas vezes ou pressione a barra de espaço para abrir o histórico de registros de tempo"
   },
   "fr": {
     "AddTask": "Ajouter une Tâche",
@@ -225,7 +230,8 @@
     "Rate": "Taux horaire",
     "TimeLogsHistory": "Historique des journaux de temps",
     "NoLogs": "Aucun journal de temps enregistré",
-    "EditTimeLog": "Modifier le journal de temps"
+    "EditTimeLog": "Modifier le journal de temps",
+    "OpenTimeLogsHint": "Double-cliquez ou appuyez sur Espace pour ouvrir l'historique des journaux de temps"
   },
   "uk": {
     "AddTask": "Додати завдання",
@@ -263,7 +269,8 @@
     "RatePlaceholder": "напр. 75.00",
     "TimeLogsHistory": "Історія записів часу",
     "NoLogs": "Немає записаних часових логів",
-    "EditTimeLog": "Редагувати запис часу"
+    "EditTimeLog": "Редагувати запис часу",
+    "OpenTimeLogsHint": "Двічі клацніть або натисніть пробіл, щоб відкрити історію записів часу"
   },
   "ja": {
     "AddTask": "タスクを追加",
@@ -301,7 +308,8 @@
     "Rate": "時間単価",
     "TimeLogsHistory": "タイムログ履歴",
     "NoLogs": "タイムログが記録されていません",
-    "EditTimeLog": "タイムログを編集"
+    "EditTimeLog": "タイムログを編集",
+    "OpenTimeLogsHint": "ダブルクリックするかスペースキーを押してタイムログ履歴を開く"
   },
   "nl": {
     "AddTask": "Taak toevoegen",
@@ -339,7 +347,8 @@
     "Rate": "Uurtarief",
     "TimeLogsHistory": "Geschiedenis van tijdlogboeken",
     "NoLogs": "Geen tijdlogboeken vastgelegd",
-    "EditTimeLog": "Tijdlogboek bewerken"
+    "EditTimeLog": "Tijdlogboek bewerken",
+    "OpenTimeLogsHint": "Dubbelklik of druk op de spatiebalk om de geschiedenis van tijdlogboeken te openen"
   },
   "it": {
     "AddTask": "Aggiungi attività",
@@ -377,6 +386,7 @@
     "Rate": "Tariffa oraria",
     "TimeLogsHistory": "Cronologia dei registri del tempo",
     "NoLogs": "Nessun registro del tempo registrato",
-    "EditTimeLog": "Modifica registro del tempo"
+    "EditTimeLog": "Modifica registro del tempo",
+    "OpenTimeLogsHint": "Fai doppio clic o premi la barra spaziatrice per aprire la cronologia dei registri del tempo"
   }
 }
