@@ -281,6 +281,7 @@ export function TaskActions({
               (p) => p.id === (task?.projectId ?? selectedLog.projectId)
             )?.name
           }
+          timezone={timeZone}
           onSaveSuccess={handleLogMutationSuccess}
           onDeleteSuccess={handleLogMutationSuccess}
           onDeleted={handleLogMutationSuccess}

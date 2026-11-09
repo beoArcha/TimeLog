@@ -159,11 +159,27 @@ export function getSupportedTimezones(): string[] {
 }
 
 function parseInputDate(input: Date | string | number): Date | null {
-  const date = input instanceof Date ? input : new Date(input);
-  if (Number.isNaN(date.getTime())) {
-    return null;
+  if (input instanceof Date) {
+    return Number.isNaN(input.getTime()) ? null : input;
   }
-  return date;
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return null;
+    }
+    if (/(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(trimmed)) {
+      const explicitDate = new Date(trimmed);
+      return Number.isNaN(explicitDate.getTime()) ? null : explicitDate;
+    }
+    if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$/.test(trimmed)) {
+      const utcDate = new Date(trimmed.replace(' ', 'T') + 'Z');
+      return Number.isNaN(utcDate.getTime()) ? null : utcDate;
+    }
+    const date = new Date(trimmed);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const date = new Date(input);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 /**

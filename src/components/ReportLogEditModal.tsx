@@ -106,16 +106,8 @@ function resolveActiveTimezone(
   propTimezone?: string,
   settings?: ReturnType<typeof useSettingsSafe>
 ): string {
-  if (propTimezone) {
-    return propTimezone;
-  }
-  if (settings?.resolvedTimezone) {
-    return settings.resolvedTimezone;
-  }
-  if (settings?.timezone) {
-    return settings.timezone;
-  }
-  return resolveEffectiveTimezone();
+  const candidate = propTimezone || settings?.resolvedTimezone || settings?.timezone;
+  return resolveEffectiveTimezone(candidate);
 }
 
 function ReportLogEditForm({

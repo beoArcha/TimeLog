@@ -290,8 +290,10 @@ export function TaskMetrics({
               (p) => p.id === (rootTask.projectId ?? selectedLog.projectId)
             )?.name
           }
+          timezone={timeZone}
           onSaveSuccess={handleLogMutationSuccess}
           onDeleteSuccess={handleLogMutationSuccess}
+          onDeleted={handleLogMutationSuccess}
         />
       )}
     </>
