@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from "react";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { TaskMetrics } from "@features/tasks/components/TaskItem/TaskMetrics";
@@ -376,6 +376,33 @@ describe("Unit Tests: TaskMetrics", () => {
       const popover = await screen.findByTestId("task-logs-popover-t1");
       expect(popover).not.toBeNull();
       expect(screen.getByText(/No time logs recorded|Brak zarejestrowanych wpisów czasu/i)).not.toBeNull();
+    });
+
+    it("logs refreshData failure after a successful log deletion without leaving an unhandled rejection", async () => {
+      const user = userEvent.setup();
+      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const handleDeleteTimeLog = vi.fn().mockResolvedValue({ deleted: true, synchronized: true });
+      const refreshData = vi.fn().mockRejectedValue(new Error("Refresh failed"));
+
+      render(
+        <MockProviders dataState={{ logs: [mockLog1], handleDeleteTimeLog, refreshData }}>
+          <TaskMetrics {...mockProps} logs={[mockLog1]} />
+        </MockProviders>
+      );
+
+      await user.dblClick(screen.getByTestId("task-counter-btn-t1"));
+      await user.click(await screen.findByTestId("audit-delete-button"));
+      await user.click(await screen.findByTestId("confirm-dialog-confirm-btn"));
+
+      await waitFor(() => {
+        expect(handleDeleteTimeLog).toHaveBeenCalledTimes(1);
+        expect(refreshData).toHaveBeenCalledTimes(1);
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          expect.stringContaining("[TaskMetrics] refreshData failed after log mutation:"),
+          expect.any(Error)
+        );
+        expect(screen.queryByTestId("audit-delete-button")).toBeNull();
+      });
     });
   });
 });
