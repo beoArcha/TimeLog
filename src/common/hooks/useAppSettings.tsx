@@ -33,11 +33,13 @@ export function readLegacyTimezoneSetting(): string | null {
   }
 }
 
-export function removeLegacyTimezoneSetting(): void {
+export function removeLegacyTimezoneSetting(): boolean {
   try {
     localStorage.removeItem('oxytime_timezone');
+    return true;
   } catch (err) {
     ErrorHandler.handle(err);
+    return false;
   }
 }
 
@@ -48,10 +50,19 @@ export interface TimezoneResolutionResult {
 
 export function resolveTimezoneWithMigration(
   persistedValue: unknown,
-  legacyValue: string | null
+  legacyValue: string | null,
+  migrationCompleted = false
 ): TimezoneResolutionResult {
   const validatedPersisted = validateTimezoneSetting(persistedValue);
   const hasLegacy = legacyValue !== null;
+
+  // Once migration is complete, the unified setting is authoritative, including System.
+  if (migrationCompleted) {
+    return {
+      effectiveTimezone: validatedPersisted || 'System',
+      needsMigration: false,
+    };
+  }
 
   // Rule: absence of legacy key does not require migration
   if (!hasLegacy) {
@@ -126,6 +137,7 @@ export const useAppSettings = () => {
   const [prevSignature, setPrevSignature] = useState(currentSignature);
   const hasInitializedRef = useRef(false);
   const pendingLegacyMigrationRef = useRef(false);
+  const timezoneMigrationCompletedRef = useRef(false);
 
   if (prevSignature !== currentSignature) {
     setPrevSignature(currentSignature);
@@ -159,11 +171,13 @@ export const useAppSettings = () => {
       });
 
       const rawLegacy = readLegacyTimezoneSetting();
+      timezoneMigrationCompletedRef.current = loaded.timezoneMigrationCompleted === true;
       const { effectiveTimezone, needsMigration } = resolveTimezoneWithMigration(
         loaded.timezone,
-        rawLegacy
+        rawLegacy,
+        timezoneMigrationCompletedRef.current
       );
-      if (needsMigration) {
+      if (needsMigration || (timezoneMigrationCompletedRef.current && rawLegacy !== null)) {
         pendingLegacyMigrationRef.current = true;
       }
       setTimezoneState(effectiveTimezone);
@@ -227,11 +241,15 @@ export const useAppSettings = () => {
         alwaysOnTopMain: alwaysOnTopMain,
         minimizeToTray: minimizeToTray,
         timezone: timezone,
+        timezoneMigrationCompleted:
+          timezoneMigrationCompletedRef.current || pendingLegacyMigrationRef.current,
       };
       await PersistenceRouter.getInstance().settings.save(payload);
       if (pendingLegacyMigrationRef.current) {
-        removeLegacyTimezoneSetting();
-        pendingLegacyMigrationRef.current = false;
+        timezoneMigrationCompletedRef.current = true;
+        if (removeLegacyTimezoneSetting()) {
+          pendingLegacyMigrationRef.current = false;
+        }
       }
     };
     saveSettings().catch((e) => {
