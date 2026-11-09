@@ -11,9 +11,11 @@ export type TaskKey =
   | 'DeleteTask'
   | 'DeleteTaskWarningLogs'
   | 'DeleteTaskWarningSubtasks'
+  | 'EditTimeLog'
   | 'EnterMainTaskName'
   | 'EnterSubtaskName'
   | 'InProgressLabel'
+  | 'NoLogs'
   | 'NoTaskSelected'
   | 'NoTasksInProfile'
   | 'NoTasksInProject'
@@ -31,4 +33,5 @@ export type TaskKey =
   | 'SubtaskLabel'
   | 'TaskName'
   | 'TasksAndSubtasks'
-  | 'TaskRequired';
+  | 'TaskRequired'
+  | 'TimeLogsHistory';

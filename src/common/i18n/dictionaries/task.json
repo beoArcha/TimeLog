@@ -32,7 +32,10 @@
     "RateCustomLabel": "Custom hourly rate",
     "RatePlaceholder": "0.00",
     "ConfigureRate": "Configure Hourly Rate",
-    "Rate": "Hourly Rate"
+    "Rate": "Hourly Rate",
+    "TimeLogsHistory": "Time logs history",
+    "NoLogs": "No time logs recorded",
+    "EditTimeLog": "Edit time log"
   },
   "pl": {
     "AddTask": "Dodaj zadanie",
@@ -67,7 +70,10 @@
     "RateCustomLabel": "Własna stawka godzinowa",
     "RatePlaceholder": "0.00",
     "ConfigureRate": "Skonfiguruj stawkę godzinową",
-    "Rate": "Stawka godzinowa"
+    "Rate": "Stawka godzinowa",
+    "TimeLogsHistory": "Historia wpisów czasu",
+    "NoLogs": "Brak zarejestrowanych wpisów czasu",
+    "EditTimeLog": "Edytuj wpis czasu"
   },
   "de": {
     "AddTask": "Aufgabe hinzufügen",
@@ -102,7 +108,10 @@
     "RateCustomLabel": "Eigener Stundensatz",
     "RatePlaceholder": "0.00",
     "ConfigureRate": "Stundensatz konfigurieren",
-    "Rate": "Stundensatz"
+    "Rate": "Stundensatz",
+    "TimeLogsHistory": "Zeiterfassungshistorie",
+    "NoLogs": "Keine Zeiteinträge erfasst",
+    "EditTimeLog": "Zeiteintrag bearbeiten"
   },
   "es": {
     "AddTask": "Agregar Tarea",
@@ -137,7 +146,10 @@
     "RateCustomLabel": "Tarifa por hora personalizada",
     "RatePlaceholder": "0.00",
     "ConfigureRate": "Configurar tarifa horaria",
-    "Rate": "Tarifa horaria"
+    "Rate": "Tarifa horaria",
+    "TimeLogsHistory": "Historial de registros de tiempo",
+    "NoLogs": "No hay registros de tiempo",
+    "EditTimeLog": "Editar registro de tiempo"
   },
   "pt-br": {
     "AddTask": "Adicionar Tarefa",
@@ -172,7 +184,10 @@
     "RateCustomLabel": "Taxa horária personalizada",
     "RatePlaceholder": "0.00",
     "ConfigureRate": "Configurar taxa horária",
-    "Rate": "Taxa horária"
+    "Rate": "Taxa horária",
+    "TimeLogsHistory": "Histórico de registros de tempo",
+    "NoLogs": "Nenhum registro de tempo gravado",
+    "EditTimeLog": "Editar registro de tempo"
   },
   "fr": {
     "AddTask": "Ajouter une Tâche",
@@ -207,7 +222,10 @@
     "RateCustomLabel": "Taux horaire personnalisé",
     "RatePlaceholder": "0.00",
     "ConfigureRate": "Configurer le taux horaire",
-    "Rate": "Taux horaire"
+    "Rate": "Taux horaire",
+    "TimeLogsHistory": "Historique des journaux de temps",
+    "NoLogs": "Aucun journal de temps enregistré",
+    "EditTimeLog": "Modifier le journal de temps"
   },
   "uk": {
     "AddTask": "Додати завдання",
@@ -242,7 +260,10 @@
     "RateNonBillable": "Не оплачується (0.00)",
     "RateCustom": "Власна ставка",
     "RateCustomLabel": "Власна погодинна ставка",
-    "RatePlaceholder": "напр. 75.00"
+    "RatePlaceholder": "напр. 75.00",
+    "TimeLogsHistory": "Історія записів часу",
+    "NoLogs": "Немає записаних часових логів",
+    "EditTimeLog": "Редагувати запис часу"
   },
   "ja": {
     "AddTask": "タスクを追加",
@@ -277,7 +298,10 @@
     "RateCustomLabel": "カスタム時間単価",
     "RatePlaceholder": "0.00",
     "ConfigureRate": "時間単価を設定",
-    "Rate": "時間単価"
+    "Rate": "時間単価",
+    "TimeLogsHistory": "タイムログ履歴",
+    "NoLogs": "タイムログが記録されていません",
+    "EditTimeLog": "タイムログを編集"
   },
   "nl": {
     "AddTask": "Taak toevoegen",
@@ -312,7 +336,10 @@
     "RateCustomLabel": "Aangepast uurtarief",
     "RatePlaceholder": "0,00",
     "ConfigureRate": "Uurtarief configureren",
-    "Rate": "Uurtarief"
+    "Rate": "Uurtarief",
+    "TimeLogsHistory": "Geschiedenis van tijdlogboeken",
+    "NoLogs": "Geen tijdlogboeken vastgelegd",
+    "EditTimeLog": "Tijdlogboek bewerken"
   },
   "it": {
     "AddTask": "Aggiungi attività",
@@ -347,6 +374,9 @@
     "RateCustomLabel": "Tariffa oraria personalizzata",
     "RatePlaceholder": "0.00",
     "ConfigureRate": "Configura tariffa oraria",
-    "Rate": "Tariffa oraria"
+    "Rate": "Tariffa oraria",
+    "TimeLogsHistory": "Cronologia dei registri del tempo",
+    "NoLogs": "Nessun registro del tempo registrato",
+    "EditTimeLog": "Modifica registro del tempo"
   }
 }
