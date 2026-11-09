@@ -20,6 +20,9 @@ import { TimeLog } from '@bindings/TimeLog';
 import { ClampedTimeLog } from '@bindings/ClampedTimeLog';
 import { Edit3, AlertCircle } from 'lucide-react';
 
+import { ConfirmDialog } from '@components/ConfirmDialog';
+import { toast } from 'sonner';
+
 const KNOWN_CODES = [
   'ERR_AUDIT_REASON_REQUIRED',
   'ERR_TIMELOG_INVALID_RANGE',
@@ -76,6 +79,7 @@ export interface ReportLogEditModalProps {
   taskName?: string;
   onSaveSuccess?: (updatedLogId: string) => void;
   onDeleteSuccess?: (deletedLogId: string) => void;
+  onDeleted?: (deletedLogId: string) => void;
 }
 
 interface ReportLogEditFormProps {
@@ -86,6 +90,7 @@ interface ReportLogEditFormProps {
   onClose: () => void;
   onSaveSuccess?: (updatedLogId: string) => void;
   onDeleteSuccess?: (deletedLogId: string) => void;
+  onDeleted?: (deletedLogId: string) => void;
 }
 
 function ReportLogEditForm({
@@ -95,6 +100,7 @@ function ReportLogEditForm({
   onClose,
   onSaveSuccess,
   onDeleteSuccess,
+  onDeleted,
 }: ReportLogEditFormProps) {
   const { t: tReport } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
@@ -113,8 +119,14 @@ function ReportLogEditForm({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    if (isSaving || isDeleting) return;
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
     if (isSaving || isDeleting) return;
     setIsDeleting(true);
     setGeneralErrorMessage(null);
@@ -128,19 +140,35 @@ function ReportLogEditForm({
       if (!result.deleted) {
         setGeneralErrorMessage(tEngine('SyncStatusError'));
         setIsDeleting(false);
+        setIsConfirmOpen(false);
         return;
       }
 
-      if (onDeleteSuccess) {
-        onDeleteSuccess(log.id);
-      } else {
-        onSaveSuccess?.(log.id);
+      setIsConfirmOpen(false);
+      setIsDeleting(false);
+
+      if (!result.synchronized) {
+        toast.warning(tEngine('SyncStatusError'));
       }
+
+      try {
+        if (onDeleted) {
+          onDeleted(log.id);
+        } else if (onDeleteSuccess) {
+          onDeleteSuccess(log.id);
+        } else {
+          onSaveSuccess?.(log.id);
+        }
+      } catch (callbackErr) {
+        console.warn('[ReportLogEditModal] Post-delete callback error:', callbackErr);
+      }
+
       onClose();
     } catch (err) {
       console.error('[ReportLogEditModal] Deletion failed:', err);
       setGeneralErrorMessage(tEngine('SyncStatusError'));
       setIsDeleting(false);
+      setIsConfirmOpen(false);
     }
   };
 
@@ -285,6 +313,7 @@ function ReportLogEditForm({
             id="audit-edit-start-time"
             data-testid="audit-edit-start-time"
             type="text"
+            disabled={isSaving || isDeleting}
             aria-invalid={rangeError ? 'true' : undefined}
             value={startTime}
             onChange={(e) => {
@@ -307,6 +336,7 @@ function ReportLogEditForm({
             id="audit-edit-end-time"
             data-testid="audit-edit-end-time"
             type="text"
+            disabled={isSaving || isDeleting}
             aria-invalid={rangeError ? 'true' : undefined}
             value={endTime}
             onChange={(e) => {
@@ -335,6 +365,7 @@ function ReportLogEditForm({
             id="audit-edit-note"
             data-testid="audit-edit-note"
             type="text"
+            disabled={isSaving || isDeleting}
             value={note}
             onChange={(e) => {
               setNote(e.target.value);
@@ -351,6 +382,7 @@ function ReportLogEditForm({
           <Textarea
             id="audit-edit-reason"
             data-testid="audit-edit-reason"
+            disabled={isSaving || isDeleting}
             aria-invalid={reasonError ? 'true' : undefined}
             value={reason}
             onChange={(e) => {
@@ -388,7 +420,7 @@ function ReportLogEditForm({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={handleDelete}
+          onClick={handleDeleteClick}
           disabled={isSaving || isDeleting}
           data-testid="audit-delete-button"
           className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-auto cursor-pointer"
@@ -418,6 +450,20 @@ function ReportLogEditForm({
           </Button>
         </HStack>
       </DialogFooter>
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={tReport('ConfirmDeleteLogTitle')}
+        description={tReport('ConfirmDeleteLogDesc')}
+        confirmLabel={tReport('DeleteLog')}
+        cancelLabel={tCommon('Cancel')}
+        variant="destructive"
+        loading={isDeleting}
+        confirmDisabled={isDeleting || isSaving}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsConfirmOpen(false)}
+      />
     </DialogContent>
   );
 }
@@ -434,6 +480,7 @@ export function ReportLogEditModal({
   taskName,
   onSaveSuccess,
   onDeleteSuccess,
+  onDeleted,
 }: ReportLogEditModalProps) {
   if (!isOpen || !log) return null;
 
@@ -447,6 +494,7 @@ export function ReportLogEditModal({
         onClose={onClose}
         onSaveSuccess={onSaveSuccess}
         onDeleteSuccess={onDeleteSuccess}
+        onDeleted={onDeleted}
       />
     </Dialog>
   );

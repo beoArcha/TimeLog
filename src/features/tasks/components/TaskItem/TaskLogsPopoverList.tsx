@@ -7,7 +7,7 @@ import { TimeLog } from '@bindings/TimeLog';
 import { formatTime, formatDate } from '@common/utils/timeFormat';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { useTranslation } from '@common/i18n/translator';
-import { calculateLogDuration } from './taskLogsUtils';
+import { getLogDurationSeconds } from '@features/reports/utils/grouping';
 
 export interface TaskLogsPopoverListProps {
   taskId: string;
@@ -46,7 +46,7 @@ export function TaskLogsPopoverList({
       ) : (
         <VStack gap="2xs" className="w-full">
           {sortedLogs.map((log) => {
-            const durSeconds = calculateLogDuration(log);
+            const durSeconds = getLogDurationSeconds(log, new Date().toISOString());
             const isSubtaskLog = log.taskId !== taskId;
             const formattedStart = formatTime(log.startTime, timeZone, locale);
             const formattedEnd = log.endTime ? formatTime(log.endTime, timeZone, locale) : '...';
@@ -71,16 +71,17 @@ export function TaskLogsPopoverList({
                     </MonoText>
                   </HStack>
 
-                  <HStack as="span" justify="between" align="center" className="w-full text-xs text-muted-foreground">
-                    {isSubtaskLog ? (
-                      <Badge variant="outline" size="xs" className="truncate max-w-[140px]">
-                        {getLogTaskName(log)}
-                      </Badge>
-                    ) : (
+                  <HStack as="span" justify="between" align="center" className="w-full text-xs text-muted-foreground gap-1.5 flex-wrap">
+                    <HStack as="span" align="center" gap="xs" className="min-w-0 shrink truncate">
+                      {isSubtaskLog && (
+                        <Badge variant="outline" size="xs" className="truncate max-w-[120px]">
+                          {getLogTaskName(log)}
+                        </Badge>
+                      )}
                       <Caption as="span" size="2xs" className="text-muted-foreground truncate">
                         {formatDate(log.startTime, timeZone, locale)}
                       </Caption>
-                    )}
+                    </HStack>
                     {log.note && (
                       <Caption as="span" size="2xs" className="truncate text-muted-foreground/80 italic ml-auto max-w-[120px]">
                         {log.note}

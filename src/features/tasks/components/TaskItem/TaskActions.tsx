@@ -102,7 +102,7 @@ export function TaskActions({
     );
   }, [matchingLogs]);
 
-  const hasLogs = (timeLogsCount !== undefined && timeLogsCount > 0) || matchingLogs.length > 0;
+  const hasLogs = matchingLogs.length > 0;
   const timeZone = resolveEffectiveTimezoneSetting(settingsCtx);
 
   const getLogTaskName = (log: TimeLog) => {
@@ -119,7 +119,11 @@ export function TaskActions({
   const handleLogMutationSuccess = async () => {
     setIsEditModalOpen(false);
     setSelectedLog(null);
-    await dataCtx?.refreshData?.();
+    try {
+      await dataCtx?.refreshData?.();
+    } catch (refreshErr) {
+      console.warn('[TaskActions] refreshData failed after mutation:', refreshErr);
+    }
   };
 
   const handleSaveRate = (rate: string | null) => {
@@ -279,6 +283,7 @@ export function TaskActions({
           }
           onSaveSuccess={handleLogMutationSuccess}
           onDeleteSuccess={handleLogMutationSuccess}
+          onDeleted={handleLogMutationSuccess}
         />
       )}
 

@@ -301,7 +301,61 @@ describe('Unit Tests: ReportLogEditModal', () => {
     expect(onCloseMock).not.toHaveBeenCalled();
   });
 
-  it('should delete time log through DataContext and invoke onDeleteSuccess and onClose', async () => {
+  it('opens ConfirmDialog on delete click without calling handleDeleteTimeLog immediately', async () => {
+    const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: true, synchronized: true });
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          taskName="Task One"
+          projectName="Project One"
+        />
+      </MockProviders>
+    );
+
+    const deleteBtn = screen.getByTestId('audit-delete-button');
+    fireEvent.click(deleteBtn);
+
+    expect(handleDeleteTimeLogMock).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('alertdialog');
+    expect(dialog).not.toBeNull();
+    expect(screen.getByTestId('confirm-dialog-confirm-btn')).not.toBeNull();
+    expect(screen.getByTestId('confirm-dialog-cancel-btn')).not.toBeNull();
+  });
+
+  it('closes ConfirmDialog and does not call handleDeleteTimeLog when cancelled', async () => {
+    const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: true, synchronized: true });
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          taskName="Task One"
+          projectName="Project One"
+        />
+      </MockProviders>
+    );
+
+    fireEvent.click(screen.getByTestId('audit-delete-button'));
+    expect(screen.getByRole('alertdialog')).not.toBeNull();
+
+    fireEvent.click(screen.getByTestId('confirm-dialog-cancel-btn'));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+    });
+    expect(handleDeleteTimeLogMock).not.toHaveBeenCalled();
+    expect(onCloseMock).not.toHaveBeenCalled();
+  });
+
+  it('calls handleDeleteTimeLog exactly once on confirmation and closes modal when deleted: true, synchronized: true', async () => {
     const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: true, synchronized: true });
     const onDeleteSuccessMock = vi.fn();
     const onCloseMock = vi.fn();
@@ -319,13 +373,167 @@ describe('Unit Tests: ReportLogEditModal', () => {
       </MockProviders>
     );
 
-    const deleteBtn = screen.getByTestId('audit-delete-button');
-    expect(deleteBtn).not.toBeNull();
-    fireEvent.click(deleteBtn);
+    fireEvent.click(screen.getByTestId('audit-delete-button'));
+    fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
+
+    await waitFor(() => {
+      expect(handleDeleteTimeLogMock).toHaveBeenCalledTimes(1);
+      expect(handleDeleteTimeLogMock).toHaveBeenCalledWith('log-1');
+      expect(onDeleteSuccessMock).toHaveBeenCalledWith('log-1');
+      expect(onCloseMock).toHaveBeenCalled();
+    });
+  });
+
+  it('prevents double-click / parallel submission while deletion is in progress', async () => {
+    let resolveDelete!: (value: { deleted: boolean; synchronized: boolean }) => void;
+    const deletePromise = new Promise<{ deleted: boolean; synchronized: boolean }>((res) => {
+      resolveDelete = res;
+    });
+    const handleDeleteTimeLogMock = vi.fn().mockReturnValue(deletePromise);
+    const onDeleteSuccessMock = vi.fn();
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          taskName="Task One"
+          projectName="Project One"
+          onDeleteSuccess={onDeleteSuccessMock}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.click(screen.getByTestId('audit-delete-button'));
+    const confirmBtn = screen.getByTestId('confirm-dialog-confirm-btn');
+
+    fireEvent.click(confirmBtn);
+    fireEvent.click(confirmBtn);
+
+    expect(handleDeleteTimeLogMock).toHaveBeenCalledTimes(1);
+
+    resolveDelete({ deleted: true, synchronized: true });
+
+    await waitFor(() => {
+      expect(onDeleteSuccessMock).toHaveBeenCalledWith('log-1');
+      expect(onCloseMock).toHaveBeenCalled();
+    });
+  });
+
+  it('keeps modal open with general error and does not call callback when deleted: false', async () => {
+    const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: false, synchronized: false });
+    const onDeleteSuccessMock = vi.fn();
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          taskName="Task One"
+          projectName="Project One"
+          onDeleteSuccess={onDeleteSuccessMock}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.click(screen.getByTestId('audit-delete-button'));
+    fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
+
+    await waitFor(() => {
+      expect(handleDeleteTimeLogMock).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId('audit-general-error')).not.toBeNull();
+      expect(onDeleteSuccessMock).not.toHaveBeenCalled();
+      expect(onCloseMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not retry delete and reflects deletion without error when deleted: true, synchronized: false', async () => {
+    const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: true, synchronized: false });
+    const onDeleteSuccessMock = vi.fn();
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          taskName="Task One"
+          projectName="Project One"
+          onDeleteSuccess={onDeleteSuccessMock}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.click(screen.getByTestId('audit-delete-button'));
+    fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
+
+    await waitFor(() => {
+      expect(handleDeleteTimeLogMock).toHaveBeenCalledTimes(1);
+      expect(onDeleteSuccessMock).toHaveBeenCalledWith('log-1');
+      expect(onCloseMock).toHaveBeenCalled();
+      expect(screen.queryByTestId('audit-general-error')).toBeNull();
+    });
+  });
+
+  it('does not invalidate successful deletion if callback throws or refreshData fails', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: true, synchronized: true });
+    const onDeleteSuccessMock = vi.fn().mockImplementation(() => {
+      throw new Error('refreshData error');
+    });
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          taskName="Task One"
+          projectName="Project One"
+          onDeleteSuccess={onDeleteSuccessMock}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.click(screen.getByTestId('audit-delete-button'));
+    fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
 
     await waitFor(() => {
       expect(handleDeleteTimeLogMock).toHaveBeenCalledWith('log-1');
       expect(onDeleteSuccessMock).toHaveBeenCalledWith('log-1');
+      expect(onCloseMock).toHaveBeenCalled();
+    });
+  });
+
+  it('supports onDeleted prop and calls it on successful deletion', async () => {
+    const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: true, synchronized: true });
+    const onDeletedMock = vi.fn();
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          taskName="Task One"
+          projectName="Project One"
+          onDeleted={onDeletedMock}
+        />
+      </MockProviders>
+    );
+
+    fireEvent.click(screen.getByTestId('audit-delete-button'));
+    fireEvent.click(screen.getByTestId('confirm-dialog-confirm-btn'));
+
+    await waitFor(() => {
+      expect(onDeletedMock).toHaveBeenCalledWith('log-1');
       expect(onCloseMock).toHaveBeenCalled();
     });
   });

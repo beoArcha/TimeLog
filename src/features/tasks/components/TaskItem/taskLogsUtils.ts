@@ -1,13 +1,14 @@
 import { TimeLog } from '@bindings/TimeLog';
+import { getLogDurationSeconds } from '@features/reports/utils/grouping';
 
 export function resolveSourceLogs(
   propLogs?: TimeLog[],
   timerLogs?: TimeLog[],
   dataLogs?: TimeLog[]
 ): TimeLog[] {
-  if (propLogs) return propLogs;
-  if (timerLogs) return timerLogs;
-  if (dataLogs) return dataLogs;
+  if (propLogs && propLogs.length > 0) return propLogs;
+  if (timerLogs && timerLogs.length > 0) return timerLogs;
+  if (dataLogs && dataLogs.length > 0) return dataLogs;
   return [];
 }
 
@@ -26,10 +27,5 @@ export function resolveEffectiveTimezoneSetting(settings: unknown): string | und
 }
 
 export function calculateLogDuration(log: TimeLog): number {
-  const start = new Date(log.startTime).getTime();
-  if (isNaN(start)) return 0;
-  if (!log.endTime) return 0;
-  const end = new Date(log.endTime).getTime();
-  if (isNaN(end)) return 0;
-  return Math.max(0, Math.floor((end - start) / 1000));
+  return getLogDurationSeconds(log, new Date().toISOString());
 }
