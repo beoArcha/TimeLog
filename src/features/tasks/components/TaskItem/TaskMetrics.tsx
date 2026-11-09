@@ -161,7 +161,14 @@ export function TaskMetrics({
   const handleLogMutationSuccess = async () => {
     setIsEditModalOpen(false);
     setSelectedLog(null);
-    await dataCtx?.refreshData?.();
+
+    try {
+      await dataCtx?.refreshData?.();
+    } catch (refreshErr) {
+      // The log mutation has already succeeded; a refresh failure must not
+      // turn it into an apparent mutation failure or an unhandled rejection.
+      console.warn('[TaskMetrics] refreshData failed after log mutation:', refreshErr);
+    }
   };
 
   const formattedDuration = formatSeconds(rootDuration);
