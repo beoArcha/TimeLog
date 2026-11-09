@@ -75,6 +75,7 @@ export interface ReportLogEditModalProps {
   projectName?: string;
   taskName?: string;
   onSaveSuccess?: (updatedLogId: string) => void;
+  onDeleteSuccess?: (deletedLogId: string) => void;
 }
 
 interface ReportLogEditFormProps {
@@ -84,6 +85,7 @@ interface ReportLogEditFormProps {
   taskName?: string;
   onClose: () => void;
   onSaveSuccess?: (updatedLogId: string) => void;
+  onDeleteSuccess?: (deletedLogId: string) => void;
 }
 
 function ReportLogEditForm({
@@ -92,6 +94,7 @@ function ReportLogEditForm({
   taskName,
   onClose,
   onSaveSuccess,
+  onDeleteSuccess,
 }: ReportLogEditFormProps) {
   const { t: tReport } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
@@ -109,6 +112,37 @@ function ReportLogEditForm({
   const [generalErrorMessage, setGeneralErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const handleDelete = async () => {
+    if (isSaving || isDeleting) return;
+    setIsDeleting(true);
+    setGeneralErrorMessage(null);
+
+    try {
+      if (!dataContext?.handleDeleteTimeLog) {
+        throw new Error('Time log deletion is unavailable outside DataContext');
+      }
+
+      const result = await dataContext.handleDeleteTimeLog(log.id);
+      if (!result.deleted) {
+        setGeneralErrorMessage(tEngine('SyncStatusError'));
+        setIsDeleting(false);
+        return;
+      }
+
+      if (onDeleteSuccess) {
+        onDeleteSuccess(log.id);
+      } else {
+        onSaveSuccess?.(log.id);
+      }
+      onClose();
+    } catch (err) {
+      console.error('[ReportLogEditModal] Deletion failed:', err);
+      setGeneralErrorMessage(tEngine('SyncStatusError'));
+      setIsDeleting(false);
+    }
+  };
 
   const handleSave = async () => {
     setReasonError(false);
@@ -349,27 +383,40 @@ function ReportLogEditForm({
         )}
       </VStack>
 
-      <DialogFooter className="gap-2 sm:gap-0">
+      <DialogFooter className="gap-2 sm:gap-0 justify-between items-center w-full">
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
-          onClick={onClose}
-          disabled={isSaving}
+          onClick={handleDelete}
+          disabled={isSaving || isDeleting}
+          data-testid="audit-delete-button"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-auto cursor-pointer"
         >
-          {tCommon('Cancel')}
+          {isDeleting ? tCommon('Delete') + '...' : tCommon('Delete')}
         </Button>
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          onClick={handleSave}
-          disabled={isSaving}
-          data-testid="audit-save-button"
-          className="gap-1.5"
-        >
-          {isSaving ? tCommon('Save') + '...' : tCommon('Save')}
-        </Button>
+        <HStack gap="sm">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            disabled={isSaving || isDeleting}
+          >
+            {tCommon('Cancel')}
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={handleSave}
+            disabled={isSaving || isDeleting}
+            data-testid="audit-save-button"
+            className="gap-1.5"
+          >
+            {isSaving ? tCommon('Save') + '...' : tCommon('Save')}
+          </Button>
+        </HStack>
       </DialogFooter>
     </DialogContent>
   );
@@ -386,6 +433,7 @@ export function ReportLogEditModal({
   projectName,
   taskName,
   onSaveSuccess,
+  onDeleteSuccess,
 }: ReportLogEditModalProps) {
   if (!isOpen || !log) return null;
 
@@ -398,6 +446,7 @@ export function ReportLogEditModal({
         taskName={taskName}
         onClose={onClose}
         onSaveSuccess={onSaveSuccess}
+        onDeleteSuccess={onDeleteSuccess}
       />
     </Dialog>
   );

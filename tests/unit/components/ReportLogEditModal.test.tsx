@@ -300,4 +300,33 @@ describe('Unit Tests: ReportLogEditModal', () => {
     expect(onSaveSuccessMock).not.toHaveBeenCalled();
     expect(onCloseMock).not.toHaveBeenCalled();
   });
+
+  it('should delete time log through DataContext and invoke onDeleteSuccess and onClose', async () => {
+    const handleDeleteTimeLogMock = vi.fn().mockResolvedValue({ deleted: true, synchronized: true });
+    const onDeleteSuccessMock = vi.fn();
+    const onCloseMock = vi.fn();
+
+    render(
+      <MockProviders dataState={{ handleDeleteTimeLog: handleDeleteTimeLogMock }}>
+        <ReportLogEditModal
+          isOpen={true}
+          onClose={onCloseMock}
+          log={mockLog}
+          taskName="Task One"
+          projectName="Project One"
+          onDeleteSuccess={onDeleteSuccessMock}
+        />
+      </MockProviders>
+    );
+
+    const deleteBtn = screen.getByTestId('audit-delete-button');
+    expect(deleteBtn).not.toBeNull();
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(handleDeleteTimeLogMock).toHaveBeenCalledWith('log-1');
+      expect(onDeleteSuccessMock).toHaveBeenCalledWith('log-1');
+      expect(onCloseMock).toHaveBeenCalled();
+    });
+  });
 });
