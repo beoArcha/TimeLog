@@ -255,6 +255,10 @@ jobs:
         shell: bash
         run: bun run test:e2e:print
 
+      - name: Run Layout Alignment Geometry E2E Spec
+        shell: bash
+        run: bun x playwright test tests/e2e/specs/layout-alignment-geometry.spec.ts --config=tests/e2e/config/playwright.config.ts
+
   pr-gate:
     name: PR Gate (Unified Check)
     needs: [detect-changes, check-docs, check-frontend, check-rust, check-e2e]
