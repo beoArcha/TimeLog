@@ -125,6 +125,7 @@ export default function TaskItem({ rootTask, state, isCondensed }: TaskItemProps
           runningSubtask={runningSubtask}
           subtasksCount={subtasksCount}
           timeLogsCount={rootAndSubtaskLogsCount}
+          logs={logs}
           onToggleTaskComplete={state.onToggleTaskComplete}
           onRenameTask={state.onRenameTask}
           onUpdateTask={state.onUpdateTask}

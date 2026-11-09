@@ -166,6 +166,7 @@ export function SubtaskItem({
               timeLogsCount={timeLogsCount}
               isSubtask={true}
               task={subTask}
+              logs={propLogs ?? timerCtx?.logs}
             />
           )}
         </HStack>

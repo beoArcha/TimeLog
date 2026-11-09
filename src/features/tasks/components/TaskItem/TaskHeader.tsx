@@ -1,5 +1,6 @@
 import { Task } from '@bindings/Task';
 import { TaskStatus } from '@bindings/TaskStatus';
+import { TimeLog } from '@bindings/TimeLog';
 import { CheckSquare, Square as EmptySquare } from 'lucide-react';
 import { useTranslation } from '@common/i18n/translator';
 import { TaskNameEditor } from './TaskNameEditor';
@@ -21,6 +22,7 @@ export interface TaskHeaderProps {
   editName?: string;
   subtasksCount?: number;
   timeLogsCount?: number;
+  logs?: TimeLog[];
   onToggleTaskComplete?: (id: string) => void;
   onRenameTask?: ((id: string, name: string) => void) | undefined;
   onUpdateTask?: ((
@@ -44,6 +46,7 @@ export function TaskHeader({
   editName: propEditName,
   subtasksCount = 0,
   timeLogsCount = 0,
+  logs,
   onToggleTaskComplete: propOnToggleTaskComplete,
   onRenameTask: propOnRenameTask,
   onUpdateTask: propOnUpdateTask,
@@ -154,6 +157,7 @@ export function TaskHeader({
             timeLogsCount={timeLogsCount}
             isSubtask={false}
             task={rootTask}
+            logs={logs}
           />
         )}
       </div>
