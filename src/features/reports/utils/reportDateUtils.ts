@@ -1,5 +1,6 @@
 import { resolveSystemLocale } from '@common/i18n/locales';
 import type { Locale } from '@bindings/Locale';
+import { resolveEffectiveTimezone } from '@common/utils/timeFormat';
 
 /** Matches strictly YYYY-MM-DD format */
 const CALENDAR_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -348,7 +349,23 @@ export function normalizeTimeZone(timeZone?: string): string | undefined {
   if (trimmed.toUpperCase() === 'CEST') {
     return '+02:00';
   }
-  return trimmed;
+  return resolveEffectiveTimezone(trimmed);
+}
+
+function createFallbackScreenTimeFormatter(
+  intlOptions: Intl.DateTimeFormatOptions
+): Intl.DateTimeFormat {
+  try {
+    return new Intl.DateTimeFormat('en', intlOptions);
+  } catch (err) {
+    if (err instanceof RangeError) {
+      return new Intl.DateTimeFormat('en', {
+        ...intlOptions,
+        timeZone: 'UTC',
+      });
+    }
+    throw err;
+  }
 }
 
 /**
@@ -385,11 +402,12 @@ export function formatScreenTime(
     if (options?.hour12 !== undefined) {
       intlOptions.hour12 = options.hour12;
     }
+
     try {
       formatter = new Intl.DateTimeFormat(resolvedLocale, intlOptions);
     } catch (err) {
       if (err instanceof RangeError) {
-        formatter = new Intl.DateTimeFormat('en', intlOptions);
+        formatter = createFallbackScreenTimeFormatter(intlOptions);
       } else {
         throw err;
       }

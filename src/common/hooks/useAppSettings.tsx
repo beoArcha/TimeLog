@@ -10,6 +10,92 @@ import { LAYOUT_VARIANTS, isCompactLayout } from '@common/constants/layoutVarian
 import { AppTabId } from '@common/types/navigation';
 import { usePlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { toast } from 'sonner';
+import { resolveEffectiveTimezone, isValidTimezone } from '@common/utils/timeFormat';
+
+export function validateTimezoneSetting(tz: unknown): string | null {
+  if (typeof tz !== 'string') return null;
+  const trimmed = tz.trim();
+  if (trimmed === 'System' || trimmed.toLowerCase() === 'system') {
+    return 'System';
+  }
+  if (trimmed === 'UTC' || isValidTimezone(trimmed)) {
+    return trimmed;
+  }
+  return null;
+}
+
+export function readLegacyTimezoneSetting(): string | null {
+  try {
+    return localStorage.getItem('oxytime_timezone');
+  } catch (err) {
+    ErrorHandler.handle(err);
+    return null;
+  }
+}
+
+export function removeLegacyTimezoneSetting(): boolean {
+  try {
+    localStorage.removeItem('oxytime_timezone');
+    return true;
+  } catch (err) {
+    ErrorHandler.handle(err);
+    return false;
+  }
+}
+
+export interface TimezoneResolutionResult {
+  effectiveTimezone: string;
+  needsMigration: boolean;
+}
+
+export function resolveTimezoneWithMigration(
+  persistedValue: unknown,
+  legacyValue: string | null,
+  migrationCompleted = false
+): TimezoneResolutionResult {
+  const validatedPersisted = validateTimezoneSetting(persistedValue);
+  const hasLegacy = legacyValue !== null;
+
+  // Once migration is complete, the unified setting is authoritative, including System.
+  if (migrationCompleted) {
+    return {
+      effectiveTimezone: validatedPersisted || 'System',
+      needsMigration: false,
+    };
+  }
+
+  // Rule: absence of legacy key does not require migration
+  if (!hasLegacy) {
+    return {
+      effectiveTimezone: validatedPersisted || 'System',
+      needsMigration: false,
+    };
+  }
+
+  const validatedLegacy = validateTimezoneSetting(legacyValue);
+
+  // Rule 1: valid value from unified persistence takes precedence
+  if (validatedPersisted && validatedPersisted !== 'System') {
+    return {
+      effectiveTimezone: validatedPersisted,
+      needsMigration: true,
+    };
+  }
+
+  // Rule 2 & 3: legacy value can populate missing or default 'System' value
+  if (validatedLegacy) {
+    return {
+      effectiveTimezone: validatedLegacy,
+      needsMigration: true,
+    };
+  }
+
+  // Rule 4: invalid legacy value cannot overwrite valid (or default) value
+  return {
+    effectiveTimezone: validatedPersisted || 'System',
+    needsMigration: true,
+  };
+}
 
 export const useAppSettings = () => {
   const { supportedLayouts, defaultLayout } = usePlatformCapabilities();
@@ -26,6 +112,7 @@ export const useAppSettings = () => {
     includePatchesInReports: true,
     activeSinks: ['Csv'],
   });
+  const [timezone, setTimezoneState] = useState<string>('System');
 
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [lastNonCompactVariant, setLastNonCompactVariant] = useState<Exclude<LayoutVariant, 'compact'>>(
@@ -49,6 +136,8 @@ export const useAppSettings = () => {
   const currentSignature = `${defaultLayout || ''}|${layoutsSignature}`;
   const [prevSignature, setPrevSignature] = useState(currentSignature);
   const hasInitializedRef = useRef(false);
+  const pendingLegacyMigrationRef = useRef(false);
+  const timezoneMigrationCompletedRef = useRef(false);
 
   if (prevSignature !== currentSignature) {
     setPrevSignature(currentSignature);
@@ -80,6 +169,19 @@ export const useAppSettings = () => {
         includePatchesInReports: loaded.includePatchesInReports ?? true,
         activeSinks: loaded.activeSinks ?? ['Csv'],
       });
+
+      const rawLegacy = readLegacyTimezoneSetting();
+      timezoneMigrationCompletedRef.current = loaded.timezoneMigrationCompleted === true;
+      const { effectiveTimezone, needsMigration } = resolveTimezoneWithMigration(
+        loaded.timezone,
+        rawLegacy,
+        timezoneMigrationCompletedRef.current
+      );
+      if (needsMigration || (timezoneMigrationCompletedRef.current && rawLegacy !== null)) {
+        pendingLegacyMigrationRef.current = true;
+      }
+      setTimezoneState(effectiveTimezone);
+
       if (currentProj) setCurrentProjectId(currentProj);
       if (lastNonCompact) setLastNonCompactVariant(lastNonCompact as Exclude<LayoutVariant, 'compact'>);
       setSettingsLoaded(true);
@@ -138,8 +240,17 @@ export const useAppSettings = () => {
         alwaysOnTopSmall: alwaysOnTopSmall,
         alwaysOnTopMain: alwaysOnTopMain,
         minimizeToTray: minimizeToTray,
+        timezone: timezone,
+        timezoneMigrationCompleted:
+          timezoneMigrationCompletedRef.current || pendingLegacyMigrationRef.current,
       };
       await PersistenceRouter.getInstance().settings.save(payload);
+      if (pendingLegacyMigrationRef.current) {
+        timezoneMigrationCompletedRef.current = true;
+        if (removeLegacyTimezoneSetting()) {
+          pendingLegacyMigrationRef.current = false;
+        }
+      }
     };
     saveSettings().catch((e) => {
       ErrorHandler.handle(e);
@@ -154,6 +265,7 @@ export const useAppSettings = () => {
     alwaysOnTopSmall,
     alwaysOnTopMain,
     minimizeToTray,
+    timezone,
   ]);
 
   useEffect(() => {
@@ -171,6 +283,16 @@ export const useAppSettings = () => {
     localStorage.setItem('oxy_default_project_concurrency', String(val));
   };
 
+  const setTimezone = useCallback((val: string) => {
+    const validated = validateTimezoneSetting(val);
+    if (!validated) {
+      return;
+    }
+    setTimezoneState(validated);
+  }, []);
+
+  const resolvedTimezone = resolveEffectiveTimezone(timezone);
+
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
 
   return {
@@ -187,6 +309,8 @@ export const useAppSettings = () => {
     currentProjectId, setCurrentProjectId,
     showCreditsModal, setShowCreditsModal,
     minimizeToTray, setMinimizeToTray,
-    defaultProjectConcurrency, setDefaultProjectConcurrency
+    defaultProjectConcurrency, setDefaultProjectConcurrency,
+    timezone, setTimezone,
+    resolvedTimezone
   };
 };

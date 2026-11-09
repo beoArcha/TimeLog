@@ -1,10 +1,11 @@
 import React from 'react';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useAppSettings } from '@common/hooks/useAppSettings';
 import { PlatformCapabilitiesContext, PlatformCapabilities } from '@common/contexts/PlatformCapabilitiesContext';
 import { setupLocalStorageMock, setupMatchMediaMock } from '@tests/shared/test-helpers';
 import { PersistenceRouter } from '@common/persistence/PersistenceRouter';
+import { ErrorHandler } from '@common/exceptions/ErrorHandler';
 import { Settings as AppSettings } from '@bindings/Settings';
 
 describe('useAppSettings', () => {
@@ -15,6 +16,7 @@ describe('useAppSettings', () => {
   });
 
   afterEach(() => {
+    cleanup();
     PersistenceRouter.resetForTesting();
     vi.restoreAllMocks();
   });
@@ -392,5 +394,324 @@ describe('useAppSettings', () => {
 
     getSpy.mockRestore();
     saveSpy.mockRestore();
+  });
+
+  describe('timezone setting validation, persistence, and legacy migration', () => {
+    it('should initialize with default System timezone when no settings exist', async () => {
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+      expect(result.current.resolvedTimezone).toBeDefined();
+    });
+
+    it('should update timezone state when valid timezone is provided to setTimezone', async () => {
+      // Arrange
+      const { result } = renderHook(() => useAppSettings());
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+
+      // Act
+      act(() => {
+        result.current.setTimezone('Europe/Warsaw');
+      });
+
+      // Assert
+      expect(result.current.timezone).toBe('Europe/Warsaw');
+      expect(result.current.resolvedTimezone).toBe('Europe/Warsaw');
+    });
+
+    it('should reject invalid timezone values in setTimezone and preserve current state', async () => {
+      // Arrange
+      const { result } = renderHook(() => useAppSettings());
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+
+      act(() => {
+        result.current.setTimezone('Europe/Paris');
+      });
+      expect(result.current.timezone).toBe('Europe/Paris');
+
+      // Act - attempt invalid timezone
+      act(() => {
+        result.current.setTimezone('Invalid/Non_Existent_Timezone');
+      });
+
+      // Assert: should retain Europe/Paris
+      expect(result.current.timezone).toBe('Europe/Paris');
+
+      // Act - attempt random garbage
+      act(() => {
+        result.current.setTimezone('!@#$%^');
+      });
+      expect(result.current.timezone).toBe('Europe/Paris');
+    });
+
+    it('should load valid timezone from unified persistence', async () => {
+      // Arrange
+      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+        theme: 'light',
+        guiVariant: 'full',
+        textAndIconSize: 'medium',
+        autoStart: false,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+        timezone: 'America/Chicago',
+      }));
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('America/Chicago');
+      });
+    });
+
+    it('should fallback to System when persisted timezone is invalid', async () => {
+      // Arrange
+      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+        theme: 'light',
+        guiVariant: 'full',
+        textAndIconSize: 'medium',
+        autoStart: false,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+        timezone: 'Corrupted/Invalid_Zone_123',
+      }));
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+    });
+
+    // 1. Valid value from unified persistence takes precedence
+    it('should prioritize valid timezone from unified persistence over legacy value (Rule 1)', async () => {
+      // Arrange
+      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+        theme: 'light',
+        guiVariant: 'full',
+        textAndIconSize: 'medium',
+        autoStart: false,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+        timezone: 'America/New_York',
+      }));
+      localStorage.setItem('oxytime_timezone', 'Europe/Warsaw');
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert: Persisted value America/New_York takes precedence over legacy Europe/Warsaw
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('America/New_York');
+      });
+      // Legacy key is cleaned up after confirmed save
+      await waitFor(() => {
+        expect(localStorage.getItem('oxytime_timezone')).toBeNull();
+      });
+    });
+
+    // 2. Legacy value can populate missing timezone in unified persistence
+    it('should populate missing timezone in unified persistence with valid legacy value (Rule 2)', async () => {
+      // Arrange - no timezone in unified settings
+      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+        theme: 'light',
+        guiVariant: 'full',
+        textAndIconSize: 'medium',
+        autoStart: false,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+      }));
+      localStorage.setItem('oxytime_timezone', 'Europe/Berlin');
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert: Legacy Europe/Berlin populates the missing timezone
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('Europe/Berlin');
+      });
+      // Unified settings must be saved with migrated timezone
+      await waitFor(() => {
+        const unified = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
+        expect(unified.timezone).toBe('Europe/Berlin');
+      });
+      // Legacy key is removed only after confirmed save
+      expect(localStorage.getItem('oxytime_timezone')).toBeNull();
+    });
+
+    // 3. Legacy value can replace default 'System' timezone in unified persistence
+    it('should replace default System timezone in unified persistence with valid legacy value (Rule 3)', async () => {
+      // Arrange - timezone is explicitly 'System'
+      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+        theme: 'light',
+        guiVariant: 'full',
+        textAndIconSize: 'medium',
+        autoStart: false,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+        timezone: 'System',
+      }));
+      localStorage.setItem('oxytime_timezone', 'Europe/London');
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert: Legacy Europe/London replaces default 'System'
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('Europe/London');
+      });
+      // Unified settings must be saved
+      await waitFor(() => {
+        const unified = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
+        expect(unified.timezone).toBe('Europe/London');
+      });
+      expect(localStorage.getItem('oxytime_timezone')).toBeNull();
+    });
+
+    // 4. Invalid legacy value cannot overwrite valid persisted value or migrate
+    it('should not allow invalid legacy timezone to overwrite valid persisted timezone or migrate (Rule 4)', async () => {
+      // Arrange
+      localStorage.setItem('timelog_persistence_plugin_settings', JSON.stringify({
+        theme: 'light',
+        guiVariant: 'full',
+        textAndIconSize: 'medium',
+        autoStart: false,
+        includePatchesInReports: true,
+        activeSinks: ['Csv'],
+        timezone: 'America/Chicago',
+      }));
+      localStorage.setItem('oxytime_timezone', 'Invalid_Corrupted_Zone');
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert: Invalid legacy value cannot overwrite America/Chicago
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('America/Chicago');
+      });
+      // Invalid legacy key is cleaned up after confirmed save
+      await waitFor(() => {
+        expect(localStorage.getItem('oxytime_timezone')).toBeNull();
+      });
+    });
+
+    // 5. Absence of legacy key does not trigger migration
+    it('should not trigger migration when legacy timezone key does not exist (Rule 5)', async () => {
+      // Arrange
+      const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem');
+      removeItemSpy.mockClear();
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.timezone).toBe('System');
+      });
+      expect(removeItemSpy).not.toHaveBeenCalledWith('oxytime_timezone');
+      removeItemSpy.mockRestore();
+    });
+
+    // 6. If saving to persistence fails, preserve legacy key, retain retry capability, and report error via ErrorHandler
+    it('should preserve legacy key and allow retry reporting error when persistence save fails (Safe Migration)', async () => {
+      // Arrange
+      localStorage.setItem('oxytime_timezone', 'Europe/Paris');
+      const saveError = new Error('Database disk full');
+      const saveSpy = vi.spyOn(PersistenceRouter.getInstance().settings, 'save').mockRejectedValue(saveError);
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      // Act
+      renderHook(() => useAppSettings());
+
+      // Assert: ErrorHandler receives save error
+      await waitFor(() => {
+        expect(errorHandlerSpy).toHaveBeenCalledWith(saveError);
+      });
+      // Old key MUST NOT be removed from localStorage if persistence save failed
+      expect(localStorage.getItem('oxytime_timezone')).toBe('Europe/Paris');
+
+      saveSpy.mockRestore();
+      errorHandlerSpy.mockRestore();
+    });
+
+    it('should not resurrect a legacy timezone after removal fails and the user selects System', async () => {
+      // Arrange: migration succeeds, but cleanup of the legacy key is blocked.
+      localStorage.setItem('oxytime_timezone', 'Europe/Paris');
+      const removalError = new Error('Legacy key removal is unavailable');
+      const originalRemoveItem = Storage.prototype.removeItem;
+      const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((key) => {
+        if (key === 'oxytime_timezone') {
+          throw removalError;
+        }
+        return originalRemoveItem.call(localStorage, key);
+      });
+
+      const { result } = renderHook(() => useAppSettings());
+
+      // The migration marker and migrated timezone must be persisted before cleanup is attempted.
+      await waitFor(() => {
+        const persisted = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
+        expect(result.current.timezone).toBe('Europe/Paris');
+        expect(persisted.timezoneMigrationCompleted).toBe(true);
+      });
+      expect(localStorage.getItem('oxytime_timezone')).toBe('Europe/Paris');
+
+      // Act: user explicitly selects System after the failed cleanup.
+      act(() => {
+        result.current.setTimezone('System');
+      });
+      await waitFor(() => {
+        const persisted = JSON.parse(localStorage.getItem('timelog_persistence_plugin_settings') || '{}');
+        expect(persisted.timezone).toBe('System');
+      });
+
+      // Simulate an application restart while the stale legacy key still exists.
+      cleanup();
+      PersistenceRouter.resetForTesting();
+      const reloaded = renderHook(() => useAppSettings());
+
+      // Assert: completed migration marker makes the persisted System preference authoritative.
+      await waitFor(() => {
+        expect(reloaded.result.current.timezone).toBe('System');
+      });
+      expect(localStorage.getItem('oxytime_timezone')).toBe('Europe/Paris');
+      removeItemSpy.mockRestore();
+    });
+
+    // 7. Errors during legacy key read or removal are reported via ErrorHandler instead of swallowed silently
+    it('should report errors via ErrorHandler when reading or removing legacy key throws (No empty catch)', async () => {
+      // Arrange: mock localStorage.getItem throwing a SecurityError
+      const accessError = new Error('LocalStorage security restriction');
+      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+        if (key === 'oxytime_timezone') {
+          throw accessError;
+        }
+        return null;
+      });
+      const errorHandlerSpy = vi.spyOn(ErrorHandler, 'handle');
+
+      // Act
+      const { result } = renderHook(() => useAppSettings());
+
+      // Assert: ErrorHandler must have caught and logged the security exception
+      await waitFor(() => {
+        expect(errorHandlerSpy).toHaveBeenCalledWith(accessError);
+      });
+      expect(result.current.timezone).toBe('System');
+
+      getItemSpy.mockRestore();
+      errorHandlerSpy.mockRestore();
+    });
   });
 });

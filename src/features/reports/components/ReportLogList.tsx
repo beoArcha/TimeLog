@@ -9,6 +9,7 @@ import { Heading } from '@components/ui/typography';
 import { SearchInput } from '@components/ui/search-input';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { useDebounce } from '@common/hooks/useDebounce';
+import { useSettingsSafe } from '@common/hooks/useSettings';
 import { ProjectChartItem } from '../types';
 import { ReportLogEditModal } from '@components/ReportLogEditModal';
 import ReportLogDistribution from './ReportLogDistribution';
@@ -52,6 +53,8 @@ export default function ReportLogList({
   const { t, locale: contextLocale } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
   const activeLocale = propLocale ?? contextLocale;
+  const settings = useSettingsSafe();
+  const effectiveTimeZone = timeZone ?? settings?.resolvedTimezone ?? settings?.timezone;
 
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, debounceDelay);
@@ -158,7 +161,7 @@ export default function ReportLogList({
                 key={projectGroup.projectId}
                 projectGroup={projectGroup}
                 activeLocale={activeLocale}
-                timeZone={timeZone}
+                timeZone={effectiveTimeZone ?? timeZone}
                 nowIso={nowIso}
                 isLogActive={isLogActive}
                 onEdit={openEdit}
