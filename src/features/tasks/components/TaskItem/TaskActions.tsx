@@ -14,6 +14,7 @@ import { useSettingsSafe } from '@common/hooks/SettingsContext';
 import { formatTime, formatDate } from '@common/utils/timeFormat';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { ReportLogEditModal } from '@components/ReportLogEditModal';
+import { getLogDurationSeconds } from '@features/reports/utils/grouping';
 import { TaskBillingModal } from '../TaskBillingModal';
 
 export interface TaskActionsProps {
@@ -38,9 +39,9 @@ function resolveSourceLogs(
   timerLogs?: TimeLog[],
   dataLogs?: TimeLog[]
 ): TimeLog[] {
-  if (propLogs) return propLogs;
-  if (timerLogs) return timerLogs;
-  if (dataLogs) return dataLogs;
+  if (propLogs && propLogs.length > 0) return propLogs;
+  if (timerLogs && timerLogs.length > 0) return timerLogs;
+  if (dataLogs && dataLogs.length > 0) return dataLogs;
   return [];
 }
 
@@ -56,15 +57,6 @@ function resolveEffectiveTimezoneSetting(settings: unknown): string | undefined 
     return s.timezone;
   }
   return undefined;
-}
-
-function calculateLogDuration(log: TimeLog): number {
-  const start = new Date(log.startTime).getTime();
-  if (isNaN(start)) return 0;
-  if (!log.endTime) return 0;
-  const end = new Date(log.endTime).getTime();
-  if (isNaN(end)) return 0;
-  return Math.max(0, Math.floor((end - start) / 1000));
 }
 
 export function TaskActions({
@@ -137,7 +129,7 @@ export function TaskActions({
     );
   }, [matchingLogs]);
 
-  const hasLogs = (timeLogsCount !== undefined && timeLogsCount > 0) || matchingLogs.length > 0;
+  const hasLogs = matchingLogs.length > 0;
   const timeZone = resolveEffectiveTimezoneSetting(settingsCtx);
 
   const getLogTaskName = (log: TimeLog) => {
@@ -154,7 +146,11 @@ export function TaskActions({
   const handleLogMutationSuccess = async () => {
     setIsEditModalOpen(false);
     setSelectedLog(null);
-    await dataCtx?.refreshData?.();
+    try {
+      await dataCtx?.refreshData?.();
+    } catch (refreshErr) {
+      console.warn('[TaskActions] refreshData failed after mutation:', refreshErr);
+    }
   };
 
   const handleSaveRate = (rate: string | null) => {
@@ -259,7 +255,7 @@ export function TaskActions({
                 ) : (
                   <VStack gap="2xs" className="w-full">
                     {sortedLogs.map((log) => {
-                      const durSeconds = calculateLogDuration(log);
+                      const durSeconds = getLogDurationSeconds(log, new Date().toISOString());
                       const isSubtaskLog = log.taskId !== taskId;
                       const formattedStart = formatTime(log.startTime, timeZone, locale);
                       const formattedEnd = log.endTime ? formatTime(log.endTime, timeZone, locale) : '...';
@@ -288,16 +284,17 @@ export function TaskActions({
                               </MonoText>
                             </HStack>
 
-                            <HStack as="span" justify="between" align="center" className="w-full text-xs text-muted-foreground">
-                              {isSubtaskLog ? (
-                                <Badge variant="outline" size="xs" className="truncate max-w-[140px]">
-                                  {getLogTaskName(log)}
-                                </Badge>
-                              ) : (
+                            <HStack as="span" justify="between" align="center" className="w-full text-xs text-muted-foreground gap-1.5 flex-wrap">
+                              <HStack as="span" align="center" gap="xs" className="min-w-0 shrink truncate">
+                                {isSubtaskLog && (
+                                  <Badge variant="outline" size="xs" className="truncate max-w-[120px]">
+                                    {getLogTaskName(log)}
+                                  </Badge>
+                                )}
                                 <Caption as="span" size="2xs" className="text-muted-foreground truncate">
                                   {formatDate(log.startTime, timeZone, locale)}
                                 </Caption>
-                              )}
+                              </HStack>
                               {log.note && (
                                 <Caption as="span" size="2xs" className="truncate text-muted-foreground/80 italic ml-auto max-w-[120px]">
                                   {log.note}
