@@ -10,6 +10,8 @@ import {
   formatDate,
   formatTime,
   formatDateTime,
+  formatDateTimeInTimezone,
+  parseDateTimeInTimezone,
   DEFAULT_TIMEZONE,
   FALLBACK_TIMEZONE,
   getSafeDateTimeFormat,
@@ -462,3 +464,70 @@ describe('useAppSettings timezone persistence', () => {
     expect(localStorage.getItem('oxytime_timezone')).toBeNull();
   });
 });
+
+describe('formatDateTimeInTimezone and parseDateTimeInTimezone', () => {
+  it('should format UTC timestamp to localized input string across various timezones', () => {
+    const utcIso = '2026-06-15T10:00:00.000Z';
+
+    // Europe/Warsaw in June is CEST (UTC+2)
+    expect(formatDateTimeInTimezone(utcIso, 'Europe/Warsaw')).toBe('2026-06-15 12:00:00');
+
+    // America/New_York in June is EDT (UTC-4)
+    expect(formatDateTimeInTimezone(utcIso, 'America/New_York')).toBe('2026-06-15 06:00:00');
+
+    // Asia/Tokyo is UTC+9
+    expect(formatDateTimeInTimezone(utcIso, 'Asia/Tokyo')).toBe('2026-06-15 19:00:00');
+
+    // UTC
+    expect(formatDateTimeInTimezone(utcIso, 'UTC')).toBe('2026-06-15 10:00:00');
+
+    // Empty/invalid input
+    expect(formatDateTimeInTimezone(null, 'UTC')).toBe('');
+    expect(formatDateTimeInTimezone('', 'UTC')).toBe('');
+    expect(formatDateTimeInTimezone('invalid', 'UTC')).toBe('');
+  });
+
+  it('should parse local date-time string in target timezone back to exact UTC Date', () => {
+    // 12:00:00 in Europe/Warsaw (CEST, UTC+2) -> 10:00:00Z
+    const d1 = parseDateTimeInTimezone('2026-06-15 12:00:00', 'Europe/Warsaw');
+    expect(d1?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+
+    // 06:00:00 in America/New_York (EDT, UTC-4) -> 10:00:00Z
+    const d2 = parseDateTimeInTimezone('2026-06-15 06:00:00', 'America/New_York');
+    expect(d2?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+
+    // With T separator
+    const d3 = parseDateTimeInTimezone('2026-06-15T19:00:00', 'Asia/Tokyo');
+    expect(d3?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+
+    // Without seconds (defaults to 00)
+    const d4 = parseDateTimeInTimezone('2026-06-15 12:00', 'Europe/Warsaw');
+    expect(d4?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+
+    // Explicit UTC ISO string
+    const d5 = parseDateTimeInTimezone('2026-06-15T10:00:00Z', 'Europe/Warsaw');
+    expect(d5?.toISOString()).toBe('2026-06-15T10:00:00.000Z');
+  });
+
+  it('should return null for malformed or calendar-impossible date-time strings', () => {
+    expect(parseDateTimeInTimezone('')).toBeNull();
+    expect(parseDateTimeInTimezone('not-a-date')).toBeNull();
+    expect(parseDateTimeInTimezone('2026-02-30 12:00:00')).toBeNull(); // Feb 30 does not exist
+    expect(parseDateTimeInTimezone('2026-04-31 12:00:00')).toBeNull(); // April 31 does not exist
+    expect(parseDateTimeInTimezone('2026-13-01 12:00:00')).toBeNull(); // Month 13
+    expect(parseDateTimeInTimezone('2026-06-15 25:00:00')).toBeNull(); // Hour 25
+    expect(parseDateTimeInTimezone('2026-06-15 12:60:00')).toBeNull(); // Minute 60
+  });
+
+  it('should round-trip cleanly between formatting and parsing across seasons and timezones', () => {
+    const originalUtc = '2026-01-15T15:30:00.000Z'; // Winter
+    const timezones = ['Europe/Warsaw', 'America/New_York', 'Asia/Tokyo', 'UTC'];
+
+    for (const tz of timezones) {
+      const formatted = formatDateTimeInTimezone(originalUtc, tz);
+      const parsed = parseDateTimeInTimezone(formatted, tz);
+      expect(parsed?.toISOString()).toBe(originalUtc);
+    }
+  });
+});
+
