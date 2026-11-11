@@ -5,6 +5,8 @@ pub const MSG_LIST_NOT_IMPLEMENTED: &str = "List projects not implemented";
 pub const DATE_FORMAT_DATE_ONLY: &str = "%Y-%m-%d";
 
 pub const ERR_STORAGE_INIT: &str = "Storage Initialization Error: {}";
+pub const ERR_EXPLICIT_DB_NOT_FOUND: &str =
+    "Database file '{}' does not exist. Check the --db path.";
 pub const ERR_CLI_PREFIX: &str = "Error: {}";
 
 pub const ERR_DURATION_EMPTY: &str = "Duration string cannot be empty";
