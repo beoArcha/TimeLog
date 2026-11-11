@@ -16,3 +16,12 @@ pub const PROGRESS_BAR_EMPTY: &str = "░";
 
 pub const DIVIDER_LINE: &str = "──────────────────────────────────────────────────\n";
 pub const MSG_NO_REPORT_DATA: &str = "No time logs recorded for the selected period.";
+
+pub const TABLE_SEPARATOR_RICH: &str = "─";
+pub const TABLE_SEPARATOR_PLAIN: &str = "-";
+pub const TABLE_ELLIPSIS: &str = "…";
+pub const TABLE_COLUMN_SEPARATOR: &str = "  ";
+
+pub const DURATION_SUFFIX_HOUR: &str = "h";
+pub const DURATION_SUFFIX_MINUTE: &str = "m";
+pub const DURATION_SUFFIX_SECOND: &str = "s";

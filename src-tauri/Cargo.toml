@@ -38,6 +38,7 @@ uuid = { version = "1.8", features = ["serde", "v4"] }
 quick-xml = { version = "0.42.0", features = ["serialize"] }
 rust_xlsxwriter = "0.102.0"
 spreadsheet-ods = "1.0.4"
+unicode-width = "0.2"
 
 [build-dependencies]
 tauri-build = { version = "2.0.0", features = [] }
