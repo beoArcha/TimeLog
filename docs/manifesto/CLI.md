@@ -260,7 +260,7 @@ The CLI enforces a **Dual-Layer Response Architecture**:
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-The envelope is `CliErrorEnvelope` in `src-tauri/src/cli/error/envelope.rs`; the user layer (`LocalizedUserMessage`) is optional and omitted in `--machine` mode.
+The envelope is `CliErrorEnvelope` in `src-tauri/src/cli/error/envelope.rs`; the user layer (`LocalizedUserMessage`) is optional and omitted in `--machine` mode. In machine mode parser errors are also returned as the JSON envelope (`CLI_SYNTAX_UNKNOWN_COMMAND` / `CLI_SYNTAX_INVALID_ARGS`, exit 2); help and version output are unaffected.
 
 ### Exit Codes
 

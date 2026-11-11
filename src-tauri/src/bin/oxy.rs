@@ -67,6 +67,17 @@ fn main() -> ExitCode {
     let cli_args = match CliArgs::try_parse_from(&effective_args) {
         Ok(parsed) => parsed,
         Err(err) => {
+            if is_machine
+                && err.kind() != clap::error::ErrorKind::DisplayHelp
+                && err.kind() != clap::error::ErrorKind::DisplayVersion
+                && err.kind() != clap::error::ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
+            {
+                let syntax_err = cli::error::map_clap_error(&err);
+                let cli_err = CliError::Syntax(syntax_err);
+                let envelope = cli::build_error_envelope(&cli_err, is_machine, Some(&persistence));
+                envelope.render_stderr(is_machine);
+                return envelope.to_exit_code();
+            }
             err.exit();
         }
     };
