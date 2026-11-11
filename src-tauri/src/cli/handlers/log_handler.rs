@@ -366,7 +366,7 @@ fn render_logs_table(
                 .replacen("{}", &note_display, 1),
         );
     }
-    if total_matched > logs.len() {
+    if !is_quiet && total_matched > logs.len() {
         let not_shown = total_matched - logs.len();
         out.push_str(&MSG_LOGS_TRUNCATED_FOOTER.replacen("{}", &not_shown.to_string(), 1));
         out.push('\n');

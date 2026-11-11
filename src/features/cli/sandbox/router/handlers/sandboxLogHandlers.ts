@@ -20,6 +20,12 @@ export function parseDurationToSeconds(input: string): number {
   return isNaN(numeric) ? 0 : numeric * 60;
 }
 
+/**
+ * Mirrors MSG_LOGS_TRUNCATED_FOOTER in src-tauri/src/cli/handlers/constants.rs
+ */
+export const SANDBOX_LOGS_TRUNCATED_FOOTER =
+  '… {} more entries not shown. Use --limit <n> to show more.';
+
 export function handleLogList(
   flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
@@ -50,20 +56,23 @@ export function handleLogList(
     }
   }
 
+  let explicitLimit: number | undefined;
   if (flags['limit'] !== undefined) {
-    const parsedLimit = parseInt(String(flags['limit']), 10);
-    if (isNaN(parsedLimit) || parsedLimit < 1) {
+    const parsed = parseInt(String(flags['limit']), 10);
+    if (isNaN(parsed) || parsed < 1) {
       output.error('Error: --limit must be at least 1.', 'CLI_SYNTAX_INVALID_ARGS', 2);
       return;
     }
+    explicitLimit = parsed;
   }
 
   const isMachine = Boolean(flags['json'] || flags['machine']);
-  const totalMatched = logs.length;
-  const limitFlag = flags['limit'] !== undefined ? parseInt(String(flags['limit']), 10) : undefined;
-  const effectiveLimit = limitFlag !== undefined ? limitFlag : (isMachine ? undefined : 20);
+  // Sort descending by startTime (newest first) to mirror native reference engine
+  const sortedLogs = [...logs].sort((a, b) => b.startTime.localeCompare(a.startTime));
+  const totalMatched = sortedLogs.length;
 
-  const visibleLogs = effectiveLimit !== undefined ? logs.slice(-effectiveLimit) : logs;
+  const effectiveLimit = explicitLimit !== undefined ? explicitLimit : (isMachine ? undefined : 20);
+  const visibleLogs = effectiveLimit !== undefined ? sortedLogs.slice(0, effectiveLimit) : sortedLogs;
 
   if (visibleLogs.length === 0) {
     if (isMachine) {
@@ -97,7 +106,7 @@ export function handleLogList(
 
   if (totalMatched > visibleLogs.length) {
     const notShown = totalMatched - visibleLogs.length;
-    output.info(`… ${notShown} more entries not shown. Use --limit <n> to show more.`);
+    output.info(SANDBOX_LOGS_TRUNCATED_FOOTER.replace('{}', String(notShown)));
   }
 }
 
