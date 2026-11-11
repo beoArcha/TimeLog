@@ -330,3 +330,70 @@ fn test_given_start_after_end_when_log_add_invoked_then_fails_validation() {
     let err = result.unwrap_err();
     assert_eq!(err.exit_code(), 1);
 }
+
+#[test]
+fn test_given_twenty_five_logs_when_log_ls_invoked_then_machine_mode_is_untruncated_and_human_shows_footer(
+) {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_log_untruncated_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-limit")
+        .with_name("Limit Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-limit")
+        .with_project_id("p-limit")
+        .with_name("Limit Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    for i in 1..=25 {
+        let note = format!("Log entry {}", i);
+        let add_args =
+            CliArgs::try_parse_from(["oxy", "log", "add", "Limit Task", "10m", &note]).unwrap();
+        handle_cli(add_args, &persistence, &engine).unwrap();
+    }
+
+    // When
+    let machine_args = CliArgs::try_parse_from(["oxy", "log", "ls", "--json"]).unwrap();
+    let machine_res = handle_cli(machine_args, &persistence, &engine).unwrap();
+
+    // Then
+    let machine_json: Vec<serde_json::Value> =
+        serde_json::from_str(&machine_res.to_string()).expect("valid JSON array");
+    assert_eq!(machine_json.len(), 25);
+
+    // When
+    let machine_limit_args =
+        CliArgs::try_parse_from(["oxy", "log", "ls", "--json", "--limit", "5"]).unwrap();
+    let machine_limit_res = handle_cli(machine_limit_args, &persistence, &engine).unwrap();
+
+    // Then
+    let machine_limit_json: Vec<serde_json::Value> =
+        serde_json::from_str(&machine_limit_res.to_string()).expect("valid JSON array");
+    assert_eq!(machine_limit_json.len(), 5);
+
+    // When
+    let human_args = CliArgs::try_parse_from(["oxy", "log", "ls"]).unwrap();
+    let human_res = handle_cli(human_args, &persistence, &engine).unwrap();
+
+    // Then
+    let human_out = human_res.to_string();
+    let row_count = human_out
+        .lines()
+        .filter(|l| l.contains("Limit Task"))
+        .count();
+    assert_eq!(row_count, 20);
+    assert!(human_out.contains("… 5 more entries not shown. Use --limit <n> to show more."));
+
+    // When
+    let zero_limit_parse = CliArgs::try_parse_from(["oxy", "log", "ls", "--limit", "0"]);
+
+    // Then
+    assert!(zero_limit_parse.is_err());
+    assert_eq!(zero_limit_parse.unwrap_err().exit_code(), 2);
+}

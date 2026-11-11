@@ -396,6 +396,17 @@
     "expectedPatterns": ["error", "not found"]
   },
   {
+    "id": "log-list-limit-invalid",
+    "description": "Log list with limit 0 fails syntax validation across runtimes",
+    "commandFrontend": "log list --limit 0",
+    "commandRust": ["log", "list", "--limit", "0"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
+    "expectedPatterns": ["error", "limit"]
+  },
+  {
     "id": "unknown-command",
     "description": "Syntax rejection on unknown command",
     "commandFrontend": "unrecognized_command_xyz",

@@ -50,18 +50,39 @@ export function handleLogList(
     }
   }
 
-  const limit = flags['limit'] ? parseInt(String(flags['limit']), 10) : 20;
-  logs = logs.slice(-limit);
+  if (flags['limit'] !== undefined) {
+    const parsedLimit = parseInt(String(flags['limit']), 10);
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+      output.error('Error: --limit must be at least 1.', 'CLI_SYNTAX_INVALID_ARGS', 2);
+      return;
+    }
+  }
 
-  if (logs.length === 0) {
-    output.info('No time logs found matching the filter.');
+  const isMachine = Boolean(flags['json'] || flags['machine']);
+  const totalMatched = logs.length;
+  const limitFlag = flags['limit'] !== undefined ? parseInt(String(flags['limit']), 10) : undefined;
+  const effectiveLimit = limitFlag !== undefined ? limitFlag : (isMachine ? undefined : 20);
+
+  const visibleLogs = effectiveLimit !== undefined ? logs.slice(-effectiveLimit) : logs;
+
+  if (visibleLogs.length === 0) {
+    if (isMachine) {
+      output.output('[]');
+    } else {
+      output.info('No time logs found matching the filter.');
+    }
+    return;
+  }
+
+  if (isMachine) {
+    output.output(JSON.stringify(visibleLogs, null, 2));
     return;
   }
 
   output.info('┌──────┬────────────────────────────────┬──────────────────────┬──────────┐');
   output.info('│ ID   │ Task                           │ Time (Start - End)   │ Duration │');
   output.info('├──────┼────────────────────────────────┼──────────────────────┼──────────┤');
-  for (const log of logs) {
+  for (const log of visibleLogs) {
     const task = tasks.find((t) => t.id === log.taskId);
     const startMs = new Date(log.startTime).getTime();
     const endMs = log.endTime ? new Date(log.endTime).getTime() : Date.now();
@@ -73,6 +94,11 @@ export function handleLogList(
     output.output(`│ ${idCol} │ ${nameCol} │ ${timeRange} │ ${durStr} │`);
   }
   output.info('└──────┴────────────────────────────────┴──────────────────────┴──────────┘');
+
+  if (totalMatched > visibleLogs.length) {
+    const notShown = totalMatched - visibleLogs.length;
+    output.info(`… ${notShown} more entries not shown. Use --limit <n> to show more.`);
+  }
 }
 
 export function handleLogAdd(
