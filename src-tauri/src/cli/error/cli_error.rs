@@ -117,7 +117,9 @@ impl CliError {
                 | EngineError::TimeLogInvalidRange
                 | EngineError::TaskAlreadyCompleted(_) => EXIT_CODE_GENERIC_FAILURE,
                 EngineError::EntityNotFound { .. } => EXIT_CODE_ENTITY_ERROR,
-                EngineError::ParseTime(_) => EXIT_CODE_CLI_SYNTAX,
+                EngineError::ParseTime(_)
+                | EngineError::InvalidTimezone(_)
+                | EngineError::InvalidRangeInput(_) => EXIT_CODE_CLI_SYNTAX,
                 EngineError::Persistence(_) => EXIT_CODE_STORAGE_ERROR,
             },
             CliError::Business(_) => EXIT_CODE_GENERIC_FAILURE,
@@ -169,6 +171,9 @@ impl CliError {
                 | EngineError::TimeLogInvalidRange
                 | EngineError::TaskAlreadyCompleted(_) => CliErrorCode::DomBusinessViolation,
                 EngineError::ParseTime(_) => CliErrorCode::CliSyntaxInvalidDuration,
+                EngineError::InvalidTimezone(_) | EngineError::InvalidRangeInput(_) => {
+                    CliErrorCode::CliSyntaxInvalidArgs
+                }
                 EngineError::Persistence(_) => CliErrorCode::StoSqliteQuery,
             },
             CliError::Business(business_err) => match business_err {
@@ -376,6 +381,9 @@ impl From<EngineError> for CliError {
                 CliError::Business(BusinessRuleViolation::Custom(err.to_string()))
             }
             EngineError::ParseTime(t) => CliError::Syntax(CliSyntaxError::InvalidDuration(t)),
+            EngineError::InvalidTimezone(_) | EngineError::InvalidRangeInput(_) => {
+                CliError::Syntax(CliSyntaxError::InvalidArgs(err.to_string()))
+            }
             EngineError::TaskAlreadyCompleted(t) => {
                 CliError::Engine(EngineError::TaskAlreadyCompleted(t))
             }

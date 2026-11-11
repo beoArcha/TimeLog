@@ -1,6 +1,7 @@
 pub mod billing;
 pub mod error;
 pub mod metrics;
+pub mod range;
 pub mod timer;
 pub mod validation;
 

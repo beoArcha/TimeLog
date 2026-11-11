@@ -13,6 +13,7 @@ pub mod ipc;
 pub mod locale;
 pub mod persistence_event;
 pub mod project;
+pub mod range;
 pub mod settings;
 pub mod sinks;
 pub mod timelog;
@@ -41,6 +42,7 @@ pub use ipc::IpcErrorPayload;
 pub use locale::Locale;
 pub use persistence_event::PersistenceEvent;
 pub use project::{Project, ProjectEditHistory, ProjectStatistics};
+pub use range::{RangePreset, RangeRequest, ResolvedRange};
 pub use settings::{RuntimeConfig, Settings};
 pub use sinks::SinkType;
 pub use timelog::{

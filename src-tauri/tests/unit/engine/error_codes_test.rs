@@ -22,6 +22,14 @@ fn test_engine_error_codes_mapping() {
         EngineError::TaskAlreadyCompleted("t1".to_string()).code(),
         "ERR_TASK_ALREADY_COMPLETED"
     );
+    assert_eq!(
+        EngineError::InvalidTimezone("Mars/Olympus".to_string()).code(),
+        "DOM_INVALID_TIMEZONE"
+    );
+    assert_eq!(
+        EngineError::InvalidRangeInput("bad".to_string()).code(),
+        "DOM_INVALID_RANGE_INPUT"
+    );
 }
 
 #[test]
@@ -53,6 +61,20 @@ fn test_app_error_ipc_payload_codes_parity() {
     assert_eq!(payload_completed.code, "ERR_TASK_ALREADY_COMPLETED");
     assert!(payload_completed.message.contains("t_done_1"));
     assert_eq!(payload_completed.details.as_deref(), Some("t_done_1"));
+}
+
+#[test]
+fn test_app_error_ipc_payload_carries_range_error_details() {
+    let err_tz = AppError::Engine(EngineError::InvalidTimezone("Mars/Olympus".to_string()));
+    let payload_tz = err_tz.to_payload();
+    assert_eq!(payload_tz.code, "DOM_INVALID_TIMEZONE");
+    assert!(payload_tz.message.contains("Mars/Olympus"));
+    assert_eq!(payload_tz.details.as_deref(), Some("Mars/Olympus"));
+
+    let err_range = AppError::Engine(EngineError::InvalidRangeInput("bad".to_string()));
+    let payload_range = err_range.to_payload();
+    assert_eq!(payload_range.code, "DOM_INVALID_RANGE_INPUT");
+    assert_eq!(payload_range.details.as_deref(), Some("bad"));
 }
 
 #[test]
