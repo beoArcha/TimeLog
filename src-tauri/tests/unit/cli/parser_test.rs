@@ -73,11 +73,35 @@ fn test_given_stop_shortcut_when_parsing_cli_then_captures_all_flag() {
     // Assert
     assert!(matches!(
         parsed.command,
-        Some(CliCommand::Stop(StopArgs { all: true }))
+        Some(CliCommand::Stop(StopArgs {
+            all: true,
+            if_running: false
+        }))
     ));
     assert!(matches!(
         parsed_alias.command,
-        Some(CliCommand::Stop(StopArgs { all: false }))
+        Some(CliCommand::Stop(StopArgs {
+            all: false,
+            if_running: false
+        }))
+    ));
+}
+
+#[test]
+fn test_given_stop_with_if_running_flag_when_parsing_cli_then_captures_if_running() {
+    // Arrange
+    let args = vec!["oxy", "stop", "--if-running"];
+
+    // Act
+    let parsed = CliArgs::try_parse_from(args).expect("stop --if-running command");
+
+    // Assert
+    assert!(matches!(
+        parsed.command,
+        Some(CliCommand::Stop(StopArgs {
+            all: false,
+            if_running: true
+        }))
     ));
 }
 

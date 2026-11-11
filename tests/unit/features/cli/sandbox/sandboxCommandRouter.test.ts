@@ -411,6 +411,34 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(store.getActiveLog()).toBeNull();
     });
 
+    it('should succeed with a no-op message when stop --if-running is executed on inactive timer', () => {
+      // Arrange
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['stop', '--if-running'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      const lines = output.getLines();
+      expect(lines.some((l) => l.type === 'error')).toBe(false);
+      expect(lines.some((l) => l.text.includes('No active timer'))).toBe(true);
+    });
+
+    it('should stop running timer when stop --if-running is executed', () => {
+      // Arrange
+      store.handleStartTimer('sb_t1');
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['stop', '--if-running'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      expect(store.getActiveLog()).toBeNull();
+      expect(output.getLines().some((l) => l.type === 'error')).toBe(false);
+    });
+
     it('should atomically switch timer when switch is executed', () => {
       // Arrange
       store.handleStartTimer('sb_t1');

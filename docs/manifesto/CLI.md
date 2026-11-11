@@ -136,7 +136,7 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Task** | Billing rate | `oxy task rate <id> <amount\|inherit\|none> [--currency <CODE>] [--cents]` | Sets override, clears it to inherit, or applies currency override | N/A (explicit arguments) |
 | **Subtask** | Create | `oxy subtask create -t <parent-id> "<name>"` | Links subtask to parent | Prompts for parent task selection |
 | **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite | Displays green running timer badge |
-| **Timer** | Stop | `oxy timer stop [--all]` | Idempotent timer stop (`--all` stops all active timers) | Prints total elapsed time for session |
+| **Timer** | Stop | `oxy timer stop [--all] [--if-running]` | Stops the active timer; fails with `ENG_TIMER_INACTIVE` (exit 5) when nothing is running. `--if-running` succeeds as a no-op instead; `--all` stops all active timers | Prints total elapsed time for session |
 | **Timer** | Switch | `oxy switch <new-task-id>` | Atomic stop old + start new ($<100\text{ms}$) | Explains previous and new task state |
 | **Timer** | Quick-Log | `oxy timer log <task-id> <duration> ["<note>"]` | Direct retroactive log insertion | Confirms retroactive time captured |
 | **Timer** | Status | `oxy status` | Single-line or JSON status | Visual card with live running timer |

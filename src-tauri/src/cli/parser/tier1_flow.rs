@@ -10,6 +10,8 @@ pub struct StartArgs {
 pub struct StopArgs {
     #[arg(long, help = "Stop all active timers")]
     pub all: bool,
+    #[arg(long, help = "Succeed without error when no timer is running")]
+    pub if_running: bool,
 }
 
 #[derive(Args, Debug, Clone, PartialEq, Eq)]

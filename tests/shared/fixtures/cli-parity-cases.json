@@ -88,6 +88,17 @@
     "expectedPatterns": ["stop", "all"]
   },
   {
+    "id": "stop-if-running-idle",
+    "description": "Stop with --if-running when no timer is active succeeds as a no-op",
+    "commandFrontend": "stop --if-running",
+    "commandRust": ["stop", "--if-running"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["no active timer", "nothing to stop"]
+  },
+  {
     "id": "switch-valid",
     "description": "Switch active timer to task",
     "commandFrontend": "switch t1",
