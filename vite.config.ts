@@ -62,6 +62,12 @@ export default defineConfig(() => {
       },
     },
     test: {
+      // Node 25+ ships an experimental global localStorage that is undefined without
+      // --localstorage-file and shadows jsdom's implementation, so workers disable it.
+      // Older Node versions reject unknown flags, hence the feature check.
+      execArgv: process.allowedNodeEnvironmentFlags.has('--experimental-webstorage')
+        ? ['--no-experimental-webstorage']
+        : [],
       environment: 'jsdom',
       environmentMatchGlobs: [
         ['scripts/**', 'node'],
@@ -76,7 +82,8 @@ export default defineConfig(() => {
         '**/.{idea,git,cache,output,temp}/**',
         '**/{karma,rollup,webpack,vite,vitest}.config.*',
         '**/.stryker-tmp/**',
-        '**/.stryker-sandbox/**'
+        '**/.stryker-sandbox/**',
+        '**/reports/**'
       ],
       coverage: {
         provider: 'v8',

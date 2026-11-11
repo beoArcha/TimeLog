@@ -16,7 +16,7 @@ playwright-video/
 !.agents/rules/
 .stryker-tmp/
 .stryker-sandbox/
-reports/mutation/
+reports/
 src-tauri/bindings/
 .gemini/*
 /t3/
