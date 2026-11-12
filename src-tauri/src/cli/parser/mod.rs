@@ -1,9 +1,11 @@
+pub mod period_args;
 pub mod tier1_flow;
 pub mod tier2_entities;
 pub mod tier3_subsystems;
 
 use clap::{Parser, Subcommand};
 
+pub use period_args::PeriodArgs;
 pub use tier1_flow::{StartArgs, StopArgs, SwitchArgs};
 pub use tier2_entities::{
     LogArgs, LogSubcommand, ProjectArgs, ProjectSubcommand, TaskArgs, TaskSubcommand,
@@ -58,6 +60,13 @@ pub struct CliArgs {
         help = "Explicit path to SQLite database file"
     )]
     pub db: Option<String>,
+
+    #[arg(
+        long = "tz",
+        global = true,
+        help = "IANA timezone for date ranges (default: app setting or system)"
+    )]
+    pub tz: Option<String>,
 
     #[command(subcommand)]
     pub command: Option<CliCommand>,

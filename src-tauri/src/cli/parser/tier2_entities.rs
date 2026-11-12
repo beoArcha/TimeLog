@@ -1,3 +1,4 @@
+use super::period_args::PeriodArgs;
 use clap::{Args, Subcommand};
 
 #[derive(Args, Debug, Clone, PartialEq, Eq)]
@@ -164,22 +165,8 @@ pub enum LogSubcommand {
         task: Option<String>,
         #[arg(short = 'p', long, help = "Filter by project (by ID, prefix, or name)")]
         project: Option<String>,
-        #[arg(long, help = "Filter to logs from today")]
-        today: bool,
-        #[arg(long, help = "Filter to logs from the current week")]
-        week: bool,
-        #[arg(long, help = "Filter to logs from the current month")]
-        month: bool,
-        #[arg(
-            long,
-            help = "Filter start date (ISO date or RFC3339, e.g. '2026-10-01')"
-        )]
-        from: Option<String>,
-        #[arg(
-            long,
-            help = "Filter end date (ISO date or RFC3339, e.g. '2026-10-31')"
-        )]
-        to: Option<String>,
+        #[command(flatten)]
+        period: PeriodArgs,
         #[arg(
             short,
             long,

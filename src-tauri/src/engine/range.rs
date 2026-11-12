@@ -75,11 +75,32 @@ pub fn resolve_range_at(
     })
 }
 
+pub fn local_date_of_range(range: &ResolvedRange) -> Result<String, EngineError> {
+    let from_str = range.from.as_deref().ok_or_else(|| {
+        EngineError::InvalidRangeInput("resolved range has no from bound".to_string())
+    })?;
+    let tz: Tz = range
+        .timezone
+        .parse()
+        .map_err(|_| EngineError::InvalidTimezone(range.timezone.clone()))?;
+    let utc_dt = DateTime::parse_from_rfc3339(from_str)
+        .map_err(|_| {
+            EngineError::InvalidRangeInput(format!("{MSG_UNPARSEABLE_BOUND}: '{from_str}'"))
+        })?
+        .with_timezone(&Utc);
+    let local = utc_dt.with_timezone(&tz);
+    Ok(local.format(DATE_FORMAT).to_string())
+}
+
 impl Engine<'_> {
     pub fn resolve_range(&self, request: &RangeRequest) -> Result<ResolvedRange, EngineError> {
         let settings = self.persistence.settings.get()?;
         let tz = resolve_timezone(request.timezone.as_deref(), settings.timezone.as_deref())?;
         resolve_range_at(request, Utc::now(), tz)
+    }
+
+    pub fn local_date_of_range(&self, range: &ResolvedRange) -> Result<String, EngineError> {
+        local_date_of_range(range)
     }
 }
 

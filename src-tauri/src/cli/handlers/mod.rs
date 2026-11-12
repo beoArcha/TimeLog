@@ -7,7 +7,6 @@ pub mod flow_handler;
 pub mod log_handler;
 pub mod mask_handler;
 pub mod project_handler;
-pub mod report_bounds;
 pub mod report_dto_builder;
 pub mod report_handler;
 pub mod report_schema_handler;
@@ -28,8 +27,9 @@ pub fn dispatch_command(
     let is_machine = args.machine || args.json;
     let is_quiet = args.quiet;
     let strict = is_machine || args.exact;
+    let tz = args.tz.as_deref();
     match args.command {
-        None => flow_handler::handle_glance(is_machine, persistence, engine),
+        None => flow_handler::handle_glance(is_machine, persistence, engine, tz),
         Some(CliCommand::Start(cmd_args)) => {
             flow_handler::handle_start(cmd_args, is_machine, strict, persistence, engine)
         }
@@ -38,18 +38,24 @@ pub fn dispatch_command(
             flow_handler::handle_switch(cmd_args, is_machine, strict, persistence, engine)
         }
         Some(CliCommand::Status) => flow_handler::handle_status(is_machine, engine),
-        Some(CliCommand::Today) => flow_handler::handle_today(is_machine, persistence),
+        Some(CliCommand::Today) => flow_handler::handle_today(is_machine, persistence, engine, tz),
         Some(CliCommand::Project(cmd_args)) => {
             project_handler::handle(cmd_args, is_machine, strict, is_quiet, persistence)
         }
         Some(CliCommand::Task(cmd_args)) => {
             task_handler::handle(cmd_args, is_machine, strict, is_quiet, persistence)
         }
-        Some(CliCommand::Log(cmd_args)) => {
-            log_handler::handle(cmd_args, is_machine, strict, is_quiet, persistence)
-        }
+        Some(CliCommand::Log(cmd_args)) => log_handler::handle(
+            cmd_args,
+            is_machine,
+            strict,
+            is_quiet,
+            persistence,
+            engine,
+            tz,
+        ),
         Some(CliCommand::Report(cmd_args)) => {
-            report_handler::handle(cmd_args, is_machine, strict, persistence, engine)
+            report_handler::handle(cmd_args, is_machine, strict, persistence, engine, tz)
         }
         Some(CliCommand::Sink(cmd_args)) => sink_handler::handle(cmd_args, is_machine, persistence),
         Some(CliCommand::Mask(cmd_args)) => mask_handler::handle(cmd_args, is_machine, persistence),

@@ -84,7 +84,7 @@ fn test_given_running_timer_when_glance_dashboard_invoked_then_outputs_active_se
     engine.start_timer("t-oauth-01").unwrap();
 
     // When
-    let result = handle_glance(false, &persistence, &engine);
+    let result = handle_glance(false, &persistence, &engine, None);
 
     // Then
     assert!(result.is_ok());

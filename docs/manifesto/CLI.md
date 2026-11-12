@@ -142,10 +142,10 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Timer** | Status | `oxy status` | Single-line or JSON status | Visual card with live running timer |
 | **Log** | Add | `oxy log add <target> [<duration>] ["<note>"] [--from <iso>] [--to <iso>]` | Direct retroactive log insertion | Confirms retroactive time captured |
 | **Log** | Edit | `oxy log edit <id> [--duration <dur>] [--note <note>] [--start <iso>] [--end <iso>] [--task <target>] --reason <text>` | Updates time log with required audit reason (`--reason <text>` or `-r <text>`) | Prompts for edit fields and audit reason |
-| **Log** | List | `oxy log list [-p <proj>] [-t <task>] [--today\|--week\|--month] [--from <iso>] [--to <iso>] [--limit <n>]` | Filtered tabular or JSON list (no default limit in machine mode) | Displays filtered log entries (default 20 + footer in human mode) |
+| **Log** | List | `oxy log list [-p <proj>] [-t <task>] [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--from <iso>] [--to <iso>] [--tz <iana>] [--limit <n>]` | Filtered tabular or JSON list (no default limit in machine mode) | Displays filtered log entries (default 20 + footer in human mode) |
 | **Log** | Remove | `oxy log rm <id>` | Deletes time log entry | Confirms log removal |
-| **Report** | Tree | `oxy report --tree [--today\|--week\|--month]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
-| **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
+| **Report** | Tree | `oxy report --tree [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--tz <iana>]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
+| **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [--tz <iana>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
 | **Report** | Export | `oxy report export -f <format> -o <path>` | Fully supports **CSV, HTML, JSON, XML, ODS, XLSX**; serialization errors yield `SNK_SERIALIZATION` (exit code `1`) | Interactive format selector |
 | **Report** | Schema | `oxy report schema [-o <path>] [--version <v>]` | Emits canonical XML Schema (XSD) to stdout or file (default version `1`) | Download XSD schema |
@@ -165,6 +165,23 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 
 ---
 
+### Period Flags & Timezone (Implemented)
+
+`log list`, `report` (including `report tree` and `report export`) accept the same period flags. `today` and the bare `oxy` dashboard accept `--tz` only; their period is always the current local day.
+
+| Flag | Meaning |
+| --- | --- |
+| `--today`, `--yesterday` | Local calendar day |
+| `--week`, `--last-week` | Local calendar week, **Monday through Sunday** |
+| `--month`, `--last-month` | Local calendar month |
+| `--from <v>`, `--to <v>` | Custom bounds: `YYYY-MM-DD`, `YYYY-MM-DD HH:MM:SS` or RFC3339 |
+| `--tz <IANA>` | Timezone used for every boundary above (global flag, e.g. `Europe/Warsaw`) |
+
+- **Exclusivity:** the six presets are mutually exclusive with each other and with `--from`/`--to`. Any combination is a syntax error (`CLI_SYNTAX_INVALID_ARGS`, exit `2`; in machine mode a JSON envelope on stderr).
+- **Half-open range:** every resolved range is `[from, to)` in UTC. `to` is **exclusive**: a log starting exactly at `to` is not included. A date-only `--to 2026-10-31` means up to the start of `2026-11-01` in the chosen timezone, so the whole day is covered.
+- **Default period:** with no preset and no bounds, `log list` and `report` cover all time.
+- **Timezone resolution:** `--tz` wins over the application's timezone setting; `System` or an unset value uses the OS zone, falling back to UTC when it cannot be detected. An unknown zone name (`--tz Mars/Olympus`) or an inverted range (`--from` later than `--to`) is a syntax error (exit `2`).
+- **Single source of truth:** all boundaries come from `Engine::resolve_range`; the in-app sandbox emulator uses the browser mirror (`resolveRangeAt`) and behaves identically. `oxy log list --week` therefore no longer means "the last 7 days".
 
 ### Billing Configuration (Implemented)
 

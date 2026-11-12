@@ -1,3 +1,4 @@
+use super::period_args::PeriodArgs;
 use clap::{Args, Subcommand};
 
 #[derive(Args, Debug, Clone, PartialEq, Eq)]
@@ -6,40 +7,24 @@ pub struct ReportArgs {
     pub command: Option<ReportSubcommand>,
     #[arg(long, help = "Render hierarchical Unicode tree of projects and tasks")]
     pub tree: bool,
-    #[arg(long, help = "Scope report to today")]
-    pub today: bool,
-    #[arg(long, help = "Scope report to current week")]
-    pub week: bool,
-    #[arg(long, help = "Scope report to current month")]
-    pub month: bool,
+    #[command(flatten)]
+    pub period: PeriodArgs,
     #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
     pub project: Option<String>,
     #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
     pub task: Option<String>,
-    #[arg(long, help = "Filter by start date (YYYY-MM-DD or RFC3339)")]
-    pub from: Option<String>,
-    #[arg(long, help = "Filter by end date (YYYY-MM-DD or RFC3339)")]
-    pub to: Option<String>,
 }
 
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
 pub enum ReportSubcommand {
     #[command(about = "Render hierarchical Unicode report tree")]
     Tree {
-        #[arg(long, help = "Scope to today")]
-        today: bool,
-        #[arg(long, help = "Scope to current week")]
-        week: bool,
-        #[arg(long, help = "Scope to current month")]
-        month: bool,
+        #[command(flatten)]
+        period: PeriodArgs,
         #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
         project: Option<String>,
         #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
         task: Option<String>,
-        #[arg(long, help = "Filter by start date (YYYY-MM-DD or RFC3339)")]
-        from: Option<String>,
-        #[arg(long, help = "Filter by end date (YYYY-MM-DD or RFC3339)")]
-        to: Option<String>,
     },
     #[command(about = "Export report to HTML, CSV, or JSON file")]
     Export {
@@ -47,20 +32,12 @@ pub enum ReportSubcommand {
         format: ExportFormat,
         #[arg(short, long, help = "Output destination file path")]
         output: String,
-        #[arg(long, help = "Scope to today")]
-        today: bool,
-        #[arg(long, help = "Scope to current week")]
-        week: bool,
-        #[arg(long, help = "Scope to current month")]
-        month: bool,
+        #[command(flatten)]
+        period: PeriodArgs,
         #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
         project: Option<String>,
         #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
         task: Option<String>,
-        #[arg(long, help = "Filter by start date (YYYY-MM-DD or RFC3339)")]
-        from: Option<String>,
-        #[arg(long, help = "Filter by end date (YYYY-MM-DD or RFC3339)")]
-        to: Option<String>,
     },
     #[command(about = "Output XML Schema (XSD) definition for reports")]
     Schema {

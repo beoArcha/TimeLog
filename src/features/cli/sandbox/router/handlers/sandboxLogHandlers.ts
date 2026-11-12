@@ -2,6 +2,8 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+import { isStartInRange } from '@common/engine/range/logRange';
+import { resolveSandboxRange } from '../sandboxRange';
 
 export function parseDurationToSeconds(input: string): number {
   const trimmed = input.trim().toLowerCase();
@@ -40,14 +42,12 @@ export function handleLogList(
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
-  let logs = store.getLogs();
+  const range = resolveSandboxRange(flags, output);
+  if (!range) return;
+
+  let logs = store.getLogs().filter((l) => isStartInRange(l.startTime, range));
   const tasks = store.getTasks();
   const projects = store.getProjects();
-
-  if (flags['today']) {
-    const today = new Date().toISOString().slice(0, 10);
-    logs = logs.filter((l) => l.startTime.startsWith(today));
-  }
 
   const isStrict = isStrictResolution(flags);
   const isMachine = Boolean(flags['json'] || flags['machine']);

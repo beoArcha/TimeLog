@@ -142,10 +142,14 @@ pub const OUT_STATUS_ACTIVE: &str = "• Task active in SQLite: {}";
 pub const OUT_SUCCESS: &str = "✅ {}";
 
 pub const PERIOD_LABEL_TODAY: &str = "Today";
+pub const PERIOD_LABEL_YESTERDAY: &str = "Yesterday";
 pub const PERIOD_LABEL_WEEK: &str = "This Week";
+pub const PERIOD_LABEL_LAST_WEEK: &str = "Last Week";
 pub const PERIOD_LABEL_MONTH: &str = "This Month";
+pub const PERIOD_LABEL_LAST_MONTH: &str = "Last Month";
 pub const PERIOD_LABEL_ALL: &str = "All Time";
 pub const PERIOD_LABEL_CUSTOM: &str = "Custom Range";
+pub const PERIOD_LABEL_TEMPLATE: &str = "{}, {}";
 
 pub const ERR_DATE_RANGE_INVALID: &str = "Filter start date cannot be after end date.";
 pub const ERR_TASK_NOT_IN_PROJECT: &str = "Task '{}' does not belong to project '{}'";
