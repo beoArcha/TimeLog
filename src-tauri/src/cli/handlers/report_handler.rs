@@ -28,8 +28,13 @@ pub fn handle(
     engine: &Engine,
     tz: Option<&str>,
 ) -> Result<CliOutput, CliError> {
-    if let Some(ReportSubcommand::Schema { output, version }) = args.command.as_ref() {
-        return report_schema_handler::handle(output.clone(), version, is_machine);
+    if let Some(ReportSubcommand::Schema {
+        output,
+        format,
+        target,
+    }) = args.command.as_ref()
+    {
+        return report_schema_handler::handle(output.as_deref(), *format, *target, is_machine);
     }
 
     let criteria = extract_filter_criteria(&args);

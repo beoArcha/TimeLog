@@ -27,6 +27,7 @@ pub mod period_args_test;
 pub mod prompter_test;
 pub mod quiet_output_test;
 pub mod range_bounds_test;
+pub mod report_schema_handler_test;
 pub mod resolver_test;
 pub mod rows_test;
 pub mod sink_error_mapping_test;

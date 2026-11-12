@@ -1,12 +1,13 @@
 use super::billing::RateStatus;
 use super::range::{RangeRequest, ResolvedRange};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 pub const REPORT_SCHEMA_NAME: &str = "oxy.report";
 pub const REPORT_SCHEMA_VERSION: u32 = 2;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub enum ReportVariant {
@@ -15,7 +16,7 @@ pub enum ReportVariant {
 }
 
 /// Mirrors `RateStatus` with camelCase values so the report contract uses one casing style.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub enum ReportRateStatus {
@@ -73,12 +74,15 @@ pub struct ReportRequest {
 /// - `days` splits entries crossing local midnight in `range.timezone`; see `ReportDay`.
 /// - Field order is stable. New fields may only be appended; any other change to the shape
 ///   must bump `REPORT_SCHEMA_VERSION`.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+#[schemars(title = "oxy.report", extend("$id" = "urn:oxyflow:schema:oxy.report:2"))]
 pub struct ReportDocument {
+    #[schemars(extend("const" = "oxy.report"))]
     pub schema: String,
     #[ts(type = "number")]
+    #[schemars(extend("const" = 2))]
     pub schema_version: u32,
     pub variant: ReportVariant,
     /// RFC3339 UTC with a `Z` suffix and whole seconds.
@@ -94,7 +98,7 @@ pub struct ReportDocument {
     pub entries: Option<Vec<ReportEntry>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportGenerator {
@@ -102,7 +106,7 @@ pub struct ReportGenerator {
     pub version: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportFilters {
@@ -116,7 +120,7 @@ pub struct ReportFilters {
     pub include_patches: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportTotals {
@@ -137,7 +141,7 @@ pub struct ReportTotals {
     pub billing: Vec<ReportBillingTotal>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportBillingTotal {
@@ -153,7 +157,7 @@ pub struct ReportBillingTotal {
     pub unconfigured_seconds: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportProject {
@@ -174,7 +178,7 @@ pub struct ReportProject {
     pub tasks: Vec<ReportTask>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportTask {
@@ -210,7 +214,7 @@ pub struct ReportTask {
     pub subtasks: Vec<ReportSubtask>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportSubtask {
@@ -248,7 +252,7 @@ pub struct ReportSubtask {
 /// (DST days have 23 or 25 hours). When both range bounds exist, every local day in
 /// `[from, to)` is emitted, including zero days. With an unbounded side, only days with
 /// time are emitted.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportDay {
@@ -258,7 +262,7 @@ pub struct ReportDay {
     pub seconds: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportEntry {
