@@ -24,6 +24,14 @@ export default {
     'src/features/**/*.tsx',
     '!src/features/**/*.d.ts',
     '!src/features/**/types.ts',
+    'src/common/engine/**/*.ts',
+    '!src/common/engine/**/*.d.ts',
+    '!src/common/engine/**/types.ts',
+    'src/plugins/engine/**/*.ts',
+    '!src/plugins/engine/**/*.d.ts',
+    '!src/plugins/engine/**/types.ts',
   ],
   concurrency: 2,
+  // The initial dry run executes the whole Vitest suite (~15 min locally), far above the 5 min default.
+  dryRunTimeoutMinutes: 30,
 };
