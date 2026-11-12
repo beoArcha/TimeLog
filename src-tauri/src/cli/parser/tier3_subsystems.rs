@@ -1,115 +1,43 @@
+use super::period_args::PeriodArgs;
 use clap::{Args, Subcommand};
 
 #[derive(Args, Debug, Clone, PartialEq, Eq)]
-#[command(group(clap::ArgGroup::new("preset").multiple(false)))]
 pub struct ReportArgs {
     #[command(subcommand)]
     pub command: Option<ReportSubcommand>,
     #[arg(long, help = "Render hierarchical Unicode tree of projects and tasks")]
     pub tree: bool,
-    #[arg(long, help = "Scope report to today", group = "preset")]
-    pub today: bool,
-    #[arg(long, help = "Scope report to yesterday", group = "preset")]
-    pub yesterday: bool,
-    #[arg(long, help = "Scope report to current week", group = "preset")]
-    pub week: bool,
-    #[arg(long, help = "Scope report to last week", group = "preset")]
-    pub last_week: bool,
-    #[arg(long, help = "Scope report to current month", group = "preset")]
-    pub month: bool,
-    #[arg(long, help = "Scope report to last month", group = "preset")]
-    pub last_month: bool,
+    #[command(flatten)]
+    pub period: PeriodArgs,
     #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
     pub project: Option<String>,
     #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
     pub task: Option<String>,
-    #[arg(
-        long,
-        help = "Filter by start date (YYYY-MM-DD or RFC3339)",
-        conflicts_with = "preset"
-    )]
-    pub from: Option<String>,
-    #[arg(
-        long,
-        help = "Filter by end date (YYYY-MM-DD or RFC3339)",
-        conflicts_with = "preset"
-    )]
-    pub to: Option<String>,
 }
 
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
 pub enum ReportSubcommand {
-    #[command(
-        about = "Render hierarchical Unicode report tree",
-        group(clap::ArgGroup::new("preset").multiple(false))
-    )]
+    #[command(about = "Render hierarchical Unicode report tree")]
     Tree {
-        #[arg(long, help = "Scope to today", group = "preset")]
-        today: bool,
-        #[arg(long, help = "Scope to yesterday", group = "preset")]
-        yesterday: bool,
-        #[arg(long, help = "Scope to current week", group = "preset")]
-        week: bool,
-        #[arg(long, help = "Scope to last week", group = "preset")]
-        last_week: bool,
-        #[arg(long, help = "Scope to current month", group = "preset")]
-        month: bool,
-        #[arg(long, help = "Scope to last month", group = "preset")]
-        last_month: bool,
+        #[command(flatten)]
+        period: PeriodArgs,
         #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
         project: Option<String>,
         #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
         task: Option<String>,
-        #[arg(
-            long,
-            help = "Filter by start date (YYYY-MM-DD or RFC3339)",
-            conflicts_with = "preset"
-        )]
-        from: Option<String>,
-        #[arg(
-            long,
-            help = "Filter by end date (YYYY-MM-DD or RFC3339)",
-            conflicts_with = "preset"
-        )]
-        to: Option<String>,
     },
-    #[command(
-        about = "Export report to HTML, CSV, or JSON file",
-        group(clap::ArgGroup::new("preset").multiple(false))
-    )]
+    #[command(about = "Export report to HTML, CSV, or JSON file")]
     Export {
         #[arg(short, long, help = "Export format: html, csv, json, xml, ods, xlsx")]
         format: ExportFormat,
         #[arg(short, long, help = "Output destination file path")]
         output: String,
-        #[arg(long, help = "Scope to today", group = "preset")]
-        today: bool,
-        #[arg(long, help = "Scope to yesterday", group = "preset")]
-        yesterday: bool,
-        #[arg(long, help = "Scope to current week", group = "preset")]
-        week: bool,
-        #[arg(long, help = "Scope to last week", group = "preset")]
-        last_week: bool,
-        #[arg(long, help = "Scope to current month", group = "preset")]
-        month: bool,
-        #[arg(long, help = "Scope to last month", group = "preset")]
-        last_month: bool,
+        #[command(flatten)]
+        period: PeriodArgs,
         #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
         project: Option<String>,
         #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
         task: Option<String>,
-        #[arg(
-            long,
-            help = "Filter by start date (YYYY-MM-DD or RFC3339)",
-            conflicts_with = "preset"
-        )]
-        from: Option<String>,
-        #[arg(
-            long,
-            help = "Filter by end date (YYYY-MM-DD or RFC3339)",
-            conflicts_with = "preset"
-        )]
-        to: Option<String>,
     },
     #[command(about = "Output XML Schema (XSD) definition for reports")]
     Schema {

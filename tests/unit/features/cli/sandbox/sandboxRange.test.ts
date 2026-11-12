@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import {
-  isStartInRange,
-  localDateOfRange,
-  resolveSandboxRange,
-  resolveSandboxToday,
-} from '@features/cli/sandbox/router/sandboxRange';
+import { localDateOfRange } from '@common/engine/range/logRange';
+import { resolveSandboxRange, resolveSandboxToday } from '@features/cli/sandbox/router/sandboxRange';
 import { TerminalOutput } from '@features/cli/utils/terminalOutput';
 
 // Wednesday 2026-11-11 23:30 UTC is already Thursday 2026-11-12 in Warsaw (UTC+1).
@@ -156,42 +152,5 @@ describe('resolveSandboxToday', () => {
     // Assert
     expect(range).toBeNull();
     expect(firstError(output)).toMatchObject({ exitCode: 2 });
-  });
-});
-
-describe('isStartInRange', () => {
-  const range = { from: '2026-10-14T00:00:00Z', to: '2026-10-15T00:00:00Z', timezone: 'UTC' };
-
-  it('should include a log starting exactly at the lower bound', () => {
-    // Arrange
-    const startTime = '2026-10-14T00:00:00Z';
-
-    // Act
-    const included = isStartInRange(startTime, range);
-
-    // Assert
-    expect(included).toBe(true);
-  });
-
-  it('should exclude a log starting exactly at the exclusive upper bound', () => {
-    // Arrange
-    const startTime = '2026-10-15T00:00:00Z';
-
-    // Act
-    const included = isStartInRange(startTime, range);
-
-    // Assert
-    expect(included).toBe(false);
-  });
-
-  it('should keep every log when the range is unbounded', () => {
-    // Arrange
-    const unbounded = { timezone: 'UTC' };
-
-    // Act
-    const included = isStartInRange('not-a-timestamp', unbounded);
-
-    // Assert
-    expect(included).toBe(true);
   });
 });

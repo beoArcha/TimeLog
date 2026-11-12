@@ -45,9 +45,15 @@ pub fn dispatch_command(
         Some(CliCommand::Task(cmd_args)) => {
             task_handler::handle(cmd_args, is_machine, strict, is_quiet, persistence)
         }
-        Some(CliCommand::Log(cmd_args)) => {
-            log_handler::handle(cmd_args, is_machine, strict, is_quiet, persistence, engine, tz)
-        }
+        Some(CliCommand::Log(cmd_args)) => log_handler::handle(
+            cmd_args,
+            is_machine,
+            strict,
+            is_quiet,
+            persistence,
+            engine,
+            tz,
+        ),
         Some(CliCommand::Report(cmd_args)) => {
             report_handler::handle(cmd_args, is_machine, strict, persistence, engine, tz)
         }

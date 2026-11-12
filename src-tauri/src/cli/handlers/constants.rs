@@ -149,6 +149,7 @@ pub const PERIOD_LABEL_MONTH: &str = "This Month";
 pub const PERIOD_LABEL_LAST_MONTH: &str = "Last Month";
 pub const PERIOD_LABEL_ALL: &str = "All Time";
 pub const PERIOD_LABEL_CUSTOM: &str = "Custom Range";
+pub const PERIOD_LABEL_TEMPLATE: &str = "{}, {}";
 
 pub const ERR_DATE_RANGE_INVALID: &str = "Filter start date cannot be after end date.";
 pub const ERR_TASK_NOT_IN_PROJECT: &str = "Task '{}' does not belong to project '{}'";

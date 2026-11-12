@@ -380,12 +380,11 @@ fn test_given_log_domain_commands_when_parsing_cli_then_parses_duration_and_note
                 args.command,
                 LogSubcommand::List {
                     ref project,
-                    ref from,
-                    ref to,
+                    ref period,
                     ..
                 } if project.as_deref() == Some("Website")
-                    && from.as_deref() == Some("2026-10-01")
-                    && to.as_deref() == Some("2026-10-31")
+                    && period.from.as_deref() == Some("2026-10-01")
+                    && period.to.as_deref() == Some("2026-10-31")
             ));
         }
         other => panic!("Expected Log List, got: {:?}", other),

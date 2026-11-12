@@ -1,3 +1,4 @@
+use super::period_args::PeriodArgs;
 use clap::{Args, Subcommand};
 
 #[derive(Args, Debug, Clone, PartialEq, Eq)]
@@ -158,40 +159,14 @@ pub struct LogArgs {
 
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
 pub enum LogSubcommand {
-    #[command(
-        alias = "ls",
-        about = "List recent time log entries",
-        group(clap::ArgGroup::new("preset").multiple(false))
-    )]
+    #[command(alias = "ls", about = "List recent time log entries")]
     List {
         #[arg(short, long, help = "Filter by task (by ID, prefix, or name)")]
         task: Option<String>,
         #[arg(short = 'p', long, help = "Filter by project (by ID, prefix, or name)")]
         project: Option<String>,
-        #[arg(long, help = "Filter to logs from today", group = "preset")]
-        today: bool,
-        #[arg(long, help = "Filter to logs from yesterday", group = "preset")]
-        yesterday: bool,
-        #[arg(long, help = "Filter to logs from the current week", group = "preset")]
-        week: bool,
-        #[arg(long, help = "Filter to logs from last week", group = "preset")]
-        last_week: bool,
-        #[arg(long, help = "Filter to logs from the current month", group = "preset")]
-        month: bool,
-        #[arg(long, help = "Filter to logs from last month", group = "preset")]
-        last_month: bool,
-        #[arg(
-            long,
-            help = "Filter start date (ISO date or RFC3339, e.g. '2026-10-01')",
-            conflicts_with = "preset"
-        )]
-        from: Option<String>,
-        #[arg(
-            long,
-            help = "Filter end date (ISO date or RFC3339, e.g. '2026-10-31')",
-            conflicts_with = "preset"
-        )]
-        to: Option<String>,
+        #[command(flatten)]
+        period: PeriodArgs,
         #[arg(
             short,
             long,

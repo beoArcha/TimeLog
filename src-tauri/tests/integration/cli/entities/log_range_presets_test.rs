@@ -1,13 +1,14 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::{setup_persistence_test, TempCsvDir};
-use chrono::{DateTime, Datelike, Days, Utc};
-use chrono_tz::Tz;
+use chrono::{DateTime, Datelike, Duration, Utc, Weekday};
 use clap::Parser;
 use oxyflow_timelog::cli::{handle_cli, CliArgs};
 use oxyflow_timelog::engine::Engine;
 use oxyflow_timelog::persistence::Persistence;
-use oxyflow_timelog::types::NewTimeLog;
+use oxyflow_timelog::types::{NewTimeLog, RangePreset, RangeRequest, ResolvedRange};
 use rusqlite::Connection;
+
+const SETTLE_ATTEMPTS: usize = 5;
 
 fn setup(db_name: &str) -> (Persistence, Connection, TempCsvDir) {
     let (conn, config, temp) = setup_persistence_test(db_name);
@@ -27,7 +28,7 @@ fn setup(db_name: &str) -> (Persistence, Connection, TempCsvDir) {
 }
 
 fn insert_log(persistence: &Persistence, id: &str, start: DateTime<Utc>) {
-    let end = start + chrono::Duration::hours(1);
+    let end = start + Duration::hours(1);
     persistence
         .time_logs
         .insert_full(&NewTimeLog {
@@ -40,8 +41,41 @@ fn insert_log(persistence: &Persistence, id: &str, start: DateTime<Utc>) {
         .unwrap();
 }
 
-fn utc_midnight(date: chrono::NaiveDate) -> DateTime<Utc> {
-    date.and_hms_opt(0, 0, 0).unwrap().and_utc()
+fn bound(raw: &Option<String>) -> DateTime<Utc> {
+    DateTime::parse_from_rfc3339(raw.as_deref().expect("preset range is bounded"))
+        .unwrap()
+        .with_timezone(&Utc)
+}
+
+fn resolve(engine: &Engine, preset: RangePreset, tz: &str) -> ResolvedRange {
+    engine
+        .resolve_range(&RangeRequest {
+            preset: Some(preset),
+            from: None,
+            to: None,
+            timezone: Some(tz.to_string()),
+        })
+        .unwrap()
+}
+
+/// Presets read the wall clock inside the CLI, so a scenario is only trusted when the range resolved before and
+/// after it is identical; a run that straddles a period boundary is discarded and replayed on a fresh database.
+fn settled<T>(
+    name: &str,
+    preset: RangePreset,
+    tz: &str,
+    scenario: impl Fn(&Persistence, &ResolvedRange) -> T,
+) -> T {
+    for attempt in 0..SETTLE_ATTEMPTS {
+        let (persistence, _conn, _temp) = setup(&format!("{name}_{attempt}"));
+        let engine = Engine::new(&persistence);
+        let before = resolve(&engine, preset, tz);
+        let outcome = scenario(&persistence, &before);
+        if resolve(&engine, preset, tz) == before {
+            return outcome;
+        }
+    }
+    panic!("period boundary crossed on every attempt for {name}");
 }
 
 fn listed_ids(persistence: &Persistence, args: &[&str]) -> Vec<String> {
@@ -54,69 +88,93 @@ fn listed_ids(persistence: &Persistence, args: &[&str]) -> Vec<String> {
         .collect()
 }
 
-#[test]
-fn test_given_logs_today_and_yesterday_when_listing_with_yesterday_preset_then_returns_only_yesterday(
-) {
-    // Given
-    let (persistence, _conn, _temp) = setup("test_log_ls_yesterday_preset");
-    let today = Utc::now().date_naive();
-    insert_log(&persistence, "today", utc_midnight(today));
-    let yesterday = today.checked_sub_days(Days::new(1)).unwrap();
-    insert_log(
-        &persistence,
-        "yesterday",
-        utc_midnight(yesterday) + chrono::Duration::hours(12),
-    );
-
-    // When
-    let ids = listed_ids(
-        &persistence,
-        &["oxy", "--json", "log", "ls", "--yesterday", "--tz", "UTC"],
-    );
-
-    // Then
-    assert_eq!(ids, vec!["yesterday"]);
+fn seed_around(persistence: &Persistence, range: &ResolvedRange) {
+    let from = bound(&range.from);
+    let to = bound(&range.to);
+    insert_log(persistence, "inside", from + Duration::hours(1));
+    insert_log(persistence, "just-before-from", from - Duration::seconds(1));
+    insert_log(persistence, "exactly-at-to", to);
 }
 
 #[test]
-fn test_given_logs_around_week_boundary_when_listing_with_week_preset_then_week_starts_on_monday() {
+fn test_given_logs_around_yesterday_range_when_listing_with_yesterday_preset_then_returns_only_inside_log(
+) {
     // Given
-    let (persistence, _conn, _temp) = setup("test_log_ls_week_monday_start");
-    let today = Utc::now().date_naive();
-    let monday = today
-        .checked_sub_days(Days::new(u64::from(today.weekday().num_days_from_monday())))
-        .unwrap();
-    insert_log(&persistence, "monday-start", utc_midnight(monday));
-    let sunday_before = monday.checked_sub_days(Days::new(1)).unwrap();
-    insert_log(
-        &persistence,
-        "sunday-before",
-        utc_midnight(sunday_before) + chrono::Duration::hours(23),
-    );
+    let ids = settled(
+        "log_ls_yesterday",
+        RangePreset::Yesterday,
+        "UTC",
+        |persistence, range| {
+            seed_around(persistence, range);
 
-    // When
-    let ids = listed_ids(
-        &persistence,
-        &["oxy", "--json", "log", "ls", "--week", "--tz", "UTC"],
+            // When
+            listed_ids(
+                persistence,
+                &["oxy", "--json", "log", "ls", "--yesterday", "--tz", "UTC"],
+            )
+        },
     );
 
     // Then
-    assert_eq!(ids, vec!["monday-start"]);
+    assert_eq!(ids, vec!["inside"]);
+}
+
+#[test]
+fn test_given_logs_around_week_range_when_listing_with_week_preset_then_week_starts_on_monday() {
+    // Given
+    let (ids, week_start) = settled(
+        "log_ls_week",
+        RangePreset::Week,
+        "UTC",
+        |persistence, range| {
+            seed_around(persistence, range);
+
+            // When
+            let ids = listed_ids(
+                persistence,
+                &["oxy", "--json", "log", "ls", "--week", "--tz", "UTC"],
+            );
+            (ids, bound(&range.from))
+        },
+    );
+
+    // Then
+    assert_eq!(ids, vec!["inside"]);
+    assert_eq!(week_start.weekday(), Weekday::Mon);
+}
+
+#[test]
+fn test_given_logs_around_last_month_range_when_listing_with_last_month_preset_then_returns_only_inside_log(
+) {
+    // Given
+    let ids = settled(
+        "log_ls_last_month",
+        RangePreset::LastMonth,
+        "UTC",
+        |persistence, range| {
+            seed_around(persistence, range);
+
+            // When
+            listed_ids(
+                persistence,
+                &["oxy", "--json", "log", "ls", "--last-month", "--tz", "UTC"],
+            )
+        },
+    );
+
+    // Then
+    assert_eq!(ids, vec!["inside"]);
 }
 
 #[test]
 fn test_given_log_exactly_at_to_bound_when_listing_with_instant_range_then_excludes_it() {
     // Given
-    let (persistence, _conn, _temp) = setup("test_log_ls_exclusive_to");
+    let (persistence, _conn, _temp) = setup("log_ls_exclusive_to");
     let boundary = DateTime::parse_from_rfc3339("2026-10-15T00:00:00Z")
         .unwrap()
         .with_timezone(&Utc);
     insert_log(&persistence, "at-to", boundary);
-    insert_log(
-        &persistence,
-        "inside",
-        boundary - chrono::Duration::hours(2),
-    );
+    insert_log(&persistence, "inside", boundary - Duration::hours(2));
 
     // When
     let ids = listed_ids(
@@ -140,7 +198,7 @@ fn test_given_log_exactly_at_to_bound_when_listing_with_instant_range_then_exclu
 #[test]
 fn test_given_invalid_timezone_when_listing_logs_then_fails_with_syntax_exit_code() {
     // Given
-    let (persistence, _conn, _temp) = setup("test_log_ls_invalid_tz");
+    let (persistence, _conn, _temp) = setup("log_ls_invalid_tz");
     let engine = Engine::new(&persistence);
     let args =
         CliArgs::try_parse_from(["oxy", "log", "ls", "--week", "--tz", "Mars/Olympus"]).unwrap();
@@ -155,19 +213,26 @@ fn test_given_invalid_timezone_when_listing_logs_then_fails_with_syntax_exit_cod
 #[test]
 fn test_given_timezone_far_ahead_of_utc_when_running_today_then_reports_local_calendar_date() {
     // Given
-    let (persistence, _conn, _temp) = setup("test_today_local_date");
-    let engine = Engine::new(&persistence);
-    let args =
-        CliArgs::try_parse_from(["oxy", "--json", "--tz", "Pacific/Kiritimati", "today"]).unwrap();
+    let (payload_date, expected_date) = settled(
+        "today_local_date",
+        RangePreset::Today,
+        "Pacific/Kiritimati",
+        |persistence, range| {
+            let engine = Engine::new(persistence);
+            let args =
+                CliArgs::try_parse_from(["oxy", "--json", "--tz", "Pacific/Kiritimati", "today"])
+                    .unwrap();
 
-    // When
-    let output = handle_cli(args, &persistence, &engine).unwrap();
+            // When
+            let output = handle_cli(args, persistence, &engine).unwrap();
+
+            // Then
+            let payload: serde_json::Value = serde_json::from_str(&format!("{output}")).unwrap();
+            let date = payload["date"].as_str().unwrap().to_string();
+            (date, engine.local_date_of_range(range).unwrap())
+        },
+    );
 
     // Then
-    let payload: serde_json::Value = serde_json::from_str(&format!("{output}")).unwrap();
-    let expected = Utc::now()
-        .with_timezone(&Tz::Pacific__Kiritimati)
-        .format("%Y-%m-%d")
-        .to_string();
-    assert_eq!(payload["date"], expected);
+    assert_eq!(payload_date, expected_date);
 }

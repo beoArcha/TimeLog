@@ -5,6 +5,7 @@ use super::constants::{
     MSG_LOG_DELETED, MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
 };
 use crate::cli::error::CliError;
+use crate::cli::parser::period_args::PeriodArgs;
 use crate::cli::parser::tier2_entities::{LogArgs, LogSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
@@ -12,21 +13,14 @@ use crate::cli::shared::range_bounds::RangeBounds;
 use crate::cli::shared::utils::{generate_id, parse_duration_seconds, parse_iso_or_rfc3339};
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{AuditSource, NewTimeLog, RangePreset, RangeRequest, TimeLogEditInput};
+use crate::types::{AuditSource, NewTimeLog, TimeLogEditInput};
 use chrono::{DateTime, Duration, Utc};
 use std::collections::HashSet;
 
 struct LogListCriteria {
     task: Option<String>,
     project: Option<String>,
-    today: bool,
-    yesterday: bool,
-    week: bool,
-    last_week: bool,
-    month: bool,
-    last_month: bool,
-    from: Option<String>,
-    to: Option<String>,
+    period: PeriodArgs,
     limit: Option<usize>,
     tz: Option<String>,
 }
@@ -69,14 +63,7 @@ pub fn handle(
         LogSubcommand::List {
             task,
             project,
-            today,
-            yesterday,
-            week,
-            last_week,
-            month,
-            last_month,
-            from,
-            to,
+            period,
             limit,
         } => list_logs(
             persistence,
@@ -84,14 +71,7 @@ pub fn handle(
             LogListCriteria {
                 task,
                 project,
-                today,
-                yesterday,
-                week,
-                last_week,
-                month,
-                last_month,
-                from,
-                to,
+                period,
                 limit,
                 tz: tz.map(str::to_string),
             },
@@ -145,26 +125,6 @@ pub fn handle(
     }
 }
 
-fn resolve_log_preset(criteria: &LogListCriteria) -> Option<RangePreset> {
-    if criteria.today {
-        Some(RangePreset::Today)
-    } else if criteria.yesterday {
-        Some(RangePreset::Yesterday)
-    } else if criteria.week {
-        Some(RangePreset::Week)
-    } else if criteria.last_week {
-        Some(RangePreset::LastWeek)
-    } else if criteria.month {
-        Some(RangePreset::Month)
-    } else if criteria.last_month {
-        Some(RangePreset::LastMonth)
-    } else if criteria.from.is_none() && criteria.to.is_none() {
-        Some(RangePreset::All)
-    } else {
-        None
-    }
-}
-
 fn list_logs(
     persistence: &Persistence,
     engine: &Engine,
@@ -173,16 +133,10 @@ fn list_logs(
     strict: bool,
     is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
-    let preset = resolve_log_preset(&criteria);
     let filter_task_id = resolve_task_filter(persistence, criteria.task, strict)?;
     let filter_project_task_ids = resolve_project_filter(persistence, criteria.project, strict)?;
 
-    let range_request = RangeRequest {
-        preset,
-        from: criteria.from,
-        to: criteria.to,
-        timezone: criteria.tz,
-    };
+    let range_request = criteria.period.to_range_request(criteria.tz.as_deref());
     let resolved = engine.resolve_range(&range_request)?;
     let bounds = RangeBounds::from_resolved(&resolved)?;
 

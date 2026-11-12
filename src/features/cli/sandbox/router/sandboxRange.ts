@@ -3,7 +3,6 @@ import type { RangeRequest } from '@bindings/RangeRequest';
 import type { ResolvedRange } from '@bindings/ResolvedRange';
 import { resolveRangeAt } from '@common/engine/range/resolveRange';
 import { resolveTimezone } from '@common/engine/range/timezone';
-import { localDateAt } from '@common/engine/range/zonedTime';
 import { EngineValidationException } from '@common/exceptions';
 import { TerminalOutput } from '../../utils/terminalOutput';
 
@@ -103,19 +102,4 @@ export function resolveSandboxToday(
   const invalid = findMissingValue({ tz: flags['tz'] ?? false });
   if (invalid) return reportSyntaxError(output, invalid);
   return resolveRequest({ preset: 'today', timezone: stringFlag(flags, 'tz') }, output, now);
-}
-
-/** Half-open `[from, to)` check; an unbounded range keeps every log. */
-export function isStartInRange(startTime: string, range: ResolvedRange): boolean {
-  const startMs = Date.parse(startTime);
-  const afterFrom = range.from === undefined || startMs >= Date.parse(range.from);
-  const beforeTo = range.to === undefined || startMs < Date.parse(range.to);
-  return afterFrom && beforeTo;
-}
-
-/** Calendar day (`YYYY-MM-DD`) in which the range begins, in the range's own timezone. */
-export function localDateOfRange(range: ResolvedRange): string {
-  const { year, month, day } = localDateAt(Date.parse(range.from ?? ''), range.timezone);
-  const pad = (value: number, width: number) => String(value).padStart(width, '0');
-  return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}`;
 }

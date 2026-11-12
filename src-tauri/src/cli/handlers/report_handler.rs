@@ -1,7 +1,7 @@
 use super::constants::{
     ERR_TASK_NOT_IN_PROJECT, PERIOD_LABEL_ALL, PERIOD_LABEL_CUSTOM, PERIOD_LABEL_LAST_MONTH,
-    PERIOD_LABEL_LAST_WEEK, PERIOD_LABEL_MONTH, PERIOD_LABEL_TODAY, PERIOD_LABEL_WEEK,
-    PERIOD_LABEL_YESTERDAY,
+    PERIOD_LABEL_LAST_WEEK, PERIOD_LABEL_MONTH, PERIOD_LABEL_TEMPLATE, PERIOD_LABEL_TODAY,
+    PERIOD_LABEL_WEEK, PERIOD_LABEL_YESTERDAY,
 };
 use super::report_dto_builder::{build_entry_dtos, build_project_dto};
 use super::report_schema_handler;
@@ -11,26 +11,19 @@ use crate::cli::exporters::export_to_file;
 use crate::cli::formatters::{
     format_duration, render_tree_string, ReportProjectDto, ReportTreeDto,
 };
-use crate::cli::parser::{ReportArgs, ReportSubcommand};
+use crate::cli::parser::{PeriodArgs, ReportArgs, ReportSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::output::CliOutput;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{ElapsedRangeFilter, Project, RangePreset, RangeRequest, ResolvedRange, Task};
+use crate::types::{ElapsedRangeFilter, Project, RangePreset, ResolvedRange, Task};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default)]
 pub struct ReportFilterCriteria {
-    pub today: bool,
-    pub yesterday: bool,
-    pub week: bool,
-    pub last_week: bool,
-    pub month: bool,
-    pub last_month: bool,
+    pub period: PeriodArgs,
     pub project: Option<String>,
     pub task: Option<String>,
-    pub from: Option<String>,
-    pub to: Option<String>,
 }
 
 pub fn format_period_label(range: &ResolvedRange) -> String {
@@ -44,7 +37,9 @@ pub fn format_period_label(range: &ResolvedRange) -> String {
         Some(RangePreset::All) => PERIOD_LABEL_ALL,
         None => PERIOD_LABEL_CUSTOM,
     };
-    format!("{label}, {}", range.timezone)
+    PERIOD_LABEL_TEMPLATE
+        .replacen("{}", label, 1)
+        .replacen("{}", &range.timezone, 1)
 }
 
 pub fn handle(
@@ -87,65 +82,28 @@ pub fn handle(
 
 fn extract_filter_criteria(args: &ReportArgs) -> ReportFilterCriteria {
     match &args.command {
-        Some(ReportSubcommand::Export {
-            today,
-            yesterday,
-            week,
-            last_week,
-            month,
-            last_month,
-            project,
-            task,
-            from,
-            to,
-            ..
-        }) => ReportFilterCriteria {
-            today: *today || args.today,
-            yesterday: *yesterday || args.yesterday,
-            week: *week || args.week,
-            last_week: *last_week || args.last_week,
-            month: *month || args.month,
-            last_month: *last_month || args.last_month,
+        Some(
+            ReportSubcommand::Export {
+                period,
+                project,
+                task,
+                ..
+            }
+            | ReportSubcommand::Tree {
+                period,
+                project,
+                task,
+            },
+        ) => ReportFilterCriteria {
+            period: period.clone().or(args.period.clone()),
             project: project.clone().or_else(|| args.project.clone()),
             task: task.clone().or_else(|| args.task.clone()),
-            from: from.clone().or_else(|| args.from.clone()),
-            to: to.clone().or_else(|| args.to.clone()),
-        },
-        Some(ReportSubcommand::Tree {
-            today,
-            yesterday,
-            week,
-            last_week,
-            month,
-            last_month,
-            project,
-            task,
-            from,
-            to,
-        }) => ReportFilterCriteria {
-            today: *today || args.today,
-            yesterday: *yesterday || args.yesterday,
-            week: *week || args.week,
-            last_week: *last_week || args.last_week,
-            month: *month || args.month,
-            last_month: *last_month || args.last_month,
-            project: project.clone().or_else(|| args.project.clone()),
-            task: task.clone().or_else(|| args.task.clone()),
-            from: from.clone().or_else(|| args.from.clone()),
-            to: to.clone().or_else(|| args.to.clone()),
         },
         Some(ReportSubcommand::Schema { .. }) => ReportFilterCriteria::default(),
         None => ReportFilterCriteria {
-            today: args.today,
-            yesterday: args.yesterday,
-            week: args.week,
-            last_week: args.last_week,
-            month: args.month,
-            last_month: args.last_month,
+            period: args.period.clone(),
             project: args.project.clone(),
             task: args.task.clone(),
-            from: args.from.clone(),
-            to: args.to.clone(),
         },
     }
 }
@@ -159,26 +117,6 @@ fn render_tree_output(tree: &ReportTreeDto, is_machine: bool) -> Result<CliOutpu
     }
 }
 
-fn resolve_report_preset(criteria: &ReportFilterCriteria) -> Option<RangePreset> {
-    if criteria.today {
-        Some(RangePreset::Today)
-    } else if criteria.yesterday {
-        Some(RangePreset::Yesterday)
-    } else if criteria.week {
-        Some(RangePreset::Week)
-    } else if criteria.last_week {
-        Some(RangePreset::LastWeek)
-    } else if criteria.month {
-        Some(RangePreset::Month)
-    } else if criteria.last_month {
-        Some(RangePreset::LastMonth)
-    } else if criteria.from.is_none() && criteria.to.is_none() {
-        Some(RangePreset::All)
-    } else {
-        None
-    }
-}
-
 pub fn build_report_tree(
     criteria: &ReportFilterCriteria,
     strict: bool,
@@ -186,12 +124,7 @@ pub fn build_report_tree(
     engine: &Engine,
     tz: Option<&str>,
 ) -> Result<ReportTreeDto, CliError> {
-    let range_request = RangeRequest {
-        preset: resolve_report_preset(criteria),
-        from: criteria.from.clone(),
-        to: criteria.to.clone(),
-        timezone: tz.map(str::to_string),
-    };
+    let range_request = criteria.period.to_range_request(tz);
     let resolved = engine.resolve_range(&range_request)?;
     let period_label = format_period_label(&resolved);
 

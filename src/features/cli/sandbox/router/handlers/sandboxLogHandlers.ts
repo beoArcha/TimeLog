@@ -2,7 +2,8 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
-import { isStartInRange, resolveSandboxRange } from '../sandboxRange';
+import { isStartInRange } from '@common/engine/range/logRange';
+import { resolveSandboxRange } from '../sandboxRange';
 
 export function parseDurationToSeconds(input: string): number {
   const trimmed = input.trim().toLowerCase();
