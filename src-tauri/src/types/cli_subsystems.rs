@@ -42,7 +42,9 @@ pub struct SinkEntry {
     pub name: String,
     pub sink_type: String,
     pub target: String,
-    pub config: Option<String>,
+    /// Only whether credentials are stored: machine output is often logged or piped, so the
+    /// webhook token itself never leaves the database through the CLI.
+    pub has_token: bool,
     pub enabled: bool,
     pub created_at: String,
 }

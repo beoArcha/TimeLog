@@ -25,7 +25,7 @@ impl From<CliSink> for SinkEntry {
             name: sink.name,
             sink_type: sink.sink_type,
             target: sink.target,
-            config: sink.config,
+            has_token: sink.config.is_some(),
             enabled: sink.enabled,
             created_at: sink.created_at,
         }

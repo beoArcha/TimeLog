@@ -233,7 +233,7 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy config ls` | `oxy.config.list` | 1 | `{ items: { key, value }[] }`; lists only keys persisted in SQLite, so an unset `cli_machine_locale` is absent |
 | `oxy config get <key>` | `oxy.config.get` | 1 | `{ key, value }`; `cli_machine_locale` returns its effective default `en` when unset |
 | `oxy config set <key> <value>` | `oxy.config.set` | 1 | `{ key, value }` with the normalized value |
-| `oxy sink ls` | `oxy.sink.list` | 1 | `{ items: { name, sinkType, target, config, enabled, createdAt }[] }`; `config` is the stored JSON, which for a webhook sink contains its token |
+| `oxy sink ls` | `oxy.sink.list` | 1 | `{ items: { name, sinkType, target, hasToken, enabled, createdAt }[] }`; the webhook token itself is never printed, only whether one is stored (`hasToken`) |
 | `oxy sink set-csv` / `oxy sink set-webhook` | `oxy.sink.set` | 1 | `{ sinkType: "csv" \| "webhook", target }` |
 | `oxy sink test` | `oxy.sink.test` | 1 | `{ items: { name, sinkType, target, passed, detail }[] }`; a failing sink makes the command fail instead |
 | `oxy mask ls` | `oxy.mask.list` | 1 | `{ items: { name, template, createdAt }[] }` |

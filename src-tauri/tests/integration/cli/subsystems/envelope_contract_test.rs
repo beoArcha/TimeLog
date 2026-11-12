@@ -173,3 +173,32 @@ fn test_given_no_sinks_when_sink_test_in_machine_mode_then_items_is_an_empty_lis
     assert_eq!(envelope["schema"], "oxy.sink.test");
     assert_eq!(envelope["data"], serde_json::json!({ "items": [] }));
 }
+
+#[test]
+fn test_given_webhook_sink_with_token_when_sink_ls_in_machine_mode_then_token_is_not_printed() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("cli_subsystem_sink_ls_redacts_token");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+    run(
+        &[
+            "--machine",
+            "sink",
+            "set-webhook",
+            "--url",
+            "https://example.com/hook",
+            "--token",
+            "secret-token-123",
+        ],
+        &persistence,
+        &engine,
+    );
+
+    // When
+    let stdout = run(&["--machine", "sink", "ls"], &persistence, &engine);
+
+    // Then
+    assert!(!stdout.contains("secret-token-123"));
+    let envelope: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(envelope["data"]["items"][0]["hasToken"], true);
+}
