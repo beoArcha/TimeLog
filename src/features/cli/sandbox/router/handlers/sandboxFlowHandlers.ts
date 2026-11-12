@@ -6,6 +6,11 @@ import { resolveEntity } from '../../../resolver/entityResolver';
 // Mirrors OUT_NOTHING_TO_STOP in src-tauri/src/cli/handlers/constants.rs so the sandbox and native CLI print the same message.
 const SANDBOX_NOTHING_TO_STOP = 'No active timer; nothing to stop.';
 
+// Mirror OUT_ALREADY_TRACKING / OUT_STOPPED_TASK_LINE / LABEL_UNKNOWN_TASK in src-tauri/src/cli/handlers/constants.rs.
+const SANDBOX_ALREADY_TRACKING = "Already tracking '{}' [{}].";
+const SANDBOX_STOPPED_TASK_LINE = "Stopped: '{}' [{}]";
+const SANDBOX_UNKNOWN_TASK = 'Unknown Task';
+
 export function handleStatus(
   store: SandboxEmulatorStore,
   output: TerminalOutput
@@ -58,8 +63,18 @@ export function handleStart(
     return;
   }
 
+  if (activeLog?.taskId === task.id) {
+    output.info(SANDBOX_ALREADY_TRACKING.replace('{}', task.name).replace('{}', task.id));
+    return;
+  }
+
+  const stoppedTask = activeLog ? tasks.find((t) => t.id === activeLog.taskId) : undefined;
   store.handleStartTimer(task.id);
   output.success(`▶️ Timer started: "${task.name}" [ID: ${task.id}]`);
+  if (activeLog) {
+    const stoppedName = stoppedTask?.name ?? SANDBOX_UNKNOWN_TASK;
+    output.info(SANDBOX_STOPPED_TASK_LINE.replace('{}', stoppedName).replace('{}', activeLog.taskId));
+  }
 }
 
 export function handleStop(

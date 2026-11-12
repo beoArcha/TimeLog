@@ -36,6 +36,18 @@ describe('BrowserTimerEngine', () => {
     expect(routerMock.timeLogs.insert).toHaveBeenCalledTimes(1);
   });
 
+  it('should not insert or close any log when startTimer is called for a task that is already active', async () => {
+    // Arrange
+    vi.mocked(routerMock.timeLogs.queryActive).mockResolvedValue(['task-99']);
+
+    // Act
+    await engine.startTimer('task-99');
+
+    // Assert
+    expect(routerMock.timeLogs.insert).not.toHaveBeenCalled();
+    expect(routerMock.timeLogs.closeActiveByProject).not.toHaveBeenCalled();
+  });
+
   it('should close project logs when stopTimer is called with specific project', async () => {
     // Act
     await engine.stopTimer('project-10');

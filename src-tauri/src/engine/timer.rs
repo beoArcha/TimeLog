@@ -3,8 +3,14 @@ use chrono::Utc;
 
 static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StartOutcome {
+    AlreadyRunning,
+    Started { stopped_task_ids: Vec<String> },
+}
+
 impl<'a> Engine<'a> {
-    pub fn start_timer(&self, task_id: &str) -> Result<(), EngineError> {
+    pub fn start_timer(&self, task_id: &str) -> Result<StartOutcome, EngineError> {
         let task =
             self.persistence
                 .tasks
@@ -18,6 +24,11 @@ impl<'a> Engine<'a> {
             return Err(EngineError::TaskAlreadyCompleted(task_id.to_string()));
         }
 
+        let active_before = self.get_active_logs()?;
+        if active_before.iter().any(|id| id == task_id) {
+            return Ok(StartOutcome::AlreadyRunning);
+        }
+
         let now = Utc::now().to_rfc3339();
         let log_id = format!(
             "log_{}_{}",
@@ -28,7 +39,13 @@ impl<'a> Engine<'a> {
         self.persistence
             .time_logs
             .start_active(&now, &log_id, task_id, &now)?;
-        Ok(())
+
+        let active_after = self.get_active_logs()?;
+        let stopped_task_ids = active_before
+            .into_iter()
+            .filter(|id| !active_after.contains(id))
+            .collect();
+        Ok(StartOutcome::Started { stopped_task_ids })
     }
 
     pub fn stop_timer(&self, project_id: Option<&str>) -> Result<(), EngineError> {

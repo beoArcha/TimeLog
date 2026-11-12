@@ -133,6 +133,8 @@ pub const LABEL_SUBTASK_BADGE: &str = " (Subtask)";
 pub const LABEL_INVALID_DURATION: &str = "invalid";
 
 pub const OUT_STARTED: &str = "▶️ Started tracking task: {}";
+pub const OUT_ALREADY_TRACKING: &str = "Already tracking '{}' [{}].";
+pub const OUT_STOPPED_TASK_LINE: &str = "Stopped: '{}' [{}]";
 pub const OUT_STOPPED: &str = "⏹️ Stopped all active projects timer tracking threads.";
 pub const OUT_NOTHING_TO_STOP: &str = "No active timer; nothing to stop.";
 pub const OUT_STATUS_COUNT: &str = "⚡ Count of Concurrent Tracking Threads: {}";

@@ -24,6 +24,11 @@ export class BrowserTimerEngine implements ITimerEngine {
       );
     }
 
+    const activeTaskIds = await this.persistence.timeLogs.queryActive();
+    if (activeTaskIds.includes(taskId)) {
+      return;
+    }
+
     const now = new Date().toISOString();
     const logId = `log_${Date.now()}_${logCounter++}`;
 
