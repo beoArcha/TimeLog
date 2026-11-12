@@ -26,6 +26,15 @@ export function parseDurationToSeconds(input: string): number {
 export const SANDBOX_LOGS_TRUNCATED_FOOTER =
   '… {} more entries not shown. Use --limit <n> to show more.';
 
+const HUMAN_DEFAULT_LOG_LIMIT = 20;
+
+// Machine output must never drop entries silently, so only human output gets a default limit.
+function resolveEffectiveLimit(explicitLimit: number | undefined, isMachine: boolean): number | undefined {
+  if (explicitLimit !== undefined) return explicitLimit;
+  if (isMachine) return undefined;
+  return HUMAN_DEFAULT_LOG_LIMIT;
+}
+
 export function handleLogList(
   flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
@@ -71,7 +80,7 @@ export function handleLogList(
   const sortedLogs = [...logs].sort((a, b) => b.startTime.localeCompare(a.startTime));
   const totalMatched = sortedLogs.length;
 
-  const effectiveLimit = explicitLimit !== undefined ? explicitLimit : (isMachine ? undefined : 20);
+  const effectiveLimit = resolveEffectiveLimit(explicitLimit, isMachine);
   const visibleLogs = effectiveLimit !== undefined ? sortedLogs.slice(0, effectiveLimit) : sortedLogs;
 
   if (visibleLogs.length === 0) {
