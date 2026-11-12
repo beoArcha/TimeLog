@@ -32,4 +32,6 @@ export default {
     '!src/plugins/engine/**/types.ts',
   ],
   concurrency: 2,
+  // The initial dry run executes the whole Vitest suite (~15 min locally), far above the 5 min default.
+  dryRunTimeoutMinutes: 30,
 };
