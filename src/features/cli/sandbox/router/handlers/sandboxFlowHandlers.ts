@@ -2,6 +2,7 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+import { isStartInRange, localDateOfRange, resolveSandboxToday } from '../sandboxRange';
 
 // Mirrors OUT_NOTHING_TO_STOP in src-tauri/src/cli/handlers/constants.rs so the sandbox and native CLI print the same message.
 const SANDBOX_NOTHING_TO_STOP = 'No active timer; nothing to stop.';
@@ -140,15 +141,18 @@ export function handleSwitch(
 }
 
 export function handleToday(
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
-  const logs = store.getLogs();
+  const range = resolveSandboxToday(flags, output);
+  if (!range) return;
+
   const tasks = store.getTasks();
   const projects = store.getProjects();
 
-  const todayDate = new Date().toISOString().slice(0, 10);
-  const todayLogs = logs.filter((l) => l.startTime.startsWith(todayDate));
+  const todayDate = localDateOfRange(range);
+  const todayLogs = store.getLogs().filter((l) => isStartInRange(l.startTime, range));
 
   if (todayLogs.length === 0) {
     output.info(`No time logs recorded for today (${todayDate}).`);

@@ -12,13 +12,12 @@ use crate::cli::parser::tier1_flow::{StartArgs, StopArgs, SwitchArgs};
 use crate::cli::resolver::{
     constants::PROMPT_ENTER_TASK_TARGET, EntityResolver, Prompter, TerminalPrompter,
 };
-use crate::cli::shared::constants::DATE_FORMAT_DATE_ONLY;
 use crate::cli::shared::output::CliOutput;
+use crate::cli::shared::range_bounds::RangeBounds;
 use crate::cli::shared::validation::validate_id;
 use crate::engine::{Engine, StartOutcome};
 use crate::persistence::Persistence;
-use crate::types::{Project, Task, TimeLog};
-use chrono::Utc;
+use crate::types::{Project, RangePreset, RangeRequest, Task, TimeLog};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -287,15 +286,35 @@ pub fn handle_status(is_machine: bool, engine: &Engine) -> Result<CliOutput, Cli
     Ok(CliOutput::Status(active))
 }
 
-pub fn handle_today(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, CliError> {
-    let today_prefix = Utc::now().format(DATE_FORMAT_DATE_ONLY).to_string();
+fn resolve_today_bounds(
+    engine: &Engine,
+    tz: Option<&str>,
+) -> Result<(String, RangeBounds), CliError> {
+    let range_request = RangeRequest {
+        preset: Some(RangePreset::Today),
+        from: None,
+        to: None,
+        timezone: tz.map(str::to_string),
+    };
+    let resolved = engine.resolve_range(&range_request)?;
+    let local_date = engine.local_date_of_range(&resolved)?;
+    Ok((local_date, RangeBounds::from_resolved(&resolved)?))
+}
+
+pub fn handle_today(
+    is_machine: bool,
+    persistence: &Persistence,
+    engine: &Engine,
+    tz: Option<&str>,
+) -> Result<CliOutput, CliError> {
+    let (today_date, bounds) = resolve_today_bounds(engine, tz)?;
     let logs = persistence.time_logs.get_all()?;
     let tasks = persistence.tasks.get_all()?;
     let projects = persistence.projects.get_all()?;
 
     let today_logs: Vec<_> = logs
         .into_iter()
-        .filter(|l| l.start_time.starts_with(&today_prefix))
+        .filter(|l| bounds.contains(&l.start_time))
         .collect();
 
     if is_machine {
@@ -313,7 +332,7 @@ pub fn handle_today(is_machine: bool, persistence: &Persistence) -> Result<CliOu
             }));
         }
         let json = serde_json::json!({
-            "date": today_prefix,
+            "date": today_date,
             "total_seconds": total_secs,
             "entries": entries
         });
@@ -324,7 +343,7 @@ pub fn handle_today(is_machine: bool, persistence: &Persistence) -> Result<CliOu
         &today_logs,
         &tasks,
         &projects,
-        &today_prefix,
+        &today_date,
     )?))
 }
 
@@ -332,8 +351,9 @@ pub fn handle_glance(
     is_machine: bool,
     persistence: &Persistence,
     engine: &Engine,
+    tz: Option<&str>,
 ) -> Result<CliOutput, CliError> {
-    let dto = build_dashboard_dto(persistence, engine)?;
+    let dto = build_dashboard_dto(persistence, engine, tz)?;
 
     if is_machine {
         let json = serde_json::to_string_pretty(&dto)?;
@@ -346,6 +366,7 @@ pub fn handle_glance(
 pub fn build_dashboard_dto(
     persistence: &Persistence,
     engine: &Engine,
+    tz: Option<&str>,
 ) -> Result<DashboardDto, CliError> {
     let active_ids = engine.get_active_logs()?;
     let tasks = persistence.tasks.get_all()?;
@@ -385,10 +406,10 @@ pub fn build_dashboard_dto(
         None => None,
     };
 
-    let today_prefix = Utc::now().format(DATE_FORMAT_DATE_ONLY).to_string();
+    let (today_date, bounds) = resolve_today_bounds(engine, tz)?;
     let mut today_logs: Vec<_> = logs
         .into_iter()
-        .filter(|l| l.start_time.starts_with(&today_prefix))
+        .filter(|l| bounds.contains(&l.start_time))
         .collect();
 
     let mut today_total_seconds: u64 = 0;
@@ -425,7 +446,7 @@ pub fn build_dashboard_dto(
     Ok(DashboardDto {
         running: active_session.is_some(),
         active_session,
-        today_date: today_prefix,
+        today_date,
         today_total_seconds,
         today_total_formatted: format_duration(today_total_seconds),
         session_count,

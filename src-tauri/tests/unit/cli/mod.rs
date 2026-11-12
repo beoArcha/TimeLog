@@ -23,6 +23,8 @@ pub mod output_formatter_test;
 pub mod parser_test;
 pub mod paths_test;
 pub mod prompter_test;
+pub mod range_bounds_test;
+pub mod range_preset_parser_test;
 pub mod resolver_test;
 pub mod rows_test;
 pub mod sink_error_mapping_test;

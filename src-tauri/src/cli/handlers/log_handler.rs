@@ -7,14 +7,12 @@ use super::constants::{
 use crate::cli::error::CliError;
 use crate::cli::parser::tier2_entities::{LogArgs, LogSubcommand};
 use crate::cli::resolver::EntityResolver;
-use crate::cli::shared::constants::DATE_FORMAT_DATE_ONLY;
 use crate::cli::shared::output::CliOutput;
-use crate::cli::shared::utils::{
-    generate_id, parse_date_bound, parse_duration_seconds, parse_iso_or_rfc3339,
-};
+use crate::cli::shared::range_bounds::RangeBounds;
+use crate::cli::shared::utils::{generate_id, parse_duration_seconds, parse_iso_or_rfc3339};
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{AuditSource, NewTimeLog, TimeLogEditInput};
+use crate::types::{AuditSource, NewTimeLog, RangePreset, RangeRequest, TimeLogEditInput};
 use chrono::{DateTime, Duration, Utc};
 use std::collections::HashSet;
 
@@ -22,11 +20,15 @@ struct LogListCriteria {
     task: Option<String>,
     project: Option<String>,
     today: bool,
+    yesterday: bool,
     week: bool,
+    last_week: bool,
     month: bool,
+    last_month: bool,
     from: Option<String>,
     to: Option<String>,
     limit: Option<usize>,
+    tz: Option<String>,
 }
 
 struct LogAddInput {
@@ -51,11 +53,7 @@ struct LogEditInput {
 struct LogFilterCriteria<'a> {
     filter_task_id: Option<&'a str>,
     allowed_task_ids: Option<&'a HashSet<String>>,
-    today: bool,
-    week: bool,
-    month: bool,
-    from_bound: Option<DateTime<Utc>>,
-    to_bound: Option<DateTime<Utc>>,
+    bounds: RangeBounds,
 }
 
 pub fn handle(
@@ -64,28 +62,38 @@ pub fn handle(
     strict: bool,
     is_quiet: bool,
     persistence: &Persistence,
+    engine: &Engine,
+    tz: Option<&str>,
 ) -> Result<CliOutput, CliError> {
     match args.command {
         LogSubcommand::List {
             task,
             project,
             today,
+            yesterday,
             week,
+            last_week,
             month,
+            last_month,
             from,
             to,
             limit,
         } => list_logs(
             persistence,
+            engine,
             LogListCriteria {
                 task,
                 project,
                 today,
+                yesterday,
                 week,
+                last_week,
                 month,
+                last_month,
                 from,
                 to,
                 limit,
+                tz: tz.map(str::to_string),
             },
             is_machine,
             strict,
@@ -137,34 +145,46 @@ pub fn handle(
     }
 }
 
+fn resolve_log_preset(criteria: &LogListCriteria) -> Option<RangePreset> {
+    if criteria.today {
+        Some(RangePreset::Today)
+    } else if criteria.yesterday {
+        Some(RangePreset::Yesterday)
+    } else if criteria.week {
+        Some(RangePreset::Week)
+    } else if criteria.last_week {
+        Some(RangePreset::LastWeek)
+    } else if criteria.month {
+        Some(RangePreset::Month)
+    } else if criteria.last_month {
+        Some(RangePreset::LastMonth)
+    } else if criteria.from.is_none() && criteria.to.is_none() {
+        Some(RangePreset::All)
+    } else {
+        None
+    }
+}
+
 fn list_logs(
     persistence: &Persistence,
+    engine: &Engine,
     criteria: LogListCriteria,
     is_machine: bool,
     strict: bool,
     is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
+    let preset = resolve_log_preset(&criteria);
     let filter_task_id = resolve_task_filter(persistence, criteria.task, strict)?;
     let filter_project_task_ids = resolve_project_filter(persistence, criteria.project, strict)?;
 
-    let from_bound = criteria
-        .from
-        .as_deref()
-        .map(|f| parse_date_bound(f, false))
-        .transpose()?;
-    let to_bound = criteria
-        .to
-        .as_deref()
-        .map(|t| parse_date_bound(t, true))
-        .transpose()?;
-
-    if let (Some(f), Some(t)) = (from_bound, to_bound) {
-        if f > t {
-            return Err(CliError::business_custom(
-                "Filter start date cannot be after end date.",
-            ));
-        }
-    }
+    let range_request = RangeRequest {
+        preset,
+        from: criteria.from,
+        to: criteria.to,
+        timezone: criteria.tz,
+    };
+    let resolved = engine.resolve_range(&range_request)?;
+    let bounds = RangeBounds::from_resolved(&resolved)?;
 
     let all_logs = persistence.time_logs.get_all()?;
     let tasks = persistence.tasks.get_all()?;
@@ -172,11 +192,7 @@ fn list_logs(
     let filter_criteria = LogFilterCriteria {
         filter_task_id: filter_task_id.as_deref(),
         allowed_task_ids: filter_project_task_ids.as_ref(),
-        today: criteria.today,
-        week: criteria.week,
-        month: criteria.month,
-        from_bound,
-        to_bound,
+        bounds,
     };
 
     let (mut filtered, total_matched) = filter_and_sort_logs(all_logs, filter_criteria);
@@ -243,38 +259,10 @@ fn resolve_project_filter(
     }
 }
 
-fn parse_log_timestamp(raw: &str) -> Option<DateTime<Utc>> {
-    DateTime::parse_from_rfc3339(raw)
-        .map(|dt| dt.with_timezone(&Utc))
-        .ok()
-        .or_else(|| {
-            chrono::NaiveDateTime::parse_from_str(raw, "%Y-%m-%dT%H:%M:%S")
-                .ok()
-                .map(|ndt| DateTime::<Utc>::from_naive_utc_and_offset(ndt, Utc))
-        })
-}
-
-fn is_log_before(start_time: &str, bound: DateTime<Utc>) -> bool {
-    parse_log_timestamp(start_time)
-        .map(|st| st < bound)
-        .unwrap_or(false)
-}
-
-fn is_log_after(start_time: &str, bound: DateTime<Utc>) -> bool {
-    parse_log_timestamp(start_time)
-        .map(|st| st > bound)
-        .unwrap_or(false)
-}
-
 fn filter_and_sort_logs(
     logs: Vec<crate::types::TimeLog>,
     criteria: LogFilterCriteria<'_>,
 ) -> (Vec<crate::types::TimeLog>, usize) {
-    let now = Utc::now();
-    let today_prefix = now.format(DATE_FORMAT_DATE_ONLY).to_string();
-    let month_prefix = now.format("%Y-%m").to_string();
-    let week_start = now - Duration::days(7);
-
     let mut filtered: Vec<_> = logs
         .into_iter()
         .filter(|l| {
@@ -288,26 +276,7 @@ fn filter_and_sort_logs(
                     return false;
                 }
             }
-            if criteria.today && !l.start_time.starts_with(&today_prefix) {
-                return false;
-            }
-            if criteria.month && !l.start_time.starts_with(&month_prefix) {
-                return false;
-            }
-            if criteria.week && is_log_before(&l.start_time, week_start) {
-                return false;
-            }
-            if let Some(from_dt) = criteria.from_bound {
-                if is_log_before(&l.start_time, from_dt) {
-                    return false;
-                }
-            }
-            if let Some(to_dt) = criteria.to_bound {
-                if is_log_after(&l.start_time, to_dt) {
-                    return false;
-                }
-            }
-            true
+            criteria.bounds.contains(&l.start_time)
         })
         .collect();
 

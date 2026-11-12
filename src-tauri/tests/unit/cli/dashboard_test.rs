@@ -14,7 +14,7 @@ fn test_given_idle_system_when_building_dashboard_dto_then_returns_idle_state() 
     let engine = Engine::new(&persistence);
 
     // Act
-    let dto_res = build_dashboard_dto(&persistence, &engine);
+    let dto_res = build_dashboard_dto(&persistence, &engine, None);
 
     // Assert
     assert!(dto_res.is_ok());
@@ -60,7 +60,7 @@ fn test_given_active_timer_and_today_logs_when_building_dashboard_dto_then_inclu
     engine.start_timer("t-dash-01").unwrap();
 
     // Act
-    let dto_res = build_dashboard_dto(&persistence, &engine);
+    let dto_res = build_dashboard_dto(&persistence, &engine, None);
 
     // Assert
     assert!(dto_res.is_ok());
@@ -84,7 +84,7 @@ fn test_given_machine_flag_when_handle_glance_then_outputs_json_dashboard() {
     let engine = Engine::new(&persistence);
 
     // Act
-    let result = handle_glance(true, &persistence, &engine);
+    let result = handle_glance(true, &persistence, &engine, None);
 
     // Assert
     assert!(result.is_ok());
@@ -106,7 +106,7 @@ fn test_given_terminal_mode_when_handle_glance_then_renders_visual_cards() {
     let engine = Engine::new(&persistence);
 
     // Act
-    let result = handle_glance(false, &persistence, &engine);
+    let result = handle_glance(false, &persistence, &engine, None);
 
     // Assert
     assert!(result.is_ok());

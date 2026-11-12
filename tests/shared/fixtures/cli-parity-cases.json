@@ -504,5 +504,83 @@
     "expectedExitCode": 4,
     "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
     "expectedPatterns": ["error", "not found", "project", "parity"]
+  },
+  {
+    "id": "log-list-week-with-timezone",
+    "description": "List current-week logs in an explicit IANA timezone",
+    "commandFrontend": "log list --week --tz UTC",
+    "commandRust": [
+      "log",
+      "list",
+      "--week",
+      "--tz",
+      "UTC"
+    ],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": [
+      "no time logs found"
+    ]
+  },
+  {
+    "id": "log-list-preset-with-from",
+    "description": "A period preset cannot be combined with --from",
+    "commandFrontend": "log list --today --from 2026-10-01",
+    "commandRust": [
+      "log",
+      "list",
+      "--today",
+      "--from",
+      "2026-10-01"
+    ],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
+    "expectedPatterns": [
+      "error",
+      "cannot be used with"
+    ]
+  },
+  {
+    "id": "log-list-two-presets",
+    "description": "Two period presets are mutually exclusive",
+    "commandFrontend": "log list --week --month",
+    "commandRust": [
+      "log",
+      "list",
+      "--week",
+      "--month"
+    ],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
+    "expectedPatterns": [
+      "error",
+      "cannot be used with"
+    ]
+  },
+  {
+    "id": "log-list-invalid-timezone",
+    "description": "An unknown IANA timezone is a syntax error",
+    "commandFrontend": "log list --week --tz Mars/Olympus",
+    "commandRust": [
+      "log",
+      "list",
+      "--week",
+      "--tz",
+      "Mars/Olympus"
+    ],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
+    "expectedPatterns": [
+      "error",
+      "invalid timezone"
+    ]
   }
 ]

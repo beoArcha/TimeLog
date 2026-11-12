@@ -141,14 +141,14 @@ fn test_given_date_range_when_report_invoked_then_scopes_to_exact_bounds() {
         let tree: ReportTreeDto = serde_json::from_str(json_str).unwrap();
         assert_eq!(tree.total_seconds, 3600);
         assert_eq!(tree.projects.len(), 1);
-        assert_eq!(tree.period, "2026-10-01 to 2026-10-31");
+        assert!(tree.period.starts_with("Custom Range, "));
     } else {
         panic!("Expected CliOutput::Json");
     }
 }
 
 #[test]
-fn test_given_inverted_date_bounds_when_report_invoked_then_fails_with_business_error() {
+fn test_given_inverted_date_bounds_when_report_invoked_then_fails_with_syntax_error() {
     // Arrange
     let (_conn, config, _temp) = setup_persistence_test("test_reports_inverted_dates");
     let persistence = Persistence::new(&config).expect("failed to create persistence");
@@ -170,10 +170,8 @@ fn test_given_inverted_date_bounds_when_report_invoked_then_fails_with_business_
     // Assert
     assert!(result.is_err());
     let err = result.unwrap_err();
-    assert_eq!(err.exit_code(), 1);
-    assert!(err
-        .to_string()
-        .contains("Filter start date cannot be after end date."));
+    assert_eq!(err.exit_code(), 2);
+    assert!(err.to_string().contains("from must be earlier than to"));
 }
 
 #[test]

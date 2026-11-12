@@ -59,6 +59,13 @@ pub struct CliArgs {
     )]
     pub db: Option<String>,
 
+    #[arg(
+        long = "tz",
+        global = true,
+        help = "IANA timezone for date ranges (default: app setting or system)"
+    )]
+    pub tz: Option<String>,
+
     #[command(subcommand)]
     pub command: Option<CliCommand>,
 }

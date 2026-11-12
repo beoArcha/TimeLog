@@ -367,7 +367,6 @@ fn test_given_log_domain_commands_when_parsing_cli_then_parses_duration_and_note
         "ls",
         "-p",
         "Website",
-        "--month",
         "--from",
         "2026-10-01",
         "--to",
@@ -381,7 +380,6 @@ fn test_given_log_domain_commands_when_parsing_cli_then_parses_duration_and_note
                 args.command,
                 LogSubcommand::List {
                     ref project,
-                    month: true,
                     ref from,
                     ref to,
                     ..

@@ -147,7 +147,7 @@ export class SandboxCommandRouter {
       }
 
       case 'today': {
-        handleToday(store, output);
+        handleToday(flags, store, output);
         return true;
       }
 
