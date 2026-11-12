@@ -254,17 +254,14 @@ pub fn contains_word_or_path(code: &str, pattern: &str) -> bool {
 }
 
 fn check_char_boundary_before(code: &str, abs_pos: usize) -> bool {
-    if abs_pos == 0 {
-        return true;
-    }
-    let prev = code[..abs_pos].chars().next_back().unwrap();
-    !is_ident_char(prev)
+    code[..abs_pos]
+        .chars()
+        .next_back()
+        .is_none_or(|prev| !is_ident_char(prev))
 }
 
 fn check_char_boundary_after(code: &str, after_pos: usize) -> bool {
-    if after_pos >= code.len() {
-        return true;
-    }
-    let next = code[after_pos..].chars().next().unwrap();
-    !is_ident_char(next)
+    code.get(after_pos..)
+        .and_then(|rest| rest.chars().next())
+        .is_none_or(|next| !is_ident_char(next))
 }
