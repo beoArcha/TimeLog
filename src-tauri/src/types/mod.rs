@@ -14,6 +14,7 @@ pub mod locale;
 pub mod persistence_event;
 pub mod project;
 pub mod range;
+pub mod report;
 pub mod settings;
 pub mod sinks;
 pub mod timelog;
@@ -43,6 +44,11 @@ pub use locale::Locale;
 pub use persistence_event::PersistenceEvent;
 pub use project::{Project, ProjectEditHistory, ProjectStatistics};
 pub use range::{RangePreset, RangeRequest, ResolvedRange};
+pub use report::{
+    ReportBillingTotal, ReportDay, ReportDocument, ReportEntry, ReportFilters, ReportGenerator,
+    ReportProject, ReportRateStatus, ReportRequest, ReportSubtask, ReportTask, ReportTotals,
+    ReportVariant, REPORT_SCHEMA_NAME, REPORT_SCHEMA_VERSION,
+};
 pub use settings::{RuntimeConfig, Settings};
 pub use sinks::SinkType;
 pub use timelog::{
