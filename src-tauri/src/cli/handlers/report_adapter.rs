@@ -13,7 +13,7 @@ use crate::types::{
     RangePreset, ReportDocument, ReportEntry, ReportProject, ReportSubtask, ReportTask,
     ResolvedRange,
 };
-use chrono::DateTime;
+use chrono::{DateTime, FixedOffset};
 
 pub fn format_period_label(range: &ResolvedRange) -> String {
     let label = match range.preset {
@@ -137,33 +137,28 @@ fn map_entry(entry: &ReportEntry, range: &ResolvedRange) -> ReportEntryDto {
     }
 }
 
+/// Entries keep their stored instants; the legacy DTO shows the in-range part in chrono's
+/// `+00:00` RFC3339 form whether or not the range has bounds.
 fn clamp_start(start: &str, range_from: Option<&str>) -> String {
-    let Some(from_str) = range_from else {
-        return start.to_string();
-    };
-
-    let (Ok(start_dt), Ok(from_dt)) = (
-        DateTime::parse_from_rfc3339(start),
-        DateTime::parse_from_rfc3339(from_str),
-    ) else {
-        return start.to_string();
-    };
-
-    std::cmp::max(start_dt, from_dt).to_rfc3339()
+    clamp_instant(start, range_from, std::cmp::max)
 }
 
 fn clamp_end(end: Option<&str>, range_to: Option<&str>) -> Option<String> {
-    let end_str = end?;
-    let Some(to_str) = range_to else {
-        return Some(end_str.to_string());
-    };
+    end.map(|end_str| clamp_instant(end_str, range_to, std::cmp::min))
+}
 
-    let (Ok(end_dt), Ok(to_dt)) = (
-        DateTime::parse_from_rfc3339(end_str),
-        DateTime::parse_from_rfc3339(to_str),
-    ) else {
-        return Some(end_str.to_string());
+/// The engine already validated every instant, so an unparseable value cannot reach here; it is
+/// echoed unchanged rather than dropped.
+fn clamp_instant(
+    instant: &str,
+    bound: Option<&str>,
+    pick: fn(DateTime<FixedOffset>, DateTime<FixedOffset>) -> DateTime<FixedOffset>,
+) -> String {
+    let Ok(instant_dt) = DateTime::parse_from_rfc3339(instant) else {
+        return instant.to_string();
     };
-
-    Some(std::cmp::min(end_dt, to_dt).to_rfc3339())
+    bound
+        .and_then(|raw| DateTime::parse_from_rfc3339(raw).ok())
+        .map_or(instant_dt, |bound_dt| pick(instant_dt, bound_dt))
+        .to_rfc3339()
 }
