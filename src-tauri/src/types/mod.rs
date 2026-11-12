@@ -33,7 +33,7 @@ pub use billing::{
 };
 pub use cli::{
     CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, EnvelopeMeta, LocalizedUserMessage,
-    SuccessEnvelope,
+    SuccessEnvelope, ENVELOPE_SCHEMA_NAME, ENVELOPE_SCHEMA_VERSION,
 };
 pub use cli_flow::{FlowAction, StartPayload, StatusPayload, StopPayload, SwitchPayload};
 pub use commands::{

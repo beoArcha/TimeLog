@@ -1,0 +1,59 @@
+{
+  "$id": "urn:oxyflow:schema:oxy.envelope:1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "oxy.envelope",
+  "description": "Versioned wrapper around every successful `--json` / `--machine` payload.",
+  "type": "object",
+  "properties": {
+    "data": true,
+    "meta": {
+      "$ref": "#/$defs/EnvelopeMeta"
+    },
+    "schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "schema",
+    "schemaVersion",
+    "data",
+    "meta"
+  ],
+  "$defs": {
+    "EnvelopeMeta": {
+      "type": "object",
+      "properties": {
+        "generatedAt": {
+          "type": "string"
+        },
+        "generator": {
+          "$ref": "#/$defs/ReportGenerator"
+        }
+      },
+      "required": [
+        "generatedAt",
+        "generator"
+      ]
+    },
+    "ReportGenerator": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ]
+    }
+  }
+}

@@ -1,6 +1,10 @@
 use super::report::ReportGenerator;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
+
+pub const ENVELOPE_SCHEMA_NAME: &str = "oxy.envelope";
+pub const ENVELOPE_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
 #[ts(export)]
@@ -54,7 +58,7 @@ pub struct CliExecutionResult {
     pub envelope: Option<Box<CliErrorEnvelope>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvelopeMeta {
@@ -63,13 +67,15 @@ pub struct EnvelopeMeta {
 }
 
 /// Versioned wrapper around every successful `--json` / `--machine` payload.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS, JsonSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+#[schemars(title = "oxy.envelope", extend("$id" = "urn:oxyflow:schema:oxy.envelope:1"))]
 pub struct SuccessEnvelope {
     pub schema: String,
     pub schema_version: u32,
     #[ts(type = "unknown")]
+    #[schemars(with = "serde_json::Value")]
     pub data: serde_json::Value,
     pub meta: EnvelopeMeta,
 }

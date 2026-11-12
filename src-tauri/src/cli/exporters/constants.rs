@@ -10,10 +10,12 @@ pub const REPORT_WORKSHEET_NAME: &str = "Work Report";
 pub const REPORT_TOTAL_LABEL: &str = "Total";
 
 pub const MSG_EXPORT_SUCCESS: &str = "Exported report to '{}' ({})";
-pub const MSG_SCHEMA_EXPORT_SUCCESS: &str = "Exported XML schema v{} to '{}'";
+pub const MSG_SCHEMA_EXPORT_SUCCESS: &str = "Exported {} schema v{} to '{}'";
 pub const MSG_NO_REPORT_DATA: &str = "No time logs recorded for the selected period.";
 pub const ERR_UNSUPPORTED_FORMAT: &str =
     "Format '{}' is not supported. Supported formats are: html, csv, json.";
+pub const ERR_XML_SCHEMA_UNAVAILABLE: &str =
+    "XML Schema (XSD) output is not available yet. Use --format json.";
 pub const ERR_UNSUPPORTED_SCHEMA_VERSION: &str =
     "Unsupported XML schema version: '{}'. Supported versions: '1'";
 

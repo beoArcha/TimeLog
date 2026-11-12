@@ -1,0 +1,521 @@
+{
+  "$id": "urn:oxyflow:schema:oxy.report:2",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "oxy.report",
+  "description": "The single report model every export format projects from.\n\nInvariants consumers rely on:\n- The model holds raw values only. Formatted or display strings belong to the projection,\n  so one document renders identically in every locale and format.\n- Durations are whole seconds, money is integer minor units and shares are integer basis\n  points, which keeps sums exact and serialization byte-identical across runtimes.\n- `entries` is present only for `ReportVariant::Full`; for `Full` it is `[]` (not omitted)\n  when the range is empty.\n- An empty range yields zero totals and empty arrays, except `days` of a range with both\n  bounds, which lists its zero days.\n- Only projects and tasks with time in the range appear.\n- Ordering is deterministic. `projects` and root `tasks` are ordered by `seconds` descending,\n  then `id` ascending. `subtasks` are in depth-first pre-order with siblings ordered by\n  `seconds` descending, then `id` ascending. `billing` items are ordered by `currency`\n  ascending, `days` by `date` ascending and `entries` by `start` ascending, then `id` ascending.\n- `days` splits entries crossing local midnight in `range.timezone`; see `ReportDay`.\n- Field order is stable. New fields may only be appended; any other change to the shape\n  must bump `REPORT_SCHEMA_VERSION`.",
+  "type": "object",
+  "properties": {
+    "days": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ReportDay"
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ReportEntry"
+      }
+    },
+    "filters": {
+      "$ref": "#/$defs/ReportFilters"
+    },
+    "generatedAt": {
+      "description": "RFC3339 UTC with a `Z` suffix and whole seconds.",
+      "type": "string"
+    },
+    "generator": {
+      "$ref": "#/$defs/ReportGenerator"
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ReportProject"
+      }
+    },
+    "range": {
+      "$ref": "#/$defs/ResolvedRange"
+    },
+    "schema": {
+      "type": "string",
+      "const": "oxy.report"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "const": 2,
+      "minimum": 0
+    },
+    "totals": {
+      "$ref": "#/$defs/ReportTotals"
+    },
+    "variant": {
+      "$ref": "#/$defs/ReportVariant"
+    }
+  },
+  "required": [
+    "schema",
+    "schemaVersion",
+    "variant",
+    "generatedAt",
+    "generator",
+    "range",
+    "filters",
+    "totals",
+    "projects",
+    "days"
+  ],
+  "$defs": {
+    "RangePreset": {
+      "type": "string",
+      "enum": [
+        "today",
+        "yesterday",
+        "week",
+        "lastWeek",
+        "month",
+        "lastMonth",
+        "all"
+      ]
+    },
+    "ReportBillingTotal": {
+      "type": "object",
+      "properties": {
+        "amountMinor": {
+          "description": "Σ of root-task and subtask `amount_minor` in this currency, in minor units.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "billableSeconds": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string"
+        },
+        "nonBillableSeconds": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "unconfiguredSeconds": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "currency",
+        "amountMinor",
+        "billableSeconds",
+        "nonBillableSeconds",
+        "unconfiguredSeconds"
+      ]
+    },
+    "ReportDay": {
+      "description": "Entries crossing local midnight are split across days in `range.timezone`\n(DST days have 23 or 25 hours). When both range bounds exist, every local day in\n`[from, to)` is emitted, including zero days. With an unbounded side, only days with\ntime are emitted.",
+      "type": "object",
+      "properties": {
+        "date": {
+          "description": "Local `YYYY-MM-DD` in `range.timezone`.",
+          "type": "string"
+        },
+        "seconds": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "date",
+        "seconds"
+      ]
+    },
+    "ReportEntry": {
+      "type": "object",
+      "properties": {
+        "amountMinor": {
+          "description": "Informational: rounded individually, so entries may not sum to the task amount.\n0 for non-billable time; absent only when the rate is unconfigured.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "clamped": {
+          "type": "boolean"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "date": {
+          "description": "Local `YYYY-MM-DD` of the in-range start in `range.timezone`.",
+          "type": "string"
+        },
+        "end": {
+          "description": "Absent only for a running entry; its `seconds` are measured up to `generated_at`.",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "isPatch": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "originalSeconds": {
+          "description": "Full duration before clamping.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "parentTaskId": {
+          "description": "The immediate parent task.",
+          "type": "string"
+        },
+        "parentTaskName": {
+          "description": "The immediate parent task.",
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "projectName": {
+          "type": "string"
+        },
+        "rateMinor": {
+          "description": "Hourly rate in minor currency units (e.g. cents). 0 for non-billable time;\nabsent only when the rate is unconfigured.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "rootTaskId": {
+          "description": "Root task of the hierarchy; equals `task_id` for a root-task entry;\nabsent for a task-less patch.",
+          "type": "string"
+        },
+        "seconds": {
+          "description": "Duration inside the range after clamping.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "start": {
+          "description": "Stored instant, RFC3339 UTC `Z`, whole seconds; not clamped — `seconds`,\n`original_seconds` and `clamped` describe the in-range portion.",
+          "type": "string"
+        },
+        "taskId": {
+          "description": "Absent for a project-level patch.",
+          "type": "string"
+        },
+        "taskName": {
+          "description": "Absent for a project-level patch.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "projectId",
+        "projectName",
+        "start",
+        "date",
+        "seconds",
+        "originalSeconds",
+        "clamped",
+        "isPatch"
+      ]
+    },
+    "ReportFilters": {
+      "type": "object",
+      "properties": {
+        "includePatches": {
+          "description": "Tells consumers whether patch time is included in every figure of the document.",
+          "type": "boolean"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "taskId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "includePatches"
+      ]
+    },
+    "ReportGenerator": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ]
+    },
+    "ReportProject": {
+      "type": "object",
+      "properties": {
+        "billing": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReportBillingTotal"
+          }
+        },
+        "directSeconds": {
+          "description": "Time logged on the project without a task (project-level patches);\n`seconds` = `direct_seconds` + Σ `tasks[].seconds`.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "seconds": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "shareBasisPoints": {
+          "description": "Share of `totals.seconds` in basis points (0–10000), rounded half-to-even;\n0 when `totals.seconds` is 0. Shares are not guaranteed to sum to 10000.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "tasks": {
+          "description": "Root tasks only; their descendants live in `ReportTask.subtasks`.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReportTask"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "directSeconds",
+        "seconds",
+        "shareBasisPoints",
+        "billing",
+        "tasks"
+      ]
+    },
+    "ReportRateStatus": {
+      "description": "Mirrors `RateStatus` with camelCase values so the report contract uses one casing style.",
+      "type": "string",
+      "enum": [
+        "inherited",
+        "custom",
+        "nonBillable",
+        "unconfigured"
+      ]
+    },
+    "ReportSubtask": {
+      "type": "object",
+      "properties": {
+        "amountMinor": {
+          "description": "Authoritative amount for `direct_seconds` at this subtask's own rate, with banker's\nrounding. 0 for non-billable subtasks; absent only when the rate is unconfigured.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string"
+        },
+        "directSeconds": {
+          "description": "Time logged on the subtask itself, excluding its own descendants.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "parentTaskId": {
+          "description": "Immediate parent: the root task or another subtask.",
+          "type": "string"
+        },
+        "rateMinor": {
+          "description": "Hourly rate in minor currency units (e.g. cents). 0 for non-billable subtasks;\nabsent only when the rate is unconfigured. Rates are those configured at `generated_at`.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "rateStatus": {
+          "$ref": "#/$defs/ReportRateStatus"
+        },
+        "seconds": {
+          "description": "Direct time plus all of its own descendants.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "shareBasisPoints": {
+          "description": "Share of `totals.seconds` in basis points (0–10000), rounded half-to-even;\n0 when `totals.seconds` is 0. Shares are not guaranteed to sum to 10000.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "parentTaskId",
+        "directSeconds",
+        "seconds",
+        "shareBasisPoints",
+        "rateStatus"
+      ]
+    },
+    "ReportTask": {
+      "type": "object",
+      "properties": {
+        "amountMinor": {
+          "description": "Authoritative amount for `direct_seconds` only: each subtask is billed on its own row at\nits own rate, with banker's rounding per task. 0 for non-billable tasks; absent only when\nthe rate is unconfigured.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string"
+        },
+        "directSeconds": {
+          "description": "Time logged on the task itself, excluding subtasks.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rateMinor": {
+          "description": "Hourly rate in minor currency units (e.g. cents). 0 for non-billable tasks;\nabsent only when the rate is unconfigured. Rates are those configured at `generated_at`.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "rateStatus": {
+          "$ref": "#/$defs/ReportRateStatus"
+        },
+        "seconds": {
+          "description": "Direct time plus all descendants.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "shareBasisPoints": {
+          "description": "Share of `totals.seconds` in basis points (0–10000), rounded half-to-even;\n0 when `totals.seconds` is 0. Shares are not guaranteed to sum to 10000.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "subtasks": {
+          "description": "All descendants of this root task, flattened in depth-first pre-order with siblings\nordered by `seconds` descending, then `id` ascending.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReportSubtask"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "directSeconds",
+        "seconds",
+        "shareBasisPoints",
+        "rateStatus",
+        "subtasks"
+      ]
+    },
+    "ReportTotals": {
+      "type": "object",
+      "properties": {
+        "billableSeconds": {
+          "description": "Document-level split covering all time, including time without a resolved currency.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "billing": {
+          "description": "One item per currency; empty when nothing is billable. Per-currency buckets cover only\ntime with a resolved currency; the document-level fields cover all time.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReportBillingTotal"
+          }
+        },
+        "entryCount": {
+          "description": "Entries with time inside the range, including patches when `filters.includePatches`.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "nonBillableSeconds": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "seconds": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "unconfiguredSeconds": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "seconds",
+        "entryCount",
+        "billableSeconds",
+        "nonBillableSeconds",
+        "unconfiguredSeconds",
+        "billing"
+      ]
+    },
+    "ReportVariant": {
+      "type": "string",
+      "enum": [
+        "summary",
+        "full"
+      ]
+    },
+    "ResolvedRange": {
+      "description": "Half-open `[from, to)` UTC bounds; a missing bound is unbounded on that side and a missing preset marks a custom range.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "preset": {
+          "$ref": "#/$defs/RangePreset"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "timezone"
+      ]
+    }
+  }
+}

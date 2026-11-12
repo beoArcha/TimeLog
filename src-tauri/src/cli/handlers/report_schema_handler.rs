@@ -1,37 +1,57 @@
 use crate::cli::error::CliError;
-use crate::cli::exporters::constants::MSG_SCHEMA_EXPORT_SUCCESS;
-use crate::cli::exporters::schema::{export_schema_to_file, get_report_xml_schema};
+use crate::cli::exporters::constants::{ERR_XML_SCHEMA_UNAVAILABLE, MSG_SCHEMA_EXPORT_SUCCESS};
+use crate::cli::exporters::schema::export_schema_to_file;
+use crate::cli::exporters::{envelope_json_schema, report_json_schema};
+use crate::cli::parser::{SchemaFormat, SchemaTarget};
 use crate::cli::shared::output::CliOutput;
+use crate::types::{
+    ENVELOPE_SCHEMA_NAME, ENVELOPE_SCHEMA_VERSION, REPORT_SCHEMA_NAME, REPORT_SCHEMA_VERSION,
+};
 
 /// Handles the `oxy report schema` CLI command.
 ///
-/// If `output` is None, prints the raw XSD schema directly to stdout via `CliOutput::Raw`.
-/// If `output` is specified, writes the XSD content to file via `export_schema_to_file`,
-/// handling I/O errors properly.
+/// Without `output` the schema goes to stdout via `CliOutput::Raw`, which is already a JSON
+/// document, so `--machine` needs no extra wrapping and stdout stays pure.
 pub fn handle(
-    output: Option<String>,
-    version: &str,
+    output: Option<&str>,
+    format: SchemaFormat,
+    target: SchemaTarget,
     is_machine: bool,
 ) -> Result<CliOutput, CliError> {
-    let schema_content = get_report_xml_schema(version)?;
-
-    match output {
-        None => Ok(CliOutput::Raw(schema_content.to_string())),
-        Some(path) => {
-            export_schema_to_file(schema_content, &path)?;
-            if is_machine {
-                let json = serde_json::json!({
-                    "status": "success",
-                    "exported_path": path,
-                    "schema_version": version
-                });
-                Ok(CliOutput::Json(json.to_string()))
-            } else {
-                let msg = MSG_SCHEMA_EXPORT_SUCCESS
-                    .replacen("{}", version, 1)
-                    .replacen("{}", &path, 1);
-                Ok(CliOutput::Success(msg))
-            }
-        }
+    if format == SchemaFormat::Xml {
+        return Err(CliError::syntax_invalid_args(ERR_XML_SCHEMA_UNAVAILABLE));
     }
+
+    let (name, version, content) = match target {
+        SchemaTarget::Report => (
+            REPORT_SCHEMA_NAME,
+            REPORT_SCHEMA_VERSION,
+            report_json_schema()?,
+        ),
+        SchemaTarget::Envelope => (
+            ENVELOPE_SCHEMA_NAME,
+            ENVELOPE_SCHEMA_VERSION,
+            envelope_json_schema()?,
+        ),
+    };
+
+    let Some(path) = output else {
+        return Ok(CliOutput::Raw(content));
+    };
+
+    export_schema_to_file(&content, path)?;
+    if is_machine {
+        let json = serde_json::json!({
+            "status": "success",
+            "exported_path": path,
+            "schema": name,
+            "schema_version": version
+        });
+        return Ok(CliOutput::Json(json.to_string()));
+    }
+    let msg = MSG_SCHEMA_EXPORT_SUCCESS
+        .replacen("{}", name, 1)
+        .replacen("{}", &version.to_string(), 1)
+        .replacen("{}", path, 1);
+    Ok(CliOutput::Success(msg))
 }
