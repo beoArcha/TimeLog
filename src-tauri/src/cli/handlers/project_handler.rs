@@ -24,11 +24,13 @@ pub struct RenameProjectOptions {
     pub rate_cents: Option<u64>,
     pub currency: Option<String>,
     pub is_machine: bool,
+    pub strict: bool,
 }
 
 pub fn handle(
     args: ProjectArgs,
     is_machine: bool,
+    strict: bool,
     is_quiet: bool,
     persistence: &Persistence,
 ) -> Result<CliOutput, CliError> {
@@ -66,9 +68,12 @@ pub fn handle(
                 rate_cents,
                 currency,
                 is_machine,
+                strict,
             },
         ),
-        ProjectSubcommand::Archive { target } => archive_project(persistence, &target, is_machine),
+        ProjectSubcommand::Archive { target } => {
+            archive_project(persistence, &target, is_machine, strict)
+        }
     }
 }
 
@@ -185,7 +190,7 @@ fn rename_project(
 
     let billing_update = NormalizedBillingUpdate::parse(opts.rate, opts.rate_cents, opts.currency)?;
 
-    let resolver = EntityResolver::with_mode(persistence, opts.is_machine);
+    let resolver = EntityResolver::with_mode(persistence, opts.strict);
     let mut project = resolver.resolve_project(&opts.target)?;
 
     let has_new_name = opts.new_name.is_some();
@@ -240,8 +245,9 @@ fn archive_project(
     persistence: &Persistence,
     target: &str,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let project = resolver.resolve_project(target)?;
     persistence.projects.archive(project.id.clone())?;
     if is_machine {

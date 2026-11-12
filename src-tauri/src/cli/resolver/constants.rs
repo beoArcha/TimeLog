@@ -4,6 +4,10 @@ pub const LABEL_ENTITY_TIME_LOG: &str = "Time log";
 pub const LABEL_ENTITY_CONFIG_KEY: &str = "Config key";
 pub const LABEL_ENTITY_MASK_ALIAS: &str = "Action mask alias";
 
+// 8 characters provides sufficient entropy (~32 bits for hex UUIDs) to prevent accidental collisions
+// in automated scripts and pipelines while keeping shortened ID references ergonomic.
+pub const MIN_MACHINE_PREFIX_LEN: usize = 8;
+
 pub const ERR_RESOLVE_NOT_FOUND: &str = "{} '{}' not found.";
 pub const ERR_RESOLVE_AMBIGUOUS: &str =
     "Ambiguous {} target '{}'. Matched: {}. Please specify a unique ID or title.";

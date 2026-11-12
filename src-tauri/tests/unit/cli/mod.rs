@@ -26,5 +26,6 @@ pub mod prompter_test;
 pub mod resolver_test;
 pub mod rows_test;
 pub mod sink_error_mapping_test;
+pub mod strict_match_test;
 pub mod table_test;
 pub mod tree_renderer_test;

@@ -460,5 +460,49 @@
     "expectedExitCode": 2,
     "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
     "expectedPatterns": ["error", "unknown", "unrecognized"]
+  },
+  {
+    "id": "log-list-project-machine-fragment-fails",
+    "description": "Machine mode rejects project name fragments with entity not found error",
+    "commandFrontend": "log list -p Parity --json",
+    "commandRust": ["log", "list", "-p", "Parity", "--json"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found", "project", "parity"]
+  },
+  {
+    "id": "log-list-project-machine-exact-succeeds",
+    "description": "Machine mode resolves exact project name case-insensitively",
+    "commandFrontend": "log list -p \"parity project\" --json",
+    "commandRust": ["log", "list", "-p", "parity project", "--json"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["[]"]
+  },
+  {
+    "id": "log-list-project-human-fragment-succeeds",
+    "description": "Human mode resolves project by name fragment",
+    "commandFrontend": "log list -p Parity",
+    "commandRust": ["log", "list", "-p", "Parity"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["no time logs", "found"]
+  },
+  {
+    "id": "log-list-project-exact-human-fragment-fails",
+    "description": "Human mode with --exact flag rejects project name fragment",
+    "commandFrontend": "log list -p Parity --exact",
+    "commandRust": ["log", "list", "-p", "Parity", "--exact"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found", "project", "parity"]
   }
 ]

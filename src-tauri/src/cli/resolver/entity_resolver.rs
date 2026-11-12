@@ -95,26 +95,26 @@ impl fmt::Display for ResolveError {
 
 pub struct EntityResolver<'a> {
     persistence: &'a Persistence,
-    is_machine: bool,
+    strict: bool,
 }
 
 impl<'a> EntityResolver<'a> {
     pub fn new(persistence: &'a Persistence) -> Self {
         Self {
             persistence,
-            is_machine: false,
+            strict: false,
         }
     }
 
-    pub fn with_mode(persistence: &'a Persistence, is_machine: bool) -> Self {
+    pub fn with_mode(persistence: &'a Persistence, strict: bool) -> Self {
         Self {
             persistence,
-            is_machine,
+            strict,
         }
     }
 
     pub fn resolve_task(&self, target: &str) -> Result<Task, ResolveError> {
-        self.resolve_task_interactive(target, &TerminalPrompter::new(self.is_machine))
+        self.resolve_task_interactive(target, &TerminalPrompter::new(self.strict))
     }
 
     pub fn resolve_task_interactive(
@@ -133,13 +133,14 @@ impl<'a> EntityResolver<'a> {
             target,
             EntityType::Task,
             prompter,
+            self.strict,
             |t| &t.id,
             |t| &t.name,
         )
     }
 
     pub fn resolve_project(&self, target: &str) -> Result<Project, ResolveError> {
-        self.resolve_project_interactive(target, &TerminalPrompter::new(self.is_machine))
+        self.resolve_project_interactive(target, &TerminalPrompter::new(self.strict))
     }
 
     pub fn resolve_project_interactive(
@@ -158,6 +159,7 @@ impl<'a> EntityResolver<'a> {
             target,
             EntityType::Project,
             prompter,
+            self.strict,
             |p| &p.id,
             |p| &p.name,
         )
@@ -175,9 +177,20 @@ fn resolve_from_slice<T: Clone>(
     target: &str,
     entity_type: EntityType,
     prompter: &dyn Prompter,
+    strict: bool,
     id_fn: impl Fn(&T) -> &str,
     name_fn: impl Fn(&T) -> &str,
 ) -> Result<T, ResolveError> {
+    if strict {
+        return super::strict_match::strict_resolve_from_slice(
+            entities,
+            target,
+            entity_type,
+            id_fn,
+            name_fn,
+        );
+    }
+
     let trimmed = target.trim();
     if trimmed.is_empty() {
         return Err(ResolveError::NotFound {
@@ -269,7 +282,7 @@ fn prompt_ambiguous_selection<T: Clone>(
     matched_items.get(selected_idx).cloned()
 }
 
-fn format_ambiguous_candidates<T>(
+pub(crate) fn format_ambiguous_candidates<T>(
     matched_items: &[T],
     id_fn: &impl Fn(&T) -> &str,
     name_fn: &impl Fn(&T) -> &str,
