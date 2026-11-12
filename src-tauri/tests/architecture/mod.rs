@@ -6,6 +6,8 @@ mod cyclic_dependencies_test;
 #[cfg(test)]
 mod error_handling_test;
 #[cfg(test)]
+mod exporter_isolation_test;
+#[cfg(test)]
 mod layer_boundaries_test;
 #[cfg(test)]
 mod max_nested_ifs_test;

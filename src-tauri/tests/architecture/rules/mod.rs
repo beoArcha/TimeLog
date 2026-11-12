@@ -1,4 +1,5 @@
 pub mod cyclic_dependencies;
+pub mod exporter_isolation;
 pub mod forbidden_dependencies;
 pub mod generic_errors;
 pub mod helpers;
@@ -54,5 +55,10 @@ impl<'a> ArchRule<'a> {
     /// Verifies that no block or function nests if statements 3 or more levels deep.
     pub fn assert_max_nested_ifs(&self, max_allowed_depth: usize, allowlist: &[&str]) {
         max_nested_ifs::assert_max_nested_ifs(&self.src_dir, max_allowed_depth, allowlist);
+    }
+
+    /// Verifies that CLI exporter modules remain pure projections and have zero coupling to storage, engine, rusqlite, or handlers.
+    pub fn assert_exporter_isolation(&self) {
+        exporter_isolation::assert_exporter_isolation(&self.src_dir);
     }
 }
