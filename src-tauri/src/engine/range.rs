@@ -2,13 +2,18 @@ use super::{Engine, EngineError};
 use crate::types::{RangePreset, RangeRequest, ResolvedRange};
 use chrono::{
     DateTime, Datelike, Days, Duration, LocalResult, Months, NaiveDate, NaiveDateTime, NaiveTime,
-    SecondsFormat, TimeZone, Utc,
+    SecondsFormat, TimeZone, Timelike, Utc,
 };
 use chrono_tz::Tz;
 
 const SYSTEM_TIMEZONE: &str = "System";
 const DATETIME_FORMATS: [&str; 2] = ["%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"];
 const DATE_FORMAT: &str = "%Y-%m-%d";
+// chrono parses numeric fields leniently (unpadded, signed years); `N` marks a required ASCII digit.
+const DATETIME_SHAPES: [&str; 2] = ["NNNN-NN-NNTNN:NN:NN", "NNNN-NN-NN NN:NN:NN"];
+const DATE_SHAPE: &str = "NNNN-NN-NN";
+// chrono encodes a leap second as nanosecond >= 1e9 on second 59.
+const NANOS_PER_SECOND: u32 = 1_000_000_000;
 // Real-world DST gaps are at most a couple of hours; a full day bounds the search without a panic path.
 const MAX_GAP_MINUTES: i64 = 24 * 60;
 
@@ -155,19 +160,52 @@ fn resolve_custom(request: &RangeRequest, tz: Tz) -> Result<Bounds, EngineError>
 
 fn parse_bound(raw: &str, tz: Tz) -> Result<ParsedBound, EngineError> {
     let value = raw.trim();
+    let unparseable =
+        || EngineError::InvalidRangeInput(format!("{MSG_UNPARSEABLE_BOUND}: '{value}'"));
 
     if let Ok(with_offset) = DateTime::parse_from_rfc3339(value) {
-        return Ok(ParsedBound::Instant(with_offset.with_timezone(&Utc)));
+        return whole_second_instant(with_offset.with_timezone(&Utc))
+            .map(ParsedBound::Instant)
+            .ok_or_else(unparseable);
     }
-    if let Some(local) = DATETIME_FORMATS
+    if DATETIME_SHAPES
         .iter()
-        .find_map(|format| NaiveDateTime::parse_from_str(value, format).ok())
+        .any(|shape| matches_shape(value, shape))
     {
+        let local = parse_naive_datetime(value).ok_or_else(unparseable)?;
         return Ok(ParsedBound::Instant(resolve_local(tz, local)?));
     }
-    NaiveDate::parse_from_str(value, DATE_FORMAT)
-        .map(ParsedBound::Day)
-        .map_err(|_| EngineError::InvalidRangeInput(format!("{MSG_UNPARSEABLE_BOUND}: '{value}'")))
+    if matches_shape(value, DATE_SHAPE) {
+        return NaiveDate::parse_from_str(value, DATE_FORMAT)
+            .map(ParsedBound::Day)
+            .map_err(|_| unparseable());
+    }
+    Err(unparseable())
+}
+
+fn matches_shape(value: &str, shape: &str) -> bool {
+    value.len() == shape.len()
+        && value.bytes().zip(shape.bytes()).all(|(actual, expected)| {
+            if expected == b'N' {
+                actual.is_ascii_digit()
+            } else {
+                actual == expected
+            }
+        })
+}
+
+fn parse_naive_datetime(value: &str) -> Option<NaiveDateTime> {
+    DATETIME_FORMATS
+        .iter()
+        .find_map(|format| NaiveDateTime::parse_from_str(value, format).ok())
+        .filter(|local| local.nanosecond() < NANOS_PER_SECOND)
+}
+
+/// Bounds are compared and emitted at whole-second precision, so sub-second parts are dropped before `from >= to`.
+fn whole_second_instant(instant: DateTime<Utc>) -> Option<DateTime<Utc>> {
+    Some(instant)
+        .filter(|value| value.nanosecond() < NANOS_PER_SECOND)
+        .and_then(|value| value.with_nanosecond(0))
 }
 
 /// A date-only `to` covers the whole named day, so it resolves to the following local midnight.
