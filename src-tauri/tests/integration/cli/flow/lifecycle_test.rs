@@ -233,14 +233,10 @@ fn test_given_multiple_active_timers_when_stop_all_invoked_then_stops_all_active
 
     // Then
     assert!(result.is_ok());
-    if let CliOutput::Json(ref json_str) = result.unwrap() {
-        let val: serde_json::Value = serde_json::from_str(json_str).unwrap();
-        assert_eq!(val["status"], "ok");
-        assert_eq!(val["action"], "stopped");
-        assert_eq!(val["stopped_count"], 2);
-    } else {
-        panic!("Expected CliOutput::Json");
-    }
+    let val: serde_json::Value = serde_json::from_str(&result.unwrap().to_string()).unwrap();
+    assert_eq!(val["schema"], "oxy.stop");
+    assert_eq!(val["data"]["action"], "stopped");
+    assert_eq!(val["data"]["stoppedCount"], 2);
 
     let active_remaining = engine.get_active_logs().unwrap();
     assert!(active_remaining.is_empty());

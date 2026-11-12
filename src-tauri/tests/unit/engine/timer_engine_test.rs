@@ -387,12 +387,15 @@ fn test_start_timer_in_non_concurrent_setup_reports_previous_task_as_stopped() {
     let outcome = engine.start_timer("t_out_b").unwrap();
 
     // Assert
-    assert_eq!(
-        outcome,
-        StartOutcome::Started {
-            stopped_task_ids: vec!["t_out_a".to_string()]
-        }
-    );
+    let StartOutcome::Started {
+        stopped_task_ids,
+        time_log_id,
+    } = outcome
+    else {
+        panic!("expected Started outcome, got {outcome:?}");
+    };
+    assert_eq!(stopped_task_ids, vec!["t_out_a".to_string()]);
+    assert!(persistence.time_logs.get_by_id(&time_log_id).is_ok());
 }
 
 #[test]
@@ -408,10 +411,11 @@ fn test_start_timer_in_concurrent_setup_reports_no_stopped_tasks() {
     let outcome = engine.start_timer("t_out_b").unwrap();
 
     // Assert
-    assert_eq!(
-        outcome,
-        StartOutcome::Started {
-            stopped_task_ids: Vec::new()
-        }
-    );
+    let StartOutcome::Started {
+        stopped_task_ids, ..
+    } = outcome
+    else {
+        panic!("expected Started outcome, got {outcome:?}");
+    };
+    assert!(stopped_task_ids.is_empty());
 }

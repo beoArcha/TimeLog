@@ -56,13 +56,12 @@ fn test_given_idle_timer_when_stop_if_running_invoked_in_machine_mode_then_retur
 
     // Then
     let output = result.expect("machine stop --if-running must succeed when idle");
-    let CliOutput::Json(body) = output else {
-        panic!("expected machine JSON output");
-    };
-    let parsed: serde_json::Value = serde_json::from_str(&body).expect("body must be valid JSON");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&output.to_string()).expect("body must be valid JSON");
+    assert_eq!(parsed["schema"], "oxy.stop");
     assert_eq!(
-        parsed,
-        serde_json::json!({ "status": "ok", "action": "noop", "stopped_count": 0 })
+        parsed["data"],
+        serde_json::json!({ "action": "noop", "stoppedCount": 0 })
     );
 }
 

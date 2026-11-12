@@ -126,7 +126,7 @@ export class SandboxCommandRouter {
       }
 
       case 'status': {
-        handleStatus(store, output);
+        handleStatus(flags, store, output);
         return true;
       }
 

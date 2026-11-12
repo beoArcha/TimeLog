@@ -4,6 +4,7 @@
 
 pub mod billing;
 pub mod cli;
+pub mod cli_flow;
 pub mod commands;
 pub mod external_api;
 pub mod frontend_event;
@@ -30,7 +31,11 @@ pub use billing::{
     CurrencyBillingSummary, EffectiveRateResult, RangeBillingResult, RateMode, RateStatus,
     TaskBillingSummary, MAX_BILLING_RATE_CENTS,
 };
-pub use cli::{CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, LocalizedUserMessage};
+pub use cli::{
+    CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, EnvelopeMeta, LocalizedUserMessage,
+    SuccessEnvelope,
+};
+pub use cli_flow::{FlowAction, StartPayload, StatusPayload, StopPayload, SwitchPayload};
 pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,
     SettingsPersistenceCommand, TasksPersistenceCommand, WindowCommand,

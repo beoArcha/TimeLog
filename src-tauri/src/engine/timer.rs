@@ -6,7 +6,18 @@ static LOG_COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUs
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StartOutcome {
     AlreadyRunning,
-    Started { stopped_task_ids: Vec<String> },
+    Started {
+        stopped_task_ids: Vec<String>,
+        time_log_id: String,
+    },
+}
+
+fn next_time_log_id() -> String {
+    format!(
+        "log_{}_{}",
+        Utc::now().timestamp_millis(),
+        LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+    )
 }
 
 impl<'a> Engine<'a> {
@@ -30,11 +41,7 @@ impl<'a> Engine<'a> {
         }
 
         let now = Utc::now().to_rfc3339();
-        let log_id = format!(
-            "log_{}_{}",
-            Utc::now().timestamp_millis(),
-            LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
-        );
+        let log_id = next_time_log_id();
 
         self.persistence
             .time_logs
@@ -45,7 +52,10 @@ impl<'a> Engine<'a> {
             .into_iter()
             .filter(|id| !active_after.contains(id))
             .collect();
-        Ok(StartOutcome::Started { stopped_task_ids })
+        Ok(StartOutcome::Started {
+            stopped_task_ids,
+            time_log_id: log_id,
+        })
     }
 
     pub fn stop_timer(&self, project_id: Option<&str>) -> Result<(), EngineError> {
@@ -65,7 +75,8 @@ impl<'a> Engine<'a> {
         Ok(())
     }
 
-    pub fn switch_timer(&self, target_task_id: &str) -> Result<(), EngineError> {
+    /// Returns the id of the time log opened for the target task.
+    pub fn switch_timer(&self, target_task_id: &str) -> Result<String, EngineError> {
         let task = self.persistence.tasks.get(target_task_id)?.ok_or_else(|| {
             EngineError::EntityNotFound {
                 entity: "Task",
@@ -80,16 +91,12 @@ impl<'a> Engine<'a> {
         }
 
         let now = Utc::now().to_rfc3339();
-        let log_id = format!(
-            "log_{}_{}",
-            Utc::now().timestamp_millis(),
-            LOG_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
-        );
+        let log_id = next_time_log_id();
 
         self.persistence
             .time_logs
             .switch_active(&now, &log_id, target_task_id, &now)?;
-        Ok(())
+        Ok(log_id)
     }
 
     pub fn get_active_logs(&self) -> Result<Vec<String>, EngineError> {

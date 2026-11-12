@@ -19,13 +19,13 @@ Passing the global `--json` (or `-j`) flag instructs `oxy` to suppress decorativ
 oxy status --json
 
 # Example response:
-# {"active_tasks":["task-42"],"count":1,"running":true}
+# {"schema":"oxy.status","schemaVersion":1,"data":{"activeTaskIds":["task-42"],"count":1,"running":true},"meta":{"generatedAt":"2026-11-12T10:30:15Z","generator":{"name":"oxy","version":"1.14.5"}}}
 
 # Check if a timer is currently running using jq
-oxy status --json | jq '.running'
+oxy status --json | jq '.data.running'
 
 # Extract the active task identifier
-oxy status --json | jq -r '.active_tasks[0] // empty'
+oxy status --json | jq -r '.data.activeTaskIds[0] // empty'
 ```
 
 ### Querying Daily Summary Logs
@@ -78,8 +78,8 @@ You can display the active timer status directly in your terminal prompt or prom
 function Get-OxyStatusPrompt {
     try {
         $status = oxy status --json 2>$null | ConvertFrom-Json
-        if ($status.running -and $status.count -gt 0) {
-            return " [oxy: $($status.active_tasks[0])]"
+        if ($status.data.running -and $status.data.count -gt 0) {
+            return " [oxy: $($status.data.activeTaskIds[0])]"
         }
     } catch {
         # Suppress errors if oxy is not installed or the database is locked
@@ -96,10 +96,10 @@ oxy_prompt() {
     status=$(oxy status --json 2>/dev/null)
     if [ $? -eq 0 ]; then
         local is_running
-        is_running=$(echo "$status" | jq -r '.running // false')
+        is_running=$(echo "$status" | jq -r '.data.running // false')
         if [ "$is_running" = "true" ]; then
             local active_task
-            active_task=$(echo "$status" | jq -r '.active_tasks[0]')
+            active_task=$(echo "$status" | jq -r '.data.activeTaskIds[0]')
             echo " [oxy: ${active_task}]"
         fi
     fi
