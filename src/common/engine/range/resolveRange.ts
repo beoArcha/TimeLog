@@ -1,6 +1,7 @@
 import type { RangePreset } from '@bindings/RangePreset';
 import type { RangeRequest } from '@bindings/RangeRequest';
 import type { ResolvedRange } from '@bindings/ResolvedRange';
+import { formatUtc } from './formatUtc';
 import { boundToInstant, parseBound } from './parseBound';
 import { presetDays } from './presets';
 import { MSG_EMPTY_BOUNDS, MSG_PRESET_WITH_BOUNDS, invalidRangeInput, invalidTimezone } from './rangeErrors';
@@ -10,10 +11,6 @@ import { resolveLocal } from './zonedTime';
 interface Bounds {
   from?: number;
   to?: number;
-}
-
-function formatUtc(instantMs: number): string {
-  return new Date(instantMs).toISOString().replace('.000Z', 'Z');
 }
 
 function resolvePreset(request: RangeRequest, preset: RangePreset, now: Date, timeZone: string): Bounds {

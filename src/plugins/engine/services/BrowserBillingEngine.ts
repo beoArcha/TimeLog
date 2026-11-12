@@ -12,6 +12,7 @@ import {
   formatCents,
   calculateBankersAmount,
 } from '@common/engine/billing/utils';
+import { defaultRateCentsFromConfigs } from '@common/engine/billing/defaultRate';
 import {
   resolveEffectiveRate,
   calculateRangeBillingFromSnapshot,
@@ -35,14 +36,8 @@ export class BrowserBillingEngine implements IBillingEngine {
   private async getDefaultRateCents(): Promise<number | null> {
     try {
       const configs = await this.persistence.runtimeConfigs?.getAll();
-      const cfg = configs?.find(
-        (c) =>
-          c.id === 'default_billing_rate' ||
-          c.id === 'default_rate' ||
-          c.runtime === 'billing_default'
-      );
-      if (cfg?.config) {
-        return parseRateToCents(cfg.config);
+      if (configs) {
+        return defaultRateCentsFromConfigs(configs);
       }
     } catch {
       // Fall through on config lookup errors

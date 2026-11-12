@@ -6,7 +6,12 @@ import {
   TaskBillingSummary,
   CurrencyBillingSummary,
 } from './types';
-import { parseRateToCents, formatCents, calculateBankersAmount } from './utils';
+import {
+  MAX_BILLING_RATE_CENTS,
+  parseRateToCents,
+  formatCents,
+  calculateBankersAmount,
+} from './utils';
 
 export interface BillingRateEntity {
   hourlyRate?: string | null;
@@ -18,7 +23,28 @@ export interface BillingRateEntity {
 export function normalizeCurrency(raw?: string | null): string | null {
   if (!raw) return null;
   const trimmed = raw.trim();
-  return trimmed.length > 0 ? trimmed.toUpperCase() : null;
+  // Rust upper-cases ASCII only; toUpperCase() would also rewrite characters such as 'ß'.
+  return trimmed.length > 0 ? trimmed.replace(/[a-z]+/g, (letters) => letters.toUpperCase()) : null;
+}
+
+/**
+ * A stored cents value outside `0..=MAX_BILLING_RATE_CENTS` is corrupt data. Like the Rust engine it
+ * counts as "no rate at this level" and must not fall back to the legacy `hourlyRate` string.
+ */
+function validStoredCents(raw: bigint | number): number | null {
+  if (typeof raw === 'number' && !Number.isInteger(raw)) return null;
+  const cents = BigInt(raw);
+  return cents >= 0n && cents <= BigInt(MAX_BILLING_RATE_CENTS) ? Number(cents) : null;
+}
+
+function configuredCents(entity: BillingRateEntity): number | null {
+  if (entity.billingRateCents !== undefined && entity.billingRateCents !== null) {
+    return validStoredCents(entity.billingRateCents);
+  }
+  if (entity.hourlyRate && entity.hourlyRate.trim().length > 0) {
+    return parseRateToCents(entity.hourlyRate);
+  }
+  return null;
 }
 
 export function resolveEffectiveCurrency(
@@ -49,12 +75,7 @@ export function resolveEffectiveRate(
   const currency = resolveEffectiveCurrency(task, project);
 
   // Level 1: Task override
-  let taskCents: number | null = null;
-  if (task.billingRateCents !== undefined && task.billingRateCents !== null) {
-    taskCents = Number(task.billingRateCents);
-  } else if (task.hourlyRate && task.hourlyRate.trim().length > 0) {
-    taskCents = parseRateToCents(task.hourlyRate);
-  }
+  const taskCents = configuredCents(task);
 
   if (taskCents !== null) {
     if (taskCents === 0) {
@@ -74,14 +95,7 @@ export function resolveEffectiveRate(
   }
 
   // Level 2: Project rate inheritance
-  let projCents: number | null = null;
-  if (project) {
-    if (project.billingRateCents !== undefined && project.billingRateCents !== null) {
-      projCents = Number(project.billingRateCents);
-    } else if (project.hourlyRate && project.hourlyRate.trim().length > 0) {
-      projCents = parseRateToCents(project.hourlyRate);
-    }
-  }
+  const projCents = project ? configuredCents(project) : null;
 
   if (projCents !== null) {
     if (projCents === 0) {
