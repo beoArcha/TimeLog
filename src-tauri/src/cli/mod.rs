@@ -120,7 +120,11 @@ pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCod
     let is_machine = args.machine || args.json;
     match handle_cli(args, persistence, engine) {
         Ok(output) => {
-            println!("{}", output);
+            // Nothing to show (e.g. an empty quiet listing) must write zero bytes, not a lone newline.
+            let rendered = output.to_string();
+            if !rendered.is_empty() {
+                println!("{rendered}");
+            }
             ExitCode::from(EXIT_CODE_SUCCESS)
         }
         Err(err) => {

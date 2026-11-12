@@ -84,7 +84,7 @@ fn test_given_fresh_database_when_project_ls_quiet_then_stdout_is_empty_and_exit
         String::from_utf8_lossy(&output.stderr)
     );
     assert!(
-        String::from_utf8_lossy(&output.stdout).trim().is_empty(),
+        output.stdout.is_empty(),
         "quiet empty listing must not print a notice"
     );
 }
