@@ -2,8 +2,9 @@ use super::constants::{
     DASHBOARD_TIP_FOOTER, DIVIDER_LINE, ERR_MULTIPLE_TIMERS_SPECIFY_ALL, FORMAT_DASHBOARD_ACTIVE,
     FORMAT_DASHBOARD_PROGRESS, FORMAT_DASHBOARD_RECENT_ITEM, FORMAT_TODAY_ITEM, FORMAT_TODAY_TOTAL,
     HEADER_DASHBOARD, HEADER_TODAY_PREFIX, LABEL_GENERAL_PROJECT, LABEL_UNKNOWN_PROJECT,
-    LABEL_UNKNOWN_TASK, MSG_NO_TODAY_LOGS, SECTION_ACTIVE_SESSION, SECTION_RECENT_ACTIVITY,
-    SECTION_TODAY_PROGRESS, STATUS_ACTIVE_NOTICE, STATUS_IDLE_NOTICE, STATUS_IDLE_TIP,
+    LABEL_UNKNOWN_TASK, MSG_NO_TODAY_LOGS, OUT_NOTHING_TO_STOP, SECTION_ACTIVE_SESSION,
+    SECTION_RECENT_ACTIVITY, SECTION_TODAY_PROGRESS, STATUS_ACTIVE_NOTICE, STATUS_IDLE_NOTICE,
+    STATUS_IDLE_TIP,
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::formatters::format_duration;
@@ -136,6 +137,9 @@ pub fn handle_stop(
 ) -> Result<CliOutput, CliError> {
     let active = engine.get_active_logs()?;
     if active.is_empty() {
+        if args.if_running {
+            return Ok(nothing_to_stop_output(is_machine));
+        }
         return Err(crate::engine::EngineError::NoActiveTimer.into());
     }
     if active.len() > 1 && !args.all {
@@ -157,6 +161,20 @@ pub fn handle_stop(
         ));
     }
     Ok(CliOutput::Stopped)
+}
+
+fn nothing_to_stop_output(is_machine: bool) -> CliOutput {
+    if is_machine {
+        return CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "action": "noop",
+                "stopped_count": 0
+            })
+            .to_string(),
+        );
+    }
+    CliOutput::Success(OUT_NOTHING_TO_STOP.to_string())
 }
 
 pub fn handle_switch(

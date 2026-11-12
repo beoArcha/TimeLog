@@ -96,6 +96,10 @@ impl AppError {
                 crate::engine::EngineError::ParseTime(t) => {
                     IpcErrorPayload::new("DOM_INVALID_TIMESTAMP", e.to_string(), Some(t.clone()))
                 }
+                crate::engine::EngineError::InvalidTimezone(v)
+                | crate::engine::EngineError::InvalidRangeInput(v) => {
+                    IpcErrorPayload::new(e.code(), e.to_string(), Some(v.clone()))
+                }
                 crate::engine::EngineError::Persistence(p) => persistence_to_payload(p),
                 crate::engine::EngineError::OperationFailed(m) => {
                     IpcErrorPayload::new("ENG_OPERATION_FAILED", e.to_string(), Some(m.clone()))

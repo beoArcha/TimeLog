@@ -75,6 +75,8 @@ All business logic and calculations belong to the Engine, split into sub-engines
 
 Rust is the reference implementation; the browser `EnginePlugin` must behave identically, verified by `tests/integration/engine/CrossRuntimeParity.test.ts`.
 
+Date-range resolution (presets and custom bounds on the local calendar of an IANA timezone, half-open `[from, to)` UTC output) lives in `engine/range.rs` (Rust) and `src/common/engine/range/` (TypeScript, platform `Intl` only). Parity is enforced by the shared vectors in `tests/fixtures/range-parity-vectors.json`, which `parity_vectors_test.rs` and `tests/integration/engine/RangeParity.integration.test.ts` both execute. The browser runtime is not yet wired to it (planned).
+
 ### Persistence (`IPersistence`)
 
 Persistence stores, retrieves and mutates entity state:

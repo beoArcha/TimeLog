@@ -180,7 +180,12 @@ pub enum LogSubcommand {
             help = "Filter end date (ISO date or RFC3339, e.g. '2026-10-31')"
         )]
         to: Option<String>,
-        #[arg(short, long, help = "Limit number of entries returned")]
+        #[arg(
+            short,
+            long,
+            help = "Limit number of entries returned",
+            value_parser = clap::builder::RangedU64ValueParser::<usize>::new().range(1..)
+        )]
         limit: Option<usize>,
     },
     #[command(alias = "create", about = "Add a retroactive time log entry")]
