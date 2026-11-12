@@ -18,7 +18,8 @@ use crate::cli::shared::utils::{generate_id, parse_duration_seconds, parse_iso_o
 use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::{
-    AuditSource, LogListPayload, LogRemovePayload, NewTimeLog, TimeLog, TimeLogEditInput,
+    AuditSource, EntityAction, LogListPayload, LogRemovePayload, NewTimeLog, TimeLog,
+    TimeLogEditInput,
 };
 use chrono::{DateTime, Duration, Utc};
 use std::collections::HashSet;
@@ -556,7 +557,7 @@ pub fn remove_log(
             SCHEMA_LOG_REMOVE,
             &LogRemovePayload {
                 id: log.id.clone(),
-                action: "removed".to_string(),
+                action: EntityAction::Removed,
                 entry: log,
             },
         );

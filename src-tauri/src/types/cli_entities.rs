@@ -25,12 +25,20 @@ pub struct LogListPayload {
     pub total_matched: u64,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub enum EntityAction {
+    Archived,
+    Removed,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct EntityActionPayload {
     pub id: String,
-    pub action: String,
+    pub action: EntityAction,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -38,6 +46,6 @@ pub struct EntityActionPayload {
 #[serde(rename_all = "camelCase")]
 pub struct LogRemovePayload {
     pub id: String,
-    pub action: String,
+    pub action: EntityAction,
     pub entry: TimeLog,
 }

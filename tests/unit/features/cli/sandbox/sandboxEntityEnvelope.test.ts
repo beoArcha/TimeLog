@@ -66,32 +66,56 @@ describe('Sandbox entity command envelopes', () => {
   });
 
   describe('project entity commands', () => {
-    it('project list --machine should emit oxy.project.list envelope with items array', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['project', 'list', '--machine']));
+    it('should emit oxy.project.list envelope with items array when running project list --machine', () => {
+      // Arrange
+      const tokens = ['project', 'list', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.project.list');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.items).toHaveLength(2);
       expect(envelope.data.items[0].id).toBe('p1');
     });
 
-    it('project add --machine should emit oxy.project.add envelope with created project', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['project', 'add', 'New Proj', '--color', 'teal', '--machine']));
+    it('should emit oxy.project.add envelope with created project when running project add --machine', () => {
+      // Arrange
+      const tokens = ['project', 'add', 'New Proj', '--color', 'teal', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.project.add');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.name).toBe('New Proj');
       expect(envelope.data.color).toBe('teal');
     });
 
-    it('project rename --machine should emit oxy.project.rename envelope with updated project', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['project', 'rename', 'p1', 'Renamed Alpha', '--machine']));
+    it('should emit oxy.project.rename envelope with updated project when running project rename --machine', () => {
+      // Arrange
+      const tokens = ['project', 'rename', 'p1', 'Renamed Alpha', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.project.rename');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.id).toBe('p1');
       expect(envelope.data.name).toBe('Renamed Alpha');
     });
 
-    it('project archive --machine should emit oxy.project.archive envelope with id and action', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['project', 'archive', 'p1', '--machine']));
+    it('should emit oxy.project.archive envelope with id and action when running project archive --machine', () => {
+      // Arrange
+      const tokens = ['project', 'archive', 'p1', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.project.archive');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data).toEqual({ id: 'p1', action: 'archived' });
@@ -99,63 +123,85 @@ describe('Sandbox entity command envelopes', () => {
   });
 
   describe('task entity commands', () => {
-    it('task list --machine should emit oxy.task.list envelope with items array', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['task', 'list', '--machine']));
+    it('should emit oxy.task.list envelope with items array when running task list --machine', () => {
+      // Arrange
+      const tokens = ['task', 'list', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.task.list');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.items).toHaveLength(3);
     });
 
-    it('task add --machine should emit oxy.task.add envelope with created task', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['task', 'add', 'New Task', '-p', 'p1', '--machine']));
+    it('should emit oxy.task.add envelope with created task when running task add --machine', () => {
+      // Arrange
+      const tokens = ['task', 'add', 'New Task', '-p', 'p1', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.task.add');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.name).toBe('New Task');
       expect(envelope.data.projectId).toBe('p1');
     });
 
-    it('task done --machine should emit oxy.task.done envelope with updated task', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['task', 'done', 't1', '--machine']));
+    it('should emit oxy.task.done envelope with updated task when running task done --machine', () => {
+      // Arrange
+      const tokens = ['task', 'done', 't1', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.task.done');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.id).toBe('t1');
       expect(envelope.data.completed).toBe(true);
     });
 
-    it('task rename --machine should emit oxy.task.rename envelope with updated task', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['task', 'rename', 't1', 'New Alpha Name', '--machine']));
+    it('should emit oxy.task.rename envelope with updated task when running task rename --machine', () => {
+      // Arrange
+      const tokens = ['task', 'rename', 't1', 'New Alpha Name', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.task.rename');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.id).toBe('t1');
       expect(envelope.data.name).toBe('New Alpha Name');
     });
 
-    it('task rate --machine should emit oxy.task.rate envelope with updated task', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['task', 'rate', 't1', '75', '--machine']));
+    it('should emit oxy.task.rate envelope with updated task when running task rate --machine', () => {
+      // Arrange
+      const tokens = ['task', 'rate', 't1', '75', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.task.rate');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.id).toBe('t1');
       expect(envelope.data.hourlyRate).toBe('75');
     });
 
-    it('task reparent --machine should emit oxy.task.reparent envelope with updated task', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['task', 'reparent', 't2', 'root', '--machine']));
-      expect(envelope.schema).toBe('oxy.task.reparent');
-      expect(envelope.schemaVersion).toBe(1);
-      expect(envelope.data.id).toBe('t2');
-      expect(envelope.data.parentTaskId).toBeNull();
-    });
 
-    it('task move --machine should emit oxy.task.move envelope with updated task', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['task', 'move', 't1', 'p2', '--machine']));
-      expect(envelope.schema).toBe('oxy.task.move');
-      expect(envelope.schemaVersion).toBe(1);
-      expect(envelope.data.id).toBe('t1');
-      expect(envelope.data.projectId).toBe('p2');
-    });
 
-    it('task archive --machine should emit oxy.task.archive envelope with id and action', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['task', 'archive', 't1', '--machine']));
+    it('should emit oxy.task.archive envelope with id and action when running task archive --machine', () => {
+      // Arrange
+      const tokens = ['task', 'archive', 't1', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.task.archive');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data).toEqual({ id: 't1', action: 'archived' });
@@ -163,24 +209,42 @@ describe('Sandbox entity command envelopes', () => {
   });
 
   describe('log entity commands', () => {
-    it('log list --machine should emit oxy.log.list envelope with items and totalMatched', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['log', 'list', '--from', '2026-06-01', '--to', '2026-06-30', '--machine']));
+    it('should emit oxy.log.list envelope with items and totalMatched when running log list --machine', () => {
+      // Arrange
+      const tokens = ['log', 'list', '--from', '2026-06-01', '--to', '2026-06-30', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.log.list');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.items).toHaveLength(1);
       expect(envelope.data.totalMatched).toBe(1);
     });
 
-    it('log add --machine should emit oxy.log.add envelope with created log', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['log', 'add', 't1', '1h', 'Added session', '--machine']));
+    it('should emit oxy.log.add envelope with created log when running log add --machine', () => {
+      // Arrange
+      const tokens = ['log', 'add', 't1', '1h', 'Added session', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.log.add');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.taskId).toBe('t1');
       expect(envelope.data.note).toBe('Added session');
     });
 
-    it('log rm --machine should emit oxy.log.remove envelope with id, action and entry', () => {
-      const envelope = parseSingleEnvelope(runCommand(store, ['log', 'rm', 'l1', '--machine']));
+    it('should emit oxy.log.remove envelope with id, action and entry when running log rm --machine', () => {
+      // Arrange
+      const tokens = ['log', 'rm', 'l1', '--machine'];
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, tokens));
+
+      // Assert
       expect(envelope.schema).toBe('oxy.log.remove');
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.data.id).toBe('l1');
@@ -190,7 +254,8 @@ describe('Sandbox entity command envelopes', () => {
   });
 
   describe('envelope contract', () => {
-    it('should use camelCase keys at every depth for each migrated entity command', () => {
+    it('should use camelCase keys at every depth when running each migrated entity command', () => {
+      // Arrange
       const scenarios: string[][] = [
         ['project', 'list', '--machine'],
         ['project', 'add', 'Contract Proj', '--machine'],
@@ -201,16 +266,17 @@ describe('Sandbox entity command envelopes', () => {
         ['task', 'done', 't1', '--machine'],
         ['task', 'rename', 't1', 'Contract Task Renamed', '--machine'],
         ['task', 'rate', 't1', '100', '--machine'],
-        ['task', 'reparent', 't2', 'none', '--machine'],
-        ['task', 'move', 't1', 'p2', '--machine'],
         ['task', 'archive', 't1', '--machine'],
         ['log', 'list', '--from', '2026-06-01', '--to', '2026-06-30', '--machine'],
         ['log', 'add', 't1', '30m', 'Note', '--machine'],
         ['log', 'rm', 'l1', '--machine'],
       ];
 
-      for (const tokens of scenarios) {
-        const envelope = parseSingleEnvelope(runCommand(store, tokens));
+      // Act
+      const envelopes = scenarios.map((tokens) => parseSingleEnvelope(runCommand(store, tokens)));
+
+      // Assert
+      for (const envelope of envelopes) {
         expect(envelope.schema).toMatch(/^oxy\.(project|task|log)\.[a-z]+$/);
         expect(Number.isInteger(envelope.schemaVersion)).toBe(true);
         expect(collectNonCamelCaseKeys(envelope)).toEqual([]);

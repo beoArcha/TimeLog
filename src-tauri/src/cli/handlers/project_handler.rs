@@ -13,7 +13,7 @@ use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::generate_id;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{EntityActionPayload, Project, ProjectListPayload, Task};
+use crate::types::{EntityAction, EntityActionPayload, Project, ProjectListPayload, Task};
 
 const SCHEMA_PROJECT_LIST: EnvelopeSchema = EnvelopeSchema::new("oxy.project.list", 1);
 const SCHEMA_PROJECT_ADD: EnvelopeSchema = EnvelopeSchema::new("oxy.project.add", 1);
@@ -244,7 +244,7 @@ fn archive_project(
             SCHEMA_PROJECT_ARCHIVE,
             &EntityActionPayload {
                 id: project.id,
-                action: "archived".to_string(),
+                action: EntityAction::Archived,
             },
         );
     }

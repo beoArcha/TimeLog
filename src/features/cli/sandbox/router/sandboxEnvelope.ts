@@ -26,8 +26,6 @@ export const SCHEMA_TASK_ADD: EnvelopeSchema = { name: 'oxy.task.add', version: 
 export const SCHEMA_TASK_DONE: EnvelopeSchema = { name: 'oxy.task.done', version: 1 };
 export const SCHEMA_TASK_RENAME: EnvelopeSchema = { name: 'oxy.task.rename', version: 1 };
 export const SCHEMA_TASK_RATE: EnvelopeSchema = { name: 'oxy.task.rate', version: 1 };
-export const SCHEMA_TASK_REPARENT: EnvelopeSchema = { name: 'oxy.task.reparent', version: 1 };
-export const SCHEMA_TASK_MOVE: EnvelopeSchema = { name: 'oxy.task.move', version: 1 };
 export const SCHEMA_TASK_ARCHIVE: EnvelopeSchema = { name: 'oxy.task.archive', version: 1 };
 
 export const SCHEMA_LOG_LIST: EnvelopeSchema = { name: 'oxy.log.list', version: 1 };

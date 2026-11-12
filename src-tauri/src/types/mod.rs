@@ -37,7 +37,8 @@ pub use cli::{
     SuccessEnvelope,
 };
 pub use cli_entities::{
-    EntityActionPayload, LogListPayload, LogRemovePayload, ProjectListPayload, TaskListPayload,
+    EntityAction, EntityActionPayload, LogListPayload, LogRemovePayload, ProjectListPayload,
+    TaskListPayload,
 };
 pub use cli_flow::{FlowAction, StartPayload, StatusPayload, StopPayload, SwitchPayload};
 pub use commands::{

@@ -2,7 +2,7 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
-import { emitEnvelope, isMachineMode, SCHEMA_TASK_ADD, SCHEMA_TASK_ARCHIVE, SCHEMA_TASK_DONE, SCHEMA_TASK_LIST, SCHEMA_TASK_MOVE, SCHEMA_TASK_RATE, SCHEMA_TASK_RENAME, SCHEMA_TASK_REPARENT } from '../sandboxEnvelope';
+import { emitEnvelope, isMachineMode, SCHEMA_TASK_ADD, SCHEMA_TASK_ARCHIVE, SCHEMA_TASK_DONE, SCHEMA_TASK_LIST, SCHEMA_TASK_RATE, SCHEMA_TASK_RENAME } from '../sandboxEnvelope';
 import { emitMutationResult, isQuietMode } from '../sandboxQuietMode';
 
 export function handleTaskList(
@@ -289,107 +289,4 @@ export function handleTaskArchive(
     resolve.entity.id,
     `Task "${resolve.entity.name}" [ID: ${resolve.entity.id}] has been ${status}.`
   );
-}
-
-export function handleTaskReparent(
-  positionals: string[],
-  flags: Record<string, string | boolean>,
-  store: SandboxEmulatorStore,
-  output: TerminalOutput
-): void {
-  const isStrict = isStrictResolution(flags);
-  const target = positionals[0];
-  const newParent = positionals[1];
-
-  if (!target || !newParent) {
-    output.error('Error: Task target and new parent required. Usage: task reparent <target> <new_parent|root|none>', 'CLI_SYNTAX_INVALID_ARGS', 2);
-    return;
-  }
-
-  const tasks = store.getTasks();
-  const resolveTarget = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
-  if (!resolveTarget.entity) {
-    reportResolveFailure(resolveTarget, output);
-    return;
-  }
-
-  const task = resolveTarget.entity;
-  const isDetaching = newParent.toLowerCase() === 'none' || newParent.toLowerCase() === 'root';
-
-  if (isDetaching) {
-    store.handleReparentTask(task.id, null);
-    const updated = store.getTasks().find((t) => t.id === task.id) ?? task;
-    if (isMachineMode(flags)) {
-      emitEnvelope(output, SCHEMA_TASK_REPARENT, updated);
-      return;
-    }
-    emitMutationResult(flags, output, task.id, `Task "${task.name}" detached to root.`);
-    return;
-  }
-
-  const resolveParent = resolveEntity(tasks, newParent, 'Task', (t) => t.id, (t) => t.name, isStrict);
-  if (!resolveParent.entity) {
-    reportResolveFailure(resolveParent, output);
-    return;
-  }
-
-  const parentTask = resolveParent.entity;
-  if (task.id === parentTask.id) {
-    output.error('Error: Cannot reparent task to itself.', 'DOM_BUSINESS_VIOLATION', 1);
-    return;
-  }
-
-  if (task.projectId !== parentTask.projectId) {
-    output.error('Error: Cannot reparent task to a parent in a different project.', 'DOM_BUSINESS_VIOLATION', 1);
-    return;
-  }
-
-  store.handleReparentTask(task.id, parentTask.id);
-  const updated = store.getTasks().find((t) => t.id === task.id) ?? task;
-  if (isMachineMode(flags)) {
-    emitEnvelope(output, SCHEMA_TASK_REPARENT, updated);
-    return;
-  }
-  emitMutationResult(flags, output, task.id, `Reparented "${task.name}" under "${parentTask.name}".`);
-}
-
-export function handleTaskMove(
-  positionals: string[],
-  flags: Record<string, string | boolean>,
-  store: SandboxEmulatorStore,
-  output: TerminalOutput
-): void {
-  const isStrict = isStrictResolution(flags);
-  const target = positionals[0];
-  const rawProjFlag = flags['p'] || flags['project'];
-  const newProjTarget: string | undefined = positionals[1] || (typeof rawProjFlag === 'string' ? rawProjFlag : undefined);
-
-  if (!target || !newProjTarget) {
-    output.error('Error: Task target and destination project required. Usage: task move <target> <new_project>', 'CLI_SYNTAX_INVALID_ARGS', 2);
-    return;
-  }
-
-  const tasks = store.getTasks();
-  const resolveTarget = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
-  if (!resolveTarget.entity) {
-    reportResolveFailure(resolveTarget, output);
-    return;
-  }
-
-  const task = resolveTarget.entity;
-  const projects = store.getProjects();
-  const resolveProj = resolveEntity(projects, newProjTarget, 'Project', (p) => p.id, (p) => p.name, isStrict);
-  if (!resolveProj.entity) {
-    reportResolveFailure(resolveProj, output);
-    return;
-  }
-
-  const project = resolveProj.entity;
-  store.handleMoveTask(task.id, project.id);
-  const updated = store.getTasks().find((t) => t.id === task.id) ?? task;
-  if (isMachineMode(flags)) {
-    emitEnvelope(output, SCHEMA_TASK_MOVE, updated);
-    return;
-  }
-  emitMutationResult(flags, output, task.id, `Moved task "${task.name}" to project "${project.name}".`);
 }

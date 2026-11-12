@@ -15,8 +15,6 @@ import {
   handleTaskRename,
   handleTaskArchive,
   handleTaskRate,
-  handleTaskReparent,
-  handleTaskMove,
 } from './router/handlers/sandboxTaskHandlers';
 import {
   handleLogList,
@@ -104,15 +102,7 @@ export class SandboxCommandRouter {
           handleTaskRate(actionPos, flags, store, output);
           return true;
         }
-        if (action === 'reparent') {
-          handleTaskReparent(actionPos, flags, store, output);
-          return true;
-        }
-        if (action === 'move' || action === 'mv') {
-          handleTaskMove(actionPos, flags, store, output);
-          return true;
-        }
-        output.error(`Error: Unknown task action "${action}". Available: list, add, done, rename, archive, rate, reparent, move.`, 'CLI_SYNTAX_INVALID_ARGS', 2);
+        output.error(`Error: Unknown task action "${action}". Available: list, add, done, rename, archive, rate.`, 'CLI_SYNTAX_INVALID_ARGS', 2);
         return true;
       }
 
