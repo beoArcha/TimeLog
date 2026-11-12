@@ -1,7 +1,7 @@
 use crate::engine::{Engine, EngineError};
 use crate::types::{
     CurrencyBillingSummary, EffectiveRateResult, ElapsedRangeFilter, Project, RangeBillingResult,
-    RateStatus, Task, TaskBillingSummary,
+    RateStatus, RuntimeConfig, Task, TaskBillingSummary,
 };
 use std::collections::HashMap;
 
@@ -290,17 +290,19 @@ pub fn calculate_range_billing_from_snapshot(
     }
 }
 
+pub(crate) fn default_rate_cents_from_configs(configs: &[RuntimeConfig]) -> Option<u64> {
+    let cfg = configs.iter().find(|c| {
+        c.id == "default_billing_rate" || c.id == "default_rate" || c.runtime == "billing_default"
+    })?;
+    parse_rate_to_cents(&cfg.config)
+}
+
 impl<'a> Engine<'a> {
     fn get_default_rate_cents(&self) -> Option<u64> {
         let Ok(configs) = self.persistence.settings.get_runtime_configs() else {
             return None;
         };
-        let cfg = configs.iter().find(|c| {
-            c.id == "default_billing_rate"
-                || c.id == "default_rate"
-                || c.runtime == "billing_default"
-        })?;
-        parse_rate_to_cents(&cfg.config)
+        default_rate_cents_from_configs(&configs)
     }
 
     pub fn resolve_effective_task_rate(

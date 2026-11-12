@@ -40,6 +40,9 @@ pub enum EngineError {
 
     #[error("Invalid range input: {0}")]
     InvalidRangeInput(String),
+
+    #[error("Billing amount exceeds the largest integer JavaScript represents exactly ({limit} minor units)")]
+    AmountOutOfRange { limit: u64 },
 }
 
 impl EngineError {
@@ -57,6 +60,7 @@ impl EngineError {
             Self::OperationFailed(_) => "ENG_OPERATION_FAILED",
             Self::InvalidTimezone(_) => "DOM_INVALID_TIMEZONE",
             Self::InvalidRangeInput(_) => "DOM_INVALID_RANGE_INPUT",
+            Self::AmountOutOfRange { .. } => "DOM_BUSINESS_VIOLATION",
             Self::Persistence(_) => "ENG_PERSISTENCE_ERROR",
         }
     }
@@ -88,6 +92,9 @@ impl PartialEq for EngineError {
             (Self::OperationFailed(o1), Self::OperationFailed(o2)) => o1 == o2,
             (Self::InvalidTimezone(t1), Self::InvalidTimezone(t2)) => t1 == t2,
             (Self::InvalidRangeInput(r1), Self::InvalidRangeInput(r2)) => r1 == r2,
+            (Self::AmountOutOfRange { limit: l1 }, Self::AmountOutOfRange { limit: l2 }) => {
+                l1 == l2
+            }
             (Self::Persistence(p1), Self::Persistence(p2)) => p1 == p2,
             (Self::TaskAlreadyCompleted(t1), Self::TaskAlreadyCompleted(t2)) => t1 == t2,
             _ => false,

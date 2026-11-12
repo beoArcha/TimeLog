@@ -202,5 +202,4 @@ fn test_given_a_range_without_time_when_building_then_totals_are_zero_and_arrays
     assert_eq!(doc.totals.seconds, 0);
     assert_eq!(doc.totals.entry_count, 0);
     assert!(doc.projects.is_empty());
-    assert!(doc.days.is_empty());
 }

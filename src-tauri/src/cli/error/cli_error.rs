@@ -115,6 +115,7 @@ impl CliError {
                 | EngineError::AuditReasonRequired
                 | EngineError::AuditSourceInvalid(_)
                 | EngineError::TimeLogInvalidRange
+                | EngineError::AmountOutOfRange { .. }
                 | EngineError::TaskAlreadyCompleted(_) => EXIT_CODE_GENERIC_FAILURE,
                 EngineError::EntityNotFound { .. } => EXIT_CODE_ENTITY_ERROR,
                 EngineError::ParseTime(_)
@@ -169,6 +170,7 @@ impl CliError {
                 | EngineError::AuditReasonRequired
                 | EngineError::AuditSourceInvalid(_)
                 | EngineError::TimeLogInvalidRange
+                | EngineError::AmountOutOfRange { .. }
                 | EngineError::TaskAlreadyCompleted(_) => CliErrorCode::DomBusinessViolation,
                 EngineError::ParseTime(_) => CliErrorCode::CliSyntaxInvalidDuration,
                 EngineError::InvalidTimezone(_) | EngineError::InvalidRangeInput(_) => {
@@ -377,7 +379,8 @@ impl From<EngineError> for CliError {
             EngineError::Validation(v) => CliError::Business(BusinessRuleViolation::Custom(v)),
             EngineError::AuditReasonRequired
             | EngineError::AuditSourceInvalid(_)
-            | EngineError::TimeLogInvalidRange => {
+            | EngineError::TimeLogInvalidRange
+            | EngineError::AmountOutOfRange { .. } => {
                 CliError::Business(BusinessRuleViolation::Custom(err.to_string()))
             }
             EngineError::ParseTime(t) => CliError::Syntax(CliSyntaxError::InvalidDuration(t)),

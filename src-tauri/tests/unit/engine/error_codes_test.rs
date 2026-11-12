@@ -173,3 +173,17 @@ fn test_start_and_switch_timer_rejects_completed_task() {
         EngineError::TaskAlreadyCompleted(ref id) if id == "t_done"
     ));
 }
+
+#[test]
+fn test_amount_out_of_range_reports_the_business_violation_code() {
+    // Arrange
+    let limit = 9_007_199_254_740_991;
+
+    // Act
+    let code = EngineError::AmountOutOfRange { limit }.code();
+    let payload = AppError::Engine(EngineError::AmountOutOfRange { limit }).to_payload();
+
+    // Assert
+    assert_eq!(code, "DOM_BUSINESS_VIOLATION");
+    assert_eq!(payload.code, "DOM_BUSINESS_VIOLATION");
+}

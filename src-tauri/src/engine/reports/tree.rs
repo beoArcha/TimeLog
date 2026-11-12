@@ -1,8 +1,9 @@
+use super::billing::{RateResolver, Tally};
 use super::catalog::Catalog;
 use super::entries::MeasuredEntry;
 use super::ordering::{seconds_desc_then_id, share_basis_points};
 use crate::engine::EngineError;
-use crate::types::{ReportProject, ReportRateStatus, ReportSubtask, ReportTask, Task};
+use crate::types::{ReportProject, ReportSubtask, ReportTask, Task};
 use std::collections::{BTreeSet, HashMap};
 
 /// Direct and cumulative seconds per task, plus project-level time without a task.
@@ -47,6 +48,7 @@ impl<'a> Aggregate<'a> {
 
 struct TreeContext<'a> {
     aggregate: &'a Aggregate<'a>,
+    rates: &'a RateResolver<'a>,
     total_seconds: u64,
     /// Only tasks with time in range, siblings already ordered.
     children: HashMap<&'a str, Vec<&'a Task>>,
@@ -58,14 +60,22 @@ impl TreeContext<'_> {
     }
 }
 
+/// The projects plus one tally over all of them, so document totals never re-derive rates.
+pub(super) struct ProjectsReport {
+    pub projects: Vec<ReportProject>,
+    pub tally: Tally,
+}
+
 pub(super) fn build_projects(
     catalog: &Catalog<'_>,
     aggregate: &Aggregate<'_>,
+    rates: &RateResolver<'_>,
     total_seconds: u64,
-) -> Result<Vec<ReportProject>, EngineError> {
+) -> Result<ProjectsReport, EngineError> {
     let (roots_by_project, children) = group_tasks(catalog, aggregate);
     let context = TreeContext {
         aggregate,
+        rates,
         total_seconds,
         children,
     };
@@ -78,14 +88,17 @@ pub(super) fn build_projects(
         .collect();
 
     let mut projects = Vec::with_capacity(project_ids.len());
+    let mut tally = Tally::default();
     for project_id in project_ids {
         let roots = roots_by_project
             .get(project_id)
             .map_or(&[][..], Vec::as_slice);
-        projects.push(build_project(catalog, &context, project_id, roots)?);
+        let (project, project_tally) = build_project(catalog, &context, project_id, roots)?;
+        tally.merge(&project_tally)?;
+        projects.push(project);
     }
     projects.sort_by(|a, b| seconds_desc_then_id((a.seconds, &a.id), (b.seconds, &b.id)));
-    Ok(projects)
+    Ok(ProjectsReport { projects, tally })
 }
 
 type RootsByProject<'a> = HashMap<&'a str, Vec<&'a Task>>;
@@ -128,7 +141,7 @@ fn build_project(
     context: &TreeContext<'_>,
     project_id: &str,
     roots: &[&Task],
-) -> Result<ReportProject, EngineError> {
+) -> Result<(ReportProject, Tally), EngineError> {
     let project = catalog.project(project_id)?;
     let aggregate = context.aggregate;
     let direct_seconds = aggregate
@@ -139,61 +152,77 @@ fn build_project(
 
     let mut ordered_roots = roots.to_vec();
     sort_siblings(&mut ordered_roots, aggregate);
-    let tasks: Vec<ReportTask> = ordered_roots
-        .iter()
-        .map(|root| build_task(context, root))
-        .collect();
+    let mut tally = Tally::default();
+    tally.add_taskless(direct_seconds);
+    let mut tasks = Vec::with_capacity(ordered_roots.len());
+    for root in &ordered_roots {
+        tasks.push(build_task(context, root, &mut tally)?);
+    }
     let seconds = direct_seconds + tasks.iter().map(|task| task.seconds).sum::<u64>();
 
-    // TODO(PR-13): fill project.billing and each task/subtask rate, currency and amount from billing.
-    Ok(ReportProject {
+    let report = ReportProject {
         id: project.id.clone(),
         name: project.name.clone(),
         direct_seconds,
         seconds,
         share_basis_points: context.share(seconds),
-        billing: Vec::new(),
+        billing: tally.currency_totals(),
         tasks,
+    };
+    Ok((report, tally))
+}
+
+fn build_task(
+    context: &TreeContext<'_>,
+    root: &Task,
+    tally: &mut Tally,
+) -> Result<ReportTask, EngineError> {
+    let seconds = context.aggregate.total(&root.id);
+    let direct_seconds = context.aggregate.direct(&root.id);
+    let billing = context.rates.bill(root, direct_seconds)?;
+    tally.add_task(&billing, direct_seconds)?;
+    Ok(ReportTask {
+        id: root.id.clone(),
+        name: root.name.clone(),
+        direct_seconds,
+        seconds,
+        share_basis_points: context.share(seconds),
+        rate_minor: billing.rate_minor,
+        currency: billing.currency,
+        rate_status: billing.rate_status,
+        amount_minor: billing.amount_minor,
+        subtasks: flatten_descendants(context, &root.id, tally)?,
     })
 }
 
-fn build_task(context: &TreeContext<'_>, root: &Task) -> ReportTask {
-    let seconds = context.aggregate.total(&root.id);
-    ReportTask {
-        id: root.id.clone(),
-        name: root.name.clone(),
-        direct_seconds: context.aggregate.direct(&root.id),
-        seconds,
-        share_basis_points: context.share(seconds),
-        rate_minor: None,
-        currency: None,
-        rate_status: ReportRateStatus::Unconfigured,
-        amount_minor: None,
-        subtasks: flatten_descendants(context, &root.id),
-    }
-}
-
 /// Depth-first pre-order without recursion, so a very deep hierarchy cannot overflow the stack.
-fn flatten_descendants(context: &TreeContext<'_>, root_id: &str) -> Vec<ReportSubtask> {
+fn flatten_descendants(
+    context: &TreeContext<'_>,
+    root_id: &str,
+    tally: &mut Tally,
+) -> Result<Vec<ReportSubtask>, EngineError> {
     let mut subtasks = Vec::new();
     let mut stack = children_reversed(context, root_id);
     while let Some((task, parent_id)) = stack.pop() {
         let seconds = context.aggregate.total(&task.id);
+        let direct_seconds = context.aggregate.direct(&task.id);
+        let billing = context.rates.bill(task, direct_seconds)?;
+        tally.add_task(&billing, direct_seconds)?;
         subtasks.push(ReportSubtask {
             id: task.id.clone(),
             name: task.name.clone(),
             parent_task_id: parent_id.to_string(),
-            direct_seconds: context.aggregate.direct(&task.id),
+            direct_seconds,
             seconds,
             share_basis_points: context.share(seconds),
-            rate_minor: None,
-            currency: None,
-            rate_status: ReportRateStatus::Unconfigured,
-            amount_minor: None,
+            rate_minor: billing.rate_minor,
+            currency: billing.currency,
+            rate_status: billing.rate_status,
+            amount_minor: billing.amount_minor,
         });
         stack.extend(children_reversed(context, &task.id));
     }
-    subtasks
+    Ok(subtasks)
 }
 
 /// Pushing siblings in reverse makes the stack pop the first-ordered sibling first.

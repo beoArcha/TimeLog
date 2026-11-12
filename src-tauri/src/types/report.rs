@@ -63,7 +63,8 @@ pub struct ReportRequest {
 ///   points, which keeps sums exact and serialization byte-identical across runtimes.
 /// - `entries` is present only for `ReportVariant::Full`; for `Full` it is `[]` (not omitted)
 ///   when the range is empty.
-/// - An empty range yields zero totals and empty arrays.
+/// - An empty range yields zero totals and empty arrays, except `days` of a range with both
+///   bounds, which lists its zero days.
 /// - Only projects and tasks with time in the range appear.
 /// - Ordering is deterministic. `projects` and root `tasks` are ordered by `seconds` descending,
 ///   then `id` ascending. `subtasks` are in depth-first pre-order with siblings ordered by

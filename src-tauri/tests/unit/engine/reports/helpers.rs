@@ -129,6 +129,7 @@ pub fn snapshot(
         tasks,
         logs,
         patches,
+        default_rate_cents: None,
     }
 }
 
@@ -168,5 +169,51 @@ impl ThreeLevels {
             self.child.clone(),
             self.grandchild.clone(),
         ]
+    }
+}
+
+/// A project that bills `rate` per hour in `currency`; its tasks inherit both.
+pub fn billed_project(id: &str, rate: &str, currency: &str) -> Project {
+    ProjectBuilder::new()
+        .with_id(id)
+        .with_name(format!("Project {id}"))
+        .with_hourly_rate(rate)
+        .with_currency(currency)
+        .build()
+}
+
+/// A project that knows its currency but configures no rate anywhere.
+pub fn currency_only_project(id: &str, currency: &str) -> Project {
+    ProjectBuilder::new()
+        .with_id(id)
+        .with_name(format!("Project {id}"))
+        .with_currency(currency)
+        .build()
+}
+
+/// A root task with its own hourly rate, overriding whatever its project configures.
+pub fn rated_task(id: &str, project_id: &str, rate: &str) -> Task {
+    TaskBuilder::new()
+        .with_id(id)
+        .with_project_id(project_id)
+        .with_name(format!("Task {id}"))
+        .with_hourly_rate(rate)
+        .build()
+}
+
+pub fn rated_subtask(id: &str, parent: &Task, rate: &str) -> Task {
+    TaskBuilder::new()
+        .with_id(id)
+        .with_project_id(&parent.project_id)
+        .with_parent(&parent.id)
+        .with_name(format!("Task {id}"))
+        .with_hourly_rate(rate)
+        .build()
+}
+
+pub fn request_with_patches(variant: ReportVariant) -> ReportRequest {
+    ReportRequest {
+        include_patches: Some(true),
+        ..request(variant)
     }
 }

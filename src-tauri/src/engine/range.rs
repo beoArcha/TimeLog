@@ -126,7 +126,7 @@ fn preset_days(
     Ok(Some(days))
 }
 
-fn shift_days(day: NaiveDate, days: i64) -> Result<NaiveDate, EngineError> {
+pub(crate) fn shift_days(day: NaiveDate, days: i64) -> Result<NaiveDate, EngineError> {
     let magnitude = Days::new(days.unsigned_abs());
     let shifted = if days >= 0 {
         day.checked_add_days(magnitude)
@@ -228,7 +228,7 @@ fn ensure_ascending(from: DateTime<Utc>, to: DateTime<Utc>) -> Result<(), Engine
     Ok(())
 }
 
-fn local_start_of_day(tz: Tz, day: NaiveDate) -> Result<DateTime<Utc>, EngineError> {
+pub(crate) fn local_start_of_day(tz: Tz, day: NaiveDate) -> Result<DateTime<Utc>, EngineError> {
     resolve_local(tz, day.and_time(NaiveTime::MIN))
 }
 

@@ -140,6 +140,11 @@ impl TaskBuilder {
         self
     }
 
+    pub fn with_currency(mut self, currency: impl Into<String>) -> Self {
+        self.task.currency = Some(currency.into());
+        self
+    }
+
     pub fn with_id(mut self, id: impl Into<String>) -> Self {
         self.task.id = id.into();
         self
