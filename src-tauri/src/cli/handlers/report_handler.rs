@@ -41,7 +41,7 @@ pub fn handle(
     let criteria = extract_filter_criteria(&args);
 
     if let Some(ReportSubcommand::Export { format, output, .. }) = args.command {
-        let tree = build_report_tree(&criteria, is_machine, strict, persistence, engine)?;
+        let tree = build_report_tree(&criteria, strict, persistence, engine)?;
         export_to_file(&tree, format, &output)?;
         let msg = MSG_EXPORT_SUCCESS.replacen("{}", &output, 1).replacen(
             "{}",
@@ -60,7 +60,7 @@ pub fn handle(
         return Ok(CliOutput::Success(msg));
     }
 
-    let tree = build_report_tree(&criteria, is_machine, strict, persistence, engine)?;
+    let tree = build_report_tree(&criteria, strict, persistence, engine)?;
     render_tree_output(&tree, is_machine)
 }
 
@@ -125,7 +125,6 @@ fn render_tree_output(tree: &ReportTreeDto, is_machine: bool) -> Result<CliOutpu
 
 pub fn build_report_tree(
     criteria: &ReportFilterCriteria,
-    _is_machine: bool,
     strict: bool,
     persistence: &Persistence,
     engine: &Engine,
