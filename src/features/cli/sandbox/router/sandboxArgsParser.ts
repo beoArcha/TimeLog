@@ -3,6 +3,9 @@ export interface ParsedArgs {
   flags: Record<string, string | boolean>;
 }
 
+// Quiet is a presence-only switch; consuming the next token would turn `task add -q <name>` into a flag value.
+const PRESENCE_ONLY_FLAGS = new Set(['q', 'quiet']);
+
 /**
  * Parses command tokens into positional arguments and key-value/boolean flags.
  * Supports --key=value, --key value, --boolean-flag, and short -k value / -k boolean.
@@ -21,7 +24,7 @@ export function parseFlags(tokens: string[]): ParsedArgs {
       }
       const key = token.slice(2);
       const next = tokens[i + 1];
-      if (next && !next.startsWith('-')) {
+      if (!PRESENCE_ONLY_FLAGS.has(key) && next && !next.startsWith('-')) {
         flags[key] = next;
         i++;
       } else {
@@ -30,7 +33,7 @@ export function parseFlags(tokens: string[]): ParsedArgs {
     } else if (token.startsWith('-') && token.length > 1) {
       const key = token.slice(1);
       const next = tokens[i + 1];
-      if (next && !next.startsWith('-')) {
+      if (!PRESENCE_ONLY_FLAGS.has(key) && next && !next.startsWith('-')) {
         flags[key] = next;
         i++;
       } else {

@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Consistent `-q` / `--quiet` Output for Scripts**:
+  - Mutations (`project`, `task` and `log` add, edit, rename, archive and remove) print only the affected entity's full ID, so `ID=$(oxy task add X -q)` captures a bare UUID.
+  - Quiet lists print bare rows without the `✅` status prefix, header or truncation footer; an empty quiet list prints nothing.
+  - Errors are still reported on stderr with unchanged exit codes.
+  - The browser sandbox emulator mirrors the same contract, and `-q` no longer swallows a following positional (`task add -q <name>`).
 - **Timezone-Aware Time Log Editing & DST Validation (PR #104)**:
   - Replaced iterative local-to-UTC conversion with offset-candidate resolution that verifies the exact local wall-clock round trip.
   - Rejects non-existent local times during DST gaps and ambiguous local times during DST overlaps instead of silently shifting or selecting an arbitrary instant.

@@ -98,6 +98,7 @@ pub fn handle(
             },
             is_machine,
             strict,
+            is_quiet,
         ),
         LogSubcommand::Edit {
             id,
@@ -120,8 +121,9 @@ pub fn handle(
             },
             is_machine,
             strict,
+            is_quiet,
         ),
-        LogSubcommand::Remove { id } => remove_log(persistence, &id, is_machine),
+        LogSubcommand::Remove { id } => remove_log(persistence, &id, is_machine, is_quiet),
     }
 }
 
@@ -166,15 +168,11 @@ fn list_logs(
         return Ok(CliOutput::Json(json_str));
     }
     if filtered.is_empty() {
-        return Ok(CliOutput::Success(MSG_NO_LOGS_FOUND.to_string()));
+        return Ok(CliOutput::empty_list(is_quiet, MSG_NO_LOGS_FOUND));
     }
 
-    Ok(CliOutput::Success(render_logs_table(
-        &filtered,
-        &tasks,
-        is_quiet,
-        total_matched,
-    )))
+    let rows = render_log_rows(&filtered, &tasks, is_quiet, total_matched);
+    Ok(CliOutput::list(is_quiet, HEADER_TIME_LOGS, &rows))
 }
 
 fn resolve_task_filter(
@@ -258,17 +256,13 @@ fn format_log_duration(start_time: &str, end_time: Option<&str>) -> String {
     }
 }
 
-fn render_logs_table(
+fn render_log_rows(
     logs: &[crate::types::TimeLog],
     tasks: &[crate::types::Task],
     is_quiet: bool,
     total_matched: usize,
 ) -> String {
-    let mut out = if is_quiet {
-        String::new()
-    } else {
-        String::from(HEADER_TIME_LOGS)
-    };
+    let mut out = String::new();
     for log in logs {
         let task_name = tasks
             .iter()
@@ -306,6 +300,7 @@ fn add_log(
     input: LogAddInput,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     let resolver = EntityResolver::with_mode(persistence, strict);
     let task = resolver.resolve_task(&input.target)?;
@@ -347,7 +342,9 @@ fn add_log(
     }
 
     let dur_display = format_log_duration(&new_log.start_time, new_log.end_time.as_deref());
-    Ok(CliOutput::Success(
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &id,
         MSG_LOG_RECORDED
             .replacen("{}", &dur_display, 1)
             .replacen("{}", &task.name, 1)
@@ -420,6 +417,7 @@ fn edit_log(
     input: LogEditInput,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     if input.duration.is_none()
         && input.note.is_none()
@@ -480,7 +478,11 @@ fn edit_log(
         ));
     }
 
-    Ok(CliOutput::Success(MSG_LOG_UPDATED.replace("{}", &input.id)))
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &input.id,
+        MSG_LOG_UPDATED.replace("{}", &input.id),
+    ))
 }
 
 fn calculate_adjusted_start_time(
@@ -504,6 +506,7 @@ fn remove_log(
     persistence: &Persistence,
     id: &str,
     is_machine: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     persistence.time_logs.delete(id)?;
     if is_machine {
@@ -516,5 +519,9 @@ fn remove_log(
             .to_string(),
         ));
     }
-    Ok(CliOutput::Success(MSG_LOG_DELETED.replace("{}", id)))
+    Ok(CliOutput::mutation(
+        is_quiet,
+        id,
+        MSG_LOG_DELETED.replace("{}", id),
+    ))
 }

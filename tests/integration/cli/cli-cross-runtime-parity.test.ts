@@ -79,7 +79,13 @@ describe('Given CLI Cross-Runtime Parity Suite', () => {
         expect(output.length).toBeGreaterThan(0);
         const combinedText = output.map(l => l.text).join('\n').toLowerCase();
 
-        if (testCase.expectSuccess) {
+        if (testCase.expectSingleLineIdentifier) {
+          // The terminal adds a prompt echo and a spacer around the command's own output.
+          const payload = output.filter((l) => l.type !== 'input' && l.text !== '');
+          expect(payload).toHaveLength(1);
+          expect(payload[0].type).not.toBe('error');
+          expect(payload[0].text).toMatch(/^\S+$/);
+        } else if (testCase.expectSuccess) {
           const hasError = output.some(l => l.type === 'error');
           expect(hasError).toBe(false);
           const matchesAnyExpected = testCase.expectedPatterns.some(pat =>

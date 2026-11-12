@@ -183,6 +183,21 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 - **Timezone resolution:** `--tz` wins over the application's timezone setting; `System` or an unset value uses the OS zone, falling back to UTC when it cannot be detected. An unknown zone name (`--tz Mars/Olympus`) or an inverted range (`--from` later than `--to`) is a syntax error (exit `2`).
 - **Single source of truth:** all boundaries come from `Engine::resolve_range`; the in-app sandbox emulator uses the browser mirror (`resolveRangeAt`) and behaves identically. `oxy log list --week` therefore no longer means "the last 7 days".
 
+### Quiet Output for Scripts (Implemented)
+
+`-q` / `--quiet` is a global flag with one contract in the native `oxy` binary and the browser sandbox emulator. It shapes successful output only; `--machine` / `--json` take precedence when both are given.
+
+- **Mutations** (`project add|rename|archive`, `task add|done|rename|rate|reparent|move|archive`, `log add|edit|remove`) print the affected entity's full ID followed by a newline and nothing else.
+- **Lists** (`project ls`, `task ls`, `log ls`) print one row per entity, with no header, footer, or status prefix. An empty list prints no rows.
+- **Errors are never suppressed.** They still go to `stderr` with the same exit codes as the verbose run.
+
+```bash
+TASK_ID=$(oxy task add "Code review" -p "Core" -q)
+oxy project ls -q | grep -c "Core"
+```
+
+Not yet covered by this contract: `start`, `switch`, and `report` (planned follow-up). Their quiet output is unchanged.
+
 ### Billing Configuration (Implemented)
 
 Billing rates are configured on Projects and optionally overridden on Tasks. The native CLI accepts a rate in major currency units (for example, `150.00`) or as integer minor units (for example, `15000` cents). A Project currency is supplied as a three-letter code such as `PLN`, `EUR`, or `USD`.

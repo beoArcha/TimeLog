@@ -582,5 +582,28 @@
       "error",
       "invalid timezone"
     ]
+  },
+  {
+    "id": "project-list-quiet",
+    "description": "Quiet project listing prints rows without header or status prefix",
+    "commandFrontend": "project ls -q",
+    "commandRust": ["project", "ls", "-q"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["parity project"]
+  },
+  {
+    "id": "task-add-quiet",
+    "description": "Quiet task creation prints only the new task identifier",
+    "commandFrontend": "task add ParityQuiet -q",
+    "commandRust": ["task", "add", "ParityQuiet", "-q"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": [],
+    "expectSingleLineIdentifier": true
   }
 ]

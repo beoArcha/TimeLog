@@ -24,6 +24,7 @@ pub mod parser_test;
 pub mod paths_test;
 pub mod period_args_test;
 pub mod prompter_test;
+pub mod quiet_output_test;
 pub mod range_bounds_test;
 pub mod resolver_test;
 pub mod rows_test;

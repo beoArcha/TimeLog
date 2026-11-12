@@ -118,7 +118,7 @@ export class SandboxCommandRouter {
           return true;
         }
         if (action === 'remove' || action === 'rm' || action === 'delete') {
-          handleLogRemove(actionPos, store, output);
+          handleLogRemove(actionPos, flags, store, output);
           return true;
         }
         output.error(`Error: Unknown log action "${action}". Available: list, add, remove.`, 'CLI_SYNTAX_INVALID_ARGS', 2);

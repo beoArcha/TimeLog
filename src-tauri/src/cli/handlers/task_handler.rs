@@ -18,6 +18,20 @@ use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::{Project, Task, TaskStatus};
 
+pub struct AddTaskOptions {
+    pub name: String,
+    pub project: Option<String>,
+    pub parent: Option<String>,
+    pub rate: Option<String>,
+    pub rate_cents: Option<u64>,
+}
+
+pub struct TaskRateOptions {
+    pub rate: String,
+    pub currency: Option<String>,
+    pub cents: bool,
+}
+
 pub fn handle(
     args: TaskArgs,
     is_machine: bool,
@@ -37,17 +51,22 @@ pub fn handle(
             rate_cents,
         } => add_task(
             persistence,
-            name,
-            project,
-            parent,
-            rate,
-            rate_cents,
+            AddTaskOptions {
+                name,
+                project,
+                parent,
+                rate,
+                rate_cents,
+            },
             is_machine,
             strict,
+            is_quiet,
         ),
-        TaskSubcommand::Done { target } => complete_task(persistence, &target, is_machine, strict),
+        TaskSubcommand::Done { target } => {
+            complete_task(persistence, &target, is_machine, strict, is_quiet)
+        }
         TaskSubcommand::Rename { target, new_name } => {
-            rename_task(persistence, &target, new_name, is_machine, strict)
+            rename_task(persistence, &target, new_name, is_machine, strict, is_quiet)
         }
         TaskSubcommand::Rate {
             target,
@@ -57,21 +76,36 @@ pub fn handle(
         } => set_task_rate(
             persistence,
             &target,
-            rate,
-            currency,
-            cents,
+            TaskRateOptions {
+                rate,
+                currency,
+                cents,
+            },
             is_machine,
             strict,
+            is_quiet,
         ),
-        TaskSubcommand::Reparent { target, new_parent } => {
-            reparent_task(persistence, &target, &new_parent, is_machine, strict)
-        }
+        TaskSubcommand::Reparent { target, new_parent } => reparent_task(
+            persistence,
+            &target,
+            &new_parent,
+            is_machine,
+            strict,
+            is_quiet,
+        ),
         TaskSubcommand::Move {
             target,
             new_project,
-        } => move_task(persistence, &target, &new_project, is_machine, strict),
+        } => move_task(
+            persistence,
+            &target,
+            &new_project,
+            is_machine,
+            strict,
+            is_quiet,
+        ),
         TaskSubcommand::Archive { target } => {
-            archive_task(persistence, &target, is_machine, strict)
+            archive_task(persistence, &target, is_machine, strict, is_quiet)
         }
     }
 }
@@ -95,12 +129,11 @@ fn list_tasks(
     }
 
     if filtered.is_empty() {
-        return Ok(CliOutput::Success(MSG_NO_TASKS_FOUND.to_string()));
+        return Ok(CliOutput::empty_list(is_quiet, MSG_NO_TASKS_FOUND));
     }
 
-    Ok(CliOutput::Success(render_task_hierarchy(
-        &filtered, &projects, is_quiet,
-    )))
+    let rows = render_task_rows(&filtered, &projects);
+    Ok(CliOutput::list(is_quiet, HEADER_TASKS, &rows))
 }
 
 fn resolve_project_filter(
@@ -173,18 +206,14 @@ impl<'a> TaskHierarchy<'a> {
     }
 }
 
-fn render_task_hierarchy(tasks: &[&Task], projects: &[Project], is_quiet: bool) -> String {
+fn render_task_rows(tasks: &[&Task], projects: &[Project]) -> String {
     let hierarchy = TaskHierarchy::partition(tasks);
     let project_names: HashMap<&str, &str> = projects
         .iter()
         .map(|p| (p.id.as_str(), p.name.as_str()))
         .collect();
 
-    let mut out = if is_quiet {
-        String::new()
-    } else {
-        String::from(HEADER_TASKS)
-    };
+    let mut out = String::new();
 
     for root in hierarchy.roots {
         let proj_name = project_names
@@ -246,17 +275,20 @@ fn format_orphan_row(orphan: &Task) -> String {
         .replacen("{}", LABEL_SUBTASK_BADGE, 1)
 }
 
-#[allow(clippy::too_many_arguments)]
 fn add_task(
     persistence: &Persistence,
-    name: String,
-    project: Option<String>,
-    parent: Option<String>,
-    rate: Option<String>,
-    rate_cents: Option<u64>,
+    opts: AddTaskOptions,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
+    let AddTaskOptions {
+        name,
+        project,
+        parent,
+        rate,
+        rate_cents,
+    } = opts;
     if rate.is_some() && rate_cents.is_some() {
         return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
             "Cannot specify both --rate and --rate-cents".to_string(),
@@ -312,18 +344,26 @@ fn add_task(
             .to_string(),
         ));
     }
-    Ok(CliOutput::Success(MSG_TASK_CREATED.replace("{}", &id)))
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &id,
+        MSG_TASK_CREATED.replace("{}", &id),
+    ))
 }
 
 fn set_task_rate(
     persistence: &Persistence,
     target: &str,
-    rate: String,
-    currency: Option<String>,
-    cents: bool,
+    opts: TaskRateOptions,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
+    let TaskRateOptions {
+        rate,
+        currency,
+        cents,
+    } = opts;
     validate_id(target)?;
     let resolver = EntityResolver::with_mode(persistence, strict);
     let mut task = resolver.resolve_task(target)?;
@@ -375,10 +415,14 @@ fn set_task_rate(
         .as_deref()
         .map(|c| format!(" ({})", c))
         .unwrap_or_default();
-    Ok(CliOutput::Success(format!(
-        "Updated billing rate for task '{}' ({}) to {}{}.",
-        task.name, task.id, rate_display, curr_display
-    )))
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &task.id,
+        format!(
+            "Updated billing rate for task '{}' ({}) to {}{}.",
+            task.name, task.id, rate_display, curr_display
+        ),
+    ))
 }
 
 fn resolve_default_project_id(persistence: &Persistence) -> Result<String, CliError> {
@@ -395,6 +439,7 @@ fn complete_task(
     target: &str,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
     let resolver = EntityResolver::with_mode(persistence, strict);
@@ -412,7 +457,9 @@ fn complete_task(
             .to_string(),
         ));
     }
-    Ok(CliOutput::Success(
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &task.id,
         MSG_TASK_COMPLETED
             .replacen("{}", &task.name, 1)
             .replacen("{}", &task.id, 1),
@@ -425,6 +472,7 @@ fn rename_task(
     new_name: String,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
     let resolver = EntityResolver::with_mode(persistence, strict);
@@ -442,7 +490,11 @@ fn rename_task(
             .to_string(),
         ));
     }
-    Ok(CliOutput::Success(MSG_TASK_RENAMED.replace("{}", &task.id)))
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &task.id,
+        MSG_TASK_RENAMED.replace("{}", &task.id),
+    ))
 }
 
 fn archive_task(
@@ -450,6 +502,7 @@ fn archive_task(
     target: &str,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
     let resolver = EntityResolver::with_mode(persistence, strict);
@@ -467,7 +520,9 @@ fn archive_task(
             .to_string(),
         ));
     }
-    Ok(CliOutput::Success(
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &task.id,
         MSG_TASK_ARCHIVED.replace("{}", &task.id),
     ))
 }
@@ -478,6 +533,7 @@ fn reparent_task(
     new_parent: &str,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
     let resolver = EntityResolver::with_mode(persistence, strict);
@@ -502,7 +558,9 @@ fn reparent_task(
             ));
         }
 
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::mutation(
+            is_quiet,
+            &task.id,
             MSG_TASK_DETACHED.replace("{}", &task.name),
         ));
     }
@@ -540,7 +598,9 @@ fn reparent_task(
         ));
     }
 
-    Ok(CliOutput::Success(
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &task.id,
         MSG_TASK_REPARENTED
             .replacen("{}", &task.name, 1)
             .replacen("{}", &parent_task.name, 1),
@@ -553,6 +613,7 @@ fn move_task(
     new_project: &str,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
     let resolver = EntityResolver::with_mode(persistence, strict);
@@ -571,7 +632,9 @@ fn move_task(
                 .to_string(),
             ));
         }
-        return Ok(CliOutput::Success(
+        return Ok(CliOutput::mutation(
+            is_quiet,
+            &task.id,
             MSG_TASK_MOVED
                 .replacen("{}", &task.name, 1)
                 .replacen("{}", &target_project.name, 1),
@@ -596,7 +659,9 @@ fn move_task(
         ));
     }
 
-    Ok(CliOutput::Success(
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &task.id,
         MSG_TASK_MOVED
             .replacen("{}", &task.name, 1)
             .replacen("{}", &target_project.name, 1),

@@ -2,6 +2,7 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+import { emitMutationResult, isQuietMode } from '../sandboxQuietMode';
 
 export function handleProjectList(
   flags: Record<string, string | boolean>,
@@ -9,18 +10,21 @@ export function handleProjectList(
   output: TerminalOutput
 ): void {
   const showAll = Boolean(flags['a'] || flags['all']);
+  const quiet = isQuietMode(flags);
   const allProjects = store.getProjects();
   const projects = showAll ? allProjects : allProjects.filter((p) => !p.archived);
 
   if (projects.length === 0) {
-    output.info('No projects found in sandbox.');
+    if (!quiet) output.info('No projects found in sandbox.');
     return;
   }
 
   const metrics = store.getComputedMetrics();
-  output.info('┌──────┬────────────────────────────────┬────────────────────────┐');
-  output.info('│ ID   │ Name                           │ Total Time             │');
-  output.info('├──────┼────────────────────────────────┼────────────────────────┤');
+  if (!quiet) {
+    output.info('┌──────┬────────────────────────────────┬────────────────────────┐');
+    output.info('│ ID   │ Name                           │ Total Time             │');
+    output.info('├──────┼────────────────────────────────┼────────────────────────┤');
+  }
   for (const p of projects) {
     const totalSecs = metrics?.projects[p.id]?.totalElapsedSeconds ?? 0;
     const timeStr = formatSeconds(totalSecs);
@@ -28,9 +32,15 @@ export function handleProjectList(
     const nameCol = p.name.slice(0, 30).padEnd(30);
     const timeCol = timeStr.padEnd(22);
     const archivedMark = p.archived ? ' [archived]' : '';
-    output.output(`│ ${idCol} │ ${nameCol} │ ${timeCol} │${archivedMark}`);
+    if (quiet) {
+      output.output(`${idCol} ${nameCol} ${timeCol}${archivedMark}`.trimEnd());
+    } else {
+      output.output(`│ ${idCol} │ ${nameCol} │ ${timeCol} │${archivedMark}`);
+    }
   }
-  output.info('└──────┴────────────────────────────────┴──────────────────────┴──────────┘');
+  if (!quiet) {
+    output.info('└──────┴────────────────────────────────┴──────────────────────┴──────────┘');
+  }
 }
 
 export function handleProjectAdd(
@@ -48,7 +58,12 @@ export function handleProjectAdd(
   const rate = flags['rate'] ? String(flags['rate']) : undefined;
   const currency = flags['currency'] ? String(flags['currency']) : undefined;
   const project = store.handleAddProject(name, color, rate, currency);
-  output.success(`Project created: "${project.name}" [ID: ${project.id}] (color: ${project.color})`);
+  emitMutationResult(
+    flags,
+    output,
+    project.id,
+    `Project created: "${project.name}" [ID: ${project.id}] (color: ${project.color})`
+  );
 }
 
 export function handleProjectRename(
@@ -100,7 +115,7 @@ export function handleProjectRename(
   }
 
   store.handleRenameProject(project.id, finalName, color, finalRate, finalCurrency);
-  output.success(`Project updated: "${finalName}" [ID: ${project.id}]`);
+  emitMutationResult(flags, output, project.id, `Project updated: "${finalName}" [ID: ${project.id}]`);
 }
 
 export function handleProjectArchive(
@@ -127,5 +142,10 @@ export function handleProjectArchive(
   const project = resolve.entity;
   store.handleArchiveProject(project.id);
   const status = project.archived ? 'unarchived' : 'archived';
-  output.success(`Project "${project.name}" [ID: ${project.id}] has been ${status}.`);
+  emitMutationResult(
+    flags,
+    output,
+    project.id,
+    `Project "${project.name}" [ID: ${project.id}] has been ${status}.`
+  );
 }

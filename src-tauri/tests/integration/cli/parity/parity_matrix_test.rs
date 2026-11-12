@@ -22,6 +22,17 @@ struct ParityCase {
     expected_error_code: Option<String>,
     #[serde(rename = "expectedPatterns")]
     expected_patterns: Vec<String>,
+    #[serde(rename = "expectSingleLineIdentifier", default)]
+    expect_single_line_identifier: bool,
+}
+
+fn assert_single_line_identifier(case_id: &str, rendered: &str) {
+    assert!(
+        !rendered.is_empty() && !rendered.chars().any(char::is_whitespace),
+        "Case '{}' must print exactly one identifier, got {:?}",
+        case_id,
+        rendered
+    );
 }
 
 fn setup_parity_persistence(
@@ -81,16 +92,21 @@ fn test_given_shared_cli_parity_matrix_when_executed_in_rust_then_satisfies_cros
                         case.id,
                         result.err()
                     );
-                    let output_text = result.unwrap().to_string().to_lowercase();
-                    let matches_any = case
-                        .expected_patterns
-                        .iter()
-                        .any(|pat| output_text.contains(&pat.to_lowercase()));
-                    assert!(
-                        matches_any,
-                        "Case '{}' output '{}' did not contain any expected pattern: {:?}",
-                        case.id, output_text, case.expected_patterns
-                    );
+                    let rendered = result.unwrap().to_string();
+                    if case.expect_single_line_identifier {
+                        assert_single_line_identifier(&case.id, &rendered);
+                    } else {
+                        let output_text = rendered.to_lowercase();
+                        let matches_any = case
+                            .expected_patterns
+                            .iter()
+                            .any(|pat| output_text.contains(&pat.to_lowercase()));
+                        assert!(
+                            matches_any,
+                            "Case '{}' output '{}' did not contain any expected pattern: {:?}",
+                            case.id, output_text, case.expected_patterns
+                        );
+                    }
                 } else {
                     assert!(
                         result.is_err(),
