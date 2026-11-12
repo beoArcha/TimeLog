@@ -14,9 +14,10 @@ Le binaire `oxy` accepte des drapeaux globaux pour ajuster le niveau de détail 
 
 | Drapeau | Raccourci | Description |
 | :--- | :--- | :--- |
-| `--json` | `-j` | Émet du JSON structuré et brut sur la sortie standard (`stdout`). |
+| `--json` | `-j` | Émet l'enveloppe JSON versionnée sur `stdout` : indentée dans un terminal, une ligne compacte dans un pipe. |
 | `--machine` | `-m` | Émet du JSON concis sur une seule ligne en désactivant les invites interactives. |
-| `--quiet` | `-q` | Masque les messages informatifs et les en-têtes de tableau. |
+| `--quiet` | `-q` | Les modifications n'affichent que l'ID de l'entité concernée ; les listes, uniquement les lignes sans en-têtes. Les erreurs restent affichées. |
+| `--exact` | | Résout les cibles uniquement par ID exact, préfixe d'ID unique de 8+ caractères ou nom exact (toujours actif avec `--json` / `--machine`). |
 | `--db <chemin>` | | Chemin explicite vers la base de données SQLite (remplace `OXY_DB_PATH`). |
 
 ---

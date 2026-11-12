@@ -14,9 +14,10 @@ Program `oxy` przyjmuje globalne flagi kontrolujące formatowanie i poziom szcze
 
 | Flaga | Skrót | Opis |
 | :--- | :--- | :--- |
-| `--json` | `-j` | Emituje sformatowany JSON na standardowe wyjście (`stdout`). |
+| `--json` | `-j` | Emituje wersjonowaną kopertę JSON na `stdout`: sformatowaną w terminalu, jedną zwięzłą linię w potoku. |
 | `--machine` | `-m` | Emituje jednoliniowy, zwięzły format JSON bez interaktywnych promptów. |
-| `--quiet` | `-q` | Wycisza komunikaty informacyjne i nagłówki tabel. |
+| `--quiet` | `-q` | Zmiany wypisują tylko ID zmienionej encji, listy same wiersze bez nagłówków. Błędy są nadal pokazywane. |
+| `--exact` | | Rozpoznaje cele tylko po dokładnym ID, unikalnym prefiksie ID (min. 8 znaków) lub dokładnej nazwie (zawsze włączone z `--json` / `--machine`). |
 | `--db <ścieżka>` | | Wskazuje jawną ścieżkę do pliku bazy SQLite (nadpisuje `OXY_DB_PATH`). |
 
 ---

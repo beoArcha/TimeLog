@@ -14,9 +14,10 @@ O binário `oxy` aceita flags globais para ajustar a saída e o nível de detalh
 
 | Flag | Forma Curta | Descrição |
 | :--- | :--- | :--- |
-| `--json` | `-j` | Emite dados brutos em JSON estruturado na saída padrão (`stdout`). |
+| `--json` | `-j` | Emite o envelope JSON versionado no `stdout`: indentado no terminal, uma linha compacta em um pipe. |
 | `--machine` | `-m` | Emite JSON conciso em linha única, sem menus iterativos. |
-| `--quiet` | `-q` | Oculta notificações informativas e cabeçalhos de tabela. |
+| `--quiet` | `-q` | Alterações imprimem apenas o ID da entidade afetada; listas, apenas linhas sem cabeçalhos. Erros continuam sendo exibidos. |
+| `--exact` | | Resolve alvos apenas por ID exato, prefixo de ID único com 8+ caracteres ou nome exato (sempre ativo com `--json` / `--machine`). |
 | `--db <caminho>` | | Caminho explícito para o arquivo do banco de dados SQLite (substitui `OXY_DB_PATH`). |
 
 ---
