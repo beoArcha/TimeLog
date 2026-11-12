@@ -61,6 +61,7 @@ struct LogFilterCriteria<'a> {
 pub fn handle(
     args: LogArgs,
     is_machine: bool,
+    strict: bool,
     is_quiet: bool,
     persistence: &Persistence,
 ) -> Result<CliOutput, CliError> {
@@ -87,6 +88,7 @@ pub fn handle(
                 limit,
             },
             is_machine,
+            strict,
             is_quiet,
         ),
         LogSubcommand::Add {
@@ -107,6 +109,7 @@ pub fn handle(
                 explicit_note,
             },
             is_machine,
+            strict,
         ),
         LogSubcommand::Edit {
             id,
@@ -128,6 +131,7 @@ pub fn handle(
                 reason,
             },
             is_machine,
+            strict,
         ),
         LogSubcommand::Remove { id } => remove_log(persistence, &id, is_machine),
     }
@@ -137,11 +141,11 @@ fn list_logs(
     persistence: &Persistence,
     criteria: LogListCriteria,
     is_machine: bool,
+    strict: bool,
     is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
-    let filter_task_id = resolve_task_filter(persistence, criteria.task, is_machine)?;
-    let filter_project_task_ids =
-        resolve_project_filter(persistence, criteria.project, is_machine)?;
+    let filter_task_id = resolve_task_filter(persistence, criteria.task, strict)?;
+    let filter_project_task_ids = resolve_project_filter(persistence, criteria.project, strict)?;
 
     let from_bound = criteria
         .from
@@ -206,11 +210,11 @@ fn list_logs(
 fn resolve_task_filter(
     persistence: &Persistence,
     task: Option<String>,
-    is_machine: bool,
+    strict: bool,
 ) -> Result<Option<String>, CliError> {
     match task {
         Some(target) => {
-            let resolver = EntityResolver::with_mode(persistence, is_machine);
+            let resolver = EntityResolver::with_mode(persistence, strict);
             let t = resolver.resolve_task(&target)?;
             Ok(Some(t.id))
         }
@@ -221,11 +225,11 @@ fn resolve_task_filter(
 fn resolve_project_filter(
     persistence: &Persistence,
     project: Option<String>,
-    is_machine: bool,
+    strict: bool,
 ) -> Result<Option<HashSet<String>>, CliError> {
     match project {
         Some(target) => {
-            let resolver = EntityResolver::with_mode(persistence, is_machine);
+            let resolver = EntityResolver::with_mode(persistence, strict);
             let proj = resolver.resolve_project(&target)?;
             let tasks = persistence.tasks.get_all()?;
             let task_ids: HashSet<String> = tasks
@@ -378,8 +382,9 @@ fn add_log(
     persistence: &Persistence,
     input: LogAddInput,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let task = resolver.resolve_task(&input.target)?;
 
     let mut resolved_note = input.explicit_note.or(input.note);
@@ -491,6 +496,7 @@ fn edit_log(
     persistence: &Persistence,
     input: LogEditInput,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
     if input.duration.is_none()
         && input.note.is_none()
@@ -510,7 +516,7 @@ fn edit_log(
 
     let target_task_id = match input.task {
         Some(ref target) => {
-            let resolver = EntityResolver::with_mode(persistence, is_machine);
+            let resolver = EntityResolver::with_mode(persistence, strict);
             let t = resolver.resolve_task(target)?;
             t.id
         }

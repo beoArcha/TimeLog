@@ -30,6 +30,7 @@ pub struct ReportFilterCriteria {
 pub fn handle(
     args: ReportArgs,
     is_machine: bool,
+    strict: bool,
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
@@ -40,7 +41,7 @@ pub fn handle(
     let criteria = extract_filter_criteria(&args);
 
     if let Some(ReportSubcommand::Export { format, output, .. }) = args.command {
-        let tree = build_report_tree(&criteria, is_machine, persistence, engine)?;
+        let tree = build_report_tree(&criteria, strict, persistence, engine)?;
         export_to_file(&tree, format, &output)?;
         let msg = MSG_EXPORT_SUCCESS.replacen("{}", &output, 1).replacen(
             "{}",
@@ -59,7 +60,7 @@ pub fn handle(
         return Ok(CliOutput::Success(msg));
     }
 
-    let tree = build_report_tree(&criteria, is_machine, persistence, engine)?;
+    let tree = build_report_tree(&criteria, strict, persistence, engine)?;
     render_tree_output(&tree, is_machine)
 }
 
@@ -124,7 +125,7 @@ fn render_tree_output(tree: &ReportTreeDto, is_machine: bool) -> Result<CliOutpu
 
 pub fn build_report_tree(
     criteria: &ReportFilterCriteria,
-    is_machine: bool,
+    strict: bool,
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<ReportTreeDto, CliError> {
@@ -132,7 +133,7 @@ pub fn build_report_tree(
 
     let resolved_project_id = match &criteria.project {
         Some(target) => {
-            let resolver = EntityResolver::with_mode(persistence, is_machine);
+            let resolver = EntityResolver::with_mode(persistence, strict);
             let p = resolver.resolve_project(target)?;
             Some(p.id)
         }
@@ -141,7 +142,7 @@ pub fn build_report_tree(
 
     let resolved_task = match &criteria.task {
         Some(target) => {
-            let resolver = EntityResolver::with_mode(persistence, is_machine);
+            let resolver = EntityResolver::with_mode(persistence, strict);
             let t = resolver.resolve_task(target)?;
             Some(t)
         }

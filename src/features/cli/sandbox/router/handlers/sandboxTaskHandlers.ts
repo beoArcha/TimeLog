@@ -1,21 +1,22 @@
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { resolveEntity } from '../../../resolver/entityResolver';
+import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
 
 export function handleTaskList(
   flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
+  const isStrict = isStrictResolution(flags);
   const showAll = Boolean(flags['a'] || flags['all']);
   const projTarget = (flags['p'] || flags['project']) as string | undefined;
 
   let filteredProjects = store.getProjects();
   if (projTarget) {
-    const resolve = resolveEntity(filteredProjects, projTarget, 'Project', (p) => p.id, (p) => p.name);
+    const resolve = resolveEntity(filteredProjects, projTarget, 'Project', (p) => p.id, (p) => p.name, isStrict);
     if (!resolve.entity) {
-      output.error(resolve.error || `Error: Project "${projTarget}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+      reportResolveFailure(resolve, output);
       return;
     }
     filteredProjects = [resolve.entity];
@@ -79,6 +80,7 @@ export function handleTaskAdd(
     return;
   }
 
+  const isStrict = isStrictResolution(flags);
   const projTarget = (flags['p'] || flags['project']) as string | undefined;
   const parentTarget = (flags['P'] || flags['parent']) as string | undefined;
 
@@ -87,9 +89,9 @@ export function handleTaskAdd(
 
   if (parentTarget) {
     const tasks = store.getTasks();
-    const resolveParent = resolveEntity(tasks, parentTarget, 'Task', (t) => t.id, (t) => t.name);
+    const resolveParent = resolveEntity(tasks, parentTarget, 'Task', (t) => t.id, (t) => t.name, isStrict);
     if (!resolveParent.entity) {
-      output.error(resolveParent.error || `Error: Parent task "${parentTarget}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+      reportResolveFailure(resolveParent, output);
       return;
     }
     parentTaskId = resolveParent.entity.id;
@@ -98,9 +100,9 @@ export function handleTaskAdd(
 
   if (projTarget) {
     const projects = store.getProjects();
-    const resolveProj = resolveEntity(projects, projTarget, 'Project', (p) => p.id, (p) => p.name);
+    const resolveProj = resolveEntity(projects, projTarget, 'Project', (p) => p.id, (p) => p.name, isStrict);
     if (!resolveProj.entity) {
-      output.error(resolveProj.error || `Error: Project "${projTarget}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+      reportResolveFailure(resolveProj, output);
       return;
     }
     targetProjectId = resolveProj.entity.id;
@@ -116,6 +118,7 @@ export function handleTaskAdd(
   }
 
   const rate = flags['rate'] ? String(flags['rate']) : undefined;
+
   const task = store.handleAddTask(targetProjectId, name, parentTaskId, rate);
   const typeLabel = parentTaskId ? 'Subtask' : 'Task';
   output.success(`${typeLabel} created: "${task.name}" [ID: ${task.id}]`);
@@ -123,9 +126,12 @@ export function handleTaskAdd(
 
 export function handleTaskRate(
   positionals: string[],
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
+  const isStrict = isStrictResolution(flags);
+
   const target = positionals[0];
   const rateArg = positionals[1];
 
@@ -135,9 +141,9 @@ export function handleTaskRate(
   }
 
   const tasks = store.getTasks();
-  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 
@@ -154,9 +160,12 @@ export function handleTaskRate(
 
 export function handleTaskDone(
   positionals: string[],
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
+  const isStrict = isStrictResolution(flags);
+
   const target = positionals[0];
   if (!target) {
     output.error('Error: Task target is required. Usage: task done <target>', 'CLI_SYNTAX_INVALID_ARGS', 2);
@@ -164,9 +173,9 @@ export function handleTaskDone(
   }
 
   const tasks = store.getTasks();
-  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 
@@ -178,9 +187,12 @@ export function handleTaskDone(
 
 export function handleTaskRename(
   positionals: string[],
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
+  const isStrict = isStrictResolution(flags);
+
   const target = positionals[0];
   const newName = positionals[1];
 
@@ -190,9 +202,9 @@ export function handleTaskRename(
   }
 
   const tasks = store.getTasks();
-  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 
@@ -202,9 +214,12 @@ export function handleTaskRename(
 
 export function handleTaskArchive(
   positionals: string[],
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
+  const isStrict = isStrictResolution(flags);
+
   const target = positionals[0];
   if (!target) {
     output.error('Error: Task target is required. Usage: task archive <target>', 'CLI_SYNTAX_INVALID_ARGS', 2);
@@ -212,9 +227,9 @@ export function handleTaskArchive(
   }
 
   const tasks = store.getTasks();
-  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 

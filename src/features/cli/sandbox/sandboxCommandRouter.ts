@@ -68,7 +68,7 @@ export class SandboxCommandRouter {
           return true;
         }
         if (action === 'archive' || action === 'rm') {
-          handleProjectArchive(actionPos, store, output);
+          handleProjectArchive(actionPos, flags, store, output);
           return true;
         }
         output.error(`Error: Unknown project action "${action}". Available: list, add, rename, archive.`, 'CLI_SYNTAX_INVALID_ARGS', 2);
@@ -87,19 +87,19 @@ export class SandboxCommandRouter {
           return true;
         }
         if (action === 'done' || action === 'complete') {
-          handleTaskDone(actionPos, store, output);
+          handleTaskDone(actionPos, flags, store, output);
           return true;
         }
         if (action === 'rename' || action === 'ren') {
-          handleTaskRename(actionPos, store, output);
+          handleTaskRename(actionPos, flags, store, output);
           return true;
         }
         if (action === 'archive' || action === 'rm') {
-          handleTaskArchive(actionPos, store, output);
+          handleTaskArchive(actionPos, flags, store, output);
           return true;
         }
         if (action === 'rate') {
-          handleTaskRate(actionPos, store, output);
+          handleTaskRate(actionPos, flags, store, output);
           return true;
         }
         output.error(`Error: Unknown task action "${action}". Available: list, add, done, rename, archive, rate.`, 'CLI_SYNTAX_INVALID_ARGS', 2);
@@ -131,7 +131,7 @@ export class SandboxCommandRouter {
       }
 
       case 'start': {
-        handleStart(positionals, store, output);
+        handleStart(positionals, flags, store, output);
         return true;
       }
 
@@ -142,7 +142,7 @@ export class SandboxCommandRouter {
       }
 
       case 'switch': {
-        handleSwitch(positionals, store, output);
+        handleSwitch(positionals, flags, store, output);
         return true;
       }
 

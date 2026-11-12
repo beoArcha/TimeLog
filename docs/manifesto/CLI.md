@@ -313,6 +313,8 @@ In interactive human terminal mode, encountering an unknown entity or a missing 
 2. Displays the nearest matches in the user's localized language.
 3. Offers an interactive selector to pick the intended entity or create it on the spot.
 
+In `--json`/`--machine` mode, or in human mode with the global `--exact` flag, `-p`/`-t` and other targets resolve only by exact ID, unique ID prefix of ≥ 8 characters, or exact name (case-insensitive); fuzzy matching, substring matching, prefixes < 8 characters, and suggestions are human-mode only (without `--exact`).
+
 ---
 
 ## 🪟 In-App Global CLI Drawer & Session Synchronization

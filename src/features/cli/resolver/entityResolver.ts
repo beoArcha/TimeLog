@@ -27,43 +27,121 @@ export function levenshteinDistance(a: string, b: string): number {
   return dp[m][n];
 }
 
-export interface ResolveResult<T> {
-  entity?: T;
-  error?: string;
-  exitCode: number;
+export type ResolveResult<T> =
+  | {
+      entity: T;
+      error?: never;
+      errorCode?: never;
+      exitCode?: 0;
+    }
+  | {
+      entity?: never;
+      error: string;
+      errorCode: string;
+      exitCode: number;
+    };
+
+// Mirrors ERR_RESOLVE_NOT_FOUND in src-tauri/src/cli/resolver/constants.rs
+export const RESOLVE_NOT_FOUND_TEMPLATE = "{} '{}' not found.";
+
+// Mirrors ERR_RESOLVE_AMBIGUOUS in src-tauri/src/cli/resolver/constants.rs
+export const RESOLVE_AMBIGUOUS_TEMPLATE =
+  "Ambiguous {} target '{}'. Matched: {}. Please specify a unique ID or title.";
+
+// 8 characters provides sufficient entropy to prevent accidental collisions
+// in automated scripts and pipelines while keeping shortened ID references ergonomic.
+export const MIN_MACHINE_PREFIX_LEN = 8;
+
+export function isStrictResolution(
+  flags?: Record<string, unknown> | Record<string, string | boolean>
+): boolean {
+  if (!flags) return false;
+  return Boolean(flags['json'] || flags['machine'] || flags['exact']);
 }
 
-/**
- * Resolves an entity by exact ID, prefix ID, substring name match, or Levenshtein typo suggestion.
- */
-export function resolveEntity<T>(
-  entities: T[],
-  target: string,
+export function reportResolveFailure<T>(
+  resolve: ResolveResult<T>,
+  output: { error: (msg: string, code?: string, exitCode?: number) => void }
+): void {
+  if (resolve.error) {
+    output.error(resolve.error, resolve.errorCode, resolve.exitCode);
+  }
+}
+
+function buildAmbiguousResult<T>(
+  matches: T[],
+  trimmed: string,
   entityTypeName: 'Task' | 'Project',
   idFn: (e: T) => string,
   nameFn: (e: T) => string
 ): ResolveResult<T> {
-  const trimmed = target.trim();
-  if (!trimmed) {
-    return {
-      error: `Error: ${entityTypeName} target cannot be empty`,
-      exitCode: 2,
-    };
+  const list = matches.map((m) => `"${nameFn(m)}" (${idFn(m)})`).join(', ');
+  return {
+    error: RESOLVE_AMBIGUOUS_TEMPLATE.replace('{}', entityTypeName)
+      .replace('{}', trimmed)
+      .replace('{}', list),
+    exitCode: 4,
+    errorCode: 'DOM_ENTITY_AMBIGUOUS',
+  };
+}
+
+function resolveStrictEntity<T>(
+  entities: T[],
+  trimmed: string,
+  entityTypeName: 'Task' | 'Project',
+  idFn: (e: T) => string,
+  nameFn: (e: T) => string
+): ResolveResult<T> {
+  const clean = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+
+  const exactId = entities.find((e) => idFn(e) === trimmed || idFn(e) === clean);
+  if (exactId) {
+    return { entity: exactId, exitCode: 0 };
   }
 
-  // 1. Exact ID match
+  if (clean.length >= MIN_MACHINE_PREFIX_LEN) {
+    const prefixMatches = entities.filter((e) => idFn(e).startsWith(clean));
+    if (prefixMatches.length === 1) {
+      return { entity: prefixMatches[0], exitCode: 0 };
+    }
+    if (prefixMatches.length > 1) {
+      return buildAmbiguousResult(prefixMatches, trimmed, entityTypeName, idFn, nameFn);
+    }
+  }
+
+  const targetLower = trimmed.toLowerCase();
+  const nameMatches = entities.filter((e) => nameFn(e).toLowerCase() === targetLower);
+  if (nameMatches.length === 1) {
+    return { entity: nameMatches[0], exitCode: 0 };
+  }
+  if (nameMatches.length > 1) {
+    return buildAmbiguousResult(nameMatches, trimmed, entityTypeName, idFn, nameFn);
+  }
+
+  return {
+    error: RESOLVE_NOT_FOUND_TEMPLATE.replace('{}', entityTypeName).replace('{}', trimmed),
+    exitCode: 4,
+    errorCode: 'DOM_ENTITY_NOT_FOUND',
+  };
+}
+
+function resolveHumanEntity<T>(
+  entities: T[],
+  trimmed: string,
+  entityTypeName: 'Task' | 'Project',
+  idFn: (e: T) => string,
+  nameFn: (e: T) => string
+): ResolveResult<T> {
   const exactId = entities.find((e) => idFn(e) === trimmed);
   if (exactId) {
     return { entity: exactId, exitCode: 0 };
   }
 
-  // 2. Prefix ID match
   const prefixId = entities.filter((e) => idFn(e).startsWith(trimmed));
   if (prefixId.length === 1) {
     return { entity: prefixId[0], exitCode: 0 };
   }
 
-  // 3. Name substring match
   const targetLower = trimmed.toLowerCase();
   const nameMatches = entities.filter(
     (e) => nameFn(e).toLowerCase() === targetLower || nameFn(e).toLowerCase().includes(targetLower)
@@ -78,10 +156,10 @@ export function resolveEntity<T>(
     return {
       error: `Error: Multiple matching ${entityTypeName.toLowerCase()}s found: ${list}. Specify exact ID or name.`,
       exitCode: 4,
+      errorCode: 'DOM_ENTITY_AMBIGUOUS',
     };
   }
 
-  // 4. Nearest typo suggestion via Levenshtein distance (threshold <= 2)
   let bestCandidate: T | null = null;
   let bestDistance = 3;
 
@@ -100,11 +178,40 @@ export function resolveEntity<T>(
     return {
       error: `Error: ${entityTypeName} "${trimmed}" not found. Did you mean: "${nameFn(bestCandidate)}"?`,
       exitCode: 4,
+      errorCode: 'DOM_ENTITY_DID_YOU_MEAN',
     };
   }
 
   return {
     error: `Error: ${entityTypeName} "${trimmed}" does not exist`,
     exitCode: 4,
+    errorCode: 'DOM_ENTITY_NOT_FOUND',
   };
+}
+
+/**
+ * Resolves an entity either strictly (in machine mode) or with prefix/substring/typo fallbacks (in human mode).
+ */
+export function resolveEntity<T>(
+  entities: T[],
+  target: string,
+  entityTypeName: 'Task' | 'Project',
+  idFn: (e: T) => string,
+  nameFn: (e: T) => string,
+  strict = false
+): ResolveResult<T> {
+  const trimmed = target.trim();
+  if (!trimmed) {
+    return {
+      error: `Error: ${entityTypeName} target cannot be empty`,
+      exitCode: 2,
+      errorCode: 'CLI_SYNTAX_EMPTY_ID',
+    };
+  }
+
+  if (strict) {
+    return resolveStrictEntity(entities, trimmed, entityTypeName, idFn, nameFn);
+  }
+
+  return resolveHumanEntity(entities, trimmed, entityTypeName, idFn, nameFn);
 }

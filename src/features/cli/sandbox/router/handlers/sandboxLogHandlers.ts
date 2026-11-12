@@ -1,7 +1,7 @@
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { resolveEntity } from '../../../resolver/entityResolver';
+import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
 
 export function parseDurationToSeconds(input: string): number {
   const trimmed = input.trim().toLowerCase();
@@ -49,20 +49,26 @@ export function handleLogList(
     logs = logs.filter((l) => l.startTime.startsWith(today));
   }
 
+  const isStrict = isStrictResolution(flags);
+  const isMachine = Boolean(flags['json'] || flags['machine']);
   const projFilter = (flags['p'] || flags['project']) as string | undefined;
   if (projFilter) {
-    const resolve = resolveEntity(projects, projFilter, 'Project', (p) => p.id, (p) => p.name);
-    if (resolve.entity) {
-      logs = logs.filter((l) => l.projectId === resolve.entity?.id);
+    const resolve = resolveEntity(projects, projFilter, 'Project', (p) => p.id, (p) => p.name, isStrict);
+    if (!resolve.entity) {
+      reportResolveFailure(resolve, output);
+      return;
     }
+    logs = logs.filter((l) => l.projectId === resolve.entity?.id);
   }
 
   const taskFilter = (flags['t'] || flags['task']) as string | undefined;
   if (taskFilter) {
-    const resolve = resolveEntity(tasks, taskFilter, 'Task', (t) => t.id, (t) => t.name);
-    if (resolve.entity) {
-      logs = logs.filter((l) => l.taskId === resolve.entity?.id);
+    const resolve = resolveEntity(tasks, taskFilter, 'Task', (t) => t.id, (t) => t.name, isStrict);
+    if (!resolve.entity) {
+      reportResolveFailure(resolve, output);
+      return;
     }
+    logs = logs.filter((l) => l.taskId === resolve.entity?.id);
   }
 
   let explicitLimit: number | undefined;
@@ -75,7 +81,6 @@ export function handleLogList(
     explicitLimit = parsed;
   }
 
-  const isMachine = Boolean(flags['json'] || flags['machine']);
   // Sort descending by startTime (newest first) to mirror native reference engine
   const sortedLogs = [...logs].sort((a, b) => b.startTime.localeCompare(a.startTime));
   const totalMatched = sortedLogs.length;
@@ -121,7 +126,7 @@ export function handleLogList(
 
 export function handleLogAdd(
   positionals: string[],
-  _flags: Record<string, string | boolean>,
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
@@ -134,10 +139,11 @@ export function handleLogAdd(
     return;
   }
 
+  const isStrict = isStrictResolution(flags);
   const tasks = store.getTasks();
-  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 

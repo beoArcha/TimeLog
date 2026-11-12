@@ -46,6 +46,13 @@ pub struct CliArgs {
     pub quiet: bool,
 
     #[arg(
+        long = "exact",
+        global = true,
+        help = "Resolve targets only by full ID, unique ID prefix of 8 or more characters, or exact name"
+    )]
+    pub exact: bool,
+
+    #[arg(
         long = "db",
         global = true,
         help = "Explicit path to SQLite database file"

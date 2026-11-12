@@ -53,15 +53,17 @@ pub struct DashboardDto {
 pub fn handle_start(
     args: StartArgs,
     is_machine: bool,
+    strict: bool,
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
     handle_start_with_prompter(
         args,
         is_machine,
+        strict,
         persistence,
         engine,
-        &TerminalPrompter::new(is_machine),
+        &TerminalPrompter::new(strict),
     )
 }
 
@@ -71,12 +73,13 @@ pub fn handle_start_interactive(
     engine: &Engine,
     prompter: &dyn Prompter,
 ) -> Result<CliOutput, CliError> {
-    handle_start_with_prompter(args, false, persistence, engine, prompter)
+    handle_start_with_prompter(args, false, false, persistence, engine, prompter)
 }
 
 pub fn handle_start_with_prompter(
     args: StartArgs,
     is_machine: bool,
+    strict: bool,
     persistence: &Persistence,
     engine: &Engine,
     prompter: &dyn Prompter,
@@ -113,7 +116,7 @@ pub fn handle_start_with_prompter(
         }
     };
 
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let task = resolver.resolve_task_interactive(&target, prompter)?;
 
     let outcome = engine.start_timer(&task.id)?;
@@ -222,15 +225,17 @@ fn nothing_to_stop_output(is_machine: bool) -> CliOutput {
 pub fn handle_switch(
     args: SwitchArgs,
     is_machine: bool,
+    strict: bool,
     persistence: &Persistence,
     engine: &Engine,
 ) -> Result<CliOutput, CliError> {
     handle_switch_with_prompter(
         args,
         is_machine,
+        strict,
         persistence,
         engine,
-        &TerminalPrompter::new(is_machine),
+        &TerminalPrompter::new(strict),
     )
 }
 
@@ -240,18 +245,19 @@ pub fn handle_switch_interactive(
     engine: &Engine,
     prompter: &dyn Prompter,
 ) -> Result<CliOutput, CliError> {
-    handle_switch_with_prompter(args, false, persistence, engine, prompter)
+    handle_switch_with_prompter(args, false, false, persistence, engine, prompter)
 }
 
 pub fn handle_switch_with_prompter(
     args: SwitchArgs,
     is_machine: bool,
+    strict: bool,
     persistence: &Persistence,
     engine: &Engine,
     prompter: &dyn Prompter,
 ) -> Result<CliOutput, CliError> {
     validate_id(&args.target)?;
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let task = resolver.resolve_task_interactive(&args.target, prompter)?;
 
     engine.switch_timer(&task.id)?;
