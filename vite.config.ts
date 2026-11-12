@@ -83,7 +83,7 @@ export default defineConfig(() => {
         '**/{karma,rollup,webpack,vite,vitest}.config.*',
         '**/.stryker-tmp/**',
         '**/.stryker-sandbox/**',
-        '**/reports/**'
+        'reports/**'
       ],
       coverage: {
         provider: 'v8',
