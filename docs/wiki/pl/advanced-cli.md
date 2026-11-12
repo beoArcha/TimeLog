@@ -144,7 +144,7 @@ W środowiskach ciągłej integracji lub skryptach weryfikacji przedwdrożeniowe
 
 ```bash
 # Weryfikacja integralności SQLite i dostępności tabel w potoku CI
-if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
+if ! oxy doctor --json | jq -e '.data.overallStatus == "ok"' > /dev/null; then
     echo "Błąd integralności bazy danych lub odbiornika w TimeLog" >&2
     exit 1
 fi

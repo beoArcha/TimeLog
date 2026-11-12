@@ -6,6 +6,7 @@ pub mod billing;
 pub mod cli;
 pub mod cli_entities;
 pub mod cli_flow;
+pub mod cli_subsystems;
 pub mod commands;
 pub mod external_api;
 pub mod frontend_event;
@@ -34,13 +35,18 @@ pub use billing::{
 };
 pub use cli::{
     CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, EnvelopeMeta, LocalizedUserMessage,
-    SuccessEnvelope,
+    SuccessEnvelope, ENVELOPE_SCHEMA_NAME, ENVELOPE_SCHEMA_VERSION,
 };
 pub use cli_entities::{
     EntityAction, EntityActionPayload, LogListPayload, LogRemovePayload, ProjectListPayload,
     TaskListPayload,
 };
 pub use cli_flow::{FlowAction, StartPayload, StatusPayload, StopPayload, SwitchPayload};
+pub use cli_subsystems::{
+    ConfigEntry, ConfigListPayload, ConfigValuePayload, DbBackupPayload, DbRestorePayload,
+    DoctorCheck, DoctorPayload, HealthStatus, MaskEntry, MaskListPayload, MaskRemovePayload,
+    MaskSetPayload, SinkEntry, SinkListPayload, SinkSetPayload, SinkTestPayload, SinkTestResult,
+};
 pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,
     SettingsPersistenceCommand, TasksPersistenceCommand, WindowCommand,

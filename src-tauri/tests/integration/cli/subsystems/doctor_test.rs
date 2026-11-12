@@ -40,9 +40,10 @@ fn test_given_healthy_database_when_doctor_machine_invoked_then_outputs_valid_js
     let output = format!("{}", result.expect("Result ok"));
     let parsed: serde_json::Value =
         serde_json::from_str(&output).expect("Output must be valid JSON");
-    assert_eq!(parsed["overall_status"], "ok");
-    assert!(parsed["checks"].is_array());
-    assert!(!parsed["checks"]
+    assert_eq!(parsed["schema"], "oxy.doctor");
+    assert_eq!(parsed["data"]["overallStatus"], "ok");
+    assert!(parsed["data"]["checks"].is_array());
+    assert!(!parsed["data"]["checks"]
         .as_array()
         .expect("Checks array")
         .is_empty());

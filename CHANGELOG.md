@@ -67,11 +67,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
+- **`oxy report schema` Defaults to a Generated JSON Schema**:
+  - The default output is now the JSON Schema (draft 2020-12) of the `oxy.report` v2 document instead of the XML Schema (XSD) v1; the XSD stays available with `--format xml`.
+  - The `--version` flag is removed (only XSD version `1` exists).
+  - With `--machine` and `-o`, the summary now carries `schema` and a numeric `schema_version` (previously the string `"1"`).
 - **Versioned `--json` / `--machine` Envelope for Flow Commands**:
   - `start`, `stop`, `switch` and `status` now print `{ "schema": "oxy.<command>", "schemaVersion": 1, "data": {...}, "meta": { "generatedAt", "generator" } }` instead of the previous flat object; the former `"status": "ok"` field is removed and there is no v1 compatibility mode.
   - Keys are camelCase (`activeTaskIds`, `stoppedCount`, `stoppedTaskIds`, `timeLogId`) and `action` values are camelCase (`alreadyRunning`).
   - `--machine` prints one compact line; `--json` is indented only on a terminal and compact when piped.
   - The browser sandbox emulator mirrors the envelope for the same four commands.
+- **Versioned `--json` / `--machine` Envelope for Subsystem Commands**:
+  - `config`, `sink`, `mask`, `doctor` and `db` now print the same `oxy.<domain>.<action>` envelope, with `schemaVersion: 1`, instead of their previous flat objects and bare arrays; the `"status": "ok"` fields are removed.
+  - List commands (`config ls`, `sink ls`, `sink test`, `mask ls`) return `data: { items: [...] }`, so an empty list is `{ "items": [] }` rather than `[]`.
+  - `config ls` now returns a list of `{ key, value }` items instead of a key-to-value map; it still lists only persisted entries, while `config get cli_machine_locale` still returns the effective default `en`.
+  - `doctor` keys are camelCase (`overallStatus`, `dbPath`, `dbSizeBytes`); the `sink` and `mask` list items use camelCase (`sinkType`, `createdAt`).
 
 - **Identity & OS Bundle Identifier**:
   - Changed reverse-DNS identifier from `com.oxytime.timelog` / `com.oxytime.oxyflow` to `com.oxyflow.timelog`.
@@ -97,6 +106,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Generated JSON Schema for the Report Document**:
+  - The report types (`ReportDocument` and everything it nests) derive `schemars::JsonSchema`; `oxy report schema` prints the result with `$id` `urn:oxyflow:schema:oxy.report:2`, `const` `schema` / `schemaVersion`, camelCase properties, optional properties that reject `null` and unsigned integers with `minimum: 0`.
+  - The envelope schema is available with `--target envelope` (JSON only; `--format xml --target envelope` is a syntax error with exit code `2`).
+  - Committed copies under `schemas/json/` are verified against the generator, and the shared report parity vectors are validated against the schema (plus negative cases) in the Rust integration tier.
 - **CLI Streaming Writer Seam & Atomic Export Writes** (`feat/cli-export-streaming`):
   - Introduced streaming export writer seam `export_to_writer` in `src-tauri/src/cli/exporters/` accepting any sink implementing `std::io::Write`.
   - Added dedicated streaming writer functions for all supported formats: `write_csv`, `write_json`, `write_html`, `write_xml`, `write_xlsx`, and `write_ods`.

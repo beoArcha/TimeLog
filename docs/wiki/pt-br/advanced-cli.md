@@ -144,7 +144,7 @@ Em ambientes de integração contínua ou scripts de verificação pré-deploy, 
 
 ```bash
 # Verificar integridade do SQLite e disponibilidade de tabelas em pipeline de CI
-if ! oxy doctor --json | jq -e '.overall_status == "ok"' > /dev/null; then
+if ! oxy doctor --json | jq -e '.data.overallStatus == "ok"' > /dev/null; then
     echo "Falha na verificação do banco de dados do TimeLog" >&2
     exit 1
 fi

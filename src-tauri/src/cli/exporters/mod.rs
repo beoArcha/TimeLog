@@ -2,6 +2,7 @@ pub mod constants;
 pub mod csv;
 pub mod html;
 pub mod json;
+pub mod json_schema;
 pub mod ods;
 pub mod rows;
 pub mod schema;
@@ -15,6 +16,7 @@ pub use self::constants::{
 pub use self::csv::{export_csv, sanitize_csv, sanitize_csv_formula, write_csv};
 pub use self::html::{escape_html, export_html, write_html};
 pub use self::json::{export_json, write_json};
+pub use self::json_schema::{envelope_json_schema, report_json_schema};
 pub use self::ods::{export_ods, write_ods};
 pub use self::rows::{flatten_project, flatten_report, flatten_task, ReportRow, RowsError};
 pub use self::schema::{export_schema_to_file, get_report_xml_schema, REPORT_XML_SCHEMA_V1};

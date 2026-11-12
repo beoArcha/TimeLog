@@ -39,7 +39,7 @@ pub enum ReportSubcommand {
         #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
         task: Option<String>,
     },
-    #[command(about = "Output XML Schema (XSD) definition for reports")]
+    #[command(about = "Output the JSON Schema of the report document or the CLI envelope")]
     Schema {
         #[arg(
             short = 'o',
@@ -48,12 +48,33 @@ pub enum ReportSubcommand {
         )]
         output: Option<String>,
         #[arg(
-            long = "version",
-            default_value = "1",
-            help = "XML schema version (default: 1)"
+            short,
+            long,
+            value_enum,
+            default_value_t = SchemaFormat::Json,
+            help = "Schema format: json, xml (xml: report target only)"
         )]
-        version: String,
+        format: SchemaFormat,
+        #[arg(
+            long,
+            value_enum,
+            default_value_t = SchemaTarget::Report,
+            help = "Schema to print: report, envelope"
+        )]
+        target: SchemaTarget,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum SchemaFormat {
+    Json,
+    Xml,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum SchemaTarget {
+    Report,
+    Envelope,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
