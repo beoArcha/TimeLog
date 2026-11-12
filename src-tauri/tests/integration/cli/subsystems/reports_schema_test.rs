@@ -1,7 +1,9 @@
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
 use oxyflow_timelog::cli::error::CliError;
-use oxyflow_timelog::cli::exporters::{envelope_json_schema, report_json_schema};
+use oxyflow_timelog::cli::exporters::{
+    envelope_json_schema, report_json_schema, REPORT_XML_SCHEMA_V1,
+};
 use oxyflow_timelog::cli::{handle_cli, CliArgs, CliOutput};
 use oxyflow_timelog::engine::Engine;
 use oxyflow_timelog::persistence::Persistence;
@@ -122,7 +124,7 @@ fn test_given_machine_flag_and_output_path_when_report_schema_invoked_then_outpu
 }
 
 #[test]
-fn test_given_xml_format_when_report_schema_invoked_then_returns_a_syntax_error() {
+fn test_given_xml_format_when_report_schema_invoked_then_prints_the_xsd_of_the_xml_export() {
     // When
     let result = run(
         "test_report_schema_xml",
@@ -130,15 +132,14 @@ fn test_given_xml_format_when_report_schema_invoked_then_returns_a_syntax_error(
     );
 
     // Then
-    let err = result.expect_err("xml schema is not available yet");
-    assert_eq!(err.exit_code(), 2);
-    let envelope = err.to_envelope(None);
-    assert_eq!(envelope.code, "CLI_SYNTAX_INVALID_ARGS");
-    assert!(envelope.technical.contains("--format json"));
+    match result.expect("command must succeed") {
+        CliOutput::Raw(content) => assert_eq!(content, REPORT_XML_SCHEMA_V1),
+        other => panic!("expected CliOutput::Raw, got: {other:?}"),
+    }
 }
 
 #[test]
-fn test_given_xml_format_and_output_path_when_report_schema_invoked_then_no_file_is_written() {
+fn test_given_xml_format_and_output_path_when_report_schema_invoked_then_writes_the_xsd_file() {
     // Given
     let temp_dir = tempfile::tempdir().expect("temp dir creation");
     let target_file = temp_dir.path().join("report.xsd");
@@ -148,6 +149,81 @@ fn test_given_xml_format_and_output_path_when_report_schema_invoked_then_no_file
     let result = run(
         "test_report_schema_xml_file",
         &["oxy", "report", "schema", "--format", "xml", "-o", target],
+    );
+
+    // Then
+    match result.expect("command must succeed") {
+        CliOutput::Success(message) => assert!(message.contains("Exported XML schema v1 to")),
+        other => panic!("expected CliOutput::Success, got: {other:?}"),
+    }
+    assert_eq!(
+        fs::read_to_string(&target_file).unwrap(),
+        REPORT_XML_SCHEMA_V1
+    );
+}
+
+#[test]
+fn test_given_machine_flag_xml_format_and_output_path_when_report_schema_invoked_then_outputs_a_json_summary(
+) {
+    // Given
+    let temp_dir = tempfile::tempdir().expect("temp dir creation");
+    let target_file = temp_dir.path().join("report.xsd");
+    let target = target_file.to_str().unwrap();
+
+    // When
+    let result = run(
+        "test_report_schema_xml_machine_file",
+        &[
+            "oxy", "-m", "report", "schema", "--format", "xml", "-o", target,
+        ],
+    );
+
+    // Then
+    match result.expect("command must succeed") {
+        CliOutput::Json(ref json_str) => {
+            let parsed: Value = serde_json::from_str(json_str).unwrap();
+            assert_eq!(parsed["status"], "success");
+            assert_eq!(parsed["schema"], "XML");
+            assert_eq!(parsed["schema_version"], 1);
+            assert_eq!(parsed["exported_path"], target);
+        }
+        other => panic!("expected CliOutput::Json, got: {other:?}"),
+    }
+}
+
+#[test]
+fn test_given_xml_format_and_envelope_target_when_report_schema_invoked_then_returns_a_syntax_error(
+) {
+    // When
+    let result = run(
+        "test_report_schema_envelope_xml",
+        &[
+            "oxy", "report", "schema", "--format", "xml", "--target", "envelope",
+        ],
+    );
+
+    // Then
+    let err = result.expect_err("the envelope has no XSD");
+    assert_eq!(err.exit_code(), 2);
+    let envelope = err.to_envelope(None);
+    assert_eq!(envelope.code, "CLI_SYNTAX_INVALID_ARGS");
+    assert!(envelope.technical.contains("--format json"));
+}
+
+#[test]
+fn test_given_xml_format_envelope_target_and_output_path_when_report_schema_invoked_then_no_file_is_written(
+) {
+    // Given
+    let temp_dir = tempfile::tempdir().expect("temp dir creation");
+    let target_file = temp_dir.path().join("envelope.xsd");
+    let target = target_file.to_str().unwrap();
+
+    // When
+    let result = run(
+        "test_report_schema_envelope_xml_file",
+        &[
+            "oxy", "report", "schema", "--format", "xml", "--target", "envelope", "-o", target,
+        ],
     );
 
     // Then

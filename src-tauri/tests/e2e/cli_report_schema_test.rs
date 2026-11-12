@@ -39,7 +39,7 @@ fn test_given_machine_mode_when_report_schema_then_stdout_is_still_pure_json() {
 }
 
 #[test]
-fn test_given_the_binary_when_report_schema_with_xml_format_then_exits_with_syntax_error_code() {
+fn test_given_the_binary_when_report_schema_with_xml_format_then_stdout_is_the_xsd() {
     // Given
     let temp_env = TempEnvDir::new("oxy_report_schema_xml");
 
@@ -47,6 +47,28 @@ fn test_given_the_binary_when_report_schema_with_xml_format_then_exits_with_synt
     let output = execute_oxy_with_timeout(
         &temp_env,
         &["report", "schema", "--format", "xml"],
+        OXY_TIMEOUT,
+    );
+
+    // Then
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty(), "stderr must stay empty");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.starts_with("<?xml"));
+    assert!(stdout.contains("<xs:schema"));
+}
+
+#[test]
+fn test_given_the_binary_when_envelope_schema_with_xml_format_then_exits_with_syntax_error_code() {
+    // Given
+    let temp_env = TempEnvDir::new("oxy_report_schema_envelope_xml");
+
+    // When
+    let output = execute_oxy_with_timeout(
+        &temp_env,
+        &[
+            "report", "schema", "--format", "xml", "--target", "envelope",
+        ],
         OXY_TIMEOUT,
     );
 

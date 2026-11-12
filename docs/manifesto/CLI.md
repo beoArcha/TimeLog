@@ -148,7 +148,7 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [--tz <iana>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
 | **Report** | Export | `oxy report export -f <format> -o <path>` | Fully supports **CSV, HTML, JSON, XML, ODS, XLSX**; serialization errors yield `SNK_SERIALIZATION` (exit code `1`) | Interactive format selector |
-| **Report** | Schema | `oxy report schema [--format json] [--target report\|envelope] [-o <path>]` | Emits the generated JSON Schema (draft 2020-12) of `oxy.report` v2 (or of the machine envelope) to stdout or file; `--format xml` is rejected with exit code `2` | Download JSON Schema |
+| **Report** | Schema | `oxy report schema [--format json\|xml] [--target report\|envelope] [-o <path>]` | Emits the generated JSON Schema (draft 2020-12) of `oxy.report` v2 (default), the JSON Schema of the machine envelope (`--target envelope`), or the XSD of `report export -f xml` (`--format xml`) to stdout or file; `--format xml --target envelope` is a syntax error (exit code `2`) | Download schema |
 | **Report** | Stream | `oxy report -f json \| jq .` | Raw unescaped JSON to `stdout` | N/A (interactive terminal) |
 | **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
 | **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
@@ -294,7 +294,7 @@ In the current implementation, all CLI report exporters serialize content into m
 - The dedicated ZIP32 builder with MS-DOS timestamps and 32-bit boundary validation operates exclusively within the TypeScript browser plugin layer (`src/plugins/exporters/zipBuilder.ts`), rather than the Rust CLI runtime.
 - Direct streaming to disk without intermediary in-memory buffering is marked as `[PLANNED]` pending completion of task B3.
 
-**JSON Schema Publication (`oxy report schema`):**
+**Schema Publication (`oxy report schema`):**
 The CLI publishes the JSON Schema (draft 2020-12) of the report document. The schema is generated from the Rust types with `schemars`, so it cannot drift from the `oxy.report` model that the engine builds and `src/bindings/ReportDocument.ts` mirrors.
 - `oxy report schema` (same as `--format json --target report`): Prints the schema of `oxy.report` `schemaVersion` 2 to `stdout`. The schema's `$id` is `urn:oxyflow:schema:oxy.report:2` and its `title` is `oxy.report`; `schema` and `schemaVersion` are pinned with `const`.
 - `oxy report schema --target envelope`: Prints the schema of the versioned machine envelope (`$id` `urn:oxyflow:schema:oxy.envelope:1`). The envelope's `data` is intentionally unconstrained; each command's `schema` / `schemaVersion` pair identifies its payload.
@@ -302,8 +302,9 @@ The CLI publishes the JSON Schema (draft 2020-12) of the report document. The sc
 - `stdout` is always exactly one JSON document, with and without `--machine`. The output is deterministic (properties are sorted alphabetically), so it can be diffed and pinned.
 - Optional properties (`skip_serializing_if`) are absent from `required` and do not accept `null`; unsigned integers are `integer` with `minimum: 0`.
 - The committed copies live in `schemas/json/report/v2/report.schema.json` and `schemas/json/envelope/v1/envelope.schema.json`; an integration test fails when they differ from the generated output. After an intentional contract change run `cargo test --test integration_tests regenerate_json_schemas -- --ignored` and review the diff.
-- `--format xml` (XSD) is **not available yet**: it yields syntax error code `CLI_SYNTAX_INVALID_ARGS` with exit code `2`. An XSD for `oxy.report` v2 ships together with the XML exporter that emits it. The XSD v1 that this command printed before describes the legacy `report export -f xml` document and is no longer published by the CLI.
-- The former `--version <v>` flag is removed: the schema version is part of the schema identity (`$id`), so a different version is a different `--target` or a new release.
+- `oxy report schema --format xml` prints the canonical XML Schema (XSD, version `1`) that describes the document written by `oxy report export -f xml`. It is not the `oxy.report` v2 model: an XSD for `oxy.report` v2 ships together with the XML exporter that emits it. With `-o`, the success message names `XML` and version `1`, and with `--machine` the summary has the same shape as for JSON (`schema` is `"XML"`, `schema_version` is `1`).
+- `--format xml --target envelope` fails with `CLI_SYNTAX_INVALID_ARGS` (exit code `2`) and writes nothing: the envelope schema is only available as JSON.
+- The former `--version <v>` flag is removed: only XSD version `1` exists, and the JSON schema version is part of its identity (`$id`).
 
 **Error Classification & Exit Codes:**
 If an export cannot be formatted, encoded, or serialized, the CLI emits a structured error envelope with semantic code `SNK_SERIALIZATION` and POSIX exit code `1` (business/sink rule violation). If file I/O fails during target file creation or writing, the CLI emits `SNK_EXTERNAL_IO` with exit code `1`.

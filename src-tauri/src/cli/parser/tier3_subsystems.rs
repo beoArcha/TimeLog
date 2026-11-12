@@ -52,7 +52,7 @@ pub enum ReportSubcommand {
             long,
             value_enum,
             default_value_t = SchemaFormat::Json,
-            help = "Schema format: json (xml is not available yet)"
+            help = "Schema format: json, xml (xml: report target only)"
         )]
         format: SchemaFormat,
         #[arg(

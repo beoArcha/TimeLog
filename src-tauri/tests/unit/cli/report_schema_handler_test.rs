@@ -1,17 +1,38 @@
 use clap::Parser;
 use oxyflow_timelog::cli::error::{CliError, CliSyntaxError};
+use oxyflow_timelog::cli::exporters::REPORT_XML_SCHEMA_V1;
 use oxyflow_timelog::cli::handlers::report_schema_handler;
 use oxyflow_timelog::cli::parser::{ReportSubcommand, SchemaFormat, SchemaTarget};
 use oxyflow_timelog::cli::shared::output::CliOutput;
 use oxyflow_timelog::cli::{CliArgs, CliCommand};
 
 #[test]
-fn test_given_xml_format_when_handling_report_schema_then_returns_syntax_error_pointing_at_json() {
+fn test_given_xml_format_and_report_target_when_handling_report_schema_then_returns_the_xsd() {
     // Arrange
     let format = SchemaFormat::Xml;
 
     // Act
-    let result = report_schema_handler::handle(None, format, SchemaTarget::Report, false);
+    let output = report_schema_handler::handle(None, format, SchemaTarget::Report, false)
+        .expect("the report XSD must be produced");
+
+    // Assert
+    match output {
+        CliOutput::Raw(content) => {
+            assert_eq!(content, REPORT_XML_SCHEMA_V1);
+            assert!(content.starts_with("<?xml"));
+        }
+        other => panic!("expected CliOutput::Raw, got {other:?}"),
+    }
+}
+
+#[test]
+fn test_given_xml_format_and_envelope_target_when_handling_report_schema_then_returns_syntax_error_pointing_at_json(
+) {
+    // Arrange
+    let format = SchemaFormat::Xml;
+
+    // Act
+    let result = report_schema_handler::handle(None, format, SchemaTarget::Envelope, false);
 
     // Assert
     match result {
@@ -23,13 +44,13 @@ fn test_given_xml_format_when_handling_report_schema_then_returns_syntax_error_p
 }
 
 #[test]
-fn test_given_xml_format_when_handling_report_schema_then_exit_code_is_two() {
+fn test_given_xml_format_and_envelope_target_when_handling_report_schema_then_exit_code_is_two() {
     // Arrange
     let format = SchemaFormat::Xml;
 
     // Act
     let error = report_schema_handler::handle(None, format, SchemaTarget::Envelope, true)
-        .expect_err("xml must be rejected");
+        .expect_err("the envelope has no XSD");
 
     // Assert
     assert_eq!(error.exit_code(), 2);

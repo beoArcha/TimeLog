@@ -59,9 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
-- **`oxy report schema` Prints a Generated JSON Schema**:
-  - The default output is now the JSON Schema (draft 2020-12) of the `oxy.report` v2 document instead of the XML Schema (XSD) v1; `--format json` (default) and `--target report|envelope` select what is printed.
-  - `--format xml` fails with `CLI_SYNTAX_INVALID_ARGS` (exit code `2`) until the XML exporter for `oxy.report` v2 ships its XSD; the `--version` flag is removed.
+- **`oxy report schema` Defaults to a Generated JSON Schema**:
+  - The default output is now the JSON Schema (draft 2020-12) of the `oxy.report` v2 document instead of the XML Schema (XSD) v1; the XSD stays available with `--format xml`.
+  - The `--version` flag is removed (only XSD version `1` exists).
   - With `--machine` and `-o`, the summary now carries `schema` and a numeric `schema_version` (previously the string `"1"`).
 - **Versioned `--json` / `--machine` Envelope for Flow Commands**:
   - `start`, `stop`, `switch` and `status` now print `{ "schema": "oxy.<command>", "schemaVersion": 1, "data": {...}, "meta": { "generatedAt", "generator" } }` instead of the previous flat object; the former `"status": "ok"` field is removed and there is no v1 compatibility mode.
@@ -95,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Generated JSON Schema for the Report Document**:
   - The report types (`ReportDocument` and everything it nests) derive `schemars::JsonSchema`; `oxy report schema` prints the result with `$id` `urn:oxyflow:schema:oxy.report:2`, `const` `schema` / `schemaVersion`, camelCase properties, optional properties that reject `null` and unsigned integers with `minimum: 0`.
-  - The envelope schema is available with `--target envelope`.
+  - The envelope schema is available with `--target envelope` (JSON only; `--format xml --target envelope` is a syntax error with exit code `2`).
   - Committed copies under `schemas/json/` are verified against the generator, and the shared report parity vectors are validated against the schema (plus negative cases) in the Rust integration tier.
 - **CLI Streaming Writer Seam & Atomic Export Writes** (`feat/cli-export-streaming`):
   - Introduced streaming export writer seam `export_to_writer` in `src-tauri/src/cli/exporters/` accepting any sink implementing `std::io::Write`.
