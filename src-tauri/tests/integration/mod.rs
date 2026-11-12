@@ -7,4 +7,5 @@ pub mod timer;
 pub mod billing_parity_test;
 pub mod commands_test;
 pub mod report_build_test;
+pub mod report_parity_vectors_test;
 pub mod workflow_integration_test;
