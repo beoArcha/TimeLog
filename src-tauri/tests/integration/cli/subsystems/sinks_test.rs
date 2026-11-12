@@ -133,8 +133,8 @@ fn test_given_configured_persistence_when_setting_csv_sink_in_machine_mode_then_
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["sink"], "csv");
+    assert_eq!(parsed["schema"], "oxy.sink.set");
+    assert_eq!(parsed["data"]["sinkType"], "csv");
 
     let _ = fs::remove_dir_all(&temp_csv_dir);
 }
@@ -157,7 +157,8 @@ fn test_given_configured_persistence_when_listing_sinks_in_machine_mode_then_ret
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert!(parsed.is_array());
+    assert_eq!(parsed["schema"], "oxy.sink.list");
+    assert!(parsed["data"]["items"].is_array());
 }
 
 #[test]
@@ -188,7 +189,10 @@ fn test_given_configured_persistence_when_setting_webhook_sink_in_machine_mode_t
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["sink"], "webhook");
-    assert_eq!(parsed["target"], "https://example.com/test-endpoint");
+    assert_eq!(parsed["schema"], "oxy.sink.set");
+    assert_eq!(parsed["data"]["sinkType"], "webhook");
+    assert_eq!(
+        parsed["data"]["target"],
+        "https://example.com/test-endpoint"
+    );
 }

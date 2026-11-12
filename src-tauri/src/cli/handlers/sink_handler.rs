@@ -5,12 +5,32 @@ use super::constants::{
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{SinkArgs, SinkSubcommand};
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::current_timestamp;
 use crate::persistence::Persistence;
-use crate::types::CliSink;
+use crate::types::{
+    CliSink, SinkEntry, SinkListPayload, SinkSetPayload, SinkTestPayload, SinkTestResult,
+};
 use serde_json::json;
 use std::path::Path;
+
+const SCHEMA_LIST: EnvelopeSchema = EnvelopeSchema::new("oxy.sink.list", 1);
+const SCHEMA_SET: EnvelopeSchema = EnvelopeSchema::new("oxy.sink.set", 1);
+const SCHEMA_TEST: EnvelopeSchema = EnvelopeSchema::new("oxy.sink.test", 1);
+
+impl From<CliSink> for SinkEntry {
+    fn from(sink: CliSink) -> Self {
+        Self {
+            name: sink.name,
+            sink_type: sink.sink_type,
+            target: sink.target,
+            has_token: sink.config.is_some(),
+            enabled: sink.enabled,
+            created_at: sink.created_at,
+        }
+    }
+}
 
 pub fn handle(
     args: SinkArgs,
@@ -31,8 +51,8 @@ fn list_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
     let sinks = persistence.cli.get_all_sinks()?;
 
     if is_machine {
-        let json_str = serde_json::to_string_pretty(&sinks)?;
-        return Ok(CliOutput::Json(json_str));
+        let items = sinks.into_iter().map(SinkEntry::from).collect();
+        return CliOutput::envelope(SCHEMA_LIST, &SinkListPayload { items });
     }
 
     if sinks.is_empty() {
@@ -87,9 +107,13 @@ fn set_csv_sink(
     persistence.cli.save_sink(&sink)?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            json!({ "status": "ok", "sink": "csv", "target": dir }).to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_SET,
+            &SinkSetPayload {
+                sink_type: "csv".to_string(),
+                target: dir,
+            },
+        );
     }
 
     Ok(CliOutput::Success(
@@ -122,9 +146,13 @@ fn set_webhook_sink(
     persistence.cli.save_sink(&sink)?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            json!({ "status": "ok", "sink": "webhook", "target": url }).to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_SET,
+            &SinkSetPayload {
+                sink_type: "webhook".to_string(),
+                target: url,
+            },
+        );
     }
 
     Ok(CliOutput::Success(
@@ -137,7 +165,7 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
 
     if sinks.is_empty() {
         if is_machine {
-            return Ok(CliOutput::Json(json!([]).to_string()));
+            return CliOutput::envelope(SCHEMA_TEST, &SinkTestPayload { items: Vec::new() });
         }
         return Ok(CliOutput::Success(MSG_NO_SINKS_CONFIGURED.to_string()));
     }
@@ -154,14 +182,6 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
         let icon = if passed { "✅" } else { "❌" };
         let status_text = if passed { "healthy" } else { "unreachable" };
 
-        results.push(json!({
-            "name": sink.name,
-            "type": sink.sink_type,
-            "target": sink.target,
-            "passed": passed,
-            "detail": detail
-        }));
-
         out.push_str(
             &FORMAT_SINK_TEST_RESULT
                 .replacen("{}", icon, 1)
@@ -169,16 +189,23 @@ fn test_sinks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
                 .replacen("{}", &sink.name, 1)
                 .replacen("{}", &format!("{status_text} ({detail})"), 1),
         );
+        results.push(SinkTestResult {
+            name: sink.name.clone(),
+            sink_type: sink.sink_type.clone(),
+            target: sink.target.clone(),
+            passed,
+            detail,
+        });
     }
 
     if is_machine {
-        let json_str = serde_json::to_string_pretty(&results)?;
         if !all_passed {
+            let json_str = serde_json::to_string_pretty(&results)?;
             return Err(CliError::Sink(crate::cli::error::SinkError::TestFailed(
                 format!("One or more sinks failed verification: {}", json_str),
             )));
         }
-        return Ok(CliOutput::Json(json_str));
+        return CliOutput::envelope(SCHEMA_TEST, &SinkTestPayload { items: results });
     }
 
     if !all_passed {

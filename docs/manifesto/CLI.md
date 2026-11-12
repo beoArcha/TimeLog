@@ -200,7 +200,7 @@ oxy project ls -q | grep -c "Core"
 
 Not yet covered by this contract: `report` (planned follow-up). Its quiet output is unchanged.
 
-### Machine Output Envelope (Implemented for `start`, `stop`, `switch`, `status`)
+### Machine Output Envelope (Implemented for `start`, `stop`, `switch`, `status`, `config`, `sink`, `mask`, `doctor`, `db`)
 
 Every successful `--json` / `--machine` response of a migrated command is one versioned envelope on `stdout`. The contract is identical in the native `oxy` binary and the browser sandbox emulator, and the TypeScript shape is generated into `src/bindings/SuccessEnvelope.ts`.
 
@@ -230,8 +230,20 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy stop` | `oxy.stop` | 1 | `{ action: "stopped" \| "noop", stoppedCount }`; `noop` only for `--if-running` on an idle timer |
 | `oxy switch <task>` | `oxy.switch` | 1 | `{ action: "switched", taskId, timeLogId }` |
 | `oxy status` | `oxy.status` | 1 | `{ activeTaskIds: string[], count, running }` |
+| `oxy config ls` | `oxy.config.list` | 1 | `{ items: { key, value }[] }`; lists only keys persisted in SQLite, so an unset `cli_machine_locale` is absent |
+| `oxy config get <key>` | `oxy.config.get` | 1 | `{ key, value }`; `cli_machine_locale` returns its effective default `en` when unset |
+| `oxy config set <key> <value>` | `oxy.config.set` | 1 | `{ key, value }` with the normalized value |
+| `oxy sink ls` | `oxy.sink.list` | 1 | `{ items: { name, sinkType, target, hasToken, enabled, createdAt }[] }`; the webhook token itself is never printed, only whether one is stored (`hasToken`) |
+| `oxy sink set-csv` / `oxy sink set-webhook` | `oxy.sink.set` | 1 | `{ sinkType: "csv" \| "webhook", target }` |
+| `oxy sink test` | `oxy.sink.test` | 1 | `{ items: { name, sinkType, target, passed, detail }[] }`; a failing sink makes the command fail instead |
+| `oxy mask ls` | `oxy.mask.list` | 1 | `{ items: { name, template, createdAt }[] }` |
+| `oxy mask set <name> <template>` | `oxy.mask.set` | 1 | `{ name, template }` |
+| `oxy mask rm <name>` | `oxy.mask.remove` | 1 | `{ name }` |
+| `oxy doctor` | `oxy.doctor` | 1 | `{ overallStatus: "ok", dbPath, dbSizeBytes, checks: { name, status, message }[] }`; emitted only when every check passes, otherwise the command fails as before |
+| `oxy db backup <path>` | `oxy.db.backup` | 1 | `{ destination }` |
+| `oxy db restore <path>` | `oxy.db.restore` | 1 | `{ source }` |
 
-The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy today` and `oxy` (dashboard) are not migrated yet and keep their snake_case keys until their own envelope change.
+The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy today`, the dashboard and the entity commands (`project`, `task`, `log`) are not migrated yet and keep their existing shapes until their own envelope change. The sandbox emulator routes only the project, task, log, flow and `today` commands, so the subsystem commands above exist only in the native `oxy` binary.
 
 ### Billing Configuration (Implemented)
 
@@ -464,7 +476,7 @@ TimeLog/
 │       ├── flow/                        # Ergonomic, interactive, and subsystem flow tests
 │       ├── ipc_cli_test.rs              # Tauri IPC cli_execute bridge tests
 │       ├── parity/parity_matrix_test.rs # 39 cross-runtime parity vectors (Rust side)
-│       └── subsystems/                  # doctor_test.rs, db_test.rs, masks_test.rs, reports_export_test.rs, export_to_file_test.rs, sinks_test.rs, config_test.rs
+│       └── subsystems/                  # doctor_test.rs, db_test.rs, masks_test.rs, reports_export_test.rs, export_to_file_test.rs, sinks_test.rs, config_test.rs, envelope_contract_test.rs
 └── tests/
     ├── unit/features/cli/               # In-app CLI unit tests (CliDrawer, CliInterface, context, sandbox, utils)
     ├── integration/cli/

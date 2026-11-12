@@ -75,4 +75,21 @@ fn export_bindings() {
     StopPayload::export_all_to(BINDINGS_DIR).unwrap();
     SwitchPayload::export_all_to(BINDINGS_DIR).unwrap();
     StatusPayload::export_all_to(BINDINGS_DIR).unwrap();
+    HealthStatus::export_all_to(BINDINGS_DIR).unwrap();
+    ConfigEntry::export_all_to(BINDINGS_DIR).unwrap();
+    ConfigListPayload::export_all_to(BINDINGS_DIR).unwrap();
+    ConfigValuePayload::export_all_to(BINDINGS_DIR).unwrap();
+    SinkEntry::export_all_to(BINDINGS_DIR).unwrap();
+    SinkListPayload::export_all_to(BINDINGS_DIR).unwrap();
+    SinkSetPayload::export_all_to(BINDINGS_DIR).unwrap();
+    SinkTestResult::export_all_to(BINDINGS_DIR).unwrap();
+    SinkTestPayload::export_all_to(BINDINGS_DIR).unwrap();
+    MaskEntry::export_all_to(BINDINGS_DIR).unwrap();
+    MaskListPayload::export_all_to(BINDINGS_DIR).unwrap();
+    MaskSetPayload::export_all_to(BINDINGS_DIR).unwrap();
+    MaskRemovePayload::export_all_to(BINDINGS_DIR).unwrap();
+    DoctorCheck::export_all_to(BINDINGS_DIR).unwrap();
+    DoctorPayload::export_all_to(BINDINGS_DIR).unwrap();
+    DbBackupPayload::export_all_to(BINDINGS_DIR).unwrap();
+    DbRestorePayload::export_all_to(BINDINGS_DIR).unwrap();
 }

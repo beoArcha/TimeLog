@@ -74,8 +74,8 @@ fn test_given_configured_persistence_when_config_get_non_existent_key_then_fails
 }
 
 #[test]
-fn test_given_configured_persistence_when_config_list_in_machine_mode_then_returns_clean_json_map()
-{
+fn test_given_configured_persistence_when_config_list_in_machine_mode_then_returns_items_in_envelope(
+) {
     // Given
     let (_conn, config, _temp) = setup_persistence_test("test_subsystem_config_ls_machine");
     let persistence = Persistence::new(&config).expect("failed to create persistence");
@@ -95,9 +95,10 @@ fn test_given_configured_persistence_when_config_list_in_machine_mode_then_retur
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
-    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON map");
-    assert!(parsed.is_object());
-    assert_eq!(parsed["theme"], "cyberpunk");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["schema"], "oxy.config.list");
+    let items = parsed["data"]["items"].as_array().expect("items array");
+    assert!(items.contains(&serde_json::json!({ "key": "theme", "value": "cyberpunk" })));
 }
 
 #[test]
@@ -119,8 +120,9 @@ fn test_given_configured_persistence_when_config_get_in_machine_mode_then_return
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
-    assert_eq!(parsed["key"], "editor");
-    assert_eq!(parsed["value"], "nano");
+    assert_eq!(parsed["schema"], "oxy.config.get");
+    assert_eq!(parsed["data"]["key"], "editor");
+    assert_eq!(parsed["data"]["value"], "nano");
 }
 
 #[test]
@@ -141,9 +143,9 @@ fn test_given_configured_persistence_when_config_set_in_machine_mode_then_return
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["key"], "locale");
-    assert_eq!(parsed["value"], "pl");
+    assert_eq!(parsed["schema"], "oxy.config.set");
+    assert_eq!(parsed["data"]["key"], "locale");
+    assert_eq!(parsed["data"]["value"], "pl");
 }
 
 #[test]
@@ -246,8 +248,8 @@ fn test_given_unset_cli_machine_locale_when_resolved_or_get_then_defaults_to_en(
             .unwrap();
     let get_m_result = handle_cli(get_m_args, &persistence, &engine).unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&format!("{}", get_m_result)).unwrap();
-    assert_eq!(parsed["key"], "cli_machine_locale");
-    assert_eq!(parsed["value"], "en");
+    assert_eq!(parsed["data"]["key"], "cli_machine_locale");
+    assert_eq!(parsed["data"]["value"], "en");
 }
 
 #[test]
@@ -472,8 +474,8 @@ fn test_given_different_db_flags_when_commands_executed_then_resolves_and_applie
     assert!(res_a_m.success);
     let parsed_a: serde_json::Value =
         serde_json::from_str(&res_a_m.stdout).expect("valid json from DB A");
-    assert_eq!(parsed_a["key"], "cli_machine_locale");
-    assert_eq!(parsed_a["value"], "de");
+    assert_eq!(parsed_a["data"]["key"], "cli_machine_locale");
+    assert_eq!(parsed_a["data"]["value"], "de");
 
     // Verify passing --db <DB_B> loads DB B and resolves "ja"
     let cmd_b = format!("oxy --db \"{}\" config get cli_machine_locale", db_b_str);
@@ -498,8 +500,8 @@ fn test_given_different_db_flags_when_commands_executed_then_resolves_and_applie
     assert!(res_b_m.success);
     let parsed_b: serde_json::Value =
         serde_json::from_str(&res_b_m.stdout).expect("valid json from DB B");
-    assert_eq!(parsed_b["key"], "cli_machine_locale");
-    assert_eq!(parsed_b["value"], "ja");
+    assert_eq!(parsed_b["data"]["key"], "cli_machine_locale");
+    assert_eq!(parsed_b["data"]["value"], "ja");
 
     // Verify error handling in machine mode resolves machine locale from the respective database
     let cmd_err_a = format!(
@@ -593,8 +595,8 @@ fn test_given_compiled_oxy_binary_process_when_executed_with_db_flags_then_respe
     let stdout_a_m = String::from_utf8_lossy(&out_a_m.stdout);
     let parsed_a: serde_json::Value =
         serde_json::from_str(stdout_a_m.trim()).expect("valid json in machine mode");
-    assert_eq!(parsed_a["key"], "cli_machine_locale");
-    assert_eq!(parsed_a["value"], "de");
+    assert_eq!(parsed_a["data"]["key"], "cli_machine_locale");
+    assert_eq!(parsed_a["data"]["value"], "de");
     // In successful machine mode, stderr must not contain error logs
     let stderr_a_m = String::from_utf8_lossy(&out_a_m.stderr);
     assert!(!stderr_a_m.contains("ERROR"));
@@ -614,8 +616,8 @@ fn test_given_compiled_oxy_binary_process_when_executed_with_db_flags_then_respe
     let stdout_b_m = String::from_utf8_lossy(&out_b_m.stdout);
     let parsed_b: serde_json::Value =
         serde_json::from_str(stdout_b_m.trim()).expect("valid json in machine mode");
-    assert_eq!(parsed_b["key"], "cli_machine_locale");
-    assert_eq!(parsed_b["value"], "ja");
+    assert_eq!(parsed_b["data"]["key"], "cli_machine_locale");
+    assert_eq!(parsed_b["data"]["value"], "ja");
 
     // 5. Test machine mode error handling and stream discipline (stderr has envelope, stdout clean)
     let out_err = Command::new(oxy_bin)

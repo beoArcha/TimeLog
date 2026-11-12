@@ -3,24 +3,20 @@ use super::constants::{
 };
 use crate::cli::error::CliError;
 use crate::cli::parser::DoctorArgs;
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use serde::{Deserialize, Serialize};
+use crate::types::{DoctorCheck, DoctorPayload, HealthStatus};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DoctorItemDto {
-    pub name: String,
-    pub status: String,
-    pub message: String,
-}
+const SCHEMA_DOCTOR: EnvelopeSchema = EnvelopeSchema::new("oxy.doctor", 1);
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DoctorReportDto {
-    pub overall_status: String,
-    pub db_path: String,
-    pub db_size_bytes: u64,
-    pub checks: Vec<DoctorItemDto>,
+fn check(name: &str, status: HealthStatus, message: impl Into<String>) -> DoctorCheck {
+    DoctorCheck {
+        name: name.to_string(),
+        status,
+        message: message.into(),
+    }
 }
 
 pub fn handle(
@@ -50,40 +46,36 @@ pub fn handle(
         } else {
             format!("Accessible, size: {} bytes", db_size)
         };
-        checks.push(DoctorItemDto {
-            name: "database_file".to_string(),
-            status: "ok".to_string(),
-            message: msg,
-        });
+        checks.push(check("database_file", HealthStatus::Ok, msg));
     } else {
-        checks.push(DoctorItemDto {
-            name: "database_file".to_string(),
-            status: "error".to_string(),
-            message: "Database file does not exist on disk".to_string(),
-        });
+        checks.push(check(
+            "database_file",
+            HealthStatus::Error,
+            "Database file does not exist on disk",
+        ));
     }
 
     match persistence.core.check_integrity() {
         Ok(res) if res == "ok" => {
-            checks.push(DoctorItemDto {
-                name: "sqlite_integrity".to_string(),
-                status: "ok".to_string(),
-                message: "PRAGMA integrity_check passed".to_string(),
-            });
+            checks.push(check(
+                "sqlite_integrity",
+                HealthStatus::Ok,
+                "PRAGMA integrity_check passed",
+            ));
         }
         Ok(other) => {
-            checks.push(DoctorItemDto {
-                name: "sqlite_integrity".to_string(),
-                status: "error".to_string(),
-                message: format!("Integrity check warning: {other}"),
-            });
+            checks.push(check(
+                "sqlite_integrity",
+                HealthStatus::Error,
+                format!("Integrity check warning: {other}"),
+            ));
         }
         Err(e) => {
-            checks.push(DoctorItemDto {
-                name: "sqlite_integrity".to_string(),
-                status: "error".to_string(),
-                message: format!("Integrity check execution failed: {e}"),
-            });
+            checks.push(check(
+                "sqlite_integrity",
+                HealthStatus::Error,
+                format!("Integrity check execution failed: {e}"),
+            ));
         }
     }
 
@@ -104,25 +96,25 @@ pub fn handle(
                 .collect();
 
             if missing.is_empty() {
-                checks.push(DoctorItemDto {
-                    name: "schema_tables".to_string(),
-                    status: "ok".to_string(),
-                    message: format!("All core tables verified ({} total)", tables.len()),
-                });
+                checks.push(check(
+                    "schema_tables",
+                    HealthStatus::Ok,
+                    format!("All core tables verified ({} total)", tables.len()),
+                ));
             } else {
-                checks.push(DoctorItemDto {
-                    name: "schema_tables".to_string(),
-                    status: "error".to_string(),
-                    message: format!("Missing required tables: {:?}", missing),
-                });
+                checks.push(check(
+                    "schema_tables",
+                    HealthStatus::Error,
+                    format!("Missing required tables: {:?}", missing),
+                ));
             }
         }
         Err(e) => {
-            checks.push(DoctorItemDto {
-                name: "schema_tables".to_string(),
-                status: "error".to_string(),
-                message: format!("Failed to read schema tables: {e}"),
-            });
+            checks.push(check(
+                "schema_tables",
+                HealthStatus::Error,
+                format!("Failed to read schema tables: {e}"),
+            ));
         }
     }
 
@@ -141,32 +133,36 @@ pub fn handle(
                 }
             }
             if sinks_ok {
-                checks.push(DoctorItemDto {
-                    name: "external_sinks".to_string(),
-                    status: "ok".to_string(),
-                    message: format!("{} configured sink(s) verified", sinks.len()),
-                });
+                checks.push(check(
+                    "external_sinks",
+                    HealthStatus::Ok,
+                    format!("{} configured sink(s) verified", sinks.len()),
+                ));
             } else {
-                checks.push(DoctorItemDto {
-                    name: "external_sinks".to_string(),
-                    status: "error".to_string(),
-                    message: "One or more sinks have invalid destination configuration".to_string(),
-                });
+                checks.push(check(
+                    "external_sinks",
+                    HealthStatus::Error,
+                    "One or more sinks have invalid destination configuration",
+                ));
             }
         }
         Err(e) => {
-            checks.push(DoctorItemDto {
-                name: "external_sinks".to_string(),
-                status: "error".to_string(),
-                message: format!("Failed to inspect sinks: {e}"),
-            });
+            checks.push(check(
+                "external_sinks",
+                HealthStatus::Error,
+                format!("Failed to inspect sinks: {e}"),
+            ));
         }
     }
 
-    let all_ok = checks.iter().all(|c| c.status == "ok");
-    let overall_status = if all_ok { "ok" } else { "error" }.to_string();
+    let all_ok = checks.iter().all(|c| c.status == HealthStatus::Ok);
+    let overall_status = if all_ok {
+        HealthStatus::Ok
+    } else {
+        HealthStatus::Error
+    };
 
-    let report = DoctorReportDto {
+    let report = DoctorPayload {
         overall_status,
         db_path: db_path_str.clone(),
         db_size_bytes: db_size,
@@ -174,14 +170,14 @@ pub fn handle(
     };
 
     if is_machine {
-        let json_str = serde_json::to_string_pretty(&report)?;
         if !all_ok {
+            let json_str = serde_json::to_string_pretty(&report)?;
             return Err(CliError::business_custom(format!(
                 "{}: {}",
                 ERR_DOCTOR_FAILED, json_str
             )));
         }
-        return Ok(CliOutput::Json(json_str));
+        return CliOutput::envelope(SCHEMA_DOCTOR, &report);
     }
 
     let mut out = String::from(HEADER_DOCTOR);
@@ -192,7 +188,11 @@ pub fn handle(
     );
 
     for c in &report.checks {
-        let badge = if c.status == "ok" { "OK" } else { "FAIL" };
+        let badge = if c.status == HealthStatus::Ok {
+            "OK"
+        } else {
+            "FAIL"
+        };
         out.push_str(
             &FORMAT_DOCTOR_ITEM
                 .replacen("{}", badge, 1)

@@ -4,9 +4,14 @@ use super::constants::{
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{DbArgs, DbSubcommand};
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::persistence::Persistence;
+use crate::types::{DbBackupPayload, DbRestorePayload};
 use std::path::Path;
+
+const SCHEMA_BACKUP: EnvelopeSchema = EnvelopeSchema::new("oxy.db.backup", 1);
+const SCHEMA_RESTORE: EnvelopeSchema = EnvelopeSchema::new("oxy.db.restore", 1);
 
 pub fn handle(
     args: DbArgs,
@@ -45,12 +50,12 @@ fn handle_backup(
     persistence.core.backup_database(target_path)?;
 
     if is_machine {
-        let json = serde_json::json!({
-            "status": "ok",
-            "action": "backup",
-            "destination": trimmed
-        });
-        return Ok(CliOutput::Json(json.to_string()));
+        return CliOutput::envelope(
+            SCHEMA_BACKUP,
+            &DbBackupPayload {
+                destination: trimmed.to_string(),
+            },
+        );
     }
 
     Ok(CliOutput::Success(
@@ -80,12 +85,12 @@ fn handle_restore(
     persistence.core.restore_database(source_path)?;
 
     if is_machine {
-        let json = serde_json::json!({
-            "status": "ok",
-            "action": "restore",
-            "source": trimmed
-        });
-        return Ok(CliOutput::Json(json.to_string()));
+        return CliOutput::envelope(
+            SCHEMA_RESTORE,
+            &DbRestorePayload {
+                source: trimmed.to_string(),
+            },
+        );
     }
 
     Ok(CliOutput::Success(
