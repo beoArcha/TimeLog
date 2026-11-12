@@ -34,6 +34,12 @@ pub enum EngineError {
 
     #[error("Operation failed: {0}")]
     OperationFailed(String),
+
+    #[error("Invalid timezone: '{0}'")]
+    InvalidTimezone(String),
+
+    #[error("Invalid range input: {0}")]
+    InvalidRangeInput(String),
 }
 
 impl EngineError {
@@ -49,6 +55,8 @@ impl EngineError {
             Self::ParseTime(_) => "DOM_INVALID_TIMESTAMP",
             Self::Validation(_) => "DOM_BUSINESS_VIOLATION",
             Self::OperationFailed(_) => "ENG_OPERATION_FAILED",
+            Self::InvalidTimezone(_) => "DOM_INVALID_TIMEZONE",
+            Self::InvalidRangeInput(_) => "DOM_INVALID_RANGE_INPUT",
             Self::Persistence(_) => "ENG_PERSISTENCE_ERROR",
         }
     }
@@ -78,6 +86,8 @@ impl PartialEq for EngineError {
             (Self::Validation(v1), Self::Validation(v2)) => v1 == v2,
             (Self::ParseTime(p1), Self::ParseTime(p2)) => p1 == p2,
             (Self::OperationFailed(o1), Self::OperationFailed(o2)) => o1 == o2,
+            (Self::InvalidTimezone(t1), Self::InvalidTimezone(t2)) => t1 == t2,
+            (Self::InvalidRangeInput(r1), Self::InvalidRangeInput(r2)) => r1 == r2,
             (Self::Persistence(p1), Self::Persistence(p2)) => p1 == p2,
             (Self::TaskAlreadyCompleted(t1), Self::TaskAlreadyCompleted(t2)) => t1 == t2,
             _ => false,

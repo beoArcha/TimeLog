@@ -135,14 +135,14 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Task** | List | `oxy task list [-p <project-id>]` | Supports filtering and sorting | Hierarchical list with subtasks |
 | **Task** | Billing rate | `oxy task rate <id> <amount\|inherit\|none> [--currency <CODE>] [--cents]` | Sets override, clears it to inherit, or applies currency override | N/A (explicit arguments) |
 | **Subtask** | Create | `oxy subtask create -t <parent-id> "<name>"` | Links subtask to parent | Prompts for parent task selection |
-| **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite | Displays green running timer badge |
-| **Timer** | Stop | `oxy timer stop [--all]` | Idempotent timer stop (`--all` stops all active timers) | Prints total elapsed time for session |
+| **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite; starting an already running task is a no-op (`already_running`), and tasks stopped as a side effect are reported (`stopped_task_ids`) | Displays green running timer badge |
+| **Timer** | Stop | `oxy timer stop [--all] [--if-running]` | Stops the active timer; fails with `ENG_TIMER_INACTIVE` (exit 5) when nothing is running. `--if-running` succeeds as a no-op instead; `--all` stops all active timers | Prints total elapsed time for session |
 | **Timer** | Switch | `oxy switch <new-task-id>` | Atomic stop old + start new ($<100\text{ms}$) | Explains previous and new task state |
 | **Timer** | Quick-Log | `oxy timer log <task-id> <duration> ["<note>"]` | Direct retroactive log insertion | Confirms retroactive time captured |
 | **Timer** | Status | `oxy status` | Single-line or JSON status | Visual card with live running timer |
 | **Log** | Add | `oxy log add <target> [<duration>] ["<note>"] [--from <iso>] [--to <iso>]` | Direct retroactive log insertion | Confirms retroactive time captured |
 | **Log** | Edit | `oxy log edit <id> [--duration <dur>] [--note <note>] [--start <iso>] [--end <iso>] [--task <target>] --reason <text>` | Updates time log with required audit reason (`--reason <text>` or `-r <text>`) | Prompts for edit fields and audit reason |
-| **Log** | List | `oxy log list [-p <proj>] [-t <task>] [--today\|--week\|--month] [--from <iso>] [--to <iso>] [--limit <n>]` | Filtered tabular or JSON list | Displays filtered log entries |
+| **Log** | List | `oxy log list [-p <proj>] [-t <task>] [--today\|--week\|--month] [--from <iso>] [--to <iso>] [--limit <n>]` | Filtered tabular or JSON list (no default limit in machine mode) | Displays filtered log entries (default 20 + footer in human mode) |
 | **Log** | Remove | `oxy log rm <id>` | Deletes time log entry | Confirms log removal |
 | **Report** | Tree | `oxy report --tree [--today\|--week\|--month]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
 | **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
@@ -260,7 +260,7 @@ The CLI enforces a **Dual-Layer Response Architecture**:
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-The envelope is `CliErrorEnvelope` in `src-tauri/src/cli/error/envelope.rs`; the user layer (`LocalizedUserMessage`) is optional and omitted in `--machine` mode.
+The envelope is `CliErrorEnvelope` in `src-tauri/src/cli/error/envelope.rs`; the user layer (`LocalizedUserMessage`) is optional and omitted in `--machine` mode. In machine mode parser errors are also returned as the JSON envelope (`CLI_SYNTAX_UNKNOWN_COMMAND` / `CLI_SYNTAX_INVALID_ARGS`, exit 2); help and version output are unaffected.
 
 ### Exit Codes
 
@@ -303,6 +303,8 @@ Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* ex
 | `mask` | `MSK_ALIAS_NOT_FOUND` | `2` | Action mask alias not found |
 | `mask` | `MSK_ALIAS_SYNTAX` | `2` | Invalid mask syntax |
 
+`--db` must point to an existing file. A missing file fails with `STO_SQLITE_INIT` (exit 3) before anything is created. Only `db restore` may create the target. Without `--db`, the default database is created on first run.
+
 ### Interactive Self-Healing in TTY
 
 In interactive human terminal mode, encountering an unknown entity or a missing required argument does not abort the shell. Instead, the prompter:
@@ -310,6 +312,8 @@ In interactive human terminal mode, encountering an unknown entity or a missing 
 1. Calculates Levenshtein distances ($\le 2$) against known entity names/commands.
 2. Displays the nearest matches in the user's localized language.
 3. Offers an interactive selector to pick the intended entity or create it on the spot.
+
+In `--json`/`--machine` mode, or in human mode with the global `--exact` flag, `-p`/`-t` and other targets resolve only by exact ID, unique ID prefix of ≥ 8 characters, or exact name (case-insensitive); fuzzy matching, substring matching, prefixes < 8 characters, and suggestions are human-mode only (without `--exact`).
 
 ---
 

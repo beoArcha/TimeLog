@@ -1,0 +1,890 @@
+{
+  "rangeVectors": [
+    {
+      "description": "today preset in UTC",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-11-11T00:00:00Z",
+        "to": "2026-11-12T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "today"
+      }
+    },
+    {
+      "description": "yesterday preset in UTC",
+      "request": {
+        "preset": "yesterday"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-11-10T00:00:00Z",
+        "to": "2026-11-11T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "yesterday"
+      }
+    },
+    {
+      "description": "week preset in UTC",
+      "request": {
+        "preset": "week"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-11-09T00:00:00Z",
+        "to": "2026-11-16T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "week"
+      }
+    },
+    {
+      "description": "lastWeek preset in UTC",
+      "request": {
+        "preset": "lastWeek"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-11-02T00:00:00Z",
+        "to": "2026-11-09T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "lastWeek"
+      }
+    },
+    {
+      "description": "month preset in UTC",
+      "request": {
+        "preset": "month"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-11-01T00:00:00Z",
+        "to": "2026-12-01T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "month"
+      }
+    },
+    {
+      "description": "lastMonth preset in UTC",
+      "request": {
+        "preset": "lastMonth"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-10-01T00:00:00Z",
+        "to": "2026-11-01T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "lastMonth"
+      }
+    },
+    {
+      "description": "all preset in UTC is unbounded",
+      "request": {
+        "preset": "all"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "timezone": "UTC",
+        "preset": "all"
+      }
+    },
+    {
+      "description": "today preset in Europe/Warsaw",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-10T23:00:00Z",
+        "to": "2026-11-11T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "today"
+      }
+    },
+    {
+      "description": "yesterday preset in Europe/Warsaw",
+      "request": {
+        "preset": "yesterday"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-09T23:00:00Z",
+        "to": "2026-11-10T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "yesterday"
+      }
+    },
+    {
+      "description": "week preset in Europe/Warsaw",
+      "request": {
+        "preset": "week"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-08T23:00:00Z",
+        "to": "2026-11-15T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "week"
+      }
+    },
+    {
+      "description": "lastWeek preset in Europe/Warsaw",
+      "request": {
+        "preset": "lastWeek"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-01T23:00:00Z",
+        "to": "2026-11-08T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "lastWeek"
+      }
+    },
+    {
+      "description": "month preset in Europe/Warsaw",
+      "request": {
+        "preset": "month"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-10-31T23:00:00Z",
+        "to": "2026-11-30T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "month"
+      }
+    },
+    {
+      "description": "lastMonth preset in Europe/Warsaw",
+      "request": {
+        "preset": "lastMonth"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-09-30T22:00:00Z",
+        "to": "2026-10-31T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "lastMonth"
+      }
+    },
+    {
+      "description": "all preset in Europe/Warsaw is unbounded",
+      "request": {
+        "preset": "all"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "timezone": "Europe/Warsaw",
+        "preset": "all"
+      }
+    },
+    {
+      "description": "today preset in America/New_York",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-11-11T05:00:00Z",
+        "to": "2026-11-12T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "today"
+      }
+    },
+    {
+      "description": "yesterday preset in America/New_York",
+      "request": {
+        "preset": "yesterday"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-11-10T05:00:00Z",
+        "to": "2026-11-11T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "yesterday"
+      }
+    },
+    {
+      "description": "week preset in America/New_York",
+      "request": {
+        "preset": "week"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-11-09T05:00:00Z",
+        "to": "2026-11-16T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "week"
+      }
+    },
+    {
+      "description": "lastWeek preset in America/New_York",
+      "request": {
+        "preset": "lastWeek"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-11-02T05:00:00Z",
+        "to": "2026-11-09T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "lastWeek"
+      }
+    },
+    {
+      "description": "month preset in America/New_York",
+      "request": {
+        "preset": "month"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-11-01T04:00:00Z",
+        "to": "2026-12-01T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "month"
+      }
+    },
+    {
+      "description": "lastMonth preset in America/New_York",
+      "request": {
+        "preset": "lastMonth"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-10-01T04:00:00Z",
+        "to": "2026-11-01T04:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "lastMonth"
+      }
+    },
+    {
+      "description": "all preset in America/New_York is unbounded",
+      "request": {
+        "preset": "all"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "timezone": "America/New_York",
+        "preset": "all"
+      }
+    },
+    {
+      "description": "today on the Warsaw DST end day spans 25 hours",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-10-25T12:00:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-10-24T22:00:00Z",
+        "to": "2026-10-25T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "today"
+      }
+    },
+    {
+      "description": "today on the Warsaw DST start day spans 23 hours",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-03-29T12:00:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-03-28T23:00:00Z",
+        "to": "2026-03-29T22:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "today"
+      }
+    },
+    {
+      "description": "week containing the Warsaw DST end keeps Monday-start local midnights",
+      "request": {
+        "preset": "week"
+      },
+      "now": "2026-10-25T12:00:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-10-18T22:00:00Z",
+        "to": "2026-10-25T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "week"
+      }
+    },
+    {
+      "description": "today in Santiago starts at the first existing minute after the nonexistent midnight",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-09-06T12:00:00Z",
+      "timeZone": "America/Santiago",
+      "expected": {
+        "from": "2026-09-06T04:00:00Z",
+        "to": "2026-09-07T03:00:00Z",
+        "timezone": "America/Santiago",
+        "preset": "today"
+      }
+    },
+    {
+      "description": "late-night UTC is already tomorrow in Warsaw",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-11-11T23:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-11T23:00:00Z",
+        "to": "2026-11-12T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "today"
+      }
+    },
+    {
+      "description": "late-night UTC is still yesterday in New York",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-11-12T02:00:00Z",
+      "timeZone": "America/New_York",
+      "expected": {
+        "from": "2026-11-11T05:00:00Z",
+        "to": "2026-11-12T05:00:00Z",
+        "timezone": "America/New_York",
+        "preset": "today"
+      }
+    },
+    {
+      "description": "Sunday night UTC starts the next Warsaw week",
+      "request": {
+        "preset": "week"
+      },
+      "now": "2026-11-15T23:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-15T23:00:00Z",
+        "to": "2026-11-22T23:00:00Z",
+        "timezone": "Europe/Warsaw",
+        "preset": "week"
+      }
+    },
+    {
+      "description": "last month in January wraps to December of the previous year",
+      "request": {
+        "preset": "lastMonth"
+      },
+      "now": "2026-01-15T12:00:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2025-12-01T00:00:00Z",
+        "to": "2026-01-01T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "lastMonth"
+      }
+    },
+    {
+      "description": "month in December ends at the next January",
+      "request": {
+        "preset": "month"
+      },
+      "now": "2026-12-20T12:00:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-12-01T00:00:00Z",
+        "to": "2027-01-01T00:00:00Z",
+        "timezone": "UTC",
+        "preset": "month"
+      }
+    },
+    {
+      "description": "custom naive bound in a DST overlap resolves to the earlier instant",
+      "request": {
+        "from": "2026-10-25T02:30:00",
+        "to": "2026-10-25T04:00:00"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-10-25T00:30:00Z",
+        "to": "2026-10-25T03:00:00Z",
+        "timezone": "Europe/Warsaw"
+      }
+    },
+    {
+      "description": "custom naive bound in a DST gap resolves to the first existing local minute",
+      "request": {
+        "from": "2026-03-29T02:30:00",
+        "to": "2026-03-29T05:00:00"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-03-29T01:00:00Z",
+        "to": "2026-03-29T03:00:00Z",
+        "timezone": "Europe/Warsaw"
+      }
+    },
+    {
+      "description": "custom date-only bounds make `to` the following local midnight",
+      "request": {
+        "from": "2026-11-02",
+        "to": "2026-11-04"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-01T23:00:00Z",
+        "to": "2026-11-04T23:00:00Z",
+        "timezone": "Europe/Warsaw"
+      }
+    },
+    {
+      "description": "custom date-only bounds on the same DST end day cover 25 hours",
+      "request": {
+        "from": "2026-10-25",
+        "to": "2026-10-25"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-10-24T22:00:00Z",
+        "to": "2026-10-25T23:00:00Z",
+        "timezone": "Europe/Warsaw"
+      }
+    },
+    {
+      "description": "custom naive bounds accept both separators and are local time",
+      "request": {
+        "from": "2026-11-02 08:15:00",
+        "to": "2026-11-02T17:45:30"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-02T07:15:00Z",
+        "to": "2026-11-02T16:45:30Z",
+        "timezone": "Europe/Warsaw"
+      }
+    },
+    {
+      "description": "custom offset bounds are used as-is",
+      "request": {
+        "from": "2026-11-02T08:00:00+05:30",
+        "to": "2026-11-02T12:00:00Z"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-11-02T02:30:00Z",
+        "to": "2026-11-02T12:00:00Z",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "description": "custom offset bounds ignore the selected timezone",
+      "request": {
+        "from": "2026-11-02T08:00:00-05:00",
+        "to": "2026-11-02T20:00:00-05:00"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-02T13:00:00Z",
+        "to": "2026-11-03T01:00:00Z",
+        "timezone": "Europe/Warsaw"
+      }
+    },
+    {
+      "description": "fractional seconds are truncated in the output",
+      "request": {
+        "from": "2026-11-02T08:00:00.750Z",
+        "to": "2026-11-02T09:00:00.250Z"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-11-02T08:00:00Z",
+        "to": "2026-11-02T09:00:00Z",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "description": "fractional RFC3339 bound is truncated to whole seconds in the output",
+      "request": {
+        "from": "2026-03-05T10:00:00.750Z",
+        "to": "2026-03-05T11:00:00Z"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-03-05T10:00:00Z",
+        "to": "2026-03-05T11:00:00Z",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "description": "custom bounds are trimmed before parsing",
+      "request": {
+        "from": " 2026-11-02 ",
+        "to": " 2026-11-03 "
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Europe/Warsaw",
+      "expected": {
+        "from": "2026-11-01T23:00:00Z",
+        "to": "2026-11-03T23:00:00Z",
+        "timezone": "Europe/Warsaw"
+      }
+    },
+    {
+      "description": "custom range with only from is unbounded above",
+      "request": {
+        "from": "2026-11-02"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "from": "2026-11-02T00:00:00Z",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "description": "custom range with only to is unbounded below",
+      "request": {
+        "to": "2026-11-02"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "to": "2026-11-03T00:00:00Z",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "description": "custom range without bounds is unbounded on both sides",
+      "request": {},
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expected": {
+        "timezone": "UTC"
+      }
+    },
+    {
+      "description": "preset combined with from is rejected",
+      "request": {
+        "preset": "today",
+        "from": "2026-11-02"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "preset combined with to is rejected",
+      "request": {
+        "preset": "week",
+        "to": "2026-11-02"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "preset combined with a blank from is still rejected",
+      "request": {
+        "preset": "today",
+        "from": ""
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "from equal to to is rejected",
+      "request": {
+        "from": "2026-11-02T10:00:00Z",
+        "to": "2026-11-02T10:00:00Z"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "from after to is rejected",
+      "request": {
+        "from": "2026-11-05",
+        "to": "2026-11-02"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "unparseable bound is rejected",
+      "request": {
+        "from": "yesterday"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "blank from is rejected",
+      "request": {
+        "from": ""
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "whitespace-only to is rejected",
+      "request": {
+        "to": "   "
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "nonexistent calendar day is rejected",
+      "request": {
+        "from": "2026-02-30"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "hour 24 is rejected",
+      "request": {
+        "from": "2026-03-05T24:00:00"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "offset without a colon is rejected",
+      "request": {
+        "from": "2026-03-05T10:00:00+0100"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "unpadded date is rejected",
+      "request": {
+        "from": "2026-3-5"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "unpadded time fields are rejected",
+      "request": {
+        "from": "2026-03-05T1:2:3"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "signed year is rejected",
+      "request": {
+        "from": "+2026-03-05"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "negative year is rejected",
+      "request": {
+        "to": "-2026-03-05"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "leap second in an RFC3339 bound is rejected",
+      "request": {
+        "from": "2026-03-05T23:59:60Z"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "leap second with an offset is rejected",
+      "request": {
+        "to": "2026-03-06T00:59:60+01:00"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "leap second in a naive bound is rejected",
+      "request": {
+        "from": "2026-03-05T23:59:60"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "leap second in a space-separated naive bound is rejected",
+      "request": {
+        "from": "2026-03-05 23:59:60"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "bounds equal after sub-second truncation are rejected",
+      "request": {
+        "from": "2026-03-05T10:00:00.500Z",
+        "to": "2026-03-05T10:00:00.900Z"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "UTC",
+      "expectedErrorCode": "DOM_INVALID_RANGE_INPUT"
+    },
+    {
+      "description": "timezone name in the wrong letter case is rejected",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "europe/warsaw",
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    },
+    {
+      "description": "unknown timezone name is rejected",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "Mars/Olympus",
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    },
+    {
+      "description": "numeric offset is not a timezone name",
+      "request": {
+        "preset": "today"
+      },
+      "now": "2026-11-11T21:30:00Z",
+      "timeZone": "+01:00",
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    }
+  ],
+  "timezoneVectors": [
+    {
+      "description": "explicit wins over setting",
+      "explicit": "America/New_York",
+      "setting": "Europe/Warsaw",
+      "expected": "America/New_York"
+    },
+    {
+      "description": "setting is used when explicit is absent",
+      "explicit": null,
+      "setting": "Europe/Warsaw",
+      "expected": "Europe/Warsaw"
+    },
+    {
+      "description": "blank explicit falls back to the setting",
+      "explicit": "  ",
+      "setting": "Asia/Tokyo",
+      "expected": "Asia/Tokyo"
+    },
+    {
+      "description": "valid name is echoed back trimmed",
+      "explicit": "  Europe/Warsaw ",
+      "setting": null,
+      "expected": "Europe/Warsaw"
+    },
+    {
+      "description": "UTC is a valid name",
+      "explicit": "UTC",
+      "setting": null,
+      "expected": "UTC"
+    },
+    {
+      "description": "link name keeps the spelling it was given",
+      "explicit": "US/Eastern",
+      "setting": null,
+      "expected": "US/Eastern"
+    },
+    {
+      "description": "Etc/UTC keeps the spelling it was given",
+      "explicit": "Etc/UTC",
+      "setting": null,
+      "expected": "Etc/UTC"
+    },
+    {
+      "description": "invalid explicit is not rescued by a valid setting",
+      "explicit": "Mars/Olympus",
+      "setting": "Europe/Warsaw",
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    },
+    {
+      "description": "invalid setting is rejected when explicit is absent",
+      "explicit": null,
+      "setting": "Mars/Olympus",
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    },
+    {
+      "description": "lowercase variant of a canonical name is rejected",
+      "explicit": "europe/warsaw",
+      "setting": null,
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    },
+    {
+      "description": "uppercase variant of a canonical name is rejected",
+      "explicit": "EUROPE/WARSAW",
+      "setting": null,
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    },
+    {
+      "description": "lowercase UTC is rejected",
+      "explicit": "utc",
+      "setting": null,
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    },
+    {
+      "description": "lowercase link name is rejected",
+      "explicit": "us/eastern",
+      "setting": null,
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    },
+    {
+      "description": "numeric offset is rejected",
+      "explicit": "+01:00",
+      "setting": null,
+      "expectedErrorCode": "DOM_INVALID_TIMEZONE"
+    }
+  ]
+}

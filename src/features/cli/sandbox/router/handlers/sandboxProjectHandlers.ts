@@ -1,7 +1,7 @@
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { resolveEntity } from '../../../resolver/entityResolver';
+import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
 
 export function handleProjectList(
   flags: Record<string, string | boolean>,
@@ -68,10 +68,11 @@ export function handleProjectRename(
     return;
   }
 
+  const isStrict = isStrictResolution(flags);
   const projects = store.getProjects();
-  const resolve = resolveEntity(projects, target, 'Project', (p) => p.id, (p) => p.name);
+  const resolve = resolveEntity(projects, target, 'Project', (p) => p.id, (p) => p.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Project "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 
@@ -104,9 +105,12 @@ export function handleProjectRename(
 
 export function handleProjectArchive(
   positionals: string[],
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
+  const isStrict = isStrictResolution(flags);
+
   const target = positionals[0];
   if (!target) {
     output.error('Error: Project target is required. Usage: project archive <target>', 'CLI_SYNTAX_INVALID_ARGS', 2);
@@ -114,9 +118,9 @@ export function handleProjectArchive(
   }
 
   const projects = store.getProjects();
-  const resolve = resolveEntity(projects, target, 'Project', (p) => p.id, (p) => p.name);
+  const resolve = resolveEntity(projects, target, 'Project', (p) => p.id, (p) => p.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Project "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 

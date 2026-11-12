@@ -1,7 +1,7 @@
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { resolveEntity } from '../../../resolver/entityResolver';
+import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
 
 export function parseDurationToSeconds(input: string): number {
   const trimmed = input.trim().toLowerCase();
@@ -20,6 +20,21 @@ export function parseDurationToSeconds(input: string): number {
   return isNaN(numeric) ? 0 : numeric * 60;
 }
 
+/**
+ * Mirrors MSG_LOGS_TRUNCATED_FOOTER in src-tauri/src/cli/handlers/constants.rs
+ */
+export const SANDBOX_LOGS_TRUNCATED_FOOTER =
+  '… {} more entries not shown. Use --limit <n> to show more.';
+
+const HUMAN_DEFAULT_LOG_LIMIT = 20;
+
+// Machine output must never drop entries silently, so only human output gets a default limit.
+function resolveEffectiveLimit(explicitLimit: number | undefined, isMachine: boolean): number | undefined {
+  if (explicitLimit !== undefined) return explicitLimit;
+  if (isMachine) return undefined;
+  return HUMAN_DEFAULT_LOG_LIMIT;
+}
+
 export function handleLogList(
   flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
@@ -34,34 +49,63 @@ export function handleLogList(
     logs = logs.filter((l) => l.startTime.startsWith(today));
   }
 
+  const isStrict = isStrictResolution(flags);
+  const isMachine = Boolean(flags['json'] || flags['machine']);
   const projFilter = (flags['p'] || flags['project']) as string | undefined;
   if (projFilter) {
-    const resolve = resolveEntity(projects, projFilter, 'Project', (p) => p.id, (p) => p.name);
-    if (resolve.entity) {
-      logs = logs.filter((l) => l.projectId === resolve.entity?.id);
+    const resolve = resolveEntity(projects, projFilter, 'Project', (p) => p.id, (p) => p.name, isStrict);
+    if (!resolve.entity) {
+      reportResolveFailure(resolve, output);
+      return;
     }
+    logs = logs.filter((l) => l.projectId === resolve.entity?.id);
   }
 
   const taskFilter = (flags['t'] || flags['task']) as string | undefined;
   if (taskFilter) {
-    const resolve = resolveEntity(tasks, taskFilter, 'Task', (t) => t.id, (t) => t.name);
-    if (resolve.entity) {
-      logs = logs.filter((l) => l.taskId === resolve.entity?.id);
+    const resolve = resolveEntity(tasks, taskFilter, 'Task', (t) => t.id, (t) => t.name, isStrict);
+    if (!resolve.entity) {
+      reportResolveFailure(resolve, output);
+      return;
     }
+    logs = logs.filter((l) => l.taskId === resolve.entity?.id);
   }
 
-  const limit = flags['limit'] ? parseInt(String(flags['limit']), 10) : 20;
-  logs = logs.slice(-limit);
+  let explicitLimit: number | undefined;
+  if (flags['limit'] !== undefined) {
+    const parsed = parseInt(String(flags['limit']), 10);
+    if (isNaN(parsed) || parsed < 1) {
+      output.error('Error: --limit must be at least 1.', 'CLI_SYNTAX_INVALID_ARGS', 2);
+      return;
+    }
+    explicitLimit = parsed;
+  }
 
-  if (logs.length === 0) {
-    output.info('No time logs found matching the filter.');
+  // Sort descending by startTime (newest first) to mirror native reference engine
+  const sortedLogs = [...logs].sort((a, b) => b.startTime.localeCompare(a.startTime));
+  const totalMatched = sortedLogs.length;
+
+  const effectiveLimit = resolveEffectiveLimit(explicitLimit, isMachine);
+  const visibleLogs = effectiveLimit !== undefined ? sortedLogs.slice(0, effectiveLimit) : sortedLogs;
+
+  if (visibleLogs.length === 0) {
+    if (isMachine) {
+      output.output('[]');
+    } else {
+      output.info('No time logs found matching the filter.');
+    }
+    return;
+  }
+
+  if (isMachine) {
+    output.output(JSON.stringify(visibleLogs, null, 2));
     return;
   }
 
   output.info('┌──────┬────────────────────────────────┬──────────────────────┬──────────┐');
   output.info('│ ID   │ Task                           │ Time (Start - End)   │ Duration │');
   output.info('├──────┼────────────────────────────────┼──────────────────────┼──────────┤');
-  for (const log of logs) {
+  for (const log of visibleLogs) {
     const task = tasks.find((t) => t.id === log.taskId);
     const startMs = new Date(log.startTime).getTime();
     const endMs = log.endTime ? new Date(log.endTime).getTime() : Date.now();
@@ -73,11 +117,16 @@ export function handleLogList(
     output.output(`│ ${idCol} │ ${nameCol} │ ${timeRange} │ ${durStr} │`);
   }
   output.info('└──────┴────────────────────────────────┴──────────────────────┴──────────┘');
+
+  if (totalMatched > visibleLogs.length) {
+    const notShown = totalMatched - visibleLogs.length;
+    output.info(SANDBOX_LOGS_TRUNCATED_FOOTER.replace('{}', String(notShown)));
+  }
 }
 
 export function handleLogAdd(
   positionals: string[],
-  _flags: Record<string, string | boolean>,
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
@@ -90,10 +139,11 @@ export function handleLogAdd(
     return;
   }
 
+  const isStrict = isStrictResolution(flags);
   const tasks = store.getTasks();
-  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 

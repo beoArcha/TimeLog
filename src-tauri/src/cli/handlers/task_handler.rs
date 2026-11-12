@@ -21,12 +21,13 @@ use crate::types::{Project, Task, TaskStatus};
 pub fn handle(
     args: TaskArgs,
     is_machine: bool,
+    strict: bool,
     is_quiet: bool,
     persistence: &Persistence,
 ) -> Result<CliOutput, CliError> {
     match args.command {
         TaskSubcommand::List { project, all } => {
-            list_tasks(persistence, project, all, is_machine, is_quiet)
+            list_tasks(persistence, project, all, is_machine, strict, is_quiet)
         }
         TaskSubcommand::Add {
             name,
@@ -42,25 +43,36 @@ pub fn handle(
             rate,
             rate_cents,
             is_machine,
+            strict,
         ),
-        TaskSubcommand::Done { target } => complete_task(persistence, &target, is_machine),
+        TaskSubcommand::Done { target } => complete_task(persistence, &target, is_machine, strict),
         TaskSubcommand::Rename { target, new_name } => {
-            rename_task(persistence, &target, new_name, is_machine)
+            rename_task(persistence, &target, new_name, is_machine, strict)
         }
         TaskSubcommand::Rate {
             target,
             rate,
             currency,
             cents,
-        } => set_task_rate(persistence, &target, rate, currency, cents, is_machine),
+        } => set_task_rate(
+            persistence,
+            &target,
+            rate,
+            currency,
+            cents,
+            is_machine,
+            strict,
+        ),
         TaskSubcommand::Reparent { target, new_parent } => {
-            reparent_task(persistence, &target, &new_parent, is_machine)
+            reparent_task(persistence, &target, &new_parent, is_machine, strict)
         }
         TaskSubcommand::Move {
             target,
             new_project,
-        } => move_task(persistence, &target, &new_project, is_machine),
-        TaskSubcommand::Archive { target } => archive_task(persistence, &target, is_machine),
+        } => move_task(persistence, &target, &new_project, is_machine, strict),
+        TaskSubcommand::Archive { target } => {
+            archive_task(persistence, &target, is_machine, strict)
+        }
     }
 }
 
@@ -69,9 +81,10 @@ fn list_tasks(
     project: Option<String>,
     all: bool,
     is_machine: bool,
+    strict: bool,
     is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
-    let filter_project_id = resolve_project_filter(persistence, project)?;
+    let filter_project_id = resolve_project_filter(persistence, project, strict)?;
     let all_tasks = persistence.tasks.get_all()?;
     let projects = persistence.projects.get_all()?;
 
@@ -93,10 +106,11 @@ fn list_tasks(
 fn resolve_project_filter(
     persistence: &Persistence,
     project: Option<String>,
+    strict: bool,
 ) -> Result<Option<String>, CliError> {
     match project {
         Some(target) => {
-            let resolver = EntityResolver::new(persistence);
+            let resolver = EntityResolver::with_mode(persistence, strict);
             let p = resolver.resolve_project(&target)?;
             Ok(Some(p.id))
         }
@@ -232,6 +246,7 @@ fn format_orphan_row(orphan: &Task) -> String {
         .replacen("{}", LABEL_SUBTASK_BADGE, 1)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn add_task(
     persistence: &Persistence,
     name: String,
@@ -240,6 +255,7 @@ fn add_task(
     rate: Option<String>,
     rate_cents: Option<u64>,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
     if rate.is_some() && rate_cents.is_some() {
         return Err(CliError::Syntax(CliSyntaxError::InvalidArgs(
@@ -251,7 +267,7 @@ fn add_task(
 
     let parent_task = match parent {
         Some(target) => {
-            let resolver = EntityResolver::with_mode(persistence, is_machine);
+            let resolver = EntityResolver::with_mode(persistence, strict);
             let p_task = resolver.resolve_task(&target)?;
             engine.validate_task_hierarchy(None, Some(&p_task.id))?;
             Some(p_task)
@@ -261,7 +277,7 @@ fn add_task(
 
     let project_id = match project {
         Some(target) => {
-            let resolver = EntityResolver::with_mode(persistence, is_machine);
+            let resolver = EntityResolver::with_mode(persistence, strict);
             let p = resolver.resolve_project(&target)?;
             if let Some(ref p_task) = parent_task {
                 if p_task.project_id != p.id {
@@ -306,9 +322,10 @@ fn set_task_rate(
     currency: Option<String>,
     cents: bool,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let mut task = resolver.resolve_task(target)?;
 
     let trimmed = rate.trim();
@@ -377,9 +394,10 @@ fn complete_task(
     persistence: &Persistence,
     target: &str,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let mut task = resolver.resolve_task(target)?;
     task.completed = true;
     task.status = Some(TaskStatus::Done);
@@ -406,9 +424,10 @@ fn rename_task(
     target: &str,
     new_name: String,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let mut task = resolver.resolve_task(target)?;
     let engine = Engine::new(persistence);
     task.name = engine.validate_task_name(&new_name)?;
@@ -430,9 +449,10 @@ fn archive_task(
     persistence: &Persistence,
     target: &str,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let task = resolver.resolve_task(target)?;
     persistence
         .tasks
@@ -457,9 +477,10 @@ fn reparent_task(
     target: &str,
     new_parent: &str,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let mut task = resolver.resolve_task(target)?;
 
     let is_detaching =
@@ -531,9 +552,10 @@ fn move_task(
     target: &str,
     new_project: &str,
     is_machine: bool,
+    strict: bool,
 ) -> Result<CliOutput, CliError> {
     validate_id(target)?;
-    let resolver = EntityResolver::with_mode(persistence, is_machine);
+    let resolver = EntityResolver::with_mode(persistence, strict);
     let mut task = resolver.resolve_task(target)?;
     let target_project = resolver.resolve_project(new_project)?;
 

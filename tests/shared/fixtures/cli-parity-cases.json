@@ -55,6 +55,17 @@
     "expectedPatterns": ["error", "not exist", "not found"]
   },
   {
+    "id": "start-already-running",
+    "description": "Start timer on a task that is already running is a no-op",
+    "commandFrontend": "start t1",
+    "commandRust": ["start", "t1"],
+    "initialActiveTaskId": "t1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["already tracking"]
+  },
+  {
     "id": "stop-active",
     "description": "Stop active running timer",
     "commandFrontend": "stop",
@@ -86,6 +97,17 @@
     "expectedExitCode": 0,
     "expectedErrorCode": null,
     "expectedPatterns": ["stop", "all"]
+  },
+  {
+    "id": "stop-if-running-idle",
+    "description": "Stop with --if-running when no timer is active succeeds as a no-op",
+    "commandFrontend": "stop --if-running",
+    "commandRust": ["stop", "--if-running"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["no active timer", "nothing to stop"]
   },
   {
     "id": "switch-valid",
@@ -396,6 +418,17 @@
     "expectedPatterns": ["error", "not found"]
   },
   {
+    "id": "log-list-limit-invalid",
+    "description": "Log list with limit 0 fails syntax validation across runtimes",
+    "commandFrontend": "log list --limit 0",
+    "commandRust": ["log", "list", "--limit", "0"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 2,
+    "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
+    "expectedPatterns": ["error", "limit"]
+  },
+  {
     "id": "unknown-command",
     "description": "Syntax rejection on unknown command",
     "commandFrontend": "unrecognized_command_xyz",
@@ -427,5 +460,49 @@
     "expectedExitCode": 2,
     "expectedErrorCode": "CLI_SYNTAX_INVALID_ARGS",
     "expectedPatterns": ["error", "unknown", "unrecognized"]
+  },
+  {
+    "id": "log-list-project-machine-fragment-fails",
+    "description": "Machine mode rejects project name fragments with entity not found error",
+    "commandFrontend": "log list -p Parity --json",
+    "commandRust": ["log", "list", "-p", "Parity", "--json"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found", "project", "parity"]
+  },
+  {
+    "id": "log-list-project-machine-exact-succeeds",
+    "description": "Machine mode resolves exact project name case-insensitively",
+    "commandFrontend": "log list -p \"parity project\" --json",
+    "commandRust": ["log", "list", "-p", "parity project", "--json"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["[]"]
+  },
+  {
+    "id": "log-list-project-human-fragment-succeeds",
+    "description": "Human mode resolves project by name fragment",
+    "commandFrontend": "log list -p Parity",
+    "commandRust": ["log", "list", "-p", "Parity"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["no time logs", "found"]
+  },
+  {
+    "id": "log-list-project-exact-human-fragment-fails",
+    "description": "Human mode with --exact flag rejects project name fragment",
+    "commandFrontend": "log list -p Parity --exact",
+    "commandRust": ["log", "list", "-p", "Parity", "--exact"],
+    "initialActiveTaskId": null,
+    "expectSuccess": false,
+    "expectedExitCode": 4,
+    "expectedErrorCode": "DOM_ENTITY_NOT_FOUND",
+    "expectedPatterns": ["error", "not found", "project", "parity"]
   }
 ]

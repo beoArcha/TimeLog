@@ -1,7 +1,15 @@
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { resolveEntity } from '../../../resolver/entityResolver';
+import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+
+// Mirrors OUT_NOTHING_TO_STOP in src-tauri/src/cli/handlers/constants.rs so the sandbox and native CLI print the same message.
+const SANDBOX_NOTHING_TO_STOP = 'No active timer; nothing to stop.';
+
+// Mirror OUT_ALREADY_TRACKING / OUT_STOPPED_TASK_LINE / LABEL_UNKNOWN_TASK in src-tauri/src/cli/handlers/constants.rs.
+const SANDBOX_ALREADY_TRACKING = "Already tracking '{}' [{}].";
+const SANDBOX_STOPPED_TASK_LINE = "Stopped: '{}' [{}]";
+const SANDBOX_UNKNOWN_TASK = 'Unknown Task';
 
 export function handleStatus(
   store: SandboxEmulatorStore,
@@ -27,9 +35,12 @@ export function handleStatus(
 
 export function handleStart(
   positionals: string[],
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
+  const isStrict = isStrictResolution(flags);
+
   const target = positionals.join(' ').trim();
   const activeLog = store.getActiveLog();
 
@@ -43,9 +54,9 @@ export function handleStart(
   }
 
   const tasks = store.getTasks();
-  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 
@@ -55,8 +66,18 @@ export function handleStart(
     return;
   }
 
+  if (activeLog?.taskId === task.id) {
+    output.info(SANDBOX_ALREADY_TRACKING.replace('{}', task.name).replace('{}', task.id));
+    return;
+  }
+
+  const stoppedTask = activeLog ? tasks.find((t) => t.id === activeLog.taskId) : undefined;
   store.handleStartTimer(task.id);
   output.success(`▶️ Timer started: "${task.name}" [ID: ${task.id}]`);
+  if (activeLog) {
+    const stoppedName = stoppedTask?.name ?? SANDBOX_UNKNOWN_TASK;
+    output.info(SANDBOX_STOPPED_TASK_LINE.replace('{}', stoppedName).replace('{}', activeLog.taskId));
+  }
 }
 
 export function handleStop(
@@ -68,6 +89,10 @@ export function handleStop(
   const isAll = Boolean(flags['all']);
 
   if (!activeLog) {
+    if (flags['if-running']) {
+      output.success(SANDBOX_NOTHING_TO_STOP);
+      return;
+    }
     output.error('Error: No active timer session is currently running', 'ENG_TIMER_INACTIVE', 5);
     return;
   }
@@ -85,9 +110,12 @@ export function handleStop(
 
 export function handleSwitch(
   positionals: string[],
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
+  const isStrict = isStrictResolution(flags);
+
   const target = positionals.join(' ').trim();
   if (!target) {
     output.error('Error: Target task required to switch. Usage: switch <task_id | "task name">', 'CLI_SYNTAX_MISSING_TARGET', 2);
@@ -95,9 +123,9 @@ export function handleSwitch(
   }
 
   const tasks = store.getTasks();
-  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name);
+  const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    output.error(resolve.error || `Error: Task "${target}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
+    reportResolveFailure(resolve, output);
     return;
   }
 

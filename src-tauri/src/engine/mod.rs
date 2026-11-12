@@ -1,10 +1,13 @@
 pub mod billing;
 pub mod error;
 pub mod metrics;
+pub mod range;
+pub mod reports;
 pub mod timer;
 pub mod validation;
 
 pub use error::EngineError;
+pub use timer::StartOutcome;
 
 use crate::persistence::Persistence;
 

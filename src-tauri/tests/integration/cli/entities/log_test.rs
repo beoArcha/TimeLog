@@ -330,3 +330,123 @@ fn test_given_start_after_end_when_log_add_invoked_then_fails_validation() {
     let err = result.unwrap_err();
     assert_eq!(err.exit_code(), 1);
 }
+
+fn setup_twenty_five_logs_fixture(
+    test_name: &str,
+) -> (
+    Persistence,
+    rusqlite::Connection,
+    crate::shared::test_db::TempCsvDir,
+) {
+    let (conn, config, temp) = setup_persistence_test(test_name);
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-limit")
+        .with_name("Limit Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-limit")
+        .with_project_id("p-limit")
+        .with_name("Limit Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    for i in 1..=25 {
+        let note = format!("Log entry {}", i);
+        let add_args =
+            CliArgs::try_parse_from(["oxy", "log", "add", "Limit Task", "10m", &note]).unwrap();
+        handle_cli(add_args, &persistence, &engine).unwrap();
+    }
+
+    (persistence, conn, temp)
+}
+
+#[test]
+fn test_given_twenty_five_logs_when_log_ls_machine_mode_then_returns_all_untruncated() {
+    // Given
+    let (persistence, _conn, _temp) =
+        setup_twenty_five_logs_fixture("test_log_untruncated_machine");
+    let engine = Engine::new(&persistence);
+    let machine_args = CliArgs::try_parse_from(["oxy", "log", "ls", "--json"]).unwrap();
+
+    // When
+    let machine_res = handle_cli(machine_args, &persistence, &engine).unwrap();
+
+    // Then
+    let machine_json: Vec<serde_json::Value> =
+        serde_json::from_str(&machine_res.to_string()).expect("valid JSON array");
+    assert_eq!(machine_json.len(), 25);
+}
+
+#[test]
+fn test_given_twenty_five_logs_when_log_ls_machine_mode_with_limit_then_returns_exact_count() {
+    // Given
+    let (persistence, _conn, _temp) = setup_twenty_five_logs_fixture("test_log_machine_limit");
+    let engine = Engine::new(&persistence);
+    let machine_limit_args =
+        CliArgs::try_parse_from(["oxy", "log", "ls", "--json", "--limit", "5"]).unwrap();
+
+    // When
+    let machine_limit_res = handle_cli(machine_limit_args, &persistence, &engine).unwrap();
+
+    // Then
+    let machine_limit_json: Vec<serde_json::Value> =
+        serde_json::from_str(&machine_limit_res.to_string()).expect("valid JSON array");
+    assert_eq!(machine_limit_json.len(), 5);
+}
+
+#[test]
+fn test_given_twenty_five_logs_when_log_ls_human_mode_then_shows_twenty_rows_and_footer() {
+    // Given
+    let (persistence, _conn, _temp) = setup_twenty_five_logs_fixture("test_log_human_footer");
+    let engine = Engine::new(&persistence);
+    let human_args = CliArgs::try_parse_from(["oxy", "log", "ls"]).unwrap();
+
+    // When
+    let human_res = handle_cli(human_args, &persistence, &engine).unwrap();
+
+    // Then
+    let human_out = human_res.to_string();
+    let row_count = human_out
+        .lines()
+        .filter(|l| l.contains("Limit Task"))
+        .count();
+    assert_eq!(row_count, 20);
+    assert!(human_out.contains("… 5 more entries not shown. Use --limit <n> to show more."));
+}
+
+#[test]
+fn test_given_twenty_five_logs_when_log_ls_quiet_mode_then_shows_twenty_rows_without_footer() {
+    // Given
+    let (persistence, _conn, _temp) = setup_twenty_five_logs_fixture("test_log_quiet_no_footer");
+    let engine = Engine::new(&persistence);
+    let quiet_args = CliArgs::try_parse_from(["oxy", "log", "ls", "-q"]).unwrap();
+
+    // When
+    let quiet_res = handle_cli(quiet_args, &persistence, &engine).unwrap();
+
+    // Then
+    let quiet_out = quiet_res.to_string();
+    let row_count = quiet_out
+        .lines()
+        .filter(|l| l.contains("Limit Task"))
+        .count();
+    assert_eq!(row_count, 20);
+    assert!(!quiet_out.contains("more entries not shown"));
+}
+
+#[test]
+fn test_given_zero_limit_when_parsing_cli_args_then_fails_with_syntax_exit_code_two() {
+    // Given
+    let zero_limit_args = ["oxy", "log", "ls", "--limit", "0"];
+
+    // When
+    let zero_limit_parse = CliArgs::try_parse_from(zero_limit_args);
+
+    // Then
+    assert!(zero_limit_parse.is_err());
+    assert_eq!(zero_limit_parse.unwrap_err().exit_code(), 2);
+}
