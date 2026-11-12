@@ -12,7 +12,8 @@ fn main() -> ExitCode {
         .iter()
         .any(|a| a == "-m" || a == "--machine" || a == "-j" || a == "--json");
 
-    if let Err(err) = CliArgs::try_parse_from(&raw_args) {
+    let first_parse = CliArgs::try_parse_from(&raw_args);
+    if let Err(ref err) = first_parse {
         if err.kind() == clap::error::ErrorKind::DisplayHelp
             || err.kind() == clap::error::ErrorKind::DisplayVersion
         {
@@ -22,6 +23,14 @@ fn main() -> ExitCode {
 
     // Stage A: Before DB open
     let early_db = cli::extract_early_db_flag(&raw_args);
+    if let Err(err) =
+        cli::shared::validate_db_target(first_parse.as_ref().ok(), early_db.as_deref())
+    {
+        let envelope = cli::build_error_envelope(&err, is_machine, None);
+        envelope.render_stderr(is_machine);
+        return envelope.to_exit_code();
+    }
+
     let db_path = match resolve_db_path(early_db.as_deref()) {
         Ok(path) => path,
         Err(e) => {

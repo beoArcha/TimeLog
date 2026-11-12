@@ -1,5 +1,6 @@
 pub mod clap_mapping_test;
 pub mod dashboard_test;
+pub mod db_target_test;
 pub mod decoration_test;
 pub mod duration_parser_test;
 pub mod error_lifecycle_test;

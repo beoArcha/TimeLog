@@ -1,68 +1,12 @@
-use std::path::PathBuf;
-use std::process::{Command, Output, Stdio};
-use std::time::{Duration, Instant};
-
-struct TempEnvDir {
-    path: PathBuf,
-}
-
-impl TempEnvDir {
-    fn new(prefix: &str) -> Self {
-        let path = std::env::temp_dir().join(format!("{}_{}", prefix, uuid::Uuid::new_v4()));
-        std::fs::create_dir_all(&path).expect("failed to create temp directory");
-        Self { path }
-    }
-
-    fn db_path(&self) -> PathBuf {
-        self.path.join("test.db")
-    }
-}
-
-impl Drop for TempEnvDir {
-    fn drop(&mut self) {
-        if self.path.exists() {
-            let _ = std::fs::remove_dir_all(&self.path);
-        }
-    }
-}
-
-fn execute_oxy_with_timeout(env_dir: &TempEnvDir, args: &[&str], timeout: Duration) -> Output {
-    let bin_path = env!("CARGO_BIN_EXE_oxy");
-    let mut cmd = Command::new(bin_path);
-    cmd.env("APPDATA", &env_dir.path)
-        .env("HOME", &env_dir.path)
-        .env("USERPROFILE", &env_dir.path)
-        .args(args)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-
-    let mut child = cmd.spawn().expect("failed to spawn oxy CLI binary");
-    let start = Instant::now();
-
-    loop {
-        match child.try_wait().expect("failed to check child status") {
-            Some(_status) => {
-                return child
-                    .wait_with_output()
-                    .expect("failed to read child output");
-            }
-            None => {
-                if start.elapsed() > timeout {
-                    let _ = child.kill();
-                    panic!("oxy process timed out after {:?}", timeout);
-                }
-                std::thread::sleep(Duration::from_millis(10));
-            }
-        }
-    }
-}
+use crate::e2e::support::{execute_oxy_with_timeout, TempEnvDir};
+use std::time::Duration;
 
 #[test]
 fn test_given_invalid_subcommand_in_machine_mode_when_parsing_then_returns_exit_2_with_unknown_command_envelope(
 ) {
     // Given
     let temp_env = TempEnvDir::new("oxy_e2e_invalid_subcommand");
-    let db = temp_env.db_path();
+    let db = temp_env.existing_db_path();
     let db_str = db.to_string_lossy();
 
     // When
@@ -91,7 +35,7 @@ fn test_given_unknown_flag_in_machine_mode_when_parsing_then_returns_exit_2_with
 ) {
     // Given
     let temp_env = TempEnvDir::new("oxy_e2e_bogus_flag");
-    let db = temp_env.db_path();
+    let db = temp_env.existing_db_path();
     let db_str = db.to_string_lossy();
 
     // When
@@ -120,7 +64,7 @@ fn test_given_invalid_subcommand_in_human_mode_when_parsing_then_returns_exit_2_
 ) {
     // Given
     let temp_env = TempEnvDir::new("oxy_e2e_human_subcommand");
-    let db = temp_env.db_path();
+    let db = temp_env.existing_db_path();
     let db_str = db.to_string_lossy();
 
     // When

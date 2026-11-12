@@ -303,6 +303,8 @@ Defined in `src-tauri/src/cli/error/codes.rs`. Codes marked *not yet emitted* ex
 | `mask` | `MSK_ALIAS_NOT_FOUND` | `2` | Action mask alias not found |
 | `mask` | `MSK_ALIAS_SYNTAX` | `2` | Invalid mask syntax |
 
+`--db` must point to an existing file. A missing file fails with `STO_SQLITE_INIT` (exit 3) before anything is created. Only `db restore` may create the target. Without `--db`, the default database is created on first run.
+
 ### Interactive Self-Healing in TTY
 
 In interactive human terminal mode, encountering an unknown entity or a missing required argument does not abort the shell. Instead, the prompter:
