@@ -1,3 +1,4 @@
+use super::billing::RateResolver;
 use super::catalog::Catalog;
 use super::constants::LOCAL_DATE_FORMAT;
 use super::ordering::sort_entries;
@@ -10,9 +11,9 @@ use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
 
 pub(super) struct Bounds {
-    from: Option<DateTime<Utc>>,
-    to: Option<DateTime<Utc>>,
-    tz: Tz,
+    pub from: Option<DateTime<Utc>>,
+    pub to: Option<DateTime<Utc>>,
+    pub tz: Tz,
     now: DateTime<Utc>,
 }
 
@@ -49,6 +50,9 @@ pub(super) struct MeasuredEntry<'a> {
     pub start: String,
     pub end: Option<String>,
     pub date: String,
+    /// The in-range portion of the interval; day splitting works on these, not on the stored instants.
+    pub in_range_start: DateTime<Utc>,
+    pub in_range_end: DateTime<Utc>,
     pub note: Option<&'a str>,
     pub is_patch: bool,
     pub seconds: u64,
@@ -84,10 +88,11 @@ pub(super) fn measure_entries<'a>(
 pub(super) fn build_entries(
     measured: &[MeasuredEntry<'_>],
     catalog: &Catalog<'_>,
+    rates: &RateResolver<'_>,
 ) -> Result<Vec<ReportEntry>, EngineError> {
     let mut entries = measured
         .iter()
-        .map(|entry| to_report_entry(entry, catalog))
+        .map(|entry| to_report_entry(entry, catalog, rates))
         .collect::<Result<Vec<_>, _>>()?;
     sort_entries(&mut entries);
     Ok(entries)
@@ -165,6 +170,8 @@ fn measure<'a>(
         start: normalize_instant(raw.start)?,
         end: raw.end.map(normalize_instant).transpose()?,
         date: local_date(&clamped.clamped_start_time, bounds.tz)?,
+        in_range_start: parse_instant(&clamped.clamped_start_time)?,
+        in_range_end: parse_instant(&clamped.clamped_end_time)?,
         note: raw.note,
         is_patch: raw.is_patch,
         seconds: clamped.clamped_duration_seconds,
@@ -176,12 +183,15 @@ fn measure<'a>(
 fn to_report_entry(
     entry: &MeasuredEntry<'_>,
     catalog: &Catalog<'_>,
+    rates: &RateResolver<'_>,
 ) -> Result<ReportEntry, EngineError> {
     let project = catalog.project(entry.project_id)?;
     let task = entry.chain.first();
     let parent = entry.chain.get(1);
+    let billing = task
+        .map(|task| rates.bill(task, entry.seconds))
+        .transpose()?;
 
-    // TODO(PR-13): resolve rate_minor, currency and amount_minor from the billing snapshot.
     Ok(ReportEntry {
         id: entry.id.to_string(),
         project_id: entry.project_id.to_string(),
@@ -199,9 +209,9 @@ fn to_report_entry(
         clamped: entry.clamped,
         is_patch: entry.is_patch,
         note: entry.note.map(str::to_string),
-        rate_minor: None,
-        currency: None,
-        amount_minor: None,
+        rate_minor: billing.as_ref().and_then(|b| b.rate_minor),
+        currency: billing.as_ref().and_then(|b| b.currency.clone()),
+        amount_minor: billing.as_ref().and_then(|b| b.amount_minor),
     })
 }
 

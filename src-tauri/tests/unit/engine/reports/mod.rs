@@ -1,3 +1,7 @@
+mod billing_overflow_test;
+mod billing_rates_test;
+mod billing_totals_test;
+mod days_test;
 mod document_test;
 mod entries_clamping_test;
 mod entries_filters_test;
