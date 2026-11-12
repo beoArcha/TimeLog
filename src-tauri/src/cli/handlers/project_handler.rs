@@ -1,6 +1,4 @@
-use super::billing_input::{
-    BillingValueAction, NormalizedBillingCreation, NormalizedBillingUpdate,
-};
+use super::billing_input::{NormalizedBillingCreation, NormalizedBillingUpdate};
 use super::constants::{
     ERR_PROJECT_RENAME_EMPTY, FORMAT_PROJECT_ROW, HEADER_PROJECTS, LABEL_ARCHIVED_BADGE,
     MSG_NO_PROJECTS_FOUND, MSG_PROJECT_ARCHIVED, MSG_PROJECT_CREATED, MSG_PROJECT_RENAMED,
@@ -10,11 +8,17 @@ use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::tier2_entities::{ProjectArgs, ProjectSubcommand};
 use crate::cli::resolver::EntityResolver;
 use crate::cli::shared::constants::DEFAULT_COLOR;
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::generate_id;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{Project, Task};
+use crate::types::{EntityActionPayload, Project, ProjectListPayload, Task};
+
+const SCHEMA_PROJECT_LIST: EnvelopeSchema = EnvelopeSchema::new("oxy.project.list", 1);
+const SCHEMA_PROJECT_ADD: EnvelopeSchema = EnvelopeSchema::new("oxy.project.add", 1);
+const SCHEMA_PROJECT_RENAME: EnvelopeSchema = EnvelopeSchema::new("oxy.project.rename", 1);
+const SCHEMA_PROJECT_ARCHIVE: EnvelopeSchema = EnvelopeSchema::new("oxy.project.archive", 1);
 
 pub struct AddProjectOptions {
     pub name: String,
@@ -105,8 +109,7 @@ fn list_projects(
         .collect();
 
     if is_machine {
-        let json = serde_json::to_string_pretty(&filtered)?;
-        return Ok(CliOutput::Json(json));
+        return CliOutput::envelope(SCHEMA_PROJECT_LIST, &ProjectListPayload { items: filtered });
     }
 
     if filtered.is_empty() {
@@ -170,16 +173,9 @@ fn add_project(
     project.billing_rate_cents = billing.billing_rate_cents;
     project.currency = billing.currency;
     project.billing_currency = billing.billing_currency;
-    persistence.projects.create(project)?;
+    persistence.projects.create(project.clone())?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": id,
-                "action": "created"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_PROJECT_ADD, &project);
     }
     Ok(CliOutput::mutation(
         is_quiet,
@@ -209,9 +205,6 @@ fn rename_project(
     let mut project = resolver.resolve_project(&opts.target)?;
 
     let has_new_name = opts.new_name.is_some();
-    let has_color = opts.color.is_some();
-    let has_rate = billing_update.rate != BillingValueAction::Unchanged;
-    let has_currency = billing_update.currency != BillingValueAction::Unchanged;
 
     if let Some(ref name) = opts.new_name {
         let engine = Engine::new(persistence);
@@ -225,27 +218,7 @@ fn rename_project(
     persistence.projects.patch(project.clone())?;
 
     if opts.is_machine {
-        let action = if has_new_name {
-            "renamed"
-        } else if has_color && !has_rate && !has_currency {
-            "recolored"
-        } else {
-            "updated"
-        };
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": project.id,
-                "name": project.name,
-                "color": project.color,
-                "hourly_rate": project.hourly_rate,
-                "billing_rate_cents": project.billing_rate_cents,
-                "currency": project.currency,
-                "billing_currency": project.billing_currency,
-                "action": action
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_PROJECT_RENAME, &project);
     }
 
     let msg = if has_new_name {
@@ -267,14 +240,13 @@ fn archive_project(
     let project = resolver.resolve_project(target)?;
     persistence.projects.archive(project.id.clone())?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": project.id,
-                "action": "archived"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_PROJECT_ARCHIVE,
+            &EntityActionPayload {
+                id: project.id,
+                action: "archived".to_string(),
+            },
+        );
     }
     Ok(CliOutput::mutation(
         is_quiet,

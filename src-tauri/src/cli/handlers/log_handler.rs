@@ -11,14 +11,22 @@ use crate::cli::parser::period_args::PeriodArgs;
 use crate::cli::parser::tier2_entities::{LogArgs, LogSubcommand};
 use crate::cli::resolver::constants::MIN_MACHINE_PREFIX_LEN;
 use crate::cli::resolver::{EntityResolver, Prompter, TerminalPrompter};
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::range_bounds::RangeBounds;
 use crate::cli::shared::utils::{generate_id, parse_duration_seconds, parse_iso_or_rfc3339};
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{AuditSource, NewTimeLog, TimeLog, TimeLogEditInput};
+use crate::types::{
+    AuditSource, LogListPayload, LogRemovePayload, NewTimeLog, TimeLog, TimeLogEditInput,
+};
 use chrono::{DateTime, Duration, Utc};
 use std::collections::HashSet;
+
+const SCHEMA_LOG_LIST: EnvelopeSchema = EnvelopeSchema::new("oxy.log.list", 1);
+const SCHEMA_LOG_ADD: EnvelopeSchema = EnvelopeSchema::new("oxy.log.add", 1);
+const SCHEMA_LOG_EDIT: EnvelopeSchema = EnvelopeSchema::new("oxy.log.edit", 1);
+const SCHEMA_LOG_REMOVE: EnvelopeSchema = EnvelopeSchema::new("oxy.log.remove", 1);
 
 struct LogListCriteria {
     task: Option<String>,
@@ -176,8 +184,13 @@ fn list_logs(
     }
 
     if is_machine {
-        let json_str = serde_json::to_string_pretty(&filtered)?;
-        return Ok(CliOutput::Json(json_str));
+        return CliOutput::envelope(
+            SCHEMA_LOG_LIST,
+            &LogListPayload {
+                items: filtered,
+                total_matched: total_matched as u64,
+            },
+        );
     }
     if filtered.is_empty() {
         return Ok(CliOutput::empty_list(is_quiet, MSG_NO_LOGS_FOUND));
@@ -343,14 +356,8 @@ fn add_log(
     persistence.time_logs.insert_full(&new_log)?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": id,
-                "action": "created"
-            })
-            .to_string(),
-        ));
+        let log = persistence.time_logs.get_by_id(&id)?;
+        return CliOutput::envelope(SCHEMA_LOG_ADD, &log);
     }
 
     let dur_display = format_log_duration(&new_log.start_time, new_log.end_time.as_deref());
@@ -480,14 +487,8 @@ fn edit_log(
     })?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": input.id,
-                "action": "updated"
-            })
-            .to_string(),
-        ));
+        let log = persistence.time_logs.get_by_id(&input.id)?;
+        return CliOutput::envelope(SCHEMA_LOG_EDIT, &log);
     }
 
     Ok(CliOutput::mutation(
@@ -551,15 +552,14 @@ pub fn remove_log(
 
     persistence.time_logs.delete(id)?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": log.id,
-                "action": "removed",
-                "entry": log
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_LOG_REMOVE,
+            &LogRemovePayload {
+                id: log.id.clone(),
+                action: "removed".to_string(),
+                entry: log,
+            },
+        );
     }
     Ok(CliOutput::mutation(
         is_quiet,

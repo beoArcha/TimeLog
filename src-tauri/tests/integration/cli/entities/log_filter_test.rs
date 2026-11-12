@@ -53,10 +53,11 @@ fn test_given_logs_across_projects_when_listing_with_project_filter_then_returns
     // Then
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
-    let parsed: Vec<serde_json::Value> = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert_eq!(parsed.len(), 1);
-    assert_eq!(parsed[0]["taskId"], "t-alpha-1");
-    assert_eq!(parsed[0]["note"], "Alpha work");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    let items = parsed["data"]["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["taskId"], "t-alpha-1");
+    assert_eq!(items[0]["note"], "Alpha work");
 }
 
 #[test]
@@ -143,9 +144,10 @@ fn test_given_logs_across_dates_when_listing_with_from_to_filter_then_returns_lo
     // Then
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
-    let parsed: Vec<serde_json::Value> = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert_eq!(parsed.len(), 1);
-    assert_eq!(parsed[0]["note"], "Mid");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    let items = parsed["data"]["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["note"], "Mid");
 }
 
 #[test]
@@ -195,7 +197,8 @@ fn test_given_logs_when_listing_with_month_flag_then_returns_current_month_entri
     // Then
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
-    let parsed: Vec<serde_json::Value> = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert_eq!(parsed.len(), 1);
-    assert_eq!(parsed[0]["note"], "Current entry");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    let items = parsed["data"]["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["note"], "Current entry");
 }

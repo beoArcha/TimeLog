@@ -206,9 +206,11 @@ fn test_given_configured_persistence_when_adding_task_in_machine_mode_then_retur
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "created");
-    assert!(parsed["id"].is_string());
+    assert_eq!(parsed["schema"], "oxy.task.add");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["name"], "Mach Task");
+    assert_eq!(parsed["data"]["projectId"], "p-task-mach");
+    assert!(parsed["data"]["id"].is_string());
 }
 
 #[test]
@@ -239,9 +241,11 @@ fn test_given_existing_tasks_when_listing_in_machine_mode_then_returns_clean_jso
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
-    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert!(parsed.is_array());
-    assert_eq!(parsed[0]["name"], "Machine Listed Task");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["schema"], "oxy.task.list");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert!(parsed["data"]["items"].is_array());
+    assert_eq!(parsed["data"]["items"][0]["name"], "Machine Listed Task");
 }
 
 #[test]
@@ -274,9 +278,10 @@ fn test_given_existing_task_when_marking_done_in_machine_mode_then_returns_json_
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "completed");
-    assert_eq!(parsed["id"], "t-done-mach");
+    assert_eq!(parsed["schema"], "oxy.task.done");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["id"], "t-done-mach");
+    assert_eq!(parsed["data"]["completed"], true);
 }
 
 #[test]
@@ -316,9 +321,10 @@ fn test_given_existing_task_when_renaming_in_machine_mode_then_returns_json_enve
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "renamed");
-    assert_eq!(parsed["id"], "t-ren-mach");
+    assert_eq!(parsed["schema"], "oxy.task.rename");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["id"], "t-ren-mach");
+    assert_eq!(parsed["data"]["name"], "After Rename");
 }
 
 #[test]
@@ -351,9 +357,10 @@ fn test_given_existing_task_when_archiving_in_machine_mode_then_returns_json_env
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "archived");
-    assert_eq!(parsed["id"], "t-rm-mach");
+    assert_eq!(parsed["schema"], "oxy.task.archive");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["action"], "archived");
+    assert_eq!(parsed["data"]["id"], "t-rm-mach");
 }
 
 #[test]
@@ -572,10 +579,10 @@ fn test_given_task_when_reparent_in_machine_mode_then_returns_json_envelope() {
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "reparented");
-    assert_eq!(parsed["id"], "t-mach-c");
-    assert_eq!(parsed["parent_id"], "t-mach-p");
+    assert_eq!(parsed["schema"], "oxy.task.reparent");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["id"], "t-mach-c");
+    assert_eq!(parsed["data"]["parentTaskId"], "t-mach-p");
 }
 
 #[test]
@@ -621,10 +628,10 @@ fn test_given_task_when_move_in_machine_mode_then_returns_json_envelope() {
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "moved");
-    assert_eq!(parsed["id"], "t-to-move");
-    assert_eq!(parsed["project_id"], "p-dst");
+    assert_eq!(parsed["schema"], "oxy.task.move");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["id"], "t-to-move");
+    assert_eq!(parsed["data"]["projectId"], "p-dst");
 }
 
 #[test]

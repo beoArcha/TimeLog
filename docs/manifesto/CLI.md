@@ -200,7 +200,7 @@ oxy project ls -q | grep -c "Core"
 
 Not yet covered by this contract: `report` (planned follow-up). Its quiet output is unchanged.
 
-### Machine Output Envelope (Implemented for `start`, `stop`, `switch`, `status`)
+### Machine Output Envelope (Implemented for Flow & Entity Commands)
 
 Every successful `--json` / `--machine` response of a migrated command is one versioned envelope on `stdout`. The contract is identical in the native `oxy` binary and the browser sandbox emulator, and the TypeScript shape is generated into `src/bindings/SuccessEnvelope.ts`.
 
@@ -216,7 +216,7 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 }
 ```
 
-- `schema` is `oxy.<command>`; `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
+- `schema` is `oxy.<command>` (flow commands) or `oxy.<domain>.<action>` (entity commands); `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
 - `meta.generatedAt` is whole-second RFC 3339 UTC; `meta.generator` is the same `{ name, version }` pair that `oxy.report` carries.
 - All JSON keys are camelCase at every depth. Enum values (`action`) are camelCase too.
 - **Formatting:** `--machine` always prints one compact line. `--json` prints indented JSON only when `stdout` is a terminal and `--machine` is absent; piped or redirected `--json` output is one compact line. The sandbox has no terminal and always prints the compact line.
@@ -230,6 +230,22 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy stop` | `oxy.stop` | 1 | `{ action: "stopped" \| "noop", stoppedCount }`; `noop` only for `--if-running` on an idle timer |
 | `oxy switch <task>` | `oxy.switch` | 1 | `{ action: "switched", taskId, timeLogId }` |
 | `oxy status` | `oxy.status` | 1 | `{ activeTaskIds: string[], count, running }` |
+| `oxy project ls` | `oxy.project.list` | 1 | `{ items: Project[] }` |
+| `oxy project add <name>` | `oxy.project.add` | 1 | `Project` entity object |
+| `oxy project rename <target>` | `oxy.project.rename` | 1 | `Project` entity object |
+| `oxy project archive <target>` | `oxy.project.archive` | 1 | `{ id: string, action: "archived" }` |
+| `oxy task ls` | `oxy.task.list` | 1 | `{ items: Task[] }` |
+| `oxy task add <name> -p <proj>` | `oxy.task.add` | 1 | `Task` entity object |
+| `oxy task done <target>` | `oxy.task.done` | 1 | `Task` entity object |
+| `oxy task rename <target> <name>` | `oxy.task.rename` | 1 | `Task` entity object |
+| `oxy task rate <target> <rate>` | `oxy.task.rate` | 1 | `Task` entity object |
+| `oxy task reparent <target> <parent>` | `oxy.task.reparent` | 1 | `Task` entity object |
+| `oxy task move <target> <proj>` | `oxy.task.move` | 1 | `Task` entity object |
+| `oxy task archive <target>` | `oxy.task.archive` | 1 | `{ id: string, action: "archived" }` |
+| `oxy log ls` | `oxy.log.list` | 1 | `{ items: TimeLog[], totalMatched: number }` |
+| `oxy log add <target> [dur]` | `oxy.log.add` | 1 | `TimeLog` entity object |
+| `oxy log edit <id> --reason <r>` | `oxy.log.edit` | 1 | `TimeLog` entity object |
+| `oxy log rm <id>` | `oxy.log.remove` | 1 | `{ id: string, action: "removed", entry: TimeLog }` |
 
 The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy today` and `oxy` (dashboard) are not migrated yet and keep their snake_case keys until their own envelope change.
 

@@ -481,7 +481,7 @@
     "expectSuccess": true,
     "expectedExitCode": 0,
     "expectedErrorCode": null,
-    "expectedPatterns": ["[]"]
+    "expectedPatterns": ["oxy.log.list", "items"]
   },
   {
     "id": "log-list-project-human-fragment-succeeds",
@@ -641,8 +641,7 @@
     "expectedExitCode": 0,
     "expectedErrorCode": null,
     "expectedPatterns": [
-      "status",
-      "ok",
+      "oxy.log.remove",
       "removed",
       "entry",
       "l1"

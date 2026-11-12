@@ -4,6 +4,7 @@
 
 pub mod billing;
 pub mod cli;
+pub mod cli_entities;
 pub mod cli_flow;
 pub mod commands;
 pub mod external_api;
@@ -34,6 +35,9 @@ pub use billing::{
 pub use cli::{
     CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, EnvelopeMeta, LocalizedUserMessage,
     SuccessEnvelope,
+};
+pub use cli_entities::{
+    EntityActionPayload, LogListPayload, LogRemovePayload, ProjectListPayload, TaskListPayload,
 };
 pub use cli_flow::{FlowAction, StartPayload, StatusPayload, StopPayload, SwitchPayload};
 pub use commands::{

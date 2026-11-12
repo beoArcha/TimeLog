@@ -2,6 +2,7 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+import { emitEnvelope, isMachineMode, SCHEMA_PROJECT_ADD, SCHEMA_PROJECT_ARCHIVE, SCHEMA_PROJECT_LIST, SCHEMA_PROJECT_RENAME } from '../sandboxEnvelope';
 import { emitMutationResult, isQuietMode } from '../sandboxQuietMode';
 
 export function handleProjectList(
@@ -13,6 +14,11 @@ export function handleProjectList(
   const quiet = isQuietMode(flags);
   const allProjects = store.getProjects();
   const projects = showAll ? allProjects : allProjects.filter((p) => !p.archived);
+
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_PROJECT_LIST, { items: projects });
+    return;
+  }
 
   if (projects.length === 0) {
     if (!quiet) output.info('No projects found in sandbox.');
@@ -58,6 +64,10 @@ export function handleProjectAdd(
   const rate = flags['rate'] ? String(flags['rate']) : undefined;
   const currency = flags['currency'] ? String(flags['currency']) : undefined;
   const project = store.handleAddProject(name, color, rate, currency);
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_PROJECT_ADD, project);
+    return;
+  }
   emitMutationResult(
     flags,
     output,
@@ -115,6 +125,11 @@ export function handleProjectRename(
   }
 
   store.handleRenameProject(project.id, finalName, color, finalRate, finalCurrency);
+  if (isMachineMode(flags)) {
+    const updated = store.getProjects().find((p) => p.id === project.id) ?? project;
+    emitEnvelope(output, SCHEMA_PROJECT_RENAME, updated);
+    return;
+  }
   emitMutationResult(flags, output, project.id, `Project updated: "${finalName}" [ID: ${project.id}]`);
 }
 
@@ -141,6 +156,10 @@ export function handleProjectArchive(
 
   const project = resolve.entity;
   store.handleArchiveProject(project.id);
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_PROJECT_ARCHIVE, { id: project.id, action: 'archived' });
+    return;
+  }
   const status = project.archived ? 'unarchived' : 'archived';
   emitMutationResult(
     flags,

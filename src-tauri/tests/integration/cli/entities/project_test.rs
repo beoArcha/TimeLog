@@ -117,9 +117,11 @@ fn test_given_existing_projects_when_listing_in_machine_mode_then_returns_clean_
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
-    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert!(parsed.is_array());
-    assert_eq!(parsed[0]["name"], "Machine Project");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["schema"], "oxy.project.list");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert!(parsed["data"]["items"].is_array());
+    assert_eq!(parsed["data"]["items"][0]["name"], "Machine Project");
 }
 
 #[test]
@@ -171,9 +173,11 @@ fn test_given_configured_persistence_when_creating_project_in_machine_mode_then_
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "created");
-    assert!(parsed["id"].is_string());
+    assert_eq!(parsed["schema"], "oxy.project.add");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["name"], "Json Project");
+    assert_eq!(parsed["data"]["color"], "blue");
+    assert!(parsed["data"]["id"].is_string());
 }
 
 #[test]
@@ -204,8 +208,9 @@ fn test_given_existing_project_when_renaming_in_machine_mode_then_returns_json_e
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "renamed");
+    assert_eq!(parsed["schema"], "oxy.project.rename");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["name"], "Updated Name");
 }
 
 #[test]
@@ -229,8 +234,10 @@ fn test_given_existing_project_when_archiving_in_machine_mode_then_returns_json_
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "archived");
+    assert_eq!(parsed["schema"], "oxy.project.archive");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["action"], "archived");
+    assert!(parsed["data"]["id"].is_string());
 }
 
 #[test]
@@ -295,10 +302,10 @@ fn test_given_existing_project_when_recolor_only_then_color_updated_and_name_pre
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "recolored");
-    assert_eq!(parsed["color"], "purple");
-    assert_eq!(parsed["name"], "Stable Name");
+    assert_eq!(parsed["schema"], "oxy.project.rename");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["color"], "purple");
+    assert_eq!(parsed["data"]["name"], "Stable Name");
 
     let projects = persistence.projects.get_all().unwrap();
     assert_eq!(projects[0].name, "Stable Name");

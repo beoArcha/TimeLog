@@ -2,6 +2,7 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+import { emitEnvelope, isMachineMode, SCHEMA_TASK_ADD, SCHEMA_TASK_ARCHIVE, SCHEMA_TASK_DONE, SCHEMA_TASK_LIST, SCHEMA_TASK_MOVE, SCHEMA_TASK_RATE, SCHEMA_TASK_RENAME, SCHEMA_TASK_REPARENT } from '../sandboxEnvelope';
 import { emitMutationResult, isQuietMode } from '../sandboxQuietMode';
 
 export function handleTaskList(
@@ -25,6 +26,16 @@ export function handleTaskList(
   }
 
   const allTasks = store.getTasks();
+  const allowedProjectIds = new Set(filteredProjects.map((p) => p.id));
+  const visibleTasks = allTasks.filter(
+    (t) => allowedProjectIds.has(t.projectId) && (showAll || !t.archived)
+  );
+
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TASK_LIST, { items: visibleTasks });
+    return;
+  }
+
   const selectedTaskId = store.getSelectedTaskId();
   const metrics = store.getComputedMetrics();
 
@@ -129,6 +140,10 @@ export function handleTaskAdd(
   const rate = flags['rate'] ? String(flags['rate']) : undefined;
 
   const task = store.handleAddTask(targetProjectId, name, parentTaskId, rate);
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TASK_ADD, task);
+    return;
+  }
   const typeLabel = parentTaskId ? 'Subtask' : 'Task';
   emitMutationResult(flags, output, task.id, `${typeLabel} created: "${task.name}" [ID: ${task.id}]`);
 }
@@ -164,6 +179,11 @@ export function handleTaskRate(
       : trimmed;
 
   store.handleSetTaskRate(resolve.entity.id, rate);
+  if (isMachineMode(flags)) {
+    const updated = store.getTasks().find((t) => t.id === resolve.entity.id) ?? resolve.entity;
+    emitEnvelope(output, SCHEMA_TASK_RATE, updated);
+    return;
+  }
   emitMutationResult(
     flags,
     output,
@@ -195,6 +215,11 @@ export function handleTaskDone(
 
   const task = resolve.entity;
   store.handleToggleTaskComplete(task.id);
+  if (isMachineMode(flags)) {
+    const updated = store.getTasks().find((t) => t.id === task.id) ?? task;
+    emitEnvelope(output, SCHEMA_TASK_DONE, updated);
+    return;
+  }
   const state = task.completed ? 'completed' : 'uncompleted';
   emitMutationResult(flags, output, task.id, `Task "${task.name}" [ID: ${task.id}] marked as ${state}.`);
 }
@@ -223,6 +248,11 @@ export function handleTaskRename(
   }
 
   store.handleRenameTask(resolve.entity.id, newName);
+  if (isMachineMode(flags)) {
+    const updated = store.getTasks().find((t) => t.id === resolve.entity.id) ?? resolve.entity;
+    emitEnvelope(output, SCHEMA_TASK_RENAME, updated);
+    return;
+  }
   emitMutationResult(flags, output, resolve.entity.id, `Renamed task: "${newName}" [ID: ${resolve.entity.id}]`);
 }
 
@@ -248,6 +278,10 @@ export function handleTaskArchive(
   }
 
   store.handleArchiveTask(resolve.entity.id);
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TASK_ARCHIVE, { id: resolve.entity.id, action: 'archived' });
+    return;
+  }
   const status = resolve.entity.archived ? 'unarchived' : 'archived';
   emitMutationResult(
     flags,
@@ -255,4 +289,107 @@ export function handleTaskArchive(
     resolve.entity.id,
     `Task "${resolve.entity.name}" [ID: ${resolve.entity.id}] has been ${status}.`
   );
+}
+
+export function handleTaskReparent(
+  positionals: string[],
+  flags: Record<string, string | boolean>,
+  store: SandboxEmulatorStore,
+  output: TerminalOutput
+): void {
+  const isStrict = isStrictResolution(flags);
+  const target = positionals[0];
+  const newParent = positionals[1];
+
+  if (!target || !newParent) {
+    output.error('Error: Task target and new parent required. Usage: task reparent <target> <new_parent|root|none>', 'CLI_SYNTAX_INVALID_ARGS', 2);
+    return;
+  }
+
+  const tasks = store.getTasks();
+  const resolveTarget = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
+  if (!resolveTarget.entity) {
+    reportResolveFailure(resolveTarget, output);
+    return;
+  }
+
+  const task = resolveTarget.entity;
+  const isDetaching = newParent.toLowerCase() === 'none' || newParent.toLowerCase() === 'root';
+
+  if (isDetaching) {
+    store.handleReparentTask(task.id, null);
+    const updated = store.getTasks().find((t) => t.id === task.id) ?? task;
+    if (isMachineMode(flags)) {
+      emitEnvelope(output, SCHEMA_TASK_REPARENT, updated);
+      return;
+    }
+    emitMutationResult(flags, output, task.id, `Task "${task.name}" detached to root.`);
+    return;
+  }
+
+  const resolveParent = resolveEntity(tasks, newParent, 'Task', (t) => t.id, (t) => t.name, isStrict);
+  if (!resolveParent.entity) {
+    reportResolveFailure(resolveParent, output);
+    return;
+  }
+
+  const parentTask = resolveParent.entity;
+  if (task.id === parentTask.id) {
+    output.error('Error: Cannot reparent task to itself.', 'DOM_BUSINESS_VIOLATION', 1);
+    return;
+  }
+
+  if (task.projectId !== parentTask.projectId) {
+    output.error('Error: Cannot reparent task to a parent in a different project.', 'DOM_BUSINESS_VIOLATION', 1);
+    return;
+  }
+
+  store.handleReparentTask(task.id, parentTask.id);
+  const updated = store.getTasks().find((t) => t.id === task.id) ?? task;
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TASK_REPARENT, updated);
+    return;
+  }
+  emitMutationResult(flags, output, task.id, `Reparented "${task.name}" under "${parentTask.name}".`);
+}
+
+export function handleTaskMove(
+  positionals: string[],
+  flags: Record<string, string | boolean>,
+  store: SandboxEmulatorStore,
+  output: TerminalOutput
+): void {
+  const isStrict = isStrictResolution(flags);
+  const target = positionals[0];
+  const rawProjFlag = flags['p'] || flags['project'];
+  const newProjTarget: string | undefined = positionals[1] || (typeof rawProjFlag === 'string' ? rawProjFlag : undefined);
+
+  if (!target || !newProjTarget) {
+    output.error('Error: Task target and destination project required. Usage: task move <target> <new_project>', 'CLI_SYNTAX_INVALID_ARGS', 2);
+    return;
+  }
+
+  const tasks = store.getTasks();
+  const resolveTarget = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
+  if (!resolveTarget.entity) {
+    reportResolveFailure(resolveTarget, output);
+    return;
+  }
+
+  const task = resolveTarget.entity;
+  const projects = store.getProjects();
+  const resolveProj = resolveEntity(projects, newProjTarget, 'Project', (p) => p.id, (p) => p.name, isStrict);
+  if (!resolveProj.entity) {
+    reportResolveFailure(resolveProj, output);
+    return;
+  }
+
+  const project = resolveProj.entity;
+  store.handleMoveTask(task.id, project.id);
+  const updated = store.getTasks().find((t) => t.id === task.id) ?? task;
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TASK_MOVE, updated);
+    return;
+  }
+  emitMutationResult(flags, output, task.id, `Moved task "${task.name}" to project "${project.name}".`);
 }

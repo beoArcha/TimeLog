@@ -75,4 +75,9 @@ fn export_bindings() {
     StopPayload::export_all_to(BINDINGS_DIR).unwrap();
     SwitchPayload::export_all_to(BINDINGS_DIR).unwrap();
     StatusPayload::export_all_to(BINDINGS_DIR).unwrap();
+    ProjectListPayload::export_all_to(BINDINGS_DIR).unwrap();
+    TaskListPayload::export_all_to(BINDINGS_DIR).unwrap();
+    LogListPayload::export_all_to(BINDINGS_DIR).unwrap();
+    EntityActionPayload::export_all_to(BINDINGS_DIR).unwrap();
+    LogRemovePayload::export_all_to(BINDINGS_DIR).unwrap();
 }

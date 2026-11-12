@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Versioned Success Envelope for Entity CLI Commands (TASK-301 part 2)**:
+  - Migrated machine output (`--json`/`--machine`) of all entity commands (`project ls|add|rename|archive`, `task ls|add|done|rename|rate|reparent|move|archive`, `log ls|add|edit|rm`) to versioned `SuccessEnvelope` (`oxy.project.*`, `oxy.task.*`, `oxy.log.*`, `schemaVersion: 1`).
+  - Added typed payload structs (`ProjectListPayload`, `TaskListPayload`, `LogListPayload`, `EntityActionPayload`, `LogRemovePayload`) with camelCase serialization and TypeScript bindings.
+  - Mirrored all entity command envelope output in the browser sandbox emulator (`src/features/cli/sandbox/`).
+  - Added comprehensive contract tests verifying valid JSON, envelope schemas, and recursive camelCase keys across all migrated commands.
+
 ### Fixed
 
 - **`start -q` / `switch -q` Print the Time Log ID**: quiet `start` and `switch` print only the ID of the time log they open (nothing when the task is already running), in the native CLI and the sandbox emulator.

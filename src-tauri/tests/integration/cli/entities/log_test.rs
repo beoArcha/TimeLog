@@ -147,9 +147,10 @@ fn test_given_configured_persistence_when_adding_log_in_machine_mode_then_return
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "created");
-    assert!(parsed["id"].is_string());
+    assert_eq!(parsed["schema"], "oxy.log.add");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["note"], "Backend dev");
+    assert!(parsed["data"]["id"].is_string());
 }
 
 #[test]
@@ -191,9 +192,12 @@ fn test_given_existing_logs_when_listing_in_machine_mode_then_returns_clean_json
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
-    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert!(parsed.is_array());
-    assert_eq!(parsed[0]["note"], "Note for listing");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    assert_eq!(parsed["schema"], "oxy.log.list");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert!(parsed["data"]["items"].is_array());
+    assert_eq!(parsed["data"]["items"][0]["note"], "Note for listing");
+    assert_eq!(parsed["data"]["totalMatched"], 1);
 }
 
 #[test]
@@ -238,9 +242,11 @@ fn test_given_existing_log_when_removing_in_machine_mode_then_returns_json_envel
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "removed");
-    assert_eq!(parsed["id"], log_id.as_str());
+    assert_eq!(parsed["schema"], "oxy.log.remove");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["action"], "removed");
+    assert_eq!(parsed["data"]["id"], log_id.as_str());
+    assert_eq!(parsed["data"]["entry"]["id"], log_id.as_str());
 }
 
 #[test]
@@ -376,9 +382,11 @@ fn test_given_twenty_five_logs_when_log_ls_machine_mode_then_returns_all_untrunc
     let machine_res = handle_cli(machine_args, &persistence, &engine).unwrap();
 
     // Then
-    let machine_json: Vec<serde_json::Value> =
-        serde_json::from_str(&machine_res.to_string()).expect("valid JSON array");
-    assert_eq!(machine_json.len(), 25);
+    let machine_json: serde_json::Value =
+        serde_json::from_str(&machine_res.to_string()).expect("valid JSON envelope");
+    assert_eq!(machine_json["schema"], "oxy.log.list");
+    assert_eq!(machine_json["data"]["items"].as_array().unwrap().len(), 25);
+    assert_eq!(machine_json["data"]["totalMatched"], 25);
 }
 
 #[test]
@@ -393,9 +401,17 @@ fn test_given_twenty_five_logs_when_log_ls_machine_mode_with_limit_then_returns_
     let machine_limit_res = handle_cli(machine_limit_args, &persistence, &engine).unwrap();
 
     // Then
-    let machine_limit_json: Vec<serde_json::Value> =
-        serde_json::from_str(&machine_limit_res.to_string()).expect("valid JSON array");
-    assert_eq!(machine_limit_json.len(), 5);
+    let machine_limit_json: serde_json::Value =
+        serde_json::from_str(&machine_limit_res.to_string()).expect("valid JSON envelope");
+    assert_eq!(machine_limit_json["schema"], "oxy.log.list");
+    assert_eq!(
+        machine_limit_json["data"]["items"]
+            .as_array()
+            .unwrap()
+            .len(),
+        5
+    );
+    assert_eq!(machine_limit_json["data"]["totalMatched"], 25);
 }
 
 #[test]
@@ -529,14 +545,15 @@ fn test_given_existing_log_when_log_rm_invoked_in_machine_mode_then_returns_remo
     assert!(result.is_ok());
     let parsed: serde_json::Value =
         serde_json::from_str(&format!("{}", result.unwrap())).expect("valid json envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "removed");
-    assert_eq!(parsed["id"], "l-rm-mach-01");
-    assert_eq!(parsed["entry"]["id"], "l-rm-mach-01");
-    assert_eq!(parsed["entry"]["taskId"], "t-log-rm-mach");
-    assert_eq!(parsed["entry"]["startTime"], "2026-10-24T10:00:00Z");
-    assert_eq!(parsed["entry"]["endTime"], "2026-10-24T10:45:00Z");
-    assert_eq!(parsed["entry"]["note"], "Machine note");
+    assert_eq!(parsed["schema"], "oxy.log.remove");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["action"], "removed");
+    assert_eq!(parsed["data"]["id"], "l-rm-mach-01");
+    assert_eq!(parsed["data"]["entry"]["id"], "l-rm-mach-01");
+    assert_eq!(parsed["data"]["entry"]["taskId"], "t-log-rm-mach");
+    assert_eq!(parsed["data"]["entry"]["startTime"], "2026-10-24T10:00:00Z");
+    assert_eq!(parsed["data"]["entry"]["endTime"], "2026-10-24T10:45:00Z");
+    assert_eq!(parsed["data"]["entry"]["note"], "Machine note");
     assert!(persistence.time_logs.get_by_id("l-rm-mach-01").is_err());
 }
 

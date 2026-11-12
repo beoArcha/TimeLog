@@ -558,12 +558,13 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       const outputLine = lines.find((l) => l.type === 'output');
       expect(outputLine).toBeDefined();
       const parsed = JSON.parse(outputLine?.text || '{}');
-      expect(parsed.status).toBe('ok');
-      expect(parsed.action).toBe('removed');
-      expect(parsed.id).toBe(createdLog.id);
-      expect(parsed.entry.id).toBe(createdLog.id);
-      expect(parsed.entry.taskId).toBe('sb_t1');
-      expect(parsed.entry.note).toBe('To remove in machine mode');
+      expect(parsed.schema).toBe('oxy.log.remove');
+      expect(parsed.schemaVersion).toBe(1);
+      expect(parsed.data.action).toBe('removed');
+      expect(parsed.data.id).toBe(createdLog.id);
+      expect(parsed.data.entry.id).toBe(createdLog.id);
+      expect(parsed.data.entry.taskId).toBe('sb_t1');
+      expect(parsed.data.entry.note).toBe('To remove in machine mode');
     });
 
     it('should show 20 logs and footer when logs exceed 20 in human mode', () => {
@@ -602,7 +603,9 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(handled).toBe(true);
       const outputLines = output.getLines().filter((l) => l.type === 'output');
       const parsed = JSON.parse(outputLines[0].text);
-      expect(parsed.length).toBe(initialCount + 25);
+      expect(parsed.schema).toBe('oxy.log.list');
+      expect(parsed.schemaVersion).toBe(1);
+      expect(parsed.data.items.length).toBe(initialCount + 25);
     });
 
     it('should respect explicit limit in machine mode', () => {
@@ -619,7 +622,9 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(handled).toBe(true);
       const outputLines = output.getLines().filter((l) => l.type === 'output');
       const parsed = JSON.parse(outputLines[0].text);
-      expect(parsed.length).toBe(5);
+      expect(parsed.schema).toBe('oxy.log.list');
+      expect(parsed.schemaVersion).toBe(1);
+      expect(parsed.data.items.length).toBe(5);
     });
 
     it('should return error when limit is less than 1', () => {
@@ -656,7 +661,9 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(handled).toBe(true);
       const outputLines = output.getLines().filter((l) => l.type === 'output');
       const parsed = JSON.parse(outputLines[0].text);
-      expect(parsed.map((l: { id: string }) => l.id)).toEqual(['l_mar', 'l_feb', 'l_jan']);
+      expect(parsed.schema).toBe('oxy.log.list');
+      expect(parsed.schemaVersion).toBe(1);
+      expect(parsed.data.items.map((l: { id: string }) => l.id)).toEqual(['l_mar', 'l_feb', 'l_jan']);
     });
 
     it('should return the two newest logs when explicit limit of 2 is provided', () => {
@@ -678,7 +685,9 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(handled).toBe(true);
       const outputLines = output.getLines().filter((l) => l.type === 'output');
       const parsed = JSON.parse(outputLines[0].text);
-      expect(parsed.map((l: { id: string }) => l.id)).toEqual(['l_mar', 'l_feb']);
+      expect(parsed.schema).toBe('oxy.log.list');
+      expect(parsed.schemaVersion).toBe(1);
+      expect(parsed.data.items.map((l: { id: string }) => l.id)).toEqual(['l_mar', 'l_feb']);
     });
   });
 });
