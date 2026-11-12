@@ -1,3 +1,4 @@
+pub mod envelope_contract_test;
 pub mod log_edit_test;
 pub mod log_filter_test;
 pub mod log_range_presets_test;

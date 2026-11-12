@@ -16,6 +16,23 @@ export const SCHEMA_STOP: EnvelopeSchema = { name: 'oxy.stop', version: 1 };
 export const SCHEMA_SWITCH: EnvelopeSchema = { name: 'oxy.switch', version: 1 };
 export const SCHEMA_STATUS: EnvelopeSchema = { name: 'oxy.status', version: 1 };
 
+export const SCHEMA_PROJECT_LIST: EnvelopeSchema = { name: 'oxy.project.list', version: 1 };
+export const SCHEMA_PROJECT_ADD: EnvelopeSchema = { name: 'oxy.project.add', version: 1 };
+export const SCHEMA_PROJECT_RENAME: EnvelopeSchema = { name: 'oxy.project.rename', version: 1 };
+export const SCHEMA_PROJECT_ARCHIVE: EnvelopeSchema = { name: 'oxy.project.archive', version: 1 };
+
+export const SCHEMA_TASK_LIST: EnvelopeSchema = { name: 'oxy.task.list', version: 1 };
+export const SCHEMA_TASK_ADD: EnvelopeSchema = { name: 'oxy.task.add', version: 1 };
+export const SCHEMA_TASK_DONE: EnvelopeSchema = { name: 'oxy.task.done', version: 1 };
+export const SCHEMA_TASK_RENAME: EnvelopeSchema = { name: 'oxy.task.rename', version: 1 };
+export const SCHEMA_TASK_RATE: EnvelopeSchema = { name: 'oxy.task.rate', version: 1 };
+export const SCHEMA_TASK_ARCHIVE: EnvelopeSchema = { name: 'oxy.task.archive', version: 1 };
+
+export const SCHEMA_LOG_LIST: EnvelopeSchema = { name: 'oxy.log.list', version: 1 };
+export const SCHEMA_LOG_ADD: EnvelopeSchema = { name: 'oxy.log.add', version: 1 };
+export const SCHEMA_LOG_EDIT: EnvelopeSchema = { name: 'oxy.log.edit', version: 1 };
+export const SCHEMA_LOG_REMOVE: EnvelopeSchema = { name: 'oxy.log.remove', version: 1 };
+
 export function isMachineMode(flags: Record<string, string | boolean>): boolean {
   return Boolean(flags['json'] || flags['machine']);
 }

@@ -82,7 +82,8 @@ fn listed_ids(persistence: &Persistence, args: &[&str]) -> Vec<String> {
     let engine = Engine::new(persistence);
     let parsed = CliArgs::try_parse_from(args).unwrap();
     let rendered = format!("{}", handle_cli(parsed, persistence, &engine).unwrap());
-    let rows: Vec<serde_json::Value> = serde_json::from_str(&rendered).expect("valid JSON array");
+    let env: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    let rows = env["data"]["items"].as_array().expect("items array");
     rows.iter()
         .map(|row| row["note"].as_str().unwrap().to_string())
         .collect()

@@ -2,6 +2,7 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+import { emitEnvelope, isMachineMode, SCHEMA_TASK_ADD, SCHEMA_TASK_ARCHIVE, SCHEMA_TASK_DONE, SCHEMA_TASK_LIST, SCHEMA_TASK_RATE, SCHEMA_TASK_RENAME } from '../sandboxEnvelope';
 import { emitMutationResult, isQuietMode } from '../sandboxQuietMode';
 
 export function handleTaskList(
@@ -25,6 +26,16 @@ export function handleTaskList(
   }
 
   const allTasks = store.getTasks();
+  const allowedProjectIds = new Set(filteredProjects.map((p) => p.id));
+  const visibleTasks = allTasks.filter(
+    (t) => allowedProjectIds.has(t.projectId) && (showAll || !t.archived)
+  );
+
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TASK_LIST, { items: visibleTasks });
+    return;
+  }
+
   const selectedTaskId = store.getSelectedTaskId();
   const metrics = store.getComputedMetrics();
 
@@ -129,6 +140,10 @@ export function handleTaskAdd(
   const rate = flags['rate'] ? String(flags['rate']) : undefined;
 
   const task = store.handleAddTask(targetProjectId, name, parentTaskId, rate);
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TASK_ADD, task);
+    return;
+  }
   const typeLabel = parentTaskId ? 'Subtask' : 'Task';
   emitMutationResult(flags, output, task.id, `${typeLabel} created: "${task.name}" [ID: ${task.id}]`);
 }
@@ -164,6 +179,11 @@ export function handleTaskRate(
       : trimmed;
 
   store.handleSetTaskRate(resolve.entity.id, rate);
+  if (isMachineMode(flags)) {
+    const updated = store.getTasks().find((t) => t.id === resolve.entity.id) ?? resolve.entity;
+    emitEnvelope(output, SCHEMA_TASK_RATE, updated);
+    return;
+  }
   emitMutationResult(
     flags,
     output,
@@ -195,6 +215,11 @@ export function handleTaskDone(
 
   const task = resolve.entity;
   store.handleToggleTaskComplete(task.id);
+  if (isMachineMode(flags)) {
+    const updated = store.getTasks().find((t) => t.id === task.id) ?? task;
+    emitEnvelope(output, SCHEMA_TASK_DONE, updated);
+    return;
+  }
   const state = task.completed ? 'completed' : 'uncompleted';
   emitMutationResult(flags, output, task.id, `Task "${task.name}" [ID: ${task.id}] marked as ${state}.`);
 }
@@ -223,6 +248,11 @@ export function handleTaskRename(
   }
 
   store.handleRenameTask(resolve.entity.id, newName);
+  if (isMachineMode(flags)) {
+    const updated = store.getTasks().find((t) => t.id === resolve.entity.id) ?? resolve.entity;
+    emitEnvelope(output, SCHEMA_TASK_RENAME, updated);
+    return;
+  }
   emitMutationResult(flags, output, resolve.entity.id, `Renamed task: "${newName}" [ID: ${resolve.entity.id}]`);
 }
 
@@ -248,6 +278,10 @@ export function handleTaskArchive(
   }
 
   store.handleArchiveTask(resolve.entity.id);
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TASK_ARCHIVE, { id: resolve.entity.id, action: 'archived' });
+    return;
+  }
   const status = resolve.entity.archived ? 'unarchived' : 'archived';
   emitMutationResult(
     flags,

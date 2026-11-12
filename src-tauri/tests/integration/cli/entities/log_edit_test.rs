@@ -58,9 +58,10 @@ fn test_given_existing_log_when_editing_in_machine_mode_then_returns_json_envelo
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["action"], "updated");
-    assert_eq!(parsed["id"], log_id.as_str());
+    assert_eq!(parsed["schema"], "oxy.log.edit");
+    assert_eq!(parsed["schemaVersion"], 1);
+    assert_eq!(parsed["data"]["id"], log_id.as_str());
+    assert_eq!(parsed["data"]["note"], "Updated machine note");
 }
 
 #[test]

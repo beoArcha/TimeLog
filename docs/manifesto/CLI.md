@@ -216,7 +216,7 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 }
 ```
 
-- `schema` is `oxy.<command>`; `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
+- `schema` is `oxy.<command>` (flow commands) or `oxy.<domain>.<action>` (entity commands); `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
 - `meta.generatedAt` is whole-second RFC 3339 UTC; `meta.generator` is the same `{ name, version }` pair that `oxy.report` carries.
 - All JSON keys are camelCase at every depth. Enum values (`action`) are camelCase too.
 - **Formatting:** `--machine` always prints one compact line. `--json` prints indented JSON only when `stdout` is a terminal and `--machine` is absent; piped or redirected `--json` output is one compact line. The sandbox has no terminal and always prints the compact line.
@@ -230,20 +230,24 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy stop` | `oxy.stop` | 1 | `{ action: "stopped" \| "noop", stoppedCount }`; `noop` only for `--if-running` on an idle timer |
 | `oxy switch <task>` | `oxy.switch` | 1 | `{ action: "switched", taskId, timeLogId }` |
 | `oxy status` | `oxy.status` | 1 | `{ activeTaskIds: string[], count, running }` |
-| `oxy config ls` | `oxy.config.list` | 1 | `{ items: { key, value }[] }`; lists only keys persisted in SQLite, so an unset `cli_machine_locale` is absent |
-| `oxy config get <key>` | `oxy.config.get` | 1 | `{ key, value }`; `cli_machine_locale` returns its effective default `en` when unset |
-| `oxy config set <key> <value>` | `oxy.config.set` | 1 | `{ key, value }` with the normalized value |
-| `oxy sink ls` | `oxy.sink.list` | 1 | `{ items: { name, sinkType, target, hasToken, enabled, createdAt }[] }`; the webhook token itself is never printed, only whether one is stored (`hasToken`) |
-| `oxy sink set-csv` / `oxy sink set-webhook` | `oxy.sink.set` | 1 | `{ sinkType: "csv" \| "webhook", target }` |
-| `oxy sink test` | `oxy.sink.test` | 1 | `{ items: { name, sinkType, target, passed, detail }[] }`; a failing sink makes the command fail instead |
-| `oxy mask ls` | `oxy.mask.list` | 1 | `{ items: { name, template, createdAt }[] }` |
-| `oxy mask set <name> <template>` | `oxy.mask.set` | 1 | `{ name, template }` |
-| `oxy mask rm <name>` | `oxy.mask.remove` | 1 | `{ name }` |
-| `oxy doctor` | `oxy.doctor` | 1 | `{ overallStatus: "ok", dbPath, dbSizeBytes, checks: { name, status, message }[] }`; emitted only when every check passes, otherwise the command fails as before |
-| `oxy db backup <path>` | `oxy.db.backup` | 1 | `{ destination }` |
-| `oxy db restore <path>` | `oxy.db.restore` | 1 | `{ source }` |
+| `oxy project ls` | `oxy.project.list` | 1 | `{ items: Project[] }` |
+| `oxy project add <name>` | `oxy.project.add` | 1 | `Project` entity object |
+| `oxy project rename <target>` | `oxy.project.rename` | 1 | `Project` entity object |
+| `oxy project archive <target>` | `oxy.project.archive` | 1 | `{ id: string, action: "archived" }` |
+| `oxy task ls` | `oxy.task.list` | 1 | `{ items: Task[] }` |
+| `oxy task add <name> -p <proj>` | `oxy.task.add` | 1 | `Task` entity object |
+| `oxy task done <target>` | `oxy.task.done` | 1 | `Task` entity object |
+| `oxy task rename <target> <name>` | `oxy.task.rename` | 1 | `Task` entity object |
+| `oxy task rate <target> <rate>` | `oxy.task.rate` | 1 | `Task` entity object |
+| `oxy task reparent <target> <parent>` | `oxy.task.reparent` | 1 | `Task` entity object |
+| `oxy task move <target> <proj>` | `oxy.task.move` | 1 | `Task` entity object |
+| `oxy task archive <target>` | `oxy.task.archive` | 1 | `{ id: string, action: "archived" }` |
+| `oxy log ls` | `oxy.log.list` | 1 | `{ items: TimeLog[], totalMatched: number }` |
+| `oxy log add <target> [dur]` | `oxy.log.add` | 1 | `TimeLog` entity object |
+| `oxy log edit <id> --reason <r>` | `oxy.log.edit` | 1 | `TimeLog` entity object |
+| `oxy log rm <id>` | `oxy.log.remove` | 1 | `{ id: string, action: "removed", entry: TimeLog }` |
 
-The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy today`, the dashboard and the entity commands (`project`, `task`, `log`) are not migrated yet and keep their existing shapes until their own envelope change. The sandbox emulator routes only the project, task, log, flow and `today` commands, so the subsystem commands above exist only in the native `oxy` binary.
+The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy today` and `oxy` (dashboard) are not migrated yet and keep their snake_case keys until their own envelope change.
 
 ### Billing Configuration (Implemented)
 

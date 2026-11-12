@@ -93,9 +93,10 @@ fn test_given_exact_project_name_when_listing_logs_in_json_mode_then_succeeds() 
     // Then
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
-    let parsed: Vec<serde_json::Value> = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert_eq!(parsed.len(), 1);
-    assert_eq!(parsed[0]["taskId"], "t-acme-02");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    let items = parsed["data"]["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["taskId"], "t-acme-02");
 }
 
 #[test]
@@ -138,9 +139,10 @@ fn test_given_full_project_id_when_listing_logs_in_json_mode_then_succeeds() {
     // Then
     assert!(result.is_ok());
     let rendered = format!("{}", result.unwrap());
-    let parsed: Vec<serde_json::Value> = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert_eq!(parsed.len(), 1);
-    assert_eq!(parsed[0]["taskId"], "t-acme-03");
+    let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON envelope");
+    let items = parsed["data"]["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["taskId"], "t-acme-03");
 }
 
 #[test]

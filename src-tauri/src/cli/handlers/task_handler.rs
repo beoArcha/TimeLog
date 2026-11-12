@@ -11,12 +11,22 @@ use super::constants::{
 use crate::cli::error::{BusinessRuleViolation, CliError, CliSyntaxError};
 use crate::cli::parser::tier2_entities::{TaskArgs, TaskSubcommand};
 use crate::cli::resolver::EntityResolver;
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::generate_id;
 use crate::cli::shared::validation::validate_id;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::{Project, Task, TaskStatus};
+use crate::types::{EntityAction, EntityActionPayload, Project, Task, TaskListPayload, TaskStatus};
+
+const SCHEMA_TASK_LIST: EnvelopeSchema = EnvelopeSchema::new("oxy.task.list", 1);
+const SCHEMA_TASK_ADD: EnvelopeSchema = EnvelopeSchema::new("oxy.task.add", 1);
+const SCHEMA_TASK_DONE: EnvelopeSchema = EnvelopeSchema::new("oxy.task.done", 1);
+const SCHEMA_TASK_RENAME: EnvelopeSchema = EnvelopeSchema::new("oxy.task.rename", 1);
+const SCHEMA_TASK_RATE: EnvelopeSchema = EnvelopeSchema::new("oxy.task.rate", 1);
+const SCHEMA_TASK_REPARENT: EnvelopeSchema = EnvelopeSchema::new("oxy.task.reparent", 1);
+const SCHEMA_TASK_MOVE: EnvelopeSchema = EnvelopeSchema::new("oxy.task.move", 1);
+const SCHEMA_TASK_ARCHIVE: EnvelopeSchema = EnvelopeSchema::new("oxy.task.archive", 1);
 
 pub struct AddTaskOptions {
     pub name: String,
@@ -124,8 +134,8 @@ fn list_tasks(
 
     let filtered = filter_tasks(&all_tasks, filter_project_id.as_deref(), all);
     if is_machine {
-        let json = serde_json::to_string_pretty(&filtered)?;
-        return Ok(CliOutput::Json(json));
+        let items: Vec<Task> = filtered.into_iter().cloned().collect();
+        return CliOutput::envelope(SCHEMA_TASK_LIST, &TaskListPayload { items });
     }
 
     if filtered.is_empty() {
@@ -158,17 +168,8 @@ fn filter_tasks<'a>(
 ) -> Vec<&'a Task> {
     tasks
         .iter()
-        .filter(|t| {
-            if let Some(pid) = filter_project_id {
-                if t.project_id != pid {
-                    return false;
-                }
-            }
-            if !include_all && (t.completed || t.archived == Some(true)) {
-                return false;
-            }
-            true
-        })
+        .filter(|t| filter_project_id.is_none_or(|pid| t.project_id == pid))
+        .filter(|t| include_all || !(t.completed || t.archived == Some(true)))
         .collect()
 }
 
@@ -333,16 +334,9 @@ fn add_task(
     task.hourly_rate = billing.hourly_rate;
     task.billing_rate_cents = billing.billing_rate_cents;
 
-    persistence.tasks.create(task)?;
+    persistence.tasks.create(task.clone())?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": id,
-                "action": "created"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_TASK_ADD, &task);
     }
     Ok(CliOutput::mutation(
         is_quiet,
@@ -395,18 +389,7 @@ fn set_task_rate(
     persistence.tasks.patch(task.clone())?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": task.id,
-                "hourly_rate": task.hourly_rate,
-                "billing_rate_cents": task.billing_rate_cents,
-                "currency": task.currency,
-                "billing_currency": task.billing_currency,
-                "action": "rate_updated"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_TASK_RATE, &task);
     }
 
     let rate_display = task.hourly_rate.as_deref().unwrap_or("inherited");
@@ -448,14 +431,7 @@ fn complete_task(
     task.status = Some(TaskStatus::Done);
     persistence.tasks.patch(task.clone())?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": task.id,
-                "action": "completed"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_TASK_DONE, &task);
     }
     Ok(CliOutput::mutation(
         is_quiet,
@@ -481,14 +457,7 @@ fn rename_task(
     task.name = engine.validate_task_name(&new_name)?;
     persistence.tasks.patch(task.clone())?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": task.id,
-                "action": "renamed"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_TASK_RENAME, &task);
     }
     Ok(CliOutput::mutation(
         is_quiet,
@@ -511,14 +480,13 @@ fn archive_task(
         .tasks
         .archive(task.id.clone(), task.project_id)?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": task.id,
-                "action": "archived"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_TASK_ARCHIVE,
+            &EntityActionPayload {
+                id: task.id,
+                action: EntityAction::Archived,
+            },
+        );
     }
     Ok(CliOutput::mutation(
         is_quiet,
@@ -547,15 +515,7 @@ fn reparent_task(
         persistence.tasks.patch(task.clone())?;
 
         if is_machine {
-            return Ok(CliOutput::Json(
-                serde_json::json!({
-                    "status": "ok",
-                    "id": task.id,
-                    "parent_id": null,
-                    "action": "reparented"
-                })
-                .to_string(),
-            ));
+            return CliOutput::envelope(SCHEMA_TASK_REPARENT, &task);
         }
 
         return Ok(CliOutput::mutation(
@@ -587,15 +547,7 @@ fn reparent_task(
     persistence.tasks.patch(task.clone())?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": task.id,
-                "parent_id": parent_task.id,
-                "action": "reparented"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_TASK_REPARENT, &task);
     }
 
     Ok(CliOutput::mutation(
@@ -622,15 +574,7 @@ fn move_task(
 
     if task.project_id == target_project.id {
         if is_machine {
-            return Ok(CliOutput::Json(
-                serde_json::json!({
-                    "status": "ok",
-                    "id": task.id,
-                    "project_id": target_project.id,
-                    "action": "moved"
-                })
-                .to_string(),
-            ));
+            return CliOutput::envelope(SCHEMA_TASK_MOVE, &task);
         }
         return Ok(CliOutput::mutation(
             is_quiet,
@@ -648,15 +592,7 @@ fn move_task(
     cascade_move_descendants(persistence, &task.id, &target_project.id)?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "id": task.id,
-                "project_id": target_project.id,
-                "action": "moved"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_TASK_MOVE, &task);
     }
 
     Ok(CliOutput::mutation(

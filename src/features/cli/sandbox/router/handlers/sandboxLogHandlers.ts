@@ -4,6 +4,7 @@ import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
 import { isStartInRange } from '@common/engine/range/logRange';
 import { resolveSandboxRange } from '../sandboxRange';
+import { emitEnvelope, isMachineMode, SCHEMA_LOG_ADD, SCHEMA_LOG_LIST, SCHEMA_LOG_REMOVE } from '../sandboxEnvelope';
 import { emitMutationResult, isQuietMode } from '../sandboxQuietMode';
 
 export function parseDurationToSeconds(input: string): number {
@@ -90,17 +91,18 @@ export function handleLogList(
   const effectiveLimit = resolveEffectiveLimit(explicitLimit, isMachine);
   const visibleLogs = effectiveLimit !== undefined ? sortedLogs.slice(0, effectiveLimit) : sortedLogs;
 
-  if (visibleLogs.length === 0) {
-    if (isMachine) {
-      output.output('[]');
-    } else if (!quiet) {
-      output.info('No time logs found matching the filter.');
-    }
+  if (isMachine) {
+    emitEnvelope(output, SCHEMA_LOG_LIST, {
+      items: visibleLogs,
+      totalMatched,
+    });
     return;
   }
 
-  if (isMachine) {
-    output.output(JSON.stringify(visibleLogs, null, 2));
+  if (visibleLogs.length === 0) {
+    if (!quiet) {
+      output.info('No time logs found matching the filter.');
+    }
     return;
   }
 
@@ -160,6 +162,10 @@ export function handleLogAdd(
   const task = resolve.entity;
   const durSecs = durationStr ? parseDurationToSeconds(durationStr) : 1800;
   const log = store.handleAddLog(task.id, durSecs, note);
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_LOG_ADD, log);
+    return;
+  }
   const formattedDur = durationStr || formatSeconds(durSecs);
   emitMutationResult(flags, output, log.id, `Logged ${formattedDur} to '${task.name}' [ID: ${log.id}]`);
 }
@@ -184,9 +190,12 @@ export function handleLogRemove(
   }
 
   store.handleRemoveLog(logId);
-  const isMachine = Boolean(flags['json'] || flags['j'] || flags['machine'] || flags['m']);
-  if (isMachine) {
-    output.output(JSON.stringify({ status: 'ok', id: logId, action: 'removed', entry: existingLog }, null, 2));
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_LOG_REMOVE, {
+      id: logId,
+      action: 'removed',
+      entry: existingLog,
+    });
     return;
   }
   emitMutationResult(flags, output, logId, `Deleted time log: ${logId}`);
