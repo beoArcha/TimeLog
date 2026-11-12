@@ -249,7 +249,7 @@ fn first_valid_after_gap(tz: Tz, local: NaiveDateTime) -> Result<DateTime<Utc>, 
         .ok_or_else(|| EngineError::InvalidRangeInput(MSG_UNRESOLVABLE_LOCAL.to_string()))
 }
 
-fn format_utc(instant: DateTime<Utc>) -> String {
+pub(crate) fn format_utc(instant: DateTime<Utc>) -> String {
     instant.to_rfc3339_opts(SecondsFormat::Secs, true)
 }
 

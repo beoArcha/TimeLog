@@ -2,6 +2,10 @@
 
 use oxyflow_timelog::types::{Project, Task, TaskStatus, TimeLog, WorkflowConfig};
 
+mod patch_log;
+
+pub use patch_log::PatchLogBuilder;
+
 /// Test Data Builder for `Project` domain entity.
 pub struct ProjectBuilder {
     project: Project,
