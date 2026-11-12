@@ -4,12 +4,26 @@ use super::constants::{
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{MaskArgs, MaskSubcommand};
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::utils::current_timestamp;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
-use crate::types::CliAlias;
-use serde_json::json;
+use crate::types::{CliAlias, MaskEntry, MaskListPayload, MaskRemovePayload, MaskSetPayload};
+
+const SCHEMA_LIST: EnvelopeSchema = EnvelopeSchema::new("oxy.mask.list", 1);
+const SCHEMA_SET: EnvelopeSchema = EnvelopeSchema::new("oxy.mask.set", 1);
+const SCHEMA_REMOVE: EnvelopeSchema = EnvelopeSchema::new("oxy.mask.remove", 1);
+
+impl From<CliAlias> for MaskEntry {
+    fn from(alias: CliAlias) -> Self {
+        Self {
+            name: alias.name,
+            template: alias.template,
+            created_at: alias.created_at,
+        }
+    }
+}
 
 pub fn handle(
     args: MaskArgs,
@@ -27,8 +41,8 @@ fn list_masks(is_machine: bool, persistence: &Persistence) -> Result<CliOutput, 
     let aliases = persistence.cli.get_all_aliases()?;
 
     if is_machine {
-        let json_str = serde_json::to_string_pretty(&aliases)?;
-        return Ok(CliOutput::Json(json_str));
+        let items = aliases.into_iter().map(MaskEntry::from).collect();
+        return CliOutput::envelope(SCHEMA_LIST, &MaskListPayload { items });
     }
 
     if aliases.is_empty() {
@@ -82,10 +96,13 @@ fn set_mask(
     persistence.cli.save_alias(&alias)?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            json!({ "status": "ok", "name": trimmed_name, "template": trimmed_template })
-                .to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_SET,
+            &MaskSetPayload {
+                name: trimmed_name.to_string(),
+                template: trimmed_template.to_string(),
+            },
+        );
     }
 
     Ok(CliOutput::Success(
@@ -112,9 +129,7 @@ fn remove_mask(
     }
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            json!({ "status": "ok", "removed": name }).to_string(),
-        ));
+        return CliOutput::envelope(SCHEMA_REMOVE, &MaskRemovePayload { name });
     }
 
     Ok(CliOutput::Success(

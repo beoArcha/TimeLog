@@ -4,11 +4,15 @@ use super::constants::{
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::parser::{ConfigArgs, ConfigSubcommand};
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::validation::validate_cli_machine_locale;
 use crate::persistence::Persistence;
-use serde_json::json;
-use std::collections::BTreeMap;
+use crate::types::{ConfigEntry, ConfigListPayload, ConfigValuePayload};
+
+const SCHEMA_LIST: EnvelopeSchema = EnvelopeSchema::new("oxy.config.list", 1);
+const SCHEMA_GET: EnvelopeSchema = EnvelopeSchema::new("oxy.config.get", 1);
+const SCHEMA_SET: EnvelopeSchema = EnvelopeSchema::new("oxy.config.set", 1);
 
 pub fn handle(
     args: ConfigArgs,
@@ -26,9 +30,12 @@ fn list_config(is_machine: bool, persistence: &Persistence) -> Result<CliOutput,
     let entries = persistence.cli.get_all_config_entries()?;
 
     if is_machine {
-        let map: BTreeMap<String, String> = entries.into_iter().collect();
-        let json_str = serde_json::to_string_pretty(&map)?;
-        return Ok(CliOutput::Json(json_str));
+        let mut items: Vec<ConfigEntry> = entries
+            .into_iter()
+            .map(|(key, value)| ConfigEntry { key, value })
+            .collect();
+        items.sort_by(|a, b| a.key.cmp(&b.key));
+        return CliOutput::envelope(SCHEMA_LIST, &ConfigListPayload { items });
     }
 
     if entries.is_empty() {
@@ -69,6 +76,7 @@ fn get_config(
                 v
             }
         }
+        // The machine locale has an effective default, so `get` answers even when nothing is persisted.
         None if trimmed_key == CONFIG_KEY_CLI_MACHINE_LOCALE => {
             DEFAULT_CLI_MACHINE_LOCALE.to_string()
         }
@@ -83,9 +91,13 @@ fn get_config(
     };
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            json!({ "key": trimmed_key, "value": value }).to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_GET,
+            &ConfigValuePayload {
+                key: trimmed_key.to_string(),
+                value,
+            },
+        );
     }
 
     Ok(CliOutput::Success(value))
@@ -115,9 +127,13 @@ fn set_config(
         .set_config_value(trimmed_key, &normalized_value)?;
 
     if is_machine {
-        return Ok(CliOutput::Json(
-            json!({ "status": "ok", "key": trimmed_key, "value": normalized_value }).to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_SET,
+            &ConfigValuePayload {
+                key: trimmed_key.to_string(),
+                value: normalized_value,
+            },
+        );
     }
 
     Ok(CliOutput::Success(

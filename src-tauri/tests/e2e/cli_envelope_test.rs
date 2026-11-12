@@ -71,6 +71,20 @@ fn test_given_piped_stdout_when_status_json_then_output_is_compact_not_pretty() 
 }
 
 #[test]
+fn test_given_fresh_database_when_doctor_machine_then_stdout_is_one_compact_doctor_envelope() {
+    // Given
+    let env = TempEnvDir::new("oxy_envelope_doctor");
+
+    // When
+    let stdout = stdout_of(&env, &["--machine", "doctor"]);
+
+    // Then
+    let envelope = assert_single_line_envelope(&stdout, "oxy.doctor");
+    assert_eq!(envelope["schemaVersion"], 1);
+    assert_eq!(envelope["data"]["overallStatus"], "ok");
+}
+
+#[test]
 fn test_given_task_when_start_then_stop_machine_then_both_emit_envelopes_with_matching_ids() {
     // Given
     let env = TempEnvDir::new("oxy_envelope_start_stop");

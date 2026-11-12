@@ -116,8 +116,8 @@ fn test_given_configured_persistence_when_mask_set_in_machine_mode_then_returns_
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["name"], "dev");
+    assert_eq!(parsed["schema"], "oxy.mask.set");
+    assert_eq!(parsed["data"]["name"], "dev");
 }
 
 #[test]
@@ -142,8 +142,9 @@ fn test_given_configured_persistence_when_mask_list_in_machine_mode_then_returns
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON array");
-    assert!(parsed.is_array());
-    assert_eq!(parsed[0]["name"], "review");
+    assert_eq!(parsed["schema"], "oxy.mask.list");
+    assert!(parsed["data"]["items"].is_array());
+    assert_eq!(parsed["data"]["items"][0]["name"], "review");
 }
 
 #[test]
@@ -166,6 +167,6 @@ fn test_given_configured_persistence_when_mask_rm_in_machine_mode_then_returns_c
     let rendered = format!("{}", result.unwrap());
     assert!(!rendered.contains('✅'));
     let parsed: serde_json::Value = serde_json::from_str(&rendered).expect("valid JSON object");
-    assert_eq!(parsed["status"], "ok");
-    assert_eq!(parsed["removed"], "to_delete");
+    assert_eq!(parsed["schema"], "oxy.mask.remove");
+    assert_eq!(parsed["data"]["name"], "to_delete");
 }

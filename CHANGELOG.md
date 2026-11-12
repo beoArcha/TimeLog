@@ -64,6 +64,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Keys are camelCase (`activeTaskIds`, `stoppedCount`, `stoppedTaskIds`, `timeLogId`) and `action` values are camelCase (`alreadyRunning`).
   - `--machine` prints one compact line; `--json` is indented only on a terminal and compact when piped.
   - The browser sandbox emulator mirrors the envelope for the same four commands.
+- **Versioned `--json` / `--machine` Envelope for Subsystem Commands**:
+  - `config`, `sink`, `mask`, `doctor` and `db` now print the same `oxy.<domain>.<action>` envelope, with `schemaVersion: 1`, instead of their previous flat objects and bare arrays; the `"status": "ok"` fields are removed.
+  - List commands (`config ls`, `sink ls`, `sink test`, `mask ls`) return `data: { items: [...] }`, so an empty list is `{ "items": [] }` rather than `[]`.
+  - `config ls` now returns a list of `{ key, value }` items instead of a key-to-value map; it still lists only persisted entries, while `config get cli_machine_locale` still returns the effective default `en`.
+  - `doctor` keys are camelCase (`overallStatus`, `dbPath`, `dbSizeBytes`); the `sink` and `mask` list items use camelCase (`sinkType`, `createdAt`).
 
 - **Identity & OS Bundle Identifier**:
   - Changed reverse-DNS identifier from `com.oxytime.timelog` / `com.oxytime.oxyflow` to `com.oxyflow.timelog`.
