@@ -5,6 +5,16 @@ pub trait Prompter: Send + Sync {
     fn is_terminal(&self) -> bool;
     fn prompt_selection(&self, prompt_text: &str, options_count: usize) -> Option<usize>;
     fn prompt_input(&self, query: &str) -> Option<String>;
+
+    fn prompt_confirm(&self, query: &str) -> bool {
+        match self.prompt_input(query) {
+            Some(input) => {
+                let trimmed = input.trim();
+                trimmed.eq_ignore_ascii_case("y") || trimmed.eq_ignore_ascii_case("yes")
+            }
+            None => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]

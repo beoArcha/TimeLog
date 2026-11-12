@@ -227,5 +227,7 @@ pub enum LogSubcommand {
     Remove {
         #[arg(help = "Log ID")]
         id: String,
+        #[arg(short = 'y', long = "yes", help = "Confirm deletion without prompting")]
+        yes: bool,
     },
 }

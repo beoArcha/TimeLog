@@ -132,3 +132,99 @@ fn test_given_empty_target_when_prompter_provides_input_then_starts_timer() {
     let active = engine.get_active_logs().unwrap();
     assert_eq!(active, vec!["t-auth-01".to_string()]);
 }
+
+#[test]
+fn test_given_log_rm_when_prompter_refuses_then_deletes_nothing() {
+    // Arrange
+    let (_conn, config, _temp) = setup_persistence_test("test_prompter_log_rm_refusal");
+    let persistence = Persistence::new(&config).unwrap();
+    let p = ProjectBuilder::new()
+        .with_id("p1")
+        .with_name("Core")
+        .build();
+    let t1 = TaskBuilder::new()
+        .with_id("t1")
+        .with_project_id("p1")
+        .with_name("Authentication UI")
+        .build();
+    persistence.projects.create(p).unwrap();
+    persistence.tasks.create(t1).unwrap();
+
+    let log = oxyflow_timelog::types::NewTimeLog {
+        id: "log-refuse-01".to_string(),
+        task_id: "t1".to_string(),
+        start_time: "2026-10-24T10:00:00Z".to_string(),
+        end_time: Some("2026-10-24T10:45:00Z".to_string()),
+        note: Some("Testing refusal".to_string()),
+    };
+    persistence.time_logs.insert_full(&log).unwrap();
+
+    let prompter = MockPrompter::new_terminal(vec![], vec![Some("n".to_string())]);
+
+    // Act
+    let result = oxyflow_timelog::cli::handlers::log_handler::remove_log(
+        &persistence,
+        "log-refuse-01",
+        oxyflow_timelog::cli::handlers::log_handler::RemoveLogMode {
+            yes: false,
+            is_machine: false,
+            is_quiet: false,
+        },
+        &prompter,
+    );
+
+    // Assert
+    assert!(result.is_ok());
+    let output_str = format!("{}", result.unwrap());
+    assert!(output_str.contains("Operation cancelled."));
+    let log_after = persistence.time_logs.get_by_id("log-refuse-01");
+    assert!(log_after.is_ok());
+}
+
+#[test]
+fn test_given_log_rm_when_prompter_accepts_then_deletes_log() {
+    // Arrange
+    let (_conn, config, _temp) = setup_persistence_test("test_prompter_log_rm_accept");
+    let persistence = Persistence::new(&config).unwrap();
+    let p = ProjectBuilder::new()
+        .with_id("p1")
+        .with_name("Core")
+        .build();
+    let t1 = TaskBuilder::new()
+        .with_id("t1")
+        .with_project_id("p1")
+        .with_name("Authentication UI")
+        .build();
+    persistence.projects.create(p).unwrap();
+    persistence.tasks.create(t1).unwrap();
+
+    let log = oxyflow_timelog::types::NewTimeLog {
+        id: "log-accept-01".to_string(),
+        task_id: "t1".to_string(),
+        start_time: "2026-10-24T10:00:00Z".to_string(),
+        end_time: Some("2026-10-24T10:45:00Z".to_string()),
+        note: Some("Testing acceptance".to_string()),
+    };
+    persistence.time_logs.insert_full(&log).unwrap();
+
+    let prompter = MockPrompter::new_terminal(vec![], vec![Some("y".to_string())]);
+
+    // Act
+    let result = oxyflow_timelog::cli::handlers::log_handler::remove_log(
+        &persistence,
+        "log-accept-01",
+        oxyflow_timelog::cli::handlers::log_handler::RemoveLogMode {
+            yes: false,
+            is_machine: false,
+            is_quiet: false,
+        },
+        &prompter,
+    );
+
+    // Assert
+    assert!(result.is_ok());
+    let output_str = format!("{}", result.unwrap());
+    assert!(output_str.contains("Deleted time log: log-accept-01"));
+    let log_after = persistence.time_logs.get_by_id("log-accept-01");
+    assert!(log_after.is_err());
+}

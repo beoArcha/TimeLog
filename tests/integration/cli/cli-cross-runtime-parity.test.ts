@@ -55,11 +55,28 @@ describe('Given CLI Cross-Runtime Parity Suite', () => {
             })
           : null;
 
+        const initialLogId = (testCase as { initialLogId?: string | null }).initialLogId;
+        const initialLog = initialLogId
+          ? aTimeLog({
+              id: initialLogId,
+              projectId: 'p1',
+              taskId: 't1',
+              startTime: '2026-06-15T09:00:00Z',
+              endTime: '2026-06-15T09:45:00Z',
+              note: 'Parity log',
+            })
+          : null;
+
+        const seededLogs = [
+          ...(activeLog ? [activeLog] : []),
+          ...(initialLog ? [initialLog] : []),
+        ];
+
         const store = SandboxEmulatorStore.getInstance();
         store.seedForTesting({
           projects: [defaultProject],
           tasks: [defaultTask],
-          logs: activeLog ? [activeLog] : [],
+          logs: seededLogs,
           activeLog,
           selectedTaskId: 't1',
         });
@@ -68,7 +85,7 @@ describe('Given CLI Cross-Runtime Parity Suite', () => {
           projects: [defaultProject],
           tasks: [defaultTask],
           activeLog,
-          logs: activeLog ? [activeLog] : [],
+          logs: seededLogs,
           isSandbox: true,
         });
 

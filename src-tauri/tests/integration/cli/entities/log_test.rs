@@ -450,3 +450,178 @@ fn test_given_zero_limit_when_parsing_cli_args_then_fails_with_syntax_exit_code_
     assert!(zero_limit_parse.is_err());
     assert_eq!(zero_limit_parse.unwrap_err().exit_code(), 2);
 }
+
+#[test]
+fn test_given_existing_log_when_log_rm_invoked_with_yes_flag_then_deletes_log_without_prompting() {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_log_rm_yes");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-log-rm-yes")
+        .with_name("Confirm Removal Project")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-log-rm-yes")
+        .with_project_id("p-log-rm-yes")
+        .with_name("Removal Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let log = oxyflow_timelog::types::NewTimeLog {
+        id: "l-rm-yes-01".to_string(),
+        task_id: "t-log-rm-yes".to_string(),
+        start_time: "2026-10-24T10:00:00Z".to_string(),
+        end_time: Some("2026-10-24T10:45:00Z".to_string()),
+        note: Some("Testing rm yes".to_string()),
+    };
+    persistence.time_logs.insert_full(&log).unwrap();
+
+    let rm_args = CliArgs::try_parse_from(["oxy", "log", "rm", "l-rm-yes-01", "--yes"]).unwrap();
+
+    // When
+    let result = handle_cli(rm_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let output_str = format!("{}", result.unwrap());
+    assert!(output_str.contains("Deleted time log: l-rm-yes-01"));
+    assert!(persistence.time_logs.get_by_id("l-rm-yes-01").is_err());
+}
+
+#[test]
+fn test_given_existing_log_when_log_rm_invoked_in_machine_mode_then_returns_removed_entry_in_envelope(
+) {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("test_entity_log_rm_machine");
+    let persistence = Persistence::new(&config).expect("failed to create persistence");
+    let engine = Engine::new(&persistence);
+
+    let proj = ProjectBuilder::new()
+        .with_id("p-log-rm-mach")
+        .with_name("Machine Removal Proj")
+        .build();
+    let task = TaskBuilder::new()
+        .with_id("t-log-rm-mach")
+        .with_project_id("p-log-rm-mach")
+        .with_name("Machine Task")
+        .build();
+    persistence.projects.create(proj).unwrap();
+    persistence.tasks.create(task).unwrap();
+
+    let log = oxyflow_timelog::types::NewTimeLog {
+        id: "l-rm-mach-01".to_string(),
+        task_id: "t-log-rm-mach".to_string(),
+        start_time: "2026-10-24T10:00:00Z".to_string(),
+        end_time: Some("2026-10-24T10:45:00Z".to_string()),
+        note: Some("Machine note".to_string()),
+    };
+    persistence.time_logs.insert_full(&log).unwrap();
+
+    let rm_args = CliArgs::try_parse_from(["oxy", "--json", "log", "rm", "l-rm-mach-01"]).unwrap();
+
+    // When
+    let result = handle_cli(rm_args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let parsed: serde_json::Value =
+        serde_json::from_str(&format!("{}", result.unwrap())).expect("valid json envelope");
+    assert_eq!(parsed["status"], "ok");
+    assert_eq!(parsed["action"], "removed");
+    assert_eq!(parsed["id"], "l-rm-mach-01");
+    assert_eq!(parsed["entry"]["id"], "l-rm-mach-01");
+    assert_eq!(parsed["entry"]["taskId"], "t-log-rm-mach");
+    assert_eq!(parsed["entry"]["startTime"], "2026-10-24T10:00:00Z");
+    assert_eq!(parsed["entry"]["endTime"], "2026-10-24T10:45:00Z");
+    assert_eq!(parsed["entry"]["note"], "Machine note");
+    assert!(persistence.time_logs.get_by_id("l-rm-mach-01").is_err());
+}
+
+#[test]
+fn test_given_compiled_oxy_binary_when_log_rm_executed_with_non_tty_stdin_then_deletes_without_hanging(
+) {
+    use std::process::{Command, Stdio};
+    use std::time::{Duration, Instant};
+
+    // Given
+    let oxy_bin = env!("CARGO_BIN_EXE_oxy");
+    let temp_dir =
+        std::env::temp_dir().join(format!("timelog_oxy_rm_test_{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let db_path = temp_dir.join("test_rm.db");
+    let db_path_str = db_path.to_str().unwrap();
+
+    {
+        let conn = rusqlite::Connection::open(&db_path).expect("open db");
+        oxyflow_timelog::repositories::shared::initialize_database(&conn).expect("init db");
+        conn.execute(
+            "INSERT INTO projects (id, name, color, created_at, archived) VALUES ('p-sub', 'Sub Project', '#fff', '2026-01-01T00:00:00Z', 0)",
+            [],
+        )
+        .expect("insert proj");
+        conn.execute(
+            "INSERT INTO tasks (id, project_id, name, created_at, completed) VALUES ('t-sub', 'p-sub', 'Sub Task', '2026-01-01T00:00:00Z', 0)",
+            [],
+        )
+        .expect("insert task");
+        conn.execute(
+            "INSERT INTO time_logs (id, task_id, start_time, end_time, note) VALUES ('log-sub-01', 't-sub', '2026-10-24T10:00:00Z', '2026-10-24T10:45:00Z', 'Sub test')",
+            [],
+        )
+        .expect("insert log");
+    }
+
+    // When: run with non-TTY stdin (Stdio::null())
+    let mut cmd = Command::new(oxy_bin);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    cmd.args(["--db", db_path_str, "log", "rm", "log-sub-01"])
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    let mut child = cmd.spawn().expect("failed to spawn oxy binary");
+    let timeout = Duration::from_secs(10);
+    let start = Instant::now();
+
+    let output = loop {
+        match child.try_wait().expect("failed to check child status") {
+            Some(_status) => {
+                break child
+                    .wait_with_output()
+                    .expect("failed to wait child output");
+            }
+            None => {
+                if start.elapsed() > timeout {
+                    let _ = child.kill();
+                    panic!("oxy process timed out after {:?}", timeout);
+                }
+                std::thread::sleep(Duration::from_millis(50));
+            }
+        }
+    };
+
+    // Then
+    assert_eq!(output.status.code(), Some(0));
+    let stdout_str = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout_str.contains("Deleted time log: log-sub-01"));
+
+    let conn = rusqlite::Connection::open(&db_path).expect("open db verification");
+    let count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM time_logs WHERE id = 'log-sub-01'",
+            [],
+            |row| row.get(0),
+        )
+        .expect("query count");
+    assert_eq!(count, 0);
+
+    let _ = std::fs::remove_dir_all(&temp_dir);
+}

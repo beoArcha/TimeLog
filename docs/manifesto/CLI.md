@@ -143,7 +143,7 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Log** | Add | `oxy log add <target> [<duration>] ["<note>"] [--from <iso>] [--to <iso>]` | Direct retroactive log insertion | Confirms retroactive time captured |
 | **Log** | Edit | `oxy log edit <id> [--duration <dur>] [--note <note>] [--start <iso>] [--end <iso>] [--task <target>] --reason <text>` | Updates time log with required audit reason (`--reason <text>` or `-r <text>`) | Prompts for edit fields and audit reason |
 | **Log** | List | `oxy log list [-p <proj>] [-t <task>] [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--from <iso>] [--to <iso>] [--tz <iana>] [--limit <n>]` | Filtered tabular or JSON list (no default limit in machine mode) | Displays filtered log entries (default 20 + footer in human mode) |
-| **Log** | Remove | `oxy log rm <id>` | Deletes time log entry | Confirms log removal |
+| **Log** | Remove | `oxy log rm <id> [--yes\|-y]` | Deletes time log entry; returns deleted entry in JSON mode | In interactive TTY, prompts confirmation (`Remove entry <short id> (45m, <task name>)? [y/N]`) unless `--yes`/`-y` or machine mode |
 | **Report** | Tree | `oxy report --tree [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--tz <iana>]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
 | **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [--tz <iana>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
@@ -346,6 +346,13 @@ In interactive human terminal mode, encountering an unknown entity or a missing 
 3. Offers an interactive selector to pick the intended entity or create it on the spot.
 
 In `--json`/`--machine` mode, or in human mode with the global `--exact` flag, `-p`/`-t` and other targets resolve only by exact ID, unique ID prefix of ≥ 8 characters, or exact name (case-insensitive); fuzzy matching, substring matching, prefixes < 8 characters, and suggestions are human-mode only (without `--exact`).
+
+### Log Removal Confirmation (`oxy log rm`)
+
+`oxy log rm <id>` asks for confirmation before deleting:
+- **Interactive TTY:** Prompts `Remove entry <short id> (<duration>, <task name>)? [y/N]`. Anything but `y` or `yes` (case-insensitive) cancels the operation, deletes nothing, prints `Operation cancelled.`, and exits with code 0.
+- **Bypass Prompting:** In non-interactive pipelines (non-TTY stdin / pipes), when the `--yes` (`-y`) flag is provided, or in machine mode (`--json` / `--machine`), removal proceeds immediately without asking.
+- **Machine Envelope:** In `--json` / `--machine` mode, the envelope includes the removed entry (`"entry": { ... }`) alongside `"status": "ok"`, `"id": <id>`, and `"action": "removed"`, enabling recreation via `oxy log add`.
 
 ---
 

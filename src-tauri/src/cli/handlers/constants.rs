@@ -28,6 +28,8 @@ pub const MSG_SUBTASKS_HEADER: &str = "Subtasks for task {}:";
 pub const MSG_LOG_RECORDED: &str = "Logged {} to '{}' [ID: {}]";
 pub const MSG_LOG_UPDATED: &str = "Updated time log: {}";
 pub const MSG_LOG_DELETED: &str = "Deleted time log: {}";
+pub const PROMPT_CONFIRM_LOG_REMOVE: &str = "Remove entry {} ({}, {})? [y/N] ";
+pub const MSG_LOG_REMOVE_CANCELLED: &str = "Operation cancelled.";
 pub const MSG_NO_LOGS_FOUND: &str = "No time logs found matching criteria.";
 pub const MSG_LOGS_TRUNCATED_FOOTER: &str =
     "… {} more entries not shown. Use --limit <n> to show more.";

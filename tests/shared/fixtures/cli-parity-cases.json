@@ -605,5 +605,47 @@
     "expectedErrorCode": null,
     "expectedPatterns": [],
     "expectSingleLineIdentifier": true
+  },
+  {
+    "id": "log-remove-yes",
+    "description": "Remove log entry with --yes flag deletes without confirmation",
+    "commandFrontend": "log rm l1 --yes",
+    "commandRust": [
+      "log",
+      "rm",
+      "l1",
+      "--yes"
+    ],
+    "initialActiveTaskId": null,
+    "initialLogId": "l1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": [
+      "deleted time log: l1"
+    ]
+  },
+  {
+    "id": "log-remove-json",
+    "description": "Remove log entry in json mode returns removed entry",
+    "commandFrontend": "log rm l1 --json",
+    "commandRust": [
+      "log",
+      "rm",
+      "l1",
+      "--json"
+    ],
+    "initialActiveTaskId": null,
+    "initialLogId": "l1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": [
+      "status",
+      "ok",
+      "removed",
+      "entry",
+      "l1"
+    ]
   }
 ]

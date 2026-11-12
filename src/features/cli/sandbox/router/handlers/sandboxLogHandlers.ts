@@ -177,12 +177,17 @@ export function handleLogRemove(
   }
 
   const logs = store.getLogs();
-  const logExists = logs.some((l) => l.id === logId);
-  if (!logExists) {
+  const existingLog = logs.find((l) => l.id === logId);
+  if (!existingLog) {
     output.error(`Error: Time log "${logId}" not found.`, 'DOM_ENTITY_NOT_FOUND', 4);
     return;
   }
 
   store.handleRemoveLog(logId);
+  const isMachine = Boolean(flags['json'] || flags['j'] || flags['machine'] || flags['m']);
+  if (isMachine) {
+    output.output(JSON.stringify({ status: 'ok', id: logId, action: 'removed', entry: existingLog }, null, 2));
+    return;
+  }
   emitMutationResult(flags, output, logId, `Deleted time log: ${logId}`);
 }
