@@ -2,6 +2,7 @@ import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+import { emitMutationResult, isQuietMode } from '../sandboxQuietMode';
 
 export function handleTaskList(
   flags: Record<string, string | boolean>,
@@ -11,6 +12,7 @@ export function handleTaskList(
   const isStrict = isStrictResolution(flags);
   const showAll = Boolean(flags['a'] || flags['all']);
   const projTarget = (flags['p'] || flags['project']) as string | undefined;
+  const quiet = isQuietMode(flags);
 
   let filteredProjects = store.getProjects();
   if (projTarget) {
@@ -27,13 +29,24 @@ export function handleTaskList(
   const metrics = store.getComputedMetrics();
 
   if (allTasks.length === 0) {
-    output.info('No tasks found in sandbox.');
+    if (!quiet) output.info('No tasks found in sandbox.');
     return;
   }
 
-  output.info('┌──────┬────────────────────────────────┬────────────────────────┐');
-  output.info('│ ID   │ Task Title                     │ Total Time             │');
-  output.info('├──────┼────────────────────────────────┼────────────────────────┤');
+  if (!quiet) {
+    output.info('┌──────┬────────────────────────────────┬────────────────────────┐');
+    output.info('│ ID   │ Task Title                     │ Total Time             │');
+    output.info('├──────┼────────────────────────────────┼────────────────────────┤');
+  }
+
+  // Quiet output is rows only, so informational styling is dropped for every row.
+  const writeRow = (text: string, style: 'info' | 'output'): void => {
+    if (!quiet && style === 'info') {
+      output.info(text);
+    } else {
+      output.output(text);
+    }
+  };
 
   for (const project of filteredProjects) {
     const projTasks = allTasks.filter((t) => t.projectId === project.id);
@@ -41,7 +54,7 @@ export function handleTaskList(
 
     if (visibleTasks.length === 0) continue;
 
-    output.info(`Project: ${project.name} [ID: ${project.id}]`);
+    if (!quiet) output.info(`Project: ${project.name} [ID: ${project.id}]`);
     const rootTasks = visibleTasks.filter((t) => !t.parentTaskId);
 
     for (const root of rootTasks) {
@@ -50,11 +63,7 @@ export function handleTaskList(
       const duration = formatSeconds(rootSecs);
       const isSelected = root.id === selectedTaskId ? ' (Selected)' : '';
       const text = `${statusSymbol} ID: ${root.id.padEnd(6)} - ${root.name} (${duration})${isSelected}`;
-      if (root.completed) {
-        output.info(text);
-      } else {
-        output.output(text);
-      }
+      writeRow(text, root.completed ? 'info' : 'output');
 
       const subtasks = projTasks.filter((t) => t.parentTaskId === root.id);
       for (const sub of subtasks) {
@@ -62,7 +71,7 @@ export function handleTaskList(
         const subSecs = metrics?.tasks[sub.id]?.elapsedSeconds ?? 0;
         const subDuration = formatSeconds(subSecs);
         const isSubSelected = sub.id === selectedTaskId ? ' (Selected)' : '';
-        output.info(`      ↳ ${subStatus} ID: ${sub.id.padEnd(6)} - ${sub.name} (${subDuration})${isSubSelected}`);
+        writeRow(`      ↳ ${subStatus} ID: ${sub.id.padEnd(6)} - ${sub.name} (${subDuration})${isSubSelected}`, 'info');
       }
     }
   }
@@ -121,7 +130,7 @@ export function handleTaskAdd(
 
   const task = store.handleAddTask(targetProjectId, name, parentTaskId, rate);
   const typeLabel = parentTaskId ? 'Subtask' : 'Task';
-  output.success(`${typeLabel} created: "${task.name}" [ID: ${task.id}]`);
+  emitMutationResult(flags, output, task.id, `${typeLabel} created: "${task.name}" [ID: ${task.id}]`);
 }
 
 export function handleTaskRate(
@@ -155,7 +164,12 @@ export function handleTaskRate(
       : trimmed;
 
   store.handleSetTaskRate(resolve.entity.id, rate);
-  output.success(`Updated billing rate for task "${resolve.entity.name}" [ID: ${resolve.entity.id}] to ${rate ?? 'inherited'}.`);
+  emitMutationResult(
+    flags,
+    output,
+    resolve.entity.id,
+    `Updated billing rate for task "${resolve.entity.name}" [ID: ${resolve.entity.id}] to ${rate ?? 'inherited'}.`
+  );
 }
 
 export function handleTaskDone(
@@ -182,7 +196,7 @@ export function handleTaskDone(
   const task = resolve.entity;
   store.handleToggleTaskComplete(task.id);
   const state = task.completed ? 'completed' : 'uncompleted';
-  output.success(`Task "${task.name}" [ID: ${task.id}] marked as ${state}.`);
+  emitMutationResult(flags, output, task.id, `Task "${task.name}" [ID: ${task.id}] marked as ${state}.`);
 }
 
 export function handleTaskRename(
@@ -209,7 +223,7 @@ export function handleTaskRename(
   }
 
   store.handleRenameTask(resolve.entity.id, newName);
-  output.success(`Renamed task: "${newName}" [ID: ${resolve.entity.id}]`);
+  emitMutationResult(flags, output, resolve.entity.id, `Renamed task: "${newName}" [ID: ${resolve.entity.id}]`);
 }
 
 export function handleTaskArchive(
@@ -235,5 +249,10 @@ export function handleTaskArchive(
 
   store.handleArchiveTask(resolve.entity.id);
   const status = resolve.entity.archived ? 'unarchived' : 'archived';
-  output.success(`Task "${resolve.entity.name}" [ID: ${resolve.entity.id}] has been ${status}.`);
+  emitMutationResult(
+    flags,
+    output,
+    resolve.entity.id,
+    `Task "${resolve.entity.name}" [ID: ${resolve.entity.id}] has been ${status}.`
+  );
 }

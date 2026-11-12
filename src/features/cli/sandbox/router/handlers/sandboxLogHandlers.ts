@@ -4,6 +4,7 @@ import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
 import { isStartInRange } from '@common/engine/range/logRange';
 import { resolveSandboxRange } from '../sandboxRange';
+import { emitMutationResult, isQuietMode } from '../sandboxQuietMode';
 
 export function parseDurationToSeconds(input: string): number {
   const trimmed = input.trim().toLowerCase();
@@ -51,6 +52,7 @@ export function handleLogList(
 
   const isStrict = isStrictResolution(flags);
   const isMachine = Boolean(flags['json'] || flags['machine']);
+  const quiet = isQuietMode(flags);
   const projFilter = (flags['p'] || flags['project']) as string | undefined;
   if (projFilter) {
     const resolve = resolveEntity(projects, projFilter, 'Project', (p) => p.id, (p) => p.name, isStrict);
@@ -91,7 +93,7 @@ export function handleLogList(
   if (visibleLogs.length === 0) {
     if (isMachine) {
       output.output('[]');
-    } else {
+    } else if (!quiet) {
       output.info('No time logs found matching the filter.');
     }
     return;
@@ -102,9 +104,11 @@ export function handleLogList(
     return;
   }
 
-  output.info('┌──────┬────────────────────────────────┬──────────────────────┬──────────┐');
-  output.info('│ ID   │ Task                           │ Time (Start - End)   │ Duration │');
-  output.info('├──────┼────────────────────────────────┼──────────────────────┼──────────┤');
+  if (!quiet) {
+    output.info('┌──────┬────────────────────────────────┬──────────────────────┬──────────┐');
+    output.info('│ ID   │ Task                           │ Time (Start - End)   │ Duration │');
+    output.info('├──────┼────────────────────────────────┼──────────────────────┼──────────┤');
+  }
   for (const log of visibleLogs) {
     const task = tasks.find((t) => t.id === log.taskId);
     const startMs = new Date(log.startTime).getTime();
@@ -114,11 +118,17 @@ export function handleLogList(
     const idCol = log.id.padEnd(4);
     const nameCol = (task?.name || 'Unknown').slice(0, 30).padEnd(30);
     const timeRange = `${log.startTime.slice(11, 16)} - ${log.endTime ? log.endTime.slice(11, 16) : 'running'}`.padEnd(20);
-    output.output(`│ ${idCol} │ ${nameCol} │ ${timeRange} │ ${durStr} │`);
+    if (quiet) {
+      output.output(`${idCol} ${nameCol} ${timeRange} ${durStr}`.trimEnd());
+    } else {
+      output.output(`│ ${idCol} │ ${nameCol} │ ${timeRange} │ ${durStr} │`);
+    }
   }
-  output.info('└──────┴────────────────────────────────┴──────────────────────┴──────────┘');
+  if (!quiet) {
+    output.info('└──────┴────────────────────────────────┴──────────────────────┴──────────┘');
+  }
 
-  if (totalMatched > visibleLogs.length) {
+  if (!quiet && totalMatched > visibleLogs.length) {
     const notShown = totalMatched - visibleLogs.length;
     output.info(SANDBOX_LOGS_TRUNCATED_FOOTER.replace('{}', String(notShown)));
   }
@@ -151,11 +161,12 @@ export function handleLogAdd(
   const durSecs = durationStr ? parseDurationToSeconds(durationStr) : 1800;
   const log = store.handleAddLog(task.id, durSecs, note);
   const formattedDur = durationStr || formatSeconds(durSecs);
-  output.success(`Logged ${formattedDur} to '${task.name}' [ID: ${log.id}]`);
+  emitMutationResult(flags, output, log.id, `Logged ${formattedDur} to '${task.name}' [ID: ${log.id}]`);
 }
 
 export function handleLogRemove(
   positionals: string[],
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
@@ -173,5 +184,5 @@ export function handleLogRemove(
   }
 
   store.handleRemoveLog(logId);
-  output.success(`Deleted time log: ${logId}`);
+  emitMutationResult(flags, output, logId, `Deleted time log: ${logId}`);
 }

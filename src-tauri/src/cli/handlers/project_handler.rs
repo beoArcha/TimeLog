@@ -16,6 +16,14 @@ use crate::engine::Engine;
 use crate::persistence::Persistence;
 use crate::types::{Project, Task};
 
+pub struct AddProjectOptions {
+    pub name: String,
+    pub color: Option<String>,
+    pub rate: Option<String>,
+    pub rate_cents: Option<u64>,
+    pub currency: Option<String>,
+}
+
 pub struct RenameProjectOptions {
     pub target: String,
     pub new_name: Option<String>,
@@ -24,6 +32,7 @@ pub struct RenameProjectOptions {
     pub rate_cents: Option<u64>,
     pub currency: Option<String>,
     pub is_machine: bool,
+    pub is_quiet: bool,
     pub strict: bool,
 }
 
@@ -44,12 +53,15 @@ pub fn handle(
             currency,
         } => add_project(
             persistence,
-            name,
-            color,
-            rate,
-            rate_cents,
-            currency,
+            AddProjectOptions {
+                name,
+                color,
+                rate,
+                rate_cents,
+                currency,
+            },
             is_machine,
+            is_quiet,
         ),
         ProjectSubcommand::Rename {
             target,
@@ -68,11 +80,12 @@ pub fn handle(
                 rate_cents,
                 currency,
                 is_machine,
+                is_quiet,
                 strict,
             },
         ),
         ProjectSubcommand::Archive { target } => {
-            archive_project(persistence, &target, is_machine, strict)
+            archive_project(persistence, &target, is_machine, strict, is_quiet)
         }
     }
 }
@@ -97,24 +110,18 @@ fn list_projects(
     }
 
     if filtered.is_empty() {
-        return Ok(CliOutput::Success(MSG_NO_PROJECTS_FOUND.to_string()));
+        return Ok(CliOutput::empty_list(is_quiet, MSG_NO_PROJECTS_FOUND));
     }
 
-    Ok(CliOutput::Success(format_project_list(
-        &filtered, &tasks, is_quiet,
-    )))
+    let rows = format_project_rows(&filtered, &tasks);
+    Ok(CliOutput::list(is_quiet, HEADER_PROJECTS, &rows))
 }
 
-fn format_project_list(projects: &[Project], tasks: &[Task], is_quiet: bool) -> String {
-    let rows: String = projects
+fn format_project_rows(projects: &[Project], tasks: &[Task]) -> String {
+    projects
         .iter()
         .map(|p| format_project_row(p, tasks))
-        .collect();
-    if is_quiet {
-        rows.trim_end().to_string()
-    } else {
-        format!("{}{}", HEADER_PROJECTS, rows)
-    }
+        .collect()
 }
 
 fn format_project_row(project: &Project, tasks: &[Task]) -> String {
@@ -135,13 +142,17 @@ fn format_project_row(project: &Project, tasks: &[Task]) -> String {
 
 fn add_project(
     persistence: &Persistence,
-    name: String,
-    color: Option<String>,
-    rate: Option<String>,
-    rate_cents: Option<u64>,
-    currency: Option<String>,
+    opts: AddProjectOptions,
     is_machine: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
+    let AddProjectOptions {
+        name,
+        color,
+        rate,
+        rate_cents,
+        currency,
+    } = opts;
     let billing = NormalizedBillingCreation::parse(rate, rate_cents, currency)?;
     let engine = Engine::new(persistence);
     let valid_name = engine.validate_project_name(&name, None)?;
@@ -170,7 +181,11 @@ fn add_project(
             .to_string(),
         ));
     }
-    Ok(CliOutput::Success(MSG_PROJECT_CREATED.replace("{}", &id)))
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &id,
+        MSG_PROJECT_CREATED.replace("{}", &id),
+    ))
 }
 
 fn rename_project(
@@ -238,7 +253,7 @@ fn rename_project(
     } else {
         MSG_PROJECT_UPDATED.replace("{}", &project.id)
     };
-    Ok(CliOutput::Success(msg))
+    Ok(CliOutput::mutation(opts.is_quiet, &project.id, msg))
 }
 
 fn archive_project(
@@ -246,6 +261,7 @@ fn archive_project(
     target: &str,
     is_machine: bool,
     strict: bool,
+    is_quiet: bool,
 ) -> Result<CliOutput, CliError> {
     let resolver = EntityResolver::with_mode(persistence, strict);
     let project = resolver.resolve_project(target)?;
@@ -260,7 +276,9 @@ fn archive_project(
             .to_string(),
         ));
     }
-    Ok(CliOutput::Success(
+    Ok(CliOutput::mutation(
+        is_quiet,
+        &project.id,
         MSG_PROJECT_ARCHIVED.replace("{}", &project.id),
     ))
 }
