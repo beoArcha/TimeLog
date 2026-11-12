@@ -6,6 +6,7 @@ import {
   parseFlags,
 } from '@features/cli/sandbox/sandboxCommandRouter';
 import { TerminalOutput } from '@features/cli/utils/terminalOutput';
+import { aTimeLog } from '@tests/shared/builders/entity-builders';
 
 describe('Unit Tests: SandboxCommandRouter', () => {
   let store: SandboxEmulatorStore;
@@ -493,6 +494,121 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(store.getLogs().some((l) => l.id === createdLog.id)).toBe(false);
       const lines = output.getLines();
       expect(lines.some((l) => l.type === 'success' && l.text.includes('Deleted'))).toBe(true);
+    });
+
+    it('should show 20 logs and footer when logs exceed 20 in human mode', () => {
+      // Arrange
+      const initialCount = store.getLogs().length;
+      for (let i = 0; i < 25; i++) {
+        store.handleAddLog('sb_t1', 600, `Log ${i}`);
+      }
+      const totalCount = initialCount + 25;
+      const expectedHidden = totalCount - 20;
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'list'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      const lines = output.getLines();
+      const rowLines = lines.filter((l) => l.type === 'output' && l.text.startsWith('│'));
+      expect(rowLines.length).toBe(20);
+      expect(lines.some((l) => l.type === 'info' && l.text.includes(`… ${expectedHidden} more entries not shown. Use --limit <n> to show more.`))).toBe(true);
+    });
+
+    it('should return all logs without truncation in machine mode', () => {
+      // Arrange
+      const initialCount = store.getLogs().length;
+      for (let i = 0; i < 25; i++) {
+        store.handleAddLog('sb_t1', 600, `Log ${i}`);
+      }
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'list', '--json'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      const outputLines = output.getLines().filter((l) => l.type === 'output');
+      const parsed = JSON.parse(outputLines[0].text);
+      expect(parsed.length).toBe(initialCount + 25);
+    });
+
+    it('should respect explicit limit in machine mode', () => {
+      // Arrange
+      for (let i = 0; i < 25; i++) {
+        store.handleAddLog('sb_t1', 600, `Log ${i}`);
+      }
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'list', '--json', '--limit', '5'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      const outputLines = output.getLines().filter((l) => l.type === 'output');
+      const parsed = JSON.parse(outputLines[0].text);
+      expect(parsed.length).toBe(5);
+    });
+
+    it('should return error when limit is less than 1', () => {
+      // Arrange
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'list', '--limit', '0'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      const errorLine = output.getLines().find((l) => l.type === 'error');
+      expect(errorLine).toBeDefined();
+      expect(errorLine?.exitCode).toBe(2);
+      expect(errorLine?.errorCode).toBe('CLI_SYNTAX_INVALID_ARGS');
+    });
+
+    it('should return logs in descending start time order in machine mode', () => {
+      // Arrange
+      const logJan = aTimeLog({ id: 'l_jan', taskId: 'sb_t1', startTime: '2026-01-10T10:00:00Z' });
+      const logMar = aTimeLog({ id: 'l_mar', taskId: 'sb_t1', startTime: '2026-03-10T10:00:00Z' });
+      const logFeb = aTimeLog({ id: 'l_feb', taskId: 'sb_t1', startTime: '2026-02-10T10:00:00Z' });
+      store.seedForTesting({
+        projects: store.getProjects(),
+        tasks: store.getTasks(),
+        logs: [logJan, logMar, logFeb],
+      });
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'list', '--json'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      const outputLines = output.getLines().filter((l) => l.type === 'output');
+      const parsed = JSON.parse(outputLines[0].text);
+      expect(parsed.map((l: { id: string }) => l.id)).toEqual(['l_mar', 'l_feb', 'l_jan']);
+    });
+
+    it('should return the two newest logs when explicit limit of 2 is provided', () => {
+      // Arrange
+      const logJan = aTimeLog({ id: 'l_jan', taskId: 'sb_t1', startTime: '2026-01-10T10:00:00Z' });
+      const logMar = aTimeLog({ id: 'l_mar', taskId: 'sb_t1', startTime: '2026-03-10T10:00:00Z' });
+      const logFeb = aTimeLog({ id: 'l_feb', taskId: 'sb_t1', startTime: '2026-02-10T10:00:00Z' });
+      store.seedForTesting({
+        projects: store.getProjects(),
+        tasks: store.getTasks(),
+        logs: [logJan, logMar, logFeb],
+      });
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'list', '--json', '--limit', '2'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      const outputLines = output.getLines().filter((l) => l.type === 'output');
+      const parsed = JSON.parse(outputLines[0].text);
+      expect(parsed.map((l: { id: string }) => l.id)).toEqual(['l_mar', 'l_feb']);
     });
   });
 });

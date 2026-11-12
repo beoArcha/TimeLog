@@ -1,8 +1,8 @@
 use super::constants::{
     ERR_LOG_ADD_NO_DURATION_OR_FROM, ERR_LOG_EDIT_EMPTY, ERR_LOG_EDIT_NO_REASON,
     FORMAT_DURATION_MINS_SECS, FORMAT_LOG_NOTE, FORMAT_LOG_ROW, HEADER_TIME_LOGS,
-    LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION, LABEL_UNKNOWN_TASK, MSG_LOG_DELETED,
-    MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
+    LABEL_ACTIVE_TIMER, LABEL_INVALID_DURATION, LABEL_UNKNOWN_TASK, MSG_LOGS_TRUNCATED_FOOTER,
+    MSG_LOG_DELETED, MSG_LOG_RECORDED, MSG_LOG_UPDATED, MSG_NO_LOGS_FOUND,
 };
 use crate::cli::error::CliError;
 use crate::cli::parser::tier2_entities::{LogArgs, LogSubcommand};
@@ -56,7 +56,6 @@ struct LogFilterCriteria<'a> {
     month: bool,
     from_bound: Option<DateTime<Utc>>,
     to_bound: Option<DateTime<Utc>>,
-    limit: Option<usize>,
 }
 
 pub fn handle(
@@ -174,10 +173,19 @@ fn list_logs(
         month: criteria.month,
         from_bound,
         to_bound,
-        limit: criteria.limit,
     };
 
-    let filtered = filter_and_sort_logs(all_logs, filter_criteria);
+    let (mut filtered, total_matched) = filter_and_sort_logs(all_logs, filter_criteria);
+
+    let effective_limit = if is_machine {
+        criteria.limit
+    } else {
+        Some(criteria.limit.unwrap_or(20))
+    };
+
+    if let Some(lim) = effective_limit {
+        filtered.truncate(lim);
+    }
 
     if is_machine {
         let json_str = serde_json::to_string_pretty(&filtered)?;
@@ -188,7 +196,10 @@ fn list_logs(
     }
 
     Ok(CliOutput::Success(render_logs_table(
-        &filtered, &tasks, is_quiet,
+        &filtered,
+        &tasks,
+        is_quiet,
+        total_matched,
     )))
 }
 
@@ -254,7 +265,7 @@ fn is_log_after(start_time: &str, bound: DateTime<Utc>) -> bool {
 fn filter_and_sort_logs(
     logs: Vec<crate::types::TimeLog>,
     criteria: LogFilterCriteria<'_>,
-) -> Vec<crate::types::TimeLog> {
+) -> (Vec<crate::types::TimeLog>, usize) {
     let now = Utc::now();
     let today_prefix = now.format(DATE_FORMAT_DATE_ONLY).to_string();
     let month_prefix = now.format("%Y-%m").to_string();
@@ -297,8 +308,8 @@ fn filter_and_sort_logs(
         .collect();
 
     filtered.sort_by(|a, b| b.start_time.cmp(&a.start_time));
-    filtered.truncate(criteria.limit.unwrap_or(20));
-    filtered
+    let total_matched = filtered.len();
+    (filtered, total_matched)
 }
 
 fn format_log_duration(start_time: &str, end_time: Option<&str>) -> String {
@@ -324,6 +335,7 @@ fn render_logs_table(
     logs: &[crate::types::TimeLog],
     tasks: &[crate::types::Task],
     is_quiet: bool,
+    total_matched: usize,
 ) -> String {
     let mut out = if is_quiet {
         String::new()
@@ -353,6 +365,11 @@ fn render_logs_table(
                 .replacen("{}", &log.id, 1)
                 .replacen("{}", &note_display, 1),
         );
+    }
+    if !is_quiet && total_matched > logs.len() {
+        let not_shown = total_matched - logs.len();
+        out.push_str(&MSG_LOGS_TRUNCATED_FOOTER.replacen("{}", &not_shown.to_string(), 1));
+        out.push('\n');
     }
     out
 }

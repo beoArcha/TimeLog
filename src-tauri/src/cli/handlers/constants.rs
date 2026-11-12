@@ -29,6 +29,8 @@ pub const MSG_LOG_RECORDED: &str = "Logged {} to '{}' [ID: {}]";
 pub const MSG_LOG_UPDATED: &str = "Updated time log: {}";
 pub const MSG_LOG_DELETED: &str = "Deleted time log: {}";
 pub const MSG_NO_LOGS_FOUND: &str = "No time logs found matching criteria.";
+pub const MSG_LOGS_TRUNCATED_FOOTER: &str =
+    "… {} more entries not shown. Use --limit <n> to show more.";
 pub const ERR_INVALID_TIMESTAMP: &str =
     "Invalid timestamp format '{}': expected RFC3339 (e.g. '2026-10-24T10:00:00Z') or 'YYYY-MM-DD'";
 pub const ERR_LOG_ADD_NO_DURATION_OR_FROM: &str =
