@@ -31,11 +31,11 @@ pub fn dispatch_command(
     match args.command {
         None => flow_handler::handle_glance(is_machine, persistence, engine, tz),
         Some(CliCommand::Start(cmd_args)) => {
-            flow_handler::handle_start(cmd_args, is_machine, strict, persistence, engine)
+            flow_handler::handle_start(cmd_args, is_machine, is_quiet, strict, persistence, engine)
         }
         Some(CliCommand::Stop(cmd_args)) => flow_handler::handle_stop(cmd_args, is_machine, engine),
         Some(CliCommand::Switch(cmd_args)) => {
-            flow_handler::handle_switch(cmd_args, is_machine, strict, persistence, engine)
+            flow_handler::handle_switch(cmd_args, is_machine, is_quiet, strict, persistence, engine)
         }
         Some(CliCommand::Status) => flow_handler::handle_status(is_machine, engine),
         Some(CliCommand::Today) => flow_handler::handle_today(is_machine, persistence, engine, tz),

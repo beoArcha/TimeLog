@@ -1,3 +1,4 @@
+pub mod envelope_contract_test;
 pub mod interactive_test;
 pub mod lifecycle_test;
 pub mod shortcuts_test;

@@ -3,6 +3,7 @@ pub mod dashboard_test;
 pub mod db_target_test;
 pub mod decoration_test;
 pub mod duration_parser_test;
+pub mod envelope_test;
 pub mod error_lifecycle_test;
 pub mod error_test;
 pub mod exporter_csv_test;

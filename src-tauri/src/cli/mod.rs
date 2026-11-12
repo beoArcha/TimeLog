@@ -22,6 +22,8 @@ pub use shared::validation::validate_cli_machine_locale;
 use crate::cli::shared::constants::EXIT_CODE_SUCCESS;
 use crate::engine::Engine;
 use crate::persistence::Persistence;
+use shared::envelope::JsonStyle;
+use std::io::IsTerminal;
 use std::process::ExitCode;
 
 /// Initializes the CLI logger to write diagnostics strictly to stderr.
@@ -118,10 +120,10 @@ pub fn preprocess_args(
 
 pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCode {
     let is_machine = args.machine || args.json;
-    match handle_cli(args, persistence, engine) {
-        Ok(output) => {
+    let style = JsonStyle::resolve(args.json, args.machine, std::io::stdout().is_terminal());
+    match handle_cli(args, persistence, engine).and_then(|output| output.render(style)) {
+        Ok(rendered) => {
             // Nothing to show (e.g. an empty quiet listing) must write zero bytes, not a lone newline.
-            let rendered = output.to_string();
             if !rendered.is_empty() {
                 println!("{rendered}");
             }

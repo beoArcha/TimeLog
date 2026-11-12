@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`start -q` / `switch -q` Print the Time Log ID**: quiet `start` and `switch` print only the ID of the time log they open (nothing when the task is already running), in the native CLI and the sandbox emulator.
 - **Consistent `-q` / `--quiet` Output for Scripts**:
   - Mutations (`project`, `task` and `log` add, edit, rename, archive and remove) print only the affected entity's full ID, so `ID=$(oxy task add X -q)` captures a bare UUID.
   - Quiet lists print bare rows without the `✅` status prefix, header or truncation footer; an empty quiet list prints nothing.
@@ -57,6 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Corrected `ToggleGroupItem` precedence so item-level variant and size overrides take effect.
 
 ### Breaking Changes
+
+- **Versioned `--json` / `--machine` Envelope for Flow Commands**:
+  - `start`, `stop`, `switch` and `status` now print `{ "schema": "oxy.<command>", "schemaVersion": 1, "data": {...}, "meta": { "generatedAt", "generator" } }` instead of the previous flat object; the former `"status": "ok"` field is removed and there is no v1 compatibility mode.
+  - Keys are camelCase (`activeTaskIds`, `stoppedCount`, `stoppedTaskIds`, `timeLogId`) and `action` values are camelCase (`alreadyRunning`).
+  - `--machine` prints one compact line; `--json` is indented only on a terminal and compact when piped.
+  - The browser sandbox emulator mirrors the envelope for the same four commands.
 
 - **Identity & OS Bundle Identifier**:
   - Changed reverse-DNS identifier from `com.oxytime.timelog` / `com.oxytime.oxyflow` to `com.oxyflow.timelog`.

@@ -133,10 +133,11 @@ fn test_given_running_timer_when_executing_machine_status_then_outputs_valid_jso
     let parsed: serde_json::Value = serde_json::from_str(stdout_str.trim())
         .expect("Machine output on stdout must be valid JSON");
 
-    assert_eq!(parsed.get("running"), Some(&serde_json::json!(true)));
+    assert_eq!(parsed["schema"], "oxy.status");
+    assert_eq!(parsed["data"]["running"], serde_json::json!(true));
     assert!(
-        parsed.get("active_tasks").is_some(),
-        "active_tasks should be present in status JSON: {:?}",
+        parsed["data"].get("activeTaskIds").is_some(),
+        "activeTaskIds should be present in status JSON: {:?}",
         parsed
     );
 }

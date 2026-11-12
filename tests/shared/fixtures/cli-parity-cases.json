@@ -647,5 +647,106 @@
       "entry",
       "l1"
     ]
+  },
+  {
+    "id": "start-quiet",
+    "description": "Quiet start prints only the identifier of the opened time log",
+    "commandFrontend": "start t1 -q",
+    "commandRust": ["start", "t1", "-q"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": [],
+    "expectSingleLineIdentifier": true
+  },
+  {
+    "id": "switch-quiet",
+    "description": "Quiet switch prints only the identifier of the opened time log",
+    "commandFrontend": "switch t1 -q",
+    "commandRust": ["switch", "t1", "-q"],
+    "initialActiveTaskId": "t1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": [],
+    "expectSingleLineIdentifier": true
+  },
+  {
+    "id": "status-machine-idle",
+    "description": "Machine status without a running timer emits an oxy.status envelope",
+    "commandFrontend": "status --machine",
+    "commandRust": ["status", "--machine"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["\"schema\":\"oxy.status\"", "\"running\":false"]
+  },
+  {
+    "id": "status-machine-active",
+    "description": "Machine status with a running timer lists its task in an oxy.status envelope",
+    "commandFrontend": "status --machine",
+    "commandRust": ["status", "--machine"],
+    "initialActiveTaskId": "t1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["\"activeTaskIds\":[\"t1\"]"]
+  },
+  {
+    "id": "start-machine",
+    "description": "Machine start emits an oxy.start envelope",
+    "commandFrontend": "start t1 --machine",
+    "commandRust": ["start", "t1", "--machine"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["\"schema\":\"oxy.start\"", "\"action\":\"started\""]
+  },
+  {
+    "id": "start-machine-already-running",
+    "description": "Machine start on a running task reports alreadyRunning without a time log",
+    "commandFrontend": "start t1 --machine",
+    "commandRust": ["start", "t1", "--machine"],
+    "initialActiveTaskId": "t1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["\"action\":\"alreadyRunning\"", "\"timeLogId\":null"]
+  },
+  {
+    "id": "stop-machine",
+    "description": "Machine stop emits an oxy.stop envelope",
+    "commandFrontend": "stop --machine",
+    "commandRust": ["stop", "--machine"],
+    "initialActiveTaskId": "t1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["\"schema\":\"oxy.stop\"", "\"stoppedCount\":1"]
+  },
+  {
+    "id": "stop-machine-if-running-idle",
+    "description": "Machine stop --if-running on an idle timer emits a noop envelope",
+    "commandFrontend": "stop --if-running --machine",
+    "commandRust": ["stop", "--if-running", "--machine"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["\"action\":\"noop\"", "\"stoppedCount\":0"]
+  },
+  {
+    "id": "switch-machine",
+    "description": "Machine switch emits an oxy.switch envelope",
+    "commandFrontend": "switch t1 --machine",
+    "commandRust": ["switch", "t1", "--machine"],
+    "initialActiveTaskId": null,
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["\"schema\":\"oxy.switch\"", "\"action\":\"switched\""]
   }
 ]

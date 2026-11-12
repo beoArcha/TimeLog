@@ -68,4 +68,11 @@ fn export_bindings() {
     LocalizedUserMessage::export_all_to(BINDINGS_DIR).unwrap();
     CliErrorEnvelope::export_all_to(BINDINGS_DIR).unwrap();
     CliExecutionResult::export_all_to(BINDINGS_DIR).unwrap();
+    EnvelopeMeta::export_all_to(BINDINGS_DIR).unwrap();
+    SuccessEnvelope::export_all_to(BINDINGS_DIR).unwrap();
+    FlowAction::export_all_to(BINDINGS_DIR).unwrap();
+    StartPayload::export_all_to(BINDINGS_DIR).unwrap();
+    StopPayload::export_all_to(BINDINGS_DIR).unwrap();
+    SwitchPayload::export_all_to(BINDINGS_DIR).unwrap();
+    StatusPayload::export_all_to(BINDINGS_DIR).unwrap();
 }

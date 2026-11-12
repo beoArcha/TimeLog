@@ -1,5 +1,6 @@
 pub mod constants;
 pub mod db_target;
+pub mod envelope;
 pub mod output;
 pub mod range_bounds;
 pub mod utils;

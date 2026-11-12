@@ -1,3 +1,4 @@
+use super::report::ReportGenerator;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -51,4 +52,24 @@ pub struct CliExecutionResult {
     pub exit_code: u8,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub envelope: Option<Box<CliErrorEnvelope>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct EnvelopeMeta {
+    pub generated_at: String,
+    pub generator: ReportGenerator,
+}
+
+/// Versioned wrapper around every successful `--json` / `--machine` payload.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct SuccessEnvelope {
+    pub schema: String,
+    pub schema_version: u32,
+    #[ts(type = "unknown")]
+    pub data: serde_json::Value,
+    pub meta: EnvelopeMeta,
 }

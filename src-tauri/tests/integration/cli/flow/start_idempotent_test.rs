@@ -51,12 +51,14 @@ fn test_given_running_task_when_started_twice_then_single_log_and_already_runnin
     // Then
     let first_json: serde_json::Value = serde_json::from_str(&first).unwrap();
     let second_json: serde_json::Value = serde_json::from_str(&second).unwrap();
-    assert_eq!(first_json["action"], "started");
-    assert_eq!(first_json["task_id"], "t_idem_a");
-    assert_eq!(first_json["stopped_task_ids"], serde_json::json!([]));
-    assert_eq!(second_json["status"], "ok");
-    assert_eq!(second_json["action"], "already_running");
-    assert_eq!(second_json["task_id"], "t_idem_a");
+    assert_eq!(first_json["schema"], "oxy.start");
+    assert_eq!(first_json["data"]["action"], "started");
+    assert_eq!(first_json["data"]["taskId"], "t_idem_a");
+    assert_eq!(first_json["data"]["stoppedTaskIds"], serde_json::json!([]));
+    assert!(first_json["data"]["timeLogId"].is_string());
+    assert_eq!(second_json["data"]["action"], "alreadyRunning");
+    assert_eq!(second_json["data"]["taskId"], "t_idem_a");
+    assert!(second_json["data"]["timeLogId"].is_null());
     let logs = persistence.time_logs.get_all().unwrap();
     assert_eq!(logs.iter().filter(|l| l.task_id == "t_idem_a").count(), 1);
 }
@@ -95,6 +97,9 @@ fn test_given_running_task_when_other_task_started_then_stopped_tasks_are_report
     assert!(human.contains("Started tracking task: t_idem_b"));
     assert!(human.ends_with("\nStopped: 'Code' [t_idem_a]"));
     let json: serde_json::Value = serde_json::from_str(&machine).unwrap();
-    assert_eq!(json["action"], "started");
-    assert_eq!(json["stopped_task_ids"], serde_json::json!(["t_idem_a"]));
+    assert_eq!(json["data"]["action"], "started");
+    assert_eq!(
+        json["data"]["stoppedTaskIds"],
+        serde_json::json!(["t_idem_a"])
+    );
 }

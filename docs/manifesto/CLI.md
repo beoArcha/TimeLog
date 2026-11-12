@@ -135,7 +135,7 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Task** | List | `oxy task list [-p <project-id>]` | Supports filtering and sorting | Hierarchical list with subtasks |
 | **Task** | Billing rate | `oxy task rate <id> <amount\|inherit\|none> [--currency <CODE>] [--cents]` | Sets override, clears it to inherit, or applies currency override | N/A (explicit arguments) |
 | **Subtask** | Create | `oxy subtask create -t <parent-id> "<name>"` | Links subtask to parent | Prompts for parent task selection |
-| **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite; starting an already running task is a no-op (`already_running`), and tasks stopped as a side effect are reported (`stopped_task_ids`) | Displays green running timer badge |
+| **Timer** | Start | `oxy timer start <task-id>` | Starts active log in SQLite; starting an already running task is a no-op (`alreadyRunning`), and tasks stopped as a side effect are reported (`stoppedTaskIds`) | Displays green running timer badge |
 | **Timer** | Stop | `oxy timer stop [--all] [--if-running]` | Stops the active timer; fails with `ENG_TIMER_INACTIVE` (exit 5) when nothing is running. `--if-running` succeeds as a no-op instead; `--all` stops all active timers | Prints total elapsed time for session |
 | **Timer** | Switch | `oxy switch <new-task-id>` | Atomic stop old + start new ($<100\text{ms}$) | Explains previous and new task state |
 | **Timer** | Quick-Log | `oxy timer log <task-id> <duration> ["<note>"]` | Direct retroactive log insertion | Confirms retroactive time captured |
@@ -196,7 +196,42 @@ TASK_ID=$(oxy task add "Code review" -p "Core" -q)
 oxy project ls -q | grep -c "Core"
 ```
 
-Not yet covered by this contract: `start`, `switch`, and `report` (planned follow-up). Their quiet output is unchanged.
+- **Flow commands** (`start`, `switch`) print the ID of the time log they open. Starting a task that is already running opens no log, so `start -q` prints nothing in that case (exit code 0).
+
+Not yet covered by this contract: `report` (planned follow-up). Its quiet output is unchanged.
+
+### Machine Output Envelope (Implemented for `start`, `stop`, `switch`, `status`)
+
+Every successful `--json` / `--machine` response of a migrated command is one versioned envelope on `stdout`. The contract is identical in the native `oxy` binary and the browser sandbox emulator, and the TypeScript shape is generated into `src/bindings/SuccessEnvelope.ts`.
+
+```json
+{
+  "schema": "oxy.status",
+  "schemaVersion": 1,
+  "data": { "activeTaskIds": ["task-42"], "count": 1, "running": true },
+  "meta": {
+    "generatedAt": "2026-11-12T10:30:15Z",
+    "generator": { "name": "oxy", "version": "1.14.5" }
+  }
+}
+```
+
+- `schema` is `oxy.<command>`; `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
+- `meta.generatedAt` is whole-second RFC 3339 UTC; `meta.generator` is the same `{ name, version }` pair that `oxy.report` carries.
+- All JSON keys are camelCase at every depth. Enum values (`action`) are camelCase too.
+- **Formatting:** `--machine` always prints one compact line. `--json` prints indented JSON only when `stdout` is a terminal and `--machine` is absent; piped or redirected `--json` output is one compact line. The sandbox has no terminal and always prints the compact line.
+- Errors are not part of this envelope; they keep the existing `stderr` error envelope and exit codes.
+- Commands that are not listed in the table below still print their previous raw JSON and migrate in later changes.
+
+| Command | `schema` | `schemaVersion` | `data` |
+| --- | --- | --- | --- |
+| `oxy start <task>` | `oxy.start` | 1 | `{ action: "started" \| "alreadyRunning", taskId, timeLogId: string \| null, stoppedTaskIds: string[] }`; `timeLogId` is `null` when the task was already running |
+| `oxy start` (no target, timer running) | `oxy.status` | 1 | the `oxy.status` payload, because the command only reports the running timers |
+| `oxy stop` | `oxy.stop` | 1 | `{ action: "stopped" \| "noop", stoppedCount }`; `noop` only for `--if-running` on an idle timer |
+| `oxy switch <task>` | `oxy.switch` | 1 | `{ action: "switched", taskId, timeLogId }` |
+| `oxy status` | `oxy.status` | 1 | `{ activeTaskIds: string[], count, running }` |
+
+The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy today` and `oxy` (dashboard) are not migrated yet and keep their snake_case keys until their own envelope change.
 
 ### Billing Configuration (Implemented)
 

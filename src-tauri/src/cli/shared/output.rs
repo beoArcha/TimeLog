@@ -1,6 +1,10 @@
+use crate::cli::error::CliError;
 use crate::cli::handlers::constants::{
     OUT_STARTED, OUT_STATUS_ACTIVE, OUT_STATUS_COUNT, OUT_STOPPED, OUT_SUCCESS,
 };
+use crate::cli::shared::envelope::{EnvelopeSchema, JsonStyle};
+use crate::types::SuccessEnvelope;
+use serde::Serialize;
 use std::fmt;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -11,11 +15,27 @@ pub enum CliOutput {
     Success(String),
     /// Bare entity ID printed by mutations in quiet mode.
     Id(String),
+    /// Versioned machine payload; commands migrate from `Json` to this variant one by one.
+    Envelope(Box<SuccessEnvelope>),
     Json(String),
     Raw(String),
 }
 
 impl CliOutput {
+    pub fn envelope<T: Serialize>(schema: EnvelopeSchema, data: &T) -> Result<Self, CliError> {
+        Ok(Self::Envelope(Box::new(schema.wrap(data)?)))
+    }
+
+    pub fn render(&self, style: JsonStyle) -> Result<String, CliError> {
+        match (self, style) {
+            (Self::Envelope(envelope), JsonStyle::Compact) => Ok(serde_json::to_string(envelope)?),
+            (Self::Envelope(envelope), JsonStyle::Pretty) => {
+                Ok(serde_json::to_string_pretty(envelope)?)
+            }
+            (other, _) => Ok(other.to_string()),
+        }
+    }
+
     /// Quiet mutations print only the affected entity ID so shell callers can capture it.
     pub fn mutation(is_quiet: bool, entity_id: &str, message: String) -> Self {
         if is_quiet {
@@ -62,6 +82,10 @@ impl fmt::Display for CliOutput {
             }
             CliOutput::Success(msg) => write!(f, "{}", OUT_SUCCESS.replace("{}", msg)),
             CliOutput::Id(id) => write!(f, "{}", id),
+            CliOutput::Envelope(envelope) => {
+                let json = serde_json::to_string(envelope).map_err(|_| fmt::Error)?;
+                write!(f, "{json}")
+            }
             CliOutput::Json(data) => write!(f, "{}", data),
             CliOutput::Raw(data) => write!(f, "{}", data),
         }

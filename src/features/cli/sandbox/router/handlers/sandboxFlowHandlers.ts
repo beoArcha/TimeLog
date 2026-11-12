@@ -1,9 +1,16 @@
+import { Task } from '@bindings/Task';
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
 import { isStartInRange, localDateOfRange } from '@common/engine/range/logRange';
 import { resolveSandboxToday } from '../sandboxRange';
+import { StartPayload } from '@bindings/StartPayload';
+import { StatusPayload } from '@bindings/StatusPayload';
+import { StopPayload } from '@bindings/StopPayload';
+import { SwitchPayload } from '@bindings/SwitchPayload';
+import { emitEnvelope, isMachineMode, SCHEMA_START, SCHEMA_STATUS, SCHEMA_STOP, SCHEMA_SWITCH } from '../sandboxEnvelope';
+import { isQuietMode } from '../sandboxQuietMode';
 
 // Mirrors OUT_NOTHING_TO_STOP in src-tauri/src/cli/handlers/constants.rs so the sandbox and native CLI print the same message.
 const SANDBOX_NOTHING_TO_STOP = 'No active timer; nothing to stop.';
@@ -14,10 +21,21 @@ const SANDBOX_STOPPED_TASK_LINE = "Stopped: '{}' [{}]";
 const SANDBOX_UNKNOWN_TASK = 'Unknown Task';
 
 export function handleStatus(
+  flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
   output: TerminalOutput
 ): void {
   const activeLog = store.getActiveLog();
+  if (isMachineMode(flags)) {
+    const activeTaskIds = activeLog ? [activeLog.taskId] : [];
+    const payload: StatusPayload = {
+      activeTaskIds,
+      count: activeTaskIds.length,
+      running: activeTaskIds.length > 0,
+    };
+    emitEnvelope(output, SCHEMA_STATUS, payload);
+    return;
+  }
   if (!activeLog) {
     output.info('Timer status: Idle (no active timer)');
     return;
@@ -48,7 +66,7 @@ export function handleStart(
 
   if (!target) {
     if (activeLog) {
-      handleStatus(store, output);
+      handleStatus(flags, store, output);
     } else {
       output.error('Error: No target task specified. Usage: start <task_id | "task name">', 'CLI_SYNTAX_MISSING_TARGET', 2);
     }
@@ -69,17 +87,51 @@ export function handleStart(
   }
 
   if (activeLog?.taskId === task.id) {
-    output.info(SANDBOX_ALREADY_TRACKING.replace('{}', task.name).replace('{}', task.id));
+    emitAlreadyRunning(flags, task, output);
     return;
   }
 
   const stoppedTask = activeLog ? tasks.find((t) => t.id === activeLog.taskId) : undefined;
-  store.handleStartTimer(task.id);
+  const newLog = store.handleStartTimer(task.id);
+  if (isMachineMode(flags)) {
+    const payload: StartPayload = {
+      action: 'started',
+      taskId: task.id,
+      timeLogId: newLog.id,
+      stoppedTaskIds: activeLog ? [activeLog.taskId] : [],
+    };
+    emitEnvelope(output, SCHEMA_START, payload);
+    return;
+  }
+  if (isQuietMode(flags)) {
+    output.output(newLog.id);
+    return;
+  }
   output.success(`▶️ Timer started: "${task.name}" [ID: ${task.id}]`);
   if (activeLog) {
     const stoppedName = stoppedTask?.name ?? SANDBOX_UNKNOWN_TASK;
     output.info(SANDBOX_STOPPED_TASK_LINE.replace('{}', stoppedName).replace('{}', activeLog.taskId));
   }
+}
+
+function emitAlreadyRunning(
+  flags: Record<string, string | boolean>,
+  task: Task,
+  output: TerminalOutput
+): void {
+  if (isMachineMode(flags)) {
+    const payload: StartPayload = {
+      action: 'alreadyRunning',
+      taskId: task.id,
+      timeLogId: null,
+      stoppedTaskIds: [],
+    };
+    emitEnvelope(output, SCHEMA_START, payload);
+    return;
+  }
+  // No entity is created, so a quiet caller capturing an identifier gets nothing to capture.
+  if (isQuietMode(flags)) return;
+  output.info(SANDBOX_ALREADY_TRACKING.replace('{}', task.name).replace('{}', task.id));
 }
 
 export function handleStop(
@@ -92,7 +144,7 @@ export function handleStop(
 
   if (!activeLog) {
     if (flags['if-running']) {
-      output.success(SANDBOX_NOTHING_TO_STOP);
+      emitNothingToStop(flags, output);
       return;
     }
     output.error('Error: No active timer session is currently running', 'ENG_TIMER_INACTIVE', 5);
@@ -103,11 +155,26 @@ export function handleStop(
   const task = tasks.find((t) => t.id === activeLog.taskId);
   store.handleStopTimer();
 
+  if (isMachineMode(flags)) {
+    const payload: StopPayload = { action: 'stopped', stoppedCount: 1 };
+    emitEnvelope(output, SCHEMA_STOP, payload);
+    return;
+  }
+
   if (isAll) {
     output.success('⏹️ Stopped all active sessions (1 session stopped).');
   } else {
     output.success(`⏹️ Timer stopped: "${task?.name || 'Unknown'}".`);
   }
+}
+
+function emitNothingToStop(flags: Record<string, string | boolean>, output: TerminalOutput): void {
+  if (isMachineMode(flags)) {
+    const payload: StopPayload = { action: 'noop', stoppedCount: 0 };
+    emitEnvelope(output, SCHEMA_STOP, payload);
+    return;
+  }
+  output.success(SANDBOX_NOTHING_TO_STOP);
 }
 
 export function handleSwitch(
@@ -137,7 +204,16 @@ export function handleSwitch(
     return;
   }
 
-  store.handleSwitchTimer(task.id);
+  const newLog = store.handleSwitchTimer(task.id);
+  if (isMachineMode(flags)) {
+    const payload: SwitchPayload = { action: 'switched', taskId: task.id, timeLogId: newLog.id };
+    emitEnvelope(output, SCHEMA_SWITCH, payload);
+    return;
+  }
+  if (isQuietMode(flags)) {
+    output.output(newLog.id);
+    return;
+  }
   output.success(`🔀 Switched active timer to: "${task.name}" [ID: ${task.id}]`);
 }
 

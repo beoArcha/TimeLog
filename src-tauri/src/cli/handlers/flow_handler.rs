@@ -12,13 +12,22 @@ use crate::cli::parser::tier1_flow::{StartArgs, StopArgs, SwitchArgs};
 use crate::cli::resolver::{
     constants::PROMPT_ENTER_TASK_TARGET, EntityResolver, Prompter, TerminalPrompter,
 };
+use crate::cli::shared::envelope::EnvelopeSchema;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::range_bounds::RangeBounds;
 use crate::cli::shared::validation::validate_id;
 use crate::engine::{Engine, StartOutcome};
 use crate::persistence::Persistence;
-use crate::types::{Project, RangePreset, RangeRequest, Task, TimeLog};
+use crate::types::{
+    FlowAction, Project, RangePreset, RangeRequest, StartPayload, StatusPayload, StopPayload,
+    SwitchPayload, Task, TimeLog,
+};
 use serde::{Deserialize, Serialize};
+
+const SCHEMA_START: EnvelopeSchema = EnvelopeSchema::new("oxy.start", 1);
+const SCHEMA_STOP: EnvelopeSchema = EnvelopeSchema::new("oxy.stop", 1);
+const SCHEMA_SWITCH: EnvelopeSchema = EnvelopeSchema::new("oxy.switch", 1);
+const SCHEMA_STATUS: EnvelopeSchema = EnvelopeSchema::new("oxy.status", 1);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RecentTaskDto {
@@ -52,6 +61,7 @@ pub struct DashboardDto {
 pub fn handle_start(
     args: StartArgs,
     is_machine: bool,
+    is_quiet: bool,
     strict: bool,
     persistence: &Persistence,
     engine: &Engine,
@@ -59,6 +69,7 @@ pub fn handle_start(
     handle_start_with_prompter(
         args,
         is_machine,
+        is_quiet,
         strict,
         persistence,
         engine,
@@ -72,12 +83,13 @@ pub fn handle_start_interactive(
     engine: &Engine,
     prompter: &dyn Prompter,
 ) -> Result<CliOutput, CliError> {
-    handle_start_with_prompter(args, false, false, persistence, engine, prompter)
+    handle_start_with_prompter(args, false, false, false, persistence, engine, prompter)
 }
 
 pub fn handle_start_with_prompter(
     args: StartArgs,
     is_machine: bool,
+    is_quiet: bool,
     strict: bool,
     persistence: &Persistence,
     engine: &Engine,
@@ -92,14 +104,7 @@ pub fn handle_start_with_prompter(
             let active = engine.get_active_logs()?;
             if !active.is_empty() {
                 if is_machine {
-                    return Ok(CliOutput::Json(
-                        serde_json::json!({
-                            "status": "ok",
-                            "active_tasks": active,
-                            "running": true
-                        })
-                        .to_string(),
-                    ));
+                    return status_envelope(active);
                 }
                 return Ok(CliOutput::Status(active));
             }
@@ -119,42 +124,52 @@ pub fn handle_start_with_prompter(
     let task = resolver.resolve_task_interactive(&target, prompter)?;
 
     let outcome = engine.start_timer(&task.id)?;
-    render_start_outcome(outcome, &task, is_machine, persistence)
+    render_start_outcome(outcome, &task, is_machine, is_quiet, persistence)
 }
 
 fn render_start_outcome(
     outcome: StartOutcome,
     task: &Task,
     is_machine: bool,
+    is_quiet: bool,
     persistence: &Persistence,
 ) -> Result<CliOutput, CliError> {
     match outcome {
-        StartOutcome::AlreadyRunning if is_machine => Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "action": "already_running",
-                "task_id": task.id
-            })
-            .to_string(),
-        )),
+        StartOutcome::AlreadyRunning if is_machine => CliOutput::envelope(
+            SCHEMA_START,
+            &StartPayload {
+                action: FlowAction::AlreadyRunning,
+                task_id: task.id.clone(),
+                time_log_id: None,
+                stopped_task_ids: Vec::new(),
+            },
+        ),
+        // No entity is created, so a quiet caller capturing an identifier gets nothing to capture.
+        StartOutcome::AlreadyRunning if is_quiet => Ok(CliOutput::Raw(String::new())),
         StartOutcome::AlreadyRunning => Ok(CliOutput::Raw(
             OUT_ALREADY_TRACKING
                 .replacen("{}", &task.name, 1)
                 .replacen("{}", &task.id, 1),
         )),
-        StartOutcome::Started { stopped_task_ids } if is_machine => Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "action": "started",
-                "task_id": task.id,
-                "stopped_task_ids": stopped_task_ids
-            })
-            .to_string(),
-        )),
-        StartOutcome::Started { stopped_task_ids } if stopped_task_ids.is_empty() => {
-            Ok(CliOutput::Started(task.id.clone()))
-        }
-        StartOutcome::Started { stopped_task_ids } => {
+        StartOutcome::Started {
+            stopped_task_ids,
+            time_log_id,
+        } if is_machine => CliOutput::envelope(
+            SCHEMA_START,
+            &StartPayload {
+                action: FlowAction::Started,
+                task_id: task.id.clone(),
+                time_log_id: Some(time_log_id),
+                stopped_task_ids,
+            },
+        ),
+        StartOutcome::Started { time_log_id, .. } if is_quiet => Ok(CliOutput::Id(time_log_id)),
+        StartOutcome::Started {
+            stopped_task_ids, ..
+        } if stopped_task_ids.is_empty() => Ok(CliOutput::Started(task.id.clone())),
+        StartOutcome::Started {
+            stopped_task_ids, ..
+        } => {
             let mut text = OUT_STARTED.replace("{}", &task.id);
             for stopped_id in &stopped_task_ids {
                 let name = persistence
@@ -182,7 +197,7 @@ pub fn handle_stop(
     let active = engine.get_active_logs()?;
     if active.is_empty() {
         if args.if_running {
-            return Ok(nothing_to_stop_output(is_machine));
+            return nothing_to_stop_output(is_machine);
         }
         return Err(crate::engine::EngineError::NoActiveTimer.into());
     }
@@ -195,35 +210,34 @@ pub fn handle_stop(
     let stopped_count = active.len();
     engine.stop_timer(None)?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "action": "stopped",
-                "stopped_count": stopped_count
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_STOP,
+            &StopPayload {
+                action: FlowAction::Stopped,
+                stopped_count: stopped_count as u32,
+            },
+        );
     }
     Ok(CliOutput::Stopped)
 }
 
-fn nothing_to_stop_output(is_machine: bool) -> CliOutput {
+fn nothing_to_stop_output(is_machine: bool) -> Result<CliOutput, CliError> {
     if is_machine {
-        return CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "action": "noop",
-                "stopped_count": 0
-            })
-            .to_string(),
+        return CliOutput::envelope(
+            SCHEMA_STOP,
+            &StopPayload {
+                action: FlowAction::Noop,
+                stopped_count: 0,
+            },
         );
     }
-    CliOutput::Success(OUT_NOTHING_TO_STOP.to_string())
+    Ok(CliOutput::Success(OUT_NOTHING_TO_STOP.to_string()))
 }
 
 pub fn handle_switch(
     args: SwitchArgs,
     is_machine: bool,
+    is_quiet: bool,
     strict: bool,
     persistence: &Persistence,
     engine: &Engine,
@@ -231,6 +245,7 @@ pub fn handle_switch(
     handle_switch_with_prompter(
         args,
         is_machine,
+        is_quiet,
         strict,
         persistence,
         engine,
@@ -244,12 +259,13 @@ pub fn handle_switch_interactive(
     engine: &Engine,
     prompter: &dyn Prompter,
 ) -> Result<CliOutput, CliError> {
-    handle_switch_with_prompter(args, false, false, persistence, engine, prompter)
+    handle_switch_with_prompter(args, false, false, false, persistence, engine, prompter)
 }
 
 pub fn handle_switch_with_prompter(
     args: SwitchArgs,
     is_machine: bool,
+    is_quiet: bool,
     strict: bool,
     persistence: &Persistence,
     engine: &Engine,
@@ -259,16 +275,19 @@ pub fn handle_switch_with_prompter(
     let resolver = EntityResolver::with_mode(persistence, strict);
     let task = resolver.resolve_task_interactive(&args.target, prompter)?;
 
-    engine.switch_timer(&task.id)?;
+    let time_log_id = engine.switch_timer(&task.id)?;
     if is_machine {
-        return Ok(CliOutput::Json(
-            serde_json::json!({
-                "status": "ok",
-                "task_id": task.id,
-                "action": "switched"
-            })
-            .to_string(),
-        ));
+        return CliOutput::envelope(
+            SCHEMA_SWITCH,
+            &SwitchPayload {
+                action: FlowAction::Switched,
+                task_id: task.id,
+                time_log_id,
+            },
+        );
+    }
+    if is_quiet {
+        return Ok(CliOutput::Id(time_log_id));
     }
     Ok(CliOutput::Started(task.id))
 }
@@ -276,14 +295,20 @@ pub fn handle_switch_with_prompter(
 pub fn handle_status(is_machine: bool, engine: &Engine) -> Result<CliOutput, CliError> {
     let active = engine.get_active_logs()?;
     if is_machine {
-        let json = serde_json::json!({
-            "active_tasks": active,
-            "count": active.len(),
-            "running": !active.is_empty()
-        });
-        return Ok(CliOutput::Json(json.to_string()));
+        return status_envelope(active);
     }
     Ok(CliOutput::Status(active))
+}
+
+fn status_envelope(active_task_ids: Vec<String>) -> Result<CliOutput, CliError> {
+    CliOutput::envelope(
+        SCHEMA_STATUS,
+        &StatusPayload {
+            count: active_task_ids.len() as u32,
+            running: !active_task_ids.is_empty(),
+            active_task_ids,
+        },
+    )
 }
 
 fn resolve_today_bounds(
