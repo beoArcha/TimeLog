@@ -3,8 +3,28 @@ export interface ParsedArgs {
   flags: Record<string, string | boolean>;
 }
 
-// Quiet is a presence-only switch; consuming the next token would turn `task add -q <name>` into a flag value.
-const PRESENCE_ONLY_FLAGS = new Set(['q', 'quiet']);
+// Presence-only switches never take a value; consuming the next token would turn `task add -q <name>` into a flag value.
+const BOOLEAN_FLAGS = new Set([
+  'q',
+  'quiet',
+  'all',
+  'a',
+  'yes',
+  'y',
+  'json',
+  'j',
+  'machine',
+  'm',
+  'exact',
+  'if-running',
+  'tree',
+  'today',
+  'yesterday',
+  'week',
+  'last-week',
+  'month',
+  'last-month',
+]);
 
 /**
  * Parses command tokens into positional arguments and key-value/boolean flags.
@@ -23,8 +43,12 @@ export function parseFlags(tokens: string[]): ParsedArgs {
         continue;
       }
       const key = token.slice(2);
+      if (BOOLEAN_FLAGS.has(key)) {
+        flags[key] = true;
+        continue;
+      }
       const next = tokens[i + 1];
-      if (!PRESENCE_ONLY_FLAGS.has(key) && next && !next.startsWith('-')) {
+      if (next && !next.startsWith('-')) {
         flags[key] = next;
         i++;
       } else {
@@ -32,8 +56,12 @@ export function parseFlags(tokens: string[]): ParsedArgs {
       }
     } else if (token.startsWith('-') && token.length > 1) {
       const key = token.slice(1);
+      if (BOOLEAN_FLAGS.has(key)) {
+        flags[key] = true;
+        continue;
+      }
       const next = tokens[i + 1];
-      if (!PRESENCE_ONLY_FLAGS.has(key) && next && !next.startsWith('-')) {
+      if (next && !next.startsWith('-')) {
         flags[key] = next;
         i++;
       } else {

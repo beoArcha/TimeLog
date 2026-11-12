@@ -528,6 +528,44 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(lines.some((l) => l.type === 'success' && l.text.includes('Deleted'))).toBe(true);
     });
 
+    it('should delete a time log when log remove is executed with --yes flag', () => {
+      // Arrange
+      const createdLog = store.handleAddLog('sb_t1', 1800, 'To remove with yes');
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'remove', createdLog.id, '--yes'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      expect(store.getLogs().some((l) => l.id === createdLog.id)).toBe(false);
+      const lines = output.getLines();
+      expect(lines.some((l) => l.type === 'success' && l.text.includes('Deleted time log'))).toBe(true);
+    });
+
+    it('should return removed entry in machine envelope when log remove is executed with --json flag', () => {
+      // Arrange
+      const createdLog = store.handleAddLog('sb_t1', 1800, 'To remove in machine mode');
+      const output = new TerminalOutput();
+
+      // Act
+      const handled = SandboxCommandRouter.route(['log', 'remove', createdLog.id, '--json'], store, output);
+
+      // Assert
+      expect(handled).toBe(true);
+      expect(store.getLogs().some((l) => l.id === createdLog.id)).toBe(false);
+      const lines = output.getLines();
+      const outputLine = lines.find((l) => l.type === 'output');
+      expect(outputLine).toBeDefined();
+      const parsed = JSON.parse(outputLine?.text || '{}');
+      expect(parsed.status).toBe('ok');
+      expect(parsed.action).toBe('removed');
+      expect(parsed.id).toBe(createdLog.id);
+      expect(parsed.entry.id).toBe(createdLog.id);
+      expect(parsed.entry.taskId).toBe('sb_t1');
+      expect(parsed.entry.note).toBe('To remove in machine mode');
+    });
+
     it('should show 20 logs and footer when logs exceed 20 in human mode', () => {
       // Arrange
       const initialCount = store.getLogs().length;

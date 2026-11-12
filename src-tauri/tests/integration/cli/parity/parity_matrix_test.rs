@@ -14,6 +14,8 @@ struct ParityCase {
     command_rust: Vec<String>,
     #[serde(rename = "initialActiveTaskId")]
     initial_active_task_id: Option<String>,
+    #[serde(rename = "initialLogId", default)]
+    initial_log_id: Option<String>,
     #[serde(rename = "expectSuccess")]
     expect_success: bool,
     #[serde(rename = "expectedExitCode")]
@@ -74,6 +76,20 @@ fn test_given_shared_cli_parity_matrix_when_executed_in_rust_then_satisfies_cros
             engine
                 .start_timer(task_id)
                 .expect("Failed to start initial timer");
+        }
+
+        if let Some(ref log_id) = case.initial_log_id {
+            let log = oxyflow_timelog::types::NewTimeLog {
+                id: log_id.clone(),
+                task_id: "t1".to_string(),
+                start_time: "2026-06-15T09:00:00Z".to_string(),
+                end_time: Some("2026-06-15T09:45:00Z".to_string()),
+                note: Some("Parity log".to_string()),
+            };
+            persistence
+                .time_logs
+                .insert_full(&log)
+                .expect("Failed to insert initial log");
         }
 
         // When
