@@ -3,6 +3,9 @@ import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { resolveEntity } from '../../../resolver/entityResolver';
 
+// Mirrors OUT_NOTHING_TO_STOP in src-tauri/src/cli/handlers/constants.rs so the sandbox and native CLI print the same message.
+const SANDBOX_NOTHING_TO_STOP = 'No active timer; nothing to stop.';
+
 export function handleStatus(
   store: SandboxEmulatorStore,
   output: TerminalOutput
@@ -68,6 +71,10 @@ export function handleStop(
   const isAll = Boolean(flags['all']);
 
   if (!activeLog) {
+    if (flags['if-running']) {
+      output.success(SANDBOX_NOTHING_TO_STOP);
+      return;
+    }
     output.error('Error: No active timer session is currently running', 'ENG_TIMER_INACTIVE', 5);
     return;
   }
