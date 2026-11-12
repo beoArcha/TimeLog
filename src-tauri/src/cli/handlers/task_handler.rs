@@ -168,17 +168,8 @@ fn filter_tasks<'a>(
 ) -> Vec<&'a Task> {
     tasks
         .iter()
-        .filter(|t| {
-            if let Some(pid) = filter_project_id {
-                if t.project_id != pid {
-                    return false;
-                }
-            }
-            if !include_all && (t.completed || t.archived == Some(true)) {
-                return false;
-            }
-            true
-        })
+        .filter(|t| filter_project_id.is_none_or(|pid| t.project_id == pid))
+        .filter(|t| include_all || !(t.completed || t.archived == Some(true)))
         .collect()
 }
 
