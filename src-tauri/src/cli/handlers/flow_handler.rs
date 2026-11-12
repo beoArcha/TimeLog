@@ -2,9 +2,9 @@ use super::constants::{
     DASHBOARD_TIP_FOOTER, DIVIDER_LINE, ERR_MULTIPLE_TIMERS_SPECIFY_ALL, FORMAT_DASHBOARD_ACTIVE,
     FORMAT_DASHBOARD_PROGRESS, FORMAT_DASHBOARD_RECENT_ITEM, FORMAT_TODAY_ITEM, FORMAT_TODAY_TOTAL,
     HEADER_DASHBOARD, HEADER_TODAY_PREFIX, LABEL_GENERAL_PROJECT, LABEL_UNKNOWN_PROJECT,
-    LABEL_UNKNOWN_TASK, MSG_NO_TODAY_LOGS, OUT_NOTHING_TO_STOP, SECTION_ACTIVE_SESSION,
-    SECTION_RECENT_ACTIVITY, SECTION_TODAY_PROGRESS, STATUS_ACTIVE_NOTICE, STATUS_IDLE_NOTICE,
-    STATUS_IDLE_TIP,
+    LABEL_UNKNOWN_TASK, MSG_NO_TODAY_LOGS, OUT_ALREADY_TRACKING, OUT_NOTHING_TO_STOP, OUT_STARTED,
+    OUT_STOPPED_TASK_LINE, SECTION_ACTIVE_SESSION, SECTION_RECENT_ACTIVITY, SECTION_TODAY_PROGRESS,
+    STATUS_ACTIVE_NOTICE, STATUS_IDLE_NOTICE, STATUS_IDLE_TIP,
 };
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::formatters::format_duration;
@@ -15,7 +15,7 @@ use crate::cli::resolver::{
 use crate::cli::shared::constants::DATE_FORMAT_DATE_ONLY;
 use crate::cli::shared::output::CliOutput;
 use crate::cli::shared::validation::validate_id;
-use crate::engine::Engine;
+use crate::engine::{Engine, StartOutcome};
 use crate::persistence::Persistence;
 use crate::types::{Project, Task, TimeLog};
 use chrono::Utc;
@@ -116,18 +116,60 @@ pub fn handle_start_with_prompter(
     let resolver = EntityResolver::with_mode(persistence, is_machine);
     let task = resolver.resolve_task_interactive(&target, prompter)?;
 
-    engine.start_timer(&task.id)?;
-    if is_machine {
-        return Ok(CliOutput::Json(
+    let outcome = engine.start_timer(&task.id)?;
+    render_start_outcome(outcome, &task, is_machine, persistence)
+}
+
+fn render_start_outcome(
+    outcome: StartOutcome,
+    task: &Task,
+    is_machine: bool,
+    persistence: &Persistence,
+) -> Result<CliOutput, CliError> {
+    match outcome {
+        StartOutcome::AlreadyRunning if is_machine => Ok(CliOutput::Json(
             serde_json::json!({
                 "status": "ok",
-                "task_id": task.id,
-                "action": "started"
+                "action": "already_running",
+                "task_id": task.id
             })
             .to_string(),
-        ));
+        )),
+        StartOutcome::AlreadyRunning => Ok(CliOutput::Raw(
+            OUT_ALREADY_TRACKING
+                .replacen("{}", &task.name, 1)
+                .replacen("{}", &task.id, 1),
+        )),
+        StartOutcome::Started { stopped_task_ids } if is_machine => Ok(CliOutput::Json(
+            serde_json::json!({
+                "status": "ok",
+                "action": "started",
+                "task_id": task.id,
+                "stopped_task_ids": stopped_task_ids
+            })
+            .to_string(),
+        )),
+        StartOutcome::Started { stopped_task_ids } if stopped_task_ids.is_empty() => {
+            Ok(CliOutput::Started(task.id.clone()))
+        }
+        StartOutcome::Started { stopped_task_ids } => {
+            let mut text = OUT_STARTED.replace("{}", &task.id);
+            for stopped_id in &stopped_task_ids {
+                let name = persistence
+                    .tasks
+                    .get(stopped_id)?
+                    .map(|t| t.name)
+                    .unwrap_or_else(|| LABEL_UNKNOWN_TASK.to_string());
+                text.push('\n');
+                text.push_str(
+                    &OUT_STOPPED_TASK_LINE
+                        .replacen("{}", &name, 1)
+                        .replacen("{}", stopped_id, 1),
+                );
+            }
+            Ok(CliOutput::Raw(text))
+        }
     }
-    Ok(CliOutput::Started(task.id))
 }
 
 pub fn handle_stop(

@@ -55,6 +55,17 @@
     "expectedPatterns": ["error", "not exist", "not found"]
   },
   {
+    "id": "start-already-running",
+    "description": "Start timer on a task that is already running is a no-op",
+    "commandFrontend": "start t1",
+    "commandRust": ["start", "t1"],
+    "initialActiveTaskId": "t1",
+    "expectSuccess": true,
+    "expectedExitCode": 0,
+    "expectedErrorCode": null,
+    "expectedPatterns": ["already tracking"]
+  },
+  {
     "id": "stop-active",
     "description": "Stop active running timer",
     "commandFrontend": "stop",

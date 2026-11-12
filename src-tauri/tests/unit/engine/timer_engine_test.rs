@@ -1,6 +1,6 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use oxyflow_timelog::engine::Engine;
+use oxyflow_timelog::engine::{Engine, StartOutcome};
 use oxyflow_timelog::persistence::Persistence;
 use oxyflow_timelog::types::ElapsedRangeFilter;
 
@@ -335,4 +335,83 @@ fn test_timer_concurrency_keeps_running_when_allow_concurrency_is_true() {
     let mut active_after = engine.get_active_logs().unwrap();
     active_after.sort();
     assert_eq!(active_after, vec!["t_conc", "t_single_2"]);
+}
+
+fn seed_two_projects_with_tasks(persistence: &Persistence, allow_concurrency: bool) {
+    for (proj_id, task_id) in [("p_out_a", "t_out_a"), ("p_out_b", "t_out_b")] {
+        let project = ProjectBuilder::new()
+            .with_id(proj_id)
+            .with_name(proj_id)
+            .with_color("green")
+            .with_allow_concurrency(allow_concurrency)
+            .build();
+        persistence.projects.create(project).unwrap();
+        let task = TaskBuilder::new()
+            .with_id(task_id)
+            .with_project_id(proj_id)
+            .with_name(task_id)
+            .build();
+        persistence.tasks.create(task).unwrap();
+    }
+}
+
+#[test]
+fn test_start_timer_on_running_task_returns_already_running_without_new_log() {
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("timer_start_idempotent");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+    seed_two_projects_with_tasks(&persistence, false);
+    engine.start_timer("t_out_a").unwrap();
+    let logs_before = persistence.time_logs.get_all().unwrap().len();
+
+    // Act
+    let outcome = engine.start_timer("t_out_a").unwrap();
+
+    // Assert
+    assert_eq!(outcome, StartOutcome::AlreadyRunning);
+    assert_eq!(persistence.time_logs.get_all().unwrap().len(), logs_before);
+    assert_eq!(engine.get_active_logs().unwrap(), vec!["t_out_a"]);
+}
+
+#[test]
+fn test_start_timer_in_non_concurrent_setup_reports_previous_task_as_stopped() {
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("timer_start_reports_stopped");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+    seed_two_projects_with_tasks(&persistence, false);
+    engine.start_timer("t_out_a").unwrap();
+
+    // Act
+    let outcome = engine.start_timer("t_out_b").unwrap();
+
+    // Assert
+    assert_eq!(
+        outcome,
+        StartOutcome::Started {
+            stopped_task_ids: vec!["t_out_a".to_string()]
+        }
+    );
+}
+
+#[test]
+fn test_start_timer_in_concurrent_setup_reports_no_stopped_tasks() {
+    // Arrange
+    let (_conn, config, _temp_dir) = setup_persistence_test("timer_start_concurrent_outcome");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+    seed_two_projects_with_tasks(&persistence, true);
+    engine.start_timer("t_out_a").unwrap();
+
+    // Act
+    let outcome = engine.start_timer("t_out_b").unwrap();
+
+    // Assert
+    assert_eq!(
+        outcome,
+        StartOutcome::Started {
+            stopped_task_ids: Vec::new()
+        }
+    );
 }

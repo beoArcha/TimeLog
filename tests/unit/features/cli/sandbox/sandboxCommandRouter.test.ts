@@ -372,6 +372,38 @@ describe('Unit Tests: SandboxCommandRouter', () => {
       expect(store.getActiveLog()?.taskId).toBe('sb_t1');
     });
 
+    it('should report already tracking and keep one log when start targets the running task', () => {
+      // Arrange
+      const output = new TerminalOutput();
+      SandboxCommandRouter.route(['start', 'sb_t1'], store, output);
+      const logsBefore = store.getLogs().length;
+      const secondOutput = new TerminalOutput();
+
+      // Act
+      SandboxCommandRouter.route(['start', 'sb_t1'], store, secondOutput);
+
+      // Assert
+      const text = secondOutput.getLines().map((l) => l.text).join('\n');
+      expect(text).toMatch(/^Already tracking '.+' \[sb_t1\]\.$/);
+      expect(secondOutput.getLines().some((l) => l.type === 'error')).toBe(false);
+      expect(store.getLogs().length).toBe(logsBefore);
+    });
+
+    it('should report the stopped task when start targets a different task while another runs', () => {
+      // Arrange
+      const secondTask = store.getTasks().find((t) => t.id !== 'sb_t1' && !t.completed);
+      expect(secondTask).toBeDefined();
+      SandboxCommandRouter.route(['start', 'sb_t1'], store, new TerminalOutput());
+      const output = new TerminalOutput();
+
+      // Act
+      SandboxCommandRouter.route(['start', secondTask?.id ?? ''], store, output);
+
+      // Assert
+      const text = output.getLines().map((l) => l.text).join('\n');
+      expect(text).toMatch(/Stopped: '.+' \[sb_t1\]/);
+    });
+
     it('should return error when start is executed without target and timer is idle', () => {
       // Arrange
       const output = new TerminalOutput();

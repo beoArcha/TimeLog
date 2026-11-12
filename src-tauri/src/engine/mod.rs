@@ -6,6 +6,7 @@ pub mod timer;
 pub mod validation;
 
 pub use error::EngineError;
+pub use timer::StartOutcome;
 
 use crate::persistence::Persistence;
 

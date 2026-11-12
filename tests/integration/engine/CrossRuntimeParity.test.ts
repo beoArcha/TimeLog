@@ -79,6 +79,39 @@ describe('Integration Tests: Cross-Runtime Parity Test Suite', () => {
     });
   });
 
+  describe('Cross-Runtime Idempotent Timer Start', () => {
+    beforeEach(() => {
+      setupLocalStorageMock();
+    });
+
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    it('Given a running task, When the browser engine starts it again, Then it creates no new log and keeps it active', async () => {
+      // Given
+      const persistence = new PersistencePlugin();
+      PersistenceRouter.getInstance().setImplementationForTesting(persistence);
+      await persistence.core.overrideState({
+        projects: [aProject({ id: 'proj-idem', name: 'Idem' })],
+        tasks: [aTask({ id: 'task-idem', projectId: 'proj-idem', name: 'Idem Task' })],
+        logs: [],
+        activeLog: null,
+      });
+      const engine = new EnginePlugin();
+      await engine.timer.startTimer('task-idem');
+      const logsAfterFirstStart = (await persistence.core.load()).logs.length;
+
+      // When
+      await engine.timer.startTimer('task-idem');
+
+      // Then
+      const state = await persistence.core.load();
+      expect(state.logs.length).toBe(logsAfterFirstStart);
+      expect(await engine.timer.getActiveLogs()).toEqual(['task-idem']);
+    });
+  });
+
   describe('Cross-Runtime Elapsed Time Calculations', () => {
     beforeEach(async () => {
       setupLocalStorageMock();
