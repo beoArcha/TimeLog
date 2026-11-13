@@ -86,7 +86,7 @@ graph TD
     Identify -->|Guidance, Help, Simple| Maya["3. Beginner User (Maya)"]
     Identify -->|Macros, Aliases, Batch| Masks["4. Action Masks & Macros"]
 
-    Alex --> AlexActions["• Atomic 'switch'<br>• Unicode Tree (--tree)<br>• Multi-format Exports (CSV, HTML, JSON, XML, ODS, XLSX)<br>• Unix Pipes (stdout | jq)"]
+    Alex --> AlexActions["• Atomic 'switch'<br>• Unicode Tree (report)<br>• Multi-format Exports (CSV, HTML, JSON, XML, ODS, XLSX)<br>• Unix Pipes (stdout | jq)"]
     Daemon --> DaemonActions["• Strict English (--lang en)<br>• Structured JSON to stderr<br>• POSIX Exit Codes (0..5)<br>• Idempotent Execution"]
     Maya --> MayaActions["• 'Did you mean?' Typo Catch<br>• Interactive Parameter Prompts<br>• Visual Summary Cards<br>• Interactive Self-Healing"]
     Masks --> MaskActions["• Shorthand Aliases (mask set)<br>• Dynamic Tokens ($1, $LAST)<br>• Built-in Compound Actions"]
@@ -95,7 +95,7 @@ graph TD
 ### 1. The Power User (Alex — Keyboard Maestro)
 
 - **Primary Goal:** Sub-second time tracking without touching the mouse, terminal reports with Unicode trees, instant export for invoices/clients across all standard formats (CSV, HTML, JSON, XML, ODS, XLSX).
-- **Key Commands:** `oxy switch <id>`, `oxy report --tree --week`, `oxy report export -f html -o ./rep.html`, `oxy report -f json | jq .`.
+- **Key Commands:** `oxy switch <id>`, `oxy report --week`, `oxy report -f html -o ./rep.html`, `oxy report -f json -o - | jq .`.
 
 ### 2. The Automated System / Daemon (Machine / CI / Git Hooks)
 
@@ -144,12 +144,12 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 | **Log** | Edit | `oxy log edit <id> [--duration <dur>] [--note <note>] [--start <iso>] [--end <iso>] [--task <target>] --reason <text>` | Updates time log with required audit reason (`--reason <text>` or `-r <text>`) | Prompts for edit fields and audit reason |
 | **Log** | List | `oxy log list [-p <proj>] [-t <task>] [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--from <iso>] [--to <iso>] [--tz <iana>] [--limit <n>]` | Filtered tabular or JSON list (no default limit in machine mode) | Displays filtered log entries (default 20 + footer in human mode) |
 | **Log** | Remove | `oxy log rm <id> [--yes\|-y]` | Deletes time log entry; returns deleted entry in JSON mode | In interactive TTY, prompts confirmation (`Remove entry <short id> (45m, <task name>)? [y/N]`) unless `--yes`/`-y` or machine mode |
-| **Report** | Tree | `oxy report --tree [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--tz <iana>]` | Unicode box-drawing with bars | Easy-to-read hierarchy |
+| **Report** | Tree | `oxy report [--today\|--yesterday\|--week\|--last-week\|--month\|--last-month] [--tz <iana>]` | Unicode box-drawing with bars (`--format table`, the default) | Easy-to-read hierarchy |
 | **Report** | Range | `oxy report [--from <YYYY-MM-DD>] [--to <YYYY-MM-DD>] [--tz <iana>] [-p <proj>] [-t <task>]` | Filtered date range reporting | Validates ISO date formats |
 | **Report** | Summary | `oxy summary` | JSON in machine mode | Humanized daily card with praise |
-| **Report** | Export | `oxy report export -f <format> -o <path>` | Fully supports **CSV, HTML, JSON, XML, ODS, XLSX**; serialization errors yield `SNK_SERIALIZATION` (exit code `1`) | Interactive format selector |
-| **Report** | Schema | `oxy report schema [--format json\|xml] [--target report\|envelope] [-o <path>]` | Emits the generated JSON Schema (draft 2020-12) of `oxy.report` v2 (default), the JSON Schema of the machine envelope (`--target envelope`), or the XSD of `report export -f xml` (`--format xml`) to stdout or file; `--format xml --target envelope` is a syntax error (exit code `2`) | Download schema |
-| **Report** | Stream | `oxy report -f json \| jq .` | Raw unescaped JSON to `stdout` | N/A (interactive terminal) |
+| **Report** | Export | `oxy report --format <table\|html\|csv\|json\|xml\|ods\|xlsx> [--variant full\|summary] [-o <path>\|-]` | Writes the report in the chosen format to a file (`-o <path>`) or to `stdout` (`-o -`); see the format table in the Report Export Subsystem. Serialization errors yield `SNK_SERIALIZATION` (exit code `1`) | Interactive format selector |
+| **Report** | Schema | `oxy report schema [--format json\|xml] [--target report\|envelope] [-o <path>]` | Emits the generated JSON Schema (draft 2020-12) of `oxy.report` v2 (default), the JSON Schema of the machine envelope (`--target envelope`), or the XSD of the `--format xml` export (`--format xml`) to stdout or file; `--format xml --target envelope` is a syntax error (exit code `2`) | Download schema |
+| **Report** | Stream | `oxy report -f json -o - \| jq .` | The bare `ReportDocument` to `stdout`, no envelope and no status line | N/A (interactive terminal) |
 | **Doctor** | Diagnostics | `oxy doctor` | Emits diagnostic health report (`--json` envelope) | Tests DB access, integrity, schema, sinks |
 | **Database** | Backup | `oxy db backup <path>` | Lock-free SQLite snapshot via Online Backup API | Reports created backup file |
 | **Database** | Restore | `oxy db restore <path>` | Restores state with schema integrity verification | Confirms restored database |
@@ -167,7 +167,7 @@ All commands follow the unified canonical hierarchy: `oxy <domain> <action> [arg
 
 ### Period Flags & Timezone (Implemented)
 
-`log list`, `report` (including `report tree` and `report export`) accept the same period flags. `today` and the bare `oxy` dashboard accept `--tz` only; their period is always the current local day.
+`log list` and `report` (every format, including exports) accept the same period flags. `today` and the bare `oxy` dashboard accept `--tz` only; their period is always the current local day.
 
 | Flag | Meaning |
 | --- | --- |
@@ -198,9 +198,9 @@ oxy project ls -q | grep -c "Core"
 
 - **Flow commands** (`start`, `switch`) print the ID of the time log they open. Starting a task that is already running opens no log, so `start -q` prints nothing in that case (exit code 0).
 
-Not yet covered by this contract: `report` (planned follow-up). Its quiet output is unchanged.
+- **Report** (`report`): `-q` prints only the totals line of the table, `Total Time: <duration> (<n> active tasks)`, for example `Total Time: 02h 00m (3 active tasks)`. The line is printed even when the period holds no data (`Total Time: 00m 00s (0 active tasks)`), so a script always gets one parsable line. With `-o <path>` it prints only the path of the written file. `-o -` and exports to `stdout` without `-o` are unaffected, because the export is the output; `--machine` / `--json` take precedence, as for every command.
 
-### Machine Output Envelope (Implemented for flow, dashboard, entity and subsystem commands)
+### Machine Output Envelope (Implemented for flow, dashboard, entity, subsystem and report commands)
 
 Every successful `--json` / `--machine` response of a migrated command is one versioned envelope on `stdout`. The contract is identical in the native `oxy` binary and the browser sandbox emulator, and the TypeScript shape is generated into `src/bindings/SuccessEnvelope.ts`.
 
@@ -234,7 +234,7 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 - All JSON keys are camelCase at every depth. Enum values (`action`) are camelCase too.
 - **Formatting:** `--machine` always prints one compact line. `--json` prints indented JSON only when `stdout` is a terminal and `--machine` is absent; piped or redirected `--json` output is one compact line. The sandbox has no terminal and always prints the compact line.
 - Errors are not part of this envelope; they keep the existing `stderr` error envelope and exit codes.
-- Commands that are not listed in the table below still print their previous raw JSON and migrate in later changes.
+- Commands that are not listed in the table below still print their previous raw JSON and migrate in later changes (`oxy report schema -o <path> --machine`).
 
 | Command | `schema` | `schemaVersion` | `data` |
 | --- | --- | --- | --- |
@@ -245,6 +245,8 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy status` | `oxy.status` | 1 | `{ active: { taskId, taskName, projectId, projectName, start, elapsedSeconds }[], count, running }`; `start` is the stored RFC 3339 start time and `elapsedSeconds` comes from the Engine. A running log whose task or project is missing fails with an entity error (exit code `4`) instead of using a placeholder name |
 | `oxy today [--tz <iana>]` | `oxy.today` | 1 | the `oxy.report` v2 `ReportDocument` (`Full` variant, patches excluded) for the `today` preset: entries are clamped to the local day, so a session that started before midnight reports only its in-day `seconds` (its `originalSeconds` and `clamped` say so) |
 | bare `oxy` | `oxy.dashboard` | 1 | `{ running, activeSession: { taskId, taskName, projectId, projectName, start, elapsedSeconds } \| null, todayDate, todayTotalSeconds, sessionCount, recentTasks: { taskId, taskName, projectName, durationSeconds }[] }`; durations are raw seconds (the human card formats them), `recentTasks` holds the three latest sessions of today and the totals come from the same document as `oxy.today` |
+| `oxy report [--variant full\|summary]` | `oxy.report` | 2 | the `ReportDocument` for the request (the `oxy.report` v2 contract, tracked by `schemaVersion`); the `Summary` variant has no `entries`. `--format` is ignored without `-o` |
+| `oxy report -o <path> [-f <fmt>]` | `oxy.report.export` | 1 | `{ path, format, variant, totalSeconds }` after the file is written; `format` and `variant` use their `--format` / `--variant` names |
 | `oxy project ls` | `oxy.project.list` | 1 | `{ items: Project[] }` |
 | `oxy project add <name>` | `oxy.project.add` | 1 | `Project` entity object |
 | `oxy project rename <target>` | `oxy.project.rename` | 1 | `Project` entity object |
@@ -274,7 +276,7 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy db backup <path>` | `oxy.db.backup` | 1 | `{ destination }` |
 | `oxy db restore <path>` | `oxy.db.restore` | 1 | `{ source }` |
 
-The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. Not migrated yet: `oxy report --json` / `oxy report schema -o --machine`, which keep their previous shapes until the report output moves to `ReportDocument`.
+The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy report schema -o <path> --machine` still prints its previous summary object.
 
 ### Billing Configuration (Implemented)
 
@@ -319,25 +321,31 @@ For integer minor-unit input, use `--rate-cents 15000` on Project/Task creation 
 
 ### Report Export Subsystem (Implemented)
 
-**Report figures:** `oxy report` (tree, `--json` and every export) computes its numbers with the engine's canonical report builder (`Engine::build_report`, see [`ENGINEERING.md`](./ENGINEERING.md#canonical-report-model-reportdocument)) and maps the result to the established output shapes. In those shapes, `entries` are ordered by start time and then ID, each entry's `date` is the local calendar date (in the report timezone) of the part of the entry that falls inside the range, and `start_time` / `end_time` show the in-range part as whole-second RFC 3339 instants. `oxy report --json` keeps this legacy shape until it switches to the `ReportDocument` (`oxy.report` v2) contract.
+**Report figures:** `oxy report` (table, `--json` and every export) computes its numbers with the engine's canonical report builder (`Engine::build_report`, see [`ENGINEERING.md`](./ENGINEERING.md#canonical-report-model-reportdocument)). `oxy report --json` / `--machine` prints the `ReportDocument` (`oxy.report` v2) in the standard envelope; the document order produced by the Engine is canonical (projects, tasks, entries and days are never re-sorted and no exporter iterates a hash map), so two exports of the same data are byte-identical apart from `generatedAt` in the JSON document. The table view and the formats that have not been ported yet (`html`, `csv`, `xml`, `ods`, `xlsx`) still go through a temporary adapter to the legacy tree shape, where `entries` are ordered by start time and then ID, each entry's `date` is the local calendar date of the in-range part of the entry, and `start_time` / `end_time` are whole-second RFC 3339 instants.
 
-The CLI provides deterministic report exports across six structured formats via `oxy report export -f <format> -o <path>`:
+**Command syntax:** `oxy report [--format <fmt>] [--variant full|summary] [-o <path>|-] [period flags] [-p <project>] [-t <task>]`. The former `report export` and `report tree` subcommands and the `--tree` flag no longer exist (there are no aliases); `report schema` is unchanged.
 
-- **Tabular & Structured Text Formats:**
-  - `csv`: Comma-separated values adhering to RFC 4180 with standard UTF-8 encoding.
-  - `html`: Self-contained, responsive HTML document with embedded CSS styling and semantic tables.
-  - `json`: Structured JSON payload with comprehensive summary metrics, project aggregates, and detailed task breakdowns.
-  - `xml`: Sanitized hierarchical XML with ISO 8601 timestamps and strictly escaped entity values.
-- **Spreadsheet Archive Packages (ZIP-based):**
-  - `ods`: OpenDocument Spreadsheet 1.3 package generated natively in Rust using `spreadsheet-ods`.
-  - `xlsx`: Office Open XML SpreadsheetML workbook generated natively in Rust using `rust_xlsxwriter`.
+- `--format` / `-f` (default `table`) selects the format from the registry below.
+- `--variant` (default `full`): `full` carries the per-entry rows, `summary` only the totals and aggregates. A format that does not support the requested variant fails with a syntax error (exit code `2`) naming the format and the variant; today that is `xml` with `summary`.
+- `-o <path>` writes the export atomically to a file (parent directories are created); `-o -` writes it to `stdout`. Without `-o`, `table` prints the human tree (prefixed with the status marker), and the other text formats are written to `stdout` as they would be with `-o -`. A binary format (`xlsx`, `ods`) without `-o` fails with a syntax error (exit code `2`); with an explicit `-o -` it streams the raw archive.
+- `stdout` receives exactly the export bytes (no status prefix, no added newline), so `oxy report -f csv -o - > a.csv` equals `oxy report -f csv -o a.csv`. With `-o -` the export is the only output in every mode, `--json` / `--machine` included.
+- With `--json` / `--machine` and no `-o`, the `oxy.report` envelope is printed and `--format` is ignored; with `-o <path>` the file is written and an `oxy.report.export` envelope is printed instead of the human message.
+
+| Format | Group | Variants | Binary | Notes |
+| --- | --- | --- | --- | --- |
+| `table` | human | `full`, `summary` | no | Unicode tree with progress bars (the default view) |
+| `html` | human | `full`, `summary` | no | Self-contained, responsive HTML document with embedded CSS and semantic tables |
+| `csv` | data | `full`, `summary` | no | RFC 4180 with UTF-8 encoding and formula-injection protection |
+| `json` | data | `full`, `summary` | no | The bare `ReportDocument`, pretty-printed, one trailing newline, no envelope |
+| `xml` | data | `full` | no | Sanitized hierarchical XML with ISO 8601 timestamps and escaped entity values (legacy schema v1) |
+| `ods` | human | `full`, `summary` | yes | OpenDocument Spreadsheet 1.3 package generated natively in Rust with `spreadsheet-ods` |
+| `xlsx` | human | `full`, `summary` | yes | Office Open XML workbook generated natively in Rust with `rust_xlsxwriter` |
+
+The registry (`src-tauri/src/cli/exporters/registry.rs`) holds one entry per format with its group, supported variants, binary flag, locale dependence (none yet) and writer, and a test fails when an `ExportFormat` value has no entry or more than one.
 
 **Memory Buffering and File Output Architecture:**
-In the current implementation, all CLI report exporters serialize content into memory before writing to target storage:
-- Formats `csv`, `html`, `json`, and `xml` are serialized in memory as UTF-8 payload strings and written to disk using `std::fs::write`.
-- Formats `ods` and `xlsx` are generated natively in Rust using `spreadsheet-ods` and `rust_xlsxwriter` into byte buffers (`Vec<u8>`) and written via `std::fs::write`.
+- Every writer streams into a `std::io::Write`; a file export goes through a buffered temporary file in the target directory that is renamed over the target on success, so a failed export never leaves a partial file. An export to `stdout` is rendered in memory first.
 - The dedicated ZIP32 builder with MS-DOS timestamps and 32-bit boundary validation operates exclusively within the TypeScript browser plugin layer (`src/plugins/exporters/zipBuilder.ts`), rather than the Rust CLI runtime.
-- Direct streaming to disk without intermediary in-memory buffering is marked as `[PLANNED]` pending completion of task B3.
 
 **Schema Publication (`oxy report schema`):**
 The CLI publishes the JSON Schema (draft 2020-12) of the report document. The schema is generated from the Rust types with `schemars`, so it cannot drift from the `oxy.report` model that the engine builds and `src/bindings/ReportDocument.ts` mirrors.
@@ -347,7 +355,7 @@ The CLI publishes the JSON Schema (draft 2020-12) of the report document. The sc
 - `stdout` is always exactly one JSON document, with and without `--machine`. The output is deterministic (properties are sorted alphabetically), so it can be diffed and pinned.
 - Optional properties (`skip_serializing_if`) are absent from `required` and do not accept `null`; unsigned integers are `integer` with `minimum: 0`.
 - The committed copies live in `schemas/json/report/v2/report.schema.json` and `schemas/json/envelope/v1/envelope.schema.json`; an integration test fails when they differ from the generated output. After an intentional contract change run `cargo test --test integration_tests regenerate_json_schemas -- --ignored` and review the diff.
-- `oxy report schema --format xml` prints the canonical XML Schema (XSD, version `1`) that describes the document written by `oxy report export -f xml`. It is not the `oxy.report` v2 model: an XSD for `oxy.report` v2 ships together with the XML exporter that emits it. With `-o`, the success message names `XML` and version `1`, and with `--machine` the summary has the same shape as for JSON (`schema` is `"XML"`, `schema_version` is `1`).
+- `oxy report schema --format xml` prints the canonical XML Schema (XSD, version `1`) that describes the document written by `oxy report -f xml`. It is not the `oxy.report` v2 model: an XSD for `oxy.report` v2 ships together with the XML exporter that emits it. With `-o`, the success message names `XML` and version `1`, and with `--machine` the summary has the same shape as for JSON (`schema` is `"XML"`, `schema_version` is `1`).
 - `--format xml --target envelope` fails with `CLI_SYNTAX_INVALID_ARGS` (exit code `2`) and writes nothing: the envelope schema is only available as JSON.
 - The former `--version <v>` flag is removed: only XSD version `1` exists, and the JSON schema version is part of its identity (`$id`).
 

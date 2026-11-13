@@ -133,7 +133,7 @@ oxy stop --quiet 2>/dev/null || true
 0 2 * * * /usr/local/bin/oxy db backup /backups/oxytime-$(date +\%Y\%m\%d).db
 
 # Export CSV automatique chaque soir à 23h59 via cron
-59 23 * * * /usr/local/bin/oxy report export -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
+59 23 * * * /usr/local/bin/oxy report -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
 ```
 
 ---

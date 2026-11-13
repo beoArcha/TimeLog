@@ -77,18 +77,18 @@ oxy task rm "Modelar fluxo OAuth"
 
 ```bash
 # Exibir uma árvore Unicode hierárquica das tarefas de hoje
-oxy report --tree --today
+oxy report --today
 
 # Exibir o relatório consolidado da semana
-oxy report --tree --week
+oxy report --week
 
 # Consultar o relatório para um intervalo de datas e projeto específico
 oxy report --from 2026-10-01 --to 2026-10-31 -p "Portal do Cliente"
 
 # Exportar registros de tempo para HTML, CSV ou JSON
-oxy report export -f html -o ./relatorio.html
-oxy report export -f csv -o ./relatorio.csv
-oxy report export -f json -o ./relatorio.json
+oxy report -f html -o ./relatorio.html
+oxy report -f csv -o ./relatorio.csv
+oxy report -f json -o ./relatorio.json
 ```
 
 ---

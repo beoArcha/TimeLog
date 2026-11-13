@@ -80,7 +80,7 @@ Most modern productivity tools suffer from bloated runtimes, slow cold starts, a
 ### 📊 Advanced Analytics & Reporting
 
 * **Visual Breakdown:** Interactive time distribution charts, project share pie graphs, and activity timelines built with Recharts.
-* **Terminal Unicode Trees:** Generate hierarchical ASCII/Unicode summary trees directly in the console (`oxy report --today --tree`).
+* **Terminal Unicode Trees:** Generate hierarchical ASCII/Unicode summary trees directly in the console (`oxy report --today`).
 * **Multi-Format Exports:** Export filtered intervals to HTML, CSV, or structured JSON.
 
 ### 🛡️ SQLite Data Integrity & Database Explorer
@@ -116,7 +116,7 @@ oxy status
 oxy switch "Refactor Design Tokens"
 
 # View today's summary as a hierarchical Unicode tree
-oxy report --today --tree
+oxy report --today
 
 # Verify database integrity and system health
 oxy doctor
