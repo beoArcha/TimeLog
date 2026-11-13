@@ -200,7 +200,7 @@ oxy project ls -q | grep -c "Core"
 
 Not yet covered by this contract: `report` (planned follow-up). Its quiet output is unchanged.
 
-### Machine Output Envelope (Implemented for flow, entity and subsystem commands)
+### Machine Output Envelope (Implemented for flow, dashboard, entity and subsystem commands)
 
 Every successful `--json` / `--machine` response of a migrated command is one versioned envelope on `stdout`. The contract is identical in the native `oxy` binary and the browser sandbox emulator, and the TypeScript shape is generated into `src/bindings/SuccessEnvelope.ts`.
 
@@ -208,7 +208,20 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 {
   "schema": "oxy.status",
   "schemaVersion": 1,
-  "data": { "activeTaskIds": ["task-42"], "count": 1, "running": true },
+  "data": {
+    "active": [
+      {
+        "taskId": "task-42",
+        "taskName": "Code review",
+        "projectId": "proj-7",
+        "projectName": "Core",
+        "start": "2026-11-12T09:30:00Z",
+        "elapsedSeconds": 3615
+      }
+    ],
+    "count": 1,
+    "running": true
+  },
   "meta": {
     "generatedAt": "2026-11-12T10:30:15Z",
     "generator": { "name": "oxy", "version": "1.14.5" }
@@ -216,7 +229,7 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 }
 ```
 
-- `schema` is `oxy.<command>` (flow commands and `doctor`) or `oxy.<domain>.<action>` (entity and subsystem commands); `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
+- `schema` is `oxy.<command>` (flow commands, `today` and `doctor`) or `oxy.<domain>.<action>` (entity and subsystem commands); `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
 - `meta.generatedAt` is whole-second RFC 3339 UTC; `meta.generator` is the same `{ name, version }` pair that `oxy.report` carries.
 - All JSON keys are camelCase at every depth. Enum values (`action`) are camelCase too.
 - **Formatting:** `--machine` always prints one compact line. `--json` prints indented JSON only when `stdout` is a terminal and `--machine` is absent; piped or redirected `--json` output is one compact line. The sandbox has no terminal and always prints the compact line.
@@ -229,7 +242,9 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy start` (no target, timer running) | `oxy.status` | 1 | the `oxy.status` payload, because the command only reports the running timers |
 | `oxy stop` | `oxy.stop` | 1 | `{ action: "stopped" \| "noop", stoppedCount }`; `noop` only for `--if-running` on an idle timer |
 | `oxy switch <task>` | `oxy.switch` | 1 | `{ action: "switched", taskId, timeLogId }` |
-| `oxy status` | `oxy.status` | 1 | `{ activeTaskIds: string[], count, running }` |
+| `oxy status` | `oxy.status` | 1 | `{ active: { taskId, taskName, projectId, projectName, start, elapsedSeconds }[], count, running }`; `start` is the stored RFC 3339 start time and `elapsedSeconds` comes from the Engine. A running log whose task or project is missing fails with an entity error (exit code `4`) instead of using a placeholder name |
+| `oxy today [--tz <iana>]` | `oxy.today` | 1 | the `oxy.report` v2 `ReportDocument` (`Full` variant, patches excluded) for the `today` preset: entries are clamped to the local day, so a session that started before midnight reports only its in-day `seconds` (its `originalSeconds` and `clamped` say so) |
+| bare `oxy` | `oxy.dashboard` | 1 | `{ running, activeSession: { taskId, taskName, projectId, projectName, start, elapsedSeconds } \| null, todayDate, todayTotalSeconds, sessionCount, recentTasks: { taskId, taskName, projectName, durationSeconds }[] }`; durations are raw seconds (the human card formats them), `recentTasks` holds the three latest sessions of today and the totals come from the same document as `oxy.today` |
 | `oxy project ls` | `oxy.project.list` | 1 | `{ items: Project[] }` |
 | `oxy project add <name>` | `oxy.project.add` | 1 | `Project` entity object |
 | `oxy project rename <target>` | `oxy.project.rename` | 1 | `Project` entity object |
@@ -259,7 +274,7 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy db backup <path>` | `oxy.db.backup` | 1 | `{ destination }` |
 | `oxy db restore <path>` | `oxy.db.restore` | 1 | `{ source }` |
 
-The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. Not migrated yet: `oxy today` and `oxy` (dashboard), which keep their snake_case keys (planned with the richer `status` / `today` payloads), and `oxy report --json` / `oxy report schema -o --machine`, which keep their previous shapes until the report output moves to `ReportDocument`.
+The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. Not migrated yet: `oxy report --json` / `oxy report schema -o --machine`, which keep their previous shapes until the report output moves to `ReportDocument`.
 
 ### Billing Configuration (Implemented)
 

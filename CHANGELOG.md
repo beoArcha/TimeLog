@@ -69,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - With `--machine` and `-o`, the summary now carries `schema` and a numeric `schema_version` (previously the string `"1"`).
 - **Versioned `--json` / `--machine` Envelope for Flow Commands**:
   - `start`, `stop`, `switch` and `status` now print `{ "schema": "oxy.<command>", "schemaVersion": 1, "data": {...}, "meta": { "generatedAt", "generator" } }` instead of the previous flat object; the former `"status": "ok"` field is removed and there is no v1 compatibility mode.
-  - Keys are camelCase (`activeTaskIds`, `stoppedCount`, `stoppedTaskIds`, `timeLogId`) and `action` values are camelCase (`alreadyRunning`).
+  - Keys are camelCase (`stoppedCount`, `stoppedTaskIds`, `timeLogId`) and `action` values are camelCase (`alreadyRunning`).
   - `--machine` prints one compact line; `--json` is indented only on a terminal and compact when piped.
   - The browser sandbox emulator mirrors the envelope for the same four commands.
 - **Versioned `--json` / `--machine` Envelope for Subsystem Commands**:
@@ -82,6 +82,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `project ls|add|rename|archive`, `task ls|add|done|rename|rate|reparent|move|archive` and `log ls|add|edit|rm` print `oxy.<domain>.<action>` envelopes with `schemaVersion: 1` instead of their previous flat objects and bare arrays; the `"status": "ok"` fields are removed.
   - Lists return `data: { items: [...] }` (`log ls` adds `totalMatched`); mutations return the affected entity as stored after the change; `archive` returns `{ id, action: "archived" }` and `log rm` returns `{ id, action: "removed", entry }`.
   - Typed payloads are generated into `src/bindings/`, and the browser sandbox emulator mirrors every entity command it implements (`task reparent` / `task move` remain native-only).
+- **Richer `status`, `today` and Dashboard Envelopes**:
+  - `oxy status` replaces `activeTaskIds` with `active: [{ taskId, taskName, projectId, projectName, start, elapsedSeconds }]` (`running` and `count` stay); `start` is the stored RFC 3339 start time and `elapsedSeconds` is measured by the Engine. A running log whose task or project no longer exists fails with an entity error (exit code `4`) instead of printing a placeholder name.
+  - `oxy today --json` / `--machine` prints an `oxy.today` v1 envelope whose `data` is the `oxy.report` v2 document for the `today` preset (honouring `--tz`), instead of the snake_case `{ date, total_seconds, entries }` object. Its human output reads the same document, so a session that started before midnight now counts only the part that falls today (and a session that started yesterday and ended today is now listed).
+  - Bare `oxy` (the dashboard) prints an `oxy.dashboard` v1 envelope with camelCase keys (`running`, `activeSession`, `todayDate`, `todayTotalSeconds`, `sessionCount`, `recentTasks`) instead of the unversioned pretty-printed snake_case DTO. The `*_formatted` strings are gone from machine output; the human card still formats durations. Its totals come from the same report document as `today`.
+  - The browser sandbox emulator mirrors `oxy.status` and `oxy.today` (it has no dashboard).
+  - An end-to-end test now gates every implemented `--json` command except the `report` family on the envelope contract (single-line JSON object, `oxy.*` schema, integer `schemaVersion`, `meta`, `data`, empty `stderr`).
 
 - **Identity & OS Bundle Identifier**:
   - Changed reverse-DNS identifier from `com.oxytime.timelog` / `com.oxytime.oxyflow` to `com.oxyflow.timelog`.
