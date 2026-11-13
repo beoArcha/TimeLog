@@ -146,7 +146,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ### Phase 10 — Decoupled Native CLI & Modular Subsystems 🔒 (Closed)
 
-> Closed with open items redistributed: Machine Locale Config → Phase 17 (Group D), Additional Export Formats → Phase 18 (Group E), CLI Crate Extraction → Phase 19 (Group A).
+> Closed with open items redistributed: Machine Locale Config → Phase 17 (Group D), Additional Export Formats → Phase 18 (Group E), CLI Crate Extraction → Phase 28 (Group A).
 
 - [x] **CLI Module Boundary**: `src-tauri/src/cli/` has zero Tauri GUI dependencies (enforced by `tauri_isolation_test.rs`) and consumes `Engine` and `Persistence` directly.
 - [x] **Dual-Layer Error Architecture**: Namespaced semantic error codes (`CLI_SYNTAX_*`, `DOM_ENTITY_*`, `STO_*`, `ENG_*`, `SNK_*`), technical English envelopes on `stderr`, localized user messages and semantic exit codes `0`..`5` (`src-tauri/src/cli/error/`), with pure deterministic single-line JSON envelopes emitted in `--machine` mode with interactive suggestion blocks omitted.
@@ -250,7 +250,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ### Phase 16 — Cross-Runtime Billing Engine, Dynamic Currencies & Rate Inheritance 🔒 (Closed)
 
-> Closed with open item redistributed: CLI Billing Reports → Phase 19 (Group F).
+> Closed with open item redistributed: CLI Billing Reports → Phase 22 (Group C).
 
 #### Group A — Rust Backend & Native Persistence
 - [x] **Billing Domain Models**: Extend the Project and Task domain models with billing configuration, preserving the distinction between an unset task rate (inheritance) and an explicit zero rate.
@@ -336,63 +336,177 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ---
 
-### Phase 18.5 — CLI Reports, Machine Contract & Export Formats (v1.16) 🚧 (In Progress)
+### v1.16 Program — CLI Reports, Machine Contract & Export Formats (Phases 19–27)
 
-**Goal:** One canonical, versioned report model built by the Engine in both runtimes, a stable machine contract for every `--json` / `--machine` command, and data plus human report formats that are pure projections of that model. Target release: `1.16.0`.
+**Goal:** One canonical, versioned report model built by the Engine in both runtimes, a stable machine contract for every `--json` / `--machine` command, and data plus human report formats that are pure projections of that model.
 
-#### Group A — CLI Correctness
-- [x] **Timezone-Aware Periods**: Shared `--tz` and period presets (`--today`, `--yesterday`, `--week`, `--last-week`, `--month`, `--last-month`, `--from`/`--to`) for `log ls`, `report` and `today`, resolved on the local calendar of an IANA timezone in both runtimes.
-- [x] **No Silent Truncation**: Machine-mode `log ls` returns every match; human mode shows a footer with the hidden count.
-- [x] **Idempotent Timer Commands**: `start` on a running task is a no-op that reports the state; `stop --if-running` succeeds on an idle timer.
-- [x] **Parser Errors in the Error Envelope**: clap syntax errors use the `stderr` error envelope and exit code `2` in machine mode.
-- [x] **Quiet Mode Contract**: `-q` prints only identifiers for mutations (including `start`, `switch` and `log rm`) and bare rows for lists.
-- [ ] **Quiet `report`**: `-q` semantics for `report` and exports.
-- [x] **Confirmed Log Removal**: `log rm` asks in an interactive terminal; `--yes`, non-TTY and machine mode skip the prompt; machine output returns the removed entry.
-- [ ] **Export to stdout & Ordering**: `report -o -` and deterministic export ordering.
+The phases follow the logical order of the work, not strictly the delivery order: a few items were delivered ahead of their phase (marked *delivered early*) and a few were moved to a later phase where they share code with it (marked *moved*). Phase 24 can run in parallel with Phases 20–23.
 
-#### Group B — Canonical Report Model in the Engine
-- [x] **`ReportDocument` v2 Contract**: Versioned report types (`oxy.report`, `schemaVersion: 2`) generated into `src/bindings/`.
-- [x] **Rust Report Builder**: `Engine::build_report` with clamped entries, flattened task tree, half-to-even shares, per-task billing with banker's rounding, per-currency totals and per-local-day totals.
-- [x] **CLI Report via Engine**: `oxy report` computes its figures with `Engine::build_report` (temporary adapter to the legacy output shapes).
-- [x] **Browser Mirror & Parity**: `buildReportAt` in `src/common/engine/reports/`, verified byte-for-byte against Rust-generated shared vectors.
-- [x] **Exporter Isolation Guardrails**: Architecture tests keep exporters free of storage and engine imports in Rust and TypeScript.
-- [ ] **`oxy report --json` Emits `ReportDocument`**: Gate for this group; removes the legacy adapter.
-
-#### Group C — CLI Machine Contract
-- [x] **Versioned Success Envelope**: `{ schema, schemaVersion, data, meta }` with camelCase keys for flow, entity and subsystem commands, mirrored in the sandbox emulator.
-- [x] **Published JSON Schema**: `oxy report schema` prints a `schemars`-generated JSON Schema of `oxy.report` v2 and of the envelope; committed copies are drift-tested.
-- [x] **Structured Error Details**: `details` (`candidates`, `suggestion`, `field`, `value`) in the error envelope, also in machine mode and in the sandbox emulator.
-- [ ] **Richer `status` / `today` / Dashboard**: Envelope payloads with task and project names, start and elapsed time; `today` built on `ReportDocument`.
-
-#### Group D — Data Exporters v2
-- [ ] **Exporter Registry & Flags**: `--format`, `--variant`, `-o` / `-o -`, `--lang`; the `report export` and `report tree` subcommands fold into `report`.
-- [ ] **Data Formats**: JSON and JSONL, CSV (Excel-friendly options), XML with XSD v2, XLSX (sheets and native chart), ODS and TOML, in full and summary variants, all projected from `ReportDocument`.
-- [ ] **Cross-Format Consistency Test**: Every data format yields the same totals, entry count and per-project sums for one fixture.
-
-#### Group E — Human-Readable Reports
-- [ ] **Shared Dictionaries in Rust**: Rust translator over the 10-locale dictionaries with a completeness test.
-- [ ] **Report Formats with Charts**: Markdown, print-ready HTML, DOCX and ODT with generated SVG charts; `--entries` / `--no-notes`.
-
-#### Group F — Terminal Output
-- [x] **Table Renderer & Decoration Detection**: Shared table renderer, human duration format, TTY and `NO_COLOR` detection.
-- [ ] **Messages & Help**: Consistent `start` / `stop` / `status` messages, short IDs, `project ls` with rates, help with examples.
-
-#### Group G — Pipeline Readiness
-- [x] **No Silent Database Creation**: An explicit `--db` path must exist.
-- [x] **Strict Machine Resolution**: Machine mode and `--exact` resolve targets only by exact ID, unique ID prefix of at least 8 characters or exact name.
-- [ ] **Deterministic Exports**: Correct empty-period output in every format, `contentHash`, export metadata on stdout, predictable file names (`--output-dir`), pipeline documentation and a column dictionary.
-
-#### Group H — Browser Export Parity
-- [ ] **TypeScript Exporters on `ReportDocument`**: Browser exporters consume the generated bindings; missing formats are added or listed as documented differences.
-
-#### Group I — Terminal & Error Localization
-- [ ] **Localized Terminal Output**: Terminal messages from the `cli` domain, a localized user layer in the error envelope and a decision on translating clap help; `--json` stdout stays byte-identical across `--lang`.
-
-**Phase Gate:** `oxy report --json` returns `ReportDocument` v2 identical to the browser engine for the same fixture; the contract test passes for every `--json` command; the cross-format consistency and pipeline contract tests pass on the real binary; documentation and `CHANGELOG.md` are updated and the version is `1.16.0`.
+**Release gate (`1.16.0`):** Phases 19–27 complete; a pre-release audit of the report and envelope contracts; `CLI.md`, `ENGINEERING.md`, `README.md`, the user guide, the wiki and `CHANGELOG.md` updated; version bumped to `1.16.0` through `metadata.json`.
 
 ---
 
-### Phase 19 — Engine Parity, CLI Modularity & Structural Hygiene 🚧 (Planned)
+### Phase 19 — CLI Correctness ✅ (Completed)
+
+**Goal:** Fix incorrect and script-hostile CLI behavior without changing the report model.
+
+#### Group A — Periods & Timezones
+- [x] **Timezone-Aware Periods**: Shared `--tz` and period presets (`--today`, `--yesterday`, `--week`, `--last-week`, `--month`, `--last-month`, `--from`/`--to`) for `log ls`, `report` and `today`, resolved by the Engine on the local calendar of an IANA timezone in both runtimes (Monday weeks, half-open ranges, mutually exclusive period flags).
+
+#### Group B — Predictable Commands for Scripts
+- [x] **No Silent Truncation**: Machine-mode `log ls` returns every match; human mode shows a footer with the hidden count.
+- [x] **Idempotent Timer Commands**: `start` on a running task is a no-op that reports the state; `stop --if-running` succeeds on an idle timer.
+- [x] **Parser Errors in the Error Envelope**: clap syntax errors use the `stderr` error envelope and exit code `2` in machine mode.
+- [x] **Quiet Mode Contract**: `-q` prints only identifiers for mutations (including `start`, `switch` and `log rm`) and bare rows for lists. `-q` for `report` and exports is *moved* to Phase 22 (Group A).
+- [x] **Confirmed Log Removal**: `log rm` asks in an interactive terminal; `--yes`, non-TTY and machine mode skip the prompt; machine output returns the removed entry.
+- [ ] **Export to stdout & Ordering**: `report -o -` and deterministic export ordering, *moved* to Phase 22 (Group A) because both live in the exporter registry.
+
+**Phase Gate:** Parity fixtures and `CLI.md` updated; the manual session from the CLI analysis runs without the correctness findings it reported.
+
+---
+
+### Phase 20 — Canonical Report Model in the Engine 🚧 (In Progress)
+
+**Depends on:** Phase 19 (Group A).
+**Goal:** The Engine builds one versioned `ReportDocument`; the CLI, exporters and the browser only project it.
+
+#### Group A — Contract & Rust Builder
+- [x] **`ReportDocument` v2 Contract**: Versioned report types (`oxy.report`, `schemaVersion: 2`) generated into `src/bindings/`, with integer `shareBasisPoints`, task-less entries and flattened subtasks of any depth.
+- [x] **Rust Report Builder**: `Engine::build_report` with clamped entries, flattened task tree, half-to-even shares, per-task billing with banker's rounding, per-currency totals and per-local-day totals.
+- [x] **CLI Report via Engine**: `oxy report` computes its figures with `Engine::build_report` through a temporary adapter to the legacy output shapes.
+
+#### Group B — Browser Mirror & Guardrails
+- [x] **Browser Mirror & Parity**: `buildReportAt` in `src/common/engine/reports/` and `EnginePlugin.buildReport`, verified byte-for-byte against Rust-generated shared vectors.
+- [x] **Exporter Isolation Guardrails**: Architecture tests keep exporters free of storage and engine imports in Rust and TypeScript.
+- [ ] **Billing Rounding Coverage**: Boundary assertions for banker's rounding in the browser billing utilities, where mutation testing reports surviving mutants.
+
+#### Group C — Phase Gate Item
+- [ ] **`oxy report --json` Emits `ReportDocument`**: Removes the legacy adapter. Delivered together with the exporter registry (Phase 22, Group A), which replaces the same output path.
+
+**Phase Gate:** `oxy report --json` returns `ReportDocument` v2, and the browser engine produces an identical document for the same fixture.
+
+---
+
+### Phase 21 — CLI Machine Contract 🚧 (In Progress)
+
+**Depends on:** Phase 20 (Group A) type conventions.
+**Goal:** Every `--json` / `--machine` command prints a versioned envelope, and errors carry structured, script-usable details.
+
+#### Group A — Success Envelope
+- [x] **Versioned Success Envelope**: `{ schema, schemaVersion, data, meta }` with camelCase keys for flow (`start`, `stop`, `switch`, `status`), entity (`project`, `task`, `log`) and subsystem (`config`, `sink`, `mask`, `doctor`, `db`) commands, mirrored in the sandbox emulator. `sink ls` reports `hasToken` instead of the stored token.
+- [ ] **Richer `status` / `today` / Dashboard**: `status` lists active timers with task and project names, start and elapsed time; `today` returns an `oxy.today` envelope built on `ReportDocument`; the dashboard prints an `oxy.dashboard` envelope whose totals come from the same document.
+
+#### Group B — Errors & Schemas
+- [x] **Structured Error Details**: `details` (`candidates`, `suggestion`, `field`, `value`) in the error envelope, also in machine mode and in the sandbox emulator.
+- [x] **Published JSON Schema**: `oxy report schema` prints a `schemars`-generated JSON Schema of `oxy.report` v2 and of the envelope; committed copies are drift-tested. The XML variant (`--format xml`) follows with XSD v2 in Phase 22.
+
+#### Group C — Contract Verification
+- [ ] **Envelope Contract Test**: One test on the real binary runs every implemented `--json` command and checks the envelope shape and a clean `stderr`. `report` joins it in Phase 22.
+
+**Phase Gate:** The contract test passes for every `--json` command and the JSON Schema is published.
+
+---
+
+### Phase 22 — Data Exporters v2 🚧 (Planned)
+
+**Depends on:** Phase 20, Phase 21 (Group A).
+**Goal:** Every data format is a pure projection of `ReportDocument`, selected through one registry.
+
+#### Group A — Registry & Flags
+- [ ] **Exporter Registry & Flags**: `--format`, `--variant` (`full`, `summary`), `-o` and `--lang`. The registry declares each format's group, supported variants, binary output and locale dependence; the `report export` and `report tree` subcommands fold into `report`.
+- [ ] **Export to stdout & Ordering** (*moved* from Phase 19): `report -o -` writes to stdout, and export ordering is deterministic.
+- [ ] **Quiet `report`** (*moved* from Phase 19): `-q` semantics for `report` and exports.
+- [ ] **`report --json` on `ReportDocument`**: Closes Phase 20 and adds `report` to the envelope contract test.
+
+#### Group B — Formats
+- [ ] **JSON & JSONL**: JSON is the serialized `ReportDocument`; JSONL starts with a header line followed by one line per entry.
+- [ ] **CSV**: Flat, BI-friendly table (one header row, repeated project and task names, local date and UTC timestamps in separate columns), with `--csv-delimiter` and `--bom` options for Excel and formula-injection protection.
+- [ ] **XML & XSD v2**: New XSD in `schemas/xml/report/v2/` with a `variant` attribute; `oxy report schema --format xml` returns it. XML v1 export leaves the CLI; the v1 XSD stays for the browser until Phase 26.
+- [ ] **XLSX**: Summary sheet with a native pie chart; the full variant adds Entries (autofilter) and Days (bar chart) sheets, with durations as `[h]:mm` numeric cells.
+- [ ] **ODS**: OpenDocument spreadsheet with the same sheet structure.
+- [ ] **TOML**: Conditional on the format decision recorded in the CLI reports plan.
+
+#### Group C — Billing & Consistency
+- [ ] **CLI Billing View** (*moved* from the former Phase 19, Group F): `ReportDocument` already carries per-task rates and amounts plus per-currency totals with cross-runtime parity; expose them in the summary variant and table output, without a second billing calculation.
+- [ ] **Cross-Format Consistency Test**: Every data format yields the same totals, entry count and per-project sums for one fixture.
+
+**Phase Gate:** The cross-format consistency test passes.
+
+---
+
+### Phase 23 — Human-Readable Reports 🚧 (Planned)
+
+**Depends on:** Phase 20, Phase 22 (Group A).
+**Goal:** Client-ready reports in the user's language, generated from the same document as the data formats.
+
+#### Group A — Shared Translations in Rust
+- [ ] **Rust Translator over Shared Dictionaries**: The native CLI reads the 10-locale dictionaries in `src/common/i18n/dictionaries/`, with a completeness test for every key used in Rust.
+
+#### Group B — Layout & Formats
+- [ ] **Shared Report Layout & SVG Charts**: One layout model and a generated SVG chart set, keys added to the `report` domain in all 10 locales.
+- [ ] **Markdown**, **Print-Ready HTML**, **DOCX** and **ODT** (ODT conditional on the format decision recorded in the CLI reports plan).
+- [ ] **Entries & Notes Switches**: `--entries` and `--no-notes` for the human formats.
+
+**Phase Gate:** Golden tests pass, and the files open in Word and LibreOffice without warnings (manual check).
+
+---
+
+### Phase 24 — Terminal Output 🚧 (In Progress)
+
+**Depends on:** Phase 19. Can run in parallel with Phases 20–23.
+
+#### Group A — Rendering
+- [x] **Table Renderer & Decoration Detection**: Shared table renderer, human duration format, TTY and `NO_COLOR` detection.
+
+#### Group B — Messages & Help
+- [ ] **Flow Messages**: Consistent `start` / `stop` / `status` messages, short IDs and no decorative symbols in lists.
+- [ ] **Lists & Help**: `project ls` with rates, help with examples and separated global flags.
+
+---
+
+### Phase 25 — Pipeline Readiness 🚧 (In Progress)
+
+**Depends on:** Phase 19, Phase 22.
+**Goal:** Reports can be generated unattended and consumed by other programs.
+
+#### Group A — Safe Inputs
+- [x] **No Silent Database Creation** (*delivered early* with Phase 19): An explicit `--db` path must exist.
+- [x] **Strict Machine Resolution** (*delivered early* with Phase 19): Machine mode and `--exact` resolve targets only by exact ID, a unique ID prefix of at least 8 characters or an exact name.
+
+#### Group B — Deterministic Outputs
+- [ ] **Empty Period Output**: A correct, well-formed result for an empty period in every format.
+- [ ] **Content Hash & Export Metadata**: Deterministic output with a `contentHash`, and export metadata on stdout when writing to a file.
+- [ ] **Predictable File Names**: `--output-dir` with documented file names.
+- [ ] **Pipeline Documentation**: A "reports in pipelines" guide and a column dictionary.
+
+**Phase Gate:** The pipeline contract test passes on the real binary without a TTY and with stdin closed.
+
+---
+
+### Phase 26 — Browser Export Parity 🚧 (Planned)
+
+**Depends on:** Phase 20 (Group B), Phase 22, Phase 23.
+
+#### Group A — Exporters on the Shared Model
+- [ ] **TypeScript Exporters on `ReportDocument`**: Browser exporters consume the generated bindings instead of their own report shapes.
+- [ ] **Missing Formats or Documented Differences**: Add the formats the browser lacks, or list the intended differences in `CLI.md`.
+
+---
+
+### Phase 27 — Terminal & Error Localization 🚧 (Planned)
+
+**Depends on:** Phase 23 (Group A), Phase 24.
+
+#### Group A — Localized Output
+- [ ] **Localized Terminal Messages**: Lists, confirmations and the dashboard read their text from the `cli` domain.
+- [ ] **Localized Error User Layer**: A genuinely localized `user` layer in the error envelope; `cli_machine_locale` is removed or merged with `cli_locale`.
+- [ ] **clap Help Decision**: Decide whether clap help is translated, and document it.
+
+**Phase Gate:** `oxy --lang pl` prints Polish messages for humans, while `--json` stdout is byte-identical for `--lang pl` and `--lang en`.
+
+---
+
+### Phase 28 — Engine Parity, CLI Modularity & Structural Hygiene 🚧 (Planned)
 
 Architecture debt identified by reviewing the codebase at `62877c4`. Each group is an architecture change and must be approved separately from feature work (see `AGENTS.md`, Refactoring scope).
 
@@ -403,21 +517,18 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Native Validation via IPC**: `TauriValidationEngine` currently delegates to the browser implementation in `@plugins/engine/validation`. Route validation through `src-tauri/src/engine/validation.rs` via Tauri commands and confirm the cross-runtime parity matrix covers it.
 
 #### Group C (Parallel Track) — Sandbox Delegation to Engine
-- [ ] **Sandbox Engine Delegation**: `sandboxTimerOps`, `sandboxTaskOps`, `sandboxProjectOps` and `sandboxMetricsCalculator.ts` re-implement timer and metrics logic. Delegate to `IEngine` so each runtime keeps a single implementation. Phase 18.5 added further sandbox mirrors (envelopes, quiet output, `log rm`, period flags) and a browser report engine (`EnginePlugin.buildReport`) that this delegation should reuse; until then, new sandbox copies are limited to what the parity matrix requires.
+- [ ] **Sandbox Engine Delegation**: `sandboxTimerOps`, `sandboxTaskOps`, `sandboxProjectOps` and `sandboxMetricsCalculator.ts` re-implement timer and metrics logic. Delegate to `IEngine` so each runtime keeps a single implementation. The v1.16 program (Phases 19–27) added further sandbox mirrors (envelopes, quiet output, `log rm`, period flags, error details) and a browser report engine (`EnginePlugin.buildReport`) that this delegation should reuse; until then, new sandbox copies are limited to what the parity matrix requires.
 
 #### Group D (Parallel Track) — Structural Hygiene
-- [ ] **File Length Decomposition**: Split files above ~300 LOC: `DataTableViewer.tsx` (758), `ActiveTimerBanner.tsx` (377), `useTauriWindow.ts` (315), `MediumProjectSelector.tsx` (313), `sandboxEmulatorStore.ts` (344), and Rust `error/cli_error.rs` (396), `resolver/entity_resolver.rs` (374). Done for the CLI handlers: `task_handler`, `flow_handler` and `log_handler` are directory modules with files of at most ~210 lines, and `report_handler.rs` dropped to 142 lines after Phase 18.5 moved report figures into the Engine; `task_handler::handle` (~77 lines) still exceeds the thin-dispatcher guideline.
+- [ ] **File Length Decomposition**: Split files above ~300 LOC: `DataTableViewer.tsx` (758), `ActiveTimerBanner.tsx` (376), `useTauriWindow.ts` (315), `MediumProjectSelector.tsx` (303), `sandboxEmulatorStore.ts` (344), and Rust `error/cli_error.rs` (404), `resolver/entity_resolver.rs` (382). Done for the CLI handlers: `task_handler`, `flow_handler` and `log_handler` are directory modules with files of at most ~210 lines, and `report_handler.rs` dropped to 142 lines after Phase 20 moved report figures into the Engine; `task_handler::handle` (~77 lines) still exceeds the thin-dispatcher guideline.
 - [ ] **Production unwrap Removal**: Replace the six `.unwrap()` calls in production Rust code (`app/builder.rs`, `engine/metrics/computed.rs`, `workflows/daemon.rs`, `cli/resolver/prompter.rs`, `cli/resolver/entity_resolver.rs`) with typed error handling.
 
 #### Group E (Parallel Track) — Webhook Dispatch Verification
-- [ ] **Single Webhook Dispatch Path**: Audit the TypeScript WebhookDispatcher, native Tauri/CLI sink paths and Browser queue adapters. Select one logical dispatch contract and document runtime-specific adapters in ENGINEERING.md; Phase 24 must build on this decision rather than introduce a second dispatcher.
-
-#### Group F (Parallel Track) — CLI Billing Reports (moved from Phase 16)
-- [ ] **CLI Billing Reports**: Provide CLI operations (`oxy report billing` / `report --billing`) for calculating and reporting billing values for supported Projects, Tasks, and time ranges using `calculate_range_billing()`, exposing consistent machine-readable results and cross-runtime parity. Largely covered by Phase 18.5: `ReportDocument` carries per-task rates and amounts plus per-currency billing totals with cross-runtime parity; what remains is a billing-focused CLI view once `report` output uses `ReportDocument`.
+- [ ] **Single Webhook Dispatch Path**: Audit the TypeScript WebhookDispatcher, native Tauri/CLI sink paths and Browser queue adapters. Select one logical dispatch contract and document runtime-specific adapters in ENGINEERING.md; Phase 33 must build on this decision rather than introduce a second dispatcher.
 
 ---
 
-### Phase 20 — Native CLI → Desktop Reactive State Propagation 🚧 (Planned)
+### Phase 29 — Native CLI → Desktop Reactive State Propagation 🚧 (Planned)
 
 **Goal:** Changes made by an external oxy CLI process become visible immediately in every relevant Tauri window, without polling and without coupling the CLI to Tauri GUI APIs.
 
@@ -440,21 +551,21 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Process Integration Tests**: Execute the compiled oxy process against a temporary database while the Tauri-side receiver is active; verify that a committed change reaches the GUI and a failed operation does not.
 - [ ] **Multi-Window E2E**: Verify synchronization in the main window and Compact Timer, including timer start/stop/switch and project/task changes.
 - [ ] **Architecture Tests**: Enforce that CLI, Engine and Persistence remain free of Tauri GUI dependencies and that notifications are emitted only from the appropriate post-commit boundary.
-- [ ] **Error & Logging Coverage**: Use the existing typed error contracts and currently supported diagnostics; distinguish expected operational failures from infrastructure failures. Phase 23 later standardizes native Rust handling and logging without blocking this phase. Never silently discard an error.
+- [ ] **Error & Logging Coverage**: Use the existing typed error contracts and currently supported diagnostics; distinguish expected operational failures from infrastructure failures. Phase 32 later standardizes native Rust handling and logging without blocking this phase. Never silently discard an error.
 
 **Phase Gate:** An external CLI operation updates the running Desktop UI reactively; CLI behavior remains correct when Desktop is closed or IPC is unavailable; all relevant tests and architecture rules pass.
 
 ---
 
-### Phase 21 — Native MCP for CLI & Desktop + Generated Contracts 🚧 (Planned)
+### Phase 30 — Native MCP for CLI & Desktop + Generated Contracts 🚧 (Planned)
 
-**Depends on:** Phase 20.  
+**Depends on:** Phase 29.  
 **Goal:** Expose the native TimeLog capabilities to AI agents through one consistent MCP interface, usable with the standalone CLI and the Desktop runtime, without duplicating business logic.
 
 #### Group A — Canonical MCP Contracts & TypeScript Bindings
 - [ ] **MCP Contract Source of Truth**: Define typed MCP tool inputs, outputs, resource payloads and error envelopes in the native contract layer. Keep contracts separate from Engine and Persistence implementation details.
 - [ ] **Generated TypeScript Bindings**: Export the contract types into src/bindings/ using the existing ts-rs binding pipeline. Generated files are never edited manually.
-- [ ] **JSON Schema Generation**: Generate JSON Schemas for MCP inputs and outputs from the same contract definitions (e.g. via schemars), so Rust and TypeScript adapters do not maintain separate handwritten schemas. Started in Phase 18.5: the `schemars` generator already produces the committed schemas of `oxy.report` v2 and the CLI envelope (`schemas/json/`) with a drift test; MCP contracts extend the same pipeline.
+- [ ] **JSON Schema Generation**: Generate JSON Schemas for MCP inputs and outputs from the same contract definitions (e.g. via schemars), so Rust and TypeScript adapters do not maintain separate handwritten schemas. Started in Phase 21: the `schemars` generator already produces the committed schemas of `oxy.report` v2 and the CLI envelope (`schemas/json/`) with a drift test; MCP contracts extend the same pipeline.
 - [ ] **Build & CI Integration**: Extend the existing binding-generation workflow to produce and verify MCP contract artifacts. CI must fail when generated bindings/schemas are stale or differ from the committed output.
 - [ ] **Contract Compatibility Tests**: Verify required/optional fields, enum values, nullability, serialization and schema compatibility across Rust and TypeScript.
 
@@ -467,7 +578,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Observability**: Log tool invocation outcomes and unexpected failures with operation/source context; never swallow errors or return raw internal error details as the public contract.
 
 #### Group C — Desktop Compatibility, Safety & Verification
-- [ ] **Desktop State Propagation**: When an MCP operation changes native state while Desktop is running, reuse the Phase 20 notification path so all relevant windows refresh through the normal React data lifecycle.
+- [ ] **Desktop State Propagation**: When an MCP operation changes native state while Desktop is running, reuse the Phase 29 notification path so all relevant windows refresh through the normal React data lifecycle.
 - [ ] **Local Access & Safeguards**: Define local process access, tool permissions and confirmation requirements for destructive or historical-data operations. Reuse existing Time Safeguards; do not let MCP bypass them.
 - [ ] **Protocol Tests**: Cover MCP initialization, stdio request/response flow, tool discovery/calls, resources, malformed arguments, unsupported methods and graceful shutdown.
 - [ ] **Behavioral Parity**: Verify that equivalent CLI, MCP and Desktop operations produce the same persisted state and domain outcomes.
@@ -478,16 +589,16 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 22 — PWA WebMCP Adapter & Browser Agent Integration 🚧 (Planned)
+### Phase 31 — PWA WebMCP Adapter & Browser Agent Integration 🚧 (Planned)
 
-**Depends on:** Phase 21 contract definitions.  
+**Depends on:** Phase 30 contract definitions.  
 **Goal:** Expose the supported TimeLog capabilities to browser-context AI agents from PWA, using TypeScript and the Browser runtime. No Rust runtime or native stdio server is required in PWA.
 
 #### Group A — Browser Adapter & Runtime Integration
 - [ ] **PWA MCP Adapter**: Implement a TypeScript adapter in the Browser runtime that exposes the canonical MCP tool semantics through the supported WebMCP browser API (e.g. navigator.modelContext, subject to browser/API availability).
 - [ ] **Capability Detection**: Feature-detect WebMCP support and register tools only when the browser provides the required capability. Unsupported browsers must retain normal PWA behavior without startup failures.
 - [ ] **Browser Application Path**: Route tool calls through the existing Browser Engine / Persistence implementations and their established application operations. Do not import Rust/Tauri modules or access LocalStorage directly from the adapter when an existing router/plugin API owns the operation.
-- [ ] **Generated Contract Reuse**: Consume the generated src/bindings/ types and generated JSON Schemas from Phase 21. Avoid independently maintained tool definitions, payload types or error codes.
+- [ ] **Generated Contract Reuse**: Consume the generated src/bindings/ types and generated JSON Schemas from Phase 30. Avoid independently maintained tool definitions, payload types or error codes.
 
 #### Group B — Tool Parity, Permissions & State Consistency
 - [ ] **Supported Tool Parity**: Expose the same semantic operations as native MCP wherever the Browser runtime supports them. Document intentional capability differences rather than silently changing tool behavior.
@@ -507,9 +618,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 23 — Centralized Rust Error Handling & Diagnostic Logging 🚧 (Planned)
+### Phase 32 — Centralized Rust Error Handling & Diagnostic Logging 🚧 (Planned)
 
-**Depends on:** Existing typed error contracts and CLI error envelopes from Phase 10. Phases 20–22 may proceed using the current mechanisms; this phase standardizes and consolidates them.  
+**Depends on:** Existing typed error contracts and CLI error envelopes from Phase 10. Phases 29–31 may proceed using the current mechanisms; this phase standardizes and consolidates them.  
 **Runtime scope:** Native Rust, Tauri Desktop and standalone oxy CLI. Browser/PWA keeps browser-native diagnostics and shared error semantics; it must not depend on Rust file logging.
 
 **Goal:** Establish consistent native error handling and diagnostic logging so failures are classified, handled, reported and never silently discarded.
@@ -519,7 +630,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Canonical Classification**: Define stable categories and severity policy for domain, validation, configuration, persistence, network, infrastructure, unexpected and critical failures. Reuse existing CLI/MCP-facing semantics where possible; do not create competing taxonomies.
 - [ ] **Typed Error Completeness**: Replace ambiguous string-only variants such as generic Storage(String) or OperationFailed(String) where they prevent reliable classification, while preserving useful source errors and context.
 - [ ] **Central Handling Policy**: Separate error creation, propagation, handling, user notification and diagnostic reporting. Do not turn expected domain outcomes into infrastructure errors or collapse typed errors into generic strings.
-- [ ] **Boundary Mapping**: Preserve stable typed semantics across Rust → Tauri IPC, CLI machine envelopes and frontend-facing contracts. Keep CLI exit codes and machine-readable output backward-compatible unless a separately approved migration is required. Phase 18.5 performed one approved migration to the versioned success envelope; later machine-output changes are signalled through `schemaVersion`.
+- [ ] **Boundary Mapping**: Preserve stable typed semantics across Rust → Tauri IPC, CLI machine envelopes and frontend-facing contracts. Keep CLI exit codes and machine-readable output backward-compatible unless a separately approved migration is required. Phase 21 performed one approved migration to the versioned success envelope; later machine-output changes are signalled through `schemaVersion`.
 - [ ] **No Silent Error Loss**: Audit ignored Result values and discarded failures. Classify each intentional best-effort operation explicitly; all other failures must be handled or propagated. Prefer compiler/linter enforcement where sufficient over broad custom AST rules.
 - [ ] **Existing Guardrail Alignment**: Extend current architecture/error tests to detect genuinely untyped error variants and broken mappings; do not duplicate checks already enforced by error_handling_test.rs.
 
@@ -534,7 +645,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Ad Hoc Diagnostic Export**: Allow users to export a diagnostic bundle with relevant logs and safe environment metadata, excluding secrets and unnecessary personal/domain data.
 
 #### Group C — Verification & Migration
-- [ ] **Legacy Secret Exposure Audit**: Identify existing secret-bearing settings and queued headers so redaction covers historical diagnostic paths as well as new logs. Secret storage migration itself is coordinated with Phase 25.
+- [ ] **Legacy Secret Exposure Audit**: Identify existing secret-bearing settings and queued headers so redaction covers historical diagnostic paths as well as new logs. Secret storage migration itself is coordinated with Phase 34.
 - [ ] **Error Path Tests**: Verify classification, propagation, boundary mapping, user-facing handling and logging for expected, unexpected, infrastructure and critical failures.
 - [ ] **Logging Concurrency Tests**: Verify simultaneous Desktop/CLI operation, rotation, process restart, disk-full and unavailable-log-directory behavior.
 - [ ] **Static Enforcement**: Add only targeted Clippy/configuration and architecture checks for ignored must-use results, production unwraps and unapproved generic error representations.
@@ -544,9 +655,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 24 — Transactional Event Journal & Sink Reliability 🚧 (Planned)
+### Phase 33 — Transactional Event Journal & Sink Reliability 🚧 (Planned)
 
-**Depends on:** Phase 23 error/logging policies and Phase 19 Group E (single logical webhook dispatch path).  
+**Depends on:** Phase 32 error/logging policies and Phase 28 Group E (single logical webhook dispatch path).  
 **Runtime scope:** SQLite-backed Native/Tauri and standalone CLI are authoritative for the native event journal. Browser/PWA must retain its own runtime boundary and must not pretend LocalStorage is transactionally equivalent to the native SQLite outbox.
 
 **Goal:** Replace best-effort audit emission with a durable, replayable domain-event foundation. Domain mutations and their event records must commit atomically; CSV/JSONL and remote delivery are projections/adapters, not independent sources of truth.
@@ -554,7 +665,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 #### Group A — Existing Persistence & Sink Audit
 - [ ] **Persistence Transaction Audit**: Map every domain write path and identify the actual SQLite connection/transaction boundaries. Verify whether repositories currently share a transaction; introduce an explicit transaction/unit-of-work boundary where required.
 - [ ] **CSV Gap Analysis**: Record the current CSV limitations: best-effort emission, ignored sink errors, incomplete event coverage and absence of replayable payloads. Treat existing per-project CSV files as legacy projections, not as a durable event source.
-- [ ] **Webhook Path Consolidation**: Complete the Phase 19 dispatch-path decision across TypeScript, Tauri, Browser and CLI. Retain runtime-specific transport adapters only where required; do not maintain competing delivery queues or policies for the same runtime.
+- [ ] **Webhook Path Consolidation**: Complete the Phase 28 dispatch-path decision across TypeScript, Tauri, Browser and CLI. Retain runtime-specific transport adapters only where required; do not maintain competing delivery queues or policies for the same runtime.
 - [ ] **Configuration & Status Alignment**: Align sink configuration, enablement, delivery status and diagnostics across GUI, CLI, Tauri and Browser without bypassing their runtime boundaries.
 - [ ] **Failure Semantics**: A sink outage must not roll back an already committed domain mutation, but it must not erase the durable event or its pending delivery state.
 
@@ -572,7 +683,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 #### Group C — Dispatch, Projections & Recovery
 - [ ] **Transactional Dispatch State**: Track per-sink delivery state separately from immutable event content, including pending, delivered, retryable failure and dead-letter states. Ensure a crash cannot lose a committed event or falsely mark it delivered.
-- [ ] **Single Dispatcher Contract**: Dispatch committed events through the logical path selected in Phase 19, with adapters for supported runtimes. Define ownership, concurrency control and restart recovery.
+- [ ] **Single Dispatcher Contract**: Dispatch committed events through the logical path selected in Phase 28, with adapters for supported runtimes. Define ownership, concurrency control and restart recovery.
 - [ ] **CSV Projection**: Serialize the canonical envelope and replayable payload to CSV while preserving compatibility/migration behavior for existing timelog_<project_id>.csv files. Decide and document whether new exports remain per-project projections or include a global journal export.
 - [ ] **Idempotency & Retry**: Use stable event_id values as idempotency keys; retry delivery safely and document at-least-once delivery semantics and receiver requirements.
 - [ ] **Audit Replay**: Provide a read-only operation-history view from validated journal records, distinct from state reconstruction.
@@ -591,25 +702,25 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 25 — Sink Expansion & Secure Remote Delivery 🚧 (Planned)
+### Phase 34 — Sink Expansion & Secure Remote Delivery 🚧 (Planned)
 
-**Depends on:** Phase 24 canonical event envelope, journal and dispatch contract.  
+**Depends on:** Phase 33 canonical event envelope, journal and dispatch contract.  
 **Runtime scope:** Shared event and delivery semantics across Native/Tauri, CLI and Browser; native HTTP transport for Desktop/CLI and browser fetch transport for PWA. Browser proxy support is out of scope because it is controlled by the browser environment.
 
 **Goal:** Extend the established sink system with JSONL and secure remote delivery without creating a second webhook dispatcher or duplicating retry/queue semantics.
 
 #### Group A — JSONL Projection
-- [ ] **JSONL Serialization**: Implement JSON Lines as a projection of the Phase 24 canonical event envelope.
+- [ ] **JSONL Serialization**: Implement JSON Lines as a projection of the Phase 33 canonical event envelope.
 - [ ] **Semantic Parity**: Ensure CSV and JSONL represent the same canonical events and preserve equivalent identity, schema, ordering and replay semantics.
 - [ ] **Integrity Verification**: Include per-device sequence and hash metadata and verify each stream independently.
 - [ ] **Import & Export**: Support controlled import/export with schema validation, integrity verification and explicit duplicate/conflict handling.
 
 #### Group B — Unified Remote Delivery
-- [ ] **Webhook Evolution**: Extend the existing webhook integration through the Phase 19/24 logical dispatcher contract. Do not add an independent Remote API queue, retry engine or delivery-status model.
+- [ ] **Webhook Evolution**: Extend the existing webhook integration through the Phase 28/33 logical dispatcher contract. Do not add an independent Remote API queue, retry engine or delivery-status model.
 - [ ] **Transport Adapters**: Implement a native HTTP(S) adapter for Tauri/CLI and a Browser fetch adapter for PWA. Keep shared request semantics, event identity and error classification; document Browser CORS and capability restrictions.
 - [ ] **JWT Authentication**: Support manually configured bearer credentials without embedding secrets in event payloads or ordinary queue headers.
 - [ ] **Secure Credential Storage**: Define a platform-specific credential provider. Use OS-backed secure storage where available; do not claim Browser LocalStorage is secure credential storage.
-- [ ] **Existing Secret Migration**: Migrate or invalidate existing plaintext webhook tokens in cli_sinks.config and secret-bearing queued headers. Remove secret copies from queue records; if safe migration is impossible, require re-authentication and explain the consequence. Phase 18.5 already stopped `oxy sink ls --machine` from printing the token (it reports `hasToken`); storage migration remains here.
+- [ ] **Existing Secret Migration**: Migrate or invalidate existing plaintext webhook tokens in cli_sinks.config and secret-bearing queued headers. Remove secret copies from queue records; if safe migration is impossible, require re-authentication and explain the consequence. Phase 21 already stopped `oxy sink ls --machine` from printing the token (it reports `hasToken`); storage migration remains here.
 - [ ] **Proxy Support**: Support system and explicit proxy configuration only in native transports where technically available. Clearly report that Browser proxy behavior is browser-managed and cannot be configured by the application.
 - [ ] **Transport Security**: Require HTTPS for remote credentials, validate TLS certificates and define timeout/response-size limits.
 - [ ] **Connection Configuration**: Support endpoint, timeout, authentication reference and connection-test settings without exposing credentials in diagnostics.
@@ -628,7 +739,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 26 — Google Drive Backup Provider 🚧 (Planned)
+### Phase 35 — Google Drive Backup Provider 🚧 (Planned)
 
 **Depends on:** Existing Phase 10 oxy db backup / oxy db restore and SQLite Online Backup API. This phase does not depend on event sourcing or multi-device synchronization.  
 **Runtime scope:** Native/Tauri and standalone CLI. Browser/PWA cloud backup behavior is explicitly out of scope unless separately designed and approved.
@@ -638,7 +749,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 #### Group A — Provider Discovery & Authentication
 - [ ] **OAuth Architecture Discovery**: Decide OAuth application ownership, consent-screen/verification implications, supported account types and distribution model for this MPL-2.0 open-source application.
 - [ ] **Least-Privilege Scope Selection**: Compare drive.file and app-data options against required user-visible folder selection, backup discovery and restore workflows. Select the minimum scope that satisfies product requirements; do not assume full Drive access.
-- [ ] **Credential Lifecycle**: Define secure token storage, refresh, revocation, logout and re-authentication behavior using the platform credential provider established in Phase 25 where available.
+- [ ] **Credential Lifecycle**: Define secure token storage, refresh, revocation, logout and re-authentication behavior using the platform credential provider established in Phase 34 where available.
 - [ ] **Provider Boundary**: Keep Google Drive API types and behavior behind a provider interface so future providers do not leak into backup/domain logic.
 
 #### Group B — Backup & Restore Integration
@@ -659,9 +770,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 27 — Multi-Device Data Synchronization 🚧 (Planned)
+### Phase 36 — Multi-Device Data Synchronization 🚧 (Planned)
 
-**Depends on:** Phase 24 versioned per-device event streams and Phase 26 Google Drive provider.  
+**Depends on:** Phase 33 versioned per-device event streams and Phase 35 Google Drive provider.  
 **Runtime scope:** Native/Tauri and standalone CLI devices. Browser/PWA participation requires a separately verified persistence and credential capability contract; it must not be implied by native support.
 
 **Goal:** Synchronize independent local databases through validated event streams and checkpoints, without concurrent access to a shared cloud-hosted SQLite database.
@@ -694,9 +805,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 
 ---
 
-### Phase 28 — Unified Data Integrity & Recovery Manager 🚧 (Planned)
+### Phase 37 — Unified Data Integrity & Recovery Manager 🚧 (Planned)
 
-**Depends on:** Phase 24 journal validator and recovery primitives, Phase 26 verified backup/restore provider, and Phase 27 synchronization metadata.  
+**Depends on:** Phase 33 journal validator and recovery primitives, Phase 35 verified backup/restore provider, and Phase 36 synchronization metadata.  
 **Runtime scope:** Native/Tauri and standalone CLI recovery orchestration. Browser/PWA exposes only capabilities supported by its own persistence adapter and must not claim native SQLite recovery.
 
 **Goal:** Orchestrate existing specialized validators and recovery procedures into one consistent integrity, diagnosis and controlled-repair workflow. This phase coordinates existing capabilities; it does not reimplement their validators.
@@ -714,9 +825,9 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 #### Group B — Specialized Recovery Coordination
 - [ ] **SQLite Recovery**: Reuse the existing oxy db doctor, backup/restore and SQLite integrity/schema validation capabilities; add only missing checks.
 - [ ] **Cloud Artifact Recovery**: Reuse the Google Drive provider to locate versions, verify checksums and retrieve known-good artifacts.
-- [ ] **Event Journal Recovery**: Reuse Phase 24 per-device stream validators, checkpoints and deterministic replay; report unrecoverable gaps instead of fabricating history.
-- [ ] **Synchronization Recovery**: Reconcile interrupted sessions, stale checkpoints and divergent histories using Phase 27 protocol rules.
-- [ ] **Sink Recovery**: Rebuild projections and reconcile pending/delivered/dead-letter state from the canonical journal and dispatcher; do not duplicate Phase 24/25 validators.
+- [ ] **Event Journal Recovery**: Reuse Phase 33 per-device stream validators, checkpoints and deterministic replay; report unrecoverable gaps instead of fabricating history.
+- [ ] **Synchronization Recovery**: Reconcile interrupted sessions, stale checkpoints and divergent histories using Phase 36 protocol rules.
+- [ ] **Sink Recovery**: Rebuild projections and reconcile pending/delivered/dead-letter state from the canonical journal and dispatcher; do not duplicate Phase 33/34 validators.
 - [ ] **Recovery Boundaries**: Clearly distinguish recoverable delivery failure, projection corruption, event-history corruption, database corruption and unresolved domain conflict.
 
 #### Group C — Reporting & Verification
