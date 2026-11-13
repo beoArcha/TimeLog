@@ -133,7 +133,7 @@ Dado que `oxy` opera directamente sobre la base SQLite sin abrir la GUI, puede p
 0 2 * * * /usr/local/bin/oxy db backup /backups/oxytime-$(date +\%Y\%m\%d).db
 
 # Exportación nocturna CSV a las 23:59 vía cron
-59 23 * * * /usr/local/bin/oxy report export -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
+59 23 * * * /usr/local/bin/oxy report -f csv -o /backups/timesheet-$(date +\%Y\%m\%d).csv
 ```
 
 ---

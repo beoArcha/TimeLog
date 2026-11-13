@@ -1,11 +1,10 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxyflow_timelog::cli::formatters::ReportTreeDto;
 use oxyflow_timelog::cli::{handle_cli, CliArgs, CliOutput};
 use oxyflow_timelog::engine::Engine;
 use oxyflow_timelog::persistence::Persistence;
-use oxyflow_timelog::types::NewTimeLog;
+use oxyflow_timelog::types::{NewTimeLog, ReportDocument};
 use rusqlite::Connection;
 
 fn setup_dataset(db_name: &str) -> (Persistence, Connection, crate::shared::test_db::TempCsvDir) {
@@ -43,11 +42,11 @@ fn setup_dataset(db_name: &str) -> (Persistence, Connection, crate::shared::test
 }
 
 #[test]
-fn test_given_logged_work_when_report_tree_invoked_then_outputs_unicode_tree() {
+fn test_given_logged_work_when_report_invoked_then_outputs_unicode_tree() {
     // Arrange
     let (persistence, _conn, _temp) = setup_dataset("test_reports_tree_unicode");
     let engine = Engine::new(&persistence);
-    let args = CliArgs::try_parse_from(["oxy", "report", "--tree"]).unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report"]).unwrap();
 
     // Act
     let result = handle_cli(args, &persistence, &engine);
@@ -62,7 +61,7 @@ fn test_given_logged_work_when_report_tree_invoked_then_outputs_unicode_tree() {
 }
 
 #[test]
-fn test_given_logged_work_when_report_invoked_with_machine_flag_then_outputs_clean_json_tree() {
+fn test_given_logged_work_when_report_invoked_with_machine_flag_then_outputs_report_envelope() {
     // Arrange
     let (persistence, _conn, _temp) = setup_dataset("test_reports_machine_json");
     let engine = Engine::new(&persistence);
@@ -74,14 +73,16 @@ fn test_given_logged_work_when_report_invoked_with_machine_flag_then_outputs_cle
     // Assert
     assert!(result.is_ok());
     match result.unwrap() {
-        CliOutput::Json(ref json_str) => {
-            let tree: ReportTreeDto =
-                serde_json::from_str(json_str).expect("output must be valid ReportTreeDto JSON");
-            assert_eq!(tree.projects.len(), 1);
-            assert_eq!(tree.projects[0].name, "Export System");
-            assert_eq!(tree.total_seconds, 7200);
+        CliOutput::Envelope(envelope) => {
+            assert_eq!(envelope.schema, "oxy.report");
+            assert_eq!(envelope.schema_version, 2);
+            let document: ReportDocument =
+                serde_json::from_value(envelope.data).expect("data must be a ReportDocument");
+            assert_eq!(document.projects.len(), 1);
+            assert_eq!(document.projects[0].name, "Export System");
+            assert_eq!(document.totals.seconds, 7200);
         }
-        other => panic!("Expected CliOutput::Json, got {:?}", other),
+        other => panic!("Expected CliOutput::Envelope, got {:?}", other),
     }
 }
 
@@ -137,14 +138,10 @@ fn test_given_date_range_when_report_invoked_then_scopes_to_exact_bounds() {
 
     // Assert
     assert!(result.is_ok());
-    if let CliOutput::Json(ref json_str) = result.unwrap() {
-        let tree: ReportTreeDto = serde_json::from_str(json_str).unwrap();
-        assert_eq!(tree.total_seconds, 3600);
-        assert_eq!(tree.projects.len(), 1);
-        assert!(tree.period.starts_with("Custom Range, "));
-    } else {
-        panic!("Expected CliOutput::Json");
-    }
+    let document = document_of(result.unwrap());
+    assert_eq!(document.totals.seconds, 3600);
+    assert_eq!(document.projects.len(), 1);
+    assert_eq!(document.range.preset, None);
 }
 
 #[test]
@@ -229,14 +226,10 @@ fn test_given_multiple_projects_when_report_filtered_by_project_then_scopes_outp
 
     // Assert
     assert!(result.is_ok());
-    if let CliOutput::Json(ref json_str) = result.unwrap() {
-        let tree: ReportTreeDto = serde_json::from_str(json_str).unwrap();
-        assert_eq!(tree.projects.len(), 1);
-        assert_eq!(tree.projects[0].name, "Alpha Services");
-        assert_eq!(tree.total_seconds, 3600);
-    } else {
-        panic!("Expected CliOutput::Json");
-    }
+    let document = document_of(result.unwrap());
+    assert_eq!(document.projects.len(), 1);
+    assert_eq!(document.projects[0].name, "Alpha Services");
+    assert_eq!(document.totals.seconds, 3600);
 }
 
 #[test]
@@ -289,14 +282,10 @@ fn test_given_task_filter_when_report_invoked_then_scopes_output_to_that_task() 
 
     // Assert
     assert!(result.is_ok());
-    if let CliOutput::Json(ref json_str) = result.unwrap() {
-        let tree: ReportTreeDto = serde_json::from_str(json_str).unwrap();
-        assert_eq!(tree.total_seconds, 3600);
-        assert_eq!(tree.projects[0].tasks.len(), 1);
-        assert_eq!(tree.projects[0].tasks[0].name, "Task One");
-    } else {
-        panic!("Expected CliOutput::Json");
-    }
+    let document = document_of(result.unwrap());
+    assert_eq!(document.totals.seconds, 3600);
+    assert_eq!(document.projects[0].tasks.len(), 1);
+    assert_eq!(document.projects[0].tasks[0].name, "Task One");
 }
 
 #[test]
@@ -335,4 +324,13 @@ fn test_given_task_not_in_specified_project_when_report_invoked_then_fails_with_
     let err = result.unwrap_err();
     assert_eq!(err.exit_code(), 1);
     assert!(err.to_string().contains("does not belong to project"));
+}
+
+fn document_of(output: CliOutput) -> ReportDocument {
+    let CliOutput::Envelope(envelope) = output else {
+        panic!("expected envelope output");
+    };
+    assert_eq!(envelope.schema, "oxy.report");
+    assert_eq!(envelope.schema_version, 2);
+    serde_json::from_value(envelope.data).expect("envelope data must be a ReportDocument")
 }

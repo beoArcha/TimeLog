@@ -5,6 +5,7 @@ pub mod envelope_contract_test;
 pub mod export_to_file_test;
 pub mod masks_execution_test;
 pub mod masks_test;
+pub mod reports_delivery_test;
 pub mod reports_export_test;
 pub mod reports_golden_test;
 pub mod reports_schema_test;

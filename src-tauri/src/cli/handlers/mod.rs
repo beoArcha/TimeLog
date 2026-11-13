@@ -7,7 +7,7 @@ pub mod flow_handler;
 pub mod log_handler;
 pub mod mask_handler;
 pub mod project_handler;
-pub mod report_adapter;
+pub mod report_delivery;
 pub mod report_handler;
 pub mod report_schema_handler;
 pub mod sink_handler;
@@ -54,9 +54,15 @@ pub fn dispatch_command(
             engine,
             tz,
         ),
-        Some(CliCommand::Report(cmd_args)) => {
-            report_handler::handle(cmd_args, is_machine, strict, persistence, engine, tz)
-        }
+        Some(CliCommand::Report(cmd_args)) => report_handler::handle(
+            cmd_args,
+            is_machine,
+            is_quiet,
+            strict,
+            persistence,
+            engine,
+            tz,
+        ),
         Some(CliCommand::Sink(cmd_args)) => sink_handler::handle(cmd_args, is_machine, persistence),
         Some(CliCommand::Mask(cmd_args)) => mask_handler::handle(cmd_args, is_machine, persistence),
         Some(CliCommand::Config(cmd_args)) => {

@@ -4,6 +4,7 @@ pub mod html;
 pub mod json;
 pub mod json_schema;
 pub mod ods;
+pub mod registry;
 pub mod rows;
 pub mod schema;
 pub mod xlsx;
@@ -18,14 +19,17 @@ pub use self::html::{escape_html, export_html, write_html};
 pub use self::json::{export_json, write_json};
 pub use self::json_schema::{envelope_json_schema, report_json_schema};
 pub use self::ods::{export_ods, write_ods};
+pub use self::registry::{
+    format_name, format_spec, registry, variant_name, DocumentWriter, FormatGroup, FormatSpec,
+};
 pub use self::rows::{flatten_project, flatten_report, flatten_task, ReportRow, RowsError};
 pub use self::schema::{export_schema_to_file, get_report_xml_schema, REPORT_XML_SCHEMA_V1};
 pub use self::xlsx::{export_xlsx, write_xlsx};
 pub use self::xml::{export_xml, validate_report_xml_structure, write_xml, XmlValidationError};
 
 use crate::cli::error::{CliError, SinkError};
-use crate::cli::formatters::ReportTreeDto;
 use crate::cli::parser::ExportFormat;
+use crate::types::ReportDocument;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
@@ -33,20 +37,23 @@ pub(crate) fn sink_io_error(context: &str, error: impl std::fmt::Display) -> Cli
     CliError::Sink(SinkError::Io(format!("{}: {}", context, error)))
 }
 
-/// Dispatches streaming export to any destination implementing `std::io::Write`.
+/// Streams the document through the writer registered for `format` to any `std::io::Write`.
 pub fn export_to_writer<W: Write>(
-    tree: &ReportTreeDto,
+    document: &ReportDocument,
     format: ExportFormat,
-    writer: W,
+    mut writer: W,
 ) -> Result<(), CliError> {
-    match format {
-        ExportFormat::Html => write_html(tree, writer),
-        ExportFormat::Csv => write_csv(tree, writer),
-        ExportFormat::Json => write_json(tree, writer),
-        ExportFormat::Xml => write_xml(tree, writer),
-        ExportFormat::Xlsx => write_xlsx(tree, writer),
-        ExportFormat::Ods => write_ods(tree, writer),
-    }
+    (format_spec(format)?.writer)(document, &mut writer)
+}
+
+/// Renders the document in memory, for stdout where no file is involved.
+pub fn export_to_bytes(
+    document: &ReportDocument,
+    format: ExportFormat,
+) -> Result<Vec<u8>, CliError> {
+    let mut buffer = Vec::new();
+    export_to_writer(document, format, &mut buffer)?;
+    Ok(buffer)
 }
 
 /// Performs an atomic, buffered write to a target file path.
@@ -136,11 +143,13 @@ where
     Ok(())
 }
 
-/// Exports a report tree to the given file format and path using atomic writes with `BufWriter`.
+/// Exports a report document to the given file format and path using atomic writes with `BufWriter`.
 pub fn export_to_file(
-    tree: &ReportTreeDto,
+    document: &ReportDocument,
     format: ExportFormat,
     output_path: &str,
 ) -> Result<(), CliError> {
-    atomic_write_to_file(output_path, |writer| export_to_writer(tree, format, writer))
+    atomic_write_to_file(output_path, |writer| {
+        export_to_writer(document, format, writer)
+    })
 }

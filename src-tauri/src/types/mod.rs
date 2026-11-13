@@ -49,7 +49,8 @@ pub use cli_flow::{
 pub use cli_subsystems::{
     ConfigEntry, ConfigListPayload, ConfigValuePayload, DbBackupPayload, DbRestorePayload,
     DoctorCheck, DoctorPayload, HealthStatus, MaskEntry, MaskListPayload, MaskRemovePayload,
-    MaskSetPayload, SinkEntry, SinkListPayload, SinkSetPayload, SinkTestPayload, SinkTestResult,
+    MaskSetPayload, ReportExportPayload, SinkEntry, SinkListPayload, SinkSetPayload,
+    SinkTestPayload, SinkTestResult,
 };
 pub use commands::{
     AppCommand, CorePersistenceCommand, EngineCommand, ProjectsPersistenceCommand,

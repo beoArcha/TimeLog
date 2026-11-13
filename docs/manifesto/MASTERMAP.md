@@ -381,7 +381,7 @@ The phases follow the logical order of the work, not strictly the delivery order
 - [ ] **Billing Rounding Coverage**: Boundary assertions for banker's rounding in the browser billing utilities, where mutation testing reports surviving mutants.
 
 #### Group C — Phase Gate Item
-- [ ] **`oxy report --json` Emits `ReportDocument`**: Removes the legacy adapter. Delivered together with the exporter registry (Phase 22, Group A), which replaces the same output path.
+- [x] **`oxy report --json` Emits `ReportDocument`**: `oxy report --json` prints the `oxy.report` v2 envelope. The legacy tree adapter remains only for the table view and the formats not yet ported to `ReportDocument` (Phase 22, Group B).
 
 **Phase Gate:** `oxy report --json` returns `ReportDocument` v2, and the browser engine produces an identical document for the same fixture.
 
@@ -413,10 +413,10 @@ The phases follow the logical order of the work, not strictly the delivery order
 **Goal:** Every data format is a pure projection of `ReportDocument`, selected through one registry.
 
 #### Group A — Registry & Flags
-- [ ] **Exporter Registry & Flags**: `--format`, `--variant` (`full`, `summary`), `-o` and `--lang`. The registry declares each format's group, supported variants, binary output and locale dependence; the `report export` and `report tree` subcommands fold into `report`.
-- [ ] **Export to stdout & Ordering** (*moved* from Phase 19): `report -o -` writes to stdout, and export ordering is deterministic.
-- [ ] **Quiet `report`** (*moved* from Phase 19): `-q` semantics for `report` and exports.
-- [ ] **`report --json` on `ReportDocument`**: Closes Phase 20 and adds `report` to the envelope contract test.
+- [x] **Exporter Registry & Flags**: `--format`, `--variant` (`full`, `summary`) and `-o` are in place, and the registry declares each format's group, supported variants, binary output and locale dependence; the `report export` and `report tree` subcommands are folded into `report`. `--lang` follows with the localized formats.
+- [x] **Export to stdout & Ordering** (*moved* from Phase 19): `report -o -` writes to stdout, and export ordering is deterministic.
+- [x] **Quiet `report`** (*moved* from Phase 19): `-q` prints the totals line for the table and only the path for `-o <path>`.
+- [x] **`report --json` on `ReportDocument`**: Closes Phase 20 and adds `report` to the envelope contract test.
 
 #### Group B — Formats
 - [ ] **JSON & JSONL**: JSON is the serialized `ReportDocument`; JSONL starts with a header line followed by one line per entry.

@@ -1,11 +1,10 @@
 use crate::shared::builders::{PatchLogBuilder, ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use clap::Parser;
-use oxyflow_timelog::cli::formatters::ReportTreeDto;
 use oxyflow_timelog::cli::{handle_cli, CliArgs, CliOutput};
 use oxyflow_timelog::engine::Engine;
 use oxyflow_timelog::persistence::Persistence;
-use oxyflow_timelog::types::NewTimeLog;
+use oxyflow_timelog::types::{NewTimeLog, ReportDocument, ReportEntry};
 use rusqlite::Connection;
 
 fn setup_golden_dataset(
@@ -165,127 +164,107 @@ fn test_given_seeded_fixture_when_report_invoked_json_then_matches_golden_contra
     let result = handle_cli(args, &persistence, &engine);
 
     // Then
-    assert!(result.is_ok());
-    let CliOutput::Json(json_str) = result.unwrap() else {
-        panic!("expected json output");
-    };
-    let tree: ReportTreeDto = serde_json::from_str(&json_str).expect("valid ReportTreeDto");
+    let document = document_of(result.unwrap());
 
-    assert_eq!(tree.period, "Custom Range, UTC");
-    assert_eq!(tree.total_seconds, 19800);
-    assert_eq!(tree.total_formatted, "05h 30m");
-    assert_eq!(tree.projects.len(), 2);
+    assert_eq!(document.range.timezone, "UTC");
+    assert_eq!(document.totals.seconds, 19800);
+    assert_eq!(document.projects.len(), 2);
 
-    // Project Beta (10800s = 03h 00m, 54.5%)
-    let pb = &tree.projects[0];
+    // Project Beta (10800s, 54.5%)
+    let pb = &document.projects[0];
     assert_eq!(pb.id, "p_gold_2");
     assert_eq!(pb.name, "Project Beta");
-    assert_eq!(pb.duration_seconds, 10800);
-    assert_eq!(pb.duration_formatted, "03h 00m");
-    assert!((pb.percentage - 54.5454).abs() < 0.1);
+    assert_eq!(pb.seconds, 10800);
+    assert_eq!(pb.share_basis_points, 5455);
     assert_eq!(pb.tasks.len(), 1);
     let doc_task = &pb.tasks[0];
     assert_eq!(doc_task.id, "t_gold_root_2");
     assert_eq!(doc_task.name, "Documentation");
-    assert_eq!(doc_task.duration_seconds, 10800);
-    assert_eq!(doc_task.duration_formatted, "03h 00m");
+    assert_eq!(doc_task.seconds, 10800);
     assert_eq!(doc_task.subtasks.len(), 0);
 
-    // Project Alpha (9000s = 02h 30m, 45.5%)
-    let pa = &tree.projects[1];
+    // Project Alpha (9000s, 45.5%)
+    let pa = &document.projects[1];
     assert_eq!(pa.id, "p_gold_1");
     assert_eq!(pa.name, "Project Alpha");
-    assert_eq!(pa.duration_seconds, 9000);
-    assert_eq!(pa.duration_formatted, "02h 30m");
-    assert!((pa.percentage - 45.4545).abs() < 0.1);
+    assert_eq!(pa.seconds, 9000);
+    assert_eq!(pa.share_basis_points, 4545);
     assert_eq!(pa.tasks.len(), 1);
     let refactor_task = &pa.tasks[0];
     assert_eq!(refactor_task.id, "t_gold_root_1");
     assert_eq!(refactor_task.name, "Backend Refactor");
-    assert_eq!(refactor_task.duration_seconds, 7200);
-    assert_eq!(refactor_task.duration_formatted, "02h 00m");
+    assert_eq!(refactor_task.seconds, 7200);
     assert_eq!(refactor_task.subtasks.len(), 1);
     let sub = &refactor_task.subtasks[0];
     assert_eq!(sub.id, "t_gold_sub_1");
     assert_eq!(sub.name, "Cli Subtask");
-    assert_eq!(sub.duration_seconds, 3600);
-    assert_eq!(sub.duration_formatted, "01h 00m");
+    assert_eq!(sub.seconds, 3600);
 
-    // Entries: 5 entries
-    assert_eq!(tree.entries.len(), 5);
-
-    // Subtask log
-    let e_sub = tree
+    let entries = document
         .entries
-        .iter()
-        .find(|e| e.id == "log_sub")
-        .expect("log_sub entry");
+        .as_deref()
+        .expect("full variant has entries");
+    assert_eq!(entries.len(), 5);
+
+    let e_sub = entry_by_id(entries, "log_sub");
     assert_eq!(e_sub.date, "2026-10-15");
     assert_eq!(e_sub.project_name, "Project Alpha");
-    assert_eq!(e_sub.task_name, "Backend Refactor");
-    assert_eq!(e_sub.subtask_name.as_deref(), Some("Cli Subtask"));
-    assert_eq!(e_sub.duration_seconds, 3600);
-    assert_eq!(e_sub.duration_formatted, "01h 00m");
+    assert_eq!(e_sub.parent_task_name.as_deref(), Some("Backend Refactor"));
+    assert_eq!(e_sub.task_name.as_deref(), Some("Cli Subtask"));
+    assert_eq!(e_sub.seconds, 3600);
     assert_eq!(e_sub.note.as_deref(), Some("Subtask work"));
 
-    // Root log
-    let e_root = tree
-        .entries
-        .iter()
-        .find(|e| e.id == "log_root")
-        .expect("log_root entry");
+    let e_root = entry_by_id(entries, "log_root");
     assert_eq!(e_root.date, "2026-10-15");
     assert_eq!(e_root.project_name, "Project Alpha");
-    assert_eq!(e_root.task_name, "Backend Refactor");
-    assert_eq!(e_root.subtask_name, None);
-    assert_eq!(e_root.duration_seconds, 3600);
-    assert_eq!(e_root.duration_formatted, "01h 00m");
+    assert_eq!(e_root.task_name.as_deref(), Some("Backend Refactor"));
+    assert_eq!(e_root.parent_task_name, None);
+    assert_eq!(e_root.seconds, 3600);
     assert_eq!(e_root.note.as_deref(), Some("Root work"));
 
-    // Midnight log (clamped to 2h)
-    let e_midnight = tree
-        .entries
-        .iter()
-        .find(|e| e.id == "log_midnight")
-        .expect("log_midnight entry");
+    // The session crossing midnight keeps its stored seconds in `originalSeconds`.
+    let e_midnight = entry_by_id(entries, "log_midnight");
     assert_eq!(e_midnight.date, "2026-10-15");
     assert_eq!(e_midnight.project_name, "Project Beta");
-    assert_eq!(e_midnight.task_name, "Documentation");
-    assert_eq!(e_midnight.subtask_name, None);
-    assert_eq!(e_midnight.duration_seconds, 7200);
-    assert_eq!(e_midnight.duration_formatted, "02h 00m");
+    assert_eq!(e_midnight.task_name.as_deref(), Some("Documentation"));
+    assert_eq!(e_midnight.seconds, 7200);
+    assert!(e_midnight.clamped);
     assert_eq!(e_midnight.note.as_deref(), Some("Cross midnight work"));
 
-    // Task patch
-    let e_task_patch = tree
-        .entries
-        .iter()
-        .find(|e| e.id == "patch_task")
-        .expect("patch_task entry");
+    let e_task_patch = entry_by_id(entries, "patch_task");
     assert_eq!(e_task_patch.date, "2026-10-15");
     assert_eq!(e_task_patch.project_name, "Project Beta");
-    assert_eq!(e_task_patch.task_name, "Documentation");
-    assert_eq!(e_task_patch.subtask_name, None);
-    assert_eq!(e_task_patch.duration_seconds, 3600);
-    assert_eq!(e_task_patch.duration_formatted, "01h 00m");
+    assert_eq!(e_task_patch.task_name.as_deref(), Some("Documentation"));
+    assert_eq!(e_task_patch.seconds, 3600);
+    assert!(e_task_patch.is_patch);
     assert_eq!(e_task_patch.note.as_deref(), Some("Task patch adjustment"));
 
-    // Project patch
-    let e_proj_patch = tree
-        .entries
-        .iter()
-        .find(|e| e.id == "patch_proj")
-        .expect("patch_proj entry");
+    let e_proj_patch = entry_by_id(entries, "patch_proj");
     assert_eq!(e_proj_patch.date, "2026-10-15");
     assert_eq!(e_proj_patch.project_name, "Project Alpha");
-    assert_eq!(e_proj_patch.task_name, "");
-    assert_eq!(e_proj_patch.subtask_name, None);
-    assert_eq!(e_proj_patch.duration_seconds, 1800);
-    assert_eq!(e_proj_patch.duration_formatted, "30m 00s");
+    assert_eq!(e_proj_patch.task_name, None);
+    assert_eq!(e_proj_patch.seconds, 1800);
+    assert!(e_proj_patch.is_patch);
     assert_eq!(
         e_proj_patch.note.as_deref(),
         Some("Project patch adjustment")
     );
+}
+
+fn document_of(output: CliOutput) -> ReportDocument {
+    let CliOutput::Envelope(envelope) = output else {
+        panic!("expected envelope output");
+    };
+    assert_eq!(envelope.schema, "oxy.report");
+    assert_eq!(envelope.schema_version, 2);
+    serde_json::from_value(envelope.data).expect("envelope data must be a ReportDocument")
+}
+
+fn entry_by_id<'a>(entries: &'a [ReportEntry], id: &str) -> &'a ReportEntry {
+    entries
+        .iter()
+        .find(|entry| entry.id == id)
+        .unwrap_or_else(|| panic!("entry {id} missing"))
 }
 
 #[test]
@@ -332,13 +311,9 @@ fn test_given_empty_range_when_report_invoked_human_and_json_then_outputs_empty_
 
     // Then (JSON)
     assert!(result_json.is_ok());
-    let CliOutput::Json(json_str) = result_json.unwrap() else {
-        panic!("expected json output");
-    };
-    let tree: ReportTreeDto = serde_json::from_str(&json_str).expect("valid ReportTreeDto");
-    assert_eq!(tree.period, "Custom Range, UTC");
-    assert_eq!(tree.total_seconds, 0);
-    assert_eq!(tree.total_formatted, "00m 00s");
-    assert_eq!(tree.projects.len(), 0);
-    assert_eq!(tree.entries.len(), 0);
+    let document = document_of(result_json.unwrap());
+    assert_eq!(document.range.timezone, "UTC");
+    assert_eq!(document.totals.seconds, 0);
+    assert_eq!(document.projects.len(), 0);
+    assert_eq!(document.entries.map(|entries| entries.len()), Some(0));
 }

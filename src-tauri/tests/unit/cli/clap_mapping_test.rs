@@ -54,16 +54,9 @@ fn test_given_unknown_argument_when_mapping_clap_error_then_returns_invalid_argu
 fn test_given_invalid_value_when_mapping_clap_error_then_returns_invalid_argument_with_field_and_value(
 ) {
     // Arrange
-    let clap_err = CliArgs::try_parse_from([
-        "oxy",
-        "report",
-        "export",
-        "-f",
-        "invalid_format",
-        "-o",
-        "out.txt",
-    ])
-    .unwrap_err();
+    let clap_err =
+        CliArgs::try_parse_from(["oxy", "report", "-f", "invalid_format", "-o", "out.txt"])
+            .unwrap_err();
     assert_eq!(clap_err.kind(), clap::error::ErrorKind::InvalidValue);
 
     // Act

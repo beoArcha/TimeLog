@@ -1,11 +1,11 @@
-// TODO: Remove this adapter once exporters consume ReportDocument directly (R4).
+// TODO: Remove this adapter once every exporter consumes ReportDocument directly (Phase 22, Group B).
 
 use super::constants::{
     PERIOD_LABEL_ALL, PERIOD_LABEL_CUSTOM, PERIOD_LABEL_LAST_MONTH, PERIOD_LABEL_LAST_WEEK,
     PERIOD_LABEL_MONTH, PERIOD_LABEL_TEMPLATE, PERIOD_LABEL_TODAY, PERIOD_LABEL_WEEK,
     PERIOD_LABEL_YESTERDAY,
 };
-use crate::cli::formatters::{
+use super::{
     format_duration, ReportEntryDto, ReportProjectDto, ReportSubtaskDto, ReportTaskDto,
     ReportTreeDto,
 };

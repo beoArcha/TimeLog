@@ -220,3 +220,13 @@ pub const HTML_PAGE_TEMPLATE: &str = r#"<!DOCTYPE html>
     </div>
 </body>
 </html>"#;
+
+pub const ERR_FORMAT_NOT_REGISTERED: &str = "No exporter is registered for the '{}' format.";
+pub const ERR_VARIANT_UNSUPPORTED: &str =
+    "The '{}' format does not support the '{}' variant. Supported variants: {}.";
+pub const ERR_BINARY_FORMAT_NEEDS_OUTPUT: &str =
+    "The '{}' format is binary. Use -o <path> to write a file, or -o - to write it to stdout.";
+pub const ERR_VARIANT_FLAG: &str = "--variant";
+pub const ERR_FORMAT_FLAG: &str = "--format";
+
+pub const EXPORT_STDOUT_TARGET: &str = "-";
