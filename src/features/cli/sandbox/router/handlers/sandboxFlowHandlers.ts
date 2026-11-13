@@ -76,7 +76,7 @@ export function handleStart(
   const tasks = store.getTasks();
   const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 
@@ -194,7 +194,7 @@ export function handleSwitch(
   const tasks = store.getTasks();
   const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 

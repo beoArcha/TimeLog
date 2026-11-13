@@ -66,6 +66,8 @@ fn export_bindings() {
     CliAlias::export_all_to(BINDINGS_DIR).unwrap();
     CliSink::export_all_to(BINDINGS_DIR).unwrap();
     LocalizedUserMessage::export_all_to(BINDINGS_DIR).unwrap();
+    CliErrorCandidate::export_all_to(BINDINGS_DIR).unwrap();
+    CliErrorDetails::export_all_to(BINDINGS_DIR).unwrap();
     CliErrorEnvelope::export_all_to(BINDINGS_DIR).unwrap();
     CliExecutionResult::export_all_to(BINDINGS_DIR).unwrap();
     EnvelopeMeta::export_all_to(BINDINGS_DIR).unwrap();

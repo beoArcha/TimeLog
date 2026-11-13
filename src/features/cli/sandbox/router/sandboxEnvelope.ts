@@ -1,3 +1,5 @@
+import type { CliErrorEnvelope } from '@bindings/CliErrorEnvelope';
+import type { CliErrorDetails } from '@bindings/CliErrorDetails';
 import { SuccessEnvelope } from '@bindings/SuccessEnvelope';
 import { formatUtc } from '@common/engine/range/formatUtc';
 import { GENERATOR_NAME, GENERATOR_VERSION } from '@common/engine/reports/constants';
@@ -54,4 +56,51 @@ export function buildEnvelope(schema: EnvelopeSchema, data: unknown, nowMs: numb
  */
 export function emitEnvelope(output: TerminalOutput, schema: EnvelopeSchema, data: unknown): void {
   output.output(JSON.stringify(buildEnvelope(schema, data)));
+}
+
+// Mirrors CliErrorCode::category() in src-tauri/src/cli/error/codes.rs.
+const ERROR_CATEGORY_BY_PREFIX: ReadonlyArray<readonly [string, string]> = [
+  ['CLI_SYNTAX_', 'syntax'],
+  ['DOM_ENTITY_', 'entity'],
+  ['DOM_BUSINESS_', 'business'],
+  ['STO_', 'storage'],
+  ['ENG_', 'engine'],
+  ['SNK_', 'sink'],
+  ['MSK_', 'mask'],
+];
+
+function errorCategory(code: string): string {
+  return ERROR_CATEGORY_BY_PREFIX.find(([prefix]) => code.startsWith(prefix))?.[1] ?? 'business';
+}
+
+function hasDetails(details: CliErrorDetails): boolean {
+  return Boolean(
+    (details.candidates && details.candidates.length > 0) ||
+      details.suggestion ||
+      details.field ||
+      details.value
+  );
+}
+
+/**
+ * Like the native machine mode, the envelope has no localized `user` layer and omits empty `details`.
+ */
+export function buildErrorEnvelope(
+  code: string,
+  technical: string,
+  exitCode: number,
+  details?: CliErrorDetails,
+  nowMs: number = Date.now()
+): CliErrorEnvelope {
+  const envelope: CliErrorEnvelope = {
+    code,
+    category: errorCategory(code),
+    exit_code: exitCode,
+    timestamp: formatUtc(nowMs),
+    technical,
+  };
+  if (details && hasDetails(details)) {
+    envelope.details = details;
+  }
+  return envelope;
 }

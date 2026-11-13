@@ -1,5 +1,6 @@
 use oxyflow_timelog::cli::error::{
-    BusinessRuleViolation, CliErrorCode, CliErrorEnvelope, CliSyntaxError,
+    BusinessRuleViolation, CliErrorCandidate, CliErrorCode, CliErrorDetails, CliErrorEnvelope,
+    CliSyntaxError,
 };
 use oxyflow_timelog::cli::resolver::{EntityType, ResolveError};
 use oxyflow_timelog::cli::shared::constants::{
@@ -101,7 +102,16 @@ fn test_given_ambiguous_entity_when_converting_to_envelope_then_maps_to_dom_enti
     let resolve_err = ResolveError::AmbiguousMatch {
         target: "backend".to_string(),
         entity_type: EntityType::Project,
-        candidates: vec!["Backend API".to_string(), "Backend Worker".to_string()],
+        candidates: vec![
+            CliErrorCandidate {
+                id: "p1".to_string(),
+                name: "Backend API".to_string(),
+            },
+            CliErrorCandidate {
+                id: "p2".to_string(),
+                name: "Backend Worker".to_string(),
+            },
+        ],
     };
     let error = CliError::Entity(resolve_err);
 
@@ -112,6 +122,17 @@ fn test_given_ambiguous_entity_when_converting_to_envelope_then_maps_to_dom_enti
     assert_eq!(envelope.code, "DOM_ENTITY_AMBIGUOUS");
     assert_eq!(envelope.category, "entity");
     assert_eq!(envelope.exit_code, EXIT_CODE_ENTITY_ERROR);
+    let details = envelope
+        .details
+        .as_ref()
+        .expect("details should be present");
+    let candidates = details
+        .candidates
+        .as_ref()
+        .expect("candidates should be present");
+    assert_eq!(candidates.len(), 2);
+    assert_eq!(candidates[0].id, "p1");
+    assert_eq!(candidates[0].name, "Backend API");
 }
 
 #[test]
@@ -334,4 +355,188 @@ fn test_given_stage_a_before_db_open_when_building_envelope_then_uses_explicit_e
     assert_eq!(envelope_human.code, "STO_SQLITE_QUERY");
     assert!(envelope_human.user.is_some());
     assert_eq!(envelope_human.user.unwrap().locale, "en");
+}
+
+#[test]
+fn test_given_envelope_without_details_when_serialized_then_details_field_is_omitted() {
+    // Arrange
+    let envelope = CliErrorEnvelope::new(
+        CliErrorCode::DomEntityNotFound,
+        4,
+        "Target not found".to_string(),
+        None,
+    );
+
+    // Act
+    let json_str = serde_json::to_string(&envelope).expect("serialization failed");
+
+    // Assert
+    assert!(!json_str.contains("\"details\""));
+}
+
+#[test]
+fn test_given_envelope_with_empty_details_when_serialized_then_details_field_is_omitted() {
+    // Arrange
+    let envelope = CliErrorEnvelope::new(
+        CliErrorCode::DomEntityNotFound,
+        4,
+        "Target not found".to_string(),
+        None,
+    )
+    .with_details(Some(CliErrorDetails::default()));
+
+    // Act
+    let json_str = serde_json::to_string(&envelope).expect("serialization failed");
+
+    // Assert
+    assert!(!json_str.contains("\"details\""));
+}
+
+#[test]
+fn test_given_envelope_with_candidates_when_serialized_then_omits_absent_detail_fields() {
+    // Arrange
+    let details = CliErrorDetails {
+        candidates: Some(vec![
+            CliErrorCandidate {
+                id: "t1".to_string(),
+                name: "Task Alpha".to_string(),
+            },
+            CliErrorCandidate {
+                id: "t2".to_string(),
+                name: "Task Beta".to_string(),
+            },
+        ]),
+        ..Default::default()
+    };
+    let envelope = CliErrorEnvelope::new(
+        CliErrorCode::DomEntityAmbiguous,
+        4,
+        "Ambiguous match".to_string(),
+        None,
+    )
+    .with_details(Some(details));
+
+    // Act
+    let json_str = serde_json::to_string(&envelope).expect("serialization failed");
+    let val: serde_json::Value = serde_json::from_str(&json_str).expect("deserialization failed");
+
+    // Assert
+    assert!(val.get("details").is_some());
+    let details_val = &val["details"];
+    assert!(details_val.get("candidates").is_some());
+    assert!(details_val.get("suggestion").is_none());
+    assert!(details_val.get("field").is_none());
+    assert!(details_val.get("value").is_none());
+    assert_eq!(details_val["candidates"].as_array().unwrap().len(), 2);
+    assert_eq!(details_val["candidates"][0]["id"], "t1");
+    assert_eq!(details_val["candidates"][0]["name"], "Task Alpha");
+}
+
+#[test]
+fn test_given_envelope_with_suggestion_when_serialized_then_omits_absent_detail_fields() {
+    // Arrange
+    let details = CliErrorDetails {
+        suggestion: Some(CliErrorCandidate {
+            id: "t42".to_string(),
+            name: "Suggested Task".to_string(),
+        }),
+        ..Default::default()
+    };
+    let envelope = CliErrorEnvelope::new(
+        CliErrorCode::DomEntityDidYouMean,
+        4,
+        "Did you mean".to_string(),
+        None,
+    )
+    .with_details(Some(details));
+
+    // Act
+    let json_str = serde_json::to_string(&envelope).expect("serialization failed");
+    let val: serde_json::Value = serde_json::from_str(&json_str).expect("deserialization failed");
+
+    // Assert
+    let details_val = &val["details"];
+    assert!(details_val.get("candidates").is_none());
+    assert!(details_val.get("suggestion").is_some());
+    assert!(details_val.get("field").is_none());
+    assert!(details_val.get("value").is_none());
+    assert_eq!(details_val["suggestion"]["id"], "t42");
+    assert_eq!(details_val["suggestion"]["name"], "Suggested Task");
+}
+
+#[test]
+fn test_given_envelope_with_field_and_value_when_serialized_then_omits_absent_detail_fields() {
+    // Arrange
+    let details = CliErrorDetails {
+        field: Some("--format".to_string()),
+        value: Some("yaml".to_string()),
+        ..Default::default()
+    };
+    let envelope = CliErrorEnvelope::new(
+        CliErrorCode::CliSyntaxInvalidArgs,
+        2,
+        "Invalid format".to_string(),
+        None,
+    )
+    .with_details(Some(details));
+
+    // Act
+    let json_str = serde_json::to_string(&envelope).expect("serialization failed");
+    let val: serde_json::Value = serde_json::from_str(&json_str).expect("deserialization failed");
+
+    // Assert
+    let details_val = &val["details"];
+    assert!(details_val.get("candidates").is_none());
+    assert!(details_val.get("suggestion").is_none());
+    assert_eq!(details_val["field"], "--format");
+    assert_eq!(details_val["value"], "yaml");
+}
+
+#[test]
+fn test_given_did_you_mean_error_when_converting_to_envelope_then_populates_suggestion_details() {
+    // Arrange
+    let resolve_err = ResolveError::DidYouMean {
+        target: "bil".to_string(),
+        entity_type: EntityType::Task,
+        suggestion: "Billing".to_string(),
+        candidate_id: "t_bil".to_string(),
+    };
+    let error = CliError::Entity(resolve_err);
+
+    // Act
+    let envelope = error.to_envelope(None);
+
+    // Assert
+    assert_eq!(envelope.code, "DOM_ENTITY_DID_YOU_MEAN");
+    assert_eq!(envelope.exit_code, 4);
+    let details = envelope.details.expect("details must be present");
+    let suggestion = details.suggestion.expect("suggestion must be present");
+    assert_eq!(suggestion.id, "t_bil");
+    assert_eq!(suggestion.name, "Billing");
+    assert!(details.candidates.is_none());
+    assert!(details.field.is_none());
+    assert!(details.value.is_none());
+}
+
+#[test]
+fn test_given_invalid_argument_syntax_error_when_converting_to_envelope_then_populates_field_and_value(
+) {
+    // Arrange
+    let error = CliError::Syntax(CliSyntaxError::InvalidArgument {
+        message: "Invalid value 'xyz' for flag --mode".to_string(),
+        field: Some("--mode".to_string()),
+        value: Some("xyz".to_string()),
+    });
+
+    // Act
+    let envelope = error.to_envelope(None);
+
+    // Assert
+    assert_eq!(envelope.code, "CLI_SYNTAX_INVALID_ARGS");
+    assert_eq!(envelope.exit_code, 2);
+    let details = envelope.details.expect("details must be present");
+    assert_eq!(details.field.as_deref(), Some("--mode"));
+    assert_eq!(details.value.as_deref(), Some("xyz"));
+    assert!(details.candidates.is_none());
+    assert!(details.suggestion.is_none());
 }

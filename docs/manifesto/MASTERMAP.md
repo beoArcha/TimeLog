@@ -361,7 +361,7 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 #### Group C — CLI Machine Contract
 - [x] **Versioned Success Envelope**: `{ schema, schemaVersion, data, meta }` with camelCase keys for flow, entity and subsystem commands, mirrored in the sandbox emulator.
 - [x] **Published JSON Schema**: `oxy report schema` prints a `schemars`-generated JSON Schema of `oxy.report` v2 and of the envelope; committed copies are drift-tested.
-- [ ] **Structured Error Details**: `details` (`candidates`, `suggestion`, `field`, `value`) in the error envelope, also in machine mode.
+- [x] **Structured Error Details**: `details` (`candidates`, `suggestion`, `field`, `value`) in the error envelope, also in machine mode and in the sandbox emulator.
 - [ ] **Richer `status` / `today` / Dashboard**: Envelope payloads with task and project names, start and elapsed time; `today` built on `ReportDocument`.
 
 #### Group D — Data Exporters v2

@@ -21,6 +21,11 @@ pub enum CliSyntaxError {
     EmptyId,
     MissingTarget,
     InvalidArgs(String),
+    InvalidArgument {
+        message: String,
+        field: Option<String>,
+        value: Option<String>,
+    },
     UnknownCommand(String),
     CommandNotImplemented(String),
     AliasNotFound(String),
@@ -34,6 +39,7 @@ impl fmt::Display for CliSyntaxError {
             Self::EmptyId => write!(f, "ID cannot be empty"),
             Self::MissingTarget => write!(f, "No target specified"),
             Self::InvalidArgs(msg) => write!(f, "{}", msg),
+            Self::InvalidArgument { message, .. } => write!(f, "{}", message),
             Self::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
             Self::CommandNotImplemented(msg) => write!(f, "{}", msg),
             Self::AliasNotFound(name) => write!(f, "Alias '{}' not found", name),
@@ -134,7 +140,9 @@ impl CliError {
                 CliSyntaxError::InvalidDuration(_) => CliErrorCode::CliSyntaxInvalidDuration,
                 CliSyntaxError::EmptyId => CliErrorCode::CliSyntaxEmptyId,
                 CliSyntaxError::MissingTarget => CliErrorCode::CliSyntaxMissingTarget,
-                CliSyntaxError::InvalidArgs(_) => CliErrorCode::CliSyntaxInvalidArgs,
+                CliSyntaxError::InvalidArgs(_) | CliSyntaxError::InvalidArgument { .. } => {
+                    CliErrorCode::CliSyntaxInvalidArgs
+                }
                 CliSyntaxError::UnknownCommand(_) | CliSyntaxError::CommandNotImplemented(_) => {
                     CliErrorCode::CliSyntaxUnknownCommand
                 }
@@ -284,7 +292,7 @@ impl CliError {
             }
         };
 
-        CliErrorEnvelope::new(code, exit_code, technical, user)
+        CliErrorEnvelope::new(code, exit_code, technical, user).with_details(self.details())
     }
 }
 

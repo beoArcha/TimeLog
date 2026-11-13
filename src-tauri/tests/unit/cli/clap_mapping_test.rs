@@ -24,7 +24,7 @@ fn test_given_invalid_subcommand_when_mapping_clap_error_then_returns_unknown_co
 }
 
 #[test]
-fn test_given_unknown_argument_when_mapping_clap_error_then_returns_invalid_args() {
+fn test_given_unknown_argument_when_mapping_clap_error_then_returns_invalid_argument_with_field() {
     // Arrange
     let clap_err = CliArgs::try_parse_from(["oxy", "--bogus-flag"]).unwrap_err();
     assert_eq!(clap_err.kind(), clap::error::ErrorKind::UnknownArgument);
@@ -34,18 +34,25 @@ fn test_given_unknown_argument_when_mapping_clap_error_then_returns_invalid_args
 
     // Assert
     match syntax_err {
-        CliSyntaxError::InvalidArgs(msg) => {
+        CliSyntaxError::InvalidArgument {
+            message: msg,
+            field,
+            value,
+        } => {
             assert!(!msg.starts_with("error:"));
             assert!(!msg.contains('\n'));
             assert!(!msg.contains('\r'));
             assert!(msg.contains("--bogus-flag"));
+            assert_eq!(field.as_deref(), Some("--bogus-flag"));
+            assert_eq!(value, None);
         }
-        other => panic!("Expected InvalidArgs, got {:?}", other),
+        other => panic!("Expected InvalidArgument, got {:?}", other),
     }
 }
 
 #[test]
-fn test_given_invalid_value_when_mapping_clap_error_then_returns_invalid_args() {
+fn test_given_invalid_value_when_mapping_clap_error_then_returns_invalid_argument_with_field_and_value(
+) {
     // Arrange
     let clap_err = CliArgs::try_parse_from([
         "oxy",
@@ -64,13 +71,19 @@ fn test_given_invalid_value_when_mapping_clap_error_then_returns_invalid_args() 
 
     // Assert
     match syntax_err {
-        CliSyntaxError::InvalidArgs(msg) => {
+        CliSyntaxError::InvalidArgument {
+            message: msg,
+            field,
+            value,
+        } => {
             assert!(!msg.starts_with("error:"));
             assert!(!msg.contains('\n'));
             assert!(!msg.contains('\r'));
             assert!(msg.contains("invalid_format"));
+            assert_eq!(field.as_deref(), Some("--format"));
+            assert_eq!(value.as_deref(), Some("invalid_format"));
         }
-        other => panic!("Expected InvalidArgs, got {:?}", other),
+        other => panic!("Expected InvalidArgument, got {:?}", other),
     }
 }
 
@@ -88,11 +101,11 @@ fn test_given_missing_required_argument_when_mapping_clap_error_then_returns_inv
 
     // Assert
     match syntax_err {
-        CliSyntaxError::InvalidArgs(msg) => {
+        CliSyntaxError::InvalidArgument { message: msg, .. } | CliSyntaxError::InvalidArgs(msg) => {
             assert!(!msg.starts_with("error:"));
             assert!(!msg.contains('\n'));
             assert!(!msg.contains('\r'));
         }
-        other => panic!("Expected InvalidArgs, got {:?}", other),
+        other => panic!("Expected InvalidArgs or InvalidArgument, got {:?}", other),
     }
 }

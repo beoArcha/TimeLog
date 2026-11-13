@@ -355,6 +355,12 @@ The CLI enforces a **Dual-Layer Response Architecture**:
 │    • exit_code: 4                                                      │
 │    • timestamp: "2026-10-18T11:42:01.402Z"                             │
 ├────────────────────────────────────────────────────────────────────────┤
+│  STRUCTURED DETAILS (OPTIONAL, OMITTED WHEN EMPTY):                    │
+│    • candidates: [{ id: "...", name: "..." }]                          │
+│    • suggestion: { id: "...", name: "..." }                            │
+│    • field: "--format"                                                 │
+│    • value: "yaml"                                                     │
+├────────────────────────────────────────────────────────────────────────┤
 │  USER INFORMATION LAYER (CHOSEN LANGUAGE — e.g. POLISH 'pl'):          │
 │    • locale: "pl"                                                      │
 │    • message: "Zadanie o numerze '104' nie istnieje w projekcie."      │
@@ -364,6 +370,14 @@ The CLI enforces a **Dual-Layer Response Architecture**:
 ```
 
 The envelope is `CliErrorEnvelope` in `src-tauri/src/cli/error/envelope.rs`; the user layer (`LocalizedUserMessage`) is optional and omitted in `--machine` mode. In machine mode parser errors are also returned as the JSON envelope (`CLI_SYNTAX_UNKNOWN_COMMAND` / `CLI_SYNTAX_INVALID_ARGS`, exit 2); help and version output are unaffected.
+
+When available, structured error context is exposed via the optional `details` object (`CliErrorDetails`):
+- `details.candidates`: array of `{ id: string, name: string }` objects representing matched candidates on ambiguous entity queries (`DOM_ENTITY_AMBIGUOUS`).
+- `details.suggestion`: single `{ id: string, name: string }` object with the closest entity candidate when a typo was made (`DOM_ENTITY_DID_YOU_MEAN`).
+- `details.field`: offending CLI argument/flag name (e.g. `--format`) on parser validation errors (`CLI_SYNTAX_INVALID_ARGS`).
+- `details.value`: invalid input value passed to the argument (e.g. `yaml`).
+
+All members of `details` are camelCase and omitted when absent; an empty `details` is omitted from the envelope. `field` holds only the flag (`--format`), without clap's value placeholder. The browser sandbox emits the same machine envelope, without the `user` layer, for target-resolution errors under `--json` / `--machine`.
 
 ### Exit Codes
 
