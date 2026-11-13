@@ -97,7 +97,7 @@ export function handleProjectRename(
   const projects = store.getProjects();
   const resolve = resolveEntity(projects, target, 'Project', (p) => p.id, (p) => p.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 
@@ -150,7 +150,7 @@ export function handleProjectArchive(
   const projects = store.getProjects();
   const resolve = resolveEntity(projects, target, 'Project', (p) => p.id, (p) => p.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 

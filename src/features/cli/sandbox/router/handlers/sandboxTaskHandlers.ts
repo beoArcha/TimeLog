@@ -19,7 +19,7 @@ export function handleTaskList(
   if (projTarget) {
     const resolve = resolveEntity(filteredProjects, projTarget, 'Project', (p) => p.id, (p) => p.name, isStrict);
     if (!resolve.entity) {
-      reportResolveFailure(resolve, output);
+      reportResolveFailure(resolve, output, flags);
       return;
     }
     filteredProjects = [resolve.entity];
@@ -111,7 +111,7 @@ export function handleTaskAdd(
     const tasks = store.getTasks();
     const resolveParent = resolveEntity(tasks, parentTarget, 'Task', (t) => t.id, (t) => t.name, isStrict);
     if (!resolveParent.entity) {
-      reportResolveFailure(resolveParent, output);
+      reportResolveFailure(resolveParent, output, flags);
       return;
     }
     parentTaskId = resolveParent.entity.id;
@@ -122,7 +122,7 @@ export function handleTaskAdd(
     const projects = store.getProjects();
     const resolveProj = resolveEntity(projects, projTarget, 'Project', (p) => p.id, (p) => p.name, isStrict);
     if (!resolveProj.entity) {
-      reportResolveFailure(resolveProj, output);
+      reportResolveFailure(resolveProj, output, flags);
       return;
     }
     targetProjectId = resolveProj.entity.id;
@@ -167,7 +167,7 @@ export function handleTaskRate(
   const tasks = store.getTasks();
   const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 
@@ -209,7 +209,7 @@ export function handleTaskDone(
   const tasks = store.getTasks();
   const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 
@@ -243,7 +243,7 @@ export function handleTaskRename(
   const tasks = store.getTasks();
   const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 
@@ -273,7 +273,7 @@ export function handleTaskArchive(
   const tasks = store.getTasks();
   const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 

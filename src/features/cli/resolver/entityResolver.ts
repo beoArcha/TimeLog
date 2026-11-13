@@ -1,3 +1,7 @@
+import { CliErrorCandidate } from '@bindings/CliErrorCandidate';
+import { CliErrorDetails } from '@bindings/CliErrorDetails';
+import { buildErrorEnvelope, isMachineMode } from '../sandbox/router/sandboxEnvelope';
+
 /**
  * Calculates Levenshtein distance between two strings using dynamic programming.
  */
@@ -33,12 +37,14 @@ export type ResolveResult<T> =
       error?: never;
       errorCode?: never;
       exitCode?: 0;
+      details?: never;
     }
   | {
       entity?: never;
       error: string;
       errorCode: string;
       exitCode: number;
+      details?: CliErrorDetails;
     };
 
 // Mirrors ERR_RESOLVE_NOT_FOUND in src-tauri/src/cli/resolver/constants.rs
@@ -61,11 +67,23 @@ export function isStrictResolution(
 
 export function reportResolveFailure<T>(
   resolve: ResolveResult<T>,
-  output: { error: (msg: string, code?: string, exitCode?: number) => void }
+  output: { error: (msg: string, code?: string, exitCode?: number) => void },
+  flags?: Record<string, string | boolean>
 ): void {
-  if (resolve.error) {
-    output.error(resolve.error, resolve.errorCode, resolve.exitCode);
+  if (!resolve.error) return;
+
+  if (flags && isMachineMode(flags)) {
+    const envelope = buildErrorEnvelope(
+      resolve.errorCode,
+      resolve.error,
+      resolve.exitCode,
+      resolve.details
+    );
+    output.error(JSON.stringify(envelope), resolve.errorCode, resolve.exitCode);
+    return;
   }
+
+  output.error(resolve.error, resolve.errorCode, resolve.exitCode);
 }
 
 function buildAmbiguousResult<T>(
@@ -76,12 +94,19 @@ function buildAmbiguousResult<T>(
   nameFn: (e: T) => string
 ): ResolveResult<T> {
   const list = matches.map((m) => `"${nameFn(m)}" (${idFn(m)})`).join(', ');
+  const candidates: CliErrorCandidate[] = matches.map((m) => ({
+    id: idFn(m),
+    name: nameFn(m),
+  }));
   return {
     error: RESOLVE_AMBIGUOUS_TEMPLATE.replace('{}', entityTypeName)
       .replace('{}', trimmed)
       .replace('{}', list),
     exitCode: 4,
     errorCode: 'DOM_ENTITY_AMBIGUOUS',
+    details: {
+      candidates,
+    },
   };
 }
 
@@ -153,10 +178,17 @@ function resolveHumanEntity<T>(
 
   if (nameMatches.length > 1) {
     const list = nameMatches.map((m) => `"${nameFn(m)}" (${idFn(m)})`).join(', ');
+    const candidates: CliErrorCandidate[] = nameMatches.map((m) => ({
+      id: idFn(m),
+      name: nameFn(m),
+    }));
     return {
       error: `Error: Multiple matching ${entityTypeName.toLowerCase()}s found: ${list}. Specify exact ID or name.`,
       exitCode: 4,
       errorCode: 'DOM_ENTITY_AMBIGUOUS',
+      details: {
+        candidates,
+      },
     };
   }
 
@@ -179,6 +211,12 @@ function resolveHumanEntity<T>(
       error: `Error: ${entityTypeName} "${trimmed}" not found. Did you mean: "${nameFn(bestCandidate)}"?`,
       exitCode: 4,
       errorCode: 'DOM_ENTITY_DID_YOU_MEAN',
+      details: {
+        suggestion: {
+          id: idFn(bestCandidate),
+          name: nameFn(bestCandidate),
+        },
+      },
     };
   }
 

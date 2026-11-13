@@ -34,8 +34,9 @@ pub use billing::{
     TaskBillingSummary, MAX_BILLING_RATE_CENTS,
 };
 pub use cli::{
-    CliAlias, CliErrorEnvelope, CliExecutionResult, CliSink, EnvelopeMeta, LocalizedUserMessage,
-    SuccessEnvelope, ENVELOPE_SCHEMA_NAME, ENVELOPE_SCHEMA_VERSION,
+    CliAlias, CliErrorCandidate, CliErrorDetails, CliErrorEnvelope, CliExecutionResult, CliSink,
+    EnvelopeMeta, LocalizedUserMessage, SuccessEnvelope, ENVELOPE_SCHEMA_NAME,
+    ENVELOPE_SCHEMA_VERSION,
 };
 pub use cli_entities::{
     EntityAction, EntityActionPayload, LogListPayload, LogRemovePayload, ProjectListPayload,

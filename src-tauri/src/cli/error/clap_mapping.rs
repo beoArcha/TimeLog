@@ -33,8 +33,25 @@ fn extract_first_line_message(raw: &str) -> String {
 
 pub fn map_clap_error(err: &ClapError) -> CliSyntaxError {
     let msg = extract_first_line_message(&err.to_string());
+    let field = err
+        .get(clap::error::ContextKind::InvalidArg)
+        .map(|v| v.to_string());
+    let value = err
+        .get(clap::error::ContextKind::InvalidValue)
+        .map(|v| v.to_string());
+
     match err.kind() {
         ErrorKind::InvalidSubcommand => CliSyntaxError::UnknownCommand(msg),
-        _ => CliSyntaxError::InvalidArgs(msg),
+        _ => {
+            if field.is_some() || value.is_some() {
+                CliSyntaxError::InvalidArgument {
+                    message: msg,
+                    field,
+                    value,
+                }
+            } else {
+                CliSyntaxError::InvalidArgs(msg)
+            }
+        }
     }
 }

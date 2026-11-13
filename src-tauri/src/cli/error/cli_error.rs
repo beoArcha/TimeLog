@@ -1,5 +1,7 @@
 use super::codes::CliErrorCode;
-use super::envelope::{CliErrorEnvelope, LocalizedUserMessage};
+use super::envelope::{
+    CliErrorCandidate, CliErrorDetails, CliErrorEnvelope, LocalizedUserMessage,
+};
 use super::exit_codes::{
     EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENGINE_ERROR, EXIT_CODE_ENTITY_ERROR,
     EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR,
@@ -21,6 +23,11 @@ pub enum CliSyntaxError {
     EmptyId,
     MissingTarget,
     InvalidArgs(String),
+    InvalidArgument {
+        message: String,
+        field: Option<String>,
+        value: Option<String>,
+    },
     UnknownCommand(String),
     CommandNotImplemented(String),
     AliasNotFound(String),
@@ -34,6 +41,7 @@ impl fmt::Display for CliSyntaxError {
             Self::EmptyId => write!(f, "ID cannot be empty"),
             Self::MissingTarget => write!(f, "No target specified"),
             Self::InvalidArgs(msg) => write!(f, "{}", msg),
+            Self::InvalidArgument { message, .. } => write!(f, "{}", message),
             Self::UnknownCommand(cmd) => write!(f, "Unknown command: {}", cmd),
             Self::CommandNotImplemented(msg) => write!(f, "{}", msg),
             Self::AliasNotFound(name) => write!(f, "Alias '{}' not found", name),
@@ -90,6 +98,18 @@ impl CliError {
         CliError::Syntax(CliSyntaxError::InvalidArgs(msg.into()))
     }
 
+    pub fn syntax_invalid_arg_field(
+        msg: impl Into<String>,
+        field: impl Into<String>,
+        value: Option<String>,
+    ) -> Self {
+        CliError::Syntax(CliSyntaxError::InvalidArgument {
+            message: msg.into(),
+            field: Some(field.into()),
+            value,
+        })
+    }
+
     pub fn business_custom(msg: impl Into<String>) -> Self {
         CliError::Business(BusinessRuleViolation::Custom(msg.into()))
     }
@@ -134,7 +154,9 @@ impl CliError {
                 CliSyntaxError::InvalidDuration(_) => CliErrorCode::CliSyntaxInvalidDuration,
                 CliSyntaxError::EmptyId => CliErrorCode::CliSyntaxEmptyId,
                 CliSyntaxError::MissingTarget => CliErrorCode::CliSyntaxMissingTarget,
-                CliSyntaxError::InvalidArgs(_) => CliErrorCode::CliSyntaxInvalidArgs,
+                CliSyntaxError::InvalidArgs(_) | CliSyntaxError::InvalidArgument { .. } => {
+                    CliErrorCode::CliSyntaxInvalidArgs
+                }
                 CliSyntaxError::UnknownCommand(_) | CliSyntaxError::CommandNotImplemented(_) => {
                     CliErrorCode::CliSyntaxUnknownCommand
                 }
@@ -284,7 +306,56 @@ impl CliError {
             }
         };
 
-        CliErrorEnvelope::new(code, exit_code, technical, user)
+        let details = match self {
+            CliError::Entity(resolve_err) => match resolve_err {
+                ResolveError::AmbiguousMatch { candidates, .. } => {
+                    let non_empty = if candidates.is_empty() {
+                        None
+                    } else {
+                        Some(candidates.clone())
+                    };
+                    let d = CliErrorDetails {
+                        candidates: non_empty,
+                        ..Default::default()
+                    };
+                    if d.is_empty() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                }
+                ResolveError::DidYouMean {
+                    suggestion,
+                    candidate_id,
+                    ..
+                } => Some(CliErrorDetails {
+                    suggestion: Some(CliErrorCandidate {
+                        id: candidate_id.clone(),
+                        name: suggestion.clone(),
+                    }),
+                    ..Default::default()
+                }),
+                _ => None,
+            },
+            CliError::Syntax(syntax_err) => match syntax_err {
+                CliSyntaxError::InvalidArgument { field, value, .. } => {
+                    let d = CliErrorDetails {
+                        field: field.clone(),
+                        value: value.clone(),
+                        ..Default::default()
+                    };
+                    if d.is_empty() {
+                        None
+                    } else {
+                        Some(d)
+                    }
+                }
+                _ => None,
+            },
+            _ => None,
+        };
+
+        CliErrorEnvelope::new_with_details(code, exit_code, technical, user, details)
     }
 }
 

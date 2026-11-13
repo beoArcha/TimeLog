@@ -7,6 +7,7 @@ use super::constants::{
 use super::levenshtein::levenshtein_distance;
 use super::prompter::{Prompter, TerminalPrompter};
 use crate::persistence::Persistence;
+use crate::types::cli::CliErrorCandidate;
 use crate::types::{Project, Task};
 use std::fmt;
 
@@ -31,7 +32,7 @@ impl fmt::Display for EntityType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ResolveError {
     NotFound {
         target: String,
@@ -40,7 +41,7 @@ pub enum ResolveError {
     AmbiguousMatch {
         target: String,
         entity_type: EntityType,
-        candidates: Vec<String>,
+        candidates: Vec<CliErrorCandidate>,
     },
     DidYouMean {
         target: String,
@@ -68,10 +69,18 @@ impl fmt::Display for ResolveError {
                 entity_type,
                 candidates,
             } => {
+                let formatted: Vec<String> = candidates
+                    .iter()
+                    .map(|c| {
+                        FORMAT_CANDIDATE_MATCH
+                            .replacen("{}", &c.name, 1)
+                            .replacen("{}", &c.id, 1)
+                    })
+                    .collect();
                 let msg = ERR_RESOLVE_AMBIGUOUS
                     .replacen("{}", &entity_type.to_string(), 1)
                     .replacen("{}", target, 1)
-                    .replacen("{}", &candidates.join(", "), 1);
+                    .replacen("{}", &formatted.join(", "), 1);
                 write!(f, "{}", msg)
             }
             ResolveError::DidYouMean {
@@ -286,13 +295,12 @@ pub(crate) fn format_ambiguous_candidates<T>(
     matched_items: &[T],
     id_fn: &impl Fn(&T) -> &str,
     name_fn: &impl Fn(&T) -> &str,
-) -> Vec<String> {
+) -> Vec<CliErrorCandidate> {
     matched_items
         .iter()
-        .map(|e| {
-            FORMAT_CANDIDATE_MATCH
-                .replacen("{}", name_fn(e), 1)
-                .replacen("{}", id_fn(e), 1)
+        .map(|e| CliErrorCandidate {
+            id: id_fn(e).to_string(),
+            name: name_fn(e).to_string(),
         })
         .collect()
 }

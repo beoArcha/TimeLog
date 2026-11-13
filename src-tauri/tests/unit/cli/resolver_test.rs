@@ -214,8 +214,14 @@ fn test_given_resolve_error_variants_when_formatted_then_outputs_expected_string
         target: "build".into(),
         entity_type: EntityType::Task,
         candidates: vec![
-            "\"Build Frontend\" (t1)".into(),
-            "\"Build Backend\" (t2)".into(),
+            oxyflow_timelog::cli::error::CliErrorCandidate {
+                id: "t1".into(),
+                name: "Build Frontend".into(),
+            },
+            oxyflow_timelog::cli::error::CliErrorCandidate {
+                id: "t2".into(),
+                name: "Build Backend".into(),
+            },
         ],
     };
     let did_you_mean = ResolveError::DidYouMean {

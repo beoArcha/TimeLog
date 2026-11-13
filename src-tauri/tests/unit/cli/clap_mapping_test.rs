@@ -34,13 +34,20 @@ fn test_given_unknown_argument_when_mapping_clap_error_then_returns_invalid_args
 
     // Assert
     match syntax_err {
+        CliSyntaxError::InvalidArgument { message: msg, field, .. } => {
+            assert!(!msg.starts_with("error:"));
+            assert!(!msg.contains('\n'));
+            assert!(!msg.contains('\r'));
+            assert!(msg.contains("--bogus-flag"));
+            assert!(field.as_deref().unwrap_or("").contains("--bogus-flag"));
+        }
         CliSyntaxError::InvalidArgs(msg) => {
             assert!(!msg.starts_with("error:"));
             assert!(!msg.contains('\n'));
             assert!(!msg.contains('\r'));
             assert!(msg.contains("--bogus-flag"));
         }
-        other => panic!("Expected InvalidArgs, got {:?}", other),
+        other => panic!("Expected InvalidArgs or InvalidArgument, got {:?}", other),
     }
 }
 
@@ -64,13 +71,20 @@ fn test_given_invalid_value_when_mapping_clap_error_then_returns_invalid_args() 
 
     // Assert
     match syntax_err {
+        CliSyntaxError::InvalidArgument { message: msg, value, .. } => {
+            assert!(!msg.starts_with("error:"));
+            assert!(!msg.contains('\n'));
+            assert!(!msg.contains('\r'));
+            assert!(msg.contains("invalid_format"));
+            assert!(value.as_deref().unwrap_or("").contains("invalid_format"));
+        }
         CliSyntaxError::InvalidArgs(msg) => {
             assert!(!msg.starts_with("error:"));
             assert!(!msg.contains('\n'));
             assert!(!msg.contains('\r'));
             assert!(msg.contains("invalid_format"));
         }
-        other => panic!("Expected InvalidArgs, got {:?}", other),
+        other => panic!("Expected InvalidArgs or InvalidArgument, got {:?}", other),
     }
 }
 
@@ -88,11 +102,12 @@ fn test_given_missing_required_argument_when_mapping_clap_error_then_returns_inv
 
     // Assert
     match syntax_err {
-        CliSyntaxError::InvalidArgs(msg) => {
+        CliSyntaxError::InvalidArgument { message: msg, .. }
+        | CliSyntaxError::InvalidArgs(msg) => {
             assert!(!msg.starts_with("error:"));
             assert!(!msg.contains('\n'));
             assert!(!msg.contains('\r'));
         }
-        other => panic!("Expected InvalidArgs, got {:?}", other),
+        other => panic!("Expected InvalidArgs or InvalidArgument, got {:?}", other),
     }
 }

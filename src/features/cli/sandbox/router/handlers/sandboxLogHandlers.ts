@@ -58,7 +58,7 @@ export function handleLogList(
   if (projFilter) {
     const resolve = resolveEntity(projects, projFilter, 'Project', (p) => p.id, (p) => p.name, isStrict);
     if (!resolve.entity) {
-      reportResolveFailure(resolve, output);
+      reportResolveFailure(resolve, output, flags);
       return;
     }
     logs = logs.filter((l) => l.projectId === resolve.entity?.id);
@@ -68,7 +68,7 @@ export function handleLogList(
   if (taskFilter) {
     const resolve = resolveEntity(tasks, taskFilter, 'Task', (t) => t.id, (t) => t.name, isStrict);
     if (!resolve.entity) {
-      reportResolveFailure(resolve, output);
+      reportResolveFailure(resolve, output, flags);
       return;
     }
     logs = logs.filter((l) => l.taskId === resolve.entity?.id);
@@ -155,7 +155,7 @@ export function handleLogAdd(
   const tasks = store.getTasks();
   const resolve = resolveEntity(tasks, target, 'Task', (t) => t.id, (t) => t.name, isStrict);
   if (!resolve.entity) {
-    reportResolveFailure(resolve, output);
+    reportResolveFailure(resolve, output, flags);
     return;
   }
 

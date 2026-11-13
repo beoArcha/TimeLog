@@ -38,6 +38,41 @@ pub struct LocalizedUserMessage {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
 #[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct CliErrorCandidate {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct CliErrorDetails {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub candidates: Option<Vec<CliErrorCandidate>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub suggestion: Option<CliErrorCandidate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub field: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub value: Option<String>,
+}
+
+impl CliErrorDetails {
+    pub fn is_empty(&self) -> bool {
+        self.candidates.as_ref().map_or(true, |c| c.is_empty())
+            && self.suggestion.is_none()
+            && self.field.is_none()
+            && self.value.is_none()
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[ts(export)]
 pub struct CliErrorEnvelope {
     pub code: String,
     pub category: String,
@@ -46,6 +81,9 @@ pub struct CliErrorEnvelope {
     pub technical: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<LocalizedUserMessage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub details: Option<CliErrorDetails>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
