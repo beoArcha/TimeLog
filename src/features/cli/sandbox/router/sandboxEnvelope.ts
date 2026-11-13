@@ -9,7 +9,7 @@ export interface EnvelopeSchema {
 }
 
 /**
- * Mirrors the schema names and versions declared in src-tauri/src/cli/handlers/flow_handler.rs.
+ * Mirrors the schema names and versions declared by the native handlers in src-tauri/src/cli/handlers/.
  */
 export const SCHEMA_START: EnvelopeSchema = { name: 'oxy.start', version: 1 };
 export const SCHEMA_STOP: EnvelopeSchema = { name: 'oxy.stop', version: 1 };
