@@ -78,6 +78,8 @@ fn export_bindings() {
     SwitchPayload::export_all_to(BINDINGS_DIR).unwrap();
     StatusPayload::export_all_to(BINDINGS_DIR).unwrap();
     ActiveSessionPayload::export_all_to(BINDINGS_DIR).unwrap();
+    DashboardPayload::export_all_to(BINDINGS_DIR).unwrap();
+    RecentTaskPayload::export_all_to(BINDINGS_DIR).unwrap();
     ProjectListPayload::export_all_to(BINDINGS_DIR).unwrap();
     TaskListPayload::export_all_to(BINDINGS_DIR).unwrap();
     LogListPayload::export_all_to(BINDINGS_DIR).unwrap();

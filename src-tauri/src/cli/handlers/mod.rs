@@ -38,7 +38,7 @@ pub fn dispatch_command(
             flow_handler::handle_switch(cmd_args, is_machine, is_quiet, strict, persistence, engine)
         }
         Some(CliCommand::Status) => flow_handler::handle_status(is_machine, persistence, engine),
-        Some(CliCommand::Today) => flow_handler::handle_today(is_machine, persistence, engine, tz),
+        Some(CliCommand::Today) => flow_handler::handle_today(is_machine, engine, tz),
         Some(CliCommand::Project(cmd_args)) => {
             project_handler::handle(cmd_args, is_machine, strict, is_quiet, persistence)
         }

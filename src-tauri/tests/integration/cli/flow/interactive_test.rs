@@ -102,7 +102,7 @@ fn test_given_running_timer_when_glance_dashboard_invoked_then_outputs_active_se
 }
 
 #[test]
-fn test_given_today_command_with_machine_flag_then_returns_structured_json_with_entries() {
+fn test_given_today_command_with_machine_flag_then_returns_report_envelope_with_entries() {
     // Given
     let (persistence, _conn, _temp) = setup("test_interactive_today_json");
     let engine = Engine::new(&persistence);
@@ -113,12 +113,12 @@ fn test_given_today_command_with_machine_flag_then_returns_structured_json_with_
 
     // Then
     assert!(result.is_ok());
-    if let CliOutput::Json(json_str) = result.unwrap() {
-        let parsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
-        assert!(parsed.get("date").is_some());
-        assert!(parsed.get("total_seconds").is_some());
-        assert!(parsed.get("entries").is_some());
+    if let CliOutput::Envelope(envelope) = result.unwrap() {
+        assert_eq!(envelope.schema, "oxy.today");
+        assert!(envelope.data["totals"]["seconds"].is_u64());
+        assert!(envelope.data["entries"].is_array());
+        assert!(envelope.data["range"]["from"].is_string());
     } else {
-        panic!("Expected Json output variant");
+        panic!("Expected Envelope output variant");
     }
 }

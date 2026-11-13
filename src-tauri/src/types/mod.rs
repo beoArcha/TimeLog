@@ -43,7 +43,8 @@ pub use cli_entities::{
     TaskListPayload,
 };
 pub use cli_flow::{
-    ActiveSessionPayload, FlowAction, StartPayload, StatusPayload, StopPayload, SwitchPayload,
+    ActiveSessionPayload, DashboardPayload, FlowAction, RecentTaskPayload, StartPayload,
+    StatusPayload, StopPayload, SwitchPayload,
 };
 pub use cli_subsystems::{
     ConfigEntry, ConfigListPayload, ConfigValuePayload, DbBackupPayload, DbRestorePayload,
