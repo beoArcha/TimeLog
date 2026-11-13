@@ -17,6 +17,7 @@ export const SCHEMA_START: EnvelopeSchema = { name: 'oxy.start', version: 1 };
 export const SCHEMA_STOP: EnvelopeSchema = { name: 'oxy.stop', version: 1 };
 export const SCHEMA_SWITCH: EnvelopeSchema = { name: 'oxy.switch', version: 1 };
 export const SCHEMA_STATUS: EnvelopeSchema = { name: 'oxy.status', version: 1 };
+export const SCHEMA_TODAY: EnvelopeSchema = { name: 'oxy.today', version: 1 };
 
 export const SCHEMA_PROJECT_LIST: EnvelopeSchema = { name: 'oxy.project.list', version: 1 };
 export const SCHEMA_PROJECT_ADD: EnvelopeSchema = { name: 'oxy.project.add', version: 1 };

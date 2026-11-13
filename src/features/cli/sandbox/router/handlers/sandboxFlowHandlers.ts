@@ -1,17 +1,28 @@
 import { ActiveSessionPayload } from '@bindings/ActiveSessionPayload';
+import type { ReportDocument } from '@bindings/ReportDocument';
+import type { ResolvedRange } from '@bindings/ResolvedRange';
 import { Task } from '@bindings/Task';
 import { TimeLog } from '@bindings/TimeLog';
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
-import { isStartInRange, localDateOfRange } from '@common/engine/range/logRange';
+import { localDateOfRange } from '@common/engine/range/logRange';
+import { buildReportAt } from '@common/engine/reports';
 import { resolveSandboxToday } from '../sandboxRange';
 import { StartPayload } from '@bindings/StartPayload';
 import { StatusPayload } from '@bindings/StatusPayload';
 import { StopPayload } from '@bindings/StopPayload';
 import { SwitchPayload } from '@bindings/SwitchPayload';
-import { emitEnvelope, isMachineMode, SCHEMA_START, SCHEMA_STATUS, SCHEMA_STOP, SCHEMA_SWITCH } from '../sandboxEnvelope';
+import {
+  emitEnvelope,
+  isMachineMode,
+  SCHEMA_START,
+  SCHEMA_STATUS,
+  SCHEMA_STOP,
+  SCHEMA_SWITCH,
+  SCHEMA_TODAY,
+} from '../sandboxEnvelope';
 import { isQuietMode } from '../sandboxQuietMode';
 
 // Mirrors OUT_NOTHING_TO_STOP in src-tauri/src/cli/handlers/constants.rs so the sandbox and native CLI print the same message.
@@ -242,6 +253,13 @@ export function handleSwitch(
   output.success(`🔀 Switched active timer to: "${task.name}" [ID: ${task.id}]`);
 }
 
+// Patches are left out, like the native `today`, which reports tracked sessions only.
+function buildTodayReport(range: ResolvedRange, store: SandboxEmulatorStore): ReportDocument {
+  const snapshot = { projects: store.getProjects(), tasks: store.getTasks(), logs: store.getLogs(), patches: [] };
+  const request = { range: { preset: 'today' as const, timezone: range.timezone }, variant: 'full' as const, includePatches: false };
+  return buildReportAt(snapshot, request, range, new Date());
+}
+
 export function handleToday(
   flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
@@ -250,32 +268,24 @@ export function handleToday(
   const range = resolveSandboxToday(flags, output);
   if (!range) return;
 
-  const tasks = store.getTasks();
-  const projects = store.getProjects();
+  const report = buildTodayReport(range, store);
+  if (isMachineMode(flags)) {
+    emitEnvelope(output, SCHEMA_TODAY, report);
+    return;
+  }
 
   const todayDate = localDateOfRange(range);
-  const todayLogs = store.getLogs().filter((l) => isStartInRange(l.startTime, range));
-
-  if (todayLogs.length === 0) {
+  const entries = report.entries ?? [];
+  if (entries.length === 0) {
     output.info(`No time logs recorded for today (${todayDate}).`);
     return;
   }
 
-  let totalSeconds = 0;
   output.info(`── Today's Progress (${todayDate}) ──────────────────────────`);
-
-  for (const log of todayLogs) {
-    const startMs = new Date(log.startTime).getTime();
-    const endMs = log.endTime ? new Date(log.endTime).getTime() : Date.now();
-    const durSecs = Math.max(0, Math.floor((endMs - startMs) / 1000));
-    totalSeconds += durSecs;
-
-    const task = tasks.find((t) => t.id === log.taskId);
-    const project = task ? projects.find((p) => p.id === task.projectId) : null;
-
-    output.output(`• [${project?.name || 'General'}] ${task?.name || 'Unknown'} - ${formatSeconds(durSecs)}`);
+  for (const entry of entries) {
+    // Only a project-level patch has no task, and `today` excludes patches.
+    output.output(`• [${entry.projectName}] ${entry.taskName ?? SANDBOX_UNKNOWN_TASK} - ${formatSeconds(entry.seconds)}`);
   }
-
   output.info('─────────────────────────────────────────────────────────');
-  output.success(`Total Today: ${formatSeconds(totalSeconds)} (${todayLogs.length} session(s))`);
+  output.success(`Total Today: ${formatSeconds(report.totals.seconds)} (${report.totals.entryCount} session(s))`);
 }
