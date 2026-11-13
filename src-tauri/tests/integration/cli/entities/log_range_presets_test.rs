@@ -229,7 +229,10 @@ fn test_given_timezone_far_ahead_of_utc_when_running_today_then_reports_local_ca
 
             // Then
             let payload: serde_json::Value = serde_json::from_str(&format!("{output}")).unwrap();
-            let date = payload["date"].as_str().unwrap().to_string();
+            let date = payload["data"]["days"][0]["date"]
+                .as_str()
+                .unwrap()
+                .to_string();
             (date, engine.local_date_of_range(range).unwrap())
         },
     );

@@ -5,9 +5,7 @@ mod stop;
 mod switch;
 mod today;
 
-pub use dashboard::{
-    build_dashboard_dto, handle_glance, ActiveSessionDto, DashboardDto, RecentTaskDto,
-};
+pub use dashboard::{build_dashboard_payload, handle_glance};
 pub use start::{handle_start, handle_start_interactive, handle_start_with_prompter};
 pub use status::handle_status;
 pub use stop::handle_stop;

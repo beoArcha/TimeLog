@@ -130,7 +130,6 @@ pub const LABEL_ARCHIVED_BADGE: &str = " [ARCHIVED]";
 pub const LABEL_ACTIVE_TIMER: &str = "ACTIVE ⏳";
 pub const LABEL_UNKNOWN_TASK: &str = "Unknown Task";
 pub const LABEL_UNKNOWN_PROJECT: &str = "Unknown";
-pub const LABEL_GENERAL_PROJECT: &str = "General";
 pub const LABEL_SUBTASK_BADGE: &str = " (Subtask)";
 pub const LABEL_INVALID_DURATION: &str = "invalid";
 

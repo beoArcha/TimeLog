@@ -691,7 +691,7 @@
     "expectSuccess": true,
     "expectedExitCode": 0,
     "expectedErrorCode": null,
-    "expectedPatterns": ["\"activeTaskIds\":[\"t1\"]"]
+    "expectedPatterns": ["\"taskId\":\"t1\",\"taskName\":\"Parity Task\""]
   },
   {
     "id": "start-machine",

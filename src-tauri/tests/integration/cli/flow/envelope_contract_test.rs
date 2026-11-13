@@ -142,8 +142,39 @@ fn test_given_idle_timer_when_status_in_machine_mode_then_data_reports_not_runni
     let envelope: Value = serde_json::from_str(&stdout).unwrap();
     assert_eq!(
         envelope["data"],
-        serde_json::json!({ "activeTaskIds": [], "count": 0, "running": false })
+        serde_json::json!({ "active": [], "count": 0, "running": false })
     );
+}
+
+#[test]
+fn test_given_running_timer_when_status_in_machine_mode_then_data_lists_the_active_session_with_names(
+) {
+    // Given
+    let (_conn, config, _temp) = setup_persistence_test("cli_envelope_status_running");
+    let persistence = Persistence::new(&config).unwrap();
+    let engine = Engine::new(&persistence);
+    seed(&persistence);
+    run(&["start", "t_env_a"], &persistence, &engine);
+    let stored_start = persistence.time_logs.get_all().unwrap()[0]
+        .start_time
+        .clone();
+
+    // When
+    let stdout = run(&["--machine", "status"], &persistence, &engine);
+
+    // Then
+    let envelope: Value = serde_json::from_str(&stdout).unwrap();
+    let data = &envelope["data"];
+    assert_eq!(data["running"], true);
+    assert_eq!(data["count"], 1);
+    let session = &data["active"][0];
+    assert_eq!(session["taskId"], "t_env_a");
+    assert_eq!(session["taskName"], "Alpha");
+    assert_eq!(session["projectId"], "p_env");
+    assert_eq!(session["projectName"], "Envelope Project");
+    assert_eq!(session["start"], stored_start);
+    assert!(session["elapsedSeconds"].is_u64());
+    assert!(data.get("activeTaskIds").is_none());
 }
 
 #[test]

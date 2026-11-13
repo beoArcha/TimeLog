@@ -86,7 +86,7 @@ describe('Sandbox flow command envelopes', () => {
 
       // Assert
       expect(envelope.schema).toBe('oxy.status');
-      expect(envelope.data).toEqual({ activeTaskIds: [], count: 0, running: false });
+      expect(envelope.data).toEqual({ active: [], count: 0, running: false });
     });
 
     it('should list the running task when a timer is active', () => {
@@ -97,7 +97,92 @@ describe('Sandbox flow command envelopes', () => {
       const envelope = parseSingleEnvelope(runCommand(store, ['status', '--json']));
 
       // Assert
-      expect(envelope.data).toEqual({ activeTaskIds: ['t1'], count: 1, running: true });
+      expect(envelope.data).toEqual({
+        active: [
+          {
+            taskId: 't1',
+            taskName: 'Parity Task',
+            projectId: 'p1',
+            projectName: 'Parity Project',
+            start: '2026-06-15T09:30:00Z',
+            elapsedSeconds: Math.floor((Date.parse('2026-11-12T10:30:15.789Z') - Date.parse('2026-06-15T09:30:00Z')) / 1000),
+          },
+        ],
+        count: 1,
+        running: true,
+      });
+    });
+
+    it('should emit an entity error envelope when the running task no longer exists', () => {
+      // Arrange
+      seed('t_missing');
+
+      // Act
+      const lines = runCommand(store, ['status', '--json']).getLines();
+
+      // Assert
+      expect(lines).toHaveLength(1);
+      expect(lines[0].type).toBe('error');
+      expect(lines[0].exitCode).toBe(4);
+      expect(JSON.parse(lines[0].text)).toMatchObject({
+        code: 'DOM_ENTITY_NOT_FOUND',
+        category: 'entity',
+        exit_code: 4,
+        technical: "Task 't_missing' not found.",
+      });
+    });
+  });
+
+  describe('today', () => {
+    const seedMidnightCrossingLog = () => {
+      store.seedForTesting({
+        projects: [aProject({ id: 'p1', name: 'Parity Project' })],
+        tasks: [aTask({ id: 't1', projectId: 'p1', name: 'Parity Task' })],
+        logs: [aTimeLog({ id: 'l1', projectId: 'p1', taskId: 't1', startTime: '2026-11-11T23:00:00Z', endTime: '2026-11-12T01:00:00Z' })],
+        activeLog: null,
+      });
+    };
+
+    it('should emit an oxy.today envelope holding the report clamped to the day when a session crosses midnight', () => {
+      // Arrange
+      seedMidnightCrossingLog();
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, ['today', '--machine', '--tz', 'UTC']));
+
+      // Assert
+      expect(envelope.schema).toBe('oxy.today');
+      expect(envelope.schemaVersion).toBe(1);
+      expect(envelope.data.schema).toBe('oxy.report');
+      expect(envelope.data.range.preset).toBe('today');
+      expect(envelope.data.totals.seconds).toBe(3600);
+      expect(envelope.data.entries[0]).toMatchObject({ seconds: 3600, originalSeconds: 7200, clamped: true });
+      expect(collectNonCamelCaseKeys(envelope)).toEqual([]);
+    });
+
+    it('should total only the part of a midnight-crossing session that falls today when printing for a person', () => {
+      // Arrange
+      seedMidnightCrossingLog();
+
+      // Act
+      const output = runCommand(store, ['today', '--tz', 'UTC']);
+
+      // Assert
+      const text = output.getLines().map((line) => line.text).join('\n');
+      expect(text).toContain('[Parity Project] Parity Task');
+      expect(text).toContain('(1 session(s))');
+    });
+
+    it('should emit an empty report envelope when nothing was tracked today', () => {
+      // Arrange
+      seed(null);
+
+      // Act
+      const envelope = parseSingleEnvelope(runCommand(store, ['today', '--json']));
+
+      // Assert
+      expect(envelope.data.totals).toMatchObject({ seconds: 0, entryCount: 0 });
+      expect(envelope.data.entries).toEqual([]);
     });
   });
 

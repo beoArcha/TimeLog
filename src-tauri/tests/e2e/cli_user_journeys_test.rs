@@ -135,9 +135,9 @@ fn test_given_running_timer_when_executing_machine_status_then_outputs_valid_jso
 
     assert_eq!(parsed["schema"], "oxy.status");
     assert_eq!(parsed["data"]["running"], serde_json::json!(true));
-    assert!(
-        parsed["data"].get("activeTaskIds").is_some(),
-        "activeTaskIds should be present in status JSON: {:?}",
+    assert_eq!(
+        parsed["data"]["active"][0]["taskName"], "Pipeline Task",
+        "status JSON should list the active session: {:?}",
         parsed
     );
 }
