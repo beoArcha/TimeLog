@@ -172,7 +172,11 @@ fn test_given_ambiguous_task_target_in_json_mode_when_marking_done_then_stderr_h
     let candidates = envelope["details"]["candidates"]
         .as_array()
         .expect("details.candidates must be an array");
-    assert_eq!(candidates.len(), 2, "must return exactly 2 candidate matches");
+    assert_eq!(
+        candidates.len(),
+        2,
+        "must return exactly 2 candidate matches"
+    );
 
     for candidate in candidates {
         assert!(candidate["id"].is_string());
@@ -183,4 +187,3 @@ fn test_given_ambiguous_task_target_in_json_mode_when_marking_done_then_stderr_h
     assert!(envelope["details"].get("field").is_none());
     assert!(envelope["details"].get("value").is_none());
 }
-

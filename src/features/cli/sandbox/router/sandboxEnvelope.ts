@@ -1,5 +1,5 @@
-import { CliErrorEnvelope } from '@bindings/CliErrorEnvelope';
-import { CliErrorDetails } from '@bindings/CliErrorDetails';
+import type { CliErrorEnvelope } from '@bindings/CliErrorEnvelope';
+import type { CliErrorDetails } from '@bindings/CliErrorDetails';
 import { SuccessEnvelope } from '@bindings/SuccessEnvelope';
 import { formatUtc } from '@common/engine/range/formatUtc';
 import { GENERATOR_NAME, GENERATOR_VERSION } from '@common/engine/reports/constants';
@@ -58,73 +58,49 @@ export function emitEnvelope(output: TerminalOutput, schema: EnvelopeSchema, dat
   output.output(JSON.stringify(buildEnvelope(schema, data)));
 }
 
+// Mirrors CliErrorCode::category() in src-tauri/src/cli/error/codes.rs.
+const ERROR_CATEGORY_BY_PREFIX: ReadonlyArray<readonly [string, string]> = [
+  ['CLI_SYNTAX_', 'syntax'],
+  ['DOM_ENTITY_', 'entity'],
+  ['DOM_BUSINESS_', 'business'],
+  ['STO_', 'storage'],
+  ['ENG_', 'engine'],
+  ['SNK_', 'sink'],
+  ['MSK_', 'mask'],
+];
+
+function errorCategory(code: string): string {
+  return ERROR_CATEGORY_BY_PREFIX.find(([prefix]) => code.startsWith(prefix))?.[1] ?? 'business';
+}
+
+function hasDetails(details: CliErrorDetails): boolean {
+  return Boolean(
+    (details.candidates && details.candidates.length > 0) ||
+      details.suggestion ||
+      details.field ||
+      details.value
+  );
+}
+
 /**
- * Builds a structured error envelope matching CliErrorEnvelope on the Rust backend.
- * Omit details completely when empty, and omit individual detail members when absent.
+ * Like the native machine mode, the envelope has no localized `user` layer and omits empty `details`.
  */
 export function buildErrorEnvelope(
   code: string,
   technical: string,
   exitCode: number,
-  details?: CliErrorDetails | null,
+  details?: CliErrorDetails,
   nowMs: number = Date.now()
 ): CliErrorEnvelope {
-  let cleanDetails: CliErrorDetails | undefined;
-  if (details) {
-    const d: Record<string, unknown> = {};
-    if (details.candidates && details.candidates.length > 0) {
-      d.candidates = details.candidates;
-    }
-    if (details.suggestion) {
-      d.suggestion = details.suggestion;
-    }
-    if (details.field) {
-      d.field = details.field;
-    }
-    if (details.value) {
-      d.value = details.value;
-    }
-    if (Object.keys(d).length > 0) {
-      cleanDetails = d as CliErrorDetails;
-    }
-  }
-
-  const category = code.startsWith('DOM_ENTITY_')
-    ? 'entity'
-    : code.startsWith('DOM_BUSINESS_')
-      ? 'business'
-      : code.startsWith('CLI_SYNTAX_')
-        ? 'syntax'
-        : code.startsWith('ENG_')
-          ? 'engine'
-          : code.startsWith('STO_')
-            ? 'storage'
-            : 'system';
-
   const envelope: CliErrorEnvelope = {
     code,
-    category,
+    category: errorCategory(code),
     exit_code: exitCode,
     timestamp: formatUtc(nowMs),
     technical,
-    user: null,
   };
-
-  if (cleanDetails) {
-    envelope.details = cleanDetails;
+  if (details && hasDetails(details)) {
+    envelope.details = details;
   }
-
   return envelope;
 }
-
-export function emitErrorEnvelope(
-  output: TerminalOutput,
-  code: string,
-  technical: string,
-  exitCode: number,
-  details?: CliErrorDetails | null
-): void {
-  const envelope = buildErrorEnvelope(code, technical, exitCode, details);
-  output.error(JSON.stringify(envelope), code, exitCode);
-}
-

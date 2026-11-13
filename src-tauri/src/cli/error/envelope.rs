@@ -26,26 +26,8 @@ impl CliErrorEnvelope {
         }
     }
 
-    pub fn new_with_details(
-        code: CliErrorCode,
-        exit_code: u8,
-        technical: String,
-        user: Option<LocalizedUserMessage>,
-        details: Option<CliErrorDetails>,
-    ) -> Self {
-        Self {
-            code: code.as_str().to_string(),
-            category: code.category().to_string(),
-            exit_code,
-            timestamp: chrono::Utc::now().to_rfc3339(),
-            technical,
-            user,
-            details: details.and_then(|d| if d.is_empty() { None } else { Some(d) }),
-        }
-    }
-
     pub fn with_details(mut self, details: Option<CliErrorDetails>) -> Self {
-        self.details = details.and_then(|d| if d.is_empty() { None } else { Some(d) });
+        self.details = details.filter(|d| !d.is_empty());
         self
     }
 

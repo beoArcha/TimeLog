@@ -2,4 +2,4 @@
 import type { CliErrorDetails } from "./CliErrorDetails";
 import type { LocalizedUserMessage } from "./LocalizedUserMessage";
 
-export type CliErrorEnvelope = { code: string, category: string, exit_code: number, timestamp: string, technical: string, user: LocalizedUserMessage | null, details?: CliErrorDetails, };
+export type CliErrorEnvelope = { code: string, category: string, exit_code: number, timestamp: string, technical: string, user?: LocalizedUserMessage, details?: CliErrorDetails, };

@@ -64,7 +64,7 @@ pub struct CliErrorDetails {
 
 impl CliErrorDetails {
     pub fn is_empty(&self) -> bool {
-        self.candidates.as_ref().map_or(true, |c| c.is_empty())
+        self.candidates.as_ref().is_none_or(Vec::is_empty)
             && self.suggestion.is_none()
             && self.field.is_none()
             && self.value.is_none()
@@ -80,6 +80,7 @@ pub struct CliErrorEnvelope {
     pub timestamp: String,
     pub technical: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub user: Option<LocalizedUserMessage>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(optional)]

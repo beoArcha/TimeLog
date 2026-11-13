@@ -1,5 +1,5 @@
 use super::cli_error::CliSyntaxError;
-use clap::error::{Error as ClapError, ErrorKind};
+use clap::error::{ContextKind, ContextValue, Error as ClapError, ErrorKind};
 
 const ANSI_ESC: char = '\x1B';
 
@@ -33,25 +33,29 @@ fn extract_first_line_message(raw: &str) -> String {
 
 pub fn map_clap_error(err: &ClapError) -> CliSyntaxError {
     let msg = extract_first_line_message(&err.to_string());
-    let field = err
-        .get(clap::error::ContextKind::InvalidArg)
-        .map(|v| v.to_string());
-    let value = err
-        .get(clap::error::ContextKind::InvalidValue)
-        .map(|v| v.to_string());
-
-    match err.kind() {
-        ErrorKind::InvalidSubcommand => CliSyntaxError::UnknownCommand(msg),
-        _ => {
-            if field.is_some() || value.is_some() {
-                CliSyntaxError::InvalidArgument {
-                    message: msg,
-                    field,
-                    value,
-                }
-            } else {
-                CliSyntaxError::InvalidArgs(msg)
-            }
-        }
+    if err.kind() == ErrorKind::InvalidSubcommand {
+        return CliSyntaxError::UnknownCommand(msg);
     }
+
+    let field = err.get(ContextKind::InvalidArg).map(flag_name);
+    let value = err.get(ContextKind::InvalidValue).map(|v| v.to_string());
+    if field.is_none() && value.is_none() {
+        return CliSyntaxError::InvalidArgs(msg);
+    }
+    CliSyntaxError::InvalidArgument {
+        message: msg,
+        field,
+        value,
+    }
+}
+
+// clap renders the offending argument with its value placeholder ("--format <FORMAT>");
+// scripts need only the flag itself.
+fn flag_name(arg: &ContextValue) -> String {
+    let rendered = arg.to_string();
+    rendered
+        .split_whitespace()
+        .next()
+        .unwrap_or(&rendered)
+        .to_string()
 }

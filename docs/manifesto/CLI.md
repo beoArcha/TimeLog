@@ -377,7 +377,7 @@ When available, structured error context is exposed via the optional `details` o
 - `details.field`: offending CLI argument/flag name (e.g. `--format`) on parser validation errors (`CLI_SYNTAX_INVALID_ARGS`).
 - `details.value`: invalid input value passed to the argument (e.g. `yaml`).
 
-All members of `details` are camelCase and omitted when absent (`skip_serializing_if`). The `details` field itself is completely omitted from the JSON envelope when empty.
+All members of `details` are camelCase and omitted when absent; an empty `details` is omitted from the envelope. `field` holds only the flag (`--format`), without clap's value placeholder. The browser sandbox emits the same machine envelope, without the `user` layer, for target-resolution errors under `--json` / `--machine`.
 
 ### Exit Codes
 

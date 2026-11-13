@@ -1,7 +1,5 @@
 use super::codes::CliErrorCode;
-use super::envelope::{
-    CliErrorCandidate, CliErrorDetails, CliErrorEnvelope, LocalizedUserMessage,
-};
+use super::envelope::{CliErrorEnvelope, LocalizedUserMessage};
 use super::exit_codes::{
     EXIT_CODE_CLI_SYNTAX, EXIT_CODE_ENGINE_ERROR, EXIT_CODE_ENTITY_ERROR,
     EXIT_CODE_GENERIC_FAILURE, EXIT_CODE_STORAGE_ERROR,
@@ -96,18 +94,6 @@ pub enum CliError {
 impl CliError {
     pub fn syntax_invalid_args(msg: impl Into<String>) -> Self {
         CliError::Syntax(CliSyntaxError::InvalidArgs(msg.into()))
-    }
-
-    pub fn syntax_invalid_arg_field(
-        msg: impl Into<String>,
-        field: impl Into<String>,
-        value: Option<String>,
-    ) -> Self {
-        CliError::Syntax(CliSyntaxError::InvalidArgument {
-            message: msg.into(),
-            field: Some(field.into()),
-            value,
-        })
     }
 
     pub fn business_custom(msg: impl Into<String>) -> Self {
@@ -306,56 +292,7 @@ impl CliError {
             }
         };
 
-        let details = match self {
-            CliError::Entity(resolve_err) => match resolve_err {
-                ResolveError::AmbiguousMatch { candidates, .. } => {
-                    let non_empty = if candidates.is_empty() {
-                        None
-                    } else {
-                        Some(candidates.clone())
-                    };
-                    let d = CliErrorDetails {
-                        candidates: non_empty,
-                        ..Default::default()
-                    };
-                    if d.is_empty() {
-                        None
-                    } else {
-                        Some(d)
-                    }
-                }
-                ResolveError::DidYouMean {
-                    suggestion,
-                    candidate_id,
-                    ..
-                } => Some(CliErrorDetails {
-                    suggestion: Some(CliErrorCandidate {
-                        id: candidate_id.clone(),
-                        name: suggestion.clone(),
-                    }),
-                    ..Default::default()
-                }),
-                _ => None,
-            },
-            CliError::Syntax(syntax_err) => match syntax_err {
-                CliSyntaxError::InvalidArgument { field, value, .. } => {
-                    let d = CliErrorDetails {
-                        field: field.clone(),
-                        value: value.clone(),
-                        ..Default::default()
-                    };
-                    if d.is_empty() {
-                        None
-                    } else {
-                        Some(d)
-                    }
-                }
-                _ => None,
-            },
-            _ => None,
-        };
-
-        CliErrorEnvelope::new_with_details(code, exit_code, technical, user, details)
+        CliErrorEnvelope::new(code, exit_code, technical, user).with_details(self.details())
     }
 }
 

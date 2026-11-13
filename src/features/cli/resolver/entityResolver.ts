@@ -1,5 +1,5 @@
-import { CliErrorCandidate } from '@bindings/CliErrorCandidate';
-import { CliErrorDetails } from '@bindings/CliErrorDetails';
+import type { CliErrorCandidate } from '@bindings/CliErrorCandidate';
+import type { CliErrorDetails } from '@bindings/CliErrorDetails';
 import { buildErrorEnvelope, isMachineMode } from '../sandbox/router/sandboxEnvelope';
 
 /**
@@ -68,11 +68,11 @@ export function isStrictResolution(
 export function reportResolveFailure<T>(
   resolve: ResolveResult<T>,
   output: { error: (msg: string, code?: string, exitCode?: number) => void },
-  flags?: Record<string, string | boolean>
+  flags: Record<string, string | boolean>
 ): void {
   if (!resolve.error) return;
 
-  if (flags && isMachineMode(flags)) {
+  if (isMachineMode(flags)) {
     const envelope = buildErrorEnvelope(
       resolve.errorCode,
       resolve.error,

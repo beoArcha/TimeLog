@@ -11,7 +11,74 @@ function runCommand(store: SandboxEmulatorStore, tokens: string[]): TerminalOutp
   return output;
 }
 
-describe('Sandbox error envelopes with structured details', () => {
+function errorLinesOf(output: TerminalOutput) {
+  return output.getLines().filter((l) => l.type === 'error');
+}
+
+describe('buildErrorEnvelope', () => {
+  it('should omit details and the user layer when no details are given', () => {
+    // Arrange
+    const nowMs = Date.parse('2026-11-12T10:30:15.000Z');
+
+    // Act
+    const parsed = JSON.parse(JSON.stringify(buildErrorEnvelope('DOM_ENTITY_NOT_FOUND', 'Task not found', 4, undefined, nowMs)));
+
+    // Assert
+    expect(parsed).toEqual({
+      code: 'DOM_ENTITY_NOT_FOUND',
+      category: 'entity',
+      exit_code: 4,
+      timestamp: '2026-11-12T10:30:15Z',
+      technical: 'Task not found',
+    });
+  });
+
+  it('should omit details when the candidate list is empty', () => {
+    // Arrange
+    const details = { candidates: [] };
+
+    // Act
+    const envelope = buildErrorEnvelope('DOM_ENTITY_AMBIGUOUS', 'Ambiguous target', 4, details);
+
+    // Assert
+    expect('details' in envelope).toBe(false);
+  });
+
+  it('should keep only the candidates when the details carry candidates', () => {
+    // Arrange
+    const candidates = [{ id: 't1', name: 'Alpha Task' }, { id: 't2', name: 'Beta Task' }];
+
+    // Act
+    const parsed = JSON.parse(JSON.stringify(buildErrorEnvelope('DOM_ENTITY_AMBIGUOUS', 'Ambiguous target', 4, { candidates })));
+
+    // Assert
+    expect(parsed.details).toEqual({ candidates });
+  });
+
+  it('should keep only the suggestion when the details carry a suggestion', () => {
+    // Arrange
+    const suggestion = { id: 't1', name: 'Alpha Task' };
+
+    // Act
+    const parsed = JSON.parse(JSON.stringify(buildErrorEnvelope('DOM_ENTITY_DID_YOU_MEAN', 'Did you mean', 4, { suggestion })));
+
+    // Assert
+    expect(parsed.details).toEqual({ suggestion });
+  });
+
+  it('should map the category from the code prefix when the code belongs to another domain', () => {
+    // Arrange
+    const code = 'ENG_TIMER_ACTIVE';
+
+    // Act
+    const envelope = buildErrorEnvelope(code, 'Timer already running', 5);
+
+    // Assert
+    expect(envelope.category).toBe('engine');
+  });
+});
+
+describe('SandboxCommandRouter error envelope', () => {
   let store: SandboxEmulatorStore;
 
   beforeEach(() => {
@@ -25,116 +92,100 @@ describe('Sandbox error envelopes with structured details', () => {
     vi.useRealTimers();
   });
 
-  describe('buildErrorEnvelope', () => {
-    it('omits details completely when details is empty or absent', () => {
-      const envelope = buildErrorEnvelope('DOM_ENTITY_NOT_FOUND', 'Task not found', 4, null);
-      const jsonStr = JSON.stringify(envelope);
-      const parsed = JSON.parse(jsonStr);
-
-      expect(parsed.code).toBe('DOM_ENTITY_NOT_FOUND');
-      expect(parsed.category).toBe('entity');
-      expect(parsed.exit_code).toBe(4);
-      expect(parsed.technical).toBe('Task not found');
-      expect(parsed.details).toBeUndefined();
+  it('should emit the candidates when a task target is ambiguous under --json', () => {
+    // Arrange
+    store.seedForTesting({
+      projects: [aProject({ id: 'p1', name: 'Project 1' })],
+      tasks: [
+        aTask({ id: 't1', projectId: 'p1', name: 'Duplicate Task' }),
+        aTask({ id: 't2', projectId: 'p1', name: 'Duplicate Task' }),
+      ],
+      logs: [],
+      activeLog: null,
     });
 
-    it('serializes candidates and omits suggestion, field, and value when only candidates are present', () => {
-      const candidates = [{ id: 't1', name: 'Alpha Task' }, { id: 't2', name: 'Beta Task' }];
-      const envelope = buildErrorEnvelope('DOM_ENTITY_AMBIGUOUS', 'Ambiguous target', 4, { candidates });
-      const jsonStr = JSON.stringify(envelope);
-      const parsed = JSON.parse(jsonStr);
+    // Act
+    const errors = errorLinesOf(runCommand(store, ['task', 'done', 'Duplicate Task', '--json']));
 
-      expect(parsed.details).toBeDefined();
-      expect(parsed.details.candidates).toEqual(candidates);
-      expect('suggestion' in parsed.details).toBe(false);
-      expect('field' in parsed.details).toBe(false);
-      expect('value' in parsed.details).toBe(false);
-    });
-
-    it('serializes suggestion and omits candidates, field, and value when only suggestion is present', () => {
-      const suggestion = { id: 't1', name: 'Alpha Task' };
-      const envelope = buildErrorEnvelope('DOM_ENTITY_DID_YOU_MEAN', 'Did you mean', 4, { suggestion });
-      const jsonStr = JSON.stringify(envelope);
-      const parsed = JSON.parse(jsonStr);
-
-      expect(parsed.details).toBeDefined();
-      expect(parsed.details.suggestion).toEqual(suggestion);
-      expect('candidates' in parsed.details).toBe(false);
-      expect('field' in parsed.details).toBe(false);
-      expect('value' in parsed.details).toBe(false);
+    // Assert
+    expect(errors).toHaveLength(1);
+    expect(errors[0].errorCode).toBe('DOM_ENTITY_AMBIGUOUS');
+    expect(errors[0].exitCode).toBe(4);
+    expect(JSON.parse(errors[0].text)).toMatchObject({
+      code: 'DOM_ENTITY_AMBIGUOUS',
+      category: 'entity',
+      exit_code: 4,
+      details: {
+        candidates: [
+          { id: 't1', name: 'Duplicate Task' },
+          { id: 't2', name: 'Duplicate Task' },
+        ],
+      },
     });
   });
 
-  describe('Sandbox router error emissions in machine mode', () => {
-    it('emits error envelope with candidates when target is ambiguous under --json', () => {
-      store.seedForTesting({
-        projects: [aProject({ id: 'p1', name: 'Project 1' })],
-        tasks: [
-          aTask({ id: 't1', projectId: 'p1', name: 'Duplicate Task' }),
-          aTask({ id: 't2', projectId: 'p1', name: 'Duplicate Task' }),
-        ],
-        logs: [],
-        activeLog: null,
-      });
-
-      const output = runCommand(store, ['task', 'done', 'Duplicate Task', '--json']);
-      const errorLines = output.getLines().filter((l) => l.type === 'error');
-
-      expect(errorLines).toHaveLength(1);
-      expect(errorLines[0].errorCode).toBe('DOM_ENTITY_AMBIGUOUS');
-      expect(errorLines[0].exitCode).toBe(4);
-
-      const envelope = JSON.parse(errorLines[0].text);
-      expect(envelope.code).toBe('DOM_ENTITY_AMBIGUOUS');
-      expect(envelope.exit_code).toBe(4);
-      expect(envelope.category).toBe('entity');
-      expect(envelope.details).toBeDefined();
-      expect(envelope.details.candidates).toHaveLength(2);
-      expect(envelope.details.candidates).toEqual([
-        { id: 't1', name: 'Duplicate Task' },
-        { id: 't2', name: 'Duplicate Task' },
-      ]);
+  it('should emit an envelope without details when a task target is not found under --json', () => {
+    // Arrange
+    store.seedForTesting({
+      projects: [aProject({ id: 'p1', name: 'Project 1' })],
+      tasks: [aTask({ id: 't1', projectId: 'p1', name: 'Some Task' })],
+      logs: [],
+      activeLog: null,
     });
 
-    it('emits error envelope without details when target is not found under --json', () => {
-      store.seedForTesting({
-        projects: [aProject({ id: 'p1', name: 'Project 1' })],
-        tasks: [aTask({ id: 't1', projectId: 'p1', name: 'Some Task' })],
-        logs: [],
-        activeLog: null,
-      });
+    // Act
+    const errors = errorLinesOf(runCommand(store, ['task', 'done', 'Nonexistent Task', '--json']));
 
-      const output = runCommand(store, ['task', 'done', 'Nonexistent Task', '--json']);
-      const errorLines = output.getLines().filter((l) => l.type === 'error');
+    // Assert
+    expect(errors).toHaveLength(1);
+    const envelope = JSON.parse(errors[0].text);
+    expect(envelope.code).toBe('DOM_ENTITY_NOT_FOUND');
+    expect(envelope.exit_code).toBe(4);
+    expect('details' in envelope).toBe(false);
+    expect('user' in envelope).toBe(false);
+  });
 
-      expect(errorLines).toHaveLength(1);
-      expect(errorLines[0].errorCode).toBe('DOM_ENTITY_NOT_FOUND');
-      expect(errorLines[0].exitCode).toBe(4);
-
-      const envelope = JSON.parse(errorLines[0].text);
-      expect(envelope.code).toBe('DOM_ENTITY_NOT_FOUND');
-      expect(envelope.exit_code).toBe(4);
-      expect(envelope.details).toBeUndefined();
+  it('should emit the project candidates when the project filter of task list is ambiguous under --json', () => {
+    // Arrange
+    store.seedForTesting({
+      projects: [
+        aProject({ id: 'p1', name: 'Client App' }),
+        aProject({ id: 'p2', name: 'Client App' }),
+      ],
+      tasks: [],
+      logs: [],
+      activeLog: null,
     });
 
-    it('emits error envelope with candidates when project target is ambiguous in task list --json', () => {
-      store.seedForTesting({
-        projects: [
-          aProject({ id: 'p1', name: 'Client App' }),
-          aProject({ id: 'p2', name: 'Client App' }),
-        ],
-        tasks: [],
-        logs: [],
-        activeLog: null,
-      });
+    // Act
+    const errors = errorLinesOf(runCommand(store, ['task', 'list', '--project', 'Client App', '--json']));
 
-      const output = runCommand(store, ['task', 'list', '--project', 'Client App', '--json']);
-      const errorLines = output.getLines().filter((l) => l.type === 'error');
+    // Assert
+    expect(errors).toHaveLength(1);
+    expect(JSON.parse(errors[0].text).details.candidates).toEqual([
+      { id: 'p1', name: 'Client App' },
+      { id: 'p2', name: 'Client App' },
+    ]);
+  });
 
-      expect(errorLines).toHaveLength(1);
-      expect(errorLines[0].errorCode).toBe('DOM_ENTITY_AMBIGUOUS');
-      const envelope = JSON.parse(errorLines[0].text);
-      expect(envelope.details.candidates).toHaveLength(2);
+  it('should print plain text when a task target is ambiguous in human mode', () => {
+    // Arrange
+    store.seedForTesting({
+      projects: [aProject({ id: 'p1', name: 'Project 1' })],
+      tasks: [
+        aTask({ id: 't1', projectId: 'p1', name: 'Duplicate Task' }),
+        aTask({ id: 't2', projectId: 'p1', name: 'Duplicate Task' }),
+      ],
+      logs: [],
+      activeLog: null,
     });
+
+    // Act
+    const errors = errorLinesOf(runCommand(store, ['task', 'done', 'Duplicate Task']));
+
+    // Assert
+    expect(errors).toHaveLength(1);
+    expect(errors[0].errorCode).toBe('DOM_ENTITY_AMBIGUOUS');
+    expect(() => JSON.parse(errors[0].text)).toThrow();
   });
 });

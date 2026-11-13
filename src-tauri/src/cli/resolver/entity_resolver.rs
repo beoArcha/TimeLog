@@ -32,7 +32,7 @@ impl fmt::Display for EntityType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ResolveError {
     NotFound {
         target: String,

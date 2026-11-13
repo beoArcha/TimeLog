@@ -1,5 +1,5 @@
 use oxyflow_timelog::cli::error::{
-    BusinessRuleViolation, CliErrorCode, CliErrorCandidate, CliErrorDetails, CliErrorEnvelope,
+    BusinessRuleViolation, CliErrorCandidate, CliErrorCode, CliErrorDetails, CliErrorEnvelope,
     CliSyntaxError,
 };
 use oxyflow_timelog::cli::resolver::{EntityType, ResolveError};
@@ -122,8 +122,14 @@ fn test_given_ambiguous_entity_when_converting_to_envelope_then_maps_to_dom_enti
     assert_eq!(envelope.code, "DOM_ENTITY_AMBIGUOUS");
     assert_eq!(envelope.category, "entity");
     assert_eq!(envelope.exit_code, EXIT_CODE_ENTITY_ERROR);
-    let details = envelope.details.as_ref().expect("details should be present");
-    let candidates = details.candidates.as_ref().expect("candidates should be present");
+    let details = envelope
+        .details
+        .as_ref()
+        .expect("details should be present");
+    let candidates = details
+        .candidates
+        .as_ref()
+        .expect("candidates should be present");
     assert_eq!(candidates.len(), 2);
     assert_eq!(candidates[0].id, "p1");
     assert_eq!(candidates[0].name, "Backend API");
@@ -371,13 +377,13 @@ fn test_given_envelope_without_details_when_serialized_then_details_field_is_omi
 #[test]
 fn test_given_envelope_with_empty_details_when_serialized_then_details_field_is_omitted() {
     // Arrange
-    let envelope = CliErrorEnvelope::new_with_details(
+    let envelope = CliErrorEnvelope::new(
         CliErrorCode::DomEntityNotFound,
         4,
         "Target not found".to_string(),
         None,
-        Some(CliErrorDetails::default()),
-    );
+    )
+    .with_details(Some(CliErrorDetails::default()));
 
     // Act
     let json_str = serde_json::to_string(&envelope).expect("serialization failed");
@@ -402,13 +408,13 @@ fn test_given_envelope_with_candidates_when_serialized_then_omits_absent_detail_
         ]),
         ..Default::default()
     };
-    let envelope = CliErrorEnvelope::new_with_details(
+    let envelope = CliErrorEnvelope::new(
         CliErrorCode::DomEntityAmbiguous,
         4,
         "Ambiguous match".to_string(),
         None,
-        Some(details),
-    );
+    )
+    .with_details(Some(details));
 
     // Act
     let json_str = serde_json::to_string(&envelope).expect("serialization failed");
@@ -436,13 +442,13 @@ fn test_given_envelope_with_suggestion_when_serialized_then_omits_absent_detail_
         }),
         ..Default::default()
     };
-    let envelope = CliErrorEnvelope::new_with_details(
+    let envelope = CliErrorEnvelope::new(
         CliErrorCode::DomEntityDidYouMean,
         4,
         "Did you mean".to_string(),
         None,
-        Some(details),
-    );
+    )
+    .with_details(Some(details));
 
     // Act
     let json_str = serde_json::to_string(&envelope).expect("serialization failed");
@@ -466,13 +472,13 @@ fn test_given_envelope_with_field_and_value_when_serialized_then_omits_absent_de
         value: Some("yaml".to_string()),
         ..Default::default()
     };
-    let envelope = CliErrorEnvelope::new_with_details(
+    let envelope = CliErrorEnvelope::new(
         CliErrorCode::CliSyntaxInvalidArgs,
         2,
         "Invalid format".to_string(),
         None,
-        Some(details),
-    );
+    )
+    .with_details(Some(details));
 
     // Act
     let json_str = serde_json::to_string(&envelope).expect("serialization failed");
@@ -513,13 +519,14 @@ fn test_given_did_you_mean_error_when_converting_to_envelope_then_populates_sugg
 }
 
 #[test]
-fn test_given_invalid_argument_syntax_error_when_converting_to_envelope_then_populates_field_and_value() {
+fn test_given_invalid_argument_syntax_error_when_converting_to_envelope_then_populates_field_and_value(
+) {
     // Arrange
-    let error = CliError::syntax_invalid_arg_field(
-        "Invalid value 'xyz' for flag --mode",
-        "--mode",
-        Some("xyz".to_string()),
-    );
+    let error = CliError::Syntax(CliSyntaxError::InvalidArgument {
+        message: "Invalid value 'xyz' for flag --mode".to_string(),
+        field: Some("--mode".to_string()),
+        value: Some("xyz".to_string()),
+    });
 
     // Act
     let envelope = error.to_envelope(None);
