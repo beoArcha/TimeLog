@@ -1,4 +1,4 @@
-import { ActiveSessionPayload } from '@bindings/ActiveSessionPayload';
+import type { ActiveSessionPayload } from '@bindings/ActiveSessionPayload';
 import type { ReportDocument } from '@bindings/ReportDocument';
 import type { ResolvedRange } from '@bindings/ResolvedRange';
 import { Task } from '@bindings/Task';
@@ -6,7 +6,13 @@ import { TimeLog } from '@bindings/TimeLog';
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
-import { isStrictResolution, reportResolveFailure, resolveEntity } from '../../../resolver/entityResolver';
+import {
+  isStrictResolution,
+  reportResolveFailure,
+  resolveEntity,
+  RESOLVE_NOT_FOUND_TEMPLATE,
+  type ResolveResult,
+} from '../../../resolver/entityResolver';
 import { localDateOfRange } from '@common/engine/range/logRange';
 import { buildReportAt } from '@common/engine/reports';
 import { resolveSandboxToday } from '../sandboxRange';
@@ -38,27 +44,46 @@ function elapsedSecondsSince(startTime: string): number {
 }
 
 // Like the native handler, a running log whose task or project is gone fails instead of getting a placeholder name.
-function toActiveSession(log: TimeLog, store: SandboxEmulatorStore): ActiveSessionPayload | null {
+function toActiveSession(log: TimeLog, store: SandboxEmulatorStore): ResolveResult<ActiveSessionPayload> {
   const task = store.getTasks().find((t) => t.id === log.taskId);
-  const project = task ? store.getProjects().find((p) => p.id === task.projectId) : undefined;
-  if (!task || !project) return null;
+  if (!task) return notFound('Task', log.taskId);
+  const project = store.getProjects().find((p) => p.id === task.projectId);
+  if (!project) return notFound('Project', task.projectId);
   return {
-    taskId: task.id,
-    taskName: task.name,
-    projectId: project.id,
-    projectName: project.name,
-    start: log.startTime,
-    elapsedSeconds: elapsedSecondsSince(log.startTime),
+    entity: {
+      taskId: task.id,
+      taskName: task.name,
+      projectId: project.id,
+      projectName: project.name,
+      start: log.startTime,
+      elapsedSeconds: elapsedSecondsSince(log.startTime),
+    },
   };
 }
 
-function emitStatus(activeLog: TimeLog | null, store: SandboxEmulatorStore, output: TerminalOutput): void {
-  const session = activeLog ? toActiveSession(activeLog, store) : null;
-  if (activeLog && !session) {
-    output.error(`Error: Task '${activeLog.taskId}' not found`, 'DOM_ENTITY_NOT_FOUND', 4);
-    return;
+function notFound(entityType: string, id: string): ResolveResult<ActiveSessionPayload> {
+  return {
+    error: RESOLVE_NOT_FOUND_TEMPLATE.replace('{}', entityType).replace('{}', id),
+    errorCode: 'DOM_ENTITY_NOT_FOUND',
+    exitCode: 4,
+  };
+}
+
+function emitStatus(
+  activeLog: TimeLog | null,
+  store: SandboxEmulatorStore,
+  output: TerminalOutput,
+  flags: Record<string, string | boolean>
+): void {
+  const active: ActiveSessionPayload[] = [];
+  if (activeLog) {
+    const session = toActiveSession(activeLog, store);
+    if (!session.entity) {
+      reportResolveFailure(session, output, flags);
+      return;
+    }
+    active.push(session.entity);
   }
-  const active = session ? [session] : [];
   const payload: StatusPayload = { active, count: active.length, running: active.length > 0 };
   emitEnvelope(output, SCHEMA_STATUS, payload);
 }
@@ -70,7 +95,7 @@ export function handleStatus(
 ): void {
   const activeLog = store.getActiveLog();
   if (isMachineMode(flags)) {
-    emitStatus(activeLog, store, output);
+    emitStatus(activeLog, store, output, flags);
     return;
   }
   if (!activeLog) {

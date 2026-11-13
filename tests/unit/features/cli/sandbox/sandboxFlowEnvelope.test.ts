@@ -112,6 +112,25 @@ describe('Sandbox flow command envelopes', () => {
         running: true,
       });
     });
+
+    it('should emit an entity error envelope when the running task no longer exists', () => {
+      // Arrange
+      seed('t_missing');
+
+      // Act
+      const lines = runCommand(store, ['status', '--json']).getLines();
+
+      // Assert
+      expect(lines).toHaveLength(1);
+      expect(lines[0].type).toBe('error');
+      expect(lines[0].exitCode).toBe(4);
+      expect(JSON.parse(lines[0].text)).toMatchObject({
+        code: 'DOM_ENTITY_NOT_FOUND',
+        category: 'entity',
+        exit_code: 4,
+        technical: "Task 't_missing' not found.",
+      });
+    });
   });
 
   describe('today', () => {

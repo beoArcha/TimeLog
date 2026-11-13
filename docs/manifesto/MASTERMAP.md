@@ -387,21 +387,21 @@ The phases follow the logical order of the work, not strictly the delivery order
 
 ---
 
-### Phase 21 — CLI Machine Contract 🚧 (In Progress)
+### Phase 21 — CLI Machine Contract ✅ (Completed)
 
 **Depends on:** Phase 20 (Group A) type conventions.
 **Goal:** Every `--json` / `--machine` command prints a versioned envelope, and errors carry structured, script-usable details.
 
 #### Group A — Success Envelope
 - [x] **Versioned Success Envelope**: `{ schema, schemaVersion, data, meta }` with camelCase keys for flow (`start`, `stop`, `switch`, `status`), entity (`project`, `task`, `log`) and subsystem (`config`, `sink`, `mask`, `doctor`, `db`) commands, mirrored in the sandbox emulator. `sink ls` reports `hasToken` instead of the stored token.
-- [ ] **Richer `status` / `today` / Dashboard**: `status` lists active timers with task and project names, start and elapsed time; `today` returns an `oxy.today` envelope built on `ReportDocument`; the dashboard prints an `oxy.dashboard` envelope whose totals come from the same document.
+- [x] **Richer `status` / `today` / Dashboard**: `status` lists active timers with task and project names, start and elapsed time; `today` returns an `oxy.today` envelope built on `ReportDocument`; the dashboard prints an `oxy.dashboard` envelope whose totals come from the same document.
 
 #### Group B — Errors & Schemas
 - [x] **Structured Error Details**: `details` (`candidates`, `suggestion`, `field`, `value`) in the error envelope, also in machine mode and in the sandbox emulator.
 - [x] **Published JSON Schema**: `oxy report schema` prints a `schemars`-generated JSON Schema of `oxy.report` v2 and of the envelope; committed copies are drift-tested. The XML variant (`--format xml`) follows with XSD v2 in Phase 22.
 
 #### Group C — Contract Verification
-- [ ] **Envelope Contract Test**: One test on the real binary runs every implemented `--json` command and checks the envelope shape and a clean `stderr`. `report` joins it in Phase 22.
+- [x] **Envelope Contract Test**: One test on the real binary runs every implemented `--json` command and checks the envelope shape and a clean `stderr`. `report` joins it in Phase 22.
 
 **Phase Gate:** The contract test passes for every `--json` command and the JSON Schema is published.
 
