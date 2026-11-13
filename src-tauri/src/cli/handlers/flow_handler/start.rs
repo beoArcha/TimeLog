@@ -62,7 +62,7 @@ pub fn handle_start_with_prompter(
             let active = engine.get_active_logs()?;
             if !active.is_empty() {
                 if is_machine {
-                    return status_envelope(active);
+                    return status_envelope(persistence);
                 }
                 return Ok(CliOutput::Status(active));
             }

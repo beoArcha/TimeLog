@@ -86,7 +86,7 @@ describe('Sandbox flow command envelopes', () => {
 
       // Assert
       expect(envelope.schema).toBe('oxy.status');
-      expect(envelope.data).toEqual({ activeTaskIds: [], count: 0, running: false });
+      expect(envelope.data).toEqual({ active: [], count: 0, running: false });
     });
 
     it('should list the running task when a timer is active', () => {
@@ -97,7 +97,20 @@ describe('Sandbox flow command envelopes', () => {
       const envelope = parseSingleEnvelope(runCommand(store, ['status', '--json']));
 
       // Assert
-      expect(envelope.data).toEqual({ activeTaskIds: ['t1'], count: 1, running: true });
+      expect(envelope.data).toEqual({
+        active: [
+          {
+            taskId: 't1',
+            taskName: 'Parity Task',
+            projectId: 'p1',
+            projectName: 'Parity Project',
+            start: '2026-06-15T09:30:00Z',
+            elapsedSeconds: Math.floor((Date.parse('2026-11-12T10:30:15.789Z') - Date.parse('2026-06-15T09:30:00Z')) / 1000),
+          },
+        ],
+        count: 1,
+        running: true,
+      });
     });
   });
 

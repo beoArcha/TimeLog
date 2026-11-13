@@ -1,4 +1,6 @@
+import { ActiveSessionPayload } from '@bindings/ActiveSessionPayload';
 import { Task } from '@bindings/Task';
+import { TimeLog } from '@bindings/TimeLog';
 import { SandboxEmulatorStore } from '../../sandboxEmulatorStore';
 import { TerminalOutput } from '../../../utils/terminalOutput';
 import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
@@ -20,6 +22,36 @@ const SANDBOX_ALREADY_TRACKING = "Already tracking '{}' [{}].";
 const SANDBOX_STOPPED_TASK_LINE = "Stopped: '{}' [{}]";
 const SANDBOX_UNKNOWN_TASK = 'Unknown Task';
 
+function elapsedSecondsSince(startTime: string): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(startTime).getTime()) / 1000));
+}
+
+// Like the native handler, a running log whose task or project is gone fails instead of getting a placeholder name.
+function toActiveSession(log: TimeLog, store: SandboxEmulatorStore): ActiveSessionPayload | null {
+  const task = store.getTasks().find((t) => t.id === log.taskId);
+  const project = task ? store.getProjects().find((p) => p.id === task.projectId) : undefined;
+  if (!task || !project) return null;
+  return {
+    taskId: task.id,
+    taskName: task.name,
+    projectId: project.id,
+    projectName: project.name,
+    start: log.startTime,
+    elapsedSeconds: elapsedSecondsSince(log.startTime),
+  };
+}
+
+function emitStatus(activeLog: TimeLog | null, store: SandboxEmulatorStore, output: TerminalOutput): void {
+  const session = activeLog ? toActiveSession(activeLog, store) : null;
+  if (activeLog && !session) {
+    output.error(`Error: Task '${activeLog.taskId}' not found`, 'DOM_ENTITY_NOT_FOUND', 4);
+    return;
+  }
+  const active = session ? [session] : [];
+  const payload: StatusPayload = { active, count: active.length, running: active.length > 0 };
+  emitEnvelope(output, SCHEMA_STATUS, payload);
+}
+
 export function handleStatus(
   flags: Record<string, string | boolean>,
   store: SandboxEmulatorStore,
@@ -27,13 +59,7 @@ export function handleStatus(
 ): void {
   const activeLog = store.getActiveLog();
   if (isMachineMode(flags)) {
-    const activeTaskIds = activeLog ? [activeLog.taskId] : [];
-    const payload: StatusPayload = {
-      activeTaskIds,
-      count: activeTaskIds.length,
-      running: activeTaskIds.length > 0,
-    };
-    emitEnvelope(output, SCHEMA_STATUS, payload);
+    emitStatus(activeLog, store, output);
     return;
   }
   if (!activeLog) {
@@ -45,8 +71,7 @@ export function handleStatus(
   const projects = store.getProjects();
   const task = tasks.find((t) => t.id === activeLog.taskId);
   const project = projects.find((p) => p.id === activeLog.projectId);
-  const startMs = new Date(activeLog.startTime).getTime();
-  const elapsedSecs = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+  const elapsedSecs = elapsedSecondsSince(activeLog.startTime);
 
   output.success(
     `Timer status: Active ▶ "${task?.name || 'Unknown'}" [${project?.name || 'General'}] (${formatSeconds(elapsedSecs)})`

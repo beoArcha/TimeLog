@@ -40,12 +40,27 @@ pub struct SwitchPayload {
     pub time_log_id: String,
 }
 
+/// A running timer with its task and project resolved, shared by `oxy.status` and `oxy.dashboard`.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct ActiveSessionPayload {
+    pub task_id: String,
+    pub task_name: String,
+    pub project_id: String,
+    pub project_name: String,
+    /// Stored RFC3339 start time of the running log.
+    pub start: String,
+    #[ts(type = "number")]
+    pub elapsed_seconds: u64,
+}
+
 /// Payload of the `oxy.status` envelope, also returned by `start` without a target while a timer runs.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct StatusPayload {
-    pub active_task_ids: Vec<String>,
+    pub active: Vec<ActiveSessionPayload>,
     pub count: u32,
     pub running: bool,
 }
