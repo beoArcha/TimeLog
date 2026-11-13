@@ -40,8 +40,8 @@ fn test_given_registry_when_reading_groups_and_binary_flags_then_matches_the_for
         (ExportFormat::Csv, FormatGroup::Data, false),
         (ExportFormat::Json, FormatGroup::Data, false),
         (ExportFormat::Xml, FormatGroup::Data, false),
-        (ExportFormat::Ods, FormatGroup::Human, true),
-        (ExportFormat::Xlsx, FormatGroup::Human, true),
+        (ExportFormat::Ods, FormatGroup::Data, true),
+        (ExportFormat::Xlsx, FormatGroup::Data, true),
     ];
 
     for (format, group, binary) in expected {

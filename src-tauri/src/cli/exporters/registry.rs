@@ -13,7 +13,8 @@ use std::io::Write;
 const ALL_VARIANTS: &[ReportVariantArg] = &[ReportVariantArg::Full, ReportVariantArg::Summary];
 const FULL_ONLY: &[ReportVariantArg] = &[ReportVariantArg::Full];
 
-/// `Data` formats are meant to be read by programs, `Human` formats by people.
+/// `Data` formats carry the figures for programs and spreadsheets (Phase 22), `Human` formats are
+/// laid-out reports for people (Phase 23).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FormatGroup {
     Data,
@@ -154,7 +155,7 @@ static REGISTRY: [FormatSpec; 7] = [
     },
     FormatSpec {
         format: ExportFormat::Ods,
-        group: FormatGroup::Human,
+        group: FormatGroup::Data,
         variants: ALL_VARIANTS,
         binary: true,
         locale_dependent: false,
@@ -162,7 +163,7 @@ static REGISTRY: [FormatSpec; 7] = [
     },
     FormatSpec {
         format: ExportFormat::Xlsx,
-        group: FormatGroup::Human,
+        group: FormatGroup::Data,
         variants: ALL_VARIANTS,
         binary: true,
         locale_dependent: false,
