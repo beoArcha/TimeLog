@@ -200,7 +200,7 @@ oxy project ls -q | grep -c "Core"
 
 Not yet covered by this contract: `report` (planned follow-up). Its quiet output is unchanged.
 
-### Machine Output Envelope (Implemented for `start`, `stop`, `switch`, `status`, `config`, `sink`, `mask`, `doctor`, `db`)
+### Machine Output Envelope (Implemented for flow, entity and subsystem commands)
 
 Every successful `--json` / `--machine` response of a migrated command is one versioned envelope on `stdout`. The contract is identical in the native `oxy` binary and the browser sandbox emulator, and the TypeScript shape is generated into `src/bindings/SuccessEnvelope.ts`.
 
@@ -216,7 +216,7 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 }
 ```
 
-- `schema` is `oxy.<command>` (flow commands) or `oxy.<domain>.<action>` (entity commands); `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
+- `schema` is `oxy.<command>` (flow commands and `doctor`) or `oxy.<domain>.<action>` (entity and subsystem commands); `schemaVersion` is an integer bumped on any breaking change to that schema's `data` shape. There is no compatibility mode for earlier shapes: consumers pin on `schema` + `schemaVersion`.
 - `meta.generatedAt` is whole-second RFC 3339 UTC; `meta.generator` is the same `{ name, version }` pair that `oxy.report` carries.
 - All JSON keys are camelCase at every depth. Enum values (`action`) are camelCase too.
 - **Formatting:** `--machine` always prints one compact line. `--json` prints indented JSON only when `stdout` is a terminal and `--machine` is absent; piped or redirected `--json` output is one compact line. The sandbox has no terminal and always prints the compact line.
@@ -246,8 +246,20 @@ Every successful `--json` / `--machine` response of a migrated command is one ve
 | `oxy log add <target> [dur]` | `oxy.log.add` | 1 | `TimeLog` entity object |
 | `oxy log edit <id> --reason <r>` | `oxy.log.edit` | 1 | `TimeLog` entity object |
 | `oxy log rm <id>` | `oxy.log.remove` | 1 | `{ id: string, action: "removed", entry: TimeLog }` |
+| `oxy config ls` | `oxy.config.list` | 1 | `{ items: { key, value }[] }`; lists only keys persisted in SQLite, so an unset `cli_machine_locale` is absent |
+| `oxy config get <key>` | `oxy.config.get` | 1 | `{ key, value }`; `cli_machine_locale` returns its effective default `en` when unset |
+| `oxy config set <key> <value>` | `oxy.config.set` | 1 | `{ key, value }` with the normalized value |
+| `oxy sink ls` | `oxy.sink.list` | 1 | `{ items: { name, sinkType, target, hasToken, enabled, createdAt }[] }`; the webhook token itself is never printed, only whether one is stored (`hasToken`) |
+| `oxy sink set-csv` / `oxy sink set-webhook` | `oxy.sink.set` | 1 | `{ sinkType: "csv" \| "webhook", target }` |
+| `oxy sink test` | `oxy.sink.test` | 1 | `{ items: { name, sinkType, target, passed, detail }[] }`; a failing sink makes the command fail instead |
+| `oxy mask ls` | `oxy.mask.list` | 1 | `{ items: { name, template, createdAt }[] }` |
+| `oxy mask set <name> <template>` | `oxy.mask.set` | 1 | `{ name, template }` |
+| `oxy mask rm <name>` | `oxy.mask.remove` | 1 | `{ name }` |
+| `oxy doctor` | `oxy.doctor` | 1 | `{ overallStatus: "ok", dbPath, dbSizeBytes, checks: { name, status, message }[] }`; emitted only when every check passes, otherwise the command fails as before |
+| `oxy db backup <path>` | `oxy.db.backup` | 1 | `{ destination }` |
+| `oxy db restore <path>` | `oxy.db.restore` | 1 | `{ source }` |
 
-The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. `oxy today` and `oxy` (dashboard) are not migrated yet and keep their snake_case keys until their own envelope change.
+The former `"status": "ok"` field is gone: a successful exit code and the envelope itself signal success. Not migrated yet: `oxy today` and `oxy` (dashboard), which keep their snake_case keys (planned with the richer `status` / `today` payloads), and `oxy report --json` / `oxy report schema -o --machine`, which keep their previous shapes until the report output moves to `ReportDocument`.
 
 ### Billing Configuration (Implemented)
 
@@ -291,6 +303,8 @@ For integer minor-unit input, use `--rate-cents 15000` on Project/Task creation 
 ---
 
 ### Report Export Subsystem (Implemented)
+
+**Report figures:** `oxy report` (tree, `--json` and every export) computes its numbers with the engine's canonical report builder (`Engine::build_report`, see [`ENGINEERING.md`](./ENGINEERING.md#canonical-report-model-reportdocument)) and maps the result to the established output shapes. In those shapes, `entries` are ordered by start time and then ID, each entry's `date` is the local calendar date (in the report timezone) of the part of the entry that falls inside the range, and `start_time` / `end_time` show the in-range part as whole-second RFC 3339 instants. `oxy report --json` keeps this legacy shape until it switches to the `ReportDocument` (`oxy.report` v2) contract.
 
 The CLI provides deterministic report exports across six structured formats via `oxy report export -f <format> -o <path>`:
 
@@ -409,7 +423,8 @@ In `--json`/`--machine` mode, or in human mode with the global `--exact` flag, `
 `oxy log rm <id>` asks for confirmation before deleting:
 - **Interactive TTY:** Prompts `Remove entry <short id> (<duration>, <task name>)? [y/N]`. Anything but `y` or `yes` (case-insensitive) cancels the operation, deletes nothing, prints `Operation cancelled.`, and exits with code 0.
 - **Bypass Prompting:** In non-interactive pipelines (non-TTY stdin / pipes), when the `--yes` (`-y`) flag is provided, or in machine mode (`--json` / `--machine`), removal proceeds immediately without asking.
-- **Machine Envelope:** In `--json` / `--machine` mode, the envelope includes the removed entry (`"entry": { ... }`) alongside `"status": "ok"`, `"id": <id>`, and `"action": "removed"`, enabling recreation via `oxy log add`.
+- **Machine Envelope:** In `--json` / `--machine` mode the command prints the `oxy.log.remove` envelope whose `data` is `{ id, action: "removed", entry }`; `entry` is the removed time log, enabling recreation via `oxy log add`.
+- **Quiet mode:** `oxy log rm <id> -q` prints only the removed ID.
 
 ---
 

@@ -14,9 +14,10 @@ The `oxy` binary accepts global flags that control output formatting and verbosi
 
 | Flag | Short | Description |
 | :--- | :--- | :--- |
-| `--json` | `-j` | Emits unformatted, machine-parseable JSON to `stdout`. |
+| `--json` | `-j` | Emits the versioned JSON envelope to `stdout`: indented on a terminal, one compact line when piped. |
 | `--machine` | `-m` | Emits deterministic single-line JSON, suppressing interactive prompts. |
 | `--quiet` | `-q` | Mutations print only the affected entity ID; lists print bare rows without headers. Errors are still shown. |
+| `--exact` | | Resolves targets only by exact ID, a unique ID prefix of 8+ characters or an exact name (always on with `--json` / `--machine`). |
 | `--db <path>` | | Explicit path to SQLite database file (overrides `OXY_DB_PATH`). |
 
 ---

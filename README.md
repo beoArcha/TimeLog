@@ -64,7 +64,8 @@ Most modern productivity tools suffer from bloated runtimes, slow cold starts, a
 ### 💻 Standalone Native CLI (`oxy`) & In-App Terminal Drawer
 
 * **High-Velocity Automation:** Full command suite (`oxy start`, `oxy stop`, `oxy switch`, `oxy status`, `oxy report`).
-* **Machine Automation Mode:** Clean JSON streams to `stdout` with structured machine-parseable error envelopes to `stderr` (`--machine`, `--json`) and POSIX exit codes (`0`..`5`).
+* **Machine Automation Mode:** Versioned JSON envelopes (`schema`, `schemaVersion`, `data`, `meta`) on `stdout`, structured error envelopes on `stderr` (`--machine`, `--json`), POSIX exit codes (`0`..`5`), strict target matching and quiet mode (`-q`) for scripts, plus a published JSON Schema of the report document (`oxy report schema`).
+* **Timezone-Aware Periods:** `--tz` and presets (`--today`, `--week`, `--last-month`, …) for logs, reports and the daily summary.
 * **Beginner Guidance:** Levenshtein-based "Did you mean?" suggestions for command typos and interactive parameter prompts in TTY mode.
 * **Action Masks & Macros:** Register custom shorthand commands (`oxy mask set wrap-up "oxy stop --all && oxy report --today"`) with dynamic argument substitution (`$1`..`$9`).
 

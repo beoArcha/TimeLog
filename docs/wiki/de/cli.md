@@ -14,9 +14,10 @@ Das Binary `oxy` akzeptiert globale Flags zur Steuerung von Ausgabeformatierung 
 
 | Flag | Kurzform | Beschreibung |
 | :--- | :--- | :--- |
-| `--json` | `-j` | Gibt unformatiertes JSON auf `stdout` aus. |
+| `--json` | `-j` | Gibt den versionierten JSON-Umschlag auf `stdout` aus: eingerückt im Terminal, eine kompakte Zeile in einer Pipe. |
 | `--machine` | `-m` | Gibt deterministisches, einzeiliges JSON ohne interaktive Prompts aus. |
-| `--quiet` | `-q` | Unterdrückt informative Hinweise und Tabellenkopfzeilen. |
+| `--quiet` | `-q` | Änderungen geben nur die ID der betroffenen Entität aus, Listen nur Zeilen ohne Kopfzeilen. Fehler werden weiterhin angezeigt. |
+| `--exact` | | Löst Ziele nur über exakte ID, eindeutiges ID-Präfix (mind. 8 Zeichen) oder exakten Namen auf (mit `--json` / `--machine` immer aktiv). |
 | `--db <Pfad>` | | Expliziter Pfad zur SQLite-Datenbankdatei (überschreibt `OXY_DB_PATH`). |
 
 ---

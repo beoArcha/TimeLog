@@ -336,6 +336,62 @@ FullLayoutBuilder   MediumLayoutBuilder   CompactLayoutBuilder
 
 ---
 
+### Phase 18.5 — CLI Reports, Machine Contract & Export Formats (v1.16) 🚧 (In Progress)
+
+**Goal:** One canonical, versioned report model built by the Engine in both runtimes, a stable machine contract for every `--json` / `--machine` command, and data plus human report formats that are pure projections of that model. Target release: `1.16.0`.
+
+#### Group A — CLI Correctness
+- [x] **Timezone-Aware Periods**: Shared `--tz` and period presets (`--today`, `--yesterday`, `--week`, `--last-week`, `--month`, `--last-month`, `--from`/`--to`) for `log ls`, `report` and `today`, resolved on the local calendar of an IANA timezone in both runtimes.
+- [x] **No Silent Truncation**: Machine-mode `log ls` returns every match; human mode shows a footer with the hidden count.
+- [x] **Idempotent Timer Commands**: `start` on a running task is a no-op that reports the state; `stop --if-running` succeeds on an idle timer.
+- [x] **Parser Errors in the Error Envelope**: clap syntax errors use the `stderr` error envelope and exit code `2` in machine mode.
+- [x] **Quiet Mode Contract**: `-q` prints only identifiers for mutations (including `start`, `switch` and `log rm`) and bare rows for lists.
+- [ ] **Quiet `report`**: `-q` semantics for `report` and exports.
+- [x] **Confirmed Log Removal**: `log rm` asks in an interactive terminal; `--yes`, non-TTY and machine mode skip the prompt; machine output returns the removed entry.
+- [ ] **Export to stdout & Ordering**: `report -o -` and deterministic export ordering.
+
+#### Group B — Canonical Report Model in the Engine
+- [x] **`ReportDocument` v2 Contract**: Versioned report types (`oxy.report`, `schemaVersion: 2`) generated into `src/bindings/`.
+- [x] **Rust Report Builder**: `Engine::build_report` with clamped entries, flattened task tree, half-to-even shares, per-task billing with banker's rounding, per-currency totals and per-local-day totals.
+- [x] **CLI Report via Engine**: `oxy report` computes its figures with `Engine::build_report` (temporary adapter to the legacy output shapes).
+- [x] **Browser Mirror & Parity**: `buildReportAt` in `src/common/engine/reports/`, verified byte-for-byte against Rust-generated shared vectors.
+- [x] **Exporter Isolation Guardrails**: Architecture tests keep exporters free of storage and engine imports in Rust and TypeScript.
+- [ ] **`oxy report --json` Emits `ReportDocument`**: Gate for this group; removes the legacy adapter.
+
+#### Group C — CLI Machine Contract
+- [x] **Versioned Success Envelope**: `{ schema, schemaVersion, data, meta }` with camelCase keys for flow, entity and subsystem commands, mirrored in the sandbox emulator.
+- [x] **Published JSON Schema**: `oxy report schema` prints a `schemars`-generated JSON Schema of `oxy.report` v2 and of the envelope; committed copies are drift-tested.
+- [ ] **Structured Error Details**: `details` (`candidates`, `suggestion`, `field`, `value`) in the error envelope, also in machine mode.
+- [ ] **Richer `status` / `today` / Dashboard**: Envelope payloads with task and project names, start and elapsed time; `today` built on `ReportDocument`.
+
+#### Group D — Data Exporters v2
+- [ ] **Exporter Registry & Flags**: `--format`, `--variant`, `-o` / `-o -`, `--lang`; the `report export` and `report tree` subcommands fold into `report`.
+- [ ] **Data Formats**: JSON and JSONL, CSV (Excel-friendly options), XML with XSD v2, XLSX (sheets and native chart), ODS and TOML, in full and summary variants, all projected from `ReportDocument`.
+- [ ] **Cross-Format Consistency Test**: Every data format yields the same totals, entry count and per-project sums for one fixture.
+
+#### Group E — Human-Readable Reports
+- [ ] **Shared Dictionaries in Rust**: Rust translator over the 10-locale dictionaries with a completeness test.
+- [ ] **Report Formats with Charts**: Markdown, print-ready HTML, DOCX and ODT with generated SVG charts; `--entries` / `--no-notes`.
+
+#### Group F — Terminal Output
+- [x] **Table Renderer & Decoration Detection**: Shared table renderer, human duration format, TTY and `NO_COLOR` detection.
+- [ ] **Messages & Help**: Consistent `start` / `stop` / `status` messages, short IDs, `project ls` with rates, help with examples.
+
+#### Group G — Pipeline Readiness
+- [x] **No Silent Database Creation**: An explicit `--db` path must exist.
+- [x] **Strict Machine Resolution**: Machine mode and `--exact` resolve targets only by exact ID, unique ID prefix of at least 8 characters or exact name.
+- [ ] **Deterministic Exports**: Correct empty-period output in every format, `contentHash`, export metadata on stdout, predictable file names (`--output-dir`), pipeline documentation and a column dictionary.
+
+#### Group H — Browser Export Parity
+- [ ] **TypeScript Exporters on `ReportDocument`**: Browser exporters consume the generated bindings; missing formats are added or listed as documented differences.
+
+#### Group I — Terminal & Error Localization
+- [ ] **Localized Terminal Output**: Terminal messages from the `cli` domain, a localized user layer in the error envelope and a decision on translating clap help; `--json` stdout stays byte-identical across `--lang`.
+
+**Phase Gate:** `oxy report --json` returns `ReportDocument` v2 identical to the browser engine for the same fixture; the contract test passes for every `--json` command; the cross-format consistency and pipeline contract tests pass on the real binary; documentation and `CHANGELOG.md` are updated and the version is `1.16.0`.
+
+---
+
 ### Phase 19 — Engine Parity, CLI Modularity & Structural Hygiene 🚧 (Planned)
 
 Architecture debt identified by reviewing the codebase at `62877c4`. Each group is an architecture change and must be approved separately from feature work (see `AGENTS.md`, Refactoring scope).
@@ -347,17 +403,17 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Native Validation via IPC**: `TauriValidationEngine` currently delegates to the browser implementation in `@plugins/engine/validation`. Route validation through `src-tauri/src/engine/validation.rs` via Tauri commands and confirm the cross-runtime parity matrix covers it.
 
 #### Group C (Parallel Track) — Sandbox Delegation to Engine
-- [ ] **Sandbox Engine Delegation**: `sandboxTimerOps`, `sandboxTaskOps`, `sandboxProjectOps` and `sandboxMetricsCalculator.ts` re-implement timer and metrics logic. Delegate to `IEngine` so each runtime keeps a single implementation.
+- [ ] **Sandbox Engine Delegation**: `sandboxTimerOps`, `sandboxTaskOps`, `sandboxProjectOps` and `sandboxMetricsCalculator.ts` re-implement timer and metrics logic. Delegate to `IEngine` so each runtime keeps a single implementation. Phase 18.5 added further sandbox mirrors (envelopes, quiet output, `log rm`, period flags) and a browser report engine (`EnginePlugin.buildReport`) that this delegation should reuse; until then, new sandbox copies are limited to what the parity matrix requires.
 
 #### Group D (Parallel Track) — Structural Hygiene
-- [ ] **File Length Decomposition**: Split files above ~300 LOC: `DataTableViewer.tsx` (758), `ActiveTimerBanner.tsx` (377), `useTauriWindow.ts` (315), `MediumProjectSelector.tsx` (313), `sandboxEmulatorStore.ts` (307), and Rust `cli/handlers/log_handler.rs` (581), `task_handler.rs` (517), `flow_handler.rs` (487), `report_handler.rs` (400), `resolver/entity_resolver.rs` (361), `error/cli_error.rs` (356).
+- [ ] **File Length Decomposition**: Split files above ~300 LOC: `DataTableViewer.tsx` (758), `ActiveTimerBanner.tsx` (377), `useTauriWindow.ts` (315), `MediumProjectSelector.tsx` (313), `sandboxEmulatorStore.ts` (344), and Rust `cli/handlers/task_handler.rs` (632), `flow_handler.rs` (599), `log_handler.rs` (598), `error/cli_error.rs` (396), `resolver/entity_resolver.rs` (374). `report_handler.rs` dropped to 142 lines after Phase 18.5 moved report figures into the Engine.
 - [ ] **Production unwrap Removal**: Replace the six `.unwrap()` calls in production Rust code (`app/builder.rs`, `engine/metrics/computed.rs`, `workflows/daemon.rs`, `cli/resolver/prompter.rs`, `cli/resolver/entity_resolver.rs`) with typed error handling.
 
 #### Group E (Parallel Track) — Webhook Dispatch Verification
 - [ ] **Single Webhook Dispatch Path**: Audit the TypeScript WebhookDispatcher, native Tauri/CLI sink paths and Browser queue adapters. Select one logical dispatch contract and document runtime-specific adapters in ENGINEERING.md; Phase 24 must build on this decision rather than introduce a second dispatcher.
 
 #### Group F (Parallel Track) — CLI Billing Reports (moved from Phase 16)
-- [ ] **CLI Billing Reports**: Provide CLI operations (`oxy report billing` / `report --billing`) for calculating and reporting billing values for supported Projects, Tasks, and time ranges using `calculate_range_billing()`, exposing consistent machine-readable results and cross-runtime parity.
+- [ ] **CLI Billing Reports**: Provide CLI operations (`oxy report billing` / `report --billing`) for calculating and reporting billing values for supported Projects, Tasks, and time ranges using `calculate_range_billing()`, exposing consistent machine-readable results and cross-runtime parity. Largely covered by Phase 18.5: `ReportDocument` carries per-task rates and amounts plus per-currency billing totals with cross-runtime parity; what remains is a billing-focused CLI view once `report` output uses `ReportDocument`.
 
 ---
 
@@ -398,7 +454,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 #### Group A — Canonical MCP Contracts & TypeScript Bindings
 - [ ] **MCP Contract Source of Truth**: Define typed MCP tool inputs, outputs, resource payloads and error envelopes in the native contract layer. Keep contracts separate from Engine and Persistence implementation details.
 - [ ] **Generated TypeScript Bindings**: Export the contract types into src/bindings/ using the existing ts-rs binding pipeline. Generated files are never edited manually.
-- [ ] **JSON Schema Generation**: Generate JSON Schemas for MCP inputs and outputs from the same contract definitions (e.g. via schemars), so Rust and TypeScript adapters do not maintain separate handwritten schemas.
+- [ ] **JSON Schema Generation**: Generate JSON Schemas for MCP inputs and outputs from the same contract definitions (e.g. via schemars), so Rust and TypeScript adapters do not maintain separate handwritten schemas. Started in Phase 18.5: the `schemars` generator already produces the committed schemas of `oxy.report` v2 and the CLI envelope (`schemas/json/`) with a drift test; MCP contracts extend the same pipeline.
 - [ ] **Build & CI Integration**: Extend the existing binding-generation workflow to produce and verify MCP contract artifacts. CI must fail when generated bindings/schemas are stale or differ from the committed output.
 - [ ] **Contract Compatibility Tests**: Verify required/optional fields, enum values, nullability, serialization and schema compatibility across Rust and TypeScript.
 
@@ -463,7 +519,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Canonical Classification**: Define stable categories and severity policy for domain, validation, configuration, persistence, network, infrastructure, unexpected and critical failures. Reuse existing CLI/MCP-facing semantics where possible; do not create competing taxonomies.
 - [ ] **Typed Error Completeness**: Replace ambiguous string-only variants such as generic Storage(String) or OperationFailed(String) where they prevent reliable classification, while preserving useful source errors and context.
 - [ ] **Central Handling Policy**: Separate error creation, propagation, handling, user notification and diagnostic reporting. Do not turn expected domain outcomes into infrastructure errors or collapse typed errors into generic strings.
-- [ ] **Boundary Mapping**: Preserve stable typed semantics across Rust → Tauri IPC, CLI machine envelopes and frontend-facing contracts. Keep CLI exit codes and machine-readable output backward-compatible unless a separately approved migration is required.
+- [ ] **Boundary Mapping**: Preserve stable typed semantics across Rust → Tauri IPC, CLI machine envelopes and frontend-facing contracts. Keep CLI exit codes and machine-readable output backward-compatible unless a separately approved migration is required. Phase 18.5 performed one approved migration to the versioned success envelope; later machine-output changes are signalled through `schemaVersion`.
 - [ ] **No Silent Error Loss**: Audit ignored Result values and discarded failures. Classify each intentional best-effort operation explicitly; all other failures must be handled or propagated. Prefer compiler/linter enforcement where sufficient over broad custom AST rules.
 - [ ] **Existing Guardrail Alignment**: Extend current architecture/error tests to detect genuinely untyped error variants and broken mappings; do not duplicate checks already enforced by error_handling_test.rs.
 
@@ -553,7 +609,7 @@ Architecture debt identified by reviewing the codebase at `62877c4`. Each group 
 - [ ] **Transport Adapters**: Implement a native HTTP(S) adapter for Tauri/CLI and a Browser fetch adapter for PWA. Keep shared request semantics, event identity and error classification; document Browser CORS and capability restrictions.
 - [ ] **JWT Authentication**: Support manually configured bearer credentials without embedding secrets in event payloads or ordinary queue headers.
 - [ ] **Secure Credential Storage**: Define a platform-specific credential provider. Use OS-backed secure storage where available; do not claim Browser LocalStorage is secure credential storage.
-- [ ] **Existing Secret Migration**: Migrate or invalidate existing plaintext webhook tokens in cli_sinks.config and secret-bearing queued headers. Remove secret copies from queue records; if safe migration is impossible, require re-authentication and explain the consequence.
+- [ ] **Existing Secret Migration**: Migrate or invalidate existing plaintext webhook tokens in cli_sinks.config and secret-bearing queued headers. Remove secret copies from queue records; if safe migration is impossible, require re-authentication and explain the consequence. Phase 18.5 already stopped `oxy sink ls --machine` from printing the token (it reports `hasToken`); storage migration remains here.
 - [ ] **Proxy Support**: Support system and explicit proxy configuration only in native transports where technically available. Clearly report that Browser proxy behavior is browser-managed and cannot be configured by the application.
 - [ ] **Transport Security**: Require HTTPS for remote credentials, validate TLS certificates and define timeout/response-size limits.
 - [ ] **Connection Configuration**: Support endpoint, timeout, authentication reference and connection-test settings without exposing credentials in diagnostics.
