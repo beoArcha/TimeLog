@@ -80,8 +80,8 @@ Changing a code or its mapping is a breaking change of the CLI contract: update 
 - **Preserve Diagnostic Context**: Important failures must retain enough structured context to identify the failing operation and its origin, without exposing credentials or sensitive payloads.
 - **Strict Stdout Purity in Machine Mode**: When `--machine` or `--json` is active, stdout is reserved exclusively for the documented machine-readable response contract. Diagnostic output must never corrupt or precede the JSON response.
 - **Current Logging Scope**: Do not introduce or mandate a new logging backend, global logger initialization strategy, file format, rotation policy or retention mechanism as part of an unrelated feature.
-- **Centralized Logging Roadmap**: Native Rust error handling and diagnostic logging implementation details are governed by Phase 23 of `docs/manifesto/MASTERMAP.md`. Changes that implement or advance that phase must follow its architecture and acceptance criteria.
-- **Current Machine-Mode Stream Contract**: Until Phase 23 is implemented, follow the current tested CLI contract in `testing_standards.md`: machine-readable stdout must remain pure and diagnostics are directed to stderr. Any change to stderr behavior must be migrated together with Phase 23 and its subprocess tests.
+- **Centralized Logging Roadmap**: Native Rust error handling and diagnostic logging implementation details are governed by Phase 32 of `docs/manifesto/MASTERMAP.md`. Changes that implement or advance that phase must follow its architecture and acceptance criteria.
+- **Current Machine-Mode Stream Contract**: Until Phase 32 is implemented, follow the current tested CLI contract in `testing_standards.md`: machine-readable stdout must remain pure and diagnostics are directed to stderr. Any change to stderr behavior must be migrated together with Phase 32 and its subprocess tests.
 
 ## 5. Handler Structure & Configuration Semantics
 
