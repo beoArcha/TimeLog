@@ -96,12 +96,21 @@ pub fn render_tree_string(tree: &ReportTreeDto) -> String {
         .collect::<Vec<_>>()
         .join("");
 
-    let total_tasks: usize = tree.projects.iter().map(|p| p.tasks.len()).sum();
-    let total_row = FORMAT_REPORT_TOTAL
-        .replacen("{}", &tree.total_formatted, 1)
-        .replacen("{}", &total_tasks.to_string(), 1);
+    format!(
+        "{}{}{}{}",
+        header,
+        branches,
+        DIVIDER_LINE,
+        render_total_row(tree)
+    )
+}
 
-    format!("{}{}{}{}", header, branches, DIVIDER_LINE, total_row)
+/// The closing "Total Time" row of the tree, newline included; also what `report -q` prints.
+pub fn render_total_row(tree: &ReportTreeDto) -> String {
+    let total_tasks: usize = tree.projects.iter().map(|p| p.tasks.len()).sum();
+    FORMAT_REPORT_TOTAL
+        .replacen("{}", &tree.total_formatted, 1)
+        .replacen("{}", &total_tasks.to_string(), 1)
 }
 
 fn render_project_branch(project: &ReportProjectDto) -> String {

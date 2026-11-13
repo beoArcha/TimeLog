@@ -47,9 +47,14 @@ fn args(parts: &[&str]) -> Vec<String> {
     parts.iter().map(|part| part.to_string()).collect()
 }
 
-/// Every implemented machine-readable command except the `report` family, which moves to the
-/// envelope in a later change. The order matters: later commands read what earlier ones wrote.
-fn contract_commands(ids: &SeededIds, csv_dir: &str, backup_path: &str) -> Vec<Vec<String>> {
+/// Every implemented machine-readable command. The order matters: later commands read what
+/// earlier ones wrote.
+fn contract_commands(
+    ids: &SeededIds,
+    csv_dir: &str,
+    backup_path: &str,
+    report_path: &str,
+) -> Vec<Vec<String>> {
     let (task_a, task_b) = (ids.task_a.as_str(), ids.task_b.as_str());
     vec![
         args(&["--json", "status"]),
@@ -60,6 +65,9 @@ fn contract_commands(ids: &SeededIds, csv_dir: &str, backup_path: &str) -> Vec<V
         args(&["--json", "switch", task_b]),
         args(&["--json"]),
         args(&["--json", "today"]),
+        args(&["--json", "report"]),
+        args(&["--json", "report", "--variant", "summary"]),
+        args(&["--json", "report", "-o", report_path]),
         args(&["--json", "stop"]),
         args(&["--json", "stop", "--if-running"]),
         args(&["--json", "project", "ls"]),
@@ -170,10 +178,12 @@ fn test_given_seeded_database_when_each_json_command_runs_then_stdout_is_one_env
     let ids = seed(&env);
     let csv_dir = env.path.join("contract_csv");
     let backup_path = env.path.join("contract_backup.db");
+    let report_path = env.path.join("contract_report.csv");
     let commands = contract_commands(
         &ids,
         csv_dir.to_str().unwrap(),
         backup_path.to_str().unwrap(),
+        report_path.to_str().unwrap(),
     );
 
     for command in commands {

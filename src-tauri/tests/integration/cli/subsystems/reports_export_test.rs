@@ -2,11 +2,10 @@ use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use calamine::{Reader, Xlsx};
 use clap::Parser;
-use oxyflow_timelog::cli::formatters::ReportTreeDto;
 use oxyflow_timelog::cli::{handle_cli, CliArgs};
 use oxyflow_timelog::engine::Engine;
 use oxyflow_timelog::persistence::Persistence;
-use oxyflow_timelog::types::NewTimeLog;
+use oxyflow_timelog::types::{NewTimeLog, ReportDocument};
 use rusqlite::Connection;
 use std::fs;
 
@@ -52,9 +51,7 @@ fn test_given_logged_work_when_exporting_to_html_then_generates_valid_html_repor
     let output_file = temp_dir.path().join("report.html");
     let output_path = output_file.to_str().unwrap();
 
-    let args =
-        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "html", "-o", output_path])
-            .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "html", "-o", output_path]).unwrap();
 
     let result = handle_cli(args, &persistence, &engine);
 
@@ -76,8 +73,7 @@ fn test_given_logged_work_when_exporting_to_csv_then_generates_valid_tabular_csv
     let output_file = temp_dir.path().join("report.csv");
     let output_path = output_file.to_str().unwrap();
 
-    let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "csv", "-o", output_path])
-        .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "csv", "-o", output_path]).unwrap();
 
     let result = handle_cli(args, &persistence, &engine);
 
@@ -99,9 +95,7 @@ fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_repor
     let output_file = temp_dir.path().join("report.json");
     let output_path = output_file.to_str().unwrap();
 
-    let args =
-        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "json", "-o", output_path])
-            .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "json", "-o", output_path]).unwrap();
 
     let result = handle_cli(args, &persistence, &engine);
 
@@ -109,11 +103,11 @@ fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_repor
     assert!(output_file.exists());
 
     let content = fs::read_to_string(&output_file).expect("failed to read exported JSON");
-    let tree: ReportTreeDto =
-        serde_json::from_str(&content).expect("content must parse into ReportTreeDto");
-    assert_eq!(tree.projects.len(), 1);
-    assert_eq!(tree.projects[0].name, "Export System");
-    assert_eq!(tree.total_seconds, 7200);
+    let document: ReportDocument =
+        serde_json::from_str(&content).expect("content must parse into ReportDocument");
+    assert_eq!(document.projects.len(), 1);
+    assert_eq!(document.projects[0].name, "Export System");
+    assert_eq!(document.totals.seconds, 7200);
 }
 
 #[test]
@@ -124,8 +118,7 @@ fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_
     let output_file = temp_dir.path().join("report.xml");
     let output_path = output_file.to_str().unwrap();
 
-    let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xml", "-o", output_path])
-        .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "xml", "-o", output_path]).unwrap();
 
     let result = handle_cli(args, &persistence, &engine);
 
@@ -147,9 +140,7 @@ fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_repor
     let output_file = temp_dir.path().join("report.xlsx");
     let output_path = output_file.to_str().unwrap();
 
-    let args =
-        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "xlsx", "-o", output_path])
-            .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "xlsx", "-o", output_path]).unwrap();
 
     let result = handle_cli(args, &persistence, &engine);
 
@@ -231,8 +222,7 @@ fn test_given_logged_work_when_exporting_to_ods_then_generates_valid_ods_report_
     let output_file = temp_dir.path().join("report.ods");
     let output_path = output_file.to_str().unwrap();
 
-    let args = CliArgs::try_parse_from(["oxy", "report", "export", "-f", "ods", "-o", output_path])
-        .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "ods", "-o", output_path]).unwrap();
 
     let result = handle_cli(args, &persistence, &engine);
 
@@ -324,9 +314,7 @@ fn test_given_invalid_path_when_exporting_then_fails_with_sink_error_exit_code_1
         "/non_existent_dir_xyz/deeply/nested/report.csv"
     };
 
-    let args =
-        CliArgs::try_parse_from(["oxy", "report", "export", "-f", "csv", "-o", invalid_path])
-            .unwrap();
+    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "csv", "-o", invalid_path]).unwrap();
 
     let result = handle_cli(args, &persistence, &engine);
 

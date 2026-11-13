@@ -19,6 +19,9 @@ pub enum CliOutput {
     Envelope(Box<SuccessEnvelope>),
     Json(String),
     Raw(String),
+    /// Exact payload bytes for stdout: no status prefix and no added newline, so an export
+    /// piped to a file equals the one written with `-o <path>`.
+    Bytes(Vec<u8>),
 }
 
 impl CliOutput {
@@ -88,6 +91,7 @@ impl fmt::Display for CliOutput {
             }
             CliOutput::Json(data) => write!(f, "{}", data),
             CliOutput::Raw(data) => write!(f, "{}", data),
+            CliOutput::Bytes(bytes) => write!(f, "{}", String::from_utf8_lossy(bytes)),
         }
     }
 }

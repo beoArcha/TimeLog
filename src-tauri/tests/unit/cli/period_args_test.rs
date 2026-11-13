@@ -1,7 +1,6 @@
 use clap::Parser;
 use oxyflow_timelog::cli::parser::period_args::PeriodArgs;
 use oxyflow_timelog::cli::parser::tier2_entities::LogSubcommand;
-use oxyflow_timelog::cli::parser::tier3_subsystems::ReportSubcommand;
 use oxyflow_timelog::cli::{CliArgs, CliCommand};
 use oxyflow_timelog::types::RangePreset;
 
@@ -184,30 +183,11 @@ fn test_given_period_flags_when_parsing_report_then_binds_period() {
 }
 
 #[test]
-fn test_given_period_flags_when_parsing_report_tree_then_binds_period() {
-    // Arrange
-    let args = ["oxy", "report", "tree", "--month"];
-
-    // Act
-    let parsed = CliArgs::try_parse_from(args).unwrap();
-
-    // Assert
-    match parsed.command {
-        Some(CliCommand::Report(report)) => match report.command {
-            Some(ReportSubcommand::Tree { period, .. }) => assert!(period.month),
-            other => panic!("Expected Report Tree, got: {other:?}"),
-        },
-        other => panic!("Expected Report, got: {other:?}"),
-    }
-}
-
-#[test]
-fn test_given_period_flags_when_parsing_report_export_then_binds_period() {
+fn test_given_period_flags_when_parsing_report_with_export_flags_then_binds_period() {
     // Arrange
     let args = [
         "oxy",
         "report",
-        "export",
         "-f",
         "csv",
         "-o",
@@ -223,25 +203,21 @@ fn test_given_period_flags_when_parsing_report_export_then_binds_period() {
 
     // Assert
     match parsed.command {
-        Some(CliCommand::Report(report)) => match report.command {
-            Some(ReportSubcommand::Export { period, .. }) => {
-                assert_eq!(period.from.as_deref(), Some("2026-10-01"));
-                assert_eq!(period.to.as_deref(), Some("2026-10-31"));
-            }
-            other => panic!("Expected Report Export, got: {other:?}"),
-        },
+        Some(CliCommand::Report(report)) => {
+            assert_eq!(report.period.from.as_deref(), Some("2026-10-01"));
+            assert_eq!(report.period.to.as_deref(), Some("2026-10-31"));
+        }
         other => panic!("Expected Report, got: {other:?}"),
     }
 }
 
 #[test]
 fn test_given_conflicting_presets_when_parsing_each_command_then_rejects_them() {
-    let invocations: [&[&str]; 4] = [
+    let invocations: [&[&str]; 3] = [
         &["oxy", "log", "ls", "--today", "--week"],
         &["oxy", "report", "--today", "--week"],
-        &["oxy", "report", "tree", "--today", "--week"],
         &[
-            "oxy", "report", "export", "-f", "csv", "-o", "o.csv", "--today", "--week",
+            "oxy", "report", "-f", "csv", "-o", "o.csv", "--today", "--week",
         ],
     ];
     for args in invocations {

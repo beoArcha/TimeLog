@@ -12,8 +12,8 @@ pub use tier2_entities::{
 };
 pub use tier3_subsystems::{
     ConfigArgs, ConfigSubcommand, DbArgs, DbSubcommand, DoctorArgs, ExportFormat, MaskArgs,
-    MaskSubcommand, ReportArgs, ReportSubcommand, SchemaFormat, SchemaTarget, SinkArgs,
-    SinkSubcommand,
+    MaskSubcommand, ReportArgs, ReportSubcommand, ReportVariantArg, SchemaFormat, SchemaTarget,
+    SinkArgs, SinkSubcommand,
 };
 
 #[derive(Parser, Debug, Clone, Default)]

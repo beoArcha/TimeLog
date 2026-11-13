@@ -1,12 +1,33 @@
 use super::period_args::PeriodArgs;
+use crate::types::ReportVariant;
 use clap::{Args, Subcommand};
 
 #[derive(Args, Debug, Clone, PartialEq, Eq)]
 pub struct ReportArgs {
     #[command(subcommand)]
     pub command: Option<ReportSubcommand>,
-    #[arg(long, help = "Render hierarchical Unicode tree of projects and tasks")]
-    pub tree: bool,
+    #[arg(
+        short = 'f',
+        long,
+        value_enum,
+        default_value_t = ExportFormat::Table,
+        help = "Output format: table, html, csv, json, xml, ods, xlsx"
+    )]
+    pub format: ExportFormat,
+    #[arg(
+        long,
+        value_enum,
+        default_value_t = ReportVariantArg::Full,
+        help = "Report variant: full (with entries) or summary (totals only)"
+    )]
+    pub variant: ReportVariantArg,
+    #[arg(
+        short = 'o',
+        long,
+        allow_hyphen_values = true,
+        help = "Write the report to a file; '-' writes it to stdout"
+    )]
+    pub output: Option<String>,
     #[command(flatten)]
     pub period: PeriodArgs,
     #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
@@ -17,28 +38,6 @@ pub struct ReportArgs {
 
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
 pub enum ReportSubcommand {
-    #[command(about = "Render hierarchical Unicode report tree")]
-    Tree {
-        #[command(flatten)]
-        period: PeriodArgs,
-        #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
-        project: Option<String>,
-        #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
-        task: Option<String>,
-    },
-    #[command(about = "Export report to HTML, CSV, or JSON file")]
-    Export {
-        #[arg(short, long, help = "Export format: html, csv, json, xml, ods, xlsx")]
-        format: ExportFormat,
-        #[arg(short, long, help = "Output destination file path")]
-        output: String,
-        #[command(flatten)]
-        period: PeriodArgs,
-        #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
-        project: Option<String>,
-        #[arg(short = 't', long, help = "Filter report by task (ID or name)")]
-        task: Option<String>,
-    },
     #[command(about = "Output the JSON Schema of the report document or the CLI envelope")]
     Schema {
         #[arg(
@@ -79,12 +78,28 @@ pub enum SchemaTarget {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 pub enum ExportFormat {
+    Table,
     Html,
     Csv,
     Json,
     Xml,
     Ods,
     Xlsx,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum ReportVariantArg {
+    Full,
+    Summary,
+}
+
+impl From<ReportVariantArg> for ReportVariant {
+    fn from(variant: ReportVariantArg) -> Self {
+        match variant {
+            ReportVariantArg::Full => ReportVariant::Full,
+            ReportVariantArg::Summary => ReportVariant::Summary,
+        }
+    }
 }
 
 #[derive(Args, Debug, Clone, PartialEq, Eq)]

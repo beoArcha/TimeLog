@@ -1,24 +1,37 @@
-use super::exporter_fixtures::*;
+use crate::shared::exporter_fixtures::create_sample_document;
+use crate::shared::report_document_builders::a_document;
 use oxyflow_timelog::cli::exporters::export_json;
-use oxyflow_timelog::cli::formatters::ReportTreeDto;
+use oxyflow_timelog::types::{ReportDocument, ReportVariant};
 
 #[test]
-fn test_given_tree_when_export_json_then_produces_pretty_printed_schema() {
-    let tree = create_sample_tree();
-    let json = export_json(&tree).expect("json export should succeed");
+fn test_given_full_document_when_export_json_then_produces_the_bare_pretty_printed_document() {
+    // Arrange
+    let document = create_sample_document(ReportVariant::Full);
 
-    assert!(json.contains("\"period\": \"Today\""));
-    assert!(json.contains("\"total_seconds\": 3600"));
-    assert!(json.contains("\"projects\": ["));
+    // Act
+    let json = export_json(&document).expect("json export should succeed");
+
+    // Assert
+    assert!(json.contains("\"schema\": \"oxy.report\""));
+    assert!(json.contains("\"schemaVersion\": 2"));
+    assert!(json.contains("\"entries\": ["));
+    assert!(json.ends_with(
+        "}
+"
+    ));
+    let parsed: ReportDocument = serde_json::from_str(&json).expect("must parse back");
+    assert_eq!(parsed, document);
 }
 
 #[test]
-fn test_given_empty_tree_when_export_json_then_produces_valid_empty_json() {
-    let tree = create_empty_tree();
-    let json = export_json(&tree).expect("json export should succeed");
+fn test_given_summary_document_when_export_json_then_omits_entries() {
+    // Arrange
+    let document = a_document(ReportVariant::Summary);
 
-    let parsed: ReportTreeDto =
-        serde_json::from_str(&json).expect("must parse back into ReportTreeDto");
-    assert_eq!(parsed.total_seconds, 0);
-    assert!(parsed.projects.is_empty());
+    // Act
+    let json = export_json(&document).expect("json export should succeed");
+
+    // Assert
+    assert!(json.contains("\"variant\": \"summary\""));
+    assert!(!json.contains("\"entries\""));
 }

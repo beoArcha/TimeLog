@@ -1,8 +1,18 @@
 #![allow(dead_code)]
 
+use super::report_document_builders::a_document;
 use oxyflow_timelog::cli::formatters::{
     ReportEntryDto, ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
 };
+use oxyflow_timelog::types::{ReportDocument, ReportVariant};
+
+/// The document counterpart of `create_sample_tree`: one quoted project with one task.
+pub fn create_sample_document(variant: ReportVariant) -> ReportDocument {
+    let mut document = a_document(variant);
+    document.projects[0].name = "API \"Service\"".to_string();
+    document.projects[0].tasks[0].name = "Database Setup".to_string();
+    document
+}
 
 pub fn create_sample_tree() -> ReportTreeDto {
     ReportTreeDto {

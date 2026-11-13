@@ -1,3 +1,4 @@
+use super::report::ReportVariant;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -154,4 +155,17 @@ pub struct DbBackupPayload {
 #[serde(rename_all = "camelCase")]
 pub struct DbRestorePayload {
     pub source: String,
+}
+
+/// Payload of the `oxy.report.export` envelope printed after `report -o <path>` in machine mode.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct ReportExportPayload {
+    pub path: String,
+    /// CLI name of the export format (`--format`).
+    pub format: String,
+    pub variant: ReportVariant,
+    #[ts(type = "number")]
+    pub total_seconds: u64,
 }

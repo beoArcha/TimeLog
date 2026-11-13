@@ -1,4 +1,5 @@
 use super::exporter_fixtures::create_sample_tree;
+use crate::shared::exporter_fixtures::create_sample_document;
 use crate::shared::spreadsheet_helpers::{get_ods_cell_str, get_xlsx_cell_str};
 use calamine::{Reader, Xlsx};
 use oxyflow_timelog::cli::error::{CliError, SinkError};
@@ -7,6 +8,7 @@ use oxyflow_timelog::cli::exporters::{
     write_csv, write_html, write_json, write_ods, write_xlsx, write_xml,
 };
 use oxyflow_timelog::cli::parser::ExportFormat;
+use oxyflow_timelog::types::ReportVariant;
 use spreadsheet_ods::read_ods_buf;
 use std::fs;
 use std::io::{Cursor, Write};
@@ -15,8 +17,9 @@ use tempfile::tempdir;
 #[test]
 fn test_given_sample_tree_when_export_to_writer_called_for_all_formats_then_all_stream_successfully(
 ) {
-    let tree = create_sample_tree();
+    let document = create_sample_document(ReportVariant::Full);
     let formats = [
+        ExportFormat::Table,
         ExportFormat::Html,
         ExportFormat::Csv,
         ExportFormat::Json,
@@ -27,7 +30,7 @@ fn test_given_sample_tree_when_export_to_writer_called_for_all_formats_then_all_
 
     for format in formats {
         let mut buffer = Vec::new();
-        let res = export_to_writer(&tree, format, &mut buffer);
+        let res = export_to_writer(&document, format, &mut buffer);
         assert!(
             res.is_ok(),
             "format {:?} streaming failed: {:?}",
@@ -49,10 +52,11 @@ fn test_given_specific_writers_when_streaming_then_matches_export_output_parity(
     assert_eq!(csv_str, export_csv(&tree).expect("export_csv"));
 
     // JSON parity
+    let document = create_sample_document(ReportVariant::Full);
     let mut json_buf = Vec::new();
-    write_json(&tree, &mut json_buf).expect("write_json");
+    write_json(&document, &mut json_buf).expect("write_json");
     let json_str = String::from_utf8(json_buf).expect("utf8 json");
-    assert_eq!(json_str, export_json(&tree).expect("export_json"));
+    assert_eq!(json_str, export_json(&document).expect("export_json"));
 
     // HTML parity
     let mut html_buf = Vec::new();
@@ -209,12 +213,12 @@ fn test_given_atomic_write_to_file_when_write_fails_on_existing_target_then_pres
 
 #[test]
 fn test_given_export_to_file_when_called_then_writes_atomically_using_buf_writer() {
-    let tree = create_sample_tree();
+    let document = create_sample_document(ReportVariant::Full);
     let dir = tempdir().expect("create tempdir");
     let target_file = dir.path().join("report.csv");
     let target_str = target_file.to_str().unwrap();
 
-    let res = export_to_file(&tree, ExportFormat::Csv, target_str);
+    let res = export_to_file(&document, ExportFormat::Csv, target_str);
     assert!(res.is_ok());
     assert!(target_file.exists());
 

@@ -1,3 +1,4 @@
+use crate::shared::report_document_builders::a_document;
 use oxyflow_timelog::cli::error::{CliErrorCode, CliErrorEnvelope, SinkError};
 use oxyflow_timelog::cli::exporters::{export_csv, export_to_file, flatten_report};
 use oxyflow_timelog::cli::formatters::{
@@ -8,6 +9,7 @@ use oxyflow_timelog::cli::shared::constants::{
     EXIT_CODE_GENERIC_FAILURE, MSG_ERR_REMEDIATION_SERIALIZATION, MSG_ERR_REMEDIATION_SINK,
 };
 use oxyflow_timelog::cli::CliError;
+use oxyflow_timelog::types::ReportVariant;
 use std::fs;
 use tempfile::tempdir;
 
@@ -179,20 +181,14 @@ fn test_given_serialization_and_io_errors_when_cross_checked_then_guarantees_str
 fn test_given_export_to_file_when_filesystem_write_fails_then_returns_sink_io_error_mapped_to_snk_external_io(
 ) {
     // Arrange: Create a read-only destination directory or invalid path
-    let tree = ReportTreeDto {
-        period: "Today".to_string(),
-        total_seconds: 3600,
-        total_formatted: "01h 00m".to_string(),
-        projects: vec![],
-        entries: vec![],
-    };
+    let document = a_document(ReportVariant::Summary);
 
     let temp = tempdir().expect("tempdir creation");
     let invalid_path = temp.path().join("directory_acting_as_file");
     fs::create_dir(&invalid_path).expect("create dir");
 
     // Act: Attempt to write a file over an existing directory path (triggers OS I/O error)
-    let result = export_to_file(&tree, ExportFormat::Csv, invalid_path.to_str().unwrap());
+    let result = export_to_file(&document, ExportFormat::Csv, invalid_path.to_str().unwrap());
 
     // Assert
     assert!(result.is_err());

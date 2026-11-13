@@ -19,11 +19,12 @@ pub use parser::{CliArgs, CliCommand, CliCommands, ExportFormat};
 pub use shared::output::CliOutput;
 pub use shared::validation::validate_cli_machine_locale;
 
-use crate::cli::shared::constants::EXIT_CODE_SUCCESS;
+use crate::cli::shared::constants::{ERR_STDOUT_WRITE, EXIT_CODE_SUCCESS};
 use crate::engine::Engine;
 use crate::persistence::Persistence;
+use error::SinkError;
 use shared::envelope::JsonStyle;
-use std::io::IsTerminal;
+use std::io::{IsTerminal, Write};
 use std::process::ExitCode;
 
 /// Initializes the CLI logger to write diagnostics strictly to stderr.
@@ -121,18 +122,38 @@ pub fn preprocess_args(
 pub fn run(args: CliArgs, persistence: &Persistence, engine: &Engine) -> ExitCode {
     let is_machine = args.machine || args.json;
     let style = JsonStyle::resolve(args.json, args.machine, std::io::stdout().is_terminal());
-    match handle_cli(args, persistence, engine).and_then(|output| output.render(style)) {
-        Ok(rendered) => {
-            // Nothing to show (e.g. an empty quiet listing) must write zero bytes, not a lone newline.
-            if !rendered.is_empty() {
-                println!("{rendered}");
-            }
-            ExitCode::from(EXIT_CODE_SUCCESS)
-        }
+    match handle_cli(args, persistence, engine).and_then(|output| emit(output, style)) {
+        Ok(()) => ExitCode::from(EXIT_CODE_SUCCESS),
         Err(err) => {
             let envelope = build_error_envelope(&err, is_machine, Some(persistence));
             envelope.render_stderr(is_machine);
             envelope.to_exit_code()
         }
     }
+}
+
+fn emit(output: CliOutput, style: JsonStyle) -> Result<(), CliError> {
+    if let CliOutput::Bytes(bytes) = &output {
+        return write_stdout_bytes(bytes);
+    }
+    let rendered = output.render(style)?;
+    // Nothing to show (e.g. an empty quiet listing) must write zero bytes, not a lone newline.
+    if !rendered.is_empty() {
+        println!("{rendered}");
+    }
+    Ok(())
+}
+
+fn write_stdout_bytes(bytes: &[u8]) -> Result<(), CliError> {
+    let mut stdout = std::io::stdout().lock();
+    stdout
+        .write_all(bytes)
+        .and_then(|()| stdout.flush())
+        .map_err(|e| {
+            CliError::Sink(SinkError::Io(ERR_STDOUT_WRITE.replacen(
+                "{}",
+                &e.to_string(),
+                1,
+            )))
+        })
 }
