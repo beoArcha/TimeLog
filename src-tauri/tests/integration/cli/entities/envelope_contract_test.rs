@@ -1,6 +1,5 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
-use chrono::Utc;
 use clap::Parser;
 use oxyflow_timelog::cli::{handle_cli, CliArgs};
 use oxyflow_timelog::engine::Engine;
