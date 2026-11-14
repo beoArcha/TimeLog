@@ -70,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`oxy report schema` Defaults to a Generated JSON Schema**:
   - The default output is now the JSON Schema (draft 2020-12) of the `oxy.report` v2 document instead of the XML Schema (XSD) v1; the XSD stays available with `--format xml`.
-  - The `--version` flag is removed (only XSD version `1` exists).
+  - The `--version` flag is removed (only the current XSD version is published).
   - With `--machine` and `-o`, the summary now carries `schema` and a numeric `schema_version` (previously the string `"1"`).
 - **Versioned `--json` / `--machine` Envelope for Flow Commands**:
   - `start`, `stop`, `switch` and `status` now print `{ "schema": "oxy.<command>", "schemaVersion": 1, "data": {...}, "meta": { "generatedAt", "generator" } }` instead of the previous flat object; the former `"status": "ok"` field is removed and there is no v1 compatibility mode.
@@ -187,6 +187,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **XML Report Export is `oxy.report` v2 (XSD v2)**:
+  - `oxy report -f xml` writes the `ReportDocument` directly instead of the legacy v1 tree: root `<report schema="oxy.report" schemaVersion="2" variant="full|summary">` with `generatedAt`, `generator`, `range`, `filters`, totals with per-currency `billing`, projects with tasks and flat subtasks (`parentTaskId`), and, for the `full` variant only, `days` and `entries`. Identifiers, instants, counts and enumerations are attributes; names and notes are element text, escaped for XML 1.0.
+  - The `xml` format now supports the `summary` variant (no `days`, no `entries`); the former syntax error for `xml` with `--variant summary` is gone.
+  - `oxy report schema --format xml` prints the new XSD (`schemas/xml/report/v2/report.xsd`, version `2`); the machine summary carries `schema_version` `2`. The v1 XSD stays on disk for the browser exporter only.
 - **`oxy log rm` Asks for Confirmation**: In an interactive terminal it prompts `Remove entry <short id> (<duration>, <task>)? [y/N]` and deletes only on `y` / `yes`; non-interactive runs, `--yes` / `-y` and machine mode delete without asking.
 - **`oxy report` Figures Come from the Engine**: The report command now builds its numbers with `Engine::build_report`. Totals are unchanged; in `--json` and exports, entries are ordered by start time, each entry's `date` is the local date (report timezone) of its in-range part, and timestamps are whole seconds.
 
