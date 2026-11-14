@@ -9,6 +9,9 @@ export class ReportsPage extends BasePage {
   readonly periodMonthBtn: Locator;
   readonly periodAllBtn: Locator;
   readonly reportSortSelect: Locator;
+  readonly projectFilterAllBtn: Locator;
+  readonly periodTotalStat: Locator;
+  readonly logListScrollContainer: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -19,6 +22,9 @@ export class ReportsPage extends BasePage {
     this.periodMonthBtn = page.locator('[data-testid="period-btn-month"]');
     this.periodAllBtn = page.locator('[data-testid="period-btn-all"]');
     this.reportSortSelect = page.locator('[data-testid="report-sort-select"]');
+    this.projectFilterAllBtn = page.locator('[data-testid="project-filter-all"]');
+    this.periodTotalStat = page.locator('[data-testid="report-stat-total"]');
+    this.logListScrollContainer = page.locator('[data-testid="report-log-list-scroll-container"]');
   }
 
   async openReportsTab() {
@@ -32,5 +38,17 @@ export class ReportsPage extends BasePage {
 
   async selectSortOrder(sortOrder: 'date' | 'duration') {
     await this.reportSortSelect.selectOption(sortOrder);
+  }
+
+  projectFilterChip(projectId: string): Locator {
+    return this.page.locator(`[data-testid="project-filter-${projectId}"]`);
+  }
+
+  async toggleProjectFilter(projectId: string) {
+    await this.projectFilterChip(projectId).click();
+  }
+
+  async clearProjectFilter() {
+    await this.projectFilterAllBtn.click();
   }
 }

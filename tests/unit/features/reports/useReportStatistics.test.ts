@@ -228,7 +228,7 @@ describe('Unit Tests: useReportStatistics', () => {
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
-        selectedProjectId: null as string | null,
+        selectedProjectIds: [] as string[],
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
       },
     });
@@ -243,7 +243,7 @@ describe('Unit Tests: useReportStatistics', () => {
       expect(result.current.isBillingLoading).toBe(false);
     });
 
-    // When selectedProjectId is 'p1': only p1 logs (3600s) must be computed
+    // When selectedProjectIds is 'p1': only p1 logs (3600s) must be computed
     rerender({
       logs,
       patches,
@@ -252,7 +252,7 @@ describe('Unit Tests: useReportStatistics', () => {
       nowIso: '2026-07-12T15:00:00Z',
       reportPeriod: 'week',
       reportSort: 'duration',
-      selectedProjectId: 'p1',
+      selectedProjectIds: ['p1'],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     });
 
@@ -272,7 +272,7 @@ describe('Unit Tests: useReportStatistics', () => {
       expect(result.current.isBillingLoading).toBe(false);
     });
 
-    // When selectedProjectId is 'p2': only p2 logs (7200s) must be computed
+    // When selectedProjectIds is 'p2': only p2 logs (7200s) must be computed
     rerender({
       logs,
       patches,
@@ -281,7 +281,7 @@ describe('Unit Tests: useReportStatistics', () => {
       nowIso: '2026-07-12T15:00:00Z',
       reportPeriod: 'week',
       reportSort: 'duration',
-      selectedProjectId: 'p2',
+      selectedProjectIds: ['p2'],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     });
 
@@ -326,7 +326,7 @@ describe('Unit Tests: useReportStatistics', () => {
           customFrom: '2026-06-15',
           customTo: '2026-06-22',
           reportSort: 'duration',
-          selectedProjectId: 'p1',
+          selectedProjectIds: ['p1'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         },
       }
@@ -335,7 +335,7 @@ describe('Unit Tests: useReportStatistics', () => {
     // In date range June 15 - June 22 and for project p1:
     // l1 is June 10 (outside range) -> excluded
     // l2 is June 20 (inside range, p1) -> 7200s
-    // l3 is June 20 (inside range, but p2) -> excluded because selectedProjectId is p1
+    // l3 is June 20 (inside range, but p2) -> excluded because selectedProjectIds is p1
     expect(result.current.periodTotalSec).toBe(7200);
     expect(result.current.filteredLogs).toHaveLength(1);
     expect(result.current.filteredLogs[0].id).toBe('l2');
@@ -364,7 +364,7 @@ describe('Unit Tests: useReportStatistics', () => {
       customFrom: '2026-06-15',
       customTo: '2026-06-22',
       reportSort: 'duration',
-      selectedProjectId: 'p2',
+      selectedProjectIds: ['p2'],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     });
 
@@ -397,7 +397,7 @@ describe('Unit Tests: useReportStatistics', () => {
       customFrom: '2026-06-15',
       customTo: '2026-06-22',
       reportSort: 'duration',
-      selectedProjectId: null,
+      selectedProjectIds: [],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     });
 
@@ -435,7 +435,7 @@ describe('Unit Tests: useReportStatistics', () => {
           nowIso: '2026-06-25T15:00:00Z',
           reportPeriod: 'all',
           reportSort: 'duration',
-          selectedProjectId: 'p1',
+          selectedProjectIds: ['p1'],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })
@@ -459,7 +459,7 @@ describe('Unit Tests: useReportStatistics', () => {
           nowIso: '2026-06-25T15:00:00Z',
           reportPeriod: 'all',
           reportSort: 'duration',
-          selectedProjectId: 'p2', // Beta is 'backend'
+          selectedProjectIds: ['p2'], // Beta is 'backend'
           selectedTags: ['frontend'], // active tag is 'frontend'
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })
@@ -477,7 +477,7 @@ describe('Unit Tests: useReportStatistics', () => {
       expect(result.current.clampedLogs).toHaveLength(0);
     });
 
-    it('when selectedProjectId is null, returns all projects matching active tags', () => {
+    it('when several projects are selected, returns the intersection with the active tags', () => {
       const { result } = renderHook(() =>
         useReportStatistics({
           logs: testLogs,
@@ -487,7 +487,48 @@ describe('Unit Tests: useReportStatistics', () => {
           nowIso: '2026-06-25T15:00:00Z',
           reportPeriod: 'all',
           reportSort: 'duration',
-          selectedProjectId: null,
+          selectedProjectIds: ['p1', 'p2'],
+          selectedTags: ['frontend'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      // p2 is in scope but is 'backend'; p3 matches the tag but is out of scope
+      expect(result.current.periodTotalSec).toBe(3600);
+      expect(result.current.projectChart.map((p) => p.id)).toEqual(['p1']);
+    });
+
+    it('when several projects are selected without tags, returns exactly those projects', () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs: testLogs,
+          patches: [],
+          projects: taggedProjects,
+          tasks: testTasks,
+          nowIso: '2026-06-25T15:00:00Z',
+          reportPeriod: 'all',
+          reportSort: 'duration',
+          selectedProjectIds: ['p2', 'p3'],
+          sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
+        })
+      );
+
+      expect(result.current.periodTotalSec).toBe(18000);
+      expect(result.current.projectChart).toHaveLength(2);
+      expect(result.current.displayLogs).toHaveLength(2);
+    });
+
+    it('when selectedProjectIds is empty, returns all projects matching active tags', () => {
+      const { result } = renderHook(() =>
+        useReportStatistics({
+          logs: testLogs,
+          patches: [],
+          projects: taggedProjects,
+          tasks: testTasks,
+          nowIso: '2026-06-25T15:00:00Z',
+          reportPeriod: 'all',
+          reportSort: 'duration',
+          selectedProjectIds: [],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })

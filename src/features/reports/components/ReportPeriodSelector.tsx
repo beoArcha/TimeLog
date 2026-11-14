@@ -25,8 +25,9 @@ export interface ReportPeriodSelectorProps {
   onToggleTag?: (tag: string) => void;
   onClearTags?: () => void;
   projects?: Project[];
-  selectedProjectId?: string | null;
-  onSelectProject?: (projectId: string | null) => void;
+  selectedProjectIds?: readonly string[];
+  onToggleProject?: (projectId: string) => void;
+  onClearProjects?: () => void;
 }
 
 export default function ReportPeriodSelector({
@@ -43,8 +44,9 @@ export default function ReportPeriodSelector({
   onToggleTag,
   onClearTags,
   projects,
-  selectedProjectId,
-  onSelectProject,
+  selectedProjectIds,
+  onToggleProject,
+  onClearProjects,
 }: ReportPeriodSelectorProps) {
   const { t: tReport } = useTranslation('report');
   const { t: tCommon } = useTranslation('common');
@@ -131,11 +133,12 @@ export default function ReportPeriodSelector({
         </InlineCluster>
       )}
 
-      {projects && projects.length > 0 && onSelectProject && (
+      {projects && projects.length > 0 && onToggleProject && onClearProjects && (
         <ReportProjectFilter
           projects={projects}
-          selectedProjectId={selectedProjectId ?? null}
-          onSelectProject={onSelectProject}
+          selectedProjectIds={selectedProjectIds ?? []}
+          onToggleProject={onToggleProject}
+          onClearProjects={onClearProjects}
         />
       )}
 

@@ -36,7 +36,7 @@ export default function ReportView({ state }: { state: GuiState }) {
     reportPeriod, setReportPeriod, reportSort, setReportSort,
     customFrom, setCustomFrom, customTo, setCustomTo,
     sysSettings, patches,
-    selectedProjectId, setSelectedProjectId
+    reportProjectIds, toggleReportProject, clearReportProjects,
   } = state;
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -68,7 +68,7 @@ export default function ReportView({ state }: { state: GuiState }) {
     logs, patches, projects, tasks, nowIso,
     reportPeriod, reportSort, sysSettings,
     customFrom, customTo,
-    selectedProjectId,
+    selectedProjectIds: reportProjectIds,
     selectedTags,
   });
 
@@ -264,7 +264,7 @@ export default function ReportView({ state }: { state: GuiState }) {
         customFrom={customFrom}
         customTo={customTo}
         nowIso={nowIso}
-        selectedProjectId={selectedProjectId}
+        selectedProjectIds={reportProjectIds}
         sysSettings={sysSettings}
         billingResult={billingResult}
         billingError={billingError}
@@ -286,8 +286,9 @@ export default function ReportView({ state }: { state: GuiState }) {
         onToggleTag={handleToggleTag}
         onClearTags={handleClearTags}
         projects={projects}
-        selectedProjectId={selectedProjectId}
-        onSelectProject={setSelectedProjectId}
+        selectedProjectIds={reportProjectIds}
+        onToggleProject={toggleReportProject}
+        onClearProjects={clearReportProjects}
       />
 
       <Grid cols={1} gap="xl" className="lg:grid-cols-2">
@@ -299,8 +300,9 @@ export default function ReportView({ state }: { state: GuiState }) {
         />
         <ProjectDonutChart
           projectChart={projectChart}
-          selectedProjectId={selectedProjectId}
-          onSelectProject={setSelectedProjectId}
+          selectedProjectIds={reportProjectIds}
+          onToggleProject={toggleReportProject}
+          onClearProjects={clearReportProjects}
           forceMountOnPrint={true}
         />
       </Grid>

@@ -123,7 +123,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
     );
   });
 
-  it('should pass selectedProjectId to billing calculation filter when provided', async () => {
+  it('should pass selectedProjectIds to billing calculation filter when provided', async () => {
     // Arrange & Act
     const { result } = renderHook(() =>
       useReportStatistics({
@@ -134,7 +134,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
         nowIso: '2026-07-12T15:00:00Z',
         reportPeriod: 'week',
         reportSort: 'duration',
-        selectedProjectId: 'p1',
+        selectedProjectIds: ['p1'],
         sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
       })
     );
@@ -145,7 +145,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
     });
 
     expect(calculateRangeBillingMock).toHaveBeenCalledWith(
-      expect.objectContaining({ projectId: 'p1' }),
+      expect.objectContaining({ projectIds: ['p1'] }),
       '2026-07-12T15:00:00Z'
     );
   });
@@ -184,7 +184,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
     );
   });
 
-  it('should reset billingResult to null and set isBillingLoading to true when reportPeriod or selectedProjectId changes', async () => {
+  it('should reset billingResult to null and set isBillingLoading to true when reportPeriod or selectedProjectIds changes', async () => {
     // Arrange
     let resolveBillingPromise: ((val: RangeBillingResult) => void) | undefined;
     calculateRangeBillingMock.mockImplementation(
@@ -202,7 +202,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
       nowIso: '2026-07-12T15:00:00Z',
       reportPeriod: 'week',
       reportSort: 'duration',
-      selectedProjectId: 'p1',
+      selectedProjectIds: ['p1'],
       sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
     };
 
@@ -309,7 +309,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
       });
     });
 
-    it('should return empty billing result without calling engine when selectedProjectId does not match active tags', async () => {
+    it('should return empty billing result without calling engine when selectedProjectIds do not match active tags', async () => {
       // Arrange & Act (p2 has tag ['backend'], but selectedTags is ['frontend'])
       const { result } = renderHook(() =>
         useReportStatistics({
@@ -320,7 +320,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
           nowIso: '2026-07-12T15:00:00Z',
           reportPeriod: 'week',
           reportSort: 'duration',
-          selectedProjectId: 'p2',
+          selectedProjectIds: ['p2'],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })
@@ -363,11 +363,11 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
 
       expect(calculateRangeBillingMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          projectId: 'p2',
+          projectIds: ['p2'],
         }),
         '2026-07-12T15:00:00Z'
       );
-      expect(calculateRangeBillingMock.mock.calls[0][0].projectIds).toBeUndefined();
+      expect(calculateRangeBillingMock.mock.calls[0][0].projectId).toBeUndefined();
 
       // Act
       calculateRangeBillingMock.mockClear();
@@ -390,14 +390,14 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
 
       expect(calculateRangeBillingMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          projectId: 'p1',
+          projectIds: ['p1'],
         }),
         '2026-07-12T15:00:00Z'
       );
-      expect(calculateRangeBillingMock.mock.calls[0][0].projectIds).toBeUndefined();
+      expect(calculateRangeBillingMock.mock.calls[0][0].projectId).toBeUndefined();
     });
 
-    it('should pass projectId when selectedProjectId matches tags', async () => {
+    it('should pass projectIds when selectedProjectIds match tags', async () => {
       const { result } = renderHook(() =>
         useReportStatistics({
           logs,
@@ -407,7 +407,7 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
           nowIso: '2026-07-12T15:00:00Z',
           reportPeriod: 'week',
           reportSort: 'duration',
-          selectedProjectId: 'p1',
+          selectedProjectIds: ['p1'],
           selectedTags: ['frontend'],
           sysSettings: { includePatchesInReports: false, autoStart: false, activeSinks: [] },
         })
@@ -419,12 +419,12 @@ describe('Unit Tests: useReportStatistics Billing Integration and Tag Filtering'
 
       expect(calculateRangeBillingMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          projectId: 'p1',
+          projectIds: ['p1'],
         }),
         '2026-07-12T15:00:00Z'
       );
       const call = calculateRangeBillingMock.mock.calls[0][0];
-      expect(call.projectIds).toBeUndefined();
+      expect(call.projectId).toBeUndefined();
     });
 
     it('should omit both projectId and projectIds when neither project nor tags are set', async () => {

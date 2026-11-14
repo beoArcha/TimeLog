@@ -9,19 +9,21 @@ import { cn } from '@/lib/utils';
 
 export interface ReportProjectFilterProps {
   projects: Project[];
-  selectedProjectId: string | null;
-  onSelectProject: (projectId: string | null) => void;
+  selectedProjectIds: readonly string[];
+  onToggleProject: (projectId: string) => void;
+  onClearProjects: () => void;
   className?: string;
   size?: 'xs' | 'sm';
 }
 
 /**
- * Filter group for selecting a project or all projects in the report filter panel.
+ * Multi-select filter group for the report scope; no selection means all projects.
  */
 export function ReportProjectFilter({
   projects,
-  selectedProjectId,
-  onSelectProject,
+  selectedProjectIds,
+  onToggleProject,
+  onClearProjects,
   className,
   size = 'xs',
 }: ReportProjectFilterProps) {
@@ -32,7 +34,7 @@ export function ReportProjectFilter({
     return null;
   }
 
-  const isAllSelected = !selectedProjectId;
+  const isAllSelected = selectedProjectIds.length === 0;
 
   return (
     <InlineCluster
@@ -55,7 +57,7 @@ export function ReportProjectFilter({
           size={size}
           variant={isAllSelected ? 'accent' : 'outline'}
           aria-pressed={isAllSelected}
-          onClick={() => onSelectProject(null)}
+          onClick={onClearProjects}
           data-testid="project-filter-all"
           className={cn(
             'rounded-lg font-mono text-xs transition-all shadow-none cursor-pointer',
@@ -67,7 +69,7 @@ export function ReportProjectFilter({
           {tCommon('All')}
         </Button>
         {projects.map((p) => {
-          const isSelected = selectedProjectId === p.id;
+          const isSelected = selectedProjectIds.includes(p.id);
           const matched = PROJECT_COLORS.find((c) => c.name === p.color);
           const hex = matched ? matched.hex : DEFAULT_PROJECT_COLOR_HEX;
 
@@ -78,7 +80,7 @@ export function ReportProjectFilter({
               size={size}
               variant={isSelected ? 'accent' : 'outline'}
               aria-pressed={isSelected}
-              onClick={() => onSelectProject(isSelected ? null : p.id)}
+              onClick={() => onToggleProject(p.id)}
               data-testid={`project-filter-${p.id}`}
               icon={
                 <span

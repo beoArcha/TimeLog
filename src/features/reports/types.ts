@@ -28,7 +28,7 @@ export interface UseReportStatisticsProps {
   sysSettings?: Settings | null;
   customFrom?: string;
   customTo?: string;
-  selectedProjectId?: string | null;
+  selectedProjectIds?: readonly string[];
 }
 
 export interface ProjectChartItem {

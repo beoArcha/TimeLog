@@ -52,14 +52,14 @@ describe('Unit Tests: ProjectDonutChart', () => {
     expect(screen.queryByTestId('donut-chart-empty')).toBeNull();
   });
 
-  it('should trigger onSelectProject with null when clear filter button is clicked', () => {
+  it('should trigger onClearProjects when clear filter button is clicked', () => {
     // Arrange
-    const onSelectProject = vi.fn();
+    const onClearProjects = vi.fn();
     render(
       <ProjectDonutChart
         projectChart={mockProjectChart}
-        selectedProjectId="p1"
-        onSelectProject={onSelectProject}
+        selectedProjectIds={['p1']}
+        onClearProjects={onClearProjects}
       />
     );
 
@@ -68,7 +68,61 @@ describe('Unit Tests: ProjectDonutChart', () => {
     fireEvent.click(clearButton);
 
     // Assert
-    expect(onSelectProject).toHaveBeenCalledWith(null);
+    expect(onClearProjects).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render the project name badge and the clear control when exactly one project is selected', () => {
+    // Arrange & Act
+    render(
+      <ProjectDonutChart
+        projectChart={mockProjectChart}
+        selectedProjectIds={['p1']}
+        onClearProjects={vi.fn()}
+      />
+    );
+
+    // Assert
+    expect(screen.getByTestId('project-donut-selected-name').textContent).toBe('Alpha Project');
+    expect(screen.getByTestId('clear-project-filter')).not.toBeNull();
+  });
+
+  it('should render only the clear control when several projects are selected', () => {
+    // Arrange & Act
+    render(
+      <ProjectDonutChart
+        projectChart={mockProjectChart}
+        selectedProjectIds={['p1', 'p2']}
+        onClearProjects={vi.fn()}
+      />
+    );
+
+    // Assert
+    expect(screen.queryByTestId('project-donut-selected-name')).toBeNull();
+    expect(screen.getByTestId('clear-project-filter')).not.toBeNull();
+  });
+
+  it('should render only the clear control when the single selected project has no data in the period', () => {
+    // Arrange & Act
+    render(
+      <ProjectDonutChart
+        projectChart={mockProjectChart}
+        selectedProjectIds={['p-without-data']}
+        onClearProjects={vi.fn()}
+      />
+    );
+
+    // Assert
+    expect(screen.queryByTestId('project-donut-selected-name')).toBeNull();
+    expect(screen.getByTestId('clear-project-filter')).not.toBeNull();
+  });
+
+  it('should render neither the name badge nor the clear control when no project is selected', () => {
+    // Arrange & Act
+    render(<ProjectDonutChart projectChart={mockProjectChart} selectedProjectIds={[]} />);
+
+    // Assert
+    expect(screen.queryByTestId('project-donut-selected-name')).toBeNull();
+    expect(screen.queryByTestId('clear-project-filter')).toBeNull();
   });
 
   it('should toggle content visibility when collapsible header is clicked', () => {

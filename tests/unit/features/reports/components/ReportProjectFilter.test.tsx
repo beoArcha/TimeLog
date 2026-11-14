@@ -17,13 +17,13 @@ describe('Unit Tests: ReportProjectFilter', () => {
   const projectB = aProject({ id: 'p2', name: 'Beta Dynamics', color: 'indigo' });
 
   it('Given empty projects list When rendering Then it returns null', () => {
-    const onSelectProject = vi.fn();
+    const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
     const { container } = render(
       <MockProviders>
         <ReportProjectFilter
           projects={[]}
-          selectedProjectId={null}
-          onSelectProject={onSelectProject}
+          selectedProjectIds={[]}
+          {...handlers}
         />
       </MockProviders>
     );
@@ -32,13 +32,13 @@ describe('Unit Tests: ReportProjectFilter', () => {
   });
 
   it('Given projects and no selected project When rendered Then All button is pressed', () => {
-    const onSelectProject = vi.fn();
+    const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
     render(
       <MockProviders>
         <ReportProjectFilter
           projects={[projectA, projectB]}
-          selectedProjectId={null}
-          onSelectProject={onSelectProject}
+          selectedProjectIds={[]}
+          {...handlers}
         />
       </MockProviders>
     );
@@ -53,13 +53,13 @@ describe('Unit Tests: ReportProjectFilter', () => {
   });
 
   it('Given projects and selected project p1 When rendered Then p1 button is pressed and All is unpressed', () => {
-    const onSelectProject = vi.fn();
+    const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
     render(
       <MockProviders>
         <ReportProjectFilter
           projects={[projectA, projectB]}
-          selectedProjectId="p1"
-          onSelectProject={onSelectProject}
+          selectedProjectIds={["p1"]}
+          {...handlers}
         />
       </MockProviders>
     );
@@ -73,63 +73,66 @@ describe('Unit Tests: ReportProjectFilter', () => {
     expect(p2Btn.getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('Given project filter list When clicking a project button Then it triggers onSelectProject with project id', () => {
-    const onSelectProject = vi.fn();
+  it('should toggle the clicked project when a project button is clicked', () => {
+    // Arrange
+    const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
     render(
       <MockProviders>
-        <ReportProjectFilter
-          projects={[projectA, projectB]}
-          selectedProjectId={null}
-          onSelectProject={onSelectProject}
-        />
+        <ReportProjectFilter projects={[projectA, projectB]} selectedProjectIds={['p1']} {...handlers} />
       </MockProviders>
     );
 
-    fireEvent.click(screen.getByTestId('project-filter-p1'));
-    expect(onSelectProject).toHaveBeenCalledWith('p1');
+    // Act
+    fireEvent.click(screen.getByTestId('project-filter-p2'));
+
+    // Assert
+    expect(handlers.onToggleProject).toHaveBeenCalledWith('p2');
+    expect(handlers.onClearProjects).not.toHaveBeenCalled();
   });
 
-  it('Given an already selected project When clicking it again Then it toggles off by calling onSelectProject with null', () => {
-    const onSelectProject = vi.fn();
+  it('should mark every selected project as pressed and All as unpressed when several projects are selected', () => {
+    // Arrange
+    const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
+
+    // Act
     render(
       <MockProviders>
-        <ReportProjectFilter
-          projects={[projectA, projectB]}
-          selectedProjectId="p1"
-          onSelectProject={onSelectProject}
-        />
+        <ReportProjectFilter projects={[projectA, projectB]} selectedProjectIds={['p1', 'p2']} {...handlers} />
       </MockProviders>
     );
 
-    fireEvent.click(screen.getByTestId('project-filter-p1'));
-    expect(onSelectProject).toHaveBeenCalledWith(null);
+    // Assert
+    expect(screen.getByTestId('project-filter-all').getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByTestId('project-filter-p1').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByTestId('project-filter-p2').getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('Given selected project When clicking All button Then it calls onSelectProject with null', () => {
-    const onSelectProject = vi.fn();
+  it('should clear the selection when All is clicked', () => {
+    // Arrange
+    const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
     render(
       <MockProviders>
-        <ReportProjectFilter
-          projects={[projectA, projectB]}
-          selectedProjectId="p2"
-          onSelectProject={onSelectProject}
-        />
+        <ReportProjectFilter projects={[projectA, projectB]} selectedProjectIds={['p2']} {...handlers} />
       </MockProviders>
     );
 
+    // Act
     fireEvent.click(screen.getByTestId('project-filter-all'));
-    expect(onSelectProject).toHaveBeenCalledWith(null);
+
+    // Assert
+    expect(handlers.onClearProjects).toHaveBeenCalledTimes(1);
+    expect(handlers.onToggleProject).not.toHaveBeenCalled();
   });
 
   it('Given project with unknown color name When rendered Then color indicator falls back to DEFAULT_PROJECT_COLOR_HEX', () => {
     const projectUnknown = aProject({ id: 'p3', name: 'Gamma Corp', color: 'unmapped_color' });
-    const onSelectProject = vi.fn();
+    const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
     render(
       <MockProviders>
         <ReportProjectFilter
           projects={[projectUnknown]}
-          selectedProjectId={null}
-          onSelectProject={onSelectProject}
+          selectedProjectIds={[]}
+          {...handlers}
         />
       </MockProviders>
     );
@@ -142,13 +145,13 @@ describe('Unit Tests: ReportProjectFilter', () => {
   });
 
   it('Given ReportProjectFilter When rendered Then project label uses Text typography component with muted variant and font-mono', () => {
-    const onSelectProject = vi.fn();
+    const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
     const { container } = render(
       <MockProviders>
         <ReportProjectFilter
           projects={[projectA]}
-          selectedProjectId={null}
-          onSelectProject={onSelectProject}
+          selectedProjectIds={[]}
+          {...handlers}
         />
       </MockProviders>
     );
@@ -157,5 +160,29 @@ describe('Unit Tests: ReportProjectFilter', () => {
     expect(label).not.toBeNull();
     expect(label?.tagName.toLowerCase()).toBe('span');
     expect(label?.className).toContain('font-mono');
+  });
+
+  it('should render and toggle the chip of an archived project when it is in the project list', () => {
+    // Arrange
+    const archived = aProject({ id: 'p9', name: 'Finished Work', archived: true });
+    const onToggleProject = vi.fn();
+    render(
+      <MockProviders>
+        <ReportProjectFilter
+          projects={[projectA, archived]}
+          selectedProjectIds={['p9']}
+          onToggleProject={onToggleProject}
+          onClearProjects={vi.fn()}
+        />
+      </MockProviders>
+    );
+    const archivedChip = screen.getByTestId('project-filter-p9');
+
+    // Act
+    fireEvent.click(archivedChip);
+
+    // Assert
+    expect(archivedChip.getAttribute('aria-pressed')).toBe('true');
+    expect(onToggleProject).toHaveBeenCalledWith('p9');
   });
 });

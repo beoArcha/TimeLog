@@ -191,4 +191,64 @@ test.describe('Reports & Analytical Dashboards E2E Suite', () => {
     const firstItemDate = page.locator('#reports-panel .overflow-y-auto > div').first();
     await expect(firstItemDate).toContainText('Short Task 1h');
   });
+
+  test.describe('multi-project report scope', () => {
+    const SCOPE_PROJECTS = [
+      { projectId: 'proj-scope-a', taskId: 'task-scope-a', taskName: 'Scope Task A', hoursAgo: 6, hours: 1 },
+      { projectId: 'proj-scope-b', taskId: 'task-scope-b', taskName: 'Scope Task B', hoursAgo: 4, hours: 2 },
+      { projectId: 'proj-scope-c', taskId: 'task-scope-c', taskName: 'Scope Task C', hoursAgo: 8, hours: 3 },
+    ] as const;
+
+    test.beforeEach(async ({ reportsPage, page }) => {
+      const now = Date.now();
+      const initialState = createDefaultState({
+        projects: SCOPE_PROJECTS.map((s) =>
+          createMockProject({ id: s.projectId, name: `Scope Project ${s.taskName.slice(-1)}`, color: TEST_COLORS.BLUE })
+        ),
+        tasks: SCOPE_PROJECTS.map((s) =>
+          createMockTask({ id: s.taskId, projectId: s.projectId, name: s.taskName })
+        ),
+        logs: SCOPE_PROJECTS.map((s) =>
+          createMockTimeLog({
+            id: `log-${s.taskId}`,
+            taskId: s.taskId,
+            projectId: s.projectId,
+            startTime: new Date(now - s.hoursAgo * ONE_HOUR_MS).toISOString(),
+            endTime: new Date(now - (s.hoursAgo - s.hours) * ONE_HOUR_MS).toISOString(),
+          })
+        ),
+      });
+
+      await reportsPage.seedStorage(initialState);
+      await page.reload();
+      await reportsPage.openReportsTab();
+      await reportsPage.selectPeriod('all');
+    });
+
+    test('should restrict totals and logs to two selected projects and restore all with the All chip', async ({
+      reportsPage,
+    }) => {
+      await expect(reportsPage.projectFilterAllBtn).toHaveAttribute('aria-pressed', 'true');
+      await expect(reportsPage.periodTotalStat).toContainText('06:00:00');
+
+      await reportsPage.toggleProjectFilter('proj-scope-a');
+      await reportsPage.toggleProjectFilter('proj-scope-b');
+
+      await expect(reportsPage.projectFilterChip('proj-scope-a')).toHaveAttribute('aria-pressed', 'true');
+      await expect(reportsPage.projectFilterChip('proj-scope-b')).toHaveAttribute('aria-pressed', 'true');
+      await expect(reportsPage.projectFilterChip('proj-scope-c')).toHaveAttribute('aria-pressed', 'false');
+      await expect(reportsPage.projectFilterAllBtn).toHaveAttribute('aria-pressed', 'false');
+      await expect(reportsPage.periodTotalStat).toContainText('03:00:00');
+      await expect(reportsPage.logListScrollContainer).toContainText('Scope Task A');
+      await expect(reportsPage.logListScrollContainer).toContainText('Scope Task B');
+      await expect(reportsPage.logListScrollContainer).not.toContainText('Scope Task C');
+
+      await reportsPage.clearProjectFilter();
+
+      await expect(reportsPage.projectFilterAllBtn).toHaveAttribute('aria-pressed', 'true');
+      await expect(reportsPage.projectFilterChip('proj-scope-a')).toHaveAttribute('aria-pressed', 'false');
+      await expect(reportsPage.periodTotalStat).toContainText('06:00:00');
+      await expect(reportsPage.logListScrollContainer).toContainText('Scope Task C');
+    });
+  });
 });
