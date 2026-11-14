@@ -4,8 +4,8 @@ use crate::shared::spreadsheet_helpers::{get_ods_cell_str, get_xlsx_cell_str};
 use calamine::{Reader, Xlsx};
 use oxyflow_timelog::cli::error::{CliError, SinkError};
 use oxyflow_timelog::cli::exporters::{
-    atomic_write_to_file, export_csv, export_html, export_json, export_to_file, export_to_writer,
-    write_csv, write_html, write_json, write_ods, write_xlsx, write_xml,
+    atomic_write_to_file, export_html, export_json, export_to_file, export_to_writer, write_html,
+    write_json, write_ods, write_xlsx, write_xml,
 };
 use oxyflow_timelog::cli::parser::ExportFormat;
 use oxyflow_timelog::types::ReportVariant;
@@ -44,12 +44,6 @@ fn test_given_sample_tree_when_export_to_writer_called_for_all_formats_then_all_
 #[test]
 fn test_given_specific_writers_when_streaming_then_matches_export_output_parity() {
     let tree = create_sample_tree();
-
-    // CSV parity
-    let mut csv_buf = Vec::new();
-    write_csv(&tree, &mut csv_buf).expect("write_csv");
-    let csv_str = String::from_utf8(csv_buf).expect("utf8 csv");
-    assert_eq!(csv_str, export_csv(&tree).expect("export_csv"));
 
     // JSON parity
     let document = create_sample_document(ReportVariant::Full);
@@ -213,7 +207,7 @@ fn test_given_atomic_write_to_file_when_write_fails_on_existing_target_then_pres
 
 #[test]
 fn test_given_export_to_file_when_called_then_writes_atomically_using_buf_writer() {
-    let document = create_sample_document(ReportVariant::Full);
+    let document = create_sample_document(ReportVariant::Summary);
     let dir = tempdir().expect("create tempdir");
     let target_file = dir.path().join("report.csv");
     let target_str = target_file.to_str().unwrap();
@@ -223,9 +217,7 @@ fn test_given_export_to_file_when_called_then_writes_atomically_using_buf_writer
     assert!(target_file.exists());
 
     let content = fs::read_to_string(&target_file).expect("read report");
-    assert!(
-        content.starts_with("Project,Task,Subtask,Duration_Seconds,Duration_Formatted,Percentage")
-    );
+    assert!(content.starts_with("projectId,projectName,taskId,"));
     assert!(content.contains("\"API \"\"Service\"\"\""));
 
     // Check no temporary files left

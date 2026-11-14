@@ -1,7 +1,6 @@
-use crate::cli::exporters::csv::{
-    export_csv, is_numeric_value, is_whitespace_or_control, sanitize_csv, sanitize_csv_formula,
+use oxyflow_timelog::cli::exporters::csv_sanitize::{
+    is_numeric_value, is_whitespace_or_control, sanitize_csv_formula,
 };
-use crate::cli::formatters::{ReportProjectDto, ReportTaskDto, ReportTreeDto};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -157,56 +156,4 @@ fn test_given_non_numeric_values_when_is_numeric_value_then_returns_false() {
     assert!(!is_numeric_value("+"));
     assert!(!is_numeric_value("Project 1"));
     assert!(!is_numeric_value("\u{FEFF}-123"));
-}
-
-#[test]
-fn test_given_tree_with_unicode_whitespace_formula_when_export_csv_then_neutralizes() {
-    // Arrange
-    let tree = ReportTreeDto {
-        period: "day".to_string(),
-        total_seconds: 3600,
-        total_formatted: "01:00:00".to_string(),
-        projects: vec![ReportProjectDto {
-            id: "p1".to_string(),
-            name: "\u{00A0}=1+1".to_string(),
-            duration_seconds: 3600,
-            duration_formatted: "01:00:00".to_string(),
-            percentage: 100.0,
-            tasks: vec![ReportTaskDto {
-                id: "t1".to_string(),
-                name: "+cmd|' /C calc'!A0".to_string(),
-                duration_seconds: 3600,
-                duration_formatted: "01:00:00".to_string(),
-                percentage: 100.0,
-                subtasks: vec![],
-            }],
-        }],
-        entries: vec![],
-    };
-
-    // Act
-    let csv = export_csv(&tree).expect("Export should succeed");
-    let lines: Vec<&str> = csv.lines().collect();
-
-    // Assert
-    assert_eq!(lines.len(), 2);
-    assert_eq!(
-        lines[1],
-        "\"'\u{00A0}=1+1\",\"'+cmd|' /C calc'!A0\",\"\",3600,\"01:00:00\",100.0"
-    );
-}
-
-#[test]
-fn test_given_formula_with_internal_quotes_when_sanitize_csv_then_escapes_quotes_and_neutralizes() {
-    // Arrange
-    let raw = "\u{00A0}=HYPERLINK(\"http://evil.com\",\"Click\")";
-
-    // Act
-    let sanitized = sanitize_csv(raw);
-
-    // Assert
-    assert_eq!(
-        sanitized,
-        "\"'\u{00A0}=HYPERLINK(\"\"http://evil.com\"\",\"\"Click\"\")\"".trim_matches('"')
-    );
 }

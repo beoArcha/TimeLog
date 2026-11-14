@@ -148,7 +148,7 @@ fn test_given_the_same_document_when_exporting_json_and_csv_twice_then_bytes_are
 #[test]
 fn test_given_projects_with_equal_seconds_when_exporting_csv_then_rows_keep_document_order() {
     // Arrange
-    let mut document = create_sample_document(ReportVariant::Full);
+    let mut document = create_sample_document(ReportVariant::Summary);
     let mut zulu = document.projects[0].clone();
     zulu.id = "p-zulu".to_string();
     zulu.name = "Zulu".to_string();
@@ -162,8 +162,8 @@ fn test_given_projects_with_equal_seconds_when_exporting_csv_then_rows_keep_docu
         .expect("utf8");
 
     // Assert
-    let zulu_at = csv.find("\"Zulu\"").expect("Zulu row");
-    let alpha_at = csv.find("\"Alpha\"").expect("Alpha row");
+    let zulu_at = csv.find(",Zulu,").expect("Zulu row");
+    let alpha_at = csv.find(",Alpha,").expect("Alpha row");
     assert!(
         zulu_at < alpha_at,
         "exporters must not re-sort the document"

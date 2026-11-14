@@ -1,6 +1,9 @@
 use crate::cli::error::CliError;
 use crate::cli::exporters::constants::{EXPORT_STDOUT_TARGET, MSG_EXPORT_SUCCESS};
-use crate::cli::exporters::{export_to_bytes, export_to_file, format_name, format_spec};
+use crate::cli::exporters::{
+    export_to_bytes_with_options, export_to_file_with_options, format_name, format_spec,
+    ExportOptions,
+};
 use crate::cli::formatters::{render_total_row, render_tree_string, to_report_tree_dto};
 use crate::cli::parser::{ExportFormat, ReportArgs};
 use crate::cli::shared::envelope::EnvelopeSchema;
@@ -31,9 +34,11 @@ pub enum ReportDelivery {
     },
     Stdout {
         format: ExportFormat,
+        options: ExportOptions,
     },
     File {
         format: ExportFormat,
+        options: ExportOptions,
         path: String,
         receipt: ExportReceipt,
     },
@@ -44,6 +49,7 @@ impl ReportDelivery {
     /// not consulted; with `-o -` the export is the only thing on stdout in every mode.
     pub fn plan(args: &ReportArgs, is_machine: bool, is_quiet: bool) -> Result<Self, CliError> {
         let format = args.format;
+        let options = ExportOptions::resolve(format, args.csv_delimiter.as_deref(), args.bom)?;
         match (args.output.as_deref(), is_machine) {
             (None, true) => Ok(Self::Envelope),
             (None, false) if format == ExportFormat::Table => Ok(Self::Table { quiet: is_quiet }),
@@ -51,16 +57,17 @@ impl ReportDelivery {
                 let spec = format_spec(format)?;
                 spec.ensure_supports(args.variant)?;
                 spec.ensure_text()?;
-                Ok(Self::Stdout { format })
+                Ok(Self::Stdout { format, options })
             }
             (Some(EXPORT_STDOUT_TARGET), _) => {
                 format_spec(format)?.ensure_supports(args.variant)?;
-                Ok(Self::Stdout { format })
+                Ok(Self::Stdout { format, options })
             }
             (Some(path), _) => {
                 format_spec(format)?.ensure_supports(args.variant)?;
                 Ok(Self::File {
                     format,
+                    options,
                     path: path.to_string(),
                     receipt: receipt_for(is_machine, is_quiet),
                 })
@@ -84,15 +91,16 @@ pub fn deliver(
     match delivery {
         ReportDelivery::Envelope => CliOutput::envelope(SCHEMA_REPORT, document),
         ReportDelivery::Table { quiet } => Ok(table_output(document, *quiet)),
-        ReportDelivery::Stdout { format } => {
-            Ok(CliOutput::Bytes(export_to_bytes(document, *format)?))
-        }
+        ReportDelivery::Stdout { format, options } => Ok(CliOutput::Bytes(
+            export_to_bytes_with_options(document, *format, options)?,
+        )),
         ReportDelivery::File {
             format,
+            options,
             path,
             receipt,
         } => {
-            export_to_file(document, *format, path)?;
+            export_to_file_with_options(document, *format, options, path)?;
             file_receipt(document, *format, path, *receipt)
         }
     }

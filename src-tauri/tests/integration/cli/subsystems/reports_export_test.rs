@@ -85,10 +85,12 @@ fn test_given_logged_work_when_exporting_to_csv_then_generates_valid_tabular_csv
     assert!(output_file.exists());
 
     let content = fs::read_to_string(&output_file).expect("failed to read exported CSV");
-    assert!(content.contains("Project,Task,Subtask,Duration_Seconds,Duration_Formatted,Percentage"));
+    assert!(content.starts_with("entryId,projectId,projectName,"));
     assert!(content.contains("Export System"));
     assert!(content.contains("Invoice Generation"));
-    assert!(content.contains("7200"));
+    assert!(content.contains("log_rep_sub_01"));
+    assert!(content.contains("Quarterly financial report"));
+    assert!(content.contains(",7200,"));
 }
 
 #[test]

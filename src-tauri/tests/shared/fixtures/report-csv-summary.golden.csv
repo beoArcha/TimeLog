@@ -1,0 +1,6 @@
+projectId,projectName,taskId,taskName,parentTaskId,seconds,directSeconds,hours,shareBasisPoints,rate,amount,currency,billingStatus
+p-alpha,Zażółć gęślą jaźń,,,,600,600,0.17,,,,,
+p-alpha,Zażółć gęślą jaźń,t-backend,"Backend, API ""v2""",,5400,3600,1.50,6000,150.00,150.00,PLN,custom
+p-alpha,Zażółć gęślą jaźń,t-review,Przegląd kodu,t-backend,1800,1800,0.50,2000,123.45,61.73,PLN,inherited
+p-alpha,Zażółć gęślą jaźń,t-docs,"'=HYPERLINK(""http://evil.test"")",,3001,3001,0.83,3333,,,,unconfigured
+p-beta,Internal,t-meeting,Standup,,900,900,0.25,500,0.00,0.00,EUR,nonBillable

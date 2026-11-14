@@ -237,3 +237,43 @@ pub const XML_PROLOG: &str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 pub const ERR_XML_WRITE: &str = "Failed to write XML report";
 
 pub const ERR_XML_DECODE: &str = "Failed to decode UTF-8 XML";
+
+pub const CSV_SUMMARY_HEADERS: [&str; 13] = [
+    "projectId",
+    "projectName",
+    "taskId",
+    "taskName",
+    "parentTaskId",
+    "seconds",
+    "directSeconds",
+    "hours",
+    "shareBasisPoints",
+    "rate",
+    "amount",
+    "currency",
+    "billingStatus",
+];
+pub const CSV_FULL_HEADERS: [&str; 12] = [
+    "entryId",
+    "projectId",
+    "projectName",
+    "taskId",
+    "taskName",
+    "date",
+    "startUtc",
+    "endUtc",
+    "seconds",
+    "note",
+    "amount",
+    "currency",
+];
+pub const CSV_BILLING_STATUS_INHERITED: &str = "inherited";
+pub const CSV_BILLING_STATUS_CUSTOM: &str = "custom";
+pub const CSV_BILLING_STATUS_NON_BILLABLE: &str = "nonBillable";
+pub const CSV_BILLING_STATUS_UNCONFIGURED: &str = "unconfigured";
+
+pub const CSV_DELIMITER_FLAG: &str = "--csv-delimiter";
+pub const CSV_BOM_FLAG: &str = "--bom";
+pub const CSV_DELIMITER_TAB_NAME: &str = "tab";
+pub const ERR_CSV_DELIMITER_INVALID: &str = "Invalid CSV delimiter '{}'. Use ',', ';' or 'tab'.";
+pub const ERR_CSV_OPTION_NEEDS_CSV: &str = "{} only applies to the 'csv' format, not '{}'.";

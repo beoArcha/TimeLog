@@ -28,6 +28,17 @@ pub struct ReportArgs {
         help = "Write the report to a file; '-' writes it to stdout"
     )]
     pub output: Option<String>,
+    #[arg(
+        long,
+        value_name = "CHAR",
+        help = "CSV field delimiter: ',' (default), ';' or 'tab' (csv format only)"
+    )]
+    pub csv_delimiter: Option<String>,
+    #[arg(
+        long,
+        help = "Start the CSV with a UTF-8 byte order mark, recommended for Excel on Windows (csv format only)"
+    )]
+    pub bom: bool,
     #[command(flatten)]
     pub period: PeriodArgs,
     #[arg(short = 'p', long, help = "Filter report by project (ID or name)")]
