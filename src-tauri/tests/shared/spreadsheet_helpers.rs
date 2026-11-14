@@ -32,3 +32,20 @@ pub fn get_ods_cell_str(sheet: &Sheet, row: usize, col: usize) -> String {
 pub fn get_ods_cell_f64(sheet: &Sheet, row: usize, col: usize) -> f64 {
     sheet.value(row as u32, col as u32).as_f64_or(0.0)
 }
+
+pub fn read_xlsx_part(bytes: &[u8], part: &str) -> Option<String> {
+    use std::io::Read;
+    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes)).ok()?;
+    let mut file = archive.by_name(part).ok()?;
+    let mut content = String::new();
+    file.read_to_string(&mut content).ok()?;
+    Some(content)
+}
+
+/// `sheet_number` is 1-based, in workbook order.
+pub fn count_xlsx_rows(bytes: &[u8], sheet_number: usize) -> usize {
+    let part = format!("xl/worksheets/sheet{sheet_number}.xml");
+    read_xlsx_part(bytes, &part)
+        .map(|xml| xml.matches("<row ").count())
+        .unwrap_or(0)
+}

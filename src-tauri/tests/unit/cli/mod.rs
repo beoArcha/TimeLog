@@ -15,6 +15,7 @@ pub mod exporter_jsonl_test;
 pub mod exporter_ods_test;
 pub mod exporter_registry_test;
 pub mod exporter_schema_test;
+pub mod exporter_sheets_test;
 pub mod exporter_streaming_test;
 pub mod exporter_xlsx_test;
 pub mod exporter_xml_test;

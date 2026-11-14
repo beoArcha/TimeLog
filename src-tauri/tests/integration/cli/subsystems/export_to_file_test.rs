@@ -88,11 +88,11 @@ fn test_given_xlsx_format_when_export_to_file_then_writes_valid_excel_with_conte
     let mut excel: Xlsx<_> =
         calamine::open_workbook(&target_file).expect("failed to open exported file");
     let range = excel
-        .worksheet_range("Work Report")
-        .expect("must contain Work Report worksheet");
+        .worksheet_range("Summary")
+        .expect("must contain Summary worksheet");
 
     assert_eq!(get_xlsx_cell_str(&range, 0, 0), "Project");
-    assert_eq!(get_xlsx_cell_str(&range, 1, 1), "Database Setup");
+    assert_eq!(get_xlsx_cell_str(&range, 2, 1), "Database Setup");
 }
 
 #[test]

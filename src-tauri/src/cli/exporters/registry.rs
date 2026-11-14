@@ -246,5 +246,5 @@ fn write_xlsx_document(
     _options: &ExportOptions,
     writer: &mut dyn Write,
 ) -> Result<(), CliError> {
-    write_xlsx(&to_report_tree_dto(document), writer)
+    write_xlsx(document, writer)
 }
