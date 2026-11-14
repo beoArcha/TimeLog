@@ -1,7 +1,8 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
+use crate::shared::spreadsheet_helpers::{count_xlsx_rows, get_xlsx_cell_str, read_xlsx_part};
 use crate::shared::test_db::setup_persistence_test;
 use crate::shared::xsd_validator::assert_valid_report_xml;
-use calamine::{Reader, Xlsx};
+use calamine::{Data, Reader, Xlsx};
 use clap::Parser;
 use oxyflow_timelog::cli::handlers::report_handler;
 use oxyflow_timelog::cli::parser::CliCommand;
@@ -203,85 +204,72 @@ fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_
 }
 
 #[test]
-fn test_given_logged_work_when_exporting_to_xlsx_then_generates_valid_xlsx_report_file() {
+fn test_given_logged_work_when_exporting_to_xlsx_then_generates_summary_entries_and_days_sheets() {
+    // Given
     let (persistence, _conn, _temp) = setup_dataset("test_reports_export_xlsx");
     let engine = Engine::new(&persistence);
     let temp_dir = tempfile::tempdir().expect("create temp dir");
     let output_file = temp_dir.path().join("report.xlsx");
     let output_path = output_file.to_str().unwrap();
+    let args =
+        CliArgs::try_parse_from(["oxy", "report", "--format", "xlsx", "-o", output_path]).unwrap();
 
-    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "xlsx", "-o", output_path]).unwrap();
-
+    // When
     let result = handle_cli(args, &persistence, &engine);
 
+    // Then
     assert!(result.is_ok());
-    assert!(output_file.exists());
-
-    let mut excel: Xlsx<_> =
-        calamine::open_workbook(&output_file).expect("failed to read exported XLSX");
-    let range = excel
-        .worksheet_range("Work Report")
-        .expect("must contain Work Report worksheet");
-
-    // Header assertions
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 0),
-        "Project"
-    );
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 1),
-        "Task"
-    );
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 2),
-        "Subtask"
-    );
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 3),
-        "Duration_Seconds"
-    );
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 4),
-        "Duration_Formatted"
-    );
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 0, 5),
-        "Percentage"
-    );
-
-    // Row 1 assertions
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 1, 0),
-        "Export System"
-    );
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 1, 1),
-        "Invoice Generation"
-    );
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 1, 2),
-        ""
-    );
+    let bytes = fs::read(&output_file).expect("read exported XLSX");
+    let mut excel: Xlsx<_> = calamine::open_workbook(&output_file).expect("open exported XLSX");
+    assert_eq!(excel.sheet_names(), ["Summary", "Entries", "Days"]);
+    let summary = excel.worksheet_range("Summary").expect("Summary sheet");
+    assert_eq!(get_xlsx_cell_str(&summary, 0, 0), "Project");
+    assert_eq!(get_xlsx_cell_str(&summary, 1, 0), "Export System");
+    let time = summary.get((1, 2)).expect("time cell");
     assert!(
-        (crate::shared::spreadsheet_helpers::get_xlsx_cell_f64(&range, 1, 3) - 7200.0).abs() < 0.1
+        matches!(time, Data::DateTime(dt) if dt.is_duration()
+            && (dt.as_f64() - 7200.0 / 86_400.0).abs() < 1e-9),
+        "expected a two hour duration cell, got {time:?}"
     );
+    assert_eq!(get_xlsx_cell_str(&summary, 2, 1), "Invoice Generation");
+    assert_eq!(get_xlsx_cell_str(&summary, 3, 0), "Total");
+    let entries = excel.worksheet_range("Entries").expect("Entries sheet");
     assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 1, 4),
-        "02h 00m"
+        get_xlsx_cell_str(&entries, 1, 5),
+        "Quarterly financial report"
     );
+    assert_eq!(count_xlsx_rows(&bytes, 2), 2);
+    assert!(read_xlsx_part(&bytes, "xl/charts/chart1.xml").is_some());
+}
 
-    // Total row assertions
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 2, 0),
-        "Total"
-    );
-    assert!(
-        (crate::shared::spreadsheet_helpers::get_xlsx_cell_f64(&range, 2, 3) - 7200.0).abs() < 0.1
-    );
-    assert_eq!(
-        crate::shared::spreadsheet_helpers::get_xlsx_cell_str(&range, 2, 4),
-        "02h 00m"
-    );
+#[test]
+fn test_given_logged_work_when_exporting_summary_variant_to_xlsx_then_only_summary_sheet_is_written(
+) {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_reports_export_xlsx_summary");
+    let engine = Engine::new(&persistence);
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let output_file = temp_dir.path().join("summary.xlsx");
+    let output_path = output_file.to_str().unwrap();
+    let args = CliArgs::try_parse_from([
+        "oxy",
+        "report",
+        "--format",
+        "xlsx",
+        "--variant",
+        "summary",
+        "-o",
+        output_path,
+    ])
+    .unwrap();
+
+    // When
+    let result = handle_cli(args, &persistence, &engine);
+
+    // Then
+    assert!(result.is_ok());
+    let excel: Xlsx<_> = calamine::open_workbook(&output_file).expect("open exported XLSX");
+    assert_eq!(excel.sheet_names(), ["Summary"]);
 }
 
 #[test]

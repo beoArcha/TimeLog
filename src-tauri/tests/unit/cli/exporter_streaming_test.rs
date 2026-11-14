@@ -67,13 +67,13 @@ fn test_given_specific_writers_when_streaming_then_matches_export_output_parity(
 
     // XLSX workbook valid parse and structure parity
     let mut xlsx_buf = Vec::new();
-    write_xlsx(&tree, &mut xlsx_buf).expect("write_xlsx");
+    write_xlsx(&document, &mut xlsx_buf).expect("write_xlsx");
     let mut excel: Xlsx<_> = Xlsx::new(Cursor::new(&xlsx_buf)).expect("must parse xlsx");
     let range = excel
-        .worksheet_range("Work Report")
-        .expect("must contain Work Report worksheet");
+        .worksheet_range("Summary")
+        .expect("must contain Summary worksheet");
     assert_eq!(get_xlsx_cell_str(&range, 0, 0), "Project");
-    assert_eq!(get_xlsx_cell_str(&range, 1, 1), "Database Setup");
+    assert_eq!(get_xlsx_cell_str(&range, 2, 1), "Database Setup");
 
     // ODS workbook valid parse and structure parity
     let mut ods_buf = Vec::new();

@@ -2897,6 +2897,7 @@ dependencies = [
  "ts-rs",
  "unicode-width",
  "uuid",
+ "zip 9.4.1",
 ]
 
 [[package]]

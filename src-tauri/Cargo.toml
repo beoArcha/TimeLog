@@ -49,5 +49,6 @@ calamine = "0.38"
 jsonschema = { version = "0.61", default-features = false }
 quick-xml = "0.42.0"
 tempfile = "3.17"
+zip = { version = "9.4.1", default-features = false, features = ["deflate"] }
 
 
