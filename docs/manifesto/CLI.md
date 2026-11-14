@@ -339,7 +339,7 @@ For integer minor-unit input, use `--rate-cents 15000` on Project/Task creation 
 | `json` | data | `full`, `summary` | no | The bare `ReportDocument`, pretty-printed, one trailing newline, no envelope |
 | `jsonl` | data | `full`, `summary` | no | JSON Lines: a `{"type":"header"}` line with the document's header fields (`schema`, `schemaVersion`, `variant`, `generatedAt`, `generator`, `range`, `filters`, `totals`), then one `{"type":"entry"}` line per entry in document order; compact, each line newline-terminated; `summary` has the header line only |
 | `xml` | data | `full` | no | Sanitized hierarchical XML with ISO 8601 timestamps and escaped entity values (legacy schema v1) |
-| `ods` | human | `full`, `summary` | yes | OpenDocument Spreadsheet 1.3 package generated natively in Rust with `spreadsheet-ods` |
+| `ods` | data | `full`, `summary` | yes | OpenDocument Spreadsheet 1.3 package generated natively in Rust with `spreadsheet-ods` |
 | `xlsx` | human | `full`, `summary` | yes | Office Open XML workbook generated natively in Rust with `rust_xlsxwriter` |
 
 The registry (`src-tauri/src/cli/exporters/registry.rs`) holds one entry per format with its group, supported variants, binary flag, locale dependence (none yet) and writer, and a test fails when an `ExportFormat` value has no entry or more than one.
