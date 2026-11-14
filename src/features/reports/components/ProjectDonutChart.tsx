@@ -19,18 +19,22 @@ import { formatSeconds } from '@features/timelogs/utils/TimelogUtils';
 import { PROJECT_COLORS } from '@common/constants/projectColors';
 import { ProjectChartItem } from '../types';
 
+const NO_SELECTED_PROJECTS: readonly string[] = [];
+
 export interface ProjectDonutChartProps {
   projectChart: ProjectChartItem[];
-  selectedProjectId?: string | null;
-  onSelectProject?: (projectId: string | null) => void;
+  selectedProjectIds?: readonly string[];
+  onToggleProject?: (projectId: string) => void;
+  onClearProjects?: () => void;
   defaultExpanded?: boolean;
   forceMountOnPrint?: boolean;
 }
 
 export default function ProjectDonutChart({
   projectChart,
-  selectedProjectId,
-  onSelectProject,
+  selectedProjectIds = NO_SELECTED_PROJECTS,
+  onToggleProject,
+  onClearProjects,
   defaultExpanded = true,
   forceMountOnPrint = false,
 }: ProjectDonutChartProps) {
@@ -62,15 +66,16 @@ export default function ProjectDonutChart({
         };
       });
 
-    const activeSelected = projectChart.find((p) => p.id === selectedProjectId);
+    const singleSelectedId = selectedProjectIds.length === 1 ? selectedProjectIds[0] : null;
+    const selectedName = projectChart.find((p) => p.id === singleSelectedId)?.name ?? null;
 
     return {
       totalSeconds: total,
       data: chartData,
       chartConfig: config,
-      selectedProjectName: activeSelected?.name ?? null,
+      selectedProjectName: selectedName,
     };
-  }, [projectChart, selectedProjectId]);
+  }, [projectChart, selectedProjectIds]);
 
   const hasData = data.length > 0 && totalSeconds > 0;
 
@@ -84,16 +89,23 @@ export default function ProjectDonutChart({
       contentClassName="mt-2"
       forceMountOnPrint={forceMountOnPrint}
       headerRight={
-        selectedProjectId && (
+        selectedProjectIds.length > 0 && (
           <HStack gap="sm" align="center">
-            <Badge variant="secondary" size="sm" className="font-sans">
-              {selectedProjectName}
-            </Badge>
+            {selectedProjectName && (
+              <Badge
+                variant="secondary"
+                size="sm"
+                className="font-sans"
+                data-testid="project-donut-selected-name"
+              >
+                {selectedProjectName}
+              </Badge>
+            )}
             <Button
               variant="ghost"
               size="xs"
               data-testid="clear-project-filter"
-              onClick={() => onSelectProject?.(null)}
+              onClick={onClearProjects}
               icon={<X className="w-3 h-3" />}
               className="text-muted-foreground hover:text-foreground"
             >
@@ -135,13 +147,13 @@ export default function ProjectDonutChart({
                 onClick={(data: unknown) => {
                   const entry = data as { id?: string; payload?: { id?: string } } | undefined;
                   const id = entry?.payload?.id ?? entry?.id;
-                  if (id && onSelectProject) {
-                    onSelectProject(selectedProjectId === id ? null : id);
+                  if (id) {
+                    onToggleProject?.(id);
                   }
                 }}
               >
                 {data.map((entry) => {
-                  const isSelected = selectedProjectId === entry.id;
+                  const isSelected = selectedProjectIds.includes(entry.id);
                   return (
                     <Cell
                       key={entry.id}

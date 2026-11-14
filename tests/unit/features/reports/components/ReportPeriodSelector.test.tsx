@@ -273,8 +273,8 @@ describe('Unit Tests: ReportPeriodSelector', () => {
       { id: 'p2', name: 'Project Beta', color: 'emerald', createdAt: '2026-01-01T00:00:00Z', archived: false, description: null, icon: null, tags: null },
     ];
 
-    it('should render project filter container when projects and onSelectProject are provided', () => {
-      const onSelectProject = vi.fn();
+    it('should render project filter container when projects and project handlers are provided', () => {
+      const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
       render(
         <MockProviders>
           <ReportPeriodSelector
@@ -283,8 +283,8 @@ describe('Unit Tests: ReportPeriodSelector', () => {
             reportSort="duration"
             setReportSort={setReportSortMock}
             projects={mockProjects}
-            selectedProjectId={null}
-            onSelectProject={onSelectProject}
+            selectedProjectIds={[]}
+            {...handlers}
           />
         </MockProviders>
       );
@@ -295,8 +295,8 @@ describe('Unit Tests: ReportPeriodSelector', () => {
       expect(screen.getByTestId('project-filter-p2')).not.toBeNull();
     });
 
-    it('should trigger onSelectProject when project button is clicked in period selector', () => {
-      const onSelectProject = vi.fn();
+    it('should trigger onToggleProject when project button is clicked in period selector', () => {
+      const handlers = { onToggleProject: vi.fn(), onClearProjects: vi.fn() };
       render(
         <MockProviders>
           <ReportPeriodSelector
@@ -305,14 +305,14 @@ describe('Unit Tests: ReportPeriodSelector', () => {
             reportSort="duration"
             setReportSort={setReportSortMock}
             projects={mockProjects}
-            selectedProjectId={null}
-            onSelectProject={onSelectProject}
+            selectedProjectIds={[]}
+            {...handlers}
           />
         </MockProviders>
       );
 
       fireEvent.click(screen.getByTestId('project-filter-p1'));
-      expect(onSelectProject).toHaveBeenCalledWith('p1');
+      expect(handlers.onToggleProject).toHaveBeenCalledWith('p1');
     });
   });
 });

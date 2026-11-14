@@ -5,11 +5,7 @@ import { RangeBillingResult } from '@common/engine/billing/types';
 import { ElapsedRangeFilter } from '@bindings/ElapsedRangeFilter';
 import { getRangeFilterForPeriod } from '../utils/periodRanges';
 import { calculateReportStatistics } from '../utils/reportCalculator';
-import {
-  filterProjectsByTags,
-  filterTasksByProjectIds,
-  filterTimeLogsByTagFilter,
-} from '../utils/tagFiltering';
+import { filterProjectsByTags, filterTasksByProjectIds } from '../utils/tagFiltering';
 import { UseReportStatisticsProps, ProjectChartItem, ReportStatisticsResult } from '../types';
 
 export type { UseReportStatisticsProps, ProjectChartItem, ReportStatisticsResult };
@@ -21,7 +17,6 @@ export interface ExtendedReportStatisticsResult extends ReportStatisticsResult {
 }
 
 export interface ReportStatisticsHookProps extends UseReportStatisticsProps {
-  selectedProjectId?: string | null;
   selectedTags?: string[];
 }
 
@@ -45,37 +40,33 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
     sysSettings,
     customFrom,
     customTo,
-    selectedProjectId,
+    selectedProjectIds,
     selectedTags,
   } = props;
 
   const { t } = useTranslation('report');
 
   const hasTagFilter = Boolean(selectedTags && selectedTags.length > 0);
-  const hasProjectFilter = Boolean(selectedProjectId);
+  const hasProjectFilter = Boolean(selectedProjectIds && selectedProjectIds.length > 0);
 
-  // Strict intersection between project filter and tag filter
+  // Strict intersection between project scope and tag filter; an empty intersection yields an empty report
   const allowedProjectIds = useMemo((): Set<string> | null => {
     if (!hasTagFilter && !hasProjectFilter) {
       return null;
     }
 
-    if (!hasTagFilter && hasProjectFilter && selectedProjectId) {
-      return new Set([selectedProjectId]);
+    const scopedIds = new Set(selectedProjectIds);
+    if (!hasTagFilter) {
+      return scopedIds;
     }
 
-    const matchingTagProjects = filterProjectsByTags(projects, selectedTags);
-    const matchingTagIds = new Set(matchingTagProjects.map((p) => p.id));
-
-    if (hasProjectFilter && selectedProjectId) {
-      if (matchingTagIds.has(selectedProjectId)) {
-        return new Set([selectedProjectId]);
-      }
-      return new Set<string>();
+    const matchingTagIds = new Set(filterProjectsByTags(projects, selectedTags).map((p) => p.id));
+    if (!hasProjectFilter) {
+      return matchingTagIds;
     }
 
-    return matchingTagIds;
-  }, [projects, selectedTags, selectedProjectId, hasTagFilter, hasProjectFilter]);
+    return new Set([...scopedIds].filter((id) => matchingTagIds.has(id)));
+  }, [projects, selectedTags, selectedProjectIds, hasTagFilter, hasProjectFilter]);
 
   const effectiveProjects = useMemo(() => {
     if (!allowedProjectIds) return projects;
@@ -87,28 +78,16 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
     return filterTasksByProjectIds(tasks, allowedProjectIds);
   }, [tasks, allowedProjectIds]);
 
-  const taskMap = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks]);
-
-  const effectiveLogs = useMemo(() => {
-    if (!allowedProjectIds) return logs;
-    return filterTimeLogsByTagFilter(logs, allowedProjectIds, taskMap);
-  }, [logs, taskMap, allowedProjectIds]);
-
-  const effectivePatches = useMemo(() => {
-    if (!allowedProjectIds) return patches;
-    return filterTimeLogsByTagFilter(patches, allowedProjectIds, taskMap);
-  }, [patches, taskMap, allowedProjectIds]);
-
-  const effectiveSelectedProjectId = useMemo(() => {
-    if (!selectedProjectId) return null;
-    return allowedProjectIds && allowedProjectIds.has(selectedProjectId) ? selectedProjectId : null;
-  }, [selectedProjectId, allowedProjectIds]);
+  const engineProjectIds = useMemo(
+    () => (allowedProjectIds ? Array.from(allowedProjectIds) : null),
+    [allowedProjectIds]
+  );
 
   const baseStats = useMemo(
     () =>
       calculateReportStatistics({
-        logs: effectiveLogs,
-        patches: effectivePatches,
+        logs,
+        patches,
         projects: effectiveProjects,
         tasks: effectiveTasks,
         nowIso,
@@ -117,11 +96,11 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
         sysSettings,
         customFrom,
         customTo,
-        selectedProjectId: effectiveSelectedProjectId,
+        projectIds: engineProjectIds,
       }),
     [
-      effectiveLogs,
-      effectivePatches,
+      logs,
+      patches,
       effectiveProjects,
       effectiveTasks,
       nowIso,
@@ -130,7 +109,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
       sysSettings,
       customFrom,
       customTo,
-      effectiveSelectedProjectId,
+      engineProjectIds,
     ]
   );
 
@@ -169,13 +148,8 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
           includePatches
         );
 
-        if (allowedProjectIds !== null) {
-          const idsArray = Array.from<string>(allowedProjectIds);
-          if (idsArray.length === 1) {
-            filter.projectId = idsArray[0];
-          } else if (idsArray.length > 1) {
-            filter.projectIds = idsArray;
-          }
+        if (engineProjectIds !== null) {
+          filter.projectIds = engineProjectIds;
         }
         filterContext = filter;
 
@@ -208,8 +182,7 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
             reportPeriod,
             customFrom,
             customTo,
-            selectedProjectId,
-            projectIds: allowedProjectIds ? Array.from(allowedProjectIds) : undefined,
+            projectIds: engineProjectIds ?? undefined,
             includePatches,
           },
           nowIso,
@@ -235,8 +208,8 @@ export function useReportStatistics(props: ReportStatisticsHookProps): ExtendedR
     customFrom,
     customTo,
     nowIso,
-    selectedProjectId,
     allowedProjectIds,
+    engineProjectIds,
     includePatches,
     t,
   ]);

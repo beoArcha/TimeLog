@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { LayoutCommonProps } from '../types/LayoutCommonProps';
 import { ReportPeriodType } from '@features/reports/types';
+import { useReportProjectScope } from '@features/reports/hooks/useReportProjectScope';
 import { useProjectLifecycle } from '@features/tasks/hooks/useProjectLifecycle';
 import { useTaskLifecycle } from '@features/tasks/hooks/useTaskLifecycle';
 import { useNavigationController } from './useNavigationController';
@@ -14,6 +15,9 @@ export interface GuiReportFilterState {
   setCustomFrom: (val: string) => void;
   customTo: string;
   setCustomTo: (val: string) => void;
+  reportProjectIds: readonly string[];
+  toggleReportProject: (projectId: string) => void;
+  clearReportProjects: () => void;
 }
 
 /**
@@ -55,6 +59,7 @@ export function useGuiLogic(props: LayoutCommonProps) {
   const [reportSort, setReportSort] = useState<'date' | 'duration'>('duration');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
+  const reportProjectScope = useReportProjectScope(props.projects);
 
   return {
     ...props,
@@ -115,6 +120,9 @@ export function useGuiLogic(props: LayoutCommonProps) {
     setCustomFrom,
     customTo,
     setCustomTo,
+    reportProjectIds: reportProjectScope.reportProjectIds,
+    toggleReportProject: reportProjectScope.toggleReportProject,
+    clearReportProjects: reportProjectScope.clearReportProjects,
   };
 }
 

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Reports Multi-Project Scope**: The report has its own project scope (empty means all projects) instead of reusing the Tasks tab's working project, so the "All" filter works and filtering a report no longer changes the project shown in Tasks. Filter chips and the donut chart toggle several projects at once; statistics, billing and log lists are filtered by the engine through `projectIds`, intersected with active tag filters.
 - **Idempotent `start` and Safe `stop`**: `oxy start` on a task that is already running is a no-op that reports the state instead of opening a second session, in both engines; `oxy stop --if-running` succeeds with nothing to stop on an idle timer.
 - **Machine-Mode Parser Errors**: Argument and syntax errors detected by the parser are reported as the structured `stderr` error envelope with exit code `2` in `--machine` / `--json` mode.
 - **No Silent Truncation of Machine Lists**: `oxy log ls --json` / `--machine` returns every matching entry (`--limit` still applies when given); human mode keeps the 20-row default and shows how many entries are hidden.
