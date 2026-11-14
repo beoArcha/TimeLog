@@ -277,3 +277,6 @@ pub const CSV_BOM_FLAG: &str = "--bom";
 pub const CSV_DELIMITER_TAB_NAME: &str = "tab";
 pub const ERR_CSV_DELIMITER_INVALID: &str = "Invalid CSV delimiter '{}'. Use ',', ';' or 'tab'.";
 pub const ERR_CSV_OPTION_NEEDS_CSV: &str = "{} only applies to the 'csv' format, not '{}'.";
+
+pub const ERR_CSV_WRITE_BOM: &str = "Failed to write CSV byte order mark";
+pub const ERR_CSV_WRITE_ROW: &str = "Failed to write CSV row";

@@ -1,6 +1,8 @@
 //! CSV writer: one flat table per report variant; cell safety lives in `csv_sanitize`.
 
-use super::constants::{CSV_FULL_HEADERS, CSV_SUMMARY_HEADERS};
+use super::constants::{
+    CSV_FULL_HEADERS, CSV_SUMMARY_HEADERS, ERR_CSV_WRITE_BOM, ERR_CSV_WRITE_ROW,
+};
 use super::csv_records::{full_records, summary_records, Record};
 use super::options::{CsvDelimiter, CsvOptions};
 use super::sink_io_error;
@@ -29,7 +31,7 @@ pub fn write_csv<W: Write>(
     if options.bom {
         writer
             .write_all(&UTF8_BOM)
-            .map_err(|e| sink_io_error("Failed to write CSV byte order mark", e))?;
+            .map_err(|e| sink_io_error(ERR_CSV_WRITE_BOM, e))?;
     }
     let (headers, records) = match document.variant {
         ReportVariant::Summary => (header(&CSV_SUMMARY_HEADERS), summary_records(document)),
@@ -60,5 +62,5 @@ fn write_record<W: Write>(
     line.push(RECORD_TERMINATOR);
     writer
         .write_all(line.as_bytes())
-        .map_err(|e| sink_io_error("Failed to write CSV row", e))
+        .map_err(|e| sink_io_error(ERR_CSV_WRITE_ROW, e))
 }
