@@ -1,6 +1,6 @@
 # UI/UX Flow Audit — Consolidated Backlog (browser / PWA runtime)
 
-Status: DRAFT, awaiting owner approval. Only FLOW-05 is in progress (branch `fix/reports-multi-project-scope`, under review).
+Status: scheduled as the UI/UX Flow Program, Phases 38–41 of the [roadmap](../../manifesto/MASTERMAP.md#uiux-flow-program--browser--pwa-runtime-phases-3841), which sets the order of the packages below. FLOW-05 part 1 was delivered in PR #142. The packages marked "needs decision" wait for the owner decisions D1–D4.
 
 - Date: 2026-11-13/14, audited at `main` 0c0e67e4.
 - Scope: Tasks, Reports, Settings, Backup, Manual, Credits and the app shell in the browser runtime. Tabs absent from the browser (`db`, `cli`) are excluded by owner decision.
@@ -39,7 +39,7 @@ Sizes: S < 50 LOC, M 50–200, L > 200 (split before dispatch). Every package sh
 | FLOW-02 | Bare Space must not toggle the timer after focus falls to the page body; editors and confirm dialogs return focus to their trigger | A-21, A-32, C-11 | React hooks | S–M |
 | FLOW-03 | Sidebar is keyboard-operable: project row focusable and selectable, no focus stops on invisible controls, action cluster stops stealing row width, edit button named | A-19, A-01, A-34, B-16 | React + CSS | M |
 | FLOW-04 | Alt+digit maps to the visible tab list | C-01 | React hook | S |
-| FLOW-05 | Report has its own multi-project scope; "All" works (part 1, IN PROGRESS); sidebar multi-select while Reports is active (part 2) | B-04 | React | M + M |
+| FLOW-05 | Report has its own multi-project scope; "All" works (part 1, delivered in PR #142); sidebar multi-select while Reports is active (part 2) | B-04 | React | M + M |
 
 ### Wave 2 — Reports flow
 
