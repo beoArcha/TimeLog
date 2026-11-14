@@ -1,7 +1,7 @@
 # AUDIT-C findings: Settings / Backup / Manual / Credits + tab currency (browser runtime)
 
-Scratch root: `C:\Users\Krzysiu\AppData\Local\Temp\claude\4fe3aaad023df462\e87bbf6b-161a-4c90-a56f-6e067449689d\scratchpad\ui-audit\settings`
-Shots dir: `...\settings\shots\` (abbrev `S/` below = `C:\Users\Krzysiu\AppData\Local\Temp\claude\4fe3aaad023df462\e87bbf6b-161a-4c90-a56f-6e067449689d\scratchpad\ui-audit\settings\shots\`)
+Screenshots: [`shots/settings/`](shots/settings/) (committed, WebP). Working folder of the run (not committed): `%TEMP%/claude/<session>/scratchpad/ui-audit/settings`
+Evidence links point to [`shots/settings/`](shots/settings/); `exp*.mjs` scripts and their `*.out` results stayed in the working folder.
 Dev server: <http://127.0.0.1:5183/> (reused, alive at start of worker 3)
 
 ## Progress log / next steps (update continuously)
@@ -17,27 +17,27 @@ Dev server: <http://127.0.0.1:5183/> (reused, alive at start of worker 3)
 
 Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from prior run evidence.
 
-### C-01  P1  interaction / dead-end  Alt+3 lands on a hidden tab: blank content, no tab selected  (prior: expA2.out, A-alt3-hidden-db.png)
+### C-01  P1  interaction / dead-end  Alt+3 lands on a hidden tab: blank content, no tab selected  (prior: expA2.out, [A-alt3-hidden-db](shots/settings/A-alt3-hidden-db.webp))
 
 - Where: Full layout, 1440x900, light, en, browser runtime.
 - Repro: focus body, press Alt+3. Active tab list is empty (`Alt+3 tabs []`), the content area below the status banner is completely empty (screenshot).
-- Evidence: `S/A-alt3-hidden-db.png`; `src/layouts/hooks/useLayoutManagerOrchestrator.ts:100-104` indexes `APP_TAB_IDS` (`src/common/types/navigation.ts`: tasks, reports, **db**, settings, backup, **cli**, manual, credits) instead of the tabs actually rendered. In the browser runtime db and cli are hidden, so Alt+3 = db (blank), Alt+4 = settings, Alt+5 = backup, Alt+6 = cli, Alt+7 = manual, Alt+8 = credits; the visible tab order is therefore not Alt+1..6. (Alt+6/cli not yet verified live.)
+- Evidence: [A-alt3-hidden-db](shots/settings/A-alt3-hidden-db.webp); `src/layouts/hooks/useLayoutManagerOrchestrator.ts:100-104` indexes `APP_TAB_IDS` (`src/common/types/navigation.ts`: tasks, reports, **db**, settings, backup, **cli**, manual, credits) instead of the tabs actually rendered. In the browser runtime db and cli are hidden, so Alt+3 = db (blank), Alt+4 = settings, Alt+5 = backup, Alt+6 = cli, Alt+7 = manual, Alt+8 = credits; the visible tab order is therefore not Alt+1..6. (Alt+6/cli not yet verified live.)
 - Why it breaks flow: the user is thrown into an empty view with nothing highlighted; the only way out is the mouse.
 - Fix: map the Alt+digit to the visible tab list (the same list TabBar renders); unit-test the mapper. Size S. Test: Playwright e2e (press Alt+3 -> `tab-settings` aria-selected) + unit test for the mapper.
 
-### C-02  P1  stale-content / sense-of-solution  Manual tab: shortcut card describes desktop tray behaviour in the browser  (prior: 1440-light-manual-expanded.png)
+### C-02  P1  stale-content / sense-of-solution  Manual tab: shortcut card describes desktop tray behaviour in the browser  (prior: [1440-light-manual-expanded](shots/settings/1440-light-manual-expanded.webp))
 
 - Where: Manual, Full, all viewports (default state).
 - Observed text: "TimeLog by oXyFlow relies on an embedded tauri daemon, meaning the underlying C++ and SQLite engine does not die when you close the interface (via the "X" button)"; tiles "Toggle interface (Minimize to Tray) ESC / X", "Fast global restore (Global Shortcut) CTRL+SHIFT+O", "Emergency stop all timers CTRL+SHIFT+X". None of tray / daemon / global shortcut exists in the browser/PWA runtime. Prior expA.mjs fired Escape, Control+Shift+O, Control+Shift+X (output lost): to be re-verified live (see next steps).
-- Evidence: `S/1440-light-manual-expanded.png`, component `src/features/settings/components/KeyboardShortcutsCard.tsx`.
+- Evidence: [1440-light-manual-expanded](shots/settings/1440-light-manual-expanded.webp), component `src/features/settings/components/KeyboardShortcutsCard.tsx`.
 - Fix: gate tiles by PlatformCapabilities (tray/global shortcut only when present); add the browser-valid shortcuts (Alt+1..N tab switch, Space / Ctrl+Space timer). Size S-M. Test: unit test of the card with browser vs tauri capability providers.
 
-### C-03  P2  stale-content  Manual tab title and subtitle promise content that is not there; section numbering starts at "II."  (prior: 1440-light-manual-expanded.png)
+### C-03  P2  stale-content  Manual tab title and subtitle promise content that is not there; section numbering starts at "II."  (prior: [1440-light-manual-expanded](shots/settings/1440-light-manual-expanded.webp))
 
 - Observed: header "Compilation Manual, Shortcuts & Arch (Tauri OS Guides)" with subtitle "Step-by-step guide to building production binaries and an overview of shortcuts and daemons." The tab bar calls the tab "Manual". Only one card is visible, titled "II. Keyboard Shortcuts & System Tray Daemon" (no "I."), the rest of the page is empty (large empty area under the card at 1440x900).
 - Fix: either show the compilation guide (CompilationGuideCard, check why it is absent in browser) or retitle to what the page contains; renumber sections. Size S.
 
-### C-04  P1  consistency / stale-content  Three different version numbers  (prior: all shots header, 1440-light-settings-expanded.png)
+### C-04  P1  consistency / stale-content  Three different version numbers  (prior: all shots header, [1440-light-settings-expanded](shots/settings/1440-light-settings-expanded.webp))
 
 - Observed: header badge "v18"; Settings > oXyFlow Versions card "App Release v1.14.5", Engine v1.14.26, Front v1.14.18, Components v1.14.5, Translations v1.14.2. The badge is only the "front" sub-version (`src/layouts/components/header-parts/AppLogo.tsx:30` prints `v{metadata.versions.subversions.front}`), so "v18" means nothing to a user. Also the version card lives at the very bottom of Settings while Credits & Thanks (where users look for "about") has no versions.
 - Fix: badge shows `metadata.version` (1.14.5); move AppVersionsCard to Credits (or add link). Size S. Test: unit test comparing badge text with metadata.json.
@@ -48,15 +48,15 @@ Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from
 - Why: the user is told they run SQLite and daemons while the same screen says LocalStorage; "Database Management" link leads to a tab not shown in the tab bar (need to verify where it goes).
 - Fix: runtime-aware strings (PlatformCapabilities), remove "Database Management" link when db tab hidden. Size M.
 
-### C-06  P2  consistency / visual  Duplicate and developer-jargon headings in Settings  (prior: 1440-light-settings-expanded.png)
+### C-06  P2  consistency / visual  Duplicate and developer-jargon headings in Settings  (prior: [1440-light-settings-expanded](shots/settings/1440-light-settings-expanded.webp))
 
 - Observed: page h2 "Interface & Application Settings" is repeated as the title of the first card; "Holidays & Regional Settings" h2 then card "Holidays & Vacations" then inner accordion "REGISTER NEW DAY OFF (SQL INSERT)" and "holidays_leaves table (6 records)" with badge "RESOURCE DATABASE TABLE". Holiday names are Polish ("Nowy Rok (New Year)") although locale is en.
 - Also the table shows 5 rows (h1..h5) but footer says "Total: 6" and "6 records": the 6th row is not visible without a scroll affordance (to verify).
 - Fix: drop the duplicate card title, use plain wording ("Add day off", "Holidays and leave"), no SQL jargon. Size S.
 
-### C-07  P2  sense-of-solution  Order of Settings cards; reset separated from backup  (prior: 1440-light-settings-expanded.png)
+### C-07  P2  sense-of-solution  Order of Settings cards; reset separated from backup  (prior: [1440-light-settings-expanded](shots/settings/1440-light-settings-expanded.webp))
 
-- Observed order: Interface/Language, Display Timezone, Engine Options & Daemons, Automated Workflows, Holidays, Destructive Zone, Versions. The destructive reset lives in Settings, export lives in the Backup tab, so "back up, then reset" needs a tab hop; the confirmation dialog (B-reset-dialog.png, to be reviewed) is the only place to learn about it.
+- Observed order: Interface/Language, Display Timezone, Engine Options & Daemons, Automated Workflows, Holidays, Destructive Zone, Versions. The destructive reset lives in Settings, export lives in the Backup tab, so "back up, then reset" needs a tab hop; the confirmation dialog ([B-reset-dialog](shots/settings/B-reset-dialog.webp), to be reviewed) is the only place to learn about it.
 - Fix: put reset next to backup, or offer "Export backup first" inside the reset dialog. Size S-M.
 
 ### C-08  P1  interaction / validation  Auto-stop hours field: max not enforced, clearing snaps to 1  (prior: expA2.out)
@@ -93,7 +93,7 @@ Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from
 - Why: choosing a language visibly jerks the whole page.
 - Fix: fixed header height / fixed-width tab slots, or wrap rules so header height is locale independent. Size M. Test: geometry spec comparing header/tab bar rects across locales.
 
-### C-14  P2  sense-of-solution  Language can be set in three places  (prior: 1440-light-settings-expanded.png)
+### C-14  P2  sense-of-solution  Language can be set in three places  (prior: [1440-light-settings-expanded](shots/settings/1440-light-settings-expanded.webp))
 
 - Observed: header language bar (EN PL DE ... SYSTEM), Settings "Quick language selection" tiles, and an "Add Language" modal. Theme / layout / text size exist only in the header (no Settings card for them). Settings card claims "Language explicitly locked to user preference." for the one that is selected.
 - Fix: decide a single home (header for fast switch; Settings for the rare override editor), remove the duplicate tiles or keep as the only place. Size M.
@@ -103,7 +103,7 @@ Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from
 - Observed by DOM probe: "Português (Brasil)" `scrollWidth 100 > clientWidth 79` in light and dark, Settings. No horizontal page overflow in any of the 390/1024/1440 x light/dark x 4-tab cells probed (m1/m2/m3.json: hOverflowDoc=false, hOverflowMain=false).
 - Fix: shorter label (PT-BR) or allow wrap. Size S.
 
-### C-16  P1  interaction  Backup tab hierarchy: both cards collapsed by default hide the primary actions  (prior: 1440-light-backup-default.png vs -expanded)
+### C-16  P1  interaction  Backup tab hierarchy: both cards collapsed by default hide the primary actions  (prior: [1440-light-backup-default](shots/settings/1440-light-backup-default.webp) vs -expanded)
 
 - Observed: Backup tab content ("Export Backup JSON", "Restore / Import Backup JSON") is inside collapsible cards; "Send logs to external API" card sits below with a checkbox titled identically to its header ("Send logs to external API" twice). (Prior shots show these expanded; default-collapse state to be confirmed.)
 - Needs verification before counting. (kept as candidate)
@@ -184,7 +184,7 @@ Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from
 - CHANGELOG.md newest released heading is `[1.12.7]` while metadata.json/package.json are 1.14.5; everything since sits under `[Unreleased]`.
 - Fix S (docs only).
 
-### C-22  P2  sense-of-solution  Credits tab content is personal copy, partly inaccurate for the browser  (code: CreditsTab.tsx:10, screenshot 1440-light-credits-expanded.png)
+### C-22  P2  sense-of-solution  Credits tab content is personal copy, partly inaccurate for the browser  (code: CreditsTab.tsx:10, screenshot [1440-light-credits-expanded](shots/settings/1440-light-credits-expanded.webp))
 
 - Tech badges are a hard-coded list `['React','Tauri','Rust','SQLite','TailwindCSS','Bun']` (CreditsTab.tsx:10), not derived from package.json (Vite, Recharts, Base UI, lucide, sonner are used; SQLite is not used in the browser). Copy "Core Team (Me, AI & Caffeine)", "Copyright (c) 2026 TimeLog by oXyFlow Team". No link to repo (metadata.json has `repository`, `homepage`), no versions, no license link.
 - Fix S: derive badges from a list in metadata; add repo link + version.
@@ -205,11 +205,11 @@ Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from
 - DOM contains each layout-variant button twice (`layout-variant-medium` and `layout-variant-full` listed twice in the header) - duplicate nodes (possibly a hidden responsive twin), affects test ids (`getByTestId` strict mode).
 - Fix S. Test: unit test of the header (aria-label translated) + Playwright strictness.
 
-### C-25  P1  sense-of-solution / dead end  Footer "Database Management" link does nothing in the browser  (expE.out, shots E-db-link.png)
+### C-25  P1  sense-of-solution / dead end  Footer "Database Management" link does nothing in the browser  (expE.out, shots [E-db-link](shots/settings/E-db-link.webp))
 
 - On the Settings tab clicking the orange footer link "Database Management" changes nothing (selected tab stays settings, content length same 1544); the db tab is not available in this runtime (canInspectDatabase false) so the link is a dead control shown on every tab (see screenshot). The adjacent "MPL-2.0 License & Credits" link opens a modal dialog (it blocked the next click in the script).
 - Fix S: hide link when `!canInspectDatabase`. Test: unit test with capabilities.
-- Evidence: `S/E-db-link.png`.
+- Evidence: [E-db-link](shots/settings/E-db-link.webp).
 
 ### C-26  P1  stale-content  PWA install not discoverable (supports C-20)
 
@@ -217,22 +217,22 @@ Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from
 
 ### C-25 CORRECTION (expF.out)
 
-- From Tasks the footer "Database Management" link lands on the **Settings** tab (selected tab-settings, main 1544 chars; `F-db-link-from-tasks.png`); on Settings it does nothing visible. So the link is labelled for a feature (DB explorer) that is hidden in this runtime and silently goes to an unrelated tab. Same fix: hide when `!canInspectDatabase`.
-- License link opens a modal "About Flow, Credits & MPL-2.0" (`S/F-license-modal.png`); Escape closes it and focus returns to the link (good). The modal repeats creator bio / OSS list / license that also live in the Credits tab (two "credits" surfaces, different copy: modal says "Engineered and crafted by Marcin 'beoArcha' Stefan", Tauri v2 "native desktop shell"; tab says "Core Team (Me, AI & Caffeine)") -> C-22 extension: duplicate, diverging credit content; modal also advertises Tauri/desktop in the browser.
+- From Tasks the footer "Database Management" link lands on the **Settings** tab (selected tab-settings, main 1544 chars; [F-db-link-from-tasks](shots/settings/F-db-link-from-tasks.webp)); on Settings it does nothing visible. So the link is labelled for a feature (DB explorer) that is hidden in this runtime and silently goes to an unrelated tab. Same fix: hide when `!canInspectDatabase`.
+- License link opens a modal "About Flow, Credits & MPL-2.0" ([F-license-modal](shots/settings/F-license-modal.webp)); Escape closes it and focus returns to the link (good). The modal repeats creator bio / OSS list / license that also live in the Credits tab (two "credits" surfaces, different copy: modal says "Engineered and crafted by Marcin 'beoArcha' Stefan", Tauri v2 "native desktop shell"; tab says "Core Team (Me, AI & Caffeine)") -> C-22 extension: duplicate, diverging credit content; modal also advertises Tauri/desktop in the browser.
 
-### C-13 EXTENDED  P1  motion / layout shift  Header control layout depends on locale (expF.out, F-settings-ja.png)
+### C-13 EXTENDED  P1  motion / layout shift  Header control layout depends on locale (expF.out, [F-settings-ja](shots/settings/F-settings-ja.webp))
 
-- Header height: en 89, de 89, pl 79, ja 79; tab bar y: 110 (en/de) vs 100 (pl/ja). In **ja** the whole control group reorders: layout switch (中 | 大), theme, text-size and the language bar sit on ONE row with the switch at the far left, whereas in en the language bar and the PWA badge sit on a second row and the layout switch is at the right (compare `S/A-alt3-hidden-db.png` vs `S/F-settings-ja.png`). A user who switches language from the header sees the layout/theme/text-size controls jump to new positions under the cursor.
+- Header height: en 89, de 89, pl 79, ja 79; tab bar y: 110 (en/de) vs 100 (pl/ja). In **ja** the whole control group reorders: layout switch (中 | 大), theme, text-size and the language bar sit on ONE row with the switch at the far left, whereas in en the language bar and the PWA badge sit on a second row and the layout switch is at the right (compare [A-alt3-hidden-db](shots/settings/A-alt3-hidden-db.webp) vs [F-settings-ja](shots/settings/F-settings-ja.webp)). A user who switches language from the header sees the layout/theme/text-size controls jump to new positions under the cursor.
 - Fix M: fixed two-row header grid independent of label width (or shorter locale labels), reserve badge row. Test: geometry spec across the 10 locales (header height, control x positions equal).
 
 ### C-27  P2  i18n  Leftovers and naming drift across locales (expF.out)
 
-- de: Credits heading "Credits, OSS & Creators" is English (tab "Credits & Dank"); Manual heading uses "Verknüpfungen" (= links) for Shortcuts. pl: tab "Opcje" vs page heading "Ustawienia Interfejsu i Aplikacji" (tab and view name differ), Manual tab "Instrukcja" vs heading "Instrukcja Kompilacji, Skróty & Architektura (Tauri OS Guides)". en: tab "Credits & Thanks" vs heading "Credits, OSS & Creators"; tab "Manual" vs heading "Compilation Manual, ...". Backup tab/heading consistent in all four. ja: pass without truncation in settings top part (`F-settings-ja.png`); ja tab "バックアップ & エクスポート" is the longest label.
+- de: Credits heading "Credits, OSS & Creators" is English (tab "Credits & Dank"); Manual heading uses "Verknüpfungen" (= links) for Shortcuts. pl: tab "Opcje" vs page heading "Ustawienia Interfejsu i Aplikacji" (tab and view name differ), Manual tab "Instrukcja" vs heading "Instrukcja Kompilacji, Skróty & Architektura (Tauri OS Guides)". en: tab "Credits & Thanks" vs heading "Credits, OSS & Creators"; tab "Manual" vs heading "Compilation Manual, ...". Backup tab/heading consistent in all four. ja: pass without truncation in settings top part ([F-settings-ja](shots/settings/F-settings-ja.webp)); ja tab "バックアップ & エクスポート" is the longest label.
 - Fix S: align tab label and heading, translate de credits heading.
 
 ### C-05 CORRECTION (expG2.out)
 
-- The tiny glyph in the status banner is the **number "0"** rendered at a micro size: DOM text is "Engine synchronized 0 parallel tracking threads (projects run concurrently)". The banner therefore shows a near-invisible "0" mid sentence (visible at 1440, 390 and in Medium, see `S/G-med-1440-settings.png`, `S/F-settings-ja.png`). With no timer running "0 parallel tracking threads" is noise on every tab.
+- The tiny glyph in the status banner is the **number "0"** rendered at a micro size: DOM text is "Engine synchronized 0 parallel tracking threads (projects run concurrently)". The banner therefore shows a near-invisible "0" mid sentence (visible at 1440, 390 and in Medium, see [G-med-1440-settings](shots/settings/G-med-1440-settings.webp), [F-settings-ja](shots/settings/F-settings-ja.webp)). With no timer running "0 parallel tracking threads" is noise on every tab.
 
 ### C-28  P1  sense-of-solution / dead end  Medium layout cannot reach Backup, Manual, Credits, Versions or Reset  (expG3.out, shots G-med-*)
 
@@ -240,7 +240,7 @@ Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from
 - Why: a PWA user on a phone / narrow window (Medium is the browser's phone layout; at 390 only Medium-dock makes sense) cannot export or restore data, read shortcuts or the credits without switching to Full, which is horizontally cramped. The doc line in README/USER_GUIDE about backup never mentions this.
 - Fix M: add Backup (and Manual/Credits via an overflow "More" item or as Settings cards) to Medium; or move Backup/Reset cards into Settings so both layouts share them. Test: Playwright e2e on Medium (export button reachable).
 
-### C-29  P1  visual / responsiveness  Medium Settings: quick language tiles truncated to one letter; status banner overlaps timer card  (shots G-med-1440-settings.png, G-med-390-settings.png)
+### C-29  P1  visual / responsiveness  Medium Settings: quick language tiles truncated to one letter; status banner overlaps timer card  (shots [G-med-1440-settings](shots/settings/G-med-1440-settings.webp), [G-med-390-settings](shots/settings/G-med-390-settings.webp))
 
 - Medium at 1440x900: the layout is a narrow ~540 px dock on the right of an otherwise empty 1440 px window; "Quick language selection" tiles show "S...", "E...", "P...", "D...", "Es...", "Fr...", "Ital..." (names cut after 1-4 chars, one tile shows only a clipped "P" before PT-BR) - a language cannot be recognised. At 390 wide the tiles show 2 per row (names readable, "Português (Br..." truncated).
 - In both Medium shots the sticky banner "PWA READY / ONLINE ... Synced" sits over the top of the active timer card ("11:00:00 - 3 Total Tasks" is cut; the timer card's buttons are half hidden under the banner), and the bottom dock overlays the last card edge. The banner + two-row header consume ~220 px of 844 px at 390.
@@ -251,13 +251,13 @@ Legend: sev P0 broken / P1 flow friction / P2 polish. Size S/M/L. "prior" = from
 - Clicking the Medium/Large switch shows a "SYSTEM NOTIFICATION TRAY / Interface size changed to: Medium" banner although the layout visibly changes at once; wording "Interface size" for what the buttons call layout, "SYSTEM NOTIFICATION TRAY" desktop label. Same banner is used for errors (C-09). In Zouk terms: a toast for something the user just saw happen is an extra visual event.
 - Fix S: no toast for instant visible UI preferences; keep for failures.
 
-### C-31  P1  consistency / sense-of-solution  Text-and-icon size control only scales the tab bar, not the Settings content  (expJ.out, shots H-text-large-settings.png)
+### C-31  P1  consistency / sense-of-solution  Text-and-icon size control only scales the tab bar, not the Settings content  (expJ.out, shots [H-text-large-settings](shots/settings/H-text-large-settings.webp))
 
-- Repro: Full 1440x900 light en, header "A A A" -> small/medium/large, open Settings. Computed font sizes (px) small / medium / large: tab label 12 / 14 / 16, tab height 44 / 55 / 78 - but Settings h2 24 / 24 / 24, caption 12 / 12 / 12, field label 14 / 14 / 14, Save button 12 px and 32 px high in all three; header height 89 in all three; root font-size 16 in all three (`expJ.out`, `expH.out`). In the large screenshot the tab row grows and everything below stays identical (`S/H-text-large-settings.png`).
+- Repro: Full 1440x900 light en, header "A A A" -> small/medium/large, open Settings. Computed font sizes (px) small / medium / large: tab label 12 / 14 / 16, tab height 44 / 55 / 78 - but Settings h2 24 / 24 / 24, caption 12 / 12 / 12, field label 14 / 14 / 14, Save button 12 px and 32 px high in all three; header height 89 in all three; root font-size 16 in all three (`expJ.out`, `expH.out`). In the large screenshot the tab row grows and everything below stays identical ([H-text-large-settings](shots/settings/H-text-large-settings.webp)).
 - Why: the owner-facing promise (USER_GUIDE 2.6, AGENTS.md "TextAndIconSize changes CSS design tokens") is that the whole UI scales; here the user who needs larger text gets a fatter tab bar and the same 12 px captions, i.e. the control seems broken, and the tab bar eats vertical space.
 - Fix M (token audit: components using fixed text-xs / h-8 instead of scale tokens). Test: geometry spec asserting a body-text element's computed font-size grows small -> large.
 
-### C-32  P1  responsiveness  390x844: Holidays table hides Edit/Delete off-screen, headings and footer clipped  (expI.out, shot 390-dark-settings-default.png)
+### C-32  P1  responsiveness  390x844: Holidays table hides Edit/Delete off-screen, headings and footer clipped  (expI.out, shot [390-dark-settings-default](shots/settings/390-dark-settings-default.webp))
 
 - Holidays table is 482 px wide in a 290 px scroller (`overflow-x:auto`, no visible scroll cue); the Edit/Delete buttons sit at x=484/516 > viewport 390, so on a phone the only row actions are hidden until the user discovers a horizontal swipe. Accordion headers are cut: "REGISTER NEW DAY OFF (SQL INSE", "holidays_leaves table (6 recor". Footer line is 473 px in a 376 px box (clipped "Databas..." at the right edge). Quick tiles: "Português (Br..." truncated (see C-15).
 - Fix M: card layout for rows < 480 px (name + date, kebab actions), allow header wrap, footer wraps into two lines. Test: Playwright 390 check: action buttons inside viewport, `scrollWidth <= clientWidth` for footer and accordion headers.

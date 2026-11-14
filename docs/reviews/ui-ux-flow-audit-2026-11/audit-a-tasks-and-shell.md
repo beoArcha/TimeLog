@@ -1,6 +1,6 @@
 # AUDIT-A — Tasks tab + application shell (browser runtime) — findings
 
-Root: `C:\Users\Krzysiu\AppData\Local\Temp\claude\4fe3aaad023df462\e87bbf6b-161a-4c90-a56f-6e067449689d\scratchpad\ui-audit\tasks` (below `$T`). Screenshots in `$T\shots\`. Scripts `$T\s*.cjs`, helper `$T\lib.cjs`, dev server `DEV_PORT=5181`.
+Screenshots: [`shots/tasks/`](shots/tasks/) (committed, WebP). Working folder of the run (not committed): `%TEMP%/claude/<session>/scratchpad/ui-audit/tasks` (below `$T`): scripts `$T/s*.cjs`, helper `$T/lib.cjs`, dev server `DEV_PORT=5181`.
 
 ## Progress log / next steps (update as you go)
 
@@ -13,7 +13,7 @@ Root: `C:\Users\Krzysiu\AppData\Local\Temp\claude\4fe3aaad023df462\e87bbf6b-161a
 
 - Where: Tasks, Full, 1440x900, light, en; seeded data (5 projects). Every project row without description shows a second line truncated to 1–3 chars; selected row too ("Created …" on a fresh project, then "C…").
 - Repro: seed or create a project → look at the row under the project name in `#projects-sidebar`.
-- Evidence (prior run): `$T\shots\core-full-1440-light-en.png` (rows: `(` under Website Redesi…, `C` under Mobile App, `Cr…` under Internal Tools), `$T\shots\j1-after-project.png` ("Created …"), `$T\shots\j1-after-start.png` ("C…").
+- Evidence (prior run): [core-full-1440-light-en](shots/tasks/core-full-1440-light-en.webp) (rows: `(` under Website Redesi…, `C` under Mobile App, `Cr…` under Internal Tools), [j1-after-project](shots/tasks/j1-after-project.webp) ("Created …"), [j1-after-start](shots/tasks/j1-after-start.webp) ("C…").
 - Why it breaks flow: the row reserves a line for text that is clipped to nothing; it looks like a rendering bug, name is truncated ("Website Redesi…") although the row has dead width on the second line; row height ~110px so only ~5 rows fit the viewport.
 - Proposed fix: drop the "Created <date>" line when no description (or render the whole date with `min-w-0` + `whitespace-nowrap`), give the name the full row width, move timer pill to the second line.
 - Code: src/layouts/parts/sidebar/* (TBD exact line). Size S. Test: geometry spec (no leaf text clipped with scrollWidth>clientWidth in `#projects-sidebar`).
@@ -21,7 +21,7 @@ Root: `C:\Users\Krzysiu\AppData\Local\Temp\claude\4fe3aaad023df462\e87bbf6b-161a
 ### A-02 · P1 · visual — Starter-template cards on first run: description text overlaps the neighbour card
 
 - Where: empty app, Full 1440x900, en.
-- Evidence (prior): `$T\shots\empty-full-1440-en.png` (descriptions "Track features, code reviews, de…" and "Billable client hours, meetings an…" are painted over each other; same for 2nd row). Titles truncated "Software E…", "Client Cons…", "Learning & …", "Content & D…".
+- Evidence (prior): [empty-full-1440-en](shots/tasks/empty-full-1440-en.webp) (descriptions "Track features, code reviews, de…" and "Billable client hours, meetings an…" are painted over each other; same for 2nd row). Titles truncated "Software E…", "Client Cons…", "Learning & …", "Content & D…".
 - Why: first impression of the product; the one-click templates are unreadable and look broken; titles lose their meaning.
 - Fix: 1 column list of templates (full-width cards) or `overflow-hidden` + 2-line clamp on description; allow title to wrap.
 - Code: src/layouts/parts/sidebar/ (starter templates; TBD line). Size S. Test: geometry (no overlapping child rects) in empty-state spec.
@@ -29,62 +29,62 @@ Root: `C:\Users\Krzysiu\AppData\Local\Temp\claude\4fe3aaad023df462\e87bbf6b-161a
 ### A-03 · P1 · sense-of-solution — Timer start produces a second, parallel status chip and raw "Entity #id" debug line on every task
 
 - Where: Tasks list, Full. Starting "First task" (status TODO) shows `TODO ▾` plus a green "In Progress" badge; running seeded task "Homepage hero section" shows `Done ▾` + "In Progress" + "Entity #t-p1-1 (Active timing)".
-- Evidence (prior): `$T\shots\j1-after-start.png`, `$T\shots\j3-subtask-form-open.png`. Every task row prints `Entity #t-p1-0` (internal id; for new tasks a full UUID `Entity #9c2ff00b-15de-4f00-85ad-f6c4bcfa8b36…`).
+- Evidence (prior): [j1-after-start](shots/tasks/j1-after-start.webp), [j3-subtask-form-open](shots/tasks/j3-subtask-form-open.webp). Every task row prints `Entity #t-p1-0` (internal id; for new tasks a full UUID `Entity #9c2ff00b-15de-4f00-85ad-f6c4bcfa8b36…`).
 - Why: two status vocabularies (workflow status select vs "In Progress" timer badge) contradict each other (Done + In Progress); internal IDs are developer noise in a "flow" UI and add a line per task row.
 - Fix: one status concept: running = visual state (pulse / accent bar) and, optionally, auto-set status to InProgress on start; remove the Entity line from the default view (show in a details popover / behind a setting).
 - Code: src/features/tasks/** (TBD). Size S–M. Test: unit/e2e (no "Entity #" text in row; single status chip).
 
 ### A-04 · P2 · visual — "In Progress" badge glyph collides with its label ("●n Progress")
 
-- Evidence (prior): `$T\shots\j1-after-start.png`, `$T\shots\j3-subtask-form-open.png` (green dot is painted over the "I").
+- Evidence (prior): [j1-after-start](shots/tasks/j1-after-start.webp), [j3-subtask-form-open](shots/tasks/j3-subtask-form-open.webp) (green dot is painted over the "I").
 - Fix: gap between dot and label (inline-flex gap). Size S. Test: geometry/visual.
 
 ### A-05 · P1 · motion/transition — Starting/stopping the timer shifts the whole project sheet by ~9px
 
-- Evidence (prior): `$T\shots\j1-after-project.png` (project sheet top y≈339) vs `$T\shots\j1-after-start.png` (y≈348): the idle banner (72px) is replaced by the taller active banner (82px). `$T\s11.cjs` samples frames, `$T\s9.cjs` rect before/after. (Re-measure in this run, see A-05 re-check below.)
+- Evidence (prior): [j1-after-project](shots/tasks/j1-after-project.webp) (project sheet top y≈339) vs [j1-after-start](shots/tasks/j1-after-start.webp) (y≈348): the idle banner (72px) is replaced by the taller active banner (82px). `$T\s11.cjs` samples frames, `$T\s9.cjs` rect before/after. (Re-measure in this run, see A-05 re-check below.)
 - Why: the list jumps under the pointer at the moment the user clicks Start/Stop; a "flow" break at the most frequent action.
 - Fix: give idle and active banners the same fixed height. Size S. Test: geometry spec: `#project-tasks-sheet` y equal before/after start.
 
 ### A-06 · P1 · interaction-cost / a11y — Medium layout: Esc does not close the "New project" form, and the open form covers the task list so Start buttons cannot be clicked
 
 - Where: Medium, 1024x768 (500px docked frame), en. Click `medium-new-project-btn`, press Esc → form still open (`esc closes form? true`). With the form open the Playwright click on `#start-btn-t-p1-0` fails for 15 s because "Cancel" / project item / form header "intercepts pointer events".
-- Evidence (prior): `$T\s19.out`, `$T\shots\med-new-project-form.png` (form + project list overlay the task sheet; the running-timer banner is hidden).
+- Evidence (prior): `$T\s19.out`, [med-new-project-form](shots/tasks/med-new-project-form.webp) (form + project list overlay the task sheet; the running-timer banner is hidden).
 - Fix: Esc closes the form; clicking outside closes it; keep the selected project name visible. Size S. Test: Playwright e2e (Esc closes new-project panel).
 
 ### A-07 · P1 · sense-of-solution — Task stats and project header duplicate the same number three times
 
-- Evidence (prior): `$T\shots\core-full-1440-light-en.png`: "Total: 33:57:22" (header chip), "TOTAL DURATION 33:57:22" (stat card), project row pill "33:57:22". Three tall stat cards push "Add task" and the first task down to y≈573 of 900 (task list starts below the fold at 1440x900 with an active timer).
+- Evidence (prior): [core-full-1440-light-en](shots/tasks/core-full-1440-light-en.webp): "Total: 33:57:22" (header chip), "TOTAL DURATION 33:57:22" (stat card), project row pill "33:57:22". Three tall stat cards push "Add task" and the first task down to y≈573 of 900 (task list starts below the fold at 1440x900 with an active timer).
 - Fix: collapse stat cards to a single compact line (duration · tasks · done%), keep Add Task at the top. Size M. Test: geometry (Add Task input within top 300px).
 
 ### A-08 · P2 · consistency — Eyebrow "SELECT PROJECT" is shown above an already selected project
 
-- Evidence (prior): `$T\shots\core-full-1440-light-en.png`, `j1-after-start.png`.
+- Evidence (prior): [core-full-1440-light-en](shots/tasks/core-full-1440-light-en.webp), [j1-after-start](shots/tasks/j1-after-start.webp).
 - Fix: remove or replace with "PROJECT". i18n keys needed (all 10 locales). Size S.
 
 ### A-09 · P1 · interaction-cost — Task actions (billing $, logs, rename, delete) are icon-only, appear only on hover, ~12px, low contrast
 
-- Evidence (prior): `$T\shots\full-hover-task-row.png` (four glyphs "$ ◷ ✎ 🗑" between name and counter; invisible otherwise). No hover → no hint they exist; unusable on touch (phone PWA, A to verify).
+- Evidence (prior): [full-hover-task-row](shots/tasks/full-hover-task-row.webp) (four glyphs "$ ◷ ✎ 🗑" between name and counter; invisible otherwise). No hover → no hint they exist; unusable on touch (phone PWA, A to verify).
 - Fix: keep the hover reveal for desktop but show them on :focus-within, always show on touch (`@media (hover:none)`), enlarge hit target to 32px. Size S–M.
 
 ### A-10 · P2 · consistency — Task completion has two independent controls (checkbox vs status select)
 
-- Evidence (prior): `$T\shots\j3-subtask-form-open.png`: task with unchecked checkbox and status "Done"; the checked "Implement responsive…" shows struck-through "TODO". (Seeded data; whether the checkbox sets status is to be verified in a new test — see Progress log.)
+- Evidence (prior): [j3-subtask-form-open](shots/tasks/j3-subtask-form-open.webp): task with unchecked checkbox and status "Done"; the checked "Implement responsive…" shows struck-through "TODO". (Seeded data; whether the checkbox sets status is to be verified in a new test — see Progress log.)
 - Fix: single source: checking sets status Done and vice versa. Size M.
 
 ### A-11 · P2 · i18n/visual — Long task name truncated with "…" at ~45 chars although the row has free width
 
-- Evidence (prior): `$T\shots\j3-subtask-form-open.png` ("Implement responsive navigation menu with acc…" while the right half of the row is empty).
+- Evidence (prior): [j3-subtask-form-open](shots/tasks/j3-subtask-form-open.webp) ("Implement responsive navigation menu with acc…" while the right half of the row is empty).
 - Fix: allow 2-line wrap; add `title` tooltip. Size S.
 
 ### A-12 · P1 · responsiveness — Medium layout at ≥1024px renders a 500px column docked to the right with an empty 500px+ void on the left
 
-- Evidence (prior): `$T\shots\medium-probe-1024.png`, `$T\shots\med-new-project-form.png`; `$T\s19.out` frame rect `[36,20,500,728]` after dock toggle. The frame has the same size at 1440 (`medium-probe-1440.png`).
+- Evidence (prior): [medium-probe-1024](shots/tasks/medium-probe-1024.webp), [med-new-project-form](shots/tasks/med-new-project-form.webp); `$T\s19.out` frame rect `[36,20,500,728]` after dock toggle. The frame has the same size at 1440 ([medium-probe-1440](shots/tasks/medium-probe-1440.webp)).
 - Why: the Medium layout is the tray-popup window layout; in a browser it looks like an unfinished mobile column. Decision to confirm with owner (browser has a "dock" toggle with no explanation).
 - Fix: in browser runtime, centre it or fill; or explain Medium. Size M.
 
 ### A-13 · P2 · visual — Medium tab bar: active tab pill clipped at left edge, labels icon-only
 
-- Evidence (prior): `$T\shots\medium-tabbar-zoom-1024.png`, `$T\shots\medium-tabbar-zoom-390.png`, `$T\shots\medium-probe-1024.png` (the active pill is cut square on the left and sits under the content card; tab bar is overlapped by the last task card).
+- Evidence (prior): [medium-tabbar-zoom-1024](shots/tasks/medium-tabbar-zoom-1024.webp), [medium-tabbar-zoom-390](shots/tasks/medium-tabbar-zoom-390.webp), [medium-probe-1024](shots/tasks/medium-probe-1024.webp) (the active pill is cut square on the left and sits under the content card; tab bar is overlapped by the last task card).
 - Size S. (Re-verify at zoom.)
 
 ### A-14 · P1 · interaction-cost — Subtask creation: "+ Subtask" opens an inline form but focus is not moved to its input (and Enter keeps the form open)
@@ -95,23 +95,23 @@ Root: `C:\Users\Krzysiu\AppData\Local\Temp\claude\4fe3aaad023df462\e87bbf6b-161a
 ### A-15 · P1 · visual / responsiveness — Long project name overlaps the "Total:" chip in the sheet header
 
 - Where: Tasks, Full, 1440x900, light, select project p3 ("Internal Tools and Infrastructure Maintenance Programme 2026").
-- Evidence (prior): `$T\shots\j2-after-select-p3.png` — the title "...Programme 2026" is painted across "Total: 21:45:00"; same in `$T\shots\m-hc-full-1440.png`.
+- Evidence (prior): [j2-after-select-p3](shots/tasks/j2-after-select-p3.webp) — the title "...Programme 2026" is painted across "Total: 21:45:00"; same in [m-hc-full-1440](shots/tasks/m-hc-full-1440.webp).
 - Why: text collision on a plausible real-world name; no truncation/wrap on the title (the sidebar truncates, the header does not).
 - Fix: `min-w-0 truncate` + `title` on the heading, or wrap to 2 lines and keep the chip shrink-0. Size S. Test: geometry spec (heading rect and total chip rect do not intersect, seeded long name).
 
 ### A-16 · P1 · responsiveness / interaction-cost — Phone 390px Full: the projects list fills the first screen; tasks are reached only after scrolling past 7 projects (~110px each)
 
-- Evidence (prior): `$T\shots\phone-full-top.png` (header 2 rows + tab bar + banner + "Projects (7)" card = whole viewport; footer clips "Database…"). In Medium (`phone-medium-top.png`) the tasks are directly visible via the project dropdown (much better flow).
+- Evidence (prior): [phone-full-top](shots/tasks/phone-full-top.webp) (header 2 rows + tab bar + banner + "Projects (7)" card = whole viewport; footer clips "Database…"). In Medium ([phone-medium-top](shots/tasks/phone-medium-top.webp)) the tasks are directly visible via the project dropdown (much better flow).
 - Fix: on narrow viewports default to the Medium pattern (project selector dropdown) or collapse the sidebar into a header selector. Size M–L. Test: Playwright viewport 390: first task start button within first viewport.
 
 ### A-17 · P1 · responsiveness / a11y — Phone Medium: subtask row action glyphs ("$", clock) overlap the TODO chip; sticky banner hides the running-timer card
 
-- Evidence (prior): `$T\shots\phone-medium-top.png`: in both subtask rows the "$" and clock icon sit on top of the `TODO` chip; the top status banner overlaps the active-timer card ("ACTIVE TRACKERS" strip is cut) — latter already reported by other audits (reference only).
+- Evidence (prior): [phone-medium-top](shots/tasks/phone-medium-top.webp): in both subtask rows the "$" and clock icon sit on top of the `TODO` chip; the top status banner overlaps the active-timer card ("ACTIVE TRACKERS" strip is cut) — latter already reported by other audits (reference only).
 - Fix: wrap action icons to their own line or into an overflow menu at <480px. Size S–M. Test: geometry at 390 (no sibling rect intersections inside a subtask row).
 
 ### A-18 · P2 · visual — Medium/phone tab bar: active pill is a rectangle cut off at the left with a different shape than the rest of the bar
 
-- Evidence (prior): `$T\shots\phone-medium-top.png`, `$T\shots\medium-tabbar-zoom-390.png`. (merge with A-13 after zoom re-check)
+- Evidence (prior): [phone-medium-top](shots/tasks/phone-medium-top.webp), [medium-tabbar-zoom-390](shots/tasks/medium-tabbar-zoom-390.webp). (merge with A-13 after zoom re-check)
 
 ## Interaction-cost table
 
@@ -119,9 +119,9 @@ Root: `C:\Users\Krzysiu\AppData\Local\Temp\claude\4fe3aaad023df462\e87bbf6b-161a
 
 ## Works well, keep it
 
-- Rename via blur commits ("Wireframes v3" appears after clicking elsewhere): `$T\shots\full-hover-task-row.png`/`j6-after-archive.png` show the renamed task. (prior)
-- Archive project has no confirmation and shows RESTORE inline (`$T\shots\j6-after-archive.png`). (prior)
-- Edit-project dialog is complete and compact (`$T\shots\full-edit-project-dialog.png`). (prior)
+- Rename via blur commits ("Wireframes v3" appears after clicking elsewhere): [full-hover-task-row](shots/tasks/full-hover-task-row.webp)/[j6-after-archive](shots/tasks/j6-after-archive.webp) show the renamed task. (prior)
+- Archive project has no confirmation and shows RESTORE inline ([j6-after-archive](shots/tasks/j6-after-archive.webp)). (prior)
+- Edit-project dialog is complete and compact ([full-edit-project-dialog](shots/tasks/full-edit-project-dialog.webp)). (prior)
 
 ## Coverage table
 
@@ -160,7 +160,7 @@ Script output excerpt (`node s20.cjs`): `9 add-project-btn effOpacity 1` → `10
 ### A-21 · P1 (data-affecting) · interaction-cost / a11y — Rename (and subtask add) drops focus to BODY, and the global Space shortcut then stops the running timer
 
 - Where: Tasks, Full 1440x900, light, en, timer running (seed). `$T\s24.cjs`, output: `timer running at start: true` → rename Wireframes via pencil, Ctrl+A, type, Enter → `focus after rename Enter: BODY running: true` → one Space press → `running: false`.
-- Same root in the subtask flow (`$T\s23.cjs`): after Enter in the subtask input `focus BODY form open? false`; typing a second name ("Second one") without re-clicking sent keystrokes to BODY; the space in it stopped the running timer (final screenshot `$T\shots\r3-after-add-task.png` shows the idle banner "LAST TRACKED TASK … Resume" although the timer was running before).
+- Same root in the subtask flow (`$T\s23.cjs`): after Enter in the subtask input `focus BODY form open? false`; typing a second name ("Second one") without re-clicking sent keystrokes to BODY; the space in it stopped the running timer (final screenshot [r3-after-add-task](shots/tasks/r3-after-add-task.webp) shows the idle banner "LAST TRACKED TASK … Resume" although the timer was running before).
 - Code: src/common/hooks/useGlobalShortcuts.ts:19-27 (Space toggles timer whenever target is not INPUT/TEXTAREA/BUTTON); the editors unmount their input on Enter without restoring focus (src/features/tasks/components/TaskItem/TaskNameEditor.tsx; subtask form in TaskItem — TBD exact line).
 - Why it breaks the flow: a user typing a task/subtask name can silently stop (or start) the timer — time-tracking data loss; plus focus is lost (no focus return) after the most common edits.
 - Fix: return focus to the element that opened the editor (pencil/name) on commit/cancel; keep the subtask input mounted and focused for batch entry; make Space timer shortcut require an explicit modifier (Ctrl+Space exists already) or ignore it while any editor was just closed; show a toast/undo on stop. Size S–M. Test: Playwright e2e (after rename Enter, `document.activeElement` is the task row/pencil; Space does not toggle) + unit for useGlobalShortcuts.
@@ -172,7 +172,7 @@ Script output excerpt (`node s20.cjs`): `9 add-project-btn effOpacity 1` → `10
 
 ### A-22 · P2 · motion/transition — Take Break swaps the active banner for a taller break banner: the whole task sheet jumps down 18px and back
 
-- Evidence: `$T\s23.cjs`: running banner [y252,h82.5], sheet y 346.5 → break banner [y242,h100.5], sheet y 364.5 → after "Resume work now" sheet y 346.5 again. Screenshot `$T\shots\r3-break-1m.png`. Three banner variants have three heights (idle "All trackers stopped" ≈73, active 82.5, break 100.5) → also see A-05.
+- Evidence: `$T\s23.cjs`: running banner [y252,h82.5], sheet y 346.5 → break banner [y242,h100.5], sheet y 364.5 → after "Resume work now" sheet y 346.5 again. Screenshot [r3-break-1m](shots/tasks/r3-break-1m.webp). Three banner variants have three heights (idle "All trackers stopped" ≈73, active 82.5, break 100.5) → also see A-05.
 - Fix: reserve one fixed banner height for all three states. Size S. Test: geometry spec (sheet y equal across states).
 - Good: break banner has "Resume work now", "Auto-resuming in 00:59", a labelled Cancel (X) button and Take Break menu closes on Esc (focus returns to `take-break-btn`) and on outside click — keep.
 
@@ -188,18 +188,18 @@ Script output excerpt (`node s20.cjs`): `9 add-project-btn effOpacity 1` → `10
 ### A-24 · P1 · responsiveness — Full layout at 1024x768: sidebar is squeezed so project names are cut to 1–2 characters and the "Add New Project" button overflows its card
 
 - Where: Tasks, Full, 1024x768, light, en (seed, project p3 selected). `$T\s25.cjs` → `$T\s25.out`: ellipsized `Website Redesign [16/115]` (16px of 115 visible), `Mobile App [16/72]`, `Marketing [16/65]`, `Update CI pipeline [53/140]`, `Internal Tools and Infrastru [29/406]`.
-- Evidence: `$T\shots\r3-sweep-full-1024-light-en-medium.png`: sidebar names show "W.", "M.", task name "Upda…", "Cache la…"; the orange "Add New Project" button is painted outside the grey form card (x≈369 vs card edge ≈313); the header subtitle "Rust & SQLite microORM engine • Multi-project background support" is cut by the language bar ("…suppor" under the bar; `overlaps: Rust & SQLite microO x en`). At 1440 the same names are readable.
+- Evidence: [r3-sweep-full-1024-light-en-medium](shots/tasks/r3-sweep-full-1024-light-en-medium.webp): sidebar names show "W.", "M.", task name "Upda…", "Cache la…"; the orange "Add New Project" button is painted outside the grey form card (x≈369 vs card edge ≈313); the header subtitle "Rust & SQLite microORM engine • Multi-project background support" is cut by the language bar ("…suppor" under the bar; `overlaps: Rust & SQLite microO x en`). At 1440 the same names are readable.
 - Why: 1024 is a very common laptop/tablet width; at it the sidebar is unusable (names are the only way to tell projects apart) and the project row keeps ~130px of reserved width for timer pill + invisible action buttons (see A-01/A-19).
 - Fix: sidebar min-width 260px with the main column shrinking; move timer pill under the name below ~1100px; let the Add button wrap below the swatches (`flex-wrap`). Size M. Test: geometry spec at 1024 (name visible width ≥ 8ch; form button inside card rect).
 
 ### A-25 · P1 · responsiveness / visual — Long project name is hard-clipped (no ellipsis) in the Medium sheet header and collides with "Total" in Full (all themes/locales/sizes)
 
-- Evidence: Medium 1440 `$T\shots\r3-sweep-medium-1440-light-en-medium.png` — "Internal Tools and Infrastructure Mainten|" cut at the card edge with no ellipsis, while the same name is correctly ellipsized in the selector row above ("…Maintenance Prog…"). Full: `s25.out` shows `Internal Tools and I x Total: (53x10)` and `x 21:45:00 (70x10)` in EVERY full cell (light/dark/high-contrast, en/pl/de, small/medium/large, 1440 and 1024) → A-15 is not theme/locale/size dependent; at size large the overlap grows to 53x20.
+- Evidence: Medium 1440 [r3-sweep-medium-1440-light-en-medium](shots/tasks/r3-sweep-medium-1440-light-en-medium.webp) — "Internal Tools and Infrastructure Mainten|" cut at the card edge with no ellipsis, while the same name is correctly ellipsized in the selector row above ("…Maintenance Prog…"). Full: `s25.out` shows `Internal Tools and I x Total: (53x10)` and `x 21:45:00 (70x10)` in EVERY full cell (light/dark/high-contrast, en/pl/de, small/medium/large, 1440 and 1024) → A-15 is not theme/locale/size dependent; at size large the overlap grows to 53x20.
 - Fix: `min-w-0 truncate` + `title`, chip `shrink-0` (Full: put chip below title at <1100px). Size S. Test: geometry spec (title rect ∩ chip rect = ∅) over the matrix.
 
 ### A-26 · P2 · responsiveness — Phone 390 Full: stat card labels clipped ("Total Duration", "Total Tasks", "Completed Tasks") and the footer license link overlaps the last visible tag chip
 
-- Evidence: `s25.out` `== full 390x844 …  clipped: ["Total Duration","Total Tasks","Completed Tasks"]`, `overlaps: long-tag-name-exampl x MPL-2.0 License & Cr (88x18)` (footer covers content because the footer is a fixed bar over the scroll area; see `$T\shots\phone-full-top.png`, footer clips "Databas…").
+- Evidence: `s25.out` `== full 390x844 …  clipped: ["Total Duration","Total Tasks","Completed Tasks"]`, `overlaps: long-tag-name-exampl x MPL-2.0 License & Cr (88x18)` (footer covers content because the footer is a fixed bar over the scroll area; see [phone-full-top](shots/tasks/phone-full-top.webp), footer clips "Databas…").
 - Fix: wrap labels; add bottom padding equal to footer height to the scroller; hide footer text links on narrow screens. Size S.
 
 ### A-27 · P2 · a11y / responsiveness — Interactive targets below 24px (WCAG 2.5.8 minimum) on the Tasks screen, including on touch
@@ -209,7 +209,7 @@ Script output excerpt (`node s20.cjs`): `9 add-project-btn effOpacity 1` → `10
 
 ### A-28 · P1 · motion/transition — Layout switch Full ↔ Medium is asymmetric: Full→Medium snaps, Medium→Full animates the frame while the full layout is already rendered inside it
 
-- Evidence (`$T\s16.cjs` → `$T\s16.out`, frame rect `[x,width]` of `[data-testid="windowed-frame"]` every 50ms): Full→Medium: `[108,1280]` for 100ms with the Medium content already mounted (`medium:true`), then at 150ms jumps to `[848,540]` — a 740px pointer-less jump in one frame, no animation. Medium→Full: sidebar (full layout) is mounted while the frame is still `[450,540]`, then frame animates `385/670 → 193/1054 → 99/1242 → 80/1280` over ~300ms, so the full layout reflows ~6 times at intermediate widths. Screenshots (prior): `$T\shots\switch-full-to-medium-150ms.png`, `switch-full-to-medium-300ms.png`.
+- Evidence (`$T\s16.cjs` → `$T\s16.out`, frame rect `[x,width]` of `[data-testid="windowed-frame"]` every 50ms): Full→Medium: `[108,1280]` for 100ms with the Medium content already mounted (`medium:true`), then at 150ms jumps to `[848,540]` — a 740px pointer-less jump in one frame, no animation. Medium→Full: sidebar (full layout) is mounted while the frame is still `[450,540]`, then frame animates `385/670 → 193/1054 → 99/1242 → 80/1280` over ~300ms, so the full layout reflows ~6 times at intermediate widths. Screenshots (prior): [switch-full-to-medium-150ms](shots/tasks/switch-full-to-medium-150ms.webp), [switch-full-to-medium-300ms](shots/tasks/switch-full-to-medium-300ms.webp).
 - Why: the layout switch is the one global "mode switch"; a snap in one direction and a reflowing animation in the other is exactly a "sharp spot".
 - Fix: swap content after the frame width transition ends (or cross-fade with fixed frame), same order both ways. Size M. Test: frame-sampling Playwright spec (no more than one layout structure mounted per width bucket).
 
@@ -222,19 +222,19 @@ Script output excerpt (`node s20.cjs`): `9 add-project-btn effOpacity 1` → `10
 
 - Project selection survives Tasks → Reports → Tasks (`back to tasks selected project header: Website Redesign`).
 - Tab switch Tasks→Reports is instantaneous without layout flash (frames stable).
-- Idle banner remembers the last tracked task with a one-click "Resume" (`$T\shots\after-stop-seeded.png`, s11).
+- Idle banner remembers the last tracked task with a one-click "Resume" ([after-stop-seeded](shots/tasks/after-stop-seeded.webp), s11).
 
 ### A-06 RE-VERIFIED (run 3, `$T\s26.cjs`/`$T\s26.out`): Medium 1024: after opening "New project" `MED after Esc form still open? true`. (Enter submits and closes.)
 
 ### A-30 · P1 · interaction-cost / consistency — Medium: creating a project does not select it (Full does) and gives no confirmation
 
-- Evidence (`$T\s28.cjs`): localStorage projects before `[..., 'Accounting','Old Archive']`, after typing "Medium Proj" + Enter `[..., 'Old Archive','Medium Proj']` (created) but `header: Website Redesign | 7 Total Tasks` (unchanged); the form just closes, the new project is not visible without opening the dropdown and scrolling to the end. Screenshot `$T\shots\r3-medium-create-after.png`. In Full the new project is selected immediately (`$T\s9.out`: "tasks sheet shown").
+- Evidence (`$T\s28.cjs`): localStorage projects before `[..., 'Accounting','Old Archive']`, after typing "Medium Proj" + Enter `[..., 'Old Archive','Medium Proj']` (created) but `header: Website Redesign | 7 Total Tasks` (unchanged); the form just closes, the new project is not visible without opening the dropdown and scrolling to the end. Screenshot [r3-medium-create-after](shots/tasks/r3-medium-create-after.webp). In Full the new project is selected immediately (`$T\s9.out`: "tasks sheet shown").
 - Why: the user's next action (add first task) is on the wrong project; invisible success → likely a duplicate create.
 - Fix: select the created project and put focus in `#new-task-input`, same as Full. Size S. Test: Playwright e2e in Medium (header shows new name).
 
 ### A-31 · P1 · interaction-cost — A newly added task is appended below the fold and the list is not scrolled to it
 
-- Evidence (`$T\s27.cjs`, Full 1440x900, project p1 with 7 tasks): `Zeta row: {"y":1238,"h":24,"coveredBy":"DIV.h-[100dvh]…","footerTop":844,"scroller":"layout-main","scrollTop":0,"maxScroll":474}` — the new row is at y=1238 in a 900px viewport and the scroller stays at scrollTop 0; the only feedback is the "Total tasks" counter. Screenshot `$T\shots\r3-add-task-long-list.png`.
+- Evidence (`$T\s27.cjs`, Full 1440x900, project p1 with 7 tasks): `Zeta row: {"y":1238,"h":24,"coveredBy":"DIV.h-[100dvh]…","footerTop":844,"scroller":"layout-main","scrollTop":0,"maxScroll":474}` — the new row is at y=1238 in a 900px viewport and the scroller stays at scrollTop 0; the only feedback is the "Total tasks" counter. Screenshot [r3-add-task-long-list](shots/tasks/r3-add-task-long-list.webp).
 - Why: Enter in the input appears to do nothing for any project with more than ~4 tasks; users re-submit or hunt for the row.
 - Fix: scroll the new row into view (`scrollIntoView({block:'nearest'})`) and flash a highlight; or insert new tasks at the top. Size S. Test: Playwright e2e (new row within viewport after add).
 
@@ -246,18 +246,18 @@ Script output excerpt (`node s20.cjs`): `9 add-project-btn effOpacity 1` → `10
 
 ### A-33 · P2 · sense-of-solution / responsiveness — Medium layout leaves ~42% of the window for tasks
 
-- Evidence (`$T\s28.cjs`, 1024x768): header 21→120, status banner + project selector + (hidden) active banner up to y≈321, task area `#tasks-main` y 321→644 (323px of 768), tab bar 648→735, footer 712→747 (tab bar overlaps footer region). Screenshot `$T\shots\r3-sweep-medium-1440-light-en-medium.png` shows the project title row + total chip + Add Task already consuming the visible area before the first task.
+- Evidence (`$T\s28.cjs`, 1024x768): header 21→120, status banner + project selector + (hidden) active banner up to y≈321, task area `#tasks-main` y 321→644 (323px of 768), tab bar 648→735, footer 712→747 (tab bar overlaps footer region). Screenshot [r3-sweep-medium-1440-light-en-medium](shots/tasks/r3-sweep-medium-1440-light-en-medium.webp) shows the project title row + total chip + Add Task already consuming the visible area before the first task.
 - Why: Medium is the "quick" view; 2 stacked chrome bars (header 99px + status banner ~85px) + selector ~75px + tab bar ~87px = 346px of chrome.
 - Fix: drop the status banner in Medium (it is already known-redundant, see reported items), merge selector + active timer into one row. Size M.
 
 ### A-34 · P2 · sense-of-solution — Project row shows hover-only edit/archive/reorder controls AND double-click-to-rename AND a separate edit dialog: three ways to edit one name, none discoverable without hover
 
-- Evidence: `$T\s7.cjs` (prior): `dblclick project name → input in sidebar row` (inline rename), `#edit-project-btn-p2` opens the edit dialog (`$T\shots\full-edit-project-dialog.png`), `#archive-project-btn-p5` archives immediately (`$T\shots\j6-after-archive.png`, no confirmation — good, with RESTORE).
+- Evidence: `$T\s7.cjs` (prior): `dblclick project name → input in sidebar row` (inline rename), `#edit-project-btn-p2` opens the edit dialog ([full-edit-project-dialog](shots/tasks/full-edit-project-dialog.webp)), `#archive-project-btn-p5` archives immediately ([j6-after-archive](shots/tasks/j6-after-archive.webp), no confirmation — good, with RESTORE).
 - Fix: keep dblclick rename (fast) + one visible "⋯" menu; hide nothing at opacity 0 (see A-19). Size M.
 
 ### A-35 · P2 · sense-of-solution — "Quick Starter Templates / Launch your workflow with one click" creates only an empty project; cards give no readable title or description
 
-- Evidence (`$T\s29.cjs`): click `starter-template-software-dev` → projects `["Software Engineering"]`, tasks `0`, project selected, focus `BODY`. Card is 144x74px, text "Software Engineering | Track features, code reviews, …" is truncated ("Software E…") and has no `title` attribute (`title attr: null`). Screenshot `$T\shots\r3-after-template.png`; layout collision see A-02.
+- Evidence (`$T\s29.cjs`): click `starter-template-software-dev` → projects `["Software Engineering"]`, tasks `0`, project selected, focus `BODY`. Card is 144x74px, text "Software Engineering | Track features, code reviews, …" is truncated ("Software E…") and has no `title` attribute (`title attr: null`). Screenshot [r3-after-template](shots/tasks/r3-after-template.webp); layout collision see A-02.
 - Why: the promise "launch workflow" is delivered only as a project with a tag; the user still has to invent tasks.
 - Fix: seed 3–5 starter tasks per template, or relabel to "Start with a preset project"; add `title`/wrap. Size M (i18n for 10 locales). Test: unit on `resolveStarterTemplate` + e2e.
 - Code: src/layouts/parts/ProjectEmptyState.tsx:51-61 (card, `truncate` title), src/common/templates/starterTemplates.
@@ -301,15 +301,15 @@ Script output excerpt (`node s20.cjs`): `9 add-project-btn effOpacity 1` → `10
 
 - Enter creates a project and a task without touching the buttons; Enter in the task input keeps focus there for batch entry (s9).
 - Switching the running timer to another project's task is one click, no modal; banner updates; only the new task's stop control remains (s21).
-- Idle banner remembers the last tracked task with one-click "Resume" (s11, `after-stop-seeded.png`).
+- Idle banner remembers the last tracked task with one-click "Resume" (s11, [after-stop-seeded](shots/tasks/after-stop-seeded.webp)).
 - Break banner: countdown, "Resume work now", Cancel, auto-resume text; menu closes on Esc/outside click and focus returns to the trigger (s22/s23).
 - Task and project rename commit on blur; double-click on the name starts editing (s7, s17, s26).
 - Archive is immediate and reversible inline (RESTORE); delete project only offered when no time exists, otherwise archive — protects data (s20, s17).
 - Delete-task confirm states how many time logs are lost and focuses Cancel by default (s26).
 - Billing and logs dialogs return focus to their trigger (s26).
 - Selected project survives tab switches; tab switch has no layout flash (s16).
-- Medium 390 keeps project selector + tasks in the first screen — more direct than Full at 390 (A-16, `phone-medium-top.png`).
-- Edit Project dialog is compact and complete (`full-edit-project-dialog.png`).
+- Medium 390 keeps project selector + tasks in the first screen — more direct than Full at 390 (A-16, [phone-medium-top](shots/tasks/phone-medium-top.webp)).
+- Edit Project dialog is compact and complete ([full-edit-project-dialog](shots/tasks/full-edit-project-dialog.webp)).
 - No horizontal page scroll in any of the 13 sweep cells (`s25.out`: `hscroll:false`).
 
 ## COVERAGE TABLE (honest)
@@ -330,7 +330,7 @@ Legend: **J** journey executed with measurements; **S** automated sweep metrics 
 | First-run empty app | J (1440 en), V; de/390 only P | P (390 empty-medium) |
 | Compact layout, tray, Tauri | out of scope | out of scope |
 
-Not tested / limits: drag-and-drop reorder (only the up/down buttons were exercised); keyboard operation of the Medium layout beyond Esc/focus checks; `:hover`/`:active`/`disabled` styling only via screenshots (project/task row hover); screen-reader announcements (accessible names checked via DOM attributes only); real touch gestures (Playwright `hasTouch` only); Alt+digit shortcuts (reported elsewhere). A-09 touch note: on Medium 390 the task action icons are visible without hover (`phone-medium-top.png`); the hover-only reveal was verified only in Full desktop (`full-hover-task-row.png`); Full at 390 touch was NOT verified.
+Not tested / limits: drag-and-drop reorder (only the up/down buttons were exercised); keyboard operation of the Medium layout beyond Esc/focus checks; `:hover`/`:active`/`disabled` styling only via screenshots (project/task row hover); screen-reader announcements (accessible names checked via DOM attributes only); real touch gestures (Playwright `hasTouch` only); Alt+digit shortcuts (reported elsewhere). A-09 touch note: on Medium 390 the task action icons are visible without hover ([phone-medium-top](shots/tasks/phone-medium-top.webp)); the hover-only reveal was verified only in Full desktop ([full-hover-task-row](shots/tasks/full-hover-task-row.webp)); Full at 390 touch was NOT verified.
 
 ## FINAL SUMMARY
 

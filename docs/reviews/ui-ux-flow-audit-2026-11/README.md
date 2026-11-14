@@ -10,7 +10,7 @@ Status: DRAFT, awaiting owner approval. Only FLOW-05 is in progress (branch `fix
   - [audit-a-tasks-and-shell.md](audit-a-tasks-and-shell.md) — A-01..A-35 (32 active: 1 P0, 17 P1, 14 P2)
   - [audit-b-reports.md](audit-b-reports.md) — B-01..B-24 (partial: interaction-cost and coverage tables missing)
   - [audit-c-settings-and-tab-currency.md](audit-c-settings-and-tab-currency.md) — C-01..C-33 (partial: tab-currency and interaction-cost tables incomplete)
-- Screenshots and scripts cited in the findings (`shots\*.png`, `s*.cjs`, `exp*.mjs`) were stored in a temporary session folder and are not committed. Code references (`file:line`) are against `main` 0c0e67e4.
+- Screenshots cited in the findings are committed as WebP under [`shots/`](shots/) (one subfolder per audit; 68 of about 360 captured, only the ones a finding cites). The Playwright scripts and their text outputs (`s*.cjs`, `u*.cjs`, `exp*.mjs`, `*.out`) stayed in the temporary working folder `%TEMP%/claude/<session>/scratchpad/ui-audit/` and are not committed. Code references (`file:line`) are against `main` 0c0e67e4.
 
 ## Verification level
 
