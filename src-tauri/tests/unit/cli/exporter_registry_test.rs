@@ -66,7 +66,7 @@ fn test_given_full_only_format_when_requesting_the_summary_variant_then_fails_wi
         variants: &[ReportVariantArg::Full],
         binary: false,
         locale_dependent: false,
-        writer: |_, _| Ok(()),
+        writer: |_, _, _| Ok(()),
     };
 
     // Act
