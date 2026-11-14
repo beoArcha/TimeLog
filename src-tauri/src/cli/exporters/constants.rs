@@ -235,3 +235,5 @@ pub const JSONL_WRITE_FAILED: &str = "Failed to write JSONL report";
 
 pub const XML_PROLOG: &str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 pub const ERR_XML_WRITE: &str = "Failed to write XML report";
+
+pub const ERR_XML_DECODE: &str = "Failed to decode UTF-8 XML";

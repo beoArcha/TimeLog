@@ -1,4 +1,4 @@
-use super::constants::{ERR_XML_WRITE, XML_PROLOG};
+use super::constants::{ERR_XML_DECODE, ERR_XML_WRITE, XML_PROLOG};
 use super::sink_io_error;
 use crate::cli::error::CliError;
 use crate::types::{
@@ -339,5 +339,5 @@ pub fn write_xml<W: Write>(document: &ReportDocument, writer: W) -> Result<(), C
 pub fn export_xml(document: &ReportDocument) -> Result<String, CliError> {
     let mut buffer = Vec::new();
     write_xml(document, &mut buffer)?;
-    String::from_utf8(buffer).map_err(|e| sink_io_error("Failed to decode UTF-8 XML", e))
+    String::from_utf8(buffer).map_err(|e| sink_io_error(ERR_XML_DECODE, e))
 }
