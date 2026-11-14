@@ -68,6 +68,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `oxy report -f xml` writes the `ReportDocument` directly instead of the legacy v1 tree: root `<report schema="oxy.report" schemaVersion="2" variant="full|summary">` with `generatedAt`, `generator`, `range`, `filters`, totals with per-currency `billing`, projects with tasks and flat subtasks (`parentTaskId`), and, for the `full` variant only, `days` and `entries`. Identifiers, instants, counts and enumerations are attributes; names and notes are element text, escaped for XML 1.0.
   - The `xml` format now supports the `summary` variant (no `days`, no `entries`); the former syntax error for `xml` with `--variant summary` is gone.
   - `oxy report schema --format xml` prints the new XSD (`schemas/xml/report/v2/report.xsd`, version `2`); the machine summary carries `schema_version` `2`. The v1 XSD stays on disk for the browser exporter only.
+- **CSV Report Export v2**: `oxy report --format csv` is now one flat, BI-friendly table written straight from the canonical report document (breaking: the old `Project,Task,Subtask,Duration_*` columns are gone).
+  - `--variant summary` writes one row per task and flattened subtask (`projectId`, `projectName`, `taskId`, `taskName`, `parentTaskId`, `seconds`, `directSeconds`, `hours`, `shareBasisPoints`, `rate`, `amount`, `currency`, `billingStatus`); `--variant full` writes one row per entry with local date, UTC start and end, note and amount.
+  - Decimals use a dot and no thousands separators; cells are quoted only when needed; formula-injection protection is unchanged.
+  - New `--csv-delimiter <,|;|tab>` and `--bom` (UTF-8 byte order mark for Excel on Windows) flags; using them with another format, or an unsupported delimiter, is a syntax error (exit code `2`).
 - **`oxy report schema` Defaults to a Generated JSON Schema**:
   - The default output is now the JSON Schema (draft 2020-12) of the `oxy.report` v2 document instead of the XML Schema (XSD) v1; the XSD stays available with `--format xml`.
   - The `--version` flag is removed (only the current XSD version is published).
