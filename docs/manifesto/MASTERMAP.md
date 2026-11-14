@@ -419,10 +419,10 @@ The phases follow the logical order of the work, not strictly the delivery order
 - [x] **`report --json` on `ReportDocument`**: Closes Phase 20 and adds `report` to the envelope contract test.
 
 #### Group B — Formats
-- [ ] **JSON & JSONL**: JSON is the serialized `ReportDocument`; JSONL starts with a header line followed by one line per entry.
-- [ ] **CSV**: Flat, BI-friendly table (one header row, repeated project and task names, local date and UTC timestamps in separate columns), with `--csv-delimiter` and `--bom` options for Excel and formula-injection protection.
-- [ ] **XML & XSD v2**: New XSD in `schemas/xml/report/v2/` with a `variant` attribute; `oxy report schema --format xml` returns it. XML v1 export leaves the CLI; the v1 XSD stays for the browser until Phase 26.
-- [ ] **XLSX**: Summary sheet with a native pie chart; the full variant adds Entries (autofilter) and Days (bar chart) sheets, with durations as `[h]:mm` numeric cells.
+- [x] **JSON & JSONL**: JSON is the serialized `ReportDocument`; JSONL starts with a header line followed by one line per entry.
+- [x] **CSV**: Flat, BI-friendly table (one header row, repeated project and task names, local date and UTC timestamps in separate columns), with `--csv-delimiter` and `--bom` options for Excel and formula-injection protection.
+- [x] **XML & XSD v2**: New XSD in `schemas/xml/report/v2/` with a `variant` attribute; `oxy report schema --format xml` returns it. XML v1 export leaves the CLI; the v1 XSD stays for the browser until Phase 26.
+- [x] **XLSX**: Summary sheet with a native pie chart; the full variant adds Entries (autofilter) and Days (bar chart) sheets, with durations as `[h]:mm` numeric cells.
 - [ ] **ODS**: OpenDocument spreadsheet with the same sheet structure.
 
 #### Group C — Billing & Consistency
