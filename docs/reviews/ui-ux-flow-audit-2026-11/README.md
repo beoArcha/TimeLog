@@ -1,6 +1,6 @@
 # UI/UX Flow Audit — Consolidated Backlog (browser / PWA runtime)
 
-Status: scheduled as the UI/UX Flow Program, Phases 38–41 of the [roadmap](../../manifesto/MASTERMAP.md#uiux-flow-program--browser--pwa-runtime-phases-3841), which sets the order of the packages below. FLOW-05 part 1 was delivered in PR #142. The packages marked "needs decision" wait for the owner decisions D1–D4.
+Status: scheduled as the UI/UX Flow Program, Phases 38–41 of the [roadmap](../../manifesto/MASTERMAP.md#uiux-flow-program--browser--pwa-runtime-phases-3841), which sets the order of the packages below. FLOW-05 part 1 was delivered in PR #142. The owner decisions D1–D4 were answered on 2026-11-14 (see below).
 
 - Date: 2026-11-13/14, audited at `main` 0c0e67e4.
 - Scope: Tasks, Reports, Settings, Backup, Manual, Credits and the app shell in the browser runtime. Tabs absent from the browser (`db`, `cli`) are excluded by owner decision.
@@ -51,7 +51,7 @@ Sizes: S < 50 LOC, M 50–200, L > 200 (split before dispatch). Every package sh
 | FLOW-09 | Stat card labels, chart legends, donut title no longer clipped; wide-period bars aggregated | B-07, B-08, B-10, B-22 | M |
 | FLOW-10 | Custom range prefilled and validated; export dialog and file name state period and scope | B-20, B-21 | S |
 | FLOW-11 | Print output is a clean document (no app chrome, titles kept, resolved dates and scope) | B-24 | M |
-| FLOW-12 | Cheaper log correction from the report | B-19 | M (needs decision D2) |
+| FLOW-12 | Cheaper log correction from the report | B-19 | M (decision D2) |
 | FLOW-13 | Export modal focus trap and radio-group semantics | B-17 | S |
 
 ### Wave 3 — Tasks flow
@@ -62,8 +62,8 @@ Sizes: S < 50 LOC, M 50–200, L > 200 (split before dispatch). Every package sh
 | FLOW-15 | Stable geometry: one banner height for idle/active/break; symmetric Full ↔ Medium switch | A-05, A-22, A-28 | M |
 | FLOW-16 | Task row and header cleanup: one status concept, no `Entity #id` line, badge gap, "SELECT PROJECT" eyebrow, compact stats, long names wrap | A-03, A-04, A-07, A-08, A-11, A-09 | M |
 | FLOW-17 | Responsive pass: 1024 px sidebar, long project name, phone Full layout, subtask row at 390 px, touch target sizes, Settings tables at 390 px, Medium tiles | A-24, A-25, A-16, A-17, A-26, A-27, B-06, C-29, C-32, C-15 | L (split per view) |
-| FLOW-18 | First-run starter templates readable and worth the click | A-02, A-35 | M (needs decision D4) |
-| FLOW-19 | Medium layout chrome budget and tab bar shape | A-12, A-13, A-33 | M (needs decision D1) |
+| FLOW-18 | First-run starter templates readable and worth the click | A-02, A-35 | M (decision D4) |
+| FLOW-19 | Medium layout chrome budget and tab bar shape | A-12, A-13, A-33 | M (decision D1) |
 
 ### Wave 4 — Shell truthfulness and tab currency
 
@@ -71,7 +71,7 @@ Sizes: S < 50 LOC, M 50–200, L > 200 (split before dispatch). Every package sh
 | --- | --- | --- | --- |
 | FLOW-20 | Runtime-aware copy: no Rust/SQLite/tray/daemon wording, dead footer link, false shortcut tiles or Manual title in the browser; status banner "0 threads"; "Registered today" value | C-02, C-03, C-05, C-18, C-19, C-25, B-09 | M |
 | FLOW-21 | One version number in the header; Credits content and versions in one place | C-04, C-22 | S |
-| FLOW-22 | Backup, Manual, Credits and reset reachable in Medium | C-28, C-23 | M (needs decision D1) |
+| FLOW-22 | Backup, Manual, Credits and reset reachable in Medium | C-28, C-23 | M (decision D1) |
 | FLOW-23 | Header geometry independent of locale; one home for language; naming of layout vs text size; tab label equals view heading | C-13, C-14, C-24, C-27 | M |
 | FLOW-24 | Text-and-icon size scales the whole UI, not only the tab bar | C-31 | L (token audit) |
 | FLOW-25 | `prefers-reduced-motion` honoured | A-29, C-12 | S |
@@ -87,14 +87,16 @@ Sizes: S < 50 LOC, M 50–200, L > 200 (split before dispatch). Every package sh
 | FLOW-30 | Engine parity gap: Rust range metrics filter on `log.project_id`, the browser engine on `task.projectId ?? log.projectId`; needs a parity fixture and one rule | M |
 | FLOW-31 | `ReportBillingCard` fetch path treats an empty project id list as "all", while the statistics path returns the engine's empty result | S |
 
-## Owner decisions needed
+## Owner decisions
 
-| ID | Question | Affects |
-| --- | --- | --- |
-| D1 | Medium layout in the browser: is it the phone layout (then it needs Backup/Manual/Credits and should fill the window), or only a desktop-popup preview? | FLOW-19, FLOW-22 |
-| D2 | Is the typed "reason for edit" mandatory for every log correction (audit requirement), or may it default? | FLOW-12 |
-| D3 | Bare Space as timer toggle: keep (with focus fixes) or require Ctrl+Space only? | FLOW-02 |
-| D4 | Starter templates: seed starter tasks, or relabel as preset projects? | FLOW-18 |
+Answered by the owner on 2026-11-14.
+
+| ID | Question | Decision | Affects |
+| --- | --- | --- | --- |
+| D1 | Medium layout in the browser: phone layout or desktop-popup preview? | Medium is the PWA phone layout and fills the window. Backup is a regular tab; Manual, Credits and other secondary destinations are icon-only buttons whose name appears as a tooltip on hover (and on keyboard focus and long press, since phones have no hover) and as their accessible name. | FLOW-19, FLOW-22 |
+| D2 | Is the typed "reason for edit" mandatory for every log correction, or may it default? | It defaults: the reason is prefilled and the user may change it, so every correction still records a reason. | FLOW-12 |
+| D3 | Bare Space as timer toggle: keep (with focus fixes) or require Ctrl+Space only? | Ctrl+Space only; bare Space no longer toggles the timer. | FLOW-02 |
+| D4 | Starter templates: seed starter tasks, or relabel as preset projects? | Seed starter tasks: each template creates its project with two or three tasks. | FLOW-18 |
 
 ## Works well — keep
 
