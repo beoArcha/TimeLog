@@ -424,7 +424,6 @@ The phases follow the logical order of the work, not strictly the delivery order
 - [ ] **XML & XSD v2**: New XSD in `schemas/xml/report/v2/` with a `variant` attribute; `oxy report schema --format xml` returns it. XML v1 export leaves the CLI; the v1 XSD stays for the browser until Phase 26.
 - [ ] **XLSX**: Summary sheet with a native pie chart; the full variant adds Entries (autofilter) and Days (bar chart) sheets, with durations as `[h]:mm` numeric cells.
 - [ ] **ODS**: OpenDocument spreadsheet with the same sheet structure.
-- [ ] **TOML**: Conditional on the format decision recorded in the CLI reports plan.
 
 #### Group C — Billing & Consistency
 - [ ] **CLI Billing View** (*moved* from the former Phase 19, Group F): `ReportDocument` already carries per-task rates and amounts plus per-currency totals with cross-runtime parity; expose them in the summary variant and table output, without a second billing calculation.
