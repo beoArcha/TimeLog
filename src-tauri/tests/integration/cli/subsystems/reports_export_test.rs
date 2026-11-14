@@ -1,5 +1,6 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
+use crate::shared::xsd_validator::assert_valid_report_xml;
 use calamine::{Reader, Xlsx};
 use clap::Parser;
 use oxyflow_timelog::cli::handlers::report_handler;
@@ -193,9 +194,10 @@ fn test_given_logged_work_when_exporting_to_xml_then_generates_valid_xml_report_
 
     let content = fs::read_to_string(&output_file).expect("failed to read exported XML");
     assert!(content.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-    assert!(content.contains("<report schemaVersion=\"1\">"));
+    assert_valid_report_xml(&content);
+    assert!(content.contains("<report schema=\"oxy.report\" schemaVersion=\"2\" variant=\"full\">"));
     assert!(content.contains("<name>Export System</name>"));
-    assert!(content.contains("<totalSeconds>7200</totalSeconds>"));
+    assert!(content.contains("<totals seconds=\"7200\""));
 }
 
 #[test]

@@ -17,9 +17,9 @@ pub const ERR_UNSUPPORTED_FORMAT: &str =
 pub const ERR_ENVELOPE_SCHEMA_JSON_ONLY: &str =
     "The envelope schema is only available as JSON. Use --format json.";
 pub const XML_SCHEMA_NAME: &str = "XML";
-pub const XML_SCHEMA_VERSION: u32 = 1;
+pub const XML_SCHEMA_VERSION: u32 = 2;
 pub const ERR_UNSUPPORTED_SCHEMA_VERSION: &str =
-    "Unsupported XML schema version: '{}'. Supported versions: '1'";
+    "Unsupported XML schema version: '{}'. Supported versions: '2'";
 
 pub const HTML_ROW_PROJECT: &str = r#"<tr class="project-row">
     <td colspan="3"><strong>📦 {}</strong></td>
@@ -232,3 +232,6 @@ pub const ERR_FORMAT_FLAG: &str = "--format";
 pub const EXPORT_STDOUT_TARGET: &str = "-";
 
 pub const JSONL_WRITE_FAILED: &str = "Failed to write JSONL report";
+
+pub const XML_PROLOG: &str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+pub const ERR_XML_WRITE: &str = "Failed to write XML report";

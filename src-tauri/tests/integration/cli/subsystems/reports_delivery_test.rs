@@ -1,5 +1,6 @@
 use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::{setup_persistence_test, TempCsvDir};
+use crate::shared::xsd_validator::assert_valid_report_xml;
 use clap::Parser;
 use oxyflow_timelog::cli::{handle_cli, CliArgs, CliError, CliOutput};
 use oxyflow_timelog::engine::Engine;
@@ -220,12 +221,13 @@ fn test_given_quiet_flag_when_exporting_to_stdout_then_output_is_unaffected() {
 }
 
 #[test]
-fn test_given_xml_format_when_summary_variant_is_requested_then_fails_with_a_syntax_error() {
+fn test_given_xml_format_when_summary_variant_is_requested_then_stdout_is_a_valid_document_without_entries(
+) {
     // Given
     let (persistence, _conn, _temp) = setup_dataset("test_delivery_xml_summary");
 
     // When
-    let result = run(
+    let output = run(
         &persistence,
         &[
             "oxy",
@@ -237,16 +239,15 @@ fn test_given_xml_format_when_summary_variant_is_requested_then_fails_with_a_syn
             "-o",
             "-",
         ],
-    );
+    )
+    .unwrap();
 
     // Then
-    let err = result.unwrap_err();
-    assert_eq!(err.exit_code(), 2);
-    let message = err.to_string();
-    assert!(
-        message.contains("'xml'") && message.contains("'summary'"),
-        "{message}"
-    );
+    let xml = String::from_utf8(stdout_bytes(output)).expect("XML is UTF-8");
+    assert_valid_report_xml(&xml);
+    assert!(xml.contains("variant=\"summary\""));
+    assert!(!xml.contains("<entries"));
+    assert!(!xml.contains("<days"));
 }
 
 #[test]
