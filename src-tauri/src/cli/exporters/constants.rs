@@ -280,3 +280,27 @@ pub const ERR_CSV_OPTION_NEEDS_CSV: &str = "{} only applies to the 'csv' format,
 
 pub const ERR_CSV_WRITE_BOM: &str = "Failed to write CSV byte order mark";
 pub const ERR_CSV_WRITE_ROW: &str = "Failed to write CSV row";
+
+pub const SHEET_NAME_SUMMARY: &str = "Summary";
+pub const SHEET_NAME_ENTRIES: &str = "Entries";
+pub const SHEET_NAME_DAYS: &str = "Days";
+
+pub const SHEET_HEADER_PROJECT: &str = "Project";
+pub const SHEET_HEADER_TASK: &str = "Task";
+pub const SHEET_HEADER_TIME: &str = "Time";
+pub const SHEET_HEADER_SHARE: &str = "Share";
+pub const SHEET_HEADER_AMOUNT: &str = "Amount";
+pub const SHEET_HEADER_AMOUNT_IN_CURRENCY: &str = "Amount {}";
+pub const SHEET_HEADER_DATE: &str = "Date";
+pub const SHEET_HEADER_START: &str = "Start";
+pub const SHEET_HEADER_END: &str = "End";
+pub const SHEET_HEADER_NOTE: &str = "Note";
+pub const SHEET_TOTAL_LABEL: &str = REPORT_TOTAL_LABEL;
+
+pub const XLSX_CHART_TITLE_PROJECT_SHARES: &str = "Share of time by project";
+pub const XLSX_CHART_TITLE_DAILY_TIME: &str = "Time per day";
+pub const XLSX_FORMAT_DURATION: &str = "[h]:mm";
+pub const XLSX_FORMAT_SHARE: &str = "0.00%";
+pub const XLSX_FORMAT_DATE: &str = "yyyy-mm-dd";
+pub const XLSX_FORMAT_DATE_TIME: &str = "yyyy-mm-dd hh:mm:ss";
+pub const XLSX_FORMAT_MONEY: &str = "#,##0.00 \"{}\"";

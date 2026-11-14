@@ -11,6 +11,7 @@ pub mod options;
 pub mod registry;
 pub mod rows;
 pub mod schema;
+pub mod sheets;
 pub mod xlsx;
 pub mod xml;
 
