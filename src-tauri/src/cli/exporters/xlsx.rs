@@ -1,5 +1,5 @@
 use super::constants::{
-    XLSX_CHART_TITLE_DAILY_TIME, XLSX_CHART_TITLE_PROJECT_SHARES, XLSX_FORMAT_DATE,
+    ERR_XLSX_WRITE, XLSX_CHART_TITLE_DAILY_TIME, XLSX_CHART_TITLE_PROJECT_SHARES, XLSX_FORMAT_DATE,
     XLSX_FORMAT_DATE_TIME, XLSX_FORMAT_DURATION, XLSX_FORMAT_MONEY, XLSX_FORMAT_SHARE,
 };
 use super::sheets::{
@@ -32,7 +32,7 @@ pub fn write_xlsx<W: Write>(document: &ReportDocument, mut writer: W) -> Result<
     let bytes = export_xlsx(document)?;
     writer
         .write_all(&bytes)
-        .map_err(|e| sink_io_error("Failed to write XLSX workbook", e))
+        .map_err(|e| sink_io_error(ERR_XLSX_WRITE, e))
 }
 
 fn build_workbook(model: &WorkbookModel) -> Result<Vec<u8>, XlsxError> {

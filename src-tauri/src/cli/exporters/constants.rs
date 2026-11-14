@@ -304,3 +304,5 @@ pub const XLSX_FORMAT_SHARE: &str = "0.00%";
 pub const XLSX_FORMAT_DATE: &str = "yyyy-mm-dd";
 pub const XLSX_FORMAT_DATE_TIME: &str = "yyyy-mm-dd hh:mm:ss";
 pub const XLSX_FORMAT_MONEY: &str = "#,##0.00 \"{}\"";
+
+pub const ERR_XLSX_WRITE: &str = "Failed to write XLSX workbook";
