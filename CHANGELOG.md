@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **JSON Lines Report Export (`oxy report --format jsonl`)**: Streams the `oxy.report` v2 document as one compact JSON object per line: a `header` line with the document's header fields, then one `entry` line per entry in document order. The `summary` variant writes the header line only.
+
 ### Fixed
 
 - **Reports Multi-Project Scope**: The report has its own project scope (empty means all projects) instead of reusing the Tasks tab's working project, so the "All" filter works and filtering a report no longer changes the project shown in Tasks. Filter chips and the donut chart toggle several projects at once; statistics, billing and log lists are filtered by the engine through `projectIds`, intersected with active tag filters.
