@@ -1,43 +1,44 @@
 use oxyflow_timelog::cli::error::{CliError, CliSyntaxError};
-use oxyflow_timelog::cli::exporters::schema::{get_report_xml_schema, REPORT_XML_SCHEMA_V1};
+use oxyflow_timelog::cli::exporters::schema::{get_report_xml_schema, REPORT_XML_SCHEMA_V2};
 use std::fs;
 use std::path::PathBuf;
 
 #[test]
 fn test_given_schema_constant_when_inspected_then_contains_valid_prolog_and_xml_schema_definitions()
 {
-    // Assert: REPORT_XML_SCHEMA_V1 is not empty
-    assert!(!REPORT_XML_SCHEMA_V1.trim().is_empty());
+    // Assert: REPORT_XML_SCHEMA_V2 is not empty
+    assert!(!REPORT_XML_SCHEMA_V2.trim().is_empty());
 
     // Assert: contains correct XML prolog
-    assert!(REPORT_XML_SCHEMA_V1.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+    assert!(REPORT_XML_SCHEMA_V2.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
 
     // Assert: contains XML schema root element with W3C namespace
-    assert!(REPORT_XML_SCHEMA_V1.contains("<xs:schema"));
-    assert!(REPORT_XML_SCHEMA_V1.contains("xmlns:xs=\"http://www.w3.org/2001/XMLSchema\""));
+    assert!(REPORT_XML_SCHEMA_V2.contains("<xs:schema"));
+    assert!(REPORT_XML_SCHEMA_V2.contains("xmlns:xs=\"http://www.w3.org/2001/XMLSchema\""));
 
-    // Assert: contains schemaVersion attribute fixed to "1"
-    assert!(REPORT_XML_SCHEMA_V1.contains("name=\"schemaVersion\""));
-    assert!(REPORT_XML_SCHEMA_V1.contains("fixed=\"1\""));
+    // Assert: contains schemaVersion attribute fixed to "2"
+    assert!(REPORT_XML_SCHEMA_V2.contains("name=\"schemaVersion\""));
+    assert!(REPORT_XML_SCHEMA_V2.contains("fixed=\"2\""));
 
-    // Assert: contains report element definition
-    assert!(REPORT_XML_SCHEMA_V1.contains("<xs:element name=\"report\">"));
+    // Assert: contains the variant attribute and the report element definition
+    assert!(REPORT_XML_SCHEMA_V2.contains("name=\"variant\""));
+    assert!(REPORT_XML_SCHEMA_V2.contains("<xs:element name=\"report\" type=\"ReportType\"/>"));
 }
 
 #[test]
-fn test_given_version_1_when_resolving_schema_then_returns_canonical_v1() {
-    let schema = get_report_xml_schema("1").expect("version 1 must be supported");
-    assert_eq!(schema, REPORT_XML_SCHEMA_V1);
+fn test_given_version_2_when_resolving_schema_then_returns_canonical_v2() {
+    let schema = get_report_xml_schema("2").expect("version 2 must be supported");
+    assert_eq!(schema, REPORT_XML_SCHEMA_V2);
 }
 
 #[test]
 fn test_given_unsupported_version_when_resolving_schema_then_returns_cli_syntax_error() {
-    let result = get_report_xml_schema("2");
+    let result = get_report_xml_schema("1");
     assert!(result.is_err());
     match result.unwrap_err() {
         CliError::Syntax(CliSyntaxError::InvalidArgs(msg)) => {
-            assert!(msg.contains("Unsupported XML schema version: '2'"));
-            assert!(msg.contains("Supported versions: '1'"));
+            assert!(msg.contains("Unsupported XML schema version: '1'"));
+            assert!(msg.contains("Supported versions: '2'"));
         }
         other => panic!("expected CliSyntaxError::InvalidArgs, got {:?}", other),
     }
@@ -55,7 +56,7 @@ fn test_given_source_file_when_comparing_with_embedded_schema_then_bytes_are_ide
         .join("schemas")
         .join("xml")
         .join("report")
-        .join("v1")
+        .join("v2")
         .join("report.xsd");
 
     let source_bytes = fs::read(&schema_path).unwrap_or_else(|e| {
@@ -63,9 +64,9 @@ fn test_given_source_file_when_comparing_with_embedded_schema_then_bytes_are_ide
     });
 
     assert_eq!(
-        REPORT_XML_SCHEMA_V1.as_bytes(),
+        REPORT_XML_SCHEMA_V2.as_bytes(),
         source_bytes.as_slice(),
-        "Embedded REPORT_XML_SCHEMA_V1 in Rust must be byte-for-byte identical to schemas/xml/report/v1/report.xsd"
+        "Embedded REPORT_XML_SCHEMA_V2 in Rust must be byte-for-byte identical to schemas/xml/report/v2/report.xsd"
     );
 }
 
@@ -81,12 +82,12 @@ fn test_given_schema_content_when_export_schema_to_file_then_creates_file_and_pa
         .join("report.xsd");
     let target_str = target.to_str().unwrap();
 
-    let res = export_schema_to_file(REPORT_XML_SCHEMA_V1, target_str);
+    let res = export_schema_to_file(REPORT_XML_SCHEMA_V2, target_str);
     assert!(res.is_ok());
     assert!(target.exists());
 
     let content = fs::read_to_string(&target).expect("read written file");
-    assert_eq!(content, REPORT_XML_SCHEMA_V1);
+    assert_eq!(content, REPORT_XML_SCHEMA_V2);
 }
 
 #[test]
@@ -99,7 +100,7 @@ fn test_given_invalid_path_when_export_schema_to_file_then_returns_sink_io_error
         "/non_existent_dir_xyz/deeply/nested/report.xsd"
     };
 
-    let res = export_schema_to_file(REPORT_XML_SCHEMA_V1, invalid_path);
+    let res = export_schema_to_file(REPORT_XML_SCHEMA_V2, invalid_path);
     assert!(res.is_err());
     let err = res.unwrap_err();
     assert_eq!(err.exit_code(), 1);

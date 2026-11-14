@@ -1,9 +1,14 @@
-use crate::cli::error::{CliError, SinkError};
-use crate::cli::formatters::{
-    ReportEntryDto, ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
+use super::constants::{ERR_XML_DECODE, ERR_XML_WRITE, XML_PROLOG};
+use super::sink_io_error;
+use crate::cli::error::CliError;
+use crate::types::{
+    RangePreset, ReportBillingTotal, ReportDay, ReportDocument, ReportEntry, ReportProject,
+    ReportRateStatus, ReportSubtask, ReportTask, ReportVariant, ResolvedRange,
 };
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
+use std::fmt::Display;
+use std::io::Write;
+
+const INDENT: &str = "  ";
 
 /// Checks if a Unicode scalar value is allowed in XML 1.0 (Fifth Edition).
 /// Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
@@ -24,302 +29,315 @@ pub fn sanitize_xml_text(input: &str) -> String {
     input.chars().filter(|&c| is_xml_1_0_char(c)).collect()
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename = "report")]
-pub struct XmlReportDto {
-    #[serde(rename = "@schemaVersion")]
-    pub schema_version: String,
-    pub metadata: XmlMetadataDto,
-    pub summary: XmlSummaryDto,
-    pub projects: XmlProjectsDto,
-    pub entries: XmlEntriesDto,
+#[derive(Clone, Copy)]
+enum EscapeContext {
+    Text,
+    Attribute,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct XmlMetadataDto {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub title: Option<String>,
-    pub period: String,
-    #[serde(rename = "generatedAt", skip_serializing_if = "Option::is_none")]
-    pub generated_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct XmlSummaryDto {
-    #[serde(rename = "totalSeconds")]
-    pub total_seconds: u64,
-    #[serde(rename = "formattedTotalDuration")]
-    pub formatted_total_duration: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct XmlProjectsDto {
-    #[serde(rename = "project", default)]
-    pub projects: Vec<XmlProjectDto>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct XmlTasksDto {
-    #[serde(rename = "task", default)]
-    pub tasks: Vec<XmlTaskDto>,
-}
-
-impl XmlTasksDto {
-    pub fn is_empty(&self) -> bool {
-        self.tasks.is_empty()
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct XmlSubtasksDto {
-    #[serde(rename = "subtask", default)]
-    pub subtasks: Vec<XmlSubtaskDto>,
-}
-
-impl XmlSubtasksDto {
-    pub fn is_empty(&self) -> bool {
-        self.subtasks.is_empty()
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct XmlProjectDto {
-    #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub id: String,
-    pub name: String,
-    #[serde(rename = "durationSeconds")]
-    pub duration_seconds: u64,
-    #[serde(
-        rename = "formattedDuration",
-        default,
-        skip_serializing_if = "String::is_empty"
-    )]
-    pub formatted_duration: String,
-    pub percentage: f64,
-    #[serde(default, skip_serializing_if = "XmlTasksDto::is_empty")]
-    pub tasks: XmlTasksDto,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct XmlTaskDto {
-    pub id: String,
-    pub name: String,
-    #[serde(rename = "durationSeconds")]
-    pub duration_seconds: u64,
-    #[serde(rename = "formattedDuration")]
-    pub formatted_duration: String,
-    pub percentage: f64,
-    #[serde(default, skip_serializing_if = "XmlSubtasksDto::is_empty")]
-    pub subtasks: XmlSubtasksDto,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct XmlSubtaskDto {
-    pub id: String,
-    pub name: String,
-    #[serde(rename = "durationSeconds")]
-    pub duration_seconds: u64,
-    #[serde(rename = "formattedDuration")]
-    pub formatted_duration: String,
-    pub percentage: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct XmlEntriesDto {
-    #[serde(rename = "entry", default)]
-    pub entries: Vec<XmlEntryDto>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct XmlEntryDto {
-    pub id: String,
-    pub date: String,
-    #[serde(rename = "projectName")]
-    pub project_name: String,
-    #[serde(rename = "taskName")]
-    pub task_name: String,
-    #[serde(rename = "subtaskName", skip_serializing_if = "Option::is_none")]
-    pub subtask_name: Option<String>,
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-    #[serde(rename = "endTime", skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<String>,
-    #[serde(rename = "durationSeconds")]
-    pub duration_seconds: u64,
-    #[serde(rename = "formattedDuration")]
-    pub formatted_duration: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub note: Option<String>,
-}
-
-impl From<&ReportEntryDto> for XmlEntryDto {
-    fn from(entry: &ReportEntryDto) -> Self {
-        Self {
-            id: sanitize_xml_text(&entry.id),
-            date: sanitize_xml_text(&entry.date),
-            project_name: sanitize_xml_text(&entry.project_name),
-            task_name: sanitize_xml_text(&entry.task_name),
-            subtask_name: entry.subtask_name.as_deref().map(sanitize_xml_text),
-            start_time: sanitize_xml_text(&entry.start_time),
-            end_time: entry.end_time.as_deref().map(sanitize_xml_text),
-            duration_seconds: entry.duration_seconds,
-            formatted_duration: sanitize_xml_text(&entry.duration_formatted),
-            note: entry.note.as_deref().map(sanitize_xml_text),
+fn escape_xml(input: &str, context: EscapeContext) -> String {
+    let mut escaped = String::with_capacity(input.len());
+    for c in input.chars().filter(|&c| is_xml_1_0_char(c)) {
+        match (c, context) {
+            ('&', _) => escaped.push_str("&amp;"),
+            ('<', _) => escaped.push_str("&lt;"),
+            ('>', _) => escaped.push_str("&gt;"),
+            // A literal CR is normalized to LF by every parser, so it travels as a character reference.
+            ('\r', _) => escaped.push_str("&#13;"),
+            ('"', EscapeContext::Attribute) => escaped.push_str("&quot;"),
+            // Attribute-value normalization turns literal TAB and LF into spaces.
+            ('\t', EscapeContext::Attribute) => escaped.push_str("&#9;"),
+            ('\n', EscapeContext::Attribute) => escaped.push_str("&#10;"),
+            _ => escaped.push(c),
         }
     }
+    escaped
 }
 
-impl From<&ReportSubtaskDto> for XmlSubtaskDto {
-    fn from(subtask: &ReportSubtaskDto) -> Self {
-        Self {
-            id: sanitize_xml_text(&subtask.id),
-            name: sanitize_xml_text(&subtask.name),
-            duration_seconds: subtask.duration_seconds,
-            formatted_duration: sanitize_xml_text(&subtask.duration_formatted),
-            percentage: subtask.percentage,
+struct Tag(String);
+
+impl Tag {
+    fn new(name: &str) -> Self {
+        Self(format!("<{name}"))
+    }
+
+    fn attr(mut self, name: &str, value: impl Display) -> Self {
+        let escaped = escape_xml(&value.to_string(), EscapeContext::Attribute);
+        self.0.push_str(&format!(" {name}=\"{escaped}\""));
+        self
+    }
+
+    fn opt_attr(self, name: &str, value: Option<impl Display>) -> Self {
+        match value {
+            Some(value) => self.attr(name, value),
+            None => self,
         }
+    }
+
+    fn open(self) -> String {
+        self.0 + ">"
+    }
+
+    fn empty(self) -> String {
+        self.0 + "/>"
     }
 }
 
-impl From<&ReportTaskDto> for XmlTaskDto {
-    fn from(task: &ReportTaskDto) -> Self {
-        Self {
-            id: sanitize_xml_text(&task.id),
-            name: sanitize_xml_text(&task.name),
-            duration_seconds: task.duration_seconds,
-            formatted_duration: sanitize_xml_text(&task.duration_formatted),
-            percentage: task.percentage,
-            subtasks: XmlSubtasksDto {
-                subtasks: task.subtasks.iter().map(XmlSubtaskDto::from).collect(),
-            },
-        }
+fn text_element(name: &str, text: &str) -> String {
+    let escaped = escape_xml(text, EscapeContext::Text);
+    format!("<{name}>{escaped}</{name}>")
+}
+
+fn close_tag(name: &str) -> String {
+    format!("</{name}>")
+}
+
+fn variant_name(variant: ReportVariant) -> &'static str {
+    match variant {
+        ReportVariant::Full => "full",
+        ReportVariant::Summary => "summary",
     }
 }
 
-impl From<&ReportProjectDto> for XmlProjectDto {
-    fn from(project: &ReportProjectDto) -> Self {
-        Self {
-            id: sanitize_xml_text(&project.id),
-            name: sanitize_xml_text(&project.name),
-            duration_seconds: project.duration_seconds,
-            formatted_duration: sanitize_xml_text(&project.duration_formatted),
-            percentage: project.percentage,
-            tasks: XmlTasksDto {
-                tasks: project.tasks.iter().map(XmlTaskDto::from).collect(),
-            },
-        }
+fn preset_name(preset: RangePreset) -> &'static str {
+    match preset {
+        RangePreset::Today => "today",
+        RangePreset::Yesterday => "yesterday",
+        RangePreset::Week => "week",
+        RangePreset::LastWeek => "lastWeek",
+        RangePreset::Month => "month",
+        RangePreset::LastMonth => "lastMonth",
+        RangePreset::All => "all",
     }
 }
 
-impl From<&ReportTreeDto> for XmlReportDto {
-    fn from(tree: &ReportTreeDto) -> Self {
-        Self {
-            schema_version: "1".to_string(),
-            metadata: XmlMetadataDto {
-                title: Some("TimeLog Report".to_string()),
-                period: sanitize_xml_text(&tree.period),
-                generated_at: None,
-            },
-            summary: XmlSummaryDto {
-                total_seconds: tree.total_seconds,
-                formatted_total_duration: sanitize_xml_text(&tree.total_formatted),
-            },
-            projects: XmlProjectsDto {
-                projects: tree.projects.iter().map(XmlProjectDto::from).collect(),
-            },
-            entries: XmlEntriesDto {
-                entries: tree.entries.iter().map(XmlEntryDto::from).collect(),
-            },
-        }
+fn rate_status_name(status: ReportRateStatus) -> &'static str {
+    match status {
+        ReportRateStatus::Inherited => "inherited",
+        ReportRateStatus::Custom => "custom",
+        ReportRateStatus::NonBillable => "nonBillable",
+        ReportRateStatus::Unconfigured => "unconfigured",
     }
 }
 
-use super::sink_io_error;
-use std::io::Write;
-
-pub fn write_xml<W: Write>(tree: &ReportTreeDto, mut writer: W) -> Result<(), CliError> {
-    let report_dto = XmlReportDto::from(tree);
-    writer
-        .write_all(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-        .map_err(|e| sink_io_error("Failed to write XML prolog", e))?;
-    let content = quick_xml::se::to_string(&report_dto)
-        .map_err(|e| CliError::Sink(SinkError::Serialization(e.to_string())))?;
-    writer
-        .write_all(content.as_bytes())
-        .map_err(|e| sink_io_error("Failed to write XML content", e))?;
-    Ok(())
+struct Pricing<'a> {
+    rate_minor: Option<u64>,
+    currency: Option<&'a str>,
+    amount_minor: Option<u64>,
 }
 
-pub fn export_xml(tree: &ReportTreeDto) -> Result<String, CliError> {
+impl Pricing<'_> {
+    fn apply(&self, tag: Tag) -> Tag {
+        tag.opt_attr("rateMinor", self.rate_minor)
+            .opt_attr("currency", self.currency)
+            .opt_attr("amountMinor", self.amount_minor)
+    }
+}
+
+struct XmlOut<W: Write> {
+    writer: W,
+}
+
+impl<W: Write> XmlOut<W> {
+    fn line(&mut self, depth: usize, content: &str) -> Result<(), CliError> {
+        let mut line = INDENT.repeat(depth);
+        line.push_str(content);
+        line.push('\n');
+        self.writer
+            .write_all(line.as_bytes())
+            .map_err(|e| sink_io_error(ERR_XML_WRITE, e))
+    }
+
+    /// Writes `<name>…</name>`, or `<name/>` when `items` is empty.
+    fn list<T>(
+        &mut self,
+        depth: usize,
+        name: &str,
+        items: &[T],
+        write_item: impl Fn(&mut Self, usize, &T) -> Result<(), CliError>,
+    ) -> Result<(), CliError> {
+        if items.is_empty() {
+            return self.line(depth, &Tag::new(name).empty());
+        }
+        self.line(depth, &Tag::new(name).open())?;
+        for item in items {
+            write_item(self, depth + 1, item)?;
+        }
+        self.line(depth, &close_tag(name))
+    }
+
+    fn document(&mut self, document: &ReportDocument) -> Result<(), CliError> {
+        self.line(0, XML_PROLOG)?;
+        let root = Tag::new("report")
+            .attr("schema", &document.schema)
+            .attr("schemaVersion", document.schema_version)
+            .attr("variant", variant_name(document.variant))
+            .open();
+        self.line(0, &root)?;
+        self.line(1, &text_element("generatedAt", &document.generated_at))?;
+        let generator = Tag::new("generator")
+            .attr("name", &document.generator.name)
+            .attr("version", &document.generator.version);
+        self.line(1, &generator.empty())?;
+        self.range(&document.range)?;
+        let filters = Tag::new("filters")
+            .opt_attr("projectId", document.filters.project_id.as_deref())
+            .opt_attr("taskId", document.filters.task_id.as_deref())
+            .attr("includePatches", document.filters.include_patches);
+        self.line(1, &filters.empty())?;
+        self.totals(document)?;
+        self.list(1, "projects", &document.projects, Self::project)?;
+        if document.variant == ReportVariant::Full {
+            self.list(1, "days", &document.days, Self::day)?;
+            let entries = document.entries.as_deref().unwrap_or_default();
+            self.list(1, "entries", entries, Self::entry)?;
+        }
+        self.line(0, &close_tag("report"))
+    }
+
+    fn range(&mut self, range: &ResolvedRange) -> Result<(), CliError> {
+        let tag = Tag::new("range")
+            .opt_attr("from", range.from.as_deref())
+            .opt_attr("to", range.to.as_deref())
+            .attr("timezone", &range.timezone)
+            .opt_attr("preset", range.preset.map(preset_name));
+        self.line(1, &tag.empty())
+    }
+
+    fn totals(&mut self, document: &ReportDocument) -> Result<(), CliError> {
+        let totals = &document.totals;
+        let tag = Tag::new("totals")
+            .attr("seconds", totals.seconds)
+            .attr("entryCount", totals.entry_count)
+            .attr("billableSeconds", totals.billable_seconds)
+            .attr("nonBillableSeconds", totals.non_billable_seconds)
+            .attr("unconfiguredSeconds", totals.unconfigured_seconds);
+        if totals.billing.is_empty() {
+            return self.line(1, &tag.empty());
+        }
+        self.line(1, &tag.open())?;
+        self.billing(2, &totals.billing)?;
+        self.line(1, &close_tag("totals"))
+    }
+
+    fn billing(&mut self, depth: usize, items: &[ReportBillingTotal]) -> Result<(), CliError> {
+        for item in items {
+            let tag = Tag::new("billing")
+                .attr("currency", &item.currency)
+                .attr("amountMinor", item.amount_minor)
+                .attr("billableSeconds", item.billable_seconds)
+                .attr("nonBillableSeconds", item.non_billable_seconds)
+                .attr("unconfiguredSeconds", item.unconfigured_seconds);
+            self.line(depth, &tag.empty())?;
+        }
+        Ok(())
+    }
+
+    fn project(&mut self, depth: usize, project: &ReportProject) -> Result<(), CliError> {
+        let tag = Tag::new("project")
+            .attr("id", &project.id)
+            .attr("directSeconds", project.direct_seconds)
+            .attr("seconds", project.seconds)
+            .attr("shareBasisPoints", project.share_basis_points);
+        self.line(depth, &tag.open())?;
+        self.line(depth + 1, &text_element("name", &project.name))?;
+        self.billing(depth + 1, &project.billing)?;
+        for task in &project.tasks {
+            self.task(depth + 1, task)?;
+        }
+        self.line(depth, &close_tag("project"))
+    }
+
+    fn task(&mut self, depth: usize, task: &ReportTask) -> Result<(), CliError> {
+        let pricing = Pricing {
+            rate_minor: task.rate_minor,
+            currency: task.currency.as_deref(),
+            amount_minor: task.amount_minor,
+        };
+        let tag = Tag::new("task")
+            .attr("id", &task.id)
+            .attr("directSeconds", task.direct_seconds)
+            .attr("seconds", task.seconds)
+            .attr("shareBasisPoints", task.share_basis_points)
+            .attr("rateStatus", rate_status_name(task.rate_status));
+        self.line(depth, &pricing.apply(tag).open())?;
+        self.line(depth + 1, &text_element("name", &task.name))?;
+        for subtask in &task.subtasks {
+            self.subtask(depth + 1, subtask)?;
+        }
+        self.line(depth, &close_tag("task"))
+    }
+
+    fn subtask(&mut self, depth: usize, subtask: &ReportSubtask) -> Result<(), CliError> {
+        let pricing = Pricing {
+            rate_minor: subtask.rate_minor,
+            currency: subtask.currency.as_deref(),
+            amount_minor: subtask.amount_minor,
+        };
+        let tag = Tag::new("subtask")
+            .attr("id", &subtask.id)
+            .attr("parentTaskId", &subtask.parent_task_id)
+            .attr("directSeconds", subtask.direct_seconds)
+            .attr("seconds", subtask.seconds)
+            .attr("shareBasisPoints", subtask.share_basis_points)
+            .attr("rateStatus", rate_status_name(subtask.rate_status));
+        self.line(depth, &pricing.apply(tag).open())?;
+        self.line(depth + 1, &text_element("name", &subtask.name))?;
+        self.line(depth, &close_tag("subtask"))
+    }
+
+    fn day(&mut self, depth: usize, day: &ReportDay) -> Result<(), CliError> {
+        let tag = Tag::new("day")
+            .attr("date", &day.date)
+            .attr("seconds", day.seconds);
+        self.line(depth, &tag.empty())
+    }
+
+    fn entry(&mut self, depth: usize, entry: &ReportEntry) -> Result<(), CliError> {
+        let pricing = Pricing {
+            rate_minor: entry.rate_minor,
+            currency: entry.currency.as_deref(),
+            amount_minor: entry.amount_minor,
+        };
+        let tag = Tag::new("entry")
+            .attr("id", &entry.id)
+            .attr("projectId", &entry.project_id)
+            .opt_attr("taskId", entry.task_id.as_deref())
+            .opt_attr("rootTaskId", entry.root_task_id.as_deref())
+            .opt_attr("parentTaskId", entry.parent_task_id.as_deref())
+            .attr("start", &entry.start)
+            .opt_attr("end", entry.end.as_deref())
+            .attr("date", &entry.date)
+            .attr("seconds", entry.seconds)
+            .attr("originalSeconds", entry.original_seconds)
+            .attr("clamped", entry.clamped)
+            .attr("isPatch", entry.is_patch);
+        self.line(depth, &pricing.apply(tag).open())?;
+        self.line(depth + 1, &text_element("projectName", &entry.project_name))?;
+        let optional_texts = [
+            ("taskName", entry.task_name.as_deref()),
+            ("parentTaskName", entry.parent_task_name.as_deref()),
+            ("note", entry.note.as_deref()),
+        ];
+        for (name, text) in optional_texts {
+            if let Some(text) = text {
+                self.line(depth + 1, &text_element(name, text))?;
+            }
+        }
+        self.line(depth, &close_tag("entry"))
+    }
+}
+
+/// Writes the `ReportDocument` as `oxy.report` v2 XML (`schemas/xml/report/v2/report.xsd`).
+///
+/// Element order is the document order; nothing is re-sorted. Days and entries are written for
+/// the full variant only.
+pub fn write_xml<W: Write>(document: &ReportDocument, writer: W) -> Result<(), CliError> {
+    XmlOut { writer }.document(document)
+}
+
+pub fn export_xml(document: &ReportDocument) -> Result<String, CliError> {
     let mut buffer = Vec::new();
-    write_xml(tree, &mut buffer)?;
-    String::from_utf8(buffer).map_err(|e| sink_io_error("Failed to decode UTF-8 XML", e))
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Error)]
-pub enum XmlValidationError {
-    #[error("Missing XML declaration prolog")]
-    MissingProlog,
-    #[error("Missing root element <report schemaVersion=\"1\">")]
-    MissingRootElement,
-    #[error("Missing section: {0}")]
-    MissingSection(&'static str),
-    #[error("Sections out of canonical order: expected metadata < summary < projects < entries")]
-    InvalidSectionOrder,
-    #[error("XML schema deserialization failed: {0}")]
-    Deserialization(String),
-    #[error("Invalid schemaVersion: expected '1', got '{0}'")]
-    InvalidSchemaVersion(String),
-}
-
-impl From<XmlValidationError> for CliError {
-    fn from(err: XmlValidationError) -> Self {
-        CliError::Sink(SinkError::Serialization(err.to_string()))
-    }
-}
-
-/// Validates an XML document string against the canonical Report XML Schema v1 structural rules:
-/// 1. XML prolog presence: starts with `<?xml version="1.0" encoding="UTF-8"?>`.
-/// 2. Root element `<report>` with required attribute `schemaVersion="1"`.
-/// 3. Canonical 4 sections in exact order: `<metadata>`, `<summary>`, `<projects>`, `<entries>`.
-/// 4. Mandatory child elements and valid numeric representations (nonNegativeInteger, decimal).
-/// 5. Validates complete roundtrip deserialization via quick_xml.
-pub fn validate_report_xml_structure(xml: &str) -> Result<XmlReportDto, XmlValidationError> {
-    if !xml.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>") {
-        return Err(XmlValidationError::MissingProlog);
-    }
-
-    if !xml.contains("<report schemaVersion=\"1\">") {
-        return Err(XmlValidationError::MissingRootElement);
-    }
-
-    let meta_idx = xml
-        .find("<metadata>")
-        .ok_or(XmlValidationError::MissingSection("<metadata>"))?;
-    let sum_idx = xml
-        .find("<summary>")
-        .ok_or(XmlValidationError::MissingSection("<summary>"))?;
-    let proj_idx = xml
-        .find("<projects")
-        .ok_or(XmlValidationError::MissingSection("<projects>"))?;
-    let ent_idx = xml
-        .find("<entries")
-        .ok_or(XmlValidationError::MissingSection("<entries>"))?;
-
-    if !(meta_idx < sum_idx && sum_idx < proj_idx && proj_idx < ent_idx) {
-        return Err(XmlValidationError::InvalidSectionOrder);
-    }
-
-    let body = xml
-        .strip_prefix("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-        .unwrap_or(xml);
-
-    let dto: XmlReportDto = quick_xml::de::from_str(body)
-        .map_err(|e| XmlValidationError::Deserialization(e.to_string()))?;
-
-    if dto.schema_version != "1" {
-        return Err(XmlValidationError::InvalidSchemaVersion(dto.schema_version));
-    }
-
-    Ok(dto)
+    write_xml(document, &mut buffer)?;
+    String::from_utf8(buffer).map_err(|e| sink_io_error(ERR_XML_DECODE, e))
 }

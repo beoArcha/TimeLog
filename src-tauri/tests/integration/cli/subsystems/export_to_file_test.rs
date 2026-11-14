@@ -73,7 +73,7 @@ fn test_given_xml_format_when_export_to_file_then_writes_valid_xml_file() {
     assert!(target_file.exists());
     let content = fs::read_to_string(&target_file).expect("failed to read file");
     assert!(content.contains("<?xml"));
-    assert!(content.contains("<report schemaVersion=\"1\">"));
+    assert!(content.contains("<report schema=\"oxy.report\" schemaVersion=\"2\" variant=\"full\">"));
 }
 
 #[test]

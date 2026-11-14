@@ -43,8 +43,8 @@ pub fn handle(
     Ok(CliOutput::Success(msg))
 }
 
-/// The XSD describes the legacy `report export -f xml` document, so it only exists for the
-/// report target and is versioned independently of `oxy.report`.
+/// The XSD describes the `oxy.report` v2 document written by `--format xml`, so it only exists
+/// for the report target; its version is the XSD version, not the `oxy.report` one.
 fn resolve_schema(
     format: SchemaFormat,
     target: SchemaTarget,

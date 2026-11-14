@@ -5,6 +5,7 @@ pub mod exporter_fixtures;
 pub mod report_document_builders;
 pub mod spreadsheet_helpers;
 pub mod test_db;
+pub mod xsd_validator;
 
 pub use builders::*;
 pub use exporter_fixtures::*;

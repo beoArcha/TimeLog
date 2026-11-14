@@ -12,7 +12,6 @@ use clap::ValueEnum;
 use std::io::Write;
 
 const ALL_VARIANTS: &[ReportVariantArg] = &[ReportVariantArg::Full, ReportVariantArg::Summary];
-const FULL_ONLY: &[ReportVariantArg] = &[ReportVariantArg::Full];
 
 /// `Data` formats carry the figures for programs and spreadsheets (Phase 22), `Human` formats are
 /// laid-out reports for people (Phase 23).
@@ -154,11 +153,10 @@ static REGISTRY: [FormatSpec; 8] = [
         locale_dependent: false,
         writer: write_jsonl_document,
     },
-    // The legacy XML schema always carries an `<entries>` section, which only the full variant fills.
     FormatSpec {
         format: ExportFormat::Xml,
         group: FormatGroup::Data,
-        variants: FULL_ONLY,
+        variants: ALL_VARIANTS,
         binary: false,
         locale_dependent: false,
         writer: write_xml_document,
@@ -206,7 +204,7 @@ fn write_jsonl_document(document: &ReportDocument, writer: &mut dyn Write) -> Re
 }
 
 fn write_xml_document(document: &ReportDocument, writer: &mut dyn Write) -> Result<(), CliError> {
-    write_xml(&to_report_tree_dto(document), writer)
+    write_xml(document, writer)
 }
 
 fn write_ods_document(document: &ReportDocument, writer: &mut dyn Write) -> Result<(), CliError> {

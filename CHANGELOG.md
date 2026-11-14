@@ -9,10 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **JSON Lines Report Export (`oxy report --format jsonl`)**: Streams the `oxy.report` v2 document as one compact JSON object per line: a `header` line with the document's header fields, then one `entry` line per entry in document order. The `summary` variant writes the header line only.
-
 ### Fixed
 
 - **Reports Multi-Project Scope**: The report has its own project scope (empty means all projects) instead of reusing the Tasks tab's working project, so the "All" filter works and filtering a report no longer changes the project shown in Tasks. Filter chips and the donut chart toggle several projects at once; statistics, billing and log lists are filtered by the engine through `projectIds`, intersected with active tag filters.
@@ -68,9 +64,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
+- **XML Report Export is `oxy.report` v2 (XSD v2)**:
+  - `oxy report -f xml` writes the `ReportDocument` directly instead of the legacy v1 tree: root `<report schema="oxy.report" schemaVersion="2" variant="full|summary">` with `generatedAt`, `generator`, `range`, `filters`, totals with per-currency `billing`, projects with tasks and flat subtasks (`parentTaskId`), and, for the `full` variant only, `days` and `entries`. Identifiers, instants, counts and enumerations are attributes; names and notes are element text, escaped for XML 1.0.
+  - The `xml` format now supports the `summary` variant (no `days`, no `entries`); the former syntax error for `xml` with `--variant summary` is gone.
+  - `oxy report schema --format xml` prints the new XSD (`schemas/xml/report/v2/report.xsd`, version `2`); the machine summary carries `schema_version` `2`. The v1 XSD stays on disk for the browser exporter only.
 - **`oxy report schema` Defaults to a Generated JSON Schema**:
   - The default output is now the JSON Schema (draft 2020-12) of the `oxy.report` v2 document instead of the XML Schema (XSD) v1; the XSD stays available with `--format xml`.
-  - The `--version` flag is removed (only XSD version `1` exists).
+  - The `--version` flag is removed (only the current XSD version is published).
   - With `--machine` and `-o`, the summary now carries `schema` and a numeric `schema_version` (previously the string `"1"`).
 - **Versioned `--json` / `--machine` Envelope for Flow Commands**:
   - `start`, `stop`, `switch` and `status` now print `{ "schema": "oxy.<command>", "schemaVersion": 1, "data": {...}, "meta": { "generatedAt", "generator" } }` instead of the previous flat object; the former `"status": "ok"` field is removed and there is no v1 compatibility mode.
@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **JSON Lines Report Export (`oxy report --format jsonl`)**: Streams the `oxy.report` v2 document as one compact JSON object per line: a `header` line with the document's header fields, then one `entry` line per entry in document order. The `summary` variant writes the header line only.
 - **Structured Error Details**: The error envelope carries an optional `details` object, so scripts can act on a failure without parsing text: `candidates` (`{ id, name }`) for ambiguous targets, `suggestion` for did-you-mean, and `field` / `value` for parser argument errors. Absent members and an empty `details` are omitted. The browser sandbox emits the same envelope for target-resolution errors under `--json` / `--machine`.
 - **Canonical Report Model (`ReportDocument` v2)**:
   - Versioned report contract (`schema: "oxy.report"`, `schemaVersion: 2`) generated into `src/bindings/`, with integer `shareBasisPoints`, task-less entries, flattened subtasks of any depth, per-local-day totals and billing per task and per currency.

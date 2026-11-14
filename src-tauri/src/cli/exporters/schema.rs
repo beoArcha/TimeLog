@@ -2,15 +2,15 @@ use crate::cli::error::CliError;
 use crate::cli::exporters::constants::ERR_UNSUPPORTED_SCHEMA_VERSION;
 use crate::cli::exporters::sink_io_error;
 
-pub const REPORT_XML_SCHEMA_V1: &str = include_str!("../../../../schemas/xml/report/v1/report.xsd");
+pub const REPORT_XML_SCHEMA_V2: &str = include_str!("../../../../schemas/xml/report/v2/report.xsd");
 
 /// Returns the XML schema for the specified report schema version.
 ///
 /// Currently supported version(s):
-/// - `"1"`: Canonical XML Schema v1 (`REPORT_XML_SCHEMA_V1`)
+/// - `"2"`: XML projection of `oxy.report` v2 (`REPORT_XML_SCHEMA_V2`)
 pub fn get_report_xml_schema(version: &str) -> Result<&'static str, CliError> {
     match version {
-        "1" => Ok(REPORT_XML_SCHEMA_V1),
+        "2" => Ok(REPORT_XML_SCHEMA_V2),
         unsupported => Err(CliError::syntax_invalid_args(
             ERR_UNSUPPORTED_SCHEMA_VERSION.replacen("{}", unsupported, 1),
         )),

@@ -1,6 +1,6 @@
 use clap::Parser;
 use oxyflow_timelog::cli::error::{CliError, CliSyntaxError};
-use oxyflow_timelog::cli::exporters::REPORT_XML_SCHEMA_V1;
+use oxyflow_timelog::cli::exporters::REPORT_XML_SCHEMA_V2;
 use oxyflow_timelog::cli::handlers::report_schema_handler;
 use oxyflow_timelog::cli::parser::{ReportSubcommand, SchemaFormat, SchemaTarget};
 use oxyflow_timelog::cli::shared::output::CliOutput;
@@ -18,7 +18,7 @@ fn test_given_xml_format_and_report_target_when_handling_report_schema_then_retu
     // Assert
     match output {
         CliOutput::Raw(content) => {
-            assert_eq!(content, REPORT_XML_SCHEMA_V1);
+            assert_eq!(content, REPORT_XML_SCHEMA_V2);
             assert!(content.starts_with("<?xml"));
         }
         other => panic!("expected CliOutput::Raw, got {other:?}"),

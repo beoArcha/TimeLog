@@ -1,4 +1,5 @@
 use crate::e2e::support::{execute_oxy_with_timeout, TempEnvDir};
+use crate::shared::xsd_validator::assert_valid_report_xml;
 use serde_json::Value;
 use std::process::Output;
 use std::time::Duration;
@@ -66,25 +67,31 @@ fn test_given_the_binary_when_report_json_goes_to_stdout_then_it_is_the_bare_doc
 }
 
 #[test]
-fn test_given_the_binary_when_xml_is_asked_for_the_summary_variant_then_exits_2_naming_format_and_variant(
+fn test_given_the_binary_when_xml_is_asked_for_each_variant_then_stdout_validates_against_the_v2_xsd(
 ) {
     // Given
-    let env = seeded_env("oxy_report_variant_rejected");
+    let env = seeded_env("oxy_report_xml_variants");
 
-    // When
-    let output = run(
-        &env,
-        &["report", "-f", "xml", "--variant", "summary", "-o", "-"],
-    );
+    for (variant, has_entries) in [("full", true), ("summary", false)] {
+        // When
+        let output = run(
+            &env,
+            &["report", "-f", "xml", "--variant", variant, "-o", "-"],
+        );
 
-    // Then
-    assert_eq!(output.status.code(), Some(2));
-    assert!(output.stdout.is_empty(), "no partial export on stdout");
-    let stderr = stderr_of(&output);
-    assert!(
-        stderr.contains("'xml'") && stderr.contains("'summary'"),
-        "{stderr}"
-    );
+        // Then
+        assert!(output.status.success(), "{variant}: {}", stderr_of(&output));
+        assert!(
+            output.stderr.is_empty(),
+            "{variant}: {}",
+            stderr_of(&output)
+        );
+        let xml = String::from_utf8(output.stdout).expect("XML is UTF-8");
+        assert_valid_report_xml(&xml);
+        assert!(xml.contains("Export Task"), "{variant}");
+        assert_eq!(xml.contains("<entries"), has_entries, "{variant}");
+        assert_eq!(xml.contains("<days"), has_entries, "{variant}");
+    }
 }
 
 #[test]

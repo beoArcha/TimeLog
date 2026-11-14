@@ -66,10 +66,10 @@ fn test_given_specific_writers_when_streaming_then_matches_export_output_parity(
 
     // XML parity
     let mut xml_buf = Vec::new();
-    write_xml(&tree, &mut xml_buf).expect("write_xml");
+    write_xml(&document, &mut xml_buf).expect("write_xml");
     let xml_str = String::from_utf8(xml_buf).expect("utf8 xml");
     assert!(xml_str.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-    assert!(xml_str.contains("<report schemaVersion=\"1\">"));
+    assert!(xml_str.contains("<report schema=\"oxy.report\" schemaVersion=\"2\" variant=\"full\">"));
 
     // XLSX workbook valid parse and structure parity
     let mut xlsx_buf = Vec::new();

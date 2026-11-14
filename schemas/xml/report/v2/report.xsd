@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <!--
+    XML projection of the oxy.report v2 document (ReportDocument).
+
+    Conventions:
+    - Identifiers, instants, counts and enumerations are attributes; free text (names, notes) is
+      element content so whitespace and line breaks survive.
+    - An optional document field is an optional attribute or element; it is omitted, never empty.
+    - Durations are whole seconds, money is integer minor units and shares are basis points.
+    - Element order follows the document order produced by the engine and is never re-sorted.
+    - The summary variant carries no <days> and no <entries>; the full variant always carries
+      both, empty when the range has no data.
+  -->
+
+  <xs:element name="report" type="ReportType"/>
+
+  <xs:simpleType name="VariantType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="full"/>
+      <xs:enumeration value="summary"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="RangePresetType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="today"/>
+      <xs:enumeration value="yesterday"/>
+      <xs:enumeration value="week"/>
+      <xs:enumeration value="lastWeek"/>
+      <xs:enumeration value="month"/>
+      <xs:enumeration value="lastMonth"/>
+      <xs:enumeration value="all"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="RateStatusType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="inherited"/>
+      <xs:enumeration value="custom"/>
+      <xs:enumeration value="nonBillable"/>
+      <xs:enumeration value="unconfigured"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Rate and amount in minor currency units; all absent while the rate is unconfigured. -->
+  <xs:attributeGroup name="PricingAttributes">
+    <xs:attribute name="rateMinor" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="currency" type="xs:string" use="optional"/>
+    <xs:attribute name="amountMinor" type="xs:nonNegativeInteger" use="optional"/>
+  </xs:attributeGroup>
+
+  <xs:complexType name="ReportType">
+    <xs:sequence>
+      <xs:element name="generatedAt" type="xs:dateTime"/>
+      <xs:element name="generator" type="GeneratorType"/>
+      <xs:element name="range" type="RangeType"/>
+      <xs:element name="filters" type="FiltersType"/>
+      <xs:element name="totals" type="TotalsType"/>
+      <xs:element name="projects" type="ProjectsType"/>
+      <xs:element name="days" type="DaysType" minOccurs="0"/>
+      <xs:element name="entries" type="EntriesType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="schema" type="xs:string" use="required" fixed="oxy.report"/>
+    <xs:attribute name="schemaVersion" type="xs:nonNegativeInteger" use="required" fixed="2"/>
+    <xs:attribute name="variant" type="VariantType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="GeneratorType">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="version" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <!-- Half-open [from, to) UTC bounds; a missing bound is unbounded on that side. -->
+  <xs:complexType name="RangeType">
+    <xs:attribute name="from" type="xs:dateTime" use="optional"/>
+    <xs:attribute name="to" type="xs:dateTime" use="optional"/>
+    <xs:attribute name="timezone" type="xs:string" use="required"/>
+    <xs:attribute name="preset" type="RangePresetType" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="FiltersType">
+    <xs:attribute name="projectId" type="xs:string" use="optional"/>
+    <xs:attribute name="taskId" type="xs:string" use="optional"/>
+    <xs:attribute name="includePatches" type="xs:boolean" use="required"/>
+  </xs:complexType>
+
+  <!-- Per-currency buckets cover only time with a resolved currency. -->
+  <xs:complexType name="BillingType">
+    <xs:attribute name="currency" type="xs:string" use="required"/>
+    <xs:attribute name="amountMinor" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="billableSeconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="nonBillableSeconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="unconfiguredSeconds" type="xs:nonNegativeInteger" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="TotalsType">
+    <xs:sequence>
+      <xs:element name="billing" type="BillingType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="seconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="entryCount" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="billableSeconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="nonBillableSeconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="unconfiguredSeconds" type="xs:nonNegativeInteger" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="ProjectsType">
+    <xs:sequence>
+      <xs:element name="project" type="ProjectType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProjectType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="billing" type="BillingType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="task" type="TaskType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="directSeconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="seconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="shareBasisPoints" type="xs:nonNegativeInteger" use="required"/>
+  </xs:complexType>
+
+  <!-- A root task; its descendants follow as a flat list of <subtask> in depth-first pre-order. -->
+  <xs:complexType name="TaskType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="subtask" type="SubtaskType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="directSeconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="seconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="shareBasisPoints" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="rateStatus" type="RateStatusType" use="required"/>
+    <xs:attributeGroup ref="PricingAttributes"/>
+  </xs:complexType>
+
+  <!-- parentTaskId is the immediate parent: the root task or another subtask. -->
+  <xs:complexType name="SubtaskType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="parentTaskId" type="xs:string" use="required"/>
+    <xs:attribute name="directSeconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="seconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="shareBasisPoints" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="rateStatus" type="RateStatusType" use="required"/>
+    <xs:attributeGroup ref="PricingAttributes"/>
+  </xs:complexType>
+
+  <xs:complexType name="DaysType">
+    <xs:sequence>
+      <xs:element name="day" type="DayType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DayType">
+    <xs:attribute name="date" type="xs:date" use="required"/>
+    <xs:attribute name="seconds" type="xs:nonNegativeInteger" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="EntriesType">
+    <xs:sequence>
+      <xs:element name="entry" type="EntryType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- taskId, rootTaskId, parentTaskId, taskName and parentTaskName are absent for a project-level patch. -->
+  <xs:complexType name="EntryType">
+    <xs:sequence>
+      <xs:element name="projectName" type="xs:string"/>
+      <xs:element name="taskName" type="xs:string" minOccurs="0"/>
+      <xs:element name="parentTaskName" type="xs:string" minOccurs="0"/>
+      <xs:element name="note" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="projectId" type="xs:string" use="required"/>
+    <xs:attribute name="taskId" type="xs:string" use="optional"/>
+    <xs:attribute name="rootTaskId" type="xs:string" use="optional"/>
+    <xs:attribute name="parentTaskId" type="xs:string" use="optional"/>
+    <xs:attribute name="start" type="xs:dateTime" use="required"/>
+    <xs:attribute name="end" type="xs:dateTime" use="optional"/>
+    <xs:attribute name="date" type="xs:date" use="required"/>
+    <xs:attribute name="seconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="originalSeconds" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="clamped" type="xs:boolean" use="required"/>
+    <xs:attribute name="isPatch" type="xs:boolean" use="required"/>
+    <xs:attributeGroup ref="PricingAttributes"/>
+  </xs:complexType>
+
+</xs:schema>

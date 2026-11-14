@@ -1,4 +1,5 @@
 use crate::e2e::support::{execute_oxy_with_timeout, TempEnvDir};
+use crate::shared::xsd_validator::REPORT_XSD_V2;
 use serde_json::Value;
 use std::time::Duration;
 
@@ -56,6 +57,9 @@ fn test_given_the_binary_when_report_schema_with_xml_format_then_stdout_is_the_x
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.starts_with("<?xml"));
     assert!(stdout.contains("<xs:schema"));
+    assert!(stdout.contains("fixed=\"oxy.report\""));
+    assert!(stdout.contains("fixed=\"2\""));
+    assert_eq!(stdout.trim_end(), REPORT_XSD_V2.trim_end());
 }
 
 #[test]

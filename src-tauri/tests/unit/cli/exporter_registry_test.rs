@@ -2,7 +2,7 @@ use crate::shared::exporter_fixtures::create_sample_document;
 use clap::ValueEnum;
 use oxyflow_timelog::cli::error::{CliError, CliSyntaxError};
 use oxyflow_timelog::cli::exporters::{
-    export_to_bytes, format_name, format_spec, registry, FormatGroup,
+    export_to_bytes, format_name, format_spec, registry, FormatGroup, FormatSpec,
 };
 use oxyflow_timelog::cli::parser::{ExportFormat, ReportVariantArg};
 use oxyflow_timelog::types::ReportVariant;
@@ -57,10 +57,17 @@ fn test_given_registry_when_reading_groups_and_binary_flags_then_matches_the_for
 }
 
 #[test]
-fn test_given_xml_format_when_requesting_the_summary_variant_then_fails_with_a_syntax_error_naming_both(
+fn test_given_full_only_format_when_requesting_the_summary_variant_then_fails_with_a_syntax_error_naming_both(
 ) {
     // Arrange
-    let spec = format_spec(ExportFormat::Xml).expect("registered format");
+    let spec = FormatSpec {
+        format: ExportFormat::Xml,
+        group: FormatGroup::Data,
+        variants: &[ReportVariantArg::Full],
+        binary: false,
+        locale_dependent: false,
+        writer: |_, _| Ok(()),
+    };
 
     // Act
     let result = spec.ensure_supports(ReportVariantArg::Summary);
@@ -79,6 +86,20 @@ fn test_given_xml_format_when_requesting_the_summary_variant_then_fails_with_a_s
         }
         other => panic!("expected an invalid-argument syntax error, got {other:?}"),
     }
+}
+
+#[test]
+fn test_given_xml_format_when_requesting_each_variant_then_both_are_supported() {
+    // Arrange
+    let spec = format_spec(ExportFormat::Xml).expect("registered format");
+
+    // Act
+    let full = spec.ensure_supports(ReportVariantArg::Full);
+    let summary = spec.ensure_supports(ReportVariantArg::Summary);
+
+    // Assert
+    assert!(full.is_ok());
+    assert!(summary.is_ok());
 }
 
 #[test]

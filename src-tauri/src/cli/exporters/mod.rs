@@ -24,9 +24,9 @@ pub use self::registry::{
     format_name, format_spec, registry, variant_name, DocumentWriter, FormatGroup, FormatSpec,
 };
 pub use self::rows::{flatten_project, flatten_report, flatten_task, ReportRow, RowsError};
-pub use self::schema::{export_schema_to_file, get_report_xml_schema, REPORT_XML_SCHEMA_V1};
+pub use self::schema::{export_schema_to_file, get_report_xml_schema, REPORT_XML_SCHEMA_V2};
 pub use self::xlsx::{export_xlsx, write_xlsx};
-pub use self::xml::{export_xml, validate_report_xml_structure, write_xml, XmlValidationError};
+pub use self::xml::{export_xml, write_xml};
 
 use crate::cli::error::{CliError, SinkError};
 use crate::cli::parser::ExportFormat;
