@@ -10,6 +10,7 @@ pub mod exporter_csv_test;
 pub mod exporter_fixtures;
 pub mod exporter_html_test;
 pub mod exporter_json_test;
+pub mod exporter_jsonl_test;
 pub mod exporter_ods_test;
 pub mod exporter_registry_test;
 pub mod exporter_schema_test;

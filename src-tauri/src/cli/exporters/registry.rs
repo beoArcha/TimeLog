@@ -2,6 +2,7 @@ use super::constants::{
     ERR_BINARY_FORMAT_NEEDS_OUTPUT, ERR_FORMAT_FLAG, ERR_FORMAT_NOT_REGISTERED, ERR_VARIANT_FLAG,
     ERR_VARIANT_UNSUPPORTED,
 };
+use super::jsonl::write_jsonl;
 use super::{sink_io_error, write_csv, write_html, write_json, write_ods, write_xlsx, write_xml};
 use crate::cli::error::{CliError, CliSyntaxError};
 use crate::cli::formatters::{render_tree_string, to_report_tree_dto};
@@ -111,7 +112,7 @@ pub fn format_spec(format: ExportFormat) -> Result<&'static FormatSpec, CliError
 }
 
 // Order follows `ExportFormat`; the registry test fails when a format is missing or duplicated.
-static REGISTRY: [FormatSpec; 7] = [
+static REGISTRY: [FormatSpec; 8] = [
     FormatSpec {
         format: ExportFormat::Table,
         group: FormatGroup::Human,
@@ -143,6 +144,15 @@ static REGISTRY: [FormatSpec; 7] = [
         binary: false,
         locale_dependent: false,
         writer: write_json_document,
+    },
+    // Line-delimited records let a consumer stream entries without parsing the whole document.
+    FormatSpec {
+        format: ExportFormat::Jsonl,
+        group: FormatGroup::Data,
+        variants: ALL_VARIANTS,
+        binary: false,
+        locale_dependent: false,
+        writer: write_jsonl_document,
     },
     // The legacy XML schema always carries an `<entries>` section, which only the full variant fills.
     FormatSpec {
@@ -189,6 +199,10 @@ fn write_csv_document(document: &ReportDocument, writer: &mut dyn Write) -> Resu
 
 fn write_json_document(document: &ReportDocument, writer: &mut dyn Write) -> Result<(), CliError> {
     write_json(document, writer)
+}
+
+fn write_jsonl_document(document: &ReportDocument, writer: &mut dyn Write) -> Result<(), CliError> {
+    write_jsonl(document, writer)
 }
 
 fn write_xml_document(document: &ReportDocument, writer: &mut dyn Write) -> Result<(), CliError> {

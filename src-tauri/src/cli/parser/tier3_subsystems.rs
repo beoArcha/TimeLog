@@ -11,7 +11,7 @@ pub struct ReportArgs {
         long,
         value_enum,
         default_value_t = ExportFormat::Table,
-        help = "Output format: table, html, csv, json, xml, ods, xlsx"
+        help = "Output format: table, html, csv, json, jsonl, xml, ods, xlsx"
     )]
     pub format: ExportFormat,
     #[arg(
@@ -82,6 +82,7 @@ pub enum ExportFormat {
     Html,
     Csv,
     Json,
+    Jsonl,
     Xml,
     Ods,
     Xlsx,
