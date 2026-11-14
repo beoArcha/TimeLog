@@ -1,0 +1,5 @@
+entryId,projectId,projectName,taskId,taskName,date,startUtc,endUtc,seconds,note,amount,currency
+log-1,p1,Zażółć gęślą jaźń,t2,"Backend, API ""v2""",2026-01-01,2025-12-31T23:00:00Z,2026-01-01T01:00:00Z,3600,'=SUM(A1),12345.67,PLN
+log-2,p1,Zażółć gęślą jaźń,,,2026-01-02,2026-01-02T09:00:00Z,2026-01-02T09:10:00Z,600,"first line
+second line",,
+log-3,p1,Project,t2,Subtask,2026-01-03,2026-01-03T08:00:00Z,,90,,,

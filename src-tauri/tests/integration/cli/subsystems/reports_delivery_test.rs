@@ -301,3 +301,138 @@ fn test_given_table_format_when_output_is_a_file_then_writes_the_tree_without_a_
     assert!(content.starts_with("📊 Time Tracking Hierarchy Report"));
     assert!(content.contains("Delivery Task"));
 }
+
+fn csv_stdout(persistence: &Persistence, extra: &[&str]) -> Vec<u8> {
+    let mut argv = vec!["oxy", "report", "-f", "csv", "-o", "-"];
+    argv.extend_from_slice(extra);
+    stdout_bytes(run(persistence, &argv).unwrap())
+}
+
+fn syntax_exit_code(result: Result<CliOutput, CliError>) -> u8 {
+    result.expect_err("the flags must be rejected").exit_code()
+}
+
+#[test]
+fn test_given_logged_work_when_full_csv_goes_to_stdout_then_it_has_one_row_per_entry() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_delivery_csv_full_rows");
+
+    // When
+    let bytes = csv_stdout(&persistence, &[]);
+
+    // Then
+    let csv = String::from_utf8(bytes).unwrap();
+    let lines: Vec<&str> = csv.lines().collect();
+    assert_eq!(lines.len(), 2);
+    assert!(lines[0].starts_with("entryId,projectId,projectName,taskId,taskName,date,"));
+    assert!(lines[1].starts_with(
+        "log_delivery_01,p_delivery_01,Delivery Project,t_delivery_01,Delivery Task,"
+    ));
+    assert!(lines[1].contains(",2026-10-15T08:00:00Z,2026-10-15T10:00:00Z,7200,delivery note,"));
+}
+
+#[test]
+fn test_given_logged_work_when_summary_csv_goes_to_stdout_then_it_has_one_row_per_task() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_delivery_csv_summary_rows");
+
+    // When
+    let bytes = csv_stdout(&persistence, &["--variant", "summary"]);
+
+    // Then
+    let csv = String::from_utf8(bytes).unwrap();
+    let lines: Vec<&str> = csv.lines().collect();
+    assert_eq!(lines.len(), 2);
+    assert!(lines[0].starts_with("projectId,projectName,taskId,taskName,parentTaskId,seconds,"));
+    assert!(lines[1].starts_with(
+        "p_delivery_01,Delivery Project,t_delivery_01,Delivery Task,,7200,7200,2.00,10000,"
+    ));
+}
+
+#[test]
+fn test_given_semicolon_delimiter_and_bom_when_csv_goes_to_stdout_then_output_starts_with_bom_and_uses_semicolons(
+) {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_delivery_csv_bom_semicolon");
+
+    // When
+    let bytes = csv_stdout(&persistence, &["--csv-delimiter", ";", "--bom"]);
+
+    // Then
+    assert_eq!(&bytes[..3], &[0xEF, 0xBB, 0xBF]);
+    let csv = String::from_utf8(bytes[3..].to_vec()).unwrap();
+    assert!(csv.starts_with("entryId;projectId;projectName;"));
+}
+
+#[test]
+fn test_given_csv_options_when_exporting_to_stdout_and_to_a_file_then_bytes_are_identical() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_delivery_csv_options_parity");
+    let dir = tempfile::tempdir().expect("create temp dir");
+    let file = dir.path().join("report.csv");
+    let options = ["--csv-delimiter", "tab", "--bom"];
+
+    // When
+    let streamed = csv_stdout(&persistence, &options);
+    let mut argv = vec!["oxy", "report", "-f", "csv", "-o", file.to_str().unwrap()];
+    argv.extend_from_slice(&options);
+    run(&persistence, &argv).unwrap();
+
+    // Then
+    assert_eq!(streamed, fs::read(&file).unwrap());
+}
+
+#[test]
+fn test_given_bom_with_a_non_csv_format_when_planning_then_exits_2_before_writing() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_delivery_bom_with_json");
+
+    // When
+    let with_json = run(
+        &persistence,
+        &["oxy", "report", "--format", "json", "--bom", "-o", "-"],
+    );
+    let with_default_table = run(&persistence, &["oxy", "report", "--bom"]);
+
+    // Then
+    assert_eq!(syntax_exit_code(with_json), 2);
+    assert_eq!(syntax_exit_code(with_default_table), 2);
+}
+
+#[test]
+fn test_given_an_unsupported_csv_delimiter_when_planning_then_exits_2() {
+    // Given
+    let (persistence, _conn, _temp) = setup_dataset("test_delivery_bad_delimiter");
+
+    // When
+    let pipe = run(
+        &persistence,
+        &[
+            "oxy",
+            "report",
+            "-f",
+            "csv",
+            "--csv-delimiter",
+            "|",
+            "-o",
+            "-",
+        ],
+    );
+    let with_json = run(
+        &persistence,
+        &[
+            "oxy",
+            "report",
+            "-f",
+            "json",
+            "--csv-delimiter",
+            ";",
+            "-o",
+            "-",
+        ],
+    );
+
+    // Then
+    assert_eq!(syntax_exit_code(pipe), 2);
+    assert_eq!(syntax_exit_code(with_json), 2);
+}

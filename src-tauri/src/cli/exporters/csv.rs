@@ -1,116 +1,66 @@
-//! CSV Exporter Module with CSV Formula Injection (CWE-1236) Protection.
-//!
-//! # Formula Injection Neutralization Policy
-//!
-//! Spreadsheet software (such as Microsoft Excel, LibreOffice Calc, and Google Sheets)
-//! automatically interprets cell values starting with formula trigger characters as formulas
-//! or dynamic data exchange (DDE) commands:
-//! - `=` (standard formula execution)
-//! - `+` (formula addition / command prefix)
-//! - `-` (formula subtraction / command prefix)
-//! - `@` (function call / implicit intersection operator)
-//!
-//! Furthermore, spreadsheet engines strip or ignore leading whitespace (` `, `\t`) and
-//! ASCII control characters (`\r`, `\n`, etc.) before evaluating formula triggers.
-//!
-//! ## Neutralization Strategy:
-//! 1. Locate the first meaningful character (skipping leading whitespace and ASCII control characters).
-//! 2. If the character is one of the formula triggers (`=`, `+`, `-`, `@`):
-//!    - Check if the entire cell content represents a valid finite number (e.g. `123`, `-123`,
-//!      `+123`, `-123.45`, `0.5`). Valid numbers are completely safe in spreadsheets and are
-//!      preserved as-is without modification.
-//!    - Otherwise, prefix the cell with an apostrophe (`'`). In spreadsheet applications,
-//!      a leading apostrophe acts as a text prefix marker, instructing the spreadsheet
-//!      to treat the entire cell content strictly as literal text without evaluating formulas.
-//! 3. Standard RFC 4180 CSV escaping (double-quote wrapping and doubling internal quotes `""`)
-//!    is subsequently applied to ensure file integrity.
+//! CSV writer: one flat table per report variant; cell safety lives in `csv_sanitize`.
 
-use super::constants::REPORT_COLUMN_HEADERS;
-use super::rows::flatten_report;
-use crate::cli::formatters::ReportTreeDto;
-
-/// Characters that trigger formula execution in spreadsheet software.
-const FORMULA_TRIGGERS: [char; 4] = ['=', '+', '-', '@'];
-
-/// Checks whether a character is whitespace or an ASCII/Unicode control character.
-pub fn is_whitespace_or_control(c: char) -> bool {
-    c.is_whitespace() || c.is_control()
-}
-
-/// Checks whether a string represents a valid numeric literal (integer or float).
-///
-/// Legitimate numbers (e.g. "123", "-123", "+123", "-123.45", "0.5") are safe
-/// in spreadsheets and must not be neutralized with an apostrophe.
-pub fn is_numeric_value(s: &str) -> bool {
-    let trimmed = s.trim();
-    if trimmed.is_empty() {
-        return false;
-    }
-
-    let Ok(num) = trimmed.parse::<f64>() else {
-        return false;
-    };
-
-    // Disallow NaN and Infinities which are not safe spreadsheet numbers
-    let lower = trimmed.to_ascii_lowercase();
-    num.is_finite() && !lower.contains("nan") && !lower.contains("inf")
-}
-
-/// Neutralizes CSV formula injection (CWE-1236) by prefixing potentially dangerous
-/// cell values with a single quote (`'`).
-///
-/// If a value's first non-whitespace, non-control character is `=`, `+`, `-`, or `@`,
-/// and the value does not parse as a legitimate number, an apostrophe (`'`) is prepended.
-pub fn sanitize_csv_formula(val: &str) -> String {
-    let Some(c) = val.chars().find(|c| !is_whitespace_or_control(*c)) else {
-        return val.to_string();
-    };
-
-    if !FORMULA_TRIGGERS.contains(&c) || is_numeric_value(val) {
-        return val.to_string();
-    }
-
-    format!("'{val}")
-}
-
-/// Neutralizes formula injection and escapes internal double quotes per RFC 4180.
-pub fn sanitize_csv(val: &str) -> String {
-    let neutralized = sanitize_csv_formula(val);
-    neutralized.replace('"', "\"\"")
-}
-
+use super::constants::{
+    CSV_FULL_HEADERS, CSV_SUMMARY_HEADERS, ERR_CSV_WRITE_BOM, ERR_CSV_WRITE_ROW,
+};
+use super::csv_records::{full_records, summary_records, Record};
+use super::options::{CsvDelimiter, CsvOptions};
 use super::sink_io_error;
 use crate::cli::error::CliError;
+use crate::types::{ReportDocument, ReportVariant};
+use std::borrow::Cow;
 use std::io::Write;
 
-pub fn write_csv<W: Write>(tree: &ReportTreeDto, mut writer: W) -> Result<(), CliError> {
-    writeln!(writer, "{}", REPORT_COLUMN_HEADERS.join(","))
-        .map_err(|e| sink_io_error("Failed to write CSV header", e))?;
-    for row in flatten_report(tree)? {
-        let p_name = sanitize_csv(&row.project_name);
-        let t_name = sanitize_csv(&row.task_name);
-        let s_name = row
-            .subtask_name
-            .as_deref()
-            .map(sanitize_csv)
-            .unwrap_or_default();
-        let d_fmt = sanitize_csv(&row.duration_formatted);
-        writeln!(
-            writer,
-            "\"{}\",\"{}\",\"{}\",{},\"{}\",{:.1}",
-            p_name, t_name, s_name, row.duration_seconds, d_fmt, row.percentage,
-        )
-        .map_err(|e| sink_io_error("Failed to write CSV row", e))?;
+const UTF8_BOM: [u8; 3] = [0xEF, 0xBB, 0xBF];
+const RECORD_TERMINATOR: char = '\n';
+
+/// Quotes a cell only when the delimiter, a quote or a line break would otherwise corrupt the row.
+pub fn escape_csv_field(value: &str, delimiter: CsvDelimiter) -> Cow<'_, str> {
+    if !value.contains([delimiter.as_char(), '"', '\n', '\r']) {
+        return Cow::Borrowed(value);
+    }
+    Cow::Owned(format!("\"{}\"", value.replace('"', "\"\"")))
+}
+
+/// One flat table: the `summary` variant lists tasks, the `full` variant lists entries.
+pub fn write_csv<W: Write>(
+    document: &ReportDocument,
+    options: CsvOptions,
+    mut writer: W,
+) -> Result<(), CliError> {
+    if options.bom {
+        writer
+            .write_all(&UTF8_BOM)
+            .map_err(|e| sink_io_error(ERR_CSV_WRITE_BOM, e))?;
+    }
+    let (headers, records) = match document.variant {
+        ReportVariant::Summary => (header(&CSV_SUMMARY_HEADERS), summary_records(document)),
+        ReportVariant::Full => (header(&CSV_FULL_HEADERS), full_records(document)),
+    };
+    write_record(&mut writer, &headers, options.delimiter)?;
+    for record in &records {
+        write_record(&mut writer, record, options.delimiter)?;
     }
     Ok(())
 }
 
-pub fn export_csv(tree: &ReportTreeDto) -> Result<String, CliError> {
-    let mut buffer = Vec::new();
-    write_csv(tree, &mut buffer)?;
-    String::from_utf8(buffer).map_err(|e| sink_io_error("Failed to decode UTF-8 CSV", e))
+fn header(columns: &[&str]) -> Record {
+    columns.iter().map(|column| column.to_string()).collect()
 }
 
-#[cfg(test)]
-#[path = "../../../tests/unit/cli/csv_test.rs"]
-mod csv_test;
+fn write_record<W: Write>(
+    writer: &mut W,
+    record: &[String],
+    delimiter: CsvDelimiter,
+) -> Result<(), CliError> {
+    let separator = delimiter.as_char().to_string();
+    let mut line = record
+        .iter()
+        .map(|cell| escape_csv_field(cell, delimiter))
+        .collect::<Vec<_>>()
+        .join(&separator);
+    line.push(RECORD_TERMINATOR);
+    writer
+        .write_all(line.as_bytes())
+        .map_err(|e| sink_io_error(ERR_CSV_WRITE_ROW, e))
+}

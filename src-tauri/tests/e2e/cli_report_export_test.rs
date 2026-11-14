@@ -45,7 +45,7 @@ fn test_given_the_binary_when_report_csv_goes_to_stdout_then_stdout_is_exactly_t
     assert!(output.status.success(), "{}", stderr_of(&output));
     assert!(output.stderr.is_empty(), "{}", stderr_of(&output));
     let csv = String::from_utf8(output.stdout).expect("csv is UTF-8");
-    assert!(csv.starts_with("Project,Task,Subtask,"), "{csv}");
+    assert!(csv.starts_with("entryId,projectId,projectName,"), "{csv}");
     assert!(csv.contains("Export Task"));
     assert!(csv.ends_with('\n') && !csv.ends_with("\n\n"), "{csv:?}");
 }
@@ -175,5 +175,83 @@ fn test_given_the_binary_when_the_removed_report_forms_are_used_then_exits_2() {
         // Then
         assert_eq!(output.status.code(), Some(2), "{args:?}");
         assert!(output.stdout.is_empty(), "{args:?}");
+    }
+}
+
+#[test]
+fn test_given_the_binary_when_summary_csv_goes_to_stdout_then_it_lists_one_row_per_task() {
+    // Given
+    let env = seeded_env("oxy_report_csv_summary");
+
+    // When
+    let output = run(
+        &env,
+        &[
+            "report",
+            "--format",
+            "csv",
+            "--variant",
+            "summary",
+            "-o",
+            "-",
+        ],
+    );
+
+    // Then
+    assert!(output.status.success(), "{}", stderr_of(&output));
+    assert!(output.stderr.is_empty(), "{}", stderr_of(&output));
+    let csv = String::from_utf8(output.stdout).expect("csv is UTF-8");
+    let lines: Vec<&str> = csv.lines().collect();
+    assert_eq!(lines.len(), 2, "{csv}");
+    assert!(lines[0].starts_with("projectId,projectName,taskId,taskName,parentTaskId,"));
+    assert!(lines[1].contains(",Export Project,"));
+    assert!(lines[1].contains(",Export Task,,2700,2700,0.75,10000,"));
+}
+
+#[test]
+fn test_given_the_binary_when_csv_runs_with_bom_and_semicolon_then_stdout_starts_with_the_bom() {
+    // Given
+    let env = seeded_env("oxy_report_csv_bom");
+
+    // When
+    let output = run(
+        &env,
+        &[
+            "report",
+            "-f",
+            "csv",
+            "--csv-delimiter",
+            ";",
+            "--bom",
+            "-o",
+            "-",
+        ],
+    );
+
+    // Then
+    assert!(output.status.success(), "{}", stderr_of(&output));
+    assert_eq!(&output.stdout[..3], &[0xEF, 0xBB, 0xBF]);
+    let csv = String::from_utf8(output.stdout[3..].to_vec()).expect("csv is UTF-8");
+    assert!(csv.starts_with("entryId;projectId;projectName;"), "{csv}");
+}
+
+#[test]
+fn test_given_the_binary_when_csv_options_are_invalid_then_exits_2_without_writing_stdout() {
+    // Given
+    let env = seeded_env("oxy_report_csv_option_errors");
+    let rejected: [&[&str]; 3] = [
+        &["report", "-f", "csv", "--csv-delimiter", "|", "-o", "-"],
+        &["report", "--format", "json", "--bom", "-o", "-"],
+        &["report", "-f", "xlsx", "--csv-delimiter", ";", "-o", "-"],
+    ];
+
+    for args in rejected {
+        // When
+        let output = run(&env, args);
+
+        // Then
+        assert_eq!(output.status.code(), Some(2), "{args:?}");
+        assert!(output.stdout.is_empty(), "{args:?}");
+        assert!(stderr_of(&output).contains("--"), "{args:?}");
     }
 }

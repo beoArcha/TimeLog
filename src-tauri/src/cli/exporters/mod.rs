@@ -1,10 +1,13 @@
 pub mod constants;
 pub mod csv;
+mod csv_records;
+pub mod csv_sanitize;
 pub mod html;
 pub mod json;
 pub mod json_schema;
 pub mod jsonl;
 pub mod ods;
+pub mod options;
 pub mod registry;
 pub mod rows;
 pub mod schema;
@@ -15,11 +18,13 @@ pub use self::constants::{
     ERR_UNSUPPORTED_SCHEMA_VERSION, MSG_EXPORT_SUCCESS, MSG_NO_REPORT_DATA,
     MSG_SCHEMA_EXPORT_SUCCESS, REPORT_COLUMN_HEADERS, REPORT_TOTAL_LABEL, REPORT_WORKSHEET_NAME,
 };
-pub use self::csv::{export_csv, sanitize_csv, sanitize_csv_formula, write_csv};
+pub use self::csv::{escape_csv_field, write_csv};
+pub use self::csv_sanitize::sanitize_csv_formula;
 pub use self::html::{escape_html, export_html, write_html};
 pub use self::json::{export_json, write_json};
 pub use self::json_schema::{envelope_json_schema, report_json_schema};
 pub use self::ods::{export_ods, write_ods};
+pub use self::options::{CsvDelimiter, CsvOptions, ExportOptions};
 pub use self::registry::{
     format_name, format_spec, registry, variant_name, DocumentWriter, FormatGroup, FormatSpec,
 };
@@ -42,9 +47,18 @@ pub(crate) fn sink_io_error(context: &str, error: impl std::fmt::Display) -> Cli
 pub fn export_to_writer<W: Write>(
     document: &ReportDocument,
     format: ExportFormat,
+    writer: W,
+) -> Result<(), CliError> {
+    export_to_writer_with_options(document, format, &ExportOptions::default(), writer)
+}
+
+pub fn export_to_writer_with_options<W: Write>(
+    document: &ReportDocument,
+    format: ExportFormat,
+    options: &ExportOptions,
     mut writer: W,
 ) -> Result<(), CliError> {
-    (format_spec(format)?.writer)(document, &mut writer)
+    (format_spec(format)?.writer)(document, options, &mut writer)
 }
 
 /// Renders the document in memory, for stdout where no file is involved.
@@ -52,8 +66,16 @@ pub fn export_to_bytes(
     document: &ReportDocument,
     format: ExportFormat,
 ) -> Result<Vec<u8>, CliError> {
+    export_to_bytes_with_options(document, format, &ExportOptions::default())
+}
+
+pub fn export_to_bytes_with_options(
+    document: &ReportDocument,
+    format: ExportFormat,
+    options: &ExportOptions,
+) -> Result<Vec<u8>, CliError> {
     let mut buffer = Vec::new();
-    export_to_writer(document, format, &mut buffer)?;
+    export_to_writer_with_options(document, format, options, &mut buffer)?;
     Ok(buffer)
 }
 
@@ -150,7 +172,16 @@ pub fn export_to_file(
     format: ExportFormat,
     output_path: &str,
 ) -> Result<(), CliError> {
+    export_to_file_with_options(document, format, &ExportOptions::default(), output_path)
+}
+
+pub fn export_to_file_with_options(
+    document: &ReportDocument,
+    format: ExportFormat,
+    options: &ExportOptions,
+    output_path: &str,
+) -> Result<(), CliError> {
     atomic_write_to_file(output_path, |writer| {
-        export_to_writer(document, format, writer)
+        export_to_writer_with_options(document, format, options, writer)
     })
 }

@@ -92,3 +92,37 @@ fn test_given_removed_report_forms_when_parsing_then_rejects_them() {
         assert!(parsed.is_err(), "{argv:?}");
     }
 }
+
+#[test]
+fn test_given_bare_report_when_parsing_then_csv_options_are_unset() {
+    // Arrange
+    let argv = ["oxy", "report", "--format", "csv"];
+
+    // Act
+    let report = parse_report(&argv);
+
+    // Assert
+    assert_eq!(report.csv_delimiter, None);
+    assert!(!report.bom);
+}
+
+#[test]
+fn test_given_csv_delimiter_and_bom_flags_when_parsing_report_then_binds_them() {
+    // Arrange
+    let argv = [
+        "oxy",
+        "report",
+        "--format",
+        "csv",
+        "--csv-delimiter",
+        ";",
+        "--bom",
+    ];
+
+    // Act
+    let report = parse_report(&argv);
+
+    // Assert
+    assert_eq!(report.csv_delimiter.as_deref(), Some(";"));
+    assert!(report.bom);
+}

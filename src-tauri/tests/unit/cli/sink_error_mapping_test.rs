@@ -1,6 +1,6 @@
 use crate::shared::report_document_builders::a_document;
 use oxyflow_timelog::cli::error::{CliErrorCode, CliErrorEnvelope, SinkError};
-use oxyflow_timelog::cli::exporters::{export_csv, export_to_file, flatten_report};
+use oxyflow_timelog::cli::exporters::{export_to_file, flatten_report};
 use oxyflow_timelog::cli::formatters::{
     ReportProjectDto, ReportSubtaskDto, ReportTaskDto, ReportTreeDto,
 };
@@ -205,7 +205,7 @@ fn test_given_export_to_file_when_filesystem_write_fails_then_returns_sink_io_er
 }
 
 #[test]
-fn test_given_domain_time_anomaly_when_exporting_then_returns_sink_serialization_error() {
+fn test_given_domain_time_anomaly_when_flattening_report_then_returns_sink_serialization_error() {
     // Arrange: Invariant violation: task duration (1000s) < subtask duration (2000s)
     let invalid_tree = ReportTreeDto {
         period: "Anomaly Sprint".to_string(),
@@ -244,16 +244,7 @@ fn test_given_domain_time_anomaly_when_exporting_then_returns_sink_serialization
     );
     assert_eq!(cli_err_from_rows.exit_code(), 1);
 
-    // Act 2: Exporter export_csv propagates it as CliError::Sink(SinkError::Serialization)
-    let export_result = export_csv(&invalid_tree);
-
-    // Assert
-    assert!(export_result.is_err());
-    let err = export_result.unwrap_err();
-    assert_eq!(err.error_code(), CliErrorCode::SnkSerialization);
-    assert_eq!(err.exit_code(), 1);
-
-    match err {
+    match cli_err_from_rows {
         CliError::Sink(SinkError::Serialization(msg)) => {
             assert!(msg.contains("exceeds parent task duration"));
         }

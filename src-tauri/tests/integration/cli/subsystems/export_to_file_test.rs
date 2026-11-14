@@ -23,7 +23,7 @@ fn test_given_destination_when_export_to_file_then_writes_file_and_creates_paren
 
 #[test]
 fn test_given_csv_format_when_export_to_file_then_writes_valid_csv_file() {
-    let document = create_sample_document(ReportVariant::Full);
+    let document = create_sample_document(ReportVariant::Summary);
     let temp_dir = tempfile::tempdir().expect("create temp dir");
     let target_file = temp_dir.path().join("report.csv");
     let target_path_str = target_file.to_str().unwrap();
@@ -33,9 +33,7 @@ fn test_given_csv_format_when_export_to_file_then_writes_valid_csv_file() {
     assert!(res.is_ok());
     assert!(target_file.exists());
     let content = fs::read_to_string(&target_file).expect("failed to read file");
-    assert!(
-        content.starts_with("Project,Task,Subtask,Duration_Seconds,Duration_Formatted,Percentage")
-    );
+    assert!(content.starts_with("projectId,projectName,taskId,"));
     assert!(content.contains("\"API \"\"Service\"\"\""));
 }
 
