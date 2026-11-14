@@ -230,3 +230,5 @@ pub const ERR_VARIANT_FLAG: &str = "--variant";
 pub const ERR_FORMAT_FLAG: &str = "--format";
 
 pub const EXPORT_STDOUT_TARGET: &str = "-";
+
+pub const JSONL_WRITE_FAILED: &str = "Failed to write JSONL report";

@@ -2,6 +2,9 @@ use crate::shared::builders::{ProjectBuilder, TaskBuilder};
 use crate::shared::test_db::setup_persistence_test;
 use calamine::{Reader, Xlsx};
 use clap::Parser;
+use oxyflow_timelog::cli::handlers::report_handler;
+use oxyflow_timelog::cli::parser::CliCommand;
+use oxyflow_timelog::cli::shared::output::CliOutput;
 use oxyflow_timelog::cli::{handle_cli, CliArgs};
 use oxyflow_timelog::engine::Engine;
 use oxyflow_timelog::persistence::Persistence;
@@ -108,6 +111,69 @@ fn test_given_logged_work_when_exporting_to_json_then_generates_valid_json_repor
     assert_eq!(document.projects.len(), 1);
     assert_eq!(document.projects[0].name, "Export System");
     assert_eq!(document.totals.seconds, 7200);
+}
+
+#[test]
+fn test_given_logged_work_when_exporting_to_jsonl_then_writes_header_and_entry_lines_to_file() {
+    let (persistence, _conn, _temp) = setup_dataset("test_reports_export_jsonl");
+    let engine = Engine::new(&persistence);
+    let temp_dir = tempfile::tempdir().expect("create temp dir");
+    let output_file = temp_dir.path().join("report.jsonl");
+    let output_path = output_file.to_str().unwrap();
+
+    let args =
+        CliArgs::try_parse_from(["oxy", "report", "-f", "jsonl", "-o", output_path]).unwrap();
+
+    let result = handle_cli(args, &persistence, &engine);
+
+    assert!(result.is_ok());
+    let content = fs::read_to_string(&output_file).expect("failed to read exported JSONL");
+    let lines: Vec<serde_json::Value> = content
+        .lines()
+        .map(|line| serde_json::from_str(line).expect("every line is JSON"))
+        .collect();
+    assert_eq!(lines.len(), 2);
+    assert_eq!(lines[0]["type"], "header");
+    assert_eq!(lines[0]["totals"]["seconds"], 7200);
+    assert_eq!(lines[1]["type"], "entry");
+    assert_eq!(lines[1]["projectName"], "Export System");
+    assert_eq!(lines[1]["seconds"], 7200);
+}
+
+#[test]
+fn test_given_logged_work_when_reporting_jsonl_to_stdout_then_output_is_the_jsonl_stream() {
+    let (persistence, _conn, _temp) = setup_dataset("test_reports_export_jsonl_stdout");
+    let engine = Engine::new(&persistence);
+
+    let args = CliArgs::try_parse_from(["oxy", "report", "-f", "jsonl", "-o", "-"]).unwrap();
+    let report_args = match args.command {
+        Some(CliCommand::Report(report)) => report,
+        other => panic!("expected a report command, got {other:?}"),
+    };
+
+    let output = report_handler::handle(
+        report_args,
+        false,
+        false,
+        false,
+        &persistence,
+        &engine,
+        None,
+    )
+    .expect("jsonl to stdout");
+
+    let CliOutput::Bytes(bytes) = output else {
+        panic!("expected the raw export bytes for -o -");
+    };
+    let text = String::from_utf8(bytes).expect("JSONL is UTF-8");
+    assert!(text.ends_with('\n'));
+    let lines: Vec<serde_json::Value> = text
+        .lines()
+        .map(|line| serde_json::from_str(line).expect("every line is JSON"))
+        .collect();
+    assert_eq!(lines.len(), 2);
+    assert_eq!(lines[0]["type"], "header");
+    assert_eq!(lines[1]["type"], "entry");
 }
 
 #[test]
