@@ -15,7 +15,7 @@ use std::io::Write;
 const ALL_VARIANTS: &[ReportVariantArg] = &[ReportVariantArg::Full, ReportVariantArg::Summary];
 
 /// `Data` formats carry the figures for programs and spreadsheets (Phase 22), `Human` formats are
-/// laid-out reports for people (Phase 23).
+/// laid-out reports for people (Phase 29).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FormatGroup {
     Data,

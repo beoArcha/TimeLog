@@ -1,4 +1,4 @@
-// TODO: Remove this adapter once every exporter consumes ReportDocument directly (Phase 22, Group B).
+// TODO: Remove this adapter once every exporter consumes ReportDocument directly (Phase 24, CLIX-12).
 
 use super::constants::{
     PERIOD_LABEL_ALL, PERIOD_LABEL_CUSTOM, PERIOD_LABEL_LAST_MONTH, PERIOD_LABEL_LAST_WEEK,

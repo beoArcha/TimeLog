@@ -1,6 +1,6 @@
 # UI/UX Flow Audit — Consolidated Backlog (browser / PWA runtime)
 
-Status: scheduled as the UI/UX Flow Program, Phases 38–41 of the [roadmap](../../manifesto/MASTERMAP.md#uiux-flow-program--browser--pwa-runtime-phases-3841), which sets the order of the packages below. FLOW-05 part 1 was delivered in PR #142. The owner decisions D1–D4 were answered on 2026-11-14 (see below).
+Status: scheduled as the UI half of the Stabilization & Flow Program, Phases 23–28 of the [roadmap](../../manifesto/MASTERMAP.md#stabilization--flow-program--cli-and-ui-phases-2328), together with the [CLI review](../cli-review-2026-11/README.md) packages; the roadmap sets the order. Wave 1 and the FLOW-05 follow-ups are in Phase 23, Wave 2 in Phase 24, Wave 3 in Phase 25 and Wave 4 in Phase 28. FLOW-05 part 1 was delivered in PR #142. The owner decisions D1–D4 were answered on 2026-11-14 (see below).
 
 - Date: 2026-11-13/14, audited at `main` 0c0e67e4.
 - Scope: Tasks, Reports, Settings, Backup, Manual, Credits and the app shell in the browser runtime. Tabs absent from the browser (`db`, `cli`) are excluded by owner decision.
